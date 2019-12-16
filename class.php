@@ -126,6 +126,8 @@ class TwitchVOD {
 
 	public $duration = null;
 
+	public $game_offset = null;
+
 	// public function __constructor(){
 
 	//}
@@ -140,20 +142,6 @@ class TwitchVOD {
 		$data = file_get_contents($filename);
 		$this->json = json_decode($data, true);
 
-		$this->filename = $filename;
-		// $this->filesize = filesize($filename);
-		$this->basename = basename($filename, '.json');
-
-		$this->segments = $this->json['segments'];
-		$this->games = $this->json['games'];
-
-		$this->streamer_name = $this->json['meta']['data'][0]['user_name'];
-		$this->streamer_id = TwitchConfig::getChannelId( $this->streamer_name );
-
-		$this->twitch_vod_id 	= $this->json['twitch_vod_id'];
-		$this->twitch_vod_url 	= $this->json['twitch_vod_url'];	
-		$this->duration 		= $this->json['duration'];	
-
 		if( $this->json['started_at'] ){
 			$this->started_at = DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['started_at'] );
 		}
@@ -161,6 +149,21 @@ class TwitchVOD {
 		if( $this->json['ended_at'] ){
 			$this->ended_at = DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['ended_at'] );
 		}
+
+		$this->filename = $filename;
+		// $this->filesize = filesize($filename);
+		$this->basename = basename($filename, '.json');
+
+		$this->segments = $this->json['segments'];
+		
+		$this->parseGames($this->json['games']);
+
+		$this->streamer_name = $this->json['meta']['data'][0]['user_name'];
+		$this->streamer_id = TwitchConfig::getChannelId( $this->streamer_name );
+
+		$this->twitch_vod_id 	= $this->json['twitch_vod_id'];
+		$this->twitch_vod_url 	= $this->json['twitch_vod_url'];	
+		$this->duration 		= $this->json['duration'];	
 
 	}
 
@@ -260,6 +263,48 @@ class TwitchVOD {
 		file_put_contents($this->filename, json_encode($generated));
 
 		return $generated;
+
+	}
+
+	private function parseGames( $array ){
+
+		$games = [];
+
+		foreach ($this->json['games'] as $game) {
+			
+			$entry = $game;
+
+			$entry['datetime'] = DateTime::createFromFormat(TwitchConfig::$date_format, $entry['time'] );
+
+			if($this->started_at){
+				$entry['offset'] = $entry['datetime']->getTimestamp() - $this->started_at->getTimestamp();
+			}
+
+			$games[] = $entry;
+
+		}
+
+		$i = 0;
+
+		foreach ($games as $game) {
+			
+			if($games[$i+1]){
+				$games[$i]['duration'] = $games[$i+1]['datetime']->getTimestamp() - $game['datetime']->getTimestamp();
+			}
+
+			if($i == 0){
+				$this->game_offset = $game['offset'];
+			}
+
+			if($i == sizeof($games)-1 && $this->ended_at){
+				$games[$i]['duration'] = $this->ended_at->getTimestamp() - $game['datetime']->getTimestamp();
+			}
+
+			$i++;
+
+		}
+
+		$this->games = $games;
 
 	}
 
