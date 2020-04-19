@@ -30,9 +30,12 @@ foreach ($vodclass->games as $c) {
 	// $time = $json['duration'];
     // $timeInSeconds = strtotime($time) - strtotime('TODAY');
 
-	// $proc = ( $offset / $timeInSeconds ) * 1000;
+	$proc = ( $vodclass->duration / $c['duration'] ) * 100;
 
-	echo '<span class="video-chapter" onclick="scrub(' . $c['offset'] . ', ' . $c['duration'] . ');">' . $c['game_name'] . '</span><br>';
+	echo '<div title="' . $c['title'] . ' | ' . $c['game_name'] . '" class="video-chapter" style="width: ' . $proc . '%" onclick="scrub(' . $c['offset'] . ', ' . $c['duration'] . ');">';
+		echo '<div class="video-chapter-title">' . $c['title'] . '</div>';
+		echo '<div class="video-chapter-game">' . $c['game_name'] . '</div>';
+	echo '</div>';
 }
 
 echo '</div>';

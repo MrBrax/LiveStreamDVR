@@ -1,0 +1,134 @@
+* { box-size: border-size; }
+
+body {
+	background: #fdfdfd;
+	font: 14px Roboto, Arial;
+}
+
+table {
+	font: 14px Roboto, Arial;
+}
+
+td {
+	padding: 2px 4px
+}
+
+h1, h2, h3 {
+	padding: 0;
+	margin: 0 0 10px 0;
+}
+
+h1 { font-size: 200%; }
+h2 { font-size: 150%; }
+h3 { font-size: 125%; }
+
+.video {
+	padding: 10px;
+	background: #f2f2f2;
+	margin-bottom: 10px;
+	border-bottom: 1px solid #eee;
+}
+
+.video.saved { background: rgb(207, 255, 207); }
+.video.recording { background: #d0fdd0; }
+
+.button {
+	display: inline-block;
+	font: inherit;
+	padding: 4px 15px;
+	color: #222;
+	background: #eee;
+	border: 1px solid #999;
+	text-decoration: none;
+	border-radius: 3px;
+	box-shadow: 0 2px 3px rgba(0, 0, 0, .2), inset 0 -3px 0 rgba(0, 0, 0, .1);
+	transition: 0.05s all ease-in-out;
+}
+
+.button:hover {
+	color: #111;
+	background: #ddd;
+	cursor: pointer;
+	transform: scale(1.02);
+}
+
+.button:active {
+	background: #aaa;
+}
+
+.input {
+
+	border: 1px solid #ccc;
+	padding: 10px;
+
+	font: inherit;
+
+}
+
+.error { color: #f00; }
+
+.video-description { }
+.video-controls { margin: 10px 0; }
+
+.video-player { width: 1920px; }
+.video-chapters { display: flex; width: 100%; }
+.video-chapter {
+	font-family: 'Roboto Condensed';
+	padding: 5px;
+	background: #eee;
+	border-right: 1px solid #aaa;
+	flex-shrink: 1;
+	flex-grow: 1;
+}
+.video-chapter:hover {
+	background: #D3EAFA;
+	cursor: pointer;
+}
+.video-chapter-game { font-size: 90%; }
+
+.section {
+	/* border: 1px solid #ccc; */
+	background: #fff;
+	box-shadow: 0 5px 10px #ddd;
+	margin: 10px;
+	border-radius: 5px;
+	overflow: hidden;
+}
+
+.section-title {
+	font-weight: 700;
+	background: #277dec;
+	color: #fff;
+	padding: 5px 10px;
+}
+
+.section-title h1 {
+	margin: 0;
+	text-shadow: 0 2px 2px rgba(0, 0, 0, .2);
+}
+
+.section-content {
+	padding: 10px;
+}
+
+.container {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.container .section {
+	flex-grow: 1;
+}
+
+.section .streamer {
+	margin-bottom: 20px;
+}
+
+.game-list {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.game-list tr:nth-child(2n) {
+	background: rgba(0, 0, 0, .05);
+}

@@ -5,32 +5,50 @@ ini_set('memory_limit','1024M');
 
 require __DIR__ . '/vendor/autoload.php';
 
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-$dotenv->load();
+// $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+// $dotenv->load();
 
 class TwitchConfig {
 
-	public static $streamers = [
-		'xQcOW', 'sodapoppin', 'xqcisoffline', 'redvox'
-	];
+	private $config = [];
 
-	public static $stream_match = [
-		'sodapoppin' => ['media share', 'media', 'sellout', 'christmas', 'xmas', 'package', 'opening', 'mail', 'donate', 'refunds', 'irl', 'gift']
-	];
+	public function loadConfig(){
+		$this->config = json_decode( file_get_contents("config.json") );
+	}
 
-	public static $date_format 	= "Y-m-d\TH:i:s\Z";
+	function __constructor(){
+		$this->loadConfig();
+	}
+
+	public function cfg( $var, $def = null ){
+		return $this->config[$var] ?: $def;
+	}
+
+}
+
+$TwitchConfig = new TwitchConfig();
+
+class TwitchHelper {
+
+	public static $accessToken;
 
 	public static function cfg( $var, $def = null ){
 		return getenv( $var, $def );
 	}
 
-	public static function getAccessToken(){
+	public static function getAccessToken( $force = false ){
+
+		if( !$force && self::$accessToken ){
+			return self::$accessToken;
+		}
+
+		global $TwitchConfig;
 
 		// oauth2
 		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, 'https://id.twitch.tv/oauth2/token?client_id=' . self::cfg('APP_CLIENT_ID') . '&client_secret=' . self::cfg('APP_SECRET') . '&grant_type=client_credentials');
+		curl_setopt($ch, CURLOPT_URL, 'https://id.twitch.tv/oauth2/token?client_id=' . $TwitchConfig->cfg('api_client_id') . '&client_secret=' . $TwitchConfig->cfg('api_secret') . '&grant_type=client_credentials');
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
-			'Client-ID: ' . self::cfg('APP_CLIENT_ID')
+			'Client-ID: ' . $TwitchConfig->cfg('api_client_id')
 		]);
 		curl_setopt($ch, CURLOPT_POST, 1);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -43,11 +61,15 @@ class TwitchConfig {
 
 		$access_token = $json['access_token'];
 
+		self::$accessToken = $access_token;
+
 		return $access_token;
 
 	}
 
 	public static function getChannelId( $username ){
+
+		global $TwitchConfig;
 
 		$json_streamers = json_decode( file_get_contents('streamers.json'), true );
 
@@ -60,7 +82,7 @@ class TwitchConfig {
 		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/users?login=' . $username);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
 		    'Authorization: Bearer ' . $access_token,
-		    'Client-ID: ' . self::cfg('APP_CLIENT_ID')
+		    'Client-ID: ' . $TwitchConfig->cfg('api_client_id')
 		]);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 
@@ -83,10 +105,13 @@ class TwitchConfig {
 
 	public static function getVideos( $streamer_id ){
 
+		global $TwitchConfig;
+
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/videos?user_id=' . $streamer_id);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
-		    'Client-ID: ' . self::cfg('APP_CLIENT_ID')
+			'Authorization: Bearer ' . self::getAccessToken(),
+		    'Client-ID: ' . $TwitchConfig->cfg('api_client_id')
 		]);
 
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -159,7 +184,7 @@ class TwitchVOD {
 		$this->parseGames($this->json['games']);
 
 		$this->streamer_name = $this->json['meta']['data'][0]['user_name'];
-		$this->streamer_id = TwitchConfig::getChannelId( $this->streamer_name );
+		$this->streamer_id = TwitchHelper::getChannelId( $this->streamer_name );
 
 		$this->twitch_vod_id 	= $this->json['twitch_vod_id'];
 		$this->twitch_vod_url 	= $this->json['twitch_vod_url'];	
@@ -201,7 +226,9 @@ class TwitchVOD {
 	 */
 	public function downloadChat(){
 
-		if(!file_exists(TwitchConfig::cfg('BIN_DIR') . '/tcd')){
+		global $TwitchConfig;
+
+		if(!file_exists($TwitchConfig->cfg('bin_dir') . '/tcd')){
 			throw new Exception('tcd not found');
 			return false;
 		}
@@ -213,7 +240,7 @@ class TwitchVOD {
 
 		$chat_filename = $this->vod_path . '/' . $this->basename . '.chat';
 
-		$cmd = TwitchConfig::cfg('BIN_DIR') . '/tcd --video ' . escapeshellarg($this->twitch_vod_id) . ' --client_id ' . escapeshellarg( TwitchConfig::cfg('APP_CLIENT_ID') ) . ' --format json --output ' . escapeshellarg($chat_filename);
+		$cmd = $TwitchConfig->cfg('bin_dir') . '/tcd --video ' . escapeshellarg($this->twitch_vod_id) . ' --client_id ' . escapeshellarg( $TwitchConfig->cfg('api_client_id') ) . ' --format json --output ' . escapeshellarg($chat_filename);
 
 		$capture_output = shell_exec( $cmd );
 
@@ -223,14 +250,17 @@ class TwitchVOD {
 
 	public function matchTwitchVod(){
 
-		$channel_videos = TwitchConfig::getVideos( $this->streamer_id );
+		global $TwitchConfig;
+
+		$channel_videos = TwitchHelper::getVideos( $this->streamer_id );
 
 		$vod_id = null;
 
 		foreach ($channel_videos as $vid) {
 			
-			$video_time = DateTime::createFromFormat(TwitchConfig::cfg('DATE_FORMAT'), $vid['created_at'] );
+			$video_time = DateTime::createFromFormat( $TwitchConfig->cfg('date_format'), $vid['created_at'] );
 
+			// if within 5 minutes difference
 			if( abs( $this->started_at->getTimestamp() - $video_time->getTimestamp() ) < 300 ){
 				$this->twitch_vod_id = $vid['id'];
 				$this->twitch_vod_url = $vid['url'];
@@ -241,8 +271,9 @@ class TwitchVOD {
 
 	}
 
-	
-
+	/**
+	 * Save JSON to file, be sure to load it first!
+	 */
 	public function saveJSON(){
 
 		$generated = $this->json;
@@ -268,13 +299,15 @@ class TwitchVOD {
 
 	private function parseGames( $array ){
 
+		global $TwitchConfig;
+
 		$games = [];
 
 		foreach ($this->json['games'] as $game) {
 			
 			$entry = $game;
 
-			$entry['datetime'] = DateTime::createFromFormat(TwitchConfig::$date_format, $entry['time'] );
+			$entry['datetime'] = DateTime::createFromFormat( $TwitchConfig->cfg("date_format"), $entry['time'] );
 
 			if($this->started_at){
 				$entry['offset'] = $entry['datetime']->getTimestamp() - $this->started_at->getTimestamp();
@@ -386,7 +419,9 @@ class TwitchAutomator {
 	
 	public function notify( $body, $title, $notification_type = self::NOTIFY_GENERIC ){
 
-		$headers = "From: " . TwitchConfig::cfg('NOTIFY_FROM') . "\r\n";
+		global $TwitchConfig;
+
+		$headers = "From: " . $TwitchConfig->cfg('notify_from') . "\r\n";
 		$headers .= "Content-Type: text/html; charset=UTF-8\r\n";
 
 		$body = '<h1>' . $title . '</h1>' . $body;
@@ -419,15 +454,17 @@ class TwitchAutomator {
 
 		}
 
-		if( TwitchConfig::cfg('NOTIFY_TO') ){
-			mail(TwitchConfig::cfg('NOTIFY_TO'), TwitchConfig::cfg('APP_NAME') . ' - ' . $title, $body, $headers);
+		if( $TwitchConfig->cfg('notify_to') ){
+			mail($TwitchConfig->cfg('notify_to'), $TwitchConfig->cfg('app_name') . ' - ' . $title, $body, $headers);
 		}else{
-			file_put_contents('logs/' . date("Y-m-d.h_i_s") . '.html', $body);
+			file_put_contents('logs/' . date("Y-m-d.H_i_s") . '.html', $body);
 		}
 
 	}
 
 	public function cleanup( $streamer_name ){
+
+		global $TwitchConfig;
 
 		$vods = glob("vods/" . $streamer_name . "_*.mp4");
 
@@ -441,7 +478,7 @@ class TwitchAutomator {
 
 		$this->info[] = 'Total filesize for ' . $streamer_name . ': ' . $gb;
 
-		if( sizeof($vods) > TwitchConfig::cfg('VODS_TO_KEEP') || $gb > TwitchConfig::cfg('STORAGE_PER_STREAMER') ){
+		if( sizeof($vods) > $TwitchConfig->cfg('vods_to_keep') || $gb > $TwitchConfig->cfg('storage_per_streamer') ){
 			
 			$this->notify('', ' (cleanup: ' . $vods[0] . ', size: ' . $gb . 'GB)');
 
@@ -498,6 +535,8 @@ class TwitchAutomator {
 
 	public function getGameName( $id ){
 
+		global $TwitchConfig;
+
 		if( $id == 0 ){
 			$this->errors[] = 'Game ID is 0';
 			return false;
@@ -513,7 +552,8 @@ class TwitchAutomator {
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/games?id=' . $id);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
-		    'Client-ID: ' . TwitchConfig::cfg('APP_CLIENT_ID')
+			'Authorization: Bearer ' . TwitchHelper::getAccessToken(),
+		    'Client-ID: ' . $TwitchConfig->cfg('app_client_id')
 		]);
 
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -616,6 +656,8 @@ class TwitchAutomator {
 
 	public function download( $data, $tries = 0 ){
 
+		global $TwitchConfig;
+
 		$data_id = $data['data'][0]['id'];
 		$data_title = $data['data'][0]['title'];
 		$data_started = $data['data'][0]['started_at'];
@@ -639,6 +681,8 @@ class TwitchAutomator {
 		if( $this->stream_match[ $data_username ] ){
 
 			$match = false;
+
+			$this->notify($basename, 'Check matches for user ' . json_encode( $this->stream_match[ $data_username ] ), self::NOTIFY_GENERIC);
 
 			foreach( $this->stream_match[ $data_username ] as $m ){
 				if( strpos( strtolower($data_title), $m ) !== false ){
@@ -674,7 +718,7 @@ class TwitchAutomator {
 		// error handling if nothing got downloaded
 		if( !file_exists( $capture_filename ) ){
 
-			if( $tries >= TwitchConfig::cfg('DOWNLOAD_RETRIES') ){
+			if( $tries >= $TwitchConfig->cfg('download_retries') ){
 				$this->errors[] = 'Giving up on downloading, too many tries';
 				$this->notify($basename, 'GIVING UP, TOO MANY TRIES', self::NOTIFY_ERROR);
 				// unlink( 'vods/' . $basename . '.json' );
@@ -766,6 +810,8 @@ class TwitchAutomator {
 
 	public function capture( $data ){
 
+		global $TwitchConfig;
+
 		$data_id = $data['data'][0]['id'];
 		$data_title = $data['data'][0]['title'];
 		$data_started = $data['data'][0]['started_at'];
@@ -783,7 +829,7 @@ class TwitchAutomator {
 
 		$capture_filename = 'vods/' . $basename . '.ts';
 
-		$cmd = TwitchConfig::cfg('BIN_DIR') . '/streamlink --hls-live-restart --hls-live-edge 99999 --hls-segment-threads 5 --twitch-disable-hosting -o ' . escapeshellarg($capture_filename) . ' ' . escapeshellarg($stream_url) . ' ' . escapeshellarg( TwitchConfig::cfg('STREAM_QUALITY') );
+		$cmd = $TwitchConfig->cfg('bin_dir') . '/streamlink --hls-live-restart --hls-live-edge 99999 --hls-segment-threads 5 --twitch-disable-hosting -o ' . escapeshellarg($capture_filename) . ' ' . escapeshellarg($stream_url) . ' ' . escapeshellarg( $TwitchConfig->cfg('stream_quality') );
 
 		$this->info[] = 'Streamlink cmd: ' . $cmd;
 		
@@ -796,7 +842,7 @@ class TwitchAutomator {
 			$this->notify($basename, '410 Error', self::NOTIFY_ERROR);
 			// return false;
 			
-			$cmd = TwitchConfig::cfg('BIN_DIR') . '/youtube-dl --hls-use-mpegts --no-part -o ' . escapeshellarg($capture_filename) . ' ' . escapeshellarg($stream_url) . ' -f ' . escapeshellarg( implode('/', explode(',', TwitchConfig::cfg('STREAM_QUALITY') ) ) );
+			$cmd = $TwitchConfig->cfg('bin_dir') . '/youtube-dl --hls-use-mpegts --no-part -o ' . escapeshellarg($capture_filename) . ' ' . escapeshellarg($stream_url) . ' -f ' . escapeshellarg( implode('/', explode(',', $TwitchConfig->cfg('stream_quality') ) ) );
 
 			$this->info[] = 'Youtube-dl cmd: ' . $cmd;
 
@@ -813,6 +859,8 @@ class TwitchAutomator {
 
 	public function convert( $basename ){
 
+		global $TwitchConfig;
+
 		$capture_filename 	= 'vods/' . $basename . '.ts';
 
 		$converted_filename = 'vods/' . $basename . '.mp4';
@@ -825,7 +873,7 @@ class TwitchAutomator {
 			$int++;
 		}
 
-		$cmd = '/usr/bin/ffmpeg -i ' . escapeshellarg($capture_filename) . ' -codec copy ' . escapeshellarg($converted_filename);
+		$cmd = $TwitchConfig->cfg('ffmpeg_path') . ' -i ' . escapeshellarg($capture_filename) . ' -codec copy -bsf:a aac_adtstoasc ' . escapeshellarg($converted_filename);
 		
 		$this->info[] = 'ffmpeg cmd: ' . $cmd;
 
@@ -839,13 +887,18 @@ class TwitchAutomator {
 
 	public function sub( $streamer_name ){
 
+		global $TwitchConfig;
+
+		/**
+		 * TODO: Fix this
+		 */
 		if( ! in_array($streamer_name, TwitchConfig::$streamers) ) {
 			$this->notify('Streamer not found: ' . $streamer_name, '[' . $streamer_name . '] [subscribing error]', self::NOTIFY_ERROR);
 			throw new Exception('Streamer not found: ' . $streamer_name);
 			return false;
 		}
 
-		$streamer_id = TwitchConfig::getChannelId($streamer_name);
+		$streamer_id = TwitchHelper::getChannelId($streamer_name);
 
 		if( !$streamer_id ) {
 			$this->notify('Streamer ID not found for: ' . $streamer_name, '[' . $streamer_name . '] [subscribing error]', self::NOTIFY_ERROR);
@@ -857,10 +910,10 @@ class TwitchAutomator {
 		$method = 'POST';
 
 		$data = [
-			'hub.callback' => TwitchConfig::cfg('HOOK_CALLBACK'),
+			'hub.callback' => $TwitchConfig->cfg('hook_callback'),
 			'hub.mode' => 'subscribe',
 			'hub.topic' => 'https://api.twitch.tv/helix/streams?user_id=' . $streamer_id,
-			'hub.lease_seconds' => TwitchConfig::cfg('SUB_LEASE')
+			'hub.lease_seconds' => $TwitchConfig->cfg('sub_lease')
 		];
 
 		print_r( $data );
@@ -874,8 +927,9 @@ class TwitchAutomator {
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
 		    'Content-Type: application/json',
-		    'Content-Length: ' . strlen($data_string),
-		    'Client-ID: ' . TwitchConfig::cfg('APP_CLIENT_ID')
+			'Content-Length: ' . strlen($data_string),
+			'Authorization: Bearer ' . TwitchHelper::getAccessToken(),
+		    'Client-ID: ' . $TwitchConfig->cfg('api_client_id')
 		]);
 
 		// curl_setopt($ch, CURLOPT_HEADER, TRUE);
@@ -896,14 +950,17 @@ class TwitchAutomator {
 
 	public function getSubs(){
 
-		$access_token = TwitchConfig::getAccessToken();
+		global $TwitchConfig;
+
+		$access_token = TwitchHelper::getAccessToken();
 
 		// webhook list
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/webhooks/subscriptions');
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
-		    'Authorization: Bearer ' . $access_token,
-		    'Client-ID: ' . TwitchConfig::cfg('APP_CLIENT_ID')
+			'Authorization: Bearer ' . $access_token,
+			'Authorization: Bearer ' . TwitchHelper::getAccessToken(),
+		    'Client-ID: ' . $TwitchConfig->cfg('api_client_id')
 		]);
 		
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);

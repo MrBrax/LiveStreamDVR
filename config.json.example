@@ -1,0 +1,36 @@
+{
+    "app_name": "twitch webhook v2",
+    "api_client_id": "",
+    "api_secret": "",
+    "bin_dir": "",
+    "ffmpeg_path": "/usr/bin/ffmpeg",
+    "notify_from": "",
+    "notify_to": "",
+    "vods_to_keep": 5,
+    "hook_callback": "",
+    "sub_lease": 604800,
+    "stream_quality": "best",
+    "download_retries": 3,
+    "storage_per_streamer": 100,
+    "date_format": "Y-m-d\\TH:i:s\\Z",
+
+    "streamers": [
+        {
+            "username": "xQcOW",
+            "quality": "best"
+        },
+        {
+            "username": "sodapoppin",
+            "quality": "best",
+            "match": ["media share", "media", "sellout", "christmas", "xmas", "package", "opening", "mail", "donate", "refunds", "irl", "gift"]
+        },
+        {
+            "username": "xqcisoffline",
+            "quality": "best"
+        },
+        {
+            "username": "redvox",
+            "quality": "best"
+        }
+    ]
+}
