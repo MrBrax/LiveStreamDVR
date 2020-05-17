@@ -42,6 +42,7 @@ class TwitchHelper {
 			return self::$accessToken;
 		}
 
+		
 		global $TwitchConfig;
 
 		// oauth2
@@ -63,8 +64,19 @@ class TwitchHelper {
 
 		self::$accessToken = $access_token;
 
+		self::log("Fetched new access token");
+
 		return $access_token;
 
+	}
+
+	public static function log( $text ){
+		$filename = "logs/" . date("Y-m-d") . ".log";
+		$l = file_exists( $filename ) ? file_get_contents( $filename ) : '';
+
+		$l .= "\n" . $text;
+
+		file_put_contents($filename, $l);
 	}
 
 	public static function getChannelId( $username ){
@@ -92,7 +104,10 @@ class TwitchHelper {
 
 		$json = json_decode( $server_output, true );
 
-		if( !$json["data"] ) return false;
+		if( !$json["data"] ){
+			self::log("Failed to fetch channel id");
+			return false;
+		}
 
 		$id = $json["data"][0]["id"];
 		
@@ -123,6 +138,11 @@ class TwitchHelper {
 		// return $server_output;
 
 		$json = json_decode( $server_output, true );
+
+		if( !$json['data'] ){
+			self::log("No videos found for user id " . $streamer_id);
+			return false;
+		}
 
 		return $json['data'] ?: false;
 
@@ -268,6 +288,8 @@ class TwitchVOD {
 			}
 
 		}
+
+		TwitchHelper::log("Couldn't match vod for " + $this->basename);
 
 	}
 

@@ -19,7 +19,11 @@ h1, h2, h3 {
 }
 
 h1 { font-size: 200%; }
-h2 { font-size: 150%; }
+h2 {
+	font-size: 150%;
+	position: sticky;
+	top: 0px;
+}
 h3 { font-size: 125%; }
 
 .video {
@@ -92,7 +96,7 @@ h3 { font-size: 125%; }
 	box-shadow: 0 5px 10px #ddd;
 	margin: 10px;
 	border-radius: 5px;
-	overflow: hidden;
+	/* overflow: hidden; */
 }
 
 .section-title {
