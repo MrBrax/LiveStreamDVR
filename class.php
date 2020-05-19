@@ -10,10 +10,16 @@ require __DIR__ . '/vendor/autoload.php';
 
 class TwitchConfig {
 
-	private $config = [];
+	public $config = [];
 
 	public function loadConfig(){
-		$this->config = json_decode( file_get_contents("config.json") );
+		$config = json_decode( file_get_contents("config.json"), true );
+
+		if( $config['app_name'] ){
+			$this->config = $config;
+		}else{
+			throw new Exception("Config is empty");
+		}
 	}
 
 	function __constructor(){
@@ -24,9 +30,14 @@ class TwitchConfig {
 		return $this->config[$var] ?: $def;
 	}
 
+	public function getStreamers(){
+		return $this->cfg("streamers", []);
+	}
+
 }
 
 $TwitchConfig = new TwitchConfig();
+$TwitchConfig->loadConfig();
 
 class TwitchHelper {
 
@@ -74,6 +85,8 @@ class TwitchHelper {
 		$filename = "logs/" . date("Y-m-d") . ".log";
 		$l = file_exists( $filename ) ? file_get_contents( $filename ) : '';
 
+		$text = date("Y-m-d H:i:s") . " | " . $text;
+
 		$l .= "\n" . $text;
 
 		file_put_contents($filename, $l);
@@ -105,7 +118,7 @@ class TwitchHelper {
 		$json = json_decode( $server_output, true );
 
 		if( !$json["data"] ){
-			self::log("Failed to fetch channel id");
+			self::log("Failed to fetch channel id: " + $server_output);
 			return false;
 		}
 
@@ -914,11 +927,13 @@ class TwitchAutomator {
 		/**
 		 * TODO: Fix this
 		 */
-		if( ! in_array($streamer_name, TwitchConfig::$streamers) ) {
+		/*
+		 if( !$TwitchConfig->getStreamers()[$streamer_name] ) {
 			$this->notify('Streamer not found: ' . $streamer_name, '[' . $streamer_name . '] [subscribing error]', self::NOTIFY_ERROR);
 			throw new Exception('Streamer not found: ' . $streamer_name);
 			return false;
 		}
+		*/
 
 		$streamer_id = TwitchHelper::getChannelId($streamer_name);
 

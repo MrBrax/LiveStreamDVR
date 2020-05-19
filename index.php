@@ -44,12 +44,12 @@ if($_GET['delete']){
 
 echo '<html>';
 echo '<head>';
-	echo '<title>' . TwitchConfig::cfg('APP_NAME') . '</title>';
+	echo '<title>' . $TwitchConfig->cfg('app_name') . '</title>';
 	echo '<link href="style.css" rel="stylesheet" />';
 echo '</head>';
 echo '<body>';
 
-echo '<header><h1>' . TwitchConfig::cfg('APP_NAME') . '</h1></header>';
+echo '<header><h1>' . $TwitchConfig->cfg('app_name') . '</h1></header>';
 
 echo '<div class="container">';
 
@@ -61,13 +61,13 @@ echo '<section class="section">';
 
 		$total_size = 0;
 
-		foreach( TwitchConfig::$streamers as $streamer ){
+		foreach( $TwitchConfig->getStreamers() as $streamer ){
 
 			echo '<div class="streamer">';
 
-				echo '<h2>' . $streamer . '</h2>';
+				echo '<h2>' . $streamer['username'] . '</h2>';
 
-				$vods = glob("vods/" . $streamer . "_*.json");
+				$vods = glob("vods/" . $streamer['username'] . "_*.json");
 
 				if( count($vods) == 0 ){
 

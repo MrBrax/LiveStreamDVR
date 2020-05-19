@@ -4,12 +4,18 @@ include "class.php";
 
 $TwitchAutomator = new TwitchAutomator();
 
-foreach( TwitchConfig::$streamers as $s ){
+echo '<h1>Subbing...</h1>';
 
-	echo '<strong>Subbing to ' . $s . '...</strong>';
+$streamers = $TwitchConfig->getStreamers();
+
+foreach( $streamers as $k => $v ){
+
+	$username = $v['username'];
+
+	echo '<strong>Subbing to ' . $username . '...</strong>';
 
 	echo '<pre>';
-	$TwitchAutomator->sub( $s );
+	$TwitchAutomator->sub( $username );
 
 	echo '</pre>';
 
@@ -18,3 +24,9 @@ foreach( TwitchConfig::$streamers as $s ){
 	sleep(2);
 
 }
+
+if( count($streamers) == 0 ) echo 'No channels to subscribe to';
+
+var_dump( $TwitchConfig->$config );
+
+var_dump( $TwitchConfig->config );
