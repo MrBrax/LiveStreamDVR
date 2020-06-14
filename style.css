@@ -19,22 +19,27 @@ h1, h2, h3 {
 }
 
 h1 { font-size: 200%; }
-h2 {
-	font-size: 150%;
-	position: sticky;
-	top: 0px;
-}
+h2 { font-size: 150%; }
 h3 { font-size: 125%; }
 
 .video {
-	padding: 10px;
-	background: #f2f2f2;
 	margin-bottom: 10px;
 	border-bottom: 1px solid #eee;
 }
 
 .video.saved { background: rgb(207, 255, 207); }
 .video.recording { background: #d0fdd0; }
+
+.video-title {
+	padding: 10px;
+	background: #2b61d6;
+	color: #fff;
+}
+
+.video-title h3 {
+	margin: 0;
+	padding: 0;
+}
 
 .button {
 	display: inline-block;
@@ -71,8 +76,17 @@ h3 { font-size: 125%; }
 
 .error { color: #f00; }
 
-.video-description { }
-.video-controls { margin: 10px 0; }
+.video-description {
+	padding: 10px;
+	background: #f2f2f2;
+}
+
+.video-controls {
+	padding: 10px;
+	background-color: #e2e9f9;
+	border-top: 1px solid #d6dbf2;
+	border-bottom: 1px solid #d6dbf2;
+}
 
 .video-player { width: 1920px; }
 .video-chapters { display: flex; width: 100%; }
@@ -135,4 +149,32 @@ h3 { font-size: 125%; }
 
 .game-list tr:nth-child(2n) {
 	background: rgba(0, 0, 0, .05);
+}
+
+.streamer-title {
+	position: sticky;
+	top: 0px;
+	padding: 5px 10px;
+	background-color: rgb(230, 230, 230);
+	border-bottom: 1px solid #919191;
+	box-shadow: 0 3px 3px rgba(0,0,0,.15);
+}
+
+.streamer-title h2 { margin: 0; padding: 0; }
+
+.error {
+	color: #f00;
+}
+
+.small {
+	font-size: 90%;
+	color: #666;
+}
+
+.notice {
+	margin: 5px;
+	background: #eee;
+	border: 1px solid #ccc;
+	padding: 10px;
+	color: #555;
 }

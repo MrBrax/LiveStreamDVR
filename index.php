@@ -59,19 +59,30 @@ echo '<section class="section">';
 
 	echo '<div class="section-content">';
 
+		echo '<a href="?checkvod=1">Check if VODs exist</a><br><br>';
+
 		$total_size = 0;
 
-		foreach( $TwitchConfig->getStreamers() as $streamer ){
+		$streamerList = $TwitchConfig->getStreamers();
+
+		foreach( $streamerList as $streamer ){
+
+			$vods = glob("vods/" . $streamer['username'] . "_*.json");
 
 			echo '<div class="streamer">';
 
-				echo '<h2>' . $streamer['username'] . '</h2>';
-
-				$vods = glob("vods/" . $streamer['username'] . "_*.json");
+				echo '<div class="streamer-title">';
+					echo '<h2>' . $streamer['username'] . '</h2>';
+					echo '<span class="small">';
+						echo $streamer['quality'];
+						echo ' &middot; ';
+						echo sizeof( $vods ) . ' vods';
+					echo '</span>';
+				echo '</div>';
 
 				if( count($vods) == 0 ){
 
-					echo 'None';
+					echo '<div class="notice">None</div>';
 
 				}else{
 
@@ -87,6 +98,8 @@ echo '<section class="section">';
 
 						$vodclass = new TwitchVOD();
 						$vodclass->load($v);
+
+						$vodclass->saveLosslessCut();
 
 						// var_dump($testvod);
 
@@ -109,7 +122,7 @@ echo '<section class="section">';
 
 						echo '<div class="video ' . ($recording ? 'recording' : '') . '' . ($converted ? 'converted' : '') . '">';	
 						
-							echo '<div class="video-title"><h3>' . $vodclass->started_at->format('Y-m-d H:i:s') . '</h3></div>';
+							echo '<div class="video-title"><h3>' . $vodclass->streamer_name . ' ' . $vodclass->started_at->format('Y-m-d H:i:s') . '</h3></div>';
 
 							echo '<div class="video-description">';
 
@@ -160,7 +173,21 @@ echo '<section class="section">';
 
 									echo '<div><strong>Size:</strong> ' . round( filesize( $vod_file ) / 1024 / 1024 / 1024, 2 ) . 'GB</div>';
 
-									echo '<div><strong>Video id:</strong> <a href="' . $vodclass->twitch_vod_url . '" rel="nofollow" target="_blank">' . $vodclass->twitch_vod_id . '</a></div>';
+									echo '<div><strong>Video id:</strong> ';
+									
+									if( $vodclass->twitch_vod_url ){
+										
+										echo '<a href="' . $vodclass->twitch_vod_url . '" rel="nofollow" target="_blank">' . $vodclass->twitch_vod_id . '</a>';
+
+										if( $_GET['checkvod'] ){
+											echo $vodclass->checkValidVod() ? ' (exists)' : ' <strong class="error">(deleted)</strong>';
+										}
+
+									}else{
+										echo '<strong><em>Not matched or VOD deleted</em></strong>';
+									}
+
+									echo '</div>';
 
 									echo '<div><strong>Segments:</strong>';
 									echo '<ul>';
@@ -177,9 +204,11 @@ echo '<section class="section">';
 									
 								}
 
-								if( file_exists( $vodclass->basename . '.ts' ) ) {
-									$total_size += filesize( $vodclass->basename . '.ts' );
-									echo '<div><strong>Ongoing size:</strong> ' . round( filesize( $vodclass->basename . '.ts' ) / 1024 / 1024 / 1024, 2 ) . 'GB</div>';
+								$ongoing_file = $vodclass->vod_path . '/' . $vodclass->basename . '.ts';
+
+								if( file_exists( $ongoing_file ) ) {
+									$total_size += filesize( $ongoing_file );
+									echo '<div><strong>Ongoing size:</strong> ' . round( filesize( $ongoing_file ) / 1024 / 1024 / 1024, 2 ) . 'GB</div>';
 								}
 
 							echo '</div>';
@@ -206,6 +235,8 @@ echo '<section class="section">';
 										echo '<a class="button" href="convert.php?vod=' . $vodclass->basename . '">Convert</a>';
 									}
 
+									echo '<em>Capturing...</em>';
+
 								}
 
 							echo '</div>';
@@ -230,18 +261,27 @@ echo '<section class="section">';
 									}
 
 									echo '<tr>';
+										
+										// start timestamp
 										echo '<td>';
-
 										if( $vodclass->started_at ){
 											$diff = $game_time->diff($vodclass->started_at);
 											echo $diff->format('%H:%I:%S');
 										}else{
 											$game_time->format("Y-m-d H:i:s");
 										}
-
 										echo '</td>';
+
+										echo '<td>';
+										echo getNiceDuration($d['duration']);
+										echo '</td>';
+
+										// game name
 										echo '<td>' . ( $d['game_name'] ?: $d['game_id'] ) . '</td>';
+
+										// title
 										echo '<td>' . $d['title'] . '</td>';
+
 									echo '</tr>';
 
 								}

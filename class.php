@@ -8,6 +8,32 @@ require __DIR__ . '/vendor/autoload.php';
 // $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 // $dotenv->load();
 
+
+function getNiceDuration($durationInSeconds) {
+
+	$duration = '';
+	$days = floor($durationInSeconds / 86400);
+	$durationInSeconds -= $days * 86400;
+	$hours = floor($durationInSeconds / 3600);
+	$durationInSeconds -= $hours * 3600;
+	$minutes = floor($durationInSeconds / 60);
+	$seconds = $durationInSeconds - $minutes * 60;
+  
+	if($days > 0) {
+	  $duration .= $days . 'd';
+	}
+	if($hours > 0) {
+	  $duration .= ' ' . $hours . 'h';
+	}
+	if($minutes > 0) {
+	  $duration .= ' ' . $minutes . 'm';
+	}
+	if($seconds > 0) {
+	  $duration .= ' ' . $seconds . 's';
+	}
+	return trim($duration);
+}
+
 class TwitchConfig {
 
 	public $config = [];
@@ -43,14 +69,18 @@ class TwitchHelper {
 
 	public static $accessToken;
 
+	public static $accessTokenFile = '.oauth';
+
 	public static function cfg( $var, $def = null ){
 		return getenv( $var, $def );
 	}
 
 	public static function getAccessToken( $force = false ){
 
-		if( !$force && self::$accessToken ){
-			return self::$accessToken;
+		if( !$force && file_exists( self::$accessTokenFile ) ){
+			self::log("Fetched access token from cache");
+			return file_get_contents( self::$accessTokenFile );
+			// return self::$accessToken;
 		}
 
 		
@@ -71,9 +101,16 @@ class TwitchHelper {
 
 		$json = json_decode( $server_output, true );
 
+		if(!$json['access_token']){
+			self::log("Failed to fetch access token: " . $server_output);
+			return false;
+		}
+
 		$access_token = $json['access_token'];
 
 		self::$accessToken = $access_token;
+
+		file_put_contents( self::$accessTokenFile, $access_token );
 
 		self::log("Fetched new access token");
 
@@ -118,7 +155,7 @@ class TwitchHelper {
 		$json = json_decode( $server_output, true );
 
 		if( !$json["data"] ){
-			self::log("Failed to fetch channel id: " + $server_output);
+			self::log("Failed to fetch channel id: " . $server_output);
 			return false;
 		}
 
@@ -158,6 +195,39 @@ class TwitchHelper {
 		}
 
 		return $json['data'] ?: false;
+
+		// print_r($server_output);
+		// print_r($info);
+
+	}
+
+	public static function getVideo( $video_id ){
+
+		global $TwitchConfig;
+
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/videos?id=' . $video_id);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, [
+			'Authorization: Bearer ' . self::getAccessToken(),
+		    'Client-ID: ' . $TwitchConfig->cfg('api_client_id')
+		]);
+
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+
+		$server_output = curl_exec($ch);
+
+		curl_close($ch);
+
+		// return $server_output;
+
+		$json = json_decode( $server_output, true );
+
+		if( !$json['data'] ){
+			self::log("No video found for video id " . $video_id);
+			return null;
+		}
+
+		return $json['data'][0];
 
 		// print_r($server_output);
 		// print_r($info);
@@ -271,7 +341,7 @@ class TwitchVOD {
 			return false;
 		}
 
-		$chat_filename = $this->vod_path . '/' . $this->basename . '.chat';
+		$chat_filename = $this->vod_path . '/' . $this->basename . '.chat.json';
 
 		$cmd = $TwitchConfig->cfg('bin_dir') . '/tcd --video ' . escapeshellarg($this->twitch_vod_id) . ' --client_id ' . escapeshellarg( $TwitchConfig->cfg('api_client_id') ) . ' --format json --output ' . escapeshellarg($chat_filename);
 
@@ -302,7 +372,23 @@ class TwitchVOD {
 
 		}
 
-		TwitchHelper::log("Couldn't match vod for " + $this->basename);
+		TwitchHelper::log("Couldn't match vod for " . $this->basename);
+
+	}
+
+	public function checkValidVod(){
+
+		global $TwitchConfig;
+
+		$video = TwitchHelper::getVideo( $this->twitch_vod_id );
+
+		if( $video ){
+			return true;
+		}
+
+		return false;
+
+		// TwitchHelper::log("Couldn't match vod for " . $this->basename);
 
 	}
 
@@ -373,6 +459,32 @@ class TwitchVOD {
 		}
 
 		$this->games = $games;
+
+	}
+
+	public function saveLosslessCut(){
+
+		$data = "";
+
+		foreach( $this->games as $k => $game ){
+
+			$offset = $game['offset'];
+
+			$offset -= $this->games[0]['offset'];
+			
+			$data .= $offset . ',';
+			
+			if( $k < sizeof($this->games)-1 ){
+				$data .= ( $offset + $game['duration'] ) . ',';
+			}else{
+				$data .= ',';
+			}
+
+			$data .= $game['game_name'] ?: $game['game_id'];
+			$data .= "\n";
+		}
+
+		file_put_contents( $this->vod_path . '/' . $this->basename . '-llc-edl.csv', $data );
 
 	}
 
@@ -519,8 +631,9 @@ class TwitchAutomator {
 
 			$basename = substr( $vods[0], 0, strlen($vods[0])-4 );
 
-			unlink($basename . '.mp4');
-			unlink($basename . '.json');
+			unlink(sprintf('%s.mp4', $basename));
+			unlink(sprintf('%s.json', $basename));
+			unlink(sprintf('%s-llc-edl.csv', $basename)); // losslesscut
 			
 		}
 
@@ -588,7 +701,7 @@ class TwitchAutomator {
 		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/games?id=' . $id);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
 			'Authorization: Bearer ' . TwitchHelper::getAccessToken(),
-		    'Client-ID: ' . $TwitchConfig->cfg('app_client_id')
+		    'Client-ID: ' . $TwitchConfig->cfg('api_client_id')
 		]);
 
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -610,6 +723,8 @@ class TwitchAutomator {
 		}
 
 		$this->errors[] = 'No game found for ' . $id;
+
+		TwitchHelper::log("Couldn't match game for " . $id . " | " . $server_output );
 
 		return false;
 
@@ -680,6 +795,8 @@ class TwitchAutomator {
 		//$game_name = $this->games[$data_game_id] ?: $data_game_id;
 
 		$this->notify('', '[' . $data_username . '] [game update: ' . $game_name . ']', self::NOTIFY_GAMECHANGE);
+
+		TwitchHelper::log("Game updated on " . $data_username . " to " . $game_name);
 
 	}
 
@@ -841,6 +958,13 @@ class TwitchAutomator {
 
 		$this->notify($basename, '[' . $data_username . '] [end]', self::NOTIFY_DOWNLOAD);
 
+		/*
+
+		sleep(60 * 5);
+		$this->matchTwitchVod();
+		$this->downloadChat();
+		 */
+
 	}
 
 	public function capture( $data ){
@@ -864,7 +988,13 @@ class TwitchAutomator {
 
 		$capture_filename = 'vods/' . $basename . '.ts';
 
-		$cmd = $TwitchConfig->cfg('bin_dir') . '/streamlink --hls-live-restart --hls-live-edge 99999 --hls-segment-threads 5 --twitch-disable-hosting -o ' . escapeshellarg($capture_filename) . ' ' . escapeshellarg($stream_url) . ' ' . escapeshellarg( $TwitchConfig->cfg('stream_quality') );
+		$cmd = $TwitchConfig->cfg('bin_dir') . '/streamlink';
+		$cmd .= ' --hls-live-restart'; // start recording from start of stream, though twitch doesn't support this
+		$cmd .= ' --hls-live-edge 99999';
+		$cmd .= ' --hls-segment-threads 5';
+		$cmd .= ' --twitch-disable-hosting'; // disable channel hosting
+		$cmd .= ' -o ' . escapeshellarg($capture_filename); // output file
+		$cmd .= ' ' . escapeshellarg($stream_url) . ' ' . escapeshellarg( $TwitchConfig->cfg('stream_quality') ); // twitch url and quality
 
 		$this->info[] = 'Streamlink cmd: ' . $cmd;
 		
@@ -872,12 +1002,18 @@ class TwitchAutomator {
 
 		$this->info[] = 'Streamlink output: ' . $capture_output;
 
+		// download with youtube-dl if streamlink fails
 		if( strpos($capture_output, '410 Client Error') !== false ){
 			
 			$this->notify($basename, '410 Error', self::NOTIFY_ERROR);
 			// return false;
 			
-			$cmd = $TwitchConfig->cfg('bin_dir') . '/youtube-dl --hls-use-mpegts --no-part -o ' . escapeshellarg($capture_filename) . ' ' . escapeshellarg($stream_url) . ' -f ' . escapeshellarg( implode('/', explode(',', $TwitchConfig->cfg('stream_quality') ) ) );
+			$cmd = $TwitchConfig->cfg('bin_dir') . '/youtube-dl';
+			$cmd .= ' --hls-use-mpegts'; // use ts instead of mp4
+			$cmd .= ' --no-part';
+			$cmd .= ' -o ' . escapeshellarg($capture_filename); // output file
+			$cmd .= ' -f ' . escapeshellarg( implode('/', explode(',', $TwitchConfig->cfg('stream_quality') ) ) ); // format
+			$cmd .= ' ' . escapeshellarg($stream_url);
 
 			$this->info[] = 'Youtube-dl cmd: ' . $cmd;
 
@@ -892,6 +1028,9 @@ class TwitchAutomator {
 
 	}
 
+	/**
+	 * Mux .ts to .mp4, for better compatibility
+	 */
 	public function convert( $basename ){
 
 		global $TwitchConfig;
@@ -908,7 +1047,11 @@ class TwitchAutomator {
 			$int++;
 		}
 
-		$cmd = $TwitchConfig->cfg('ffmpeg_path') . ' -i ' . escapeshellarg($capture_filename) . ' -codec copy -bsf:a aac_adtstoasc ' . escapeshellarg($converted_filename);
+		$cmd = $TwitchConfig->cfg('ffmpeg_path');
+		$cmd .= ' -i ' . escapeshellarg($capture_filename);
+		$cmd .= ' -codec copy'; // use same codec
+		$cmd .= ' -bsf:a aac_adtstoasc'; // fix audio sync in ts
+		$cmd .= ' ' . escapeshellarg($converted_filename);
 		
 		$this->info[] = 'ffmpeg cmd: ' . $cmd;
 
