@@ -526,6 +526,8 @@ class TwitchAutomator {
 
 	public function jsonLoad(){
 
+		global $TwitchConfig;
+
 		if( !$this->data_cache ){
 			$this->errors[] = 'No JSON cache when loading';
 			return false;
@@ -533,13 +535,13 @@ class TwitchAutomator {
 
 		$basename = $this->basename( $this->data_cache );
 
-		if( !file_exists('vods/' . $basename . '.json') ){
+		if( !file_exists( $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.json') ){
 			$this->errors[] = 'No JSON file when loading';
 			$this->json = [];
 			return;
 		}
 
-		$json = json_decode( file_get_contents( 'vods/' . $basename . '.json' ), true );
+		$json = json_decode( file_get_contents( $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.json' ), true );
 
 		if(!$json || $json == null) $json = [];
 
@@ -550,6 +552,8 @@ class TwitchAutomator {
 	}
 
 	public function jsonSave(){
+		
+		global $TwitchConfig;
 
 		if( !$this->data_cache ){
 			$this->errors[] = 'No JSON cache when saving';
@@ -558,7 +562,7 @@ class TwitchAutomator {
 
 		$basename = $this->basename( $this->data_cache );
 
-		file_put_contents( 'vods/' . $basename . '.json', json_encode( $this->json ) );
+		file_put_contents( $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.json', json_encode( $this->json ) );
 
 		return true;
 
@@ -613,7 +617,7 @@ class TwitchAutomator {
 
 		global $TwitchConfig;
 
-		$vods = glob("vods/" . $streamer_name . "_*.mp4");
+		$vods = glob( $TwitchConfig->cfg('vod_folder') . "/" . $streamer_name . "_*.mp4");
 
 		$total_size = 0;
 
@@ -641,6 +645,8 @@ class TwitchAutomator {
 
 	public function handle( $data ){
 
+		global $TwitchConfig;
+
 		$data_id = $data['data'][0]['id'];
 		// $data_title = $data['data'][0]['title'];
 		// $data_started = $data['data'][0]['started_at'];
@@ -657,9 +663,9 @@ class TwitchAutomator {
 
 			$basename = $this->basename( $data );
 			
-			if( file_exists('vods/' . $basename . '.json') ){
+			if( file_exists( $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.json') ){
 
-				if( !file_exists('vods/' . $basename . '.ts') ){
+				if( !file_exists( $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.ts') ){
 
 					$this->notify($basename, 'VOD JSON EXISTS BUT NOT VIDEO', self::NOTIFY_ERROR);
 
@@ -874,7 +880,7 @@ class TwitchAutomator {
 				$this->errors[] = 'Giving up on downloading, too many tries';
 				$this->notify($basename, 'GIVING UP, TOO MANY TRIES', self::NOTIFY_ERROR);
 				// unlink( 'vods/' . $basename . '.json' );
-				rename( 'vods/' . $basename . '.json', 'vods/' . $basename . '.json.broken' );
+				rename( $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.json', $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.json.broken' );
 				throw new Exception('Too many tries');
 				return;
 			}
@@ -986,7 +992,7 @@ class TwitchAutomator {
 
 		$basename = $this->basename( $data );
 
-		$capture_filename = 'vods/' . $basename . '.ts';
+		$capture_filename = $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.ts';
 
 		$cmd = $TwitchConfig->cfg('bin_dir') . '/streamlink';
 		$cmd .= ' --hls-live-restart'; // start recording from start of stream, though twitch doesn't support this
@@ -997,6 +1003,8 @@ class TwitchAutomator {
 		$cmd .= ' ' . escapeshellarg($stream_url) . ' ' . escapeshellarg( $TwitchConfig->cfg('stream_quality') ); // twitch url and quality
 
 		$this->info[] = 'Streamlink cmd: ' . $cmd;
+
+		TwitchHelper::log("Starting capture with filename " . $basename);
 		
 		$capture_output = shell_exec( $cmd );
 
@@ -1020,6 +1028,7 @@ class TwitchAutomator {
 			$capture_output = shell_exec( $cmd );
 
 			$this->info[] = 'Youtube-dl output: ' . $capture_output;
+			
 
 			// exit(500);
 		} 
@@ -1035,15 +1044,15 @@ class TwitchAutomator {
 
 		global $TwitchConfig;
 
-		$capture_filename 	= 'vods/' . $basename . '.ts';
+		$capture_filename 	= $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.ts';
 
-		$converted_filename = 'vods/' . $basename . '.mp4';
+		$converted_filename = $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.mp4';
 
 		$int = 1;
 
 		while( file_exists( $converted_filename ) ){
 			$this->errors[] = 'File exists, making a new name';
-			$converted_filename = 'vods/' . $basename . '-' . $int . '.mp4';
+			$converted_filename = $TwitchConfig->cfg('vod_folder') . '/' . $basename . '-' . $int . '.mp4';
 			$int++;
 		}
 
@@ -1055,7 +1064,11 @@ class TwitchAutomator {
 		
 		$this->info[] = 'ffmpeg cmd: ' . $cmd;
 
+		TwitchHelper::log("Starting conversion of " . $capture_filename);
+
 		$output_convert = shell_exec( $cmd );
+
+		TwitchHelper::log("Finished conversion of " . $capture_filename);
 
 		$this->info[] = 'ffmpeg output: ' . $output_convert;
 		
@@ -1124,6 +1137,8 @@ class TwitchAutomator {
 		print_r($server_output);
 		print_r($info);
 
+		TwitchHelper::log("Subscribing to " . $streamer_name);
+
 		$this->notify($server_output, '[' . $streamer_name . '] [subscribing]', self::NOTIFY_GENERIC);
 
 	}
@@ -1132,13 +1147,10 @@ class TwitchAutomator {
 
 		global $TwitchConfig;
 
-		$access_token = TwitchHelper::getAccessToken();
-
 		// webhook list
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/webhooks/subscriptions');
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
-			'Authorization: Bearer ' . $access_token,
 			'Authorization: Bearer ' . TwitchHelper::getAccessToken(),
 		    'Client-ID: ' . $TwitchConfig->cfg('api_client_id')
 		]);

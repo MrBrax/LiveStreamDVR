@@ -10,13 +10,13 @@ if($_GET['save']){
 
 	$vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['save']);
 
-	if( !file_exists( "vods/" . $vod . '.mp4' ) ) {
+	if( !file_exists( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.mp4' ) ) {
 		echo "vod " . $vod . " not found";
 		return;
 	}
 
-	rename("vods/" . $vod . ".mp4", "vods/saved/" . $vod . ".mp4");
-	rename("vods/" . $vod . ".json", "vods/saved/" . $vod . ".json");
+	rename( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.mp4', $TwitchConfig->cfg('vod_folder') . '/saved/' . $vod . '.mp4');
+	rename( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.json', $TwitchConfig->cfg('vod_folder') . '/saved/' . $vod . '.json');
 
 	echo "saved " . $vod;
 
@@ -28,15 +28,15 @@ if($_GET['delete']){
 
 	$vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['delete']);
 
-	if( !file_exists( "vods/" . $vod . '.mp4' ) ) {
-		echo "vod " . $vod . " not found";
+	if( !file_exists( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.mp4' ) ) {
+		echo 'vod ' . $vod . ' not found';
 		return;
 	}
 
-	unlink("vods/" . $vod . ".mp4");
-	unlink("vods/" . $vod . ".json");
+	unlink( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.mp4');
+	unlink( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.json');
 
-	echo "deleted " . $vod;
+	echo 'deleted ' . $vod;
 
 	return;
 
@@ -67,7 +67,7 @@ echo '<section class="section">';
 
 		foreach( $streamerList as $streamer ){
 
-			$vods = glob("vods/" . $streamer['username'] . "_*.json");
+			$vods = glob( $TwitchConfig->cfg('vod_folder') . '/' . $streamer['username'] . "_*.json");
 
 			echo '<div class="streamer">';
 
@@ -189,6 +189,8 @@ echo '<section class="section">';
 
 									echo '</div>';
 
+									echo '<div><strong>Chat downloaded:</strong> ' . ( file_exists( $vodclass->basename . '.chat.json' ) ? 'Yes' : 'No' ) . '</div>';
+
 									echo '<div><strong>Segments:</strong>';
 									echo '<ul>';
 									foreach ($vodclass->segments as $seg) {
@@ -219,9 +221,9 @@ echo '<section class="section">';
 
 									echo '<a class="button" href="player.php?vod=' . $vodclass->basename . '">Play video</a> ';
 
-									echo '<a class="button" href="vods/' . $vodclass->basename . '.mp4">Direct link</a> ';
+									echo '<a class="button" href="' . $TwitchConfig->cfg('vod_folder') . '/' . $vodclass->basename . '.mp4">Direct link</a> ';
 
-									echo '<a class="button" href="vods/' . $vodclass->basename . '.json">JSON</a> ';
+									echo '<a class="button" href="' . $TwitchConfig->cfg('vod_folder') . '/' . $vodclass->basename . '.json">JSON</a> ';
 
 									echo '<a class="button" href="?save=' . $vodclass->basename . '">Save from deletion</a> ';
 
@@ -324,7 +326,7 @@ echo '<section class="section">';
 
 	echo '<div class="section-content">';
 
-	$vods = glob("vods/saved/*.json");
+	$vods = glob( $TwitchConfig->cfg('vod_folder') . "/saved/*.json");
 
 	foreach( $vods as $k => $v ){
 
@@ -347,7 +349,7 @@ echo '<section class="section">';
 
 			echo '<a class="button" href="player.php?saved=' . basename($basename) . '">Play video</a>';
 
-			echo '<a class="button" href="vods/saved/' . basename($basename) . '.mp4">Direct link</a>';
+			echo '<a class="button" href="' . $TwitchConfig->cfg('vod_folder') . '/saved/' . basename($basename) . '.mp4">Direct link</a>';
 
 		}
 
