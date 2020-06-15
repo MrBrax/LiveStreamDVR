@@ -27,17 +27,21 @@ h3 { font-size: 125%; }
 	border-bottom: 1px solid #eee;
 }
 
-.video.saved { background: rgb(207, 255, 207); }
-.video.recording { background: #d0fdd0; }
-
 .video-title {
 	padding: 10px;
 	background: #2b61d6;
 	color: #fff;
 }
 
+@keyframes recording {
+	0% { background-color: #ca1515; }
+	50% { background-color: #7c1717; }
+	100% { background-color: #ca1515; }
+}
+
 .video.recording .video-title {
-	background: #992121;
+	background-color: #ca1515;
+	animation: recording ease-in-out 1s infinite;
 }
 
 .video-title h3 {
@@ -92,10 +96,10 @@ h3 { font-size: 125%; }
 	border-bottom: 1px solid #d6dbf2;
 }
 
-.video-player { width: 1920px; }
+.video-player { width: 1280px; }
 .video-chapters { display: flex; width: 100%; }
 .video-chapter {
-	font-family: 'Roboto Condensed';
+	font-family: 'Roboto Condensed', 'Roboto', 'Arial';
 	padding: 5px;
 	background: #eee;
 	border-right: 1px solid #aaa;

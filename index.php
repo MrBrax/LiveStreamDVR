@@ -290,12 +290,12 @@ echo '<section class="section">';
 
 								if($vodclass->ended_at){
 									$diff = $vodclass->started_at->diff($vodclass->ended_at);
-									echo '<tr><td>' . $diff->format('%H:%I:%S') . '</td><td colspan="2"><em>END</em></td></tr>';
+									echo '<tr><td>' . $diff->format('%H:%I:%S') . '</td><td colspan="3"><em>END</em></td></tr>';
 								}else{
 
 									$diff = $vodclass->started_at->diff( new DateTime() );
 
-									echo '<tr><td>' . $diff->format('%H:%I:%S') . '</td><td colspan="2"><em><strong>ONGOING</strong></em></td></tr>';
+									echo '<tr><td>' . $diff->format('%H:%I:%S') . '</td><td colspan="3"><em><strong>ONGOING</strong></em></td></tr>';
 
 								}
 
