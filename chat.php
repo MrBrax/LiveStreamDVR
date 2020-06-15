@@ -7,7 +7,7 @@ $TwitchAutomator = new TwitchAutomator();
 $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
 
 $vodclass = new TwitchVod();
-$vodclass->load('vods/' . $vod . '.json');
+$vodclass->load( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.json');
 
 // $json = json_decode( file_get_contents("vods/" . $vod . ".json"), true );
 

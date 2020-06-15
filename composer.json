@@ -1,6 +1,5 @@
 {
     "require": {
-        "vlucas/phpdotenv": "^4.0",
         "james-heinrich/getid3": "^1.9"
     }
 }

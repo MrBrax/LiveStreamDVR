@@ -297,6 +297,8 @@ class TwitchVOD {
 		$this->twitch_vod_url 	= $this->json['twitch_vod_url'];	
 		$this->duration 		= $this->json['duration'];	
 
+		return true;
+
 	}
 
 	public function getDuration( $save = false ){

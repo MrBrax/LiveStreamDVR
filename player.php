@@ -5,13 +5,13 @@ include "class.php";
 $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
 
 $vodclass = new TwitchVOD();
-$vodclass->load('vods/' . $vod . '.json');
+$vodclass->load( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.json');
 
 echo '<link href="style.css" rel="stylesheet" />';
 
 echo '<div class="video-player">';
 
-echo '<video id="video" src="vods/' . $vod . '.mp4" controls></video>';
+echo '<video id="video" src="' . $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.mp4" controls></video>';
 
 // $started_at = DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $json['started_at'] );
 
