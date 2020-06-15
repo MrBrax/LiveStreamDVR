@@ -245,6 +245,7 @@ class TwitchVOD {
 	public $json = [];
 
 	public $streamer_name = null;
+	public $streamer_id = null;
 
 	public $segments = [];
 	public $games = [];
@@ -255,6 +256,9 @@ class TwitchVOD {
 	public $duration = null;
 
 	public $game_offset = null;
+
+	public $twitch_vod_id = null;
+	public $twitch_vod_url = null;
 
 	// public function __constructor(){
 
@@ -964,12 +968,21 @@ class TwitchAutomator {
 
 		$this->notify($basename, '[' . $data_username . '] [end]', self::NOTIFY_DOWNLOAD);
 
-		/*
 
+
+		// metadata stuff
 		sleep(60 * 5);
-		$this->matchTwitchVod();
-		$this->downloadChat();
-		 */
+
+		$vodclass = new TwitchVOD();
+		$vodclass->load( $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.json');
+
+		$vodclass->saveLosslessCut();
+		$vodclass->matchTwitchVod();
+		
+		if( $TwitchConfig->cfg('download_chat') && $vodclass->twitch_vod_id ){
+			$vodclass->downloadChat();
+		}	
+		
 
 	}
 

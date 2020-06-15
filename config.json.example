@@ -14,6 +14,7 @@
     "storage_per_streamer": 100,
     "date_format": "Y-m-d\\TH:i:s\\Z",
     "vod_folder": "vods",
+    "download_chat": false,
 
     "streamers": [
         {
