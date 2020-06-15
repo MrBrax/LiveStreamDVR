@@ -117,8 +117,8 @@ echo '<section class="section">';
 						}
 						*/
 						
-						$recording = file_exists( $vodclass->basename . '.ts' );
-						$converted = file_exists( $vodclass->basename . '.mp4' );
+						$recording = file_exists( $TwitchConfig->cfg('vod_folder') . '/' . $vodclass->basename . '.ts' );
+						$converted = file_exists( $TwitchConfig->cfg('vod_folder') . '/' . $vodclass->basename . '.mp4' );
 
 						echo '<div class="video ' . ($recording ? 'recording' : '') . '' . ($converted ? 'converted' : '') . '">';	
 						

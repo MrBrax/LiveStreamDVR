@@ -36,6 +36,10 @@ h3 { font-size: 125%; }
 	color: #fff;
 }
 
+.video.recording .video-title {
+	background: #992121;
+}
+
 .video-title h3 {
 	margin: 0;
 	padding: 0;

@@ -39,7 +39,7 @@ class TwitchConfig {
 	public $config = [];
 
 	public function loadConfig(){
-		$config = json_decode( file_get_contents("config.json"), true );
+		$config = json_decode( file_get_contents("config/config.json"), true );
 
 		if( $config['app_name'] ){
 			$this->config = $config;
@@ -69,7 +69,7 @@ class TwitchHelper {
 
 	public static $accessToken;
 
-	public static $accessTokenFile = '.oauth';
+	public static $accessTokenFile = 'config/oauth.bin';
 
 	public static function cfg( $var, $def = null ){
 		return getenv( $var, $def );
@@ -133,7 +133,7 @@ class TwitchHelper {
 
 		global $TwitchConfig;
 
-		$json_streamers = json_decode( file_get_contents('streamers.json'), true );
+		$json_streamers = json_decode( file_get_contents('config/streamers.json'), true );
 
 		if($json_streamers[$username]) return $json_streamers[$username];
 
@@ -162,7 +162,7 @@ class TwitchHelper {
 		$id = $json["data"][0]["id"];
 		
 		$json_streamers[ $username ] = $id;
-		file_put_contents('streamers.json', json_encode($json_streamers));
+		file_put_contents('config/streamers.json', json_encode($json_streamers));
 
 		return $id;
 
@@ -702,7 +702,7 @@ class TwitchAutomator {
 			return false;
 		}
 
-		$game_db = json_decode( file_get_contents( 'games.json' ), true );
+		$game_db = json_decode( file_get_contents( 'config/games.json' ), true );
 
 		if( $game_db[ $id ] ){
 			$this->errors[] = 'Game is in database';
