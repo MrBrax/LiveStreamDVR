@@ -78,7 +78,10 @@ class TwitchHelper {
 
 		$json_streamers = json_decode( file_get_contents('config/streamers.json'), true );
 
-		if($json_streamers[$username]) return $json_streamers[$username];
+		if($json_streamers[$username]){
+			self::log("Fetched channel id from cache for " . $username);	
+			return $json_streamers[$username];
+		}
 
 		$access_token = self::getAccessToken();
 
@@ -106,6 +109,8 @@ class TwitchHelper {
 		
 		$json_streamers[ $username ] = $id;
 		file_put_contents('config/streamers.json', json_encode($json_streamers));
+
+		self::log("Fetched channel id online for " . $username);
 
 		return $id;
 
@@ -136,6 +141,8 @@ class TwitchHelper {
 			self::log("No videos found for user id " . $streamer_id);
 			return false;
 		}
+
+		TwitchHelper::log("Querying videos for streamer id " . $streamer_id);
 
 		return $json['data'] ?: false;
 
@@ -169,6 +176,8 @@ class TwitchHelper {
 			self::log("No video found for video id " . $video_id);
 			return null;
 		}
+
+		TwitchHelper::log("Querying video info for id " . $video_id);
 
 		return $json['data'][0];
 

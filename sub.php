@@ -15,7 +15,14 @@ foreach( $streamers as $k => $v ){
 	echo '<strong>Subbing to ' . $username . '...</strong>';
 
 	echo '<pre>';
-	$TwitchAutomator->sub( $username );
+	
+	$ret = $TwitchAutomator->sub( $username );
+
+	if( $ret === true ){
+		echo "Subscribed";
+	}else{
+		echo $ret;
+	}
 
 	echo '</pre>';
 

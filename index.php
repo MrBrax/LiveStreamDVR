@@ -2,6 +2,8 @@
 
 include "class.php";
 
+TwitchHelper::log("Index accessed");
+
 $getID3 = new getID3;
 
 if($_GET['save']){
