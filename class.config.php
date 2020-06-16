@@ -25,6 +25,14 @@ class TwitchConfig {
 
 	public function getStreamers(){
 		return $this->cfg("streamers", []);
+    }
+    
+    public function getStreamer( $username ){
+        $streamers = $this->getStreamers();
+        foreach( $streamers as $s ){
+            if( $s['username'] == $username ) return $s;
+        }
+        return false;
 	}
 
 }

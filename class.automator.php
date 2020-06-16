@@ -343,16 +343,18 @@ class TwitchAutomator {
 
 		$stream_url = 'twitch.tv/' . $data_username;
 
-		$basename = $this->basename( $data );
+        $basename = $this->basename( $data );
+        
+        $streamer = $TwitchConfig->getStreamer( $data_username );
 
 		// check matched title
-		if( $this->stream_match[ $data_username ] ){
+		if( $streamer && $streamer['match'] ){
 
 			$match = false;
 
-			$this->notify($basename, 'Check matches for user ' . json_encode( $this->stream_match[ $data_username ] ), self::NOTIFY_GENERIC);
+			$this->notify($basename, 'Check matches for user ' . json_encode( $streamer ), self::NOTIFY_GENERIC);
 
-			foreach( $this->stream_match[ $data_username ] as $m ){
+			foreach( $streamer['match'] as $m ){
 				if( strpos( strtolower($data_title), $m ) !== false ){
 					$match = true;
 					break;
