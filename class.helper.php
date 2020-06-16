@@ -10,6 +10,14 @@ class TwitchHelper {
 		return getenv( $var, $def );
 	}
 
+	public static function setupDirectories(){
+		mkdir("logs");
+		mkdir("payloads");
+		mkdir("vods");
+		mkdir("vods/clips");
+		mkdir("vods/saved");
+	}
+
 	public static function getAccessToken( $force = false ){
 
 		if( !$force && file_exists( self::$accessTokenFile ) ){

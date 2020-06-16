@@ -8,6 +8,7 @@ if($_GET['save']){
 
 	$vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['save']);
 
+	/*
 	if( !file_exists( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.mp4' ) ) {
 		echo "vod " . $vod . " not found";
 		return;
@@ -15,6 +16,11 @@ if($_GET['save']){
 
 	rename( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.mp4', $TwitchConfig->cfg('vod_folder') . '/saved/' . $vod . '.mp4');
 	rename( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.json', $TwitchConfig->cfg('vod_folder') . '/saved/' . $vod . '.json');
+	*/
+	
+	$vodclass = new TwitchVOD();
+	$vodclass->load( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.json' );
+	$vodclass->save();
 
 	echo "saved " . $vod;
 
@@ -26,6 +32,7 @@ if($_GET['delete']){
 
 	$vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['delete']);
 
+	/*
 	if( !file_exists( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.mp4' ) ) {
 		echo 'vod ' . $vod . ' not found';
 		return;
@@ -33,6 +40,11 @@ if($_GET['delete']){
 
 	unlink( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.mp4');
 	unlink( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.json');
+	*/
+
+	$vodclass = new TwitchVOD();
+	$vodclass->load( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.json' );
+	$vodclass->delete();
 
 	echo 'deleted ' . $vod;
 
@@ -107,6 +119,8 @@ echo '<section class="section">';
 							echo '<div class="video-title"><h3>' . $vodclass->streamer_name . ' ' . $vodclass->started_at->format('Y-m-d H:i:s') . '</h3></div>';
 
 							echo '<div class="video-description">';
+
+								echo '<div><strong>Segment 0 info:</strong></div>';
 
 								if($vodclass->started_at && $vodclass->ended_at){
 									$diff = $vodclass->started_at->diff($vodclass->ended_at);

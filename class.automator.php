@@ -481,6 +481,8 @@ class TwitchAutomator {
 		// metadata stuff
 		sleep(60 * 5);
 
+		TwitchHelper::log("Do metadata on " . $basename);
+
 		$vodclass = new TwitchVOD();
 		$vodclass->load( $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.json');
 
@@ -488,6 +490,7 @@ class TwitchAutomator {
 		$vodclass->matchTwitchVod();
 		
 		if( $TwitchConfig->cfg('download_chat') && $vodclass->twitch_vod_id ){
+			TwitchHelper::log("Auto download chat on " . $basename);
 			$vodclass->downloadChat();
 		}	
 		

@@ -38,3 +38,7 @@ require "class.config.php";
 require "class.helper.php";
 require "class.vod.php";
 require "class.automator.php";
+
+if( !file_exists("vods/saved") ){
+	TwitchHelper::setupDirectories();
+}

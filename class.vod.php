@@ -258,4 +258,17 @@ class TwitchVOD {
 
 	}
 
+	public function delete(){
+		unlink(sprintf('%s.mp4', $this->basename));
+		unlink(sprintf('%s.json', $this->basename));
+		unlink(sprintf('%s-llc-edl.csv', $this->basename)); // losslesscut
+	}
+
+	public function save(){
+		global $TwitchConfig;
+		rename( $TwitchConfig->cfg('vod_folder') . '/' . $this->basename . '.mp4', $TwitchConfig->cfg('vod_folder') . '/saved/' . $this->basename . '.mp4');
+		rename( $TwitchConfig->cfg('vod_folder') . '/' . $this->basename . '.json', $TwitchConfig->cfg('vod_folder') . '/saved/' . $this->basename . '.json');
+		rename( $TwitchConfig->cfg('vod_folder') . '/' . $this->basename . '-llc-edl.csv', $TwitchConfig->cfg('vod_folder') . '/saved/' . $this->basename . '-llc-edl.csv'); // losslesscut
+	}
+
 }
