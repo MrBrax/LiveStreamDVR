@@ -2,8 +2,6 @@
 
 include "class.php";
 
-$TwitchAutomator = new TwitchAutomator();
-
 $getID3 = new getID3;
 
 if($_GET['save']){
@@ -99,23 +97,7 @@ echo '<section class="section">';
 						$vodclass = new TwitchVOD();
 						$vodclass->load($v);
 
-						$vodclass->saveLosslessCut();
-
-						// var_dump($testvod);
-
-						// $basename = substr($v, 0, strlen($v)-5);
-
-						/*
-						$json = json_decode( file_get_contents( $v ), true );
-
-						if( $json['started_at'] ){
-							$started_at = DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $json['started_at'] );
-						}
-
-						if( $json['ended_at'] ){
-							$ended_at = DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $json['ended_at'] );
-						}
-						*/
+						// $vodclass->saveLosslessCut();
 						
 						$recording = file_exists( $TwitchConfig->cfg('vod_folder') . '/' . $vodclass->basename . '.ts' );
 						$converted = file_exists( $TwitchConfig->cfg('vod_folder') . '/' . $vodclass->basename . '.mp4' );
@@ -130,42 +112,10 @@ echo '<section class="section">';
 									$diff = $vodclass->started_at->diff($vodclass->ended_at);
 									echo '<div><strong>Approx. duration:</strong> ' . $diff->format('%H:%I:%S') . '</div>';
 								}
-								
-
-								// if(!$json){
-								// 	echo '<div class="error">No JSON content</div>';
-								// }
-								
+														
 								$vod_file = $vodclass->segments[0];
 
 								if( file_exists( $vod_file ) ) {
-
-									/*
-									if($vodclass->duration){
-										
-										echo '<div><strong>Duration:</strong> ' . $vodclass->duration . '</div>';
-									
-									}else{
-										
-										$file = $getID3->analyze($basename . '.mp4');
-										
-										if( !$file['playtime_string'] ){
-
-											echo '<div class="error"><strong>Error calculating duration</strong></div>';
-
-											// var_dump( $file );
-
-										}else{
-											echo '<div><strong>Duration:</strong> ' . $file['playtime_string'] . '</div>';
-
-											$json['duration'] = $file['playtime_string'];
-
-											file_put_contents( $v, json_encode( $json ) );
-
-										}
-
-									}
-									*/
 									
 									echo '<div><strong>Duration:</strong> ' . $vodclass->getDuration(true) . '</div>';
 
@@ -242,10 +192,6 @@ echo '<section class="section">';
 								}
 
 							echo '</div>';
-
-							// echo '<br><br><a href="https://twitch.tv/videos/' . $json['meta']['data'][0]['id'] . '" rel="nofollow">Show on Twitch.tv</a>';
-
-							// echo '<br /><br />';
 
 							echo '<table class="game-list">';
 							
@@ -400,6 +346,7 @@ echo '<section class="section">';
 
 echo '</section>';	
 
+/*
 echo '<section class="section">';
 
 	echo '<div class="section-title"><h1>Hook</h1></div>';
@@ -414,6 +361,7 @@ echo '<section class="section">';
 	echo "</div>";
 
 echo '</section>';
+*/
 
 echo '</div>';
 

@@ -2,6 +2,8 @@
 
 *Note that this thing is written without a framework or any real standards, so the code is pretty messy. Might refactor it one day with html templates and such.*
 
+Install dependencies with composer.
+
 Configure using the `config.json` file in the `config` directory, not `.env`, it's outdated.
 
 Needs python `streamlink`, `youtube-dl`, and `tcd` to fully work.

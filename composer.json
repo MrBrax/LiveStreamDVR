@@ -1,5 +1,6 @@
 {
     "require": {
-        "james-heinrich/getid3": "^1.9"
+        "james-heinrich/getid3": "^1.9",
+        "twig/twig": "3.0"
     }
 }

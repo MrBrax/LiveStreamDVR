@@ -1,0 +1,261 @@
+<?php
+
+class TwitchVOD {
+
+	public $vod_path = 'vods';
+
+	public $filename = '';
+	public $basename = '';
+	public $json = [];
+
+	public $streamer_name = null;
+	public $streamer_id = null;
+
+	public $segments = [];
+	public $games = [];
+
+	public $started_at = null;
+	public $ended_at = null;
+
+	public $duration = null;
+
+	public $game_offset = null;
+
+	public $twitch_vod_id = null;
+	public $twitch_vod_url = null;
+
+	// public function __constructor(){
+
+	//}
+
+	public function load( $filename ){
+
+		if(!file_exists($filename)){
+			throw new Exception('VOD not found');
+			return false;
+		}
+
+		$data = file_get_contents($filename);
+		$this->json = json_decode($data, true);
+
+		if( $this->json['started_at'] ){
+			$this->started_at = DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['started_at'] );
+		}
+
+		if( $this->json['ended_at'] ){
+			$this->ended_at = DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['ended_at'] );
+		}
+
+		$this->filename = $filename;
+		// $this->filesize = filesize($filename);
+		$this->basename = basename($filename, '.json');
+
+		$this->segments = $this->json['segments'];
+		
+		$this->parseGames($this->json['games']);
+
+		$this->streamer_name = $this->json['meta']['data'][0]['user_name'];
+		$this->streamer_id = TwitchHelper::getChannelId( $this->streamer_name );
+
+		$this->twitch_vod_id 	= $this->json['twitch_vod_id'];
+		$this->twitch_vod_url 	= $this->json['twitch_vod_url'];	
+		$this->duration 		= $this->json['duration'];	
+
+		return true;
+
+	}
+
+	public function getDuration( $save = false ){
+
+		if( $this->duration ) return $this->duration;
+
+		$getID3 = new getID3;
+
+		$file = $getID3->analyze( $this->segments[0] );
+
+		if( !$file['playtime_string'] ){
+
+			return false;
+
+		}else{
+		
+			$this->duration = $file['playtime_string'];
+
+			if( $save ){
+				$this->saveJSON();
+			}
+
+			return $file['playtime_string'];
+
+		}
+
+	}
+
+	/**
+	 * Download chat with tcd
+	 * @param  int 		$video_id [description]
+	 * @param  string 	$basename [description]
+	 * @return array    filename, cmd output, cmd
+	 */
+	public function downloadChat(){
+
+		global $TwitchConfig;
+
+		if(!file_exists($TwitchConfig->cfg('bin_dir') . '/tcd')){
+			throw new Exception('tcd not found');
+			return false;
+		}
+
+		if(!$this->twitch_vod_id){
+			throw new Exception('no twitch vod id');
+			return false;
+		}
+
+		$chat_filename = $this->vod_path . '/' . $this->basename . '.chat.json';
+
+		$cmd = $TwitchConfig->cfg('bin_dir') . '/tcd --video ' . escapeshellarg($this->twitch_vod_id) . ' --client_id ' . escapeshellarg( $TwitchConfig->cfg('api_client_id') ) . ' --format json --output ' . escapeshellarg($chat_filename);
+
+		$capture_output = shell_exec( $cmd );
+
+		return [$chat_filename, $capture_output, $cmd];
+
+	}
+
+	public function matchTwitchVod(){
+
+		global $TwitchConfig;
+
+		$channel_videos = TwitchHelper::getVideos( $this->streamer_id );
+
+		$vod_id = null;
+
+		foreach ($channel_videos as $vid) {
+			
+			$video_time = DateTime::createFromFormat( $TwitchConfig->cfg('date_format'), $vid['created_at'] );
+
+			// if within 5 minutes difference
+			if( abs( $this->started_at->getTimestamp() - $video_time->getTimestamp() ) < 300 ){
+				$this->twitch_vod_id = $vid['id'];
+				$this->twitch_vod_url = $vid['url'];
+				return $this->twitch_vod_id;
+			}
+
+		}
+
+		TwitchHelper::log("Couldn't match vod for " . $this->basename);
+
+	}
+
+	public function checkValidVod(){
+
+		global $TwitchConfig;
+
+		$video = TwitchHelper::getVideo( $this->twitch_vod_id );
+
+		if( $video ){
+			return true;
+		}
+
+		return false;
+
+		// TwitchHelper::log("Couldn't match vod for " . $this->basename);
+
+	}
+
+	/**
+	 * Save JSON to file, be sure to load it first!
+	 */
+	public function saveJSON(){
+
+		$generated = $this->json;
+
+		if( $this->twitch_vod_id && $this->twitch_vod_url){
+			$generated['twitch_vod_id'] 	= $this->twitch_vod_id;
+			$generated['twitch_vod_url'] 	= $this->twitch_vod_url;
+		}
+
+		$generated['streamer_name'] 	= $this->streamer_name;
+		$generated['streamer_id'] 		= $this->streamer_id;
+
+		$generated['games'] 			= $this->games;
+		$generated['segments'] 			= $this->segments;
+
+		$generated['duration'] 			= $this->duration;
+
+		file_put_contents($this->filename, json_encode($generated));
+
+		return $generated;
+
+	}
+
+	private function parseGames( $array ){
+
+		global $TwitchConfig;
+
+		$games = [];
+
+		foreach ($this->json['games'] as $game) {
+			
+			$entry = $game;
+
+			$entry['datetime'] = DateTime::createFromFormat( $TwitchConfig->cfg("date_format"), $entry['time'] );
+
+			if($this->started_at){
+				$entry['offset'] = $entry['datetime']->getTimestamp() - $this->started_at->getTimestamp();
+			}
+
+			$games[] = $entry;
+
+		}
+
+		$i = 0;
+
+		foreach ($games as $game) {
+			
+			if($games[$i+1]){
+				$games[$i]['duration'] = $games[$i+1]['datetime']->getTimestamp() - $game['datetime']->getTimestamp();
+			}
+
+			if($i == 0){
+				$this->game_offset = $game['offset'];
+			}
+
+			if($i == sizeof($games)-1 && $this->ended_at){
+				$games[$i]['duration'] = $this->ended_at->getTimestamp() - $game['datetime']->getTimestamp();
+			}
+
+			$i++;
+
+		}
+
+		$this->games = $games;
+
+	}
+
+	public function saveLosslessCut(){
+
+		$data = "";
+
+		foreach( $this->games as $k => $game ){
+
+			$offset = $game['offset'];
+
+			$offset -= $this->games[0]['offset'];
+			
+			$data .= $offset . ',';
+			
+			if( $k < sizeof($this->games)-1 ){
+				$data .= ( $offset + $game['duration'] ) . ',';
+			}else{
+				$data .= ',';
+			}
+
+			$data .= $game['game_name'] ?: $game['game_id'];
+			$data .= "\n";
+		}
+
+		file_put_contents( $this->vod_path . '/' . $this->basename . '-llc-edl.csv', $data );
+
+	}
+
+}
