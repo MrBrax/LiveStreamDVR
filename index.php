@@ -84,7 +84,11 @@ echo '<section class="section">';
 			echo '<div class="streamer">';
 
 				echo '<div class="streamer-title">';
-					echo '<h2>' . $streamer['username'] . '</h2>';
+					echo '<h2>';
+						echo '<a href="https://twitch.tv/' . $streamer['username'] . ' " rel="nofollow" target="_blank">';
+							echo $streamer['username'];
+						echo '</a>';
+					echo '</h2>';
 					echo '<span class="small">';
 						echo $streamer['quality'];
 						echo ' &middot; ';
