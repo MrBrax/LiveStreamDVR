@@ -528,7 +528,12 @@ class TwitchAutomator {
 
 		$capture_filename = TwitchConfig::cfg('vod_folder') . '/' . $basename . '.ts';
 
-		$cmd = TwitchConfig::cfg('bin_dir') . '/streamlink';
+		if( TwitchConfig::cfg('pipenv') ){
+			$cmd = 'pipenv run streamlink';
+		}else{
+			$cmd = TwitchConfig::cfg('bin_dir') . '/streamlink';
+		}
+
 		$cmd .= ' --hls-live-restart'; // start recording from start of stream, though twitch doesn't support this
 		$cmd .= ' --hls-live-edge 99999';
 		$cmd .= ' --hls-segment-threads 5';
@@ -550,7 +555,12 @@ class TwitchAutomator {
 			$this->notify($basename, '410 Error', self::NOTIFY_ERROR);
 			// return false;
 			
-			$cmd = TwitchConfig::cfg('bin_dir') . '/youtube-dl';
+			if( TwitchConfig::cfg('pipenv') ){
+				$cmd = 'pipenv run youtube-dl';
+			}else{
+				$cmd = TwitchConfig::cfg('bin_dir') . '/youtube-dl';
+			}
+			
 			$cmd .= ' --hls-use-mpegts'; // use ts instead of mp4
 			$cmd .= ' --no-part';
 			$cmd .= ' -o ' . escapeshellarg($capture_filename); // output file

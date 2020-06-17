@@ -114,7 +114,16 @@ class TwitchVOD {
 
 		$chat_filename = $this->vod_path . '/' . $this->basename . '.chat.json';
 
-		$cmd = TwitchConfig::cfg('bin_dir') . '/tcd --video ' . escapeshellarg($this->twitch_vod_id) . ' --client_id ' . escapeshellarg( TwitchConfig::cfg('api_client_id') ) . ' --format json --output ' . escapeshellarg($chat_filename);
+		if( TwitchConfig::cfg('pipenv') ){
+			$cmd = 'pipenv run tcd';
+		}else{
+			$cmd = TwitchConfig::cfg('bin_dir') . '/tcd';
+		}
+		
+		$cmd .= ' --video ' . escapeshellarg($this->twitch_vod_id);
+		$cmd .= ' --client_id ' . escapeshellarg( TwitchConfig::cfg('api_client_id') );
+		$cmd .= ' --format json';
+		$cmd .= ' --output ' . escapeshellarg($chat_filename);
 
 		$capture_output = shell_exec( $cmd );
 
