@@ -30,10 +30,10 @@ class TwitchVOD {
 
 	public function load( $filename ){
 
-		TwitchHelper::log("Loading VOD Class for " . $filename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Loading VOD Class for " . $filename);
 
 		if(!file_exists($filename)){
-			TwitchHelper::log("VOD Class for " . $filename . " not found");
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "VOD Class for " . $filename . " not found");
 			throw new Exception('VOD not found');
 			return false;
 		}
@@ -128,7 +128,7 @@ class TwitchVOD {
 
 		global $TwitchConfig;
 
-		TwitchHelper::log("Try to match twitch vod for " . $this->basename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Try to match twitch vod for " . $this->basename);
 
 		$channel_videos = TwitchHelper::getVideos( $this->streamer_id );
 
@@ -142,13 +142,13 @@ class TwitchVOD {
 			if( abs( $this->started_at->getTimestamp() - $video_time->getTimestamp() ) < 300 ){
 				$this->twitch_vod_id = $vid['id'];
 				$this->twitch_vod_url = $vid['url'];
-				TwitchHelper::log("Matched twitch vod for " . $this->basename);
+				TwitchHelper::log( TwitchHelper::LOG_INFO, "Matched twitch vod for " . $this->basename);
 				return $this->twitch_vod_id;
 			}
 
 		}
 
-		TwitchHelper::log("Couldn't match vod for " . $this->basename);
+		TwitchHelper::log( TwitchHelper::LOG_ERROR, "Couldn't match vod for " . $this->basename);
 
 	}
 
@@ -156,7 +156,7 @@ class TwitchVOD {
 
 		global $TwitchConfig;
 
-		TwitchHelper::log("Check valid vod for " . $this->basename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Check valid vod for " . $this->basename);
 
 		$video = TwitchHelper::getVideo( $this->twitch_vod_id );
 
@@ -165,8 +165,6 @@ class TwitchVOD {
 		}
 
 		return false;
-
-		// TwitchHelper::log("Couldn't match vod for " . $this->basename);
 
 	}
 
@@ -242,7 +240,7 @@ class TwitchVOD {
 
 	public function saveLosslessCut(){
 
-		TwitchHelper::log("Saving lossless cut csv for " . $this->basename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Saving lossless cut csv for " . $this->basename);
 
 		$data = "";
 
@@ -269,14 +267,14 @@ class TwitchVOD {
 	}
 
 	public function delete(){
-		TwitchHelper::log("Delete " . $this->basename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Delete " . $this->basename);
 		unlink(sprintf('%s.mp4', $this->basename));
 		unlink(sprintf('%s.json', $this->basename));
 		unlink(sprintf('%s-llc-edl.csv', $this->basename)); // losslesscut
 	}
 
 	public function save(){
-		TwitchHelper::log("Save " . $this->basename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Save " . $this->basename);
 		global $TwitchConfig;
 		rename( $TwitchConfig->cfg('vod_folder') . '/' . $this->basename . '.mp4', $TwitchConfig->cfg('vod_folder') . '/saved/' . $this->basename . '.mp4');
 		rename( $TwitchConfig->cfg('vod_folder') . '/' . $this->basename . '.json', $TwitchConfig->cfg('vod_folder') . '/saved/' . $this->basename . '.json');

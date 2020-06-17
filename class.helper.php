@@ -6,6 +6,10 @@ class TwitchHelper {
 
 	public static $accessTokenFile = 'config/oauth.bin';
 
+	const LOG_ERROR = "ERROR";
+	const LOG_WARNING = "WARNING";
+	const LOG_INFO = "INFO";
+
 	public static function cfg( $var, $def = null ){
 		return getenv( $var, $def );
 	}
@@ -21,7 +25,7 @@ class TwitchHelper {
 	public static function getAccessToken( $force = false ){
 
 		if( !$force && file_exists( self::$accessTokenFile ) ){
-			self::log("Fetched access token from cache");
+			self::log( self::LOG_INFO, "Fetched access token from cache");
 			return file_get_contents( self::$accessTokenFile );
 			// return self::$accessToken;
 		}
@@ -45,7 +49,7 @@ class TwitchHelper {
 		$json = json_decode( $server_output, true );
 
 		if(!$json['access_token']){
-			self::log("Failed to fetch access token: " . $server_output);
+			self::log( TwitchHelper::LOG_ERROR, "Failed to fetch access token: " . $server_output);
 			return false;
 		}
 
@@ -55,21 +59,35 @@ class TwitchHelper {
 
 		file_put_contents( self::$accessTokenFile, $access_token );
 
-		self::log("Fetched new access token");
+		self::log( TwitchHelper::LOG_INFO, "Fetched new access token");
 
 		return $access_token;
 
 	}
-
-	public static function log( $text ){
+	
+	/**
+	 * Log a string to the current log file
+	 *
+	 * @param const $level
+	 * @param string $text
+	 * @return void
+	 */
+	public static function log( $level, $text ){
+		
 		$filename = "logs/" . date("Y-m-d") . ".log";
-		$l = file_exists( $filename ) ? file_get_contents( $filename ) : '';
+		
+		$log_text = file_exists( $filename ) ? file_get_contents( $filename ) : '';
 
-		$text = date("Y-m-d H:i:s") . " | " . $text;
+		// $text = date("Y-m-d H:i:s.v") . " | " . $text;
 
-		$l .= "\n" . $text;
+		$date = new DateTime();
 
-		file_put_contents($filename, $l);
+		$text = $date->format("Y-m-d H:i:s.v") . " | <" . $level . "> " . $text;
+
+		$log_text .= "\n" . $text;
+
+		file_put_contents($filename, $log_text);
+		
 	}
 
 	public static function getChannelId( $username ){
@@ -79,7 +97,7 @@ class TwitchHelper {
 		$json_streamers = json_decode( file_get_contents('config/streamers.json'), true );
 
 		if($json_streamers[$username]){
-			self::log("Fetched channel id from cache for " . $username);	
+			self::log( self::LOG_INFO, "Fetched channel id from cache for " . $username);	
 			return $json_streamers[$username];
 		}
 
@@ -101,7 +119,7 @@ class TwitchHelper {
 		$json = json_decode( $server_output, true );
 
 		if( !$json["data"] ){
-			self::log("Failed to fetch channel id: " . $server_output);
+			self::log(self::LOG_ERROR, "Failed to fetch channel id: " . $server_output);
 			return false;
 		}
 
@@ -110,7 +128,7 @@ class TwitchHelper {
 		$json_streamers[ $username ] = $id;
 		file_put_contents('config/streamers.json', json_encode($json_streamers));
 
-		self::log("Fetched channel id online for " . $username);
+		self::log( self::LOG_INFO, "Fetched channel id online for " . $username);
 
 		return $id;
 
@@ -138,11 +156,11 @@ class TwitchHelper {
 		$json = json_decode( $server_output, true );
 
 		if( !$json['data'] ){
-			self::log("No videos found for user id " . $streamer_id);
+			self::log( self::LOG_ERROR, "No videos found for user id " . $streamer_id);
 			return false;
 		}
 
-		TwitchHelper::log("Querying videos for streamer id " . $streamer_id);
+		self::log( self::LOG_INFO, "Querying videos for streamer id " . $streamer_id);
 
 		return $json['data'] ?: false;
 
@@ -173,11 +191,11 @@ class TwitchHelper {
 		$json = json_decode( $server_output, true );
 
 		if( !$json['data'] ){
-			self::log("No video found for video id " . $video_id);
+			self::log( self::LOG_ERROR, "No video found for video id " . $video_id);
 			return null;
 		}
 
-		TwitchHelper::log("Querying video info for id " . $video_id);
+		self::log( self::LOG_INFO, "Querying video info for id " . $video_id);
 
 		return $json['data'][0];
 

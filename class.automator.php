@@ -145,7 +145,7 @@ class TwitchAutomator {
 
 			$basename = substr( $vods[0], 0, strlen($vods[0])-4 );
 			
-			TwitchHelper::log("Cleanup " . $basename);
+			TwitchHelper::log( TwitchHelper::LOG_INFO, "Cleanup " . $basename);
 
 			unlink(sprintf('%s.mp4', $basename));
 			unlink(sprintf('%s.json', $basename));
@@ -159,7 +159,7 @@ class TwitchAutomator {
 
 		global $TwitchConfig;
 
-		TwitchHelper::log("Handle called");
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Handle called");
 
 		$data_id = $data['data'][0]['id'];
 		// $data_title = $data['data'][0]['title'];
@@ -248,7 +248,7 @@ class TwitchAutomator {
 
 			file_put_contents( 'config/games_v2.json', json_encode( $game_db ) );
 
-			TwitchHelper::log("New game saved to database: " . $game["name"]);
+			TwitchHelper::log( TwitchHelper::LOG_INFO, "New game saved to database: " . $game["name"]);
 
 			return $game["name"];
 
@@ -256,7 +256,7 @@ class TwitchAutomator {
 
 		$this->errors[] = 'No game found for ' . $id;
 
-		TwitchHelper::log("Couldn't match game for " . $id . " | " . $server_output );
+		TwitchHelper::log( TwitchHelper::LOG_ERROR, "Couldn't match game for " . $id . " | " . $server_output );
 
 		return false;
 
@@ -328,7 +328,7 @@ class TwitchAutomator {
 
 		$this->notify('', '[' . $data_username . '] [game update: ' . $game_name . ']', self::NOTIFY_GAMECHANGE);
 
-		TwitchHelper::log("Game updated on " . $data_username . " to " . $game_name);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Game updated on " . $data_username . " to " . $game_name);
 
 	}
 
@@ -369,7 +369,7 @@ class TwitchAutomator {
 			$match = false;
 
 			$this->notify($basename, 'Check keyword matches for user ' . json_encode( $streamer ), self::NOTIFY_GENERIC);
-			TwitchHelper::log("Check keyword matches for " . $basename);
+			TwitchHelper::log( TwitchHelper::LOG_INFO, "Check keyword matches for " . $basename);
 
 			foreach( $streamer['match'] as $m ){
 				if( strpos( strtolower($data_title), $m ) !== false ){
@@ -380,14 +380,14 @@ class TwitchAutomator {
 
 			if(!$match){
 				$this->notify($basename, 'Cancel download because stream title does not contain keywords', self::NOTIFY_GENERIC);
-				TwitchHelper::log("Cancel download of " . $basename . " due to missing keywords");
+				TwitchHelper::log( TwitchHelper::LOG_WARNING, "Cancel download of " . $basename . " due to missing keywords");
 				return;
 			}
 
 		}
 
 		// in progress
-		TwitchHelper::log("Update game for " . $basename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Update game for " . $basename);
 		$this->updateGame( $data );
 
 		// download notification
@@ -407,7 +407,7 @@ class TwitchAutomator {
 		// error handling if nothing got downloaded
 		if( !file_exists( $capture_filename ) ){
 
-			TwitchHelper::log("Panic handler for " . $basename);
+			TwitchHelper::log( TwitchHelper::LOG_WARNING, "Panic handler for " . $basename);
 
 			if( $tries >= $TwitchConfig->cfg('download_retries') ){
 				$this->errors[] = 'Giving up on downloading, too many tries';
@@ -435,7 +435,7 @@ class TwitchAutomator {
 		}
 
 		// timestamp
-		TwitchHelper::log("Add end timestamp for " . $basename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Add end timestamp for " . $basename);
 		$this->jsonLoad();
 		$this->json['ended_at'] = $this->getDateTime();
 		$this->jsonSave();
@@ -489,13 +489,13 @@ class TwitchAutomator {
 
 		}
 
-		TwitchHelper::log("Add segments to " . $basename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Add segments to " . $basename);
 		$this->jsonLoad();
 		if(!$this->json['segments']) $this->json['segments'] = [];
 		$this->json['segments'][] = $converted_filename;
 		$this->jsonSave();
 
-		TwitchHelper::log("Cleanup old VODs for " . $data_username);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Cleanup old VODs for " . $data_username);
 		$this->cleanup( $data_username );
 
 		$this->notify($basename, '[' . $data_username . '] [end]', self::NOTIFY_DOWNLOAD);
@@ -505,20 +505,21 @@ class TwitchAutomator {
 		// metadata stuff
 		sleep(60 * 5);
 
-		TwitchHelper::log("Do metadata on " . $basename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Do metadata on " . $basename);
 
 		$vodclass = new TwitchVOD();
 		$vodclass->load( $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.json');
 
 		$vodclass->saveLosslessCut();
 		$vodclass->matchTwitchVod();
+		$vodclass->saveJSON();
 		
 		if( $TwitchConfig->cfg('download_chat') && $vodclass->twitch_vod_id ){
-			TwitchHelper::log("Auto download chat on " . $basename);
+			TwitchHelper::log( TwitchHelper::LOG_INFO, "Auto download chat on " . $basename);
 			$vodclass->downloadChat();
 		}
 
-		TwitchHelper::log("All done for " . $basename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "All done for " . $basename);
 
 	}
 
@@ -553,7 +554,7 @@ class TwitchAutomator {
 
 		$this->info[] = 'Streamlink cmd: ' . $cmd;
 
-		TwitchHelper::log("Starting capture with filename " . $basename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting capture with filename " . $basename);
 		
 		$capture_output = shell_exec( $cmd );
 
@@ -613,11 +614,11 @@ class TwitchAutomator {
 		
 		$this->info[] = 'ffmpeg cmd: ' . $cmd;
 
-		TwitchHelper::log("Starting conversion of " . $capture_filename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting conversion of " . $capture_filename);
 
 		$output_convert = shell_exec( $cmd );
 
-		TwitchHelper::log("Finished conversion of " . $capture_filename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Finished conversion of " . $capture_filename);
 
 		$this->info[] = 'ffmpeg output: ' . $output_convert;
 		
@@ -640,7 +641,7 @@ class TwitchAutomator {
 		}
 		*/
 
-		TwitchHelper::log("Calling subscribe for " . $streamer_name);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Calling subscribe for " . $streamer_name);
 
 		$streamer_id = TwitchHelper::getChannelId($streamer_name);
 
@@ -689,7 +690,7 @@ class TwitchAutomator {
 
 		if( $http_code == 202 ){
 
-			TwitchHelper::log("Successfully subscribed to " . $streamer_name);
+			TwitchHelper::log( TwitchHelper::LOG_INFO, "Successfully subscribed to " . $streamer_name);
 
 			$this->notify($server_output, '[' . $streamer_name . '] [subscribing]', self::NOTIFY_GENERIC);
 
@@ -697,7 +698,7 @@ class TwitchAutomator {
 
 		}else{
 
-			TwitchHelper::log("Failed to subscribe to " . $streamer_name . " | " . $server_output . " | HTTP " . $http_code );
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Failed to subscribe to " . $streamer_name . " | " . $server_output . " | HTTP " . $http_code );
 			
 			return $server_output;
 
@@ -716,7 +717,7 @@ class TwitchAutomator {
 
 		global $TwitchConfig;
 
-		TwitchHelper::log("Requesting subscriptions list");
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Requesting subscriptions list");
 
 		// webhook list
 		$ch = curl_init();

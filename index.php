@@ -2,7 +2,7 @@
 
 include "class.php";
 
-TwitchHelper::log("Index accessed");
+TwitchHelper::log( TwitchHelper::LOG_INFO, "Index accessed");
 
 $getID3 = new getID3;
 
