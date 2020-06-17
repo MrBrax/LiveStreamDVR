@@ -1,197 +1,201 @@
-* { box-size: border-size; }
+@keyframes recording {
+  0% {
+    background-color: #ca1515; }
+  50% {
+    background-color: #7c1717; }
+  100% {
+    background-color: #ca1515; } }
+* {
+  box-sizing: border-box; }
 
 body {
-	background: #fdfdfd;
-	font: 14px Roboto, Arial;
-}
+  background: #fdfdfd;
+  font: 14px Roboto, Arial; }
 
 table {
-	font: 14px Roboto, Arial;
-}
+  font: 14px Roboto, Arial; }
 
 td {
-	padding: 2px 4px
-}
+  padding: 2px 4px; }
 
 h1, h2, h3 {
-	padding: 0;
-	margin: 0 0 10px 0;
-}
+  padding: 0;
+  margin: 0 0 10px 0; }
 
-h1 { font-size: 200%; }
-h2 { font-size: 150%; }
-h3 { font-size: 125%; }
+h1 {
+  font-size: 200%; }
+
+h2 {
+  font-size: 150%; }
+
+h3 {
+  font-size: 125%; }
 
 .video {
-	margin-bottom: 10px;
-	border-bottom: 1px solid #eee;
-}
+  margin-bottom: 10px;
+  border-bottom: 1px solid #eee; }
 
 .video-title {
-	padding: 10px;
-	background: #2b61d6;
-	color: #fff;
-}
-
-@keyframes recording {
-	0% { background-color: #ca1515; }
-	50% { background-color: #7c1717; }
-	100% { background-color: #ca1515; }
-}
+  padding: 10px;
+  background: #2b61d6;
+  color: #fff; }
 
 .video.recording .video-title {
-	background-color: #ca1515;
-	animation: recording ease-in-out 1s infinite;
-}
+  background-color: #ca1515;
+  animation: recording ease-in-out 1s infinite; }
 
 .video-title h3 {
-	margin: 0;
-	padding: 0;
-}
+  margin: 0;
+  padding: 0; }
 
 .button {
-	display: inline-block;
-	font: inherit;
-	padding: 4px 15px;
-	color: #222;
-	background: #eee;
-	border: 1px solid #999;
-	text-decoration: none;
-	border-radius: 3px;
-	box-shadow: 0 2px 3px rgba(0, 0, 0, .2), inset 0 -3px 0 rgba(0, 0, 0, .1);
-	transition: 0.05s all ease-in-out;
-}
-
-.button:hover {
-	color: #111;
-	background: #ddd;
-	cursor: pointer;
-	transform: scale(1.02);
-}
-
-.button:active {
-	background: #aaa;
-}
+  font: inherit;
+  display: inline-block;
+  padding: 4px 15px;
+  color: #222;
+  background: #eee;
+  border: 1px solid #999;
+  text-decoration: none;
+  border-radius: 3px;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2), inset 0 -3px 0 rgba(0, 0, 0, 0.1);
+  transition: 0.05s all ease-in-out; }
+  .button:hover {
+    color: #111;
+    background: #ddd;
+    cursor: pointer;
+    transform: scale(1.02); }
+  .button:active {
+    background: #aaa; }
 
 .input {
+  border: 1px solid #ccc;
+  padding: 10px;
+  font: inherit; }
 
-	border: 1px solid #ccc;
-	padding: 10px;
-
-	font: inherit;
-
-}
-
-.error { color: #f00; }
+.error {
+  color: #f00; }
 
 .video-description {
-	padding: 10px;
-	background: #f2f2f2;
-}
+  padding: 10px;
+  background: #f2f2f2; }
 
 .video-controls {
-	padding: 10px;
-	background-color: #e2e9f9;
-	border-top: 1px solid #d6dbf2;
-	border-bottom: 1px solid #d6dbf2;
-}
+  padding: 10px;
+  background-color: #e2e9f9;
+  border-top: 1px solid #d6dbf2;
+  border-bottom: 1px solid #d6dbf2; }
 
-.video-player { width: 1280px; }
-.video-chapters { display: flex; width: 100%; }
+.video-player {
+  width: 1280px; }
+
+.video-chapters {
+  display: flex;
+  width: 100%; }
+
 .video-chapter {
-	font-family: 'Roboto Condensed', 'Roboto', 'Arial';
-	padding: 5px;
-	background: #eee;
-	border-right: 1px solid #aaa;
-	flex-shrink: 1;
-	flex-grow: 1;
-}
-.video-chapter:hover {
-	background: #D3EAFA;
-	cursor: pointer;
-}
-.video-chapter-game { font-size: 90%; }
+  font-family: 'Roboto Condensed', 'Roboto', 'Arial';
+  padding: 5px;
+  background: #eee;
+  border-right: 1px solid #aaa;
+  flex-shrink: 1;
+  flex-grow: 1; }
+  .video-chapter:hover {
+    background: #D3EAFA;
+    cursor: pointer; }
+
+.video-chapter-game {
+  font-size: 90%; }
 
 .section {
-	/* border: 1px solid #ccc; */
-	background: #fff;
-	box-shadow: 0 5px 10px #ddd;
-	margin: 10px;
-	border-radius: 5px;
-	/* overflow: hidden; */
-}
+  /* border: 1px solid #ccc; */
+  background: #fff;
+  box-shadow: 0 5px 10px #ddd;
+  margin: 10px;
+  border-radius: 5px;
+  /* overflow: hidden; */ }
 
 .section-title {
-	font-weight: 700;
-	background: #277dec;
-	color: #fff;
-	padding: 5px 10px;
-}
-
-.section-title h1 {
-	margin: 0;
-	text-shadow: 0 2px 2px rgba(0, 0, 0, .2);
-}
+  font-weight: 700;
+  background: #277dec;
+  color: #fff;
+  padding: 5px 10px; }
+  .section-title h1 {
+    margin: 0;
+    text-shadow: 0 2px 2px rgba(0, 0, 0, 0.2); }
 
 .section-content {
-	padding: 10px;
-}
+  padding: 10px; }
 
 .container {
-	display: flex;
-	flex-wrap: wrap;
-}
-
-.container .section {
-	flex-grow: 1;
-}
+  display: flex;
+  flex-wrap: wrap; }
+  .container .section {
+    flex-grow: 1; }
 
 .section .streamer {
-	margin-bottom: 20px;
-}
+  margin-bottom: 20px; }
 
 .game-list {
-	width: 100%;
-	border-collapse: collapse;
-}
+  width: 100%;
+  border-collapse: collapse; }
+  .game-list tr:nth-child(2n) {
+    background: rgba(0, 0, 0, 0.05); }
 
-.game-list tr:nth-child(2n) {
-	background: rgba(0, 0, 0, .05);
+.streamer-title {
+  position: sticky;
+  top: 0px;
+  padding: 5px 10px;
+  background-color: #e6e6e6;
+  border-bottom: 1px solid #919191;
+  box-shadow: 0 3px 3px rgba(0, 0, 0, 0.15); }
+  .streamer-title h2 {
+    margin: 0;
+    padding: 0; }
+  .streamer-title a {
+    color: #000;
+    text-decoration: none; }
+    .streamer-title a:hover {
+      color: blueviolet; }
+
+.error {
+  color: #f00; }
+
+.small {
+  font-size: 90%;
+  color: #666; }
+
+.notice {
+  margin: 5px;
+  background: #eee;
+  border: 1px solid #ccc;
+  padding: 10px;
+  color: #555; }
+
+/** Black theme **/
+/*
+body {
+	background-color: #111;
+	color: #e6e6e6;
+}
+.section {
+	background-color: #3c3c3c;
+	box-shadow: 0 5px 10px #131313;
 }
 
 .streamer-title {
-	position: sticky;
-	top: 0px;
-	padding: 5px 10px;
-	background-color: rgb(230, 230, 230);
-	border-bottom: 1px solid #919191;
-	box-shadow: 0 3px 3px rgba(0,0,0,.15);
-}
-
-.streamer-title h2 { margin: 0; padding: 0; }
-
-.streamer-title a {
-	color: #000;
-	text-decoration: none;
-}
-
-.streamer-title a:hover {
-	color: blueviolet;
-}
-
-.error {
-	color: #f00;
+	background-color: #5b5b5b;
+	border-color: #222;
 }
 
 .small {
-	font-size: 90%;
-	color: #666;
+	color: #9b9b9b
 }
 
 .notice {
-	margin: 5px;
-	background: #eee;
-	border: 1px solid #ccc;
-	padding: 10px;
-	color: #555;
+	background-color: #8e8e8e;
+	border-color: #2b2b2b;
+	color: #d7d7d7;
 }
+*/
+
+/*# sourceMappingURL=style.css.map */

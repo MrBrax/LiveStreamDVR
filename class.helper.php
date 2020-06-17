@@ -66,6 +66,8 @@ class TwitchHelper {
 	 * @return void
 	 */
 	public static function log( $level, $text ){
+
+		if( !TwitchConfig::cfg("debug") && $level == self::LOG_DEBUG ) return;
 		
 		$filename = "logs/" . date("Y-m-d") . ".log";
 		

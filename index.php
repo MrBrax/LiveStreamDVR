@@ -2,7 +2,7 @@
 
 include "class.php";
 
-TwitchHelper::log( TwitchHelper::LOG_INFO, "Index accessed");
+TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Index accessed");
 
 $getID3 = new getID3;
 
@@ -382,6 +382,23 @@ echo '<section class="section">';
 
 echo '</section>';
 */
+
+echo '<section class="section">';
+
+	echo '<div class="section-title"><h1>Logs</h1></div>';
+
+	echo '<div class="section-content">';
+	
+	$logs = glob("logs/*.log");
+	echo '<ul class="logs">';
+	foreach( $logs as $log ){
+		echo '<li><a href="' . $log . '">' . basename($log) . '</a></li>';
+	}
+	echo '</ul>';
+
+	echo "</div>";
+
+echo '</section>';
 
 echo '</div>';
 

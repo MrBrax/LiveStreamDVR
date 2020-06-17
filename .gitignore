@@ -2,3 +2,5 @@ vendor/
 .env
 config.json
 config/games.json
+.sass-cache/
+style.css.map

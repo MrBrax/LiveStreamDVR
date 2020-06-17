@@ -30,7 +30,7 @@ class TwitchVOD {
 
 	public function load( $filename ){
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Loading VOD Class for " . $filename);
+		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Loading VOD Class for " . $filename);
 
 		if(!file_exists($filename)){
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "VOD Class for " . $filename . " not found");
