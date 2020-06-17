@@ -56,6 +56,7 @@ if($_GET['delete']){
 
 echo '<html>';
 echo '<head>';
+	echo '<meta name="referrer" content="none">';
 	echo '<title>' . TwitchConfig::cfg('app_name') . '</title>';
 	echo '<link href="style.css" rel="stylesheet" />';
 echo '</head>';
@@ -85,7 +86,7 @@ echo '<section class="section">';
 
 				echo '<div class="streamer-title">';
 					echo '<h2>';
-						echo '<a href="https://twitch.tv/' . $streamer['username'] . ' " rel="nofollow" target="_blank">';
+						echo '<a href="https://twitch.tv/' . $streamer['username'] . ' " rel="noreferrer" target="_blank">';
 							echo $streamer['username'];
 						echo '</a>';
 					echo '</h2>';
@@ -147,7 +148,7 @@ echo '<section class="section">';
 									
 									if( $vodclass->twitch_vod_url ){
 										
-										echo '<a href="' . $vodclass->twitch_vod_url . '" rel="nofollow" target="_blank">' . $vodclass->twitch_vod_id . '</a>';
+										echo '<a href="' . $vodclass->twitch_vod_url . '" rel="noreferrer" target="_blank">' . $vodclass->twitch_vod_id . '</a>';
 
 										if( $_GET['checkvod'] ){
 											echo $vodclass->checkValidVod() ? ' (exists)' : ' <strong class="error">(deleted)</strong>';
@@ -246,7 +247,14 @@ echo '<section class="section">';
 										echo '</td>';
 
 										// game name
-										echo '<td>' . ( $d['game_name'] ?: $d['game_id'] ) . '</td>';
+										echo '<td>';
+											$game_data = TwitchHelper::getGame( $d['game_id']);
+											$img_url = $game_data['box_art_url'];
+											$img_url = str_replace("{width}", 14, $img_url);
+											$img_url = str_replace("{height}", 19, $img_url);
+											echo '<img class="boxart" src="' . $img_url . '" /> ';
+											echo ( $game_data['name'] ?: $d['game_id'] );
+										echo '</td>';
 
 										// title
 										echo '<td>' . $d['title'] . '</td>';
@@ -320,7 +328,7 @@ echo '<section class="section">';
 
 		}
 
-		// echo '<br><br><a href="https://twitch.tv/videos/' . $json['meta']['data'][0]['id'] . '" rel="nofollow">Show on Twitch.tv</a>';
+		// echo '<br><br><a href="https://twitch.tv/videos/' . $json['meta']['data'][0]['id'] . '" rel="noreferrer">Show on Twitch.tv</a>';
 
 		echo '<br /><br />';
 
@@ -405,12 +413,12 @@ echo '<section class="section">';
 			$text = file_get_contents( $log );
 			$lines = explode("\n", $text);
 			foreach( $lines as $line ){
-				$formatted_line = $line;
-				if( strpos($formatted_line, '<ERROR>') !== false ) $formatted_line = '<span class="log_error">' . $formatted_line . '</span>';
-				if( strpos($formatted_line, '<WARNING>') !== false ) $formatted_line = '<span class="log_warning">' . $formatted_line . '</span>';
-				if( strpos($formatted_line, '<DEBUG>') !== false ) $formatted_line = '<span class="log_debug">' . $formatted_line . '</span>';
-				echo htmlentities($formatted_line, ENT_QUOTES | ENT_HTML401 | ENT_SUBSTITUTE | ENT_DISALLOWED, 'UTF-8', true);
-				echo '<br>';
+				$escaped_line = htmlentities($line, ENT_QUOTES | ENT_HTML401 | ENT_SUBSTITUTE | ENT_DISALLOWED, 'UTF-8', true);
+				if( strpos($line, '<INFO>') !== false ) $color = 'info';
+				if( strpos($line, '<ERROR>') !== false ) $color = 'error';
+				if( strpos($line, '<WARNING>') !== false ) $color = 'warning';
+				if( strpos($line, '<DEBUG>') !== false ) $color = 'debug';
+				echo '<div class="log_' . $color . '">' . $escaped_line . '</div>';
 			}
 		}
 

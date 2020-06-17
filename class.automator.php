@@ -191,6 +191,9 @@ class TwitchAutomator {
 
 	}
 
+	/**
+	 * TODO: move this to helper?
+	 */
 	public function getGameName( $id ){
 
 		if( $id == 0 ){

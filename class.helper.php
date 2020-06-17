@@ -6,6 +6,8 @@ class TwitchHelper {
 
 	public static $accessTokenFile = 'config/oauth.bin';
 
+	public static $game_db = null;
+
 	const LOG_ERROR = "ERROR";
 	const LOG_WARNING = "WARNING";
 	const LOG_INFO = "INFO";
@@ -190,6 +192,18 @@ class TwitchHelper {
 
 		// print_r($server_output);
 		// print_r($info);
+
+	}
+
+	public static function getGame( $id ){
+
+		if( self::$game_db ){
+			return self::$game_db[$id];
+		}
+
+		self::$game_db = json_decode( file_get_contents( 'config/games_v2.json' ), true );
+
+		return self::getGame($id);
 
 	}
 
