@@ -1,6 +1,6 @@
 <?php
 
-include "config.php";
+include "class.php";
 
 $TwitchAutomator = new TwitchAutomator();
 
