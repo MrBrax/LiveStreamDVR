@@ -102,9 +102,7 @@ class TwitchVOD {
 	 */
 	public function downloadChat(){
 
-		global $TwitchConfig;
-
-		if(!file_exists($TwitchConfig->cfg('bin_dir') . '/tcd')){
+		if(!file_exists(TwitchConfig::cfg('bin_dir') . '/tcd')){
 			throw new Exception('tcd not found');
 			return false;
 		}
@@ -116,7 +114,7 @@ class TwitchVOD {
 
 		$chat_filename = $this->vod_path . '/' . $this->basename . '.chat.json';
 
-		$cmd = $TwitchConfig->cfg('bin_dir') . '/tcd --video ' . escapeshellarg($this->twitch_vod_id) . ' --client_id ' . escapeshellarg( $TwitchConfig->cfg('api_client_id') ) . ' --format json --output ' . escapeshellarg($chat_filename);
+		$cmd = TwitchConfig::cfg('bin_dir') . '/tcd --video ' . escapeshellarg($this->twitch_vod_id) . ' --client_id ' . escapeshellarg( TwitchConfig::cfg('api_client_id') ) . ' --format json --output ' . escapeshellarg($chat_filename);
 
 		$capture_output = shell_exec( $cmd );
 
@@ -126,8 +124,6 @@ class TwitchVOD {
 
 	public function matchTwitchVod(){
 
-		global $TwitchConfig;
-
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Try to match twitch vod for " . $this->basename);
 
 		$channel_videos = TwitchHelper::getVideos( $this->streamer_id );
@@ -136,7 +132,7 @@ class TwitchVOD {
 
 		foreach ($channel_videos as $vid) {
 			
-			$video_time = DateTime::createFromFormat( $TwitchConfig->cfg('date_format'), $vid['created_at'] );
+			$video_time = DateTime::createFromFormat( TwitchConfig::cfg('date_format'), $vid['created_at'] );
 
 			// if within 5 minutes difference
 			if( abs( $this->started_at->getTimestamp() - $video_time->getTimestamp() ) < 300 ){
@@ -153,8 +149,6 @@ class TwitchVOD {
 	}
 
 	public function checkValidVod(){
-
-		global $TwitchConfig;
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Check valid vod for " . $this->basename);
 
@@ -196,15 +190,13 @@ class TwitchVOD {
 
 	private function parseGames( $array ){
 
-		global $TwitchConfig;
-
 		$games = [];
 
 		foreach ($this->json['games'] as $game) {
 			
 			$entry = $game;
 
-			$entry['datetime'] = DateTime::createFromFormat( $TwitchConfig->cfg("date_format"), $entry['time'] );
+			$entry['datetime'] = DateTime::createFromFormat( TwitchConfig::cfg("date_format"), $entry['time'] );
 
 			if($this->started_at){
 				$entry['offset'] = $entry['datetime']->getTimestamp() - $this->started_at->getTimestamp();
@@ -275,10 +267,9 @@ class TwitchVOD {
 
 	public function save(){
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Save " . $this->basename);
-		global $TwitchConfig;
-		rename( $TwitchConfig->cfg('vod_folder') . '/' . $this->basename . '.mp4', $TwitchConfig->cfg('vod_folder') . '/saved/' . $this->basename . '.mp4');
-		rename( $TwitchConfig->cfg('vod_folder') . '/' . $this->basename . '.json', $TwitchConfig->cfg('vod_folder') . '/saved/' . $this->basename . '.json');
-		rename( $TwitchConfig->cfg('vod_folder') . '/' . $this->basename . '-llc-edl.csv', $TwitchConfig->cfg('vod_folder') . '/saved/' . $this->basename . '-llc-edl.csv'); // losslesscut
+		rename( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.mp4', TwitchConfig::cfg('vod_folder') . '/saved/' . $this->basename . '.mp4');
+		rename( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.json', TwitchConfig::cfg('vod_folder') . '/saved/' . $this->basename . '.json');
+		rename( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '-llc-edl.csv', TwitchConfig::cfg('vod_folder') . '/saved/' . $this->basename . '-llc-edl.csv'); // losslesscut
 	}
 
 }

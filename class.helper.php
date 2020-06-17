@@ -9,10 +9,7 @@ class TwitchHelper {
 	const LOG_ERROR = "ERROR";
 	const LOG_WARNING = "WARNING";
 	const LOG_INFO = "INFO";
-
-	public static function cfg( $var, $def = null ){
-		return getenv( $var, $def );
-	}
+	const LOG_DEBUG = "DEBUG";
 
 	public static function setupDirectories(){
 		mkdir("logs");
@@ -27,17 +24,13 @@ class TwitchHelper {
 		if( !$force && file_exists( self::$accessTokenFile ) ){
 			self::log( self::LOG_INFO, "Fetched access token from cache");
 			return file_get_contents( self::$accessTokenFile );
-			// return self::$accessToken;
 		}
-
-		
-		global $TwitchConfig;
 
 		// oauth2
 		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, 'https://id.twitch.tv/oauth2/token?client_id=' . $TwitchConfig->cfg('api_client_id') . '&client_secret=' . $TwitchConfig->cfg('api_secret') . '&grant_type=client_credentials');
+		curl_setopt($ch, CURLOPT_URL, 'https://id.twitch.tv/oauth2/token?client_id=' . TwitchConfig::cfg('api_client_id') . '&client_secret=' . TwitchConfig::cfg('api_secret') . '&grant_type=client_credentials');
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
-			'Client-ID: ' . $TwitchConfig->cfg('api_client_id')
+			'Client-ID: ' . TwitchConfig::cfg('api_client_id')
 		]);
 		curl_setopt($ch, CURLOPT_POST, 1);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -92,8 +85,6 @@ class TwitchHelper {
 
 	public static function getChannelId( $username ){
 
-		global $TwitchConfig;
-
 		$json_streamers = json_decode( file_get_contents('config/streamers.json'), true );
 
 		if($json_streamers[$username]){
@@ -108,7 +99,7 @@ class TwitchHelper {
 		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/users?login=' . $username);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
 		    'Authorization: Bearer ' . $access_token,
-		    'Client-ID: ' . $TwitchConfig->cfg('api_client_id')
+		    'Client-ID: ' . TwitchConfig::cfg('api_client_id')
 		]);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 
@@ -136,13 +127,11 @@ class TwitchHelper {
 
 	public static function getVideos( $streamer_id ){
 
-		global $TwitchConfig;
-
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/videos?user_id=' . $streamer_id);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
 			'Authorization: Bearer ' . self::getAccessToken(),
-		    'Client-ID: ' . $TwitchConfig->cfg('api_client_id')
+		    'Client-ID: ' . TwitchConfig::cfg('api_client_id')
 		]);
 
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -171,13 +160,11 @@ class TwitchHelper {
 
 	public static function getVideo( $video_id ){
 
-		global $TwitchConfig;
-
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/videos?id=' . $video_id);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
 			'Authorization: Bearer ' . self::getAccessToken(),
-		    'Client-ID: ' . $TwitchConfig->cfg('api_client_id')
+		    'Client-ID: ' . TwitchConfig::cfg('api_client_id')
 		]);
 
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);

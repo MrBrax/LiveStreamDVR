@@ -11,17 +11,17 @@ if($_GET['save']){
 	$vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['save']);
 
 	/*
-	if( !file_exists( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.mp4' ) ) {
+	if( !file_exists( TwitchConfig::cfg('vod_folder') . '/' . $vod . '.mp4' ) ) {
 		echo "vod " . $vod . " not found";
 		return;
 	}
 
-	rename( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.mp4', $TwitchConfig->cfg('vod_folder') . '/saved/' . $vod . '.mp4');
-	rename( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.json', $TwitchConfig->cfg('vod_folder') . '/saved/' . $vod . '.json');
+	rename( TwitchConfig::cfg('vod_folder') . '/' . $vod . '.mp4', TwitchConfig::cfg('vod_folder') . '/saved/' . $vod . '.mp4');
+	rename( TwitchConfig::cfg('vod_folder') . '/' . $vod . '.json', TwitchConfig::cfg('vod_folder') . '/saved/' . $vod . '.json');
 	*/
 	
 	$vodclass = new TwitchVOD();
-	$vodclass->load( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.json' );
+	$vodclass->load( TwitchConfig::cfg('vod_folder') . '/' . $vod . '.json' );
 	$vodclass->save();
 
 	echo "saved " . $vod;
@@ -35,17 +35,17 @@ if($_GET['delete']){
 	$vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['delete']);
 
 	/*
-	if( !file_exists( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.mp4' ) ) {
+	if( !file_exists( TwitchConfig::cfg('vod_folder') . '/' . $vod . '.mp4' ) ) {
 		echo 'vod ' . $vod . ' not found';
 		return;
 	}
 
-	unlink( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.mp4');
-	unlink( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.json');
+	unlink( TwitchConfig::cfg('vod_folder') . '/' . $vod . '.mp4');
+	unlink( TwitchConfig::cfg('vod_folder') . '/' . $vod . '.json');
 	*/
 
 	$vodclass = new TwitchVOD();
-	$vodclass->load( $TwitchConfig->cfg('vod_folder') . '/' . $vod . '.json' );
+	$vodclass->load( TwitchConfig::cfg('vod_folder') . '/' . $vod . '.json' );
 	$vodclass->delete();
 
 	echo 'deleted ' . $vod;
@@ -56,12 +56,12 @@ if($_GET['delete']){
 
 echo '<html>';
 echo '<head>';
-	echo '<title>' . $TwitchConfig->cfg('app_name') . '</title>';
+	echo '<title>' . TwitchConfig::cfg('app_name') . '</title>';
 	echo '<link href="style.css" rel="stylesheet" />';
 echo '</head>';
 echo '<body>';
 
-echo '<header><h1>' . $TwitchConfig->cfg('app_name') . '</h1></header>';
+echo '<header><h1>' . TwitchConfig::cfg('app_name') . '</h1></header>';
 
 echo '<div class="container">';
 
@@ -75,11 +75,11 @@ echo '<section class="section">';
 
 		$total_size = 0;
 
-		$streamerList = $TwitchConfig->getStreamers();
+		$streamerList = TwitchConfig::getStreamers();
 
 		foreach( $streamerList as $streamer ){
 
-			$vods = glob( $TwitchConfig->cfg('vod_folder') . '/' . $streamer['username'] . "_*.json");
+			$vods = glob( TwitchConfig::cfg('vod_folder') . '/' . $streamer['username'] . "_*.json");
 
 			echo '<div class="streamer">';
 
@@ -113,8 +113,8 @@ echo '<section class="section">';
 
 						// $vodclass->saveLosslessCut();
 						
-						$recording = file_exists( $TwitchConfig->cfg('vod_folder') . '/' . $vodclass->basename . '.ts' );
-						$converted = file_exists( $TwitchConfig->cfg('vod_folder') . '/' . $vodclass->basename . '.mp4' );
+						$recording = file_exists( TwitchConfig::cfg('vod_folder') . '/' . $vodclass->basename . '.ts' );
+						$converted = file_exists( TwitchConfig::cfg('vod_folder') . '/' . $vodclass->basename . '.mp4' );
 
 						echo '<div class="video ' . ($recording ? 'recording' : '') . '' . ($converted ? 'converted' : '') . '">';	
 						
@@ -187,9 +187,9 @@ echo '<section class="section">';
 
 									echo '<a class="button" href="player.php?vod=' . $vodclass->basename . '">Play video</a> ';
 
-									echo '<a class="button" href="' . $TwitchConfig->cfg('vod_folder') . '/' . $vodclass->basename . '.mp4">Direct link</a> ';
+									echo '<a class="button" href="' . TwitchConfig::cfg('vod_folder') . '/' . $vodclass->basename . '.mp4">Direct link</a> ';
 
-									echo '<a class="button" href="' . $TwitchConfig->cfg('vod_folder') . '/' . $vodclass->basename . '.json">JSON</a> ';
+									echo '<a class="button" href="' . TwitchConfig::cfg('vod_folder') . '/' . $vodclass->basename . '.json">JSON</a> ';
 
 									echo '<a class="button" href="?save=' . $vodclass->basename . '">Save from deletion</a> ';
 
@@ -288,7 +288,7 @@ echo '<section class="section">';
 
 	echo '<div class="section-content">';
 
-	$vods = glob( $TwitchConfig->cfg('vod_folder') . "/saved/*.json");
+	$vods = glob( TwitchConfig::cfg('vod_folder') . "/saved/*.json");
 
 	foreach( $vods as $k => $v ){
 
@@ -311,7 +311,7 @@ echo '<section class="section">';
 
 			echo '<a class="button" href="player.php?saved=' . basename($basename) . '">Play video</a>';
 
-			echo '<a class="button" href="' . $TwitchConfig->cfg('vod_folder') . '/saved/' . basename($basename) . '.mp4">Direct link</a>';
+			echo '<a class="button" href="' . TwitchConfig::cfg('vod_folder') . '/saved/' . basename($basename) . '.mp4">Direct link</a>';
 
 		}
 

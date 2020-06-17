@@ -6,7 +6,7 @@ $TwitchAutomator = new TwitchAutomator();
 
 echo '<h1>Subbing...</h1>';
 
-$streamers = $TwitchConfig->getStreamers();
+$streamers = TwitchConfig::getStreamers();
 
 foreach( $streamers as $k => $v ){
 
@@ -34,6 +34,6 @@ foreach( $streamers as $k => $v ){
 
 if( count($streamers) == 0 ) echo 'No channels to subscribe to';
 
-var_dump( $TwitchConfig->$config );
+var_dump( TwitchConfig::$config );
 
-var_dump( $TwitchConfig->config );
+var_dump( TwitchConfig::config );

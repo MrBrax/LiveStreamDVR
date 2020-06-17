@@ -36,8 +36,6 @@ class TwitchAutomator {
 
 	public function jsonLoad(){
 
-		global $TwitchConfig;
-
 		if( !$this->data_cache ){
 			$this->errors[] = 'No JSON cache when loading';
 			return false;
@@ -45,13 +43,13 @@ class TwitchAutomator {
 
 		$basename = $this->basename( $this->data_cache );
 
-		if( !file_exists( $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.json') ){
+		if( !file_exists( TwitchConfig::cfg('vod_folder') . '/' . $basename . '.json') ){
 			$this->errors[] = 'No JSON file when loading';
 			$this->json = [];
 			return;
 		}
 
-		$json = json_decode( file_get_contents( $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.json' ), true );
+		$json = json_decode( file_get_contents( TwitchConfig::cfg('vod_folder') . '/' . $basename . '.json' ), true );
 
 		if(!$json || $json == null) $json = [];
 
@@ -62,8 +60,6 @@ class TwitchAutomator {
 	}
 
 	public function jsonSave(){
-		
-		global $TwitchConfig;
 
 		if( !$this->data_cache ){
 			$this->errors[] = 'No JSON cache when saving';
@@ -72,7 +68,7 @@ class TwitchAutomator {
 
 		$basename = $this->basename( $this->data_cache );
 
-		file_put_contents( $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.json', json_encode( $this->json ) );
+		file_put_contents( TwitchConfig::cfg('vod_folder') . '/' . $basename . '.json', json_encode( $this->json ) );
 
 		return true;
 
@@ -80,9 +76,7 @@ class TwitchAutomator {
 	
 	public function notify( $body, $title, $notification_type = self::NOTIFY_GENERIC ){
 
-		global $TwitchConfig;
-
-		$headers = "From: " . $TwitchConfig->cfg('notify_from') . "\r\n";
+		$headers = "From: " . TwitchConfig::cfg('notify_from') . "\r\n";
 		$headers .= "Content-Type: text/html; charset=UTF-8\r\n";
 
 		$body = '<h1>' . $title . '</h1>' . $body;
@@ -115,8 +109,8 @@ class TwitchAutomator {
 
 		}
 
-		if( $TwitchConfig->cfg('notify_to') ){
-			mail($TwitchConfig->cfg('notify_to'), $TwitchConfig->cfg('app_name') . ' - ' . $title, $body, $headers);
+		if( TwitchConfig::cfg('notify_to') ){
+			mail(TwitchConfig::cfg('notify_to'), TwitchConfig::cfg('app_name') . ' - ' . $title, $body, $headers);
 		}else{
 			file_put_contents('logs/' . date("Y-m-d.H_i_s") . '.html', $body);
 		}
@@ -125,9 +119,7 @@ class TwitchAutomator {
 
 	public function cleanup( $streamer_name ){
 
-		global $TwitchConfig;
-
-		$vods = glob( $TwitchConfig->cfg('vod_folder') . "/" . $streamer_name . "_*.mp4");
+		$vods = glob( TwitchConfig::cfg('vod_folder') . "/" . $streamer_name . "_*.mp4");
 
 		$total_size = 0;
 
@@ -139,7 +131,7 @@ class TwitchAutomator {
 
 		$this->info[] = 'Total filesize for ' . $streamer_name . ': ' . $gb;
 
-		if( sizeof($vods) > $TwitchConfig->cfg('vods_to_keep') || $gb > $TwitchConfig->cfg('storage_per_streamer') ){
+		if( sizeof($vods) > TwitchConfig::cfg('vods_to_keep') || $gb > TwitchConfig::cfg('storage_per_streamer') ){
 			
 			$this->notify('', ' (cleanup: ' . $vods[0] . ', size: ' . $gb . 'GB)');
 
@@ -156,8 +148,6 @@ class TwitchAutomator {
 	}
 
 	public function handle( $data ){
-
-		global $TwitchConfig;
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Handle called");
 
@@ -177,9 +167,9 @@ class TwitchAutomator {
 
 			$basename = $this->basename( $data );
 			
-			if( file_exists( $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.json') ){
+			if( file_exists( TwitchConfig::cfg('vod_folder') . '/' . $basename . '.json') ){
 
-				if( !file_exists( $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.ts') ){
+				if( !file_exists( TwitchConfig::cfg('vod_folder') . '/' . $basename . '.ts') ){
 
 					$this->notify($basename, 'VOD JSON EXISTS BUT NOT VIDEO', self::NOTIFY_ERROR);
 
@@ -203,8 +193,6 @@ class TwitchAutomator {
 
 	public function getGameName( $id ){
 
-		global $TwitchConfig;
-
 		if( $id == 0 ){
 			$this->errors[] = 'Game ID is 0';
 			return false;
@@ -221,7 +209,7 @@ class TwitchAutomator {
 		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/games?id=' . $id);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
 			'Authorization: Bearer ' . TwitchHelper::getAccessToken(),
-		    'Client-ID: ' . $TwitchConfig->cfg('api_client_id')
+		    'Client-ID: ' . TwitchConfig::cfg('api_client_id')
 		]);
 
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -340,8 +328,6 @@ class TwitchAutomator {
 
 	public function download( $data, $tries = 0 ){
 
-		global $TwitchConfig;
-
 		$data_id = $data['data'][0]['id'];
 		$data_title = $data['data'][0]['title'];
 		$data_started = $data['data'][0]['started_at'];
@@ -361,7 +347,7 @@ class TwitchAutomator {
 
         $basename = $this->basename( $data );
         
-        $streamer = $TwitchConfig->getStreamer( $data_username );
+        $streamer = TwitchConfig::getStreamer( $data_username );
 
 		// check matched title
 		if( $streamer && $streamer['match'] ){
@@ -409,11 +395,11 @@ class TwitchAutomator {
 
 			TwitchHelper::log( TwitchHelper::LOG_WARNING, "Panic handler for " . $basename);
 
-			if( $tries >= $TwitchConfig->cfg('download_retries') ){
+			if( $tries >= TwitchConfig::cfg('download_retries') ){
 				$this->errors[] = 'Giving up on downloading, too many tries';
 				$this->notify($basename, 'GIVING UP, TOO MANY TRIES', self::NOTIFY_ERROR);
 				// unlink( 'vods/' . $basename . '.json' );
-				rename( $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.json', $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.json.broken' );
+				rename( TwitchConfig::cfg('vod_folder') . '/' . $basename . '.json', TwitchConfig::cfg('vod_folder') . '/' . $basename . '.json.broken' );
 				throw new Exception('Too many tries');
 				return;
 			}
@@ -508,13 +494,13 @@ class TwitchAutomator {
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Do metadata on " . $basename);
 
 		$vodclass = new TwitchVOD();
-		$vodclass->load( $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.json');
+		$vodclass->load( TwitchConfig::cfg('vod_folder') . '/' . $basename . '.json');
 
 		$vodclass->saveLosslessCut();
 		$vodclass->matchTwitchVod();
 		$vodclass->saveJSON();
 		
-		if( $TwitchConfig->cfg('download_chat') && $vodclass->twitch_vod_id ){
+		if( TwitchConfig::cfg('download_chat') && $vodclass->twitch_vod_id ){
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "Auto download chat on " . $basename);
 			$vodclass->downloadChat();
 		}
@@ -524,8 +510,6 @@ class TwitchAutomator {
 	}
 
 	public function capture( $data ){
-
-		global $TwitchConfig;
 
 		$data_id = $data['data'][0]['id'];
 		$data_title = $data['data'][0]['title'];
@@ -542,15 +526,15 @@ class TwitchAutomator {
 
 		$basename = $this->basename( $data );
 
-		$capture_filename = $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.ts';
+		$capture_filename = TwitchConfig::cfg('vod_folder') . '/' . $basename . '.ts';
 
-		$cmd = $TwitchConfig->cfg('bin_dir') . '/streamlink';
+		$cmd = TwitchConfig::cfg('bin_dir') . '/streamlink';
 		$cmd .= ' --hls-live-restart'; // start recording from start of stream, though twitch doesn't support this
 		$cmd .= ' --hls-live-edge 99999';
 		$cmd .= ' --hls-segment-threads 5';
 		$cmd .= ' --twitch-disable-hosting'; // disable channel hosting
 		$cmd .= ' -o ' . escapeshellarg($capture_filename); // output file
-		$cmd .= ' ' . escapeshellarg($stream_url) . ' ' . escapeshellarg( $TwitchConfig->cfg('stream_quality') ); // twitch url and quality
+		$cmd .= ' ' . escapeshellarg($stream_url) . ' ' . escapeshellarg( TwitchConfig::cfg('stream_quality') ); // twitch url and quality
 
 		$this->info[] = 'Streamlink cmd: ' . $cmd;
 
@@ -566,11 +550,11 @@ class TwitchAutomator {
 			$this->notify($basename, '410 Error', self::NOTIFY_ERROR);
 			// return false;
 			
-			$cmd = $TwitchConfig->cfg('bin_dir') . '/youtube-dl';
+			$cmd = TwitchConfig::cfg('bin_dir') . '/youtube-dl';
 			$cmd .= ' --hls-use-mpegts'; // use ts instead of mp4
 			$cmd .= ' --no-part';
 			$cmd .= ' -o ' . escapeshellarg($capture_filename); // output file
-			$cmd .= ' -f ' . escapeshellarg( implode('/', explode(',', $TwitchConfig->cfg('stream_quality') ) ) ); // format
+			$cmd .= ' -f ' . escapeshellarg( implode('/', explode(',', TwitchConfig::cfg('stream_quality') ) ) ); // format
 			$cmd .= ' ' . escapeshellarg($stream_url);
 
 			$this->info[] = 'Youtube-dl cmd: ' . $cmd;
@@ -592,21 +576,19 @@ class TwitchAutomator {
 	 */
 	public function convert( $basename ){
 
-		global $TwitchConfig;
+		$capture_filename 	= TwitchConfig::cfg('vod_folder') . '/' . $basename . '.ts';
 
-		$capture_filename 	= $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.ts';
-
-		$converted_filename = $TwitchConfig->cfg('vod_folder') . '/' . $basename . '.mp4';
+		$converted_filename = TwitchConfig::cfg('vod_folder') . '/' . $basename . '.mp4';
 
 		$int = 1;
 
 		while( file_exists( $converted_filename ) ){
 			$this->errors[] = 'File exists, making a new name';
-			$converted_filename = $TwitchConfig->cfg('vod_folder') . '/' . $basename . '-' . $int . '.mp4';
+			$converted_filename = TwitchConfig::cfg('vod_folder') . '/' . $basename . '-' . $int . '.mp4';
 			$int++;
 		}
 
-		$cmd = $TwitchConfig->cfg('ffmpeg_path');
+		$cmd = TwitchConfig::cfg('ffmpeg_path');
 		$cmd .= ' -i ' . escapeshellarg($capture_filename);
 		$cmd .= ' -codec copy'; // use same codec
 		$cmd .= ' -bsf:a aac_adtstoasc'; // fix audio sync in ts
@@ -628,13 +610,11 @@ class TwitchAutomator {
 
 	public function sub( $streamer_name ){
 
-		global $TwitchConfig;
-
 		/**
 		 * TODO: Fix this
 		 */
 		/*
-		 if( !$TwitchConfig->getStreamers()[$streamer_name] ) {
+		 if( !TwitchConfig::getStreamers()[$streamer_name] ) {
 			$this->notify('Streamer not found: ' . $streamer_name, '[' . $streamer_name . '] [subscribing error]', self::NOTIFY_ERROR);
 			throw new Exception('Streamer not found: ' . $streamer_name);
 			return false;
@@ -655,10 +635,10 @@ class TwitchAutomator {
 		$method = 'POST';
 
 		$data = [
-			'hub.callback' => $TwitchConfig->cfg('hook_callback'),
+			'hub.callback' => TwitchConfig::cfg('hook_callback'),
 			'hub.mode' => 'subscribe',
 			'hub.topic' => 'https://api.twitch.tv/helix/streams?user_id=' . $streamer_id,
-			'hub.lease_seconds' => $TwitchConfig->cfg('sub_lease')
+			'hub.lease_seconds' => TwitchConfig::cfg('sub_lease')
 		];
 
 		// print_r( $data );
@@ -674,7 +654,7 @@ class TwitchAutomator {
 		    'Content-Type: application/json',
 			'Content-Length: ' . strlen($data_string),
 			'Authorization: Bearer ' . TwitchHelper::getAccessToken(),
-		    'Client-ID: ' . $TwitchConfig->cfg('api_client_id')
+		    'Client-ID: ' . TwitchConfig::cfg('api_client_id')
 		]);
 
 		// curl_setopt($ch, CURLOPT_HEADER, TRUE);
@@ -715,8 +695,6 @@ class TwitchAutomator {
 
 	public function getSubs(){
 
-		global $TwitchConfig;
-
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Requesting subscriptions list");
 
 		// webhook list
@@ -724,7 +702,7 @@ class TwitchAutomator {
 		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/webhooks/subscriptions');
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
 			'Authorization: Bearer ' . TwitchHelper::getAccessToken(),
-		    'Client-ID: ' . $TwitchConfig->cfg('api_client_id')
+		    'Client-ID: ' . TwitchConfig::cfg('api_client_id')
 		]);
 		
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
