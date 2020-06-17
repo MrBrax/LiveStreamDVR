@@ -4,9 +4,11 @@
 
 Install dependencies with composer.
 
-Configure using the `config.json` file in the `config` directory, not `.env`, it's outdated.
+Configure using the `config.json` file in the `config` directory.
 
-Needs python `streamlink`, `youtube-dl`, and `tcd` to fully work.
+Needs python `streamlink`, `youtube-dl`, and `tcd` to fully work. Pipenv support is experimental.
+
+Visit `sub.php` in your web browser to check that subscribing to the webhooks work. Make it automatic with a cronjob using wget/curl later. Check `subs.php` for subscription status.
 
 Denying access in your webserver to the `config` directory is highly recommended.
 
