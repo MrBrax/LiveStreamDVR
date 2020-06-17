@@ -164,7 +164,7 @@ echo '<section class="section">';
 									echo '<div><strong>Segments:</strong>';
 									echo '<ul>';
 									foreach ($vodclass->segments as $seg) {
-										echo '<li>' . $seg . '</li>';
+										echo '<li><a href="' . $seg . '">' . basename($seg) . '</a></li>';
 									}
 									echo '</ul>';
 									echo '</div>';
@@ -189,9 +189,9 @@ echo '<section class="section">';
 
 								if( file_exists( $vod_file ) ) {
 
-									echo '<a class="button" href="player.php?vod=' . $vodclass->basename . '">Play video</a> ';
+									echo '<a class="button" href="player.php?vod=' . $vodclass->basename . '">Play segment 0 and cut</a> ';
 
-									echo '<a class="button" href="' . TwitchConfig::cfg('vod_folder') . '/' . $vodclass->basename . '.mp4">Direct link</a> ';
+									// echo '<a class="button" href="' . TwitchConfig::cfg('vod_folder') . '/' . $vodclass->basename . '.mp4">Direct link</a> ';
 
 									echo '<a class="button" href="' . TwitchConfig::cfg('vod_folder') . '/' . $vodclass->basename . '.json">JSON</a> ';
 
@@ -240,8 +240,9 @@ echo '<section class="section">';
 										}
 										echo '</td>';
 
+										// duration
 										echo '<td>';
-										echo getNiceDuration($d['duration']);
+											echo '<span class="grey">' . getNiceDuration($d['duration']) . '</span>';
 										echo '</td>';
 
 										// game name
@@ -280,7 +281,7 @@ echo '<section class="section">';
 
 		}
 
-		echo '<strong>Total size: ' . round($total_size / 1024 / 1024 / 1024, 2) . 'GB';
+		echo '<strong>Total size: ' . round($total_size / 1024 / 1024 / 1024, 2) . 'GB</strong>';
 
 	echo "</div>";
 
@@ -388,13 +389,32 @@ echo '<section class="section">';
 	echo '<div class="section-title"><h1>Logs</h1></div>';
 
 	echo '<div class="section-content">';
-	
-	$logs = glob("logs/*.log");
-	echo '<ul class="logs">';
-	foreach( $logs as $log ){
-		echo '<li><a href="' . $log . '">' . basename($log) . '</a></li>';
-	}
-	echo '</ul>';
+		
+		$logs = glob("logs/*.log");
+		$last_log = null;
+		echo '<ul class="logs">';
+		foreach( $logs as $log ){
+			echo '<li><a href="' . $log . '">' . basename($log) . '</a></li>';
+			$last_log = $log;
+		}
+		echo '</ul>';
+
+		echo '<div class="log_viewer">';
+
+		if( $last_log ){
+			$text = file_get_contents( $log );
+			$lines = explode("\n", $text);
+			foreach( $lines as $line ){
+				$formatted_line = $line;
+				if( strpos($formatted_line, '<ERROR>') !== false ) $formatted_line = '<span class="log_error">' . $formatted_line . '</span>';
+				if( strpos($formatted_line, '<WARNING>') !== false ) $formatted_line = '<span class="log_warning">' . $formatted_line . '</span>';
+				if( strpos($formatted_line, '<DEBUG>') !== false ) $formatted_line = '<span class="log_debug">' . $formatted_line . '</span>';
+				echo htmlentities($formatted_line, ENT_QUOTES | ENT_HTML401 | ENT_SUBSTITUTE | ENT_DISALLOWED, 'UTF-8', true);
+				echo '<br>';
+			}
+		}
+
+		echo '</div>';
 
 	echo "</div>";
 

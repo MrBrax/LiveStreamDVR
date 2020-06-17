@@ -22,7 +22,7 @@ class TwitchHelper {
 	public static function getAccessToken( $force = false ){
 
 		if( !$force && file_exists( self::$accessTokenFile ) ){
-			self::log( self::LOG_INFO, "Fetched access token from cache");
+			self::log( self::LOG_DEBUG, "Fetched access token from cache");
 			return file_get_contents( self::$accessTokenFile );
 		}
 

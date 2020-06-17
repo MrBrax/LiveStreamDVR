@@ -211,12 +211,38 @@ h3 { font-size: 125%; }
 	color: #666;
 }
 
+.grey {
+	color: #666;
+}
+
 .notice {
 	margin: 5px;
 	background: #eee;
 	border: 1px solid #ccc;
 	padding: 10px;
 	color: #555;
+}
+
+.log_viewer {
+	font-family: Consolas, monospace;
+	font-size: 10px;
+	color: #333;
+	max-height: 600px;
+	max-width: 600px;
+	overflow-x: scroll;
+	overflow-y: scroll;
+	.log_warning {
+		color: rgb(255, 115, 0);
+		font-weight: 700;
+	}
+	.log_error {
+		color: #f00;
+		font-weight: 700;
+	}
+	.log_debug {
+		color: rgb(156, 156, 156);
+		font-weight: 200;
+	}
 }
 
 /** Black theme **/
