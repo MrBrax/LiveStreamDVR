@@ -56,7 +56,7 @@ if($_GET['delete']){
 
 echo '<html>';
 echo '<head>';
-	echo '<meta name="referrer" content="none">';
+	echo ' <meta name="referrer" content="no-referrer" />';
 	echo '<title>' . TwitchConfig::cfg('app_name') . '</title>';
 	echo '<link href="style.css" rel="stylesheet" />';
 echo '</head>';
