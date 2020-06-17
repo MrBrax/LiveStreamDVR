@@ -2,15 +2,31 @@
 
 *Note that this thing is written without a framework or any real standards, so the code is pretty messy. Might refactor it one day with html templates and such.*
 
-Install dependencies with composer.
+1. Install dependencies with composer.
 
-Configure using the `config.json` file in the `config` directory.
+2. Install utilities with pip, see below
 
-Needs python `streamlink`, `youtube-dl`, and `tcd` to fully work. Pipenv support is experimental.
+3. Configure using the `config.json` file in the `config` directory.
 
-Visit `sub.php` in your web browser to check that subscribing to the webhooks work. Make it automatic with a cronjob using wget/curl later. Check `subs.php` for subscription status.
+4. Visit `sub.php` in your web browser to check that subscribing to the webhooks work. Make it automatic with a cronjob using wget/curl later. Check `subs.php` for subscription status. **This thing requires a public facing webserver.**
 
-Denying access in your webserver to the `config` directory is highly recommended.
+5. Denying access in your webserver to the `config` directory is highly recommended.
+
+*One high-profile streamer VOD of 10 hours is about 30-50GB.*
+
+## Main requirements
+- PHP 7+
+- Python 3.6
+    - Python 3.7+ for tcd support
+- [pip](https://pypi.org/project/pip/)
+- [Composer](https://getcomposer.org/)
+
+### pip packages
+- [streamlink](https://github.com/streamlink/streamlink) (required)
+- [youtube-dl](https://github.com/ytdl-org/youtube-dl) (recommended)
+- [tcd](https://pypi.org/project/tcd/) (optional)
+- [pipenv](https://github.com/pypa/pipenv) (optional, experimental)
+
 
 ## Features
 - Automatic VOD recording pretty much the second the stream goes live, instead of checking it every minute like many other scripts do

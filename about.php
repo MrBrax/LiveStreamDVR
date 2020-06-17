@@ -2,6 +2,8 @@
 
 include "class.php";
 
+echo '<h1>Utilities status</h1>';
+
 echo '<strong>FFMpeg:</strong> ';
 if( file_exists( TwitchConfig::cfg("ffmpeg_path") ) ){
     $out = shell_exec( TwitchConfig::cfg("ffmpeg_path") . " -version");
