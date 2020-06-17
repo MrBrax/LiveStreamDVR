@@ -40,6 +40,11 @@ class TwitchConfig {
 
 TwitchConfig::loadConfig();
 
+if( !TwitchConfig::cfg("api_client_id") ) die("api_client_id missing from config file");
+if( !TwitchConfig::cfg("api_secret") ) die("api_secret missing from config file");
+
+if( !file_exists( TwitchConfig::cfg("ffmpeg_path") ) ) die("ffmpeg_path is not valid");
+
 /*
 $TwitchConfig = new TwitchConfig();
 TwitchConfig::loadConfig();

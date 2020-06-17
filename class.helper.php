@@ -90,7 +90,7 @@ class TwitchHelper {
 		$json_streamers = json_decode( file_get_contents('config/streamers.json'), true );
 
 		if($json_streamers[$username]){
-			self::log( self::LOG_INFO, "Fetched channel id from cache for " . $username);	
+			self::log( self::LOG_DEBUG, "Fetched channel id from cache for " . $username);	
 			return $json_streamers[$username];
 		}
 
