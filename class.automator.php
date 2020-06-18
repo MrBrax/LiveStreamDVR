@@ -149,7 +149,7 @@ class TwitchAutomator {
 
 	public function handle( $data ){
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Handle called");
+		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Handle called");
 
 		$data_id = $data['data'][0]['id'];
 		// $data_title = $data['data'][0]['title'];
@@ -208,6 +208,8 @@ class TwitchAutomator {
 			return $game_db[ $id ]['name'];
 		}
 
+		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Game id " . $id . " not in cache, fetching..." );
+
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/games?id=' . $id);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -239,7 +241,7 @@ class TwitchAutomator {
 
 			file_put_contents( 'config/games_v2.json', json_encode( $game_db ) );
 
-			TwitchHelper::log( TwitchHelper::LOG_INFO, "New game saved to database: " . $game["name"]);
+			TwitchHelper::log( TwitchHelper::LOG_INFO, "New game saved to cache: " . $game["name"]);
 
 			return $game["name"];
 
