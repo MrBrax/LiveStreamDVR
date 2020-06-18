@@ -12,6 +12,12 @@ class TwitchVOD {
 	public $streamer_id = null;
 
 	public $segments = [];
+
+	/**
+	 * Games
+	 *
+	 * @var [ 'datetime', 'offset', 'duration' ]
+	 */
 	public $games = [];
 
 	public $started_at = null;

@@ -215,6 +215,14 @@ echo '<section class="section">';
 							echo '</div>';
 
 							echo '<table class="game-list">';
+
+								/*
+								echo '<tr height="0">';
+									echo '<td width="100"></td>';
+									echo '<td width="100"></td>';
+									echo '<td width="400"></td>';
+								echo '</tr>';
+								*/
 							
 								foreach ($vodclass->games as $d) {
 
@@ -253,7 +261,17 @@ echo '<section class="section">';
 											$img_url = str_replace("{width}", 14, $img_url);
 											$img_url = str_replace("{height}", 19, $img_url);
 											echo '<img class="boxart" src="' . $img_url . '" /> ';
-											echo ( $game_data['name'] ?: $d['game_id'] );
+
+											$game_string = ( $game_data['name'] ?: $d['game_id'] );
+
+											if( $converted ){
+												echo '<a href="player.php?vod=' . $vodclass->basename . '&start=' . $d['offset'] . '">';
+													echo $game_string;
+												echo '</a>';
+											}else{
+												echo $game_string;
+											}
+
 										echo '</td>';
 
 										// title

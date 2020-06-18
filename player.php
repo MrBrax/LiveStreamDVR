@@ -7,6 +7,8 @@ $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
 $vodclass = new TwitchVOD();
 $vodclass->load( TwitchConfig::cfg('vod_folder') . '/' . $vod . '.json');
 
+$start_offset = (int)$_GET['start'] ?: 0;
+
 ?>
 
 <link href="style.css" rel="stylesheet" />
@@ -44,10 +46,15 @@ $vodclass->load( TwitchConfig::cfg('vod_folder') . '/' . $vod . '.json');
 
 <script type="text/javascript">
 
+	let start_offset = <?php echo $start_offset; ?>;
 	let game_offset = <?php echo $vodclass->game_offset; ?>;
 	
 	let time_in = "";
 	let time_out = "";
+
+	if( start_offset > 0 ){
+		document.getElementById('video').currentTime = start_offset;
+	}
 
 	function cut_video( t ){
 
