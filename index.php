@@ -192,7 +192,7 @@ echo '<section class="section">';
 									echo '<div><strong>Segments:</strong>';
 									echo '<ul>';
 									foreach ($vodclass->segments as $seg) {
-										echo '<li><a href="' . TwitchConfig::cfg('vod_folder') . '/' . $seg . '">' . basename($seg) . '</a></li>';
+										echo '<li><a href="' . TwitchConfig::cfg('vod_folder') . '/' . basename($seg) . '">' . basename($seg) . '</a></li>';
 									}
 									echo '</ul>';
 									echo '</div>';
@@ -285,7 +285,7 @@ echo '<section class="section">';
 
 											$game_string = ( $game_data['name'] ?: $d['game_id'] );
 
-											if( $converted ){
+											if( $vodclass->is_converted ){
 												echo '<a href="player.php?vod=' . $vodclass->basename . '&start=' . $d['offset'] . '">';
 													echo $game_string;
 												echo '</a>';
