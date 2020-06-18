@@ -28,6 +28,12 @@ if( $post_json ){
 
 $data = json_decode( file_get_contents('php://input'), true );
 
+$post_json = $_POST['json'];
+
+if( $post_json ){
+	$data = json_decode( $post_json, true );
+}
+
 if($data){
 
 	file_put_contents('payloads/' . date("Y-m-d.h_i_s") . '.json', json_encode($data));

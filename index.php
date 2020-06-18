@@ -127,7 +127,7 @@ echo '<section class="section">';
 					echo '<span class="small">';
 						echo $streamer['quality'];
 						echo ' &middot; ';
-						echo sizeof( $streamer['vod_list'] ) . ' vods';
+						echo count( $streamer['vods_list'] ) . ' vods';
 					echo '</span>';
 				echo '</div>';
 
@@ -432,8 +432,8 @@ echo '<section class="section">';
 
 echo '</section>';	
 
-/*
-echo '<section class="section">';
+
+echo '<section class="section" style="display: hidden;">';
 
 	echo '<div class="section-title"><h1>Hook</h1></div>';
 
@@ -447,7 +447,7 @@ echo '<section class="section">';
 	echo "</div>";
 
 echo '</section>';
-*/
+
 
 echo '<section class="section">';
 
