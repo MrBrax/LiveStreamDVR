@@ -97,6 +97,7 @@ echo '<div class="top-menu">';
 			echo '<a href="#streamer_' . $streamer['username'] . '">' . $streamer['username'] . '</a>';
 		echo '</div>';
 	}
+	echo '<div class="top-menu-item linkback"><a href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer">GitHub</a></div>';
 echo '</div>';
 
 echo '<div class="container">';

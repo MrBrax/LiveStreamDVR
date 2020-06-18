@@ -16,7 +16,8 @@
 
 body {
 	background: #fdfdfd;
-	font: 14px Roboto, Arial;
+	font-family: Roboto, Helvetica, Arial;
+	font-size: 14px;
 	margin: 0;
 	padding: 0;
 }
@@ -47,6 +48,7 @@ h3 { font-size: 125%; }
 	background-color: #000;
 	color: #fff;
 	display: flex;
+	font-size: 18px;
 	.top-menu-item {
 		padding: 4px 8px;
 		&.title {
@@ -64,6 +66,14 @@ h3 { font-size: 125%; }
 				color: #f00;
 				animation: live ease-in-out 1s infinite;
 				font-weight: 700;
+			}
+		}
+		&.linkback {
+			flex-grow: 1;
+			text-align: right;
+			a {
+				font-weight: 700;
+				color: rgb(224, 224, 13);
 			}
 		}
 	}
