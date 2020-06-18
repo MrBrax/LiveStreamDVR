@@ -236,7 +236,9 @@ h3 {
     font-weight: 200; }
 
 .boxart {
-  vertical-align: -4px; }
+  vertical-align: -4px;
+  width: 14px;
+  height: 19px; }
 
 /** Black theme **/
 /*

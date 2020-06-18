@@ -278,10 +278,13 @@ echo '<section class="section">';
 										// game name
 										echo '<td>';
 											$game_data = TwitchHelper::getGame( $d['game_id']);
-											$img_url = $game_data['box_art_url'];
-											$img_url = str_replace("{width}", 14, $img_url);
-											$img_url = str_replace("{height}", 19, $img_url);
-											echo '<img class="boxart" src="' . $img_url . '" /> ';
+											
+											if( $game_data['box_art_url'] ){
+												$img_url = $game_data['box_art_url'];
+												$img_url = str_replace("{width}", 14, $img_url);
+												$img_url = str_replace("{height}", 19, $img_url);
+												echo '<img class="boxart" src="' . $img_url . '" /> ';
+											}
 
 											$game_string = ( $game_data['name'] ?: $d['game_id'] );
 
