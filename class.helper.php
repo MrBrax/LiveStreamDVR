@@ -75,7 +75,7 @@ class TwitchHelper {
 		$filename_json = "logs/" . date("Y-m-d") . ".log.json";
 		
 		$log_text = file_exists( $filename ) ? file_get_contents( $filename ) : '';
-		$log_json = file_exists( $filename_json ) ? file_get_contents( $filename_json ) : [];
+		$log_json = file_exists( $filename_json ) ? json_decode( file_get_contents( $filename_json ), true ) : [];
 
 		$date = new DateTime();
 
@@ -93,7 +93,7 @@ class TwitchHelper {
 
 		file_put_contents($filename, $log_text);
 
-		file_put_contents($filename_json, $log_json);
+		file_put_contents($filename_json, json_encode($log_json));
 		
 	}
 
