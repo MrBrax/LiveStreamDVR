@@ -359,12 +359,12 @@ echo '<section class="section">';
 echo '</section>';
 
 // Saved vods
-echo '<section class="section">';
+$vods = glob( TwitchConfig::cfg('vod_folder') . "/saved/*.json");
+
+echo '<section class="section"' . ( count($vods) == 0 ? ' style="display:none;"' : '' ) . '>';
 	echo '<div class="section-title"><h1>Saved VODs</h1></div>';
 
-	echo '<div class="section-content">';
-
-	$vods = glob( TwitchConfig::cfg('vod_folder') . "/saved/*.json");
+	echo '<div class="section-content">';	
 
 	foreach( $vods as $k => $v ){
 
@@ -439,7 +439,7 @@ echo '<section class="section">';
 echo '</section>';	
 
 
-echo '<section class="section" style="display: hidden;">';
+echo '<section class="section" style="display: none;">';
 
 	echo '<div class="section-title"><h1>Hook</h1></div>';
 
