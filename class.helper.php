@@ -79,12 +79,12 @@ class TwitchHelper {
 
 		$date = new DateTime();
 
-		$text = $date->format("Y-m-d H:i:s.v") . " | <" . $level . "> " . $text;
+		$text_line = $date->format("Y-m-d H:i:s.v") . " | <" . $level . "> " . $text;
 
-		$log_text .= "\n" . $text;
+		$log_text .= "\n" . $text_line;
 
 		$log_data = [
-			"date" => $date->getTimestamp(),
+			"date" => microtime(true),
 			"level" => $level,
 			"text" => $text
 		];

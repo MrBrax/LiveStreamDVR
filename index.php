@@ -455,7 +455,7 @@ echo '<section class="section">';
 
 	echo '<div class="section-content">';
 		
-		$logs = glob("logs/*.log");
+		$logs = glob("logs/*.log.json");
 		$last_log = null;
 		echo '<ul class="logs">';
 		foreach( $logs as $log ){
@@ -467,15 +467,21 @@ echo '<section class="section">';
 		echo '<div class="log_viewer">';
 
 		if( $last_log ){
-			$text = file_get_contents( $log );
-			$lines = explode("\n", $text);
-			foreach( $lines as $line ){
-				$escaped_line = htmlentities($line, ENT_QUOTES | ENT_HTML401 | ENT_SUBSTITUTE | ENT_DISALLOWED, 'UTF-8', true);
+			$json = json_decode( file_get_contents( $log ), true );
+
+			foreach( $json as $line ){
+				$escaped_text = htmlentities($line["text"], ENT_QUOTES | ENT_HTML401 | ENT_SUBSTITUTE | ENT_DISALLOWED, 'UTF-8', true);
+				/*
 				if( strpos($line, '<INFO>') !== false ) $color = 'info';
 				if( strpos($line, '<ERROR>') !== false ) $color = 'error';
 				if( strpos($line, '<WARNING>') !== false ) $color = 'warning';
 				if( strpos($line, '<DEBUG>') !== false ) $color = 'debug';
-				echo '<div class="log_' . $color . '">' . $escaped_line . '</div>';
+				*/
+				$date = DateTime::createFromFormat("U.u", $line["date"]);
+				$text_line = $date->format("Y-m-d H:i:s.v");
+				$text_line .= ' &lt;' . $line["level"] . '&gt; ';
+				$text_line .= $escaped_text;
+				echo '<div class="log_' . strtolower( $line["level"] ) . '">' . $text_line . '</div>';
 			}
 		}
 
