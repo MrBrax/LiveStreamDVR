@@ -287,7 +287,13 @@ echo '<section class="section">';
 
 										// duration
 										echo '<td>';
-											echo '<span class="grey">' . getNiceDuration($d['duration']) . '</span>';
+											echo '<span class="grey">';
+											if( $d['duration'] ){
+												echo getNiceDuration($d['duration']);
+											}else{
+												echo 'Active';
+											}
+											echo '</span>';
 										echo '</td>';
 
 										// game name
