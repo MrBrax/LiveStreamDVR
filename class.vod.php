@@ -76,6 +76,8 @@ class TwitchVOD {
 		$this->is_recording = file_exists( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.ts' );
 		$this->is_converted = file_exists( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.mp4' );
 
+		$this->is_chat_downloaded = file_exists( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.chat' );
+
 		return true;
 
 	}
@@ -124,7 +126,21 @@ class TwitchVOD {
 			return false;
 		}
 
-		$chat_filename = $this->vod_path . '/' . $this->basename . '.chat.json';
+		$chat_filename = TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.chat';
+
+		$tcd_filename = TwitchConfig::cfg('vod_folder') . '/' . $this->twitch_vod_id . '.json';
+
+		if( file_exists( $chat_filename ) ){
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Chat already exists for " . $this->basename);
+			return;
+		}
+
+		// if tcd generated file exists, rename it
+		if( file_exists( $tcd_filename ) ){
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Renamed chat file for " . $this->basename);
+			rename( $tcd_filename, $chat_filename );
+			return;
+		}
 
 		if( TwitchConfig::cfg('pipenv') ){
 			$cmd = 'pipenv run tcd';
@@ -133,11 +149,15 @@ class TwitchVOD {
 		}
 		
 		$cmd .= ' --video ' . escapeshellarg($this->twitch_vod_id);
-		$cmd .= ' --client_id ' . escapeshellarg( TwitchConfig::cfg('api_client_id') );
+		$cmd .= ' --client-id ' . escapeshellarg( TwitchConfig::cfg('api_client_id') );
+		$cmd .= ' --client-secret ' . escapeshellarg( TwitchConfig::cfg('api_secret') );
 		$cmd .= ' --format json';
-		$cmd .= ' --output ' . escapeshellarg($chat_filename);
+		$cmd .= ' --output ' . TwitchConfig::cfg('vod_folder');
+		// $cmd .= ' --output ' . escapeshellarg($chat_filename);
 
 		$capture_output = shell_exec( $cmd );
+
+		rename( $tcd_filename, $chat_filename );
 
 		return [$chat_filename, $capture_output, $cmd];
 

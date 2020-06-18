@@ -150,7 +150,12 @@ echo '<section class="section">';
 
 						echo '<div class="video ' . ($vodclass->is_recording ? 'recording' : '') . '' . ($vodclass->is_converted ? 'converted' : '') . '">';	
 						
-							echo '<div class="video-title"><h3>' . $vodclass->streamer_name . ' ' . $vodclass->started_at->format('Y-m-d H:i:s') . '</h3></div>';
+							echo '<div class="video-title">';
+								echo '<h3>';
+									echo $vodclass->streamer_name;
+									if( $vodclass->started_at ) echo ' ' . $vodclass->started_at->format('Y-m-d H:i:s');
+								echo '</h3>';
+							echo '</div>';
 
 							echo '<div class="video-description">';
 
@@ -202,7 +207,7 @@ echo '<section class="section">';
 
 									echo '</div>';
 
-									echo '<div><strong>Chat downloaded:</strong> ' . ( file_exists( $vodclass->basename . '.chat.json' ) ? 'Yes' : 'No' ) . '</div>';
+									echo '<div><strong>Chat downloaded:</strong> ' . ( $vodclass->is_chat_downloaded ? 'Yes' : 'No' ) . '</div>';
 
 									echo '<div><strong>Segments:</strong>';
 									echo '<ul>';
@@ -244,7 +249,9 @@ echo '<section class="section">';
 
 									echo '<a class="button" href="?delete=' . $vodclass->basename . '">Delete</a> ';
 
-									echo '<a class="button" href="chat.php?vod=' . $vodclass->basename . '">Download chat</a>';
+									if( !$vodclass->is_chat_downloaded ){
+										echo '<a class="button" href="chat.php?vod=' . $vodclass->basename . '">Download chat</a>';
+									}
 
 								}else{
 
@@ -259,6 +266,18 @@ echo '<section class="section">';
 							echo '</div>';
 
 							echo '<table class="game-list">';
+
+								echo '<thead>';
+									echo '<tr>';
+										echo '<th>Offset</th>';
+										echo '<th>Duration</th>';
+										echo '<th>Game</th>';
+										echo '<th>Title</th>';
+										echo '<th>Viewers</th>';
+									echo '</tr>';
+								echo '</thead>';
+
+								echo '<tbody>';
 
 								foreach ($vodclass->games as $d) {
 
@@ -322,20 +341,24 @@ echo '<section class="section">';
 										// title
 										echo '<td>' . $d['title'] . '</td>';
 
+										echo '<td><span class="grey">' . number_format($d['viewer_count']) . '</span></td>';
+
 									echo '</tr>';
 
 								}
 
 								if($vodclass->ended_at){
 									$diff = $vodclass->started_at->diff($vodclass->ended_at);
-									echo '<tr><td>' . $diff->format('%H:%I:%S') . '</td><td colspan="3"><em>END</em></td></tr>';
+									echo '<tr><td>' . $diff->format('%H:%I:%S') . '</td><td colspan="4"><em>END</em></td></tr>';
 								}else{
 
 									$diff = $vodclass->started_at->diff( new DateTime() );
 
-									echo '<tr><td>' . $diff->format('%H:%I:%S') . '</td><td colspan="3"><em><strong>ONGOING</strong></em></td></tr>';
+									echo '<tr><td>' . $diff->format('%H:%I:%S') . '</td><td colspan="4"><em><strong>ONGOING</strong></em></td></tr>';
 
 								}
+
+								echo '</tbody>';
 
 							echo '</table>';
 
