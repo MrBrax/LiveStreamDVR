@@ -30,6 +30,9 @@ class TwitchVOD {
 	public $twitch_vod_id = null;
 	public $twitch_vod_url = null;
 
+	public $is_recording = false;
+	public $is_converted = false;
+
 	// public function __constructor(){
 
 	//}
@@ -68,7 +71,10 @@ class TwitchVOD {
 
 		$this->twitch_vod_id 	= $this->json['twitch_vod_id'];
 		$this->twitch_vod_url 	= $this->json['twitch_vod_url'];	
-		$this->duration 		= $this->json['duration'];	
+		$this->duration 		= $this->json['duration'];
+
+		$this->is_recording = file_exists( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.ts' );
+		$this->is_converted = file_exists( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.mp4' );
 
 		return true;
 

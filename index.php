@@ -54,6 +54,34 @@ if($_GET['delete']){
 
 }
 
+$total_size = 0;
+
+$streamerListStatic = TwitchConfig::getStreamers();
+$streamerList = [];
+
+foreach( $streamerListStatic as $streamer ){
+
+	$data = $streamer;
+
+	$data['vods_raw'] = glob( TwitchConfig::cfg('vod_folder') . '/' . $streamer['username'] . "_*.json");
+	
+	$data['vods_list'] = [];
+
+	foreach( $data['vods_raw'] as $k => $v ){
+
+		$vodclass = new TwitchVOD();
+		$vodclass->load($v);
+
+		if( $vodclass->is_recording ) $data['is_live'] = true;
+
+		$data['vods_list'][] = $vodclass;
+
+	}
+
+	$streamerList[] = $data;
+
+}
+
 echo '<html>';
 echo '<head>';
 	echo ' <meta name="referrer" content="no-referrer" />';
@@ -62,7 +90,14 @@ echo '<head>';
 echo '</head>';
 echo '<body>';
 
-echo '<header><h1>' . TwitchConfig::cfg('app_name') . '</h1></header>';
+echo '<div class="top-menu">';
+	echo '<div class="top-menu-item title">' . TwitchConfig::cfg('app_name') . '</div>';
+	foreach( $streamerList as $streamer ){
+		echo '<div class="top-menu-item' . ( $streamer['is_live'] ? ' live' : '' ) . '">';
+			echo '<a href="#streamer_' . $streamer['username'] . '">' . $streamer['username'] . '</a>';
+		echo '</div>';
+	}
+echo '</div>';
 
 echo '<div class="container">';
 
@@ -74,30 +109,29 @@ echo '<section class="section">';
 
 		echo '<a href="?checkvod=1">Check if VODs exist</a><br><br>';
 
-		$total_size = 0;
-
-		$streamerList = TwitchConfig::getStreamers();
-
 		foreach( $streamerList as $streamer ){
 
-			$vods = glob( TwitchConfig::cfg('vod_folder') . '/' . $streamer['username'] . "_*.json");
+			// $vods = glob( TwitchConfig::cfg('vod_folder') . '/' . $streamer['username'] . "_*.json");
 
 			echo '<div class="streamer">';
 
-				echo '<div class="streamer-title">';
+				echo '<div class="streamer-title" id="streamer_' . $streamer['username']  . '">';
 					echo '<h2>';
 						echo '<a href="https://twitch.tv/' . $streamer['username'] . ' " rel="noreferrer" target="_blank">';
 							echo $streamer['username'];
 						echo '</a>';
+						if( $streamer['is_live'] ){
+							echo ' <span class="live">live</span>';
+						}
 					echo '</h2>';
 					echo '<span class="small">';
 						echo $streamer['quality'];
 						echo ' &middot; ';
-						echo sizeof( $vods ) . ' vods';
+						echo sizeof( $streamer['vod_list'] ) . ' vods';
 					echo '</span>';
 				echo '</div>';
 
-				if( count($vods) == 0 ){
+				if( count($streamer['vods_list']) == 0 ){
 
 					echo '<div class="notice">None</div>';
 
@@ -111,17 +145,10 @@ echo '<section class="section">';
 					echo '</div>';
 					*/
 
-					foreach( $vods as $k => $v ){
+					foreach( $streamer['vods_list'] as $k => $vodclass ){
 
-						$vodclass = new TwitchVOD();
-						$vodclass->load($v);
 
-						// $vodclass->saveLosslessCut();
-						
-						$recording = file_exists( TwitchConfig::cfg('vod_folder') . '/' . $vodclass->basename . '.ts' );
-						$converted = file_exists( TwitchConfig::cfg('vod_folder') . '/' . $vodclass->basename . '.mp4' );
-
-						echo '<div class="video ' . ($recording ? 'recording' : '') . '' . ($converted ? 'converted' : '') . '">';	
+						echo '<div class="video ' . ($vodclass->is_recording ? 'recording' : '') . '' . ($vodclass->is_converted ? 'converted' : '') . '">';	
 						
 							echo '<div class="video-title"><h3>' . $vodclass->streamer_name . ' ' . $vodclass->started_at->format('Y-m-d H:i:s') . '</h3></div>';
 
@@ -165,15 +192,17 @@ echo '<section class="section">';
 									echo '<div><strong>Segments:</strong>';
 									echo '<ul>';
 									foreach ($vodclass->segments as $seg) {
-										echo '<li><a href="' . $seg . '">' . basename($seg) . '</a></li>';
+										echo '<li><a href="' . TwitchConfig::cfg('vod_folder') . '/' . $seg . '">' . basename($seg) . '</a></li>';
 									}
 									echo '</ul>';
 									echo '</div>';
 
+									/*
 									if(!$vodclass->twitch_vod_id){
 										$vodclass->matchTwitchVod();
 										$vodclass->saveJSON();
 									}
+									*/
 									
 								}
 
@@ -216,14 +245,6 @@ echo '<section class="section">';
 
 							echo '<table class="game-list">';
 
-								/*
-								echo '<tr height="0">';
-									echo '<td width="100"></td>';
-									echo '<td width="100"></td>';
-									echo '<td width="400"></td>';
-								echo '</tr>';
-								*/
-							
 								foreach ($vodclass->games as $d) {
 
 									if( strlen( $d['time'] ) == 10 ){

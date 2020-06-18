@@ -4,6 +4,12 @@
 	100% { background-color: #ca1515; }
 }
 
+@keyframes live {
+	0% { color: #ca1515; }
+	50% { color: #7c1717; }
+	100% { color: #ca1515; }
+}
+
 * {
 	box-sizing: border-box;
 }
@@ -11,6 +17,8 @@
 body {
 	background: #fdfdfd;
 	font: 14px Roboto, Arial;
+	margin: 0;
+	padding: 0;
 }
 
 table {
@@ -29,6 +37,42 @@ h1, h2, h3 {
 h1 { font-size: 200%; }
 h2 { font-size: 150%; }
 h3 { font-size: 125%; }
+
+.top-menu {
+	position: sticky;
+	z-index: 999;
+	top: 0;
+	left: 0;
+	right: 0;
+	background-color: #000;
+	color: #fff;
+	display: flex;
+	.top-menu-item {
+		padding: 4px 8px;
+		&.title {
+			font-weight: 700;
+		}
+		a {
+			color: #777;
+			text-decoration: none;
+			&:hover {
+				color: #fff;
+			}
+		}
+		&.live {
+			a {
+				color: #f00;
+				animation: live ease-in-out 1s infinite;
+				font-weight: 700;
+			}
+		}
+	}
+}
+
+.live {
+	color: #f00;
+	animation: live ease-in-out 1s infinite;
+}
 
 .video {
 	margin-bottom: 10px;
@@ -187,7 +231,7 @@ h3 { font-size: 125%; }
 .streamer-title {
 
 	position: sticky;
-	top: 0px;
+	top: 30px;
 	padding: 5px 10px;
 	background-color: rgb(230, 230, 230);
 	border-bottom: 1px solid #919191;
