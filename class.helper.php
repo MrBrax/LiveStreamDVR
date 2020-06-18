@@ -72,10 +72,10 @@ class TwitchHelper {
 		if( !TwitchConfig::cfg("debug") && $level == self::LOG_DEBUG ) return;
 		
 		$filename = "logs/" . date("Y-m-d") . ".log";
+		$filename_json = "logs/" . date("Y-m-d") . ".log.json";
 		
 		$log_text = file_exists( $filename ) ? file_get_contents( $filename ) : '';
-
-		// $text = date("Y-m-d H:i:s.v") . " | " . $text;
+		$log_json = file_exists( $filename_json ) ? file_get_contents( $filename_json ) : [];
 
 		$date = new DateTime();
 
@@ -83,7 +83,17 @@ class TwitchHelper {
 
 		$log_text .= "\n" . $text;
 
+		$log_data = [
+			"date" => $date->getTimestamp(),
+			"level" => $level,
+			"text" => $text
+		];
+
+		$log_json[] = $log_data;
+
 		file_put_contents($filename, $log_text);
+
+		file_put_contents($filename_json, $log_json);
 		
 	}
 

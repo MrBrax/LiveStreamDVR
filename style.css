@@ -240,6 +240,9 @@ h3 {
   width: 14px;
   height: 19px; }
 
+.boxart-big {
+  height: 100px; }
+
 /** Black theme **/
 /*
 body {

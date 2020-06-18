@@ -154,6 +154,21 @@ echo '<section class="section">';
 
 							echo '<div class="video-description">';
 
+								echo '<div class="boxart-carousel">';
+								$unique_games = [];
+								foreach($vodclass->games as $g){
+									$unique_games[ (int)$g['game_id'] ] = true;
+								}
+								
+								foreach($unique_games as $id => $n){
+									$gd = TwitchHelper::getGame($id);
+									$img_url = $gd['box_art_url'];
+									$img_url = str_replace("{width}", 140, $img_url);
+									$img_url = str_replace("{height}", 190, $img_url);
+									echo '<img class="boxart-big" title="' . $gd['name'] . '" src="' . $img_url . '" />';
+								}
+								echo '</div>';
+
 								echo '<div><strong>Segment 0 info:</strong></div>';
 
 								if($vodclass->started_at && $vodclass->ended_at){

@@ -16,7 +16,7 @@ class TwitchVOD {
 	/**
 	 * Games
 	 *
-	 * @var [ 'datetime', 'offset', 'duration' ]
+	 * @var [ 'time', 'game_id', 'game_name', 'viewer_count', 'title', 'datetime', 'offset', 'duration' ]
 	 */
 	public $games = [];
 
