@@ -95,6 +95,7 @@ echo '<div class="top-menu">';
 	foreach( $streamerList as $streamer ){
 		echo '<div class="top-menu-item' . ( $streamer['is_live'] ? ' live' : '' ) . '">';
 			echo '<a href="#streamer_' . $streamer['username'] . '">' . $streamer['username'] . '</a>';
+			echo ' <span>' . count($streamer['vods_list']) . '</span>';
 		echo '</div>';
 	}
 	echo '<div class="top-menu-item linkback"><a href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer">GitHub</a></div>';

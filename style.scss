@@ -50,7 +50,7 @@ h3 { font-size: 125%; }
 	display: flex;
 	font-size: 18px;
 	.top-menu-item {
-		padding: 4px 8px;
+		padding: 5px 8px;
 		&.title {
 			font-weight: 700;
 		}
@@ -75,6 +75,10 @@ h3 { font-size: 125%; }
 				font-weight: 700;
 				color: rgb(224, 224, 13);
 			}
+		}
+		span {
+			color: #555;
+			font-size: 80%;
 		}
 	}
 }
