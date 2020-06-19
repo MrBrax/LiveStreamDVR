@@ -149,6 +149,10 @@ echo '<section class="section">';
 
 					foreach( $streamer['vods_list'] as $k => $vodclass ){
 
+						if( !$vodclass ){
+							echo '<div class="error">Failed to load ' . $k . '</div>';
+							continue;
+						}
 
 						echo '<div class="video ' . ($vodclass->is_recording ? 'recording' : '') . '' . ($vodclass->is_converted ? 'converted' : '') . '">';	
 						
@@ -349,14 +353,20 @@ echo '<section class="section">';
 
 								}
 
-								if($vodclass->ended_at){
+								if( $vodclass->ended_at ){
 									$diff = $vodclass->started_at->diff($vodclass->ended_at);
 									echo '<tr><td>' . $diff->format('%H:%I:%S') . '</td><td colspan="4"><em>END</em></td></tr>';
 								}else{
 
-									$diff = $vodclass->started_at->diff( new DateTime() );
+									
 
-									echo '<tr><td>' . $diff->format('%H:%I:%S') . '</td><td colspan="4"><em><strong>ONGOING</strong></em></td></tr>';
+									echo '<tr>';
+										if($vodclass->started_at){
+											$diff = $vodclass->started_at->diff( new DateTime() );
+											echo '<td>' . $diff->format('%H:%I:%S') . '</td>';
+										}
+										echo '<td colspan="4"><em><strong>ONGOING</strong></em></td>';
+									echo '</tr>';
 
 								}
 

@@ -50,6 +50,12 @@ class TwitchVOD {
 		$data = file_get_contents($filename);
 		$this->json = json_decode($data, true);
 
+		if( !$this->json['meta']['data'][0]['user_name'] ){
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Tried to load " . $filename . " but found no streamer name");
+			throw new Exception('Tried to load ' . $filename . ' but found no streamer name');
+			return false;
+		}
+
 		if( $this->json['started_at'] ){
 			$this->started_at = DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['started_at'] );
 		}
