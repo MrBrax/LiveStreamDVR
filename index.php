@@ -187,9 +187,9 @@ echo '<section class="section">';
 									echo '<div><strong>Approx. duration:</strong> ' . $diff->format('%H:%I:%S') . '</div>';
 								}
 														
-								$vod_file = $vodclass->segments[0];
+								$vod_file = TwitchConfig::cfg('vod_folder') . '/' . basename( $vodclass->segments[0] );
 
-								if( file_exists( $vod_file ) ) {
+								if( count($vodclass->segments) > 0 && file_exists( $vod_file ) ) {
 									
 									echo '<div><strong>Duration:</strong> ' . $vodclass->getDuration(true) . '</div>';
 
@@ -218,7 +218,12 @@ echo '<section class="section">';
 									echo '<div><strong>Segments:</strong>';
 									echo '<ul>';
 									foreach ($vodclass->segments as $seg) {
-										echo '<li><a href="' . TwitchConfig::cfg('vod_folder') . '/' . basename($seg) . '">' . basename($seg) . '</a></li>';
+										echo '<li>';
+											echo '<a href="' . TwitchConfig::cfg('vod_folder') . '/' . basename($seg) . '">';
+												echo basename($seg);
+												echo ' (' . round( filesize( TwitchConfig::cfg('vod_folder') . '/' . basename($seg) ) / 1024 / 1024 / 1024, 2 ) . ' GB)';
+											echo '</a>';
+										echo '</li>';
 									}
 									echo '</ul>';
 									echo '</div>';
@@ -243,7 +248,7 @@ echo '<section class="section">';
 
 							echo '<div class="video-controls">';
 
-								if( file_exists( $vod_file ) ) {
+								if( count($vodclass->segments) > 0 && file_exists( $vod_file ) ) {
 
 									echo '<a class="button" href="player.php?vod=' . $vodclass->basename . '">Play segment 0 and cut</a> ';
 
@@ -518,8 +523,9 @@ echo '<section class="section">';
 				if( strpos($line, '<WARNING>') !== false ) $color = 'warning';
 				if( strpos($line, '<DEBUG>') !== false ) $color = 'debug';
 				*/
+				$text_line = "";
 				$date = DateTime::createFromFormat("U.u", $line["date"]);
-				$text_line = $date->format("Y-m-d H:i:s.v");
+				if($date) $text_line .= $date->format("Y-m-d H:i:s.v");
 				$text_line .= ' &lt;' . $line["level"] . '&gt; ';
 				$text_line .= $escaped_text;
 				echo '<div class="log_' . strtolower( $line["level"] ) . '">' . $text_line . '</div>';
