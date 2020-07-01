@@ -699,12 +699,72 @@ class TwitchAutomator {
 
 		}
 
-		// print_r($server_output);
-		// print_r($info);
+	}
 
-		
+	/**
+	 * TODO: Merge these functions
+	 */
+	public function unsub( $streamer_name ){
 
-		// return json_decode( $server_output, true );
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Calling unsubscribe for " . $streamer_name);
+
+		$streamer_id = TwitchHelper::getChannelId($streamer_name);
+
+		if( !$streamer_id ) {
+			$this->notify('Streamer ID not found for: ' . $streamer_name, '[' . $streamer_name . '] [subscribing error]', self::NOTIFY_ERROR);
+			throw new Exception('Streamer ID not found for: ' . $streamer_name);
+			return false;
+		}
+
+		$url = 'https://api.twitch.tv/helix/webhooks/hub';
+		$method = 'POST';
+
+		$data = [
+			'hub.callback' => TwitchConfig::cfg('hook_callback'),
+			'hub.mode' => 'unsubscribe',
+			'hub.topic' => 'https://api.twitch.tv/helix/streams?user_id=' . $streamer_id,
+			'hub.lease_seconds' => TwitchConfig::cfg('sub_lease')
+		];
+
+
+		$data_string = json_encode($data);
+
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_POST, 1);
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, [
+		    'Content-Type: application/json',
+			'Content-Length: ' . strlen($data_string),
+			'Authorization: Bearer ' . TwitchHelper::getAccessToken(),
+		    'Client-ID: ' . TwitchConfig::cfg('api_client_id')
+		]);
+
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+
+		$server_output = curl_exec($ch);
+		$info = curl_getinfo($ch);
+
+		$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+		curl_close($ch);
+
+		if( $http_code == 202 ){
+
+			TwitchHelper::log( TwitchHelper::LOG_INFO, "Successfully unsubscribed to " . $streamer_name);
+
+			$this->notify($server_output, '[' . $streamer_name . '] [unsubscribing]', self::NOTIFY_GENERIC);
+
+			return true;
+
+		}else{
+
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Failed to unsubscribe to " . $streamer_name . " | " . $server_output . " | HTTP " . $http_code );
+			
+			return $server_output;
+
+		}
 
 	}
 
