@@ -85,8 +85,10 @@ if( $action == 'settings' ){
 
         <div class="top-menu">
         <div class="top-menu-item title"><?php echo TwitchConfig::cfg('app_name'); ?></div>
-        <div class="top-menu-item"><a href="index.php">Dashboard</a></div>
-        <div class="top-menu-item right linkback"><a href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer">GitHub</a></div>
+        <div class="top-menu-item right">
+            <a href="index.php">Dashboard</a>
+            <a class="linkback" href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
     </div>
 
         <div class="container">
@@ -106,9 +108,11 @@ if( $action == 'settings' ){
                                 <input type="hidden" name="username" value="<?php echo $streamer['username']; ?>" />
                                 <div class="control">
                                     <label><input class="input" type="text" name="quality" value="<?php echo $streamer['quality']; ?>" /> Quality</label>
+                                    <div class="help">Separate by spaces, e.g. best 1080p 720p audio_only</div>
                                 </div>
                                 <div class="control">
                                     <label><input class="input" type="text" name="match" value="<?php echo join(",", $streamer['match']); ?>" /> Match keywords</label>
+                                    <div class="help">Separate by commas, e.g. christmas,media share,opening,po box</div>
                                 </div>
                                 <div class="control">
                                     <button class="button" type="submit">Save</button>
@@ -120,6 +124,8 @@ if( $action == 'settings' ){
                                 <button class="button" type="submit">Delete</button> (no undo, no confirmation)
                             </form>
                         </div>
+
+                        <hr />
 
                     <?php } ?>
 
@@ -136,12 +142,15 @@ if( $action == 'settings' ){
                     <form method="POST" action="?action=create">
                         <div class="control">
                             <label><input class="input" type="text" name="username" value="" /> Username</label>
+                            <div class="help">Streamer username, preferably case sensitive</div>
                         </div>
                         <div class="control">
                             <label><input class="input" type="text" name="quality" value="" /> Quality</label>
+                            <div class="help">Separate by spaces, e.g. best 1080p 720p audio_only</div>
                         </div>
                         <div class="control">
                             <label><input class="input" type="text" name="match" value="" /> Match keywords</label>
+                            <div class="help">Separate by commas, e.g. christmas,media share,opening,po box</div>
                         </div>
                         <div class="control">
                             <button class="button" type="submit">Create</button>

@@ -94,12 +94,17 @@ echo '<div class="top-menu">';
 	echo '<div class="top-menu-item title">' . TwitchConfig::cfg('app_name') . '</div>';
 	foreach( $streamerList as $streamer ){
 		echo '<div class="top-menu-item' . ( $streamer['is_live'] ? ' live' : '' ) . '">';
-			echo '<a href="#streamer_' . $streamer['username'] . '">' . $streamer['username'] . '</a>';
-			echo ' <span>' . count($streamer['vods_list']) . '</span>';
+			echo '<a href="#streamer_' . $streamer['username'] . '">';
+				echo $streamer['username'];
+				echo ' <span class="small">' . count($streamer['vods_list']) . '</span>';
+			echo '</a>';
 		echo '</div>';
 	}
-	echo '<div class="top-menu-item right"><a href="settings.php">Settings</a></div>';
-	echo '<div class="top-menu-item right linkback"><a href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer">GitHub</a></div>';
+	echo '<div class="top-menu-item right">';
+		echo '<a href="settings.php">Settings</a>';
+		echo '<a class="linkback" href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer">GitHub</a>';
+	echo '</div>';
+
 echo '</div>';
 
 echo '<div class="container">';

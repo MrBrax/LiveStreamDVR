@@ -49,37 +49,46 @@ h3 { font-size: 125%; }
 	color: #fff;
 	display: flex;
 	font-size: 18px;
-	.top-menu-item {
+}
+
+.top-menu-item {
+	// padding: 5px 8px;
+	&.title {
+		font-weight: 700;
 		padding: 5px 8px;
-		&.title {
+	}
+	a {
+		color: #777;
+		text-decoration: none;
+		display: inline-block;
+		padding: 5px 8px;
+		&:hover {
+			color: #fff;
+			background: #111;
+		}
+	}
+	&.live {
+		a {
+			color: #f00;
+			animation: live ease-in-out 1s infinite;
 			font-weight: 700;
 		}
-		a {
-			color: #777;
-			text-decoration: none;
-			&:hover {
-				color: #fff;
-			}
-		}
-		&.live {
-			a {
-				color: #f00;
-				animation: live ease-in-out 1s infinite;
-				font-weight: 700;
-			}
-		}
-		&.linkback {
-			flex-grow: 1;
-			text-align: right;
-			a {
-				font-weight: 700;
-				color: rgb(224, 224, 13);
-			}
-		}
-		span {
-			color: #555;
-			font-size: 80%;
-		}
+	}
+	&.right {
+		flex-grow: 1;
+		text-align: right;
+	}
+	span {
+		color: #555;
+		font-size: 80%;
+	}
+}
+
+a.linkback {
+	font-weight: 700;
+	color: #e0e00d; /* forgive me padre for i have sinned */
+	&:hover {
+		color: #fff;
 	}
 }
 
@@ -333,6 +342,19 @@ h3 { font-size: 125%; }
 
 .boxart-big {
 	height: 100px;
+}
+
+.help {
+	font-size: 85%;
+	color: #777;
+	font-style: italic;
+	margin-bottom: 8px;
+}
+
+hr {
+	height: 1px;
+	border: none;
+	background-color: #ccc;
 }
 
 /** Black theme **/
