@@ -94,10 +94,17 @@ echo '<div class="top-menu">';
 	echo '<div class="top-menu-item title">' . TwitchConfig::cfg('app_name') . '</div>';
 	foreach( $streamerList as $streamer ){
 		echo '<div class="top-menu-item' . ( $streamer['is_live'] ? ' live' : '' ) . '">';
-			echo '<a href="#streamer_' . $streamer['username'] . '">';
+			
+			if($streamer['is_live']){
+				echo '<a href="#vod_' . $streamer['vods_list'][ count($streamer['vods_list']) - 1 ]->basename . '">';
+			}else{
+				echo '<a href="#streamer_' . $streamer['username'] . '">';
+			}
+
 				echo $streamer['username'];
 				echo ' <span class="small">' . count($streamer['vods_list']) . '</span>';
 			echo '</a>';
+
 		echo '</div>';
 	}
 	echo '<div class="top-menu-item right">';
@@ -121,7 +128,7 @@ echo '<section class="section">';
 
 			// $vods = glob( TwitchConfig::cfg('vod_folder') . '/' . $streamer['username'] . "_*.json");
 
-			echo '<div class="streamer" id="streamer_' . $streamer['username']  . '">';
+			echo '<div id="streamer_' . $streamer['username']  . '" class="anchor"></div>';
 
 				echo '<div class="streamer-title">';
 					echo '<h2>';
@@ -161,6 +168,8 @@ echo '<section class="section">';
 						}
 
 						echo '<div class="video ' . ($vodclass->is_recording ? 'recording' : '') . '' . ($vodclass->is_converted ? 'converted' : '') . '">';	
+
+							echo '<div id="vod_' . $vodclass->basename . '" class="anchor"></div>';
 						
 							echo '<div class="video-title">';
 								echo '<h3>';
