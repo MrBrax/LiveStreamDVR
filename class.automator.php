@@ -142,7 +142,8 @@ class TwitchAutomator {
 			unlink(sprintf('%s.mp4', $basename));
 			unlink(sprintf('%s.json', $basename));
 			unlink(sprintf('%s-llc-edl.csv', $basename)); // losslesscut
-			
+			unlink(sprintf('%s.chat', $basename)); // chat download
+
 		}
 
 	}

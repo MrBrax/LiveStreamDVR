@@ -310,6 +310,7 @@ class TwitchVOD {
 		unlink(sprintf('%s.mp4', $this->basename));
 		unlink(sprintf('%s.json', $this->basename));
 		unlink(sprintf('%s-llc-edl.csv', $this->basename)); // losslesscut
+		unlink(sprintf('%s.chat', $this->basename)); // chat download
 	}
 
 	public function save(){
@@ -317,6 +318,7 @@ class TwitchVOD {
 		rename( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.mp4', TwitchConfig::cfg('vod_folder') . '/saved/' . $this->basename . '.mp4');
 		rename( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.json', TwitchConfig::cfg('vod_folder') . '/saved/' . $this->basename . '.json');
 		rename( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '-llc-edl.csv', TwitchConfig::cfg('vod_folder') . '/saved/' . $this->basename . '-llc-edl.csv'); // losslesscut
+		rename( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.chat', TwitchConfig::cfg('vod_folder') . '/saved/' . $this->basename . '.chat'); // chat
 	}
 
 }

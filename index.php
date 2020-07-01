@@ -98,7 +98,8 @@ echo '<div class="top-menu">';
 			echo ' <span>' . count($streamer['vods_list']) . '</span>';
 		echo '</div>';
 	}
-	echo '<div class="top-menu-item linkback"><a href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer">GitHub</a></div>';
+	echo '<div class="top-menu-item right"><a href="settings.php">Settings</a></div>';
+	echo '<div class="top-menu-item right linkback"><a href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer">GitHub</a></div>';
 echo '</div>';
 
 echo '<div class="container">';
@@ -397,6 +398,32 @@ echo '<section class="section">';
 	echo "</div>";
 
 echo '</section>';
+
+// Clips
+$vods = glob( TwitchConfig::cfg('vod_folder') . "/clips/*.mp4");
+
+echo '<section class="section"' . ( count($vods) == 0 ? ' style="display:none;"' : '' ) . '>';
+	echo '<div class="section-title"><h1>Clips</h1></div>';
+
+	echo '<div class="section-content">';
+
+	foreach( $vods as $k => $v ){
+
+		echo '<div class="video clip">';
+
+			echo '<a href="' . $v . '">' . basename($v) . '</a>';
+
+			echo ' (' . round( filesize($v) / 1024 / 1024 / 1024, 2) . 'GB)';
+
+		echo '</div>';
+	
+	}
+
+	echo '</div>';
+
+echo '</section>';
+
+
 
 // Saved vods
 $vods = glob( TwitchConfig::cfg('vod_folder') . "/saved/*.json");
