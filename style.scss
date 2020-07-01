@@ -269,12 +269,22 @@ a.linkback {
 
 .streamer-title {
 
-	position: sticky;
-	top: 30px;
+	font-size: 110%;
+
+	// position: sticky;
+	// top: 30px;
 	padding: 5px 10px;
-	background-color: rgb(230, 230, 230);
-	border-bottom: 1px solid #919191;
-	box-shadow: 0 3px 3px rgba(0,0,0,.15);
+	background-color: rgb(36, 62, 148);
+	
+	margin-bottom: 5px;
+	color: #fff;
+
+	// border-bottom: 1px solid #919191;
+	// box-shadow: 0 3px 3px rgba(0,0,0,.15);
+
+	.small {
+		color: #779ae7;
+	}
 
 	h2 {
 		margin: 0;
@@ -282,7 +292,7 @@ a.linkback {
 	}
 
 	a {
-		color: #000;
+		color: #fff;
 		text-decoration: none;
 		&:hover {
 			color: blueviolet;
@@ -358,8 +368,8 @@ hr {
 }
 
 .anchor {
-	height: 90px;
-    margin: -90px 0 0;
+	height: 40px;
+    margin: -40px 0 0;
 }
 
 /** Black theme **/

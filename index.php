@@ -128,7 +128,9 @@ echo '<section class="section">';
 
 			// $vods = glob( TwitchConfig::cfg('vod_folder') . '/' . $streamer['username'] . "_*.json");
 
-			echo '<div id="streamer_' . $streamer['username']  . '" class="anchor"></div>';
+			echo '<div class="streamer">';
+
+				echo '<div id="streamer_' . $streamer['username']  . '" class="anchor"></div>';
 
 				echo '<div class="streamer-title">';
 					echo '<h2>';
