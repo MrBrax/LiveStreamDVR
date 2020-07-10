@@ -6,6 +6,9 @@ class TwitchHelper {
 
 	public static $accessTokenFile = 'config/oauth.bin';
 
+	public static $accessTokenExpire = 60 * 60 * 24 * 60; // 60 days
+	public static $accessTokenRefresh = 60 * 60 * 24 * 30; // 30 days
+
 	public static $game_db = null;
 
 	const LOG_ERROR = "ERROR";
@@ -22,6 +25,16 @@ class TwitchHelper {
 	}
 
 	public static function getAccessToken( $force = false ){
+
+		// token should last 60 days, delete it after 30 just to be sure
+		if( file_exists( self::$accessTokenFile ) ){
+			$tokenRefresh = time() - filemtime( self::$accessTokenFile ) > TwitchHelper::$accessTokenRefresh;
+			$tokenExpire = time() - filemtime( self::$accessTokenFile ) > TwitchHelper::$accessTokenExpire;
+			if( $tokenRefresh || $tokenExpire ){
+				unlink( self::$accessTokenFile );
+			}
+		}
+		
 
 		if( !$force && file_exists( self::$accessTokenFile ) ){
 			self::log( self::LOG_DEBUG, "Fetched access token from cache");

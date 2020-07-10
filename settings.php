@@ -232,8 +232,28 @@ if( $action == 'settings' ){
                         </div>
                     </form>
 
-                    <strong>Crontab example</strong>
-                    <br><code>0 5 * * 1 curl <?php echo TwitchConfig::cfg('hook_callback'); ?></code>
+                    <hr>
+
+                    <strong>Crontab example</strong><br>
+                    <code>0 5 * * 1 curl <?php echo TwitchConfig::cfg('hook_callback'); ?></code>
+
+                    <hr>
+                    <strong>OAuth</strong><br>
+                    <?php
+                        $dt = new DateTime();
+                        $dt->setTimestamp( filemtime("config/oauth.bin") );
+                        echo 'Generated: ' . $dt->format("Y-m-d H:i:s") . '<br>';
+                        $dt->add( new DateInterval("P60D") );
+                        echo 'Expires: ' . $dt->format("Y-m-d H:i:s") . '<br>';
+
+                        $tokenRefresh = time() - filemtime("config/oauth.bin") > TwitchHelper::$accessTokenRefresh;
+                        $tokenExpire = time() - filemtime("config/oauth.bin") > TwitchHelper::$accessTokenExpire;
+
+                        var_dump($tokenRefresh);
+                        var_dump($tokenExpire);
+
+                    ?>
+
                     
                 </div>
 
