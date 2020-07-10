@@ -119,7 +119,7 @@ class TwitchAutomator {
 
 	public function cleanup( $streamer_name ){
 
-		$vods = glob( TwitchConfig::cfg('vod_folder') . "/" . $streamer_name . "_*.mp4");
+		$vods = glob( TwitchConfig::cfg('vod_folder') . "/" . $streamer_name . "_*." . TwitchConfig::cfg('vod_container', 'mp4') );
 
 		$total_size = 0;
 
@@ -139,7 +139,7 @@ class TwitchAutomator {
 			
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "Cleanup " . $basename);
 
-			unlink(sprintf('%s.mp4', $basename));
+			unlink(sprintf('%s.' . TwitchConfig::cfg('vod_container', 'mp4'), $basename));
 			unlink(sprintf('%s.json', $basename));
 			unlink(sprintf('%s-llc-edl.csv', $basename)); // losslesscut
 			unlink(sprintf('%s.chat', $basename)); // chat download
@@ -506,7 +506,7 @@ class TwitchAutomator {
 		$vodclass->matchTwitchVod();
 		$vodclass->saveJSON();
 		
-		if( TwitchConfig::cfg('download_chat') && $vodclass->twitch_vod_id ){
+		if( ( TwitchConfig::cfg('download_chat') || TwitchConfig::getStreamer($data_username)['download_chat'] == 1 ) && $vodclass->twitch_vod_id ){
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "Auto download chat on " . $basename);
 			$vodclass->downloadChat();
 		}
@@ -592,15 +592,17 @@ class TwitchAutomator {
 	 */
 	public function convert( $basename ){
 
+		$container_ext = TwitchConfig::cfg('vod_container', 'mp4');
+
 		$capture_filename 	= TwitchConfig::cfg('vod_folder') . '/' . $basename . '.ts';
 
-		$converted_filename = TwitchConfig::cfg('vod_folder') . '/' . $basename . '.mp4';
+		$converted_filename = TwitchConfig::cfg('vod_folder') . '/' . $basename . '.' . $container_ext;
 
 		$int = 1;
 
 		while( file_exists( $converted_filename ) ){
 			$this->errors[] = 'File exists, making a new name';
-			$converted_filename = TwitchConfig::cfg('vod_folder') . '/' . $basename . '-' . $int . '.mp4';
+			$converted_filename = TwitchConfig::cfg('vod_folder') . '/' . $basename . '-' . $int . '.' . $container_ext;
 			$int++;
 		}
 

@@ -17,6 +17,7 @@
     "download_chat": false,
     "debug": false,
     "pipenv": false,
+    "vod_container": "mp4",
 
     "streamers": [
         {

@@ -29,6 +29,7 @@ class TwitchVOD {
 
 	public $twitch_vod_id = null;
 	public $twitch_vod_url = null;
+	public $twitch_vod_exists = null;
 
 	public $is_recording = false;
 	public $is_converted = false;
@@ -202,8 +203,11 @@ class TwitchVOD {
 		$video = TwitchHelper::getVideo( $this->twitch_vod_id );
 
 		if( $video ){
+			$this->twitch_vod_exists = true;
 			return true;
 		}
+
+		$this->twitch_vod_exists = false;
 
 		return false;
 

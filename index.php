@@ -59,6 +59,8 @@ $total_size = 0;
 $streamerListStatic = TwitchConfig::getStreamers();
 $streamerList = [];
 
+$is_a_vod_deleted = false;
+
 foreach( $streamerListStatic as $streamer ){
 
 	$data = $streamer;
@@ -73,6 +75,11 @@ foreach( $streamerListStatic as $streamer ){
 		$vodclass->load($v);
 
 		if( $vodclass->is_recording ) $data['is_live'] = true;
+
+		if( $_GET['checkvod'] ){
+			$deleted = $vodclass->checkValidVod();
+			if($deleted) $is_a_vod_deleted = true;
+		}
 
 		$data['vods_list'][] = $vodclass;
 
@@ -122,7 +129,12 @@ echo '<section class="section">';
 
 	echo '<div class="section-content">';
 
-		echo '<a href="?checkvod=1">Check if VODs exist</a><br><br>';
+		echo '<a href="?checkvod=1">Check if VODs exist</a>';
+		if($is_a_vod_deleted){
+			echo ' - <strong>A VOD IS DELETED</strong>';
+		}
+		
+		echo '<br><br>';
 
 		foreach( $streamerList as $streamer ){
 
@@ -221,7 +233,7 @@ echo '<section class="section">';
 										echo '<a href="' . $vodclass->twitch_vod_url . '" rel="noreferrer" target="_blank">' . $vodclass->twitch_vod_id . '</a>';
 
 										if( $_GET['checkvod'] ){
-											echo $vodclass->checkValidVod() ? ' (exists)' : ' <strong class="error">(deleted)</strong>';
+											echo $vodclass->twitch_vod_exists ? ' (exists)' : ' <strong class="error">(deleted)</strong>';
 										}
 
 									}else{

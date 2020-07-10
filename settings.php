@@ -26,9 +26,10 @@ if( $action == 'create' ){
 
     $key = $_POST['key'];
 
-    $username   = $_POST['username'];
-    $quality    = $_POST['quality'];
-    $match      = $_POST['match'];
+    $username       = $_POST['username'];
+    $quality        = $_POST['quality'];
+    $match          = $_POST['match'];
+    $download_chat  = $_POST['download_chat'];
 
 
     $streamer = [
@@ -40,6 +41,9 @@ if( $action == 'create' ){
         $streamer["match"] = explode(",", $match);
     }
 
+    if( $download_chat ){
+        $streamer["download_chat"] = 1;
+    }
 
     $json = json_decode( file_get_contents('config/config.json'), true );
     $json['streamers'][] = $streamer;
@@ -47,6 +51,37 @@ if( $action == 'create' ){
 
     $TwitchAutomator = new TwitchAutomator();
     $TwitchAutomator->sub( $username );
+
+    header("Location: settings.php");
+    return;
+
+}
+
+if( $action == 'update' ){
+
+    $key = $_POST['key'];
+
+    $username       = $_POST['username'];
+    $quality        = $_POST['quality'];
+    $match          = $_POST['match'];
+    $download_chat  = $_POST['download_chat'];
+
+    $streamer = [
+        "username" => $username,
+        "quality" => $quality
+    ];
+
+    if( $match ){
+        $streamer["match"] = explode(",", $match);
+    }
+
+    if( $download_chat ){
+        $streamer["download_chat"] = 1;
+    }
+
+    $json = json_decode( file_get_contents('config/config.json'), true );
+    $json['streamers'][ $key ] = $streamer;
+    file_put_contents('config/config.json', json_encode($json));
 
     header("Location: settings.php");
     return;
@@ -115,6 +150,9 @@ if( $action == 'settings' ){
                                     <div class="help">Separate by commas, e.g. christmas,media share,opening,po box</div>
                                 </div>
                                 <div class="control">
+                                    <label><input class="input" type="checkbox" name="download_chat" value="1" <?php echo $streamer['download_chat'] ? 'checked="checked"' : ''; ?>" /> Download chat</label><br><br>
+                                </div>
+                                <div class="control">
                                     <button class="button" type="submit">Save</button>
                                 </div>
                             </form>
@@ -153,6 +191,9 @@ if( $action == 'settings' ){
                             <div class="help">Separate by commas, e.g. christmas,media share,opening,po box</div>
                         </div>
                         <div class="control">
+                                    <label><input class="input" type="checkbox" name="download_chat" value="1" /> Download chat</label><br><br>
+                                </div>
+                        <div class="control">
                             <button class="button" type="submit">Create</button>
                         </div>
                     </form>
@@ -182,6 +223,9 @@ if( $action == 'settings' ){
                         </div>
                         <div class="control">
                             <label><input class="input" type="text" name="api_secret" value="" /> Twitch secret (keep blank to not change)</label>
+                        </div>
+                        <div class="control">
+                            <label><input class="input" type="text" name="vod_container" value="<?php echo TwitchConfig::cfg('vod_container', 'mp4'); ?>" /> VOD container (mp4/mkv)</label>
                         </div>
                         <div class="control">
                             <button class="button" type="submit">Save</button>
