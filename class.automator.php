@@ -117,16 +117,46 @@ class TwitchAutomator {
 
 	}
 
-	public function cleanup( $streamer_name ){
+	public function cleanup( $streamer_name, $source_basename = null ){
 
-		$vods = glob( TwitchConfig::cfg('vod_folder') . "/" . $streamer_name . "_*." . TwitchConfig::cfg('vod_container', 'mp4') );
+		$vods = glob( TwitchConfig::cfg('vod_folder') . "/" . $streamer_name . "_*.json");
 
 		$total_size = 0;
 
+		$vod_list = [];
+
 		foreach ($vods as $v) {
-			$total_size += filesize($v);
+			
+			$vodclass = new TwitchVOD();
+			$vodclass->load($v);
+
+			$vod_list[] = $vodclass;
+
+			foreach($vodclass->segments as $s){
+				$total_size += filesize( TwitchConfig::cfg('vod_folder') . "/" . basename($s) );
+			}
+			
 		}
 
+		$gb = $total_size / 1024 / 1024 / 1024;
+
+		$this->info[] = 'Total filesize for ' . $streamer_name . ': ' . $gb;
+		TwitchHelper::log( TwitchHelper::LOG_INFO, 'Total filesize for ' . $streamer_name . ': ' . $gb);
+
+		if( sizeof($vod_list) > TwitchConfig::cfg('vods_to_keep') || $gb > TwitchConfig::cfg('storage_per_streamer') ){
+
+			if( $source_basename != null && $vod_list[0]->basename == $source_basename ){
+				TwitchHelper::log( TwitchHelper::LOG_ERROR, "Trying to cleanup latest VOD " . $vod_list[0]->basename);
+				return false;
+			}
+
+			TwitchHelper::log( TwitchHelper::LOG_INFO, "Cleanup " . $vod_list[0]->basename);
+			$vod_list[0]->delete();
+
+		}
+
+
+		/*
 		$gb = $total_size / 1024 / 1024 / 1024;
 
 		$this->info[] = 'Total filesize for ' . $streamer_name . ': ' . $gb;
@@ -145,6 +175,7 @@ class TwitchAutomator {
 			unlink(sprintf('%s.chat', $basename)); // chat download
 
 		}
+		*/
 
 	}
 
@@ -488,13 +519,14 @@ class TwitchAutomator {
 		$this->jsonSave();
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Cleanup old VODs for " . $data_username);
-		$this->cleanup( $data_username );
+		$this->cleanup( $data_username, $basename );
 
 		$this->notify($basename, '[' . $data_username . '] [end]', self::NOTIFY_DOWNLOAD);
 
 
 
 		// metadata stuff
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Sleep 5 minutes for " . $basename);
 		sleep(60 * 5);
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Do metadata on " . $basename);
@@ -614,11 +646,11 @@ class TwitchAutomator {
 		
 		$this->info[] = 'ffmpeg cmd: ' . $cmd;
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting conversion of " . $capture_filename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting conversion of " . $capture_filename . " to " . $converted_filename);
 
 		$output_convert = shell_exec( $cmd );
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Finished conversion of " . $capture_filename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Finished conversion of " . $capture_filename . " to " . $converted_filename);
 
 		$this->info[] = 'ffmpeg output: ' . $output_convert;
 		
