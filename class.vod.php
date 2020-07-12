@@ -309,14 +309,31 @@ class TwitchVOD {
 
 	}
 
+	/**
+	 * Delete everything about the VOD, trying to rewrite this
+	 *
+	 * @return void
+	 */
 	public function delete(){
+		
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Delete " . $this->basename);
-		unlink(sprintf('%s.mp4', $this->basename));
-		unlink(sprintf('%s.json', $this->basename));
-		unlink(sprintf('%s-llc-edl.csv', $this->basename)); // losslesscut
-		unlink(sprintf('%s.chat', $this->basename)); // chat download
+		
+		// segments
+		foreach($this->segments as $s){
+			unlink( TwitchConfig::cfg('vod_folder') . '/' . basename($s) );
+		}
+
+		unlink( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.json'); // data file
+		unlink( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '-llc-edl.csv'); // losslesscut
+		unlink( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.chat'); // chat download
+
 	}
 
+	/**
+	 * Save vod to saved folder, not really that functional
+	 *
+	 * @return void
+	 */
 	public function save(){
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Save " . $this->basename);
 		rename( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.mp4', TwitchConfig::cfg('vod_folder') . '/saved/' . $this->basename . '.mp4');

@@ -117,6 +117,9 @@ class TwitchAutomator {
 
 	}
 
+	/**
+	 * Remove old VODs by streamer name, this has to be properly rewritten
+	 */
 	public function cleanup( $streamer_name, $source_basename = null ){
 
 		$vods = glob( TwitchConfig::cfg('vod_folder') . "/" . $streamer_name . "_*.json");
@@ -145,6 +148,7 @@ class TwitchAutomator {
 
 		if( sizeof($vod_list) > TwitchConfig::cfg('vods_to_keep') || $gb > TwitchConfig::cfg('storage_per_streamer') ){
 
+			// don't delete the newest vod, hopefully
 			if( $source_basename != null && $vod_list[0]->basename == $source_basename ){
 				TwitchHelper::log( TwitchHelper::LOG_ERROR, "Trying to cleanup latest VOD " . $vod_list[0]->basename);
 				return false;
