@@ -24,7 +24,9 @@ class TwitchAutomator {
 		$data_game_id = $data['data'][0]['game_id'];
 		$data_username = $data['data'][0]['user_name'];
 
-		return $data_username . '_' . $data_id . '_' . str_replace(':', '_', $data_started);
+		// return $data_username . '_' . $data_id . '_' . str_replace(':', '_', $data_started);
+
+		return $data_username . '_' . str_replace(':', '_', $data_started) . '_' . $data_id;
 
 	}
 

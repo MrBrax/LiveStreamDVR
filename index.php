@@ -66,6 +66,10 @@ foreach( $streamerListStatic as $streamer ){
 	$data = $streamer;
 
 	$data['vods_raw'] = glob( TwitchConfig::cfg('vod_folder') . '/' . $streamer['username'] . "_*.json");
+
+	echo '<!-- ';
+	var_dump( $data['vods_raw'] );
+	echo ' -->';
 	
 	$data['vods_list'] = [];
 
@@ -88,6 +92,8 @@ foreach( $streamerListStatic as $streamer ){
 	$streamerList[] = $data;
 
 }
+
+
 
 echo '<html>';
 echo '<head>';
