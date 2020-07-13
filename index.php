@@ -80,9 +80,12 @@ foreach( $streamerListStatic as $streamer ){
 
 		if( $vodclass->is_recording ) $data['is_live'] = true;
 
-		if( $_GET['checkvod'] ){
-			$deleted = $vodclass->checkValidVod();
-			if($deleted) $is_a_vod_deleted = true;
+		if( $_GET['checkvod'] && !$vodclass->is_recording ){
+			$isvalid = $vodclass->checkValidVod();
+			if(!$isvalid){
+				$is_a_vod_deleted = true;
+				echo '<!-- deleted: ' . $vodclass->basename . ' -->';
+			}
 		}
 
 		$data['vods_list'][] = $vodclass;
@@ -262,13 +265,6 @@ echo '<section class="section">';
 									}
 									echo '</ul>';
 									echo '</div>';
-
-									/*
-									if(!$vodclass->twitch_vod_id){
-										$vodclass->matchTwitchVod();
-										$vodclass->saveJSON();
-									}
-									*/
 									
 								}
 
@@ -295,7 +291,7 @@ echo '<section class="section">';
 
 									echo '<a class="button" href="?delete=' . $vodclass->basename . '">Delete</a> ';
 
-									if( !$vodclass->is_chat_downloaded ){
+									if( $vodclass->twitch_vod_id && !$vodclass->is_chat_downloaded ){
 										echo '<a class="button" href="chat.php?vod=' . $vodclass->basename . '">Download chat</a>';
 									}
 

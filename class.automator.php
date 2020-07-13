@@ -146,9 +146,11 @@ class TwitchAutomator {
 		$gb = $total_size / 1024 / 1024 / 1024;
 
 		$this->info[] = 'Total filesize for ' . $streamer_name . ': ' . $gb;
-		TwitchHelper::log( TwitchHelper::LOG_INFO, 'Total filesize for ' . $streamer_name . ': ' . $gb);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, 'Total filesize for ' . $streamer_name . ': ' . round($gb, 2));
 
 		if( sizeof($vod_list) > TwitchConfig::cfg('vods_to_keep') || $gb > TwitchConfig::cfg('storage_per_streamer') ){
+
+			TwitchHelper::log( TwitchHelper::LOG_INFO, 'Total filesize for ' . $streamer_name . ' exceeds either vod amount or storage per streamer');
 
 			// don't delete the newest vod, hopefully
 			if( $source_basename != null && $vod_list[0]->basename == $source_basename ){
