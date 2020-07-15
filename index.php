@@ -61,6 +61,8 @@ $streamerList = [];
 
 $is_a_vod_deleted = false;
 
+$checkvod = isset($_GET['checkvod']);
+
 foreach( $streamerListStatic as $streamer ){
 
 	$data = $streamer;
@@ -80,7 +82,7 @@ foreach( $streamerListStatic as $streamer ){
 
 		if( $vodclass->is_recording ) $data['is_live'] = true;
 
-		if( $_GET['checkvod'] && !$vodclass->is_recording ){
+		if( $checkvod && !$vodclass->is_recording ){
 			$isvalid = $vodclass->checkValidVod();
 			if(!$isvalid){
 				$is_a_vod_deleted = true;
@@ -138,9 +140,13 @@ echo '<section class="section">';
 
 	echo '<div class="section-content">';
 
-		echo '<a href="?checkvod=1">Check if VODs exist</a>';
-		if($is_a_vod_deleted){
-			echo ' - <strong>A VOD IS DELETED</strong>';
+		echo '<a class="button" href="?checkvod=1">Check if VODs exist</a>';
+		if($checkvod){
+			if($is_a_vod_deleted){
+				echo ' - <strong>A VOD IS DELETED</strong>';
+			}else{
+				echo ' - all vods seem to still exist';
+			}
 		}
 		
 		echo '<br><br>';
@@ -241,7 +247,7 @@ echo '<section class="section">';
 										
 										echo '<a href="' . $vodclass->twitch_vod_url . '" rel="noreferrer" target="_blank">' . $vodclass->twitch_vod_id . '</a>';
 
-										if( $_GET['checkvod'] ){
+										if( $checkvod ){
 											echo $vodclass->twitch_vod_exists ? ' (exists)' : ' <strong class="error">(deleted)</strong>';
 										}
 

@@ -95,9 +95,16 @@ class TwitchVOD {
 
 		$getID3 = new getID3;
 
-		$file = $getID3->analyze( $this->segments[0] );
+		$file = $getID3->analyze( TwitchConfig::cfg('vod_folder') . '/' . basename( $this->segments[0] ) );
 
 		if( !$file['playtime_string'] ){
+
+			if(!$file){
+				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Could not parse ID3 of " . $this->basename);
+				return false;
+			}
+
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Could not find duration of " . $this->basename . ": " . join(", ", $file['error']) );			
 
 			return false;
 
@@ -106,6 +113,7 @@ class TwitchVOD {
 			$this->duration = $file['playtime_string'];
 
 			if( $save ){
+				TwitchHelper::log(TwitchHelper::LOG_INFO, "Saved duration for " . $this->basename);
 				$this->saveJSON();
 			}
 

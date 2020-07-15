@@ -531,7 +531,7 @@ class TwitchAutomator {
 
 		$this->notify($basename, '[' . $data_username . '] [end]', self::NOTIFY_DOWNLOAD);
 
-
+		// finalize
 
 		// metadata stuff
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Sleep 5 minutes for " . $basename);
@@ -542,6 +542,7 @@ class TwitchAutomator {
 		$vodclass = new TwitchVOD();
 		$vodclass->load( TwitchConfig::cfg('vod_folder') . '/' . $basename . '.json');
 
+		$vodclass->getDuration();
 		$vodclass->saveLosslessCut();
 		$vodclass->matchTwitchVod();
 		$vodclass->saveJSON();
