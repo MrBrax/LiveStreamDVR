@@ -68,12 +68,10 @@ foreach( $streamerListStatic as $streamer ){
 	$data = $streamer;
 
 	$data['vods_raw'] = glob( TwitchConfig::cfg('vod_folder') . '/' . $streamer['username'] . "_*.json");
-
-	echo '<!-- ';
-	var_dump( $data['vods_raw'] );
-	echo ' -->';
 	
 	$data['vods_list'] = [];
+
+	$data['vods_size'] = 0;
 
 	foreach( $data['vods_raw'] as $k => $v ){
 
@@ -90,6 +88,12 @@ foreach( $streamerListStatic as $streamer ){
 			}
 		}
 
+		if($vodclass->segments){
+			foreach($vodclass->segments as $s){
+				$data['vods_size'] += filesize( TwitchConfig::cfg('vod_folder') . '/' . basename($s) );
+			}
+		}
+		
 		$data['vods_list'][] = $vodclass;
 
 	}
@@ -97,6 +101,8 @@ foreach( $streamerListStatic as $streamer ){
 	$streamerList[] = $data;
 
 }
+
+echo '<!-- '; var_dump($streamerList); echo ' -->';
 
 
 
@@ -172,6 +178,8 @@ echo '<section class="section">';
 						echo $streamer['quality'];
 						echo ' &middot; ';
 						echo count( $streamer['vods_list'] ) . ' vods';
+						echo ' &middot; ';
+						echo round( $streamer['vods_size'] / 1024 / 1024 / 1024, 1 ) . 'GB';
 					echo '</span>';
 				echo '</div>';
 
