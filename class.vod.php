@@ -27,17 +27,22 @@ class TwitchVOD {
 
 	public $game_offset = null;
 
+	// TODO: make these into an array instead
 	public $twitch_vod_id = null;
 	public $twitch_vod_url = null;
+	public $twitch_vod_duration = null;
+	public $twitch_vod_title = null;
 	public $twitch_vod_exists = null;
 
 	public $is_recording = false;
 	public $is_converted = false;
 
-	// public function __constructor(){
-
-	//}
-
+	/**
+	 * Load a VOD with a JSON file
+	 *
+	 * @param string $filename
+	 * @return bool
+	 */
 	public function load( $filename ){
 
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Loading VOD Class for " . $filename);
@@ -76,9 +81,12 @@ class TwitchVOD {
 		$this->streamer_name = $this->json['meta']['data'][0]['user_name'];
 		$this->streamer_id = TwitchHelper::getChannelId( $this->streamer_name );
 
-		$this->twitch_vod_id 	= $this->json['twitch_vod_id'];
-		$this->twitch_vod_url 	= $this->json['twitch_vod_url'];	
-		$this->duration 		= $this->json['duration'];
+		$this->twitch_vod_id 		= $this->json['twitch_vod_id'];
+		$this->twitch_vod_url 		= $this->json['twitch_vod_url'];
+		$this->twitch_vod_duration 	= $this->json['twitch_vod_duration'];
+		$this->twitch_vod_title 	= $this->json['twitch_vod_title'];
+		
+		$this->duration 			= $this->json['duration'];
 
 		$this->is_recording = file_exists( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.ts' );
 		$this->is_converted = file_exists( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.mp4' );
@@ -89,6 +97,13 @@ class TwitchVOD {
 
 	}
 
+	/**
+	 * Get duration of the mp4 file.
+	 * TODO: Use seconds instead of string.
+	 *
+	 * @param boolean $save
+	 * @return string
+	 */
 	public function getDuration( $save = false ){
 
 		if( $this->duration ) return $this->duration;
@@ -178,6 +193,11 @@ class TwitchVOD {
 
 	}
 
+	/**
+	 * Fetch streamer's videos and try to match this VOD with an archived one.
+	 *
+	 * @return string
+	 */
 	public function matchTwitchVod(){
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Try to match twitch vod for " . $this->basename);
@@ -192,10 +212,16 @@ class TwitchVOD {
 
 			// if within 5 minutes difference
 			if( abs( $this->started_at->getTimestamp() - $video_time->getTimestamp() ) < 300 ){
-				$this->twitch_vod_id = $vid['id'];
-				$this->twitch_vod_url = $vid['url'];
+				
+				$this->twitch_vod_id 		= $vid['id'];
+				$this->twitch_vod_url 		= $vid['url'];
+				$this->twitch_vod_duration 	= TwitchHelper::parseTwitchDuration($vid['duration']);
+				$this->twitch_vod_title 	= $vid['title'];
+
 				TwitchHelper::log( TwitchHelper::LOG_INFO, "Matched twitch vod for " . $this->basename);
+
 				return $this->twitch_vod_id;
+
 			}
 
 		}
@@ -204,6 +230,11 @@ class TwitchVOD {
 
 	}
 
+	/**
+	 * Check if VOD has been deleted from Twitch
+	 *
+	 * @return void
+	 */
 	public function checkValidVod(){
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Check valid vod for " . $this->basename);
@@ -229,8 +260,10 @@ class TwitchVOD {
 		$generated = $this->json;
 
 		if( $this->twitch_vod_id && $this->twitch_vod_url){
-			$generated['twitch_vod_id'] 	= $this->twitch_vod_id;
-			$generated['twitch_vod_url'] 	= $this->twitch_vod_url;
+			$generated['twitch_vod_id'] 		= $this->twitch_vod_id;
+			$generated['twitch_vod_url'] 		= $this->twitch_vod_url;
+			$generated['twitch_vod_duration'] 	= $this->twitch_vod_duration;
+			$generated['twitch_vod_title'] 		= $this->twitch_vod_title;
 		}
 
 		$generated['streamer_name'] 	= $this->streamer_name;
@@ -289,6 +322,12 @@ class TwitchVOD {
 
 	}
 
+	/**
+	 * Save file for lossless cut editing
+	 * https://github.com/mifi/lossless-cut
+	 *
+	 * @return void
+	 */
 	public function saveLosslessCut(){
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Saving lossless cut csv for " . $this->basename);

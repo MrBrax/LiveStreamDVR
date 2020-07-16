@@ -298,22 +298,6 @@ class TwitchAutomator {
 
 	}
 
-	public function parseTwitchDuration( $text ){
-
-		preg_match('/([0-9]+)h/', $text, $hours_match);
-		preg_match('/([0-9]+)m/', $text, $minutes_match);
-		preg_match('/([0-9]+)s/', $text, $seconds_match);
-
-		$total_seconds = 0;
-
-		if($seconds_match[1]) $total_seconds += $seconds_match[1];
-		if($minutes_match[1]) $total_seconds += $minutes_match[1] * 60;
-		if($hours_match[1]) $total_seconds += $hours_match[1] * 60 * 60;
-
-		return $total_seconds;
-
-	}
-
 	public function updateGame( $data ){
 
 		$data_id 			= $data['data'][0]['id'];

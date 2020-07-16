@@ -152,6 +152,12 @@ class TwitchHelper {
 
 	}
 
+	/**
+	 * Return videos for a streamer id
+	 *
+	 * @param int $streamer_id
+	 * @return array | false
+	 */
 	public static function getVideos( $streamer_id ){
 
 		$ch = curl_init();
@@ -227,6 +233,29 @@ class TwitchHelper {
 		self::$game_db = json_decode( file_get_contents( 'config/games_v2.json' ), true );
 
 		return self::getGame($id);
+
+	}
+
+	/**
+	 * Parse twitch format duration: 1h1m1s
+	 * Returns seconds.
+	 *
+	 * @param string $text
+	 * @return int
+	 */
+	public function parseTwitchDuration( $text ){
+
+		preg_match('/([0-9]+)h/', $text, $hours_match);
+		preg_match('/([0-9]+)m/', $text, $minutes_match);
+		preg_match('/([0-9]+)s/', $text, $seconds_match);
+
+		$total_seconds = 0;
+
+		if($seconds_match[1]) $total_seconds += $seconds_match[1];
+		if($minutes_match[1]) $total_seconds += $minutes_match[1] * 60;
+		if($hours_match[1]) $total_seconds += $hours_match[1] * 60 * 60;
+
+		return $total_seconds;
 
 	}
 
