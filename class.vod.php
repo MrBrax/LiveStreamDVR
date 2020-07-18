@@ -24,6 +24,7 @@ class TwitchVOD {
 	public $ended_at = null;
 
 	public $duration = null;
+	public $duration_seconds = null;
 
 	public $game_offset = null;
 
@@ -87,6 +88,7 @@ class TwitchVOD {
 		$this->twitch_vod_title 	= $this->json['twitch_vod_title'];
 		
 		$this->duration 			= $this->json['duration'];
+		$this->duration_seconds		= $this->json['duration_seconds'];
 
 		$this->is_recording = file_exists( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.ts' );
 		$this->is_converted = file_exists( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.mp4' );
@@ -106,7 +108,7 @@ class TwitchVOD {
 	 */
 	public function getDuration( $save = false ){
 
-		if( $this->duration ) return $this->duration;
+		if( $this->duration_seconds ) return $this->duration_seconds;
 
 		$getID3 = new getID3;
 
@@ -125,7 +127,8 @@ class TwitchVOD {
 
 		}else{
 		
-			$this->duration = $file['playtime_string'];
+			$this->duration 			= $file['playtime_string'];
+			$this->duration_seconds 	= $file['playtime_seconds'];
 
 			if( $save ){
 				TwitchHelper::log(TwitchHelper::LOG_INFO, "Saved duration for " . $this->basename);
@@ -273,6 +276,7 @@ class TwitchVOD {
 		$generated['segments'] 			= $this->segments;
 
 		$generated['duration'] 			= $this->duration;
+		$generated['duration_seconds'] 	= $this->duration_seconds;
 
 		file_put_contents($this->filename, json_encode($generated));
 

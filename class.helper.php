@@ -259,4 +259,20 @@ class TwitchHelper {
 
 	}
 
+	/**
+	 * Return a human readable duration in seconds
+	 * TODO: 24+ hour durations
+	 *
+	 * @param int $duration
+	 * @return string
+	 */
+	public function printHumanDuration( $duration ){
+
+		$time = new DateTime();
+		$time->setTimestamp( $duration );
+
+		return $time->format("H:i:s");
+
+	}
+
 }

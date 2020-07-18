@@ -217,68 +217,122 @@ echo '<section class="section">';
 
 							echo '<div class="video-description">';
 
+								// box art
 								echo '<div class="boxart-carousel">';
-								$unique_games = [];
-								foreach($vodclass->games as $g){
-									$unique_games[ (int)$g['game_id'] ] = true;
-								}
-								
-								foreach($unique_games as $id => $n){
-									$gd = TwitchHelper::getGame($id);
-									$img_url = $gd['box_art_url'];
-									$img_url = str_replace("{width}", 140, $img_url);
-									$img_url = str_replace("{height}", 190, $img_url);
-									echo '<img class="boxart-big" title="' . $gd['name'] . '" src="' . $img_url . '" />';
-								}
+									$unique_games = [];
+									foreach($vodclass->games as $g){
+										$unique_games[ (int)$g['game_id'] ] = true;
+									}
+									
+									foreach($unique_games as $id => $n){
+										$gd = TwitchHelper::getGame($id);
+										$img_url = $gd['box_art_url'];
+										$img_url = str_replace("{width}", 140, $img_url);
+										$img_url = str_replace("{height}", 190, $img_url);
+										echo '<img class="boxart-big" title="' . $gd['name'] . '" src="' . $img_url . '" />';
+									}
 								echo '</div>';
-
+								
+								// video info
 								echo '<div><strong>Segment 0 info:</strong></div>';
 
-								if($vodclass->started_at && $vodclass->ended_at){
-									$diff = $vodclass->started_at->diff($vodclass->ended_at);
-									echo '<div><strong>Approx. duration:</strong> ' . $diff->format('%H:%I:%S') . '</div>';
-								}
-														
-								$vod_file = TwitchConfig::cfg('vod_folder') . '/' . basename( $vodclass->segments[0] );
+								echo '<ul class="video-info">';
 
-								if( count($vodclass->segments) > 0 && file_exists( $vod_file ) ) {
-									
-									echo '<div><strong>Duration:</strong> ' . $vodclass->getDuration(true) . '</div>';
+									if($vodclass->started_at && $vodclass->ended_at){
+										$diff = $vodclass->started_at->diff($vodclass->ended_at);
+										echo '<li><strong>Approx. duration:</strong> ' . $diff->format('%H:%I:%S') . '</li>';
+									}
+															
+									$vod_file = TwitchConfig::cfg('vod_folder') . '/' . basename( $vodclass->segments[0] );
 
-									$total_size += filesize( $vod_file );
-
-									echo '<div><strong>Size:</strong> ' . round( filesize( $vod_file ) / 1024 / 1024 / 1024, 2 ) . 'GB</div>';
-
-									echo '<div><strong>Video id:</strong> ';
-									
-									if( $vodclass->twitch_vod_url ){
+									if( count($vodclass->segments) > 0 && file_exists( $vod_file ) ) {
 										
-										echo '<a href="' . $vodclass->twitch_vod_url . '" rel="noreferrer" target="_blank">' . $vodclass->twitch_vod_id . '</a>';
+										echo '<li><strong>File duration:</strong> ' . TwitchHelper::printHumanDuration( $vodclass->getDuration(true) ) . '</li>';
 
-										if( $checkvod ){
-											echo $vodclass->twitch_vod_exists ? ' (exists)' : ' <strong class="error">(deleted)</strong>';
-										}
-
-									}else{
-										echo '<strong><em>Not matched or VOD deleted</em></strong>';
-									}
-
-									echo '</div>';
-
-									echo '<div><strong>Chat downloaded:</strong> ' . ( $vodclass->is_chat_downloaded ? 'Yes' : 'No' ) . '</div>';
-
-									echo '<div><strong>Segments:</strong>';
-									echo '<ul>';
-									foreach ($vodclass->segments as $seg) {
 										echo '<li>';
-											echo '<a href="' . TwitchConfig::cfg('vod_folder') . '/' . basename($seg) . '">';
-												echo basename($seg);
-												echo ' (' . round( filesize( TwitchConfig::cfg('vod_folder') . '/' . basename($seg) ) / 1024 / 1024 / 1024, 2 ) . ' GB)';
-											echo '</a>';
+											
+											echo '<strong>Twitch VOD duration:</strong> ';
+											
+											if( $vodclass->twitch_vod_duration ){
+												
+												echo TwitchHelper::printHumanDuration( $vodclass->twitch_vod_duration );
+
+											}else{
+												echo '<strong><em>No data</em></strong>';
+											}
+
 										echo '</li>';
-									}
+
+										echo '<li>';
+											
+											echo '<strong>Missing from captured file:</strong> ';
+											
+											if( $vodclass->twitch_vod_duration ){
+												
+												echo TwitchHelper::printHumanDuration( $vodclass->twitch_vod_duration - $vodclass->getDuration(true) );
+
+											}else{
+												echo '<strong><em>No data</em></strong>';
+											}
+
+										echo '</li>';
+
+										$total_size += filesize( $vod_file );
+
+										echo '<li><strong>Size:</strong> ' . round( filesize( $vod_file ) / 1024 / 1024 / 1024, 2 ) . 'GB</li>';
+
+										// TODO: merge this
+										echo '<li>';
+										
+											echo '<strong>Twitch VOD id:</strong> ';
+										
+											if( $vodclass->twitch_vod_url ){
+												
+												echo '<a href="' . $vodclass->twitch_vod_url . '" rel="noreferrer" target="_blank">' . $vodclass->twitch_vod_id . '</a>';
+
+												if( $checkvod ){
+													echo $vodclass->twitch_vod_exists ? ' (exists)' : ' <strong class="error">(deleted)</strong>';
+												}
+
+											}else{
+												echo '<strong><em>Not matched or VOD deleted</em></strong>';
+											}
+
+										echo '</li>';
+
+										echo '<li>';
+											
+											echo '<strong>Twitch VOD title:</strong> ';
+											
+											if( $vodclass->twitch_vod_title ){
+												
+												echo $vodclass->twitch_vod_title;
+
+											}else{
+												echo '<strong><em>No data</em></strong>';
+											}
+
+										echo '</li>';
+
+										
+
+										echo '<li><strong>Chat downloaded:</strong> ' . ( $vodclass->is_chat_downloaded ? 'Yes' : 'No' ) . '</li>';
+
 									echo '</ul>';
-									echo '</div>';
+
+									// segments
+									echo '<strong>Segments:</strong>';
+									echo '<ul>';
+										foreach ($vodclass->segments as $seg) {
+											echo '<li>';
+												echo '<a href="' . TwitchConfig::cfg('vod_folder') . '/' . basename($seg) . '">';
+													echo basename($seg);
+													echo ' (' . round( filesize( TwitchConfig::cfg('vod_folder') . '/' . basename($seg) ) / 1024 / 1024 / 1024, 2 ) . ' GB)';
+												echo '</a>';
+											echo '</li>';
+										}
+									echo '</ul>';
+									
 									
 								}
 
