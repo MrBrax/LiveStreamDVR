@@ -33,6 +33,7 @@ class TwitchVOD {
 	public $twitch_vod_url = null;
 	public $twitch_vod_duration = null;
 	public $twitch_vod_title = null;
+	public $twitch_vod_date = null;
 	public $twitch_vod_exists = null;
 
 	public $is_recording = false;
@@ -86,6 +87,7 @@ class TwitchVOD {
 		$this->twitch_vod_url 		= $this->json['twitch_vod_url'];
 		$this->twitch_vod_duration 	= $this->json['twitch_vod_duration'];
 		$this->twitch_vod_title 	= $this->json['twitch_vod_title'];
+		$this->twitch_vod_date 		= $this->json['twitch_vod_date'];
 		
 		$this->duration 			= $this->json['duration'];
 		$this->duration_seconds		= $this->json['duration_seconds'];
@@ -220,6 +222,7 @@ class TwitchVOD {
 				$this->twitch_vod_url 		= $vid['url'];
 				$this->twitch_vod_duration 	= TwitchHelper::parseTwitchDuration($vid['duration']);
 				$this->twitch_vod_title 	= $vid['title'];
+				$this->twitch_vod_date 		= $vid['created_at'];
 
 				TwitchHelper::log( TwitchHelper::LOG_INFO, "Matched twitch vod for " . $this->basename);
 
@@ -267,6 +270,7 @@ class TwitchVOD {
 			$generated['twitch_vod_url'] 		= $this->twitch_vod_url;
 			$generated['twitch_vod_duration'] 	= $this->twitch_vod_duration;
 			$generated['twitch_vod_title'] 		= $this->twitch_vod_title;
+			$generated['twitch_vod_date'] 		= $this->twitch_vod_date;
 		}
 
 		$generated['streamer_name'] 	= $this->streamer_name;

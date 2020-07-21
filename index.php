@@ -301,40 +301,48 @@ echo '<section class="section">';
 										echo '</li>';
 
 										echo '<li>';
-											
-											echo '<strong>Twitch VOD title:</strong> ';
-											
-											if( $vodclass->twitch_vod_title ){
-												
-												echo $vodclass->twitch_vod_title;
-
+										
+											echo '<strong>Twitch VOD date:</strong> ';
+										
+											if( $vodclass->twitch_vod_date ){
+												echo $vodclass->twitch_vod_date;
 											}else{
 												echo '<strong><em>No data</em></strong>';
 											}
 
 										echo '</li>';
 
-										
+										echo '<li>';
+											
+											echo '<strong>Twitch VOD title:</strong> ';
+											
+											if( $vodclass->twitch_vod_title ){
+												echo $vodclass->twitch_vod_title;
+											}else{
+												echo '<strong><em>No data</em></strong>';
+											}
+
+										echo '</li>';
 
 										echo '<li><strong>Chat downloaded:</strong> ' . ( $vodclass->is_chat_downloaded ? 'Yes' : 'No' ) . '</li>';
 
-									echo '</ul>';
+										echo '</ul>';
 
-									// segments
-									echo '<strong>Segments:</strong>';
-									echo '<ul>';
-										foreach ($vodclass->segments as $seg) {
-											echo '<li>';
-												echo '<a href="' . TwitchConfig::cfg('vod_folder') . '/' . basename($seg) . '">';
-													echo basename($seg);
-													echo ' (' . round( filesize( TwitchConfig::cfg('vod_folder') . '/' . basename($seg) ) / 1024 / 1024 / 1024, 2 ) . ' GB)';
-												echo '</a>';
-											echo '</li>';
-										}
-									echo '</ul>';
-									
-									
-								}
+										// segments
+										echo '<strong>Segments:</strong>';
+										echo '<ul>';
+											foreach ($vodclass->segments as $seg) {
+												echo '<li>';
+													echo '<a href="' . TwitchConfig::cfg('vod_folder') . '/' . basename($seg) . '">';
+														echo basename($seg);
+														echo ' (' . round( filesize( TwitchConfig::cfg('vod_folder') . '/' . basename($seg) ) / 1024 / 1024 / 1024, 2 ) . ' GB)';
+													echo '</a>';
+												echo '</li>';
+											}
+										echo '</ul>';
+										
+										
+									}
 
 								$ongoing_file = $vodclass->vod_path . '/' . $vodclass->basename . '.ts';
 
