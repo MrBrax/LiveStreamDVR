@@ -76,6 +76,14 @@ class TwitchAutomator {
 
 	}
 	
+	/**
+	 * Either send email or store in logs directory
+	 *
+	 * @param string $body
+	 * @param string $title
+	 * @param int $notification_type
+	 * @return void
+	 */
 	public function notify( $body, $title, $notification_type = self::NOTIFY_GENERIC ){
 
 		$headers = "From: " . TwitchConfig::cfg('notify_from') . "\r\n";
@@ -163,30 +171,14 @@ class TwitchAutomator {
 
 		}
 
-
-		/*
-		$gb = $total_size / 1024 / 1024 / 1024;
-
-		$this->info[] = 'Total filesize for ' . $streamer_name . ': ' . $gb;
-
-		if( sizeof($vods) > TwitchConfig::cfg('vods_to_keep') || $gb > TwitchConfig::cfg('storage_per_streamer') ){
-			
-			$this->notify('', ' (cleanup: ' . $vods[0] . ', size: ' . $gb . 'GB)');
-
-			$basename = substr( $vods[0], 0, strlen($vods[0])-4 );
-			
-			TwitchHelper::log( TwitchHelper::LOG_INFO, "Cleanup " . $basename);
-
-			unlink(sprintf('%s.' . TwitchConfig::cfg('vod_container', 'mp4'), $basename));
-			unlink(sprintf('%s.json', $basename));
-			unlink(sprintf('%s-llc-edl.csv', $basename)); // losslesscut
-			unlink(sprintf('%s.chat', $basename)); // chat download
-
-		}
-		*/
-
 	}
 
+	/**
+	 * Entrypoint for stream capture
+	 *
+	 * @param array $data
+	 * @return void
+	 */
 	public function handle( $data ){
 
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Handle called");
@@ -298,6 +290,12 @@ class TwitchAutomator {
 
 	}
 
+	/**
+	 * Add game/chapter to stream
+	 *
+	 * @param array $data
+	 * @return void
+	 */
 	public function updateGame( $data ){
 
 		$data_id 			= $data['data'][0]['id'];
@@ -559,6 +557,7 @@ class TwitchAutomator {
 
 		$capture_filename = TwitchConfig::cfg('vod_folder') . '/' . $basename . '.ts';
 
+		// use python pipenv or regular executable
 		if( TwitchConfig::cfg('pipenv') ){
 			$cmd = 'pipenv run streamlink';
 		}else{
@@ -566,9 +565,14 @@ class TwitchAutomator {
 		}
 
 		$cmd .= ' --hls-live-restart'; // start recording from start of stream, though twitch doesn't support this
-		$cmd .= ' --hls-live-edge 99999';
-		$cmd .= ' --hls-segment-threads 5';
+		$cmd .= ' --hls-live-edge 99999'; // How many segments from the end to start live HLS streams on.
+		$cmd .= ' --hls-segment-threads 5'; // The size of the thread pool used to download HLS segments.
 		$cmd .= ' --twitch-disable-hosting'; // disable channel hosting
+		// $cmd .= ' --twitch-low-latency'; // enable low latency mode, probably not a good idea without testing
+		$cmd .= ' --twitch-disable-ads'; // Skip embedded advertisement segments at the beginning or during a stream
+		$cmd .= ' --json'; // json stdout, trying this out
+		$cmd .= ' --retry-streams 10'; // Retry fetching the list of available streams until streams are found 
+		$cmd .= ' --retry-max 5'; //  stop retrying the fetch after COUNT retry attempt(s).
 		$cmd .= ' -o ' . escapeshellarg($capture_filename); // output file
 		$cmd .= ' ' . escapeshellarg($stream_url) . ' ' . escapeshellarg( TwitchConfig::cfg('stream_quality') ); // twitch url and quality
 
@@ -614,6 +618,9 @@ class TwitchAutomator {
 
 	/**
 	 * Mux .ts to .mp4, for better compatibility
+	 *
+	 * @param string $basename Basename of input file
+	 * @return string Converted filename
 	 */
 	public function convert( $basename ){
 
@@ -632,16 +639,16 @@ class TwitchAutomator {
 		}
 
 		$cmd = TwitchConfig::cfg('ffmpeg_path');
-		$cmd .= ' -i ' . escapeshellarg($capture_filename);
+		$cmd .= ' -i ' . escapeshellarg($capture_filename); // input filename
 		$cmd .= ' -codec copy'; // use same codec
 		$cmd .= ' -bsf:a aac_adtstoasc'; // fix audio sync in ts
-		$cmd .= ' ' . escapeshellarg($converted_filename);
+		$cmd .= ' ' . escapeshellarg($converted_filename); // output filename
 		
 		$this->info[] = 'ffmpeg cmd: ' . $cmd;
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting conversion of " . $capture_filename . " to " . $converted_filename);
 
-		$output_convert = shell_exec( $cmd );
+		$output_convert = shell_exec( $cmd ); // do it
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Finished conversion of " . $capture_filename . " to " . $converted_filename);
 
@@ -651,6 +658,12 @@ class TwitchAutomator {
 
 	}
 
+	/**
+	 * Subscribe to a streamer
+	 *
+	 * @param string $streamer_name
+	 * @return string|bool
+	 */
 	public function sub( $streamer_name ){
 
 		/**
@@ -796,6 +809,11 @@ class TwitchAutomator {
 
 	}
 
+	/**
+	 * Returns the raw json data of your subscriptions
+	 *
+	 * @return string
+	 */
 	public function getSubs(){
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Requesting subscriptions list");

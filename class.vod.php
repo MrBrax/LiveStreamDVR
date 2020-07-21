@@ -1,7 +1,7 @@
 <?php
 
 class TwitchVOD {
-
+	
 	public $vod_path = 'vods';
 
 	public $filename = '';
@@ -23,7 +23,7 @@ class TwitchVOD {
 	public $started_at = null;
 	public $ended_at = null;
 
-	public $duration = null;
+	public $duration = null; // deprecated?
 	public $duration_seconds = null;
 
 	public $game_offset = null;
@@ -105,8 +105,8 @@ class TwitchVOD {
 	 * Get duration of the mp4 file.
 	 * TODO: Use seconds instead of string.
 	 *
-	 * @param boolean $save
-	 * @return string
+	 * @param boolean $save Save the duration to the JSON file
+	 * @return string Duration in seconds
 	 */
 	public function getDuration( $save = false ){
 
@@ -137,7 +137,7 @@ class TwitchVOD {
 				$this->saveJSON();
 			}
 
-			return $file['playtime_string'];
+			return $file['playtime_seconds'];
 
 		}
 
@@ -288,6 +288,12 @@ class TwitchVOD {
 
 	}
 
+	/**
+	 * Parse games from array and add it to the $this->games list
+	 *
+	 * @param array $array
+	 * @return void
+	 */
 	private function parseGames( $array ){
 
 		$games = [];

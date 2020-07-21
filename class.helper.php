@@ -16,6 +16,11 @@ class TwitchHelper {
 	const LOG_INFO = "INFO";
 	const LOG_DEBUG = "DEBUG";
 
+	/**
+	 * Set up directories for first use
+	 *
+	 * @return void
+	 */
 	public static function setupDirectories(){
 		mkdir("logs");
 		mkdir("payloads");
@@ -24,6 +29,12 @@ class TwitchHelper {
 		mkdir("vods/saved");
 	}
 
+	/**
+	 * Get OAuth token from Twitch. If it exists on disk, read from that instead. If it's too old then get a new one.
+	 *
+	 * @param boolean $force Force fetch a new token
+	 * @return string Token
+	 */
 	public static function getAccessToken( $force = false ){
 
 		// token should last 60 days, delete it after 30 just to be sure
@@ -110,6 +121,12 @@ class TwitchHelper {
 		
 	}
 
+	/**
+	 * Get Twitch channel ID from username
+	 *
+	 * @param string $username
+	 * @return string
+	 */
 	public static function getChannelId( $username ){
 
 		$json_streamers = json_decode( file_get_contents('config/streamers.json'), true );
@@ -156,7 +173,7 @@ class TwitchHelper {
 	 * Return videos for a streamer id
 	 *
 	 * @param int $streamer_id
-	 * @return array | false
+	 * @return array|false
 	 */
 	public static function getVideos( $streamer_id ){
 
@@ -191,6 +208,12 @@ class TwitchHelper {
 
 	}
 
+	/**
+	 * Get Twitch video by video ID
+	 *
+	 * @param string $video_id
+	 * @return array
+	 */
 	public static function getVideo( $video_id ){
 
 		$ch = curl_init();
@@ -224,6 +247,12 @@ class TwitchHelper {
 
 	}
 
+	/**
+	 * Get game by ID from the cache
+	 *
+	 * @param string $id
+	 * @return array
+	 */
 	public static function getGame( $id ){
 
 		if( self::$game_db ){
@@ -240,8 +269,8 @@ class TwitchHelper {
 	 * Parse twitch format duration: 1h1m1s
 	 * Returns seconds.
 	 *
-	 * @param string $text
-	 * @return int
+	 * @param string $text Twitch duration
+	 * @return int Seconds
 	 */
 	public function parseTwitchDuration( $text ){
 
