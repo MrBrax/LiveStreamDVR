@@ -14,8 +14,14 @@ class TwitchAutomator {
 	const NOTIFY_ERROR = 4;
 	const NOTIFY_GAMECHANGE = 8;
 
-	public $notify_level = NOTIFY_GENERIC && NOTIFY_DOWNLOAD && NOTIFY_ERROR && NOTIFY_GAMECHANGE;
+	public $notify_level = self::NOTIFY_GENERIC && self::NOTIFY_DOWNLOAD && self::NOTIFY_ERROR && self::NOTIFY_GAMECHANGE;
 
+	/**
+	 * Generate a basename from the VOD payload
+	 *
+	 * @param array $data
+	 * @return string basename
+	 */
 	public function basename( $data ){
 
 		$data_id = $data['data'][0]['id'];
@@ -33,7 +39,6 @@ class TwitchAutomator {
 	public function getDateTime(){
 		date_default_timezone_set('UTC');
 		return date("Y-m-d\TH:i:s\Z");
-		// return time();
 	}
 
 	public function jsonLoad(){
@@ -353,6 +358,13 @@ class TwitchAutomator {
 
 	}
 
+	/**
+	 * Start the download/capture process of a live stream
+	 *
+	 * @param array $data
+	 * @param integer $tries
+	 * @return void
+	 */
 	public function download( $data, $tries = 0 ){
 
 		$data_id = $data['data'][0]['id'];
@@ -538,6 +550,13 @@ class TwitchAutomator {
 
 	}
 
+	/**
+	 * Actually capture the stream with streamlink or youtube-dl
+	 * Blocking function
+	 *
+	 * @param array $data
+	 * @return string Captured filename
+	 */
 	public function capture( $data ){
 
 		$data_id = $data['data'][0]['id'];

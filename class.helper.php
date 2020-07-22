@@ -304,4 +304,25 @@ class TwitchHelper {
 
 	}
 
+	public static function is_windows(){
+		return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+	}
+
+	public static function path_streamlink(){
+		return TwitchConfig::cfg('bin_dir') . "/streamlink" . ( self::is_windows() ? '.exe' : '' );
+	}
+
+	// TODO: why is youtube-dl stored in a different directory on windows?
+	public static function path_youtubedl(){
+		return TwitchConfig::cfg('bin_dir') . "/youtube-dl" . ( self::is_windows() ? '.exe' : '' );
+	}
+
+	public static function path_tcd(){
+		return TwitchConfig::cfg('bin_dir') . "/tcd" . ( self::is_windows() ? '.exe' : '' );
+	}
+
+	public static function path_pipenv(){
+		return TwitchConfig::cfg('bin_dir') . "/pipenv" . ( self::is_windows() ? '.exe' : '' );
+	}
+
 }

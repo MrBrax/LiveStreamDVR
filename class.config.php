@@ -27,7 +27,13 @@ class TwitchConfig {
 	public static function getStreamers(){
 		return self::cfg("streamers", []);
     }
-    
+	
+	/**
+	 * Get streamer info from local config
+	 *
+	 * @param string $username
+	 * @return array|false
+	 */
     public static function getStreamer( $username ){
         $streamers = self::getStreamers();
         foreach( $streamers as $s ){
@@ -43,8 +49,9 @@ TwitchConfig::loadConfig();
 if( !TwitchConfig::cfg("api_client_id") ) die("api_client_id missing from config file");
 if( !TwitchConfig::cfg("api_secret") ) die("api_secret missing from config file");
 
+if( !is_dir( TwitchConfig::cfg("bin_dir") ) ) die("bin_dir is not set to a directory");
 if( !file_exists( TwitchConfig::cfg("ffmpeg_path") ) ) die("ffmpeg_path is not valid");
-
+if( is_dir( TwitchConfig::cfg("ffmpeg_path") ) ) die("ffmpeg_path is set to a directory, not an executable");
 /*
 $TwitchConfig = new TwitchConfig();
 TwitchConfig::loadConfig();
