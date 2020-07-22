@@ -589,7 +589,7 @@ class TwitchAutomator {
 		$cmd .= ' --twitch-disable-hosting'; // disable channel hosting
 		// $cmd .= ' --twitch-low-latency'; // enable low latency mode, probably not a good idea without testing
 		$cmd .= ' --twitch-disable-ads'; // Skip embedded advertisement segments at the beginning or during a stream
-		$cmd .= ' --json'; // json stdout, trying this out
+		// $cmd .= ' --json'; // json stdout, trying this out
 		$cmd .= ' --retry-streams 10'; // Retry fetching the list of available streams until streams are found 
 		$cmd .= ' --retry-max 5'; //  stop retrying the fetch after COUNT retry attempt(s).
 		$cmd .= ' -o ' . escapeshellarg($capture_filename); // output file
