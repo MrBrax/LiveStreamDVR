@@ -133,6 +133,7 @@ echo '<div class="top-menu">';
 	}
 	echo '<div class="top-menu-item right">';
 		echo '<a href="settings.php">Settings</a>';
+		echo '<a href="about.php">About</a>';
 		echo '<a class="linkback" href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer">GitHub</a>';
 	echo '</div>';
 
@@ -240,7 +241,7 @@ echo '<section class="section">';
 
 									if($vodclass->started_at && $vodclass->ended_at){
 										$diff = $vodclass->started_at->diff($vodclass->ended_at);
-										echo '<li><strong>Approx. duration:</strong> ' . $diff->format('%H:%I:%S') . '</li>';
+										echo '<li><strong>Webhook duration:</strong> ' . $diff->format('%H:%I:%S') . '</li>';
 									}
 															
 									$vod_file = TwitchConfig::cfg('vod_folder') . '/' . basename( $vodclass->segments[0] );
