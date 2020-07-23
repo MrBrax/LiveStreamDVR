@@ -82,10 +82,6 @@ foreach( $streamerListStatic as $streamer ){
 
 }
 
-echo '<!-- '; var_dump($streamerList); echo ' -->';
-
-
-
 echo '<html>';
 echo '<head>';
 	echo ' <meta name="referrer" content="no-referrer" />';
@@ -95,8 +91,11 @@ echo '</head>';
 echo '<body>';
 
 echo '<div class="top-menu">';
-	echo '<div class="top-menu-item title">' . TwitchConfig::cfg('app_name') . '</div>';
+	
+echo '<div class="top-menu-item title">' . TwitchConfig::cfg('app_name') . '</div>';
+	
 	foreach( $streamerList as $streamer ){
+		
 		echo '<div class="top-menu-item' . ( $streamer['is_live'] ? ' live' : '' ) . '">';
 			
 			if($streamer['is_live']){
@@ -107,7 +106,28 @@ echo '<div class="top-menu">';
 
 				echo $streamer['username'];
 				echo ' <span class="small">' . count($streamer['vods_list']) . '</span>';
+
+				echo '<span class="subtitle">';
+					if($streamer['is_live']){
+						
+						echo 'Playing ';
+
+						$vod = $streamer['vods_list'][ count($streamer['vods_list']) - 1 ];
+
+						$game = $vod->games[ count( $vod->games ) - 1 ];
+
+						echo '<strong>' . $game['game_name'] . '</strong>';
+
+					}else{
+
+						echo 'Offline';
+
+					}
+				echo '</span>';
+
 			echo '</a>';
+
+			
 
 		echo '</div>';
 	}

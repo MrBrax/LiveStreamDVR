@@ -56,17 +56,18 @@ h3 { font-size: 125%; }
 	font-size: 18px;
 }
 
+// TODO: make this more dynamic
 .top-menu-item {
 	// padding: 5px 8px;
 	&.title {
 		font-weight: 700;
-		padding: 5px 8px;
+		padding: 12px 8px;
 	}
 	a {
 		color: #777;
 		text-decoration: none;
 		display: inline-block;
-		padding: 5px 8px;
+		padding: 5px 8px 11px 8px;
 		&:hover {
 			color: #fff;
 			background: #111;
@@ -78,16 +79,32 @@ h3 { font-size: 125%; }
 			animation: live ease-in-out 1s infinite;
 			font-weight: 700;
 		}
+		.subtitle {
+			color: #b30000;
+		}
 	}
 	&.right {
 		flex-grow: 1;
 		text-align: right;
+		a {
+			padding: 12px 8px;
+		}
 	}
-	span {
+	.small {
 		color: #555;
 		font-size: 80%;
 	}
+	.subtitle {
+		font-family: 'Roboto Condensed', 'Roboto', 'Arial';
+		font-weight: 500;
+		display: block;
+		font-size: 60%;
+		line-height: 0.7em;
+		color: #444;
+	}
 }
+
+
 
 a.linkback {
 	font-weight: 700;
@@ -97,10 +114,12 @@ a.linkback {
 	}
 }
 
+/*
 .live {
 	color: #f00;
 	animation: live ease-in-out 1s infinite;
 }
+*/
 
 .video {
 
