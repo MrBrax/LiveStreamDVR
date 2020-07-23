@@ -103,17 +103,9 @@ a.linkback {
 }
 
 .video {
+
 	margin-bottom: 10px;
 	border-bottom: 1px solid #eee;
-}
-
-.video-title {
-	padding: 10px;
-	background: #2b61d6;
-	color: #fff;
-}
-
-.video{
 	
 	&.recording {
 		
@@ -125,11 +117,16 @@ a.linkback {
 	}
 }
 
-.video-title{
+.video-title {
+
+	padding: 10px;
+	background: #2b61d6;
+	color: #fff;
 
 	h3 {
 		margin: 0;
 		padding: 0;
+		text-shadow: 0 2px 0 #1e4599;
 	}
 
 }
@@ -137,22 +134,24 @@ a.linkback {
 .button {
 
 	font: inherit;
+	text-decoration: none;
 
 	display: inline-block;
 	padding: 4px 15px;
+	border-radius: 3px;
+
 	color: #222;
 	background: #eee;
 	border: 1px solid #999;
-	text-decoration: none;
-	border-radius: 3px;
-	box-shadow: 0 2px 3px rgba(0, 0, 0, .2), inset 0 -3px 0 rgba(0, 0, 0, .1);
+	box-shadow: 0 2px 3px rgba(0, 0, 0, .2), inset 0 -3px 0 rgba(0, 0, 0, .1);	
+	
 	transition: 0.05s all ease-in-out;
 	
 	&:hover {
+		cursor: pointer;
 		color: #111;
 		background: #ddd;
-		cursor: pointer;
-		transform: scale(1.02);
+		// transform: scale(1.02);
 	}
 
 	&:active {
@@ -163,14 +162,14 @@ a.linkback {
 
 .input {
 
-	color: #333;
-	border: 1px solid #ccc;
+	font: inherit;
+
 	padding: 4px 6px;
 	margin: 2px 0px;
-
 	border-radius: 2px;
 
-	font: inherit;
+	color: #333;
+	border: 1px solid #ccc;	
 
 	&:hover {
 		border-color: #aaa;

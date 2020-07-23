@@ -362,7 +362,7 @@ echo '<section class="section">';
 							echo '</div>';
 							
 							// game list / chapters
-							echo '<table class="game-list">';
+							echo '<table class="table game-list">';
 
 								echo '<thead>';
 									echo '<tr>';
