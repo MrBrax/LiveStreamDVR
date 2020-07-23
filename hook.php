@@ -26,7 +26,7 @@ if( $post_json ){
 
 if($data){
 
-	file_put_contents('payloads/' . date("Y-m-d.h_i_s") . '.json', json_encode($data));
+	file_put_contents('payloads' . DIRECTORY_SEPARATOR . date("Y-m-d.h_i_s") . '.json', json_encode($data));
 
 	$data_id = $data['data'][0]['id'];
 	$data_title = $data['data'][0]['title'];

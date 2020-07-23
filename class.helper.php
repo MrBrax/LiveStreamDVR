@@ -4,7 +4,7 @@ class TwitchHelper {
 
 	public static $accessToken;
 
-	public static $accessTokenFile = 'config/oauth.bin';
+	public static $accessTokenFile = 'config' . DIRECTORY_SEPARATOR . 'oauth.bin';
 
 	public static $accessTokenExpire = 60 * 60 * 24 * 60; // 60 days
 	public static $accessTokenRefresh = 60 * 60 * 24 * 30; // 30 days
@@ -25,8 +25,8 @@ class TwitchHelper {
 		mkdir("logs");
 		mkdir("payloads");
 		mkdir("vods");
-		mkdir("vods/clips");
-		mkdir("vods/saved");
+		mkdir("vods" . DIRECTORY_SEPARATOR . "clips");
+		mkdir("vods" . DIRECTORY_SEPARATOR . "saved");
 	}
 
 	/**
@@ -95,8 +95,8 @@ class TwitchHelper {
 
 		if( !TwitchConfig::cfg("debug") && $level == self::LOG_DEBUG ) return;
 		
-		$filename = "logs/" . date("Y-m-d") . ".log";
-		$filename_json = "logs/" . date("Y-m-d") . ".log.json";
+		$filename = "logs" . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log";
+		$filename_json = "logs" . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log.json";
 		
 		$log_text = file_exists( $filename ) ? file_get_contents( $filename ) : '';
 		$log_json = file_exists( $filename_json ) ? json_decode( file_get_contents( $filename_json ), true ) : [];
@@ -129,7 +129,7 @@ class TwitchHelper {
 	 */
 	public static function getChannelId( $username ){
 
-		$json_streamers = json_decode( file_get_contents('config/streamers.json'), true );
+		$json_streamers = json_decode( file_get_contents('config' . DIRECTORY_SEPARATOR . 'streamers.json'), true );
 
 		if($json_streamers[$username]){
 			self::log( self::LOG_DEBUG, "Fetched channel id from cache for " . $username);	
@@ -161,7 +161,7 @@ class TwitchHelper {
 		$id = $json["data"][0]["id"];
 		
 		$json_streamers[ $username ] = $id;
-		file_put_contents('config/streamers.json', json_encode($json_streamers));
+		file_put_contents('config' . DIRECTORY_SEPARATOR . 'streamers.json', json_encode($json_streamers));
 
 		self::log( self::LOG_INFO, "Fetched channel id online for " . $username);
 
@@ -190,8 +190,6 @@ class TwitchHelper {
 
 		curl_close($ch);
 
-		// return $server_output;
-
 		$json = json_decode( $server_output, true );
 
 		if( !$json['data'] ){
@@ -202,9 +200,6 @@ class TwitchHelper {
 		self::log( self::LOG_INFO, "Querying videos for streamer id " . $streamer_id);
 
 		return $json['data'] ?: false;
-
-		// print_r($server_output);
-		// print_r($info);
 
 	}
 
@@ -229,8 +224,6 @@ class TwitchHelper {
 
 		curl_close($ch);
 
-		// return $server_output;
-
 		$json = json_decode( $server_output, true );
 
 		if( !$json['data'] ){
@@ -241,9 +234,6 @@ class TwitchHelper {
 		self::log( self::LOG_INFO, "Querying video info for id " . $video_id);
 
 		return $json['data'][0];
-
-		// print_r($server_output);
-		// print_r($info);
 
 	}
 
@@ -259,7 +249,7 @@ class TwitchHelper {
 			return self::$game_db[$id];
 		}
 
-		self::$game_db = json_decode( file_get_contents( 'config/games_v2.json' ), true );
+		self::$game_db = json_decode( file_get_contents( 'config' . DIRECTORY_SEPARATOR . 'games_v2.json' ), true );
 
 		return self::getGame($id);
 
@@ -272,7 +262,7 @@ class TwitchHelper {
 	 * @param string $text Twitch duration
 	 * @return int Seconds
 	 */
-	public function parseTwitchDuration( $text ){
+	public static function parseTwitchDuration( $text ){
 
 		preg_match('/([0-9]+)h/', $text, $hours_match);
 		preg_match('/([0-9]+)m/', $text, $minutes_match);
@@ -317,7 +307,6 @@ class TwitchHelper {
 		return TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "streamlink" . ( self::is_windows() ? '.exe' : '' );
 	}
 
-	// TODO: why is youtube-dl stored in a different directory on windows?
 	public static function path_youtubedl(){
 		return TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "youtube-dl" . ( self::is_windows() ? '.exe' : '' );
 	}

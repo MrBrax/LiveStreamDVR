@@ -18,12 +18,12 @@ class TwitchConfig {
 
 	public static function loadConfig(){
 		
-		$config = json_decode( file_get_contents( self::path(["config","config.json"]) ), true );
+		$config = json_decode( file_get_contents( "config" . DIRECTORY_SEPARATOR . "config.json" ), true );
 
 		if( $config['app_name'] ){
 			self::$config = $config;
 		}else{
-			die("Config is empty, please create config/config.json");
+			die("Config is empty, please create config" . DIRECTORY_SEPARATOR . "config.json");
 			// throw new Exception("Config is empty");
 		}
 	}

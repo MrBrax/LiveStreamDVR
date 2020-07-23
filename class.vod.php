@@ -366,7 +366,7 @@ class TwitchVOD {
 			$data .= "\n";
 		}
 
-		file_put_contents( $this->vod_path . '/' . $this->basename . '-llc-edl.csv', $data );
+		file_put_contents( $this->vod_path . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', $data );
 
 	}
 
@@ -381,12 +381,12 @@ class TwitchVOD {
 		
 		// segments
 		foreach($this->segments as $s){
-			unlink( TwitchConfig::cfg('vod_folder') . '/' . basename($s) );
+			unlink( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . basename($s) );
 		}
 
-		unlink( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.json'); // data file
-		unlink( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '-llc-edl.csv'); // losslesscut
-		unlink( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.chat'); // chat download
+		unlink( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $this->basename . '.json'); // data file
+		unlink( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv'); // losslesscut
+		unlink( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $this->basename . '.chat'); // chat download
 
 	}
 
@@ -397,10 +397,10 @@ class TwitchVOD {
 	 */
 	public function save(){
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Save " . $this->basename);
-		rename( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.mp4', TwitchConfig::cfg('vod_folder') . '/saved/' . $this->basename . '.mp4');
-		rename( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.json', TwitchConfig::cfg('vod_folder') . '/saved/' . $this->basename . '.json');
-		rename( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '-llc-edl.csv', TwitchConfig::cfg('vod_folder') . '/saved/' . $this->basename . '-llc-edl.csv'); // losslesscut
-		rename( TwitchConfig::cfg('vod_folder') . '/' . $this->basename . '.chat', TwitchConfig::cfg('vod_folder') . '/saved/' . $this->basename . '.chat'); // chat
+		rename( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $this->basename . '.mp4', TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . 'saved' . DIRECTORY_SEPARATOR . $this->basename . '.mp4');
+		rename( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $this->basename . '.json', TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . 'saved' . DIRECTORY_SEPARATOR . $this->basename . '.json');
+		rename( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . 'saved' . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv'); // losslesscut
+		rename( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $this->basename . '.chat', TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . 'saved' . DIRECTORY_SEPARATOR . $this->basename . '.chat'); // chat
 	}
 
 }

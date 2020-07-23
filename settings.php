@@ -13,9 +13,9 @@ if( $action == 'delete' ){
     $TwitchAutomator = new TwitchAutomator();
     $TwitchAutomator->unsub( $_POST['username'] );
 
-    $json = json_decode( file_get_contents('config/config.json'), true );
+    $json = json_decode( file_get_contents('config' . DIRECTORY_SEPARATOR . 'config.json'), true );
     array_splice($json['streamers'], $key );
-    file_put_contents('config/config.json', json_encode($json));
+    file_put_contents('config' . DIRECTORY_SEPARATOR . 'config.json', json_encode($json));
 
     header("Location: settings.php");
     return;
@@ -45,9 +45,9 @@ if( $action == 'create' ){
         $streamer["download_chat"] = 1;
     }
 
-    $json = json_decode( file_get_contents('config/config.json'), true );
+    $json = json_decode( file_get_contents('config' . DIRECTORY_SEPARATOR . 'config.json'), true );
     $json['streamers'][] = $streamer;
-    file_put_contents('config/config.json', json_encode($json));
+    file_put_contents('config' . DIRECTORY_SEPARATOR . 'config.json', json_encode($json));
 
     $TwitchAutomator = new TwitchAutomator();
     $TwitchAutomator->sub( $username );
@@ -79,9 +79,9 @@ if( $action == 'update' ){
         $streamer["download_chat"] = 1;
     }
 
-    $json = json_decode( file_get_contents('config/config.json'), true );
+    $json = json_decode( file_get_contents('config' . DIRECTORY_SEPARATOR . 'config.json'), true );
     $json['streamers'][ $key ] = $streamer;
-    file_put_contents('config/config.json', json_encode($json));
+    file_put_contents('config' . DIRECTORY_SEPARATOR . 'config.json', json_encode($json));
 
     header("Location: settings.php");
     return;
@@ -95,14 +95,14 @@ if( $action == 'settings' ){
     $api_client_id          = $_POST['api_client_id'];
     $api_secret             = $_POST['api_secret'];
 
-    $json = json_decode( file_get_contents('config/config.json'), true );
+    $json = json_decode( file_get_contents('config' . DIRECTORY_SEPARATOR . 'config.json'), true );
 
     $json['vods_to_keep'] = (int)$vods_to_keep;
     $json['storage_per_streamer'] = (int)$storage_per_streamer;
     if($api_client_id) $json['api_client_id'] = $api_client_id;
     if($api_secret) $json['api_secret'] = $api_secret;
 
-    file_put_contents('config/config.json', json_encode($json));
+    file_put_contents('config' . DIRECTORY_SEPARATOR . 'config.json', json_encode($json));
 
     header("Location: settings.php");
     return;

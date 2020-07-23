@@ -5,7 +5,7 @@ include "class.php";
 $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
 
 $vodclass = new TwitchVOD();
-$vodclass->load( TwitchConfig::cfg('vod_folder') . '/' . $vod . '.json');
+$vodclass->load( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $vod . '.json');
 
 $start_offset = (int)$_GET['start'] ?: 0;
 
@@ -15,7 +15,7 @@ $start_offset = (int)$_GET['start'] ?: 0;
 
 <div class="video-player">
 
-	<video id="video" src="<?php echo TwitchConfig::cfg('vod_folder') . '/' . $vod . '.mp4'; ?>" controls width="1280"></video>
+	<video id="video" src="<?php echo TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $vod . '.mp4'; ?>" controls width="1280"></video>
 
 
 	<div class="video-chapters">
