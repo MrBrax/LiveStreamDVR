@@ -189,9 +189,12 @@ echo '<section class="section">';
 					echo '<div class="notice">None</div>';
 
 				}else{
-
 					
 					foreach( $streamer['vods_list'] as $k => $vodclass ){
+
+						/**
+						 * @var \TwitchVOD $vodclass
+						 */
 
 						if( !$vodclass ){
 							echo '<div class="error">Failed to load ' . $k . '</div>';
@@ -215,7 +218,9 @@ echo '<section class="section">';
 
 								// box art
 								echo '<div class="boxart-carousel">';
+									
 									$unique_games = [];
+									
 									foreach($vodclass->games as $g){
 										$unique_games[ (int)$g['game_id'] ] = true;
 									}
@@ -227,6 +232,7 @@ echo '<section class="section">';
 										$img_url = str_replace("{height}", 190, $img_url);
 										echo '<img class="boxart-big" title="' . $gd['name'] . '" src="' . $img_url . '" />';
 									}
+
 								echo '</div>';
 								
 								// video info

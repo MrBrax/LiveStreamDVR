@@ -300,7 +300,7 @@ a.linkback {
 		color: #fff;
 		text-decoration: none;
 		&:hover {
-			color: blueviolet;
+			color: rgb(182, 115, 245);
 		}
 	}
 
@@ -320,9 +320,9 @@ a.linkback {
 }
 
 .notice {
-	margin: 5px;
+	// margin: 5px;
 	background: #eee;
-	border: 1px solid #ccc;
+	// border: 1px solid #ccc;
 	padding: 10px;
 	color: #555;
 }

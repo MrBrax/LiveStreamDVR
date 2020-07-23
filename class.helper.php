@@ -295,7 +295,7 @@ class TwitchHelper {
 	 * @param int $duration
 	 * @return string
 	 */
-	public function printHumanDuration( $duration ){
+	public static function printHumanDuration( $duration ){
 
 		$time = new DateTime();
 		$time->setTimestamp( $duration );
