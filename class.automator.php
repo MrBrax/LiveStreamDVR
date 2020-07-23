@@ -50,13 +50,13 @@ class TwitchAutomator {
 
 		$basename = $this->basename( $this->data_cache );
 
-		if( !file_exists( TwitchConfig::cfg('vod_folder') . '/' . $basename . '.json') ){
+		if( !file_exists( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.json') ){
 			$this->errors[] = 'No JSON file when loading';
 			$this->json = [];
 			return;
 		}
 
-		$json = json_decode( file_get_contents( TwitchConfig::cfg('vod_folder') . '/' . $basename . '.json' ), true );
+		$json = json_decode( file_get_contents( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.json' ), true );
 
 		if(!$json || $json == null) $json = [];
 
@@ -75,7 +75,7 @@ class TwitchAutomator {
 
 		$basename = $this->basename( $this->data_cache );
 
-		file_put_contents( TwitchConfig::cfg('vod_folder') . '/' . $basename . '.json', json_encode( $this->json ) );
+		file_put_contents( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.json', json_encode( $this->json ) );
 
 		return true;
 
@@ -137,7 +137,7 @@ class TwitchAutomator {
 	 */
 	public function cleanup( $streamer_name, $source_basename = null ){
 
-		$vods = glob( TwitchConfig::cfg('vod_folder') . "/" . $streamer_name . "_*.json");
+		$vods = glob( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $streamer_name . "_*.json");
 
 		$total_size = 0;
 
@@ -151,7 +151,7 @@ class TwitchAutomator {
 			$vod_list[] = $vodclass;
 
 			foreach($vodclass->segments as $s){
-				$total_size += filesize( TwitchConfig::cfg('vod_folder') . "/" . basename($s) );
+				$total_size += filesize( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . basename($s) );
 			}
 			
 		}
@@ -204,9 +204,9 @@ class TwitchAutomator {
 
 			$basename = $this->basename( $data );
 			
-			if( file_exists( TwitchConfig::cfg('vod_folder') . '/' . $basename . '.json') ){
+			if( file_exists( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.json') ){
 
-				if( !file_exists( TwitchConfig::cfg('vod_folder') . '/' . $basename . '.ts') ){
+				if( !file_exists( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.ts') ){
 
 					$this->notify($basename, 'VOD JSON EXISTS BUT NOT VIDEO', self::NOTIFY_ERROR);
 
@@ -438,7 +438,7 @@ class TwitchAutomator {
 				$this->errors[] = 'Giving up on downloading, too many tries';
 				$this->notify($basename, 'GIVING UP, TOO MANY TRIES', self::NOTIFY_ERROR);
 				// unlink( 'vods/' . $basename . '.json' );
-				rename( TwitchConfig::cfg('vod_folder') . '/' . $basename . '.json', TwitchConfig::cfg('vod_folder') . '/' . $basename . '.json.broken' );
+				rename( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.json', TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.json.broken' );
 				throw new Exception('Too many tries');
 				return;
 			}
@@ -534,7 +534,7 @@ class TwitchAutomator {
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Do metadata on " . $basename);
 
 		$vodclass = new TwitchVOD();
-		$vodclass->load( TwitchConfig::cfg('vod_folder') . '/' . $basename . '.json');
+		$vodclass->load( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.json');
 
 		$vodclass->getDuration();
 		$vodclass->saveLosslessCut();
@@ -574,13 +574,13 @@ class TwitchAutomator {
 
 		$basename = $this->basename( $data );
 
-		$capture_filename = TwitchConfig::cfg('vod_folder') . '/' . $basename . '.ts';
+		$capture_filename = TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.ts';
 
 		// use python pipenv or regular executable
 		if( TwitchConfig::cfg('pipenv') ){
 			$cmd = 'pipenv run streamlink';
 		}else{
-			$cmd = TwitchConfig::cfg('bin_dir') . '/streamlink';
+			$cmd = TwitchHelper::path_streamlink();
 		}
 
 		$cmd .= ' --hls-live-restart'; // start recording from start of stream, though twitch doesn't support this
@@ -612,7 +612,7 @@ class TwitchAutomator {
 			if( TwitchConfig::cfg('pipenv') ){
 				$cmd = 'pipenv run youtube-dl';
 			}else{
-				$cmd = TwitchConfig::cfg('bin_dir') . '/youtube-dl';
+				$cmd = TwitchHelper::path_youtubedl();
 			}
 			
 			$cmd .= ' --hls-use-mpegts'; // use ts instead of mp4
@@ -645,19 +645,19 @@ class TwitchAutomator {
 
 		$container_ext = TwitchConfig::cfg('vod_container', 'mp4');
 
-		$capture_filename 	= TwitchConfig::cfg('vod_folder') . '/' . $basename . '.ts';
+		$capture_filename 	= TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.ts';
 
-		$converted_filename = TwitchConfig::cfg('vod_folder') . '/' . $basename . '.' . $container_ext;
+		$converted_filename = TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.' . $container_ext;
 
 		$int = 1;
 
 		while( file_exists( $converted_filename ) ){
 			$this->errors[] = 'File exists, making a new name';
-			$converted_filename = TwitchConfig::cfg('vod_folder') . '/' . $basename . '-' . $int . '.' . $container_ext;
+			$converted_filename = TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '-' . $int . '.' . $container_ext;
 			$int++;
 		}
 
-		$cmd = TwitchConfig::cfg('ffmpeg_path');
+		$cmd = TwitchHelper::path_ffmpeg();
 		$cmd .= ' -i ' . escapeshellarg($capture_filename); // input filename
 		$cmd .= ' -codec copy'; // use same codec
 		$cmd .= ' -bsf:a aac_adtstoasc'; // fix audio sync in ts

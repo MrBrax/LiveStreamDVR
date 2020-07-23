@@ -151,7 +151,7 @@ class TwitchVOD {
 	 */
 	public function downloadChat(){
 
-		if(!file_exists(TwitchConfig::cfg('bin_dir') . '/tcd')){
+		if(!file_exists( TwitchHelper::path_tcd() )){
 			throw new Exception('tcd not found');
 			return false;
 		}
@@ -180,7 +180,7 @@ class TwitchVOD {
 		if( TwitchConfig::cfg('pipenv') ){
 			$cmd = 'pipenv run tcd';
 		}else{
-			$cmd = TwitchConfig::cfg('bin_dir') . '/tcd';
+			$cmd = TwitchHelper::path_tcd();
 		}
 		
 		$cmd .= ' --video ' . escapeshellarg($this->twitch_vod_id);

@@ -16,16 +16,6 @@ if( $_GET['hub.challenge'] ){
 	return;
 }
 
-/*
-$post_json = $_POST['json'];
-
-if( $post_json ){
-	$data = json_decode( $post_json, true );
-}else{
-	$data = json_decode( file_get_contents('php://input'), true );
-}
-*/
-
 $data = json_decode( file_get_contents('php://input'), true );
 
 $post_json = $_POST['json'];

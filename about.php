@@ -20,48 +20,111 @@ echo '<html>';
 
                     echo '<h1>Utilities status</h1>';
 
-                    echo '<strong>FFMpeg:</strong> ';
-                    if( file_exists( TwitchConfig::cfg("ffmpeg_path") ) ){
-                        $out = shell_exec( TwitchConfig::cfg("ffmpeg_path") . " -version");
-                        $out = explode("\n", $out)[0];
-                        echo $out;
-                    }else{
-                        echo 'Not installed.';
-                    }
+                    echo '<table class="table">';
 
-                    echo '<br><strong>Twitch chat downloader:</strong> ';
-                    if( file_exists( TwitchHelper::path_tcd() ) ){
-                        $out = shell_exec( TwitchHelper::path_tcd() . " --version");
-                        echo $out;
-                    }else{
-                        echo 'Not installed.';
-                    }
+                        echo '<tr>';
+                            echo '<th>Name</th>';
+                            echo '<th>Path</th>';
+                            echo '<th>Status</th>';
+                        echo '</tr>';
 
-                    echo '<br><strong>Streamlink:</strong> ';
-                    if( file_exists( TwitchHelper::path_streamlink() ) ){
-                        $out = shell_exec( TwitchHelper::path_streamlink() . " --version");
-                        echo $out;
-                    }else{
-                        echo 'Not installed.';
-                    }
+                        echo '<tr>';
 
-                    echo '<br><strong>youtube-dl:</strong> ';
-                    if( file_exists( TwitchHelper::path_youtubedl() ) ){
-                        $out = shell_exec( TwitchHelper::path_youtubedl() . " --version");
-                        echo $out;
-                    }else{
-                        echo 'Not installed.';
-                    }
+                            echo '<td>FFMpeg</td>';
 
-                    echo '<br><strong>Pipenv:</strong> ';
-                    if( file_exists( TwitchHelper::path_pipenv() ) ){
-                        $out = shell_exec( TwitchHelper::path_pipenv() . " --version");
-                        echo $out;
-                    }else{
-                        echo 'Not installed';
-                    }
+                            echo '<td>' . TwitchConfig::cfg("ffmpeg_path") . '</td>';
 
-                    echo TwitchConfig::cfg('pipenv') ? ', enabled.' : ', not enabled.';
+                            echo '<td>';
+                                if( file_exists( TwitchConfig::cfg("ffmpeg_path") ) ){
+                                    $out = shell_exec( TwitchConfig::cfg("ffmpeg_path") . " -version");
+                                    $out = explode("\n", $out)[0];
+                                    echo $out;
+                                }else{
+                                    echo 'Not installed.';
+                                }
+                            echo '</td>';
+
+                        echo '</tr>';
+
+                        echo '<tr>';
+
+                            echo '<td>Twitch chat downloader</td>';
+
+                            echo '<td>' . TwitchHelper::path_tcd() . '</td>';
+
+                            echo '<td>';
+
+                                if( file_exists( TwitchHelper::path_tcd() ) ){
+                                    $out = shell_exec( TwitchHelper::path_tcd() . " --version");
+                                    echo $out;
+                                }else{
+                                    echo 'Not installed.';
+                                }
+
+                            echo '</td>';
+
+                        echo '</tr>';
+
+                        echo '<tr>';
+
+                            echo '<td>Streamlink</td>';
+
+                            echo '<td>' . TwitchHelper::path_streamlink() . '</td>';
+
+                            echo '<td>';
+
+                                if( file_exists( TwitchHelper::path_streamlink() ) ){
+                                    $out = shell_exec( TwitchHelper::path_streamlink() . " --version");
+                                    echo $out;
+                                }else{
+                                    echo 'Not installed.';
+                                }
+
+                            echo '</td>';
+
+                        echo '</tr>';
+
+                        echo '<tr>';
+
+                            echo '<td>youtube-dl</td>';
+
+                            echo '<td>' . TwitchHelper::path_youtubedl() . '</td>';
+
+                            echo '<td>';
+
+                                if( file_exists( TwitchHelper::path_youtubedl() ) ){
+                                    $out = shell_exec( TwitchHelper::path_youtubedl() . " --version");
+                                    echo $out;
+                                }else{
+                                    echo 'Not installed.';
+                                }
+
+                            echo '</td>';
+
+                        echo '</tr>';
+
+                        echo '<tr>';
+
+                            echo '<td>Pipenv</td>';
+
+                            echo '<td>' . TwitchHelper::path_pipenv() . '</td>';
+
+                            echo '<td>';
+
+                                if( file_exists( TwitchHelper::path_pipenv() ) ){
+                                    $out = shell_exec( TwitchHelper::path_pipenv() . " --version");
+                                    echo $out;
+                                }else{
+                                    echo 'Not installed';
+                                }
+
+                                echo TwitchConfig::cfg('pipenv') ? ', enabled.' : ', not enabled.';
+
+                            echo '</td>';
+                        
+                        echo '</tr>';
+
+                    echo '</table>';
                 
                 echo '</div>';
 

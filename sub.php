@@ -33,7 +33,3 @@ foreach( $streamers as $k => $v ){
 }
 
 if( count($streamers) == 0 ) echo 'No channels to subscribe to';
-
-var_dump( TwitchConfig::$config );
-
-var_dump( TwitchConfig::config );

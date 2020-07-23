@@ -1,13 +1,10 @@
 <?php
 
+// not a good idea, whatever
 error_reporting(E_ERROR | E_PARSE);
 ini_set('memory_limit','1024M');
 
 require __DIR__ . '/vendor/autoload.php';
-
-// $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-// $dotenv->load();
-
 
 function getNiceDuration($durationInSeconds) {
 
@@ -34,11 +31,12 @@ function getNiceDuration($durationInSeconds) {
 	return trim($duration);
 }
 
-require "class.config.php";
 require "class.helper.php";
+require "class.config.php";
 require "class.vod.php";
 require "class.automator.php";
 
+// make directories
 if( !file_exists("vods/saved") ){
 	TwitchHelper::setupDirectories();
 }

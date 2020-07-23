@@ -190,14 +190,7 @@ echo '<section class="section">';
 
 				}else{
 
-					// $channel_videos = $TwitchAutomator->getVideos( $TwitchAutomator->getChannelId( $streamer ) );
-
-					/*
-					echo '<div><h2>Videos</h2>';
-					print_r( $channel_videos );
-					echo '</div>';
-					*/
-
+					
 					foreach( $streamer['vods_list'] as $k => $vodclass ){
 
 						if( !$vodclass ){
@@ -208,7 +201,8 @@ echo '<section class="section">';
 						echo '<div class="video ' . ($vodclass->is_recording ? 'recording' : '') . '' . ($vodclass->is_converted ? 'converted' : '') . '">';	
 
 							echo '<div id="vod_' . $vodclass->basename . '" class="anchor"></div>';
-						
+
+							// title
 							echo '<div class="video-title">';
 								echo '<h3>';
 									echo $vodclass->streamer_name;
@@ -216,6 +210,7 @@ echo '<section class="section">';
 								echo '</h3>';
 							echo '</div>';
 
+							// description
 							echo '<div class="video-description">';
 
 								// box art
@@ -383,7 +378,8 @@ echo '<section class="section">';
 								}
 
 							echo '</div>';
-
+							
+							// game list / chapters
 							echo '<table class="game-list">';
 
 								echo '<thead>';
@@ -398,99 +394,96 @@ echo '<section class="section">';
 
 								echo '<tbody>';
 
-								foreach ($vodclass->games as $d) {
+									foreach ($vodclass->games as $d) {
 
-									if( strlen( $d['time'] ) == 10 ){
+										if( strlen( $d['time'] ) == 10 ){
 
-										$game_time = new DateTime();
-										$game_time->setTimestamp( $d['time'] );
+											$game_time = new DateTime();
+											$game_time->setTimestamp( $d['time'] );
 
-									}else{
+										}else{
 
-										$game_time = DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $d['time'] );
+											$game_time = DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $d['time'] );
+
+										}
+
+										echo '<tr>';
+											
+											// start timestamp
+											echo '<td>';
+											if( $vodclass->started_at ){
+												$diff = $game_time->diff($vodclass->started_at);
+												echo $diff->format('%H:%I:%S');
+											}else{
+												$game_time->format("Y-m-d H:i:s");
+											}
+											echo '</td>';
+
+											// duration
+											echo '<td>';
+												echo '<span class="grey">';
+												if( $d['duration'] ){
+													echo getNiceDuration($d['duration']);
+												}else{
+													echo 'Active';
+												}
+												echo '</span>';
+											echo '</td>';
+
+											// game name
+											echo '<td>';
+												$game_data = TwitchHelper::getGame( $d['game_id']);
+												
+												if( $game_data['box_art_url'] ){
+													$img_url = $game_data['box_art_url'];
+													$img_url = str_replace("{width}", 14, $img_url);
+													$img_url = str_replace("{height}", 19, $img_url);
+													echo '<img class="boxart" src="' . $img_url . '" /> ';
+												}
+
+												$game_string = ( $game_data['name'] ?: $d['game_id'] );
+
+												if( $vodclass->is_converted ){
+													echo '<a href="player.php?vod=' . $vodclass->basename . '&start=' . $d['offset'] . '">';
+														echo $game_string;
+													echo '</a>';
+												}else{
+													echo $game_string;
+												}
+
+											echo '</td>';
+
+											// title
+											echo '<td>' . $d['title'] . '</td>';
+
+											echo '<td><span class="grey">' . number_format($d['viewer_count']) . '</span></td>';
+
+										echo '</tr>';
 
 									}
 
-									echo '<tr>';
+									if( $vodclass->ended_at ){
+										$diff = $vodclass->started_at->diff($vodclass->ended_at);
+										echo '<tr><td>' . $diff->format('%H:%I:%S') . '</td><td colspan="4"><em>END</em></td></tr>';
+									}else{
+
 										
-										// start timestamp
-										echo '<td>';
-										if( $vodclass->started_at ){
-											$diff = $game_time->diff($vodclass->started_at);
-											echo $diff->format('%H:%I:%S');
-										}else{
-											$game_time->format("Y-m-d H:i:s");
-										}
-										echo '</td>';
 
-										// duration
-										echo '<td>';
-											echo '<span class="grey">';
-											if( $d['duration'] ){
-												echo getNiceDuration($d['duration']);
-											}else{
-												echo 'Active';
+										echo '<tr>';
+											if($vodclass->started_at){
+												$diff = $vodclass->started_at->diff( new DateTime() );
+												echo '<td>' . $diff->format('%H:%I:%S') . '</td>';
 											}
-											echo '</span>';
-										echo '</td>';
+											echo '<td colspan="4"><em><strong>ONGOING</strong></em></td>';
+										echo '</tr>';
 
-										// game name
-										echo '<td>';
-											$game_data = TwitchHelper::getGame( $d['game_id']);
-											
-											if( $game_data['box_art_url'] ){
-												$img_url = $game_data['box_art_url'];
-												$img_url = str_replace("{width}", 14, $img_url);
-												$img_url = str_replace("{height}", 19, $img_url);
-												echo '<img class="boxart" src="' . $img_url . '" /> ';
-											}
-
-											$game_string = ( $game_data['name'] ?: $d['game_id'] );
-
-											if( $vodclass->is_converted ){
-												echo '<a href="player.php?vod=' . $vodclass->basename . '&start=' . $d['offset'] . '">';
-													echo $game_string;
-												echo '</a>';
-											}else{
-												echo $game_string;
-											}
-
-										echo '</td>';
-
-										// title
-										echo '<td>' . $d['title'] . '</td>';
-
-										echo '<td><span class="grey">' . number_format($d['viewer_count']) . '</span></td>';
-
-									echo '</tr>';
-
-								}
-
-								if( $vodclass->ended_at ){
-									$diff = $vodclass->started_at->diff($vodclass->ended_at);
-									echo '<tr><td>' . $diff->format('%H:%I:%S') . '</td><td colspan="4"><em>END</em></td></tr>';
-								}else{
-
-									
-
-									echo '<tr>';
-										if($vodclass->started_at){
-											$diff = $vodclass->started_at->diff( new DateTime() );
-											echo '<td>' . $diff->format('%H:%I:%S') . '</td>';
-										}
-										echo '<td colspan="4"><em><strong>ONGOING</strong></em></td>';
-									echo '</tr>';
-
-								}
+									}
 
 								echo '</tbody>';
 
 							echo '</table>';
 
 						echo '</div>';
-
-						// $started_at = null;
-						// $ended_at = null;
 
 					}
 
@@ -530,89 +523,7 @@ echo '<section class="section"' . ( count($vods) == 0 ? ' style="display:none;"'
 
 echo '</section>';
 
-
-
-// Saved vods
-$vods = glob( TwitchConfig::cfg('vod_folder') . "/saved/*.json");
-
-echo '<section class="section"' . ( count($vods) == 0 ? ' style="display:none;"' : '' ) . '>';
-	echo '<div class="section-title"><h1>Saved VODs</h1></div>';
-
-	echo '<div class="section-content">';	
-
-	foreach( $vods as $k => $v ){
-
-		$basename = substr($v, 0, strlen($v)-5);
-
-		$json = json_decode( file_get_contents( $v ), true );
-
-		if( $json['started_at'] ){
-			$started_at = DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $json['started_at'] );
-		}
-
-		echo '<div class="video saved">';	
-		echo '<h2>' . $json['started_at'] . '</h2>';
-
-		if( file_exists( $basename . '.mp4' ) ) {
-
-			echo round( filesize( $basename . '.mp4' ) / 1024 / 1024 / 1024, 2 ) . 'GB';
-
-			echo '<hr>';
-
-			echo '<a class="button" href="player.php?saved=' . basename($basename) . '">Play video</a>';
-
-			echo '<a class="button" href="' . TwitchConfig::cfg('vod_folder') . '/saved/' . basename($basename) . '.mp4">Direct link</a>';
-
-		}
-
-		// echo '<br><br><a href="https://twitch.tv/videos/' . $json['meta']['data'][0]['id'] . '" rel="noreferrer">Show on Twitch.tv</a>';
-
-		echo '<br /><br />';
-
-		echo '<table>';
-		foreach ($json['games'] as $d) {
-
-			if( strlen( $d['time'] ) == 10 ){
-
-				$game_time = new DateTime();
-				$game_time->setTimestamp( $d['time'] );
-
-			}else{
-
-				$game_time = DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $d['time'] );
-
-			}
-
-			echo '<tr>';
-				echo '<td>';
-
-				if( $started_at ){
-					$diff = $game_time->diff($started_at);
-					echo $diff->format('%H:%I:%S');
-				}else{
-					$game_time->format("Y-m-d H:i:s");
-				}
-
-				echo '</td>';
-				echo '<td>' . ( $d['game_name'] ?: $d['game_id'] ) . '</td>';
-				echo '<td>' . $d['title'] . '</td>';
-			echo '</tr>';
-
-		}
-
-		echo '</table>';
-
-		echo '</div>';
-
-		$started_at = null;
-
-	}
-
-	echo "</div>";
-
-echo '</section>';	
-
-
+// debug
 echo '<section class="section" style="display: none;">';
 
 	echo '<div class="section-title"><h1>Hook</h1></div>';
@@ -628,7 +539,7 @@ echo '<section class="section" style="display: none;">';
 
 echo '</section>';
 
-
+// logs
 echo '<section class="section">';
 
 	echo '<div class="section-title"><h1>Logs</h1></div>';

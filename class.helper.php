@@ -308,21 +308,26 @@ class TwitchHelper {
 		return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
 	}
 
+	public static function path_ffmpeg(){
+		if( file_exists("/usr/bin/ffmpeg") ) return "/usr/bin/ffmpeg";
+		return TwitchConfig::cfg('ffmpeg_path');
+	}
+
 	public static function path_streamlink(){
-		return TwitchConfig::cfg('bin_dir') . "/streamlink" . ( self::is_windows() ? '.exe' : '' );
+		return TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "streamlink" . ( self::is_windows() ? '.exe' : '' );
 	}
 
 	// TODO: why is youtube-dl stored in a different directory on windows?
 	public static function path_youtubedl(){
-		return TwitchConfig::cfg('bin_dir') . "/youtube-dl" . ( self::is_windows() ? '.exe' : '' );
+		return TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "youtube-dl" . ( self::is_windows() ? '.exe' : '' );
 	}
 
 	public static function path_tcd(){
-		return TwitchConfig::cfg('bin_dir') . "/tcd" . ( self::is_windows() ? '.exe' : '' );
+		return TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "tcd" . ( self::is_windows() ? '.exe' : '' );
 	}
 
 	public static function path_pipenv(){
-		return TwitchConfig::cfg('bin_dir') . "/pipenv" . ( self::is_windows() ? '.exe' : '' );
+		return TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "pipenv" . ( self::is_windows() ? '.exe' : '' );
 	}
 
 }

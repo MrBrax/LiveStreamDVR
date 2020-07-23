@@ -12,9 +12,13 @@ class TwitchConfig {
 		return self::$config[$var] ?: $def;
 	}
 
+	public static function path( $parts ){
+		return join(DIRECTORY_SEPARATOR, $parts);
+	}
+
 	public static function loadConfig(){
 		
-		$config = json_decode( file_get_contents("config/config.json"), true );
+		$config = json_decode( file_get_contents( self::path(["config","config.json"]) ), true );
 
 		if( $config['app_name'] ){
 			self::$config = $config;
@@ -50,8 +54,8 @@ if( !TwitchConfig::cfg("api_client_id") ) die("api_client_id missing from config
 if( !TwitchConfig::cfg("api_secret") ) die("api_secret missing from config file");
 
 if( !is_dir( TwitchConfig::cfg("bin_dir") ) ) die("bin_dir is not set to a directory");
-if( !file_exists( TwitchConfig::cfg("ffmpeg_path") ) ) die("ffmpeg_path is not valid");
-if( is_dir( TwitchConfig::cfg("ffmpeg_path") ) ) die("ffmpeg_path is set to a directory, not an executable");
+if( !file_exists( TwitchHelper::path_ffmpeg() ) ) die("ffmpeg_path is not valid");
+if( is_dir( TwitchHelper::path_ffmpeg() ) ) die("ffmpeg_path is set to a directory, not an executable");
 /*
 $TwitchConfig = new TwitchConfig();
 TwitchConfig::loadConfig();

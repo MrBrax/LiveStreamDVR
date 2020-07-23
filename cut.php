@@ -15,11 +15,11 @@ $filename_in = TwitchConfig::cfg('vod_folder') . '/' . $vod . '.mp4';
 $filename_out = TwitchConfig::cfg('vod_folder') . '/' . $vod . '-cut-' . $second_start . '-' . $second_end . '.mp4';
 
 $cmd = TwitchConfig::cfg('ffmpeg_path');
-$cmd .= ' -i ' . escapeshellarg( $filename_in );
-$cmd .= ' -ss ' . escapeshellarg( $second_start );
-$cmd .= ' -t ' . escapeshellarg( $second_end - $second_start );
-$cmd .= ' -codec copy';
-$cmd .= ' ' . escapeshellarg($filename_out);
+$cmd .= ' -i ' . escapeshellarg( $filename_in ); // input file
+$cmd .= ' -ss ' . escapeshellarg( $second_start ); // start timestamp
+$cmd .= ' -t ' . escapeshellarg( $second_end - $second_start ); // length
+$cmd .= ' -codec copy'; // remux
+$cmd .= ' ' . escapeshellarg($filename_out); // output file
 
 echo $cmd;
 
