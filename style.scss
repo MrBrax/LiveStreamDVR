@@ -39,6 +39,14 @@ h1 { font-size: 200%; }
 h2 { font-size: 150%; }
 h3 { font-size: 125%; }
 
+code, pre {
+	display: block;
+	font-family: 'Source Code Pro', 'Cascadia Code', 'Consolas', monospace;
+	padding: 8px 12px;
+	background: #222;
+	color: #ccc;
+}
+
 .table {
 	text-align: left;
 	th { text-align: left; }

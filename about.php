@@ -30,7 +30,7 @@ echo '<html>';
 
                         echo '<tr>';
 
-                            echo '<td>FFMpeg</td>';
+                            echo '<td>FFmpeg</td>';
 
                             echo '<td>' . TwitchConfig::cfg("ffmpeg_path") . '</td>';
 
@@ -75,7 +75,7 @@ echo '<html>';
 
                                 if( file_exists( TwitchHelper::path_streamlink() ) ){
                                     $out = shell_exec( TwitchHelper::path_streamlink() . " --version");
-                                    echo $out;
+                                    echo trim($out);
                                 }else{
                                     echo 'Not installed.';
                                 }
@@ -94,7 +94,7 @@ echo '<html>';
 
                                 if( file_exists( TwitchHelper::path_youtubedl() ) ){
                                     $out = shell_exec( TwitchHelper::path_youtubedl() . " --version");
-                                    echo $out;
+                                    echo trim($out);
                                 }else{
                                     echo 'Not installed.';
                                 }
@@ -113,18 +113,24 @@ echo '<html>';
 
                                 if( file_exists( TwitchHelper::path_pipenv() ) ){
                                     $out = shell_exec( TwitchHelper::path_pipenv() . " --version");
-                                    echo $out;
+                                    echo trim($out);
                                 }else{
                                     echo 'Not installed';
                                 }
 
-                                echo TwitchConfig::cfg('pipenv') ? ', enabled.' : ', not enabled.';
+                                echo TwitchConfig::cfg('pipenv') ? ', <em>enabled</em>.' : ', <em>not enabled</em>.';
 
                             echo '</td>';
                         
                         echo '</tr>';
 
                     echo '</table>';
+
+                    echo '<hr />';
+                    
+                    echo '<code>';
+                        echo 'pip install --user youtube-dl streamlink tcd pipenv';
+                    echo '</code>';
                 
                 echo '</div>';
 

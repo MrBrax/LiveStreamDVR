@@ -53,10 +53,11 @@ TwitchConfig::loadConfig();
 if( !TwitchConfig::cfg("api_client_id") ) die("api_client_id missing from config file");
 if( !TwitchConfig::cfg("api_secret") ) die("api_secret missing from config file");
 
-if( !is_dir( TwitchConfig::cfg("bin_dir") ) ) die("bin_dir is not set to a directory");
-if( !file_exists( TwitchHelper::path_ffmpeg() ) ) die("ffmpeg_path is not valid");
-if( is_dir( TwitchHelper::path_ffmpeg() ) ) die("ffmpeg_path is set to a directory, not an executable");
-/*
-$TwitchConfig = new TwitchConfig();
-TwitchConfig::loadConfig();
-*/
+if( !is_dir( TwitchConfig::cfg("bin_dir") ) ) die("bin_dir is not set to a python scripts directory");
+
+if( !file_exists( TwitchHelper::path_ffmpeg() ) ){
+	die("ffmpeg_path is not set to the executable");
+}
+if( is_dir( TwitchHelper::path_ffmpeg() ) ){
+	die("ffmpeg_path is set to a directory, not an executable");
+}

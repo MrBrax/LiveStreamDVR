@@ -161,7 +161,8 @@ class TwitchAutomator {
 		$this->info[] = 'Total filesize for ' . $streamer_name . ': ' . $gb;
 		TwitchHelper::log( TwitchHelper::LOG_INFO, 'Total filesize for ' . $streamer_name . ': ' . round($gb, 2));
 
-		if( sizeof($vod_list) > TwitchConfig::cfg('vods_to_keep') || $gb > TwitchConfig::cfg('storage_per_streamer') ){
+		// don't include the current vod
+		if( sizeof($vod_list) > ( TwitchConfig::cfg('vods_to_keep') + 1 ) || $gb > TwitchConfig::cfg('storage_per_streamer') ){
 
 			TwitchHelper::log( TwitchHelper::LOG_INFO, 'Total filesize for ' . $streamer_name . ' exceeds either vod amount or storage per streamer');
 

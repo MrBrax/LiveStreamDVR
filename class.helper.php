@@ -294,13 +294,16 @@ class TwitchHelper {
 
 	}
 
+	// path helpers
+
 	public static function is_windows(){
 		return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
 	}
 
 	public static function path_ffmpeg(){
+		if( TwitchConfig::cfg('ffmpeg_path') ) return TwitchConfig::cfg('ffmpeg_path');
 		if( file_exists("/usr/bin/ffmpeg") ) return "/usr/bin/ffmpeg";
-		return TwitchConfig::cfg('ffmpeg_path');
+		return "";
 	}
 
 	public static function path_streamlink(){
