@@ -110,13 +110,18 @@ echo '<div class="top-menu-item title">' . TwitchConfig::cfg('app_name') . '</di
 				echo '<span class="subtitle">';
 					if($streamer['is_live']){
 						
-						echo 'Playing ';
-
 						$vod = $streamer['vods_list'][ count($streamer['vods_list']) - 1 ];
 
 						$game = $vod->games[ count( $vod->games ) - 1 ];
 
-						echo '<strong>' . $game['game_name'] . '</strong>';
+						$game_name = $game['game_name'];
+
+						if( $game_name == 'Just Chatting' || $game_name == 'IRL' || $game_name == 'Art' ){
+							echo '<strong>' . $game_name . '</strong>';
+						}else{
+							echo 'Playing ';
+							echo '<strong>' . $game_name . '</strong>';
+						}
 
 					}else{
 
