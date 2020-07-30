@@ -12,7 +12,7 @@ $second_start = (int)$_GET['start'];
 $second_end = (int)$_GET['end'];
 
 $filename_in = TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $vod . '.mp4';
-$filename_out = TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $vod . '-cut-' . $second_start . '-' . $second_end . '.mp4';
+$filename_out = TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . 'clips' . DIRECTORY_SEPARATOR . $vod . '-cut-' . $second_start . '-' . $second_end . '.mp4';
 
 $cmd = TwitchConfig::cfg('ffmpeg_path');
 $cmd .= ' -i ' . escapeshellarg( $filename_in ); // input file
