@@ -1,5 +1,7 @@
 <?php
 
+set_time_limit(0);
+
 include "class.php";
 
 $TwitchAutomator = new TwitchAutomator();
@@ -23,6 +25,8 @@ $cmd .= ' ' . escapeshellarg($filename_out); // output file
 
 echo $cmd;
 
-echo shell_exec($cmd);
+$output = shell_exec($cmd);
+
+file_put_contents('logs' . DIRECTORY_SEPARATOR . 'ffmpeg_' . $vod . '-cut-' . $second_start . '-' . $second_end . '_' . time() . '.log', $output );
 
 echo 'done';
