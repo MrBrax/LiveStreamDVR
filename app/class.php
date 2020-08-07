@@ -1,10 +1,10 @@
 <?php
 
 // not a good idea, whatever
-error_reporting(E_ERROR | E_PARSE);
+// error_reporting(E_ERROR | E_PARSE);
 ini_set('memory_limit','1024M');
 
-require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
 
 function getNiceDuration($durationInSeconds) {
 
@@ -31,12 +31,12 @@ function getNiceDuration($durationInSeconds) {
 	return trim($duration);
 }
 
-require "class.helper.php";
-require "class.config.php";
-require "class.vod.php";
-require "class.automator.php";
+require __DIR__ . "/class.helper.php";
+require __DIR__ . "/class.config.php";
+require __DIR__ . "/class.vod.php";
+require __DIR__ . "/class.automator.php";
 
 // make directories
-if( !file_exists( "vods" . DIRECTORY_SEPARATOR . "saved" ) ){
+if( !file_exists( __DIR__ . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . "vods" . DIRECTORY_SEPARATOR . "saved" ) ){
 	TwitchHelper::setupDirectories();
 }

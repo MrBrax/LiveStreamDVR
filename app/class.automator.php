@@ -36,6 +36,8 @@ class TwitchAutomator {
 
 	}
 
+	
+
 	public function getDateTime(){
 		date_default_timezone_set('UTC');
 		return date("Y-m-d\TH:i:s\Z");
@@ -50,13 +52,13 @@ class TwitchAutomator {
 
 		$basename = $this->basename( $this->data_cache );
 
-		if( !file_exists( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.json') ){
+		if( !file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json') ){
 			$this->errors[] = 'No JSON file when loading';
 			$this->json = [];
 			return;
 		}
 
-		$json = json_decode( file_get_contents( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.json' ), true );
+		$json = json_decode( file_get_contents( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json' ), true );
 
 		if(!$json || $json == null) $json = [];
 
@@ -75,7 +77,7 @@ class TwitchAutomator {
 
 		$basename = $this->basename( $this->data_cache );
 
-		file_put_contents( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.json', json_encode( $this->json ) );
+		file_put_contents( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json', json_encode( $this->json ) );
 
 		return true;
 
@@ -127,7 +129,7 @@ class TwitchAutomator {
 		if( TwitchConfig::cfg('notify_to') ){
 			mail(TwitchConfig::cfg('notify_to'), TwitchConfig::cfg('app_name') . ' - ' . $title, $body, $headers);
 		}else{
-			file_put_contents('logs/' . date("Y-m-d.H_i_s") . '.html', $body);
+			file_put_contents( __DIR__ . "/../logs/" . date("Y-m-d.H_i_s") . ".html", $body);
 		}
 
 	}
@@ -137,7 +139,7 @@ class TwitchAutomator {
 	 */
 	public function cleanup( $streamer_name, $source_basename = null ){
 
-		$vods = glob( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $streamer_name . "_*.json");
+		$vods = glob( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $streamer_name . "_*.json");
 
 		$total_size = 0;
 
@@ -151,7 +153,7 @@ class TwitchAutomator {
 			$vod_list[] = $vodclass;
 
 			foreach($vodclass->segments as $s){
-				$total_size += filesize( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . basename($s) );
+				$total_size += filesize( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename($s) );
 			}
 			
 		}
@@ -207,9 +209,9 @@ class TwitchAutomator {
 
 			$basename = $this->basename( $data );
 			
-			if( file_exists( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.json') ){
+			if( file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json') ){
 
-				if( !file_exists( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.ts') ){
+				if( !file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.ts') ){
 
 					$this->notify($basename, 'VOD JSON EXISTS BUT NOT VIDEO', self::NOTIFY_ERROR);
 
@@ -315,8 +317,6 @@ class TwitchAutomator {
 
 		$basename = $this->basename( $data );
 
-		// file_put_contents( 'vods/' . $basename . '.vod', "\n" . time() . ':' . $data_game_id, FILE_APPEND );
-
 		$this->jsonLoad();
 
 		// json format
@@ -344,8 +344,6 @@ class TwitchAutomator {
 		];
 
 		$this->jsonSave();
-
-		// file_put_contents( 'vods/' . $basename . '.json', json_encode( $json ) );
 		
 		//$game_name = $this->games[$data_game_id] ?: $data_game_id;
 
@@ -420,14 +418,6 @@ class TwitchAutomator {
 
 		// download notification
 		$this->notify($basename, '[' . $data_username . '] [download]', self::NOTIFY_DOWNLOAD);
-
-		/*
-		$capture_filename = 'vods/' . $basename . '.ts';
-
-		$cmd = 'streamlink --hls-live-restart --hls-live-edge 99999 --hls-segment-threads 5 --twitch-disable-hosting -o ' . escapeshellarg($capture_filename) . ' ' . $stream_url . ' ' . escapeshellarg($this->stream_quality);
-
-		$output_download = exec( $cmd );
-		*/
 	
 		// capture with streamlink
 		$capture_filename = $this->capture( $data );
@@ -441,7 +431,7 @@ class TwitchAutomator {
 				$this->errors[] = 'Giving up on downloading, too many tries';
 				$this->notify($basename, 'GIVING UP, TOO MANY TRIES', self::NOTIFY_ERROR);
 				// unlink( 'vods/' . $basename . '.json' );
-				rename( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.json', TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.json.broken' );
+				rename( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json', TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json.broken' );
 				throw new Exception('Too many tries');
 				return;
 			}
@@ -537,7 +527,7 @@ class TwitchAutomator {
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Do metadata on " . $basename);
 
 		$vodclass = new TwitchVOD();
-		$vodclass->load( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.json');
+		$vodclass->load( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json');
 
 		$vodclass->getDuration();
 		$vodclass->saveLosslessCut();
@@ -577,7 +567,7 @@ class TwitchAutomator {
 
 		$basename = $this->basename( $data );
 
-		$capture_filename = TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.ts';
+		$capture_filename = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.ts';
 
 		// use python pipenv or regular executable
 		if( TwitchConfig::cfg('pipenv') ){
@@ -648,15 +638,15 @@ class TwitchAutomator {
 
 		$container_ext = TwitchConfig::cfg('vod_container', 'mp4');
 
-		$capture_filename 	= TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.ts';
+		$capture_filename 	= TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.ts';
 
-		$converted_filename = TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '.' . $container_ext;
+		$converted_filename = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.' . $container_ext;
 
 		$int = 1;
 
 		while( file_exists( $converted_filename ) ){
 			$this->errors[] = 'File exists, making a new name';
-			$converted_filename = TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $basename . '-' . $int . '.' . $container_ext;
+			$converted_filename = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '-' . $int . '.' . $container_ext;
 			$int++;
 		}
 

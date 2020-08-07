@@ -5,3 +5,4 @@ config/games.json
 .sass-cache/
 style.css.map
 config/games_v2.json
+logs/

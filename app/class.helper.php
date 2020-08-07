@@ -4,7 +4,7 @@ class TwitchHelper {
 
 	public static $accessToken;
 
-	public static $accessTokenFile = 'config' . DIRECTORY_SEPARATOR . 'oauth.bin';
+	public static $accessTokenFile = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "oauth.bin";
 
 	public static $accessTokenExpire = 60 * 60 * 24 * 60; // 60 days
 	public static $accessTokenRefresh = 60 * 60 * 24 * 30; // 30 days
@@ -22,11 +22,11 @@ class TwitchHelper {
 	 * @return void
 	 */
 	public static function setupDirectories(){
-		mkdir("logs");
-		mkdir("payloads");
-		mkdir("vods");
-		mkdir("vods" . DIRECTORY_SEPARATOR . "clips");
-		mkdir("vods" . DIRECTORY_SEPARATOR . "saved");
+		mkdir( __DIR__ . "/logs");
+		mkdir( __DIR__ . "/payloads");
+		mkdir( __DIR__ . "/public/vods");
+		mkdir( __DIR__ . "/public/vods" . DIRECTORY_SEPARATOR . "clips");
+		mkdir( __DIR__ . "/public/vods" . DIRECTORY_SEPARATOR . "saved");
 	}
 
 	/**
@@ -95,8 +95,8 @@ class TwitchHelper {
 
 		if( !TwitchConfig::cfg("debug") && $level == self::LOG_DEBUG ) return;
 		
-		$filename = "logs" . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log";
-		$filename_json = "logs" . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log.json";
+		$filename 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log";
+		$filename_json 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log.json";
 		
 		$log_text = file_exists( $filename ) ? file_get_contents( $filename ) : '';
 		$log_json = file_exists( $filename_json ) ? json_decode( file_get_contents( $filename_json ), true ) : [];
@@ -129,7 +129,7 @@ class TwitchHelper {
 	 */
 	public static function getChannelId( $username ){
 
-		$json_streamers = json_decode( file_get_contents('config' . DIRECTORY_SEPARATOR . 'streamers.json'), true );
+		$json_streamers = json_decode( file_get_contents( __DIR__ . '/../config' . DIRECTORY_SEPARATOR . 'streamers.json'), true );
 
 		if($json_streamers[$username]){
 			self::log( self::LOG_DEBUG, "Fetched channel id from cache for " . $username);	
@@ -161,7 +161,7 @@ class TwitchHelper {
 		$id = $json["data"][0]["id"];
 		
 		$json_streamers[ $username ] = $id;
-		file_put_contents('config' . DIRECTORY_SEPARATOR . 'streamers.json', json_encode($json_streamers));
+		file_put_contents( __DIR__ . '/../config' . DIRECTORY_SEPARATOR . 'streamers.json', json_encode($json_streamers) );
 
 		self::log( self::LOG_INFO, "Fetched channel id online for " . $username);
 
@@ -249,7 +249,7 @@ class TwitchHelper {
 			return self::$game_db[$id];
 		}
 
-		self::$game_db = json_decode( file_get_contents( 'config' . DIRECTORY_SEPARATOR . 'games_v2.json' ), true );
+		self::$game_db = json_decode( file_get_contents( __DIR__ . '/../config/games_v2.json' ), true );
 
 		return self::getGame($id);
 
@@ -320,6 +320,10 @@ class TwitchHelper {
 
 	public static function path_pipenv(){
 		return TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "pipenv" . ( self::is_windows() ? '.exe' : '' );
+	}
+
+	public static function vod_folder(){
+		return __DIR__ . "/../public/vods";
 	}
 
 }

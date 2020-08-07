@@ -1,6 +1,6 @@
 <?php
 
-include "class.php";
+require( __DIR__ . "/../app/class.php");
 
 $streamers = TwitchConfig::getStreamers();
 
@@ -13,9 +13,9 @@ if( $action == 'delete' ){
     $TwitchAutomator = new TwitchAutomator();
     $TwitchAutomator->unsub( $_POST['username'] );
 
-    $json = json_decode( file_get_contents('config' . DIRECTORY_SEPARATOR . 'config.json'), true );
+    $json = json_decode( file_get_contents( TwitchConfig::$configPath ), true );
     array_splice($json['streamers'], $key );
-    file_put_contents('config' . DIRECTORY_SEPARATOR . 'config.json', json_encode($json));
+    file_put_contents( TwitchConfig::$configPath, json_encode($json) );
 
     header("Location: settings.php");
     return;
@@ -45,9 +45,9 @@ if( $action == 'create' ){
         $streamer["download_chat"] = 1;
     }
 
-    $json = json_decode( file_get_contents('config' . DIRECTORY_SEPARATOR . 'config.json'), true );
+    $json = json_decode( file_get_contents( TwitchConfig::$configPath ), true );
     $json['streamers'][] = $streamer;
-    file_put_contents('config' . DIRECTORY_SEPARATOR . 'config.json', json_encode($json));
+    file_put_contents( TwitchConfig::$configPath, json_encode($json) );
 
     $TwitchAutomator = new TwitchAutomator();
     $TwitchAutomator->sub( $username );
@@ -79,9 +79,9 @@ if( $action == 'update' ){
         $streamer["download_chat"] = 1;
     }
 
-    $json = json_decode( file_get_contents('config' . DIRECTORY_SEPARATOR . 'config.json'), true );
+    $json = json_decode( file_get_contents( TwitchConfig::$configPath ), true );
     $json['streamers'][ $key ] = $streamer;
-    file_put_contents('config' . DIRECTORY_SEPARATOR . 'config.json', json_encode($json));
+    file_put_contents( TwitchConfig::$configPath, json_encode($json) );
 
     header("Location: settings.php");
     return;
@@ -95,14 +95,14 @@ if( $action == 'settings' ){
     $api_client_id          = $_POST['api_client_id'];
     $api_secret             = $_POST['api_secret'];
 
-    $json = json_decode( file_get_contents('config' . DIRECTORY_SEPARATOR . 'config.json'), true );
+    $json = json_decode( file_get_contents( TwitchConfig::$configPath ), true );
 
     $json['vods_to_keep'] = (int)$vods_to_keep;
     $json['storage_per_streamer'] = (int)$storage_per_streamer;
     if($api_client_id) $json['api_client_id'] = $api_client_id;
     if($api_secret) $json['api_secret'] = $api_secret;
 
-    file_put_contents('config' . DIRECTORY_SEPARATOR . 'config.json', json_encode($json));
+    file_put_contents( TwitchConfig::$configPath , json_encode($json) );
 
     header("Location: settings.php");
     return;
@@ -240,13 +240,18 @@ if( $action == 'settings' ){
                     <hr>
                     <strong>OAuth</strong><br>
                     <?php
-                        $dt = new DateTime();
-                       
-                        $dt->setTimestamp( filemtime("config/oauth.bin") );
-                        echo 'Generated: ' . $dt->format("Y-m-d H:i:s") . '<br>';
+
+                        if( file_exists(TwitchHelper::$accessTokenFile) ){
+                            $dt = new DateTime();
                         
-                        $dt->add( new DateInterval("P60D") );
-                        echo 'Expires: ' . $dt->format("Y-m-d H:i:s") . '<br>';
+                            $dt->setTimestamp( filemtime( TwitchHelper::$accessTokenFile ) );
+                            echo 'Generated: ' . $dt->format("Y-m-d H:i:s") . '<br>';
+                            
+                            $dt->add( new DateInterval("P60D") );
+                            echo 'Expires: ' . $dt->format("Y-m-d H:i:s") . '<br>';
+                        }else{
+                            echo '<em>No token cached</em>';
+                        }
 
                     ?>
 

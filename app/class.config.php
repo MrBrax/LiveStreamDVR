@@ -4,6 +4,8 @@ class TwitchConfig {
 
 	public static $config = [];
 
+	public static $configPath = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "config.json";
+
 	function __constructor(){
 		$this->loadConfig();
 	}
@@ -18,12 +20,12 @@ class TwitchConfig {
 
 	public static function loadConfig(){
 		
-		$config = json_decode( file_get_contents( "config" . DIRECTORY_SEPARATOR . "config.json" ), true );
+		$config = json_decode( file_get_contents( self::$configPath ), true );
 
 		if( $config['app_name'] ){
 			self::$config = $config;
 		}else{
-			die("Config is empty, please create config" . DIRECTORY_SEPARATOR . "config.json");
+			die("Config is empty, please create " . self::$configPath );
 			// throw new Exception("Config is empty");
 		}
 	}

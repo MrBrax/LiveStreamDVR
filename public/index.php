@@ -1,6 +1,6 @@
 <?php
 
-include "class.php";
+require( __DIR__ . "/../app/class.php");
 
 TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Index accessed");
 
@@ -11,7 +11,7 @@ if($_GET['save']){
 	$vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['save']);
 
 	$vodclass = new TwitchVOD();
-	$vodclass->load( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $vod . '.json' );
+	$vodclass->load( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vod . '.json' );
 	$vodclass->save();
 
 	echo "saved " . $vod;
@@ -25,7 +25,7 @@ if($_GET['delete']){
 	$vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['delete']);
 
 	$vodclass = new TwitchVOD();
-	$vodclass->load( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $vod . '.json' );
+	$vodclass->load( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vod . '.json' );
 	$vodclass->delete();
 
 	echo 'deleted ' . $vod;
@@ -47,7 +47,7 @@ foreach( $streamerListStatic as $streamer ){
 
 	$data = $streamer;
 
-	$data['vods_raw'] = glob( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $streamer['username'] . "_*.json");
+	$data['vods_raw'] = glob( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $streamer['username'] . "_*.json");
 	
 	$data['vods_list'] = [];
 
@@ -70,7 +70,7 @@ foreach( $streamerListStatic as $streamer ){
 
 		if($vodclass->segments){
 			foreach($vodclass->segments as $s){
-				$data['vods_size'] += filesize( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . basename($s) );
+				$data['vods_size'] += filesize( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename($s) );
 			}
 		}
 		
@@ -248,7 +248,7 @@ echo '<section class="section">';
 										echo '<li><strong>Webhook duration:</strong> ' . $diff->format('%H:%I:%S') . '</li>';
 									}
 															
-									$vod_file = TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . basename( $vodclass->segments[0] );
+									$vod_file = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename( $vodclass->segments[0] );
 
 									if( count($vodclass->segments) > 0 && file_exists( $vod_file ) ) {
 										
@@ -338,9 +338,9 @@ echo '<section class="section">';
 										echo '<ul>';
 											foreach ($vodclass->segments as $seg) {
 												echo '<li>';
-													echo '<a href="' . TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . basename($seg) . '">';
+													echo '<a href="' . TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename($seg) . '">';
 														echo basename($seg);
-														echo ' (' . round( filesize( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . basename($seg) ) / 1024 / 1024 / 1024, 2 ) . ' GB)';
+														echo ' (' . round( filesize( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename($seg) ) / 1024 / 1024 / 1024, 2 ) . ' GB)';
 													echo '</a>';
 												echo '</li>';
 											}
@@ -364,7 +364,7 @@ echo '<section class="section">';
 
 									echo '<a class="button" href="player.php?vod=' . $vodclass->basename . '">Play segment 0 and cut</a> ';
 
-									echo '<a class="button" href="' . TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . $vodclass->basename . '.json">JSON</a> ';
+									echo '<a class="button" href="' . TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vodclass->basename . '.json">JSON</a> ';
 
 									echo '<a class="button" href="?save=' . $vodclass->basename . '">Save from deletion</a> ';
 
@@ -507,7 +507,7 @@ echo '<section class="section">';
 echo '</section>';
 
 // Clips
-$vods = glob( TwitchConfig::cfg('vod_folder') . DIRECTORY_SEPARATOR . "clips" . DIRECTORY_SEPARATOR . "*.mp4");
+$vods = glob( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . "clips" . DIRECTORY_SEPARATOR . "*.mp4");
 
 echo '<section class="section"' . ( count($vods) == 0 ? ' style="display:none;"' : '' ) . '>';
 	echo '<div class="section-title"><h1>Clips</h1></div>';
@@ -553,18 +553,23 @@ echo '<section class="section">';
 
 	echo '<div class="section-content">';
 		
-		$logs = glob("logs/*.log.json");
+		$logs = glob( __DIR__ . "/../logs/*.log.json");
+		
 		$last_log = null;
+		
 		echo '<ul class="logs">';
-		foreach( $logs as $log ){
-			echo '<li><a href="' . $log . '">' . basename($log) . '</a></li>';
-			$last_log = $log;
-		}
+		
+			foreach( $logs as $log ){
+				// echo '<li><a href="' . $log . '">' . basename($log) . '</a></li>';
+				$last_log = $log;
+			}
+
 		echo '</ul>';
 
 		echo '<div class="log_viewer">';
 
 		if( $last_log ){
+			
 			$json = json_decode( file_get_contents( $log ), true );
 
 			foreach( $json as $line ){

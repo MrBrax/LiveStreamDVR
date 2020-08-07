@@ -1,6 +1,6 @@
 <?php
 
-include "class.php";
+require( __DIR__ . "/../app/class.php");
 
 $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
 

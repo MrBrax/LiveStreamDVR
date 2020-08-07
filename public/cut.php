@@ -2,7 +2,7 @@
 
 set_time_limit(0);
 
-include "class.php";
+require( __DIR__ . "/../app/class.php");
 
 $TwitchAutomator = new TwitchAutomator();
 
