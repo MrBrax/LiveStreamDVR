@@ -1,6 +1,6 @@
 <?php
 
-include "class.php";
+require( __DIR__ . "/../app/class.php");
 
 $TwitchAutomator = new TwitchAutomator();
 

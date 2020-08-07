@@ -37,6 +37,6 @@ require __DIR__ . "/class.vod.php";
 require __DIR__ . "/class.automator.php";
 
 // make directories
-if( !file_exists( __DIR__ . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . "vods" . DIRECTORY_SEPARATOR . "saved" ) ){
+if( !file_exists( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . "vods" . DIRECTORY_SEPARATOR . "saved" ) ){
 	TwitchHelper::setupDirectories();
 }

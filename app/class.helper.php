@@ -22,11 +22,11 @@ class TwitchHelper {
 	 * @return void
 	 */
 	public static function setupDirectories(){
-		mkdir( __DIR__ . "/logs");
-		mkdir( __DIR__ . "/payloads");
-		mkdir( __DIR__ . "/public/vods");
-		mkdir( __DIR__ . "/public/vods" . DIRECTORY_SEPARATOR . "clips");
-		mkdir( __DIR__ . "/public/vods" . DIRECTORY_SEPARATOR . "saved");
+		mkdir( __DIR__ . "/../logs");
+		mkdir( __DIR__ . "/../payloads");
+		mkdir( __DIR__ . "/../public/vods");
+		mkdir( __DIR__ . "/../public/vods" . DIRECTORY_SEPARATOR . "clips");
+		mkdir( __DIR__ . "/../public/vods" . DIRECTORY_SEPARATOR . "saved");
 	}
 
 	/**
