@@ -41,7 +41,7 @@ class TwitchHelper {
 		if( file_exists( self::$accessTokenFile ) ){
 			$tokenRefresh = time() - filemtime( self::$accessTokenFile ) > TwitchHelper::$accessTokenRefresh;
 			$tokenExpire = time() - filemtime( self::$accessTokenFile ) > TwitchHelper::$accessTokenExpire;
-			if( $tokenRefresh || $tokenExpire ){
+			if( $tokenRefresh || $tokenExpire ){ // TODO: fix this, i'm bad at math
 				unlink( self::$accessTokenFile );
 			}
 		}
@@ -334,6 +334,27 @@ class TwitchHelper {
 		return $deleted;
 
 	}
+
+	/**
+	 * https://stackoverflow.com/a/2510459
+	 *
+	 * @param integer $bytes
+	 * @param integer $precision
+	 * @return string
+	 */
+	public static function formatBytes($bytes, $precision = 2) { 
+		$units = array('B', 'KB', 'MB', 'GB', 'TB'); 
+	
+		$bytes = max($bytes, 0); 
+		$pow = floor(($bytes ? log($bytes) : 0) / log(1024)); 
+		$pow = min($pow, count($units) - 1); 
+	
+		// Uncomment one of the following alternatives
+		$bytes /= pow(1024, $pow);
+		// $bytes /= (1 << (10 * $pow)); 
+	
+		return round($bytes, $precision) . ' ' . $units[$pow]; 
+	} 
 
 	/**
 	 * Return a human readable duration in seconds

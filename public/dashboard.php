@@ -183,7 +183,7 @@ echo '<section class="section">';
 						echo ' &middot; ';
 						echo count( $streamer['vods_list'] ) . ' vods';
 						echo ' &middot; ';
-						echo round( $streamer['vods_size'] / 1024 / 1024 / 1024, 1 ) . 'GB';
+						echo TwitchHelper::formatBytes( $streamer['vods_size'] );
 					echo '</span>';
 				echo '</div>';
 
@@ -284,7 +284,7 @@ echo '<section class="section">';
 
 										$total_size += filesize( $vod_file );
 
-										echo '<li><strong>Size:</strong> ' . round( filesize( $vod_file ) / 1024 / 1024 / 1024, 2 ) . 'GB</li>';
+										echo '<li><strong>Size:</strong> ' . TwitchHelper::formatBytes( filesize( $vod_file )  ) . '</li>';
 
 										// TODO: merge this
 										echo '<li>';
@@ -340,7 +340,7 @@ echo '<section class="section">';
 												echo '<li>';
 													echo '<a href="vods/' . basename($seg) . '">';
 														echo basename($seg);
-														echo ' (' . round( filesize( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename($seg) ) / 1024 / 1024 / 1024, 2 ) . ' GB)';
+														echo ' (' . TwitchHelper::formatBytes( filesize( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename($seg) ) ) . ')';
 													echo '</a>';
 												echo '</li>';
 											}
@@ -353,7 +353,7 @@ echo '<section class="section">';
 
 								if( file_exists( $ongoing_file ) ) {
 									$total_size += filesize( $ongoing_file );
-									echo '<div><strong>Ongoing size:</strong> ' . round( filesize( $ongoing_file ) / 1024 / 1024 / 1024, 2 ) . 'GB</div>';
+									echo '<div><strong>Ongoing size:</strong> ' . TwitchHelper::formatBytes( filesize( $ongoing_file ) ) . '</div>';
 								}
 
 							echo '</div>';
@@ -500,7 +500,7 @@ echo '<section class="section">';
 
 		}
 
-		echo '<strong>Total size: ' . round($total_size / 1024 / 1024 / 1024, 2) . 'GB</strong>';
+		echo '<strong>Total size: ' . TwitchHelper::formatBytes( $total_size ) . '</strong>';
 
 	echo "</div>";
 
@@ -520,7 +520,7 @@ echo '<section class="section"' . ( count($vods) == 0 ? ' style="display:none;"'
 
 			echo '<a href="' . $v . '">' . basename($v) . '</a>';
 
-			echo ' (' . round( filesize($v) / 1024 / 1024 / 1024, 2) . 'GB)';
+			echo ' (' . TwitchHelper::formatBytes( filesize($v) ) . ')';
 
 		echo '</div>';
 	
