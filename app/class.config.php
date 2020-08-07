@@ -30,6 +30,11 @@ class TwitchConfig {
 		}
 	}
 
+	public static function saveConfig(){
+		file_put_contents( self::$configPath, json_encode( self::$config ) );
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Saved config from settings page");	
+	}
+
 	public static function getStreamers(){
 		return self::cfg("streamers", []);
     }

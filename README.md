@@ -10,8 +10,6 @@
 
 4. Visit `sub.php` in your web browser to check that subscribing to the webhooks work. Make it automatic with a cronjob using wget/curl later. Check `subs.php` for subscription status. **This thing requires a public facing webserver.**
 
-5. Denying access in your webserver to the `config` directory is highly recommended.
-
 *One high-profile streamer VOD of 10 hours is about 30-50GB.*
 
 ## Main requirements
