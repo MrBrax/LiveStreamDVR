@@ -250,7 +250,7 @@ echo '<section class="section">';
 															
 									$vod_file = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename( $vodclass->segments[0] );
 
-									if( count($vodclass->segments) > 0 && file_exists( $vod_file ) ) {
+									if( isset($vodclass->segments) && count($vodclass->segments) > 0 && file_exists( $vod_file ) ) {
 										
 										echo '<li><strong>File duration:</strong> ' . TwitchHelper::printHumanDuration( $vodclass->getDuration(true) ) . '</li>';
 
@@ -360,7 +360,7 @@ echo '<section class="section">';
 
 							echo '<div class="video-controls">';
 
-								if( count($vodclass->segments) > 0 && file_exists( $vod_file ) ) {
+								if( isset( $vodclass->segments ) && count( $vodclass->segments ) > 0 && file_exists( $vod_file ) ) {
 
 									echo '<a class="button" href="player.php?vod=' . $vodclass->basename . '">Play segment 0 and cut</a> ';
 
