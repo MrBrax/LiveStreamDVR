@@ -279,6 +279,63 @@ class TwitchHelper {
 	}
 
 	/**
+	 * https://www.php.net/manual/en/function.realpath.php#84012
+	 *
+	 * @param string $path
+	 * @return string
+	 */
+	public static function get_absolute_path($path) {
+        $path = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $path);
+        $parts = array_filter(explode(DIRECTORY_SEPARATOR, $path), 'strlen');
+        $absolutes = array();
+        foreach ($parts as $part) {
+            if ('.' == $part) continue;
+            if ('..' == $part) {
+                array_pop($absolutes);
+            } else {
+                $absolutes[] = $part;
+            }
+        }
+        return implode(DIRECTORY_SEPARATOR, $absolutes);
+	}
+	
+	public static function checkForDeletedVods(){
+
+		$deleted = false;
+
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Check for deleted vods");
+		
+		$streamers = TwitchConfig::getStreamers();
+
+		foreach( $streamers as $streamer ){
+
+			$vods = glob( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $streamer['username'] . "_*.json");
+
+			foreach( $vods as $k => $v ){
+
+				$vodclass = new TwitchVOD();
+				$vodclass->load($v);
+
+				if( !$vodclass->is_recording ){
+
+					$isvalid = $vodclass->checkValidVod();
+
+					if(!$isvalid){
+						TwitchHelper::log( TwitchHelper::LOG_WARNING, "VOD deleted: " . $vodclass->basename );
+						$deleted = true;
+					}
+
+				}
+
+			}		
+
+		}
+
+		return $deleted;
+
+	}
+
+	/**
 	 * Return a human readable duration in seconds
 	 * TODO: 24+ hour durations
 	 *

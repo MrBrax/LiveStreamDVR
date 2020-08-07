@@ -25,7 +25,7 @@ class TwitchConfig {
 		if( $config['app_name'] ){
 			self::$config = $config;
 		}else{
-			die("Config is empty, please create " . self::$configPath );
+			die("Config is empty, please create " . TwitchHelper::get_absolute_path( self::$configPath ) . "<br>Example usage is in config.json.example" );
 			// throw new Exception("Config is empty");
 		}
 	}
