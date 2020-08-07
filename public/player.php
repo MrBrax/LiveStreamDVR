@@ -20,13 +20,15 @@ $start_offset = (int)$_GET['start'] ?: 0;
 
 	<div class="video-chapters">
 
-		<?php foreach ($vodclass->games as $c) { ?>
+		<?php foreach ($vodclass->games as $game) { ?>
 
-			<?php $proc = ( $vodclass->duration / $c['duration'] ) * 100; ?>
+			<?php $proc = ( round($vodclass->duration_seconds) / $game['duration'] ) / 100 ; ?> <!-- TODO: Fix this, can't do math -->
 
-			<div title="<?php echo $c['title'] . ' | ' . $c['game_name']; ?>" class="video-chapter" style="width: <?php echo $proc; ?>%" onclick="scrub(<?php echo $c['offset']; ?>, <?php echo $c['duration']; ?>);">
-				<div class="video-chapter-title"><?php echo $c['title']; ?></div>
-				<div class="video-chapter-game"><?php echo $c['game_name']; ?></div>
+			<!-- <?php echo $game['duration']; ?> / <?php echo round($vodclass->duration_seconds); ?> -->
+
+			<div title="<?php echo $game['title'] . ' | ' . $game['game_name']; ?>" class="video-chapter" style="width: <?php echo $proc; ?>%" onclick="scrub(<?php echo $game['offset']; ?>, <?php echo $game['duration']; ?>);">
+				<div class="video-chapter-title"><?php echo $game['title']; ?></div>
+				<div class="video-chapter-game"><?php echo $game['game_name']; ?></div>
 			</div>
 
 		<?php } ?>
