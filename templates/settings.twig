@@ -1,0 +1,122 @@
+{% extends "base.twig" %}
+
+{% block content %}
+
+    <div class="container">
+
+        <section class="section">
+
+            <div class="section-title"><h1>Streamers</h1></div>
+
+            <div class="section-content">
+
+                {% for streamer in streamers %}
+
+                    <div>
+                        <h2>{{ streamer.username }}</h2>
+                        <form method="POST" action="/settings/streamer/update">
+                            <input type="hidden" name="key" value="{{ loop.index }}" />
+                            <input type="hidden" name="username" value="{{ streamer.username }}" />
+                            <div class="control">
+                                <label><input class="input" type="text" name="quality" value="{{ streamer.quality }}" /> Quality</label>
+                                <div class="help">Separate by spaces, e.g. best 1080p 720p audio_only</div>
+                            </div>
+                            <div class="control">
+                                <label><input class="input" type="text" name="match" value="{{ streamer.match }}" /> Match keywords</label>
+                                <div class="help">Separate by commas, e.g. christmas,media share,opening,po box</div>
+                            </div>
+                            <div class="control">
+                                <label><input class="input" type="checkbox" name="download_chat" value="1" {{ streamer.download_chat ? 'checked="checked"' : '' }} /> Download chat</label><br><br>
+                            </div>
+                            <div class="control">
+                                <button class="button" type="submit">Save</button>
+                            </div>
+                        </form>
+                        <form method="POST" action="/settings/streamer/delete">
+                            <input type="hidden" name="key" value="{{ loop.index }}" />
+                            <input type="hidden" name="username" value="{{ streamer.username }}" />
+                            <button class="button" type="submit">Delete</button> (no undo, no confirmation)
+                        </form>
+                    </div>
+
+                    <hr />
+
+                {% endfor %}
+
+            </div>
+
+        </section>
+
+        <section class="section">
+
+            <div class="section-title"><h1>New streamer</h1></div>
+
+            <div class="section-content">
+
+                <form method="POST" action="/settings/streamer/add">
+                    <div class="control">
+                        <label><input class="input" type="text" name="username" value="" /> Username</label>
+                        <div class="help">Streamer username, preferably case sensitive</div>
+                    </div>
+                    <div class="control">
+                        <label><input class="input" type="text" name="quality" value="" /> Quality</label>
+                        <div class="help">Separate by spaces, e.g. best 1080p 720p audio_only</div>
+                    </div>
+                    <div class="control">
+                        <label><input class="input" type="text" name="match" value="" /> Match keywords</label>
+                        <div class="help">Separate by commas, e.g. christmas,media share,opening,po box</div>
+                    </div>
+                    <div class="control">
+                                <label><input class="input" type="checkbox" name="download_chat" value="1" /> Download chat</label><br><br>
+                            </div>
+                    <div class="control">
+                        <button class="button" type="submit">Add</button>
+                    </div>
+                </form>
+                
+            </div>
+
+        </section>
+
+        <section class="section">
+
+            <div class="section-title"><h1>Settings</h1></div>
+
+            <div class="section-content">
+
+                <form method="POST" action="/settings/save">
+                    <div class="control">
+                        <label><input class="input" type="text" name="app_name" value="{{ config.app_name }}" /> App name</label>
+                    </div>
+                    <div class="control">
+                        <label><input class="input" type="text" name="vods_to_keep" value="{{ config.vods_to_keep }}" /> VODs to keep</label>
+                    </div>
+                    <div class="control">
+                        <label><input class="input" type="text" name="storage_per_streamer" value="{{ config.storage_per_streamer }}" /> Gigabytes of storage per streamer</label>
+                    </div>
+                    <div class="control">
+                        <label><input class="input" type="text" name="api_client_id" value="" /> Twitch client ID (keep blank to not change)</label>
+                    </div>
+                    <div class="control">
+                        <label><input class="input" type="text" name="api_secret" value="" /> Twitch secret (keep blank to not change)</label>
+                    </div>
+                    <div class="control">
+                        <label><input class="input" type="text" name="vod_container" value="{{ config.vod_container ?: 'mp4' }}" /> VOD container (mp4/mkv)</label>
+                    </div>
+                    <div class="control">
+                        <button class="button" type="submit">Save</button>
+                    </div>
+                </form>
+
+                <hr>
+
+                <strong>Crontab example</strong><br>
+                <code>0 5 * * 1 curl {{ config.hook_callback }}</code>
+                
+            </div>
+
+        </section>
+
+    </div>
+
+{% endblock %}

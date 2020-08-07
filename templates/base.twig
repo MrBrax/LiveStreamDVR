@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+    <head>
+        {% block head %}
+        <meta name="referrer" content="no-referrer" />
+        <title>{{ config.app_name }}</title>
+        <link href="style.css" rel="stylesheet" />
+        {% endblock %}
+    </head>
+
+    <body>
+
+        <div class="top-menu">
+            <div class="top-menu-item title">{{ config.app_name }}</div>
+            <!-- streamers here -->
+            <div class="top-menu-item right">
+                <a href="/dashboard">Dashboard</a>
+                <a href="/settings">Settings</a>
+                <a href="/about">About</a>
+                <a class="linkback" href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer">GitHub</a>
+            </div>
+        </div>
+
+        {% block content %}
+        {% endblock %}
+
+    </body>
+
+</html>

@@ -347,6 +347,10 @@ echo '<section class="section">';
 										echo '</ul>';
 										
 										
+									}else{
+
+										echo '</ul>'; // why
+
 									}
 
 								$ongoing_file = $vodclass->vod_path . DIRECTORY_SEPARATOR . $vodclass->basename . '.ts';

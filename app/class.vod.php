@@ -336,6 +336,32 @@ class TwitchVOD {
 
 	}
 
+	public function getUniqueGames(){
+
+		$unique_games = [];
+                                        
+		foreach($this->games as $g){
+			$unique_games[ (int)$g['game_id'] ] = true;
+		}
+		
+		$data = [];
+
+		foreach($unique_games as $id => $n){
+			$gd = TwitchHelper::getGame($id);
+			$img_url = $gd['box_art_url'];
+			$img_url = str_replace("{width}", 140, $img_url);
+			$img_url = str_replace("{height}", 190, $img_url);
+			$data[] = [
+				'name' => $gd['name'],
+				'image_url' => $img_url
+			];
+			// echo '<img class="boxart-big" title="' . $gd['name'] . '" src="' . $img_url . '" />';
+		}
+
+		return $data;
+
+	}
+
 	/**
 	 * Save file for lossless cut editing
 	 * https://github.com/mifi/lossless-cut

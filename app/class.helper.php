@@ -42,6 +42,7 @@ class TwitchHelper {
 			$tokenRefresh = time() - filemtime( self::$accessTokenFile ) > TwitchHelper::$accessTokenRefresh;
 			$tokenExpire = time() - filemtime( self::$accessTokenFile ) > TwitchHelper::$accessTokenExpire;
 			if( $tokenRefresh || $tokenExpire ){ // TODO: fix this, i'm bad at math
+				self::log( self::LOG_INFO, "Deleting old access token");
 				unlink( self::$accessTokenFile );
 			}
 		}
@@ -53,8 +54,11 @@ class TwitchHelper {
 		}
 
 		// oauth2
+
+		$oauth_url = 'https://id.twitch.tv/oauth2/token?client_id=' . TwitchConfig::cfg('api_client_id') . '&client_secret=' . TwitchConfig::cfg('api_secret') . '&grant_type=client_credentials';
+
 		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, 'https://id.twitch.tv/oauth2/token?client_id=' . TwitchConfig::cfg('api_client_id') . '&client_secret=' . TwitchConfig::cfg('api_secret') . '&grant_type=client_credentials');
+		curl_setopt($ch, CURLOPT_URL, $oauth_url);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
 			'Client-ID: ' . TwitchConfig::cfg('api_client_id')
 		]);
@@ -69,6 +73,7 @@ class TwitchHelper {
 
 		if(!$json['access_token']){
 			self::log( TwitchHelper::LOG_ERROR, "Failed to fetch access token: " . $server_output);
+			throw new Exception( "Failed to fetch access token: " . $server_output . "\n" . $oauth_url );
 			return false;
 		}
 
@@ -93,7 +98,7 @@ class TwitchHelper {
 	 */
 	public static function log( $level, $text ){
 
-		if( !TwitchConfig::cfg("debug") && $level == self::LOG_DEBUG ) return;
+		// if( !TwitchConfig::cfg("debug") && $level == self::LOG_DEBUG ) return;
 		
 		$filename 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log";
 		$filename_json 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log.json";
@@ -129,14 +134,21 @@ class TwitchHelper {
 	 */
 	public static function getChannelId( $username ){
 
-		$json_streamers = json_decode( file_get_contents( __DIR__ . '/../config' . DIRECTORY_SEPARATOR . 'streamers.json'), true );
+		$streamers_file =  __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "streamers.json";
 
-		if($json_streamers[$username]){
+		$json_streamers = json_decode( file_get_contents( $streamers_file ), true );
+
+		if( $json_streamers && $json_streamers[$username] ){
 			self::log( self::LOG_DEBUG, "Fetched channel id from cache for " . $username);	
 			return $json_streamers[$username];
 		}
 
 		$access_token = self::getAccessToken();
+
+		if( !$access_token ){
+			throw new Exception('Fatal error, could not get access token for channel id request');
+			return false;
+		}
 
 		// webhook list
 		$ch = curl_init();
@@ -155,13 +167,14 @@ class TwitchHelper {
 
 		if( !$json["data"] ){
 			self::log(self::LOG_ERROR, "Failed to fetch channel id: " . $server_output);
+			// throw new Exception( "Failed to fetch channel id: " . $server_output );
 			return false;
 		}
 
 		$id = $json["data"][0]["id"];
 		
 		$json_streamers[ $username ] = $id;
-		file_put_contents( __DIR__ . '/../config' . DIRECTORY_SEPARATOR . 'streamers.json', json_encode($json_streamers) );
+		file_put_contents( $streamers_file, json_encode($json_streamers) );
 
 		self::log( self::LOG_INFO, "Fetched channel id online for " . $username);
 

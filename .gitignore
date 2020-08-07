@@ -7,3 +7,6 @@ style.css.map
 config/games_v2.json
 logs/
 node_modules/
+cache/
+public/vods/
+config/streamers.json

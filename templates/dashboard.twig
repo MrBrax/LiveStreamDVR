@@ -1,0 +1,424 @@
+{% extends "base.twig" %}
+
+{% block content %}
+
+<div class="container">
+
+    <section class="section">
+
+        <div class="section-title"><h1>Recorded VODs</h1></div>
+
+        <div class="section-content">
+
+            <a class="button" href="?checkvod=1">Check if VODs exist</a>
+            {% if checkvod %}
+                if($is_a_vod_deleted){
+                    echo ' - <strong>A VOD IS DELETED</strong>';
+                }else{
+                    echo ' - all vods seem to still exist';
+                }
+            {% endif %}
+            
+            <br><br>
+
+            {% for streamer in streamerList %}
+
+                <div class="streamer">
+
+                    <div id="streamer_{{ streamer.username }}" class="anchor"></div>
+
+                    <div class="streamer-title">
+                        <h2>
+                            <a href="https://twitch.tv/{{ streamer.username }}" rel="noreferrer" target="_blank">
+                                {{ streamer.username }}
+                            </a>
+                            {% if streamer.is_live %}
+                                 <span class="live">live</span>
+                            {% endif %}
+                        </h2>
+                        <span class="small">
+                            {{ streamer.quality }}
+                             &middot; 
+                            {{ streamer.vods_list|length }} vods
+                             &middot; 
+                            {{ streamer.vods_size|formatBytes }}
+                        </span>
+                    </div>
+
+                    {% if streamer.vods_list|length == 0 %}
+
+                        <div class="notice">None</div>
+
+                    {% else %}
+                        
+                        {% for vodclass in streamer.vods_list %}
+
+                            {% if not vodclass %}
+                                <div class="error">Failed to load {{ vodclass.basename }}</div>
+                                continue;
+                            {% endif %}
+
+                            <div class="video {{ vodclass.is_recording ? 'recording' : '' }} {{ vodclass.is_converted ? 'converted' : '' }}">
+
+                                <div id="vod_{{ vodclass.basename }}" class="anchor"></div>
+
+                                {# title #}
+                                <div class="video-title">
+                                    <h3>
+                                        {{ vodclass.streamer_name }}
+                                        {% if vodclass.started_at %} {{ vodclass.started_at|date('Y-m-d H:i:s') }} {% endif %}
+                                    </h3>
+                                </div>
+
+                                {# description #}
+                                <div class="video-description">
+
+                                    {# box art #}
+                                    <div class="boxart-carousel">
+                                        
+                                        {% for game in vodclass.getUniqueGames %}
+                                            <img class="boxart-big" title="{{ game.name }}" src="{{ game.image_url }}" />
+                                        {% endfor %}
+
+                                    </div>
+                                    
+                                    {# video info #}
+                                    <div><strong>Segment 0 info:</strong></div>
+
+                                    <ul class="video-info">
+
+                                        {% if vodclass.started_at and vodclass.ended_at %}
+                                            {# $diff = $vodclass->started_at->diff($vodclass->ended_at); #}
+                                            <li><strong>Webhook duration:</strong> ' . $diff->format('%H:%I:%S') . '</li>
+                                        {% endif %}
+                                                                
+                                        {# $vod_file = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename( $vodclass->segments[0] ); #}
+
+                                        {% if vodclass.segments and vodclass.segments|length > 0 and vod_file %}
+                                            
+                                            echo '<li><strong>File duration:</strong> ' . TwitchHelper::printHumanDuration( $vodclass->getDuration(true) ) . '</li>';
+
+                                            echo '<li>';
+                                                
+                                                echo '<strong>Twitch VOD duration:</strong> ';
+                                                
+                                                if( $vodclass->twitch_vod_duration ){
+                                                    
+                                                    echo TwitchHelper::printHumanDuration( $vodclass->twitch_vod_duration );
+
+                                                }else{
+                                                    echo '<strong><em>No data</em></strong>';
+                                                }
+
+                                            echo '</li>';
+
+                                            echo '<li>';
+                                                
+                                                echo '<strong>Missing from captured file:</strong> ';
+                                                
+                                                if( $vodclass->twitch_vod_duration ){
+                                                    
+                                                    echo TwitchHelper::printHumanDuration( $vodclass->twitch_vod_duration - $vodclass->getDuration(true) );
+
+                                                }else{
+                                                    echo '<strong><em>No data</em></strong>';
+                                                }
+
+                                            echo '</li>';
+
+                                            $total_size += filesize( $vod_file );
+
+                                            echo '<li><strong>Size:</strong> ' . TwitchHelper::formatBytes( filesize( $vod_file )  ) . '</li>';
+
+                                            // TODO: merge this
+                                            echo '<li>';
+                                            
+                                                echo '<strong>Twitch VOD id:</strong> ';
+                                            
+                                                if( $vodclass->twitch_vod_url ){
+                                                    
+                                                    echo '<a href="' . $vodclass->twitch_vod_url . '" rel="noreferrer" target="_blank">' . $vodclass->twitch_vod_id . '</a>';
+
+                                                    if( $checkvod ){
+                                                        echo $vodclass->twitch_vod_exists ? ' (exists)' : ' <strong class="error">(deleted)</strong>';
+                                                    }
+
+                                                }else{
+                                                    echo '<strong><em>Not matched or VOD deleted</em></strong>';
+                                                }
+
+                                            echo '</li>';
+
+                                            echo '<li>';
+                                            
+                                                echo '<strong>Twitch VOD date:</strong> ';
+                                            
+                                                if( $vodclass->twitch_vod_date ){
+                                                    echo $vodclass->twitch_vod_date;
+                                                }else{
+                                                    echo '<strong><em>No data</em></strong>';
+                                                }
+
+                                            echo '</li>';
+
+                                            echo '<li>';
+                                                
+                                                echo '<strong>Twitch VOD title:</strong> ';
+                                                
+                                                if( $vodclass->twitch_vod_title ){
+                                                    echo $vodclass->twitch_vod_title;
+                                                }else{
+                                                    echo '<strong><em>No data</em></strong>';
+                                                }
+
+                                            echo '</li>';
+
+                                            echo '<li><strong>Chat downloaded:</strong> ' . ( $vodclass->is_chat_downloaded ? 'Yes' : 'No' ) . '</li>';
+
+                                            echo '</ul>';
+
+                                            // segments
+                                            echo '<strong>Segments:</strong>';
+                                            echo '<ul>';
+                                                foreach ($vodclass->segments as $seg) {
+                                                    echo '<li>';
+                                                        echo '<a href="vods/' . basename($seg) . '">';
+                                                            echo basename($seg);
+                                                            echo ' (' . TwitchHelper::formatBytes( filesize( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename($seg) ) ) . ')';
+                                                        echo '</a>';
+                                                    echo '</li>';
+                                                }
+                                            echo '</ul>';
+                                            
+                                            
+                                        {% else %}
+
+                                            </ul>
+
+                                        {% endif %}
+
+                                    $ongoing_file = $vodclass->vod_path . DIRECTORY_SEPARATOR . $vodclass->basename . '.ts';
+
+                                    if( file_exists( $ongoing_file ) ) {
+                                        $total_size += filesize( $ongoing_file );
+                                        echo '<div><strong>Ongoing size:</strong> ' . TwitchHelper::formatBytes( filesize( $ongoing_file ) ) . '</div>';
+                                    }
+
+                                echo '</div>';
+
+                                <div class="video-controls">
+
+                                    if( isset( $vodclass->segments ) && count( $vodclass->segments ) > 0 && file_exists( $vod_file ) ) {
+
+                                        <a class="button" href="player.php?vod={{ vodclass.basename }}">Play segment 0 and cut</a>
+
+                                        <a class="button" href="vods/{{ vodclass.basename }}.json">JSON</a>
+
+                                        <a class="button" href="?save={{ vodclass.basename }}">Save from deletion</a>
+
+                                        <a class="button" href="?delete={{ vodclass.basename }}">Delete</a>
+
+                                        {% if vodclass.twitch_vod_id and not vodclass.is_chat_downloaded %}
+                                            <a class="button" href="chat.php?vod={{ vodclass.basename }}">Download chat</a>
+                                        {% endif %}
+
+                                    }else{
+
+                                        {% if vodclass.ended_at %}
+                                            <a class="button" href="convert.php?vod='{{ vodclass.basename }}">Convert</a>
+                                        {% endif %}
+
+                                        <em>Capturing...</em>
+
+                                    }
+
+                                </div>
+                                
+                                // game list / chapters
+                                echo '<table class="table game-list">';
+
+                                    echo '<thead>';
+                                        echo '<tr>';
+                                            echo '<th>Offset</th>';
+                                            echo '<th>Duration</th>';
+                                            echo '<th>Game</th>';
+                                            echo '<th>Title</th>';
+                                            echo '<th>Viewers</th>';
+                                        echo '</tr>';
+                                    echo '</thead>';
+
+                                    echo '<tbody>';
+
+                                        foreach ($vodclass->games as $d) {
+
+                                            if( strlen( $d['time'] ) == 10 ){
+
+                                                $game_time = new DateTime();
+                                                $game_time->setTimestamp( $d['time'] );
+
+                                            }else{
+
+                                                $game_time = DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $d['time'] );
+
+                                            }
+
+                                            echo '<tr>';
+                                                
+                                                // start timestamp
+                                                echo '<td>';
+                                                if( $vodclass->started_at ){
+                                                    $diff = $game_time->diff($vodclass->started_at);
+                                                    echo $diff->format('%H:%I:%S');
+                                                }else{
+                                                    $game_time->format("Y-m-d H:i:s");
+                                                }
+                                                echo '</td>';
+
+                                                // duration
+                                                echo '<td>';
+                                                    echo '<span class="grey">';
+                                                    if( $d['duration'] ){
+                                                        echo getNiceDuration($d['duration']);
+                                                    }else{
+                                                        echo 'Active';
+                                                    }
+                                                    echo '</span>';
+                                                echo '</td>';
+
+                                                // game name
+                                                echo '<td>';
+                                                    $game_data = TwitchHelper::getGame( $d['game_id']);
+                                                    
+                                                    if( $game_data['box_art_url'] ){
+                                                        $img_url = $game_data['box_art_url'];
+                                                        $img_url = str_replace("{width}", 14, $img_url);
+                                                        $img_url = str_replace("{height}", 19, $img_url);
+                                                        echo '<img class="boxart" src="' . $img_url . '" /> ';
+                                                    }
+
+                                                    $game_string = ( $game_data['name'] ?: $d['game_id'] );
+
+                                                    if( $vodclass->is_converted ){
+                                                        echo '<a href="player.php?vod=' . $vodclass->basename . '&start=' . $d['offset'] . '">';
+                                                            echo $game_string;
+                                                        echo '</a>';
+                                                    }else{
+                                                        echo $game_string;
+                                                    }
+
+                                                echo '</td>';
+
+                                                // title
+                                                echo '<td>' . $d['title'] . '</td>';
+
+                                                echo '<td><span class="grey">' . number_format($d['viewer_count']) . '</span></td>';
+
+                                            echo '</tr>';
+
+                                        }
+
+                                        if( $vodclass->ended_at ){
+                                            $diff = $vodclass->started_at->diff($vodclass->ended_at);
+                                            echo '<tr><td>' . $diff->format('%H:%I:%S') . '</td><td colspan="4"><em>END</em></td></tr>';
+                                        }else{
+
+                                            
+
+                                            echo '<tr>';
+                                                if($vodclass->started_at){
+                                                    $diff = $vodclass->started_at->diff( new DateTime() );
+                                                    echo '<td>' . $diff->format('%H:%I:%S') . '</td>';
+                                                }
+                                                echo '<td colspan="4"><em><strong>ONGOING</strong></em></td>';
+                                            echo '</tr>';
+
+                                        }
+
+                                    echo '</tbody>';
+
+                                echo '</table>';
+
+                            </div>
+
+                        {% endfor %}
+
+                    {% endif %}
+
+                </div>
+
+            {% endfor %}
+
+            <strong>Total size: {{ total_size|formatBytes }}</strong>
+
+        </div>
+
+    </section>
+
+
+<section class="section" style="display: none;">
+
+	<div class="section-title"><h1>Hook</h1></div>
+
+	<div class="section-content">
+	
+	<form method="post" action="hook.php">
+		<textarea class="input" name="json"></textarea>
+		<br><button class="button" type="submit">Hook</button>
+	</form>
+
+	</div>
+
+</section>
+
+// logs
+echo '<section class="section">';
+
+	echo '<div class="section-title"><h1>Logs</h1></div>';
+
+	echo '<div class="section-content">';
+		
+		$logs = glob( __DIR__ . "/../logs/*.log.json");
+		
+		$last_log = null;
+		
+		echo '<ul class="logs">';
+		
+			foreach( $logs as $log ){
+				// echo '<li><a href="' . $log . '">' . basename($log) . '</a></li>';
+				$last_log = $log;
+			}
+
+		echo '</ul>';
+
+		echo '<div class="log_viewer">';
+
+		if( $last_log ){
+			
+			$json = json_decode( file_get_contents( $log ), true );
+
+			foreach( $json as $line ){
+				$escaped_text = htmlentities($line["text"], ENT_QUOTES | ENT_HTML401 | ENT_SUBSTITUTE | ENT_DISALLOWED, 'UTF-8', true);
+				/*
+				if( strpos($line, '<INFO>') !== false ) $color = 'info';
+				if( strpos($line, '<ERROR>') !== false ) $color = 'error';
+				if( strpos($line, '<WARNING>') !== false ) $color = 'warning';
+				if( strpos($line, '<DEBUG>') !== false ) $color = 'debug';
+				*/
+				$text_line = "";
+				$date = DateTime::createFromFormat("U.u", $line["date"]);
+				if($date) $text_line .= $date->format("Y-m-d H:i:s.v");
+				$text_line .= ' &lt;' . $line["level"] . '&gt; ';
+				$text_line .= $escaped_text;
+				echo '<div class="log_' . strtolower( $line["level"] ) . '">' . $text_line . '</div>';
+			}
+		}
+
+		echo '</div>';
+
+	echo "</div>";
+
+echo '</section>';
+
+echo '</div>';
+
+{% endblock %}
