@@ -6,3 +6,4 @@ config/games.json
 style.css.map
 config/games_v2.json
 logs/
+node_modules/
