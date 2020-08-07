@@ -338,7 +338,7 @@ echo '<section class="section">';
 										echo '<ul>';
 											foreach ($vodclass->segments as $seg) {
 												echo '<li>';
-													echo '<a href="' . TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename($seg) . '">';
+													echo '<a href="vods/' . basename($seg) . '">';
 														echo basename($seg);
 														echo ' (' . round( filesize( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename($seg) ) / 1024 / 1024 / 1024, 2 ) . ' GB)';
 													echo '</a>';
@@ -364,7 +364,7 @@ echo '<section class="section">';
 
 									echo '<a class="button" href="player.php?vod=' . $vodclass->basename . '">Play segment 0 and cut</a> ';
 
-									echo '<a class="button" href="' . TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vodclass->basename . '.json">JSON</a> ';
+									echo '<a class="button" href="vods/' . $vodclass->basename . '.json">JSON</a> ';
 
 									echo '<a class="button" href="?save=' . $vodclass->basename . '">Save from deletion</a> ';
 

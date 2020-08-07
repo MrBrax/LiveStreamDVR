@@ -146,7 +146,7 @@ if( $action == 'settings' ){
                                     <div class="help">Separate by spaces, e.g. best 1080p 720p audio_only</div>
                                 </div>
                                 <div class="control">
-                                    <label><input class="input" type="text" name="match" value="<?php echo join(",", $streamer['match']); ?>" /> Match keywords</label>
+                                    <label><input class="input" type="text" name="match" value="<?php echo join(",", $streamer['match'] ?: [] ); ?>" /> Match keywords</label>
                                     <div class="help">Separate by commas, e.g. christmas,media share,opening,po box</div>
                                 </div>
                                 <div class="control">
