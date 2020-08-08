@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Controller;
+
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
+
+use App\TwitchAutomator;
+use App\TwitchConfig;
+use App\TwitchHelper;
+
+class SubController {
+
+    public function sub( Request $request, Response $response, $args ) {
+        
+        $TwitchAutomator = new TwitchAutomator();
+
+        $response->getBody()->write('<h1>Subbing...</h1>');
+
+        $streamers = TwitchConfig::getStreamers();
+
+        foreach( $streamers as $k => $v ){
+
+            $username = $v['username'];
+
+            $response->getBody()->write('<strong>Subbing to ' . $username . '...</strong>');
+
+            $response->getBody()->write('<pre>');
+            
+            $ret = $TwitchAutomator->sub( $username );
+
+            if( $ret === true ){
+                $response->getBody()->write('Subscribed');
+            }else{
+                $response->getBody()->write($ret);
+            }
+
+            $response->getBody()->write('</pre>');
+
+            $response->getBody()->write('<hr />');
+
+            sleep(2);
+
+        }
+
+        if( count($streamers) == 0 ) $response->getBody()->write('No channels to subscribe to');        
+
+        return $response;
+
+    }
+
+    public function subs( Request $request, Response $response, $args ) {
+
+        $TwitchAutomator = new TwitchAutomator();
+
+        var_dump( $TwitchAutomator->getSubs() );
+
+        return $response;
+
+    }
+    
+}

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build:style": "node-sass ./app/assets/style.scss > ./public/style.css",
-    "serve": "php -S localhost:8080 public/index.php"
+    "serve": "php -S localhost:8080 -t public"
   },
   "repository": {
     "type": "git",

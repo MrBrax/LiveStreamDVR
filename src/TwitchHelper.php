@@ -2,11 +2,13 @@
 
 namespace App;
 
+use GuzzleHttp\Client;
+
 class TwitchHelper {
 
 	public static $accessToken;
 
-	public static $accessTokenFile = __DIR__ . DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR . "oauth.bin";
+	public static $accessTokenFile = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "oauth.bin";
 
 	public static $accessTokenExpire = 60 * 60 * 24 * 60; // 60 days
 	public static $accessTokenRefresh = 60 * 60 * 24 * 30; // 30 days
@@ -56,26 +58,20 @@ class TwitchHelper {
 		}
 
 		// oauth2
-
 		$oauth_url = 'https://id.twitch.tv/oauth2/token?client_id=' . TwitchConfig::cfg('api_client_id') . '&client_secret=' . TwitchConfig::cfg('api_secret') . '&grant_type=client_credentials';
-
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $oauth_url);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, [
-			'Client-ID: ' . TwitchConfig::cfg('api_client_id')
+		$client = new \GuzzleHttp\Client();
+		$response = $client->post($oauth_url, [
+			'headers' => [
+				'Client-ID: ' . TwitchConfig::cfg('api_client_id')
+			]
 		]);
-		curl_setopt($ch, CURLOPT_POST, 1);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 
-		$server_output = curl_exec($ch);
+		$json = json_decode( $response->getBody()->getContents(), true );
 
-		curl_close ($ch);
 
-		$json = json_decode( $server_output, true );
-
-		if(!$json['access_token']){
+		if( !isset($json['access_token']) || !$json['access_token'] ){
 			self::log( TwitchHelper::LOG_ERROR, "Failed to fetch access token: " . $server_output);
-			throw new \Exception( "Failed to fetch access token: " . $server_output . "\n" . $oauth_url );
+			throw new \Exception( "Failed to fetch access token: " . $server_output );
 			return false;
 		}
 
@@ -102,8 +98,8 @@ class TwitchHelper {
 
 		if( !TwitchConfig::cfg("debug") && $level == self::LOG_DEBUG ) return;
 		
-		$filename 		= __DIR__ . DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log";
-		$filename_json 	= __DIR__ . DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log.json";
+		$filename 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log";
+		$filename_json 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log.json";
 		
 		$log_text = file_exists( $filename ) ? file_get_contents( $filename ) : '';
 		$log_json = file_exists( $filename_json ) ? json_decode( file_get_contents( $filename_json ), true ) : [];

@@ -91,42 +91,14 @@
         <div class="section-title"><h1>Logs</h1></div>
 
         <div class="section-content">
-            
-            $logs = glob( __DIR__ . "/../logs/*.log.json");
-            
-            $last_log = null;
-            
-            echo '<ul class="logs">';
-            
-                foreach( $logs as $log ){
-                    // echo '<li><a href="' . $log . '">' . basename($log) . '</a></li>';
-                    $last_log = $log;
-                }
 
-            echo '</ul>';
-
-            echo '<div class="log_viewer">';
-
-            if( $last_log ){
+            <div class="log_viewer">
                 
-                $json = json_decode( file_get_contents( $log ), true );
+                {% for line in log_lines %}
 
-                foreach( $json as $line ){
-                    $escaped_text = htmlentities($line["text"], ENT_QUOTES | ENT_HTML401 | ENT_SUBSTITUTE | ENT_DISALLOWED, 'UTF-8', true);
-                    /*
-                    if( strpos($line, '<INFO>') !== false ) $color = 'info';
-                    if( strpos($line, '<ERROR>') !== false ) $color = 'error';
-                    if( strpos($line, '<WARNING>') !== false ) $color = 'warning';
-                    if( strpos($line, '<DEBUG>') !== false ) $color = 'debug';
-                    */
-                    $text_line = "";
-                    $date = DateTime::createFromFormat("U.u", $line["date"]);
-                    if($date) $text_line .= $date->format("Y-m-d H:i:s.v");
-                    $text_line .= ' &lt;' . $line["level"] . '&gt; ';
-                    $text_line .= $escaped_text;
-                    echo '<div class="log_' . strtolower( $line["level"] ) . '">' . $text_line . '</div>';
-                }
-            }
+                    <div class="log_{{ line.level|lower }}">{{ line.date_string }} &lt;{{ line.level }}&gt; {{ line.text }}</div>
+
+                {% endfor %}
 
             </div>
 
