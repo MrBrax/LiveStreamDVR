@@ -1,19 +1,17 @@
 # TwitchAutomator
 
-*Note that this thing is written without a framework or any real standards, so the code is pretty messy. Might refactor it one day with html templates and such.*
-
 1. Install dependencies with composer.
 
 2. Install utilities with pip, see below
 
 3. Configure using the `config.json` file in the `config` directory.
 
-4. Visit `sub.php` in your web browser to check that subscribing to the webhooks work. Make it automatic with a cronjob using wget/curl later. Check `subs.php` for subscription status. **This thing requires a public facing webserver.**
+4. Visit `/sub` in your web browser to check that subscribing to the webhooks work. Make it automatic with a cronjob using wget/curl later (check `/settings` for syntax). Check `/subs` for subscription status. **This thing requires a public facing webserver.**
 
 *One high-profile streamer VOD of 10 hours is about 30-50GB.*
 
 ## Main requirements
-- PHP 7+
+- PHP 7+ (developed with 7.4)
 - Python 3.6
     - Python 3.7+ for tcd support
 - [pip](https://pypi.org/project/pip/)

@@ -73,6 +73,8 @@ $app->post('/settings/save', SettingsController::class . ':settings_save')->setN
 $app->get('/player', PlayerController::class . ':player')->setName('player');
 $app->post('/cut', VodController::class . ':cut')->setName('cut');
 $app->get('/chat', VodController::class . ':chat')->setName('chat');
+$app->get('/save', VodController::class . ':save')->setName('save');
+$app->get('/delete', VodController::class . ':delete')->setName('delete');
 
 $app->get('/hook.php', HookController::class . ':hook')->setName('hook.php');
 $app->get('/hook', HookController::class . ':hook')->setName('hook');
