@@ -118,7 +118,8 @@ class DashboardController
             'total_size' => $total_size,
             'is_a_vod_deleted' => $is_a_vod_deleted,
             'checkvod' => $checkvod,
-            'log_lines' => $log_lines
+            'log_lines' => $log_lines,
+            'free_size' => disk_free_space( TwitchHelper::vod_folder() )
         ]);
 
     }

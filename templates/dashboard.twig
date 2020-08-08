@@ -63,7 +63,10 @@
 
             {% endfor %}
 
-            <strong>Total size: {{ total_size|formatBytes }}</strong>
+            <div>
+                <strong>Total size: {{ total_size|formatBytes }}</strong><br>
+                <strong>Free size: {{ free_size|formatBytes }}</strong>
+            </div>
 
         </div>
 

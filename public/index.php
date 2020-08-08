@@ -74,7 +74,8 @@ $app->get('/player', PlayerController::class . ':player')->setName('player');
 $app->post('/cut', VodController::class . ':cut')->setName('cut');
 $app->get('/chat', VodController::class . ':chat')->setName('chat');
 
-$app->get('/hook.php', HookController::class . ':hook')->setName('hook');
+$app->get('/hook.php', HookController::class . ':hook')->setName('hook.php');
+$app->get('/hook', HookController::class . ':hook')->setName('hook');
 
 $app->get('/sub', SubController::class . ':sub')->setName('sub');
 $app->get('/subs', SubController::class . ':subs')->setName('subs');
