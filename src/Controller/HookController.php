@@ -2,30 +2,33 @@
 
 namespace App\Controller;
 
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
+
 use App\TwitchAutomator;
 
 class HookController
 {
 
-    public function hook()
+    public function hook( Request $request, Response $response, $args )
     {
         $TwitchAutomator = new TwitchAutomator();
 
         set_time_limit(0);
 
-        if ($_GET['hub_challenge']) {
-            echo $_GET['hub_challenge'];
-            return;
+        if ( isset( $_GET['hub_challenge'] ) ) {
+            $response->getBody()->write( $_GET['hub_challenge'] );
+            return $response;
         }
 
-        if ($_GET['hub.challenge']) {
-            echo $_GET['hub.challenge'];
-            return;
+        if ( isset( $_GET['hub.challenge'] ) ) {
+            $response->getBody()->write( $_GET['hub.challenge'] );
+            return $response;
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
 
-        $post_json = $_POST['json'];
+        $post_json = isset( $_POST['json'] ) ? $_POST['json'] : null;
 
         if ($post_json) {
             $data = json_decode($post_json, true);
@@ -44,7 +47,10 @@ class HookController
             $TwitchAutomator->handle($data);
 
         } else {
-            echo 'No data supplied';
+            $response->getBody()->write("No data supplied");
         }
+
+        return $response;
+
     }
 }

@@ -1,0 +1,83 @@
+{% extends "base.twig" %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="video-player">
+
+        <video id="video" src="vods/{{ vodclass.basename }}.mp4" controls width="1280"></video>
+
+
+        <div class="video-chapters">
+
+            {% for chapter in vodclass.chapters %}
+
+
+                <div title="{{ chapter.title }} |  {{ chapter.game_name }}" class="video-chapter" style="width:" onclick="scrub({{ chapter.offset }}, {{ chapter.duration }});">
+                    <div class="video-chapter-title">{{ chapter.title }}</div>
+                    <div class="video-chapter-game">{{ chapter.game_name }}</div>
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+        <div class="video-cut">
+            <button class="button" onclick="cut_video('in')">Mark in</button>
+            <button class="button" onclick="cut_video('out')">Mark out</button>
+            <button class="button" onclick="submit_cut();">Submit cut</button>
+            <input class="input" id="value_in" placeholder="In timestamp">
+            <input class="input" id="value_out" placeholder="Out timestamp">
+            <input class="input" id="cut_video_cmd">
+        </div>
+
+    </div>
+
+</div>
+
+<script type="text/javascript">
+
+	let start_offset = {{ start_offset }};
+	let game_offset = {{ vodclass.game_offset }};
+	
+	let time_in = "";
+	let time_out = "";
+
+	if( start_offset > 0 ){
+		document.getElementById('video').currentTime = start_offset;
+	}
+
+	function cut_video( t ){
+
+		let cmd = document.getElementById('cut_video_cmd');
+
+		let current_time = document.getElementById('video').currentTime;
+
+		if(t == 'in') time_in = Math.round(current_time);
+		if(t == 'out') time_out = Math.round(current_time);
+		
+		document.getElementById('value_in').value = time_in;
+		document.getElementById('value_out').value = time_out;
+		
+	}
+
+	function submit_cut(){
+		if( time_in && time_out ){
+			location.href = '/cut?vod={{ vodclass.basename }}&start=' + time_in + '&end=' + time_out;
+		}
+	}
+
+	function scrub(s, d){
+		document.getElementById("video").currentTime = s;
+
+		time_in = Math.round(s-game_offset);
+		time_out = Math.round(s+d-game_offset);
+
+		document.getElementById('value_in').value = time_in;
+		document.getElementById('value_out').value = time_out;
+	}
+
+</script>
+
+{% endblock %}

@@ -5,7 +5,8 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use App\Controller\AboutController;
 use App\Controller\DashboardController;
 use App\Controller\HookController;
-use App\CutController;
+use App\Controller\CutController;
+use App\Controller\PlayerController;
 use App\TwitchConfig;
 use App\TwitchHelper;
 use DI\Container;
@@ -25,7 +26,7 @@ AppFactory::setContainer($container);
 // Create Twig
 // Set view in Container
 
-$twigConfig = Twig::create('../templates', [
+$twigConfig = Twig::create( __DIR__ . '/../templates', [
     'cache' => false,
     'debug' => true
 ]);
@@ -59,8 +60,9 @@ $app->get('/', function (Request $request, Response $response, array $args) {
 
 $app->get('/dashboard', DashboardController::class . ':dashboard')->setName('dashboard');
 $app->get('/about', AboutController::class . ':about')->setName('about');
+$app->get('/player', PlayerController::class . ':player')->setName('player');
 $app->get('/cut', CutController::class . ':cut')->setName('cut');
-$app->get('/hook', HookController::class . ':hook')->setName('hook');
+$app->get('/hook.php', HookController::class . ':hook')->setName('hook');
 
 $app->get('/settings', function ($request, $response, $args) {
     return $this->get('view')->render($response, 'settings.twig', [
