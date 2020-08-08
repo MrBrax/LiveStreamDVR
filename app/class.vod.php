@@ -298,14 +298,40 @@ class TwitchVOD {
 
 		$chapters = [];
 
-		foreach ($this->json['chapters'] as $chapter) {
+		$data = $this->json['chapters'] ?: $this->json['games'];
+
+		foreach($data as $chapter) {
 			
 			$entry = $chapter;
 
+			$game_data = TwitchHelper::getGame( $entry['game_id'] );
+
 			$entry['datetime'] = DateTime::createFromFormat( TwitchConfig::cfg("date_format"), $entry['time'] );
 
+
+			// offset
 			if($this->started_at){
 				$entry['offset'] = $entry['datetime']->getTimestamp() - $this->started_at->getTimestamp();
+			}
+
+
+			// strings for templates
+			$entry['strings'] = [];
+			if( $this->started_at ){
+				$diff = $entry['datetime']->diff($this->started_at);
+				$entry['strings']['started_at'] = $diff->format('%H:%I:%S');
+			}else{
+				$entry['strings']['started_at'] = $entry['datetime']->format("Y-m-d H:i:s");
+			}
+
+			$entry['strings']['duration'] = getNiceDuration( $entry['duration'] );
+
+
+			if( $game_data['box_art_url'] ){
+				$img_url = $game_data['box_art_url'];
+				$img_url = str_replace("{width}", 14, $img_url);
+				$img_url = str_replace("{height}", 19, $img_url);
+				$entry['box_art_url'] = $img_url;
 			}
 
 			$chapters[] = $entry;

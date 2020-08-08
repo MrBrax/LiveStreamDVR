@@ -80,45 +80,45 @@
 
                 {% for chapter in vodclass.chapters %}
 
-                    <!-- GAME: <pre>{{ dump(game) }}</pre> -->
+                    <!-- GAME: <pre>{{ dump(chapter) }}</pre> -->
 
                     <tr>
                         
                         {# start timestamp #}
                         <td>
-                            {{ game.strings.started_at }}
+                            {{ chapter.strings.started_at }}
                         </td>
 
                         {# duration #}
                         <td>
                             <span class="grey">
-                                {% if game.duration %}
-                                    {{ game.duration }}
+                                {% if chapter.duration %}
+                                    {{ chapter.strings.duration }}
                                 {% else %}
                                     Active
                                 {% endif %}
                             </span>
                         </td>
 
-                        {# game name #}
+                        {# chapter name #}
                         <td>
-                            <img class="boxart" src="{{ game.box_art_url }}" />
+                            <img class="boxart" src="{{ chapter.box_art_url }}" />
 
                             {% if vodclass.is_converted %}
-                                <a href="player.php?vod={{ vodclass.basename }}&start={{ game.offset }}">';
-                                    {{ game.title }}
+                                <a href="player.php?vod={{ vodclass.basename }}&start={{ chapter.offset }}">';
+                                    {{ chapter.game_name }}
                                 </a>
                             {% else %}
-                                {{ game.title }}
+                                {{ chapter.game_name }}
                             {% endif %}
 
                         </td>
 
                         {# title #}
-                        <td>{{ game.title }}</td>
+                        <td>{{ chapter.title }}</td>
 
                         <td>
-                            <span class="grey">{{ game.viewer_count }}</span>
+                            <span class="grey">{{ chapter.viewer_count|number_format }}</span>
                         </td>
 
                     </tr>
@@ -126,6 +126,7 @@
                 {% endfor %}
 
                 {% if vodclass.ended_at %}
+                    <!--
                     $diff = $vodclass->started_at->diff($vodclass->ended_at);
                     <tr>
                         <td>
@@ -135,8 +136,9 @@
                             <em>END</em>
                         </td>
                     </tr>
+                    -->
                 {% else %}
-
+                    <!--
                     <tr>
                         {% if vodclass.started_at %}
                             $diff = $vodclass->started_at->diff( new DateTime() );
@@ -144,7 +146,7 @@
                         {% endif %}
                         <td colspan="4"><em><strong>ONGOING</strong></em></td>
                     </tr>
-
+                    -->
                 {% endif %}
 
             </tbody>
