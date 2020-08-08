@@ -577,13 +577,11 @@ echo '<section class="section">';
 			$json = json_decode( file_get_contents( $log ), true );
 
 			foreach( $json as $line ){
+
+				if( !TwitchConfig::cfg("debug") && $line["level"] == 'DEBUG' ) continue;
+
 				$escaped_text = htmlentities($line["text"], ENT_QUOTES | ENT_HTML401 | ENT_SUBSTITUTE | ENT_DISALLOWED, 'UTF-8', true);
-				/*
-				if( strpos($line, '<INFO>') !== false ) $color = 'info';
-				if( strpos($line, '<ERROR>') !== false ) $color = 'error';
-				if( strpos($line, '<WARNING>') !== false ) $color = 'warning';
-				if( strpos($line, '<DEBUG>') !== false ) $color = 'debug';
-				*/
+
 				$text_line = "";
 				$date = DateTime::createFromFormat("U.u", $line["date"]);
 				if($date) $text_line .= $date->format("Y-m-d H:i:s.v");

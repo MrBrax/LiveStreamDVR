@@ -98,7 +98,7 @@ class TwitchHelper {
 	 */
 	public static function log( $level, $text ){
 
-		// if( !TwitchConfig::cfg("debug") && $level == self::LOG_DEBUG ) return;
+		if( !TwitchConfig::cfg("debug") && $level == self::LOG_DEBUG ) return;
 		
 		$filename 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log";
 		$filename_json 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log.json";
