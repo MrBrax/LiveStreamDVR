@@ -84,8 +84,12 @@ class AboutController
         $out = shell_exec("python --version");
         $bins['python']['version'] = trim($out);
 
+        $bins['php'] = [];
+        $bins['php']['version'] = phpversion();
+        $bins['php']['platform'] = PHP_OS;
+
         return $this->twig->render($response, 'about.twig', [
-            'bins' => $bins
+            'bins' => $bins,
         ]);
 
     }

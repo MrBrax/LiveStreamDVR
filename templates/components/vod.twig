@@ -121,7 +121,7 @@
 
                 <a class="button" href="/save?vod={{ vodclass.basename }}">Save from deletion</a>
 
-                <a class="button" href="/delete?vod={{ vodclass.basename }}">Delete</a>
+                <a class="button is-danger" href="/delete?vod={{ vodclass.basename }}">Delete</a>
 
                 {% if vodclass.twitch_vod_id and not vodclass.is_chat_downloaded %}
                     <a class="button" href="/chat?vod={{ vodclass.basename }}">Download chat</a>

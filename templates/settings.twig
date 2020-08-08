@@ -29,13 +29,13 @@
                                 <label><input class="input" type="checkbox" name="download_chat" value="1" {{ streamer.download_chat ? 'checked="checked"' : '' }} /> Download chat</label><br><br>
                             </div>
                             <div class="control">
-                                <button class="button" type="submit">Save</button>
+                                <button class="button is-confirm" type="submit">Save</button>
                             </div>
                         </form>
                         <form method="POST" action="/settings/streamer/delete">
                             <input type="hidden" name="key" value="{{ loop.index }}" />
                             <input type="hidden" name="username" value="{{ streamer.username }}" />
-                            <button class="button" type="submit">Delete</button> (no undo, no confirmation)
+                            <button class="button is-danger" type="submit">Delete</button> (no undo, no confirmation)
                         </form>
                     </div>
 
@@ -70,7 +70,7 @@
                                 <label><input class="input" type="checkbox" name="download_chat" value="1" /> Download chat</label><br><br>
                             </div>
                     <div class="control">
-                        <button class="button" type="submit">Add</button>
+                        <button class="button is-confirm" type="submit">Add</button>
                     </div>
                 </form>
                 
@@ -104,7 +104,10 @@
                         <label><input class="input" type="text" name="vod_container" value="{{ config.vod_container ?: 'mp4' }}" /> VOD container (mp4/mkv)</label>
                     </div>
                     <div class="control">
-                        <button class="button" type="submit">Save</button>
+                        <label><input type="checkbox" name="debug" {{ config.debug ? 'checked="checked"' : '' }} /> Debug</label>
+                    </div>
+                    <div class="control">
+                        <button class="button is-confirm" type="submit">Save</button>
                     </div>
                 </form>
 

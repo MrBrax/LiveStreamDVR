@@ -143,19 +143,38 @@ a.linkback {
   font: inherit;
   text-decoration: none;
   display: inline-block;
-  padding: 4px 15px;
-  border-radius: 3px;
-  color: #222;
-  background: #eee;
-  border: 1px solid #999;
-  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2), inset 0 -3px 0 rgba(0, 0, 0, 0.1);
-  transition: 0.05s all ease-in-out; }
+  padding: 5px 14px;
+  text-align: center;
+  min-width: 80px;
+  /*
+	border-radius: 3px;
+	color: #222;
+	background: #eee;
+	border: 1px solid #999;
+	box-shadow: 0 2px 3px rgba(0, 0, 0, .2), inset 0 -3px 0 rgba(0, 0, 0, .1);
+	*/
+  background-color: #ccc;
+  color: #333;
+  border: none;
+  margin: 1px;
+  transition: 0.05s all ease-in-out;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); }
   .button:hover {
     cursor: pointer;
     color: #111;
-    background: #ddd; }
+    background-color: #bfbfbf; }
   .button:active {
-    background: #aaa; }
+    background-color: #aaa; }
+  .button.is-confirm {
+    background-color: #3db92c;
+    color: #fff; }
+    .button.is-confirm:hover {
+      background-color: #36a427; }
+  .button.is-danger {
+    background-color: #b35531;
+    color: #fff; }
+    .button.is-danger:hover {
+      background-color: #9f4b2c; }
 
 .input {
   font: inherit;

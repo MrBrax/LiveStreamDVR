@@ -29,17 +29,17 @@
 				<input type="hidden" name="vod" value="{{ vodclass.basename }}" />
 
 				<div>
-					<button class="button" onclick="cut_video('in')">Mark in</button>
+					<button type="button" class="button" onclick="cut_video('in')">Mark in</button>
 					<input class="input" name="start" id="value_in" placeholder="In timestamp">
 				</div>
 
 				<div>
-					<button class="button" onclick="cut_video('out')">Mark out</button>
+					<button type="button" class="button" onclick="cut_video('out')">Mark out</button>
 					<input class="input" name="end" id="value_out" placeholder="Out timestamp">
 				</div>
 
 				<div>
-					<button class="button" onclick="submit_cut();">Submit cut</button>
+					<button type="submit" class="button" onclick="submit_cut();">Submit cut</button>
 				</div>
 				
 			</form>
