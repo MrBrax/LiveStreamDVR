@@ -1,10 +1,12 @@
 <?php
 
+namespace App;
+
 class TwitchHelper {
 
 	public static $accessToken;
 
-	public static $accessTokenFile = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "oauth.bin";
+	public static $accessTokenFile = __DIR__ . DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR . "oauth.bin";
 
 	public static $accessTokenExpire = 60 * 60 * 24 * 60; // 60 days
 	public static $accessTokenRefresh = 60 * 60 * 24 * 30; // 30 days
@@ -22,11 +24,11 @@ class TwitchHelper {
 	 * @return void
 	 */
 	public static function setupDirectories(){
-		mkdir( __DIR__ . "/../logs");
-		mkdir( __DIR__ . "/../payloads");
-		mkdir( __DIR__ . "/../public/vods");
-		mkdir( __DIR__ . "/../public/vods" . DIRECTORY_SEPARATOR . "clips");
-		mkdir( __DIR__ . "/../public/vods" . DIRECTORY_SEPARATOR . "saved");
+		mkdir(__DIR__ . "/../logs");
+		mkdir(__DIR__ . "/../payloads");
+		mkdir(__DIR__ . "/../public/vods");
+		mkdir(__DIR__ . "/../public/vods");
+		mkdir(__DIR__ . "/../public/vods");
 	}
 
 	/**
@@ -100,8 +102,8 @@ class TwitchHelper {
 
 		if( !TwitchConfig::cfg("debug") && $level == self::LOG_DEBUG ) return;
 		
-		$filename 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log";
-		$filename_json 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log.json";
+		$filename 		= __DIR__ . DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log";
+		$filename_json 	= __DIR__ . DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log.json";
 		
 		$log_text = file_exists( $filename ) ? file_get_contents( $filename ) : '';
 		$log_json = file_exists( $filename_json ) ? json_decode( file_get_contents( $filename_json ), true ) : [];
@@ -134,7 +136,7 @@ class TwitchHelper {
 	 */
 	public static function getChannelId( $username ){
 
-		$streamers_file =  __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "streamers.json";
+		$streamers_file =  __DIR__ . DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR . "streamers.json";
 
 		$json_streamers = json_decode( file_get_contents( $streamers_file ), true );
 

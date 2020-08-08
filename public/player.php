@@ -74,7 +74,7 @@ $start_offset = (int)$_GET['start'] ?: 0;
 
 	function submit_cut(){
 		if( time_in && time_out ){
-			location.href = 'cut.php?vod=<?php echo $vod; ?>&start=' + time_in + '&end=' + time_out;
+			location.href = '/cut?vod=<?php echo $vod; ?>&start=' + time_in + '&end=' + time_out;
 		}
 	}
 

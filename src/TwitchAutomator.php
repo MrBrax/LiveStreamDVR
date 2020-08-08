@@ -1,5 +1,7 @@
 <?php
 
+namespace App;
+
 class TwitchAutomator {
 
 	public $data_cache 		= [];
@@ -243,7 +245,7 @@ class TwitchAutomator {
 			return false;
 		}
 
-		$game_db = json_decode( file_get_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "games_v2.json" ), true );
+		$game_db = json_decode( file_get_contents( __DIR__ . DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR . "games_v2.json" ), true );
 
 		if( $game_db[ $id ] ){
 			$this->errors[] = 'Game is in database';
@@ -281,7 +283,7 @@ class TwitchAutomator {
 
 			// $game_db[ $id ] = $game_data["name"];
 
-			file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "games_v2.json", json_encode( $game_db ) );
+			file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR . "games_v2.json", json_encode( $game_db ) );
 
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "New game saved to cache: " . $game["name"]);
 

@@ -1,10 +1,12 @@
 <?php
 
+namespace App;
+
 class TwitchConfig {
 
 	public static $config = [];
 
-	public static $configPath = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "config.json";
+	public static $configPath = __DIR__ . DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR . "config.json";
 
 	function __constructor(){
 		$this->loadConfig();

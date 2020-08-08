@@ -541,7 +541,7 @@ echo '<section class="section" style="display: none;">';
 
 	echo '<div class="section-content">';
 	
-	echo '<form method="post" action="hook.php">';
+	echo '<form method="post" action="/hook">';
 		echo '<textarea class="input" name="json"></textarea>';
 		echo '<br><button class="button" type="submit">Hook</button>';
 	echo '</form>';
