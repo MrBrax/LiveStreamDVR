@@ -1,5 +1,7 @@
 <?php
 
+namespace App;
+
 class TwitchVOD {
 	
 	public $vod_path = 'vods';
