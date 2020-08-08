@@ -66,10 +66,12 @@ class TwitchHelper {
 			]
 		]);
 
-		$json = json_decode( $response->getBody()->getContents(), true );
+		$server_output = $response->getBody()->getContents();
+
+		$json = json_decode( $server_output, true );
 
 
-		if( !isset($json['access_token']) || !$json['access_token'] ){
+		if( !$json || !isset($json['access_token']) || !$json['access_token'] ){
 			self::log( TwitchHelper::LOG_ERROR, "Failed to fetch access token: " . $server_output);
 			throw new \Exception( "Failed to fetch access token: " . $server_output );
 			return false;

@@ -8,8 +8,9 @@ use Slim\Psr7\Response;
 use App\TwitchAutomator;
 use App\TwitchConfig;
 use App\TwitchHelper;
+use App\TwitchVOD;
 
-class CutController
+class VodController
 {
 
     /**
@@ -17,8 +18,7 @@ class CutController
      *
      * @return void
      */
-    public function cut( Request $request, Response $response, $args )
-    {
+    public function cut( Request $request, Response $response, $args ) {
         set_time_limit(0);
 
         $TwitchAutomator = new TwitchAutomator();
@@ -42,13 +42,13 @@ class CutController
             $cmd .= ' -codec copy'; // remux
             $cmd .= ' ' . escapeshellarg($filename_out); // output file
 
-            echo $cmd;
+            $response->getBody()->write( $cmd );
 
             $output = shell_exec($cmd);
 
             file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'ffmpeg_' . $vod . '-cut-' . $second_start . '-' . $second_end . '_' . time() . '.log', $output);
 
-            echo 'done';
+            $response->getBody()->write("<pre>" . $output . "</pre>");
 
             $response->getBody()->write("Done");
 
@@ -61,4 +61,27 @@ class CutController
         return $response;
 
     }
+
+    public function chat( Request $request, Response $response, $args ) {
+        
+        set_time_limit(0);
+
+        $TwitchAutomator = new TwitchAutomator();
+
+        $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
+
+        $vodclass = new TwitchVOD();
+        $vodclass->load( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vod . '.json');
+
+        if( $vodclass->twitch_vod_id ){
+            $response->getBody()->write("Downloading");
+            var_dump( $vodclass->downloadChat() );
+        }else{
+            $response->getBody()->write("VOD has no id");
+        }
+
+        return $response;
+
+    }
+
 }

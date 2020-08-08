@@ -47,7 +47,10 @@ class DashboardController
                 $vodclass = new TwitchVOD();
                 $vodclass->load($v);
 
-                if ($vodclass->is_recording) $data['is_live'] = true;
+                if ($vodclass->is_recording){
+                    $data['is_live'] = true;
+                    $data['current_vod'] = $vodclass;
+                }
 
                 if ($checkvod && !$vodclass->is_recording) {
                     $isvalid = $vodclass->checkValidVod();
@@ -59,13 +62,15 @@ class DashboardController
 
                 if ($vodclass->segments) {
                     foreach ($vodclass->segments as $s) {
-                        $data['vods_size'] += filesize(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename($s));
+                        $data['vods_size'] += filesize(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $s['basename'] );
                     }
                 }
 
                 $data['vods_list'][] = $vodclass;
 
             }
+
+            $total_size += $data['vods_size'];
 
             $streamerList[] = $data;
 

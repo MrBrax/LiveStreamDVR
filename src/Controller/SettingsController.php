@@ -35,16 +35,18 @@ class SettingsController
 
     public function settings_save(Request $request, Response $response, array $args) {
         
-        $app_name               = $_POST['app_name'];
+        // $app_name               = $_POST['app_name'];
         $vods_to_keep           = $_POST['vods_to_keep'];
         $storage_per_streamer   = $_POST['storage_per_streamer'];
         $api_client_id          = $_POST['api_client_id'];
         $api_secret             = $_POST['api_secret'];
+        $hook_callback          = $_POST['hook_callback'];
 
-        TwitchConfig::$config['app_name'] = $app_name;
+        // TwitchConfig::$config['app_name'] = $app_name;
         TwitchConfig::$config['vods_to_keep'] = (int)$vods_to_keep;
         TwitchConfig::$config['storage_per_streamer'] = (int)$storage_per_streamer;
         TwitchConfig::$config['api_client_id'] = $api_client_id;
+        TwitchConfig::$config['hook_callback'] = $hook_callback;
         if($api_secret) TwitchConfig::$config['api_secret'] = $api_secret;
 
         TwitchConfig::saveConfig();

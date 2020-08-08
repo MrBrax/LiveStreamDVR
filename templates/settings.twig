@@ -101,6 +101,9 @@
                         <label><input class="input" type="text" name="api_secret" value="" /> Twitch secret (keep blank to not change)</label>
                     </div>
                     <div class="control">
+                        <label><input class="input" type="text" name="hook_callback" value="{{ config.hook_callback }}" /> Hook callback</label>
+                    </div>
+                    <div class="control">
                         <label><input class="input" type="text" name="vod_container" value="{{ config.vod_container ?: 'mp4' }}" /> VOD container (mp4/mkv)</label>
                     </div>
                     <div class="control">

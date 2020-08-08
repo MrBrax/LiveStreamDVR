@@ -5,7 +5,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use App\Controller\AboutController;
 use App\Controller\DashboardController;
 use App\Controller\HookController;
-use App\Controller\CutController;
+use App\Controller\VodController;
 use App\Controller\PlayerController;
 use App\Controller\SettingsController;
 use App\Controller\SubController;
@@ -53,6 +53,10 @@ $container->get('view')->getEnvironment()->addFilter(new TwigFilter('formatBytes
     return TwitchHelper::formatBytes($string);
 }));
 
+$container->get('view')->getEnvironment()->addFilter(new TwigFilter('humanDuration', function ($string) {
+    return TwitchHelper::printHumanDuration($string);
+}));
+
 $container->get('view')->getEnvironment()->addExtension(new DebugExtension());
 
 // Define named route
@@ -62,12 +66,15 @@ $app->get('/', function (Request $request, Response $response, array $args) {
 
 $app->get('/dashboard', DashboardController::class . ':dashboard')->setName('dashboard');
 $app->get('/about', AboutController::class . ':about')->setName('about');
-$app->get('/player', PlayerController::class . ':player')->setName('player');
-$app->get('/cut', CutController::class . ':cut')->setName('cut');
-$app->get('/hook.php', HookController::class . ':hook')->setName('hook');
-$app->get('/settings', SettingsController::class . ':settings')->setName('settings');
 
+$app->get('/settings', SettingsController::class . ':settings')->setName('settings');
 $app->post('/settings/save', SettingsController::class . ':settings_save')->setName('settings_save');
+
+$app->get('/player', PlayerController::class . ':player')->setName('player');
+$app->get('/cut', VodController::class . ':cut')->setName('cut');
+$app->get('/chat', VodController::class . ':chat')->setName('chat');
+
+$app->get('/hook.php', HookController::class . ':hook')->setName('hook');
 
 $app->get('/sub', SubController::class . ':sub')->setName('sub');
 $app->get('/subs', SubController::class . ':subs')->setName('subs');

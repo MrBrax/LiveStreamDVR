@@ -67,8 +67,10 @@ code, pre {
   font-size: 18px; }
 
 .top-menu-item.title {
-  font-weight: 700;
-  padding: 12px 8px; }
+  font-weight: 700; }
+  .top-menu-item.title a {
+    color: #fff;
+    padding: 12px 8px; }
 
 .top-menu-item a {
   color: #777;

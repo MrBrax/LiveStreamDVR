@@ -69,7 +69,10 @@ code, pre {
 	// padding: 5px 8px;
 	&.title {
 		font-weight: 700;
-		padding: 12px 8px;
+		a {
+			color: #fff;
+			padding: 12px 8px;
+		}
 	}
 	a {
 		color: #777;

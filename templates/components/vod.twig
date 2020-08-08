@@ -27,10 +27,90 @@
             </div>
             
             {# video info #}
+            {% if vodclass.is_converted %}
+                
+                <strong>Segment 0 info:</strong>
+                
+                <ul class="video-info">
+                    <li><strong>Webhook duration:</strong> {{ vodclass.getWebhookDuration }} </li>	
+					<li><strong>File duration:</strong> {{ vodclass.getDuration(true)|humanDuration }}</li>
+                    <li>				
+                        <strong>Twitch VOD duration:</strong>
+                        {% if vodclass.twitch_vod_duration %}
+                            {{ vodclass.twitch_vod_duration|humanDuration }}
+                        {% else %}
+                            <strong><em>No data</em></strong>
+                        {% endif %}
+					</li>
+                    <li>
+						<strong>Missing from captured file:</strong>	
+						{% if vodclass.twitch_vod_duration %}				
+							{{ (vodclass.twitch_vod_duration - vodclass.getDuration(true))|humanDuration }}
+						{% else %}
+                            <strong><em>No data</em></strong>
+                        {% endif %}
+
+					</li>
+                    <li><strong>Size:</strong> {{ vodclass.segments[0].filesize|formatBytes }}</li>
+                    <li>		
+                        <strong>Twitch VOD id:</strong> 
+                    
+                        {% if vodclass.twitch_vod_url %}	
+                            
+                            <a href="{{ vodclass.twitch_vod_url }}" rel="noreferrer" target="_blank">{{ vodclass.twitch_vod_id }}</a>
+
+                            {% if checkvod %}
+                                
+                                {% if vodclass.twitch_vod_exists %}
+                                    (exists)
+                                {% else %}
+                                    <strong class="error">(deleted)</strong>
+                                {% endif %}
+
+                            {% endif %}
+
+                        {% else %}
+                            <strong><em>Not matched or VOD deleted</em></strong>
+                        {% endif %}
+
+                    </li>
+                    <li>			
+                        <strong>Twitch VOD date:</strong>
+                        {% if vodclass.twitch_vod_date %}
+                            {{ vodclass.twitch_vod_date }}
+                        {% else %}
+                            <strong><em>No data</em></strong>
+                        {% endif %}
+                    </li>
+                    <li>				
+                        <strong>Twitch VOD title:</strong> 
+                         {% if vodclass.twitch_vod_title %}
+                            {{ vodclass.twitch_vod_title }}
+                        {% else %}
+                            <strong><em>No data</em></strong>
+                        {% endif %}
+                    </li>
+                    <li><strong>Chat downloaded:</strong> {{ vodclass.is_chat_downloaded ? 'Yes' : 'No' }}</li>
+                </ul>
+
+                <strong>Segments:</strong>
+                <ul>
+                    {% for segment in vodclass.segments %}
+                        <li>
+                            <a href="vods/{{ segment.basename }}">
+                                {{ segment.basename }}
+                                 ({{ segment.filesize|formatBytes }})
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+            {% endif %}
             
 
         </div>
 
+        {# controls #}
         <div class="video-controls">
 
             {% if vodclass.is_converted %}
@@ -39,18 +119,18 @@
 
                 <a class="button" href="vods/{{ vodclass.basename }}.json">JSON</a>
 
-                <a class="button" href="?save={{ vodclass.basename }}">Save from deletion</a>
+                <a class="button" href="/save?vod={{ vodclass.basename }}">Save from deletion</a>
 
-                <a class="button" href="?delete={{ vodclass.basename }}">Delete</a>
+                <a class="button" href="/delete?vod={{ vodclass.basename }}">Delete</a>
 
                 {% if vodclass.twitch_vod_id and not vodclass.is_chat_downloaded %}
-                    <a class="button" href="chat.php?vod={{ vodclass.basename }}">Download chat</a>
+                    <a class="button" href="/chat?vod={{ vodclass.basename }}">Download chat</a>
                 {% endif %}
 
             {% elseif vodclass.is_recording %}
 
                 {% if vodclass.ended_at %}
-                    <a class="button" href="convert.php?vod='{{ vodclass.basename }}">Convert</a>
+                    <a class="button" href="/convert?vod='{{ vodclass.basename }}">Convert</a>
                 {% endif %}
 
                 <em>Capturing...</em>

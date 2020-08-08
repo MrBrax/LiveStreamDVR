@@ -1,0 +1,15 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "build:style",
+			"problemMatcher": [
+				"$node-sass"
+			],
+			"group": "build",
+			"label": "npm: build:style",
+			"detail": "node-sass ./src/Assets/style.scss > ./public/style.css"
+		}
+	]
+}

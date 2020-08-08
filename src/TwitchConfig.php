@@ -26,6 +26,7 @@ class TwitchConfig {
 		$config = json_decode( file_get_contents( self::$configPath ), true );
 
 		if( $config['app_name'] ){
+			$config['app_name'] = "TwitchAutomator V3";
 			self::$config = $config;
 		}else{
 			die("Config is empty, please create " . TwitchHelper::get_absolute_path( self::$configPath ) . "<br>Example usage is in config.json.example" );
@@ -34,7 +35,7 @@ class TwitchConfig {
 	}
 
 	public static function saveConfig(){
-		file_put_contents( self::$configPath, json_encode( self::$config ) );
+		file_put_contents( self::$configPath, json_encode( self::$config, JSON_PRETTY_PRINT ) );
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Saved config from settings page");	
 	}
 

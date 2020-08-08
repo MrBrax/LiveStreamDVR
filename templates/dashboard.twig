@@ -12,11 +12,11 @@
 
             <a class="button" href="?checkvod=1">Check if VODs exist</a>
             {% if checkvod %}
-                if($is_a_vod_deleted){
-                    echo ' - <strong>A VOD IS DELETED</strong>';
-                }else{
-                    echo ' - all vods seem to still exist';
-                }
+                {% if is_a_vod_deleted %}
+                    - <strong>A VOD IS DELETED</strong>
+                {% else %}
+                    - all vods seem to still exist
+                {% endif %}
             {% endif %}
             
             <br><br>

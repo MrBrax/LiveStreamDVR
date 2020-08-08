@@ -80,8 +80,9 @@ class TwitchVOD {
 		// $this->filesize = filesize($filename);
 		$this->basename = basename($filename, '.json');
 
-		$this->segments = $this->json['segments'];
-		
+		// $this->segments = $this->json['segments'];
+		$this->parseSegments( $this->json['segments'] );
+
 		$this->parseChapters( $this->json['games'] ?: $this->json['chapters'] );
 
 		$this->streamer_name = $this->json['meta']['data'][0]['user_name'];
@@ -366,6 +367,30 @@ class TwitchVOD {
 
 	}
 
+	public function parseSegments( $array ){
+
+		$segments = [];
+
+		foreach( $array as $k => $v ){
+
+			$segment = [];
+
+			$segment['filename'] = realpath( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename($v) );
+			$segment['basename'] = basename($v);
+			$segment['filesize'] = filesize( $segment['filename'] );
+			
+			$segment['strings'] = [];
+			// $diff = $this->started_at->diff($this->ended_at);
+			// $segment['strings']['webhook_duration'] = $diff->format('%H:%I:%S') . '</li>';
+
+			$segments[] = $segment;
+
+		}
+
+		$this->segments = $segments;
+
+	}
+
 	/*
 	public function getGames(){ // why
 
@@ -407,6 +432,15 @@ class TwitchVOD {
 	}
 	*/
 
+	public function getWebhookDuration(){
+		if($this->started_at && $this->ended_at){
+			$diff = $this->started_at->diff($this->ended_at);
+			return $diff->format('%H:%I:%S');
+		}else{
+			return null;
+		}
+	}
+
 	public function getUniqueGames(){
 
 		$unique_games = [];
@@ -431,6 +465,10 @@ class TwitchVOD {
 
 		return $data;
 
+	}
+
+	public function getCurrentGame(){
+		return $this->chapters[ count($this->chapters) - 1 ];
 	}
 
 	/**
