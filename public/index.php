@@ -1,7 +1,7 @@
 <?php
 
-
-
+header("Location: dashboard.php");
+return;
 
 
 use DI\Container;
