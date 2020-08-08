@@ -14,11 +14,11 @@ class TwitchVOD {
 	public $segments = [];
 
 	/**
-	 * Games
+	 * Chapters
 	 *
 	 * @var [ 'time', 'game_id', 'game_name', 'viewer_count', 'title', 'datetime', 'offset', 'duration' ]
 	 */
-	public $games = [];
+	public $chapters = [];
 
 	public $started_at = null;
 	public $ended_at = null;
@@ -78,7 +78,7 @@ class TwitchVOD {
 
 		$this->segments = $this->json['segments'];
 		
-		$this->parseGames($this->json['games']);
+		$this->parseChapters($this->json['chapters']);
 
 		$this->streamer_name = $this->json['meta']['data'][0]['user_name'];
 		$this->streamer_id = TwitchHelper::getChannelId( $this->streamer_name );
@@ -276,7 +276,7 @@ class TwitchVOD {
 		$generated['streamer_name'] 	= $this->streamer_name;
 		$generated['streamer_id'] 		= $this->streamer_id;
 
-		$generated['games'] 			= $this->games;
+		$generated['chapters'] 			= $this->chapters;
 		$generated['segments'] 			= $this->segments;
 
 		$generated['duration'] 			= $this->duration;
@@ -289,18 +289,18 @@ class TwitchVOD {
 	}
 
 	/**
-	 * Parse games from array and add it to the $this->games list
+	 * Parse chapters from array and add it to the $this->chapters list
 	 *
 	 * @param array $array
 	 * @return void
 	 */
-	private function parseGames( $array ){
+	private function parseChapters( $array ){
 
-		$games = [];
+		$chapters = [];
 
-		foreach ($this->json['games'] as $game) {
+		foreach ($this->json['chapters'] as $chapter) {
 			
-			$entry = $game;
+			$entry = $chapter;
 
 			$entry['datetime'] = DateTime::createFromFormat( TwitchConfig::cfg("date_format"), $entry['time'] );
 
@@ -308,35 +308,36 @@ class TwitchVOD {
 				$entry['offset'] = $entry['datetime']->getTimestamp() - $this->started_at->getTimestamp();
 			}
 
-			$games[] = $entry;
+			$chapters[] = $entry;
 
 		}
 
 		$i = 0;
 
-		foreach ($games as $game) {
+		foreach ($chapters as $chapter) {
 			
-			if($games[$i+1]){
-				$games[$i]['duration'] = $games[$i+1]['datetime']->getTimestamp() - $game['datetime']->getTimestamp();
+			if($chapters[$i+1]){
+				$chapters[$i]['duration'] = $chapters[$i+1]['datetime']->getTimestamp() - $chapter['datetime']->getTimestamp();
 			}
 
 			if($i == 0){
-				$this->game_offset = $game['offset'];
+				$this->game_offset = $chapter['offset'];
 			}
 
-			if($i == sizeof($games)-1 && $this->ended_at){
-				$games[$i]['duration'] = $this->ended_at->getTimestamp() - $game['datetime']->getTimestamp();
+			if($i == sizeof($chapters)-1 && $this->ended_at){
+				$chapters[$i]['duration'] = $this->ended_at->getTimestamp() - $chapter['datetime']->getTimestamp();
 			}
 
 			$i++;
 
 		}
 
-		$this->games = $games;
+		$this->chapters = $chapters;
 
 	}
 
-	public function getGames(){
+	/*
+	public function getGames(){ // why
 
 		$data = [];
 
@@ -374,12 +375,13 @@ class TwitchVOD {
 		return $data;
 
 	}
+	*/
 
 	public function getUniqueGames(){
 
 		$unique_games = [];
                                         
-		foreach($this->games as $g){
+		foreach($this->chapters as $g){
 			$unique_games[ (int)$g['game_id'] ] = true;
 		}
 		
@@ -413,21 +415,21 @@ class TwitchVOD {
 
 		$data = "";
 
-		foreach( $this->games as $k => $game ){
+		foreach( $this->chapters as $k => $chapter ){
 
-			$offset = $game['offset'];
+			$offset = $chapter['offset'];
 
-			$offset -= $this->games[0]['offset'];
+			$offset -= $this->chapters[0]['offset'];
 			
 			$data .= $offset . ',';
 			
-			if( $k < sizeof($this->games)-1 ){
-				$data .= ( $offset + $game['duration'] ) . ',';
+			if( $k < sizeof($this->chapters)-1 ){
+				$data .= ( $offset + $chapter['duration'] ) . ',';
 			}else{
 				$data .= ',';
 			}
 
-			$data .= $game['game_name'] ?: $game['game_id'];
+			$data .= $chapter['game_name'] ?: $chapter['game_id'];
 			$data .= "\n";
 		}
 

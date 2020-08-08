@@ -112,7 +112,7 @@ echo '<div class="top-menu-item title">' . TwitchConfig::cfg('app_name') . '</di
 						
 						$vod = $streamer['vods_list'][ count($streamer['vods_list']) - 1 ];
 
-						$game = $vod->games[ count( $vod->games ) - 1 ];
+						$game = $vod->chapters[ count( $vod->chapters ) - 1 ];
 
 						$game_name = $game['game_name'];
 
@@ -224,7 +224,7 @@ echo '<section class="section">';
 									
 									$unique_games = [];
 									
-									foreach($vodclass->games as $g){
+									foreach($vodclass->chapters as $g){
 										$unique_games[ (int)$g['game_id'] ] = true;
 									}
 									
@@ -405,7 +405,7 @@ echo '<section class="section">';
 
 								echo '<tbody>';
 
-									foreach ($vodclass->games as $d) {
+									foreach ($vodclass->chapters as $d) {
 
 										if( strlen( $d['time'] ) == 10 ){
 

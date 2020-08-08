@@ -20,7 +20,7 @@ $start_offset = (int)$_GET['start'] ?: 0;
 
 	<div class="video-chapters">
 
-		<?php foreach ($vodclass->games as $game) { ?>
+		<?php foreach ($vodclass->chapters as $game) { ?>
 
 			<?php $proc = ( round($vodclass->duration_seconds) / $game['duration'] ) / 100 ; ?> <!-- TODO: Fix this, can't do math -->
 

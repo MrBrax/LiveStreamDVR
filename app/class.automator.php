@@ -327,15 +327,15 @@ class TwitchAutomator {
 		// full datetime-stamp of stream start
 		$this->json['started_at'] = $data_started;
 		
-		if(!$this->json['games']){
-			$this->json['games'] = [];
+		if(!$this->json['chapters']){
+			$this->json['chapters'] = [];
 		}
 
 		// fetch game name from either cache or twitch
 		$game_name = $this->getGameName( $data_game_id );
 
 		// game structure
-		$this->json['games'][] = [
+		$this->json['chapters'][] = [
 			'time' 			=> $this->getDateTime(),
 			'game_id' 		=> $data_game_id,
 			'game_name'		=> $game_name,
