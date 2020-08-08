@@ -15,18 +15,26 @@ use Slim\Views\TwigMiddleware;
 use Twig\Extension\DebugExtension;
 use Twig\TwigFilter;
 
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
+
 // Create Container
 $container = new Container();
 AppFactory::setContainer($container);
 
 // Create Twig
 // Set view in Container
-$container->set('view', function () {
-    return Twig::create('../templates', [
-        'cache' => false,
-        'debug' => true
-    ]);
+
+$twigConfig = Twig::create('../templates', [
+    'cache' => false,
+    'debug' => true
+]);
+
+$container->set('view', function () use ($twigConfig) {
+    return $twigConfig;
 });
+
+$container->set( Twig::class, $twigConfig );
 
 // Create App
 $app = AppFactory::create();
@@ -45,6 +53,10 @@ $container->get('view')->getEnvironment()->addFilter(new TwigFilter('formatBytes
 $container->get('view')->getEnvironment()->addExtension(new DebugExtension());
 
 // Define named route
+$app->get('/', function (Request $request, Response $response, array $args) {
+    header("Location: /dashboard");
+})->setName('index');
+
 $app->get('/dashboard', DashboardController::class . ':dashboard')->setName('dashboard');
 $app->get('/about', AboutController::class . ':about')->setName('about');
 $app->get('/cut', CutController::class . ':cut')->setName('cut');

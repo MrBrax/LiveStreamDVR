@@ -75,7 +75,7 @@ class TwitchHelper {
 
 		if(!$json['access_token']){
 			self::log( TwitchHelper::LOG_ERROR, "Failed to fetch access token: " . $server_output);
-			throw new Exception( "Failed to fetch access token: " . $server_output . "\n" . $oauth_url );
+			throw new \Exception( "Failed to fetch access token: " . $server_output . "\n" . $oauth_url );
 			return false;
 		}
 
@@ -108,7 +108,7 @@ class TwitchHelper {
 		$log_text = file_exists( $filename ) ? file_get_contents( $filename ) : '';
 		$log_json = file_exists( $filename_json ) ? json_decode( file_get_contents( $filename_json ), true ) : [];
 
-		$date = new DateTime();
+		$date = new \DateTime();
 
 		$text_line = $date->format("Y-m-d H:i:s.v") . " | <" . $level . "> " . $text;
 
@@ -136,7 +136,7 @@ class TwitchHelper {
 	 */
 	public static function getChannelId( $username ){
 
-		$streamers_file =  __DIR__ . DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR . "streamers.json";
+		$streamers_file =  __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "streamers.json";
 
 		$json_streamers = json_decode( file_get_contents( $streamers_file ), true );
 
@@ -148,7 +148,7 @@ class TwitchHelper {
 		$access_token = self::getAccessToken();
 
 		if( !$access_token ){
-			throw new Exception('Fatal error, could not get access token for channel id request');
+			throw new \Exception('Fatal error, could not get access token for channel id request');
 			return false;
 		}
 
@@ -350,6 +350,31 @@ class TwitchHelper {
 
 	}
 
+	public static function getNiceDuration($durationInSeconds) {
+
+		$duration = '';
+		$days = floor($durationInSeconds / 86400);
+		$durationInSeconds -= $days * 86400;
+		$hours = floor($durationInSeconds / 3600);
+		$durationInSeconds -= $hours * 3600;
+		$minutes = floor($durationInSeconds / 60);
+		$seconds = $durationInSeconds - $minutes * 60;
+	  
+		if($days > 0) {
+		  $duration .= $days . 'd';
+		}
+		if($hours > 0) {
+		  $duration .= ' ' . $hours . 'h';
+		}
+		if($minutes > 0) {
+		  $duration .= ' ' . $minutes . 'm';
+		}
+		if($seconds > 0) {
+		  $duration .= ' ' . $seconds . 's';
+		}
+		return trim($duration);
+	}
+
 	/**
 	 * https://stackoverflow.com/a/2510459
 	 *
@@ -380,7 +405,7 @@ class TwitchHelper {
 	 */
 	public static function printHumanDuration( $duration ){
 
-		$time = new DateTime();
+		$time = new \DateTime();
 		$time->setTimestamp( $duration );
 
 		return $time->format("H:i:s");

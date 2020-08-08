@@ -2,6 +2,8 @@
 
 namespace App;
 
+use getID3;
+
 class TwitchVOD {
 	
 	public $vod_path = 'vods';
@@ -53,7 +55,7 @@ class TwitchVOD {
 
 		if(!file_exists($filename)){
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "VOD Class for " . $filename . " not found");
-			throw new Exception('VOD not found');
+			throw new \Exception('VOD not found');
 			return false;
 		}
 
@@ -62,16 +64,16 @@ class TwitchVOD {
 
 		if( !$this->json['meta']['data'][0]['user_name'] ){
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Tried to load " . $filename . " but found no streamer name");
-			throw new Exception('Tried to load ' . $filename . ' but found no streamer name');
+			throw new \Exception('Tried to load ' . $filename . ' but found no streamer name');
 			return false;
 		}
 
 		if( $this->json['started_at'] ){
-			$this->started_at = DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['started_at'] );
+			$this->started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['started_at'] );
 		}
 
 		if( $this->json['ended_at'] ){
-			$this->ended_at = DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['ended_at'] );
+			$this->ended_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['ended_at'] );
 		}
 
 		$this->filename = $filename;
@@ -80,7 +82,7 @@ class TwitchVOD {
 
 		$this->segments = $this->json['segments'];
 		
-		$this->parseChapters($this->json['chapters']);
+		$this->parseChapters( $this->json['games'] ?: $this->json['chapters'] );
 
 		$this->streamer_name = $this->json['meta']['data'][0]['user_name'];
 		$this->streamer_id = TwitchHelper::getChannelId( $this->streamer_name );
@@ -154,12 +156,12 @@ class TwitchVOD {
 	public function downloadChat(){
 
 		if(!file_exists( TwitchHelper::path_tcd() )){
-			throw new Exception('tcd not found');
+			throw new \Exception('tcd not found');
 			return false;
 		}
 
 		if(!$this->twitch_vod_id){
-			throw new Exception('no twitch vod id');
+			throw new \Exception('no twitch vod id');
 			return false;
 		}
 
@@ -215,7 +217,7 @@ class TwitchVOD {
 
 		foreach ($channel_videos as $vid) {
 			
-			$video_time = DateTime::createFromFormat( TwitchConfig::cfg('date_format'), $vid['created_at'] );
+			$video_time = \DateTime::createFromFormat( TwitchConfig::cfg('date_format'), $vid['created_at'] );
 
 			// if within 5 minutes difference
 			if( abs( $this->started_at->getTimestamp() - $video_time->getTimestamp() ) < 300 ){
@@ -300,7 +302,7 @@ class TwitchVOD {
 
 		$chapters = [];
 
-		$data = $this->json['chapters'] ?: $this->json['games'];
+		$data = isset($this->json['chapters']) ? $this->json['chapters'] : $this->json['games']; // why
 
 		foreach($data as $chapter) {
 			
@@ -308,7 +310,7 @@ class TwitchVOD {
 
 			$game_data = TwitchHelper::getGame( $entry['game_id'] );
 
-			$entry['datetime'] = DateTime::createFromFormat( TwitchConfig::cfg("date_format"), $entry['time'] );
+			$entry['datetime'] = \DateTime::createFromFormat( TwitchConfig::cfg("date_format"), $entry['time'] );
 
 
 			// offset
@@ -326,7 +328,7 @@ class TwitchVOD {
 				$entry['strings']['started_at'] = $entry['datetime']->format("Y-m-d H:i:s");
 			}
 
-			$entry['strings']['duration'] = getNiceDuration( $entry['duration'] );
+			$entry['strings']['duration'] = TwitchHelper::getNiceDuration( $entry['duration'] );
 
 
 			if( $game_data['box_art_url'] ){
@@ -344,7 +346,7 @@ class TwitchVOD {
 
 		foreach ($chapters as $chapter) {
 			
-			if($chapters[$i+1]){
+			if( isset( $chapters[$i+1] ) && $chapters[$i+1] ){
 				$chapters[$i]['duration'] = $chapters[$i+1]['datetime']->getTimestamp() - $chapter['datetime']->getTimestamp();
 			}
 

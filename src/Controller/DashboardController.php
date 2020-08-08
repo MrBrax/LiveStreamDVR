@@ -21,7 +21,7 @@ class DashboardController
         $this->twig = $twig;
     }
 
-    public function about(Request $request, Response $response, array $args)
+    public function dashboard(Request $request, Response $response, array $args)
     {
         $total_size = 0;
 
