@@ -24,12 +24,25 @@
         </div>
 
         <div class="video-cut">
-            <button class="button" onclick="cut_video('in')">Mark in</button>
-            <button class="button" onclick="cut_video('out')">Mark out</button>
-            <button class="button" onclick="submit_cut();">Submit cut</button>
-            <input class="input" id="value_in" placeholder="In timestamp">
-            <input class="input" id="value_out" placeholder="Out timestamp">
-            <input class="input" id="cut_video_cmd">
+			<form method="post" action="/cut">
+
+				<input type="hidden" name="vod" value="{{ vodclass.basename }}" />
+
+				<div>
+					<button class="button" onclick="cut_video('in')">Mark in</button>
+					<input class="input" name="start" id="value_in" placeholder="In timestamp">
+				</div>
+
+				<div>
+					<button class="button" onclick="cut_video('out')">Mark out</button>
+					<input class="input" name="end" id="value_out" placeholder="Out timestamp">
+				</div>
+
+				<div>
+					<button class="button" onclick="submit_cut();">Submit cut</button>
+				</div>
+				
+			</form>
         </div>
 
     </div>
@@ -62,11 +75,13 @@
 		
 	}
 
+	/*
 	function submit_cut(){
 		if( time_in && time_out ){
 			location.href = '/cut?vod={{ vodclass.basename }}&start=' + time_in + '&end=' + time_out;
 		}
 	}
+	*/
 
 	function scrub(s, d){
 		document.getElementById("video").currentTime = s;

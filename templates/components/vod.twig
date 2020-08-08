@@ -206,27 +206,28 @@
                 {% endfor %}
 
                 {% if vodclass.ended_at %}
-                    <!--
-                    $diff = $vodclass->started_at->diff($vodclass->ended_at);
+                    
                     <tr>
                         <td>
-                            ' . $diff->format('%H:%I:%S') . '
+                            {{ vodclass.getWebhookDuration }}
                         </td>
                         <td colspan="4">
                             <em>END</em>
                         </td>
                     </tr>
-                    -->
+                    
                 {% else %}
-                    <!--
+                    
                     <tr>
                         {% if vodclass.started_at %}
+                            <!--
                             $diff = $vodclass->started_at->diff( new DateTime() );
                             <td>' . $diff->format('%H:%I:%S') . '</td>
+                            -->
                         {% endif %}
                         <td colspan="4"><em><strong>ONGOING</strong></em></td>
                     </tr>
-                    -->
+                    
                 {% endif %}
 
             </tbody>

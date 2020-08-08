@@ -19,21 +19,38 @@ class VodController
      * @return void
      */
     public function cut( Request $request, Response $response, $args ) {
+        
         set_time_limit(0);
 
         $TwitchAutomator = new TwitchAutomator();
 
-        if( isset( $_GET['vod'] ) ){
+        if( isset( $_POST['vod'] ) ){
 
-            $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
+            $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_POST['vod']);
 
             $json = json_decode(file_get_contents(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vod . '.json'), true);
 
-            $second_start = (int)$_GET['start'];
-            $second_end = (int)$_GET['end'];
+            $second_start   = (int)$_POST['start'];
+            $second_end     = (int)$_POST['end'];
+
+            if( !$second_start || $second_start > $second_end  ){
+                $response->getBody()->write("Invalid start time (" . $second_start . ")");
+                return $response;
+            }
+
+            if( !$second_end || $second_end < $second_start  ){
+                $response->getBody()->write("Invalid end time (" . $second_end . ")");
+                return $response;
+            }
+
 
             $filename_in = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vod . '.mp4';
             $filename_out = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . 'clips' . DIRECTORY_SEPARATOR . $vod . '-cut-' . $second_start . '-' . $second_end . '.mp4';
+
+            if( file_exists($filename_out) ){
+                $response->getBody()->write("Output file already exists");
+                return $response;
+            }
 
             $cmd = TwitchConfig::cfg('ffmpeg_path');
             $cmd .= ' -i ' . escapeshellarg($filename_in); // input file
@@ -46,7 +63,7 @@ class VodController
 
             $output = shell_exec($cmd);
 
-            file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'ffmpeg_' . $vod . '-cut-' . $second_start . '-' . $second_end . '_' . time() . '.log', $output);
+            file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "ffmpeg_" . $vod . "-cut-" . $second_start . "-" . $second_end . "_" . time() . ".log", $output);
 
             $response->getBody()->write("<pre>" . $output . "</pre>");
 
