@@ -89,11 +89,11 @@ code, pre {
 .top-menu-item.live .subtitle {
   color: #b30000; }
 
-.top-menu-item.right {
-  flex-grow: 1;
-  text-align: right; }
-  .top-menu-item.right a {
-    padding: 12px 8px; }
+.top-menu-item.divider {
+  flex-grow: 1; }
+
+.top-menu-item.right a {
+  padding: 12px 8px; }
 
 .top-menu-item .small {
   color: #555;
@@ -106,6 +106,9 @@ code, pre {
   font-size: 60%;
   line-height: 0.7em;
   color: #444; }
+
+.top-menu-item.active a {
+  color: #fff; }
 
 a.linkback {
   font-weight: 700;

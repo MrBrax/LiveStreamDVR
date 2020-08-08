@@ -79,6 +79,11 @@ class AboutController
         }
         $bins['pipenv']['status'] .= TwitchConfig::cfg('pipenv') ? ', <em>enabled</em>.' : ', <em>not enabled</em>.';
 
+
+        $bins['python'] = [];
+        $out = shell_exec("python --version");
+        $bins['python']['version'] = trim($out);
+
         return $this->twig->render($response, 'about.twig', [
             'bins' => $bins
         ]);

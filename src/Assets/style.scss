@@ -94,9 +94,12 @@ code, pre {
 			color: #b30000;
 		}
 	}
-	&.right {
+	&.divider {
 		flex-grow: 1;
-		text-align: right;
+	}
+	&.right {
+		// flex-grow: 1;
+		// text-align: right;
 		a {
 			padding: 12px 8px;
 		}
@@ -112,6 +115,11 @@ code, pre {
 		font-size: 60%;
 		line-height: 0.7em;
 		color: #444;
+	}
+	&.active {
+		a {
+			color: #fff;
+		}
 	}
 }
 

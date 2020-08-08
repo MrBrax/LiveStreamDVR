@@ -7,52 +7,60 @@
 
         <div class="section-content">
 
-            <h1>Utilities status</h1>
-
-            <table class="table">
-
-                <tr>
-                    <th>Name</th>
-                    <th>Path</th>
-                    <th>Status</th>
-                </tr>
-
-                <tr>
-                    <td>FFmpeg</td>
-                    <td>{{ bins.ffmpeg.path }}</td>
-                    <td>{{ bins.ffmpeg.status }}</td>
-                </tr>
-
-                <tr>
-                    <td>Twitch chat downloader</td>
-                    <td>{{ bins.tcd.path }}</td>
-                    <td>{{ bins.tcd.status }}</td>
-                </tr>
-
-                <tr>
-                    <td>Streamlink</td>
-                    <td>{{ bins.streamlink.path }}</td>
-                    <td>{{ bins.streamlink.status }}</td>
-                </tr>
-
-                <tr>
-                    <td>youtube-dl</td>
-                    <td>{{ bins.youtubedl.path }}</td>
-                    <td>{{ bins.youtubedl.status }}</td>
-                </tr>
-
-                <tr>
-                    <td>Pipenv</td>
-                    <td>{{ bins.pipenv.path }}</td>
-                    <td>{% autoescape %} {{ bins.pipenv.status|raw }} {% endautoescape %}</td>
-                </tr>
-
-            </table>
-
-            <hr />
+            <div class="section-title"><h1>Utilities status</h1></div>
             
-            <code>pip install --user youtube-dl streamlink tcd pipenv</code>
-        
+            <div class="section-content">
+
+                <table class="table">
+
+                    <tr>
+                        <th>Name</th>
+                        <th>Path</th>
+                        <th>Status</th>
+                    </tr>
+
+                    <tr>
+                        <td>FFmpeg</td>
+                        <td>{{ bins.ffmpeg.path }}</td>
+                        <td>{{ bins.ffmpeg.status }}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Twitch chat downloader</td>
+                        <td>{{ bins.tcd.path }}</td>
+                        <td>{{ bins.tcd.status }}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Streamlink</td>
+                        <td>{{ bins.streamlink.path }}</td>
+                        <td>{{ bins.streamlink.status }}</td>
+                    </tr>
+
+                    <tr>
+                        <td>youtube-dl</td>
+                        <td>{{ bins.youtubedl.path }}</td>
+                        <td>{{ bins.youtubedl.status }}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Pipenv</td>
+                        <td>{{ bins.pipenv.path }}</td>
+                        <td>{% autoescape %} {{ bins.pipenv.status|raw }} {% endautoescape %}</td>
+                    </tr>
+
+                </table>
+
+                <hr />
+
+                <strong>Python version:</strong> {{ bins.python.version }}
+
+                <hr />
+                
+                <code>pip install --user youtube-dl streamlink tcd pipenv</code>
+
+            </div>
+            
         </div>
 
     </section>
