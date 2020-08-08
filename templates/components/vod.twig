@@ -1,0 +1,156 @@
+{% if not vodclass %}
+    <div class="error">Failed to load {{ vodclass.basename }}</div>
+{% else %}
+
+    <div class="video {{ vodclass.is_recording ? 'recording' : '' }} {{ vodclass.is_converted ? 'converted' : '' }}">
+
+        <div id="vod_{{ vodclass.basename }}" class="anchor"></div>
+
+        {# title #}
+        <div class="video-title">
+            <h3>
+                {{ vodclass.streamer_name }}
+                {% if vodclass.started_at %} {{ vodclass.started_at|date('Y-m-d H:i:s') }} {% endif %}
+            </h3>
+        </div>
+
+        {# description #}
+        <div class="video-description">
+
+            {# box art #}
+            <div class="boxart-carousel">
+                
+                {% for game in vodclass.getUniqueGames %}
+                    <img class="boxart-big" title="{{ game.name }}" src="{{ game.image_url }}" />
+                {% endfor %}
+
+            </div>
+            
+            {# video info #}
+            
+
+        </div>
+
+        <div class="video-controls">
+
+            {% if vodclass.is_converted %}
+
+                <a class="button" href="player.php?vod={{ vodclass.basename }}">Play segment 0 and cut</a>
+
+                <a class="button" href="vods/{{ vodclass.basename }}.json">JSON</a>
+
+                <a class="button" href="?save={{ vodclass.basename }}">Save from deletion</a>
+
+                <a class="button" href="?delete={{ vodclass.basename }}">Delete</a>
+
+                {% if vodclass.twitch_vod_id and not vodclass.is_chat_downloaded %}
+                    <a class="button" href="chat.php?vod={{ vodclass.basename }}">Download chat</a>
+                {% endif %}
+
+            {% elseif vodclass.is_recording %}
+
+                {% if vodclass.ended_at %}
+                    <a class="button" href="convert.php?vod='{{ vodclass.basename }}">Convert</a>
+                {% endif %}
+
+                <em>Capturing...</em>
+
+            {% else %}
+                
+                <em>No video file</em>
+
+            {% endif %}
+
+        </div>
+        
+        {# game list / chapters #}
+        <table class="table game-list">
+
+            <thead>
+                <tr>
+                    <th>Offset</th>
+                    <th>Duration</th>
+                    <th>Game</th>
+                    <th>Title</th>
+                    <th>Viewers</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for game in vodclass.getGames %}
+
+                    <!-- GAME: <pre>{{ dump(game) }}</pre> -->
+
+                    <tr>
+                        
+                        {# start timestamp #}
+                        <td>
+                            {{ game.strings.started_at }}
+                        </td>
+
+                        {# duration #}
+                        <td>
+                            <span class="grey">
+                                {% if game.duration %}
+                                    {{ game.duration }}
+                                {% else %}
+                                    Active
+                                {% endif %}
+                            </span>
+                        </td>
+
+                        {# game name #}
+                        <td>
+                            <img class="boxart" src="{{ game.box_art_url }}" />
+
+                            {% if vodclass.is_converted %}
+                                <a href="player.php?vod={{ vodclass.basename }}&start={{ game.offset }}">';
+                                    {{ game.title }}
+                                </a>
+                            {% else %}
+                                {{ game.title }}
+                            {% endif %}
+
+                        </td>
+
+                        {# title #}
+                        <td>{{ game.title }}</td>
+
+                        <td>
+                            <span class="grey">{{ game.viewer_count }}</span>
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+                {% if vodclass.ended_at %}
+                    $diff = $vodclass->started_at->diff($vodclass->ended_at);
+                    <tr>
+                        <td>
+                            ' . $diff->format('%H:%I:%S') . '
+                        </td>
+                        <td colspan="4">
+                            <em>END</em>
+                        </td>
+                    </tr>
+                {% else %}
+
+                    <tr>
+                        {% if vodclass.started_at %}
+                            $diff = $vodclass->started_at->diff( new DateTime() );
+                            <td>' . $diff->format('%H:%I:%S') . '</td>
+                        {% endif %}
+                        <td colspan="4"><em><strong>ONGOING</strong></em></td>
+                    </tr>
+
+                {% endif %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+{% endif %}

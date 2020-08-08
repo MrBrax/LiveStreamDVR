@@ -20,7 +20,10 @@ AppFactory::setContainer($container);
 // Create Twig
 // Set view in Container
 $container->set('view', function() {
-    return Twig::create('../templates', ['cache' => false]);
+    return Twig::create('../templates', [
+        'cache' => false,
+        'debug' => true
+    ]);
 });
 
 // Create App
@@ -29,12 +32,16 @@ $app = AppFactory::create();
 // Add Twig-View Middleware
 $app->add(TwigMiddleware::createFromContainer($app));
 
-
+// config available everywhere
 $container->get('view')->getEnvironment()->addGlobal('config', TwitchConfig::$config);
 
+// test
 $container->get('view')->getEnvironment()->addFilter( new \Twig\TwigFilter('formatBytes', function ($string) {
     return TwitchHelper::formatBytes( $string );
 }));
+
+
+$container->get('view')->getEnvironment()->addExtension(new \Twig\Extension\DebugExtension());
   
   
 // Define named route

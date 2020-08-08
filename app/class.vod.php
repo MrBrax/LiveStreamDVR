@@ -336,6 +336,45 @@ class TwitchVOD {
 
 	}
 
+	public function getGames(){
+
+		$data = [];
+
+		foreach( $this->games as $k => $v ){
+
+			$item = $v;
+
+			$game_data = TwitchHelper::getGame( $item['game_id']);
+
+			$game_time = DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $item['time'] );
+				   
+			
+			if( $game_data['box_art_url'] ){
+				$img_url = $game_data['box_art_url'];
+				$img_url = str_replace("{width}", 14, $img_url);
+				$img_url = str_replace("{height}", 19, $img_url);
+				$item['box_art_url'] = $img_url;
+			}
+
+			
+
+			$item['strings'] = [];
+
+			if( $this->started_at ){
+				$diff = $game_time->diff($this->started_at);
+				$item['strings']['started_at'] = $diff->format('%H:%I:%S');
+			}else{
+				$item['strings']['started_at'] = $game_time->format("Y-m-d H:i:s");
+			}
+
+			$data[] = $item;
+
+		}
+
+		return $data;
+
+	}
+
 	public function getUniqueGames(){
 
 		$unique_games = [];
