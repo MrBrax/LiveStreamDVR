@@ -9,7 +9,8 @@
     "php-di/php-di": "^6.2",
     "ext-mbstring": "*",
     "ext-json": "*",
-    "guzzlehttp/guzzle": "7.0"
+    "guzzlehttp/guzzle": "7.0",
+    "tuupola/slim-basic-auth": "^3.2"
   },
   "autoload": {
     "psr-4": {
