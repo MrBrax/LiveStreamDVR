@@ -44,6 +44,8 @@ class SettingsController
         $api_secret             = $_POST['api_secret'];
         $hook_callback          = $_POST['hook_callback'];
         $debug                  = isset($_POST['debug']);
+        $basepath               = $_POST['basepath'];
+
 
         // TwitchConfig::$config['app_name'] = $app_name;
         TwitchConfig::$config['vods_to_keep'] = (int)$vods_to_keep;
@@ -51,6 +53,7 @@ class SettingsController
         TwitchConfig::$config['api_client_id'] = $api_client_id;
         TwitchConfig::$config['hook_callback'] = $hook_callback;
         TwitchConfig::$config['debug'] = $debug;
+        TwitchConfig::$config['basepath'] = $basepath;
         if($api_secret) TwitchConfig::$config['api_secret'] = $api_secret;
 
         TwitchConfig::saveConfig();

@@ -52,6 +52,9 @@ $app->add(TwigMiddleware::createFromContainer($app));
 // config available everywhere
 $container->get('view')->getEnvironment()->addGlobal('config', TwitchConfig::$config);
 
+// debug available everywhere
+$container->get('view')->getEnvironment()->addGlobal('debug', TwitchConfig::cfg('debug', false));
+
 // format bytes
 $container->get('view')->getEnvironment()->addFilter(new TwigFilter('formatBytes', function ($string) {
     return TwitchHelper::formatBytes($string);

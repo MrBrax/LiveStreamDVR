@@ -1,5 +1,8 @@
-<div class="top-menu-item title"><a href="{{ url_for('dashboard') }}">{{ config.app_name }}</a></div>
-<!-- streamers here -->
+<div class="top-menu-item title">
+    <a href="{{ url_for('dashboard') }}">
+        {{ config.app_name }} {% if debug %}(debug){% endif %}
+    </a>
+</div>
 
 {% if streamerList %}
 
