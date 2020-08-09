@@ -52,17 +52,21 @@ $app->add(TwigMiddleware::createFromContainer($app));
 // config available everywhere
 $container->get('view')->getEnvironment()->addGlobal('config', TwitchConfig::$config);
 
-// test
+// format bytes
 $container->get('view')->getEnvironment()->addFilter(new TwigFilter('formatBytes', function ($string) {
     return TwitchHelper::formatBytes($string);
 }));
 
+// human duration
 $container->get('view')->getEnvironment()->addFilter(new TwigFilter('humanDuration', function ($string) {
     return TwitchHelper::printHumanDuration($string);
 }));
 
+// debug settings
 if( TwitchConfig::cfg('debug', false) ){
+    TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Enabling debugging settings for slim..." );
     $container->get('view')->getEnvironment()->addExtension(new DebugExtension());
+    $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 }
 
 // Define named route
@@ -84,12 +88,13 @@ $app->get('/chat', VodController::class . ':chat')->setName('chat');
 $app->get('/save', VodController::class . ':save')->setName('save');
 $app->get('/delete', VodController::class . ':delete')->setName('delete');
 
-$app->get('/hook.php', HookController::class . ':hook')->setName('hook.php');
 $app->get('/hook', HookController::class . ':hook')->setName('hook');
+$app->post('/hook', HookController::class . ':hook')->setName('hook_post');
 
 $app->get('/sub', SubController::class . ':sub')->setName('sub');
 $app->get('/subs', SubController::class . ':subs')->setName('subs');
 
+// force start recording of streamer
 $app->get('/force_record/{username}', function (Request $request, Response $response, array $args) {
     $streams = TwitchHelper::getStreams( TwitchHelper::getChannelId( $args['username'] ) );
     if($streams){
@@ -99,6 +104,8 @@ $app->get('/force_record/{username}', function (Request $request, Response $resp
         ];
         $TwitchAutomator = new App\TwitchAutomator();
         $TwitchAutomator->handle( $data );
+    }else{
+        $response->getBody()->write("No streams found for " . $args['username']);
     }
     return $response;
 })->setName('force_record');
