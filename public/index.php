@@ -80,7 +80,7 @@ if( TwitchConfig::cfg('password') ){
 
 // debug settings
 if( TwitchConfig::cfg('debug', false) ){
-    TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Enabling debugging settings for slim..." );
+    // TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Enabling debugging settings for slim..." );
     $container->get('view')->getEnvironment()->addExtension(new DebugExtension());
     $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 }

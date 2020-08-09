@@ -6,7 +6,7 @@
 
         <section class="section">
 
-            <div class="section-title"><h1>Streamers</h1></div>
+            <div class="section-title"><h1>Streamers (broken atm)</h1></div>
 
             <div class="section-content">
 
@@ -49,7 +49,7 @@
 
         <section class="section">
 
-            <div class="section-title"><h1>New streamer</h1></div>
+            <div class="section-title"><h1>New streamer (broken atm)</h1></div>
 
             <div class="section-content">
 
@@ -92,7 +92,7 @@
                         <label><input class="input" type="text" name="password" value="{{ config.password }}" /> Password (keep blank for none) - username is <strong>admin</strong></label>
                     </div>
                     <div class="control">
-                        <label><input class="input" type="text" name="vods_to_keep" value="{{ config.vods_to_keep }}" /> VODs to keep</label>
+                        <label><input class="input" type="text" name="vods_to_keep" value="{{ config.vods_to_keep }}" /> VODs to keep per streamer</label>
                     </div>
                     <div class="control">
                         <label><input class="input" type="text" name="storage_per_streamer" value="{{ config.storage_per_streamer }}" /> Gigabytes of storage per streamer</label>
@@ -107,7 +107,7 @@
                         <label><input class="input" type="text" name="hook_callback" value="{{ config.hook_callback }}" /> Hook callback</label>
                     </div>
                     <div class="control">
-                        <label><input class="input" type="text" name="vod_container" value="{{ config.vod_container ?: 'mp4' }}" /> VOD container (mp4/mkv)</label>
+                        <label><input class="input" type="text" name="vod_container" value="{{ config.vod_container ?: 'mp4' }}" /> VOD container (mp4/mkv) <em>(not tested)</em></label>
                     </div>
                     <div class="control">
                         <label><input type="checkbox" name="debug" {{ config.debug ? 'checked="checked"' : '' }} /> Debug</label>
