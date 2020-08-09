@@ -251,6 +251,40 @@ class TwitchHelper {
 	}
 
 	/**
+	 * Return videos for a streamer id
+	 *
+	 * @param int $streamer_id
+	 * @return array|false
+	 */
+	public static function getStreams( $streamer_id ){
+
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/streams?user_id=' . $streamer_id);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, [
+			'Authorization: Bearer ' . self::getAccessToken(),
+		    'Client-ID: ' . TwitchConfig::cfg('api_client_id')
+		]);
+
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+
+		$server_output = curl_exec($ch);
+
+		curl_close($ch);
+
+		$json = json_decode( $server_output, true );
+
+		if( !$json['data'] ){
+			self::log( self::LOG_ERROR, "No streams found for user id " . $streamer_id);
+			return false;
+		}
+
+		self::log( self::LOG_INFO, "Querying streams for streamer id " . $streamer_id);
+
+		return $json['data'] ?: false;
+
+	}
+
+	/**
 	 * Get game by ID from the cache
 	 *
 	 * @param string $id

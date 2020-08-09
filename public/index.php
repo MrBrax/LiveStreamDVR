@@ -90,6 +90,20 @@ $app->get('/hook', HookController::class . ':hook')->setName('hook');
 $app->get('/sub', SubController::class . ':sub')->setName('sub');
 $app->get('/subs', SubController::class . ':subs')->setName('subs');
 
+$app->get('/force_record/{username}', function (Request $request, Response $response, array $args) {
+    $streams = TwitchHelper::getStreams( TwitchHelper::getChannelId( $args['username'] ) );
+    if($streams){
+        set_time_limit(0);
+        $data = [
+            'data' => $streams
+        ];
+        $TwitchAutomator = new App\TwitchAutomator();
+        $TwitchAutomator->handle( $data );
+    }
+    return $response;
+})->setName('force_record');
+
+
 // Run app
 $app->run();
 

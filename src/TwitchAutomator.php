@@ -197,6 +197,11 @@ class TwitchAutomator {
 
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Handle called");
 
+		if( !$data['data'] ){
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "No data supplied for handle");
+			return false;
+		}
+
 		$data_id = $data['data'][0]['id'];
 		// $data_title = $data['data'][0]['title'];
 		// $data_started = $data['data'][0]['started_at'];
@@ -247,9 +252,11 @@ class TwitchAutomator {
 			return false;
 		}
 
-		$game_db = json_decode( file_get_contents( __DIR__ . DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR . "games_v2.json" ), true );
+		$game_db_file = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "games_v2.json";
 
-		if( $game_db[ $id ] ){
+		$game_db = json_decode( file_get_contents( $game_db_file ), true );
+
+		if( isset( $game_db[ $id ] ) && $game_db[ $id ] ){
 			$this->errors[] = 'Game is in database';
 			return $game_db[ $id ]['name'];
 		}
@@ -285,7 +292,7 @@ class TwitchAutomator {
 
 			// $game_db[ $id ] = $game_data["name"];
 
-			file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR . "games_v2.json", json_encode( $game_db ) );
+			file_put_contents( $game_db_file, json_encode( $game_db ) );
 
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "New game saved to cache: " . $game["name"]);
 
@@ -732,18 +739,20 @@ class TwitchAutomator {
 
 		$data_string = json_encode($data);
 
+		$headers = [
+			'Client-ID' => TwitchConfig::cfg('api_client_id'),
+			'Content-Type' => 'application/json',
+			'Content-Length' => strlen($data_string),
+			'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
+		];
+		
 		/*
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_POST, 1);
 		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, [
-		    'Content-Type: application/json',
-			'Content-Length: ' . strlen($data_string),
-			'Authorization: Bearer ' . TwitchHelper::getAccessToken(),
-		    'Client-ID: ' . TwitchConfig::cfg('api_client_id')
-		]);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
 		// curl_setopt($ch, CURLOPT_HEADER, TRUE);
 		// curl_setopt($ch, CURLOPT_NOBODY, TRUE); // remove body
@@ -757,22 +766,31 @@ class TwitchAutomator {
 		curl_close($ch);
 		*/
 
-		$client = new \GuzzleHttp\Client();
-		$response = $client->request('POST', $url, [
-			'headers' => [
-				'Client-ID: ' . TwitchConfig::cfg('api_client_id'),
-				'Content-Type: application/json',
-				'Content-Length: ' . strlen($data_string),
-				'Authorization: Bearer ' . TwitchHelper::getAccessToken(),
-			],
+
+		$client = new \GuzzleHttp\Client([
+			'headers' => $headers
+		]);
+
+		$response = $client->post( $url, [
+			'json' => $data_string,
 			'body' => $data_string
 		]);
 
+		/*
+		$client = new \GuzzleHttp\Client();
+		$response = $client->request('POST', $url, [
+			'headers' => $headers,
+			'body' => $data_string
+		]);
+		*/
+
 		$server_output = $response->getBody()->getContents();
+		$http_code = $response->getStatusCode();
+
+		
 
 		$json = json_decode( $server_output, true );
-
-		$http_code = $response->getStatusCode();
+		
 
 		if( $http_code == 202 ){
 

@@ -42,6 +42,8 @@
                             {{ streamer.vods_list|length }} vods
                              &middot; 
                             {{ streamer.vods_size|formatBytes }}
+                             &middot;
+                             <a href="{{ url_for('force_record', { 'username': streamer.username }) }}">record</a>
                         </span>
                     </div>
 
