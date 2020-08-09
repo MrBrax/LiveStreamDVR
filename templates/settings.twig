@@ -84,7 +84,7 @@
 
             <div class="section-content">
 
-                <form method="POST" action="/settings/save">
+                <form method="POST" action="{{ url_for('settings_save') }}">
                     <div class="control">
                         <label><input class="input" type="text" name="vods_to_keep" value="{{ config.vods_to_keep }}" /> VODs to keep</label>
                     </div>

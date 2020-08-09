@@ -67,7 +67,7 @@ if( TwitchConfig::cfg('debug', false) ){
 
 // Define named route
 $app->get('/', function (Request $request, Response $response, array $args) {
-    $response->getBody()->write("Hello, World!");
+    $response->getBody()->write("Hello, World! Visit /dashboard to continue.");
     return $response;
     // return $response->withHeader('Location', '/dashboard')->withStatus(200);
 })->setName('index');

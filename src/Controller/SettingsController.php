@@ -26,7 +26,7 @@ class SettingsController
     public function settings(Request $request, Response $response, array $args) {
         
         $sub_callback = TwitchConfig::cfg('hook_callback');
-        $sub_callback = str_replace('hook.php', 'sub', $sub_callback);
+        $sub_callback = str_replace('/hook', '/sub', $sub_callback);
 
         return $this->twig->render($response, 'settings.twig', [
             'streamers' => TwitchConfig::getStreamers(),
@@ -55,7 +55,10 @@ class SettingsController
 
         TwitchConfig::saveConfig();
 
-        return $response->withHeader('Location', '/settings')->withStatus(200);
+        $response->getBody()->write("Settings saved.");
+        return $response;
+
+        // return $response->withHeader('Location', $this->router->pathFor('settings') )->withStatus(200);
 
     }
 

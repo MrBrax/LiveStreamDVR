@@ -43,9 +43,9 @@ where streamlink, youtube-dl, and tcd is installed with python
 ---
 `hook_callback`
 
-full url of where the webhook from twitch should post to, ending with `hook.php`
+full url of where the webhook from twitch should post to, ending with `/hook`
 
-e.g. `http://example.com/twitchautomator/hook.php`
+e.g. `http://example.com/twitchautomator/hook`
 
 ---
 `vods_to_keep`
