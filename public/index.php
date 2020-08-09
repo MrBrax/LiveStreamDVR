@@ -29,8 +29,8 @@ AppFactory::setContainer($container);
 // Set view in Container
 
 $twigConfig = Twig::create( __DIR__ . '/../templates', [
-    'cache' => false,
-    'debug' => true
+    'cache' => __DIR__ . '/../cache',
+    'debug' => TwitchConfig::cfg('debug', false)
 ]);
 
 $container->set('view', function () use ($twigConfig) {
@@ -42,7 +42,9 @@ $container->set( Twig::class, $twigConfig );
 // Create App
 $app = AppFactory::create();
 
-// $app->setBasePath('/bbot');
+if( TwitchConfig::cfg('basepath') ){
+    $app->setBasePath( TwitchConfig::cfg('basepath') );
+}
 
 // Add Twig-View Middleware
 $app->add(TwigMiddleware::createFromContainer($app));
@@ -59,7 +61,9 @@ $container->get('view')->getEnvironment()->addFilter(new TwigFilter('humanDurati
     return TwitchHelper::printHumanDuration($string);
 }));
 
-$container->get('view')->getEnvironment()->addExtension(new DebugExtension());
+if( TwitchConfig::cfg('debug', false) ){
+    $container->get('view')->getEnvironment()->addExtension(new DebugExtension());
+}
 
 // Define named route
 $app->get('/', function (Request $request, Response $response, array $args) {
@@ -86,14 +90,6 @@ $app->get('/hook', HookController::class . ':hook')->setName('hook');
 $app->get('/sub', SubController::class . ':sub')->setName('sub');
 $app->get('/subs', SubController::class . ':subs')->setName('subs');
 
-/*
-$app->get('/settings', function ($request, $response, $args) {
-    return $this->get('view')->render($response, 'settings.twig', [
-        'streamers' => TwitchConfig::getStreamers(),
-    ]);
-})->setName('settings');
-*/
-
 // Run app
 $app->run();
-// TODO: make routes and views
+

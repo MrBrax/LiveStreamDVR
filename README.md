@@ -1,6 +1,5 @@
 # TwitchAutomator
 
-**DOES NOT WORK WITH NGINX, DON'T EVEN BOTHER**
 
 1. Install dependencies with composer.
 
@@ -9,6 +8,8 @@
 3. Configure using the `config.json` file in the `config` directory.
 
 4. Visit `/sub` in your web browser to check that subscribing to the webhooks work. Make it automatic with a cronjob using wget/curl later (check `/settings` for syntax). Check `/subs` for subscription status. **This thing requires a public facing webserver.**
+
+Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in-subdirectory
 
 *One high-profile streamer VOD of 10 hours is about 30-50GB.*
 

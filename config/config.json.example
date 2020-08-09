@@ -1,5 +1,6 @@
 {
     "app_name": "twitch webhook v2",
+    "basepath": "",
     "api_client_id": "",
     "api_secret": "",
     "bin_dir": "",
