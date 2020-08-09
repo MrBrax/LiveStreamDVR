@@ -1,5 +1,7 @@
 # TwitchAutomator
 
+**DOES NOT WORK WITH NGINX, DON'T EVEN BOTHER**
+
 1. Install dependencies with composer.
 
 2. Install utilities with pip, see below

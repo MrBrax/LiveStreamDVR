@@ -42,6 +42,8 @@ $container->set( Twig::class, $twigConfig );
 // Create App
 $app = AppFactory::create();
 
+// $app->setBasePath('/bbot');
+
 // Add Twig-View Middleware
 $app->add(TwigMiddleware::createFromContainer($app));
 
@@ -61,7 +63,9 @@ $container->get('view')->getEnvironment()->addExtension(new DebugExtension());
 
 // Define named route
 $app->get('/', function (Request $request, Response $response, array $args) {
-    return $response->withHeader('Location', '/dashboard')->withStatus(200);
+    $response->getBody()->write("Hello, World!");
+    return $response;
+    // return $response->withHeader('Location', '/dashboard')->withStatus(200);
 })->setName('index');
 
 $app->get('/dashboard', DashboardController::class . ':dashboard')->setName('dashboard');

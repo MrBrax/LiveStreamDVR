@@ -2,6 +2,8 @@
 
 namespace App;
 
+use getID3;
+
 class TwitchAutomator {
 
 	public $data_cache 		= [];
@@ -379,7 +381,7 @@ class TwitchAutomator {
 		if( !$data_id ){
 			$this->errors[] = 'No data id for download';
 			$this->notify($data, 'NO DATA SUPPLIED FOR DOWNLOAD, TRY #' . $tries, self::NOTIFY_ERROR);
-			throw new Exception('No data supplied');
+			throw new \Exception('No data supplied');
 			return;
 		}
 
@@ -434,7 +436,7 @@ class TwitchAutomator {
 				$this->notify($basename, 'GIVING UP, TOO MANY TRIES', self::NOTIFY_ERROR);
 				// unlink( 'vods/' . $basename . '.json' );
 				rename( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json', TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json.broken' );
-				throw new Exception('Too many tries');
+				throw new \Exception('Too many tries');
 				return;
 			}
 
@@ -485,7 +487,7 @@ class TwitchAutomator {
 
 			try {
 				$id3_data = $getID3->analyze($converted_filename);
-			} catch (Exception $e) {
+			} catch (\Exception $e) {
 				$this->notify($basename, 'Error with id3 analyzer' . $e, self::NOTIFY_ERROR);
 			}
 
@@ -647,7 +649,8 @@ class TwitchAutomator {
 		$int = 1;
 
 		while( file_exists( $converted_filename ) ){
-			$this->errors[] = 'File exists, making a new name';
+			$this->errors[] = 'File exists while converting, making a new name';
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "File exists while converting, making a new name for " . $basename);
 			$converted_filename = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '-' . $int . '.' . $container_ext;
 			$int++;
 		}
@@ -679,6 +682,20 @@ class TwitchAutomator {
 	 * @return string|bool
 	 */
 	public function sub( $streamer_name ){
+		return $this->sub_handler($streamer_name, 'subscribe');
+	}
+
+	/**
+	 * Unsubscribe to a streamer
+	 *
+	 * @param string $streamer_name
+	 * @return string|bool
+	 */
+	public function unsub( $streamer_name ){
+		return $this->sub_handler($streamer_name, 'unsubscribe');
+	}
+
+	public function sub_handler( $streamer_name, $mode = 'subscribe' ){
 
 		/**
 		 * TODO: Fix this
@@ -691,13 +708,13 @@ class TwitchAutomator {
 		}
 		*/
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Calling subscribe for " . $streamer_name);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Calling " . $mode . " for " . $streamer_name);
 
 		$streamer_id = TwitchHelper::getChannelId($streamer_name);
 
 		if( !$streamer_id ) {
 			$this->notify('Streamer ID not found for: ' . $streamer_name, '[' . $streamer_name . '] [subscribing error]', self::NOTIFY_ERROR);
-			throw new Exception('Streamer ID not found for: ' . $streamer_name);
+			throw new \Exception('Streamer ID not found for: ' . $streamer_name);
 			return false;
 		}
 
@@ -706,7 +723,7 @@ class TwitchAutomator {
 
 		$data = [
 			'hub.callback' => TwitchConfig::cfg('hook_callback'),
-			'hub.mode' => 'subscribe',
+			'hub.mode' => $mode,
 			'hub.topic' => 'https://api.twitch.tv/helix/streams?user_id=' . $streamer_id,
 			'hub.lease_seconds' => TwitchConfig::cfg('sub_lease')
 		];
@@ -715,6 +732,7 @@ class TwitchAutomator {
 
 		$data_string = json_encode($data);
 
+		/*
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_POST, 1);
@@ -737,18 +755,36 @@ class TwitchAutomator {
 		$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
 		curl_close($ch);
+		*/
+
+		$client = new \GuzzleHttp\Client();
+		$response = $client->request('POST', $url, [
+			'headers' => [
+				'Client-ID: ' . TwitchConfig::cfg('api_client_id'),
+				'Content-Type: application/json',
+				'Content-Length: ' . strlen($data_string),
+				'Authorization: Bearer ' . TwitchHelper::getAccessToken(),
+			],
+			'body' => $data_string
+		]);
+
+		$server_output = $response->getBody()->getContents();
+
+		$json = json_decode( $server_output, true );
+
+		$http_code = $response->getStatusCode();
 
 		if( $http_code == 202 ){
 
-			TwitchHelper::log( TwitchHelper::LOG_INFO, "Successfully subscribed to " . $streamer_name);
+			TwitchHelper::log( TwitchHelper::LOG_INFO, "Successfully " . $mode . " to " . $streamer_name);
 
-			$this->notify($server_output, '[' . $streamer_name . '] [subscribing]', self::NOTIFY_GENERIC);
+			// $this->notify($server_output, '[' . $streamer_name . '] [subscribing]', self::NOTIFY_GENERIC);
 
 			return true;
 
 		}else{
 
-			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Failed to subscribe to " . $streamer_name . " | " . $server_output . " | HTTP " . $http_code );
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Failed to " . $mode . " to " . $streamer_name . " | " . $server_output . " | HTTP " . $http_code );
 			
 			return $server_output;
 
@@ -759,7 +795,7 @@ class TwitchAutomator {
 	/**
 	 * TODO: Merge these functions
 	 */
-	public function unsub( $streamer_name ){
+	/*public function unsub( $streamer_name ){
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Calling unsubscribe for " . $streamer_name);
 
@@ -767,7 +803,7 @@ class TwitchAutomator {
 
 		if( !$streamer_id ) {
 			$this->notify('Streamer ID not found for: ' . $streamer_name, '[' . $streamer_name . '] [subscribing error]', self::NOTIFY_ERROR);
-			throw new Exception('Streamer ID not found for: ' . $streamer_name);
+			throw new \Exception('Streamer ID not found for: ' . $streamer_name);
 			return false;
 		}
 
@@ -821,7 +857,9 @@ class TwitchAutomator {
 
 		}
 
-	}
+	}*/
+
+
 
 	/**
 	 * Returns the raw json data of your subscriptions
