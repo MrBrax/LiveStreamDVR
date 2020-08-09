@@ -132,7 +132,7 @@
                     <a class="button" href="/convert?vod='{{ vodclass.basename }}">Convert</a>
                 {% endif %}
 
-                <em>Capturing to {{ vodclass.basename }}.ts - <strong>{{ vodclass.getRecordingSize|formatBytes }}</strong></em>
+                <em>Capturing to {{ vodclass.basename }}.ts (<strong>{{ vodclass.getRecordingSize|formatBytes }}</strong>)</em>
 
             {% else %}
                 
@@ -179,7 +179,7 @@
 
                         {# chapter name #}
                         <td>
-                            <img class="boxart" src="{{ chapter.box_art_url }}" />
+                            {% if chapter.box_art_url %}<img class="boxart" src="{{ chapter.box_art_url }}" />{% endif %}
 
                             {% if vodclass.is_converted %}
                                 <a href="{{ url_for('player') }}?vod={{ vodclass.basename }}&start={{ chapter.offset }}">
