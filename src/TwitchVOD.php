@@ -369,6 +369,11 @@ class TwitchVOD {
 
 	public function parseSegments( $array ){
 
+		if( !$array ){
+			TwitchHelper::log( TwitchHelper::LOG_WARNING, "Couldn't parse any segments on " . $this->basename);
+			return false;
+		}
+
 		$segments = [];
 
 		foreach( $array as $k => $v ){
@@ -469,6 +474,12 @@ class TwitchVOD {
 
 	public function getCurrentGame(){
 		return $this->chapters[ count($this->chapters) - 1 ];
+	}
+
+	public function getRecordingSize(){
+		$filename = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.ts';
+		if(!$filename) return false;
+		return filesize($filename);
 	}
 
 	/**

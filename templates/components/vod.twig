@@ -106,7 +106,6 @@
                 </ul>
 
             {% endif %}
-            
 
         </div>
 
@@ -133,7 +132,7 @@
                     <a class="button" href="/convert?vod='{{ vodclass.basename }}">Convert</a>
                 {% endif %}
 
-                <em>Capturing...</em>
+                <em>Capturing to {{ vodclass.basename }}.ts - <strong>{{ vodclass.getRecordingSize|formatBytes }}</strong></em>
 
             {% else %}
                 
