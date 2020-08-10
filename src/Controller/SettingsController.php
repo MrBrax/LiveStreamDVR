@@ -47,6 +47,9 @@ class SettingsController
         $debug                  = isset($_POST['debug']);
         $basepath               = $_POST['basepath'];
         $password               = $_POST['password'];
+        
+        $bin_dir               = $_POST['bin_dir'];
+        $ffmpeg_path           = $_POST['ffmpeg_path'];
 
         // TwitchConfig::$config['app_name'] = $app_name;
         TwitchConfig::$config['vods_to_keep'] = (int)$vods_to_keep;
@@ -56,6 +59,8 @@ class SettingsController
         TwitchConfig::$config['debug'] = $debug;
         TwitchConfig::$config['basepath'] = $basepath;
         TwitchConfig::$config['password'] = $password;
+        TwitchConfig::$config['bin_dir'] = $bin_dir;
+        TwitchConfig::$config['ffmpeg_path'] = $ffmpeg_path;
         if($api_secret) TwitchConfig::$config['api_secret'] = $api_secret;
 
         TwitchConfig::saveConfig();

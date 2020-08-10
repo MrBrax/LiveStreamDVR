@@ -52,12 +52,17 @@ class TwitchHelper {
 				unlink( self::$accessTokenFile );
 			}
 		}
-		
 
 		if( !$force && file_exists( self::$accessTokenFile ) ){
 			self::log( self::LOG_DEBUG, "Fetched access token from cache");
 			return file_get_contents( self::$accessTokenFile );
 		}
+
+		if( !TwitchConfig::cfg('api_secret') || !TwitchConfig::cfg('api_client_id') ){
+			self::log( self::LOG_ERROR, "Missing either api secret or client id, aborting fetching of access token!");
+			return false;
+		}
+		
 
 		// oauth2
 		$oauth_url = 'https://id.twitch.tv/oauth2/token';

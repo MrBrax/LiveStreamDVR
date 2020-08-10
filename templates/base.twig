@@ -12,6 +12,14 @@
 
     <body>
 
+        <div class="big-error">
+            {% if not config.hook_callback %}No hook callback set, please visit settings.<br>{% endif %}
+            {% if not config.api_client_id %}No API client id set, please visit settings.<br>{% endif %}
+            {% if not config.api_secret %}No API secret set, please visit settings.<br>{% endif %}
+            {% if not config.bin_dir %}No Python bin directory set, please visit settings.<br>{% endif %}
+            {% if not config.ffmpeg_path %}No FFmpeg path set, please visit settings.<br>{% endif %}
+        </div>
+
         <div class="top-menu">
             {% include "components/menu.twig" %}
         </div>

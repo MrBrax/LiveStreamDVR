@@ -86,6 +86,12 @@
 
                 <form method="POST" action="{{ url_for('settings_save') }}">
                     <div class="control">
+                        <label><input class="input" type="text" name="bin_dir" value="{{ config.bin_dir }}" /> Python binary directory</label>
+                    </div>
+                    <div class="control">
+                        <label><input class="input" type="text" name="ffmpeg_path" value="{{ config.ffmpeg_path }}" /> FFmpeg path</label>
+                    </div>
+                    <div class="control">
                         <label><input class="input" type="text" name="basepath" value="{{ config.basepath }}" /> App basepath (keep blank if you're unsure)</label>
                     </div>
                     <div class="control">

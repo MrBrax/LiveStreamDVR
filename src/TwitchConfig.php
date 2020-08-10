@@ -61,6 +61,7 @@ class TwitchConfig {
 
 TwitchConfig::loadConfig();
 
+/*
 if( !TwitchConfig::cfg("api_client_id") ) die("api_client_id missing from config file");
 if( !TwitchConfig::cfg("api_secret") ) die("api_secret missing from config file");
 
@@ -72,3 +73,4 @@ if( !file_exists( TwitchHelper::path_ffmpeg() ) ){
 if( is_dir( TwitchHelper::path_ffmpeg() ) ){
 	die("ffmpeg_path is set to a directory, not an executable");
 }
+*/
