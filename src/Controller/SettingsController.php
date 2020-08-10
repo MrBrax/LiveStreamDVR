@@ -96,8 +96,7 @@ class SettingsController
         TwitchConfig::$config['streamers'][] = $streamer;
         TwitchConfig::saveConfig();
 
-        $TwitchAutomator = new TwitchAutomator();
-        $TwitchAutomator->sub( $username );
+        TwitchHelper::sub( $username );
 
         $response->getBody()->write("Streamer added.");
         return $response;
@@ -142,8 +141,7 @@ class SettingsController
         TwitchConfig::$config['streamers'][ $key ] = $streamer;
         TwitchConfig::saveConfig();
 
-        $TwitchAutomator = new TwitchAutomator();
-        $TwitchAutomator->sub( $username );
+        TwitchHelper::sub( $username );
 
         $response->getBody()->write("Streamer added.");
         return $response;
@@ -168,8 +166,7 @@ class SettingsController
             return $response;
         }
 
-        $TwitchAutomator = new TwitchAutomator();
-        $TwitchAutomator->unsub( $username );
+        TwitchHelper::unsub( $username );
         
         unset(TwitchConfig::$config['streamers'][ $key ]);
         TwitchConfig::saveConfig();

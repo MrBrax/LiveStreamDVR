@@ -27,7 +27,7 @@ class SubController {
 
             $response->getBody()->write('<pre>');
             
-            $ret = $TwitchAutomator->sub( $username );
+            $ret = TwitchHelper::sub( $username );
 
             if( $ret === true ){
                 $response->getBody()->write('Subscribed');
@@ -53,7 +53,7 @@ class SubController {
 
         $TwitchAutomator = new TwitchAutomator();
 
-        var_dump( $TwitchAutomator->getSubs() );
+        var_dump( TwitchHelper::getSubs() );
 
         return $response;
 

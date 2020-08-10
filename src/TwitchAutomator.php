@@ -263,6 +263,7 @@ class TwitchAutomator {
 
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Game id " . $id . " not in cache, fetching..." );
 
+		/*
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/games?id=' . $id);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -276,6 +277,23 @@ class TwitchAutomator {
 
 		curl_close ($ch);
 
+		$json = json_decode( $server_output, true );
+		*/
+
+		$client = new \GuzzleHttp\Client([
+			'base_uri' => 'https://api.twitch.tv',
+			'headers' => [
+				'Client-ID' => TwitchConfig::cfg('api_client_id'),
+				'Content-Type' => 'application/json',
+				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
+			]
+		]);
+
+		$response = $client->request('GET', '/helix/games', [
+			'query' => ['id' => $id]
+		]);
+
+		$server_output = $response->getBody()->getContents();
 		$json = json_decode( $server_output, true );
 
 		$game_data = $json["data"][0];
@@ -679,232 +697,6 @@ class TwitchAutomator {
 		$this->info[] = 'ffmpeg output: ' . $output_convert;
 		
 		return $converted_filename;
-
-	}
-
-	/**
-	 * Subscribe to a streamer
-	 *
-	 * @param string $streamer_name
-	 * @return string|bool
-	 */
-	public function sub( $streamer_name ){
-		return $this->sub_handler($streamer_name, 'subscribe');
-	}
-
-	/**
-	 * Unsubscribe to a streamer
-	 *
-	 * @param string $streamer_name
-	 * @return string|bool
-	 */
-	public function unsub( $streamer_name ){
-		return $this->sub_handler($streamer_name, 'unsubscribe');
-	}
-
-	public function sub_handler( $streamer_name, $mode = 'subscribe' ){
-
-		/**
-		 * TODO: Fix this
-		 */
-		/*
-		 if( !TwitchConfig::getStreamers()[$streamer_name] ) {
-			$this->notify('Streamer not found: ' . $streamer_name, '[' . $streamer_name . '] [subscribing error]', self::NOTIFY_ERROR);
-			throw new Exception('Streamer not found: ' . $streamer_name);
-			return false;
-		}
-		*/
-
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Calling " . $mode . " for " . $streamer_name);
-
-		$streamer_id = TwitchHelper::getChannelId($streamer_name);
-
-		if( !$streamer_id ) {
-			$this->notify('Streamer ID not found for: ' . $streamer_name, '[' . $streamer_name . '] [subscribing error]', self::NOTIFY_ERROR);
-			throw new \Exception('Streamer ID not found for: ' . $streamer_name);
-			return false;
-		}
-
-		$url = 'https://api.twitch.tv/helix/webhooks/hub';
-		$method = 'POST';
-
-		$data = [
-			'hub.callback' => TwitchConfig::cfg('hook_callback'),
-			'hub.mode' => $mode,
-			'hub.topic' => 'https://api.twitch.tv/helix/streams?user_id=' . $streamer_id,
-			'hub.lease_seconds' => TwitchConfig::cfg('sub_lease')
-		];
-
-		// print_r( $data );
-
-		$data_string = json_encode($data);
-
-		$headers = [
-			'Client-ID' => TwitchConfig::cfg('api_client_id'),
-			'Content-Type' => 'application/json',
-			'Content-Length' => strlen($data_string),
-			'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
-		];
-		
-		/*
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_POST, 1);
-		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-		// curl_setopt($ch, CURLOPT_HEADER, TRUE);
-		// curl_setopt($ch, CURLOPT_NOBODY, TRUE); // remove body
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-
-		$server_output = curl_exec($ch);
-		$info = curl_getinfo($ch);
-
-		$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-		curl_close($ch);
-		*/
-
-
-		$client = new \GuzzleHttp\Client([
-			'headers' => $headers
-		]);
-
-		$response = $client->post( $url, [
-			'json' => $data_string,
-			'body' => $data_string
-		]);
-
-		/*
-		$client = new \GuzzleHttp\Client();
-		$response = $client->request('POST', $url, [
-			'headers' => $headers,
-			'body' => $data_string
-		]);
-		*/
-
-		$server_output = $response->getBody()->getContents();
-		$http_code = $response->getStatusCode();
-
-		
-
-		$json = json_decode( $server_output, true );
-		
-
-		if( $http_code == 202 ){
-
-			TwitchHelper::log( TwitchHelper::LOG_INFO, "Successfully " . $mode . " to " . $streamer_name);
-
-			// $this->notify($server_output, '[' . $streamer_name . '] [subscribing]', self::NOTIFY_GENERIC);
-
-			return true;
-
-		}else{
-
-			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Failed to " . $mode . " to " . $streamer_name . " | " . $server_output . " | HTTP " . $http_code );
-			
-			return $server_output;
-
-		}
-
-	}
-
-	/**
-	 * TODO: Merge these functions
-	 */
-	/*public function unsub( $streamer_name ){
-
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Calling unsubscribe for " . $streamer_name);
-
-		$streamer_id = TwitchHelper::getChannelId($streamer_name);
-
-		if( !$streamer_id ) {
-			$this->notify('Streamer ID not found for: ' . $streamer_name, '[' . $streamer_name . '] [subscribing error]', self::NOTIFY_ERROR);
-			throw new \Exception('Streamer ID not found for: ' . $streamer_name);
-			return false;
-		}
-
-		$url = 'https://api.twitch.tv/helix/webhooks/hub';
-		$method = 'POST';
-
-		$data = [
-			'hub.callback' => TwitchConfig::cfg('hook_callback'),
-			'hub.mode' => 'unsubscribe',
-			'hub.topic' => 'https://api.twitch.tv/helix/streams?user_id=' . $streamer_id,
-			'hub.lease_seconds' => TwitchConfig::cfg('sub_lease')
-		];
-
-
-		$data_string = json_encode($data);
-
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_POST, 1);
-		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, [
-		    'Content-Type: application/json',
-			'Content-Length: ' . strlen($data_string),
-			'Authorization: Bearer ' . TwitchHelper::getAccessToken(),
-		    'Client-ID: ' . TwitchConfig::cfg('api_client_id')
-		]);
-
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-
-		$server_output = curl_exec($ch);
-		$info = curl_getinfo($ch);
-
-		$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-		curl_close($ch);
-
-		if( $http_code == 202 ){
-
-			TwitchHelper::log( TwitchHelper::LOG_INFO, "Successfully unsubscribed to " . $streamer_name);
-
-			$this->notify($server_output, '[' . $streamer_name . '] [unsubscribing]', self::NOTIFY_GENERIC);
-
-			return true;
-
-		}else{
-
-			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Failed to unsubscribe to " . $streamer_name . " | " . $server_output . " | HTTP " . $http_code );
-			
-			return $server_output;
-
-		}
-
-	}*/
-
-
-
-	/**
-	 * Returns the raw json data of your subscriptions
-	 *
-	 * @return string
-	 */
-	public function getSubs(){
-
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Requesting subscriptions list");
-
-		// webhook list
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/webhooks/subscriptions');
-		curl_setopt($ch, CURLOPT_HTTPHEADER, [
-			'Authorization: Bearer ' . TwitchHelper::getAccessToken(),
-		    'Client-ID: ' . TwitchConfig::cfg('api_client_id')
-		]);
-		
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-
-		$server_output = curl_exec($ch);
-
-		curl_close ($ch);
-
-		$json = json_decode( $server_output, true );
-
-		return $json;
 
 	}
 

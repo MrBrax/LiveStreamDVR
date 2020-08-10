@@ -151,6 +151,7 @@ class TwitchHelper {
 		}
 
 		// webhook list
+		/*
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/users?login=' . $username);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -163,6 +164,23 @@ class TwitchHelper {
 
 		curl_close ($ch);
 
+		$json = json_decode( $server_output, true );
+		*/
+
+		$client = new \GuzzleHttp\Client([
+			'base_uri' => 'https://api.twitch.tv',
+			'headers' => [
+				'Client-ID' => TwitchConfig::cfg('api_client_id'),
+				'Content-Type' => 'application/json',
+				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
+			]
+		]);
+
+		$response = $client->request('GET', '/helix/users', [
+			'query' => ['login' => $username]
+		]);
+
+		$server_output = $response->getBody()->getContents();
 		$json = json_decode( $server_output, true );
 
 		if( !$json["data"] ){
@@ -190,6 +208,7 @@ class TwitchHelper {
 	 */
 	public static function getVideos( $streamer_id ){
 
+		/*
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/videos?user_id=' . $streamer_id);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -203,6 +222,23 @@ class TwitchHelper {
 
 		curl_close($ch);
 
+		$json = json_decode( $server_output, true );
+		*/
+
+		$client = new \GuzzleHttp\Client([
+			'base_uri' => 'https://api.twitch.tv',
+			'headers' => [
+				'Client-ID' => TwitchConfig::cfg('api_client_id'),
+				'Content-Type' => 'application/json',
+				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
+			]
+		]);
+
+		$response = $client->request('GET', '/helix/videos', [
+			'query' => ['user_id' => $streamer_id]
+		]);
+
+		$server_output = $response->getBody()->getContents();
 		$json = json_decode( $server_output, true );
 
 		if( !$json['data'] ){
@@ -224,6 +260,7 @@ class TwitchHelper {
 	 */
 	public static function getVideo( $video_id ){
 
+		/*
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/videos?id=' . $video_id);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -237,6 +274,23 @@ class TwitchHelper {
 
 		curl_close($ch);
 
+		$json = json_decode( $server_output, true );
+		*/
+
+		$client = new \GuzzleHttp\Client([
+			'base_uri' => 'https://api.twitch.tv',
+			'headers' => [
+				'Client-ID' => TwitchConfig::cfg('api_client_id'),
+				'Content-Type' => 'application/json',
+				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
+			]
+		]);
+
+		$response = $client->request('GET', '/helix/videos', [
+			'query' => ['id' => $video_id]
+		]);
+
+		$server_output = $response->getBody()->getContents();
 		$json = json_decode( $server_output, true );
 
 		if( !$json['data'] ){
@@ -258,6 +312,7 @@ class TwitchHelper {
 	 */
 	public static function getStreams( $streamer_id ){
 
+		/*
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/streams?user_id=' . $streamer_id);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -271,6 +326,22 @@ class TwitchHelper {
 
 		curl_close($ch);
 
+		$json = json_decode( $server_output, true );
+		*/
+		$client = new \GuzzleHttp\Client([
+			'base_uri' => 'https://api.twitch.tv',
+			'headers' => [
+				'Client-ID' => TwitchConfig::cfg('api_client_id'),
+				'Content-Type' => 'application/json',
+				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
+			]
+		]);
+
+		$response = $client->request('GET', '/helix/streams', [
+			'query' => ['user_id' => $streamer_id]
+		]);
+
+		$server_output = $response->getBody()->getContents();
 		$json = json_decode( $server_output, true );
 
 		if( !$json['data'] ){
@@ -444,8 +515,129 @@ class TwitchHelper {
 
 	}
 
-	// path helpers
+	/**
+	 * Subscribe to a streamer
+	 *
+	 * @param string $streamer_name
+	 * @return string|bool
+	 */
+	public static function sub( $streamer_name ){
+		return self::sub_handler($streamer_name, 'subscribe');
+	}
 
+	/**
+	 * Unsubscribe to a streamer
+	 *
+	 * @param string $streamer_name
+	 * @return string|bool
+	 */
+	public static function unsub( $streamer_name ){
+		return self::sub_handler($streamer_name, 'unsubscribe');
+	}
+
+	private static function sub_handler( $streamer_name, $mode = 'subscribe' ){
+
+		/**
+		 * TODO: Fix this
+		 */
+		/*
+		 if( !TwitchConfig::getStreamers()[$streamer_name] ) {
+			$this->notify('Streamer not found: ' . $streamer_name, '[' . $streamer_name . '] [subscribing error]', self::NOTIFY_ERROR);
+			throw new Exception('Streamer not found: ' . $streamer_name);
+			return false;
+		}
+		*/
+
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Calling " . $mode . " for " . $streamer_name);
+
+		$streamer_id = TwitchHelper::getChannelId($streamer_name);
+
+		if( !$streamer_id ) {
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Streamer ID not found for: " . $streamer_name );
+			throw new \Exception('Streamer ID not found for: ' . $streamer_name);
+			return false;
+		}
+
+		$url = 'https://api.twitch.tv/helix/webhooks/hub';
+		$method = 'POST';
+
+		$data = [
+			'hub.callback' => TwitchConfig::cfg('hook_callback'),
+			'hub.mode' => $mode,
+			'hub.topic' => 'https://api.twitch.tv/helix/streams?user_id=' . $streamer_id,
+			'hub.lease_seconds' => TwitchConfig::cfg('sub_lease')
+		];
+
+		$data_string = json_encode($data);
+
+		$client = new \GuzzleHttp\Client([
+			'base_uri' => 'https://api.twitch.tv',
+			'headers' => [
+				'Client-ID' => TwitchConfig::cfg('api_client_id'),
+				'Content-Type' => 'application/json',
+				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
+			]
+		]);
+
+		$response = $client->request('POST', '/helix/webhooks/hub', [
+			'json' => $data
+		]);
+
+		$server_output = $response->getBody()->getContents();
+		$http_code = $response->getStatusCode();		
+
+		$json = json_decode( $server_output, true );
+		
+
+		if( $http_code == 202 ){
+
+			TwitchHelper::log( TwitchHelper::LOG_INFO, "Successfully " . $mode . " to " . $streamer_name);
+
+			// $this->notify($server_output, '[' . $streamer_name . '] [subscribing]', self::NOTIFY_GENERIC);
+
+			return true;
+
+		}else{
+
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Failed to " . $mode . " to " . $streamer_name . " | " . $server_output . " | HTTP " . $http_code );
+			
+			return $server_output;
+
+		}
+
+	}
+
+	/**
+	 * Returns the raw json data of your subscriptions
+	 *
+	 * @return string
+	 */
+	public static function getSubs(){
+
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Requesting subscriptions list");
+
+		$client = new \GuzzleHttp\Client([
+			'base_uri' => 'https://api.twitch.tv',
+			'headers' => [
+				'Client-ID' => TwitchConfig::cfg('api_client_id'),
+				'Content-Type' => 'application/json',
+				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
+			]
+		]);
+
+		$response = $client->request('GET', '/helix/webhooks/subscriptions', [
+			// 'headers' => $headers
+		]);
+
+		$server_output = $response->getBody()->getContents();	
+
+		$json = json_decode( $server_output, true );
+
+		return $json;
+
+	}
+
+	// path helpers
 	public static function is_windows(){
 		return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
 	}
