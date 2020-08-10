@@ -9,7 +9,7 @@
 			],
 			"group": "build",
 			"label": "npm: build:style",
-			"detail": "node-sass ./src/Assets/style.scss > ./public/style.css"
+			"detail": "node-sass ./src/Assets/style.scss > ./public/assets/style.css"
 		}
 	]
 }

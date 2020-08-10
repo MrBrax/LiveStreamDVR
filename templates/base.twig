@@ -1,9 +1,11 @@
 <!DOCTYPE html>
+<html lang="en">
     <head>
         {% block head %}
+        <meta charset="utf-8">
         <meta name="referrer" content="no-referrer" />
         <title>{{ config.app_name }}</title>
-        <link href="style.css" rel="stylesheet" />
+        <link href="{{ base_path() }}/assets/style.css" rel="stylesheet" />
         {% endblock %}
     </head>
 
