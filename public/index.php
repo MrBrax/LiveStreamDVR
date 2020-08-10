@@ -19,7 +19,7 @@ AppFactory::setContainer($container);
 // Set view in Container
 
 $twigConfig = Twig::create( __DIR__ . '/../templates', [
-    'cache' => __DIR__ . '/../cache',
+    'cache' => __DIR__ . '/../cache/twig',
     'debug' => TwitchConfig::cfg('debug', false)
 ]);
 

@@ -252,10 +252,6 @@ class TwitchAutomator {
 			return false;
 		}
 
-		$game_db_file = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "games_v2.json";
-
-		$game_db = json_decode( file_get_contents( $game_db_file ), true );
-
 		$data = TwitchHelper::getGameData( $id );
 
 		if($data){

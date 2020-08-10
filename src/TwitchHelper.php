@@ -8,7 +8,7 @@ class TwitchHelper {
 
 	public static $accessToken;
 
-	public static $accessTokenFile = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "oauth.bin";
+	public static $accessTokenFile = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "oauth.bin";
 
 	public static $accessTokenExpire = 60 * 60 * 24 * 60; // 60 days
 	public static $accessTokenRefresh = 60 * 60 * 24 * 30; // 30 days
@@ -141,7 +141,7 @@ class TwitchHelper {
 	 */
 	public static function getChannelId( $username ){
 
-		$streamers_file =  __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "streamers.json";
+		$streamers_file =  __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "streamers.json";
 
 		$json_streamers = json_decode( file_get_contents( $streamers_file ), true );
 
@@ -378,7 +378,7 @@ class TwitchHelper {
 	 */
 	public static function getGameData( $game_id ){
 
-		$game_db_file = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "games_v2.json";
+		$game_db_file = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "games_v2.json";
 
 		if( !self::$game_db ){
 			self::$game_db = json_decode( file_get_contents( $game_db_file ), true );
