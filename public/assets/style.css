@@ -185,6 +185,11 @@ a.linkback {
     background-color: #bfbfbf; }
   .button:active {
     background-color: #aaa; }
+  .button.is-blue {
+    background-color: #5098f7;
+    color: #fff; }
+    .button.is-blue:hover {
+      background-color: #388af6; }
   .button.is-confirm {
     background-color: #3db92c;
     color: #fff; }

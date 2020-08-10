@@ -97,7 +97,7 @@
                 <ul>
                     {% for segment in vodclass.segments %}
                         <li>
-                            <a href="vods/{{ segment.basename }}">
+                            <a href="{{ base_path() }}/vods/{{ segment.basename }}">
                                 {{ segment.basename }}
                                  ({{ segment.filesize|formatBytes }})
                             </a>
@@ -114,17 +114,25 @@
 
             {% if vodclass.is_converted %}
 
-                <a class="button" href="{{ url_for('player', { 'vod': vodclass.basename }) }}">Play segment 0 and cut</a>
+                <a class="button is-blue" href="{{ url_for('player', { 'vod': vodclass.basename }) }}">Editor</a>
 
                 <a class="button" href="{{ base_path() }}/vods/{{ vodclass.basename }}.json">JSON</a>
 
                 <a class="button" href="{{ url_for('save', { 'vod': vodclass.basename }) }}">Save from deletion</a>
 
-                <a class="button is-danger" href="{{ url_for('delete', { 'vod': vodclass.basename }) }}">Delete</a>
-
                 {% if vodclass.twitch_vod_id and not vodclass.is_chat_downloaded %}
                     <a class="button" href="{{ url_for('chat', { 'vod': vodclass.basename }) }}">Download chat</a>
                 {% endif %}
+
+                {% if vodclass.twitch_vod_id %}
+                    {% if not vodclass.is_vod_downloaded %}
+                        <a class="button" href="{{ url_for('download', { 'vod': vodclass.basename }) }}">Download VOD</a>
+                    {% else %}
+                        <a class="button" href="{{ base_path() }}/vods/{{ vodclass.basename }}.vod.ts">Play VOD</a>
+                    {% endif %}
+                {% endif %}
+
+                <a class="button is-danger" href="{{ url_for('delete', { 'vod': vodclass.basename }) }}">Delete</a>                
 
             {% elseif vodclass.is_recording %}
 

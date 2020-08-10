@@ -111,6 +111,7 @@ class TwitchVOD {
 		$this->duration_seconds		= $this->json['duration_seconds'];
 
 		$this->is_chat_downloaded = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.chat' );
+		$this->is_vod_downloaded = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.vod.ts' );
 
 		return true;
 
@@ -541,6 +542,37 @@ class TwitchVOD {
 		$this->parseSegments( $this->segments_raw );
 
 		$this->saveJSON();
+
+	}
+
+	public function downloadVod(){
+
+		if( !$this->twitch_vod_id ){
+			throw new \Exception("No twitch vod id for download");
+			return false;
+		}
+
+		$capture_filename = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.vod.ts';
+
+		$video_url = 'https://www.twitch.tv/videos/' . $this->twitch_vod_id;
+
+		// use python pipenv or regular executable
+		if( TwitchConfig::cfg('pipenv') ){
+			$cmd = 'pipenv run streamlink';
+		}else{
+			$cmd = TwitchHelper::path_streamlink();
+		}
+
+		$cmd .= ' -o ' . escapeshellarg($capture_filename); // output file
+		$cmd .= ' ' . escapeshellarg($video_url) . ' best'; // twitch url and quality
+
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting vod download of " . $this->basename );
+		
+		$capture_output = shell_exec( $cmd );
+
+		file_put_contents( __DIR__ . "/../logs/streamlink_vod_" . $this->basename . ".log", $capture_output);
+
+		return $capture_filename;
 
 	}
 

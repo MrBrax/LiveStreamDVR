@@ -147,4 +147,19 @@ class VodController
 
     }
 
+    public function download( Request $request, Response $response, $args ) {
+        
+        $vod = $args['vod'];
+        // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
+
+        $vodclass = new TwitchVOD();
+        $vodclass->load( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vod . '.json' );
+        $vodclass->downloadVod();
+
+        $response->getBody()->write("VOD downloaded");
+
+        return $response;
+
+    }
+
 }

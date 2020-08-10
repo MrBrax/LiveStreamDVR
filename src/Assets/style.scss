@@ -230,6 +230,14 @@ a.linkback {
 		background-color: #aaa;
 	}
 
+	&.is-blue {
+		background-color: #5098f7;
+		color: #fff;
+		&:hover {
+			background-color: darken(#5098f7, 5%);
+		}
+	}
+
 	&.is-confirm {
 		background-color: #3db92c;
 		color: #fff;

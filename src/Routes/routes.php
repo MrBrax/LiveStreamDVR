@@ -35,6 +35,7 @@ $app->get('/chat/{vod}', VodController::class . ':chat')->setName('chat');
 $app->get('/save/{vod}', VodController::class . ':save')->setName('save');
 $app->get('/delete/{vod}', VodController::class . ':delete')->setName('delete');
 $app->get('/convert/{vod}', VodController::class . ':convert')->setName('convert');
+$app->get('/download/{vod}', VodController::class . ':download')->setName('download');
 
 $app->get('/hook', HookController::class . ':hook')->setName('hook');
 $app->post('/hook', HookController::class . ':hook')->setName('hook_post');

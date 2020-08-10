@@ -563,6 +563,8 @@ class TwitchAutomator {
 
 		$this->info[] = 'Streamlink output: ' . $capture_output;
 
+		file_put_contents( __DIR__ . "/../logs/streamlink_" . $basename . ".log", $capture_output);
+
 		// download with youtube-dl if streamlink fails
 		if( strpos($capture_output, '410 Client Error') !== false ){
 			
@@ -586,6 +588,8 @@ class TwitchAutomator {
 			$capture_output = shell_exec( $cmd );
 
 			$this->info[] = 'Youtube-dl output: ' . $capture_output;
+
+			file_put_contents( __DIR__ . "/../logs/youtubedl_" . $basename . ".log", $capture_output);
 			
 
 			// exit(500);
@@ -633,6 +637,8 @@ class TwitchAutomator {
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Finished conversion of " . $capture_filename . " to " . $converted_filename);
 
 		$this->info[] = 'ffmpeg output: ' . $output_convert;
+
+		file_put_contents( __DIR__ . "/../logs/convert_" . $basename . ".log", $output_convert);
 		
 		return $converted_filename;
 
