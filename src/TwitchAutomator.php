@@ -520,8 +520,8 @@ class TwitchAutomator {
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Add segments to " . $basename);
 		$this->jsonLoad();
-		if(!$this->json['segments']) $this->json['segments'] = [];
-		$this->json['segments'][] = basename($converted_filename);
+		if(!$this->json['segments_raw']) $this->json['segments_raw'] = [];
+		$this->json['segments_raw'][] = basename($converted_filename);
 		$this->jsonSave();
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Cleanup old VODs for " . $data_username);

@@ -17,6 +17,7 @@ class TwitchVOD {
 	public $streamer_id = null;
 
 	public $segments = [];
+	public $segments_raw = [];
 
 	/**
 	 * Chapters
@@ -81,8 +82,8 @@ class TwitchVOD {
 		// $this->filesize = filesize($filename);
 		$this->basename = basename($filename, '.json');
 
-		// $this->segments = $this->json['segments'];
-		$this->parseSegments( $this->json['segments'] );
+		$this->segments_raw = $this->json['segments_raw'];
+		$this->parseSegments( $this->segments_raw );
 
 		$this->parseChapters( $this->json['games'] ?: $this->json['chapters'] );
 
@@ -120,7 +121,7 @@ class TwitchVOD {
 
 		$getID3 = new getID3;
 
-		$file = $getID3->analyze( TwitchHelper::vod_folder() . '/' . basename( $this->segments[0] ) );
+		$file = $getID3->analyze( TwitchHelper::vod_folder() . '/' . basename( $this->segments_raw[0] ) );
 
 		if( !$file['playtime_string'] ){
 
@@ -283,6 +284,7 @@ class TwitchVOD {
 		$generated['streamer_id'] 		= $this->streamer_id;
 
 		$generated['chapters'] 			= $this->chapters;
+		$generated['segments_raw'] 		= $this->segments_raw;
 		$generated['segments'] 			= $this->segments;
 
 		$generated['duration'] 			= $this->duration;
@@ -378,6 +380,11 @@ class TwitchVOD {
 		$segments = [];
 
 		foreach( $array as $k => $v ){
+
+			if( gettype($v) != 'string' ){
+				TwitchHelper::log( TwitchHelper::LOG_ERROR, "Segment list containing invalid data for " . $this->basename);
+				continue;
+			}
 
 			$segment = [];
 
@@ -527,7 +534,7 @@ class TwitchVOD {
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Delete " . $this->basename);
 		
 		// segments
-		foreach($this->segments as $s){
+		foreach($this->segments_raw as $s){
 			unlink( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename($s) );
 		}
 
@@ -552,13 +559,25 @@ class TwitchVOD {
 
 	public function convert(){
 
-		if( !file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.ts' ) ){
+		set_time_limit(0);
+
+		$captured_filename = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.ts';
+
+		if( !file_exists( $captured_filename ) ){
 			throw new \Exception("No TS file found");
 			return false;
 		}
 
 		$TwitchAutomator = new TwitchAutomator();
-		return $TwitchAutomator->convert( $this->basename );
+
+		$converted_filename = $TwitchAutomator->convert( $this->basename );
+
+		// delete captured file
+		if( file_exists( $converted_filename ) && file_exists( $captured_filename ) ){
+			unlink( $captured_filename );
+		}
+
+		return true;
 
 	}
 
