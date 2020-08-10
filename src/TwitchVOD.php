@@ -85,7 +85,13 @@ class TwitchVOD {
 		$this->segments_raw = $this->json['segments_raw'];
 		$this->parseSegments( $this->segments_raw );
 
-		$this->parseChapters( isset( $this->json['chapters'] ) ? $this->json['chapters'] : $this->json['games'] );
+		if( isset( $this->json['chapters'] ) && count( $this->json['chapters'] ) > 0 ){
+			$this->parseChapters( $this->json['chapters'] );
+		}else if( isset( $this->json['games'] ) && count( $this->json['games'] ) > 0 ){
+			$this->parseChapters( $this->json['games'] );
+		}else{
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Neither chapters nor games on " . $filename . "!");
+		}
 
 		$this->streamer_name = $this->json['meta']['data'][0]['user_name'];
 		$this->streamer_id = TwitchHelper::getChannelId( $this->streamer_name );
