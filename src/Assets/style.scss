@@ -490,6 +490,9 @@ hr {
 	background-color: #f00;
 	font-weight: 700;
 	color:#fff;
+	&:empty {
+		display: none;
+	}
 }
 
 /** Black theme **/

@@ -376,6 +376,8 @@ hr {
   background-color: #f00;
   font-weight: 700;
   color: #fff; }
+  .big-error:empty {
+    display: none; }
 
 /** Black theme **/
 body.black {
