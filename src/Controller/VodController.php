@@ -101,6 +101,20 @@ class VodController
 
     }
 
+    public function convert( Request $request, Response $response, $args ) {
+    
+        $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
+
+        $vodclass = new TwitchVOD();
+        $vodclass->load( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vod . '.json' );
+        $vodclass->convert();
+
+        $response->getBody()->write("VOD converted");
+
+        return $response;
+
+    }
+
     public function save( Request $request, Response $response, $args ) {
     
         $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);

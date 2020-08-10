@@ -103,6 +103,7 @@ $app->post('/cut', VodController::class . ':cut')->setName('cut');
 $app->get('/chat', VodController::class . ':chat')->setName('chat');
 $app->get('/save', VodController::class . ':save')->setName('save');
 $app->get('/delete', VodController::class . ':delete')->setName('delete');
+$app->get('/convert', VodController::class . ':convert')->setName('convert');
 
 $app->get('/hook', HookController::class . ':hook')->setName('hook');
 $app->post('/hook', HookController::class . ':hook')->setName('hook_post');

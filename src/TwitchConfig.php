@@ -13,7 +13,7 @@ class TwitchConfig {
 	}
 
 	public static function cfg( $var, $def = null ){
-		if( !isset(self::$config[$var]) ) return null;
+		if( !isset(self::$config[$var]) ) return $def;
 		return self::$config[$var] ?: $def;
 	}
 

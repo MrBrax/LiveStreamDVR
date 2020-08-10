@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Exception;
 use getID3;
 
 class TwitchVOD {
@@ -547,6 +548,18 @@ class TwitchVOD {
 		rename( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.json', TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . 'saved' . DIRECTORY_SEPARATOR . $this->basename . '.json');
 		rename( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . 'saved' . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv'); // losslesscut
 		rename( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.chat', TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . 'saved' . DIRECTORY_SEPARATOR . $this->basename . '.chat'); // chat
+	}
+
+	public function convert(){
+
+		if( !file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.ts' ) ){
+			throw new \Exception("No TS file found");
+			return false;
+		}
+
+		$TwitchAutomator = new TwitchAutomator();
+		return $TwitchAutomator->convert( $this->basename );
+
 	}
 
 }
