@@ -50,6 +50,12 @@ code, pre {
   background: #222;
   color: #ccc; }
 
+.favicon {
+  width: 24px;
+  height: 24px;
+  vertical-align: -5px;
+  margin: 0 3px; }
+
 .table {
   text-align: left; }
   .table th {
