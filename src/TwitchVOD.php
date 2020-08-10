@@ -290,6 +290,8 @@ class TwitchVOD {
 		$generated['duration'] 			= $this->duration;
 		$generated['duration_seconds'] 	= $this->duration_seconds;
 
+		TwitchHelper::log(TwitchHelper::LOG_INFO, "Saving JSON of " . $this->basename);
+
 		file_put_contents($this->filename, json_encode($generated));
 
 		return $generated;

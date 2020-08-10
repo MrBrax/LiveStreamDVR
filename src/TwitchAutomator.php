@@ -280,6 +280,7 @@ class TwitchAutomator {
 		$json = json_decode( $server_output, true );
 		*/
 
+		/*
 		$client = new \GuzzleHttp\Client([
 			'base_uri' => 'https://api.twitch.tv',
 			'headers' => [
@@ -288,8 +289,9 @@ class TwitchAutomator {
 				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
 			]
 		]);
+		*/
 
-		$response = $client->request('GET', '/helix/games', [
+		$response = TwitchHelper::$guzzler->request('GET', '/helix/games', [
 			'query' => ['id' => $id]
 		]);
 

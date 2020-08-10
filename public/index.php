@@ -29,6 +29,18 @@ $container->set('view', function () use ($twigConfig) {
 
 $container->set( Twig::class, $twigConfig );
 
+// this seems cool, but i have no idea how to access it later :(
+$container->set('guzzle', function(){
+    return new \GuzzleHttp\Client([
+        'base_uri' => 'https://api.twitch.tv',
+        'headers' => [
+            'Client-ID' => TwitchConfig::cfg('api_client_id'),
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
+        ]
+    ]);
+});
+
 // Create App
 $app = AppFactory::create();
 

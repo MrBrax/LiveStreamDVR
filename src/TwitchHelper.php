@@ -15,6 +15,8 @@ class TwitchHelper {
 
 	public static $game_db = null;
 
+	public static $guzzler;
+
 	const LOG_ERROR = "ERROR";
 	const LOG_WARNING = "WARNING";
 	const LOG_INFO = "INFO";
@@ -58,9 +60,14 @@ class TwitchHelper {
 		}
 
 		// oauth2
-		$oauth_url = 'https://id.twitch.tv/oauth2/token?client_id=' . TwitchConfig::cfg('api_client_id') . '&client_secret=' . TwitchConfig::cfg('api_secret') . '&grant_type=client_credentials';
+		$oauth_url = 'https://id.twitch.tv/oauth2/token';
 		$client = new \GuzzleHttp\Client();
 		$response = $client->post($oauth_url, [
+			'query' => [
+				'client_id' => TwitchConfig::cfg('api_client_id'),
+				'client_secret' => TwitchConfig::cfg('api_secret'),
+				'grant_type' => 'client_credentials'
+			],
 			'headers' => [
 				'Client-ID: ' . TwitchConfig::cfg('api_client_id')
 			]
@@ -166,7 +173,8 @@ class TwitchHelper {
 
 		$json = json_decode( $server_output, true );
 		*/
-
+		
+		/*
 		$client = new \GuzzleHttp\Client([
 			'base_uri' => 'https://api.twitch.tv',
 			'headers' => [
@@ -175,8 +183,9 @@ class TwitchHelper {
 				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
 			]
 		]);
+		*/
 
-		$response = $client->request('GET', '/helix/users', [
+		$response = self::$guzzler->request('GET', '/helix/users', [
 			'query' => ['login' => $username]
 		]);
 
@@ -224,7 +233,8 @@ class TwitchHelper {
 
 		$json = json_decode( $server_output, true );
 		*/
-
+		
+		/*
 		$client = new \GuzzleHttp\Client([
 			'base_uri' => 'https://api.twitch.tv',
 			'headers' => [
@@ -233,8 +243,9 @@ class TwitchHelper {
 				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
 			]
 		]);
+		*/
 
-		$response = $client->request('GET', '/helix/videos', [
+		$response = self::$guzzler->request('GET', '/helix/videos', [
 			'query' => ['user_id' => $streamer_id]
 		]);
 
@@ -277,6 +288,7 @@ class TwitchHelper {
 		$json = json_decode( $server_output, true );
 		*/
 
+		/*
 		$client = new \GuzzleHttp\Client([
 			'base_uri' => 'https://api.twitch.tv',
 			'headers' => [
@@ -285,8 +297,9 @@ class TwitchHelper {
 				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
 			]
 		]);
+		*/
 
-		$response = $client->request('GET', '/helix/videos', [
+		$response = self::$guzzler->request('GET', '/helix/videos', [
 			'query' => ['id' => $video_id]
 		]);
 
@@ -328,6 +341,7 @@ class TwitchHelper {
 
 		$json = json_decode( $server_output, true );
 		*/
+		/*
 		$client = new \GuzzleHttp\Client([
 			'base_uri' => 'https://api.twitch.tv',
 			'headers' => [
@@ -336,8 +350,9 @@ class TwitchHelper {
 				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
 			]
 		]);
+		*/
 
-		$response = $client->request('GET', '/helix/streams', [
+		$response = self::$guzzler->request('GET', '/helix/streams', [
 			'query' => ['user_id' => $streamer_id]
 		]);
 
@@ -570,6 +585,7 @@ class TwitchHelper {
 
 		$data_string = json_encode($data);
 
+		/*
 		$client = new \GuzzleHttp\Client([
 			'base_uri' => 'https://api.twitch.tv',
 			'headers' => [
@@ -578,8 +594,9 @@ class TwitchHelper {
 				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
 			]
 		]);
+		*/
 
-		$response = $client->request('POST', '/helix/webhooks/hub', [
+		$response = self::$guzzler->request('POST', '/helix/webhooks/hub', [
 			'json' => $data
 		]);
 
@@ -616,6 +633,7 @@ class TwitchHelper {
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Requesting subscriptions list");
 
+		/*
 		$client = new \GuzzleHttp\Client([
 			'base_uri' => 'https://api.twitch.tv',
 			'headers' => [
@@ -624,8 +642,9 @@ class TwitchHelper {
 				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
 			]
 		]);
+		*/
 
-		$response = $client->request('GET', '/helix/webhooks/subscriptions', [
+		$response = self::$guzzler->request('GET', '/helix/webhooks/subscriptions', [
 			// 'headers' => $headers
 		]);
 
@@ -669,3 +688,12 @@ class TwitchHelper {
 	}
 
 }
+
+TwitchHelper::$guzzler = new \GuzzleHttp\Client([
+	'base_uri' => 'https://api.twitch.tv',
+	'headers' => [
+		'Client-ID' => TwitchConfig::cfg('api_client_id'),
+		'Content-Type' => 'application/json',
+		'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
+	]
+]);
