@@ -22,6 +22,10 @@ class TwitchConfig {
 	}
 
 	public static function loadConfig(){
+
+		if( !file_exists( self::$configPath) ){
+			self::generateConfig();
+		}
 		
 		$config = json_decode( file_get_contents( self::$configPath ), true );
 
@@ -37,6 +41,20 @@ class TwitchConfig {
 	public static function saveConfig(){
 		file_put_contents( self::$configPath, json_encode( self::$config, JSON_PRETTY_PRINT ) );
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Saved config from settings page");	
+	}
+
+	public static function generateConfig(){
+		$example_file = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "config.json.example";
+		if( !file_exists($example_file) ){
+			die("No example config found");
+		}
+
+		$example = json_decode( file_get_contents( $example_file ), true );
+
+
+		self::$config = $example;
+		self::saveConfig();
+
 	}
 
 	public static function getStreamers(){

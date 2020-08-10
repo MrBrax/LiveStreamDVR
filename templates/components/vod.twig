@@ -114,22 +114,22 @@
 
             {% if vodclass.is_converted %}
 
-                <a class="button" href="{{ url_for('player') }}?vod={{ vodclass.basename }}">Play segment 0 and cut</a>
+                <a class="button" href="{{ url_for('player', { 'vod': vodclass.basename }) }}">Play segment 0 and cut</a>
 
-                <a class="button" href="vods/{{ vodclass.basename }}.json">JSON</a>
+                <a class="button" href="{{ base_path() }}/vods/{{ vodclass.basename }}.json">JSON</a>
 
-                <a class="button" href="{{ url_for('save') }}?vod={{ vodclass.basename }}">Save from deletion</a>
+                <a class="button" href="{{ url_for('save', { 'vod': vodclass.basename }) }}">Save from deletion</a>
 
-                <a class="button is-danger" href="{{ url_for('delete') }}?vod={{ vodclass.basename }}">Delete</a>
+                <a class="button is-danger" href="{{ url_for('delete', { 'vod': vodclass.basename }) }}">Delete</a>
 
                 {% if vodclass.twitch_vod_id and not vodclass.is_chat_downloaded %}
-                    <a class="button" href="{{ url_for('chat') }}?vod={{ vodclass.basename }}">Download chat</a>
+                    <a class="button" href="{{ url_for('chat', { 'vod': vodclass.basename }) }}">Download chat</a>
                 {% endif %}
 
             {% elseif vodclass.is_recording %}
 
                 {% if vodclass.ended_at %}
-                    <a class="button" href="{{ url_for('convert') }}?vod={{ vodclass.basename }}">Convert</a>
+                    <a class="button" href="{{ url_for('convert', { 'vod': vodclass.basename }) }}">Convert</a>
                 {% endif %}
 
                 <em>Capturing to {{ vodclass.basename }}.ts (<strong>{{ vodclass.getRecordingSize|formatBytes }}</strong>)</em>
@@ -186,7 +186,7 @@
                             {% if chapter.box_art_url %}<img class="boxart" src="{{ chapter.box_art_url }}" />{% endif %}
 
                             {% if vodclass.is_converted %}
-                                <a href="{{ url_for('player') }}?vod={{ vodclass.basename }}&start={{ chapter.offset }}">
+                                <a href="{{ url_for('player', { 'vod': vodclass.basename }) }}?start={{ chapter.offset }}">
                                     {{ chapter.game_name }}
                                 </a>
                             {% else %}

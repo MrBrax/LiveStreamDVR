@@ -18,24 +18,5 @@
     "debug": false,
     "pipenv": false,
     "vod_container": "mp4",
-
-    "streamers": [
-        {
-            "username": "xQcOW",
-            "quality": "best"
-        },
-        {
-            "username": "sodapoppin",
-            "quality": "best",
-            "match": ["media share", "media", "sellout", "christmas", "xmas", "package", "opening", "mail", "donate", "refunds", "irl", "gift"]
-        },
-        {
-            "username": "xqcisoffline",
-            "quality": "best"
-        },
-        {
-            "username": "redvox",
-            "quality": "best"
-        }
-    ]
+    "streamers": []
 }

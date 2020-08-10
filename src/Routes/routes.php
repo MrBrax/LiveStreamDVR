@@ -29,12 +29,12 @@ $app->post('/settings/streamer/add', SettingsController::class . ':streamer_add'
 $app->post('/settings/streamer/delete', SettingsController::class . ':streamer_delete')->setName('streamer_delete');
 $app->post('/settings/streamer/update', SettingsController::class . ':streamer_update')->setName('streamer_update');
 
-$app->get('/player', PlayerController::class . ':player')->setName('player');
+$app->get('/player/{vod}', PlayerController::class . ':player')->setName('player');
 $app->post('/cut', VodController::class . ':cut')->setName('cut');
-$app->get('/chat', VodController::class . ':chat')->setName('chat');
-$app->get('/save', VodController::class . ':save')->setName('save');
-$app->get('/delete', VodController::class . ':delete')->setName('delete');
-$app->get('/convert', VodController::class . ':convert')->setName('convert');
+$app->get('/chat/{vod}', VodController::class . ':chat')->setName('chat');
+$app->get('/save/{vod}', VodController::class . ':save')->setName('save');
+$app->get('/delete/{vod}', VodController::class . ':delete')->setName('delete');
+$app->get('/convert/{vod}', VodController::class . ':convert')->setName('convert');
 
 $app->get('/hook', HookController::class . ':hook')->setName('hook');
 $app->post('/hook', HookController::class . ':hook')->setName('hook_post');
