@@ -146,6 +146,7 @@ class TwitchHelper {
 	 */
 	public static function getChannelId( $username ){
 		$data = self::getChannelData( $username );
+		if(!$data) return false;
 		return $data["id"];
 	}
 
@@ -161,7 +162,7 @@ class TwitchHelper {
 
 		$json_streamers = json_decode( file_get_contents( $streamers_file ), true );
 
-		if( $json_streamers && $json_streamers[$username] ){
+		if( $json_streamers && isset($json_streamers[$username]) ){
 			self::log( self::LOG_DEBUG, "Fetched channel data from cache for " . $username);	
 			return $json_streamers[$username];
 		}
@@ -210,6 +211,8 @@ class TwitchHelper {
 
 		if( !$json["data"] ){
 			self::log(self::LOG_ERROR, "Failed to fetch channel data for " . $username . ": " . $server_output);
+			// var_dump($json);
+			// var_dump( $response->getStatusCode() );
 			// throw new Exception( "Failed to fetch channel id: " . $server_output );
 			return false;
 		}

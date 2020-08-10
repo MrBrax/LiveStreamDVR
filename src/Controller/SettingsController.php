@@ -80,13 +80,13 @@ class SettingsController
         $download_chat  = isset($_POST['download_chat']);
 
         if( TwitchConfig::getStreamer($username) ){
-            $response->getBody()->write("Streamer with that username already exists");
+            $response->getBody()->write("Streamer with that username already exists in config");
             return $response;
         }
 
         $tmp = TwitchHelper::getChannelData( $username );
         if(!$tmp){
-            $response->getBody()->write("Streamer with that username doesn't seem to exist");
+            $response->getBody()->write("Streamer with that username doesn't seem to exist on Twitch");
             return $response;
         }
 
@@ -122,7 +122,7 @@ class SettingsController
         $download_chat  = isset($_POST['download_chat']);
 
         if( TwitchConfig::getStreamer($username) ){
-            $response->getBody()->write("Streamer with that username already exists");
+            $response->getBody()->write("Streamer with that username already exists in config");
             return $response;
         }
 
@@ -164,7 +164,7 @@ class SettingsController
         $username = $_POST['username'];
 
         if( !TwitchConfig::getStreamer($username) ){
-            $response->getBody()->write("Streamer with that username does not exist");
+            $response->getBody()->write("Streamer with that username does not exist in config");
             return $response;
         }
     

@@ -114,6 +114,14 @@ class DashboardController
 
         }
 
+        $errors = [];
+
+        if(!TwitchConfig::cfg('hook_callback')) $errors[] = 'No hook callback set, please visit settings.';
+        if(!TwitchConfig::cfg('api_client_id')) $errors[] = 'No API client id set, please visit settings.';
+        if(!TwitchConfig::cfg('api_secret')) $errors[] = 'No API secret set, please visit settings.';
+        if(!TwitchConfig::cfg('bin_dir')) $errors[] = 'No Python bin directory set, please visit settings.';
+        if(!TwitchConfig::cfg('ffmpeg_path')) $errors[] = 'No FFmpeg path set, please visit settings.';
+
         return $this->twig->render($response, 'dashboard.twig', [
             'streamerList' => $streamerList,
             'clips' => glob(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . "clips" . DIRECTORY_SEPARATOR . "*.mp4"),
@@ -121,7 +129,8 @@ class DashboardController
             'is_a_vod_deleted' => $is_a_vod_deleted,
             'checkvod' => $checkvod,
             'log_lines' => $log_lines,
-            'free_size' => disk_free_space( TwitchHelper::vod_folder() )
+            'free_size' => disk_free_space( TwitchHelper::vod_folder() ),
+            'errors' => $errors
         ]);
 
     }
