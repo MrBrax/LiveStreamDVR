@@ -82,8 +82,13 @@ class TwitchVOD {
 		// $this->filesize = filesize($filename);
 		$this->basename = basename($filename, '.json');
 
-		$this->segments_raw = $this->json['segments_raw'];
-		$this->parseSegments( $this->segments_raw );
+		$this->is_recording = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.ts' );
+		$this->is_converted = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.mp4' );
+
+		if( !$this->is_recording ){
+			$this->segments_raw = $this->json['segments_raw'];
+			$this->parseSegments( $this->segments_raw );
+		}
 
 		if( isset( $this->json['chapters'] ) && count( $this->json['chapters'] ) > 0 ){
 			$this->parseChapters( $this->json['chapters'] );
@@ -105,9 +110,6 @@ class TwitchVOD {
 		$this->duration 			= $this->json['duration'];
 		$this->duration_seconds		= $this->json['duration_seconds'];
 
-		$this->is_recording = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.ts' );
-		$this->is_converted = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.mp4' );
-
 		$this->is_chat_downloaded = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.chat' );
 
 		return true;
@@ -124,6 +126,11 @@ class TwitchVOD {
 	public function getDuration( $save = false ){
 
 		if( $this->duration_seconds ) return $this->duration_seconds;
+
+		if( !isset($this->segments_raw) || count($this->segments_raw) == 0 ){
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No video file available for duration of " . $this->basename);
+			return false;
+		}
 
 		$getID3 = new getID3;
 
@@ -337,8 +344,9 @@ class TwitchVOD {
 				$entry['offset'] = $entry['datetime']->getTimestamp() - $this->started_at->getTimestamp();
 			}
 
-			$entry['width'] = ( $entry['duration'] / $this->getDuration() ) * 100; // temp
-
+			if( !$this->is_recording && $this->getDuration() !== false ){
+				$entry['width'] = ( $entry['duration'] / $this->getDuration() ) * 100; // temp
+			}
 
 			// strings for templates
 			$entry['strings'] = [];
@@ -509,7 +517,7 @@ class TwitchVOD {
 
 	public function rebuildSegmentList(){
 
-		if( $this->is_recording ){
+		if( $this->is_recording || $this->no_files() ){
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Won't rebuild segment list on " . $this->basename . ", it's still recording.");
 			return false;
 		}
@@ -517,6 +525,11 @@ class TwitchVOD {
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Rebuild segment list for " . $this->basename );
 
 		$videos = glob( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . "*.mp4");
+
+		if( !$videos ){
+			TwitchHelper::log( TwitchHelper::LOG_WARNING, "No segments found for " . $this->basename );
+			return false;
+		}
 
 		$this->segments = [];
 		$this->segments_raw = [];
@@ -529,6 +542,10 @@ class TwitchVOD {
 
 		$this->saveJSON();
 
+	}
+
+	public function no_files(){
+		return ( !file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.ts') && !file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.mp4') );
 	}
 
 	/**
