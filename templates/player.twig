@@ -13,8 +13,7 @@
 
             {% for chapter in vodclass.chapters %}
 
-
-                <div title="{{ chapter.title }} |  {{ chapter.game_name }}" class="video-chapter" style="width:" onclick="scrub({{ chapter.offset }}, {{ chapter.duration }});">
+                <div title="{{ chapter.title }} |  {{ chapter.game_name }}" class="video-chapter" style="width: {{ chapter.width }}%" onclick="scrub({{ chapter.offset }}, {{ chapter.duration }});">
                     <div class="video-chapter-title">{{ chapter.title }}</div>
                     <div class="video-chapter-game">{{ chapter.game_name }}</div>
                 </div>

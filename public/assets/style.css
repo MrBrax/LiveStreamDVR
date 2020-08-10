@@ -216,9 +216,7 @@ a.linkback {
   font-family: 'Roboto Condensed', 'Roboto', 'Arial';
   padding: 5px;
   background: #eee;
-  border-right: 1px solid #aaa;
-  flex-shrink: 1;
-  flex-grow: 1; }
+  border-right: 1px solid #aaa; }
   .video-chapter:hover {
     background: #D3EAFA;
     cursor: pointer; }

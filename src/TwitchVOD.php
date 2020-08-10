@@ -331,6 +331,8 @@ class TwitchVOD {
 				$entry['offset'] = $entry['datetime']->getTimestamp() - $this->started_at->getTimestamp();
 			}
 
+			$entry['width'] = ( $entry['duration'] / $this->getDuration() ) * 100; // temp
+
 
 			// strings for templates
 			$entry['strings'] = [];
@@ -343,7 +345,7 @@ class TwitchVOD {
 
 			$entry['strings']['duration'] = TwitchHelper::getNiceDuration( $entry['duration'] );
 
-
+			// box art
 			if( $game_data['box_art_url'] ){
 				$img_url = $game_data['box_art_url'];
 				$img_url = str_replace("{width}", 14, $img_url);
