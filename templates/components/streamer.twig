@@ -3,23 +3,26 @@
     <div id="streamer_{{ streamer.username }}" class="anchor"></div>
 
     <div class="streamer-title">
-        <h2>
-            <a href="https://twitch.tv/{{ streamer.username }}" rel="noreferrer" target="_blank">
-                {{ streamer.username }}
-            </a>
-            {% if streamer.is_live %}
-                    <span class="live">live</span>
-            {% endif %}
-        </h2>
-        <span class="small">
-            {{ streamer.quality }}
-                &middot; 
-            {{ streamer.vods_list|length }} vods
-                &middot; 
-            {{ streamer.vods_size|formatBytes }}
-                &middot;
-                <a href="{{ url_for('force_record', { 'username': streamer.username }) }}">force record</a>
-        </span>
+        <div class="streamer-title-avatar" style="background-image: url({{ streamer.channel_data.profile_image_url }})"></div>
+        <div class="streamer-title-text">
+            <h2>
+                <a href="https://twitch.tv/{{ streamer.username }}" rel="noreferrer" target="_blank">
+                    {{ streamer.username }}
+                </a>
+                {% if streamer.is_live %}
+                        <span class="live">live</span>
+                {% endif %}
+            </h2>
+            <span class="small">
+                {{ streamer.quality }}
+                    &middot; 
+                {{ streamer.vods_list|length }} vods
+                    &middot; 
+                {{ streamer.vods_size|formatBytes }}
+                    &middot;
+                    <a href="{{ url_for('force_record', { 'username': streamer.username }) }}">force record</a>
+            </span>
+        </div>
     </div>
 
     {% if streamer.vods_list|length == 0 %}

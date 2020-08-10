@@ -84,6 +84,12 @@ class SettingsController
             return $response;
         }
 
+        $tmp = TwitchHelper::getChannelData( $username );
+        if(!$tmp){
+            $response->getBody()->write("Streamer with that username doesn't seem to exist");
+            return $response;
+        }
+
         // template
         $streamer = [
             "username" => $username,

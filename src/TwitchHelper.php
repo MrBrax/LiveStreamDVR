@@ -145,13 +145,24 @@ class TwitchHelper {
 	 * @return string
 	 */
 	public static function getChannelId( $username ){
+		$data = self::getChannelData( $username );
+		return $data["id"];
+	}
 
-		$streamers_file =  __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "streamers.json";
+	/**
+	 * Get Twitch channel ID from username
+	 *
+	 * @param string $username
+	 * @return string
+	 */
+	public static function getChannelData( $username ){
+
+		$streamers_file =  __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "streamers_v2.json";
 
 		$json_streamers = json_decode( file_get_contents( $streamers_file ), true );
 
 		if( $json_streamers && $json_streamers[$username] ){
-			self::log( self::LOG_DEBUG, "Fetched channel id from cache for " . $username);	
+			self::log( self::LOG_DEBUG, "Fetched channel data from cache for " . $username);	
 			return $json_streamers[$username];
 		}
 
@@ -198,19 +209,19 @@ class TwitchHelper {
 		$json = json_decode( $server_output, true );
 
 		if( !$json["data"] ){
-			self::log(self::LOG_ERROR, "Failed to fetch channel id: " . $server_output);
+			self::log(self::LOG_ERROR, "Failed to fetch channel data for " . $username . ": " . $server_output);
 			// throw new Exception( "Failed to fetch channel id: " . $server_output );
 			return false;
 		}
 
-		$id = $json["data"][0]["id"];
+		$data = $json["data"][0];
 		
-		$json_streamers[ $username ] = $id;
+		$json_streamers[ $username ] = $data;
 		file_put_contents( $streamers_file, json_encode($json_streamers) );
 
-		self::log( self::LOG_INFO, "Fetched channel id online for " . $username);
+		self::log( self::LOG_INFO, "Fetched channel data online for " . $username);
 
-		return $id;
+		return $data;
 
 	}
 
@@ -612,7 +623,7 @@ class TwitchHelper {
 
 		if( !$streamer_id ) {
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Streamer ID not found for: " . $streamer_name );
-			throw new \Exception('Streamer ID not found for: ' . $streamer_name);
+			// throw new \Exception('Streamer ID not found for: ' . $streamer_name);
 			return false;
 		}
 

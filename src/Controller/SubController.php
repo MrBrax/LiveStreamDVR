@@ -32,14 +32,14 @@ class SubController {
             if( $ret === true ){
                 $response->getBody()->write('Subscribed');
             }else{
-                $response->getBody()->write($ret);
+                $response->getBody()->write( "Error: " . $ret );
             }
 
             $response->getBody()->write('</pre>');
 
             $response->getBody()->write('<hr />');
 
-            sleep(2);
+            // sleep(2);
 
         }
 

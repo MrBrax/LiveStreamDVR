@@ -36,6 +36,8 @@ class DashboardController
 
             $data = $streamer;
 
+            $data['channel_data'] = TwitchHelper::getChannelData( $streamer['username'] );
+
             $data['vods_raw'] = glob(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $streamer['username'] . "_*.json");
 
             $data['vods_list'] = [];
