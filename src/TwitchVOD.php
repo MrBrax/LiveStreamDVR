@@ -319,7 +319,9 @@ class TwitchVOD {
 			
 			$entry = $chapter;
 
-			$game_data = TwitchHelper::getGame( $entry['game_id'] );
+			$game_data = TwitchHelper::getGameData( $entry['game_id'] );
+
+			// $entry = array_merge($game_data, $entry); // is this a good idea?
 
 			$entry['datetime'] = \DateTime::createFromFormat( TwitchConfig::cfg("date_format"), $entry['time'] );
 
@@ -438,7 +440,7 @@ class TwitchVOD {
 		$data = [];
 
 		foreach($unique_games as $id => $n){
-			$gd = TwitchHelper::getGame($id);
+			$gd = TwitchHelper::getGameData($id);
 			$img_url = $gd['box_art_url'];
 			$img_url = str_replace("{width}", 140, $img_url);
 			$img_url = str_replace("{height}", 190, $img_url);

@@ -376,15 +376,53 @@ class TwitchHelper {
 	 * @param string $id
 	 * @return array
 	 */
-	public static function getGame( $id ){
+	public static function getGameData( $game_id ){
 
-		if( self::$game_db ){
-			return self::$game_db[$id];
+		$game_db_file = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "games_v2.json";
+
+		if( !self::$game_db ){
+			self::$game_db = json_decode( file_get_contents( $game_db_file ), true );
 		}
 
-		self::$game_db = json_decode( file_get_contents( __DIR__ . '/../config/games_v2.json' ), true );
+		if( self::$game_db[ $game_id ] ){
+			return self::$game_db[ $game_id ];
+		}		
 
-		return self::getGame($id);
+
+		self::log( self::LOG_DEBUG, "Game id " . $game_id . " not in cache, fetching..." );
+		
+		$response = self::$guzzler->request('GET', '/helix/games', [
+			'query' => ['id' => $game_id]
+		]);
+
+		$server_output = $response->getBody()->getContents();
+		$json = json_decode( $server_output, true );
+
+		$game_data = $json["data"][0];
+
+		if( $game_data ){
+
+			$game = [
+				"name" => $game_data["name"],
+				"box_art_url" => $game_data["box_art_url"],
+				"added" => time()
+			];
+
+			self::$game_db[ $game_id ] = $game;
+
+			// $game_db[ $id ] = $game_data["name"];
+
+			file_put_contents( $game_db_file, json_encode( self::$game_db ) );
+
+			self::log( self::LOG_INFO, "New game saved to cache: " . $game["name"] );
+
+			return $game;
+
+		}else{
+
+			return null;
+			
+		}
 
 	}
 

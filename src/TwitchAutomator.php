@@ -256,73 +256,13 @@ class TwitchAutomator {
 
 		$game_db = json_decode( file_get_contents( $game_db_file ), true );
 
-		if( isset( $game_db[ $id ] ) && $game_db[ $id ] ){
-			$this->errors[] = 'Game is in database';
-			return $game_db[ $id ]['name'];
+		$data = TwitchHelper::getGameData( $id );
+
+		if($data){
+			return $data['name'];
 		}
 
-		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Game id " . $id . " not in cache, fetching..." );
-
-		/*
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/games?id=' . $id);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, [
-			'Authorization: Bearer ' . TwitchHelper::getAccessToken(),
-		    'Client-ID: ' . TwitchConfig::cfg('api_client_id')
-		]);
-
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-
-		$server_output = curl_exec($ch);
-
-		curl_close ($ch);
-
-		$json = json_decode( $server_output, true );
-		*/
-
-		/*
-		$client = new \GuzzleHttp\Client([
-			'base_uri' => 'https://api.twitch.tv',
-			'headers' => [
-				'Client-ID' => TwitchConfig::cfg('api_client_id'),
-				'Content-Type' => 'application/json',
-				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
-			]
-		]);
-		*/
-
-		$response = TwitchHelper::$guzzler->request('GET', '/helix/games', [
-			'query' => ['id' => $id]
-		]);
-
-		$server_output = $response->getBody()->getContents();
-		$json = json_decode( $server_output, true );
-
-		$game_data = $json["data"][0];
-
-		if( $game_data ){
-
-			$game = [
-				"name" => $game_data["name"],
-				"box_art_url" => $game_data["box_art_url"],
-				"added" => time()
-			];
-
-			$game_db[ $id ] = $game;
-
-			// $game_db[ $id ] = $game_data["name"];
-
-			file_put_contents( $game_db_file, json_encode( $game_db ) );
-
-			TwitchHelper::log( TwitchHelper::LOG_INFO, "New game saved to cache: " . $game["name"]);
-
-			return $game["name"];
-
-		}
-
-		$this->errors[] = 'No game found for ' . $id;
-
-		TwitchHelper::log( TwitchHelper::LOG_ERROR, "Couldn't match game for " . $id . " | " . $server_output );
+		TwitchHelper::log( TwitchHelper::LOG_ERROR, "Couldn't match game for " . $id );
 
 		return false;
 
