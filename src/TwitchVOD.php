@@ -85,7 +85,7 @@ class TwitchVOD {
 		$this->segments_raw = $this->json['segments_raw'];
 		$this->parseSegments( $this->segments_raw );
 
-		$this->parseChapters( $this->json['games'] ?: $this->json['chapters'] );
+		$this->parseChapters( isset( $this->json['chapters'] ) ? $this->json['chapters'] : $this->json['games'] );
 
 		$this->streamer_name = $this->json['meta']['data'][0]['user_name'];
 		$this->streamer_id = TwitchHelper::getChannelId( $this->streamer_name );
@@ -99,10 +99,10 @@ class TwitchVOD {
 		$this->duration 			= $this->json['duration'];
 		$this->duration_seconds		= $this->json['duration_seconds'];
 
-		$this->is_recording = file_exists( TwitchHelper::vod_folder() . '/' . $this->basename . '.ts' );
-		$this->is_converted = file_exists( TwitchHelper::vod_folder() . '/' . $this->basename . '.mp4' );
+		$this->is_recording = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.ts' );
+		$this->is_converted = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.mp4' );
 
-		$this->is_chat_downloaded = file_exists( TwitchHelper::vod_folder() . '/' . $this->basename . '.chat' );
+		$this->is_chat_downloaded = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.chat' );
 
 		return true;
 
@@ -304,11 +304,16 @@ class TwitchVOD {
 	 */
 	private function parseChapters( $array ){
 
+		if( !$array || count($array) == 0 ){
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "No chapter data found for " . $this->basename);
+			return false;
+		}
+
 		$chapters = [];
 
-		$data = isset($this->json['chapters']) ? $this->json['chapters'] : $this->json['games']; // why
+		// $data = isset($this->json['chapters']) ? $this->json['chapters'] : $this->json['games']; // why
 
-		foreach($data as $chapter) {
+		foreach($array as $chapter) {
 			
 			$entry = $chapter;
 
@@ -373,7 +378,13 @@ class TwitchVOD {
 	public function parseSegments( $array ){
 
 		if( !$array ){
-			TwitchHelper::log( TwitchHelper::LOG_WARNING, "Couldn't parse any segments on " . $this->basename);
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "No segment data supplied on " . $this->basename);
+
+			if( !$this->segments_raw ){
+				TwitchHelper::log( TwitchHelper::LOG_ERROR, "No segment_raw data on " . $this->basename . ", calling rebuild...");
+				$this->rebuildSegmentList();
+			}
+
 			return false;
 		}
 
@@ -382,8 +393,9 @@ class TwitchVOD {
 		foreach( $array as $k => $v ){
 
 			if( gettype($v) != 'string' ){
-				TwitchHelper::log( TwitchHelper::LOG_ERROR, "Segment list containing invalid data for " . $this->basename);
-				continue;
+				TwitchHelper::log( TwitchHelper::LOG_ERROR, "Segment list containing invalid data for " . $this->basename . ", rebuilding...");
+				$this->rebuildSegmentList();
+				return;
 			}
 
 			$segment = [];
@@ -403,47 +415,6 @@ class TwitchVOD {
 		$this->segments = $segments;
 
 	}
-
-	/*
-	public function getGames(){ // why
-
-		$data = [];
-
-		foreach( $this->games as $k => $v ){
-
-			$item = $v;
-
-			$game_data = TwitchHelper::getGame( $item['game_id']);
-
-			$game_time = DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $item['time'] );
-				   
-			
-			if( $game_data['box_art_url'] ){
-				$img_url = $game_data['box_art_url'];
-				$img_url = str_replace("{width}", 14, $img_url);
-				$img_url = str_replace("{height}", 19, $img_url);
-				$item['box_art_url'] = $img_url;
-			}
-
-			
-
-			$item['strings'] = [];
-
-			if( $this->started_at ){
-				$diff = $game_time->diff($this->started_at);
-				$item['strings']['started_at'] = $diff->format('%H:%I:%S');
-			}else{
-				$item['strings']['started_at'] = $game_time->format("Y-m-d H:i:s");
-			}
-
-			$data[] = $item;
-
-		}
-
-		return $data;
-
-	}
-	*/
 
 	public function getWebhookDuration(){
 		if($this->started_at && $this->ended_at){
@@ -521,6 +492,30 @@ class TwitchVOD {
 		}
 
 		file_put_contents( $this->vod_path . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', $data );
+
+	}
+
+	public function rebuildSegmentList(){
+
+		if( $this->is_recording ){
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Won't rebuild segment list on " . $this->basename . ", it's still recording.");
+			return false;
+		}
+
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Rebuild segment list for " . $this->basename );
+
+		$videos = glob( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . "*.mp4");
+
+		$this->segments = [];
+		$this->segments_raw = [];
+
+		foreach( $videos as $v ){
+			$this->segments_raw[] = basename($v);
+		}
+
+		$this->parseSegments( $this->segments_raw );
+
+		$this->saveJSON();
 
 	}
 

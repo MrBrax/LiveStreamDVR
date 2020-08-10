@@ -141,6 +141,10 @@
             {% endif %}
 
         </div>
+
+        {% if not vodclass.chapters %}
+            <em>No chapter data!?</em>
+        {% endif %}
         
         {# game list / chapters #}
         <table class="table game-list">
