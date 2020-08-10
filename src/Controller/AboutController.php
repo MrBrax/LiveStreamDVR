@@ -84,6 +84,10 @@ class AboutController
         $out = shell_exec("python --version");
         $bins['python']['version'] = trim($out);
 
+        $bins['python3'] = [];
+        $out = shell_exec("python3 --version");
+        $bins['python3']['version'] = trim($out);
+
         $bins['php'] = [];
         $bins['php']['version'] = phpversion();
         $bins['php']['platform'] = PHP_OS;

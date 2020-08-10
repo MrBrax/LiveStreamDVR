@@ -6,7 +6,7 @@
 
         <section class="section">
 
-            <div class="section-title"><h1>Streamers (broken atm)</h1></div>
+            <div class="section-title"><h1>Streamers</h1></div>
 
             <div class="section-content">
 
@@ -14,7 +14,7 @@
 
                     <div>
                         <h2>{{ streamer.username }}</h2>
-                        <form method="POST" action="/settings/streamer/update">
+                        <form method="POST" action="{{ url_for('streamer_update') }}">
                             <input type="hidden" name="key" value="{{ loop.index }}" />
                             <input type="hidden" name="username" value="{{ streamer.username }}" />
                             <div class="control">
@@ -32,7 +32,7 @@
                                 <button class="button is-confirm" type="submit">Save</button>
                             </div>
                         </form>
-                        <form method="POST" action="/settings/streamer/delete">
+                        <form method="POST" action="{{ url_for('streamer_delete') }}">
                             <input type="hidden" name="key" value="{{ loop.index }}" />
                             <input type="hidden" name="username" value="{{ streamer.username }}" />
                             <button class="button is-danger" type="submit">Delete</button> (no undo, no confirmation)
@@ -49,11 +49,11 @@
 
         <section class="section">
 
-            <div class="section-title"><h1>New streamer (broken atm)</h1></div>
+            <div class="section-title"><h1>New streamer</h1></div>
 
             <div class="section-content">
 
-                <form method="POST" action="/settings/streamer/add">
+                <form method="POST" action="{{ url_for('streamer_add') }}">
                     <div class="control">
                         <label><input class="input" type="text" name="username" value="" /> Username</label>
                         <div class="help">Streamer username, preferably case sensitive</div>
@@ -67,8 +67,8 @@
                         <div class="help">Separate by commas, e.g. christmas,media share,opening,po box</div>
                     </div>
                     <div class="control">
-                                <label><input class="input" type="checkbox" name="download_chat" value="1" /> Download chat</label><br><br>
-                            </div>
+                        <label><input class="input" type="checkbox" name="download_chat" value="1" /> Download chat</label><br><br>
+                    </div>
                     <div class="control">
                         <button class="button is-confirm" type="submit">Add</button>
                     </div>

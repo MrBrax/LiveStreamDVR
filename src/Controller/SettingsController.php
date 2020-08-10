@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\TwitchConfig;
 use App\TwitchHelper;
+use App\TwitchAutomator;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 use Slim\Views\Twig;
@@ -63,6 +64,118 @@ class SettingsController
         return $response;
 
         // return $response->withHeader('Location', $this->router->pathFor('settings') )->withStatus(200);
+
+    }
+
+    public function streamer_add(Request $request, Response $response, array $args) {
+
+        $username       = $_POST['username'];
+        $quality        = $_POST['quality'];
+        $match          = $_POST['match'];
+        $download_chat  = isset($_POST['download_chat']);
+
+        if( TwitchConfig::getStreamer($username) ){
+            $response->getBody()->write("Streamer with that username already exists");
+            return $response;
+        }
+
+        // template
+        $streamer = [
+            "username" => $username,
+            "quality" => $quality
+        ];
+    
+        if( $match ){
+            $streamer["match"] = explode(",", $match);
+        }
+    
+        if( $download_chat ){
+            $streamer["download_chat"] = 1;
+        }
+    
+        TwitchConfig::$config['streamers'][] = $streamer;
+        TwitchConfig::saveConfig();
+
+        $TwitchAutomator = new TwitchAutomator();
+        $TwitchAutomator->sub( $username );
+
+        $response->getBody()->write("Streamer added.");
+        return $response;
+
+    }
+
+    public function streamer_update(Request $request, Response $response, array $args) {
+
+        $username       = $_POST['username'];
+        $quality        = $_POST['quality'];
+        $match          = $_POST['match'];
+        $download_chat  = isset($_POST['download_chat']);
+
+        if( TwitchConfig::getStreamer($username) ){
+            $response->getBody()->write("Streamer with that username already exists");
+            return $response;
+        }
+
+        // template
+        $streamer = [
+            "username" => $username,
+            "quality" => $quality
+        ];
+    
+        if( $match ){
+            $streamer["match"] = explode(",", $match);
+        }
+    
+        if( $download_chat ){
+            $streamer["download_chat"] = 1;
+        }
+    
+        $key = null;
+        foreach( TwitchConfig::$config['streamers'] as $k => $v ){
+            if( $v['username'] == $username ) $key = $k;
+        }
+        if(!$key){
+            $response->getBody()->write("Streamer not found.");
+            return $response;
+        }
+        
+        TwitchConfig::$config['streamers'][ $key ] = $streamer;
+        TwitchConfig::saveConfig();
+
+        $TwitchAutomator = new TwitchAutomator();
+        $TwitchAutomator->sub( $username );
+
+        $response->getBody()->write("Streamer added.");
+        return $response;
+
+    }
+
+    public function streamer_delete(Request $request, Response $response, array $args) {
+
+        $username = $_POST['username'];
+
+        if( !TwitchConfig::getStreamer($username) ){
+            $response->getBody()->write("Streamer with that username does not exist");
+            return $response;
+        }
+    
+        $key = null;
+        foreach( TwitchConfig::$config['streamers'] as $k => $v ){
+            if( $v['username'] == $username ) $key = $k;
+        }
+        if(!$key){
+            $response->getBody()->write("Streamer not found.");
+            return $response;
+        }
+
+        $TwitchAutomator = new TwitchAutomator();
+        $TwitchAutomator->unsub( $username );
+        
+        unset(TwitchConfig::$config['streamers'][ $key ]);
+        TwitchConfig::saveConfig();
+
+        $response->getBody()->write("Streamer deleted.");
+        return $response;
 
     }
 
