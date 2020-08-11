@@ -116,15 +116,18 @@ code, pre {
   .top-menu-item .small {
     color: #555;
     font-size: 80%; }
-  .top-menu-item .subtitle {
+  .top-menu-item.active a {
+    color: #fff; }
+  .top-menu-item.streamer .vodcount {
+    font-size: 90%;
+    color: #666; }
+  .top-menu-item.streamer .subtitle {
     font-family: 'Roboto Condensed', 'Roboto', 'Arial';
     font-weight: 500;
     display: block;
     font-size: 80%;
     line-height: 0.7em;
     color: #444; }
-  .top-menu-item.active a {
-    color: #fff; }
 
 a.linkback {
   font-weight: 700;
@@ -320,6 +323,7 @@ a.linkback {
     flex-grow: 1;
     padding: 5px 8px; }
   .streamer-title .small {
+    font-size: 90%;
     color: #779ae7; }
   .streamer-title h2 {
     font-size: 1.3em;
@@ -343,10 +347,6 @@ a.linkback {
 
 .error {
   color: #f00; }
-
-.small {
-  font-size: 90%;
-  color: #666; }
 
 .grey {
   color: #666; }
@@ -381,7 +381,7 @@ a.linkback {
 .boxart-big {
   height: 100px; }
 
-.help {
+.input-help {
   font-size: 85%;
   color: #777;
   font-style: italic;
@@ -421,6 +421,9 @@ body.black {
     background-color: #484848;
     border-color: #2b2b2b;
     color: #d7d7d7; }
+
+.help {
+  cursor: help; }
 
 .text-overflow {
   text-overflow: ellipsis;

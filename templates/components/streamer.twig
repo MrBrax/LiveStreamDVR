@@ -14,11 +14,11 @@
                 {% endif %}
             </h2>
             <span class="small">
-                {{ streamer.quality }}
+                <span class="help" title="Quality">{{ streamer.quality }}</span>
                     &middot; 
-                {{ streamer.vods_list|length }} vods
+                <span>{{ streamer.vods_list|length }} vods</span>
                     &middot; 
-                {{ streamer.vods_size|formatBytes }}
+                <span>{{ streamer.vods_size|formatBytes }}</span>
                     &middot;
                     <a href="{{ url_for('force_record', { 'username': streamer.username }) }}">force record</a>
             </span>

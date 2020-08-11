@@ -16,10 +16,8 @@
                 <a href="#streamer_{{ streamer.username }}">
             {% endif %}
 
-                {{ streamer.username }}
-                
-                <span class="small">{{ streamer.vods_list|length }}</span>
-
+                <span class="username">{{ streamer.username }}</span>
+                <span class="vodcount">{{ streamer.vods_list|length }}</span>
                 <span class="subtitle">
 
                     {% if streamer.is_live %}

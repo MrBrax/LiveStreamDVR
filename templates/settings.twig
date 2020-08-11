@@ -19,11 +19,11 @@
                             <input type="hidden" name="username" value="{{ streamer.username }}" />
                             <div class="control">
                                 <label><input class="input" type="text" name="quality" value="{{ streamer.quality }}" /> Quality</label>
-                                <div class="help">Separate by spaces, e.g. best 1080p 720p audio_only</div>
+                                <div class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</div>
                             </div>
                             <div class="control">
                                 <label><input class="input" type="text" name="match" value="{{ streamer.match }}" /> Match keywords</label>
-                                <div class="help">Separate by commas, e.g. christmas,media share,opening,po box</div>
+                                <div class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</div>
                             </div>
                             <div class="control">
                                 <label><input class="input" type="checkbox" name="download_chat" value="1" {{ streamer.download_chat ? 'checked="checked"' : '' }} /> Download chat</label><br><br>
@@ -56,15 +56,15 @@
                 <form method="POST" action="{{ url_for('streamer_add') }}">
                     <div class="control">
                         <label><input class="input" type="text" name="username" value="" /> Username</label>
-                        <div class="help">Streamer username, preferably case sensitive</div>
+                        <div class="input-help">Streamer username, preferably case sensitive</div>
                     </div>
                     <div class="control">
                         <label><input class="input" type="text" name="quality" value="" /> Quality</label>
-                        <div class="help">Separate by spaces, e.g. best 1080p 720p audio_only</div>
+                        <div class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</div>
                     </div>
                     <div class="control">
                         <label><input class="input" type="text" name="match" value="" /> Match keywords</label>
-                        <div class="help">Separate by commas, e.g. christmas,media share,opening,po box</div>
+                        <div class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</div>
                     </div>
                     <div class="control">
                         <label><input class="input" type="checkbox" name="download_chat" value="1" /> Download chat</label><br><br>

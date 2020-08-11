@@ -132,19 +132,28 @@ code, pre {
 		color: #555;
 		font-size: 80%;
 	}
-	.subtitle {
-		font-family: 'Roboto Condensed', 'Roboto', 'Arial';
-		font-weight: 500;
-		display: block;
-		font-size: 80%;
-		line-height: 0.7em;
-		color: #444;
-	}
 	&.active {
 		a {
 			color: #fff;
 		}
 	}
+
+	&.streamer {
+		.username { }
+		.vodcount {
+			font-size: 90%;
+			color: #666;
+		}
+		.subtitle { 
+			font-family: 'Roboto Condensed', 'Roboto', 'Arial';
+			font-weight: 500;
+			display: block;
+			font-size: 80%;
+			line-height: 0.7em;
+			color: #444;
+		}
+	}
+
 }
 
 
@@ -421,6 +430,7 @@ a.linkback {
 	}
 
 	.small {
+		font-size: 90%;
 		color: #779ae7;
 	}
 
@@ -460,10 +470,6 @@ a.linkback {
 	color: #f00;
 }
 
-.small {
-	font-size: 90%;
-	color: #666;
-}
 
 .grey {
 	color: #666;
@@ -509,7 +515,7 @@ a.linkback {
 	height: 100px;
 }
 
-.help {
+.input-help {
 	font-size: 85%;
 	color: #777;
 	font-style: italic;
@@ -567,6 +573,10 @@ body.black {
 		color: #d7d7d7;
 	}
 
+}
+
+.help {
+	cursor: help;
 }
 
 .text-overflow {
