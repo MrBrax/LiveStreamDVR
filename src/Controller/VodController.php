@@ -14,7 +14,7 @@ class VodController
 {
 
     /**
-     * TODO: Make this POST
+     * Cut up the vod
      *
      * @return void
      */

@@ -171,6 +171,9 @@ a.linkback {
 		.video-title {
 			background-color: #ca1515;
 			animation: recording ease-in-out 1s infinite;
+			h3 {
+				text-shadow: 0 2px 0 #851818;
+			}
 		}
 
 	}

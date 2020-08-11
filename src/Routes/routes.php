@@ -12,6 +12,7 @@ use App\Controller\VodController;
 use App\Controller\PlayerController;
 use App\Controller\SettingsController;
 use App\Controller\SubController;
+use App\Controller\ApiController;
 
 // Define named route
 $app->get('/', function (Request $request, Response $response, array $args) use ($app) {
@@ -41,6 +42,9 @@ $app->post('/hook', HookController::class . ':hook')->setName('hook_post');
 
 $app->get('/sub', SubController::class . ':sub')->setName('sub');
 $app->get('/subs', SubController::class . ':subs')->setName('subs');
+
+$app->get('/api/list', ApiController::class . ':list')->setName('api_list');
+$app->get('/api/vod/{vod}', ApiController::class . ':vod')->setName('api_vod');
 
 // force start recording of streamer
 $app->get('/force_record/{username}', function (Request $request, Response $response, array $args) {

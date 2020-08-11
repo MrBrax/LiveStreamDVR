@@ -149,6 +149,8 @@ a.linkback {
   .video.recording .video-title {
     background-color: #ca1515;
     animation: recording ease-in-out 1s infinite; }
+    .video.recording .video-title h3 {
+      text-shadow: 0 2px 0 #851818; }
 
 .video-title {
   padding: 10px;

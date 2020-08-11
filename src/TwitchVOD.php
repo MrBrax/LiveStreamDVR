@@ -79,7 +79,6 @@ class TwitchVOD {
 		}
 
 		$this->filename = $filename;
-		// $this->filesize = filesize($filename);
 		$this->basename = basename($filename, '.json');
 
 		$this->is_recording = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.ts' );
@@ -117,9 +116,16 @@ class TwitchVOD {
 
 	}
 
+	// test
+	public function create( $filename ){
+		$this->filename = $filename;
+		$this->basename = basename($filename, '.json');
+		$this->saveJSON();
+		return true;
+	}
+
 	/**
 	 * Get duration of the mp4 file.
-	 * TODO: Use seconds instead of string.
 	 *
 	 * @param boolean $save Save the duration to the JSON file
 	 * @return string Duration in seconds

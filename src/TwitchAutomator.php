@@ -6,12 +6,14 @@ use getID3;
 
 class TwitchAutomator {
 
-	public $data_cache 		= [];
+	public $data_cache = [];
 
 	public $json = [];
 
 	public $errors = [];
 	public $info = [];
+
+	public $vod;
 
 	const NOTIFY_GENERIC = 1;
 	const NOTIFY_DOWNLOAD = 2;
@@ -352,7 +354,11 @@ class TwitchAutomator {
 
 		$stream_url = 'twitch.tv/' . $data_username;
 
-        $basename = $this->basename( $data );
+		$basename = $this->basename( $data );
+
+		// TODO: migrate to this in the future
+		// $this->vod = new TwitchVOD();
+		// $this->vod->create($basename);
         
         $streamer = TwitchConfig::getStreamer( $data_username );
 

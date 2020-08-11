@@ -8,7 +8,7 @@
 
     {% for streamer in streamerList %}
 
-        <div class="top-menu-item {{ streamer.is_live ? ' live' : '' }}">
+        <div class="top-menu-item{{ streamer.is_live ? ' live' : '' }} streamer" data-streamer="{{ streamer.username }}">
             
             {% if streamer.is_live %}
                 <a href="#vod_{{ streamer.current_vod.basename }}">

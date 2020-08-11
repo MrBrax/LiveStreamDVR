@@ -2,7 +2,7 @@
     <div class="error">Failed to load {{ vodclass.basename }}</div>
 {% else %}
 
-    <div class="video {{ vodclass.is_recording ? 'recording' : '' }} {{ vodclass.is_converted ? 'converted' : '' }}">
+    <div class="video {{ vodclass.is_recording ? 'recording' : '' }} {{ vodclass.is_converted ? 'converted' : '' }}" data-basename="{{ vodclass.basename }}">
 
         <div id="vod_{{ vodclass.basename }}" class="anchor"></div>
 
