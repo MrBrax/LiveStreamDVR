@@ -20,11 +20,13 @@
   to {
     transform: rotate(360deg); } }
 
-@keyframes speeen {
-  from {
-    transform: rotate(360deg); }
-  to {
-    transform: rotate(0deg); } }
+@keyframes zoom {
+  0% {
+    background-size: 100%; }
+  50% {
+    background-size: 105%; }
+  100% {
+    background-size: 100%; } }
 
 * {
   box-sizing: border-box; }
@@ -37,7 +39,8 @@ body {
   padding: 0; }
 
 table {
-  font: 14px Roboto, Arial; }
+  font-family: Roboto, Helvetica, Arial;
+  font-size: 14px; }
 
 td {
   padding: 2px 4px; }
@@ -81,54 +84,47 @@ code, pre {
   right: 0;
   background-color: #000;
   color: #fff;
-  display: flex;
-  font-size: 18px; }
+  display: flex; }
 
-.top-menu-item.title {
-  font-weight: 700; }
-  .top-menu-item.title a {
-    color: #fff;
+.top-menu-item {
+  font-size: 120%; }
+  .top-menu-item.title {
+    font-weight: 700; }
+    .top-menu-item.title a {
+      color: #fff;
+      padding: 12px 8px; }
+    .top-menu-item.title:hover .favicon {
+      animation: 1s speen linear infinite; }
+  .top-menu-item a {
+    color: #777;
+    text-decoration: none;
+    display: inline-block;
+    padding: 5px 8px 11px 8px; }
+    .top-menu-item a:hover {
+      color: #fff;
+      background: #111; }
+  .top-menu-item.live a {
+    color: #f00;
+    animation: live ease-in-out 1s infinite;
+    font-weight: 700; }
+  .top-menu-item.live .subtitle {
+    color: #b30000; }
+  .top-menu-item.divider {
+    flex-grow: 1; }
+  .top-menu-item.right a {
     padding: 12px 8px; }
-  .top-menu-item.title:hover .favicon {
-    animation: 1s speen linear infinite; }
-
-.top-menu-item a {
-  color: #777;
-  text-decoration: none;
-  display: inline-block;
-  padding: 5px 8px 11px 8px; }
-  .top-menu-item a:hover {
-    color: #fff;
-    background: #111; }
-
-.top-menu-item.live a {
-  color: #f00;
-  animation: live ease-in-out 1s infinite;
-  font-weight: 700; }
-
-.top-menu-item.live .subtitle {
-  color: #b30000; }
-
-.top-menu-item.divider {
-  flex-grow: 1; }
-
-.top-menu-item.right a {
-  padding: 12px 8px; }
-
-.top-menu-item .small {
-  color: #555;
-  font-size: 80%; }
-
-.top-menu-item .subtitle {
-  font-family: 'Roboto Condensed', 'Roboto', 'Arial';
-  font-weight: 500;
-  display: block;
-  font-size: 60%;
-  line-height: 0.7em;
-  color: #444; }
-
-.top-menu-item.active a {
-  color: #fff; }
+  .top-menu-item .small {
+    color: #555;
+    font-size: 80%; }
+  .top-menu-item .subtitle {
+    font-family: 'Roboto Condensed', 'Roboto', 'Arial';
+    font-weight: 500;
+    display: block;
+    font-size: 80%;
+    line-height: 0.7em;
+    color: #444; }
+  .top-menu-item.active a {
+    color: #fff; }
 
 a.linkback {
   font-weight: 700;
@@ -162,7 +158,7 @@ a.linkback {
     text-shadow: 0 2px 0 #1e4599; }
 
 .button {
-  font: inherit;
+  font-family: inherit;
   text-decoration: none;
   display: inline-block;
   padding: 5px 14px;
@@ -204,7 +200,7 @@ a.linkback {
       background-color: #9f4b2c; }
 
 .input {
-  font: inherit;
+  font-family: inherit;
   padding: 4px 6px;
   margin: 2px 0px;
   border-radius: 2px;
@@ -273,6 +269,7 @@ a.linkback {
   color: #fff;
   padding: 5px 10px; }
   .section-title h1 {
+    font-size: 1.2em;
     margin: 0;
     text-shadow: 0 2px 2px rgba(0, 0, 0, 0.2); }
 
@@ -308,8 +305,9 @@ a.linkback {
   color: #fff;
   display: flex; }
   .streamer-title .streamer-title-avatar {
-    background-size: contain;
+    background-size: cover;
     background-repeat: no-repeat;
+    background-position: center;
     width: 60px;
     /*
 		img {
@@ -320,10 +318,11 @@ a.linkback {
 		*/ }
   .streamer-title .streamer-title-text {
     flex-grow: 1;
-    padding: 5px 10px; }
+    padding: 5px 8px; }
   .streamer-title .small {
     color: #779ae7; }
   .streamer-title h2 {
+    font-size: 1.3em;
     margin: 0;
     padding: 0; }
   .streamer-title a {
@@ -359,7 +358,7 @@ a.linkback {
 
 .log_viewer {
   font-family: Consolas, monospace;
-  font-size: 10px;
+  font-size: 80%;
   color: #333;
   max-height: 600px;
   overflow-x: scroll;
@@ -422,3 +421,26 @@ body.black {
     background-color: #484848;
     border-color: #2b2b2b;
     color: #d7d7d7; }
+
+.text-overflow {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  word-break: break-word; }
+
+@media screen and (orientation: portrait) {
+  body {
+    font-size: 1rem; }
+  .container {
+    display: block;
+    width: 100%; }
+  .section {
+    margin: 5px 0; }
+  .top-menu {
+    width: 100%;
+    position: static;
+    flex-direction: column; }
+  .top-menu-item a {
+    display: block; }
+  .top-menu-item .subtitle {
+    display: inline-block;
+    font-size: 70%; } }

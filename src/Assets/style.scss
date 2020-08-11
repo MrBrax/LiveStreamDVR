@@ -15,9 +15,10 @@
 	to { transform: rotate(360deg); }
 }
 
-@keyframes speeen {
-	from { transform: rotate(360deg); }
-	to { transform: rotate(0deg); }
+@keyframes zoom {
+	0% { background-size: 100%; }
+	50% { background-size: 105%; }
+	100% { background-size: 100%; }
 }
 
 * {
@@ -33,7 +34,8 @@ body {
 }
 
 table {
-	font: 14px Roboto, Arial;
+	font-family: Roboto, Helvetica, Arial;
+	font-size: 14px;
 }
 
 td {
@@ -78,11 +80,12 @@ code, pre {
 	background-color: #000;
 	color: #fff;
 	display: flex;
-	font-size: 18px;
+	// font-size: 1em;
 }
 
 // TODO: make this more dynamic
 .top-menu-item {
+	font-size: 120%;
 	// padding: 5px 8px;
 	&.title {
 		font-weight: 700;
@@ -133,7 +136,7 @@ code, pre {
 		font-family: 'Roboto Condensed', 'Roboto', 'Arial';
 		font-weight: 500;
 		display: block;
-		font-size: 60%;
+		font-size: 80%;
 		line-height: 0.7em;
 		color: #444;
 	}
@@ -195,7 +198,9 @@ a.linkback {
 
 .button {
 
-	font: inherit;
+	font-family: inherit;
+	// font-size: 0.9em;
+
 	text-decoration: none;
 
 	display: inline-block;
@@ -261,7 +266,8 @@ a.linkback {
 
 .input {
 
-	font: inherit;
+	font-family: inherit;
+	// font-size: 0.9em;
 
 	padding: 4px 6px;
 	margin: 2px 0px;
@@ -339,6 +345,7 @@ a.linkback {
 	padding: 5px 10px;
 	
 	h1 {
+		font-size: 1.2em;
 		margin: 0;
 		text-shadow: 0 2px 2px rgba(0, 0, 0, .2);
 	}
@@ -394,8 +401,10 @@ a.linkback {
 
 	.streamer-title-avatar {
 		// background-color: #0f0;
-		background-size: contain;
+		background-size: cover;
 		background-repeat: no-repeat;
+		background-position: center;
+		// animation: zoom 1s infinite ease-in-out;
 		width: 60px; // css, why
 		/*
 		img {
@@ -408,7 +417,7 @@ a.linkback {
 
 	.streamer-title-text {
 		flex-grow: 1;
-		padding: 5px 10px;
+		padding: 5px 8px;
 	}
 
 	.small {
@@ -416,6 +425,7 @@ a.linkback {
 	}
 
 	h2 {
+		font-size: 1.3em;
 		margin: 0;
 		padding: 0;
 	}
@@ -460,7 +470,7 @@ a.linkback {
 }
 
 .notice {
-	// margin: 5px;
+	// font-size: 0.9em;
 	background: #eee;
 	// border: 1px solid #ccc;
 	padding: 10px;
@@ -469,7 +479,7 @@ a.linkback {
 
 .log_viewer {
 	font-family: Consolas, monospace;
-	font-size: 10px;
+	font-size: 80%;
 	color: #333;
 	max-height: 600px;
 	// max-width: 600px;
@@ -557,4 +567,28 @@ body.black {
 		color: #d7d7d7;
 	}
 
+}
+
+.text-overflow {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	word-break: break-word;
+}
+
+@media screen and (orientation: portrait) {
+	body { font-size: 1rem; }
+	.container { display: block; width: 100%; }
+	.section { margin: 5px 0; }
+	.top-menu {
+		width: 100%;
+		position: static;
+		flex-direction: column;
+	}
+	.top-menu-item a {
+		display: block;
+	}
+	.top-menu-item .subtitle {
+		display: inline-block;
+		font-size: 70%;
+	}
 }

@@ -4,6 +4,7 @@
   "description": "*Note that this thing is written without a framework or any real standards, so the code is pretty messy. Might refactor it one day with html templates and such.*",
   "main": "index.js",
   "scripts": {
+    "watch:style": "node-sass --watch ./src/Assets/style.scss --output ./public/assets/",
     "build:style": "node-sass ./src/Assets/style.scss > ./public/assets/style.css",
     "serve": "php -S localhost:8080 -t public"
   },

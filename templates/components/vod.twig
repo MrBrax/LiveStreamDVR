@@ -85,7 +85,7 @@
                     <li>				
                         <strong>Twitch VOD title:</strong> 
                          {% if vodclass.twitch_vod_title %}
-                            {{ vodclass.twitch_vod_title }}
+                            <span class="text-overflow">{{ vodclass.twitch_vod_title }}</span>
                         {% else %}
                             <strong><em>No data</em></strong>
                         {% endif %}
@@ -98,7 +98,7 @@
                     {% for segment in vodclass.segments %}
                         <li>
                             <a href="{{ base_path() }}/vods/{{ segment.basename }}">
-                                {{ segment.basename }}
+                                <span class="text-overflow">{{ segment.basename }}</span>
                                  ({{ segment.filesize|formatBytes }})
                             </a>
                         </li>
@@ -204,7 +204,7 @@
                         </td>
 
                         {# title #}
-                        <td>{{ chapter.title }}</td>
+                        <td><span class="text-overflow">{{ chapter.title }}</span></td>
 
                         <td>
                             <span class="grey">{{ chapter.viewer_count|number_format }}</span>
