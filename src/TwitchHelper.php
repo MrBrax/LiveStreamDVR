@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Exception;
 use GuzzleHttp\Client;
 
 class TwitchHelper {
@@ -236,6 +237,12 @@ class TwitchHelper {
 	 */
 	public static function getVideos( $streamer_id ){
 
+		if( !$streamer_id ){
+			self::log( self::LOG_ERROR, "No streamer id supplied for videos fetching");
+			throw new \Exception("No streamer id supplied for videos fetching");
+			return false;
+		}
+
 		/*
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/videos?user_id=' . $streamer_id);
@@ -289,6 +296,12 @@ class TwitchHelper {
 	 * @return array
 	 */
 	public static function getVideo( $video_id ){
+
+		if( !$video_id ){
+			self::log( self::LOG_ERROR, "No video id supplied for videos fetching");
+			throw new \Exception("No video id supplied for videos fetching");
+			return false;
+		}
 
 		/*
 		$ch = curl_init();

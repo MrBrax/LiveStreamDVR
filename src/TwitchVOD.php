@@ -264,6 +264,13 @@ class TwitchVOD {
 	 */
 	public function checkValidVod(){
 
+		if( !$this->twitch_vod_id ){
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "No twitch vod id for valid checking on " . $this->basename);
+			return false;
+			// throw new \Exception("No twitch vod id for valid checking on " . $this->basename);
+			// return null;
+		}
+
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Check valid vod for " . $this->basename);
 
 		$video = TwitchHelper::getVideo( $this->twitch_vod_id );
