@@ -478,7 +478,6 @@ a.linkback {
 .notice {
 	// font-size: 0.9em;
 	background: #eee;
-	// border: 1px solid #ccc;
 	padding: 10px;
 	color: #555;
 }
@@ -594,11 +593,22 @@ body.black {
 		position: static;
 		flex-direction: column;
 	}
-	.top-menu-item a {
-		display: block;
+	.top-menu-item { 
+		a {
+			display: block;
+		}
+		&.streamer {
+			.vodcount {
+				font-size: 85%;
+				&:after { content: ' vods'; }
+				&:before { content: '· '; }
+			}
+			.subtitle {
+				display: inline-block;
+				font-size: 80%;
+				&:before { content: '·'; }
+			}
+		}
 	}
-	.top-menu-item .subtitle {
-		display: inline-block;
-		font-size: 70%;
-	}
+
 }
