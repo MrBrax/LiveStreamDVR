@@ -502,7 +502,8 @@ class TwitchAutomator {
 		$vodclass = new TwitchVOD();
 		$vodclass->load( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json');
 
-		$vodclass->getDuration();
+		// $vodclass->getDuration();
+		$vodclass->saveVideoMetadata();
 		$vodclass->saveLosslessCut();
 		$vodclass->matchTwitchVod();
 		$vodclass->saveJSON();

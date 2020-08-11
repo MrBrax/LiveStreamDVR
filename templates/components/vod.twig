@@ -52,6 +52,10 @@
 
 					</li>
                     <li><strong>Size:</strong> {{ vodclass.segments[0].filesize|formatBytes }}</li>
+                    {% if vodclass.video_width %}
+                    <li><strong>Dimensions:</strong> {{ vodclass.video_width }}x{{ vodclass.video_height }}@{{ vodclass.video_fps }}</li>
+                    <li><strong>Bitrate:</strong> {{ vodclass.video_bitrate }}</li>
+                    {% endif %}
                     <li>		
                         <strong>Twitch VOD id:</strong> 
                     
@@ -103,6 +107,14 @@
                             </a>
                         </li>
                     {% endfor %}
+                </ul>
+
+            {% endif %}
+
+            {% if vodclass.is_recording %}
+
+                <ul class="video-info">
+                    <li><strong>Current duration:</strong> {{ vodclass.getDurationLive }}</li>
                 </ul>
 
             {% endif %}
@@ -229,10 +241,7 @@
                     
                     <tr>
                         {% if vodclass.started_at %}
-                            <!--
-                            $diff = $vodclass->started_at->diff( new DateTime() );
-                            <td>' . $diff->format('%H:%I:%S') . '</td>
-                            -->
+                            <td>{{ vodclass.getDurationLive }}</td>
                         {% endif %}
                         <td colspan="4"><em><strong>ONGOING</strong></em></td>
                     </tr>

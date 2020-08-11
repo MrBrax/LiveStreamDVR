@@ -45,6 +45,9 @@ class TwitchVOD {
 	public $is_recording = false;
 	public $is_converted = false;
 
+	public $video_width = null;
+	public $video_height = null;
+
 	/**
 	 * Load a VOD with a JSON file
 	 *
@@ -109,6 +112,15 @@ class TwitchVOD {
 		$this->duration 			= $this->json['duration'];
 		$this->duration_seconds		= $this->json['duration_seconds'];
 
+		$this->video_width 		= $this->json['video_width'];
+		$this->video_height 	= $this->json['video_height'];
+		$this->video_bitrate 	= $this->json['video_bitrate'];
+		$this->video_fps 		= $this->json['video_fps'];
+
+		if( !$this->video_width && !$this->is_recording && count($this->segments_raw) > 0 ){
+			$this->saveVideoMetadata();
+		}
+
 		$this->is_chat_downloaded = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.chat' );
 		$this->is_vod_downloaded = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.vod.ts' );
 
@@ -139,16 +151,12 @@ class TwitchVOD {
 			return false;
 		}
 
-		$getID3 = new getID3;
+		
+		// $getID3 = new getID3;
 
-		$file = $getID3->analyze( TwitchHelper::vod_folder() . '/' . basename( $this->segments_raw[0] ) );
+		$file = $this->getVideoMetadata();
 
-		if( !$file['playtime_string'] ){
-
-			if(!$file){
-				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Could not parse ID3 of " . $this->basename);
-				return false;
-			}
+		if( !$file ){
 
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Could not find duration of " . $this->basename . ": " . join(", ", $file['error']) );			
 
@@ -167,7 +175,63 @@ class TwitchVOD {
 			return $file['playtime_seconds'];
 
 		}
+		
 
+	}
+
+	public function getVideoMetadata( $save = false ){
+
+		if( !isset($this->segments_raw) || count($this->segments_raw) == 0 ){
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No video file available for metadata of " . $this->basename);
+			return false;
+		}
+
+		$filename = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename( $this->segments_raw[0] );
+
+		if( !file_exists($filename) ){
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No video file found for metadata fetching of " . $this->basename);
+			return false;
+		}
+
+		$getID3 = new getID3;
+
+		$file = $getID3->analyze( $filename );
+
+		if( !$file['playtime_string'] ){
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Invalid metadata of " . $this->basename);
+			return false;
+		}else{
+			return $file;
+		}
+
+	}
+
+	public function saveVideoMetadata(){
+
+		TwitchHelper::log(TwitchHelper::LOG_INFO, "Getting and saving metadata of " . $this->basename);
+
+		$this->getDuration();
+		
+		$file = $this->getVideoMetadata();
+		if(!$file){
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No metadata returned for " . $this->basename);
+			return false;
+		}
+		if(!$file['video']){
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No video array in metadata of " . $this->basename);
+			return false;
+		}
+
+		$this->video_width 		= $file['video']['resolution_x'];
+		$this->video_height 	= $file['video']['resolution_y'];
+		$this->video_bitrate 	= $file['video']['bitrate'] ?: $file['bitrate'];;
+		$this->video_fps 		= $file['video']['frame_rate'];
+		$this->saveJSON();
+	}
+
+	public function getDurationLive(){
+		$diff = $this->started_at->diff( new \DateTime() );
+        return $diff->format('%H:%I:%S');
 	}
 
 	/**
@@ -316,6 +380,11 @@ class TwitchVOD {
 
 		$generated['duration'] 			= $this->duration;
 		$generated['duration_seconds'] 	= $this->duration_seconds;
+
+		$generated['video_width'] 		= $this->video_width;
+		$generated['video_height'] 		= $this->video_height;
+		$generated['video_bitrate'] 	= $this->video_bitrate;
+		$generated['video_fps'] 		= $this->video_fps;
 
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Saving JSON of " . $this->basename);
 
