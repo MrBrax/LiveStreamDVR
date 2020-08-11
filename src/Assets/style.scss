@@ -306,13 +306,18 @@ a.linkback {
 	border-right: 1px solid #aaa;
 	//flex-shrink: 1;
 	//flex-grow: 1;
+	word-break: break-all;
+	white-space: nowrap;
+	overflow: hidden;
+	max-height: 100px;
 	&:hover {
 		background: #D3EAFA;
 		cursor: pointer;
 	}
 }
 
-.video-chapter-game { font-size: 90%; }
+.video-chapter-title { font-weight: 700; }
+.video-chapter-game { font-weight: 400; font-size: 90%; color: #444; }
 
 .section {
 	/* border: 1px solid #ccc; */
@@ -374,7 +379,7 @@ a.linkback {
 	// position: sticky;
 	// top: 30px;
 	
-	background-color: rgb(36, 62, 148);
+	background-color: #243e94;
 	
 	margin-bottom: 5px;
 	color: #fff;
@@ -416,8 +421,24 @@ a.linkback {
 		color: #fff;
 		text-decoration: none;
 		&:hover {
-			color: rgb(182, 115, 245);
+			color: #b673f5;
 		}
+	}
+
+	&.is-live {
+		background-color: #5e0b0b;
+		.small {
+			color: #db3131;
+		}
+		a:hover {
+			color: #eb7b7b;
+		}
+	}
+
+	.live {
+		color: #f00;
+		animation: live ease-in-out 1s infinite;
+		font-weight: 700;
 	}
 
 }

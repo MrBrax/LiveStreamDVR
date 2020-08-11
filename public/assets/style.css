@@ -241,13 +241,22 @@ a.linkback {
   font-family: 'Roboto Condensed', 'Roboto', 'Arial';
   padding: 5px;
   background: #eee;
-  border-right: 1px solid #aaa; }
+  border-right: 1px solid #aaa;
+  word-break: break-all;
+  white-space: nowrap;
+  overflow: hidden;
+  max-height: 100px; }
   .video-chapter:hover {
     background: #D3EAFA;
     cursor: pointer; }
 
+.video-chapter-title {
+  font-weight: 700; }
+
 .video-chapter-game {
-  font-size: 90%; }
+  font-weight: 400;
+  font-size: 90%;
+  color: #444; }
 
 .section {
   /* border: 1px solid #ccc; */
@@ -320,6 +329,16 @@ a.linkback {
     text-decoration: none; }
     .streamer-title a:hover {
       color: #b673f5; }
+  .streamer-title.is-live {
+    background-color: #5e0b0b; }
+    .streamer-title.is-live .small {
+      color: #db3131; }
+    .streamer-title.is-live a:hover {
+      color: #eb7b7b; }
+  .streamer-title .live {
+    color: #f00;
+    animation: live ease-in-out 1s infinite;
+    font-weight: 700; }
 
 .error {
   color: #f00; }

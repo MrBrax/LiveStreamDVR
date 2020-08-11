@@ -14,10 +14,9 @@ use App\Controller\SettingsController;
 use App\Controller\SubController;
 
 // Define named route
-$app->get('/', function (Request $request, Response $response, array $args) {
-    $response->getBody()->write("Hello, World! Visit /dashboard to continue.");
+$app->get('/', function (Request $request, Response $response, array $args) use ($app) {
+    $response->getBody()->write("Hello, World! Visit <a href=\"./dashboard\">/dashboard</a> to continue.<br>Slim 4 doesn't seem to support relative redirects.");
     return $response;
-    // return $response->withHeader('Location', '/dashboard')->withStatus(200);
 })->setName('index');
 
 $app->get('/dashboard', DashboardController::class . ':dashboard')->setName('dashboard');

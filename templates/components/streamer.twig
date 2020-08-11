@@ -2,7 +2,7 @@
 
     <div id="streamer_{{ streamer.username }}" class="anchor"></div>
 
-    <div class="streamer-title">
+    <div class="streamer-title{{ streamer.is_live ? ' is-live' : '' }}">
         <div class="streamer-title-avatar" style="background-image: url({{ streamer.channel_data.profile_image_url }})"></div>
         <div class="streamer-title-text">
             <h2>
