@@ -116,8 +116,9 @@ class TwitchVOD {
 		$this->video_height 	= $this->json['video_height'];
 		$this->video_bitrate 	= $this->json['video_bitrate'];
 		$this->video_fps 		= $this->json['video_fps'];
+		$this->video_fail 		= $this->json['video_fail'];
 
-		if( !$this->video_width && !$this->is_recording && count($this->segments_raw) > 0 ){
+		if( !$this->video_width && !$this->is_recording && count($this->segments_raw) > 0 && !$this->video_fail ){
 			$this->saveVideoMetadata();
 		}
 
@@ -208,6 +209,8 @@ class TwitchVOD {
 
 	public function saveVideoMetadata(){
 
+		if( $this->is_recording ) return false;
+
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Getting and saving metadata of " . $this->basename);
 
 		$this->getDuration();
@@ -215,10 +218,14 @@ class TwitchVOD {
 		$file = $this->getVideoMetadata();
 		if(!$file){
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No metadata returned for " . $this->basename);
+			$this->video_fail = true;
+			$this->saveJSON();
 			return false;
 		}
 		if(!$file['video']){
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No video array in metadata of " . $this->basename);
+			$this->video_fail = true;
+			$this->saveJSON();
 			return false;
 		}
 
@@ -385,6 +392,7 @@ class TwitchVOD {
 		$generated['video_height'] 		= $this->video_height;
 		$generated['video_bitrate'] 	= $this->video_bitrate;
 		$generated['video_fps'] 		= $this->video_fps;
+		$generated['video_fail'] 		= $this->video_fail;
 
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Saving JSON of " . $this->basename);
 
