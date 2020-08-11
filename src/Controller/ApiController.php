@@ -40,6 +40,7 @@ class ApiController
                 if ($vodclass->is_recording){
                     $data['is_live'] = true;
                     $data['current_vod'] = $vodclass;
+                    $data['current_game'] = $vodclass->getCurrentGame();
                 }
 
                 if ($vodclass->segments) {
