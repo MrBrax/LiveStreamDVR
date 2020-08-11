@@ -108,16 +108,7 @@ code, pre {
 			background: #111;
 		}
 	}
-	&.live {
-		a {
-			color: #f00;
-			animation: live ease-in-out 1s infinite;
-			font-weight: 700;
-		}
-		.subtitle {
-			color: #b30000;
-		}
-	}
+	
 	&.divider {
 		flex-grow: 1;
 	}
@@ -151,6 +142,20 @@ code, pre {
 			font-size: 80%;
 			line-height: 0.7em;
 			color: #444;
+		}
+		
+	}
+
+	&.live {
+		&.streamer{
+			.username {
+				color: #f00;
+				animation: live ease-in-out 1s infinite;
+				font-weight: 700;
+			}
+			.subtitle, .vodcount {
+				color: #b30000;
+			}
 		}
 	}
 
