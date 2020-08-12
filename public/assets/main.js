@@ -10,17 +10,49 @@ function formatBytes(bytes, precision = 2) {
     // bytes /= (1 << (10 * pow)); 
 
     return Math.round(bytes, precision) + ' ' + units[pow]; 
-} 
+}
+
+function notifyMe() {
+    // Let's check if the browser supports notifications
+    if (!("Notification" in window)) {
+      alert("This browser does not support desktop notification");
+    }
+  
+    // Let's check whether notification permissions have already been granted
+    else if (Notification.permission === "granted") {
+      // If it's okay let's create a notification
+      var notification = new Notification("Will now notify of stream activity!");
+    }
+  
+    // Otherwise, we need to ask the user for permission
+    else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then(function (permission) {
+        // If the user accepts, let's create a notification
+        if (permission === "granted") {
+          var notification = new Notification("Will now notify of stream activity!");
+        }
+      });
+    }
+  
+    // At last, if the user has denied notifications, and you 
+    // want to be respectful there is no need to bother them any more.
+}
+
+notifyMe();
 
 document.addEventListener("DOMContentLoaded", () => {
 
     let api_base = window.base_path + "/api/v0";
 
-    let delay = 120;
+    let delay = 90;
+
+    let previousData = {};
+
+    let timeout = null;
 
     function updateStreamers(){
 
-        console.log(`Fetching streamer list (${delay})...`);
+        console.log("Fetching streamer list...");
 
         let any_live = false;
 
@@ -44,18 +76,44 @@ document.addEventListener("DOMContentLoaded", () => {
                     if( streamer.is_live ){
                         any_live = true;
                         menu.classList.add('live');
-                        subtitle.innerHTML = 'Playing <strong>' + streamer.current_game.game_name + '</strong>';
+                        subtitle.innerHTML = `Playing <strong>${streamer.current_game.game_name}</strong>`;
                     }else{
                         subtitle.innerHTML = 'Offline';
                         menu.classList.remove('live');
                     }
+
+                    let old_data = previousData[ streamer.username ];
+
+                    if(old_data){
+                        // console.log("old data", old_data);
+                        // console.log("new data", streamer);
+                        let opt = {
+                            icon: streamer.channel_data.profile_image_url,
+                            image: streamer.channel_data.profile_image_url,
+                            body: streamer.current_game ? streamer.current_game.game_name : "No game",
+                        };
+                        if( !old_data.is_live && streamer.is_live ){
+                            let n = new Notification( `${streamer.username} is live!`, opt )
+                        }
+                        if( ( !old_data.current_game && streamer.current_game ) || ( old_data.current_game && streamer.current_game && old_data.current_game.game_name !== streamer.current_game.game_name ) ){
+                            let n = new Notification( `${streamer.username} is now playing ${streamer.current_game.game_name}!`, opt )
+                        }
+                        if( old_data.is_live && !streamer.is_live ){
+                            let n = new Notification( `${streamer.username} has gone offline!`, opt )
+                        }
+                    }
+                    
+
+                    previousData[ streamer.username ] = streamer;
+
                 }
                 if(any_live){
                     delay = 120;
                 }else{
                     delay += 10
                 }
-                setTimeout(updateStreamers, delay * 1000);
+                console.log(`Set next timeout to (${delay})...`);
+                timeout = setTimeout(updateStreamers, delay * 1000);
             }
         });
 
@@ -63,10 +121,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
 
+    window.forceUpdateStreamers = () => {
+        clearTimeout(timeout);
+        updateStreamers();
+    }
+
     updateStreamers();
 
-    
-
 });
-
-console.log("Hello");

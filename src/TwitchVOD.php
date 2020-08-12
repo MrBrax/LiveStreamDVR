@@ -100,8 +100,8 @@ class TwitchVOD {
 		// $this->duration 			= $this->json['duration'];
 		$this->duration_seconds		= $this->json['duration_seconds'];
 
-		$this->video_fail2 		= $this->json['video_fail2'];
-		$this->video_metadata	= $this->json['video_metadata'];
+		$this->video_fail2 			= isset($this->json['video_fail2']) ? $this->json['video_fail2'] : false;
+		$this->video_metadata		= isset($this->json['video_metadata']) ? $this->json['video_metadata'] : null;
 
 		if( !$this->video_metadata && !$this->is_recording && count($this->segments_raw) > 0 && !$this->video_fail2 && TwitchHelper::path_mediainfo() ){
 			$this->getMediainfo();
