@@ -158,7 +158,7 @@ class TwitchAutomator {
 
 			$vod_list[] = $vodclass;
 
-			foreach($vodclass->segments as $s){
+			foreach($vodclass->segments_raw as $s){
 				$total_size += filesize( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename($s) );
 			}
 			
