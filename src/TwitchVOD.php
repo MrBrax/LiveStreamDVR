@@ -66,6 +66,7 @@ class TwitchVOD {
 
 		$data = file_get_contents($filename);
 		$this->json = json_decode($data, true);
+		$this->json_hash = crc32($data);
 
 		if( !$this->json['meta']['data'][0]['user_name'] ){
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Tried to load " . $filename . " but found no streamer name");
@@ -407,6 +408,11 @@ class TwitchVOD {
 	 * Save JSON to file, be sure to load it first!
 	 */
 	public function saveJSON(){
+
+		$tmp = file_get_contents($this->filename);
+		if( crc32($tmp) !== $this->json_hash){
+			TwitchHelper::log(TwitchHelper::LOG_WARNING, "JSON has been changed since loading of " . $this->basename);
+		}
 
 		$generated = $this->json;
 
