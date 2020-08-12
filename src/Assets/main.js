@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
         fetch( api_base + "/list").then(response => response.json()).then(data => {
             if( data.data ){
                 for( let streamer of data.data.streamerList ){
-                    console.log( streamer );
+                    // console.log( streamer );
                     let menu = document.querySelector(".top-menu-item.streamer[data-streamer='" + streamer.username + "']");
                     let subtitle = menu.querySelector(".subtitle");
                     let vodcount = menu.querySelector(".vodcount");
@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     let streamer_vods_size = streamer_div.querySelector(".streamer-vods-size");
                     streamer_vods_quality.innerHTML = streamer.quality;
                     streamer_vods_amount.innerHTML = streamer.vods_raw.length + " vods";
-                    streamer_vods_size.innerHTML = formatBytes(streamer.vods_size);
+                    streamer_vods_size.innerHTML = formatBytes(streamer.vods_size, 2);
 
                     vodcount.innerHTML = streamer.vods_list.length;
                     if( streamer.is_live ){
