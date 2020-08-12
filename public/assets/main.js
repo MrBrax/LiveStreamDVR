@@ -14,7 +14,7 @@ function formatBytes(bytes, precision = 2) {
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    let api_base = window.base_path + "/api";
+    let api_base = window.base_path + "/api/v0";
 
     let delay = 120;
 
