@@ -72,7 +72,8 @@ class ApiController
             'status' => 'OK'
         ]);
         $response->getBody()->write($payload);
-        return $response->withHeader('Content-Type', 'application/json');
+        
+        return $response->withHeader('Content-Type', 'application/json')->withHeader('Access-Control-Allow-Origin', '*');
 
     }
 

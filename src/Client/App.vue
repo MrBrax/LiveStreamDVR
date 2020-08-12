@@ -1,32 +1,44 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
+    <div id="app">
+        <div id="nav">
+            <top-menu :streamerList="streamerList" />
+        </div>
+        <router-view/>
     </div>
-    <router-view/>
-  </div>
 </template>
 
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+<script>
 
-#nav {
-  padding: 30px;
+import TopMenu from './components/TopMenu.vue'
 
-  a {
-    font-weight: bold;
-    color: #2c3e50;
+export default {
+    name: 'App',
+    data: function(){
+        return {
+            test: 'HelloWorld',
+            streamerList: [],
+            free_size: 0,
+            total_size: 0
+        }
+    },
+    mounted(){
+        this.refresh();
+    },
+    components: {
+        TopMenu
+    },
+    methods: {
+        refresh(){
+            let server_url = 'http://localhost:8080/api/v0';
 
-    &.router-link-exact-active {
-      color: #42b983;
+            fetch( server_url + "/list").then(response => response.json()).then(data => {
+                data = data.data;
+                this.streamerList = data.streamerList;
+                this.free_size = data.free_size;
+                this.total_size = data.total_size;
+            });
+        }
     }
-  }
 }
-</style>
+</script>
+

@@ -1,22 +1,17 @@
 <template>
-  <div>Dashboard</div>
+    <div class="dashboard">
+        <strong>Free size:</strong> {{ $root.free_size }}.
+    </div>
 </template>
 
 <script>
 
 export default {
     name: 'Dashboard',
-    components: {
-    
+    mounted(){
+        console.log( this.data );
+        console.log( this.free_size );
+        console.log( this.$route );
     },
-    created(){
-
-        let server_url = 'http://localhost:8080/api';
-
-        fetch( server_url + "/list").then(response => response.json()).then(data => {
-            console.log(data);
-        });
-      
-    }
 }
 </script>

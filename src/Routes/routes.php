@@ -43,8 +43,8 @@ $app->post('/hook', HookController::class . ':hook')->setName('hook_post');
 $app->get('/sub', SubController::class . ':sub')->setName('sub');
 $app->get('/subs', SubController::class . ':subs')->setName('subs');
 
-$app->get('/api/list', ApiController::class . ':list')->setName('api_list');
-$app->get('/api/vod/{vod}', ApiController::class . ':vod')->setName('api_vod');
+$app->get('/api/v0/list', ApiController::class . ':list')->setName('api_list');
+$app->get('/api/v0/vod/{vod}', ApiController::class . ':vod')->setName('api_vod');
 
 // force start recording of streamer
 $app->get('/force_record/{username}', function (Request $request, Response $response, array $args) {

@@ -44,6 +44,8 @@ $container->set('guzzle', function(){
 // Create App
 $app = AppFactory::create();
 
+$app->addRoutingMiddleware();
+
 if( TwitchConfig::cfg('basepath') ){
     $app->setBasePath( TwitchConfig::cfg('basepath') );
 }
