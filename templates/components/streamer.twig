@@ -1,4 +1,4 @@
-<div class="streamer" data-streamer="{{ streamer.username }}">
+<div class="streamer-box" data-streamer="{{ streamer.username }}">
 
     <div id="streamer_{{ streamer.username }}" class="anchor"></div>
 
@@ -14,11 +14,11 @@
                 {% endif %}
             </h2>
             <span class="small">
-                <span class="help" title="Quality">{{ streamer.quality }}</span>
+                <span class="streamer-vods-quality help" title="Quality">{{ streamer.quality }}</span>
                     &middot; 
-                <span>{{ streamer.vods_list|length }} vods</span>
+                <span class="streamer-vods-amount">{{ streamer.vods_list|length }} vods</span>
                     &middot; 
-                <span>{{ streamer.vods_size|formatBytes }}</span>
+                <span class="streamer-vods-size">{{ streamer.vods_size|formatBytes }}</span>
                     &middot;
                     <a href="{{ url_for('force_record', { 'username': streamer.username }) }}">force record</a>
             </span>
