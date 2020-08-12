@@ -45,8 +45,8 @@ class TwitchVOD {
 	public $is_recording = false;
 	public $is_converted = false;
 
-	public $video_width = null;
-	public $video_height = null;
+	public $video_fail2 = false;
+	public $video_metadata = [];
 
 	/**
 	 * Load a VOD with a JSON file
@@ -112,14 +112,16 @@ class TwitchVOD {
 		$this->duration 			= $this->json['duration'];
 		$this->duration_seconds		= $this->json['duration_seconds'];
 
-		$this->video_width 		= $this->json['video_width'];
-		$this->video_height 	= $this->json['video_height'];
-		$this->video_bitrate 	= $this->json['video_bitrate'];
-		$this->video_fps 		= $this->json['video_fps'];
-		$this->video_fail 		= $this->json['video_fail'];
+		// $this->video_width 		= $this->json['video_width'];
+		// $this->video_height 	= $this->json['video_height'];
+		// $this->video_bitrate 	= $this->json['video_bitrate'];
+		// $this->video_fps 		= $this->json['video_fps'];
+		$this->video_fail2 		= $this->json['video_fail2'];
+		$this->video_metadata	= $this->json['video_metadata'];
 
-		if( !$this->video_width && !$this->is_recording && count($this->segments_raw) > 0 && !$this->video_fail ){
-			$this->saveVideoMetadata();
+		if( !$this->video_metadata && !$this->is_recording && count($this->segments_raw) > 0 && !$this->video_fail2 && TwitchHelper::path_mediainfo() ){
+			$this->getMediainfo();
+			$this->saveJSON();
 		}
 
 		$this->is_chat_downloaded = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.chat' );
@@ -177,6 +179,44 @@ class TwitchVOD {
 
 		}
 		
+
+	}
+
+	public function getMediainfo(){
+
+		TwitchHelper::log(TwitchHelper::LOG_INFO, "Fetching mediainfo of " . $this->basename);
+
+		if( !isset($this->segments_raw) || count($this->segments_raw) == 0 ){
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No video file available for mediainfo of " . $this->basename);
+			return false;
+		}
+
+		$filename = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename( $this->segments_raw[0] );
+
+		$output = shell_exec( TwitchHelper::path_mediainfo() . ' --Full --Output=JSON ' . escapeshellarg($filename) );
+
+		if( $output ){
+			
+			$json = json_decode( $output, true );
+			
+			$data = [];
+
+			foreach( $json['media']['track'] as $track ){
+				if( $track["@type"] == "General"){
+					$data['general'] = $track;
+				}else if( $track["@type"] == "Video"){
+					$data['video'] = $track;
+				}else if( $track["@type"] == "Audio"){
+					$data['audio'] = $track;
+				}
+			}
+
+			$this->video_metadata = $data;
+
+		}else{
+			$this->video_fail2 = true;
+			return false;
+		}
 
 	}
 
@@ -388,11 +428,8 @@ class TwitchVOD {
 		$generated['duration'] 			= $this->duration;
 		$generated['duration_seconds'] 	= $this->duration_seconds;
 
-		$generated['video_width'] 		= $this->video_width;
-		$generated['video_height'] 		= $this->video_height;
-		$generated['video_bitrate'] 	= $this->video_bitrate;
-		$generated['video_fps'] 		= $this->video_fps;
-		$generated['video_fail'] 		= $this->video_fail;
+		$generated['video_metadata'] 	= $this->video_metadata;
+		$generated['video_fail2'] 		= $this->video_fail2;
 
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Saving JSON of " . $this->basename);
 

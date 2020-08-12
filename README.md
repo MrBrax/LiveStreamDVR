@@ -19,6 +19,8 @@ Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in
     - Python 3.7+ for tcd support
 - [pip](https://pypi.org/project/pip/)
 - [Composer](https://getcomposer.org/)
+- FFmpeg
+- Mediainfo (recommended)
 
 ### pip packages
 - [streamlink](https://github.com/streamlink/streamlink) (required)

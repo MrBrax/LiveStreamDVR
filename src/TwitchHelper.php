@@ -737,6 +737,11 @@ class TwitchHelper {
 		return "";
 	}
 
+	public static function path_mediainfo(){
+		if( file_exists("/usr/bin/mediainfo") ) return "/usr/bin/mediainfo";
+		return false;
+	}
+
 	public static function path_streamlink(){
 		return TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "streamlink" . ( self::is_windows() ? '.exe' : '' );
 	}

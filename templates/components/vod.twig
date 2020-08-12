@@ -52,9 +52,10 @@
 
 					</li>
                     <li><strong>Size:</strong> {{ vodclass.segments[0].filesize|formatBytes }}</li>
-                    {% if vodclass.video_width %}
-                    <li><strong>Dimensions:</strong> {{ vodclass.video_width }}x{{ vodclass.video_height }}@{{ vodclass.video_fps }}</li>
-                    <li><strong>Bitrate:</strong> {{ vodclass.video_bitrate }}</li>
+                    {% if vodclass.video_metadata %}
+                    <li><strong>Dimensions:</strong> {{ vodclass.video_metadata.video.Width }}x{{ vodclass.video_metadata.video.Height }}@{{ vodclass.video_metadata.video.FrameRate }}</li>
+                    <li><strong>Bitrate:</strong> {{ (vodclass.video_metadata.video.BitRate / 1000)|round }}kbps</li>
+                    <li><strong>Audio:</strong> {{ vodclass.video_metadata.audio.Format }} {{ (vodclass.video_metadata.audio.BitRate / 1000)|round }}kbps</li>
                     {% endif %}
                     <li>		
                         <strong>Twitch VOD id:</strong> 
