@@ -29,7 +29,7 @@ class TwitchVOD {
 	public $started_at = null;
 	public $ended_at = null;
 
-	public $duration = null; // deprecated?
+	// public $duration = null; // deprecated?
 	public $duration_seconds = null;
 
 	public $game_offset = null;
@@ -88,6 +88,26 @@ class TwitchVOD {
 		$this->is_recording = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.ts' );
 		$this->is_converted = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.mp4' );
 
+		$this->streamer_name = $this->json['meta']['data'][0]['user_name'];
+		$this->streamer_id = TwitchHelper::getChannelId( $this->streamer_name );
+
+		$this->twitch_vod_id 		= $this->json['twitch_vod_id'];
+		$this->twitch_vod_url 		= $this->json['twitch_vod_url'];
+		$this->twitch_vod_duration 	= $this->json['twitch_vod_duration'];
+		$this->twitch_vod_title 	= $this->json['twitch_vod_title'];
+		$this->twitch_vod_date 		= $this->json['twitch_vod_date'];
+		
+		// $this->duration 			= $this->json['duration'];
+		$this->duration_seconds		= $this->json['duration_seconds'];
+
+		$this->video_fail2 		= $this->json['video_fail2'];
+		$this->video_metadata	= $this->json['video_metadata'];
+
+		if( !$this->video_metadata && !$this->is_recording && count($this->segments_raw) > 0 && !$this->video_fail2 && TwitchHelper::path_mediainfo() ){
+			$this->getMediainfo();
+			$this->saveJSON();
+		}
+
 		if( !$this->is_recording ){
 			$this->segments_raw = $this->json['segments_raw'];
 			$this->parseSegments( $this->segments_raw );
@@ -99,30 +119,6 @@ class TwitchVOD {
 			$this->parseChapters( $this->json['games'] );
 		}else{
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Neither chapters nor games on " . $filename . "!");
-		}
-
-		$this->streamer_name = $this->json['meta']['data'][0]['user_name'];
-		$this->streamer_id = TwitchHelper::getChannelId( $this->streamer_name );
-
-		$this->twitch_vod_id 		= $this->json['twitch_vod_id'];
-		$this->twitch_vod_url 		= $this->json['twitch_vod_url'];
-		$this->twitch_vod_duration 	= $this->json['twitch_vod_duration'];
-		$this->twitch_vod_title 	= $this->json['twitch_vod_title'];
-		$this->twitch_vod_date 		= $this->json['twitch_vod_date'];
-		
-		$this->duration 			= $this->json['duration'];
-		$this->duration_seconds		= $this->json['duration_seconds'];
-
-		// $this->video_width 		= $this->json['video_width'];
-		// $this->video_height 	= $this->json['video_height'];
-		// $this->video_bitrate 	= $this->json['video_bitrate'];
-		// $this->video_fps 		= $this->json['video_fps'];
-		$this->video_fail2 		= $this->json['video_fail2'];
-		$this->video_metadata	= $this->json['video_metadata'];
-
-		if( !$this->video_metadata && !$this->is_recording && count($this->segments_raw) > 0 && !$this->video_fail2 && TwitchHelper::path_mediainfo() ){
-			$this->getMediainfo();
-			$this->saveJSON();
 		}
 
 		$this->is_chat_downloaded = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.chat' );
@@ -155,28 +151,31 @@ class TwitchVOD {
 			return false;
 		}
 
+		if( $this->video_metadata ){
+			if($this->video_metadata['general']['Duration']) return $this->video['general']['Duration'];
+			return false;
+		}
 		
 		// $getID3 = new getID3;
 
-		$file = $this->getVideoMetadata();
+		// $file = $this->getVideoMetadata();
+		TwitchHelper::log(TwitchHelper::LOG_INFO, "No mediainfo for getDuration of " . $this->basename );	
+		$file = $this->getMediainfo();
 
 		if( !$file ){
-
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Could not find duration of " . $this->basename . ": " . join(", ", $file['error']) );			
-
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Could not find duration of " . $this->basename );			
 			return false;
-
 		}else{
 		
-			$this->duration 			= $file['playtime_string'];
-			$this->duration_seconds 	= $file['playtime_seconds'];
+			// $this->duration 			= $file['playtime_string'];
+			$this->duration_seconds 	= $file['general']['Duration'];
 
 			if( $save ){
 				TwitchHelper::log(TwitchHelper::LOG_INFO, "Saved duration for " . $this->basename);
 				$this->saveJSON();
 			}
 
-			return $file['playtime_seconds'];
+			return $this->duration_seconds;
 
 		}
 		
@@ -214,6 +213,8 @@ class TwitchVOD {
 
 			$this->video_metadata = $data;
 
+			return $this->video_metadata;
+
 		}else{
 			$this->video_fail2 = true;
 			return false;
@@ -221,6 +222,7 @@ class TwitchVOD {
 
 	}
 
+	/*
 	public function getVideoMetadata( $save = false ){
 
 		if( !isset($this->segments_raw) || count($this->segments_raw) == 0 ){
@@ -247,7 +249,9 @@ class TwitchVOD {
 		}
 
 	}
+	*/
 
+	/*
 	public function saveVideoMetadata(){
 
 		if( $this->is_recording ) return false;
@@ -276,6 +280,7 @@ class TwitchVOD {
 		$this->video_fps 		= $file['video']['frame_rate'];
 		$this->saveJSON();
 	}
+	*/
 
 	public function getDurationLive(){
 		$diff = $this->started_at->diff( new \DateTime() );
@@ -431,7 +436,7 @@ class TwitchVOD {
 		$generated['segments_raw'] 		= $this->segments_raw;
 		$generated['segments'] 			= $this->segments;
 
-		$generated['duration'] 			= $this->duration;
+		// $generated['duration'] 			= $this->duration;
 		$generated['duration_seconds'] 	= $this->duration_seconds;
 
 		$generated['video_metadata'] 	= $this->video_metadata;

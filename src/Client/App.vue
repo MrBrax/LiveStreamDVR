@@ -22,13 +22,15 @@ export default {
         }
     },
     mounted(){
-        this.refresh();
+        this.$store.dispatch('fetchStreamers');
+        // this.refresh();
     },
     components: {
         TopMenu
     },
     methods: {
         refresh(){
+            /*
             let server_url = 'http://localhost:8080/api/v0';
 
             fetch( server_url + "/list").then(response => response.json()).then(data => {
@@ -37,6 +39,7 @@ export default {
                 this.free_size = data.free_size;
                 this.total_size = data.total_size;
             });
+            */
         }
     }
 }

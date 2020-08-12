@@ -20,7 +20,7 @@ Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in
 - [pip](https://pypi.org/project/pip/)
 - [Composer](https://getcomposer.org/)
 - FFmpeg
-- Mediainfo (recommended)
+- Mediainfo
 
 ### pip packages
 - [streamlink](https://github.com/streamlink/streamlink) (required)

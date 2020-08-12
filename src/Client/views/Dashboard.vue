@@ -1,5 +1,8 @@
 <template>
     <div class="dashboard">
+        <div v-for="(streamer) in $store.state.streamerList" v-bind:key="streamer.username" class="streamer-box" :data-streamer="streamer.username">
+            
+        </div>
         <strong>Free size:</strong> {{ $root.free_size }}.
     </div>
 </template>

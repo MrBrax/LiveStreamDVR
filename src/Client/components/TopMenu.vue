@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-for="(streamer) in streamerList" v-bind:key="streamer.username" class="top-menu-item streamer" :data-streamer="streamer.username">
+        <div v-for="(streamer) in $store.state.streamerList" v-bind:key="streamer.username" class="top-menu-item streamer" :data-streamer="streamer.username">
             {{ streamer.username }}
         </div>
         <!--

@@ -15,12 +15,9 @@
             </h2>
             <span class="small">
                 <span class="streamer-vods-quality help" title="Quality">{{ streamer.quality }}</span>
-                    &middot; 
-                <span class="streamer-vods-amount">{{ streamer.vods_list|length }} vods</span>
-                    &middot; 
-                <span class="streamer-vods-size">{{ streamer.vods_size|formatBytes }}</span>
-                    &middot;
-                    <a href="{{ url_for('force_record', { 'username': streamer.username }) }}">force record</a>
+                 &middot; <span class="streamer-vods-amount">{{ streamer.vods_list|length }} vods</span>
+                 &middot; <span class="streamer-vods-size">{{ streamer.vods_size|formatBytes }}</span>
+                 {% if not streamer.is_live %} &middot; <a href="{{ url_for('force_record', { 'username': streamer.username }) }}">force record</a>{% endif %}
             </span>
         </div>
     </div>

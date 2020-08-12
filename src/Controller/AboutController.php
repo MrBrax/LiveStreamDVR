@@ -29,13 +29,23 @@ class AboutController
         $bins = [];
 
         $bins['ffmpeg'] = [];
-        $bins['ffmpeg']['path'] = TwitchConfig::cfg("ffmpeg_path");
-        if (file_exists(TwitchConfig::cfg("ffmpeg_path"))) {
-            $out = shell_exec(TwitchConfig::cfg("ffmpeg_path") . " -version");
+        $bins['ffmpeg']['path'] = TwitchHelper::path_ffmpeg();
+        if (file_exists(TwitchHelper::path_ffmpeg())) {
+            $out = shell_exec(TwitchHelper::path_ffmpeg() . " -version");
             $out = explode("\n", $out)[0];
             $bins['ffmpeg']['status'] = $out;
         } else {
             $bins['ffmpeg']['status'] = 'Not installed.';
+        }
+
+        $bins['mediainfo'] = [];
+        $bins['mediainfo']['path'] = TwitchHelper::path_mediainfo();
+        if (file_exists(TwitchHelper::path_mediainfo())) {
+            $out = shell_exec(TwitchHelper::path_mediainfo() . " --Version");
+            $out = explode("\n", $out)[1];
+            $bins['mediainfo']['status'] = $out;
+        } else {
+            $bins['mediainfo']['status'] = 'Not installed.';
         }
 
 

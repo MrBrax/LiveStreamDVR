@@ -738,6 +738,7 @@ class TwitchHelper {
 	}
 
 	public static function path_mediainfo(){
+		if( TwitchConfig::cfg('mediainfo_path') ) return TwitchConfig::cfg('mediainfo_path');
 		if( file_exists("/usr/bin/mediainfo") ) return "/usr/bin/mediainfo";
 		return false;
 	}
