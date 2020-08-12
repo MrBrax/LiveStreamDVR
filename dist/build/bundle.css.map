@@ -1,0 +1,12 @@
+{
+  "version": 3,
+  "file": "bundle.css",
+  "sources": [
+    "..\\..\\App.svelte"
+  ],
+  "sourcesContent": [
+    "<script lang=\"ts\">export let name;\r\n//# sourceMappingURL=App.svelte.js.map</script>\r\n\r\n<main>\r\n\t<h1>Hello {name}!</h1>\r\n\t<p>Visit the <a href=\"https://svelte.dev/tutorial\">Svelte tutorial</a> to learn how to build Svelte apps.</p>\r\n</main>\r\n\r\n<style>\r\n\tmain {\r\n\t\ttext-align: center;\r\n\t\tpadding: 1em;\r\n\t\tmax-width: 240px;\r\n\t\tmargin: 0 auto;\r\n\t}\r\n\r\n\th1 {\r\n\t\tcolor: #ff3e00;\r\n\t\ttext-transform: uppercase;\r\n\t\tfont-size: 4em;\r\n\t\tfont-weight: 100;\r\n\t}\r\n\r\n\t@media (min-width: 640px) {\r\n\t\tmain {\r\n\t\t\tmax-width: none;\r\n\t\t}\r\n\t}\r\n</style>"
+  ],
+  "names": [],
+  "mappings": "AASC,IAAI,eAAC,CAAC,AACL,UAAU,CAAE,MAAM,CAClB,OAAO,CAAE,GAAG,CACZ,SAAS,CAAE,KAAK,CAChB,MAAM,CAAE,CAAC,CAAC,IAAI,AACf,CAAC,AAED,EAAE,eAAC,CAAC,AACH,KAAK,CAAE,OAAO,CACd,cAAc,CAAE,SAAS,CACzB,SAAS,CAAE,GAAG,CACd,WAAW,CAAE,GAAG,AACjB,CAAC,AAED,MAAM,AAAC,YAAY,KAAK,CAAC,AAAC,CAAC,AAC1B,IAAI,eAAC,CAAC,AACL,SAAS,CAAE,IAAI,AAChB,CAAC,AACF,CAAC"
+}
