@@ -94,6 +94,7 @@ code, pre {
 			color: #fff;
 			padding: 12px 8px;
 		}
+		.favicon { transition: ease-in-out 0.5s transform; }
 		// .favicon { animation: 1s speeen linear; }
 		&:hover .favicon {
 			animation: 1s speen linear infinite;
@@ -635,10 +636,17 @@ body.black {
 	bottom: 0px;
 	background: #eee;
 	padding: 4px 8px;
-	font-size: 12px;
+	font-size: 14px;
 	border-radius: 3px 3px 0 0;
 	border: 1px solid #ccc;
 	border-bottom: none;
+	transition: ease-in-out 0.5s background-color;
+	&.active {
+		background-color: #d75252;
+		color: #fff;
+		animation: 1s ease-in-out infinite recording;
+		border-color: #222;
+	}
 }
 
 @media screen and (orientation: portrait) {

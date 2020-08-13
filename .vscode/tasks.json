@@ -10,6 +10,16 @@
 			"group": "build",
 			"label": "npm: build:style",
 			"detail": "node-sass ./src/Assets/style.scss > ./public/assets/style.css"
+		},
+		{
+			"type": "npm",
+			"script": "build:script",
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build",
+			"label": "npm: build:script",
+			"detail": "tsc"
 		}
 	]
 }

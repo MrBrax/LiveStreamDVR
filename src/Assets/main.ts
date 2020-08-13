@@ -38,9 +38,11 @@ function notifyMe() {
     // want to be respectful there is no need to bother them any more.
 }
 
-function setStatus( text : string ){
+function setStatus( text : string, active: boolean = false ){
     let js_status = document.getElementById("js-status");
     if(!js_status) return false;
+    console.log("Set status", text, active);
+    js_status.classList.toggle('active', active);
     js_status.innerHTML = text;
 }
 
@@ -60,15 +62,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         console.log(`Fetching streamer list (${delay})...`);
 
-        setStatus('Fetching...');
+        setStatus('Fetching...', true);
 
         let any_live = false;
 
         let response = await fetch( `${api_base}/list`);
-        setStatus('Parsing...');
+        setStatus('Parsing...', true);
         let data = await response.json();
 
-        setStatus('Applying...');
+        setStatus('Applying...', true);
 
         if( data.data ){
             for( let streamer of data.data.streamerList ){
@@ -107,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if( streamer_div ){
                 
-                    setStatus(`Render ${streamer.username}...`);
+                    setStatus(`Render ${streamer.username}...`, true);
                     let body_content_response = await fetch( `${api_base}/render/streamer/${streamer.username}` );
                     let body_content_data = await body_content_response.text();
 
@@ -117,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 let old_data = previousData[ streamer.username ];
 
-                setStatus(`Check notifications for ${streamer.username}...`);
+                setStatus(`Check notifications for ${streamer.username}...`, true);
                 if(old_data && Notification.permission === "granted"){
                     // console.log("old data", old_data);
                     // console.log("new data", streamer);
@@ -147,7 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             refresh_number++;
             console.log(`Set next timeout to (${delay})...`);
-            setStatus(`Done #${refresh_number}. Waiting ${delay} seconds.`);
+            setStatus(`Done #${refresh_number}. Waiting ${delay} seconds.`, false);
             timeout_store = setTimeout(updateStreamers, delay * 1000);
         }        
 

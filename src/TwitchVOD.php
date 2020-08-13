@@ -48,6 +48,9 @@ class TwitchVOD {
 	public $video_fail2 = false;
 	public $video_metadata = [];
 
+	public $is_chat_downloaded = false;
+	public $is_vod_downloaded = false;
+
 	/**
 	 * Load a VOD with a JSON file
 	 *
@@ -734,7 +737,8 @@ class TwitchVOD {
 
 		unlink( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.json'); // data file
 		unlink( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv'); // losslesscut
-		unlink( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.chat'); // chat download
+		
+		if( $this->is_chat_downloaded ) unlink( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.chat'); // chat download
 
 	}
 
