@@ -1,15 +1,15 @@
-function formatBytes(bytes, precision = 2) { 
+function formatBytes(bytes : number, precision = 2) { 
     let units = ['B', 'KB', 'MB', 'GB', 'TB']; 
 
     bytes = Math.max(bytes, 0); 
-    pow = Math.floor((bytes ? Math.log(bytes) : 0) / Math.log(1024)); 
+    let pow = Math.floor((bytes ? Math.log(bytes) : 0) / Math.log(1024)); 
     pow = Math.min(pow, units.length - 1); 
 
     // Uncomment one of the following alternatives
     bytes /= Math.pow(1024, pow);
     // bytes /= (1 << (10 * pow)); 
 
-    return Math.round(bytes, precision) + ' ' + units[pow]; 
+    return Math.round(bytes) + ' ' + units[pow]; 
 }
 
 function notifyMe() {
@@ -38,31 +38,60 @@ function notifyMe() {
     // want to be respectful there is no need to bother them any more.
 }
 
+function setStatus( text : string ){
+    let js_status = document.getElementById("js-status");
+    if(!js_status) return false;
+    js_status.innerHTML = text;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
 
-    let api_base = window.base_path + "/api/v0";
+    let api_base = (<any>window).base_path + "/api/v0";
 
-    let delay = 120;
+    let delay : number = 120;
 
     let previousData = {};
 
-    let timeout = null;
+    let timeout_store : number = 0;
 
     async function updateStreamers(){
 
         console.log(`Fetching streamer list (${delay})...`);
 
+        setStatus('Fetching...');
+
         let any_live = false;
 
         let response = await fetch( `${api_base}/list`);
+        setStatus('Parsing...');
         let data = await response.json();
+
+        setStatus('Applying...');
 
         if( data.data ){
             for( let streamer of data.data.streamerList ){
                 // console.log( streamer );
                 let menu = document.querySelector(`.top-menu-item.streamer[data-streamer='${streamer.username}']`);
-                let subtitle = menu.querySelector(".subtitle");
-                let vodcount = menu.querySelector(".vodcount");
+                if( menu ){
+
+                    let subtitle = menu.querySelector(".subtitle");
+                    let vodcount = menu.querySelector(".vodcount");
+
+                    if( subtitle && vodcount ){
+
+                        vodcount.innerHTML = streamer.vods_list.length;
+                        if( streamer.is_live ){
+                            any_live = true;
+                            menu.classList.add('live');
+                            subtitle.innerHTML = 'Playing <strong>' + streamer.current_game.game_name + '</strong>';
+                        }else{
+                            subtitle.innerHTML = 'Offline';
+                            menu.classList.remove('live');
+                        }
+
+                    }
+
+                }
 
                 let streamer_div = document.querySelector(`.streamer-box[data-streamer='${streamer.username}']`);
                 /*
@@ -72,25 +101,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 streamer_vods_quality.innerHTML = streamer.quality;
                 streamer_vods_amount.innerHTML = streamer.vods_raw.length + " vods";
                 streamer_vods_size.innerHTML = formatBytes(streamer.vods_size, 2);
-
-                vodcount.innerHTML = streamer.vods_list.length;
-                if( streamer.is_live ){
-                    any_live = true;
-                    menu.classList.add('live');
-                    subtitle.innerHTML = 'Playing <strong>' + streamer.current_game.game_name + '</strong>';
-                }else{
-                    subtitle.innerHTML = 'Offline';
-                    menu.classList.remove('live');
-                }
                 */
 
-                let body_content_response = await fetch( `${api_base}/render/streamer/${streamer.username}` );
-                let body_content_data = await body_content_response.text();
+                if( streamer_div ){
+                
+                    setStatus(`Render ${streamer.username}...`);
+                    let body_content_response = await fetch( `${api_base}/render/streamer/${streamer.username}` );
+                    let body_content_data = await body_content_response.text();
 
-                streamer_div.outerHTML = body_content_data;
+                    streamer_div.outerHTML = body_content_data;
+
+                }
 
                 let old_data = previousData[ streamer.username ];
 
+                setStatus(`Check notifications for ${streamer.username}...`);
                 if(old_data && Notification.permission === "granted"){
                     // console.log("old data", old_data);
                     // console.log("new data", streamer);
@@ -119,7 +144,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 delay += 10
             }
             console.log(`Set next timeout to (${delay})...`);
-            timeout = setTimeout(updateStreamers, delay * 1000);
+            setStatus(`Done. Waiting ${delay} seconds.`);
+            timeout_store = setTimeout(updateStreamers, delay * 1000);
         }        
 
     }

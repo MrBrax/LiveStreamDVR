@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
+    "outDir": "public/assets/",
+    "target": "es2017",
+    "module": "ES6",
     "strict": true,
     "jsx": "preserve",
     "importHelpers": true,
@@ -10,6 +11,7 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "noImplicitAny": false,
     "sourceMap": true,
     "baseUrl": ".",
     "types": [
@@ -27,10 +29,8 @@
       "scripthost"
     ]
   },
-  "include": [
-    "src/Client/**/*.ts",
-    "src/Client/**/*.tsx",
-    "src/Client/**/*.vue",
+  "files": [
+    "src/Assets/main.ts"
   ],
   "exclude": [
     "node_modules"

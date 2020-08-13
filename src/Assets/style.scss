@@ -629,6 +629,18 @@ body.black {
 	word-break: break-word;
 }
 
+#js-status {
+	position: fixed;
+	right: 10px;
+	bottom: 0px;
+	background: #eee;
+	padding: 4px 8px;
+	font-size: 12px;
+	border-radius: 3px 3px 0 0;
+	border: 1px solid #ccc;
+	border-bottom: none;
+}
+
 @media screen and (orientation: portrait) {
 	body { font-size: 1rem; }
 	.container { display: block; width: 100%; }
