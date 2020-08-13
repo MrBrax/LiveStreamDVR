@@ -165,8 +165,8 @@ code, pre {
 .info-columns {
 	display: flex;
 	.info-column {
-		flex-grow: 1;
-		padding-right: 10px;
+		// flex-grow: 1;
+		padding-right: 20px;
 		&:last-child {
 			padding-right: 0;
 		}

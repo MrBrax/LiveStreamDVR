@@ -32,20 +32,11 @@
                 <div class="info-columns">
                     <div class="info-column">
                         <ul class="video-info">
+                            <li><strong>Webhook duration:</strong> {{ vodclass.getWebhookDuration }}</li>
                             {% if vodclass.dt_capture_started %}
                             <li><strong>Capture start:</strong> {{ vodclass.dt_capture_started|date('Y-m-d H:i:s') }}</li>
                             <li><strong>Conversion start:</strong> {{ vodclass.dt_conversion_started|date('Y-m-d H:i:s') }}</li>	
                             {% endif %}
-                            <li><strong>Webhook duration:</strong> {{ vodclass.getWebhookDuration }}</li>
-                            <li><strong>File duration:</strong> {{ vodclass.getDuration(true)|humanDuration }}</li>
-                            <li>				
-                                <strong>Twitch VOD duration:</strong>
-                                {% if vodclass.twitch_vod_duration %}
-                                    {{ vodclass.twitch_vod_duration|humanDuration }}
-                                {% else %}
-                                    <strong><em>No data</em></strong>
-                                {% endif %}
-                            </li>
                             <li>
                                 <strong>Missing from captured file:</strong>	
                                 {% if vodclass.twitch_vod_duration %}				
@@ -60,6 +51,7 @@
                     </div>
                     <div class="info-column">
                         <ul class="video-info">
+                            <li><strong>File duration:</strong> {{ vodclass.getDuration(true)|humanDuration }}</li>
                             <li><strong>Size:</strong> {{ vodclass.segments[0].filesize|formatBytes }}</li>
                             {% if vodclass.video_metadata %}
                             <li><strong>Dimensions:</strong> {{ vodclass.video_metadata.video.Width }}x{{ vodclass.video_metadata.video.Height }}@{{ vodclass.video_metadata.video.FrameRate }}</li>
@@ -71,6 +63,14 @@
                     </div>
                     <div class="info-column">
                         <ul class="video-info">
+                            <li>				
+                                <strong>Twitch VOD duration:</strong>
+                                {% if vodclass.twitch_vod_duration %}
+                                    {{ vodclass.twitch_vod_duration|humanDuration }}
+                                {% else %}
+                                    <strong><em>No data</em></strong>
+                                {% endif %}
+                            </li>
                             <li>		
                                 <strong>Twitch VOD id:</strong> 
                                 {% if vodclass.twitch_vod_url %}	
