@@ -38,8 +38,6 @@ function notifyMe() {
     // want to be respectful there is no need to bother them any more.
 }
 
-notifyMe();
-
 document.addEventListener("DOMContentLoaded", () => {
 
     let api_base = window.base_path + "/api/v0";
@@ -93,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 let old_data = previousData[ streamer.username ];
 
-                if(old_data){
+                if(old_data && Notification.permission === "granted"){
                     // console.log("old data", old_data);
                     // console.log("new data", streamer);
                     let opt = {
