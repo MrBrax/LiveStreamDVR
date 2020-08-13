@@ -2,6 +2,7 @@
 
 namespace App;
 
+use DateTime;
 use getID3;
 
 class TwitchAutomator {
@@ -429,6 +430,7 @@ class TwitchAutomator {
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Add end timestamp for " . $basename);
 		$this->jsonLoad();
 		$this->json['ended_at'] = $this->getDateTime();
+		$this->json['dt_ended_at'] = new \DateTime();
 		$this->jsonSave();
 
 		sleep(60);
@@ -565,6 +567,10 @@ class TwitchAutomator {
 
 		$this->info[] = 'Streamlink cmd: ' . $cmd;
 
+		$this->jsonLoad();
+		$this->json['dt_capture_started'] = new \DateTime();
+		$this->jsonSave();
+
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting capture with filename " . $basename);
 		
 		$capture_output = shell_exec( $cmd );
@@ -637,6 +643,10 @@ class TwitchAutomator {
 		$cmd .= ' ' . escapeshellarg($converted_filename); // output filename
 		
 		$this->info[] = 'ffmpeg cmd: ' . $cmd;
+
+		$this->jsonLoad();
+		$this->json['dt_conversion_started'] = new \DateTime();
+		$this->jsonSave();
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting conversion of " . $capture_filename . " to " . $converted_filename);
 

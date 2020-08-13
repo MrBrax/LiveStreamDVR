@@ -6,6 +6,7 @@
   "scripts": {
     "watch:style": "node-sass --source-map true --source-map-embed --watch ./src/Assets/style.scss --output ./public/assets/",
     "build:style": "node-sass --output-style compressed ./src/Assets/style.scss --output ./public/assets/",
+    "build:script": "tsc",
     "build:client": "vue-cli-service build src/Client/main.ts",
     "serve:server": "php -S localhost:8080 -t public",
     "serve:client": "vue-cli-service serve src/Client/main.ts"
