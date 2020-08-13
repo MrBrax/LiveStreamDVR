@@ -1,5 +1,6 @@
 # TwitchAutomator
 
+**About 2 minutes of video seems to be missing from the start of every recording, i don't yet know why this is happening.**
 
 1. Install dependencies with composer.
 

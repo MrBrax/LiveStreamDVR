@@ -19,96 +19,99 @@
 
             {# box art #}
             <div class="boxart-carousel">
-                
                 {% for game in vodclass.getUniqueGames %}
                     <img class="boxart-big" title="{{ game.name }}" src="{{ game.image_url }}" />
-                {% endfor %}
-
+                    {% endfor %}
             </div>
             
             {# video info #}
             {% if vodclass.is_converted %}
                 
-                <strong>Segment 0 info:</strong>
-                
-                <ul class="video-info">
-                    <li><strong>Webhook duration:</strong> {{ vodclass.getWebhookDuration }} </li>	
-					<li><strong>File duration:</strong> {{ vodclass.getDuration(true)|humanDuration }}</li>
-                    <li>				
-                        <strong>Twitch VOD duration:</strong>
-                        {% if vodclass.twitch_vod_duration %}
-                            {{ vodclass.twitch_vod_duration|humanDuration }}
-                        {% else %}
-                            <strong><em>No data</em></strong>
-                        {% endif %}
-					</li>
-                    <li>
-						<strong>Missing from captured file:</strong>	
-						{% if vodclass.twitch_vod_duration %}				
-							{{ (vodclass.twitch_vod_duration - vodclass.getDuration(true))|humanDuration }}
-						{% else %}
-                            <strong><em>No data</em></strong>
-                        {% endif %}
+                <!-- <strong>Segment 0 info:</strong> -->
 
-					</li>
-                    <li><strong>Size:</strong> {{ vodclass.segments[0].filesize|formatBytes }}</li>
-                    {% if vodclass.video_metadata %}
-                    <li><strong>Dimensions:</strong> {{ vodclass.video_metadata.video.Width }}x{{ vodclass.video_metadata.video.Height }}@{{ vodclass.video_metadata.video.FrameRate }}</li>
-                    <li><strong>Bitrate:</strong> {{ (vodclass.video_metadata.video.BitRate / 1000)|round }}kbps</li>
-                    <li><strong>Audio:</strong> {{ vodclass.video_metadata.audio.Format }} {{ (vodclass.video_metadata.audio.BitRate / 1000)|round }}kbps</li>
-                    {% endif %}
-                    <li>		
-                        <strong>Twitch VOD id:</strong> 
-                    
-                        {% if vodclass.twitch_vod_url %}	
-                            
-                            <a href="{{ vodclass.twitch_vod_url }}" rel="noreferrer" target="_blank">{{ vodclass.twitch_vod_id }}</a>
-
-                            {% if checkvod %}
-                                
-                                {% if vodclass.twitch_vod_exists %}
-                                    (exists)
+                <div class="info-columns">
+                    <div class="info-column">
+                        <ul class="video-info">
+                            {% if vodclass.dt_capture_started %}
+                            <li><strong>Capture start:</strong> {{ vodclass.dt_capture_started|date('Y-m-d H:i:s') }}</li>
+                            <li><strong>Conversion start:</strong> {{ vodclass.dt_conversion_started|date('Y-m-d H:i:s') }}</li>	
+                            {% endif %}
+                            <li><strong>Webhook duration:</strong> {{ vodclass.getWebhookDuration }}</li>
+                            <li><strong>File duration:</strong> {{ vodclass.getDuration(true)|humanDuration }}</li>
+                            <li>				
+                                <strong>Twitch VOD duration:</strong>
+                                {% if vodclass.twitch_vod_duration %}
+                                    {{ vodclass.twitch_vod_duration|humanDuration }}
                                 {% else %}
-                                    <strong class="error">(deleted)</strong>
+                                    <strong><em>No data</em></strong>
+                                {% endif %}
+                            </li>
+                            <li>
+                                <strong>Missing from captured file:</strong>	
+                                {% if vodclass.twitch_vod_duration %}				
+                                    {{ (vodclass.twitch_vod_duration - vodclass.getDuration(true))|humanDuration }}
+                                {% else %}
+                                    <strong><em>No data</em></strong>
                                 {% endif %}
 
+                            </li>                            
+                            
+                        </ul>
+                    </div>
+                    <div class="info-column">
+                        <ul class="video-info">
+                            <li><strong>Size:</strong> {{ vodclass.segments[0].filesize|formatBytes }}</li>
+                            {% if vodclass.video_metadata %}
+                            <li><strong>Dimensions:</strong> {{ vodclass.video_metadata.video.Width }}x{{ vodclass.video_metadata.video.Height }}@{{ vodclass.video_metadata.video.FrameRate }}</li>
+                            <li><strong>Bitrate:</strong> {{ (vodclass.video_metadata.video.BitRate / 1000)|round }}kbps</li>
+                            <li><strong>Audio:</strong> {{ vodclass.video_metadata.audio.Format }} {{ (vodclass.video_metadata.audio.BitRate / 1000)|round }}kbps</li>
                             {% endif %}
+                            <li><strong>Chat downloaded:</strong> {{ vodclass.is_chat_downloaded ? 'Yes' : 'No' }}</li>
+                        </ul>
+                    </div>
+                    <div class="info-column">
+                        <ul class="video-info">
+                            <li>		
+                                <strong>Twitch VOD id:</strong> 
+                                {% if vodclass.twitch_vod_url %}	
+                                    
+                                    <a href="{{ vodclass.twitch_vod_url }}" rel="noreferrer" target="_blank">{{ vodclass.twitch_vod_id }}</a>
 
-                        {% else %}
-                            <strong><em>Not matched or VOD deleted</em></strong>
-                        {% endif %}
+                                    {% if checkvod %}
+                                        
+                                        {% if vodclass.twitch_vod_exists %}
+                                            (exists)
+                                        {% else %}
+                                            <strong class="error">(deleted)</strong>
+                                        {% endif %}
 
-                    </li>
-                    <li>			
-                        <strong>Twitch VOD date:</strong>
-                        {% if vodclass.twitch_vod_date %}
-                            {{ vodclass.twitch_vod_date }}
-                        {% else %}
-                            <strong><em>No data</em></strong>
-                        {% endif %}
-                    </li>
-                    <li>				
-                        <strong>Twitch VOD title:</strong> 
-                         {% if vodclass.twitch_vod_title %}
-                            <span class="text-overflow">{{ vodclass.twitch_vod_title }}</span>
-                        {% else %}
-                            <strong><em>No data</em></strong>
-                        {% endif %}
-                    </li>
-                    <li><strong>Chat downloaded:</strong> {{ vodclass.is_chat_downloaded ? 'Yes' : 'No' }}</li>
-                </ul>
+                                    {% endif %}
 
-                <strong>Segments:</strong>
-                <ul>
-                    {% for segment in vodclass.segments %}
-                        <li>
-                            <a href="{{ base_path() }}/vods/{{ segment.basename }}">
-                                <span class="text-overflow">{{ segment.basename }}</span>
-                                 ({{ segment.filesize|formatBytes }})
-                            </a>
-                        </li>
-                    {% endfor %}
-                </ul>
+                                {% else %}
+                                    <strong><em>Not matched or VOD deleted</em></strong>
+                                {% endif %}
+                            </li>
+                            <li>			
+                                <strong>Twitch VOD date:</strong>
+                                {% if vodclass.twitch_vod_date %}
+                                    {{ vodclass.twitch_vod_date }}
+                                {% else %}
+                                    <strong><em>No data</em></strong>
+                                {% endif %}
+                            </li>
+                            <li>				
+                                <strong>Twitch VOD title:</strong> 
+                                {% if vodclass.twitch_vod_title %}
+                                    <span class="text-overflow">{{ vodclass.twitch_vod_title }}</span>
+                                {% else %}
+                                    <strong><em>No data</em></strong>
+                                {% endif %}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                
 
             {% endif %}
 
@@ -121,6 +124,22 @@
             {% endif %}
 
         </div>
+
+        {% if vodclass.is_converted %}
+        <div class="video-segments">
+            <strong>Segments</strong>
+            <ul class="list-segments">
+                {% for segment in vodclass.segments %}
+                    <li>
+                        <a href="{{ base_path() }}/vods/{{ segment.basename }}">
+                            <span class="text-overflow">{{ segment.basename }}</span>
+                                ({{ segment.filesize|formatBytes }})
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
 
         {# controls #}
         <div class="video-controls">
@@ -168,90 +187,92 @@
         {% endif %}
         
         {# game list / chapters #}
-        <table class="table game-list">
+        <div class="video-chapters">
+            <table class="table game-list">
 
-            <thead>
-                <tr>
-                    <th>Offset</th>
-                    <th>Duration</th>
-                    <th>Game</th>
-                    <th>Title</th>
-                    <th>Viewers</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                {% for chapter in vodclass.chapters %}
-
+                <thead>
                     <tr>
-                        
-                        {# start timestamp #}
-                        <td>
-                            {{ chapter.strings.started_at }}
-                        </td>
+                        <th>Offset</th>
+                        <th>Duration</th>
+                        <th>Game</th>
+                        <th>Title</th>
+                        <th>Viewers</th>
+                    </tr>
+                </thead>
 
-                        {# duration #}
-                        <td>
-                            <span class="grey">
-                                {% if chapter.duration %}
-                                    {{ chapter.strings.duration }}
+                <tbody>
+
+                    {% for chapter in vodclass.chapters %}
+
+                        <tr>
+                            
+                            {# start timestamp #}
+                            <td>
+                                {{ chapter.strings.started_at }}
+                            </td>
+
+                            {# duration #}
+                            <td>
+                                <span class="grey">
+                                    {% if chapter.duration %}
+                                        {{ chapter.strings.duration }}
+                                    {% else %}
+                                        Active
+                                    {% endif %}
+                                </span>
+                            </td>
+
+                            {# chapter name #}
+                            <td>
+                                {% if chapter.box_art_url %}<img class="boxart" src="{{ chapter.box_art_url }}" />{% endif %}
+
+                                {% if vodclass.is_converted %}
+                                    <a href="{{ url_for('player', { 'vod': vodclass.basename }) }}?start={{ chapter.offset }}">
+                                        {{ chapter.game_name }}
+                                    </a>
                                 {% else %}
-                                    Active
-                                {% endif %}
-                            </span>
-                        </td>
-
-                        {# chapter name #}
-                        <td>
-                            {% if chapter.box_art_url %}<img class="boxart" src="{{ chapter.box_art_url }}" />{% endif %}
-
-                            {% if vodclass.is_converted %}
-                                <a href="{{ url_for('player', { 'vod': vodclass.basename }) }}?start={{ chapter.offset }}">
                                     {{ chapter.game_name }}
-                                </a>
-                            {% else %}
-                                {{ chapter.game_name }}
+                                {% endif %}
+
+                            </td>
+
+                            {# title #}
+                            <td><span class="text-overflow">{{ chapter.title }}</span></td>
+
+                            <td>
+                                <span class="grey">{{ chapter.viewer_count|number_format }}</span>
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                    {% if vodclass.ended_at %}
+                        
+                        <tr>
+                            <td>
+                                {{ vodclass.getWebhookDuration }}
+                            </td>
+                            <td colspan="4">
+                                <em>END</em>
+                            </td>
+                        </tr>
+                        
+                    {% else %}
+                        
+                        <tr>
+                            {% if vodclass.started_at %}
+                                <td>{{ vodclass.getDurationLive }}</td>
                             {% endif %}
+                            <td colspan="4"><em><strong>ONGOING</strong></em></td>
+                        </tr>
+                        
+                    {% endif %}
 
-                        </td>
+                </tbody>
 
-                        {# title #}
-                        <td><span class="text-overflow">{{ chapter.title }}</span></td>
-
-                        <td>
-                            <span class="grey">{{ chapter.viewer_count|number_format }}</span>
-                        </td>
-
-                    </tr>
-
-                {% endfor %}
-
-                {% if vodclass.ended_at %}
-                    
-                    <tr>
-                        <td>
-                            {{ vodclass.getWebhookDuration }}
-                        </td>
-                        <td colspan="4">
-                            <em>END</em>
-                        </td>
-                    </tr>
-                    
-                {% else %}
-                    
-                    <tr>
-                        {% if vodclass.started_at %}
-                            <td>{{ vodclass.getDurationLive }}</td>
-                        {% endif %}
-                        <td colspan="4"><em><strong>ONGOING</strong></em></td>
-                    </tr>
-                    
-                {% endif %}
-
-            </tbody>
-
-        </table>
+            </table>
+        </div>
 
     </div>
 

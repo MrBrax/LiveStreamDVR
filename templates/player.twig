@@ -4,25 +4,25 @@
 
 <div class="container">
 
-    <div class="video-player">
+    <div class="videoplayer">
 
         <video id="video" src="{{ base_path() }}/vods/{{ vodclass.basename }}.mp4" controls width="1280"></video>
 
 
-        <div class="video-chapters">
+        <div class="videoplayer-chapters">
 
             {% for chapter in vodclass.chapters %}
 
-                <div title="{{ chapter.title }} | \\n{{ chapter.game_name }}" class="video-chapter" style="width: {{ chapter.width }}%" onclick="scrub({{ chapter.offset }}, {{ chapter.duration }});">
-                    <div class="video-chapter-title">{{ chapter.title }}</div>
-                    <div class="video-chapter-game">{{ chapter.game_name }}</div>
+                <div title="{{ chapter.title }} | \\n{{ chapter.game_name }}" class="videoplayer-chapter" style="width: {{ chapter.width }}%" onclick="scrub({{ chapter.offset }}, {{ chapter.duration }});">
+                    <div class="videoplayer-chapter-title">{{ chapter.title }}</div>
+                    <div class="videoplayer-chapter-game">{{ chapter.game_name }}</div>
                 </div>
 
             {% endfor %}
 
         </div>
 
-        <div class="video-cut">
+        <div class="videoplayer-cut">
 			<form method="post" action="/cut">
 
 				<input type="hidden" name="vod" value="{{ vodclass.basename }}" />
