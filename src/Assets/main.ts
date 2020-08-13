@@ -54,6 +54,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let timeout_store : number = 0;
 
+    let refresh_number = 0;
+
     async function updateStreamers(){
 
         console.log(`Fetching streamer list (${delay})...`);
@@ -143,8 +145,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }else{
                 delay += 10
             }
+            refresh_number++;
             console.log(`Set next timeout to (${delay})...`);
-            setStatus(`Done. Waiting ${delay} seconds.`);
+            setStatus(`Done #${refresh_number}. Waiting ${delay} seconds.`);
             timeout_store = setTimeout(updateStreamers, delay * 1000);
         }        
 
