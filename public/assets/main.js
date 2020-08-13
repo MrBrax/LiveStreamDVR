@@ -10,7 +10,35 @@ function formatBytes(bytes, precision = 2) {
     // bytes /= (1 << (10 * pow)); 
 
     return Math.round(bytes, precision) + ' ' + units[pow]; 
-} 
+}
+
+function notifyMe() {
+    // Let's check if the browser supports notifications
+    if (!("Notification" in window)) {
+      alert("This browser does not support desktop notification");
+    }
+  
+    // Let's check whether notification permissions have already been granted
+    else if (Notification.permission === "granted") {
+      // If it's okay let's create a notification
+      var notification = new Notification("Will now notify of stream activity!");
+    }
+  
+    // Otherwise, we need to ask the user for permission
+    else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then(function (permission) {
+        // If the user accepts, let's create a notification
+        if (permission === "granted") {
+          var notification = new Notification("Will now notify of stream activity!");
+        }
+      });
+    }
+  
+    // At last, if the user has denied notifications, and you 
+    // want to be respectful there is no need to bother them any more.
+}
+
+notifyMe();
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -18,54 +46,87 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let delay = 120;
 
-    function updateStreamers(){
+    let previousData = {};
+
+    let timeout = null;
+
+    async function updateStreamers(){
 
         console.log(`Fetching streamer list (${delay})...`);
 
         let any_live = false;
 
-        fetch( api_base + "/list").then(response => response.json()).then(data => {
-            if( data.data ){
-                for( let streamer of data.data.streamerList ){
-                    // console.log( streamer );
-                    let menu = document.querySelector(".top-menu-item.streamer[data-streamer='" + streamer.username + "']");
-                    let subtitle = menu.querySelector(".subtitle");
-                    let vodcount = menu.querySelector(".vodcount");
+        let response = await fetch( `${api_base}/list`);
+        let data = await response.json();
 
-                    let streamer_div = document.querySelector(".streamer-box[data-streamer='" + streamer.username + "']");
-                    let streamer_vods_quality = streamer_div.querySelector(".streamer-vods-quality");
-                    let streamer_vods_amount = streamer_div.querySelector(".streamer-vods-amount");
-                    let streamer_vods_size = streamer_div.querySelector(".streamer-vods-size");
-                    streamer_vods_quality.innerHTML = streamer.quality;
-                    streamer_vods_amount.innerHTML = streamer.vods_raw.length + " vods";
-                    streamer_vods_size.innerHTML = formatBytes(streamer.vods_size, 2);
+        if( data.data ){
+            for( let streamer of data.data.streamerList ){
+                // console.log( streamer );
+                let menu = document.querySelector(`.top-menu-item.streamer[data-streamer='${streamer.username}']`);
+                let subtitle = menu.querySelector(".subtitle");
+                let vodcount = menu.querySelector(".vodcount");
 
-                    vodcount.innerHTML = streamer.vods_list.length;
-                    if( streamer.is_live ){
-                        any_live = true;
-                        menu.classList.add('live');
-                        subtitle.innerHTML = 'Playing <strong>' + streamer.current_game.game_name + '</strong>';
-                    }else{
-                        subtitle.innerHTML = 'Offline';
-                        menu.classList.remove('live');
+                let streamer_div = document.querySelector(`.streamer-box[data-streamer='${streamer.username}']`);
+                /*
+                let streamer_vods_quality = streamer_div.querySelector(".streamer-vods-quality");
+                let streamer_vods_amount = streamer_div.querySelector(".streamer-vods-amount");
+                let streamer_vods_size = streamer_div.querySelector(".streamer-vods-size");
+                streamer_vods_quality.innerHTML = streamer.quality;
+                streamer_vods_amount.innerHTML = streamer.vods_raw.length + " vods";
+                streamer_vods_size.innerHTML = formatBytes(streamer.vods_size, 2);
+
+                vodcount.innerHTML = streamer.vods_list.length;
+                if( streamer.is_live ){
+                    any_live = true;
+                    menu.classList.add('live');
+                    subtitle.innerHTML = 'Playing <strong>' + streamer.current_game.game_name + '</strong>';
+                }else{
+                    subtitle.innerHTML = 'Offline';
+                    menu.classList.remove('live');
+                }
+                */
+
+                let body_content_response = await fetch( `${api_base}/render/streamer/${streamer.username}` );
+                let body_content_data = await body_content_response.text();
+
+                streamer_div.outerHTML = body_content_data;
+
+                let old_data = previousData[ streamer.username ];
+
+                if(old_data){
+                    // console.log("old data", old_data);
+                    // console.log("new data", streamer);
+                    let opt = {
+                        icon: streamer.channel_data.profile_image_url,
+                        image: streamer.channel_data.profile_image_url,
+                        body: streamer.current_game ? streamer.current_game.game_name : "No game",
+                    };
+                    if( !old_data.is_live && streamer.is_live ){
+                        let n = new Notification( `${streamer.username} is live!`, opt )
+                    }
+                    if( ( !old_data.current_game && streamer.current_game ) || ( old_data.current_game && streamer.current_game && old_data.current_game.game_name !== streamer.current_game.game_name ) ){
+                        let n = new Notification( `${streamer.username} is now playing ${streamer.current_game.game_name}!`, opt )
+                    }
+                    if( old_data.is_live && !streamer.is_live ){
+                        let n = new Notification( `${streamer.username} has gone offline!`, opt )
                     }
                 }
-                if(any_live){
-                    delay = 120;
-                }else{
-                    delay += 10
-                }
-                setTimeout(updateStreamers, delay * 1000);
-            }
-        });
 
-        
+                previousData[ streamer.username ] = streamer;
+
+            }
+            if(any_live){
+                delay = 120;
+            }else{
+                delay += 10
+            }
+            console.log(`Set next timeout to (${delay})...`);
+            timeout = setTimeout(updateStreamers, delay * 1000);
+        }        
 
     }
 
     updateStreamers();
-
-    
 
 });
 

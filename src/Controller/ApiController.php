@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
+use Slim\Views\Twig;
 
 use App\TwitchAutomator;
 use App\TwitchConfig;
@@ -12,6 +13,16 @@ use App\TwitchVOD;
 
 class ApiController
 {
+
+    /**
+     * @var Twig
+     */
+    private $twig;
+
+    public function __construct(Twig $twig)
+    {
+        $this->twig = $twig;
+    }
 
     public function list( Request $request, Response $response, $args ) {
         
@@ -92,6 +103,49 @@ class ApiController
         ]);
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
+
+    }
+
+    public function render_streamer( Request $request, Response $response, $args ) {
+
+        $username = $args['username'];
+
+        $data = TwitchConfig::getStreamer($username);
+
+        $data['channel_data'] = TwitchHelper::getChannelData( $data['username'] );
+
+        $data['vods_raw'] = glob(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $data['username'] . "_*.json");
+
+        $data['vods_list'] = [];
+
+        $data['vods_size'] = 0;
+
+        foreach ($data['vods_raw'] as $k => $v) {
+
+            $vodclass = new TwitchVOD();
+            $vodclass->load($v);
+
+            if ($vodclass->is_recording){
+                $data['is_live'] = true;
+                $data['current_vod'] = $vodclass;
+                $data['current_game'] = $vodclass->getCurrentGame();
+            }
+
+            if ($vodclass->segments) {
+                foreach ($vodclass->segments_raw as $s) {
+                    $data['vods_size'] += filesize(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $s );
+                }
+            }
+
+            $data['vods_list'][] = $vodclass;
+
+        }
+
+
+
+        return $this->twig->render($response, 'components/streamer.twig', [
+            'streamer' => $data
+        ]);
 
     }
 
