@@ -24,8 +24,20 @@ class AboutController
         $this->twig = $twig;
     }
 
+    private function pypi_get( $package ){
+        $client = new \GuzzleHttp\Client();
+        $response = $client->get("https://pypi.org/pypi/" . $package . "/json");
+        $json = json_decode( $response->getBody()->getContents(), true );
+        return $json ?: false;
+    }
+
     public function about(Request $request, Response $response, array $args)
     {
+
+        $update_check = isset($_GET['update_check']);
+
+        
+
         $bins = [];
 
         $bins['ffmpeg'] = [];
@@ -48,34 +60,74 @@ class AboutController
             $bins['mediainfo']['status'] = 'Not installed.';
         }
 
-
+        // tcd
         $bins['tcd'] = [];
         $bins['tcd']['path'] = TwitchHelper::path_tcd();
         if (file_exists(TwitchHelper::path_tcd())) {
             $out = shell_exec(TwitchHelper::path_tcd() . " --version");
             $bins['tcd']['status'] = $out;
+            $bins['tcd']['installed'] = true;
         } else {
             $bins['tcd']['status'] = 'Not installed.';
         }
 
+        if( $update_check && $bins['tcd']['installed'] ){
+            $json = $this->pypi_get('tcd');
+            if($json){
+                preg_match("/([0-9]\.[0-9]\.[0-9])/", $bins['tcd']['status'], $matches);
+                if( $matches && $matches[1] !== $json['info']['version']){
+                    $bins['tcd']['status'] .= ' - version ' . $json['info']['version'] . ' available';
+                }else{
+                    $bins['tcd']['status'] .= ' - up to date';
+                }
+                $matches = null;
+            }
+        }
 
+        // streamlink
         $bins['streamlink'] = [];
         $bins['streamlink']['path'] = TwitchHelper::path_streamlink();
         if (file_exists(TwitchHelper::path_streamlink())) {
             $out = shell_exec(TwitchHelper::path_streamlink() . " --version");
             $bins['streamlink']['status'] = trim($out);
+            $bins['streamlink']['installed'] = true;
         } else {
             $bins['streamlink']['status'] = 'Not installed.';
         }
 
+        if( $update_check && $bins['streamlink']['installed'] ){
+            $json = $this->pypi_get('streamlink');
+            if($json){
+                preg_match("/([0-9]\.[0-9]\.[0-9])/", $bins['streamlink']['status'], $matches);
+                if( $matches && $matches[1] !== $json['info']['version']){
+                    $bins['streamlink']['status'] .= ' - version ' . $json['info']['version'] . ' available';
+                }else{
+                    $bins['streamlink']['status'] .= ' - up to date';
+                }
+                $matches = null;
+            }
+        }
 
+        // youtube-dl
         $bins['youtubedl'] = [];
         $bins['youtubedl']['path'] = TwitchHelper::path_youtubedl();
         if (file_exists(TwitchHelper::path_youtubedl())) {
             $out = shell_exec(TwitchHelper::path_youtubedl() . " --version");
             $bins['youtubedl']['status'] = trim($out);
+            $bins['youtubedl']['installed'] = true;
         } else {
             $bins['youtubedl']['status'] = 'Not installed.';
+        }
+
+        if( $update_check && $bins['youtubedl']['installed'] ){
+            $json = $this->pypi_get('youtube-dl');
+            if($json){
+                if( $bins['youtubedl']['status'] !== $json['info']['version']){
+                    $bins['youtubedl']['status'] .= ' - version ' . $json['info']['version'] . ' available';
+                }else{
+                    $bins['youtubedl']['status'] .= ' - up to date';
+                }
+            }
         }
 
 
@@ -84,6 +136,7 @@ class AboutController
         if (file_exists(TwitchHelper::path_pipenv())) {
             $out = shell_exec(TwitchHelper::path_pipenv() . " --version");
             $bins['pipenv']['status'] = trim($out);
+            $bins['pipenv']['installed'] = true;
         } else {
             $bins['pipenv']['status'] = 'Not installed';
         }
