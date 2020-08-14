@@ -60,16 +60,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (menu) {
                     let subtitle = menu.querySelector(".subtitle");
                     let vodcount = menu.querySelector(".vodcount");
-                    if (subtitle && vodcount) {
+                    let link = menu.querySelector("a");
+                    if (subtitle && vodcount && link) {
                         vodcount.innerHTML = streamer.vods_list.length;
                         if (streamer.is_live) {
                             any_live = true;
                             menu.classList.add('live');
-                            subtitle.innerHTML = 'Playing <strong>' + streamer.current_game.game_name + '</strong>';
+                            subtitle.innerHTML = `Playing <strong>${streamer.current_game.game_name}</strong>`;
+                            if (streamer.current_vod)
+                                link.href = `#vod_${streamer.current_vod.basename}`;
                         }
                         else {
                             subtitle.innerHTML = 'Offline';
                             menu.classList.remove('live');
+                            link.href = `#streamer_${streamer.username}`;
                         }
                     }
                 }
