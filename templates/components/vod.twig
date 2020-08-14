@@ -33,6 +33,7 @@
                     <div class="info-column">
                         <ul class="video-info">
                             <li><strong>Webhook duration:</strong> {{ vodclass.getWebhookDuration }}</li>
+                            <li><strong>Twitch start:</strong> {{ vodclass.started_at|date('Y-m-d H:i:s') }}</li>
                             {% if vodclass.dt_capture_started %}
                             <li><strong>Capture start:</strong> {{ vodclass.dt_capture_started|date('Y-m-d H:i:s') }}</li>
                             <li><strong>Conversion start:</strong> {{ vodclass.dt_conversion_started|date('Y-m-d H:i:s') }}</li>	
@@ -94,7 +95,7 @@
                             <li>			
                                 <strong>Twitch VOD date:</strong>
                                 {% if vodclass.twitch_vod_date %}
-                                    {{ vodclass.twitch_vod_date }}
+                                    {{ vodclass.twitch_vod_date|date('Y-m-d H:i:s') }}
                                 {% else %}
                                     <strong><em>No data</em></strong>
                                 {% endif %}

@@ -51,6 +51,10 @@ class TwitchVOD {
 	public $is_chat_downloaded = false;
 	public $is_vod_downloaded = false;
 
+	public $dt_ended_at = null;
+	public $dt_capture_started = null;
+	public $dt_conversion_started = null;
+
 	/**
 	 * Load a VOD with a JSON file
 	 *
@@ -99,7 +103,13 @@ class TwitchVOD {
 		$this->twitch_vod_duration 	= $this->json['twitch_vod_duration'];
 		$this->twitch_vod_title 	= $this->json['twitch_vod_title'];
 		$this->twitch_vod_date 		= $this->json['twitch_vod_date'];
-		
+
+		if( $this->json['dt_capture_started'] ){
+			$this->dt_capture_started 		= new \DateTime($this->json['dt_capture_started']['date']);
+			$this->dt_conversion_started 	= new \DateTime($this->json['dt_conversion_started']['date']);
+			$this->dt_ended_at 				= new \DateTime($this->json['dt_ended']['date']);
+		}
+
 		// $this->duration 			= $this->json['duration'];
 		$this->duration_seconds		= $this->json['duration_seconds'];
 

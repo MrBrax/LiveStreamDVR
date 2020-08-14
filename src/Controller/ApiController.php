@@ -24,8 +24,8 @@ class ApiController
         $this->twig = $twig;
     }
 
-    public function list( Request $request, Response $response, $args ) {
-        
+    private function generateStreamerList(){
+
         $total_size = 0;
 
         $streamerListStatic = TwitchConfig::getStreamers();
@@ -69,7 +69,12 @@ class ApiController
             $streamerList[] = $data;
 
         }
+        return [ $streamerList, $total_size ];
+    }
 
+    public function list( Request $request, Response $response, $args ) {
+        
+        list($streamerList, $total_size) = $this->generateStreamerList();
 
         $data = [
             'streamerList' => $streamerList,
@@ -103,6 +108,16 @@ class ApiController
         ]);
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
+
+    }
+
+    public function render_menu( Request $request, Response $response, $args ) {
+        
+        list($streamerList, $total_size) = $this->generateStreamerList();
+        
+        return $this->twig->render($response, 'components/menu.twig', [
+            'streamerList' => $streamerList
+        ]);
 
     }
 
@@ -140,8 +155,6 @@ class ApiController
             $data['vods_list'][] = $vodclass;
 
         }
-
-
 
         return $this->twig->render($response, 'components/streamer.twig', [
             'streamer' => $data

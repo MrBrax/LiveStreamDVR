@@ -155,6 +155,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
 
+    (<any>window).forceRefresh = () => {
+        clearTimeout(timeout_store);
+        updateStreamers();
+    }
+
     setStatus(`Refreshing in ${delay} seconds...`, false)
 
     timeout_store = setTimeout(updateStreamers, delay * 1000);
