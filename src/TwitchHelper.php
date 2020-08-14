@@ -731,32 +731,113 @@ class TwitchHelper {
 		return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
 	}
 
-	public static function path_ffmpeg(){
+	public static function path_ffmpeg(){		
+		
 		if( TwitchConfig::cfg('ffmpeg_path') ) return TwitchConfig::cfg('ffmpeg_path');
-		if( file_exists("/usr/bin/ffmpeg") ) return "/usr/bin/ffmpeg";
-		return "";
+		// if( file_exists("/usr/bin/ffmpeg") ) return "/usr/bin/ffmpeg";
+
+		if( self::is_windows() ){
+			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Windows system, requesting ffmpeg binary from path...");
+			$out = shell_exec("where ffmpeg.exe");
+			if($out){
+				$path = explode("\n", $out)[0];
+				TwitchConfig::$config['ffmpeg_path'] = $path;
+				TwitchConfig::saveConfig("path resolver");
+				return $path;
+			}
+		}else{
+			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Linux system, requesting ffmpeg binary from path...");
+			$out = shell_exec("whereis ffmpeg");
+			if($out){
+				preg_match("/^[a-z]+\:\s([a-z\-\_\/\.]+)/", $out, $matches);
+				if($matches){
+					$path = $matches[1];
+					TwitchConfig::$config['ffmpeg_path'] = $path;
+					TwitchConfig::saveConfig("path resolver");
+					return $path;
+				}
+			}
+		}		
+
+		return false;
 	}
 
 	public static function path_mediainfo(){
+		
 		if( TwitchConfig::cfg('mediainfo_path') ) return TwitchConfig::cfg('mediainfo_path');
-		if( file_exists("/usr/bin/mediainfo") ) return "/usr/bin/mediainfo";
+		// if( file_exists("/usr/bin/mediainfo") ) return "/usr/bin/mediainfo";
+
+		// TODO: merge these two
+		if( self::is_windows() ){
+			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Windows system, requesting mediainfo binary from path...");
+			$out = shell_exec("where mediainfo.exe");
+			if($out){
+				$path = explode("\n", $out)[0];
+				TwitchConfig::$config['mediainfo_path'] = $path;
+				TwitchConfig::saveConfig("path resolver");
+				return $path;
+			}
+		}else{
+			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Linux system, requesting mediainfo binary from path...");
+			$out = shell_exec("whereis mediainfo");
+			if($out){
+				preg_match("/^[a-z]+\:\s([a-z\-\_\/\.]+)/", $out, $matches);
+				if($matches){
+					$path = $matches[1];
+					TwitchConfig::$config['mediainfo_path'] = $path;
+					TwitchConfig::saveConfig("path resolver");
+					return $path;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	public static function find_bin_dir(){
+		if( self::is_windows() ){
+			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Windows system, requesting bin dir from path...");
+			$out = shell_exec("where streamlink.exe");
+			if($out){
+				$path = explode("\n", $out)[0];
+				TwitchConfig::$config['bin_dir'] = pathinfo($path, PATHINFO_DIRNAME);
+				TwitchConfig::saveConfig("bin path resolver");
+				return $path;
+			}
+		}else{
+			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Linux system, requesting bin dir from path...");
+			$out = shell_exec("whereis streamlink");
+			if($out){
+				preg_match("/^[a-z]+\:\s([a-z\-\_\/\.]+)/", $out, $matches);
+				if($matches){
+					$path = $matches[1];
+					TwitchConfig::$config['bin_dir'] = pathinfo($path, PATHINFO_DIRNAME);
+					TwitchConfig::saveConfig("bin path resolver");
+					return $path;
+				}
+			}
+		}
 		return false;
 	}
 
 	public static function path_streamlink(){
-		return TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "streamlink" . ( self::is_windows() ? '.exe' : '' );
+		$path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "streamlink" . ( self::is_windows() ? '.exe' : '' );
+		return file_exists($path) ? $path : false;
 	}
 
 	public static function path_youtubedl(){
-		return TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "youtube-dl" . ( self::is_windows() ? '.exe' : '' );
+		$path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "youtube-dl" . ( self::is_windows() ? '.exe' : '' );
+		return file_exists($path) ? $path : false;
 	}
 
 	public static function path_tcd(){
-		return TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "tcd" . ( self::is_windows() ? '.exe' : '' );
+		$path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "tcd" . ( self::is_windows() ? '.exe' : '' );
+		return file_exists($path) ? $path : false;
 	}
 
 	public static function path_pipenv(){
-		return TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "pipenv" . ( self::is_windows() ? '.exe' : '' );
+		$path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "pipenv" . ( self::is_windows() ? '.exe' : '' );
+		return file_exists($path) ? $path : false;
 	}
 
 	public static function vod_folder(){

@@ -9,7 +9,7 @@ function formatBytes(bytes : number, precision = 2) {
     bytes /= Math.pow(1024, pow);
     // bytes /= (1 << (10 * pow)); 
 
-    return Math.round(bytes) + ' ' + units[pow]; 
+    return `${Math.round(bytes)} ${units[pow]}`; 
 }
 
 function notifyMe() {
@@ -41,14 +41,14 @@ function notifyMe() {
 function setStatus( text : string, active: boolean = false ){
     let js_status = document.getElementById("js-status");
     if(!js_status) return false;
-    console.log("Set status", text, active);
+    console.debug("Set status", text, active);
     js_status.classList.toggle('active', active);
     js_status.innerHTML = text;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    let api_base = (<any>window).base_path + "/api/v0";
+    let api_base = `${(<any>window).base_path}/api/v0`;
 
     let delay : number = 120;
 
@@ -155,7 +155,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
 
-    updateStreamers();
+    setStatus(`Refreshing in ${delay} seconds...`, false)
+
+    timeout_store = setTimeout(updateStreamers, delay * 1000);
 
 });
 

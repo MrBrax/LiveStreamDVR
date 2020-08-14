@@ -65,7 +65,7 @@ class SettingsController
         TwitchConfig::$config['mediainfo_path'] = $mediainfo_path;
         if($api_secret) TwitchConfig::$config['api_secret'] = $api_secret;
 
-        TwitchConfig::saveConfig();
+        TwitchConfig::saveConfig("settings/save");
 
         $response->getBody()->write("Settings saved.");
         return $response;
@@ -107,7 +107,7 @@ class SettingsController
         }
     
         TwitchConfig::$config['streamers'][] = $streamer;
-        TwitchConfig::saveConfig();
+        TwitchConfig::saveConfig("streamer/add");
 
         TwitchHelper::sub( $username );
 
@@ -152,11 +152,11 @@ class SettingsController
         }
         
         TwitchConfig::$config['streamers'][ $key ] = $streamer;
-        TwitchConfig::saveConfig();
+        TwitchConfig::saveConfig("streamer/update");
 
         TwitchHelper::sub( $username );
 
-        $response->getBody()->write("Streamer added.");
+        $response->getBody()->write("Streamer updated.");
         return $response;
 
     }
@@ -182,7 +182,7 @@ class SettingsController
         TwitchHelper::unsub( $username );
         
         unset(TwitchConfig::$config['streamers'][ $key ]);
-        TwitchConfig::saveConfig();
+        TwitchConfig::saveConfig("streamer/deleted");
 
         $response->getBody()->write("Streamer deleted.");
         return $response;

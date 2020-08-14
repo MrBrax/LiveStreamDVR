@@ -38,9 +38,9 @@ class TwitchConfig {
 		}
 	}
 
-	public static function saveConfig(){
+	public static function saveConfig( $source = "unknown" ){
 		file_put_contents( self::$configPath, json_encode( self::$config, JSON_PRETTY_PRINT ) );
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Saved config from settings page");	
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Saved config from " . $source);
 	}
 
 	public static function generateConfig(){
@@ -78,6 +78,10 @@ class TwitchConfig {
 }
 
 TwitchConfig::loadConfig();
+
+if( !TwitchConfig::cfg('bin_dir') ){
+	TwitchHelper::find_bin_dir();
+}
 
 /*
 if( !TwitchConfig::cfg("api_client_id") ) die("api_client_id missing from config file");

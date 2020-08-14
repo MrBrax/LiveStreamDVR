@@ -59,6 +59,10 @@
 
                 <hr />
 
+                <p>This app tries to find all the executables using system utilities. This may not work if they're on a custom PATH. Please visit <a href="{{ url_for('settings') }}">settings</a> to manually change them.</p>
+
+                <hr />
+
                 <strong>Python version:</strong> {{ bins.python.version ?: '(no output)' }}<br />
                 <strong>Python3 version:</strong> {{ bins.python3.version ?: '(no output)' }}<br />
                 <strong>PHP version:</strong> {{ bins.php.version ?: '(no output)' }}<br />
@@ -67,6 +71,12 @@
                 <hr />
                 
                 <code>pip install --user youtube-dl streamlink tcd pipenv</code>
+
+                <ul>
+                    <li><a href="https://www.python.org/downloads/" target="_blank">Python</a></li>
+                    <li><a href="https://ffmpeg.zeranoe.com/builds/" target="_blank">FFmpeg builds for windows</a></li>
+                    <li><a href="https://mediaarea.net/en/MediaInfo" target="_blank">MediaInfo</a></li>
+                </ul>
 
             </div>
             
