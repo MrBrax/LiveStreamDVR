@@ -110,8 +110,17 @@ class DashboardController
                 $text_line .= $escaped_text;
                 echo '<div class="log_' . strtolower( $line["level"] ) . '">' . $text_line . '</div>';'
                 */
-
-                $line['date_string'] = \DateTime::createFromFormat("U.u", $line["date"])->format("Y-m-d H:i:s.v");
+                
+                if( $line["date"] ){
+                    $dt = \DateTime::createFromFormat("U.u", $line["date"]);
+                    if($dt){
+                        $line['date_string'] = $dt->format("Y-m-d H:i:s.v");
+                    }else{
+                        $line['date_string'] = "ERROR:" . $line["date"];
+                    }
+                }else{
+                    $line['date_string'] = '???';
+                }
 
                 $log_lines[] = $line;
 

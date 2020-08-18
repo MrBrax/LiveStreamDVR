@@ -55,6 +55,8 @@ class TwitchVOD {
 	public $dt_capture_started = null;
 	public $dt_conversion_started = null;
 
+	public $is_lossless_cut_generated = false;
+
 	/**
 	 * Load a VOD with a JSON file
 	 *
@@ -111,7 +113,7 @@ class TwitchVOD {
 		}
 
 		// $this->duration 			= $this->json['duration'];
-		$this->duration_seconds		= $this->json['duration_seconds'];
+		$this->duration_seconds = $this->json['duration_seconds'] ?: null;
 
 		$this->video_fail2 			= isset($this->json['video_fail2']) ? $this->json['video_fail2'] : false;
 		$this->video_metadata		= isset($this->json['video_metadata']) ? $this->json['video_metadata'] : null;
@@ -129,6 +131,7 @@ class TwitchVOD {
 		if( isset( $this->json['chapters'] ) && count( $this->json['chapters'] ) > 0 ){
 			$this->parseChapters( $this->json['chapters'] );
 		}else if( isset( $this->json['games'] ) && count( $this->json['games'] ) > 0 ){
+			TwitchHelper::log( TwitchHelper::LOG_WARNING, "Chapters instead of games on " . $filename . "!");
 			$this->parseChapters( $this->json['games'] );
 		}else{
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Neither chapters nor games on " . $filename . "!");
@@ -136,6 +139,7 @@ class TwitchVOD {
 
 		$this->is_chat_downloaded = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.chat' );
 		$this->is_vod_downloaded = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.vod.ts' );
+		$this->is_lossless_cut_generated = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv' );
 
 		return true;
 
@@ -158,6 +162,16 @@ class TwitchVOD {
 	public function getDuration( $save = false ){
 
 		if( $this->duration_seconds ) return $this->duration_seconds;
+
+		if( $this->is_recording ){
+			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Can't request duration because recording of " . $this->basename);
+			return false;
+		}
+
+		if( !$this->is_converted ){
+			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Can't request duration because not converted of " . $this->basename);
+			return false;
+		}
 
 		if( !isset($this->segments_raw) || count($this->segments_raw) == 0 ){
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No video file available for duration of " . $this->basename);
@@ -450,7 +464,7 @@ class TwitchVOD {
 		$generated['segments'] 			= $this->segments;
 
 		// $generated['duration'] 			= $this->duration;
-		$generated['duration_seconds'] 	= $this->duration_seconds;
+		$generated['duration_seconds'] 	= $this->duration_seconds ?: null;
 
 		$generated['video_metadata'] 	= $this->video_metadata;
 		$generated['video_fail2'] 		= $this->video_fail2;
@@ -746,8 +760,7 @@ class TwitchVOD {
 		}
 
 		unlink( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.json'); // data file
-		unlink( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv'); // losslesscut
-		
+		if( $this->is_lossless_cut_generated ) unlink( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv'); // losslesscut
 		if( $this->is_chat_downloaded ) unlink( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.chat'); // chat download
 
 	}
