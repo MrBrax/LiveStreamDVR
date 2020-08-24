@@ -487,6 +487,10 @@ class TwitchAutomator {
 
 		// convert notify
 		$this->notify($basename, '[' . $data_username . '] [convert]', self::NOTIFY_DOWNLOAD);
+
+		$this->vod->refreshJSON();
+		$this->vod->is_converting = true;
+		$this->vod->saveJSON();
 		
 		// convert with ffmpeg
 		$converted_filename = $this->convert( $basename );
@@ -528,6 +532,7 @@ class TwitchAutomator {
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Add segments to " . $basename);
 		$this->vod->refreshJSON();
+		$this->vod->is_converting = false;
 		// if(!$this->json['segments_raw']) $this->json['segments_raw'] = [];
 		$this->vod->segments_raw[] = basename($converted_filename);
 		$this->vod->saveJSON();
@@ -553,6 +558,7 @@ class TwitchAutomator {
 		$vodclass->getMediainfo();
 		$vodclass->saveLosslessCut();
 		$vodclass->matchTwitchVod();
+		$vodclass->is_finalized = true;
 		$vodclass->saveJSON();
 		
 		if( ( TwitchConfig::cfg('download_chat') || TwitchConfig::getStreamer($data_username)['download_chat'] == 1 ) && $vodclass->twitch_vod_id ){
