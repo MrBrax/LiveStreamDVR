@@ -44,6 +44,7 @@ class TwitchVOD {
 
 	public $is_recording = false;
 	public $is_converted = false;
+	public $is_capturing = false;
 
 	public $video_fail2 = false;
 	public $video_metadata = [];
@@ -56,6 +57,8 @@ class TwitchVOD {
 	public $dt_conversion_started = null;
 
 	public $is_lossless_cut_generated = false;
+
+	public $json_hash = null;
 
 	/**
 	 * Load a VOD with a JSON file
@@ -75,7 +78,7 @@ class TwitchVOD {
 
 		$data = file_get_contents($filename);
 		$this->json = json_decode($data, true);
-		$this->json_hash = crc32($data);
+		$this->json_hash = md5($data);
 
 		if( !$this->json['meta']['data'][0]['user_name'] ){
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Tried to load " . $filename . " but found no streamer name");
@@ -96,6 +99,8 @@ class TwitchVOD {
 
 		$this->is_recording = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.ts' );
 		$this->is_converted = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.mp4' );
+
+		$this->is_capturing = $this->json['is_capturing'];
 
 		$this->streamer_name = $this->json['meta']['data'][0]['user_name'];
 		$this->streamer_id = TwitchHelper::getChannelId( $this->streamer_name );
@@ -118,23 +123,23 @@ class TwitchVOD {
 		$this->video_fail2 			= isset($this->json['video_fail2']) ? $this->json['video_fail2'] : false;
 		$this->video_metadata		= isset($this->json['video_metadata']) ? $this->json['video_metadata'] : null;
 
-		if( !$this->video_metadata && !$this->is_recording && count($this->segments_raw) > 0 && !$this->video_fail2 && TwitchHelper::path_mediainfo() ){
+		if( isset( $this->json['chapters'] ) && count( $this->json['chapters'] ) > 0 ){
+			$this->parseChapters( $this->json['chapters'] );
+		}else if( isset( $this->json['games'] ) && count( $this->json['games'] ) > 0 ){
+			TwitchHelper::log( TwitchHelper::LOG_WARNING, "Chapters instead of games on " . $this->basename . "!");
+			$this->parseChapters( $this->json['games'] );
+		}else{
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Neither chapters nor games on " . $this->basename . "!");
+		}
+
+		if( !$this->video_metadata && !$this->is_capturing && count($this->segments_raw) > 0 && !$this->video_fail2 && TwitchHelper::path_mediainfo() ){
 			$this->getMediainfo();
 			$this->saveJSON();
 		}
 
-		if( !$this->is_recording ){
+		if( !$this->is_capturing ){
 			$this->segments_raw = $this->json['segments_raw'];
 			$this->parseSegments( $this->segments_raw );
-		}
-
-		if( isset( $this->json['chapters'] ) && count( $this->json['chapters'] ) > 0 ){
-			$this->parseChapters( $this->json['chapters'] );
-		}else if( isset( $this->json['games'] ) && count( $this->json['games'] ) > 0 ){
-			TwitchHelper::log( TwitchHelper::LOG_WARNING, "Chapters instead of games on " . $filename . "!");
-			$this->parseChapters( $this->json['games'] );
-		}else{
-			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Neither chapters nor games on " . $filename . "!");
 		}
 
 		$this->is_chat_downloaded = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.chat' );
@@ -153,6 +158,15 @@ class TwitchVOD {
 		return true;
 	}
 
+	public function refreshJSON(){
+		if(!$this->filename){
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Can't refresh vod, not found!");
+			return false;
+		}
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Refreshing JSON on " . $this->basename . "!");
+		$this->load( $this->filename );
+	}
+
 	/**
 	 * Get duration of the mp4 file.
 	 *
@@ -163,7 +177,7 @@ class TwitchVOD {
 
 		if( $this->duration_seconds ) return $this->duration_seconds;
 
-		if( $this->is_recording ){
+		if( $this->is_capturing || $this->is_recording ){
 			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Can't request duration because recording of " . $this->basename);
 			return false;
 		}
@@ -209,7 +223,7 @@ class TwitchVOD {
 
 	}
 
-	public function getMediainfo(){
+	public function getMediainfo( $segment_num = 0 ){
 
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Fetching mediainfo of " . $this->basename);
 
@@ -218,7 +232,7 @@ class TwitchVOD {
 			return false;
 		}
 
-		$filename = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename( $this->segments_raw[0] );
+		$filename = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename( $this->segments_raw[ $segment_num ] );
 
 		$output = shell_exec( TwitchHelper::path_mediainfo() . ' --Full --Output=JSON ' . escapeshellarg($filename) );
 
@@ -310,6 +324,7 @@ class TwitchVOD {
 	*/
 
 	public function getDurationLive(){
+		if(!$this->started_at) return false;
 		$diff = $this->started_at->diff( new \DateTime() );
         return $diff->format('%H:%I:%S');
 	}
@@ -378,7 +393,22 @@ class TwitchVOD {
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Try to match twitch vod for " . $this->basename);
 
+		if( $this->twitch_vod_id ){
+			TwitchHelper::log( TwitchHelper::LOG_WARNING, "Twitch vod already matched for " . $this->basename);
+			return $this->twitch_vod_id;
+		}
+
+		if( $this->is_capturing ){
+			TwitchHelper::log( TwitchHelper::LOG_WARNING, "Twitch vod can't match, recording in progress of " . $this->basename);
+			return false;
+		}
+
 		$channel_videos = TwitchHelper::getVideos( $this->streamer_id );
+
+		if( !$channel_videos ){
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "No videos returned from streamer of " . $this->basename);
+			return false;
+		}
 
 		$vod_id = null;
 
@@ -441,9 +471,19 @@ class TwitchVOD {
 	 */
 	public function saveJSON(){
 
-		$tmp = file_get_contents($this->filename);
-		if( crc32($tmp) !== $this->json_hash){
-			TwitchHelper::log(TwitchHelper::LOG_WARNING, "JSON has been changed since loading of " . $this->basename);
+		if( file_exists($this->filename) ){
+			$tmp = file_get_contents($this->filename);
+			if( md5($tmp) !== $this->json_hash){
+				TwitchHelper::log(TwitchHelper::LOG_WARNING, "JSON has been changed since loading of " . $this->basename);
+			}
+		}
+
+		if( $this->is_capturing ){
+			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Saving JSON of " . $this->basename . " while capturing!");
+		}
+
+		if( !$this->chapters || count($this->chapters) == 0 ){
+			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Saving JSON of " . $this->basename . " with no chapters!!");
 		}
 
 		$generated = $this->json;
@@ -463,6 +503,8 @@ class TwitchVOD {
 		$generated['segments_raw'] 		= $this->segments_raw;
 		$generated['segments'] 			= $this->segments;
 
+		$generated['is_capturing']		= $this->is_capturing;
+
 		// $generated['duration'] 			= $this->duration;
 		$generated['duration_seconds'] 	= $this->duration_seconds ?: null;
 
@@ -475,6 +517,11 @@ class TwitchVOD {
 
 		return $generated;
 
+	}
+
+	public function addChapter( $data ){
+		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Adding chapter to " . $this->basename);
+		$this->chapters[] = $data;
 	}
 
 	/**
@@ -510,7 +557,7 @@ class TwitchVOD {
 				$entry['offset'] = $entry['datetime']->getTimestamp() - $this->started_at->getTimestamp();
 			}
 
-			if( !$this->is_recording && $this->getDuration() !== false ){
+			if( !$this->is_capturing && $this->getDuration() !== false ){
 				$entry['width'] = ( $entry['duration'] / $this->getDuration() ) * 100; // temp
 			}
 
@@ -683,7 +730,7 @@ class TwitchVOD {
 
 	public function rebuildSegmentList(){
 
-		if( $this->is_recording || $this->no_files() ){
+		if( $this->is_capturing || $this->no_files() ){
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Won't rebuild segment list on " . $this->basename . ", it's still recording.");
 			return false;
 		}

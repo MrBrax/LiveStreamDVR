@@ -2,7 +2,7 @@
     <div class="error">Failed to load {{ vodclass.basename }}</div>
 {% else %}
 
-    <div class="video {{ vodclass.is_recording ? 'recording' : '' }} {{ vodclass.is_converted ? 'converted' : '' }}" data-basename="{{ vodclass.basename }}">
+    <div class="video {{ vodclass.is_capturing ? 'recording' : '' }} {{ vodclass.is_converted ? 'converted' : '' }}" data-basename="{{ vodclass.basename }}">
 
         <div id="vod_{{ vodclass.basename }}" class="anchor"></div>
 
@@ -116,10 +116,11 @@
 
             {% endif %}
 
-            {% if vodclass.is_recording %}
+            {% if vodclass.is_capturing %}
 
                 <ul class="video-info">
                     <li><strong>Current duration:</strong> {{ vodclass.getDurationLive }}</li>
+                    <li><strong>Watch live:</strong> <a href="https://twitch.tv/{{ streamer.username }}" rel="noreferrer" target="_blank">Twitch</a>
                 </ul>
 
             {% endif %}
@@ -167,7 +168,7 @@
 
                 <a class="button is-danger" href="{{ url_for('delete', { 'vod': vodclass.basename }) }}">Delete</a>                
 
-            {% elseif vodclass.is_recording %}
+            {% elseif vodclass.is_capturing %}
 
                 {% if vodclass.ended_at %}
                     <a class="button" href="{{ url_for('convert', { 'vod': vodclass.basename }) }}">Convert</a>
@@ -184,7 +185,9 @@
         </div>
 
         {% if not vodclass.chapters %}
-            <em>No chapter data!?</em>
+            <div class="video-error">
+                No chapter data!?
+            </div>
         {% endif %}
         
         {# game list / chapters #}

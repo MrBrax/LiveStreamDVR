@@ -31,6 +31,8 @@ class DashboardController
         $is_a_vod_deleted = false;
 
         $checkvod = isset($_GET['checkvod']);
+        $match_vod = isset($_GET['match_vod']);
+        $rebuild_segments = isset($_GET['rebuild_segments']);
 
         foreach ($streamerListStatic as $streamer) {
 
@@ -48,6 +50,16 @@ class DashboardController
 
                 $vodclass = new TwitchVOD();
                 $vodclass->load($v);
+
+                if( $rebuild_segments ){
+                    $vodclass->rebuildSegmentList();
+                }
+
+                if( $match_vod ){
+                    if( $vodclass->matchTwitchVod() ){
+                        $vodclass->saveJSON();
+                    }
+                }
 
                 if ($vodclass->is_recording){
                     $data['is_live'] = true;

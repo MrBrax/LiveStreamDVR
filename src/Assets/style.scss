@@ -358,6 +358,13 @@ a.linkback {
 	border-bottom: 1px solid #e3e3e3;
 }
 
+.video-error {
+	background: #f00;
+	padding: 10px;
+	color: #fff;
+	font-weight: 700;
+}
+
 .videoplayer { width: 1280px; }
 
 .videoplayer-chapters { display: flex; width: 100%; }

@@ -43,8 +43,6 @@ class TwitchAutomator {
 
 	}
 
-	
-
 	public function getDateTime(){
 		date_default_timezone_set('UTC');
 		return date("Y-m-d\TH:i:s\Z");
@@ -58,6 +56,8 @@ class TwitchAutomator {
 		}
 
 		$basename = $this->basename( $this->data_cache );
+
+		TwitchHelper::log( TwitchHelper::LOG_INFO, 'Automator LOAD ' . $basename );
 
 		if( !file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json') ){
 			$this->errors[] = 'No JSON file when loading';
@@ -83,6 +83,8 @@ class TwitchAutomator {
 		}
 
 		$basename = $this->basename( $this->data_cache );
+
+		TwitchHelper::log( TwitchHelper::LOG_INFO, 'Automator SAVE ' . $basename );
 
 		file_put_contents( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json', json_encode( $this->json ) );
 
@@ -287,33 +289,57 @@ class TwitchAutomator {
 
 		$basename = $this->basename( $data );
 
-		$this->jsonLoad();
+		if( $this->vod ){
+			$this->vod->refreshJSON();
+		}else{
+			$this->vod = new TwitchVOD();
+			if( $this->vod->load( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json' ) ){
+				// ok
+			}else{
+				$this->vod->create( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json' );
+			}
+		}
+		
+		// $this->jsonLoad();
 
 		// json format
 	
 		// full json data
-		$this->json['meta'] = $data;
+		// $this->json['meta'] = $data;
+		$this->vod->meta = $data;
+		$this->vod->json['meta'] = $data;
 		
 		// full datetime-stamp of stream start
-		$this->json['started_at'] = $data_started;
-		
+		// $this->json['started_at'] = $data_started;
+		$this->vod->started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $data_started );
+
+		/*
 		if(!$this->json['chapters']){
 			$this->json['chapters'] = [];
 		}
+		*/
 
 		// fetch game name from either cache or twitch
 		$game_name = $this->getGameName( $data_game_id );
 
-		// game structure
-		$this->json['chapters'][] = [
+		$chapter = [
 			'time' 			=> $this->getDateTime(),
+			'datetime'		=> new \DateTime(),
 			'game_id' 		=> $data_game_id,
 			'game_name'		=> $game_name,
 			'viewer_count' 	=> $data_viewer_count,
 			'title'			=> $data_title
 		];
 
-		$this->jsonSave();
+		// game structure
+		// $this->json['chapters'][] = $chapter;
+
+		
+		$this->vod->addChapter($chapter);
+		$this->vod->saveJSON();
+		
+
+		// $this->jsonSave();
 		
 		//$game_name = $this->games[$data_game_id] ?: $data_game_id;
 
@@ -357,13 +383,21 @@ class TwitchAutomator {
 
 		$basename = $this->basename( $data );
 
-		// TODO: migrate to this in the future
-		// $this->vod = new TwitchVOD();
-		// $this->vod->create($basename);
+		
+		$this->vod = new TwitchVOD();
+		$this->vod->create( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json' );
+
+		$this->vod->meta = $data;
+		$this->vod->json['meta'] = $data;
+		$this->vod->started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $data_started );
+
+		$this->vod->saveJSON();
+		$this->vod->refreshJSON();
+		
         
         $streamer = TwitchConfig::getStreamer( $data_username );
 
-		// check matched title
+		// check matched title, broken?
 		if( $streamer && $streamer['match'] ){
 
 			$match = false;
@@ -385,6 +419,19 @@ class TwitchAutomator {
 			}
 
 		}
+
+		/*
+		$this->vod->is_capturing = true;
+		$this->vod->saveJSON();
+		*/
+
+		/*
+		$this->jsonLoad();
+		$this->json['is_capturing'] = true;
+		$this->jsonSave();
+		*/
+		$this->vod->is_capturing = true;
+		$this->vod->saveJSON();
 
 		// in progress
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Update game for " . $basename);
@@ -428,13 +475,14 @@ class TwitchAutomator {
 
 		// timestamp
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Add end timestamp for " . $basename);
-		$this->jsonLoad();
-		$this->json['ended_at'] = $this->getDateTime();
-		$this->json['dt_ended_at'] = new \DateTime();
-		$this->jsonSave();
+		// $this->jsonLoad();
+		$this->vod->refreshJSON();
+		$this->vod->ended_at = $this->getDateTime();
+		$this->vod->dt_ended_at = new \DateTime();
+		$this->vod->is_capturing = false;
+		$this->vod->saveJSON();
 
 		sleep(60);
-
 
 
 		// convert notify
@@ -444,11 +492,7 @@ class TwitchAutomator {
 		$converted_filename = $this->convert( $basename );
 
 		sleep(10);
-
 		
-
-		// $id3_data = $getID3->analyze($converted_filename);
-
 		// remove ts if both files exist
 		if( file_exists( $capture_filename ) && file_exists( $converted_filename ) ){
 
@@ -483,10 +527,10 @@ class TwitchAutomator {
 		}
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Add segments to " . $basename);
-		$this->jsonLoad();
-		if(!$this->json['segments_raw']) $this->json['segments_raw'] = [];
-		$this->json['segments_raw'][] = basename($converted_filename);
-		$this->jsonSave();
+		$this->vod->refreshJSON();
+		// if(!$this->json['segments_raw']) $this->json['segments_raw'] = [];
+		$this->vod->segments_raw[] = basename($converted_filename);
+		$this->vod->saveJSON();
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Cleanup old VODs for " . $data_username);
 		$this->cleanup( $data_username, $basename );
@@ -567,9 +611,9 @@ class TwitchAutomator {
 
 		$this->info[] = 'Streamlink cmd: ' . $cmd;
 
-		$this->jsonLoad();
-		$this->json['dt_capture_started'] = new \DateTime();
-		$this->jsonSave();
+		$this->vod->refreshJSON();
+		$this->vod->dt_capture_started = new \DateTime();
+		$this->vod->saveJSON();
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting capture with filename " . $basename);
 		
@@ -644,9 +688,9 @@ class TwitchAutomator {
 		
 		$this->info[] = 'ffmpeg cmd: ' . $cmd;
 
-		$this->jsonLoad();
-		$this->json['dt_conversion_started'] = new \DateTime();
-		$this->jsonSave();
+		$this->vod->refreshJSON();
+		$this->vod->dt_conversion_started = new \DateTime();
+		$this->vod->saveJSON();
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting conversion of " . $capture_filename . " to " . $converted_filename);
 
