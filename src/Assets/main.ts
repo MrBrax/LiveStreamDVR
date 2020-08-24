@@ -73,6 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setStatus('Applying...', true);
 
         if( data.data ){
+            
             for( let streamer of data.data.streamerList ){
                 // console.log( streamer );
                 let menu = document.querySelector(`.top-menu-item.streamer[data-streamer='${streamer.username}']`);
@@ -101,14 +102,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 let streamer_div = document.querySelector(`.streamer-box[data-streamer='${streamer.username}']`);
-                /*
-                let streamer_vods_quality = streamer_div.querySelector(".streamer-vods-quality");
-                let streamer_vods_amount = streamer_div.querySelector(".streamer-vods-amount");
-                let streamer_vods_size = streamer_div.querySelector(".streamer-vods-size");
-                streamer_vods_quality.innerHTML = streamer.quality;
-                streamer_vods_amount.innerHTML = streamer.vods_raw.length + " vods";
-                streamer_vods_size.innerHTML = formatBytes(streamer.vods_size, 2);
-                */
 
                 if( streamer_div ){
                 
@@ -145,11 +138,27 @@ document.addEventListener("DOMContentLoaded", () => {
                 previousData[ streamer.username ] = streamer;
 
             }
+
+            let div_log = document.querySelector("div.log_viewer");
+            if( div_log ){
+                setStatus(`Render log viewer...`, true);
+                let body_content_response = await fetch( `${api_base}/render/log/` );
+                let body_content_data = await body_content_response.text();
+                div_log.outerHTML = body_content_data;
+
+                setTimeout(() => {
+                    div_log = document.querySelector("div.log_viewer");
+                    if(!div_log) return;
+                    div_log.scrollTop = div_log.scrollHeight;
+                }, 100);
+            }
+
             if(any_live){
                 delay = 120;
             }else{
                 delay += 10
             }
+
             refresh_number++;
             console.log(`Set next timeout to (${delay})...`);
             setStatus(`Done #${refresh_number}. Waiting ${delay} seconds.`, false);

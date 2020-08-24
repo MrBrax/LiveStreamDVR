@@ -121,6 +121,45 @@ class ApiController
 
     }
 
+    public function render_log( Request $request, Response $response, $args ) {
+        
+        $log_lines = [];
+
+        $current_log = date("Y-m-d");
+        if( isset($args['filename']) ) $current_log = $args['filename'];
+
+        $log_path = __DIR__ . "/../../logs/" . $current_log . ".log.json";
+
+        if( file_exists( $log_path ) ){
+            
+            $json = json_decode( file_get_contents( $log_path ), true );
+            
+            foreach( $json as $line ){
+
+                if( !TwitchConfig::cfg("debug") && $line["level"] == 'DEBUG' ) continue;
+
+                if( $line["date"] ){
+                    $dt = \DateTime::createFromFormat("U.u", $line["date"]);
+                    if($dt){
+                        $line['date_string'] = $dt->format("Y-m-d H:i:s.v");
+                    }else{
+                        $line['date_string'] = "ERROR:" . $line["date"];
+                    }
+                }else{
+                    $line['date_string'] = '???';
+                }
+
+                $log_lines[] = $line;
+
+            }
+        }
+        
+        return $this->twig->render($response, 'components/logviewer.twig', [
+            'log_lines' => $log_lines
+        ]);
+
+    }
+
     public function render_streamer( Request $request, Response $response, $args ) {
 
         $username = $args['username'];

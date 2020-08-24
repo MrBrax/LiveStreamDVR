@@ -96,12 +96,6 @@ class DashboardController
         $current_log = date("Y-m-d");
         if( isset($_GET['log']) ) $current_log = $_GET['log'];
 
-        // $logs = glob( __DIR__ . "/../../logs/*.log.json");
-        
-    
-        
-            // $last_log = $logs[ count($logs) - 1 ];
-
         $log_path = __DIR__ . "/../../logs/" . $current_log . ".log.json";
 
         if( file_exists( $log_path ) ){

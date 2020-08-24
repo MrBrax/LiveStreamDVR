@@ -1,0 +1,9 @@
+<div class="log_viewer">
+
+    {% for line in log_lines %}
+
+        <div class="log_{{ line.level|lower }}">{{ line.date_string }} &lt;{{ line.level }}&gt; {{ line.text }}</div>
+
+    {% endfor %}
+
+</div>
