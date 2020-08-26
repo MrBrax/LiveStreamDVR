@@ -131,6 +131,10 @@ class TwitchHelper {
 			"text" => $text
 		];
 
+		if( TwitchConfig::cfg("debug") ){
+			$log_data['source'] = debug_backtrace()[1]; // 1 or 0?
+		}
+
 		$log_json[] = $log_data;
 
 		file_put_contents($filename, $log_text);
