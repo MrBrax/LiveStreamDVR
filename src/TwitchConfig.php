@@ -36,6 +36,20 @@ class TwitchConfig {
 			die("Config is empty, please create " . TwitchHelper::get_absolute_path( self::$configPath ) . "<br>Example usage is in config.json.example" );
 			// throw new Exception("Config is empty");
 		}
+
+		$t = self::getStreamers();
+		$save = false;
+		foreach($t as $i => $s){
+			if( isset($s['quality']) && gettype($s['quality']) == "string"){
+				TwitchHelper::log( TwitchHelper::LOG_WARNING, "Invalid quality setting on " . $s['username'] . ", fixing...");
+				self::$config['streamers'][$i]['quality'] = explode(" ", self::$config['streamers'][$i]['quality']);
+				$save = true;
+			}
+		}
+		if($save){
+			self::saveConfig("streamer quality fix");
+		}
+
 	}
 
 	public static function saveConfig( $source = "unknown" ){
@@ -44,13 +58,14 @@ class TwitchConfig {
 	}
 
 	public static function generateConfig(){
+
 		$example_file = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "config.json.example";
+		
 		if( !file_exists($example_file) ){
 			die("No example config found");
 		}
 
 		$example = json_decode( file_get_contents( $example_file ), true );
-
 
 		self::$config = $example;
 		self::saveConfig();

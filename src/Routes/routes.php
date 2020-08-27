@@ -63,3 +63,24 @@ $app->get('/force_record/{username}', function (Request $request, Response $resp
     }
     return $response;
 })->setName('force_record');
+
+// abort recording of streamer
+$app->get('/abort_record/{username}', function (Request $request, Response $response, array $args) {
+
+    $vods = glob(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $args['username'] . "_*.json");
+
+    foreach ($vods as $k => $v) {
+
+        $vodclass = new App\TwitchVOD();
+        $vodclass->load($v);
+
+        $pid = $vodclass->getCapturingStatus();
+        if($pid){
+            $output = shell_exec("pkill " . escapeshellarg($pid));
+            $response->getBody()->write( "<pre>" . $output . "</pre><br>");
+        }
+
+    }
+    
+})->setName('abort_record');
+

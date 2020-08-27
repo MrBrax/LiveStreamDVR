@@ -586,8 +586,9 @@ class TwitchAutomator {
 		// $cmd .= ' --json'; // json stdout, trying this out
 		$cmd .= ' --retry-streams 10'; // Retry fetching the list of available streams until streams are found 
 		$cmd .= ' --retry-max 5'; //  stop retrying the fetch after COUNT retry attempt(s).
-		$cmd .= ' -o ' . escapeshellarg($capture_filename); // output file
-		$cmd .= ' ' . escapeshellarg($stream_url) . ' ' . escapeshellarg( TwitchConfig::cfg('stream_quality') ); // twitch url and quality
+		$cmd .= ' -o ' . escapeshellarg( $capture_filename ); // output file
+		$cmd .= ' ' . escapeshellarg( $stream_url ); // twitch url
+		$cmd .= ' ' . escapeshellarg( implode(",", TwitchConfig::cfg('stream_quality') ) ); // quality
 
 		$this->info[] = 'Streamlink cmd: ' . $cmd;
 
@@ -618,7 +619,7 @@ class TwitchAutomator {
 			$cmd .= ' --hls-use-mpegts'; // use ts instead of mp4
 			$cmd .= ' --no-part';
 			$cmd .= ' -o ' . escapeshellarg($capture_filename); // output file
-			$cmd .= ' -f ' . escapeshellarg( implode('/', explode(',', TwitchConfig::cfg('stream_quality') ) ) ); // format
+			$cmd .= ' -f ' . escapeshellarg( implode('/', TwitchConfig::cfg('stream_quality') ) ); // format
 			$cmd .= ' ' . escapeshellarg($stream_url);
 
 			$this->info[] = 'Youtube-dl cmd: ' . $cmd;

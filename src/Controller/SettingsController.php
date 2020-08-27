@@ -77,7 +77,7 @@ class SettingsController
     public function streamer_add(Request $request, Response $response, array $args) {
 
         $username       = $_POST['username'];
-        $quality        = $_POST['quality'];
+        $quality        = explode(" ", $_POST['quality']);
         $match          = $_POST['match'];
         $download_chat  = isset($_POST['download_chat']);
 
@@ -119,7 +119,7 @@ class SettingsController
     public function streamer_update(Request $request, Response $response, array $args) {
 
         $username       = $_POST['username'];
-        $quality        = $_POST['quality'];
+        $quality        = explode(" ", $_POST['quality']);
         $match          = $_POST['match'];
         $download_chat  = isset($_POST['download_chat']);
 

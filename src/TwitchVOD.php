@@ -138,7 +138,7 @@ class TwitchVOD {
 		if( isset( $this->json['chapters'] ) && count( $this->json['chapters'] ) > 0 ){
 			$this->parseChapters( $this->json['chapters'] );
 		}else{
-			TwitchHelper::log( TwitchHelper::LOG_ERROR, "No chapters on " . $this->basename . " (" . print_r( $this->json['chapters'], true ) . ")!");
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "No chapters on " . $this->basename . "!");
 		}
 
 		if( !$this->video_metadata && !$this->is_capturing && !$this->is_converting && count($this->segments_raw) > 0 && !$this->video_fail2 && TwitchHelper::path_mediainfo() ){
@@ -807,12 +807,14 @@ class TwitchVOD {
 	// TODO: finish this
 	public function getCapturingStatus(){
 		$output = shell_exec("ps aux | grep -i " . escapeshellarg("twitch.tv/" . $this->streamer_name) . " | grep -v grep");
-		return trim($output) != "";
+		preg_match("/^([a-z0-9]+)\s([0-9]+)/i", trim($output), $matches);
+		return isset($matches[2]) ? $matches[2] : false;
 	}
 
 	public function getConvertingStatus(){
 		$output = shell_exec("ps aux | grep -i " . escapeshellarg( $this->basename . ".mp4" ) . " | grep -v grep");
-		return trim($output) != "";
+		preg_match("/^([a-z0-9]+)\s([0-9]+)/i", trim($output), $matches);
+		return isset($matches[2]) ? $matches[2] : false;
 	}
 
 	public function no_files(){
