@@ -171,7 +171,7 @@
             {% elseif vodclass.is_converting %}
 
                 <em>Converting {{ vodclass.basename }}.ts to {{ vodclass.basename }}.mp4</em><br />
-                <em>Status: {{ vodclass.getConvertingStatus ? "in progress" : "failed" }}</em>
+                <em>Status: {{ vodclass.getConvertingStatus ? "in progress" : "not running" }}</em>
 
             {% elseif vodclass.is_capturing %}
 
@@ -180,7 +180,7 @@
                 {% endif %}
 
                 <em>Capturing to {{ vodclass.basename }}.ts (<strong>{{ vodclass.getRecordingSize|formatBytes }}</strong>)</em><br />
-                <em>Status: {{ vodclass.getCapturingStatus ? "in progress" : "failed" }}</em>
+                <em>Status: {{ vodclass.getCapturingStatus ? "in progress" : "not running" }}</em>
 
             {% else %}
                 

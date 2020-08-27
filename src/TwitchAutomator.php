@@ -588,7 +588,7 @@ class TwitchAutomator {
 		$cmd .= ' --retry-max 5'; //  stop retrying the fetch after COUNT retry attempt(s).
 		$cmd .= ' -o ' . escapeshellarg( $capture_filename ); // output file
 		$cmd .= ' ' . escapeshellarg( $stream_url ); // twitch url
-		$cmd .= ' ' . escapeshellarg( implode(",", TwitchConfig::cfg('stream_quality') ) ); // quality
+		$cmd .= ' ' . escapeshellarg( implode(",", TwitchConfig::getStreamer( $data_username )['quality'] ) ); // quality
 
 		$this->info[] = 'Streamlink cmd: ' . $cmd;
 
