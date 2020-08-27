@@ -706,7 +706,7 @@ class TwitchVOD {
 
 	public function getRecordingSize(){
 		$filename = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.ts';
-		if(!$filename) return false;
+		if(!file_exists($filename)) return false;
 		return filesize($filename);
 	}
 
