@@ -2,7 +2,7 @@
     <div class="error">Failed to load {{ vodclass.basename }}</div>
 {% else %}
 
-    <div class="video {{ vodclass.is_capturing ? 'recording' : '' }} {{ vodclass.is_converted ? 'converted' : '' }}" data-basename="{{ vodclass.basename }}">
+    <div class="video{{ vodclass.is_capturing ? ' recording' : '' }}{{ vodclass.is_converting ? ' converting' : '' }}{{ vodclass.is_finalized ? ' finalized' : '' }}" data-basename="{{ vodclass.basename }}">
 
         <div id="vod_{{ vodclass.basename }}" class="anchor"></div>
 
@@ -170,7 +170,8 @@
 
             {% elseif vodclass.is_converting %}
 
-                <em>Converting {{ vodclass.basename }}.ts to {{ vodclass.basename }}.mp4</em>
+                <em>Converting {{ vodclass.basename }}.ts to {{ vodclass.basename }}.mp4</em><br />
+                <em>Status: {{ vodclass.getConvertingStatus ? "in progress" : "failed" }}</em>
 
             {% elseif vodclass.is_capturing %}
 
@@ -178,7 +179,8 @@
                     <a class="button" href="{{ url_for('convert', { 'vod': vodclass.basename }) }}">Convert</a>
                 {% endif %}
 
-                <em>Capturing to {{ vodclass.basename }}.ts (<strong>{{ vodclass.getRecordingSize|formatBytes }}</strong>)</em>
+                <em>Capturing to {{ vodclass.basename }}.ts (<strong>{{ vodclass.getRecordingSize|formatBytes }}</strong>)</em><br />
+                <em>Status: {{ vodclass.getCapturingStatus ? "in progress" : "failed" }}</em>
 
             {% else %}
                 

@@ -806,11 +806,13 @@ class TwitchVOD {
 
 	// TODO: finish this
 	public function getCapturingStatus(){
-		$output = shell_exec("grep streamlink");
+		$output = shell_exec("ps aux | grep -i " . escapeshellarg("twitch.tv/" . $this->streamer_name) . " | grep -v grep");
+		return trim($output) != "";
 	}
 
 	public function getConvertingStatus(){
-		$output = shell_exec("grep ffmpeg");
+		$output = shell_exec("ps aux | grep -i " . escapeshellarg( $this->basename . ".mp4" ) . " | grep -v grep");
+		return trim($output) != "";
 	}
 
 	public function no_files(){

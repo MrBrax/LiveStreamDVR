@@ -216,6 +216,18 @@ a.linkback {
 		}
 
 	}
+
+	&.converting {
+	
+		.video-title {
+			background-color: #bb15ca;
+			h3 {
+				text-shadow: 0 2px 0 darken(#bb15ca, 10%);
+			}
+		}
+
+	}
+
 }
 
 .video-title {
