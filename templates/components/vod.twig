@@ -127,7 +127,7 @@
 
         </div>
 
-        {% if vodclass.is_converted %}
+        {% if vodclass.is_finalized %}
         <div class="video-segments">
             <strong>Segments</strong>
             <ul class="list-segments">
@@ -146,7 +146,7 @@
         {# controls #}
         <div class="video-controls">
 
-            {% if vodclass.is_converted %}
+            {% if vodclass.is_finalized %}
 
                 <a class="button is-blue" href="{{ url_for('player', { 'vod': vodclass.basename }) }}">Editor</a>
 
@@ -168,6 +168,10 @@
 
                 <a class="button is-danger" href="{{ url_for('delete', { 'vod': vodclass.basename }) }}">Delete</a>                
 
+            {% elseif vodclass.is_converting %}
+
+                <em>Converting {{ vodclass.basename }}.ts to {{ vodclass.basename }}.mp4</em>
+
             {% elseif vodclass.is_capturing %}
 
                 {% if vodclass.ended_at %}
@@ -178,7 +182,7 @@
 
             {% else %}
                 
-                <em>No video file</em>
+                <em>No video file or error</em>
 
             {% endif %}
 

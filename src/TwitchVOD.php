@@ -804,6 +804,15 @@ class TwitchVOD {
 
 	}
 
+	// TODO: finish this
+	public function getCapturingStatus(){
+		$output = shell_exec("grep streamlink");
+	}
+
+	public function getConvertingStatus(){
+		$output = shell_exec("grep ffmpeg");
+	}
+
 	public function no_files(){
 		return ( !file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.ts') && !file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.mp4') );
 	}

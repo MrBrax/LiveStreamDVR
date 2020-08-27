@@ -3,7 +3,6 @@
 namespace App;
 
 use DateTime;
-use getID3;
 
 class TwitchAutomator {
 
@@ -248,31 +247,6 @@ class TwitchAutomator {
 	}
 
 	/**
-	 * TODO: move this to helper?
-	 */
-	public function getGameName( $id ){
-
-		if( $id == 0 ){
-			$this->errors[] = 'Game ID is 0';
-			return false;
-		}
-
-		$data = TwitchHelper::getGameData( $id );
-
-		if($data){
-			return $data['name'];
-		}
-
-		TwitchHelper::log( TwitchHelper::LOG_ERROR, "Couldn't match game for " . $id );
-
-		return false;
-
-		// print_r($server_output);
-		// print_r($info);
-
-	}
-
-	/**
 	 * Add game/chapter to stream
 	 *
 	 * @param array $data
@@ -320,7 +294,7 @@ class TwitchAutomator {
 		*/
 
 		// fetch game name from either cache or twitch
-		$game_name = $this->getGameName( $data_game_id );
+		$game_name = TwitchHelper::getGameName( $data_game_id );
 
 		$chapter = [
 			'time' 			=> $this->getDateTime(),
@@ -500,6 +474,7 @@ class TwitchAutomator {
 		// remove ts if both files exist
 		if( file_exists( $capture_filename ) && file_exists( $converted_filename ) ){
 
+			/*
 			$getID3 = new getID3;
 
 			$id3_data = null;
@@ -517,10 +492,9 @@ class TwitchAutomator {
 				$this->notify($basename, 'MISSING MP4 LENGTH', self::NOTIFY_ERROR);
 
 			}else{
+			*/
 
-				unlink( $capture_filename );
-
-			}
+			unlink( $capture_filename );
 
 		}else{
 

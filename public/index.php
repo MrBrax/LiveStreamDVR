@@ -69,6 +69,11 @@ $container->get('view')->getEnvironment()->addFilter(new TwigFilter('humanDurati
     return TwitchHelper::printHumanDuration($string);
 }));
 
+// basename, only for debug
+$container->get('view')->getEnvironment()->addFilter(new TwigFilter('basename', function ($string) {
+    return basename($string);
+}));
+
 // authentication
 if( TwitchConfig::cfg('password') ){
     $app->add(new Tuupola\Middleware\HttpBasicAuthentication([
@@ -86,9 +91,6 @@ if( TwitchConfig::cfg('debug', false) ){
     // TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Enabling debugging settings for slim..." );
     $container->get('view')->getEnvironment()->addExtension(new DebugExtension());
     $errorMiddleware = $app->addErrorMiddleware(true, true, true);
-    $container->get('view')->getEnvironment()->addFilter(new TwigFilter('basename', function ($string) {
-        return basename($string);
-    }));
 }
 
 require __DIR__ . "/../src/Routes/routes.php";

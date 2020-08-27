@@ -462,6 +462,18 @@ class TwitchHelper {
 
 	}
 
+	public static function getGameName( $id ){
+
+		$data = self::getGameData( $id );
+
+		if($data){
+			return $data['name'];
+		}
+
+		return false;
+
+	}
+
 	/**
 	 * Parse twitch format duration: 1h1m1s
 	 * Returns seconds.
