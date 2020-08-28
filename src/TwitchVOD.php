@@ -822,6 +822,36 @@ class TwitchVOD {
 		return isset($matches[2]) ? $matches[2] : false;
 	}
 
+	public function troubleshoot( $fix = false ){
+
+		$base = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename;
+
+		if( $this->is_finalized ){
+			if( !file_exists( $base . '.mp4' ) ){
+				return "reached finalize step, but the .mp4 file never got created.";
+			}
+		}
+
+		if( $this->is_capturing && !$this->getCapturingStatus() ){
+			return "streamlink exited but capturing didn't complete";
+		}
+
+		if( $this->is_converting && !$this->getConvertingStatus() ){
+			if( file_exists( $base . '.mp4' ) && file_exists( $base . '.ts' ) ){
+				return "reached conversion step, ffmpeg exited but conversion didn't complete, both .ts and .mp4 still exist.";
+			}elseif( file_exists( $base . '.mp4' ) && !file_exists( $base . '.ts' ) ){
+				return "reached conversion step, ffmpeg exited but conversion didn't complete, but the .ts file got removed.";
+			}elseif( !file_exists( $base . '.mp4' ) && file_exists( $base . '.ts' ) ){
+				return "reached conversion step, ffmpeg exited but conversion didn't complete, but the .mp4 file never got created.";
+			}
+		}
+
+		return false;
+
+		// return "everything seems fine";
+
+	}
+
 	public function no_files(){
 		return ( !file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.ts') && !file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.mp4') );
 	}

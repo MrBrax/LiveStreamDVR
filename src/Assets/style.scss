@@ -338,7 +338,12 @@ a.linkback {
 
 }
 
-.error { color: #f00; }
+.error {
+	color: #f00;
+	&.flashing {
+		animation: 1s ease-in-out infinite live;
+	}
+}
 
 .video-description {
 	padding: 10px;
@@ -375,6 +380,12 @@ a.linkback {
 	padding: 10px;
 	color: #fff;
 	font-weight: 700;
+	a {
+		color: #ffff00;
+		&:hover {
+			color: #fff;
+		}
+	}
 }
 
 .videoplayer { width: 1280px; }

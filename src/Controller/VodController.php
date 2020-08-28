@@ -162,4 +162,26 @@ class VodController
 
     }
 
+    public function troubleshoot( Request $request, Response $response, $args ) {
+        
+        $vod = $args['vod'];
+        // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
+
+        $vodclass = new TwitchVOD();
+        $vodclass->load( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vod . '.json' );
+        
+        $issue = $vodclass->troubleshoot();
+
+        $response->getBody()->write( $issue );
+
+        if( isset( $_GET['fix'] ) ){
+
+            
+
+        }
+
+        return $response;
+
+    }
+
 }
