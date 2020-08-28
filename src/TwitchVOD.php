@@ -187,12 +187,17 @@ class TwitchVOD {
 		if( $this->duration_seconds ) return $this->duration_seconds;
 
 		if( $this->is_capturing || $this->is_recording ){
-			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Can't request duration because recording of " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Can't request duration because " . $this->basename . " is still recording!" );
 			return false;
 		}
 
 		if( !$this->is_converted || $this->is_converting ){
-			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Can't request duration because not converted of " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Can't request duration because " . $this->basename . " is converting!" );
+			return false;
+		}
+
+		if( !$this->is_finalized ){
+			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Can't request duration because " . $this->basename . " is not finalized!" );
 			return false;
 		}
 
@@ -487,8 +492,8 @@ class TwitchVOD {
 			}
 		}
 
-		if( $this->is_capturing || $this->is_converting ){
-			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Saving JSON of " . $this->basename . " while capturing!");
+		if( $this->is_capturing || $this->is_converting || !$this->is_finalized ){
+			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Saving JSON of " . $this->basename . " while not finalized!");
 		}
 
 		if( !$this->chapters || count($this->chapters) == 0 ){
@@ -573,7 +578,7 @@ class TwitchVOD {
 				$entry['offset'] = $entry['datetime']->getTimestamp() - $this->started_at->getTimestamp();
 			}
 
-			if( !$this->is_capturing && !$this->is_converting && $this->getDuration() !== false ){
+			if( $this->is_finalized && $this->getDuration() !== false ){
 				$entry['width'] = ( $entry['duration'] / $this->getDuration() ) * 100; // temp
 			}
 

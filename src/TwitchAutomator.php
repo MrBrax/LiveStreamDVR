@@ -47,6 +47,11 @@ class TwitchAutomator {
 		return date("Y-m-d\TH:i:s\Z");
 	}
 
+	/**
+	 * TODO: remove this, obsolete
+	 *
+	 * @return bool
+	 */
 	public function jsonLoad(){
 
 		if( !$this->data_cache ){
@@ -93,6 +98,7 @@ class TwitchAutomator {
 	
 	/**
 	 * Either send email or store in logs directory
+	 * TODO: remove this, obsolete
 	 *
 	 * @param string $body
 	 * @param string $title
@@ -602,7 +608,7 @@ class TwitchAutomator {
 
 		$this->info[] = 'Streamlink output: ' . $capture_output;
 
-		file_put_contents( __DIR__ . "/../logs/streamlink_" . $basename . ".log", $capture_output);
+		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_" . $basename . ".log", $capture_output);
 
 		// download with youtube-dl if streamlink fails
 		if( strpos($capture_output, '410 Client Error') !== false ){
@@ -619,7 +625,7 @@ class TwitchAutomator {
 			$cmd .= ' --hls-use-mpegts'; // use ts instead of mp4
 			$cmd .= ' --no-part';
 			$cmd .= ' -o ' . escapeshellarg($capture_filename); // output file
-			$cmd .= ' -f ' . escapeshellarg( implode('/', TwitchConfig::cfg('stream_quality') ) ); // format
+			$cmd .= ' -f ' . escapeshellarg( implode('/', TwitchConfig::getStreamer( $data_username )['quality'] ) ); // format, does this work?
 			$cmd .= ' ' . escapeshellarg($stream_url);
 
 			$this->info[] = 'Youtube-dl cmd: ' . $cmd;
@@ -628,7 +634,7 @@ class TwitchAutomator {
 
 			$this->info[] = 'Youtube-dl output: ' . $capture_output;
 
-			file_put_contents( __DIR__ . "/../logs/youtubedl_" . $basename . ".log", $capture_output);
+			file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "youtubedl_" . $basename . ".log", $capture_output);
 			
 
 			// exit(500);
