@@ -108,9 +108,9 @@ class TwitchVOD {
 		$this->is_recording = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.ts' );
 		$this->is_converted = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.mp4' );
 
-		$this->is_capturing 	= $this->json['is_capturing'];
-		$this->is_converting 	= $this->json['is_converting'];
-		$this->is_finalized 	= $this->json['is_finalized'];
+		$this->is_capturing 	= isset($this->json['is_capturing']) ? $this->json['is_capturing'] : false;
+		$this->is_converting 	= isset($this->json['is_converting']) ? $this->json['is_converting'] : false;
+		$this->is_finalized 	= isset($this->json['is_finalized']) ? $this->json['is_finalized'] : false;
 
 		$this->streamer_name = $this->json['meta']['data'][0]['user_name'];
 		$this->streamer_id = TwitchHelper::getChannelId( $this->streamer_name );
@@ -123,7 +123,7 @@ class TwitchVOD {
 
 		$this->meta = $this->json['meta'];
 
-		if( $this->json['dt_capture_started'] ){
+		if( isset($this->json['dt_capture_started']) ){
 			$this->dt_capture_started 		= new \DateTime($this->json['dt_capture_started']['date']);
 			$this->dt_conversion_started 	= new \DateTime($this->json['dt_conversion_started']['date']);
 			$this->dt_ended_at 				= new \DateTime($this->json['dt_ended']['date']);

@@ -18,7 +18,7 @@
                             <input type="hidden" name="key" value="{{ loop.index }}" />
                             <input type="hidden" name="username" value="{{ streamer.username }}" />
                             <div class="control">
-                                <label><input class="input" type="text" name="quality" value="{{ streamer.quality }}" /> Quality</label>
+                                <label><input class="input" type="text" name="quality" value="{{ streamer.quality|join(" ") }}" /> Quality</label>
                                 <div class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</div>
                             </div>
                             <div class="control">

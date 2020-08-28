@@ -105,7 +105,7 @@ class SettingsController
         if( $download_chat ){
             $streamer["download_chat"] = 1;
         }
-    
+
         TwitchConfig::$config['streamers'][] = $streamer;
         TwitchConfig::saveConfig("streamer/add");
 

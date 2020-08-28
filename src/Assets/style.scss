@@ -294,6 +294,7 @@ a.linkback {
 
 	&:active {
 		background-color: #aaa;
+		transform: translate(1px, 1px);
 	}
 
 	&.is-blue {
@@ -316,6 +317,11 @@ a.linkback {
 			background-color: darken($base-bg, 5%);
 			border-color: darken($base-bg, 10%);
 		}
+		&:active {
+			background-color: darken($base-bg, 10%);
+			border-color: darken($base-bg, 15%);
+			
+		}
 	}
 
 	&.is-danger {
@@ -333,12 +339,14 @@ a.linkback {
 
 .input {
 
+	background-color: #fff;
+
 	font-family: inherit;
-	// font-size: 0.9em;
+	font-size: 14px;
 
 	padding: 4px 6px;
 	margin: 2px 0px;
-	border-radius: 2px;
+	border-radius: 3px;
 
 	color: #333;
 	border: 1px solid #ccc;	
@@ -349,10 +357,15 @@ a.linkback {
 
 	&:focus {
 		color: #000;
-		box-shadow: 0 0 3px inset #eee;
+		// box-shadow: 0 0 3px inset #eee;
 		border-width: 2px;
 		border-color: #555;
+		background-color: #eff6ff;
 		padding: 3px 5px;
+	}
+
+	&[type=text], &[type=password] {
+		min-width: 200px;
 	}
 
 }
