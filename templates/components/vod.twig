@@ -198,8 +198,8 @@
 
         {% if vodclass.troubleshoot %}
             <div class="video-error">
-                {{ vodclass.troubleshoot }}<br>
-                <a href="{{ url_for('troubleshoot', { 'vod': vodclass.basename }) }}?fix=1">Try to fix</a>
+                {{ vodclass.troubleshoot.text }}
+                {% if vodclass.troubleshoot.fixable %}<br /><a href="{{ url_for('troubleshoot', { 'vod': vodclass.basename }) }}?fix=1">Try to fix</a>{% endif %}
             </div>
         {% endif %}
         

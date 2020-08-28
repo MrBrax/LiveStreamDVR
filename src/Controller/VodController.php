@@ -170,14 +170,18 @@ class VodController
         $vodclass = new TwitchVOD();
         $vodclass->load( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vod . '.json' );
         
-        $issue = $vodclass->troubleshoot();
+        
 
-        $response->getBody()->write( $issue );
-
+        
+        $issue = $vodclass->troubleshoot( isset( $_GET['fix'] ) );
+        if($issue){
+            $response->getBody()->write( $issue['text'] );
+        }else{
+            $response->getBody()->write( "found nothing wrong" );
+        }
+        
         if( isset( $_GET['fix'] ) ){
-
-            
-
+            $response->getBody()->write( "<br>trying to fix!" );
         }
 
         return $response;

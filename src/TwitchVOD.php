@@ -186,6 +186,11 @@ class TwitchVOD {
 
 		if( $this->duration_seconds ) return $this->duration_seconds;
 
+		if( $this->video_metadata ){
+			if($this->video_metadata['general']['Duration']) return $this->video['general']['Duration'];
+			return false;
+		}
+
 		if( $this->is_capturing || $this->is_recording ){
 			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Can't request duration because " . $this->basename . " is still recording!" );
 			return false;
@@ -203,11 +208,6 @@ class TwitchVOD {
 
 		if( !isset($this->segments_raw) || count($this->segments_raw) == 0 ){
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No video file available for duration of " . $this->basename);
-			return false;
-		}
-
-		if( $this->video_metadata ){
-			if($this->video_metadata['general']['Duration']) return $this->video['general']['Duration'];
 			return false;
 		}
 		
@@ -578,7 +578,7 @@ class TwitchVOD {
 				$entry['offset'] = $entry['datetime']->getTimestamp() - $this->started_at->getTimestamp();
 			}
 
-			if( $this->is_finalized && $this->getDuration() !== false ){
+			if( $this->is_finalized && $this->getDuration() !== false && $this->getDuration() > 0 ){
 				$entry['width'] = ( $entry['duration'] / $this->getDuration() ) * 100; // temp
 			}
 
@@ -822,33 +822,47 @@ class TwitchVOD {
 		return isset($matches[2]) ? $matches[2] : false;
 	}
 
+	public function finalize(){
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Finalize " . $this->basename);
+		$this->getMediainfo();
+		$this->saveLosslessCut();
+		$this->matchTwitchVod();
+		$this->is_finalized = true;
+	}
+
 	public function troubleshoot( $fix = false ){
 
 		$base = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename;
 
 		if( $this->is_finalized ){
 			if( !file_exists( $base . '.mp4' ) ){
-				return "reached finalize step, but the .mp4 file never got created.";
+				return ["fixable" => false, "text" => "reached finalize step, but the .mp4 file never got created."];
 			}
 		}
 
 		if( $this->is_capturing && !$this->getCapturingStatus() ){
-			return "streamlink exited but capturing didn't complete";
+			return ["fixable" => false, "text" => "streamlink exited but capturing didn't complete"];
 		}
 
 		if( $this->is_converting && !$this->getConvertingStatus() ){
 			if( file_exists( $base . '.mp4' ) && file_exists( $base . '.ts' ) ){
-				return "reached conversion step, ffmpeg exited but conversion didn't complete, both .ts and .mp4 still exist.";
+				return ["fixable" => false, "text" => "reached conversion step, ffmpeg exited but conversion didn't complete, both .ts and .mp4 still exist."];
 			}elseif( file_exists( $base . '.mp4' ) && !file_exists( $base . '.ts' ) ){
-				return "reached conversion step, ffmpeg exited but conversion didn't complete, but the .ts file got removed.";
+				if($fix){
+					$this->is_recording = false;
+					$this->is_capturing = false;
+					$this->is_converting = false;
+					$this->is_converted = true;
+					$this->finalize();
+					$this->saveJSON();
+				}
+				return ["fixable" => true, "text" => "reached conversion step, ffmpeg exited and conversion probably completed, but the .ts file got removed."];
 			}elseif( !file_exists( $base . '.mp4' ) && file_exists( $base . '.ts' ) ){
-				return "reached conversion step, ffmpeg exited but conversion didn't complete, but the .mp4 file never got created.";
+				return ["fixable" => false, "text" => "reached conversion step, ffmpeg exited and conversion didn't complete - the .mp4 file never got created."];
 			}
 		}
 
 		return false;
-
-		// return "everything seems fine";
 
 	}
 

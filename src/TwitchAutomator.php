@@ -535,10 +535,14 @@ class TwitchAutomator {
 
 		// $vodclass->getDuration();
 		// $vodclass->saveVideoMetadata();
+		/*
 		$vodclass->getMediainfo();
 		$vodclass->saveLosslessCut();
 		$vodclass->matchTwitchVod();
 		$vodclass->is_finalized = true;
+		
+		*/
+		$vodclass->finalize();
 		$vodclass->saveJSON();
 		
 		if( ( TwitchConfig::cfg('download_chat') || TwitchConfig::getStreamer($data_username)['download_chat'] == 1 ) && $vodclass->twitch_vod_id ){
