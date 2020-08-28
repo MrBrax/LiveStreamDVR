@@ -10,23 +10,27 @@
 
         <div class="section-content">
 
-            <a class="button" href="?checkvod=1">Check if VODs exist</a>
-            {% if checkvod %}
-                {% if is_a_vod_deleted %}
-                    - <strong>A VOD IS DELETED</strong>
-                {% else %}
-                    - all vods seem to still exist
+            <div class="button-bar">
+
+                <a class="button" href="?checkvod=1">Check if VODs exist</a>
+                {% if checkvod %}
+                    {% if is_a_vod_deleted %}
+                        - <strong>A VOD IS DELETED</strong>
+                    {% else %}
+                        - all vods seem to still exist
+                    {% endif %}
                 {% endif %}
-            {% endif %}
 
-            <a class="button" href="?rebuild_segments=1">Rebuild segments</a>
-            <a class="button" href="?match_vod=1">Match VODs</a>
+                <a class="button" href="?rebuild_segments=1">Rebuild segments</a>
+                <a class="button" href="?match_vod=1">Match VODs</a>
 
-            <button class="button" onclick="notifyMe();">Notify</button>
+                <button class="button" onclick="notifyMe();">Notify</button>
 
-            <button class="button" onclick="window.forceRefresh()">Force refresh</button>
+                <button class="button" onclick="window.forceRefresh()">Refresh vods</button>
+
+            </div>
             
-            <br><br>
+            <br>
 
             {% for streamer in streamerList %}
 

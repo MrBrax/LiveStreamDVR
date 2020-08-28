@@ -244,10 +244,19 @@ a.linkback {
 
 }
 
+.button-bar {
+	display: flex;
+	.button {
+		flex-grow: 1;
+	}
+}
+
 .button {
 
+	$base-bg: #c4e0f3;
+
 	font-family: inherit;
-	// font-size: 0.9em;
+	font-size: 14px;
 
 	text-decoration: none;
 
@@ -265,20 +274,21 @@ a.linkback {
 	box-shadow: 0 2px 3px rgba(0, 0, 0, .2), inset 0 -3px 0 rgba(0, 0, 0, .1);
 	*/
 
-	background-color: #ccc;
+	border: 1px solid darken($base-bg, 5%);
+	background-color: $base-bg;
 	color: #333;
-	border: none;
 
 	margin: 1px;
 	
-	transition: 0.05s all ease-in-out;
+	// transition: 0.05s all ease-in-out;
 
-	text-shadow: 0 1px 2px rgba(0,0,0,.2);
+	// text-shadow: 0 1px 2px rgba(0,0,0,.2);
 	
 	&:hover {
 		cursor: pointer;
 		color: #111;
-		background-color: darken(#ccc, 5%);
+		background-color: darken($base-bg, 5%);
+		border-color: darken($base-bg, 10%);
 		// transform: scale(1.02);
 	}
 
@@ -287,26 +297,35 @@ a.linkback {
 	}
 
 	&.is-blue {
-		background-color: #5098f7;
+		$base-bg: #5098f7;
+		background-color: $base-bg;
+		border-color: darken($base-bg, 5%);
 		color: #fff;
 		&:hover {
-			background-color: darken(#5098f7, 5%);
+			background-color: darken($base-bg, 5%);
+			border-color: darken($base-bg, 10%);
 		}
 	}
 
 	&.is-confirm {
-		background-color: #3db92c;
+		$base-bg: #3db92c;
+		background-color: $base-bg;
+		border-color: darken($base-bg, 5%);
 		color: #fff;
 		&:hover {
-			background-color: darken(#3db92c, 5%);
+			background-color: darken($base-bg, 5%);
+			border-color: darken($base-bg, 10%);
 		}
 	}
 
 	&.is-danger {
-		background-color: #b35531;
+		$base-bg: #b35531;
+		background-color: $base-bg;
+		border-color: darken($base-bg, 5%);
 		color: #fff;
 		&:hover {
-			background-color: darken(#b35531, 5%);
+			background-color: darken($base-bg, 5%);
+			border-color: darken($base-bg, 10%);
 		}
 	}
 

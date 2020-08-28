@@ -851,6 +851,17 @@ class TwitchVOD {
 			if( !file_exists( $base . '.mp4' ) ){
 				return ["fixable" => false, "text" => "reached finalize step, but the .mp4 file never got created."];
 			}
+			if( !$this->twitch_vod_id ){
+				if($fix){
+					if( $this->matchTwitchVod() ){
+						$this->saveJSON();
+						return ["fixed" => true, "text" => "twitch vod matched successfully"];
+					}else{
+						return ["fixed" => false, "text" => "tried to match, but couldn't. maybe it's deleted?"];
+					}
+				}
+				return ["fixable" => true, "text" => "reached finalize step, but does not have a matched twitch vod."];
+			}
 		}
 
 		if( $this->is_capturing && !$this->getCapturingStatus() ){
