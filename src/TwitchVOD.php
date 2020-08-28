@@ -130,7 +130,7 @@ class TwitchVOD {
 		}
 
 		// $this->duration 			= $this->json['duration'];
-		$this->duration_seconds = $this->json['duration_seconds'] ?: null;
+		$this->duration_seconds 	= $this->json['duration_seconds'] ?: null;
 
 		$this->video_fail2 			= isset($this->json['video_fail2']) ? $this->json['video_fail2'] : false;
 		$this->video_metadata		= isset($this->json['video_metadata']) ? $this->json['video_metadata'] : null;
@@ -141,14 +141,19 @@ class TwitchVOD {
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "No chapters on " . $this->basename . "!");
 		}
 
-		if( !$this->video_metadata && !$this->is_capturing && !$this->is_converting && count($this->segments_raw) > 0 && !$this->video_fail2 && TwitchHelper::path_mediainfo() ){
-			$this->getMediainfo();
-			$this->saveJSON();
-		}
-
-		if( !$this->is_capturing && !$this->is_converting ){
+		if( $this->is_finalized ){
 			$this->segments_raw = $this->json['segments_raw'];
 			$this->parseSegments( $this->segments_raw );
+			if( !$this->duration_seconds ){
+				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "VOD " . $this->basename . " finalized but no duration, trying to fix" );
+				$this->getDuration(true);
+			}
+		}
+
+		if( !$this->video_metadata && $this->is_finalized && count($this->segments_raw) > 0 && !$this->video_fail2 && TwitchHelper::path_mediainfo() ){
+			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "VOD " . $this->basename . " finalized but no metadata, trying to fix" );
+			$this->getMediainfo();
+			$this->saveJSON();
 		}
 
 		$this->is_chat_downloaded = file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $this->basename . '.chat' );
@@ -184,42 +189,47 @@ class TwitchVOD {
 	 */
 	public function getDuration( $save = false ){
 
-		if( $this->duration_seconds ) return $this->duration_seconds;
+		if( isset($this->duration_seconds) && $this->duration_seconds !== null ){
+			// TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Returning saved duration for " . $this->basename . ": " . $this->duration_seconds );
+			return $this->duration_seconds;
+		}
 
 		if( $this->video_metadata ){
-			if($this->video_metadata['general']['Duration']) return $this->video['general']['Duration'];
-			return false;
+			if( isset($this->video_metadata['general']['Duration']) ){
+				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "No duration_seconds but metadata exists for " . $this->basename . ": " . $this->video_metadata['general']['Duration'] );
+				$this->duration_seconds = $this->video_metadata['general']['Duration'];
+				return $this->video_metadata['general']['Duration'];
+			}
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Video metadata for " . $this->basename . " does not include duration!" );
+			return null;
 		}
 
 		if( $this->is_capturing || $this->is_recording ){
 			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Can't request duration because " . $this->basename . " is still recording!" );
-			return false;
+			return null;
 		}
 
 		if( !$this->is_converted || $this->is_converting ){
 			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Can't request duration because " . $this->basename . " is converting!" );
-			return false;
+			return null;
 		}
 
 		if( !$this->is_finalized ){
 			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Can't request duration because " . $this->basename . " is not finalized!" );
-			return false;
+			return null;
 		}
 
 		if( !isset($this->segments_raw) || count($this->segments_raw) == 0 ){
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No video file available for duration of " . $this->basename);
-			return false;
+			return null;
 		}
 		
-		// $getID3 = new getID3;
-
-		// $file = $this->getVideoMetadata();
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "No mediainfo for getDuration of " . $this->basename );	
 		$file = $this->getMediainfo();
 
 		if( !$file ){
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Could not find duration of " . $this->basename );			
-			return false;
+			return null;
 		}else{
 		
 			// $this->duration 			= $file['playtime_string'];
@@ -230,10 +240,13 @@ class TwitchVOD {
 				$this->saveJSON();
 			}
 
+			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Duration fetched for " . $this->basename . ": " . $this->duration_seconds );
+
 			return $this->duration_seconds;
 
 		}
 		
+		TwitchHelper::log(TwitchHelper::LOG_ERROR, "Reached end of getDuration for " . $this->basename . ", this shouldn't happen!" );
 
 	}
 
