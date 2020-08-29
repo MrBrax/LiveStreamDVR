@@ -824,14 +824,16 @@ class TwitchVOD {
 
 	// TODO: finish this
 	public function getCapturingStatus(){
+		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Fetch capture process status of " . $this->basename );
 		$output = shell_exec("ps aux | grep -i " . escapeshellarg("twitch.tv/" . $this->streamer_name) . " | grep -v grep");
-		preg_match("/^([a-z0-9]+)\s([0-9]+)/i", trim($output), $matches);
+		preg_match("/^([a-z0-9]+)\s+([0-9]+)/i", trim($output), $matches);
 		return isset($matches[2]) ? $matches[2] : false;
 	}
 
 	public function getConvertingStatus(){
+		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Fetch converting process status of " . $this->basename );
 		$output = shell_exec("ps aux | grep -i " . escapeshellarg( $this->basename . ".mp4" ) . " | grep -v grep");
-		preg_match("/^([a-z0-9]+)\s([0-9]+)/i", trim($output), $matches);
+		preg_match("/^([a-z0-9]+)\s+([0-9]+)/i", trim($output), $matches);
 		return isset($matches[2]) ? $matches[2] : false;
 	}
 

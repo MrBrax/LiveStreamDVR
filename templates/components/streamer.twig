@@ -26,6 +26,14 @@
         </div>
     </div>
 
+    <div class="streamer-jumpto">
+        <ul>
+        {% for vodclass in streamer.vods_list %}
+            <li><a href="#vod_{{ vodclass.basename }}">{% if vodclass.started_at %}{{ vodclass.started_at|date('Y-m-d H:i:s') }}{% endif %}</a></li>
+        {% endfor %}
+        </ul>
+    </div>
+
     {% if streamer.vods_list|length == 0 %}
 
         <div class="notice">None</div>

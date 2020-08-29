@@ -246,9 +246,11 @@ a.linkback {
 
 .button-bar {
 	display: flex;
+	/*
 	.button {
 		flex-grow: 1;
 	}
+	*/
 }
 
 .button {
@@ -574,6 +576,31 @@ a.linkback {
 
 }
 
+.streamer-jumpto {
+	ul {
+		list-style: none;
+		list-style-type: none;
+		margin: 0;
+		padding: 0;
+		li {
+			a {
+				$base-bg: #5098f7;
+				background-color: $base-bg;
+				border-color: darken($base-bg, 5%);
+				color: #eee;
+				margin-bottom: 1px;
+				display: inline-block;
+				text-decoration: none;
+				padding: 3px 8px;
+				&:hover {
+					color: #fff;
+					background-color: darken($base-bg, 5%);
+				}
+			}
+		}
+	}
+}
+
 .error {
 	color: #f00;
 }
@@ -635,9 +662,11 @@ hr {
 	background-color: #ccc;
 }
 
+$anchor-height: 60px;
+
 .anchor {
-	height: 40px;
-    margin: -40px 0 0;
+	height: $anchor-height;
+    margin: -$anchor-height 0 0;
 }
 
 .big-error {
@@ -752,6 +781,14 @@ body.black {
 
 	.boxart-big {
 		max-height: 70px;
+	}
+
+	.button-bar {
+		flex-direction: column;
+		.button {
+			font-size: 16px;
+			padding: 10px;
+		}
 	}
 
 }
