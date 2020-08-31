@@ -17,7 +17,7 @@ function notifyMe() {
     // Let's check whether notification permissions have already been granted
     else if (Notification.permission === "granted") {
         // If it's okay let's create a notification
-        var notification = new Notification("Will now notify of stream activity!");
+        var notification = new Notification("Granted, will now notify of stream activity!");
     }
     // Otherwise, we need to ask the user for permission
     else if (Notification.permission !== "denied") {
@@ -87,26 +87,35 @@ document.addEventListener("DOMContentLoaded", () => {
                 let old_data = previousData[streamer.username];
                 setStatus(`Check notifications for ${streamer.username}...`, true);
                 if (old_data && Notification.permission === "granted") {
-                    // console.log("old data", old_data);
-                    // console.log("new data", streamer);
                     let opt = {
                         icon: streamer.channel_data.profile_image_url,
                         image: streamer.channel_data.profile_image_url,
                         body: streamer.current_game ? streamer.current_game.game_name : "No game",
                     };
+                    let text = "";
                     if (!old_data.is_live && streamer.is_live) {
-                        let n = new Notification(`${streamer.username} is live!`, opt);
+                        text = `${streamer.username} is live!`;
                     }
                     if ((!old_data.current_game && streamer.current_game) || (old_data.current_game && streamer.current_game && old_data.current_game.game_name !== streamer.current_game.game_name)) {
                         if (streamer.current_game.favourite) {
-                            let n = new Notification(`${streamer.username} is now playing one of your favourite games: ${streamer.current_game.game_name}!`, opt);
+                            text = `${streamer.username} is now playing one of your favourite games: ${streamer.current_game.game_name}!`;
                         }
                         else {
-                            let n = new Notification(`${streamer.username} is now playing ${streamer.current_game.game_name}!`, opt);
+                            text = `${streamer.username} is now playing ${streamer.current_game.game_name}!`;
                         }
                     }
                     if (old_data.is_live && !streamer.is_live) {
-                        let n = new Notification(`${streamer.username} has gone offline!`, opt);
+                        text = `${streamer.username} has gone offline!`;
+                    }
+                    if (text !== "") {
+                        console.log(`Notify: ${text}`);
+                        if (Notification.permission === "granted") {
+                            let n = new Notification(text, opt);
+                        }
+                        if (window.useSpeech) {
+                            let utterance = new SpeechSynthesisUtterance(text);
+                            speechSynthesis.speak(utterance);
+                        }
                     }
                 }
                 previousData[streamer.username] = streamer;
@@ -141,6 +150,15 @@ document.addEventListener("DOMContentLoaded", () => {
         updateStreamers();
     };
     setStatus(`Refreshing in ${delay} seconds...`, false);
+    window.useSpeech = localStorage.getItem("useSpeech") == "1";
+    let opt = document.getElementById("useSpeechOption");
+    if (opt) {
+        opt.checked = localStorage.getItem("useSpeech") == "1";
+        opt.addEventListener("change", () => {
+            localStorage.setItem("useSpeech", opt.checked ? "1" : "0");
+            alert("Speech " + (opt.checked ? "enabled" : "disabled"));
+        });
+    }
     timeout_store = setTimeout(updateStreamers, delay * 1000);
 });
 console.log("Hello");
