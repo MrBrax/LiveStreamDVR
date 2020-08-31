@@ -592,13 +592,14 @@ a.linkback {
 		list-style-type: none;
 		margin: 0;
 		padding: 0;
+		display: flex;
 		li {
 			a {
 				$base-bg: #5098f7;
 				background-color: $base-bg;
 				border-color: darken($base-bg, 5%);
 				color: #eee;
-				margin-bottom: 1px;
+				margin: 1px;
 				display: inline-block;
 				text-decoration: none;
 				padding: 3px 8px;

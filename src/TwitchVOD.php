@@ -585,6 +585,9 @@ class TwitchVOD {
 
 			$entry['datetime'] = \DateTime::createFromFormat( TwitchConfig::cfg("date_format"), $entry['time'] );
 
+			if( TwitchConfig::$config['favourites'] ){
+				$entry['favourite'] = TwitchConfig::$config['favourites'][ $entry['game_id'] ];
+			}
 
 			// offset
 			if($this->started_at){

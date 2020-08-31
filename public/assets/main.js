@@ -98,7 +98,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         let n = new Notification(`${streamer.username} is live!`, opt);
                     }
                     if ((!old_data.current_game && streamer.current_game) || (old_data.current_game && streamer.current_game && old_data.current_game.game_name !== streamer.current_game.game_name)) {
-                        let n = new Notification(`${streamer.username} is now playing ${streamer.current_game.game_name}!`, opt);
+                        if (streamer.current_game.favourite) {
+                            let n = new Notification(`${streamer.username} is now playing one of your favourite games: ${streamer.current_game.game_name}!`, opt);
+                        }
+                        else {
+                            let n = new Notification(`${streamer.username} is now playing ${streamer.current_game.game_name}!`, opt);
+                        }
                     }
                     if (old_data.is_live && !streamer.is_live) {
                         let n = new Notification(`${streamer.username} has gone offline!`, opt);
