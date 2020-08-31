@@ -7,6 +7,7 @@ class TwitchConfig {
 	public static $config = [];
 
 	public static $configPath = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "config.json";
+	public static $gameDbPath = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "games_v2.json";
 
 	function __constructor(){
 		$this->loadConfig();
@@ -74,7 +75,7 @@ class TwitchConfig {
 
 	public static function getStreamers(){
 		return self::cfg("streamers", []);
-    }
+	}
 	
 	/**
 	 * Get streamer info from local config
@@ -89,6 +90,10 @@ class TwitchConfig {
         }
         return false;
 	}
+
+	public static function getGames(){
+		return json_decode( file_get_contents( self::$gameDbPath ), true );
+    }
 
 }
 

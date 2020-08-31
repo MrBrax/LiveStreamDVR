@@ -29,9 +29,12 @@ class SettingsController
         $sub_callback = TwitchConfig::cfg('hook_callback');
         $sub_callback = str_replace('/hook', '/sub', $sub_callback);
 
+        $games = TwitchConfig::getGames();
+
         return $this->twig->render($response, 'settings.twig', [
             'streamers' => TwitchConfig::getStreamers(),
-            'sub_callback' => $sub_callback
+            'sub_callback' => $sub_callback,
+            'games' => $games
         ]);
 
     }
@@ -71,6 +74,26 @@ class SettingsController
         return $response;
 
         // return $response->withHeader('Location', $this->router->pathFor('settings') )->withStatus(200);
+
+    }
+
+    public function favourites_save(Request $request, Response $response, array $args) {
+        
+        // $app_name               = $_POST['app_name'];
+        $games                  = $_POST['games'];
+
+        $data = [];
+        foreach( $games as $id => $value ){
+            $data[$id] = true;
+        }
+
+        // var_dump($data);
+        
+        TwitchConfig::$config['favourites'] = $data;
+        TwitchConfig::saveConfig("favourites/save");
+        $response->getBody()->write("Favourites saved.");
+
+        return $response;
 
     }
 

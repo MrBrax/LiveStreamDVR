@@ -487,6 +487,9 @@ a.linkback {
 }
 
 .game-list {
+
+	$favourite-bg: #7acc92;
+
 	width: 100%;
 	border-collapse: collapse;
 	tr:nth-child(2n) {
@@ -499,6 +502,13 @@ a.linkback {
 	}
 	*/
 	td:nth-child(4){ color: #444; }
+
+	tr.favourite {
+		background-color: $favourite-bg;
+		td {
+			background-color: $favourite-bg;
+		}
+	}
 }
 
 .streamer-title {
@@ -738,6 +748,11 @@ body.black {
 		animation: 1s ease-in-out infinite recording;
 		border-color: #222;
 	}
+}
+
+.favourites_list {
+	max-height: 600px;
+	overflow-y: scroll;
 }
 
 @media screen and (orientation: portrait) {

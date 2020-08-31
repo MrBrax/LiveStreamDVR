@@ -139,6 +139,31 @@
 
         </section>
 
+        <section class="section">
+
+            <div class="section-title"><h1>Favourite games</h1></div>
+
+            <div class="section-content">
+
+                <form method="POST" action="{{ url_for('favourites_save') }}">
+                    
+                    <div class="favourites_list">
+                        {% for id, game in games|sort %}
+                        <div class="control">
+                            <label><input type="checkbox" name="games[{{ id }}]" {{ config.favourites[id] ? 'checked="checked"' : '' }} /> {{ game.name }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="control">
+                        <button class="button is-confirm" type="submit">Save</button>
+                    </div>
+                </form>
+                
+            </div>
+
+        </section>
+
     </div>
 
 {% endblock %}

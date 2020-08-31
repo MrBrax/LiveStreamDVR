@@ -414,10 +414,8 @@ class TwitchHelper {
 	 */
 	public static function getGameData( $game_id ){
 
-		$game_db_file = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "games_v2.json";
-
 		if( !self::$game_db ){
-			self::$game_db = json_decode( file_get_contents( $game_db_file ), true );
+			self::$game_db = json_decode( file_get_contents( TwitchConfig::$gameDbPath ), true );
 		}
 
 		if( self::$game_db[ $game_id ] ){
@@ -448,7 +446,7 @@ class TwitchHelper {
 
 			// $game_db[ $id ] = $game_data["name"];
 
-			file_put_contents( $game_db_file, json_encode( self::$game_db ) );
+			file_put_contents( TwitchConfig::$gameDbPath, json_encode( self::$game_db ) );
 
 			self::log( self::LOG_INFO, "New game saved to cache: " . $game["name"] );
 

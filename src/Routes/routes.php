@@ -28,6 +28,7 @@ $app->post('/settings/save', SettingsController::class . ':settings_save')->setN
 $app->post('/settings/streamer/add', SettingsController::class . ':streamer_add')->setName('streamer_add');
 $app->post('/settings/streamer/delete', SettingsController::class . ':streamer_delete')->setName('streamer_delete');
 $app->post('/settings/streamer/update', SettingsController::class . ':streamer_update')->setName('streamer_update');
+$app->post('/settings/favourites/save', SettingsController::class . ':favourites_save')->setName('favourites_save');
 
 $app->get('/player/{vod}', PlayerController::class . ':player')->setName('player');
 $app->post('/cut', VodController::class . ':cut')->setName('cut');
