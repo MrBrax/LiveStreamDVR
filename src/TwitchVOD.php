@@ -825,6 +825,14 @@ class TwitchVOD {
 
 	}
 
+	public function hasFavouriteGame(){
+		if(!$this->chapters) return false;
+		foreach( $this->chapters as $chapter ){
+			if( $chapter['favourite'] ) return true;
+		}
+		return false;
+	}
+
 	// TODO: finish this
 	public function getCapturingStatus(){
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Fetch capture process status of " . $this->basename );

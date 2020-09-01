@@ -616,6 +616,9 @@ a.linkback {
 					color: #fff;
 					background-color: darken($base-bg, 5%);
 				}
+				&.favourite {
+					background-color: #469646;
+				}
 			}
 		}
 	}
