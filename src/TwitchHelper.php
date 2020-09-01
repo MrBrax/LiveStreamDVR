@@ -22,6 +22,7 @@ class TwitchHelper {
 	const LOG_WARNING = "WARNING";
 	const LOG_INFO = "INFO";
 	const LOG_DEBUG = "DEBUG";
+	const LOG_FATAL = "FATAL";
 
 	/**
 	 * Set up directories for first use
@@ -133,6 +134,10 @@ class TwitchHelper {
 
 		if( TwitchConfig::cfg("debug") ){
 			$log_data['source'] = debug_backtrace()[1]; // 1 or 0?
+		}
+
+		if( $level == self::LOG_FATAL ){
+			error_log($text, 0);
 		}
 
 		$log_json[] = $log_data;
@@ -247,37 +252,14 @@ class TwitchHelper {
 			return false;
 		}
 
-		/*
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/videos?user_id=' . $streamer_id);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, [
-			'Authorization: Bearer ' . self::getAccessToken(),
-		    'Client-ID: ' . TwitchConfig::cfg('api_client_id')
-		]);
-
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-
-		$server_output = curl_exec($ch);
-
-		curl_close($ch);
-
-		$json = json_decode( $server_output, true );
-		*/
-		
-		/*
-		$client = new \GuzzleHttp\Client([
-			'base_uri' => 'https://api.twitch.tv',
-			'headers' => [
-				'Client-ID' => TwitchConfig::cfg('api_client_id'),
-				'Content-Type' => 'application/json',
-				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
-			]
-		]);
-		*/
-
-		$response = self::$guzzler->request('GET', '/helix/videos', [
-			'query' => ['user_id' => $streamer_id]
-		]);
+		try {
+			$response = self::$guzzler->request('GET', '/helix/videos', [
+				'query' => ['user_id' => $streamer_id]
+			]);
+		} catch (\Throwable $th) {
+			self::log( self::LOG_ERROR, "Tried to get videos for " . $streamer_id . " but server returned: " . $th->getMessage() );
+			return false;
+		}
 
 		$server_output = $response->getBody()->getContents();
 		$json = json_decode( $server_output, true );
@@ -307,37 +289,14 @@ class TwitchHelper {
 			return false;
 		}
 
-		/*
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/videos?id=' . $video_id);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, [
-			'Authorization: Bearer ' . self::getAccessToken(),
-		    'Client-ID: ' . TwitchConfig::cfg('api_client_id')
-		]);
-
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-
-		$server_output = curl_exec($ch);
-
-		curl_close($ch);
-
-		$json = json_decode( $server_output, true );
-		*/
-
-		/*
-		$client = new \GuzzleHttp\Client([
-			'base_uri' => 'https://api.twitch.tv',
-			'headers' => [
-				'Client-ID' => TwitchConfig::cfg('api_client_id'),
-				'Content-Type' => 'application/json',
-				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
-			]
-		]);
-		*/
-
-		$response = self::$guzzler->request('GET', '/helix/videos', [
-			'query' => ['id' => $video_id]
-		]);
+		try {
+			$response = self::$guzzler->request('GET', '/helix/videos', [
+				'query' => ['id' => $video_id]
+			]);
+		} catch (\Throwable $th) {
+			self::log( self::LOG_ERROR, "Tried to get video id " . $video_id . " but server returned: " . $th->getMessage() );
+			return false;
+		}
 
 		$server_output = $response->getBody()->getContents();
 		$json = json_decode( $server_output, true );
@@ -360,33 +319,6 @@ class TwitchHelper {
 	 * @return array|false
 	 */
 	public static function getStreams( $streamer_id ){
-
-		/*
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/streams?user_id=' . $streamer_id);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, [
-			'Authorization: Bearer ' . self::getAccessToken(),
-		    'Client-ID: ' . TwitchConfig::cfg('api_client_id')
-		]);
-
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-
-		$server_output = curl_exec($ch);
-
-		curl_close($ch);
-
-		$json = json_decode( $server_output, true );
-		*/
-		/*
-		$client = new \GuzzleHttp\Client([
-			'base_uri' => 'https://api.twitch.tv',
-			'headers' => [
-				'Client-ID' => TwitchConfig::cfg('api_client_id'),
-				'Content-Type' => 'application/json',
-				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
-			]
-		]);
-		*/
 
 		$response = self::$guzzler->request('GET', '/helix/streams', [
 			'query' => ['user_id' => $streamer_id]
@@ -420,14 +352,18 @@ class TwitchHelper {
 
 		if( self::$game_db[ $game_id ] ){
 			return self::$game_db[ $game_id ];
-		}		
-
+		}
 
 		self::log( self::LOG_DEBUG, "Game id " . $game_id . " not in cache, fetching..." );
 		
-		$response = self::$guzzler->request('GET', '/helix/games', [
-			'query' => ['id' => $game_id]
-		]);
+		try {
+			$response = self::$guzzler->request('GET', '/helix/games', [
+				'query' => ['id' => $game_id]
+			]);
+		} catch (\Throwable $th) {
+			self::log( self::LOG_ERROR, "Tried to get game data for " . $game_id . " but server returned: " . $th->getMessage() );
+			return false;
+		}
 
 		$server_output = $response->getBody()->getContents();
 		$json = json_decode( $server_output, true );

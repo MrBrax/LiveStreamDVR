@@ -610,7 +610,7 @@ class TwitchVOD {
 			$entry['strings']['duration'] = TwitchHelper::getNiceDuration( $entry['duration'] );
 
 			// box art
-			if( $game_data['box_art_url'] ){
+			if( $game_data && $game_data['box_art_url'] ){
 				$img_url = $game_data['box_art_url'];
 				$img_url = str_replace("{width}", 14, $img_url);
 				$img_url = str_replace("{height}", 19, $img_url);
@@ -707,6 +707,7 @@ class TwitchVOD {
 
 		foreach($unique_games as $id => $n){
 			$gd = TwitchHelper::getGameData($id);
+			if(!$gd) continue;
 			$img_url = $gd['box_art_url'];
 			$img_url = str_replace("{width}", 140, $img_url);
 			$img_url = str_replace("{height}", 190, $img_url);
