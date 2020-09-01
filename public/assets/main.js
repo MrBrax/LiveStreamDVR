@@ -1,4 +1,11 @@
 "use strict";
+let current_username = "";
+let scrollTop = 0;
+let refresh_number = 0;
+let config = {
+    useSpeech: false,
+    singlePage: true
+};
 function formatBytes(bytes, precision = 2) {
     let units = ['B', 'KB', 'MB', 'GB', 'TB'];
     bytes = Math.max(bytes, 0);
@@ -39,23 +46,42 @@ function setStatus(text, active = false) {
     js_status.classList.toggle('active', active);
     js_status.innerHTML = text;
 }
+function showStreamer(username) {
+    console.debug(`Show streamer: ${username}`);
+    current_username = username;
+    const boxes = document.querySelectorAll("div.streamer-box");
+    for (const box of boxes) {
+        box.style.display = username == box.dataset.streamer ? "block" : "none";
+    }
+    const menu_streamer_buttons = document.querySelectorAll("div.top-menu-item.streamer");
+    for (const button of menu_streamer_buttons) {
+        // let link = button.querySelector("a");
+        let btn_user = button.dataset.streamer;
+        button === null || button === void 0 ? void 0 : button.classList.toggle("active", btn_user == username);
+    }
+}
+function saveConfig() {
+    localStorage.setItem("twitchautomator_config", JSON.stringify(config));
+    console.log("Saving config");
+}
 document.addEventListener("DOMContentLoaded", () => {
     let api_base = `${window.base_path}/api/v0`;
     let delay = 120;
     let previousData = {};
     let timeout_store = 0;
-    let refresh_number = 0;
+    let config_string = localStorage.getItem("twitchautomator_config");
+    config = config_string ? JSON.parse(config_string) : {};
     async function updateStreamers() {
         console.log(`Fetching streamer list (${delay})...`);
         setStatus('Fetching...', true);
         let any_live = false;
+        scrollTop = window.pageYOffset;
         let response = await fetch(`${api_base}/list`);
         setStatus('Parsing...', true);
         let data = await response.json();
         setStatus('Applying...', true);
         if (data.data) {
             for (let streamer of data.data.streamerList) {
-                // console.log( streamer );
                 let menu = document.querySelector(`.top-menu-item.streamer[data-streamer='${streamer.username}']`);
                 if (menu) {
                     let subtitle = menu.querySelector(".subtitle");
@@ -77,12 +103,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                     }
                 }
+                // update div
                 let streamer_div = document.querySelector(`.streamer-box[data-streamer='${streamer.username}']`);
                 if (streamer_div) {
                     setStatus(`Render ${streamer.username}...`, true);
                     let body_content_response = await fetch(`${api_base}/render/streamer/${streamer.username}`);
                     let body_content_data = await body_content_response.text();
                     streamer_div.outerHTML = body_content_data;
+                    // streamer_div.style.display = streamer.username == current_username ? "block" : "none";
                 }
                 let old_data = previousData[streamer.username];
                 setStatus(`Check notifications for ${streamer.username}...`, true);
@@ -112,7 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (Notification.permission === "granted") {
                             let n = new Notification(text, opt);
                         }
-                        if (window.useSpeech) {
+                        if (config.useSpeech) {
                             let utterance = new SpeechSynthesisUtterance(text);
                             speechSynthesis.speak(utterance);
                         }
@@ -139,27 +167,87 @@ document.addEventListener("DOMContentLoaded", () => {
             else {
                 delay += 10;
             }
+            if (current_username && !config.singlePage)
+                showStreamer(current_username);
             refresh_number++;
-            console.log(`Set next timeout to (${delay})...`);
+            console.debug(`Set next timeout to (${delay})...`);
             setStatus(`Done #${refresh_number}. Waiting ${delay} seconds.`, false);
             timeout_store = setTimeout(updateStreamers, delay * 1000);
         }
+        window.scrollTo(0, scrollTop);
     }
     window.forceRefresh = () => {
         clearTimeout(timeout_store);
         updateStreamers();
     };
     setStatus(`Refreshing in ${delay} seconds...`, false);
-    window.useSpeech = localStorage.getItem("useSpeech") == "1";
-    let opt = document.getElementById("useSpeechOption");
-    if (opt) {
-        opt.checked = localStorage.getItem("useSpeech") == "1";
-        opt.addEventListener("change", () => {
-            localStorage.setItem("useSpeech", opt.checked ? "1" : "0");
-            alert("Speech " + (opt.checked ? "enabled" : "disabled"));
+    // speech settings
+    // (<any>window).useSpeech = config.useSpeech;
+    let opt_speech = document.getElementById("useSpeechOption");
+    if (opt_speech) {
+        opt_speech.checked = config.useSpeech;
+        opt_speech.addEventListener("change", () => {
+            config.useSpeech = opt_speech.checked;
+            saveConfig();
+            alert("Speech " + (config.useSpeech ? "enabled" : "disabled"));
+        });
+    }
+    // single page
+    let opt_spa = document.getElementById("singlePageOption");
+    if (opt_spa) {
+        opt_spa.checked = config.singlePage;
+        opt_spa.addEventListener("change", () => {
+            config.singlePage = opt_spa.checked;
+            saveConfig();
+            alert("Single page " + (config.singlePage ? "enabled" : "disabled"));
+            location.reload();
         });
     }
     timeout_store = setTimeout(updateStreamers, delay * 1000);
+    // show and hide streamers
+    if (!config.singlePage) {
+        const menu_streamer_buttons = document.querySelectorAll("div.top-menu-item.streamer");
+        if (menu_streamer_buttons) {
+            menu_streamer_buttons.forEach(element => {
+                let link = element.querySelector("a");
+                if (!link)
+                    return;
+                link.addEventListener("click", (event) => {
+                    let username = element.dataset.streamer;
+                    if (username) {
+                        showStreamer(username);
+                        // current_username = username;
+                    }
+                    event.preventDefault();
+                    return false;
+                });
+            });
+        }
+        // show first streamer
+        let f = document.querySelector("div.streamer-box");
+        if (f && f.dataset.streamer)
+            showStreamer(f.dataset.streamer);
+    }
+    // clickable section headers
+    const sections = document.querySelectorAll(`section`);
+    if (sections) {
+        for (const section of sections) {
+            const title = section.querySelector("div.section-title");
+            const content = section.querySelector("div.section-content");
+            title === null || title === void 0 ? void 0 : title.addEventListener("click", event => {
+                console.debug("toggle section");
+                if (content)
+                    content.style.display = (content.style.display == "block" || !content.style.display) ? "none" : "block";
+            });
+        }
+        // default to hidden, good?
+        let logs = document.querySelector(`section[data-section="logs"] div.section-content`);
+        if (logs) {
+            logs.style.display = "none";
+        }
+        else {
+            console.debug("no logs found");
+        }
+    }
 });
-console.log("Hello");
 //# sourceMappingURL=main.js.map

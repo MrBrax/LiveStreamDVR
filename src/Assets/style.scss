@@ -125,11 +125,6 @@ code, pre {
 		color: #555;
 		font-size: 80%;
 	}
-	&.active {
-		a {
-			color: #fff;
-		}
-	}
 
 	&.streamer {
 		// .username { }
@@ -158,6 +153,12 @@ code, pre {
 			.subtitle, .vodcount {
 				color: #b30000;
 			}
+		}
+	}
+
+	&.active {
+		a {
+			color: #fff;
 		}
 	}
 
@@ -235,6 +236,10 @@ a.linkback {
 	padding: 10px;
 	background: #2b61d6;
 	color: #fff;
+
+	// good idea?
+	position: sticky;
+	top: 48px;
 
 	h3 {
 		margin: 0;
@@ -461,6 +466,8 @@ a.linkback {
 	background: #277dec;
 	color: #fff;
 	padding: 5px 10px;
+
+	cursor: pointer;
 	
 	h1 {
 		font-size: 1.2em;
@@ -474,6 +481,7 @@ a.linkback {
 	padding: 10px;
 }
 
+/*
 .container {
 	display: flex;
 	flex-wrap: wrap;
@@ -481,6 +489,7 @@ a.linkback {
 		flex-grow: 1;
 	}
 }
+*/
 
 .section .streamer-box {
 	margin-bottom: 20px;
