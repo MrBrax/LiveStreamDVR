@@ -514,7 +514,7 @@ class TwitchAutomator {
 		$this->vod->refreshJSON();
 		$this->vod->is_converting = false;
 		// if(!$this->json['segments_raw']) $this->json['segments_raw'] = [];
-		$this->vod->segments_raw[] = basename($converted_filename);
+		$this->vod->addSegment( $converted_filename );
 		$this->vod->saveJSON();
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Cleanup old VODs for " . $data_username);

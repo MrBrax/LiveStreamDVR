@@ -224,7 +224,7 @@ class TwitchVOD {
 			return null;
 		}
 		
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "No mediainfo for getDuration of " . $this->basename );	
+		TwitchHelper::log(TwitchHelper::LOG_DEBUG, "No mediainfo for getDuration of " . $this->basename );	
 		$file = $this->getMediainfo();
 
 		if( !$file ){
@@ -236,7 +236,7 @@ class TwitchVOD {
 			$this->duration_seconds 	= $file['general']['Duration'];
 
 			if( $save ){
-				TwitchHelper::log(TwitchHelper::LOG_INFO, "Saved duration for " . $this->basename);
+				TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Saved duration for " . $this->basename);
 				$this->saveJSON();
 			}
 
@@ -252,10 +252,10 @@ class TwitchVOD {
 
 	public function getMediainfo( $segment_num = 0 ){
 
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Fetching mediainfo of " . $this->basename);
+		TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Fetching mediainfo of " . $this->basename);
 
 		if( !isset($this->segments_raw) || count($this->segments_raw) == 0 ){
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No video file available for mediainfo of " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No segments available for mediainfo of " . $this->basename);
 			return false;
 		}
 
@@ -289,66 +289,6 @@ class TwitchVOD {
 		}
 
 	}
-
-	/*
-	public function getVideoMetadata( $save = false ){
-
-		if( !isset($this->segments_raw) || count($this->segments_raw) == 0 ){
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No video file available for metadata of " . $this->basename);
-			return false;
-		}
-
-		$filename = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename( $this->segments_raw[0] );
-
-		if( !file_exists($filename) ){
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No video file found for metadata fetching of " . $this->basename);
-			return false;
-		}
-
-		$getID3 = new getID3;
-
-		$file = $getID3->analyze( $filename );
-
-		if( !$file['playtime_string'] ){
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Invalid metadata of " . $this->basename);
-			return false;
-		}else{
-			return $file;
-		}
-
-	}
-	*/
-
-	/*
-	public function saveVideoMetadata(){
-
-		if( $this->is_recording ) return false;
-
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Getting and saving metadata of " . $this->basename);
-
-		$this->getDuration();
-		
-		$file = $this->getVideoMetadata();
-		if(!$file){
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No metadata returned for " . $this->basename);
-			$this->video_fail = true;
-			$this->saveJSON();
-			return false;
-		}
-		if(!$file['video']){
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No video array in metadata of " . $this->basename);
-			$this->video_fail = true;
-			$this->saveJSON();
-			return false;
-		}
-
-		$this->video_width 		= $file['video']['resolution_x'];
-		$this->video_height 	= $file['video']['resolution_y'];
-		$this->video_bitrate 	= $file['video']['bitrate'] ?: $file['bitrate'];;
-		$this->video_fps 		= $file['video']['frame_rate'];
-		$this->saveJSON();
-	}
-	*/
 
 	public function getDurationLive(){
 		if(!$this->started_at) return false;
@@ -472,20 +412,23 @@ class TwitchVOD {
 	public function checkValidVod(){
 
 		if( !$this->twitch_vod_id ){
-			TwitchHelper::log( TwitchHelper::LOG_ERROR, "No twitch vod id for valid checking on " . $this->basename);
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "No twitch VOD id for valid checking on " . $this->basename);
 			return false;
 			// throw new \Exception("No twitch vod id for valid checking on " . $this->basename);
 			// return null;
 		}
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Check valid vod for " . $this->basename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Check valid VOD for " . $this->basename);
 
 		$video = TwitchHelper::getVideo( $this->twitch_vod_id );
 
 		if( $video ){
+			TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "VOD exists for " . $this->basename);
 			$this->twitch_vod_exists = true;
 			return true;
 		}
+
+		TwitchHelper::log( TwitchHelper::LOG_WARNING, "No VOD for " . $this->basename);
 
 		$this->twitch_vod_exists = false;
 
@@ -560,6 +503,11 @@ class TwitchVOD {
 
 	}
 
+	public function addSegment( $data ){
+		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Adding segment to " . $this->basename . ": " . basename($data) );
+		$this->segments_raw[] = basename($data);
+	}
+
 	public function addChapter( $data ){
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Adding chapter to " . $this->basename);
 		$this->chapters[] = $data;
@@ -601,7 +549,7 @@ class TwitchVOD {
 				$entry['offset'] = $entry['datetime']->getTimestamp() - $this->started_at->getTimestamp();
 			}
 
-			if( $this->is_finalized && $this->getDuration() !== false && $this->getDuration() > 0 ){
+			if( $this->is_finalized && $this->getDuration() !== false ){
 				$entry['width'] = ( $entry['duration'] / $this->getDuration() ) * 100; // temp
 			}
 
