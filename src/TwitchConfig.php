@@ -54,8 +54,16 @@ class TwitchConfig {
 	}
 
 	public static function saveConfig( $source = "unknown" ){
+
+		if( !is_writable( self::$configPath ) ){
+			TwitchHelper::log(TwitchHelper::LOG_FATAL, "Saving config failed, permissions issue?");
+			// return false;
+		}
+
 		file_put_contents( self::$configPath, json_encode( self::$config, JSON_PRETTY_PRINT ) );
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Saved config from " . $source);
+
+		TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "Saved config from " . $source);
+
 	}
 
 	public static function generateConfig(){

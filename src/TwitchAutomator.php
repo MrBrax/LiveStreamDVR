@@ -325,7 +325,7 @@ class TwitchAutomator {
 
 		$this->notify('', '[' . $data_username . '] [game update: ' . $game_name . ']', self::NOTIFY_GAMECHANGE);
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Game updated on " . $data_username . " to " . $game_name);
+		TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "Game updated on " . $data_username . " to " . $game_name);
 
 	}
 
@@ -550,7 +550,7 @@ class TwitchAutomator {
 			$vodclass->downloadChat();
 		}
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "All done for " . $basename);
+		TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "All done for " . $basename);
 
 	}
 
@@ -687,7 +687,11 @@ class TwitchAutomator {
 
 		$output_convert = shell_exec( $cmd ); // do it
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Finished conversion of " . $capture_filename . " to " . $converted_filename);
+		if( file_exists( $converted_filename ) ){
+			TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "Finished conversion of " . $capture_filename . " to " . $converted_filename);
+		}else{
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Failed conversion of " . $capture_filename . " to " . $converted_filename);
+		}
 
 		$this->info[] = 'ffmpeg output: ' . $output_convert;
 

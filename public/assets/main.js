@@ -6,6 +6,10 @@ let config = {
     useSpeech: false,
     singlePage: true
 };
+let streamerPronounciation = {
+    pokelawls: 'pookelawls',
+    xQcOW: 'eckscueseeow'
+};
 function formatBytes(bytes, precision = 2) {
     let units = ['B', 'KB', 'MB', 'GB', 'TB'];
     bytes = Math.max(bytes, 0);
@@ -141,8 +145,13 @@ document.addEventListener("DOMContentLoaded", () => {
                             let n = new Notification(text, opt);
                         }
                         if (config.useSpeech) {
-                            let utterance = new SpeechSynthesisUtterance(text);
-                            speechSynthesis.speak(utterance);
+                            let speakText = text;
+                            if (streamerPronounciation[streamer.username]) {
+                                console.debug(`Using pronounciation for ${streamer.username}`);
+                                speakText.replace(streamer.username, streamerPronounciation[streamer.username]);
+                            }
+                            let utterance = new SpeechSynthesisUtterance(speakText);
+                            window.speechSynthesis.speak(utterance);
                         }
                     }
                 }

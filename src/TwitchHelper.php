@@ -23,6 +23,7 @@ class TwitchHelper {
 	const LOG_INFO = "INFO";
 	const LOG_DEBUG = "DEBUG";
 	const LOG_FATAL = "FATAL";
+	const LOG_SUCCESS = "SUCCESS";
 
 	/**
 	 * Set up directories for first use
@@ -257,7 +258,7 @@ class TwitchHelper {
 				'query' => ['user_id' => $streamer_id]
 			]);
 		} catch (\Throwable $th) {
-			self::log( self::LOG_ERROR, "Tried to get videos for " . $streamer_id . " but server returned: " . $th->getMessage() );
+			self::log( self::LOG_FATAL, "Tried to get videos for " . $streamer_id . " but server returned: " . $th->getMessage() );
 			return false;
 		}
 
@@ -294,7 +295,7 @@ class TwitchHelper {
 				'query' => ['id' => $video_id]
 			]);
 		} catch (\Throwable $th) {
-			self::log( self::LOG_ERROR, "Tried to get video id " . $video_id . " but server returned: " . $th->getMessage() );
+			self::log( self::LOG_FATAL, "Tried to get video id " . $video_id . " but server returned: " . $th->getMessage() );
 			return false;
 		}
 
@@ -361,7 +362,7 @@ class TwitchHelper {
 				'query' => ['id' => $game_id]
 			]);
 		} catch (\Throwable $th) {
-			self::log( self::LOG_ERROR, "Tried to get game data for " . $game_id . " but server returned: " . $th->getMessage() );
+			self::log( self::LOG_FATAL, "Tried to get game data for " . $game_id . " but server returned: " . $th->getMessage() );
 			return false;
 		}
 

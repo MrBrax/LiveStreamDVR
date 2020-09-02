@@ -545,7 +545,14 @@ class TwitchVOD {
 
 		$generated['meta']				= $this->meta;
 
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Saving JSON of " . $this->basename);
+		
+		if( !is_writable( $this->filename ) ){ // this is not the function i want
+			// TwitchHelper::log(TwitchHelper::LOG_FATAL, "Saving JSON of " . $this->basename . " failed, permissions issue?");
+			// return false;
+		}
+		
+
+		TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Saving JSON of " . $this->basename);
 
 		file_put_contents($this->filename, json_encode($generated));
 

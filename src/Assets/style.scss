@@ -648,8 +648,17 @@ a.linkback {
 	// max-width: 600px;
 	overflow-x: scroll;
 	overflow-y: scroll;
+	.log_success {
+		color: #3ea335;
+		font-weight: 700;
+	}
+	.log_fatal {
+		color: #ff0000;
+		font-weight: 700;
+		animation: 0.5s live infinite ease-in-out;
+	}
 	.log_warning {
-		color: rgb(255, 115, 0);
+		color: #ff7300;
 		font-weight: 700;
 	}
 	.log_error {
@@ -657,7 +666,7 @@ a.linkback {
 		font-weight: 700;
 	}
 	.log_debug {
-		color: rgb(156, 156, 156);
+		color: #9c9c9c;
 		font-weight: 200;
 	}
 }
