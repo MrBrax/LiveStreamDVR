@@ -75,18 +75,24 @@ class TwitchVOD {
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Loading VOD Class for " . $filename);
 
 		if(!file_exists($filename)){
-			TwitchHelper::log( TwitchHelper::LOG_ERROR, "VOD Class for " . $filename . " not found");
+			TwitchHelper::log( TwitchHelper::LOG_FATAL, "VOD Class for " . $filename . " not found");
 			throw new \Exception('VOD not found');
 			return false;
 		}
 
 		$data = file_get_contents($filename);
+
+		if( !$data || strlen($data) == 0 || filesize($filename) == 0 ){
+			TwitchHelper::log( TwitchHelper::LOG_FATAL, "Tried to load " . $filename . " but no data was returned");
+			return false;
+		}
+
 		$this->json = json_decode($data, true);
 		$this->json_hash = md5($data);
 
 		if( !$this->json['meta']['data'][0]['user_name'] ){
-			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Tried to load " . $filename . " but found no streamer name");
-			throw new \Exception('Tried to load ' . $filename . ' but found no streamer name');
+			TwitchHelper::log( TwitchHelper::LOG_FATAL, "Tried to load " . $filename . " but found no streamer name");
+			// throw new \Exception('Tried to load ' . $filename . ' but found no streamer name');
 			return false;
 		}
 
@@ -456,6 +462,11 @@ class TwitchVOD {
 			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Saving JSON of " . $this->basename . " with no chapters!!");
 		}
 
+		if( !$this->streamer_name ){
+			TwitchHelper::log(TwitchHelper::LOG_FATAL, "Found no streamer name in class of " . $this->basename . ", not saving!");
+			return false;
+		}
+
 		$generated = $this->json;
 
 		if( $this->twitch_vod_id && $this->twitch_vod_url){
@@ -549,7 +560,7 @@ class TwitchVOD {
 				$entry['offset'] = $entry['datetime']->getTimestamp() - $this->started_at->getTimestamp();
 			}
 
-			if( $this->is_finalized && $this->getDuration() !== false ){
+			if( $this->is_finalized && $this->getDuration() !== false && $this->getDuration() > 0 ){
 				$entry['width'] = ( $entry['duration'] / $this->getDuration() ) * 100; // temp
 			}
 

@@ -49,7 +49,7 @@ class DashboardController
             foreach ($data['vods_raw'] as $k => $v) {
 
                 $vodclass = new TwitchVOD();
-                $vodclass->load($v);
+                if(!$vodclass->load($v)) continue;
 
                 if( $rebuild_segments ){
                     $vodclass->rebuildSegmentList();
