@@ -46,7 +46,7 @@ class ApiController
             foreach ($data['vods_raw'] as $k => $v) {
 
                 $vodclass = new TwitchVOD();
-                $vodclass->load($v);
+                if(!$vodclass->load($v)) continue;
 
                 if ($vodclass->is_recording){
                     $data['is_live'] = true;
@@ -177,7 +177,7 @@ class ApiController
         foreach ($data['vods_raw'] as $k => $v) {
 
             $vodclass = new TwitchVOD();
-            $vodclass->load($v);
+            if(!$vodclass->load($v)) continue;
 
             if ($vodclass->is_recording){
                 $data['is_live'] = true;

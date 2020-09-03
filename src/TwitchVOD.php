@@ -64,6 +64,8 @@ class TwitchVOD {
 
 	public $json_hash = null;
 
+	public $created = false;
+
 	/**
 	 * Load a VOD with a JSON file
 	 *
@@ -90,11 +92,13 @@ class TwitchVOD {
 		$this->json = json_decode($data, true);
 		$this->json_hash = md5($data);
 
+		/*
 		if( !$this->json['meta']['data'][0]['user_name'] ){
 			TwitchHelper::log( TwitchHelper::LOG_FATAL, "Tried to load " . $filename . " but found no streamer name");
 			// throw new \Exception('Tried to load ' . $filename . ' but found no streamer name');
 			return false;
 		}
+		*/
 
 		if( $this->json['started_at'] && isset( $this->json['started_at']['date'] ) ){
 			$this->started_at = new \DateTime( $this->json['started_at']['date'] );
@@ -172,6 +176,7 @@ class TwitchVOD {
 
 	// test
 	public function create( $filename ){
+		$this->created = true;
 		$this->filename = $filename;
 		$this->basename = basename($filename, '.json');
 		$this->saveJSON();
@@ -462,7 +467,7 @@ class TwitchVOD {
 			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Saving JSON of " . $this->basename . " with no chapters!!");
 		}
 
-		if( !$this->streamer_name ){
+		if( !$this->streamer_name && !$this->created ){
 			TwitchHelper::log(TwitchHelper::LOG_FATAL, "Found no streamer name in class of " . $this->basename . ", not saving!");
 			return false;
 		}
@@ -821,6 +826,13 @@ class TwitchVOD {
 		$this->saveLosslessCut();
 		$this->matchTwitchVod();
 		$this->is_finalized = true;
+	}
+
+	public function repair(){
+
+		$username = explode( "_", $this->basename )[0];
+		$user_id = TwitchHelper::getChannelId($username);
+
 	}
 
 	public function troubleshoot( $fix = false ){

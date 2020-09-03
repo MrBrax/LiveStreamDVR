@@ -369,6 +369,8 @@ class TwitchAutomator {
 
 		$this->vod->meta = $data;
 		$this->vod->json['meta'] = $data;
+		$this->vod->streamer_name = $data_username;
+		$this->vod->streamer_id = TwitchHelper::getChannelId( $data_username );
 		$this->vod->started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $data_started );
 
 		$this->vod->saveJSON();
