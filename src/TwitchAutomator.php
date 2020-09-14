@@ -428,7 +428,7 @@ class TwitchAutomator {
 		// error handling if nothing got downloaded
 		if( !file_exists( $capture_filename ) ){
 
-			TwitchHelper::log( TwitchHelper::LOG_WARNING, "Panic handler for " . $basename);
+			TwitchHelper::log( TwitchHelper::LOG_WARNING, "Panic handler for " . $basename . ", no captured file!");
 
 			if( $tries >= TwitchConfig::cfg('download_retries') ){
 				$this->errors[] = 'Giving up on downloading, too many tries';
@@ -582,6 +582,22 @@ class TwitchAutomator {
 
 		$capture_filename = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.ts';
 
+		/*
+		if( file_exists( $capture_filename ) ){
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "File exists while capturing, making a new name for " . $basename);
+		}
+		*/
+
+		// failure
+		$int = 1;
+		while( file_exists( $capture_filename ) ){
+			$this->errors[] = 'File exists while converting, making a new name';
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "File exists while capturing, making a new name for " . $basename);
+			$capture_filename = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '-' . $int . '.ts';
+			$int++;
+		}
+
+
 		// use python pipenv or regular executable
 		if( TwitchConfig::cfg('pipenv') ){
 			$cmd = 'pipenv run streamlink';
@@ -591,10 +607,11 @@ class TwitchAutomator {
 
 		$cmd .= ' --hls-live-restart'; // start recording from start of stream, though twitch doesn't support this
 		$cmd .= ' --hls-live-edge 99999'; // How many segments from the end to start live HLS streams on.
+		$cmd .= ' --hls-timeout 120'; // timeout due to ads
 		$cmd .= ' --hls-segment-threads 5'; // The size of the thread pool used to download HLS segments.
 		$cmd .= ' --twitch-disable-hosting'; // disable channel hosting
 		// $cmd .= ' --twitch-low-latency'; // enable low latency mode, probably not a good idea without testing
-		$cmd .= ' --twitch-disable-ads'; // Skip embedded advertisement segments at the beginning or during a stream
+		if( TwitchConfig::cfg('disable_ads', false) ) $cmd .= ' --twitch-disable-ads'; // Skip embedded advertisement segments at the beginning or during a stream
 		// $cmd .= ' --json'; // json stdout, trying this out
 		$cmd .= ' --retry-streams 10'; // Retry fetching the list of available streams until streams are found 
 		$cmd .= ' --retry-max 5'; //  stop retrying the fetch after COUNT retry attempt(s).
@@ -614,7 +631,7 @@ class TwitchAutomator {
 
 		$this->info[] = 'Streamlink output: ' . $capture_output;
 
-		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_" . $basename . "_" . time() . ".log", $capture_output);
+		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_" . $basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $capture_output);
 
 		// download with youtube-dl if streamlink fails
 		if( strpos($capture_output, '410 Client Error') !== false ){
@@ -640,7 +657,7 @@ class TwitchAutomator {
 
 			$this->info[] = 'Youtube-dl output: ' . $capture_output;
 
-			file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "youtubedl_" . $basename . "_" . time() . ".log", $capture_output);
+			file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "youtubedl_" . $basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $capture_output);
 			
 
 			// exit(500);
@@ -697,7 +714,7 @@ class TwitchAutomator {
 
 		$this->info[] = 'ffmpeg output: ' . $output_convert;
 
-		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "convert_" . $basename . "_" . time() . ".log", $output_convert);
+		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "convert_" . $basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $output_convert);
 		
 		return $converted_filename;
 

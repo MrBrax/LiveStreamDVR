@@ -48,6 +48,7 @@ class SettingsController
         $api_secret             = $_POST['api_secret'];
         $hook_callback          = $_POST['hook_callback'];
         $debug                  = isset($_POST['debug']);
+        $disable_ads            = isset($_POST['disable_ads']);
         $basepath               = $_POST['basepath'];
         $password               = $_POST['password'];
         
@@ -61,6 +62,7 @@ class SettingsController
         TwitchConfig::$config['api_client_id'] = $api_client_id;
         TwitchConfig::$config['hook_callback'] = $hook_callback;
         TwitchConfig::$config['debug'] = $debug;
+        TwitchConfig::$config['disable_ads'] = $disable_ads;
         TwitchConfig::$config['basepath'] = $basepath;
         TwitchConfig::$config['password'] = $password;
         TwitchConfig::$config['bin_dir'] = $bin_dir;
