@@ -614,7 +614,7 @@ class TwitchAutomator {
 
 		$this->info[] = 'Streamlink output: ' . $capture_output;
 
-		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_" . $basename . ".log", $capture_output);
+		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_" . $basename . "_" . time() . ".log", $capture_output);
 
 		// download with youtube-dl if streamlink fails
 		if( strpos($capture_output, '410 Client Error') !== false ){
@@ -640,7 +640,7 @@ class TwitchAutomator {
 
 			$this->info[] = 'Youtube-dl output: ' . $capture_output;
 
-			file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "youtubedl_" . $basename . ".log", $capture_output);
+			file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "youtubedl_" . $basename . "_" . time() . ".log", $capture_output);
 			
 
 			// exit(500);
@@ -697,7 +697,7 @@ class TwitchAutomator {
 
 		$this->info[] = 'ffmpeg output: ' . $output_convert;
 
-		file_put_contents( __DIR__ . "/../logs/convert_" . $basename . ".log", $output_convert);
+		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "convert_" . $basename . "_" . time() . ".log", $output_convert);
 		
 		return $converted_filename;
 

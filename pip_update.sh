@@ -1,0 +1,1 @@
+pip install --user --upgrade streamlink youtube-dl tcd
