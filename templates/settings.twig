@@ -119,7 +119,7 @@
                         <label><input class="input" type="text" name="vod_container" value="{{ config.vod_container ?: 'mp4' }}" /> VOD container (mp4/mkv) <em>(not tested)</em></label>
                     </div>
                     <div class="control">
-                        <label><input type="checkbox" name="disable_ads" {{ config.disable_ads ? 'checked="checked"' : '' }} /> Disable ads</label>
+                        <label><input type="checkbox" name="disable_ads" {{ config.disable_ads ? 'checked="checked"' : '' }} /> Hide ads from captured file (stream will still be interrupted, thanks twitch)</label>
                     </div>
                     <div class="control">
                         <label><input type="checkbox" name="debug" {{ config.debug ? 'checked="checked"' : '' }} /> Debug</label>

@@ -481,15 +481,23 @@ a.linkback {
 	padding: 10px;
 }
 
-/*
+
 .container {
+
 	display: flex;
+	
 	flex-wrap: wrap;
+
 	.section {
 		flex-grow: 1;
 	}
+
+	&.vertical {
+		display: block;
+	}
+	
 }
-*/
+
 
 .section .streamer-box {
 	margin-bottom: 20px;
