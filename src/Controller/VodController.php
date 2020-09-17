@@ -58,12 +58,13 @@ class VodController
             $cmd .= ' -t ' . escapeshellarg($second_end - $second_start); // length
             $cmd .= ' -codec copy'; // remux
             $cmd .= ' ' . escapeshellarg($filename_out); // output file
+            $cmd .= ' 2>&1'; // console output
 
             $response->getBody()->write( $cmd );
 
             $output = shell_exec($cmd);
 
-            file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "ffmpeg_" . $vod . "-cut-" . $second_start . "-" . $second_end . "_" . time() . ".log", $output);
+            file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "ffmpeg_" . $vod . "-cut-" . $second_start . "-" . $second_end . "_" . time() . ".log", "$ " . $cmd . "\n" . $output);
 
             $response->getBody()->write("<pre>" . $output . "</pre>");
 

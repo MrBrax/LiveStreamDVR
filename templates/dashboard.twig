@@ -73,6 +73,12 @@
 
         <div class="section-content">
 
+            <select id="log_select">
+                {% for f in log_files %}
+                    <option>{{ f }}</button>
+                {% endfor %}
+            </select>
+
             {% include 'components/logviewer.twig' %}
 
         </div>

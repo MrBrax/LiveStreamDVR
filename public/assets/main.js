@@ -1,7 +1,9 @@
 "use strict";
+let api_base = `${window.base_path}/api/v0`;
 let current_username = "";
 let scrollTop = 0;
 let refresh_number = 0;
+let log_name = "";
 let config = {
     useSpeech: false,
     singlePage: true
@@ -68,8 +70,21 @@ function saveConfig() {
     localStorage.setItem("twitchautomator_config", JSON.stringify(config));
     console.log("Saving config");
 }
+async function renderLog(date) {
+    let div_log = document.querySelector("div.log_viewer");
+    if (div_log) {
+        let body_content_response = await fetch(`${api_base}/render/log/${date}`);
+        let body_content_data = await body_content_response.text();
+        div_log.outerHTML = body_content_data;
+        setTimeout(() => {
+            div_log = document.querySelector("div.log_viewer");
+            if (!div_log)
+                return;
+            div_log.scrollTop = div_log.scrollHeight;
+        }, 100);
+    }
+}
 document.addEventListener("DOMContentLoaded", () => {
-    let api_base = `${window.base_path}/api/v0`;
     let delay = 120;
     let previousData = {};
     let timeout_store = 0;
@@ -157,19 +172,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 previousData[streamer.username] = streamer;
             }
-            let div_log = document.querySelector("div.log_viewer");
-            if (div_log) {
-                setStatus(`Render log viewer...`, true);
-                let body_content_response = await fetch(`${api_base}/render/log/`);
-                let body_content_data = await body_content_response.text();
-                div_log.outerHTML = body_content_data;
-                setTimeout(() => {
-                    div_log = document.querySelector("div.log_viewer");
-                    if (!div_log)
-                        return;
-                    div_log.scrollTop = div_log.scrollHeight;
-                }, 100);
-            }
+            setStatus(`Render log viewer...`, true);
+            await renderLog(log_name);
             if (any_live) {
                 delay = 120;
             }
@@ -257,6 +261,14 @@ document.addEventListener("DOMContentLoaded", () => {
         else {
             console.debug("no logs found");
         }
+    }
+    // single page
+    const log_select = document.getElementById("log_select");
+    if (log_select) {
+        log_select.addEventListener("change", (e) => {
+            log_name = log_select.value.substring(0, 10);
+            renderLog(log_name);
+        });
     }
 });
 //# sourceMappingURL=main.js.map

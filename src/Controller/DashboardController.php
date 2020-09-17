@@ -98,6 +98,8 @@ class DashboardController
 
         $log_path = __DIR__ . "/../../logs/" . $current_log . ".log.json";
 
+        $log_files = array_map( 'basename', glob( __DIR__ . "/../../logs/*.log.json", GLOB_BRACE ) );
+
         if( file_exists( $log_path ) ){
             
             $json = json_decode( file_get_contents( $log_path ), true );
@@ -151,6 +153,7 @@ class DashboardController
             'is_a_vod_deleted' => $is_a_vod_deleted,
             'checkvod' => $checkvod,
             'log_lines' => $log_lines,
+            'log_files' => $log_files,
             'free_size' => disk_free_space( TwitchHelper::vod_folder() ),
             'errors' => $errors
         ]);

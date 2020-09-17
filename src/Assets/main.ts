@@ -1,6 +1,8 @@
+let api_base = `${(<any>window).base_path}/api/v0`;
 let current_username = "";
 let scrollTop = 0;
 let refresh_number = 0;
+let log_name: string = "";
 let config = {
     useSpeech: false,
     singlePage: true
@@ -79,9 +81,22 @@ function saveConfig(){
     console.log("Saving config");
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+async function renderLog( date: string ){
+    let div_log = document.querySelector("div.log_viewer");
+    if( div_log ){
+        let body_content_response = await fetch( `${api_base}/render/log/${date}` );
+        let body_content_data = await body_content_response.text();
+        div_log.outerHTML = body_content_data;
 
-    let api_base = `${(<any>window).base_path}/api/v0`;
+        setTimeout(() => {
+            div_log = document.querySelector("div.log_viewer");
+            if(!div_log) return;
+            div_log.scrollTop = div_log.scrollHeight;
+        }, 100);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
 
     let delay: number = 120;
 
@@ -206,19 +221,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             }
 
-            let div_log = document.querySelector("div.log_viewer");
-            if( div_log ){
-                setStatus(`Render log viewer...`, true);
-                let body_content_response = await fetch( `${api_base}/render/log/` );
-                let body_content_data = await body_content_response.text();
-                div_log.outerHTML = body_content_data;
-
-                setTimeout(() => {
-                    div_log = document.querySelector("div.log_viewer");
-                    if(!div_log) return;
-                    div_log.scrollTop = div_log.scrollHeight;
-                }, 100);
-            }
+            setStatus(`Render log viewer...`, true);
+            await renderLog( log_name );
 
             if(any_live){
                 delay = 120;
@@ -316,6 +320,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }else{
             console.debug("no logs found");
         }
+    }
+
+    // single page
+    const log_select = <HTMLInputElement>document.getElementById("log_select");
+    if(log_select){
+        log_select.addEventListener("change", ( e ) => {
+            log_name = log_select.value.substring(0, 10);
+            renderLog(log_name);
+        });
     }
 
 });
