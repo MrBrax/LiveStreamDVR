@@ -610,14 +610,14 @@ class TwitchAutomator {
 		$cmd .= ' --hls-timeout 120'; // timeout due to ads
 		$cmd .= ' --hls-segment-threads 5'; // The size of the thread pool used to download HLS segments.
 		$cmd .= ' --twitch-disable-hosting'; // disable channel hosting
-		// $cmd .= ' --twitch-low-latency'; // enable low latency mode, probably not a good idea without testing
+		if( TwitchConfig::cfg('low_latency', false) ) $cmd .= ' --twitch-low-latency'; // enable low latency mode, probably not a good idea without testing
 		if( TwitchConfig::cfg('disable_ads', false) ) $cmd .= ' --twitch-disable-ads'; // Skip embedded advertisement segments at the beginning or during a stream
-		// $cmd .= ' --json'; // json stdout, trying this out
 		$cmd .= ' --retry-streams 10'; // Retry fetching the list of available streams until streams are found 
 		$cmd .= ' --retry-max 5'; //  stop retrying the fetch after COUNT retry attempt(s).
+		if( TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false) ) $cmd .= ' --loglevel debug';
 		$cmd .= ' -o ' . escapeshellarg( $capture_filename ); // output file
-		$cmd .= ' ' . escapeshellarg( $stream_url ); // twitch url
-		$cmd .= ' ' . escapeshellarg( implode(",", TwitchConfig::getStreamer( $data_username )['quality'] ) ); // quality
+		$cmd .= ' --url ' . escapeshellarg( $stream_url ); // twitch url
+		$cmd .= ' --default-stream ' . escapeshellarg( implode(",", TwitchConfig::getStreamer( $data_username )['quality'] ) ); // quality
 
 		$this->info[] = 'Streamlink cmd: ' . $cmd;
 
@@ -649,6 +649,7 @@ class TwitchAutomator {
 			$cmd .= ' --no-part';
 			$cmd .= ' -o ' . escapeshellarg($capture_filename); // output file
 			$cmd .= ' -f ' . escapeshellarg( implode('/', TwitchConfig::getStreamer( $data_username )['quality'] ) ); // format, does this work?
+			if( TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false) ) $cmd .= ' -v';
 			$cmd .= ' ' . escapeshellarg($stream_url);
 
 			$this->info[] = 'Youtube-dl cmd: ' . $cmd;
@@ -694,7 +695,9 @@ class TwitchAutomator {
 		$cmd .= ' -i ' . escapeshellarg($capture_filename); // input filename
 		$cmd .= ' -codec copy'; // use same codec
 		$cmd .= ' -bsf:a aac_adtstoasc'; // fix audio sync in ts
+		if( TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false) ) $cmd .= ' -loglevel repeat+level+verbose';
 		$cmd .= ' ' . escapeshellarg($converted_filename); // output filename
+		$cmd .= ' 2>&1'; // console output
 		
 		$this->info[] = 'ffmpeg cmd: ' . $cmd;
 
