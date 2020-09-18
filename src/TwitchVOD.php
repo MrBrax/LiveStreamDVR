@@ -43,6 +43,8 @@ class TwitchVOD {
 	public $twitch_vod_title = null;
 	public $twitch_vod_date = null;
 	public $twitch_vod_exists = null;
+	public $twitch_vod_attempted = null;
+	public $twitch_vod_neversaved = null;
 
 	public $is_recording = false;
 	public $is_converted = false;
@@ -385,6 +387,7 @@ class TwitchVOD {
 
 		if( !$channel_videos ){
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "No videos returned from streamer of " . $this->basename);
+			$this->twitch_vod_neversaved = true;
 			return false;
 		}
 
@@ -410,6 +413,9 @@ class TwitchVOD {
 			}
 
 		}
+
+		$this->twitch_vod_attempted = true;
+		$this->twitch_vod_neversaved = true;
 
 		TwitchHelper::log( TwitchHelper::LOG_ERROR, "Couldn't match vod for " . $this->basename);
 
@@ -481,6 +487,9 @@ class TwitchVOD {
 			$generated['twitch_vod_title'] 		= $this->twitch_vod_title;
 			$generated['twitch_vod_date'] 		= $this->twitch_vod_date;
 		}
+
+		$generated['twitch_vod_attempted'] = $this->twitch_vod_attempted;
+		$generated['twitch_vod_neversaved'] = $this->twitch_vod_neversaved;
 
 		$generated['streamer_name'] 	= $this->streamer_name;
 		$generated['streamer_id'] 		= $this->streamer_id;

@@ -201,4 +201,41 @@ class ApiController
 
     }
 
+    public function check_vods( Request $request, Response $response, $args ) {
+
+        list($streamerList, $total_size) = $this->generateStreamerList();
+
+        $data = [];
+
+        foreach( $streamerList as $streamer ){
+
+            foreach( $streamer['vods_list'] as $vod ){
+
+                $check = $vod->checkValidVod();
+
+                if( $vod->twitch_vod_id && !$check ){
+                    // notify
+                }
+
+                $data[] = [
+                    'basename' => $vod->basename,
+                    'finalized' => $vod->is_finalized,
+                    'vod_id' => $vod->twitch_vod_id,
+                    'exists' => $check,
+                    'deleted' => $vod->twitch_vod_id && !$check
+                ];
+
+            }
+
+        }
+
+        $payload = json_encode([
+            'data' => $data,
+            'status' => 'OK'
+        ]);
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+
+    }
+
 }
