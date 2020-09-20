@@ -127,11 +127,13 @@ class TwitchVOD {
 		$this->streamer_name = $this->json['meta']['data'][0]['user_name'];
 		$this->streamer_id = TwitchHelper::getChannelId( $this->streamer_name );
 
-		$this->twitch_vod_id 		= $this->json['twitch_vod_id'];
-		$this->twitch_vod_url 		= $this->json['twitch_vod_url'];
-		$this->twitch_vod_duration 	= $this->json['twitch_vod_duration'];
-		$this->twitch_vod_title 	= $this->json['twitch_vod_title'];
-		$this->twitch_vod_date 		= $this->json['twitch_vod_date'];
+		$this->twitch_vod_id 			= $this->json['twitch_vod_id'];
+		$this->twitch_vod_url 			= $this->json['twitch_vod_url'];
+		$this->twitch_vod_duration 		= $this->json['twitch_vod_duration'];
+		$this->twitch_vod_title 		= $this->json['twitch_vod_title'];
+		$this->twitch_vod_date 			= $this->json['twitch_vod_date'];
+		$this->twitch_vod_neversaved 	= $this->json['twitch_vod_neversaved'];
+		$this->twitch_vod_attempted 	= $this->json['twitch_vod_attempted'];
 
 		$this->meta = $this->json['meta'];
 

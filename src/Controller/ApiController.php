@@ -222,7 +222,8 @@ class ApiController
                     'finalized' => $vod->is_finalized,
                     'vod_id' => $vod->twitch_vod_id,
                     'exists' => $check,
-                    'deleted' => $vod->twitch_vod_id && !$check
+                    'deleted' => $vod->twitch_vod_id && !$check,
+                    'never_saved' => $vod->twitch_vod_neversaved
                 ];
 
             }
