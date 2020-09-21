@@ -14,6 +14,9 @@ class TwitchChannel {
     public $description = null;       
     public $profile_image_url = null; 
     public $is_live = false;
+    public $current_vod = null;
+    public $current_game = null;
+    public $current_duration = null;
 
     public $vods_list = [];
     public $vods_raw = [];
@@ -52,6 +55,7 @@ class TwitchChannel {
                 $this->is_live = true;
                 $this->current_vod = $vodclass;
                 $this->current_game = $vodclass->getCurrentGame();
+                $this->current_duration = $vodclass->getDurationLive();
             }
             if ($vodclass->segments) {
                 foreach ($vodclass->segments as $s) {

@@ -22,10 +22,10 @@
 
                     {% if streamer.is_live %}
                         
-                        {% if streamer.current_vod.game_name == 'Just Chatting' or streamer.current_vod.game_name == 'IRL' or streamer.current_vod.game_name == 'Art' %}
-                            <strong>{{ streamer.current_vod.getCurrentGame.game_name }}</strong>
+                        {% if streamer.current_game.game_name == 'Just Chatting' or streamer.current_game.game_name == 'IRL' or streamer.current_game.game_name == 'Art' %}
+                            <strong>{{ streamer.current_game.game_name }}</strong>
                         {% else %}
-                            Playing <strong>{{ streamer.current_vod.getCurrentGame.game_name }}</strong>
+                            Playing <strong>{{ streamer.current_game.game_name }}</strong>
                         {% endif %}
 
                     {% else %}

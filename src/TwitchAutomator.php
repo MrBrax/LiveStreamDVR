@@ -242,6 +242,8 @@ class TwitchAutomator {
 		// full json data
 		$this->vod->meta = $data;
 		$this->vod->json['meta'] = $data;
+
+		if( $this->force_record ) $this->vod->force_record = true;
 		
 		// full datetime-stamp of stream start
 		// $this->json['started_at'] = $data_started;
@@ -312,6 +314,8 @@ class TwitchAutomator {
 		$this->vod->streamer_name = $data_username;
 		$this->vod->streamer_id = TwitchHelper::getChannelId( $data_username );
 		$this->vod->started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $data_started );
+
+		if( $this->force_record ) $this->vod->force_record = true;
 
 		$this->vod->saveJSON();
 		$this->vod->refreshJSON();

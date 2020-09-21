@@ -63,6 +63,7 @@ $app->get('/force_record/{username}', function (Request $request, Response $resp
             'data' => $streams
         ];
         $TwitchAutomator = new TwitchAutomator();
+        $TwitchAutomator->force_record = true;
         $TwitchAutomator->handle( $data );
     }else{
         $response->getBody()->write("No streams found for " . $args['username']);

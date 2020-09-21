@@ -67,6 +67,7 @@ class TwitchVOD {
 	public $json_hash = null;
 
 	public $created = false;
+	public $force_record = false;
 
 	/**
 	 * Load a VOD with a JSON file
@@ -137,6 +138,8 @@ class TwitchVOD {
 		$this->twitch_vod_date 			= isset($this->json['twitch_vod_date']) ? $this->json['twitch_vod_date'] : null;
 		$this->twitch_vod_neversaved 	= isset($this->json['twitch_vod_neversaved']) ? $this->json['twitch_vod_neversaved'] : null;
 		$this->twitch_vod_attempted 	= isset($this->json['twitch_vod_attempted']) ? $this->json['twitch_vod_attempted'] : null;
+
+		$this->force_record				= isset($this->json['force_record']) ? $this->json['force_record'] : false;
 
 		$this->meta = $this->json['meta'];
 
@@ -516,6 +519,8 @@ class TwitchVOD {
 		$generated['video_metadata'] 	= $this->video_metadata;
 		$generated['video_fail2'] 		= $this->video_fail2;
 
+		$generated['force_record'] 		= $this->force_record;
+
 		$generated['meta']				= $this->meta;
 
 		
@@ -707,6 +712,11 @@ class TwitchVOD {
 
 	}
 
+	/**
+	 * Return the current game/chapter in an array
+	 *
+	 * @return array
+	 */
 	public function getCurrentGame(){
 		return $this->chapters[ count($this->chapters) - 1 ];
 	}
