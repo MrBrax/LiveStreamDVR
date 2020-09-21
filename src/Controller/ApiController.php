@@ -10,6 +10,7 @@ use App\TwitchAutomator;
 use App\TwitchConfig;
 use App\TwitchHelper;
 use App\TwitchVOD;
+use App\TwitchChannel;
 
 class ApiController
 {
@@ -33,6 +34,7 @@ class ApiController
 
         foreach ($streamerListStatic as $streamer) {
 
+            /*
             $data = $streamer;
 
             $data['channel_data'] = TwitchHelper::getChannelData( $streamer['username'] );
@@ -65,6 +67,10 @@ class ApiController
             }
 
             $total_size += $data['vods_size'];
+            */
+
+            $data = new TwitchChannel();
+            $data->load( $streamer['username'] );
 
             $streamerList[] = $data;
 
@@ -97,8 +103,10 @@ class ApiController
 
         $vod = $args['vod'];
 
+        $username = explode("_", $vod)[0];
+
         $vodclass = new TwitchVOD();
-        $vodclass->load( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vod . '.json');
+        $vodclass->load( TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
         $data = $vodclass;
 
@@ -164,6 +172,7 @@ class ApiController
 
         $username = $args['username'];
 
+        /*
         $data = TwitchConfig::getStreamer($username);
 
         $data['channel_data'] = TwitchHelper::getChannelData( $data['username'] );
@@ -194,6 +203,10 @@ class ApiController
             $data['vods_list'][] = $vodclass;
 
         }
+        */
+
+        $data = new TwitchChannel();
+        $data->load( $username );
 
         return $this->twig->render($response, 'components/streamer.twig', [
             'streamer' => $data
@@ -209,7 +222,7 @@ class ApiController
 
         foreach( $streamerList as $streamer ){
 
-            foreach( $streamer['vods_list'] as $vod ){
+            foreach( $streamer->vods_list as $vod ){
 
                 $check = $vod->checkValidVod();
 

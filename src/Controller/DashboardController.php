@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\TwitchConfig;
 use App\TwitchHelper;
 use App\TwitchVOD;
+use App\TwitchChannel;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 use Slim\Views\Twig;
@@ -36,6 +37,7 @@ class DashboardController
 
         foreach ($streamerListStatic as $streamer) {
 
+            /*
             $data = $streamer;
 
             $data['channel_data'] = TwitchHelper::getChannelData( $streamer['username'] );
@@ -86,6 +88,20 @@ class DashboardController
             }
 
             $total_size += $data['vods_size'];
+            */
+
+            $data = new TwitchChannel();
+            $data->load( $streamer['username'] );
+
+            if( $match_vod ){
+                $data->matchVods();
+            }
+
+            if( $checkvod ){
+                $data->checkValidVods();
+            }
+
+            $total_size += $data->vods_size;
 
             $streamerList[] = $data;
 

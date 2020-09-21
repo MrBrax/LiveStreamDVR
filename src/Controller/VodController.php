@@ -28,7 +28,9 @@ class VodController
 
             $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_POST['vod']);
 
-            $json = json_decode(file_get_contents(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vod . '.json'), true);
+            $username = explode("_", $vod)[0];
+
+            $json = json_decode(file_get_contents(TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json'), true);
 
             $second_start   = (int)$_POST['start'];
             $second_end     = (int)$_POST['end'];
@@ -44,8 +46,8 @@ class VodController
             }
 
 
-            $filename_in = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vod . '.mp4';
-            $filename_out = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . 'clips' . DIRECTORY_SEPARATOR . $vod . '-cut-' . $second_start . '-' . $second_end . '.mp4';
+            $filename_in = TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.mp4';
+            $filename_out = TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . 'clips' . DIRECTORY_SEPARATOR . $vod . '-cut-' . $second_start . '-' . $second_end . '.mp4';
 
             if( file_exists($filename_out) ){
                 $response->getBody()->write("Output file already exists");
@@ -88,9 +90,10 @@ class VodController
 
         $vod = $args['vod'];
         // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
+        $username = explode("_", $vod)[0];
 
         $vodclass = new TwitchVOD();
-        $vodclass->load( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vod . '.json');
+        $vodclass->load( TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
         if( $vodclass->twitch_vod_id ){
             $response->getBody()->write("Downloading");
@@ -107,9 +110,10 @@ class VodController
         
         $vod = $args['vod'];
         // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
+        $username = explode("_", $vod)[0];
 
         $vodclass = new TwitchVOD();
-        $vodclass->load( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vod . '.json' );
+        $vodclass->load( TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json' );
         $vodclass->convert();
 
         $response->getBody()->write("VOD converted");
@@ -122,9 +126,10 @@ class VodController
         
         $vod = $args['vod'];
         // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
+        $username = explode("_", $vod)[0];
 
         $vodclass = new TwitchVOD();
-        $vodclass->load( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vod . '.json' );
+        $vodclass->load( TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json' );
         $vodclass->save();
 
         $response->getBody()->write("VOD saved");
@@ -137,9 +142,10 @@ class VodController
         
         $vod = $args['vod'];
         // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
+        $username = explode("_", $vod)[0];
 
         $vodclass = new TwitchVOD();
-        $vodclass->load( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vod . '.json' );
+        $vodclass->load( TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json' );
         $vodclass->delete();
 
         $response->getBody()->write("VOD deleted");
@@ -152,9 +158,10 @@ class VodController
         
         $vod = $args['vod'];
         // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
+        $username = explode("_", $vod)[0];
 
         $vodclass = new TwitchVOD();
-        $vodclass->load( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vod . '.json' );
+        $vodclass->load( TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json' );
         $vodclass->downloadVod();
 
         $response->getBody()->write("VOD downloaded");
@@ -167,9 +174,10 @@ class VodController
         
         $vod = $args['vod'];
         // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
+        $username = explode("_", $vod)[0];
 
         $vodclass = new TwitchVOD();
-        $vodclass->load( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $vod . '.json' );
+        $vodclass->load( TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json' );
                 
         $issue = $vodclass->troubleshoot( isset( $_GET['fix'] ) );
         if($issue){

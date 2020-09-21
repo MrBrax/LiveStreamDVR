@@ -52,6 +52,7 @@ class SettingsController
         $app_verbose            = isset($_POST['app_verbose']);
         $basepath               = $_POST['basepath'];
         $password               = $_POST['password'];
+        $channel_folders        = isset($_POST['channel_folders']);
         
         $bin_dir               = $_POST['bin_dir'];
         $ffmpeg_path           = $_POST['ffmpeg_path'];
@@ -67,6 +68,8 @@ class SettingsController
         TwitchConfig::$config['disable_ads'] = $disable_ads;
         TwitchConfig::$config['basepath'] = $basepath;
         TwitchConfig::$config['password'] = $password;
+        TwitchConfig::$config['channel_folders'] = $channel_folders;
+
         TwitchConfig::$config['bin_dir'] = $bin_dir;
         TwitchConfig::$config['ffmpeg_path'] = $ffmpeg_path;
         TwitchConfig::$config['mediainfo_path'] = $mediainfo_path;

@@ -41,11 +41,19 @@ class TwitchConfig {
 		$t = self::getStreamers();
 		$save = false;
 		foreach($t as $i => $s){
+
+			// fix quality string
 			if( isset($s['quality']) && gettype($s['quality']) == "string"){
 				TwitchHelper::log( TwitchHelper::LOG_WARNING, "Invalid quality setting on " . $s['username'] . ", fixing...");
 				self::$config['streamers'][$i]['quality'] = explode(" ", self::$config['streamers'][$i]['quality']);
 				$save = true;
 			}
+
+			// create subfolders
+			if( self::cfg('channel_folders') && !file_exists( TwitchHelper::vod_folder( $s['username'] ) ) ){
+				mkdir( TwitchHelper::vod_folder( $s['username'] ) );
+			}
+
 		}
 		if($save){
 			self::saveConfig("streamer quality fix");

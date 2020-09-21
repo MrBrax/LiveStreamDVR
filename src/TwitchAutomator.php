@@ -46,55 +46,6 @@ class TwitchAutomator {
 		date_default_timezone_set('UTC');
 		return date("Y-m-d\TH:i:s\Z");
 	}
-
-	/**
-	 * TODO: remove this, obsolete
-	 *
-	 * @return bool
-	 */
-	public function jsonLoad(){
-
-		if( !$this->data_cache ){
-			$this->errors[] = 'No JSON cache when loading';
-			return false;
-		}
-
-		$basename = $this->basename( $this->data_cache );
-
-		TwitchHelper::log( TwitchHelper::LOG_INFO, 'Automator LOAD ' . $basename );
-
-		if( !file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json') ){
-			$this->errors[] = 'No JSON file when loading';
-			$this->json = [];
-			return;
-		}
-
-		$json = json_decode( file_get_contents( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json' ), true );
-
-		if(!$json || $json == null) $json = [];
-
-		$this->json = $json;
-
-		return true;
-
-	}
-
-	public function jsonSave(){
-
-		if( !$this->data_cache ){
-			$this->errors[] = 'No JSON cache when saving';
-			return false;
-		}
-
-		$basename = $this->basename( $this->data_cache );
-
-		TwitchHelper::log( TwitchHelper::LOG_INFO, 'Automator SAVE ' . $basename );
-
-		file_put_contents( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json', json_encode( $this->json ) );
-
-		return true;
-
-	}
 	
 	/**
 	 * Either send email or store in logs directory
@@ -153,7 +104,7 @@ class TwitchAutomator {
 	 */
 	public function cleanup( $streamer_name, $source_basename = null ){
 
-		$vods = glob( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $streamer_name . "_*.json");
+		$vods = glob( TwitchHelper::vod_folder( $streamer_name ) . DIRECTORY_SEPARATOR . $streamer_name . "_*.json");
 
 		$total_size = 0;
 
@@ -167,7 +118,7 @@ class TwitchAutomator {
 			$vod_list[] = $vodclass;
 
 			foreach($vodclass->segments_raw as $s){
-				$total_size += filesize( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . basename($s) );
+				$total_size += filesize( TwitchHelper::vod_folder( $streamer_name ) . DIRECTORY_SEPARATOR . basename($s) );
 			}
 			
 		}
@@ -216,7 +167,7 @@ class TwitchAutomator {
 		// $data_title = $data['data'][0]['title'];
 		// $data_started = $data['data'][0]['started_at'];
 		// $data_game_id = $data['data'][0]['game_id'];
-		// $data_username = $data['data'][0]['user_name'];
+		$data_username = $data['data'][0]['user_name'];
 
 		$this->data_cache = $data;
 
@@ -227,10 +178,12 @@ class TwitchAutomator {
 		}else{
 
 			$basename = $this->basename( $data );
-			
-			if( file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json') ){
 
-				if( !file_exists( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.ts') ){
+			$folder_base = TwitchHelper::vod_folder( $data_username );
+			
+			if( file_exists( $folder_base . DIRECTORY_SEPARATOR . $basename . '.json') ){
+
+				if( !file_exists( $folder_base. DIRECTORY_SEPARATOR . $basename . '.ts') ){
 
 					$this->notify($basename, 'VOD JSON EXISTS BUT NOT VIDEO', self::NOTIFY_ERROR);
 
@@ -269,14 +222,16 @@ class TwitchAutomator {
 
 		$basename = $this->basename( $data );
 
+		$folder_base = TwitchHelper::vod_folder( $data_username );
+
 		if( $this->vod ){
 			$this->vod->refreshJSON();
 		}else{
 			$this->vod = new TwitchVOD();
-			if( $this->vod->load( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json' ) ){
+			if( $this->vod->load( $folder_base . DIRECTORY_SEPARATOR . $basename . '.json' ) ){
 				// ok
 			}else{
-				$this->vod->create( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json' );
+				$this->vod->create( $folder_base . DIRECTORY_SEPARATOR . $basename . '.json' );
 			}
 		}
 		
@@ -285,19 +240,12 @@ class TwitchAutomator {
 		// json format
 	
 		// full json data
-		// $this->json['meta'] = $data;
 		$this->vod->meta = $data;
 		$this->vod->json['meta'] = $data;
 		
 		// full datetime-stamp of stream start
 		// $this->json['started_at'] = $data_started;
 		$this->vod->started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $data_started );
-
-		/*
-		if(!$this->json['chapters']){
-			$this->json['chapters'] = [];
-		}
-		*/
 
 		// fetch game name from either cache or twitch
 		$game_name = TwitchHelper::getGameName( $data_game_id );
@@ -310,18 +258,9 @@ class TwitchAutomator {
 			'viewer_count' 	=> $data_viewer_count,
 			'title'			=> $data_title
 		];
-
-		// game structure
-		// $this->json['chapters'][] = $chapter;
-
 		
 		$this->vod->addChapter($chapter);
 		$this->vod->saveJSON();
-		
-
-		// $this->jsonSave();
-		
-		//$game_name = $this->games[$data_game_id] ?: $data_game_id;
 
 		$this->notify('', '[' . $data_username . '] [game update: ' . $game_name . ']', self::NOTIFY_GAMECHANGE);
 
@@ -363,9 +302,10 @@ class TwitchAutomator {
 
 		$basename = $this->basename( $data );
 
+		$folder_base = TwitchHelper::vod_folder( $data_username );
 		
 		$this->vod = new TwitchVOD();
-		$this->vod->create( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json' );
+		$this->vod->create( $folder_base . DIRECTORY_SEPARATOR . $basename . '.json' );
 
 		$this->vod->meta = $data;
 		$this->vod->json['meta'] = $data;
@@ -402,16 +342,6 @@ class TwitchAutomator {
 
 		}
 
-		/*
-		$this->vod->is_capturing = true;
-		$this->vod->saveJSON();
-		*/
-
-		/*
-		$this->jsonLoad();
-		$this->json['is_capturing'] = true;
-		$this->jsonSave();
-		*/
 		$this->vod->is_capturing = true;
 		$this->vod->saveJSON();
 
@@ -433,8 +363,7 @@ class TwitchAutomator {
 			if( $tries >= TwitchConfig::cfg('download_retries') ){
 				$this->errors[] = 'Giving up on downloading, too many tries';
 				$this->notify($basename, 'GIVING UP, TOO MANY TRIES', self::NOTIFY_ERROR);
-				// unlink( 'vods/' . $basename . '.json' );
-				rename( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json', TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json.broken' );
+				rename( $folder_base . DIRECTORY_SEPARATOR . $basename . '.json', $folder_base . DIRECTORY_SEPARATOR . $basename . '.json.broken' );
 				throw new \Exception('Too many tries');
 				return;
 			}
@@ -442,8 +371,6 @@ class TwitchAutomator {
 			$this->errors[] = 'Error when downloading, retrying';
 
 			$this->info[] = 'Capture name: ' . $capture_filename;
-
-			// $this->errors[] = $cmd;
 
 			$this->notify($basename, 'MISSING DOWNLOAD, TRYING AGAIN (#' . $tries . ')', self::NOTIFY_ERROR);
 
@@ -457,7 +384,7 @@ class TwitchAutomator {
 
 		// timestamp
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Add end timestamp for " . $basename);
-		// $this->jsonLoad();
+
 		$this->vod->refreshJSON();
 		$this->vod->ended_at = $this->getDateTime();
 		$this->vod->dt_ended_at = new \DateTime();
@@ -481,26 +408,6 @@ class TwitchAutomator {
 		
 		// remove ts if both files exist
 		if( file_exists( $capture_filename ) && file_exists( $converted_filename ) ){
-
-			/*
-			$getID3 = new getID3;
-
-			$id3_data = null;
-
-			try {
-				$id3_data = $getID3->analyze($converted_filename);
-			} catch (\Exception $e) {
-				$this->notify($basename, 'Error with id3 analyzer' . $e, self::NOTIFY_ERROR);
-			}
-
-			if( !$id3_data || !$id3_data['playtime_string'] ){
-
-				$this->errors[] = 'Missing mp4 length';
-
-				$this->notify($basename, 'MISSING MP4 LENGTH', self::NOTIFY_ERROR);
-
-			}else{
-			*/
 
 			unlink( $capture_filename );
 
@@ -533,7 +440,7 @@ class TwitchAutomator {
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Do metadata on " . $basename);
 
 		$vodclass = new TwitchVOD();
-		$vodclass->load( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.json');
+		$vodclass->load( $folder_base . DIRECTORY_SEPARATOR . $basename . '.json');
 
 		// $vodclass->getDuration();
 		// $vodclass->saveVideoMetadata();
@@ -542,7 +449,6 @@ class TwitchAutomator {
 		$vodclass->saveLosslessCut();
 		$vodclass->matchTwitchVod();
 		$vodclass->is_finalized = true;
-		
 		*/
 		$vodclass->finalize();
 		$vodclass->saveJSON();
@@ -580,7 +486,9 @@ class TwitchAutomator {
 
 		$basename = $this->basename( $data );
 
-		$capture_filename = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.ts';
+		$folder_base = TwitchHelper::vod_folder( $data_username );
+
+		$capture_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '.ts';
 
 		/*
 		if( file_exists( $capture_filename ) ){
@@ -593,7 +501,7 @@ class TwitchAutomator {
 		while( file_exists( $capture_filename ) ){
 			$this->errors[] = 'File exists while converting, making a new name';
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "File exists while capturing, making a new name for " . $basename);
-			$capture_filename = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '-' . $int . '.ts';
+			$capture_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '-' . $int . '.ts';
 			$int++;
 		}
 
@@ -678,16 +586,18 @@ class TwitchAutomator {
 
 		$container_ext = TwitchConfig::cfg('vod_container', 'mp4');
 
-		$capture_filename 	= TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.ts';
+		$folder_base = TwitchHelper::vod_folder( $this->vod->streamer_name );
 
-		$converted_filename = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '.' . $container_ext;
+		$capture_filename 	= $folder_base . DIRECTORY_SEPARATOR . $basename . '.ts';
+
+		$converted_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '.' . $container_ext;
 
 		$int = 1;
 
 		while( file_exists( $converted_filename ) ){
 			$this->errors[] = 'File exists while converting, making a new name';
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "File exists while converting, making a new name for " . $basename);
-			$converted_filename = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $basename . '-' . $int . '.' . $container_ext;
+			$converted_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '-' . $int . '.' . $container_ext;
 			$int++;
 		}
 

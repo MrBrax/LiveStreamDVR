@@ -463,8 +463,8 @@ class TwitchHelper {
 
 		foreach( $streamers as $streamer ){
 
-			$vods = glob( TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $streamer['username'] . "_*.json");
-
+			$vods = glob( TwitchHelper::vod_folder( $streamer['username'] ) . DIRECTORY_SEPARATOR . $streamer['username'] . "_*.json");
+			
 			foreach( $vods as $k => $v ){
 
 				$vodclass = new TwitchVOD();
@@ -791,8 +791,8 @@ class TwitchHelper {
 		return file_exists($path) ? $path : false;
 	}
 
-	public static function vod_folder(){
-		return __DIR__ . "/../public/vods";
+	public static function vod_folder( $username = null ){
+		return __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . "vods" . ( TwitchConfig::cfg("channel_folders") && $username ? DIRECTORY_SEPARATOR . $username : '' );
 	}
 
 }

@@ -71,9 +71,10 @@ $app->get('/force_record/{username}', function (Request $request, Response $resp
 })->setName('force_record');
 
 // abort recording of streamer
+// TODO: refactor
 $app->get('/abort_record/{username}', function (Request $request, Response $response, array $args) {
 
-    $vods = glob(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $args['username'] . "_*.json");
+    $vods = glob(TwitchHelper::vod_folder( $args['username'] ) . DIRECTORY_SEPARATOR . $args['username'] . "_*.json");
 
     foreach ($vods as $k => $v) {
 
