@@ -31,7 +31,7 @@ class TwitchConfig {
 		$config = json_decode( file_get_contents( self::$configPath ), true );
 
 		if( $config['app_name'] ){
-			$config['app_name'] = "TwitchAutomator V3";
+			$config['app_name'] = "TwitchAutomator";
 			self::$config = $config;
 		}else{
 			die("Config is empty, please create " . TwitchHelper::get_absolute_path( self::$configPath ) . "<br>Example usage is in config.json.example" );

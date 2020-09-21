@@ -1,6 +1,6 @@
 <div class="top-menu-item title">
     <a href="{{ url_for('dashboard') }}">
-        <img src="{{ base_path() }}/assets/favicon.png" class="favicon"> {{ config.app_name }} {% if debug %}(debug){% endif %}
+        <img src="{{ base_path() }}/assets/favicon.png" class="favicon"> {{ config.app_name }} {{ app_version }} {% if debug %}(debug){% endif %}
     </a>
 </div>
 

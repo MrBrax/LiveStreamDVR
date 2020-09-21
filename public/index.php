@@ -63,6 +63,11 @@ $container->get('view')->getEnvironment()->addGlobal('config', TwitchConfig::$co
 // debug available everywhere
 $container->get('view')->getEnvironment()->addGlobal('debug', TwitchConfig::cfg('debug', false));
 
+// version
+if( file_exists( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "package.json" ) ) {
+    $container->get('view')->getEnvironment()->addGlobal('app_version', json_decode( file_get_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "package.json" ) )->version );
+}
+
 // format bytes
 $container->get('view')->getEnvironment()->addFilter(new TwigFilter('formatBytes', function ($string) {
     return TwitchHelper::formatBytes($string);
