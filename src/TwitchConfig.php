@@ -91,9 +91,10 @@ class TwitchConfig {
 	 * @param string $username
 	 * @return array|false
 	 */
-    public static function getStreamer( $username ){
+    public static function getStreamer( $username, $lowercase = false ){
         $streamers = self::getStreamers();
         foreach( $streamers as $s ){
+			if( $lowercase && strtolower($s['username']) == strtolower($username) ) return $s;
             if( $s['username'] == $username ) return $s;
         }
         return false;

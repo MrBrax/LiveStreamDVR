@@ -74,8 +74,10 @@ class SettingsController
 
         TwitchConfig::saveConfig("settings/save");
 
-        $response->getBody()->write("Settings saved.");
-        return $response;
+        return $this->twig->render($response, 'dialog.twig', [
+            'text' => 'Settings saved.',
+            'type' => 'success'
+        ]);
 
         // return $response->withHeader('Location', $this->router->pathFor('settings') )->withStatus(200);
 
@@ -90,12 +92,14 @@ class SettingsController
         foreach( $games as $id => $value ){
             $data[$id] = true;
         }
-
-        // var_dump($data);
         
         TwitchConfig::$config['favourites'] = $data;
         TwitchConfig::saveConfig("favourites/save");
-        $response->getBody()->write("Favourites saved.");
+
+        return $this->twig->render($response, 'dialog.twig', [
+            'text' => 'Favourites saved.',
+            'type' => 'success'
+        ]);
 
         return $response;
 
@@ -119,6 +123,12 @@ class SettingsController
             return $response;
         }
 
+        // fix capitalization
+        if( $tmp['display_name'] !== $username ){
+            $response->getBody()->write("Username capitalization seems to be incorrect, fixing.<br>");
+            $username = $tmp['display_name'];
+        }
+
         // template
         $streamer = [
             "username" => $username,
@@ -138,8 +148,10 @@ class SettingsController
 
         TwitchHelper::sub( $username );
 
-        $response->getBody()->write("Streamer added.");
-        return $response;
+        return $this->twig->render($response, 'dialog.twig', [
+            'text' => "Streamer added: " . $username . ".",
+            'type' => 'success'
+        ]);
 
     }
 
@@ -150,9 +162,19 @@ class SettingsController
         $match          = $_POST['match'];
         $download_chat  = isset($_POST['download_chat']);
 
-        if( TwitchConfig::getStreamer($username) ){
-            $response->getBody()->write("Streamer with that username already exists in config");
+        $current_username = $username;
+
+        if( !TwitchConfig::getStreamer($username) ){
+            $response->getBody()->write("Streamer with that username does not exist in config");
             return $response;
+        }
+
+        $tmp = TwitchHelper::getChannelData( $username );
+
+        // fix capitalization
+        if( $tmp['display_name'] !== $username ){
+            $response->getBody()->write("Username capitalization seems to be incorrect, fixing.<br>");
+            $username = $tmp['display_name'];
         }
 
         // template
@@ -171,7 +193,7 @@ class SettingsController
     
         $key = null;
         foreach( TwitchConfig::$config['streamers'] as $k => $v ){
-            if( $v['username'] == $username ) $key = $k;
+            if( $v['username'] == $current_username ) $key = $k;
         }
         if(!$key){
             $response->getBody()->write("Streamer not found.");
@@ -183,8 +205,13 @@ class SettingsController
 
         TwitchHelper::sub( $username );
 
-        $response->getBody()->write("Streamer updated.");
-        return $response;
+        // $response->getBody()->write("Streamer updated.");
+        // return $response;
+
+        return $this->twig->render($response, 'dialog.twig', [
+            'text' => 'Streamer updated.',
+            'type' => 'success'
+        ]);
 
     }
 
@@ -211,8 +238,10 @@ class SettingsController
         unset(TwitchConfig::$config['streamers'][ $key ]);
         TwitchConfig::saveConfig("streamer/deleted");
 
-        $response->getBody()->write("Streamer deleted.");
-        return $response;
+        return $this->twig->render($response, 'dialog.twig', [
+            'text' => "Streamer deleted.",
+            'type' => 'success'
+        ]);
 
     }
 

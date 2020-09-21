@@ -2,6 +2,8 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
 use App\TwitchConfig;
 use App\TwitchHelper;
 use DI\Container;
@@ -50,8 +52,10 @@ if( TwitchConfig::cfg('basepath') ){
     $app->setBasePath( TwitchConfig::cfg('basepath') );
 }
 
+$twig = TwigMiddleware::createFromContainer($app);
+
 // Add Twig-View Middleware
-$app->add(TwigMiddleware::createFromContainer($app));
+$app->add($twig);
 
 // config available everywhere
 $container->get('view')->getEnvironment()->addGlobal('config', TwitchConfig::$config);

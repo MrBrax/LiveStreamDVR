@@ -785,6 +785,26 @@ body.black {
 	overflow-y: scroll;
 }
 
+.dialog {
+	margin: 15px;
+	font-weight: 700;
+	color: #fff;
+	.dialog-title {
+		padding: 5px 10px;
+		font-size: 120%;
+		background-color: rgba(0, 0, 0, .3);
+	}
+	.dialog-content {
+		padding: 10px;
+	}
+	&.success {
+		background-color: #43b543;
+	}
+	&.error {
+		background-color: #8f2a2a;
+	}
+}
+
 @media screen and (orientation: portrait) {
 	body { font-size: 1rem; }
 	.container { display: block; width: 100%; }

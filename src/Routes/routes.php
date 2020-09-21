@@ -13,6 +13,7 @@ use App\Controller\PlayerController;
 use App\Controller\SettingsController;
 use App\Controller\SubController;
 use App\Controller\ApiController;
+use App\Controller\DebugController;
 
 // Define named route
 $app->get('/', function (Request $request, Response $response, array $args) use ($app) {
@@ -51,6 +52,8 @@ $app->get('/api/v0/render/streamer/{username}', ApiController::class . ':render_
 $app->get('/api/v0/render/log/[{filename}]', ApiController::class . ':render_log')->setName('api_render_log');
 $app->get('/api/v0/check_vods', ApiController::class . ':check_vods')->setName('check_vods');
 
+$app->get('/dialog/{type}/{text}', DebugController::class . ':dialog')->setName('dialog');
+
 // force start recording of streamer
 $app->get('/force_record/{username}', function (Request $request, Response $response, array $args) {
     $streams = TwitchHelper::getStreams( TwitchHelper::getChannelId( $args['username'] ) );
@@ -86,4 +89,3 @@ $app->get('/abort_record/{username}', function (Request $request, Response $resp
     }
     
 })->setName('abort_record');
-
