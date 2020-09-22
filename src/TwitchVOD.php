@@ -757,7 +757,7 @@ class TwitchVOD {
 			$data .= "\n";
 		}
 
-		file_put_contents( $this->vod_path . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', $data );
+		file_put_contents( TwitchHelper::vod_folder( $this->streamer_name ) . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', $data );
 
 	}
 
