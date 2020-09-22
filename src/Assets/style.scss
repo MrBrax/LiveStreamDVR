@@ -78,21 +78,31 @@ code, pre {
 	top: 0;
 	left: 0;
 	right: 0;
+	height: 50px;
 	background-color: #000;
 	color: #fff;
 	display: flex;
+	overflow: hidden;
 	// font-size: 1em;
 }
 
 // TODO: make this more dynamic
 .top-menu-item {
+	
 	font-size: 120%;
+	
 	// padding: 5px 8px;
+	
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+
 	&.title {
 		font-weight: 700;
 		a {
 			color: #fff;
-			padding: 12px 8px;
+			padding: 13px 8px;
 		}
 		.favicon { transition: ease-in-out 0.5s transform; }
 		// .favicon { animation: 1s speeen linear; }
@@ -100,11 +110,12 @@ code, pre {
 			animation: 1s speen linear infinite;
 		}
 	}
+
 	a {
 		color: #777;
 		text-decoration: none;
 		display: inline-block;
-		padding: 5px 8px 11px 8px;
+		padding: 5px 8px 11px 8px;		
 		&:hover {
 			color: #fff;
 			background: #111;
@@ -114,20 +125,24 @@ code, pre {
 	&.divider {
 		flex-grow: 1;
 	}
+
 	&.right {
 		// flex-grow: 1;
 		// text-align: right;
 		a {
-			padding: 12px 8px;
+			padding: 14px 8px;
 		}
 	}
+
 	.small {
 		color: #555;
 		font-size: 80%;
 	}
 
 	&.streamer {
-		// .username { }
+		a {
+			padding: 5px 8px 12px 8px;
+		}
 		.vodcount {
 			font-size: 90%;
 			color: #666;

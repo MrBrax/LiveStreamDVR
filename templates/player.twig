@@ -6,7 +6,7 @@
 
     <div class="videoplayer">
 
-        <video id="video" src="{{ base_path() }}/vods/{{ vodclass.basename }}.mp4" controls width="1280"></video>
+        <video id="video" src="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}.mp4" controls width="1280"></video>
 
 
         <div class="videoplayer-chapters">

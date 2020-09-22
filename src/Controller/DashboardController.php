@@ -98,7 +98,7 @@ class DashboardController
             }
 
             if( $checkvod ){
-                $data->checkValidVods();
+                if( $data->checkValidVods() ) $is_a_vod_deleted = true;
             }
 
             $total_size += $data->vods_size;

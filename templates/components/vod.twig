@@ -182,6 +182,10 @@
                 <em>Capturing to <strong>{{ vodclass.basename }}.ts</strong> (<strong>{{ vodclass.getRecordingSize|formatBytes }}</strong>)</em><br />
                 <em><strong>Status:</strong> {% if vodclass.getCapturingStatus %}running{% else %}<strong class="error flashing">not running, did it crash?</strong>{% endif %}</em>
 
+            {% elseif not vodclass.is_capturing and not vodclass.is_converting and not vodclass.is_finalized %}
+
+                <em>Waiting to finalize video</em>
+                
             {% else %}
                 
                 <em>No video file or error</em>

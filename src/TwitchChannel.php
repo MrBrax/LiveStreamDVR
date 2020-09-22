@@ -81,6 +81,8 @@ class TwitchChannel {
 
         $list = [];
 
+        $is_a_vod_deleted = false;
+
         foreach( $this->vods_list as $vod ){
             $isvalid = $vod->checkValidVod();
 
@@ -92,6 +94,8 @@ class TwitchChannel {
             }
             
         }
+
+        return $is_a_vod_deleted;
 
     }
 
