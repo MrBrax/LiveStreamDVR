@@ -47,7 +47,7 @@ class VodController
 
 
             $filename_in = TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.mp4';
-            $filename_out = TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . 'clips' . DIRECTORY_SEPARATOR . $vod . '-cut-' . $second_start . '-' . $second_end . '.mp4';
+            $filename_out = TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_clips" . DIRECTORY_SEPARATOR . $vod . '-cut-' . $second_start . '-' . $second_end . '.mp4';
 
             if( file_exists($filename_out) ){
                 $response->getBody()->write("Output file already exists");

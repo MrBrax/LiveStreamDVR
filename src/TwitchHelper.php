@@ -25,17 +25,32 @@ class TwitchHelper {
 	const LOG_FATAL = "FATAL";
 	const LOG_SUCCESS = "SUCCESS";
 
+	public static $public_folder = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public";
+	// public static $saved_vods_folder = self::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods';
+	// public static $clips_folder = self::$public_folder . DIRECTORY_SEPARATOR . 'saved_clips';
+
+	private static $required_directories = [
+		__DIR__ . "/../logs",
+		__DIR__ . "/../payloads",
+		__DIR__ . "/../public",
+		__DIR__ . "/../public/vods",
+		__DIR__ . "/../public/saved_vods",
+		__DIR__ . "/../public/saved_clips"
+	];
+
 	/**
 	 * Set up directories for first use
 	 *
 	 * @return void
 	 */
 	public static function setupDirectories(){
-		mkdir(__DIR__ . "/../logs");
-		mkdir(__DIR__ . "/../payloads");
-		mkdir(__DIR__ . "/../public/vods");
-		mkdir(__DIR__ . "/../public/vods");
-		mkdir(__DIR__ . "/../public/vods");
+		foreach( self::$required_directories as $dir ){
+			// self::log(self::LOG_DEBUG, "Checking directory " . $dir);
+			if(!file_exists($dir)){
+				self::log(self::LOG_INFO, "Making directory " . $dir);
+				mkdir( $dir );
+			}
+		}
 	}
 
 	/**
@@ -805,3 +820,5 @@ TwitchHelper::$guzzler = new \GuzzleHttp\Client([
 		'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
 	]
 ]);
+
+TwitchHelper::setupDirectories();

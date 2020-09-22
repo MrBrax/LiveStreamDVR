@@ -9,6 +9,6 @@ use App\TwitchHelper;
 ini_set('memory_limit','1024M');
 
 // make directories
-if( !file_exists( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . "vods" . DIRECTORY_SEPARATOR . "saved" ) ){
-	TwitchHelper::setupDirectories();
-}
+// if( !file_exists( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . "vods" . DIRECTORY_SEPARATOR . "saved" ) ){
+TwitchHelper::setupDirectories();
+// }

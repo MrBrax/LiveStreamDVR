@@ -937,10 +937,10 @@ class TwitchVOD {
 	 */
 	public function save(){
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Save " . $this->basename);
-		rename( TwitchHelper::vod_folder( $this->streamer_name ) . DIRECTORY_SEPARATOR . $this->basename . '.mp4', TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . 'saved' . DIRECTORY_SEPARATOR . $this->basename . '.mp4');
-		rename( TwitchHelper::vod_folder( $this->streamer_name ) . DIRECTORY_SEPARATOR . $this->basename . '.json', TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . 'saved' . DIRECTORY_SEPARATOR . $this->basename . '.json');
-		rename( TwitchHelper::vod_folder( $this->streamer_name ) . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . 'saved' . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv'); // losslesscut
-		rename( TwitchHelper::vod_folder( $this->streamer_name ) . DIRECTORY_SEPARATOR . $this->basename . '.chat', TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . 'saved' . DIRECTORY_SEPARATOR . $this->basename . '.chat'); // chat
+		rename( TwitchHelper::vod_folder( $this->streamer_name ) . DIRECTORY_SEPARATOR . $this->basename . '.mp4', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '.mp4');
+		rename( TwitchHelper::vod_folder( $this->streamer_name ) . DIRECTORY_SEPARATOR . $this->basename . '.json', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '.json');
+		rename( TwitchHelper::vod_folder( $this->streamer_name ) . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '-llc-edl.csv'); // losslesscut
+		rename( TwitchHelper::vod_folder( $this->streamer_name ) . DIRECTORY_SEPARATOR . $this->basename . '.chat', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '.chat'); // chat
 	}
 
 	public function convert(){

@@ -82,6 +82,7 @@ code, pre {
 	background-color: #000;
 	color: #fff;
 	display: flex;
+	flex-wrap: wrap;
 	overflow: hidden;
 	// font-size: 1em;
 }
@@ -826,10 +827,14 @@ body.black {
 	.section { margin: 5px 0; }
 	.top-menu {
 		width: 100%;
+		height: auto;
 		position: static;
-		flex-direction: column;
+		display: block;
 	}
-	.top-menu-item { 
+	.top-menu-item {
+		display: block;
+		align-items: baseline;
+		justify-content: baseline;
 		a {
 			display: block;
 		}
