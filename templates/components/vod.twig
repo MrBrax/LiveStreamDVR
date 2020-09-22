@@ -120,7 +120,7 @@
 
                 <ul class="video-info">
                     <li><strong>Current duration:</strong> {{ vodclass.getDurationLive }}</li>
-                    <li><strong>Watch live:</strong> <a href="https://twitch.tv/{{ streamer.username }}" rel="noreferrer" target="_blank">Twitch</a>
+                    <li><strong>Watch live:</strong> <a href="https://twitch.tv/{{ streamer.display_name }}" rel="noreferrer" target="_blank">Twitch</a>
                 </ul>
 
             {% endif %}
@@ -185,7 +185,7 @@
             {% elseif not vodclass.is_capturing and not vodclass.is_converting and not vodclass.is_finalized %}
 
                 <em>Waiting to finalize video</em>
-                
+
             {% else %}
                 
                 <em>No video file or error</em>

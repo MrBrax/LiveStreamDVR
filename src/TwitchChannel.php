@@ -17,6 +17,7 @@ class TwitchChannel {
     public $current_vod = null;
     public $current_game = null;
     public $current_duration = null;
+    public $quality = [];
 
     public $vods_list = [];
     public $vods_raw = [];
@@ -32,11 +33,15 @@ class TwitchChannel {
 
         $this->channel_data = TwitchHelper::getChannelData( $username );
 
+        $config = TwitchConfig::getStreamer( $username );
+
         $this->username             = $this->channel_data['login'];
         $this->login                = $this->channel_data['login'];
         $this->display_name         = $this->channel_data['display_name'];
         $this->description          = $this->channel_data['description'];
         $this->profile_image_url    = $this->channel_data['profile_image_url'];
+        $this->quality              = isset($config['quality']) ? $config['quality'] : "best";
+        $this->match                = isset($config['match']) ? $config['match'] : [];
 
         $this->parseVODs();
 

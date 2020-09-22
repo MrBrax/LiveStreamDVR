@@ -1,7 +1,7 @@
 <template>
     <div>
-        <div v-for="(streamer) in $store.state.streamerList" v-bind:key="streamer.username" class="top-menu-item streamer" :data-streamer="streamer.username">
-            {{ streamer.username }}
+        <div v-for="(streamer) in $store.state.streamerList" v-bind:key="streamer.display_name" class="top-menu-item streamer" :data-streamer="streamer.display_name">
+            {{ streamer.display_name }}
         </div>
         <!--
         <router-link to="/">Home</router-link> |

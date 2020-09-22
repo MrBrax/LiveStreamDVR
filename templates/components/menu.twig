@@ -8,15 +8,15 @@
 
     {% for streamer in streamerList %}
 
-        <div class="top-menu-item{{ streamer.is_live ? ' live' : '' }} streamer" data-streamer="{{ streamer.username }}">
+        <div class="top-menu-item{{ streamer.is_live ? ' live' : '' }} streamer" data-streamer="{{ streamer.display_name }}">
             
             {% if streamer.is_live %}
                 <a href="#vod_{{ streamer.current_vod.basename }}">
             {% else %}
-                <a href="#streamer_{{ streamer.username }}">
+                <a href="#streamer_{{ streamer.display_name }}">
             {% endif %}
 
-                <span class="username">{{ streamer.username }}</span>
+                <span class="username">{{ streamer.display_name }}</span>
                 <span class="vodcount">{{ streamer.vods_list|length }}</span>
                 <span class="subtitle">
 
