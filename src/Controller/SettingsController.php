@@ -53,12 +53,12 @@ class SettingsController
         $basepath               = $_POST['basepath'];
         $password               = $_POST['password'];
         $channel_folders        = isset($_POST['channel_folders']);
+        $hls_timeout               = $_POST['hls_timeout'];
         
         $bin_dir               = $_POST['bin_dir'];
         $ffmpeg_path           = $_POST['ffmpeg_path'];
         $mediainfo_path        = $_POST['mediainfo_path'];
 
-        // TwitchConfig::$config['app_name'] = $app_name;
         TwitchConfig::$config['vods_to_keep'] = (int)$vods_to_keep;
         TwitchConfig::$config['storage_per_streamer'] = (int)$storage_per_streamer;
         TwitchConfig::$config['api_client_id'] = $api_client_id;
@@ -69,6 +69,7 @@ class SettingsController
         TwitchConfig::$config['basepath'] = $basepath;
         TwitchConfig::$config['password'] = $password;
         TwitchConfig::$config['channel_folders'] = $channel_folders;
+        TwitchConfig::$config['hls_timeout'] = $hls_timeout;
 
         TwitchConfig::$config['bin_dir'] = $bin_dir;
         TwitchConfig::$config['ffmpeg_path'] = $ffmpeg_path;

@@ -519,7 +519,7 @@ class TwitchAutomator {
 
 		$cmd .= ' --hls-live-restart'; // start recording from start of stream, though twitch doesn't support this
 		$cmd .= ' --hls-live-edge 99999'; // How many segments from the end to start live HLS streams on.
-		$cmd .= ' --hls-timeout 120'; // timeout due to ads
+		$cmd .= ' --hls-timeout ' . escapeshellarg( TwitchConfig::cfg('hls_timeout', 120) ); // timeout due to ads
 		$cmd .= ' --hls-segment-threads 5'; // The size of the thread pool used to download HLS segments.
 		$cmd .= ' --twitch-disable-hosting'; // disable channel hosting
 		if( TwitchConfig::cfg('low_latency', false) ) $cmd .= ' --twitch-low-latency'; // enable low latency mode, probably not a good idea without testing

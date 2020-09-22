@@ -107,6 +107,9 @@
                         <label><input class="input" type="text" name="storage_per_streamer" value="{{ config.storage_per_streamer }}" /> Gigabytes of storage per streamer</label>
                     </div>
                     <div class="control">
+                        <label><input class="input" type="text" name="hls_timeout" value="{{ config.hls_timeout ?: 120 }}" /> HLS Timeout in seconds (ads)</label>
+                    </div>
+                    <div class="control">
                         <label><input class="input" type="text" name="api_client_id" value="{{ config.api_client_id }}" /> Twitch client ID</label>
                     </div>
                     <div class="control">

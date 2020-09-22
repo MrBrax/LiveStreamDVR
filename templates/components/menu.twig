@@ -6,7 +6,7 @@
 
 {% if streamerList %}
 
-    {% for streamer in streamerList %}
+    {% for streamer in streamerList|sort %}
 
         <div class="top-menu-item{{ streamer.is_live ? ' live' : '' }} streamer" data-streamer="{{ streamer.display_name }}">
             
