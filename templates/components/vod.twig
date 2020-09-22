@@ -25,7 +25,7 @@
             </div>
             
             {# video info #}
-            {% if vodclass.is_converted %}
+            {% if vodclass.is_finalized %}
                 
                 <!-- <strong>Segment 0 info:</strong> -->
 
@@ -133,7 +133,7 @@
             <ul class="list-segments">
                 {% for segment in vodclass.segments %}
                     <li>
-                        <a href="{{ base_path() }}/vods/{{ segment.basename }}">
+                        <a href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ segment.basename }}">
                             <span class="text-overflow">{{ segment.basename }}</span>
                                 ({{ segment.filesize|formatBytes }})
                         </a>
