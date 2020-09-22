@@ -101,7 +101,9 @@ document.addEventListener("DOMContentLoaded", () => {
         setStatus('Applying...', true);
         if (data.data) {
             for (let streamer of data.data.streamerList) {
-                let menu = document.querySelector(`.top-menu-item.streamer[data-streamer='${streamer.username}']`);
+                let username = streamer.display_name;
+                console.debug(username, streamer);
+                let menu = document.querySelector(`.top-menu-item.streamer[data-streamer='${username}']`);
                 if (menu) {
                     let subtitle = menu.querySelector(".subtitle");
                     let vodcount = menu.querySelector(".vodcount");
@@ -118,21 +120,21 @@ document.addEventListener("DOMContentLoaded", () => {
                         else {
                             subtitle.innerHTML = 'Offline';
                             menu.classList.remove('live');
-                            link.href = `#streamer_${streamer.username}`;
+                            link.href = `#streamer_${username}`;
                         }
                     }
                 }
                 // update div
-                let streamer_div = document.querySelector(`.streamer-box[data-streamer='${streamer.username}']`);
+                let streamer_div = document.querySelector(`.streamer-box[data-streamer='${username}']`);
                 if (streamer_div) {
-                    setStatus(`Render ${streamer.username}...`, true);
-                    let body_content_response = await fetch(`${api_base}/render/streamer/${streamer.username}`);
+                    setStatus(`Render ${username}...`, true);
+                    let body_content_response = await fetch(`${api_base}/render/streamer/${username}`);
                     let body_content_data = await body_content_response.text();
                     streamer_div.outerHTML = body_content_data;
-                    // streamer_div.style.display = streamer.username == current_username ? "block" : "none";
+                    // streamer_div.style.display = username == current_username ? "block" : "none";
                 }
-                let old_data = previousData[streamer.username];
-                setStatus(`Check notifications for ${streamer.username}...`, true);
+                let old_data = previousData[username];
+                setStatus(`Check notifications for ${username}...`, true);
                 if (old_data && Notification.permission === "granted") {
                     let opt = {
                         icon: streamer.channel_data.profile_image_url,
@@ -141,18 +143,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     };
                     let text = "";
                     if (!old_data.is_live && streamer.is_live) {
-                        text = `${streamer.username} is live!`;
+                        text = `${username} is live!`;
                     }
                     if ((!old_data.current_game && streamer.current_game) || (old_data.current_game && streamer.current_game && old_data.current_game.game_name !== streamer.current_game.game_name)) {
                         if (streamer.current_game.favourite) {
-                            text = `${streamer.username} is now playing one of your favourite games: ${streamer.current_game.game_name}!`;
+                            text = `${username} is now playing one of your favourite games: ${streamer.current_game.game_name}!`;
                         }
                         else {
-                            text = `${streamer.username} is now playing ${streamer.current_game.game_name}!`;
+                            text = `${username} is now playing ${streamer.current_game.game_name}!`;
                         }
                     }
                     if (old_data.is_live && !streamer.is_live) {
-                        text = `${streamer.username} has gone offline!`;
+                        text = `${username} has gone offline!`;
                     }
                     if (text !== "") {
                         console.log(`Notify: ${text}`);
@@ -161,16 +163,16 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                         if (config.useSpeech) {
                             let speakText = text;
-                            if (streamerPronounciation[streamer.username]) {
-                                console.debug(`Using pronounciation for ${streamer.username}`);
-                                speakText.replace(streamer.username, streamerPronounciation[streamer.username]);
+                            if (streamerPronounciation[username]) {
+                                console.debug(`Using pronounciation for ${username}`);
+                                speakText.replace(username, streamerPronounciation[username]);
                             }
                             let utterance = new SpeechSynthesisUtterance(speakText);
                             window.speechSynthesis.speak(utterance);
                         }
                     }
                 }
-                previousData[streamer.username] = streamer;
+                previousData[username] = streamer;
             }
             setStatus(`Render log viewer...`, true);
             await renderLog(log_name);

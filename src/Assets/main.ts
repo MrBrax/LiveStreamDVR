@@ -128,6 +128,8 @@ document.addEventListener("DOMContentLoaded", () => {
             for( let streamer of data.data.streamerList ){
 
                 let username = streamer.display_name;
+
+                console.debug(username, streamer);
                 
                 let menu = document.querySelector(`.top-menu-item.streamer[data-streamer='${username}']`);
                 if( menu ){
