@@ -45,6 +45,7 @@ class TwitchVOD {
 	public $twitch_vod_exists = null;
 	public $twitch_vod_attempted = null;
 	public $twitch_vod_neversaved = null;
+	public $twitch_vod_muted = null;
 
 	public $is_recording = false;
 	public $is_converted = false;
@@ -138,6 +139,7 @@ class TwitchVOD {
 		$this->twitch_vod_date 			= isset($this->json['twitch_vod_date']) ? $this->json['twitch_vod_date'] : null;
 		$this->twitch_vod_neversaved 	= isset($this->json['twitch_vod_neversaved']) ? $this->json['twitch_vod_neversaved'] : null;
 		$this->twitch_vod_attempted 	= isset($this->json['twitch_vod_attempted']) ? $this->json['twitch_vod_attempted'] : null;
+		$this->twitch_vod_muted 		= isset($this->json['twitch_vod_muted']) ? $this->json['twitch_vod_muted'] : null;
 
 		$this->force_record				= isset($this->json['force_record']) ? $this->json['force_record'] : false;
 
@@ -496,8 +498,9 @@ class TwitchVOD {
 			$generated['twitch_vod_date'] 		= $this->twitch_vod_date;
 		}
 
-		$generated['twitch_vod_attempted'] = $this->twitch_vod_attempted;
-		$generated['twitch_vod_neversaved'] = $this->twitch_vod_neversaved;
+		$generated['twitch_vod_attempted'] 		= $this->twitch_vod_attempted;
+		$generated['twitch_vod_neversaved'] 	= $this->twitch_vod_neversaved;
+		$generated['twitch_vod_muted'] 			= $this->twitch_vod_muted;
 
 		$generated['streamer_name'] 	= $this->streamer_name;
 		$generated['streamer_id'] 		= $this->streamer_id;
@@ -822,6 +825,41 @@ class TwitchVOD {
 		file_put_contents( __DIR__ . "/../logs/streamlink_vod_" . $this->basename . ".log", $capture_output);
 
 		return $capture_filename;
+
+	}
+
+	public function checkMutedVod(){
+
+		if( TwitchConfig::cfg('pipenv') ){
+			$cmd = 'pipenv run streamlink';
+		}else{
+			$cmd = TwitchHelper::path_streamlink();
+		}
+
+		$cmd .= " --stream-url";
+		$cmd .= " https://www.twitch.tv/videos/" . $this->twitch_vod_id;
+		$cmd .= " best";
+
+		$output = shell_exec( $cmd );
+
+		$stream_url = $output;
+
+		if(!$output){
+			return null;
+		}
+
+		/*
+		$client = new \GuzzleHttp\Client();
+		$response = $client->get($stream_url);
+
+		$server_output = $response->getBody()->getContents();
+		*/
+
+		if( strpos($output, "index-muted-") !== false ){
+			return true;
+		}else{
+			return false;
+		}
 
 	}
 

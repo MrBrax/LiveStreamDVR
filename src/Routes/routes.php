@@ -39,6 +39,7 @@ $app->get('/delete/{vod}', VodController::class . ':delete')->setName('delete');
 $app->get('/convert/{vod}', VodController::class . ':convert')->setName('convert');
 $app->get('/download/{vod}', VodController::class . ':download')->setName('download');
 $app->get('/troubleshoot/{vod}', VodController::class . ':troubleshoot')->setName('troubleshoot');
+$app->get('/check_mute/{vod}', VodController::class . ':check_mute')->setName('check_mute');
 
 $app->get('/hook', HookController::class . ':hook')->setName('hook');
 $app->post('/hook', HookController::class . ':hook')->setName('hook_post');

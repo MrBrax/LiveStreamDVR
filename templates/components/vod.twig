@@ -64,7 +64,7 @@
                     </div>
                     <div class="info-column">
                         <ul class="video-info">
-                            <li>				
+                            <li>
                                 <strong>Twitch VOD duration:</strong>
                                 {% if vodclass.twitch_vod_duration %}
                                     {{ vodclass.twitch_vod_duration|humanDuration }}
@@ -72,7 +72,7 @@
                                     <strong><em>No data</em></strong>
                                 {% endif %}
                             </li>
-                            <li>		
+                            <li>
                                 <strong>Twitch VOD id:</strong> 
                                 {% if vodclass.twitch_vod_url %}	
                                     
@@ -92,7 +92,7 @@
                                     <strong><em>Not matched or VOD deleted</em></strong>
                                 {% endif %}
                             </li>
-                            <li>			
+                            <li>
                                 <strong>Twitch VOD date:</strong>
                                 {% if vodclass.twitch_vod_date %}
                                     {{ vodclass.twitch_vod_date|date('Y-m-d H:i:s') }}
@@ -100,12 +100,22 @@
                                     <strong><em>No data</em></strong>
                                 {% endif %}
                             </li>
-                            <li>				
+                            <li>
                                 <strong>Twitch VOD title:</strong> 
                                 {% if vodclass.twitch_vod_title %}
                                     <span class="text-overflow">{{ vodclass.twitch_vod_title }}</span>
                                 {% else %}
                                     <strong><em>No data</em></strong>
+                                {% endif %}
+                            </li>
+                            <li>				
+                                <strong>Twitch VOD muted:</strong> 
+                                {% if vodclass.twitch_vod_muted is same as(true) %}
+                                    <strong class="error">Yes</strong>
+                                {% elseif vodclass.twitch_vod_muted is same as(false) %}
+                                    <span>No</span>
+                                {% else %}
+                                    <em>No data</em>
                                 {% endif %}
                             </li>
                         </ul>
@@ -154,7 +164,7 @@
 
                 <a class="button is-blue" href="{{ url_for('player', { 'vod': vodclass.basename }) }}">Editor</a>
 
-                <a class="button" href="{{ base_path() }}/vods/{{ vodclass.basename }}.json">JSON</a>
+                <a class="button" href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}.json">JSON</a>
 
                 <a class="button" href="{{ url_for('save', { 'vod': vodclass.basename }) }}">Save from deletion</a>
 
@@ -166,8 +176,9 @@
                     {% if not vodclass.is_vod_downloaded %}
                         <a class="button" href="{{ url_for('download', { 'vod': vodclass.basename }) }}">Download VOD</a>
                     {% else %}
-                        <a class="button" href="{{ base_path() }}/vods/{{ vodclass.basename }}.vod.ts">Play VOD</a>
+                        <a class="button" href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}.vod.ts">Play VOD</a>
                     {% endif %}
+                    <a class="button" href="{{ url_for('check_mute', { 'vod': vodclass.basename }) }}">Check mute</a>
                 {% endif %}
 
                 <a class="button is-danger" href="{{ url_for('delete', { 'vod': vodclass.basename }) }}">Delete</a>                

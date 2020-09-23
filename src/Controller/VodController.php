@@ -170,6 +170,32 @@ class VodController
 
     }
 
+    public function check_mute( Request $request, Response $response, $args ) {
+        
+        $vod = $args['vod'];
+        // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
+        $username = explode("_", $vod)[0];
+
+        $vodclass = new TwitchVOD();
+        $vodclass->load( TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json' );
+
+        if(!$vodclass->twitch_vod_id){
+            $response->getBody()->write("VOD does not have an ID");
+            return $response;
+        }
+        
+        $isMuted = $vodclass->checkMutedVod();
+
+        $response->getBody()->write("VOD " . $vod . " is " . ( $isMuted ? "truly" : "not" ) . " muted!");
+
+        
+        $vodclass->twitch_vod_muted = $isMuted;
+        $vodclass->saveJSON();
+
+        return $response;
+
+    }
+
     public function troubleshoot( Request $request, Response $response, $args ) {
         
         $vod = $args['vod'];
