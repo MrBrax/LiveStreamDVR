@@ -662,7 +662,11 @@ class TwitchVOD {
 
 			$segment['filename'] = realpath( $this->directory . DIRECTORY_SEPARATOR . basename($v) );
 			$segment['basename'] = basename($v);
-			$segment['filesize'] = filesize( $segment['filename'] );
+			if( file_exists( $segment['filename'] ) ){
+				$segment['filesize'] = filesize( $segment['filename'] );
+			}else{
+				$segment['deleted'] = true;
+			}
 			
 			$segment['strings'] = [];
 			// $diff = $this->started_at->diff($this->ended_at);

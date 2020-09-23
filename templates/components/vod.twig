@@ -135,7 +135,11 @@
                     <li>
                         <a href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ segment.basename }}">
                             <span class="text-overflow">{{ segment.basename }}</span>
+                            {% if segment.deleted %}
+                                <strong class="error">(deleted)</strong>
+                            {% else %}
                                 ({{ segment.filesize|formatBytes }})
+                            {% endif %}
                         </a>
                     </li>
                 {% endfor %}

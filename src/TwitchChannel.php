@@ -64,7 +64,7 @@ class TwitchChannel {
             }
             if ($vodclass->segments) {
                 foreach ($vodclass->segments as $s) {
-                    $this->vods_size += filesize( TwitchHelper::vod_folder( $this->display_name ) . DIRECTORY_SEPARATOR . $s['basename'] );
+                    $this->vods_size += $s['filesize'];
                 }
             }
 
