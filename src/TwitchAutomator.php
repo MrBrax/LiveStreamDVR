@@ -494,21 +494,14 @@ class TwitchAutomator {
 
 		$capture_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '.ts';
 
-		/*
-		if( file_exists( $capture_filename ) ){
-			TwitchHelper::log( TwitchHelper::LOG_ERROR, "File exists while capturing, making a new name for " . $basename);
-		}
-		*/
-
 		// failure
 		$int = 1;
 		while( file_exists( $capture_filename ) ){
-			$this->errors[] = 'File exists while converting, making a new name';
-			TwitchHelper::log( TwitchHelper::LOG_ERROR, "File exists while capturing, making a new name for " . $basename);
+			$this->errors[] = 'File exists while capturing, making a new name';
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "File exists while capturing, making a new name for " . $basename . ", attempt #" . $int);
 			$capture_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '-' . $int . '.ts';
 			$int++;
 		}
-
 
 		// use python pipenv or regular executable
 		if( TwitchConfig::cfg('pipenv') ){
@@ -537,7 +530,7 @@ class TwitchAutomator {
 		$this->vod->dt_capture_started = new \DateTime();
 		$this->vod->saveJSON();
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting capture with filename " . $basename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting capture with filename " . basename($capture_filename) );
 		
 		$capture_output = shell_exec( $cmd );
 
@@ -574,7 +567,11 @@ class TwitchAutomator {
 			
 
 			// exit(500);
-		} 
+		}
+
+		if( strpos($capture_output, 'already exists, use') !== false ){
+			TwitchHelper::log( TwitchHelper::LOG_FATAL, "Unexplainable, " . basename($capture_filename) . " could not be captured due to existing file already.");
+		}
 
 		return $capture_filename;
 
@@ -600,7 +597,7 @@ class TwitchAutomator {
 
 		while( file_exists( $converted_filename ) ){
 			$this->errors[] = 'File exists while converting, making a new name';
-			TwitchHelper::log( TwitchHelper::LOG_ERROR, "File exists while converting, making a new name for " . $basename);
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "File exists while converting, making a new name for " . $basename . ", attempt #" . $int);
 			$converted_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '-' . $int . '.' . $container_ext;
 			$int++;
 		}
@@ -619,14 +616,14 @@ class TwitchAutomator {
 		$this->vod->dt_conversion_started = new \DateTime();
 		$this->vod->saveJSON();
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting conversion of " . $capture_filename . " to " . $converted_filename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting conversion of " . basename($capture_filename) . " to " . basename($converted_filename) );
 
 		$output_convert = shell_exec( $cmd ); // do it
 
 		if( file_exists( $converted_filename ) ){
-			TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "Finished conversion of " . $capture_filename . " to " . $converted_filename);
+			TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "Finished conversion of " . basename($capture_filename) . " to " . basename($converted_filename) );
 		}else{
-			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Failed conversion of " . $capture_filename . " to " . $converted_filename);
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Failed conversion of " . basename($capture_filename) . " to " . basename($converted_filename) );
 		}
 
 		$this->info[] = 'ffmpeg output: ' . $output_convert;

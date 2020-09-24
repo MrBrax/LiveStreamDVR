@@ -118,6 +118,10 @@ class TwitchVOD {
 			$this->ended_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['ended_at'] );
 		}
 
+		if( $this->json['saved_at'] && isset( $this->json['saved_at']['date'] ) ){
+			$this->saved_at = new \DateTime( $this->json['saved_at']['date'] );
+		}
+
 		$this->filename = $filename;
 		$this->basename = basename($filename, '.json');
 		$this->directory = dirname( $filename );
@@ -526,6 +530,7 @@ class TwitchVOD {
 
 		$generated['meta']				= $this->meta;
 
+		$generated['saved_at']			= new DateTime();
 		
 		if( !is_writable( $this->filename ) ){ // this is not the function i want
 			// TwitchHelper::log(TwitchHelper::LOG_FATAL, "Saving JSON of " . $this->basename . " failed, permissions issue?");
