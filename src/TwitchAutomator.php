@@ -393,6 +393,7 @@ class TwitchAutomator {
 		$this->vod->ended_at = $this->getDateTime();
 		$this->vod->dt_ended_at = new \DateTime();
 		$this->vod->is_capturing = false;
+		if( $this->stream_resolution ) $this->vod->stream_resolution = $this->stream_resolution;
 		$this->vod->saveJSON();
 
 		sleep(60);
@@ -571,6 +572,11 @@ class TwitchAutomator {
 
 		if( strpos($capture_output, 'already exists, use') !== false ){
 			TwitchHelper::log( TwitchHelper::LOG_FATAL, "Unexplainable, " . basename($capture_filename) . " could not be captured due to existing file already.");
+		}
+
+		preg_match("/stream:\s([0-9_a-z]+)\s", $capture_output, $matches);
+		if($matches){
+			$this->stream_resolution = $matches[1];
 		}
 
 		return $capture_filename;

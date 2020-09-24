@@ -36,6 +36,8 @@ class TwitchVOD {
 
 	public $game_offset = null;
 
+	public $stream_resolution = null;
+
 	// TODO: make these into an array instead
 	public $twitch_vod_id = null;
 	public $twitch_vod_url = null;
@@ -146,6 +148,8 @@ class TwitchVOD {
 		$this->twitch_vod_muted 		= isset($this->json['twitch_vod_muted']) ? $this->json['twitch_vod_muted'] : null;
 
 		$this->force_record				= isset($this->json['force_record']) ? $this->json['force_record'] : false;
+
+		$this->stream_resolution		= isset($this->json['stream_resolution']) ? $this->json['stream_resolution'] : false;
 
 		$this->meta = $this->json['meta'];
 
@@ -505,6 +509,8 @@ class TwitchVOD {
 		$generated['twitch_vod_attempted'] 		= $this->twitch_vod_attempted;
 		$generated['twitch_vod_neversaved'] 	= $this->twitch_vod_neversaved;
 		$generated['twitch_vod_muted'] 			= $this->twitch_vod_muted;
+
+		$generated['stream_resolution'] = $this->stream_resolution;
 
 		$generated['streamer_name'] 	= $this->streamer_name;
 		$generated['streamer_id'] 		= $this->streamer_id;
