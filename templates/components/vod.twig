@@ -172,6 +172,10 @@
                     <a class="button" href="{{ url_for('chat', { 'vod': vodclass.basename }) }}">Download chat</a>
                 {% endif %}
 
+                {% if  vodclass.is_chat_downloaded %}
+                    <a class="button" href="{{ url_for('render_chat', { 'vod': vodclass.basename }) }}">Render chat</a>
+                {% endif %}
+
                 {% if vodclass.twitch_vod_id %}
                     {% if not vodclass.is_vod_downloaded %}
                         <a class="button" href="{{ url_for('download', { 'vod': vodclass.basename }) }}">Download VOD</a>

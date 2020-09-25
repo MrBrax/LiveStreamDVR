@@ -760,6 +760,40 @@ class TwitchHelper {
 		return false;
 	}
 
+	public static function path_twitchdownloader(){
+		
+		if( TwitchConfig::cfg('twitchdownloader_path') ) return TwitchConfig::cfg('twitchdownloader_path');
+
+		// TODO: merge these two
+		if( self::is_windows() ){
+			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Windows system, requesting TwitchDownloaderCLI binary from path...");
+			$out = shell_exec("where TwitchDownloaderCLI.exe");
+			if($out){
+				$path = explode("\n", $out)[0];
+				TwitchConfig::$config['twitchdownloader_path'] = $path;
+				TwitchConfig::saveConfig("path resolver");
+				return $path;
+			}
+		}else{
+			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Linux system, requesting TwitchDownloaderCLI binary from path...");
+			$out = shell_exec("whereis TwitchDownloaderCLI");
+			if($out){
+				preg_match("/^[A-Za-z]+\:\s([A-Za-z\-\_\/\.]+)/", $out, $matches);
+				if($matches){
+					$path = $matches[1];
+					TwitchConfig::$config['twitchdownloader_path'] = $path;
+					TwitchConfig::saveConfig("path resolver");
+					return $path;
+				}
+				TwitchHelper::log( TwitchHelper::LOG_DEBUG, "No matches from TwitchDownloaderCLI whereis (" . implode(", ", $matches) . ")...");
+			}else{
+				TwitchHelper::log( TwitchHelper::LOG_DEBUG, "No output from TwitchDownloaderCLI whereis...");
+			}
+		}
+
+		return false;
+	}
+
 	public static function find_bin_dir(){
 		if( self::is_windows() ){
 			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Windows system, requesting bin dir from path...");

@@ -149,7 +149,7 @@ class TwitchVOD {
 
 		$this->force_record				= isset($this->json['force_record']) ? $this->json['force_record'] : false;
 
-		$this->stream_resolution		= isset($this->json['stream_resolution']) ? $this->json['stream_resolution'] : false;
+		$this->stream_resolution		= isset($this->json['stream_resolution']) ? $this->json['stream_resolution'] : null;
 
 		$this->meta = $this->json['meta'];
 
@@ -347,16 +347,35 @@ class TwitchVOD {
 
 		$chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
 
+		$compressed_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat.gz';
+
 		$tcd_filename = $this->directory . DIRECTORY_SEPARATOR . $this->twitch_vod_id . '.json';
 
-		if( file_exists( $chat_filename ) ){
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Chat already exists for " . $this->basename);
-			return;
-		}
+		if( TwitchConfig::cfg('chat_compress', false) ){
+
+			if( file_exists( $compressed_filename ) ){
+				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Chat compressed already exists for " . $this->basename);
+				return;
+			}
+
+			if( file_exists( $chat_filename ) ){
+				TwitchHelper::log(TwitchHelper::LOG_WARNING, "Chat already exists for " . $this->basename);
+				shell_exec( "gzip " . $chat_filename );
+				return;
+			}
+
+		}else{
+		
+			if( file_exists( $chat_filename ) ){
+				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Chat already exists for " . $this->basename);
+				return;
+			}
+
+		}		
 
 		// if tcd generated file exists, rename it
 		if( file_exists( $tcd_filename ) ){
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Renamed chat file for " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Renamed chat file for " . $this->basename);
 			rename( $tcd_filename, $chat_filename );
 			return;
 		}
@@ -371,14 +390,69 @@ class TwitchVOD {
 		$cmd .= ' --client-id ' . escapeshellarg( TwitchConfig::cfg('api_client_id') );
 		$cmd .= ' --client-secret ' . escapeshellarg( TwitchConfig::cfg('api_secret') );
 		$cmd .= ' --format json';
+		if( TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false) ) $cmd .= ' --verbose --debug';
 		$cmd .= ' --output ' . $this->directory;
-		// $cmd .= ' --output ' . escapeshellarg($chat_filename);
 
 		$capture_output = shell_exec( $cmd );
 
-		rename( $tcd_filename, $chat_filename );
+		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tcd_" . $this->basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $capture_output);
+
+		if( file_exists( $tcd_filename ) ){
+			
+			rename( $tcd_filename, $chat_filename );
+
+			if( TwitchConfig::cfg('chat_compress', false) ){
+				shell_exec( "gzip " . $chat_filename );
+			}
+
+		}else{
+			
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No chat file for " . $this->basename . " created, output: " . $capture_output);
+			
+			return false;
+
+		}
 
 		return [$chat_filename, $capture_output, $cmd];
+
+	}
+
+	public function renderChat(){
+
+		if(!$this->is_chat_downloaded){
+			throw new \Exception('no chat downloaded');
+			return false;
+		}
+
+		$chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
+
+		$video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
+
+		// TwitchDownloaderCLI -m ChatRender -i KrustingKevin_2020-09-25T11_27_57Z_39847598366.chat -h 720 -w 300 --framerate 60 --update-rate 0 --font-size 18 -o chat.mp4
+
+		$cmd = TwitchHelper::path_twitchdownloader();
+
+		if( !$cmd ){
+			throw new \Exception('twitchdownloader not installed');
+			return false;
+		}
+		
+		$cmd .= ' --mode ChatRender';
+		$cmd .= ' --input ' . escapeshellarg( realpath( $chat_filename ) );
+		$cmd .= ' --chat-height ' . escapeshellarg( $this->video_metadata['video']['Height'] );
+		$cmd .= ' --chat-width 300';
+		$cmd .= ' --framerate 60';
+		$cmd .= ' --update-rate 0';
+		$cmd .= ' --font-size 12';
+		$cmd .= ' --background-color "#FF00FF"';
+		$cmd .= ' --output ' . escapeshellarg($video_filename);
+		$cmd .= ' 2>&1'; // console output
+
+		$capture_output = shell_exec( $cmd );
+
+		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tdrender_" . $this->basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $capture_output);
+
+		return [$video_filename, $capture_output, $cmd];
 
 	}
 
@@ -893,6 +967,13 @@ class TwitchVOD {
 	public function getConvertingStatus(){
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Fetch converting process status of " . $this->basename );
 		$output = shell_exec("ps aux | grep -i " . escapeshellarg( $this->basename . ".mp4" ) . " | grep -v grep");
+		preg_match("/^([a-z0-9]+)\s+([0-9]+)/i", trim($output), $matches);
+		return isset($matches[2]) ? $matches[2] : false;
+	}
+
+	public function getChatDownloadStatus(){
+		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Fetch chat download process status of " . $this->basename );
+		$output = shell_exec("ps aux | grep -i " . escapeshellarg( "tcd --video " . $this->twitch_vod_id ) . " | grep -v grep");
 		preg_match("/^([a-z0-9]+)\s+([0-9]+)/i", trim($output), $matches);
 		return isset($matches[2]) ? $matches[2] : false;
 	}

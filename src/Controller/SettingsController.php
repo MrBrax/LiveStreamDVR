@@ -58,6 +58,7 @@ class SettingsController
         $bin_dir               = $_POST['bin_dir'];
         $ffmpeg_path           = $_POST['ffmpeg_path'];
         $mediainfo_path        = $_POST['mediainfo_path'];
+        $twitchdownloader_path = $_POST['twitchdownloader_path'];
 
         TwitchConfig::$config['vods_to_keep'] = (int)$vods_to_keep;
         TwitchConfig::$config['storage_per_streamer'] = (int)$storage_per_streamer;
@@ -74,6 +75,7 @@ class SettingsController
         TwitchConfig::$config['bin_dir'] = $bin_dir;
         TwitchConfig::$config['ffmpeg_path'] = $ffmpeg_path;
         TwitchConfig::$config['mediainfo_path'] = $mediainfo_path;
+        TwitchConfig::$config['twitchdownloader_path'] = $twitchdownloader_path;
         if($api_secret) TwitchConfig::$config['api_secret'] = $api_secret;
 
         TwitchConfig::saveConfig("settings/save");

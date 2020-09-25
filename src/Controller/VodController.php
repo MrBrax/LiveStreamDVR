@@ -106,6 +106,30 @@ class VodController
 
     }
 
+    public function render_chat( Request $request, Response $response, $args ) {
+        
+        set_time_limit(0);
+
+        $TwitchAutomator = new TwitchAutomator();
+
+        $vod = $args['vod'];
+        // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
+        $username = explode("_", $vod)[0];
+
+        $vodclass = new TwitchVOD();
+        $vodclass->load( TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+
+        if( $vodclass->is_chat_downloaded ){
+            $response->getBody()->write("Rendering");
+            var_dump( $vodclass->renderChat() );
+        }else{
+            $response->getBody()->write("VOD has no chat downloaded");
+        }
+
+        return $response;
+
+    }
+
     public function convert( Request $request, Response $response, $args ) {
         
         $vod = $args['vod'];

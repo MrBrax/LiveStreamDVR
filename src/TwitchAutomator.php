@@ -574,7 +574,7 @@ class TwitchAutomator {
 			TwitchHelper::log( TwitchHelper::LOG_FATAL, "Unexplainable, " . basename($capture_filename) . " could not be captured due to existing file already.");
 		}
 
-		preg_match("/stream:\s([0-9_a-z]+)\s", $capture_output, $matches);
+		preg_match("/stream:\s([0-9_a-z]+)\s/", $capture_output, $matches);
 		if($matches){
 			$this->stream_resolution = $matches[1];
 		}
