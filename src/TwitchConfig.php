@@ -9,6 +9,29 @@ class TwitchConfig {
 	public static $configPath = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "config.json";
 	public static $gameDbPath = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "games_v2.json";
 
+	public static $settingsFields = [
+		[ 'key' => 'bin_dir', 				'text' => 'Python binary directory', 														'type' => 'string' ],
+		[ 'key' => 'ffmpeg_path', 			'text' => 'FFmpeg path', 																	'type' => 'string' ],
+		[ 'key' => 'mediainfo_path', 		'text' => 'Mediainfo path', 																'type' => 'string' ],
+		[ 'key' => 'twitchdownloader_path', 'text' => 'TwitchDownloaderCLI path', 														'type' => 'string' ],
+
+		[ 'key' => 'basepath', 				'text' => 'Base path (for reverse proxy etc)', 												'type' => 'string' ],
+		[ 'key' => 'password', 				'text' => 'Password (keep blank for none) - username is admin', 							'type' => 'string' ],
+		[ 'key' => 'storage_per_streamer', 	'text' => 'Gigabytes of storage per streamer', 												'type' => 'number' ],
+		[ 'key' => 'hls_timeout', 			'text' => 'HLS Timeout in seconds (ads)', 													'type' => 'number' ],
+		[ 'key' => 'vods_to_keep', 			'text' => 'VODs to keep per streamer', 														'type' => 'number' ],
+		[ 'key' => 'api_client_id', 		'text' => 'Twitch client ID', 																'type' => 'string' ],
+		[ 'key' => 'api_secret', 			'text' => 'Twitch secret (keep blank to not change)', 										'type' => 'string', 'secret' => true ],
+		[ 'key' => 'hook_callback', 		'text' => 'Hook callback', 																	'type' => 'string' ],
+		
+		[ 'key' => 'vod_container', 		'text' => 'VOD container (not tested)', 													'type' => 'array', 'choices' => ['mp4', 'mkv', 'mov'] ],
+		
+		[ 'key' => 'disable_ads', 			'text' => 'Hide ads from captured file (stream will still be interrupted, thanks twitch)', 	'type' => 'boolean' ],
+		[ 'key' => 'debug', 				'text' => 'Debug', 																			'type' => 'boolean' ],
+		[ 'key' => 'app_verbose', 			'text' => 'Verbose app output', 															'type' => 'boolean' ],
+		[ 'key' => 'channel_folders', 		'text' => 'Channel folders', 																'type' => 'boolean' ],
+	];
+
 	function __constructor(){
 		$this->loadConfig();
 	}

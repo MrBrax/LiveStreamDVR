@@ -108,19 +108,19 @@ class TwitchVOD {
 		}
 		*/
 
-		if( $this->json['started_at'] && isset( $this->json['started_at']['date'] ) ){
+		if( isset($this->json['started_at']) && isset( $this->json['started_at']['date'] ) ){
 			$this->started_at = new \DateTime( $this->json['started_at']['date'] );
 		}else{
 			$this->started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['started_at'] );
 		}
 
-		if( $this->json['ended_at'] && isset( $this->json['ended_at']['date'] ) ){
+		if( isset($this->json['ended_at']) && isset( $this->json['ended_at']['date'] ) ){
 			$this->ended_at = new \DateTime( $this->json['ended_at']['date'] );
 		}else{
 			$this->ended_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['ended_at'] );
 		}
 
-		if( $this->json['saved_at'] && isset( $this->json['saved_at']['date'] ) ){
+		if( isset($this->json['saved_at']) && isset( $this->json['saved_at']['date'] ) ){
 			$this->saved_at = new \DateTime( $this->json['saved_at']['date'] );
 		}
 
@@ -444,7 +444,9 @@ class TwitchVOD {
 		$cmd .= ' --framerate 60';
 		$cmd .= ' --update-rate 0';
 		$cmd .= ' --font-size 12';
-		$cmd .= ' --background-color "#FF00FF"';
+		$cmd .= ' --outline';
+		// $cmd .= ' --background-color "#FF00FF"';
+		$cmd .= ' --generate-mask';
 		$cmd .= ' --output ' . escapeshellarg($video_filename);
 		$cmd .= ' 2>&1'; // console output
 

@@ -820,6 +820,10 @@ class TwitchHelper {
 		return false;
 	}
 
+	private static function whereis( $bin ){
+		
+	}
+
 	public static function path_streamlink(){
 		$path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "streamlink" . ( self::is_windows() ? '.exe' : '' );
 		return file_exists($path) ? $path : false;

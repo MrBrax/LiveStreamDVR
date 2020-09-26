@@ -34,7 +34,8 @@ class SettingsController
         return $this->twig->render($response, 'settings.twig', [
             'streamers' => TwitchConfig::getStreamers(),
             'sub_callback' => $sub_callback,
-            'games' => $games
+            'games' => $games,
+            'settings' => TwitchConfig::$settingsFields
         ]);
 
     }
@@ -42,6 +43,7 @@ class SettingsController
     public function settings_save(Request $request, Response $response, array $args) {
         
         // $app_name               = $_POST['app_name'];
+        /*
         $vods_to_keep           = $_POST['vods_to_keep'];
         $storage_per_streamer   = $_POST['storage_per_streamer'];
         $api_client_id          = $_POST['api_client_id'];
@@ -77,6 +79,28 @@ class SettingsController
         TwitchConfig::$config['mediainfo_path'] = $mediainfo_path;
         TwitchConfig::$config['twitchdownloader_path'] = $twitchdownloader_path;
         if($api_secret) TwitchConfig::$config['api_secret'] = $api_secret;
+        */
+
+        foreach( TwitchConfig::$settingsFields as $setting ){
+
+            $key = $setting['key'];
+
+            if( $setting['type'] == "boolean" ){
+
+                TwitchConfig::$config[ $key ] = isset($_POST[ $key ]);
+
+            }else{
+
+                if( isset($setting['secret']) ){
+                    if( $_POST[ $key ] ){
+                        TwitchConfig::$config[ $key ] = $_POST[ $key ];
+                    }
+                }else{
+                    TwitchConfig::$config[ $key ] = $_POST[ $key ];
+                }
+
+            }
+        }
 
         TwitchConfig::saveConfig("settings/save");
 

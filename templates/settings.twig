@@ -85,57 +85,26 @@
             <div class="section-content">
 
                 <form method="POST" action="{{ url_for('settings_save') }}">
-                    <div class="control">
-                        <label><input class="input" type="text" name="bin_dir" value="{{ config.bin_dir }}" /> Python binary directory</label>
-                    </div>
-                    <div class="control">
-                        <label><input class="input" type="text" name="ffmpeg_path" value="{{ config.ffmpeg_path }}" /> FFmpeg path</label>
-                    </div>
-                    <div class="control">
-                        <label><input class="input" type="text" name="mediainfo_path" value="{{ config.mediainfo_path }}" /> Mediainfo path</label>
-                    </div>
-                    <div class="control">
-                        <label><input class="input" type="text" name="twitchdownloader_path" value="{{ config.twitchdownloader_path }}" /> TwitchDownloaderCLI path</label>
-                    </div>
-                    <div class="control">
-                        <label><input class="input" type="text" name="basepath" value="{{ config.basepath }}" /> App basepath (keep blank if you're unsure)</label>
-                    </div>
-                    <div class="control">
-                        <label><input class="input" type="text" name="password" value="{{ config.password }}" /> Password (keep blank for none) - username is <strong>admin</strong></label>
-                    </div>
-                    <div class="control">
-                        <label><input class="input" type="text" name="vods_to_keep" value="{{ config.vods_to_keep }}" /> VODs to keep per streamer</label>
-                    </div>
-                    <div class="control">
-                        <label><input class="input" type="text" name="storage_per_streamer" value="{{ config.storage_per_streamer }}" /> Gigabytes of storage per streamer</label>
-                    </div>
-                    <div class="control">
-                        <label><input class="input" type="text" name="hls_timeout" value="{{ config.hls_timeout ?: 120 }}" /> HLS Timeout in seconds (ads)</label>
-                    </div>
-                    <div class="control">
-                        <label><input class="input" type="text" name="api_client_id" value="{{ config.api_client_id }}" /> Twitch client ID</label>
-                    </div>
-                    <div class="control">
-                        <label><input class="input" type="text" name="api_secret" value="" /> Twitch secret (keep blank to not change)</label>
-                    </div>
-                    <div class="control">
-                        <label><input class="input" type="text" name="hook_callback" value="{{ config.hook_callback }}" /> Hook callback</label>
-                    </div>
-                    <div class="control">
-                        <label><input class="input" type="text" name="vod_container" value="{{ config.vod_container ?: 'mp4' }}" /> VOD container (mp4/mkv) <em>(not tested)</em></label>
-                    </div>
-                    <div class="control">
-                        <label><input type="checkbox" name="disable_ads" {{ config.disable_ads ? 'checked="checked"' : '' }} /> Hide ads from captured file (stream will still be interrupted, thanks twitch)</label>
-                    </div>
-                    <div class="control">
-                        <label><input type="checkbox" name="debug" {{ config.debug ? 'checked="checked"' : '' }} /> Debug</label>
-                    </div>
-                    <div class="control">
-                        <label><input type="checkbox" name="app_verbose" {{ config.app_verbose ? 'checked="checked"' : '' }} /> Verbose app output</label>
-                    </div>
-                    <div class="control">
-                        <label><input type="checkbox" name="channel_folders" {{ config.channel_folders ? 'checked="checked"' : '' }} /> Channel folders</label>
-                    </div>
+                    {% for setting in settings %}
+                        <div class="control">
+                            <label>
+                                {% if setting.type == "string" %}
+                                    <input class="input" type="text" name="{{ setting.key }}" value="{{ setting.secret ? '' : config[setting.key] }}" />
+                                {% elseif setting.type == "number" %}
+                                    <input class="input" type="number" name="{{ setting.key }}" value="{{ setting.secret ? '' : config[setting.key] }}" />
+                                {% elseif setting.type == "boolean" %}
+                                    <input type="checkbox" name="{{ setting.key }}" {{ config[setting.key] ? 'checked="checked"' : '' }} />
+                                {% elseif setting.type == "array" %}
+                                    <select name="{{ setting.key }}">
+                                        {% for option in setting.choices %}
+                                            <option {{ config[setting.key] == option ? 'selected="selected"' : '' }}>{{ option }}</option>
+                                        {% endfor %}
+                                    </select>
+                                {% endif %}
+                                {{ setting.text }}
+                            </label>
+                        </div>
+                    {% endfor %}
                     <div class="control">
                         <button class="button is-confirm" type="submit">Save</button>
                     </div>
