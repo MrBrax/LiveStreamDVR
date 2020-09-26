@@ -3,8 +3,8 @@
 namespace App;
 
 use DateTime;
-use Exception;
-use getID3;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
 
 class TwitchVOD {
 	
@@ -429,30 +429,61 @@ class TwitchVOD {
 		$video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
 
 		// TwitchDownloaderCLI -m ChatRender -i KrustingKevin_2020-09-25T11_27_57Z_39847598366.chat -h 720 -w 300 --framerate 60 --update-rate 0 --font-size 18 -o chat.mp4
+		$cmd = [];
 
-		$cmd = TwitchHelper::path_twitchdownloader();
+		$cmd[] = TwitchHelper::path_twitchdownloader();
 
-		if( !$cmd ){
-			throw new \Exception('twitchdownloader not installed');
-			return false;
-		}
+		$cmd[] = '--mode';
+		$cmd[] = 'ChatRender';
+
+		$cmd[] = '--input';
+		$cmd[] = realpath($chat_filename);
 		
-		$cmd .= ' --mode ChatRender';
-		$cmd .= ' --input ' . escapeshellarg( realpath( $chat_filename ) );
-		$cmd .= ' --chat-height ' . escapeshellarg( $this->video_metadata['video']['Height'] );
-		$cmd .= ' --chat-width 300';
-		$cmd .= ' --framerate 60';
-		$cmd .= ' --update-rate 0';
-		$cmd .= ' --font-size 12';
-		$cmd .= ' --outline';
-		// $cmd .= ' --background-color "#FF00FF"';
-		$cmd .= ' --generate-mask';
-		$cmd .= ' --output ' . escapeshellarg($video_filename);
-		$cmd .= ' 2>&1'; // console output
+		$cmd[] = '--chat-height';
+		$cmd[] = $this->video_metadata['video']['Height'];
 
-		$capture_output = shell_exec( $cmd );
+		$cmd[] = '--chat-width';
+		$cmd[] = '300';
 
-		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tdrender_" . $this->basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $capture_output);
+		$cmd[] = '--framerate';
+		$cmd[] = '60';
+
+		$cmd[] = '--update-rate';
+		$cmd[] = '0';
+
+		$cmd[] = '--font-size';
+		$cmd[] = '12';
+
+		$cmd[] = '--outline';
+
+		// $cmd[] = '--background-color "#FF00FF"';
+
+		$cmd[] = '--generate-mask';
+		
+		$cmd[] = '--output';
+		$cmd[] = $video_filename;
+		// $cmd[] = ' 2>&1'; // console output
+		
+		$env = [
+			// 'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache",
+			'PATH' => dirname( TwitchHelper::path_ffmpeg() ),
+			'TEMP' => __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache"
+		];
+
+		$process = new Process( $cmd, $this->directory, $env, null, null );
+
+		$process->run();
+		
+		$capture_output = $process->getErrorOutput();
+
+		// var_dump( $cmd );
+		// var_dump( $env );
+
+		// var_dump( $process->getOutput() );
+		// var_dump( $process->getErrorOutput() );
+
+		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tdrender_" . $this->basename . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
+		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tdrender_" . $this->basename . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 
 		return [$video_filename, $capture_output, $cmd];
 

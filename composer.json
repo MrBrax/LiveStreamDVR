@@ -10,7 +10,8 @@
     "ext-mbstring": "*",
     "ext-json": "*",
     "guzzlehttp/guzzle": "7.0",
-    "tuupola/slim-basic-auth": "^3.2"
+    "tuupola/slim-basic-auth": "^3.2",
+    "symfony/process": "^5.1"
   },
   "autoload": {
     "psr-4": {

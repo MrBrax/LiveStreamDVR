@@ -387,7 +387,7 @@ a.linkback {
 		padding: 3px 5px;
 	}
 
-	&[type=text], &[type=password] {
+	&[type=text], &[type=number], &[type=password] {
 		min-width: 200px;
 	}
 

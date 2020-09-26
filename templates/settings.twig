@@ -95,7 +95,7 @@
                                 {% elseif setting.type == "boolean" %}
                                     <input type="checkbox" name="{{ setting.key }}" {{ config[setting.key] ? 'checked="checked"' : '' }} />
                                 {% elseif setting.type == "array" %}
-                                    <select name="{{ setting.key }}">
+                                    <select name="{{ setting.key }}" class="input">
                                         {% for option in setting.choices %}
                                             <option {{ config[setting.key] == option ? 'selected="selected"' : '' }}>{{ option }}</option>
                                         {% endfor %}
