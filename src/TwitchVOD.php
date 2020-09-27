@@ -576,9 +576,9 @@ class TwitchVOD {
 		$cmd[] = '-c:v';
 		$cmd[] = 'libx264';
 		$cmd[] = '-preset';
-		$cmd[] = TwitchConfig::cfg('debug') ? 'ultrafast' : 'slow';
+		$cmd[] = TwitchConfig::cfg('burn_preset', 'slow');
 		$cmd[] = '-crf';
-		$cmd[] = '26';
+		$cmd[] = TwitchConfig::cfg('burn_crf', '26');
 
 		$cmd[] = $final_filename;
 

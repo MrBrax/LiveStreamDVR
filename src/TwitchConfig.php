@@ -17,15 +17,18 @@ class TwitchConfig {
 
 		[ 'key' => 'basepath', 				'text' => 'Base path (for reverse proxy etc)', 												'type' => 'string' ],
 		[ 'key' => 'password', 				'text' => 'Password (keep blank for none) - username is admin', 							'type' => 'string' ],
-		[ 'key' => 'storage_per_streamer', 	'text' => 'Gigabytes of storage per streamer', 												'type' => 'number' ],
-		[ 'key' => 'hls_timeout', 			'text' => 'HLS Timeout in seconds (ads)', 													'type' => 'number' ],
-		[ 'key' => 'vods_to_keep', 			'text' => 'VODs to keep per streamer', 														'type' => 'number' ],
+		[ 'key' => 'storage_per_streamer', 	'text' => 'Gigabytes of storage per streamer', 												'type' => 'number', 'default' => 100 ],
+		[ 'key' => 'hls_timeout', 			'text' => 'HLS Timeout in seconds (ads)', 													'type' => 'number', 'default' => 200 ],
+		[ 'key' => 'vods_to_keep', 			'text' => 'VODs to keep per streamer', 														'type' => 'number', 'default' => 5 ],
 		[ 'key' => 'api_client_id', 		'text' => 'Twitch client ID', 																'type' => 'string' ],
 		[ 'key' => 'api_secret', 			'text' => 'Twitch secret (keep blank to not change)', 										'type' => 'string', 'secret' => true ],
 		[ 'key' => 'hook_callback', 		'text' => 'Hook callback', 																	'type' => 'string' ],
 		
-		[ 'key' => 'vod_container', 		'text' => 'VOD container (not tested)', 													'type' => 'array', 'choices' => ['mp4', 'mkv', 'mov'] ],
-		
+		[ 'key' => 'vod_container', 		'text' => 'VOD container (not tested)', 													'type' => 'array', 'choices' => ['mp4', 'mkv', 'mov'], 'default' => 'mp4' ],
+
+		[ 'key' => 'burn_preset', 			'text' => 'Burning h264 preset', 															'type' => 'array', 'choices' => ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower', 'veryslow', 'placebo'], 'default' => 'slow' ],
+		[ 'key' => 'burn_crf', 				'text' => 'Burning h264 crf', 																'type' => 'number', 'default' => 26 ],
+
 		[ 'key' => 'disable_ads', 			'text' => 'Hide ads from captured file (stream will still be interrupted, thanks twitch)', 	'type' => 'boolean' ],
 		[ 'key' => 'debug', 				'text' => 'Debug', 																			'type' => 'boolean' ],
 		[ 'key' => 'app_verbose', 			'text' => 'Verbose app output', 															'type' => 'boolean' ],

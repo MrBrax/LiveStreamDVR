@@ -95,15 +95,15 @@
                         <div class="control">
                             <label>
                                 {% if setting.type == "string" %}
-                                    <input class="input" type="text" name="{{ setting.key }}" value="{{ setting.secret ? '' : config[setting.key] }}" />
+                                    <input class="input" type="text" name="{{ setting.key }}" value="{{ setting.secret ? '' : ( config[setting.key] ?: setting.default ) }}" />
                                 {% elseif setting.type == "number" %}
-                                    <input class="input" type="number" name="{{ setting.key }}" value="{{ setting.secret ? '' : config[setting.key] }}" />
+                                    <input class="input" type="number" name="{{ setting.key }}" value="{{ setting.secret ? '' : ( config[setting.key] ?: setting.default ) }}" />
                                 {% elseif setting.type == "boolean" %}
                                     <input type="checkbox" name="{{ setting.key }}" {{ config[setting.key] ? 'checked="checked"' : '' }} />
                                 {% elseif setting.type == "array" %}
                                     <select name="{{ setting.key }}" class="input">
                                         {% for option in setting.choices %}
-                                            <option {{ config[setting.key] == option ? 'selected="selected"' : '' }}>{{ option }}</option>
+                                            <option {{ config[setting.key] ? ( config[setting.key] == option ) : ( setting.default == option ) ? 'selected="selected"' : '' }}>{{ option }}</option>
                                         {% endfor %}
                                     </select>
                                 {% endif %}
