@@ -545,8 +545,11 @@ class TwitchVOD {
 		$cmd[] = $video_filename;
 
 		// alpha mask
+		// https://ffmpeg.org/ffmpeg-filters.html#overlay-1
+		// https://stackoverflow.com/questions/50338129/use-ffmpeg-to-overlay-a-video-on-top-of-another-using-an-alpha-channel
 		$cmd[] = '-filter_complex';
-		$cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=' . $chat_x . ':0';
+		$cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=main_w-overlay_w:0';
+		// $cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=' . $chat_x . ':0';
 
 		// copy audio stream
 		$cmd[] = '-c:a';
@@ -556,7 +559,7 @@ class TwitchVOD {
 		$cmd[] = '-c:v';
 		$cmd[] = 'libx264';
 		$cmd[] = '-preset';
-		$cmd[] = 'slow';
+		$cmd[] = TwitchConfig::cfg('debug') ? 'ultrafast' : 'slow';
 		$cmd[] = '-crf';
 		$cmd[] = '26';
 

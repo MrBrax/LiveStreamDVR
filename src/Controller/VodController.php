@@ -121,7 +121,9 @@ class VodController
 
         if( $vodclass->is_chat_downloaded ){
             $response->getBody()->write("Rendering");
-            $vodclass->renderChat();
+            if( $vodclass->renderChat() ){
+                $vodclass->burnChat();
+            }
         }else{
             $response->getBody()->write("VOD has no chat downloaded");
         }
