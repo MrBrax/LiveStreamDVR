@@ -458,7 +458,7 @@ class TwitchAutomator {
 		$vodclass->finalize();
 		$vodclass->saveJSON();
 		
-		if( ( TwitchConfig::cfg('download_chat') || TwitchConfig::getStreamer($data_username)['download_chat'] == 1 ) && $vodclass->twitch_vod_id ){
+		if( ( TwitchConfig::cfg('download_chat') || ( TwitchConfig::getStreamer($data_username)['download_chat'] ) && $vodclass->twitch_vod_id ) ){
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "Auto download chat on " . $basename);
 			$vodclass->downloadChat();
 		}

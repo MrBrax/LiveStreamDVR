@@ -327,6 +327,11 @@ class TwitchVOD {
         return $diff->format('%H:%I:%S');
 	}
 
+	public function getStartOffset(){
+		if(!$this->twitch_vod_id) return false;
+		return $this->twitch_vod_duration - $this->getDuration();
+	}
+
 	/**
 	 * Download chat with tcd
 	 * @param  int 		$video_id [description]
@@ -425,8 +430,13 @@ class TwitchVOD {
 		}
 
 		$chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
-
 		$video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
+		$chat_width = 300;
+
+		if( file_exists($chat_filename) && file_exists($video_filename) ){
+			$this->burnChat($chat_width);
+			return;
+		}
 
 		// TwitchDownloaderCLI -m ChatRender -i KrustingKevin_2020-09-25T11_27_57Z_39847598366.chat -h 720 -w 300 --framerate 60 --update-rate 0 --font-size 18 -o chat.mp4
 		$cmd = [];
@@ -443,7 +453,7 @@ class TwitchVOD {
 		$cmd[] = $this->video_metadata['video']['Height'];
 
 		$cmd[] = '--chat-width';
-		$cmd[] = '300';
+		$cmd[] = $chat_width;
 
 		$cmd[] = '--framerate';
 		$cmd[] = '60';
@@ -456,7 +466,8 @@ class TwitchVOD {
 
 		$cmd[] = '--outline';
 
-		// $cmd[] = '--background-color "#FF00FF"';
+		$cmd[] = '--background-color';
+		$cmd[] = '#00000000';
 
 		$cmd[] = '--generate-mask';
 		
@@ -485,7 +496,86 @@ class TwitchVOD {
 		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tdrender_" . $this->basename . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
 		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tdrender_" . $this->basename . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 
+		$this->burnChat( $chat_width );
+
 		return [$video_filename, $capture_output, $cmd];
+
+	}
+
+	public function burnChat( $chat_width ){
+
+		// ffmpeg -i .\HAchubby_2020-09-21T11_09_43Z_667506194_chat.mp4 -i .\HAchubby_2020-09-21T11_09_43Z_667506194_chat_mask.mp4 -i .\HAchubby_2020-09-21T11_09_43Z_667506194.mp4 -filter_complex "[0][1]alphamerge[ia];[2][ia]overlay" out.mp4
+
+		$video_filename = $this->directory . DIRECTORY_SEPARATOR . basename( $this->segments_raw[0] );
+		$chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
+		$mask_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat_mask.mp4';
+		$final_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_burned.mp4';
+
+		$chat_x = $this->video_metadata['video']['Width'] - $chat_width;
+
+		$cmd = [];
+
+		$cmd[] = TwitchHelper::path_ffmpeg();
+
+		// chat render offset
+		if( $this->getStartOffset() ){
+			$cmd[] = '-ss';
+			$cmd[] = round( $this->getStartOffset() );
+		}
+
+		// chat render
+		$cmd[] = '-i';
+		$cmd[] = $chat_filename;
+
+		// chat mask offset
+		if( $this->getStartOffset() ){
+			$cmd[] = '-ss';
+			$cmd[] = round( $this->getStartOffset() );
+		}
+
+		// chat mask
+		$cmd[] = '-i';
+		$cmd[] = $mask_filename;
+		
+		// vod
+		$cmd[] = '-i';
+		$cmd[] = $video_filename;
+
+		// alpha mask
+		$cmd[] = '-filter_complex';
+		$cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=' . $chat_x . ':0';
+
+		// copy audio stream
+		$cmd[] = '-c:a';
+		$cmd[] = 'copy';
+
+		// h264 slow crf 26
+		$cmd[] = '-c:v';
+		$cmd[] = 'libx264';
+		$cmd[] = '-preset';
+		$cmd[] = 'slow';
+		$cmd[] = '-crf';
+		$cmd[] = '26';
+
+		$cmd[] = $final_filename;
+
+		$process = new Process( $cmd, $this->directory, null, null, null );
+
+		$process->run();
+
+		// var_dump( implode(" ", $cmd) );
+
+		// var_dump( $process->getOutput() );
+		// var_dump( $process->getErrorOutput() );
+
+		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "burnchat_" . $this->basename . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
+		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "burnchat_" . $this->basename . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
+
+		if( file_exists( $final_filename ) && filesize( $final_filename) > 0 ){
+			return true;
+		}else{
+			return false;
+		}
 
 	}
 
