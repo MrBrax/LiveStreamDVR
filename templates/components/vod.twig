@@ -60,6 +60,8 @@
                             <li><strong>Audio:</strong> {{ vodclass.video_metadata.audio.Format }} {{ (vodclass.video_metadata.audio.BitRate / 1000)|round }}kbps</li>
                             {% endif %}
                             <li><strong>Chat downloaded:</strong> {{ vodclass.is_chat_downloaded ? 'Yes' : 'No' }}</li>
+                            <li><strong>Chat rendered:</strong> {{ vodclass.is_chat_rendered ? 'Yes' : 'No' }}</li>
+                            <li><strong>Chat burned:</strong> {{ vodclass.is_chat_burned ? 'Yes' : 'No' }}</li>
                         </ul>
                     </div>
                     <div class="info-column">
@@ -153,6 +155,13 @@
                         </a>
                     </li>
                 {% endfor %}
+                {% if vodclass.is_chat_rendered %}
+                    <li><a href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}_chat.mp4">Rendered chat</a></li>
+                    <li><a href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}_chat_mask.mp4">Rendered chat mask</a></li>
+                {% endif %}
+                {% if vodclass.is_chat_burned %}
+                    <li><a href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}_burned.mp4">Burned chat</a></li>
+                {% endif %}
             </ul>
         </div>
         {% endif %}
@@ -172,15 +181,18 @@
                     <a class="button" href="{{ url_for('chat', { 'vod': vodclass.basename }) }}">Download chat</a>
                 {% endif %}
 
-                {% if  vodclass.is_chat_downloaded %}
+                {% if vodclass.is_chat_downloaded and not vodclass.is_chat_burned %}
                     <a class="button" href="{{ url_for('render_chat', { 'vod': vodclass.basename }) }}">Render chat</a>
+                    {% if vodclass.is_vod_downloaded %}
+                        <a class="button" href="{{ url_for('render_chat', { 'vod': vodclass.basename }) }}?use_vod=1">Render chat (vod)</a>
+                    {% endif %}
                 {% endif %}
 
                 {% if vodclass.twitch_vod_id %}
                     {% if not vodclass.is_vod_downloaded %}
                         <a class="button" href="{{ url_for('download', { 'vod': vodclass.basename }) }}">Download VOD</a>
                     {% else %}
-                        <a class="button" href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}.vod.ts">Play VOD</a>
+                        <a class="button" href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}_vod.mp4">Play VOD</a>
                     {% endif %}
                     <a class="button" href="{{ url_for('check_mute', { 'vod': vodclass.basename }) }}">Check mute</a>
                 {% endif %}

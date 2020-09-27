@@ -60,6 +60,8 @@ class TwitchVOD {
 
 	public $is_chat_downloaded = false;
 	public $is_vod_downloaded = false;
+	public $is_chat_rendered = false;
+	public $is_chat_burned = false;
 
 	public $dt_ended_at = null;
 	public $dt_capture_started = null;
@@ -135,8 +137,8 @@ class TwitchVOD {
 		$this->is_converting 	= isset($this->json['is_converting']) ? $this->json['is_converting'] : false;
 		$this->is_finalized 	= isset($this->json['is_finalized']) ? $this->json['is_finalized'] : false;
 
-		$this->streamer_name = $this->json['meta']['data'][0]['user_name'];
-		$this->streamer_id = TwitchHelper::getChannelId( $this->streamer_name );
+		$this->streamer_name 	= $this->json['meta']['data'][0]['user_name'];
+		$this->streamer_id 		= TwitchHelper::getChannelId( $this->streamer_name );
 
 		$this->twitch_vod_id 			= isset($this->json['twitch_vod_id']) ? $this->json['twitch_vod_id'] : null;
 		$this->twitch_vod_url 			= isset($this->json['twitch_vod_url']) ? $this->json['twitch_vod_url'] : null;
@@ -187,8 +189,11 @@ class TwitchVOD {
 		}
 
 		$this->is_chat_downloaded = file_exists( $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat' );
-		$this->is_vod_downloaded = file_exists( $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.vod.ts' );
+		$this->is_vod_downloaded = file_exists( $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_vod.mp4' );
 		$this->is_lossless_cut_generated = file_exists( $this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv' );
+
+		$this->is_chat_rendered = file_exists( $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4' );
+		$this->is_chat_burned = file_exists( $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_burned.mp4' );
 
 		return true;
 
@@ -505,11 +510,23 @@ class TwitchVOD {
 
 	}
 
-	public function burnChat( $chat_width = 300 ){
+	public function burnChat( $chat_width = 300, $use_vod = false ){
 
 		// ffmpeg -i .\HAchubby_2020-09-21T11_09_43Z_667506194_chat.mp4 -i .\HAchubby_2020-09-21T11_09_43Z_667506194_chat_mask.mp4 -i .\HAchubby_2020-09-21T11_09_43Z_667506194.mp4 -filter_complex "[0][1]alphamerge[ia];[2][ia]overlay" out.mp4
 
-		$video_filename = $this->directory . DIRECTORY_SEPARATOR . basename( $this->segments_raw[0] );
+		if( $use_vod ){
+
+			if( !$this->is_vod_downloaded ){
+				throw new \Exception('no vod downloaded');
+				return false;
+			}
+
+			$video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_vod.mp4';
+
+		}else{
+			$video_filename = $this->directory . DIRECTORY_SEPARATOR . basename( $this->segments_raw[0] );
+		}
+
 		$chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
 		$mask_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat_mask.mp4';
 		$final_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_burned.mp4';
@@ -1014,27 +1031,57 @@ class TwitchVOD {
 			return false;
 		}
 
-		$capture_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.vod.ts';
-
-		$video_url = 'https://www.twitch.tv/videos/' . $this->twitch_vod_id;
-
-		// use python pipenv or regular executable
-		if( TwitchConfig::cfg('pipenv') ){
-			$cmd = 'pipenv run streamlink';
-		}else{
-			$cmd = TwitchHelper::path_streamlink();
+		if( $this->is_vod_downloaded ){
+			throw new \Exception("Vod is already downloaded");
+			return false;
 		}
 
-		$cmd .= ' -o ' . escapeshellarg($capture_filename); // output file
-		$cmd .= ' ' . escapeshellarg($video_url) . ' best'; // twitch url and quality
+		set_time_limit(0); // todo: hotfix
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting vod download of " . $this->basename );
-		
+		$capture_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_vod.ts';
+		$converted_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_vod.mp4';
+
+		if( !file_exists( $capture_filename) ){
+
+			$video_url = 'https://www.twitch.tv/videos/' . $this->twitch_vod_id;
+
+			// use python pipenv or regular executable
+			if( TwitchConfig::cfg('pipenv') ){
+				$cmd = 'pipenv run streamlink';
+			}else{
+				$cmd = TwitchHelper::path_streamlink();
+			}
+
+			$cmd .= ' -o ' . escapeshellarg($capture_filename); // output file
+			$cmd .= ' ' . escapeshellarg($video_url) . ' best'; // twitch url and quality
+
+			TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting vod download of " . $this->basename );
+			
+			$capture_output = shell_exec( $cmd );
+
+			file_put_contents( __DIR__ . "/../logs/streamlink_vod_" . $this->basename . ".log", $capture_output);
+
+		}
+
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting remux of " . $this->basename );
+
+		$cmd = TwitchHelper::path_ffmpeg();
+		$cmd .= ' -i ' . escapeshellarg($capture_filename); // input filename
+		$cmd .= ' -codec copy'; // use same codec
+		$cmd .= ' -bsf:a aac_adtstoasc'; // fix audio sync in ts
+		if( TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false) ) $cmd .= ' -loglevel repeat+level+verbose';
+		$cmd .= ' ' . escapeshellarg($converted_filename); // output filename
+		$cmd .= ' 2>&1'; // console output
+
 		$capture_output = shell_exec( $cmd );
 
-		file_put_contents( __DIR__ . "/../logs/streamlink_vod_" . $this->basename . ".log", $capture_output);
+		file_put_contents( __DIR__ . "/../logs/ffmpeg_vod_" . $this->basename . ".log", $capture_output);
 
-		return $capture_filename;
+		if( file_exists( $capture_filename) && file_exists($converted_filename) && filesize( $converted_filename) > 0 ){
+			unlink( $capture_filename );
+		}
+
+		return $converted_filename;
 
 	}
 

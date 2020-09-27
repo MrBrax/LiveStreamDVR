@@ -367,7 +367,7 @@ a.linkback {
 	font-family: inherit;
 	font-size: 14px;
 
-	padding: 4px 6px;
+	padding: 5px 8px;
 	margin: 2px 0px;
 	border-radius: 3px;
 
@@ -384,13 +384,17 @@ a.linkback {
 		border-width: 2px;
 		border-color: #555;
 		background-color: #eff6ff;
-		padding: 3px 5px;
+		padding: 4px 7px;
 	}
 
 	&[type=text], &[type=number], &[type=password] {
 		min-width: 200px;
 	}
 
+}
+
+select.input {
+	min-width: 200px;
 }
 
 .error {
@@ -733,6 +737,12 @@ $anchor-height: 60px;
 	&:empty {
 		display: none;
 	}
+}
+
+.settings-streamer {
+	margin-bottom: 5px;
+	padding: 5px;
+	background-color: #f7f7f7;
 }
 
 /** Black theme **/

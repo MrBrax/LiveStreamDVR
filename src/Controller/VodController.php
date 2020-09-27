@@ -119,10 +119,12 @@ class VodController
         $vodclass = new TwitchVOD();
         $vodclass->load( TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
+        $use_vod = isset( $_GET['use_vod'] );
+
         if( $vodclass->is_chat_downloaded ){
             $response->getBody()->write("Rendering");
             if( $vodclass->renderChat() ){
-                $vodclass->burnChat();
+                $vodclass->burnChat( 300, $use_vod );
             }
         }else{
             $response->getBody()->write("VOD has no chat downloaded");

@@ -12,7 +12,7 @@
 
                 {% for streamer in streamers %}
 
-                    <div>
+                    <div class="settings-streamer">
                         <h2>{{ streamer.username }}</h2>
                         <form method="POST" action="{{ url_for('streamer_update') }}">
                             <input type="hidden" name="key" value="{{ loop.index }}" />
@@ -42,8 +42,6 @@
                             <button class="button is-danger" type="submit">Delete</button> (no undo, no confirmation)
                         </form>
                     </div>
-
-                    <hr />
 
                 {% endfor %}
 

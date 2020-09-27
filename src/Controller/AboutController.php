@@ -130,6 +130,16 @@ class AboutController
             }
         }
 
+        $bins['twitchdownloader'] = [];
+        $bins['twitchdownloader']['path'] = TwitchHelper::path_twitchdownloader();
+        if (file_exists(TwitchHelper::path_twitchdownloader())) {
+            $out = shell_exec(TwitchHelper::path_twitchdownloader() . " --version 2>&1");
+            $bins['twitchdownloader']['status'] = trim($out);
+            $bins['twitchdownloader']['installed'] = true;
+        } else {
+            $bins['twitchdownloader']['status'] = 'Not installed';
+        }
+
 
         $bins['pipenv'] = [];
         $bins['pipenv']['path'] = TwitchHelper::path_pipenv();
