@@ -3,11 +3,8 @@
 **About 2 minutes of video seems to be missing from the start of every recording, i don't yet know why this is happening.**
 
 1. Install dependencies with composer.
-
 2. Install utilities with pip, see below
-
-3. Configure using the `config.json` file in the `config` directory.
-
+3. ~~Configure using the `config.json` file in the `config` directory.~~ Go to the settings page and set up basic stuff
 4. Visit `/sub` in your web browser to check that subscribing to the webhooks work. Make it automatic with a cronjob using wget/curl later (check `/settings` for syntax). Check `/subs` for subscription status. **This thing requires a public facing webserver.**
 
 Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in-subdirectory
@@ -20,15 +17,15 @@ Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in
     - Python 3.7+ for tcd support
 - [pip](https://pypi.org/project/pip/)
 - [Composer](https://getcomposer.org/)
-- FFmpeg
-- Mediainfo
+- [FFmpeg](https://ffmpeg.org/download.html)
+- [Mediainfo](https://mediaarea.net/en/MediaInfo)
+- [TwitchDownloader](https://github.com/lay295/TwitchDownloader) (optional for chat burning)
 
 ### pip packages
 - [streamlink](https://github.com/streamlink/streamlink) (required)
 - [youtube-dl](https://github.com/ytdl-org/youtube-dl) (recommended)
 - [tcd](https://pypi.org/project/tcd/) (optional)
 - [pipenv](https://github.com/pypa/pipenv) (optional, experimental)
-
 
 ## Features
 - Automatic VOD recording pretty much the second the stream goes live, instead of checking it every minute like many other scripts do
@@ -38,6 +35,8 @@ Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in
 - Can be set to automatically download the whole stream chat to a JSON file, to be used in my [twitch-vod-chat](https://github.com/MrBrax/twitch-vod-chat) webapp.
 
 ## Some config help
+
+**There is now a settings page, editing the json file shouldn't be required anymore**
 
 `bin_dir`
 
