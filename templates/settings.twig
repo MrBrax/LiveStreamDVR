@@ -26,9 +26,13 @@
                                 <div class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</div>
                             </div>
                             <div class="control">
-                                <label><input class="input" type="checkbox" name="download_chat" value="1" {{ streamer.download_chat ? 'checked="checked"' : '' }} /> Download chat</label><br><br>
+                                <label><input class="input" type="checkbox" name="download_chat" value="1" {{ streamer.download_chat ? 'checked="checked"' : '' }} /> Download chat</label>
                             </div>
                             <div class="control">
+                                <label><input class="input" type="checkbox" name="burn_chat" value="1" {{ streamer.burn_chat ? 'checked="checked"' : '' }} /> Burn chat after downloading</label>
+                            </div>
+                            <div class="control">
+                                <br>
                                 <button class="button is-confirm" type="submit">Save</button>
                             </div>
                         </form>
@@ -67,9 +71,13 @@
                         <div class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</div>
                     </div>
                     <div class="control">
-                        <label><input class="input" type="checkbox" name="download_chat" value="1" /> Download chat</label><br><br>
+                        <label><input class="input" type="checkbox" name="download_chat" value="1" /> Download chat</label>
                     </div>
                     <div class="control">
+                        <label><input class="input" type="checkbox" name="burn_chat" value="1" /> Burn chat after downloading</label>
+                    </div>
+                    <div class="control">
+                        <br>
                         <button class="button is-confirm" type="submit">Add</button>
                     </div>
                 </form>

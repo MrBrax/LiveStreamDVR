@@ -434,8 +434,9 @@ class TwitchVOD {
 		$chat_width = 300;
 
 		if( file_exists($chat_filename) && file_exists($video_filename) ){
-			$this->burnChat($chat_width);
-			return;
+			return true;
+			// $this->burnChat($chat_width);
+			// return;
 		}
 
 		// TwitchDownloaderCLI -m ChatRender -i KrustingKevin_2020-09-25T11_27_57Z_39847598366.chat -h 720 -w 300 --framerate 60 --update-rate 0 --font-size 18 -o chat.mp4
@@ -496,13 +497,15 @@ class TwitchVOD {
 		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tdrender_" . $this->basename . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
 		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tdrender_" . $this->basename . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 
-		$this->burnChat( $chat_width );
+		// $this->burnChat( $chat_width );
 
-		return [$video_filename, $capture_output, $cmd];
+		// return [$video_filename, $capture_output, $cmd];
+
+		return file_exists( $video_filename ) && filesize( $video_filename) > 0;
 
 	}
 
-	public function burnChat( $chat_width ){
+	public function burnChat( $chat_width = 300 ){
 
 		// ffmpeg -i .\HAchubby_2020-09-21T11_09_43Z_667506194_chat.mp4 -i .\HAchubby_2020-09-21T11_09_43Z_667506194_chat_mask.mp4 -i .\HAchubby_2020-09-21T11_09_43Z_667506194.mp4 -filter_complex "[0][1]alphamerge[ia];[2][ia]overlay" out.mp4
 
@@ -571,11 +574,7 @@ class TwitchVOD {
 		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "burnchat_" . $this->basename . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
 		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "burnchat_" . $this->basename . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 
-		if( file_exists( $final_filename ) && filesize( $final_filename) > 0 ){
-			return true;
-		}else{
-			return false;
-		}
+		return file_exists( $final_filename ) && filesize( $final_filename) > 0;
 
 	}
 

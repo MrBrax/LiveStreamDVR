@@ -141,6 +141,7 @@ class SettingsController
         $quality        = explode(" ", $_POST['quality']);
         $match          = $_POST['match'];
         $download_chat  = isset($_POST['download_chat']);
+        $burn_chat  = isset($_POST['burn_chat']);
 
         if( TwitchConfig::getStreamer($username) ){
             $response->getBody()->write("Streamer with that username already exists in config");
@@ -169,9 +170,8 @@ class SettingsController
             $streamer["match"] = explode(",", $match);
         }
     
-        if( $download_chat ){
-            $streamer["download_chat"] = 1;
-        }
+        if( $download_chat ) $streamer["download_chat"] = true;
+        if( $burn_chat ) $streamer["burn_chat"] = true;
 
         TwitchConfig::$config['streamers'][] = $streamer;
         TwitchConfig::saveConfig("streamer/add");
@@ -191,6 +191,7 @@ class SettingsController
         $quality        = explode(" ", $_POST['quality']);
         $match          = $_POST['match'];
         $download_chat  = isset($_POST['download_chat']);
+        $burn_chat  = isset($_POST['burn_chat']);
 
         $current_username = $username;
 
@@ -217,9 +218,8 @@ class SettingsController
             $streamer["match"] = explode(",", $match);
         }
     
-        if( $download_chat ){
-            $streamer["download_chat"] = 1;
-        }
+        if( $download_chat ) $streamer["download_chat"] = true;
+        if( $burn_chat ) $streamer["burn_chat"] = true;
     
         $key = null;
         foreach( TwitchConfig::$config['streamers'] as $k => $v ){

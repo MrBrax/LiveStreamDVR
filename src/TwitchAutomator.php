@@ -461,6 +461,13 @@ class TwitchAutomator {
 		if( ( TwitchConfig::cfg('download_chat') || ( TwitchConfig::getStreamer($data_username)['download_chat'] ) && $vodclass->twitch_vod_id ) ){
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "Auto download chat on " . $basename);
 			$vodclass->downloadChat();
+
+			if( TwitchConfig::getStreamer($data_username)['burn_chat'] ){
+				if( $vodclass->renderChat() ){
+					$vodclass->burnChat();
+				}
+			}
+
 		}
 
 		TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "All done for " . $basename);
