@@ -85,6 +85,17 @@ code, pre {
 	flex-wrap: wrap;
 	overflow: hidden;
 	// font-size: 1em;
+
+	&.side {
+		// position: static;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		right: auto;
+		height: 100vh;
+		width: 300px;
+		display: block;
+	}
 }
 
 // TODO: make this more dynamic

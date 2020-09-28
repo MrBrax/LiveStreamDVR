@@ -45,9 +45,10 @@
                                 {% else %}
                                     <strong><em>No data</em></strong>
                                 {% endif %}
-
-                            </li>                            
-                            
+                            </li>
+                            <li><strong>Chat downloaded:</strong> {{ vodclass.is_chat_downloaded ? 'Yes' : 'No' }}</li>
+                            <li><strong>Chat rendered:</strong> {{ vodclass.is_chat_rendered ? 'Yes' : 'No' }}</li>
+                            <li><strong>Chat burned:</strong> {{ vodclass.is_chat_burned ? 'Yes' : 'No' }}</li>                            
                         </ul>
                     </div>
                     <div class="info-column">
@@ -55,13 +56,10 @@
                             <li><strong>File duration:</strong> {{ vodclass.getDuration(true)|humanDuration }}</li>
                             <li><strong>Size:</strong> {{ vodclass.segments[0].filesize|formatBytes }}</li>
                             {% if vodclass.video_metadata %}
-                            <li><strong>Dimensions:</strong> {{ vodclass.video_metadata.video.Width }}x{{ vodclass.video_metadata.video.Height }}@{{ vodclass.video_metadata.video.FrameRate }}</li>
-                            <li><strong>Bitrate:</strong> {{ (vodclass.video_metadata.video.BitRate / 1000)|round }}kbps</li>
-                            <li><strong>Audio:</strong> {{ vodclass.video_metadata.audio.Format }} {{ (vodclass.video_metadata.audio.BitRate / 1000)|round }}kbps</li>
+                            <li><strong>Dimensions:</strong> {{ vodclass.video_metadata.video.Width }}x{{ vodclass.video_metadata.video.Height }}@{{ vodclass.video_metadata.video.FrameRate_Original ?: vodclass.video_metadata.video.FrameRate }}</li>
+                            <li><strong>Video:</strong> {{ vodclass.video_metadata.video.Format }} {{ vodclass.video_metadata.video.BitRate_Mode }} {{ (vodclass.video_metadata.video.BitRate / 1000)|round }}kbps</li>
+                            <li><strong>Audio:</strong> {{ vodclass.video_metadata.audio.Format }} {{ vodclass.video_metadata.audio.BitRate_Mode }} {{ (vodclass.video_metadata.audio.BitRate / 1000)|round }}kbps</li>
                             {% endif %}
-                            <li><strong>Chat downloaded:</strong> {{ vodclass.is_chat_downloaded ? 'Yes' : 'No' }}</li>
-                            <li><strong>Chat rendered:</strong> {{ vodclass.is_chat_rendered ? 'Yes' : 'No' }}</li>
-                            <li><strong>Chat burned:</strong> {{ vodclass.is_chat_burned ? 'Yes' : 'No' }}</li>
                         </ul>
                     </div>
                     <div class="info-column">
