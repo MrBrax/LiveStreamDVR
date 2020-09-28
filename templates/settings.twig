@@ -17,24 +17,43 @@
                         <form method="POST" action="{{ url_for('streamer_update') }}">
                             <input type="hidden" name="key" value="{{ loop.index }}" />
                             <input type="hidden" name="username" value="{{ streamer.username }}" />
-                            <div class="control">
-                                <label><input class="input input-required" type="text" name="quality" value="{{ streamer.quality|join(" ") }}" /> Quality</label>
-                                <div class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</div>
+                            
+                            <div class="field">
+                                <label class="label">Quality</label>
+                                <div class="control">
+                                    <input class="input input-required" type="text" name="quality" value="{{ streamer.quality|join(" ") }}" />
+                                    <p class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</p>
+                                </div>
                             </div>
-                            <div class="control">
-                                <label><input class="input" type="text" name="match" value="{{ streamer.match|join(",") }}" /> Match keywords</label>
-                                <div class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</div>
+
+                            <div class="field">
+                                <label class="label">Match keywords</label>
+                                <div class="control">
+                                    <input class="input" type="text" name="match" value="{{ streamer.match|join(",") }}" />
+                                    <p class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</p>
+                                </div>
                             </div>
-                            <div class="control">
-                                <label><input class="input" type="checkbox" name="download_chat" value="1" {{ streamer.download_chat ? 'checked="checked"' : '' }} /> Download chat</label>
+
+                            <div class="field">
+                                <label class="checkbox">
+                                    <input class="input" type="checkbox" name="download_chat" value="1" {{ streamer.download_chat ? 'checked="checked"' : '' }} />
+                                    Download chat
+                                </label>
                             </div>
-                            <div class="control">
-                                <label><input class="input" type="checkbox" name="burn_chat" value="1" {{ streamer.burn_chat ? 'checked="checked"' : '' }} /> Burn chat after downloading</label>
+
+                            <div class="field">
+                                <label class="checkbox">
+                                    <input class="input" type="checkbox" name="burn_chat" value="1" {{ streamer.burn_chat ? 'checked="checked"' : '' }} />
+                                    Burn chat after downloading
+                                </label>
                             </div>
-                            <div class="control">
-                                <br>
-                                <button class="button is-confirm" type="submit">Save</button>
+
+                            <div class="field">
+                                <div class="control">
+                                    <button class="button is-confirm" type="submit">Save</button>
+                                </div>
                             </div>
+
                         </form>
                         <form method="POST" action="{{ url_for('streamer_delete') }}">
                             <input type="hidden" name="key" value="{{ loop.index }}" />
@@ -56,27 +75,43 @@
             <div class="section-content">
 
                 <form method="POST" action="{{ url_for('streamer_add') }}">
-                    <div class="control">
-                        <label><input class="input input-required" type="text" name="username" value="" /> Username <span class="required">*</span></label>
-                        <div class="input-help">Streamer username, preferably case sensitive</div>
+                    <div class="field">
+                        <label class="label">Username <span class="required">*</span></label>
+                        <div class="control">
+                            <input class="input input-required" type="text" name="username" value="" />
+                            <p class="input-help">Streamer username, case sensitive</p>
+                        </div>
                     </div>
-                    <div class="control">
-                        <label><input class="input input-required" type="text" name="quality" value="" /> Quality <span class="required">*</span></label>
-                        <div class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</div>
+                    <div class="field">
+                        <label class="label">Quality <span class="required">*</span></label>
+                        <div class="control">
+                            <label><input class="input input-required" type="text" name="quality" value="" />
+                            <p class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</p>
+                        </div>
                     </div>
-                    <div class="control">
-                        <label><input class="input" type="text" name="match" value="" /> Match keywords</label>
-                        <div class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</div>
+                    <div class="field">
+                        <label class="label">Match keywords</label>
+                        <div class="control">
+                            <label><input class="input" type="text" name="match" value="" />
+                            <p class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</p>
+                        </div>
                     </div>
-                    <div class="control">
-                        <label><input class="input" type="checkbox" name="download_chat" value="1" /> Download chat</label>
+                    <div class="field">
+                        <label class="checkbox">
+                            <input type="checkbox" name="download_chat" value="1" />
+                            Download chat
+                        </label>
                     </div>
-                    <div class="control">
-                        <label><input class="input" type="checkbox" name="burn_chat" value="1" /> Burn chat after downloading</label>
+                    <div class="field">
+                        <label class="checkbox">
+                            <input type="checkbox" name="burn_chat" value="1" />
+                            Burn chat after downloading
+                        </label>
                     </div>
-                    <div class="control">
-                        <br>
-                        <button class="button is-confirm" type="submit">Add</button>
+                    <div class="field">
+                        <div class="control">
+                            <button class="button is-confirm" type="submit">Add</button>
+                        </div>
                     </div>
                 </form>
                 
@@ -92,27 +127,31 @@
 
                 <form method="POST" action="{{ url_for('settings_save') }}">
                     {% for setting in settings %}
-                        <div class="control">
-                            <label>
-                                {% if setting.type == "string" %}
-                                    <input class="input{{ setting.required ? ' input-required' : '' }}" type="text" name="{{ setting.key }}" value="{{ setting.secret ? '' : ( config[setting.key] ?: setting.default ) }}" />
-                                {% elseif setting.type == "number" %}
-                                    <input class="input{{ setting.required ? ' input-required' : '' }}" type="number" name="{{ setting.key }}" value="{{ setting.secret ? '' : ( config[setting.key] ?: setting.default ) }}" />
-                                {% elseif setting.type == "boolean" %}
-                                    <input type="checkbox" name="{{ setting.key }}" {{ config[setting.key] ? 'checked="checked"' : '' }} />
-                                {% elseif setting.type == "array" %}
-                                    <select name="{{ setting.key }}" class="input{{ setting.required ? ' required' : '' }}">
-                                        {% for option in setting.choices %}
-                                            <option {{ config[setting.key] ? ( config[setting.key] == option ) : ( setting.default == option ) ? 'selected="selected"' : '' }}>{{ option }}</option>
-                                        {% endfor %}
-                                    </select>
-                                {% endif %}
-                                {{ setting.text }} {% if setting.required %}<span class="required">*</span>{% endif %}
-                            </label>
+                        <div class="field">
+                            {% if setting.type == "boolean" %}
+                                <label class="checkbox">
+                                    <input type="checkbox" name="{{ setting.key }}" id="input_{{ setting.key }}" {{ config[setting.key] ? 'checked="checked"' : '' }} />
+                                    {{ setting.text }}
+                                </label>
+                            {% else %}
+                                <label class="label" for="input_{{ setting.key }}">{{ setting.text }} {% if setting.required %}<span class="required">*</span>{% endif %}</label>
+                                <div class="control">
+                                    {% if setting.type == "string" %}
+                                        <input class="input{{ setting.required ? ' input-required' : '' }}" type="text" id="input_{{ setting.key }}" name="{{ setting.key }}" value="{{ setting.secret ? '' : ( config[setting.key] ?: setting.default ) }}" />
+                                    {% elseif setting.type == "number" %}
+                                        <input class="input{{ setting.required ? ' input-required' : '' }}" type="number" id="input_{{ setting.key }}" name="{{ setting.key }}" value="{{ setting.secret ? '' : ( config[setting.key] ?: setting.default ) }}" />
+                                    {% elseif setting.type == "array" %}
+                                        <select name="{{ setting.key }}" id="input_{{ setting.key }}" class="input{{ setting.required ? ' required' : '' }}">
+                                            {% for option in setting.choices %}
+                                                <option {{ config[setting.key] ? ( config[setting.key] == option ) : ( setting.default == option ) ? 'selected="selected"' : '' }}>{{ option }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
                         </div>
                     {% endfor %}
                     <div class="control">
-                        <br>
                         <button class="button is-confirm" type="submit">Save</button>
                     </div>
                 </form>

@@ -383,7 +383,7 @@ a.linkback {
 	font-family: inherit;
 	font-size: 14px;
 
-	padding: 5px 8px;
+	padding: 6px 10px;
 	margin: 2px 0px;
 	border-radius: 3px;
 
@@ -400,11 +400,12 @@ a.linkback {
 		border-width: 2px;
 		border-color: #555;
 		background-color: #eff6ff;
-		padding: 4px 7px;
+		padding: 5px 9px;
 	}
 
 	&[type=text], &[type=number], &[type=password] {
-		min-width: 200px;
+		max-width: 100%;
+		width: 100%;
 	}
 
 	/*
@@ -419,12 +420,24 @@ select.input {
 	min-width: 200px;
 }
 
-
+/*
 .control {
 	padding: 1px 0;
 	// border-bottom: 1px solid #fefefe;
 }
+*/
 
+.field:not(:last-child) {
+    margin-bottom: .8rem;
+}
+
+.label {
+	color: #363636;
+	display: block;
+	font-weight: 700;
+	font-size: 1rem;
+	margin-bottom: .3em;
+}
 
 .error {
 	color: #f00;
@@ -755,7 +768,8 @@ select.input {
 	font-size: 85%;
 	color: #777;
 	font-style: italic;
-	margin-bottom: 8px;
+	margin: 0;
+	padding: 0.2em 0 0 0;
 }
 
 hr {
