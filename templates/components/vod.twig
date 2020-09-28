@@ -200,7 +200,7 @@
 
                 {% if vodclass.twitch_vod_id %}
                     {% if not vodclass.is_vod_downloaded %}
-                        <a class="button" href="{{ url_for('download', { 'vod': vodclass.basename }) }}">Download VOD</a>
+                        <a class="button" href="{{ url_for('download', { 'vod': vodclass.basename }) }}">Download{{ vodclass.twitch_vod_muted ? ' muted' : '' }} VOD</a>
                     {% endif %}
                     <a class="button" href="{{ url_for('check_mute', { 'vod': vodclass.basename }) }}">Check mute</a>
                     {% if not vodclass.is_chat_burned %}

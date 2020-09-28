@@ -201,6 +201,7 @@ class TwitchVOD {
 
 	// test
 	public function create( $filename ){
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Create VOD JSON: " . basename($filename) );
 		$this->created = true;
 		$this->filename = $filename;
 		$this->basename = basename($filename, '.json');
@@ -365,6 +366,8 @@ class TwitchVOD {
 			return true;
 		}
 
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Download chat for " . $this->basename );
+
 		if( TwitchConfig::cfg('chat_compress', false) ){
 
 			if( file_exists( $compressed_filename ) ){
@@ -447,6 +450,8 @@ class TwitchVOD {
 			throw new \Exception('TwitchDownloaderCLI not installed');
 			return false;
 		}
+
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Render chat for " . $this->basename );
 
 		$chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
 		$video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
@@ -535,8 +540,8 @@ class TwitchVOD {
 
 	public function burnChat( $chat_width = 300, $use_vod = false ){
 
-		// ffmpeg -i .\HAchubby_2020-09-21T11_09_43Z_667506194_chat.mp4 -i .\HAchubby_2020-09-21T11_09_43Z_667506194_chat_mask.mp4 -i .\HAchubby_2020-09-21T11_09_43Z_667506194.mp4 -filter_complex "[0][1]alphamerge[ia];[2][ia]overlay" out.mp4
-
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Burn chat for " . $this->basename );
+		
 		if( $use_vod ){
 
 			if( !$this->is_vod_downloaded ){
@@ -1063,6 +1068,8 @@ class TwitchVOD {
 			return false;
 		}
 
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Download VOD for " . $this->basename );
+
 		set_time_limit(0); // todo: hotfix
 
 		$capture_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_vod.ts';
@@ -1125,6 +1132,8 @@ class TwitchVOD {
 		if( !$this->twitch_vod_id ){
 			return null;
 		}
+
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Check muted VOD for " . $this->basename );
 
 		if( TwitchConfig::cfg('pipenv') ){
 			$cmd = 'pipenv run streamlink';

@@ -542,6 +542,8 @@ class TwitchAutomator {
 		
 		$capture_output = shell_exec( $cmd );
 
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Finishing capture with filename " . basename($capture_filename) );
+
 		$this->info[] = 'Streamlink output: ' . $capture_output;
 
 		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_" . $basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $capture_output);
