@@ -1,7 +1,7 @@
 {
   "name": "twitchautomator",
-  "version": "3.1.4",
-  "description": "*Note that this thing is written without a framework or any real standards, so the code is pretty messy. Might refactor it one day with html templates and such.*",
+  "version": "3.1.5",
+  "description": "Twitch VOD automator fluff",
   "main": "src/Client/main.ts",
   "scripts": {
     "watch:style": "node-sass --source-map true --source-map-embed --watch ./src/Assets/style.scss --output ./public/assets/",

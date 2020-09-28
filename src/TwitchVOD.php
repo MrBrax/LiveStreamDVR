@@ -201,6 +201,7 @@ class TwitchVOD {
 
 	// test
 	public function create( $filename ){
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Create VOD JSON: " . basename($filename) );
 		$this->created = true;
 		$this->filename = $filename;
 		$this->basename = basename($filename, '.json');
@@ -361,6 +362,12 @@ class TwitchVOD {
 
 		$tcd_filename = $this->directory . DIRECTORY_SEPARATOR . $this->twitch_vod_id . '.json';
 
+		if( file_exists( $chat_filename ) ){
+			return true;
+		}
+
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Download chat for " . $this->basename );
+
 		if( TwitchConfig::cfg('chat_compress', false) ){
 
 			if( file_exists( $compressed_filename ) ){
@@ -442,7 +449,12 @@ class TwitchVOD {
 
 		}
 
-		return $chat_filename;
+		$successful = file_exists( $chat_filename ) && filesize( $chat_filename ) > 0;
+
+		if( $successful ) $this->is_chat_downloaded = true;
+
+		return $successful;
+		// return [$chat_filename, $capture_output, $cmd];
 
 	}
 
@@ -452,6 +464,13 @@ class TwitchVOD {
 			throw new \Exception('no chat downloaded');
 			return false;
 		}
+
+		if( !TwitchHelper::path_twitchdownloader() || !file_exists( TwitchHelper::path_twitchdownloader() ) ){
+			throw new \Exception('TwitchDownloaderCLI not installed');
+			return false;
+		}
+
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Render chat for " . $this->basename );
 
 		$chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
 		$video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
@@ -523,16 +542,25 @@ class TwitchVOD {
 
 		// $this->burnChat( $chat_width );
 
+		if( strpos( $process->getErrorOutput(), "Unhandled exception") !== false ){
+			throw new \Exception('Error when running TwitchDownloaderCLI. Please check logs.');
+			return false;
+		}
+
 		// return [$video_filename, $capture_output, $cmd];
 
-		return file_exists( $video_filename ) && filesize( $video_filename) > 0;
+		$successful = file_exists( $video_filename ) && filesize( $video_filename) > 0;
+
+		if( $successful ) $this->is_chat_rendered = true;
+
+		return $successful;
 
 	}
 
 	public function burnChat( $chat_width = 300, $use_vod = false ){
 
-		// ffmpeg -i .\HAchubby_2020-09-21T11_09_43Z_667506194_chat.mp4 -i .\HAchubby_2020-09-21T11_09_43Z_667506194_chat_mask.mp4 -i .\HAchubby_2020-09-21T11_09_43Z_667506194.mp4 -filter_complex "[0][1]alphamerge[ia];[2][ia]overlay" out.mp4
-
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Burn chat for " . $this->basename );
+		
 		if( $use_vod ){
 
 			if( !$this->is_vod_downloaded ){
@@ -613,7 +641,11 @@ class TwitchVOD {
 		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "burnchat_" . $this->basename . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
 		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "burnchat_" . $this->basename . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 
-		return file_exists( $final_filename ) && filesize( $final_filename) > 0;
+		$successful = file_exists( $final_filename ) && filesize( $final_filename) > 0;
+
+		if( $successful ) $this->is_chat_burned = true;
+
+		return $successful;
 
 	}
 
@@ -772,6 +804,10 @@ class TwitchVOD {
 		$generated['meta']				= $this->meta;
 
 		$generated['saved_at']			= new DateTime();
+
+		$generated['dt_capture_started'] 		= $this->dt_capture_started;
+		$generated['dt_conversion_started'] 	= $this->dt_conversion_started;
+		$generated['dt_ended_at'] 				= $this->dt_ended_at;
 		
 		if( !is_writable( $this->filename ) ){ // this is not the function i want
 			// TwitchHelper::log(TwitchHelper::LOG_FATAL, "Saving JSON of " . $this->basename . " failed, permissions issue?");
@@ -825,7 +861,7 @@ class TwitchVOD {
 			$entry['datetime'] = \DateTime::createFromFormat( TwitchConfig::cfg("date_format"), $entry['time'] );
 
 			if( TwitchConfig::$config['favourites'] ){
-				$entry['favourite'] = TwitchConfig::$config['favourites'][ $entry['game_id'] ];
+				$entry['favourite'] = isset( TwitchConfig::$config['favourites'][ $entry['game_id'] ] );
 			}
 
 			// offset
@@ -1055,6 +1091,8 @@ class TwitchVOD {
 			return false;
 		}
 
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Download VOD for " . $this->basename );
+
 		set_time_limit(0); // todo: hotfix
 
 		$capture_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_vod.ts';
@@ -1100,11 +1138,25 @@ class TwitchVOD {
 			unlink( $capture_filename );
 		}
 
+		$successful = file_exists( $converted_filename ) && filesize( $converted_filename ) > 0;
+
+		if( $successful ){
+			$this->is_vod_downloaded = true;
+		}else{
+			return false;
+		}
+
 		return $converted_filename;
 
 	}
 
 	public function checkMutedVod(){
+
+		if( !$this->twitch_vod_id ){
+			return null;
+		}
+
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Check muted VOD for " . $this->basename );
 
 		if( TwitchConfig::cfg('pipenv') ){
 			$cmd = 'pipenv run streamlink';
@@ -1124,16 +1176,11 @@ class TwitchVOD {
 			return null;
 		}
 
-		/*
-		$client = new \GuzzleHttp\Client();
-		$response = $client->get($stream_url);
-
-		$server_output = $response->getBody()->getContents();
-		*/
-
 		if( strpos($output, "index-muted-") !== false ){
+			$this->twitch_vod_muted = true;
 			return true;
 		}else{
+			$this->twitch_vod_muted = false;
 			return false;
 		}
 
@@ -1174,6 +1221,7 @@ class TwitchVOD {
 		$this->getMediainfo();
 		$this->saveLosslessCut();
 		$this->matchTwitchVod();
+		$this->checkMutedVod();
 		$this->is_finalized = true;
 	}
 

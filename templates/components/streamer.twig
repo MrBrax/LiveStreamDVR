@@ -29,7 +29,11 @@
     <div class="streamer-jumpto">
         <ul>
         {% for vodclass in streamer.vods_list %}
-            <li><a href="#vod_{{ vodclass.basename }}"{{ vodclass.hasFavouriteGame ? ' class="favourite"' : '' }}>{% if vodclass.started_at %}{{ vodclass.started_at|date('Y-m-d H:i:s') }}{% endif %}</a></li>
+            <li>
+                <a href="#vod_{{ vodclass.basename }}" class="{{ vodclass.hasFavouriteGame ? ' favourite' : '' }}{{ vodclass.is_recording ? ' live' : '' }}">
+                    {% if vodclass.started_at %}{{ vodclass.started_at|date('Y-m-d H:i:s') }}{% endif %}
+                </a>
+            </li>
         {% endfor %}
         </ul>
     </div>

@@ -326,6 +326,33 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // compressor
+    /*
+    const compressors = <NodeListOf<HTMLElement>>document.querySelectorAll(`div.compressor`);
+    if(compressors){
+        for( const compressor of compressors ){
+            const toCompress = <HTMLElement>document.querySelector( <string>compressor.dataset.for );
+            
+            compressor.addEventListener("click", event => {
+                console.debug("toggle section");
+                if(toCompress){
+                    toCompress.isCompressed = true;
+                    let isCompressed = toCompress.isCompressed;
+                    toCompress.style.display = ( toCompress.style.display == "block" || !toCompress.style.display ) ? "none" : "block";
+                }
+            });
+        }
+
+        // default to hidden, good?
+        let logs = <HTMLElement>document.querySelector(`section[data-section="logs"] div.section-content`);
+        if(logs){
+            logs.style.display = "none";
+        }else{
+            console.debug("no logs found");
+        }
+    }
+    */
+
     // single page
     const log_select = <HTMLInputElement>document.getElementById("log_select");
     if(log_select){

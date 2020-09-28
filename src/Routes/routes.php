@@ -41,6 +41,7 @@ $app->get('/download/{vod}', VodController::class . ':download')->setName('downl
 $app->get('/troubleshoot/{vod}', VodController::class . ':troubleshoot')->setName('troubleshoot');
 $app->get('/check_mute/{vod}', VodController::class . ':check_mute')->setName('check_mute');
 $app->get('/render_chat/{vod}', VodController::class . ':render_chat')->setName('render_chat');
+$app->get('/fullburn/{vod}', VodController::class . ':fullburn')->setName('fullburn');
 
 $app->get('/hook', HookController::class . ':hook')->setName('hook');
 $app->post('/hook', HookController::class . ':hook')->setName('hook_post');
