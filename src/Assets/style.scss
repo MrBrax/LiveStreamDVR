@@ -391,17 +391,35 @@ a.linkback {
 		min-width: 200px;
 	}
 
+	/*
+	&.required {
+		border-color: #f00;
+	}
+	*/
+
 }
 
 select.input {
 	min-width: 200px;
 }
 
+
+.control {
+	padding: 1px 0;
+	// border-bottom: 1px solid #fefefe;
+}
+
+
 .error {
 	color: #f00;
 	&.flashing {
 		animation: 1s ease-in-out infinite live;
 	}
+}
+
+.required {
+	color: #f00;
+	font-weight: 700;
 }
 
 .video-description {

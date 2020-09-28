@@ -10,9 +10,9 @@ class TwitchConfig {
 	public static $gameDbPath = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "games_v2.json";
 
 	public static $settingsFields = [
-		[ 'key' => 'bin_dir', 				'text' => 'Python binary directory', 														'type' => 'string' ],
-		[ 'key' => 'ffmpeg_path', 			'text' => 'FFmpeg path', 																	'type' => 'string' ],
-		[ 'key' => 'mediainfo_path', 		'text' => 'Mediainfo path', 																'type' => 'string' ],
+		[ 'key' => 'bin_dir', 				'text' => 'Python binary directory', 														'type' => 'string', 'required' => true ],
+		[ 'key' => 'ffmpeg_path', 			'text' => 'FFmpeg path', 																	'type' => 'string', 'required' => true ],
+		[ 'key' => 'mediainfo_path', 		'text' => 'Mediainfo path', 																'type' => 'string', 'required' => true ],
 		[ 'key' => 'twitchdownloader_path', 'text' => 'TwitchDownloaderCLI path', 														'type' => 'string' ],
 
 		[ 'key' => 'basepath', 				'text' => 'Base path (for reverse proxy etc)', 												'type' => 'string' ],
@@ -20,9 +20,9 @@ class TwitchConfig {
 		[ 'key' => 'storage_per_streamer', 	'text' => 'Gigabytes of storage per streamer', 												'type' => 'number', 'default' => 100 ],
 		[ 'key' => 'hls_timeout', 			'text' => 'HLS Timeout in seconds (ads)', 													'type' => 'number', 'default' => 200 ],
 		[ 'key' => 'vods_to_keep', 			'text' => 'VODs to keep per streamer', 														'type' => 'number', 'default' => 5 ],
-		[ 'key' => 'api_client_id', 		'text' => 'Twitch client ID', 																'type' => 'string' ],
-		[ 'key' => 'api_secret', 			'text' => 'Twitch secret (keep blank to not change)', 										'type' => 'string', 'secret' => true ],
-		[ 'key' => 'hook_callback', 		'text' => 'Hook callback', 																	'type' => 'string' ],
+		[ 'key' => 'api_client_id', 		'text' => 'Twitch client ID', 																'type' => 'string', 'required' => true ],
+		[ 'key' => 'api_secret', 			'text' => 'Twitch secret (keep blank to not change)', 										'type' => 'string', 'secret' => true, 'required' => true ],
+		[ 'key' => 'hook_callback', 		'text' => 'Hook callback', 																	'type' => 'string', 'required' => true ],
 		
 		[ 'key' => 'vod_container', 		'text' => 'VOD container (not tested)', 													'type' => 'array', 'choices' => ['mp4', 'mkv', 'mov'], 'default' => 'mp4' ],
 

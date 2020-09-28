@@ -18,11 +18,11 @@
                             <input type="hidden" name="key" value="{{ loop.index }}" />
                             <input type="hidden" name="username" value="{{ streamer.username }}" />
                             <div class="control">
-                                <label><input class="input" type="text" name="quality" value="{{ streamer.quality|join(" ") }}" /> Quality</label>
+                                <label><input class="input input-required" type="text" name="quality" value="{{ streamer.quality|join(" ") }}" /> Quality</label>
                                 <div class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</div>
                             </div>
                             <div class="control">
-                                <label><input class="input" type="text" name="match" value="{{ streamer.match }}" /> Match keywords</label>
+                                <label><input class="input" type="text" name="match" value="{{ streamer.match|join(",") }}" /> Match keywords</label>
                                 <div class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</div>
                             </div>
                             <div class="control">
@@ -57,11 +57,11 @@
 
                 <form method="POST" action="{{ url_for('streamer_add') }}">
                     <div class="control">
-                        <label><input class="input" type="text" name="username" value="" /> Username</label>
+                        <label><input class="input input-required" type="text" name="username" value="" /> Username <span class="required">*</span></label>
                         <div class="input-help">Streamer username, preferably case sensitive</div>
                     </div>
                     <div class="control">
-                        <label><input class="input" type="text" name="quality" value="" /> Quality</label>
+                        <label><input class="input input-required" type="text" name="quality" value="" /> Quality <span class="required">*</span></label>
                         <div class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</div>
                     </div>
                     <div class="control">
@@ -95,23 +95,24 @@
                         <div class="control">
                             <label>
                                 {% if setting.type == "string" %}
-                                    <input class="input" type="text" name="{{ setting.key }}" value="{{ setting.secret ? '' : ( config[setting.key] ?: setting.default ) }}" />
+                                    <input class="input{{ setting.required ? ' input-required' : '' }}" type="text" name="{{ setting.key }}" value="{{ setting.secret ? '' : ( config[setting.key] ?: setting.default ) }}" />
                                 {% elseif setting.type == "number" %}
-                                    <input class="input" type="number" name="{{ setting.key }}" value="{{ setting.secret ? '' : ( config[setting.key] ?: setting.default ) }}" />
+                                    <input class="input{{ setting.required ? ' input-required' : '' }}" type="number" name="{{ setting.key }}" value="{{ setting.secret ? '' : ( config[setting.key] ?: setting.default ) }}" />
                                 {% elseif setting.type == "boolean" %}
                                     <input type="checkbox" name="{{ setting.key }}" {{ config[setting.key] ? 'checked="checked"' : '' }} />
                                 {% elseif setting.type == "array" %}
-                                    <select name="{{ setting.key }}" class="input">
+                                    <select name="{{ setting.key }}" class="input{{ setting.required ? ' required' : '' }}">
                                         {% for option in setting.choices %}
                                             <option {{ config[setting.key] ? ( config[setting.key] == option ) : ( setting.default == option ) ? 'selected="selected"' : '' }}>{{ option }}</option>
                                         {% endfor %}
                                     </select>
                                 {% endif %}
-                                {{ setting.text }}
+                                {{ setting.text }} {% if setting.required %}<span class="required">*</span>{% endif %}
                             </label>
                         </div>
                     {% endfor %}
                     <div class="control">
+                        <br>
                         <button class="button is-confirm" type="submit">Save</button>
                     </div>
                 </form>
@@ -123,7 +124,11 @@
                 <hr>
 
                 <strong>Crontab example (run every week at 5am)</strong><br>
-                <code>0 5 * * 1 curl {{ sub_callback }}</code>
+                {% if sub_callback %}
+                    <code>0 5 * * 1 curl {{ sub_callback }}</code>
+                {% else %}
+                    <em class="error">Can't show example, hook callback has not been set</em>
+                {% endif %}
                 
             </div>
 
