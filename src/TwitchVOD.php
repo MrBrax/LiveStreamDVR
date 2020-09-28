@@ -390,22 +390,41 @@ class TwitchVOD {
 			return;
 		}
 
+		$cmd = [];
+
 		if( TwitchConfig::cfg('pipenv') ){
-			$cmd = 'pipenv run tcd';
+			$cmd[] = 'pipenv run tcd';
 		}else{
-			$cmd = TwitchHelper::path_tcd();
+			$cmd[] = TwitchHelper::path_tcd();
 		}
 		
-		$cmd .= ' --video ' . escapeshellarg($this->twitch_vod_id);
-		$cmd .= ' --client-id ' . escapeshellarg( TwitchConfig::cfg('api_client_id') );
-		$cmd .= ' --client-secret ' . escapeshellarg( TwitchConfig::cfg('api_secret') );
-		$cmd .= ' --format json';
-		if( TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false) ) $cmd .= ' --verbose --debug';
-		$cmd .= ' --output ' . $this->directory;
+		$cmd[] = '--video';
+		$cmd[] = $this->twitch_vod_id;
 
-		$capture_output = shell_exec( $cmd );
+		$cmd[] = '--client-id';
+		$cmd[] = TwitchConfig::cfg('api_client_id');
+		
+		$cmd[] = '--client-secret';
+		$cmd[] = TwitchConfig::cfg('api_secret');
+		
+		$cmd[] = '--format';
+		$cmd[] = 'json';
+		
+		if( TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false) ){
+			$cmd[] = '--verbose';
+			$cmd[] = '--debug';
+		}
 
-		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tcd_" . $this->basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $capture_output);
+		$cmd[] = '--output';
+		$cmd[] = $this->directory;
+
+		// $capture_output = shell_exec( $cmd );
+
+		$process = new Process( $cmd, $this->directory, null, null, null );
+		$process->run();
+
+		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tcd_" . $this->basename . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
+		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tcd_" . $this->basename . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 
 		if( file_exists( $tcd_filename ) ){
 			
@@ -423,7 +442,7 @@ class TwitchVOD {
 
 		}
 
-		return [$chat_filename, $capture_output, $cmd];
+		return $chat_filename;
 
 	}
 
@@ -538,7 +557,7 @@ class TwitchVOD {
 		$cmd[] = TwitchHelper::path_ffmpeg();
 
 		// chat render offset
-		if( $this->getStartOffset() ){
+		if( $this->getStartOffset() && !$use_vod ){
 			$cmd[] = '-ss';
 			$cmd[] = round( $this->getStartOffset() );
 		}
@@ -548,7 +567,7 @@ class TwitchVOD {
 		$cmd[] = $chat_filename;
 
 		// chat mask offset
-		if( $this->getStartOffset() ){
+		if( $this->getStartOffset() && !$use_vod ){
 			$cmd[] = '-ss';
 			$cmd[] = round( $this->getStartOffset() );
 		}

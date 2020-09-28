@@ -33,6 +33,7 @@ class TwitchConfig {
 		[ 'key' => 'debug', 				'text' => 'Debug', 																			'type' => 'boolean' ],
 		[ 'key' => 'app_verbose', 			'text' => 'Verbose app output', 															'type' => 'boolean' ],
 		[ 'key' => 'channel_folders', 		'text' => 'Channel folders', 																'type' => 'boolean' ],
+		[ 'key' => 'chat_compress', 		'text' => 'Compress chat with gzip', 														'type' => 'boolean' ],
 	];
 
 	function __constructor(){
