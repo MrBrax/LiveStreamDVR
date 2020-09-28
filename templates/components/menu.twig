@@ -6,7 +6,7 @@
 
 {% if streamerList %}
 
-    {% for streamer in streamerList|sort %}
+    {% for streamer in streamerList|sort((a, b) => a.display_name > b.display_name) %}
 
         <div class="top-menu-item{{ streamer.is_live ? ' live' : '' }} streamer" data-streamer="{{ streamer.display_name }}">
             
@@ -28,10 +28,10 @@
                             Playing <strong>{{ streamer.current_game.game_name }}</strong>
                         {% endif %}
 
+                    {% elseif streamer.is_converting %}
+                        Converting...
                     {% else %}
-
                         Offline
-
                     {% endif %}
 
                 </span>

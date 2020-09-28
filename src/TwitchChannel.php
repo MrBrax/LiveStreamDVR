@@ -56,12 +56,17 @@ class TwitchChannel {
             $vodclass = new TwitchVOD();
             if(!$vodclass->load($v)) continue;
 
-            if ($vodclass->is_recording){
+            if ( $vodclass->is_recording && !$vodclass->is_converting ){
                 $this->is_live = true;
                 $this->current_vod = $vodclass;
                 $this->current_game = $vodclass->getCurrentGame();
                 $this->current_duration = $vodclass->getDurationLive();
             }
+
+            if( $vodclass->is_converting ){
+                $this->is_converting = true;
+            }
+
             if ($vodclass->segments) {
                 foreach ($vodclass->segments as $s) {
                     $this->vods_size += $s['filesize'];
