@@ -110,8 +110,6 @@ class VodController
         
         set_time_limit(0);
 
-        $TwitchAutomator = new TwitchAutomator();
-
         $vod = $args['vod'];
         // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
         $username = explode("_", $vod)[0];
@@ -128,6 +126,62 @@ class VodController
             }
         }else{
             $response->getBody()->write("VOD has no chat downloaded");
+        }
+
+        return $response;
+
+    }
+
+    public function fullburn( Request $request, Response $response, $args ) {
+        
+        set_time_limit(0);
+
+        $vod = $args['vod'];
+        // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
+        $username = explode("_", $vod)[0];
+
+        $vodclass = new TwitchVOD();
+        $vodclass->load( TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+
+        if( $vodclass->is_chat_burned ){
+            $response->getBody()->write("Chat already burned!");
+            return $response;
+        }
+
+        $is_muted = $vodclass->checkMutedVod();
+
+        // download chat if not downloaded
+        if( !$vodclass->is_chat_downloaded ){
+            $vodclass->downloadChat();
+            $response->getBody()->write("Chat downloaded<br>");
+        }
+
+        if( !$vodclass->is_chat_downloaded ){
+            $response->getBody()->write("Chat doesn't exist!");
+            return $response;
+        }
+
+        if( $is_muted ){ // if vod is muted, use captured one
+
+            if( $vodclass->renderChat() ){
+                $vodclass->burnChat();
+                $response->getBody()->write("Chat rendered and burned<br>");
+            }
+
+        }else{ // if vod is not muted, use it
+
+            // download vod if not downloaded already
+            if( !$vodclass->is_vod_downloaded ){
+                $vodclass->downloadVod();
+                $response->getBody()->write("VOD downloaded<br>");
+            }
+
+            // render and burn
+            if( $vodclass->renderChat() ){
+                $vodclass->burnChat( 300, true );
+                $response->getBody()->write("Chat rendered and burned<br>");
+            }
+
         }
 
         return $response;

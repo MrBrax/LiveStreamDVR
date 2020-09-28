@@ -155,6 +155,9 @@
                         </a>
                     </li>
                 {% endfor %}
+                {% if vodclass.is_vod_downloaded %}
+                    <li><a href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}_vod.mp4">Downloaded VOD</a></li>
+                {% endif %} 
                 {% if vodclass.is_chat_rendered %}
                     <li><a href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}_chat.mp4">Rendered chat</a></li>
                     <li><a href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}_chat_mask.mp4">Rendered chat mask</a></li>
@@ -195,6 +198,7 @@
                         <a class="button" href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}_vod.mp4">Play VOD</a>
                     {% endif %}
                     <a class="button" href="{{ url_for('check_mute', { 'vod': vodclass.basename }) }}">Check mute</a>
+                    <a class="button" href="{{ url_for('fullburn', { 'vod': vodclass.basename }) }}">Full burn</a>
                 {% endif %}
 
                 <a class="button is-danger" href="{{ url_for('delete', { 'vod': vodclass.basename }) }}">Delete</a>                
