@@ -56,7 +56,8 @@
                             <li><strong>File duration:</strong> {{ vodclass.getDuration(true)|humanDuration }}</li>
                             <li><strong>Size:</strong> {{ vodclass.segments[0].filesize|formatBytes }}</li>
                             {% if vodclass.video_metadata %}
-                            <li><strong>Dimensions:</strong> {{ vodclass.video_metadata.video.Width }}x{{ vodclass.video_metadata.video.Height }}@{{ vodclass.video_metadata.video.FrameRate_Original ?: vodclass.video_metadata.video.FrameRate }}</li>
+                            <li><strong>Dimensions:</strong> {{ vodclass.video_metadata.video.Width }}x{{ vodclass.video_metadata.video.Height }}</li>
+                            <li><strong>Framerate:</strong> {{ vodclass.video_metadata.video.FrameRate_Mode }} {{ vodclass.video_metadata.video.FrameRate_Original ?: vodclass.video_metadata.video.FrameRate }}</li>
                             <li><strong>Video:</strong> {{ vodclass.video_metadata.video.Format }} {{ vodclass.video_metadata.video.BitRate_Mode }} {{ (vodclass.video_metadata.video.BitRate / 1000)|round }}kbps</li>
                             <li><strong>Audio:</strong> {{ vodclass.video_metadata.audio.Format }} {{ vodclass.video_metadata.audio.BitRate_Mode }} {{ (vodclass.video_metadata.audio.BitRate / 1000)|round }}kbps</li>
                             {% endif %}
@@ -116,6 +117,14 @@
                                     <span>No</span>
                                 {% else %}
                                     <em>No data</em>
+                                {% endif %}
+                            </li>
+                            <li>				
+                                <strong>Twitch VOD downloaded:</strong> 
+                                {% if vodclass.is_vod_downloaded %}
+                                    Yes
+                                {% else %}
+                                    No
                                 {% endif %}
                             </li>
                         </ul>
@@ -192,11 +201,11 @@
                 {% if vodclass.twitch_vod_id %}
                     {% if not vodclass.is_vod_downloaded %}
                         <a class="button" href="{{ url_for('download', { 'vod': vodclass.basename }) }}">Download VOD</a>
-                    {% else %}
-                        <a class="button" href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}_vod.mp4">Play VOD</a>
                     {% endif %}
                     <a class="button" href="{{ url_for('check_mute', { 'vod': vodclass.basename }) }}">Check mute</a>
-                    <a class="button" href="{{ url_for('fullburn', { 'vod': vodclass.basename }) }}">Full burn</a>
+                    {% if not vodclass.is_chat_burned %}
+                        <a class="button" href="{{ url_for('fullburn', { 'vod': vodclass.basename }) }}">Render &amp; burn</a>
+                    {% endif %}
                 {% endif %}
 
                 <a class="button is-danger" href="{{ url_for('delete', { 'vod': vodclass.basename }) }}">Delete</a>                
