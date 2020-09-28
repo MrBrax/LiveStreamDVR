@@ -785,6 +785,10 @@ class TwitchVOD {
 		$generated['meta']				= $this->meta;
 
 		$generated['saved_at']			= new DateTime();
+
+		$generated['dt_capture_started'] 		= $this->dt_capture_started;
+		$generated['dt_conversion_started'] 	= $this->dt_conversion_started;
+		$generated['dt_ended_at'] 				= $this->dt_ended_at;
 		
 		if( !is_writable( $this->filename ) ){ // this is not the function i want
 			// TwitchHelper::log(TwitchHelper::LOG_FATAL, "Saving JSON of " . $this->basename . " failed, permissions issue?");

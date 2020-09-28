@@ -264,6 +264,26 @@ document.addEventListener("DOMContentLoaded", () => {
             console.debug("no logs found");
         }
     }
+    // compressor
+    const compressors = document.querySelectorAll(`div.compressor`);
+    if (compressors) {
+        for (const compressor of compressors) {
+            const toCompress = document.querySelector(compressor.dataset.for);
+            compressor.addEventListener("click", event => {
+                console.debug("toggle section");
+                if (toCompress)
+                    toCompress.style.display = (toCompress.style.display == "block" || !toCompress.style.display) ? "none" : "block";
+            });
+        }
+        // default to hidden, good?
+        let logs = document.querySelector(`section[data-section="logs"] div.section-content`);
+        if (logs) {
+            logs.style.display = "none";
+        }
+        else {
+            console.debug("no logs found");
+        }
+    }
     // single page
     const log_select = document.getElementById("log_select");
     if (log_select) {

@@ -31,9 +31,10 @@
 
                 <div class="info-columns">
                     <div class="info-column">
+                        <h4>General</h4>
                         <ul class="video-info">
                             <li><strong>Webhook duration:</strong> {{ vodclass.getWebhookDuration }}</li>
-                            <li><strong>Twitch start:</strong> {{ vodclass.started_at|date('Y-m-d H:i:s') }}</li>
+                            <li><strong>Stream start:</strong> {{ vodclass.started_at|date('Y-m-d H:i:s') }}</li>
                             {% if vodclass.dt_capture_started %}
                             <li><strong>Capture start:</strong> {{ vodclass.dt_capture_started|date('Y-m-d H:i:s') }}</li>
                             <li><strong>Conversion start:</strong> {{ vodclass.dt_conversion_started|date('Y-m-d H:i:s') }}</li>	
@@ -52,6 +53,7 @@
                         </ul>
                     </div>
                     <div class="info-column">
+                        <h4>Capture</h4>
                         <ul class="video-info">
                             <li><strong>File duration:</strong> {{ vodclass.getDuration(true)|humanDuration }}</li>
                             <li><strong>Size:</strong> {{ vodclass.segments[0].filesize|formatBytes }}</li>
@@ -64,9 +66,10 @@
                         </ul>
                     </div>
                     <div class="info-column">
+                        <h4>Twitch VOD</h4>
                         <ul class="video-info">
                             <li>
-                                <strong>Twitch VOD duration:</strong>
+                                <strong>Duration:</strong>
                                 {% if vodclass.twitch_vod_duration %}
                                     {{ vodclass.twitch_vod_duration|humanDuration }}
                                 {% else %}
@@ -74,7 +77,7 @@
                                 {% endif %}
                             </li>
                             <li>
-                                <strong>Twitch VOD id:</strong> 
+                                <strong>ID:</strong> 
                                 {% if vodclass.twitch_vod_url %}	
                                     
                                     <a href="{{ vodclass.twitch_vod_url }}" rel="noreferrer" target="_blank">{{ vodclass.twitch_vod_id }}</a>
@@ -94,7 +97,7 @@
                                 {% endif %}
                             </li>
                             <li>
-                                <strong>Twitch VOD date:</strong>
+                                <strong>Date:</strong>
                                 {% if vodclass.twitch_vod_date %}
                                     {{ vodclass.twitch_vod_date|date('Y-m-d H:i:s') }}
                                 {% else %}
@@ -102,7 +105,7 @@
                                 {% endif %}
                             </li>
                             <li>
-                                <strong>Twitch VOD title:</strong> 
+                                <strong>Title:</strong> 
                                 {% if vodclass.twitch_vod_title %}
                                     <span class="text-overflow">{{ vodclass.twitch_vod_title }}</span>
                                 {% else %}
@@ -110,7 +113,7 @@
                                 {% endif %}
                             </li>
                             <li>				
-                                <strong>Twitch VOD muted:</strong> 
+                                <strong>Is muted:</strong> 
                                 {% if vodclass.twitch_vod_muted is same as(true) %}
                                     <strong class="error">Yes</strong>
                                 {% elseif vodclass.twitch_vod_muted is same as(false) %}
@@ -120,7 +123,7 @@
                                 {% endif %}
                             </li>
                             <li>				
-                                <strong>Twitch VOD downloaded:</strong> 
+                                <strong>Downloaded:</strong> 
                                 {% if vodclass.is_vod_downloaded %}
                                     Yes
                                 {% else %}
@@ -250,6 +253,7 @@
         {% endif %}
         
         {# game list / chapters #}
+        <!--<div class="compressor" data-for=".video-chapters"></div>-->
         <div class="video-chapters">
             <table class="table game-list">
 
