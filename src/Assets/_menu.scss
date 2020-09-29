@@ -43,6 +43,7 @@
 		text-align: center;
 		.top-menu-item {
 			flex-grow: 1;
+			a { width: 100% }
 		}
 	}
 
@@ -77,7 +78,7 @@
 		color: #777;
 		text-decoration: none;
 		display: inline-block;
-		padding: 5px 8px 11px 8px;		
+		padding: 5px 8px;		
 		&:hover {
 			color: #fff;
 			background: #111;
@@ -123,22 +124,30 @@
 			font-size: 80%;
 			line-height: 0.8em;
 			color: #444;
+			padding-bottom: 5px;
+			&:empty, &:-moz-only-whitespace {
+				// background: #f00;
+				display:none;
+			}
 		}
 		
 	}
 
-	&.live {
-		&.streamer{
-			.username {
-				color: #f00;
-				animation: live ease-in-out 1s infinite;
-				font-weight: 700;
-			}
-			.subtitle, .vodcount {
-				color: #b30000;
-			}
+
+	&.streamer.is-live {
+		a {
+			background-color: #2b0e0e;
+		}
+		.username {
+			color: #f00;
+			animation: live ease-in-out 1s infinite;
+			font-weight: 700;
+		}
+		.subtitle, .vodcount {
+			color: #b30000;
 		}
 	}
+	
 
 	&.active {
 		a {
@@ -175,7 +184,8 @@ a.linkback {
 				$base-bg: #09182c;
 				background-color: $base-bg;
 				// border-color: darken($base-bg, 5%);
-				color: #ddd;
+				// color: #ddd;
+				color: rgba(255, 255, 255, .5);
 				display: block;
 				text-decoration: none;
 				padding: 2px 5px;
@@ -194,6 +204,12 @@ a.linkback {
 					background-color: #a82929;
 					&:hover {
 						background-color: lighten(#a82929, 5%);
+					}
+				}
+				&.converting {
+					background-color: #a829a8;
+					&:hover {
+						background-color: lighten(#a829a8, 5%);
 					}
 				}
 			}

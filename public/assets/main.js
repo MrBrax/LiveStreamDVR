@@ -96,38 +96,43 @@ document.addEventListener("DOMContentLoaded", () => {
         setStatus('Fetching...', true);
         let any_live = false;
         scrollTop = window.pageYOffset;
-        let response = await fetch(`${api_base}/list`);
+        let list_response = await fetch(`${api_base}/list`);
         setStatus('Parsing...', true);
-        let data = await response.json();
+        let data = await list_response.json();
         setStatus('Applying...', true);
         if (data.data) {
             for (let streamer of data.data.streamerList) {
                 let username = streamer.display_name;
-                console.debug(username, streamer);
+                /*
                 let menu = document.querySelector(`.top-menu-item.streamer[data-streamer='${username}']`);
-                if (menu) {
-                    let subtitle = menu.querySelector(".subtitle");
-                    let vodcount = menu.querySelector(".vodcount");
-                    let link = menu.querySelector("a");
-                    if (subtitle && vodcount && link) {
+                if( menu ){
+
+                    let subtitle    = menu.querySelector(".subtitle");
+                    let vodcount    = menu.querySelector(".vodcount");
+                    let link        = menu.querySelector("a");
+
+                    if( subtitle && vodcount && link ){
+
                         vodcount.innerHTML = streamer.vods_list.length;
-                        if (streamer.is_live) {
+                        if( streamer.is_live ){
                             any_live = true;
                             menu.classList.add('live');
                             let tmp = nongames.indexOf(streamer.current_game.game_name) !== -1 ? `<strong>${streamer.current_game.game_name}</strong>` : `Playing <strong>${streamer.current_game.game_name}</strong>`;
-                            if (streamer.current_vod) {
+                            if(streamer.current_vod){
                                 link.href = `#vod_${streamer.current_vod.basename}`;
                                 tmp += ` for ${streamer.current_vod.duration_live}`;
                             }
                             subtitle.innerHTML = tmp;
-                        }
-                        else {
+                        }else{
                             subtitle.innerHTML = 'Offline';
                             menu.classList.remove('live');
                             link.href = `#streamer_${username}`;
                         }
+
                     }
+
                 }
+                */
                 // update div
                 let streamer_div = document.querySelector(`.streamer-box[data-streamer='${username}']`);
                 if (streamer_div) {
@@ -193,6 +198,11 @@ document.addEventListener("DOMContentLoaded", () => {
             setStatus(`Done #${refresh_number}. Waiting ${delay} seconds.`, false);
             timeout_store = setTimeout(updateStreamers, delay * 1000);
         }
+        let menu_div = document.querySelector(`.side-menu`);
+        let menu_response = await fetch(`${api_base}/render/menu`);
+        let menu_data = await menu_response.text();
+        if (menu_div)
+            menu_div.innerHTML = menu_data;
         window.scrollTo(0, scrollTop);
     }
     window.forceRefresh = () => {

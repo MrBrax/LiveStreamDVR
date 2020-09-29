@@ -1,86 +1,89 @@
-<div class="top-menu-item title">
-    <a href="{{ url_for('dashboard') }}">
-        <img src="{{ base_path() }}/assets/favicon.png" class="favicon"><span class="title">{{ config.app_name }} {{ app_version }} {% if debug %}(debug)</span>{% endif %}
-    </a>
-</div>
+<div class="side-menu">
+    <div class="top-menu-item title">
+        <a href="{{ url_for('dashboard') }}">
+            <img src="{{ base_path() }}/assets/favicon.png" class="favicon"><span class="title">{{ config.app_name }} {{ app_version }} {% if debug %}(debug)</span>{% endif %}
+        </a>
+    </div>
 
-{% if streamerList %}
+    {% if streamerList %}
 
-    {% for streamer in streamerList|sort((a, b) => a.display_name > b.display_name) %}
+        {% for streamer in streamerList|sort((a, b) => a.display_name > b.display_name) %}
 
-        <div class="top-menu-item{{ streamer.is_live ? ' live' : '' }} streamer" data-streamer="{{ streamer.display_name }}">
-            
-            {% if streamer.is_live %}
-                <a href="#vod_{{ streamer.current_vod.basename }}">
-            {% else %}
-                <a href="#streamer_{{ streamer.display_name }}">
-            {% endif %}
+            <div class="top-menu-item{{ streamer.is_live ? ' is-live' : '' }} streamer" data-streamer="{{ streamer.display_name }}">
+                
+                {% if streamer.is_live %}
+                    <a href="#vod_{{ streamer.current_vod.basename }}">
+                {% else %}
+                    <a href="#streamer_{{ streamer.display_name }}">
+                {% endif %}
 
-                <span class="username">{{ streamer.display_name }}</span>
-                <span class="vodcount">{{ streamer.vods_list|length }}</span>
-                <span class="subtitle">
+                    <span class="username">{{ streamer.display_name }}</span>
+                    <span class="vodcount">{{ streamer.vods_list|length }}</span>
+                    <span class="subtitle">
+                        {% if streamer.is_live %}
+                            
+                            {% if streamer.current_game.game_name == 'Just Chatting' or streamer.current_game.game_name == 'IRL' or streamer.current_game.game_name == 'Art' %}
+                                <strong>{{ streamer.current_game.game_name }}</strong>
+                            {% else %}
+                                Playing <strong>{{ streamer.current_game.game_name }}</strong>
+                            {% endif %}
 
-                    {% if streamer.is_live %}
-                        
-                        {% if streamer.current_game.game_name == 'Just Chatting' or streamer.current_game.game_name == 'IRL' or streamer.current_game.game_name == 'Art' %}
-                            <strong>{{ streamer.current_game.game_name }}</strong>
+                            for {{ streamer.current_vod.duration_live }}
+
+                        {% elseif streamer.is_converting %}
+                            Converting...
                         {% else %}
-                            Playing <strong>{{ streamer.current_game.game_name }}</strong>
+                            {# Offline #}
                         {% endif %}
+                    </span>
 
-                        for {{ streamer.current_vod.duration_live }}
+                </a>
 
-                    {% elseif streamer.is_converting %}
-                        Converting...
-                    {% else %}
-                        Offline
-                    {% endif %}
+            </div>
 
-                </span>
+            <div class="top-menu-item streamer-jumpto">
+                <ul>
+                {% for vodclass in streamer.vods_list %}
+                    <li>
+                        <a href="#vod_{{ vodclass.basename }}" class="{{ vodclass.hasFavouriteGame ? ' favourite' : '' }}{{ vodclass.is_recording ? ' live' : '' }}{{ vodclass.is_converting ? ' converting' : '' }}" title="{{ vodclass.started_at|date('Y-m-d H:i:s') }}">
+                            <!--<span class="icon"><i class="fa fa-arrow-circle-right"></i></span>-->
+                            {% if vodclass.is_recording %}
+                                <span class="icon"><i class="fa fa-sync fa-spin"></i></span>
+                            {% elseif vodclass.is_converting %}
+                                <span class="icon"><i class="fa fa-cog fa-spin"></i></span>
+                            {% elseif vodclass.hasFavouriteGame %}
+                                <span class="icon"><i class="fa fa-star"></i></span>
+                            {% else %}
+                                <span class="icon"><i class="fa fa-film"></i></span>
+                            {% endif %}
+                            {% if not config.relative_time and vodclass.started_at %}{{ vodclass.started_at|date('Y-m-d H:i:s') }}{% endif %}
+                            {% if config.relative_time and vodclass.started_at %}{{ vodclass.started_at|humanDate }}{% endif %}
+                            {% if vodclass.duration_seconds %}&middot; ({{ config.relative_time ? vodclass.duration_seconds|humanRealDuration : vodclass.duration_seconds|humanDuration }}){% endif %}
+                            {% if vodclass.total_size %}&middot; {{ vodclass.total_size|formatBytes }}{% endif %}
+                        </a>
+                    </li>
+                {% endfor %}
+                </ul>
+            </div>
 
-            </a>
+        {% endfor %}
 
+    {% endif %}
+
+    <div class="top-menu-item divider"></div>
+
+    <div class="menu-bottom">
+        <div class="top-menu-item icon right{{ is_current_url('dashboard') ? ' active' : '' }}">
+            <a href="{{ url_for('dashboard') }}" title="Dashboard"><i class="fa fa-tachometer-alt"></i></a>
         </div>
-
-        <div class="top-menu-item streamer-jumpto">
-            <ul>
-            {% for vodclass in streamer.vods_list %}
-                <li>
-                    <a href="#vod_{{ vodclass.basename }}" class="{{ vodclass.hasFavouriteGame ? ' favourite' : '' }}{{ vodclass.is_recording ? ' live' : '' }}">
-                        <!--<span class="icon"><i class="fa fa-arrow-circle-right"></i></span>-->
-                        {% if vodclass.is_recording %}
-                            <span class="icon"><i class="fa fa-sync fa-spin"></i></span>
-                        {% elseif vodclass.hasFavouriteGame %}
-                            <span class="icon"><i class="fa fa-star"></i></span>
-                        {% else %}
-                            <span class="icon"><i class="fa fa-film"></i></span>
-                        {% endif %}
-                        {% if vodclass.started_at %}{{ vodclass.started_at|date('Y-m-d H:i:s') }}{% endif %}
-                        {% if vodclass.duration_seconds %}({{ vodclass.duration_seconds|humanDuration }}){% endif %}
-                        {% if vodclass.total_size %}{{ vodclass.total_size|formatBytes }}{% endif %}
-                    </a>
-                </li>
-            {% endfor %}
-            </ul>
+        <div class="top-menu-item icon right{{ is_current_url('settings') ? ' active' : '' }}">
+            <a href="{{ url_for('settings') }}" title="Settings"><i class="fa fa-cog"></i></a>
         </div>
-
-    {% endfor %}
-
-{% endif %}
-
-<div class="top-menu-item divider"></div>
-
-<div class="menu-bottom">
-    <div class="top-menu-item icon right{{ is_current_url('dashboard') ? ' active' : '' }}">
-        <a href="{{ url_for('dashboard') }}" title="Dashboard"><i class="fa fa-tachometer-alt"></i></a>
-    </div>
-    <div class="top-menu-item icon right{{ is_current_url('settings') ? ' active' : '' }}">
-        <a href="{{ url_for('settings') }}" title="Settings"><i class="fa fa-cog"></i></a>
-    </div>
-    <div class="top-menu-item icon right{{ is_current_url('about') ? ' active' : '' }}">
-        <a href="{{ url_for('about') }}" title="About"><i class="fa fa-info-circle"></i></a>
-    </div>
-    <div class="top-menu-item icon right">
-        <a class="linkback" href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer" title="GitHub"><i class="fab fa-github"></i></a>
+        <div class="top-menu-item icon right{{ is_current_url('about') ? ' active' : '' }}">
+            <a href="{{ url_for('about') }}" title="About"><i class="fa fa-info-circle"></i></a>
+        </div>
+        <div class="top-menu-item icon right">
+            <a class="linkback" href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer" title="GitHub"><i class="fab fa-github"></i></a>
+        </div>
     </div>
 </div>

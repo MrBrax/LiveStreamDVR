@@ -1,7 +1,5 @@
 # TwitchAutomator
 
-**About 2 minutes of video seems to be missing from the start of every recording, i don't yet know why this is happening.**
-
 1. Install dependencies with composer.
 2. Install utilities with pip, see below
 3. ~~Configure using the `config.json` file in the `config` directory.~~ Go to the settings page and set up basic stuff

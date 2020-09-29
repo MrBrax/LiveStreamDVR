@@ -52,6 +52,7 @@ $app->get('/subs', SubController::class . ':subs')->setName('subs');
 
 $app->get('/api/v0/list', ApiController::class . ':list')->setName('api_list');
 $app->get('/api/v0/vod/{vod}', ApiController::class . ':vod')->setName('api_vod');
+$app->get('/api/v0/render/menu', ApiController::class . ':render_menu')->setName('api_render_menu');
 $app->get('/api/v0/render/streamer/{username}', ApiController::class . ':render_streamer')->setName('api_render_streamer');
 $app->get('/api/v0/render/log/[{filename}]', ApiController::class . ':render_log')->setName('api_render_log');
 $app->get('/api/v0/check_vods', ApiController::class . ':check_vods')->setName('check_vods');

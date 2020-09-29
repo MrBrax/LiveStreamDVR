@@ -119,9 +119,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         scrollTop = window.pageYOffset;
 
-        let response = await fetch( `${api_base}/list`);
+        let list_response = await fetch( `${api_base}/list`);
         setStatus('Parsing...', true);
-        let data = await response.json();
+        let data = await list_response.json();
 
         setStatus('Applying...', true);
 
@@ -131,8 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 let username = streamer.display_name;
 
-                console.debug(username, streamer);
-                
+                /*                
                 let menu = document.querySelector(`.top-menu-item.streamer[data-streamer='${username}']`);
                 if( menu ){
 
@@ -161,6 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
 
                 }
+                */
 
                 // update div
                 let streamer_div = <HTMLElement>document.querySelector(`.streamer-box[data-streamer='${username}']`);
@@ -246,7 +246,12 @@ document.addEventListener("DOMContentLoaded", () => {
             console.debug(`Set next timeout to (${delay})...`);
             setStatus(`Done #${refresh_number}. Waiting ${delay} seconds.`, false);
             timeout_store = setTimeout(updateStreamers, delay * 1000);
-        }   
+        }
+
+        let menu_div = document.querySelector(`.side-menu`);
+        let menu_response = await fetch( `${api_base}/render/menu` );
+        let menu_data = await menu_response.text();
+        if(menu_div) menu_div.outerHTML = menu_data;
         
         window.scrollTo(0, scrollTop);
 

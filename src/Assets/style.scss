@@ -279,9 +279,11 @@ body.black {
 @media screen and (orientation: portrait) {
 	body { font-size: 1rem; }
 	.container { display: block; width: 100%; }
+	.content { margin: 0; }
 	.section { margin: 5px 0; }
-	.top-menu {
-		width: 100%;
+	.splitter { flex-direction: column; }
+	.side-menu {
+		width: auto;
 		height: auto;
 		position: static;
 		display: block;
@@ -305,6 +307,10 @@ body.black {
 				&:before { content: '·'; }
 			}
 		}
+	}
+
+	.streamer-jumpto {
+		display: none;
 	}
 
 	.info-columns {

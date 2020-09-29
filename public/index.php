@@ -78,6 +78,16 @@ $container->get('view')->getEnvironment()->addFilter(new TwigFilter('humanDurati
     return TwitchHelper::printHumanDuration($string);
 }));
 
+// human duration 2
+$container->get('view')->getEnvironment()->addFilter(new TwigFilter('humanRealDuration', function ($string) {
+    return TwitchHelper::getNiceDuration($string);
+}));
+
+// human date
+$container->get('view')->getEnvironment()->addFilter(new TwigFilter('humanDate', function ($string) {
+    return TwitchHelper::printHumanDate($string);
+}));
+
 // basename, only for debug
 $container->get('view')->getEnvironment()->addFilter(new TwigFilter('basename', function ($string) {
     return basename($string);
