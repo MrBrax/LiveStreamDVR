@@ -82,7 +82,7 @@
 	margin-bottom: 10px;
 	// border-bottom: 1px solid #eee;
 	
-	&.recording {
+	&.is-recording {
 		
 		.video-title {
 			background-color: #ca1515;
@@ -94,7 +94,7 @@
 
 	}
 
-	&.converting {
+	&.is-converting {
 	
 		.video-title {
 			background-color: #bb15ca;

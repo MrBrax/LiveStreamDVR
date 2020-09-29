@@ -12,6 +12,7 @@ use Slim\Views\Twig;
 use Slim\Views\TwigMiddleware;
 use Twig\Extension\DebugExtension;
 use Twig\TwigFilter;
+use Twig\Extra\Html\HtmlExtension;
 
 // Create Container
 $container = new Container();
@@ -54,8 +55,12 @@ if( TwitchConfig::cfg('basepath') ){
 
 $twig = TwigMiddleware::createFromContainer($app);
 
+
+
 // Add Twig-View Middleware
 $app->add($twig);
+
+$container->get('view')->getEnvironment()->addExtension(new HtmlExtension());
 
 // config available everywhere
 $container->get('view')->getEnvironment()->addGlobal('config', TwitchConfig::$config);

@@ -1,7 +1,6 @@
 <div class="log_viewer">
-
+    {% apply spaceless %}
     {% for line in log_lines %}
-
         <div class="log_{{ line.level|lower }}">
             {% if line.source %}
                 {{ line.date_string }} &lt;{{ line.level }}&gt; [{{ line.source.file|basename }}:{{ line.source.line }} {{line.source.function}}({{ line.source.args|join }})] {{ line.text }}
@@ -9,7 +8,6 @@
                 {{ line.date_string }} &lt;{{ line.level }}&gt; {{ line.text }}
             {% endif %}
         </div>
-
     {% endfor %}
-
+    {% endapply %}
 </div>

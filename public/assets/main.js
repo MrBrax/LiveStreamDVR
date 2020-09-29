@@ -202,7 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let menu_response = await fetch(`${api_base}/render/menu`);
         let menu_data = await menu_response.text();
         if (menu_div)
-            menu_div.innerHTML = menu_data;
+            menu_div.outerHTML = menu_data;
         window.scrollTo(0, scrollTop);
     }
     window.forceRefresh = () => {

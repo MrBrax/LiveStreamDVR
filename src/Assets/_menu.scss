@@ -194,19 +194,19 @@ a.linkback {
 					color: #fff;
 					background-color: lighten($base-bg, 5%);
 				}
-				&.favourite {
+				&.is-favourite {
 					background-color: #356e35;
 					&:hover {
 						background-color: lighten(#356e35, 5%);
 					}
 				}
-				&.live {
+				&.is-live {
 					background-color: #a82929;
 					&:hover {
 						background-color: lighten(#a82929, 5%);
 					}
 				}
-				&.converting {
+				&.is-converting {
 					background-color: #a829a8;
 					&:hover {
 						background-color: lighten(#a829a8, 5%);
