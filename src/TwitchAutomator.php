@@ -513,15 +513,15 @@ class TwitchAutomator {
 			$capture_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '-' . $int . '.ts';
 			$int++;
 		}
+		
+		$cmd = [];
 
 		// use python pipenv or regular executable
 		if( TwitchConfig::cfg('pipenv') ){
-			$cmd = 'pipenv run streamlink';
+			$cmd[] = 'pipenv run streamlink';
 		}else{
-			$cmd = TwitchHelper::path_streamlink();
+			$cmd[] = TwitchHelper::path_streamlink();
 		}
-
-		$cmd = [];
 
 		$cmd[] = '--hls-live-restart'; // start recording from start of stream, though twitch doesn't support this
 		
