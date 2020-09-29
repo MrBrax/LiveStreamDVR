@@ -9,6 +9,7 @@
         {# title #}
         <div class="video-title">
             <h3>
+                <i class="fas fa-file-video"></i>&nbsp;
                 {{ vodclass.streamer_name }}
                 {% if vodclass.started_at %} {{ vodclass.started_at|date('Y-m-d H:i:s') }} {% endif %}
             </h3>
@@ -141,7 +142,7 @@
             {% if vodclass.is_capturing %}
 
                 <ul class="video-info">
-                    <li><strong>Current duration:</strong> {{ vodclass.getDurationLive }}</li>
+                    <li><strong>Current duration:</strong> {{ vodclass.duration_live }}</li>
                     <li><strong>Watch live:</strong> <a href="https://twitch.tv/{{ streamer.display_name }}" rel="noreferrer" target="_blank">Twitch</a>
                 </ul>
 
@@ -184,34 +185,34 @@
 
             {% if vodclass.is_finalized %}
 
-                <a class="button is-blue" href="{{ url_for('player', { 'vod': vodclass.basename }) }}">Editor</a>
+                <a class="button is-blue" href="{{ url_for('player', { 'vod': vodclass.basename }) }}"><span class="icon"><i class="fa fa-cut"></i></span> Editor</a>
 
-                <a class="button" href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}.json">JSON</a>
+                <a class="button" href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}.json"><span class="icon"><i class="fa fa-database"></i></span> JSON</a>
 
-                <a class="button" href="{{ url_for('save', { 'vod': vodclass.basename }) }}">Save from deletion</a>
+                <a class="button" href="{{ url_for('save', { 'vod': vodclass.basename }) }}"><span class="icon"><i class="fa fa-archive"></i></span> Archive</a>
 
                 {% if vodclass.twitch_vod_id and not vodclass.is_chat_downloaded %}
-                    <a class="button" href="{{ url_for('chat', { 'vod': vodclass.basename }) }}">Download chat</a>
+                    <a class="button" href="{{ url_for('chat', { 'vod': vodclass.basename }) }}"><span class="icon"><i class="fa fa-comments"></i></span> Download chat</a>
                 {% endif %}
 
                 {% if vodclass.is_chat_downloaded and not vodclass.is_chat_burned %}
-                    <a class="button" href="{{ url_for('render_chat', { 'vod': vodclass.basename }) }}">Render chat</a>
+                    <a class="button" href="{{ url_for('render_chat', { 'vod': vodclass.basename }) }}"><span class="icon"><i class="fa fa-comment"></i></span> Render chat</a>
                     {% if vodclass.is_vod_downloaded %}
-                        <a class="button" href="{{ url_for('render_chat', { 'vod': vodclass.basename }) }}?use_vod=1">Render chat (vod)</a>
+                        <a class="button" href="{{ url_for('render_chat', { 'vod': vodclass.basename }) }}?use_vod=1"><span class="icon"><i class="fa fa-comment"></i></span> Render chat (vod)</a>
                     {% endif %}
                 {% endif %}
 
                 {% if vodclass.twitch_vod_id %}
                     {% if not vodclass.is_vod_downloaded %}
-                        <a class="button" href="{{ url_for('download', { 'vod': vodclass.basename }) }}">Download{{ vodclass.twitch_vod_muted ? ' muted' : '' }} VOD</a>
+                        <a class="button" href="{{ url_for('download', { 'vod': vodclass.basename }) }}"><span class="icon"><i class="fa fa-download"></i></span> Download{{ vodclass.twitch_vod_muted ? ' muted' : '' }} VOD</a>
                     {% endif %}
-                    <a class="button" href="{{ url_for('check_mute', { 'vod': vodclass.basename }) }}">Check mute</a>
+                    <a class="button" href="{{ url_for('check_mute', { 'vod': vodclass.basename }) }}"><span class="icon"><i class="fa fa-volume-mute"></i></span> Check mute</a>
                     {% if not vodclass.is_chat_burned %}
-                        <a class="button" href="{{ url_for('fullburn', { 'vod': vodclass.basename }) }}">Render &amp; burn</a>
+                        <a class="button" href="{{ url_for('fullburn', { 'vod': vodclass.basename }) }}"><span class="icon"><i class="fa fa-burn"></i></span> Render &amp; burn</a>
                     {% endif %}
                 {% endif %}
 
-                <a class="button is-danger" href="{{ url_for('delete', { 'vod': vodclass.basename }) }}">Delete</a>                
+                <a class="button is-danger" href="{{ url_for('delete', { 'vod': vodclass.basename }) }}"><span class="icon"><i class="fa fa-trash"></i></span> Delete</a>                
 
             {% elseif vodclass.is_converting %}
 

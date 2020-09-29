@@ -8,6 +8,8 @@ let config = {
     singlePage: true
 };
 
+let nongames = ['Just Chatting', 'IRL', 'Travel', 'Art'];
+
 let streamerPronounciation = {
     pokelawls: 'pookelawls',
     xQcOW: 'eckscueseeow'
@@ -144,8 +146,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         if( streamer.is_live ){
                             any_live = true;
                             menu.classList.add('live');
-                            subtitle.innerHTML = `Playing <strong>${streamer.current_game.game_name}</strong>`;
-                            if(streamer.current_vod) link.href = `#vod_${streamer.current_vod.basename}`;
+                            let tmp = nongames.indexOf(streamer.current_game.game_name) !== -1 ? `<strong>${streamer.current_game.game_name}</strong>` : `Playing <strong>${streamer.current_game.game_name}</strong>`;
+                            if(streamer.current_vod){
+                                link.href = `#vod_${streamer.current_vod.basename}`;
+                                tmp += ` for ${streamer.current_vod.duration_live}`;
+                            }
+                            subtitle.innerHTML = tmp;
                         }else{
                             subtitle.innerHTML = 'Offline';
                             menu.classList.remove('live');

@@ -8,6 +8,7 @@ let config = {
     useSpeech: false,
     singlePage: true
 };
+let nongames = ['Just Chatting', 'IRL', 'Travel', 'Art'];
 let streamerPronounciation = {
     pokelawls: 'pookelawls',
     xQcOW: 'eckscueseeow'
@@ -113,9 +114,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (streamer.is_live) {
                             any_live = true;
                             menu.classList.add('live');
-                            subtitle.innerHTML = `Playing <strong>${streamer.current_game.game_name}</strong>`;
-                            if (streamer.current_vod)
+                            let tmp = nongames.indexOf(streamer.current_game.game_name) !== -1 ? `<strong>${streamer.current_game.game_name}</strong>` : `Playing <strong>${streamer.current_game.game_name}</strong>`;
+                            if (streamer.current_vod) {
                                 link.href = `#vod_${streamer.current_vod.basename}`;
+                                tmp += ` for ${streamer.current_vod.duration_live}`;
+                            }
+                            subtitle.innerHTML = tmp;
                         }
                         else {
                             subtitle.innerHTML = 'Offline';
@@ -265,25 +269,31 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     // compressor
-    const compressors = document.querySelectorAll(`div.compressor`);
-    if (compressors) {
-        for (const compressor of compressors) {
-            const toCompress = document.querySelector(compressor.dataset.for);
+    /*
+    const compressors = <NodeListOf<HTMLElement>>document.querySelectorAll(`div.compressor`);
+    if(compressors){
+        for( const compressor of compressors ){
+            const toCompress = <HTMLElement>document.querySelector( <string>compressor.dataset.for );
+            
             compressor.addEventListener("click", event => {
                 console.debug("toggle section");
-                if (toCompress)
-                    toCompress.style.display = (toCompress.style.display == "block" || !toCompress.style.display) ? "none" : "block";
+                if(toCompress){
+                    toCompress.isCompressed = true;
+                    let isCompressed = toCompress.isCompressed;
+                    toCompress.style.display = ( toCompress.style.display == "block" || !toCompress.style.display ) ? "none" : "block";
+                }
             });
         }
+
         // default to hidden, good?
-        let logs = document.querySelector(`section[data-section="logs"] div.section-content`);
-        if (logs) {
+        let logs = <HTMLElement>document.querySelector(`section[data-section="logs"] div.section-content`);
+        if(logs){
             logs.style.display = "none";
-        }
-        else {
+        }else{
             console.debug("no logs found");
         }
     }
+    */
     // single page
     const log_select = document.getElementById("log_select");
     if (log_select) {

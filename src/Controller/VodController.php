@@ -9,9 +9,20 @@ use App\TwitchAutomator;
 use App\TwitchConfig;
 use App\TwitchHelper;
 use App\TwitchVOD;
+use Slim\Views\Twig;
 
 class VodController
 {
+
+    /**
+     * @var Twig
+     */
+    private $twig;
+
+    public function __construct(Twig $twig)
+    {
+        $this->twig = $twig;
+    }
 
     /**
      * Cut up the vod
@@ -267,14 +278,16 @@ class VodController
         }
         
         $isMuted = $vodclass->checkMutedVod();
-
-        $response->getBody()->write("VOD " . $vod . " is " . ( $isMuted ? "truly" : "not" ) . " muted!");
-
         
         $vodclass->twitch_vod_muted = $isMuted;
         $vodclass->saveJSON();
 
-        return $response;
+        // return $response;
+
+        return $this->twig->render($response, 'dialog.twig', [
+            'text' => "VOD " . $vod . " is " . ( $isMuted ? "truly" : "not" ) . " muted!",
+            'type' => 'success'
+        ]);
 
     }
 

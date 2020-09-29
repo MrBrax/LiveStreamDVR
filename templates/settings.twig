@@ -50,7 +50,7 @@
 
                             <div class="field">
                                 <div class="control">
-                                    <button class="button is-confirm" type="submit">Save</button>
+                                    <button class="button is-confirm" type="submit"><span class="icon"><i class="fa fa-user-plus"></i></span> Save</button>
                                 </div>
                             </div>
 
@@ -58,7 +58,7 @@
                         <form method="POST" action="{{ url_for('streamer_delete') }}">
                             <input type="hidden" name="key" value="{{ loop.index }}" />
                             <input type="hidden" name="username" value="{{ streamer.username }}" />
-                            <button class="button is-danger" type="submit">Delete</button> (no undo, no confirmation)
+                            <button class="button is-danger" type="submit"><span class="icon"><i class="fa fa-trash"></i></span> Delete</button> (no undo, no confirmation)
                         </form>
                     </div>
 
@@ -110,7 +110,7 @@
                     </div>
                     <div class="field">
                         <div class="control">
-                            <button class="button is-confirm" type="submit">Add</button>
+                            <button class="button is-confirm" type="submit"><span class="icon"><i class="fa fa-user-plus"></i></span> Add</button>
                         </div>
                     </div>
                 </form>
@@ -152,7 +152,7 @@
                         </div>
                     {% endfor %}
                     <div class="control">
-                        <button class="button is-confirm" type="submit">Save</button>
+                        <button class="button is-confirm" type="submit"><span class="icon"><i class="fa fa-save"></i></span> Save</button>
                     </div>
                 </form>
 
@@ -190,7 +190,7 @@
                     </div>
                     
                     <div class="control">
-                        <button class="button is-confirm" type="submit">Save</button>
+                        <button class="button is-confirm" type="submit"><span class="icon"><i class="fa fa-save"></i></span> Save</button>
                     </div>
                 </form>
                 

@@ -28,6 +28,8 @@
                             Playing <strong>{{ streamer.current_game.game_name }}</strong>
                         {% endif %}
 
+                        for {{ streamer.current_vod.duration_live }}
+
                     {% elseif streamer.is_converting %}
                         Converting...
                     {% else %}
@@ -46,15 +48,15 @@
 
 <div class="top-menu-item divider"></div>
 
-<div class="top-menu-item right{{ is_current_url('dashboard') ? ' active' : '' }}">
-    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+<div class="top-menu-item icon right{{ is_current_url('dashboard') ? ' active' : '' }}">
+    <a href="{{ url_for('dashboard') }}" title="Dashboard"><i class="fa fa-tachometer-alt"></i></a>
 </div>
-<div class="top-menu-item right{{ is_current_url('settings') ? ' active' : '' }}">
-    <a href="{{ url_for('settings') }}">Settings</a>
+<div class="top-menu-item icon right{{ is_current_url('settings') ? ' active' : '' }}">
+    <a href="{{ url_for('settings') }}" title="Settings"><i class="fa fa-cog"></i></a>
 </div>
-<div class="top-menu-item right{{ is_current_url('about') ? ' active' : '' }}">
-    <a href="{{ url_for('about') }}">About</a>
+<div class="top-menu-item icon right{{ is_current_url('about') ? ' active' : '' }}">
+    <a href="{{ url_for('about') }}" title="About"><i class="fa fa-info-circle"></i></a>
 </div>
-<div class="top-menu-item right">
-    <a class="linkback" href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer">GitHub</a>
+<div class="top-menu-item icon right">
+    <a class="linkback" href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer" title="GitHub"><i class="fab fa-github"></i></a>
 </div>

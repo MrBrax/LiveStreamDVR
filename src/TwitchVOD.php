@@ -163,6 +163,7 @@ class TwitchVOD {
 
 		// $this->duration 			= $this->json['duration'];
 		$this->duration_seconds 	= $this->json['duration_seconds'] ?: null;
+		$this->duration_live		= $this->getDurationLive();
 
 		$this->video_fail2 			= isset($this->json['video_fail2']) ? $this->json['video_fail2'] : false;
 		$this->video_metadata		= isset($this->json['video_metadata']) ? $this->json['video_metadata'] : null;

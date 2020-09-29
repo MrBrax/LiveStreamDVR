@@ -12,7 +12,7 @@
 
             <div class="button-bar">
 
-                <a class="button" href="?checkvod=1">Check if VODs exist</a>
+                <a class="button" href="?checkvod=1"><span class="icon"><i class="fa fa-globe"></i></span> Check if VODs exist</a>
                 {% if checkvod %}
                     {% if is_a_vod_deleted %}
                         - <strong>A VOD IS DELETED</strong>
@@ -21,15 +21,15 @@
                     {% endif %}
                 {% endif %}
 
-                <a class="button" href="?rebuild_segments=1">Rebuild segments</a>
-                <a class="button" href="?match_vod=1">Match VODs</a>
+                <a class="button" href="?rebuild_segments=1"><span class="icon"><i class="fa fa-video-slash"></i></span> Rebuild segments</a>
+                <a class="button" href="?match_vod=1"><span class="icon"><i class="fa fa-copy"></i></span> Match VODs</a>
 
-                <button class="button" onclick="notifyMe();">Notify</button>
+                <button class="button" onclick="notifyMe();"><span class="icon"><i class="fa fa-bell"></i></span> Notify</button>
 
-                <button class="button" onclick="window.forceRefresh()">Refresh vods</button>
+                <button class="button" onclick="window.forceRefresh()"><span class="icon"><i class="fa fa-sync"></i></span> Refresh vods</button>
 
-                <label><input type="checkbox" id="useSpeechOption" /> Speech</label>
-                <label><input type="checkbox" id="singlePageOption" /> Single Page</label>
+                <label class="checkbox"><input type="checkbox" id="useSpeechOption" /> Speech</label>
+                <label class="checkbox"><input type="checkbox" id="singlePageOption" /> Single Page</label>
 
             </div>
             
