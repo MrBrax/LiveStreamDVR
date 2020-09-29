@@ -4,6 +4,9 @@ namespace App;
 
 use DateTime;
 
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
+
 class TwitchAutomator {
 
 	public $data_cache = [];
@@ -518,21 +521,49 @@ class TwitchAutomator {
 			$cmd = TwitchHelper::path_streamlink();
 		}
 
-		$cmd .= ' --hls-live-restart'; // start recording from start of stream, though twitch doesn't support this
-		$cmd .= ' --hls-live-edge 99999'; // How many segments from the end to start live HLS streams on.
-		$cmd .= ' --hls-timeout ' . escapeshellarg( TwitchConfig::cfg('hls_timeout', 120) ); // timeout due to ads
-		$cmd .= ' --hls-segment-threads 5'; // The size of the thread pool used to download HLS segments.
-		$cmd .= ' --twitch-disable-hosting'; // disable channel hosting
-		if( TwitchConfig::cfg('low_latency', false) ) $cmd .= ' --twitch-low-latency'; // enable low latency mode, probably not a good idea without testing
-		if( TwitchConfig::cfg('disable_ads', false) ) $cmd .= ' --twitch-disable-ads'; // Skip embedded advertisement segments at the beginning or during a stream
-		$cmd .= ' --retry-streams 10'; // Retry fetching the list of available streams until streams are found 
-		$cmd .= ' --retry-max 5'; //  stop retrying the fetch after COUNT retry attempt(s).
-		if( TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false) ) $cmd .= ' --loglevel debug';
-		$cmd .= ' -o ' . escapeshellarg( $capture_filename ); // output file
-		$cmd .= ' --url ' . escapeshellarg( $stream_url ); // twitch url
-		$cmd .= ' --default-stream ' . escapeshellarg( implode(",", TwitchConfig::getStreamer( $data_username )['quality'] ) ); // quality
+		$cmd = [];
 
-		$this->info[] = 'Streamlink cmd: ' . $cmd;
+		$cmd[] = '--hls-live-restart'; // start recording from start of stream, though twitch doesn't support this
+		
+		$cmd[] = '--hls-live-edge';
+		$cmd[] = '99999'; // How many segments from the end to start live HLS streams on.
+		
+		$cmd[] = '--hls-timeout';
+		$cmd[] = TwitchConfig::cfg('hls_timeout', 120); // timeout due to ads
+
+		$cmd[] = '--hls-segment-threads';
+		$cmd[] = '5'; // The size of the thread pool used to download HLS segments.
+
+		$cmd[] = '--twitch-disable-hosting'; // disable channel hosting
+		
+		if( TwitchConfig::cfg('low_latency', false) ){
+			$cmd[] = '--twitch-low-latency'; // enable low latency mode, probably not a good idea without testing
+		}
+		if( TwitchConfig::cfg('disable_ads', false) ){
+			$cmd[] = '--twitch-disable-ads'; // Skip embedded advertisement segments at the beginning or during a stream
+		}
+		
+		$cmd[] = '--retry-streams';
+		$cmd[] = '10'; // Retry fetching the list of available streams until streams are found 
+		
+		$cmd[] = '--retry-max';
+		$cmd[] = '5'; //  stop retrying the fetch after COUNT retry attempt(s).
+		
+		if( TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false) ){
+			$cmd[] = '--loglevel';
+			$cmd[] = 'debug';
+		}
+
+		$cmd[] = '-o';
+		$cmd[] = $capture_filename; // output file
+		
+		$cmd[] = '--url';
+		$cmd[] = $stream_url; // twitch url
+		
+		$cmd[] = '--default-stream';
+		$cmd[] = implode(",", TwitchConfig::getStreamer( $data_username )['quality'] ); // quality
+
+		$this->info[] = 'Streamlink cmd: ' . implode(" ", $cmd);
 
 		$this->vod->refreshJSON();
 		$this->vod->dt_capture_started = new \DateTime();
@@ -540,16 +571,22 @@ class TwitchAutomator {
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting capture with filename " . basename($capture_filename) );
 		
-		$capture_output = shell_exec( $cmd );
+		// $capture_output = shell_exec( $cmd );
+		$process = new Process( $cmd, dirname($capture_filename), null, null, null );
+		$process->run();
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Finishing capture with filename " . basename($capture_filename) );
 
-		$this->info[] = 'Streamlink output: ' . $capture_output;
+		$this->info[] = 'Streamlink output: ' . $process->getOutput();
+		$this->info[] = 'Streamlink error: ' . $process->getErrorOutput();
 
-		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_" . $basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $capture_output);
+		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_" . $basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $capture_output);
+		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_" . $basename . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
+		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_" . $basename . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
+
 
 		// download with youtube-dl if streamlink fails
-		if( strpos($capture_output, '410 Client Error') !== false ){
+		if( strpos($process->getOutput(), '410 Client Error') !== false ){
 			
 			$this->notify($basename, '410 Error', self::NOTIFY_ERROR);
 			// return false;

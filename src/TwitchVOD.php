@@ -1227,14 +1227,17 @@ class TwitchVOD {
 		$stream_url = $output;
 
 		if(!$output){
+			TwitchHelper::log( TwitchHelper::LOG_INFO, "VOD " . $this->basename . " could not be checked for mute status!" );
 			return null;
 		}
 
 		if( strpos($output, "index-muted-") !== false ){
 			$this->twitch_vod_muted = true;
+			TwitchHelper::log( TwitchHelper::LOG_WARNING, "VOD " . $this->basename . " is muted!" );
 			return true;
 		}else{
 			$this->twitch_vod_muted = false;
+			TwitchHelper::log( TwitchHelper::LOG_INFO, "VOD " . $this->basename . " is not muted!" );
 			return false;
 		}
 
