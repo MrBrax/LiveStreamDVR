@@ -57,6 +57,7 @@
                         {% endif %}
                         {% if vodclass.started_at %}{{ vodclass.started_at|date('Y-m-d H:i:s') }}{% endif %}
                         {% if vodclass.duration_seconds %}({{ vodclass.duration_seconds|humanDuration }}){% endif %}
+                        {% if vodclass.total_size %}{{ vodclass.total_size|formatBytes }}{% endif %}
                     </a>
                 </li>
             {% endfor %}

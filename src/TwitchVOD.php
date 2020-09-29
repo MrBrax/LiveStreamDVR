@@ -38,6 +38,8 @@ class TwitchVOD {
 
 	public $stream_resolution = null;
 
+	public $total_size = null;
+
 	// TODO: make these into an array instead
 	public $twitch_vod_id = null;
 	public $twitch_vod_url = null;
@@ -950,6 +952,7 @@ class TwitchVOD {
 			$segment['basename'] = basename($v);
 			if( file_exists( $segment['filename'] ) ){
 				$segment['filesize'] = filesize( $segment['filename'] );
+				$this->total_size += $segment['filesize'];
 			}else{
 				$segment['deleted'] = true;
 			}
