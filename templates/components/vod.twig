@@ -9,8 +9,7 @@
         {# title #}
         <div class="video-title">
             <h3>
-                <i class="fas fa-file-video"></i>&nbsp;
-                {{ vodclass.streamer_name }}
+                <span class="icon"><i class="fas fa-file-video"></i></span>
                 {% if vodclass.started_at %} {{ vodclass.started_at|date('Y-m-d H:i:s') }} {% endif %}
             </h3>
         </div>

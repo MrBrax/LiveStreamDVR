@@ -32,6 +32,7 @@
             <li>
                 <a href="#vod_{{ vodclass.basename }}" class="{{ vodclass.hasFavouriteGame ? ' favourite' : '' }}{{ vodclass.is_recording ? ' live' : '' }}">
                     {% if vodclass.started_at %}{{ vodclass.started_at|date('Y-m-d H:i:s') }}{% endif %}
+                    {% if vodclass.duration_seconds %}({{ vodclass.duration_seconds|humanDuration }}){% endif %}
                 </a>
             </li>
         {% endfor %}

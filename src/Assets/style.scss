@@ -283,7 +283,11 @@ a.linkback {
 
 	// good idea?
 	position: sticky;
-	top: 48px;
+	top: 131px;
+
+	.icon {
+		margin-right: 0.3em;
+	}
 
 	h3 {
 		margin: 0;
@@ -612,12 +616,15 @@ select.input {
 
 	font-size: 110%;
 
-	// position: sticky;
-	// top: 30px;
+	position: sticky;
+	top: 50px;
+	z-index: 1;
 	
 	background-color: #243e94;
 	
-	margin-bottom: 5px;
+	// margin-bottom: 5px;
+	margin-bottom: 1px;
+
 	color: #fff;
 
 	// border-bottom: 1px solid #919191;
@@ -684,10 +691,14 @@ select.input {
 }
 
 .streamer-jumpto {
+	background: #fff;
+	position: sticky;
+	z-index: 1;
+	top: 106px;
 	ul {
 		list-style: none;
 		list-style-type: none;
-		margin: 0;
+		margin: 0 0 1px 0;
 		padding: 0;
 		display: flex;
 		li {
@@ -696,7 +707,7 @@ select.input {
 				background-color: $base-bg;
 				border-color: darken($base-bg, 5%);
 				color: #eee;
-				margin: 1px;
+				margin-right: 1px;
 				display: inline-block;
 				text-decoration: none;
 				padding: 3px 8px;
@@ -791,7 +802,7 @@ hr {
 	background-color: #ccc;
 }
 
-$anchor-height: 60px;
+$anchor-height: 140px;
 
 .anchor {
 	height: $anchor-height;
