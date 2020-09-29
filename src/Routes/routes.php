@@ -14,6 +14,7 @@ use App\Controller\SettingsController;
 use App\Controller\SubController;
 use App\Controller\ApiController;
 use App\Controller\DebugController;
+use App\Controller\CronController;
 
 // Define named route
 $app->get('/', function (Request $request, Response $response, array $args) use ($app) {
@@ -55,7 +56,10 @@ $app->get('/api/v0/render/streamer/{username}', ApiController::class . ':render_
 $app->get('/api/v0/render/log/[{filename}]', ApiController::class . ':render_log')->setName('api_render_log');
 $app->get('/api/v0/check_vods', ApiController::class . ':check_vods')->setName('check_vods');
 
-$app->get('/dialog/{type}/{text}', DebugController::class . ':dialog')->setName('dialog');
+// $app->get('/dialog/{type}/{text}', DebugController::class . ':dialog')->setName('dialog');
+
+$app->get('/cron/check_deleted_vods', CronController::class . ':check_deleted_vods')->setName('check_deleted_vods');
+$app->get('/cron/check_muted_vods', CronController::class . ':check_muted_vods')->setName('check_muted_vods');
 
 // force start recording of streamer
 $app->get('/force_record/{username}', function (Request $request, Response $response, array $args) {

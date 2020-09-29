@@ -34,43 +34,10 @@ class ApiController
 
         foreach ($streamerListStatic as $streamer) {
 
-            /*
-            $data = $streamer;
-
-            $data['channel_data'] = TwitchHelper::getChannelData( $streamer['username'] );
-
-            $data['vods_raw'] = glob(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $streamer['username'] . "_*.json");
-
-            $data['vods_list'] = [];
-
-            $data['vods_size'] = 0;
-
-            foreach ($data['vods_raw'] as $k => $v) {
-
-                $vodclass = new TwitchVOD();
-                if(!$vodclass->load($v)) continue;
-
-                if ($vodclass->is_recording){
-                    $data['is_live'] = true;
-                    $data['current_vod'] = $vodclass;
-                    $data['current_game'] = $vodclass->getCurrentGame();
-                }
-
-                if ($vodclass->segments) {
-                    foreach ($vodclass->segments_raw as $s) {
-                        $data['vods_size'] += filesize(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $s );
-                    }
-                }
-
-                $data['vods_list'][] = $vodclass;
-
-            }
-
-            $total_size += $data['vods_size'];
-            */
-
             $data = new TwitchChannel();
             $data->load( $streamer['username'] );
+
+            $total_size += $data->vods_size;
 
             $streamerList[] = $data;
 

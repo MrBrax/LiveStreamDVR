@@ -443,7 +443,7 @@ class TwitchVOD {
 
 		}else{
 			
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No chat file for " . $this->basename . " created, output: " . $capture_output);
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No chat file for " . $this->basename . " created.");
 			
 			return false;
 
