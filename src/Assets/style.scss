@@ -79,19 +79,34 @@ code, pre {
 	th { text-align: left; }
 }
 
-.top-menu {
-	position: sticky;
+.side-menu {
+	
+	position: fixed;
 	z-index: 999;
 	top: 0;
 	left: 0;
-	right: 0;
-	height: 50px;
+	bottom: 0;
+	width: 300px;
+
 	background-color: #000;
 	color: #fff;
 	display: flex;
-	flex-wrap: wrap;
+	flex-direction: column;
+	// flex-wrap: wrap;
 	overflow: hidden;
-	// font-size: 1em;
+
+	&.collapsed {
+		width: 150px;
+		.streamer-jumpto {
+			display: none;
+		}
+		.top-menu-item.title span.title {
+			display: none;
+		}
+		.menu-bottom {
+			flex-wrap: wrap;
+		}
+	}
 
 	&.side {
 		// position: static;
@@ -103,6 +118,15 @@ code, pre {
 		width: 300px;
 		display: block;
 	}
+
+	.menu-bottom {
+		display: flex;
+		text-align: center;
+		.top-menu-item {
+			flex-grow: 1;
+		}
+	}
+
 }
 
 // TODO: make this more dynamic
@@ -114,8 +138,8 @@ code, pre {
 	
 	display: flex;
 	flex-direction: column;
-	justify-content: center;
-	align-items: center;
+	// justify-content: center;
+	// align-items: center;
 
 	&.title {
 		font-weight: 700;
@@ -283,11 +307,13 @@ a.linkback {
 
 	// good idea?
 	position: sticky;
-	top: 131px;
+	top: 56px;
 
+	
 	.icon {
 		margin-right: 0.3em;
 	}
+	
 
 	h3 {
 		margin: 0;
@@ -391,6 +417,12 @@ a.linkback {
 		margin-right: 0.2em;
 	}
 
+}
+
+.icon {
+	display: inline-block;
+	width: 1em;
+	text-align: center;
 }
 
 .input {
@@ -582,6 +614,15 @@ select.input {
 	
 }
 
+.splitter {
+	display: flex;
+	flex-direction: row;
+}
+
+.content {
+	flex-grow: 1;
+	margin-left: 300px;
+}
 
 .section .streamer-box {
 	margin-bottom: 20px;
@@ -617,7 +658,7 @@ select.input {
 	font-size: 110%;
 
 	position: sticky;
-	top: 50px;
+	top: 0px;
 	z-index: 1;
 	
 	background-color: #243e94;
@@ -691,35 +732,31 @@ select.input {
 }
 
 .streamer-jumpto {
-	background: #fff;
-	position: sticky;
-	z-index: 1;
-	top: 106px;
+	.icon { margin-right: 0.2em; }
 	ul {
 		list-style: none;
 		list-style-type: none;
-		margin: 0 0 1px 0;
+		margin: 0;
 		padding: 0;
-		display: flex;
 		li {
 			a {
-				$base-bg: #5098f7;
+				$base-bg: #09182c;
 				background-color: $base-bg;
 				border-color: darken($base-bg, 5%);
 				color: #eee;
-				margin-right: 1px;
-				display: inline-block;
+				display: block;
 				text-decoration: none;
-				padding: 3px 8px;
+				padding: 2px 5px;
+				font-size: 0.8em;
 				&:hover {
 					color: #fff;
-					background-color: darken($base-bg, 5%);
+					background-color: darken($base-bg, 2%);
 				}
 				&.favourite {
-					background-color: #469646;
+					background-color: #356e35;
 				}
 				&.live {
-					background-color: #bd2727;
+					background-color: #a82929;
 				}
 			}
 		}
@@ -802,7 +839,7 @@ hr {
 	background-color: #ccc;
 }
 
-$anchor-height: 140px;
+$anchor-height: 60px;
 
 .anchor {
 	height: $anchor-height;
@@ -878,6 +915,7 @@ body.black {
 	border: 1px solid #ccc;
 	border-bottom: none;
 	transition: ease-in-out 0.5s background-color;
+	z-index: 3;
 	&.active {
 		background-color: #d75252;
 		color: #fff;

@@ -1,6 +1,6 @@
 <div class="top-menu-item title">
     <a href="{{ url_for('dashboard') }}">
-        <img src="{{ base_path() }}/assets/favicon.png" class="favicon"> {{ config.app_name }} {{ app_version }} {% if debug %}(debug){% endif %}
+        <img src="{{ base_path() }}/assets/favicon.png" class="favicon"><span class="title">{{ config.app_name }} {{ app_version }} {% if debug %}(debug)</span>{% endif %}
     </a>
 </div>
 
@@ -42,21 +42,44 @@
 
         </div>
 
+        <div class="top-menu-item streamer-jumpto">
+            <ul>
+            {% for vodclass in streamer.vods_list %}
+                <li>
+                    <a href="#vod_{{ vodclass.basename }}" class="{{ vodclass.hasFavouriteGame ? ' favourite' : '' }}{{ vodclass.is_recording ? ' live' : '' }}">
+                        <!--<span class="icon"><i class="fa fa-arrow-circle-right"></i></span>-->
+                        {% if vodclass.is_recording %}
+                            <span class="icon"><i class="fa fa-sync fa-spin"></i></span>
+                        {% elseif vodclass.hasFavouriteGame %}
+                            <span class="icon"><i class="fa fa-star"></i></span>
+                        {% else %}
+                            <span class="icon"><i class="fa fa-film"></i></span>
+                        {% endif %}
+                        {% if vodclass.started_at %}{{ vodclass.started_at|date('Y-m-d H:i:s') }}{% endif %}
+                        {% if vodclass.duration_seconds %}({{ vodclass.duration_seconds|humanDuration }}){% endif %}
+                    </a>
+                </li>
+            {% endfor %}
+            </ul>
+        </div>
+
     {% endfor %}
 
 {% endif %}
 
 <div class="top-menu-item divider"></div>
 
-<div class="top-menu-item icon right{{ is_current_url('dashboard') ? ' active' : '' }}">
-    <a href="{{ url_for('dashboard') }}" title="Dashboard"><i class="fa fa-tachometer-alt"></i></a>
-</div>
-<div class="top-menu-item icon right{{ is_current_url('settings') ? ' active' : '' }}">
-    <a href="{{ url_for('settings') }}" title="Settings"><i class="fa fa-cog"></i></a>
-</div>
-<div class="top-menu-item icon right{{ is_current_url('about') ? ' active' : '' }}">
-    <a href="{{ url_for('about') }}" title="About"><i class="fa fa-info-circle"></i></a>
-</div>
-<div class="top-menu-item icon right">
-    <a class="linkback" href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer" title="GitHub"><i class="fab fa-github"></i></a>
+<div class="menu-bottom">
+    <div class="top-menu-item icon right{{ is_current_url('dashboard') ? ' active' : '' }}">
+        <a href="{{ url_for('dashboard') }}" title="Dashboard"><i class="fa fa-tachometer-alt"></i></a>
+    </div>
+    <div class="top-menu-item icon right{{ is_current_url('settings') ? ' active' : '' }}">
+        <a href="{{ url_for('settings') }}" title="Settings"><i class="fa fa-cog"></i></a>
+    </div>
+    <div class="top-menu-item icon right{{ is_current_url('about') ? ' active' : '' }}">
+        <a href="{{ url_for('about') }}" title="About"><i class="fa fa-info-circle"></i></a>
+    </div>
+    <div class="top-menu-item icon right">
+        <a class="linkback" href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer" title="GitHub"><i class="fab fa-github"></i></a>
+    </div>
 </div>

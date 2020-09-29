@@ -1,6 +1,4 @@
-<div class="streamer-box" data-streamer="{{ streamer.display_name }}">
-
-    <div id="streamer_{{ streamer.display_name }}" class="anchor"></div>
+<div class="streamer-box" data-streamer="{{ streamer.display_name }}" id="streamer_{{ streamer.display_name }}">
 
     <div class="streamer-title{{ streamer.is_live ? ' is-live' : '' }}">
         <div class="streamer-title-avatar" style="background-image: url({{ streamer.profile_image_url }})"></div>
@@ -26,6 +24,7 @@
         </div>
     </div>
 
+    <!--
     <div class="streamer-jumpto">
         <ul>
         {% for vodclass in streamer.vods_list %}
@@ -38,6 +37,7 @@
         {% endfor %}
         </ul>
     </div>
+    -->
 
     {% if streamer.vods_list|length == 0 %}
 

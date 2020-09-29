@@ -15,20 +15,24 @@
 
     <body>
 
-        {% if errors %}
-        <div class="big-error">
-            {% for error in errors %}
-                <div class="big-error-item">{{ error }}</div>
-            {% endfor %}
-        </div>
-        {% endif %}
+        
 
-        <div class="top-menu">
-            {% include "components/menu.twig" %}
+        <div class="splitter">
+            <div class="side-menu">
+                {% include "components/menu.twig" %}
+            </div>
+            <div class="content">
+                {% if errors %}
+                    <div class="big-error">
+                        {% for error in errors %}
+                            <div class="big-error-item">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% block content %}
+                {% endblock %}
+            </div>
         </div>
-
-        {% block content %}
-        {% endblock %}
 
     </body>
 

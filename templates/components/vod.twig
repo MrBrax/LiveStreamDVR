@@ -215,8 +215,14 @@
 
             {% elseif vodclass.is_converting %}
 
-                <em>Converting <strong>{{ vodclass.basename }}.ts</strong> to <strong>{{ vodclass.basename }}.mp4</strong></em><br />
-                <em><strong>Status:</strong> {% if vodclass.getConvertingStatus %}running{% else %}<strong class="error flashing">not running, did it crash?</strong>{% endif %}</em>
+                <em><span class="icon"><i class="fa fa-file-signature"></i></span> Converting <strong>{{ vodclass.basename }}.ts</strong> to <strong>{{ vodclass.basename }}.mp4</strong></em><br />
+                <em>
+                    {% if vodclass.getConvertingStatus %}
+                        <span class="icon"><i class="fa fa-sync fa-spin"></i></span> Running
+                    {% else %}
+                        <strong class="error flashing"><span class="icon"><i class="fa fa-exclamation-triangle"></i></span> Not running, did it crash?</strong>
+                    {% endif %}
+                </em>
 
             {% elseif vodclass.is_capturing %}
 
@@ -224,8 +230,14 @@
                     <a class="button" href="{{ url_for('convert', { 'vod': vodclass.basename }) }}">Convert</a>
                 {% endif %}
 
-                <em>Capturing to <strong>{{ vodclass.basename }}.ts</strong> (<strong>{{ vodclass.getRecordingSize|formatBytes }}</strong>)</em><br />
-                <em><strong>Status:</strong> {% if vodclass.getCapturingStatus %}running{% else %}<strong class="error flashing">not running, did it crash?</strong>{% endif %}</em>
+                <em><span class="icon"><i class="fa fa-video"></i></span> Capturing to <strong>{{ vodclass.basename }}.ts</strong> (<strong>{{ vodclass.getRecordingSize|formatBytes }}</strong>)</em><br />
+                <em>
+                    {% if vodclass.getCapturingStatus %}
+                        <span class="icon"><i class="fa fa-sync fa-spin"></i></span> Running
+                    {% else %}
+                        <strong class="error flashing"><span class="icon"><i class="fa fa-exclamation-triangle"></i></span> Not running, did it crash?</strong>
+                    {% endif %}
+                </em>
 
             {% elseif not vodclass.is_capturing and not vodclass.is_converting and not vodclass.is_finalized %}
 
