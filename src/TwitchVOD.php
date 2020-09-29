@@ -1275,7 +1275,7 @@ class TwitchVOD {
 		$this->getMediainfo();
 		$this->saveLosslessCut();
 		$this->matchTwitchVod();
-		$this->checkMutedVod();
+		// $this->checkMutedVod(); // initially not muted when vod is published
 		$this->is_finalized = true;
 	}
 
