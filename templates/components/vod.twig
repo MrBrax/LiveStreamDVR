@@ -218,7 +218,7 @@
                 <em><span class="icon"><i class="fa fa-file-signature"></i></span> Converting <strong>{{ vodclass.basename }}.ts</strong> to <strong>{{ vodclass.basename }}.mp4</strong></em><br />
                 <em>
                     {% if vodclass.getConvertingStatus %}
-                        <span class="icon"><i class="fa fa-sync fa-spin"></i></span> Running
+                        <span class="icon"><i class="fa fa-sync fa-spin"></i></span> Running (pid {{ vodclass.getConvertingStatus }})
                     {% else %}
                         <strong class="error flashing"><span class="icon"><i class="fa fa-exclamation-triangle"></i></span> Not running, did it crash?</strong>
                     {% endif %}
@@ -233,7 +233,7 @@
                 <em><span class="icon"><i class="fa fa-video"></i></span> Capturing to <strong>{{ vodclass.basename }}.ts</strong> (<strong>{{ vodclass.getRecordingSize|formatBytes }}</strong>)</em><br />
                 <em>
                     {% if vodclass.getCapturingStatus %}
-                        <span class="icon"><i class="fa fa-sync fa-spin"></i></span> Running
+                        <span class="icon"><i class="fa fa-sync fa-spin"></i></span> Running (pid {{ vodclass.getCapturingStatus }})
                     {% else %}
                         <strong class="error flashing"><span class="icon"><i class="fa fa-exclamation-triangle"></i></span> Not running, did it crash?</strong>
                     {% endif %}

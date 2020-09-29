@@ -76,6 +76,8 @@ class TwitchVOD {
 	public $created = false;
 	public $force_record = false;
 
+	private $pid_cache = [];
+
 	/**
 	 * Load a VOD with a JSON file
 	 *
@@ -1257,23 +1259,29 @@ class TwitchVOD {
 
 	// TODO: finish this
 	public function getCapturingStatus(){
+		if( $this->pid_cache['capture'] ) return $this->pid_cache['capture'];
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Fetch capture process status of " . $this->basename );
 		$output = shell_exec("ps aux | grep -i " . escapeshellarg("twitch.tv/" . $this->streamer_name) . " | grep -v grep");
 		preg_match("/^([a-z0-9]+)\s+([0-9]+)/i", trim($output), $matches);
+		$this->pid_cache['capture'] = $matches[2];
 		return isset($matches[2]) ? $matches[2] : false;
 	}
 
 	public function getConvertingStatus(){
+		if( $this->pid_cache['convert'] ) return $this->pid_cache['convert'];
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Fetch converting process status of " . $this->basename );
 		$output = shell_exec("ps aux | grep -i " . escapeshellarg( $this->basename . ".mp4" ) . " | grep -v grep");
 		preg_match("/^([a-z0-9]+)\s+([0-9]+)/i", trim($output), $matches);
+		$this->pid_cache['convert'] = $matches[2];
 		return isset($matches[2]) ? $matches[2] : false;
 	}
 
 	public function getChatDownloadStatus(){
+		if( $this->pid_cache['download'] ) return $this->pid_cache['download'];
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Fetch chat download process status of " . $this->basename );
 		$output = shell_exec("ps aux | grep -i " . escapeshellarg( "tcd --video " . $this->twitch_vod_id ) . " | grep -v grep");
 		preg_match("/^([a-z0-9]+)\s+([0-9]+)/i", trim($output), $matches);
+		$this->pid_cache['download'] = $matches[2];
 		return isset($matches[2]) ? $matches[2] : false;
 	}
 

@@ -1,0 +1,202 @@
+.side-menu {
+	
+	position: fixed;
+	z-index: 999;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	width: 300px;
+
+	background-color: #000;
+	color: #fff;
+	display: flex;
+	flex-direction: column;
+	// flex-wrap: wrap;
+	overflow: hidden;
+
+	&.collapsed {
+		width: 150px;
+		.streamer-jumpto {
+			display: none;
+		}
+		.top-menu-item.title span.title {
+			display: none;
+		}
+		.menu-bottom {
+			flex-wrap: wrap;
+		}
+	}
+
+	&.side {
+		// position: static;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		right: auto;
+		height: 100vh;
+		width: 300px;
+		display: block;
+	}
+
+	.menu-bottom {
+		display: flex;
+		text-align: center;
+		.top-menu-item {
+			flex-grow: 1;
+		}
+	}
+
+}
+
+// TODO: make this more dynamic
+.top-menu-item {
+	
+	font-size: 120%;
+	
+	// padding: 5px 8px;
+	
+	display: flex;
+	flex-direction: column;
+	// justify-content: center;
+	// align-items: center;
+
+	&.title {
+		font-weight: 700;
+		a {
+			color: #fff;
+			padding: 13px 8px;
+		}
+		.favicon { transition: ease-in-out 0.5s transform; }
+		// .favicon { animation: 1s speeen linear; }
+		&:hover .favicon {
+			animation: 1s speen linear infinite;
+		}
+	}
+
+	a {
+		color: #777;
+		text-decoration: none;
+		display: inline-block;
+		padding: 5px 8px 11px 8px;		
+		&:hover {
+			color: #fff;
+			background: #111;
+		}
+	}
+	
+	&.divider {
+		flex-grow: 1;
+	}
+
+	&.right {
+		// flex-grow: 1;
+		// text-align: right;
+		a {
+			padding: 14px 8px;
+		}
+	}
+
+	.small {
+		color: #555;
+		font-size: 80%;
+	}
+
+	&.icon a {
+		padding-left: 16px;
+		padding-right: 16px;
+	}
+
+	&.streamer {
+		/*
+		a {
+			padding: 5px 8px 12px 8px;
+		}
+		*/
+		.vodcount {
+			font-size: 90%;
+			color: #666;
+		}
+		.subtitle { 
+			font-family: 'Roboto Condensed', 'Roboto', 'Arial';
+			font-weight: 500;
+			display: block;
+			font-size: 80%;
+			line-height: 0.8em;
+			color: #444;
+		}
+		
+	}
+
+	&.live {
+		&.streamer{
+			.username {
+				color: #f00;
+				animation: live ease-in-out 1s infinite;
+				font-weight: 700;
+			}
+			.subtitle, .vodcount {
+				color: #b30000;
+			}
+		}
+	}
+
+	&.active {
+		a {
+			color: #fff;
+		}
+	}
+
+}
+
+.favicon {
+	width: 24px;
+	height: 24px;
+	vertical-align: -5px;
+	margin: 0 8px 0 3px;
+}
+
+a.linkback {
+	font-weight: 700;
+	color: #e0e00d; /* forgive me padre for i have sinned */
+	&:hover {
+		color: #fff;
+	}
+}
+
+.streamer-jumpto {
+	.icon { margin-right: 0.2em; }
+	ul {
+		list-style: none;
+		list-style-type: none;
+		margin: 0;
+		padding: 0;
+		li {
+			a {
+				$base-bg: #09182c;
+				background-color: $base-bg;
+				// border-color: darken($base-bg, 5%);
+				color: #ddd;
+				display: block;
+				text-decoration: none;
+				padding: 2px 5px;
+				font-size: 0.8em;
+				&:hover {
+					color: #fff;
+					background-color: lighten($base-bg, 5%);
+				}
+				&.favourite {
+					background-color: #356e35;
+					&:hover {
+						background-color: lighten(#356e35, 5%);
+					}
+				}
+				&.live {
+					background-color: #a82929;
+					&:hover {
+						background-color: lighten(#a82929, 5%);
+					}
+				}
+			}
+		}
+	}
+}
