@@ -35,7 +35,7 @@
             
             <br>
 
-            {% for streamer in streamerList %}
+            {% for streamer in streamerList|sort((a, b) => a.display_name > b.display_name) %}
 
                 {% include 'components/streamer.twig' %}
                 

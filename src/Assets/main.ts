@@ -98,6 +98,48 @@ async function renderLog( date: string ){
     }
 }
 
+let observer : IntersectionObserver;
+
+function setupObserver(){
+    // simple function to use for callback in the intersection observer
+    const changeNav = (entries: IntersectionObserverEntry[], observer: IntersectionObserverInit) => {
+        entries.forEach((entry) => {
+            // verify the element is intersecting
+            if(entry.isIntersecting && entry.intersectionRatio >= 0.75) {
+                // console.log("intersect", entry);
+                // remove old active class
+                document.querySelector('.is-active')?.classList.remove('is-active');
+                // get id of the intersecting section
+                let target = <HTMLElement>entry.target;
+                let basename = target.dataset.basename;
+                // console.log(target, basename);
+                // find matching link & add appropriate class
+                let menuItem = document.querySelector(`div.streamer-jumpto a[data-basename="${basename}"]`);
+                console.log(menuItem);
+                if(menuItem){
+                    let newLink = menuItem.classList.add('is-active');
+                }
+            }
+        });
+    }
+
+    // init the observer
+    const options = {
+        threshold: 0.75
+    }
+
+    if( observer ) observer.disconnect();
+
+    observer = new IntersectionObserver(changeNav, options);
+
+    // target the elements to be observed
+    const jumpto_sections = document.querySelectorAll('.video');
+    jumpto_sections.forEach((section) => {
+        // console.log(section);
+        observer.observe(section);
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
 
     let delay: number = 120;
@@ -255,6 +297,8 @@ document.addEventListener("DOMContentLoaded", () => {
         
         window.scrollTo(0, scrollTop);
 
+        setupObserver();
+
     }
 
     (<any>window).forceRefresh = () => {
@@ -363,6 +407,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     */
+
+    setupObserver();
 
     // single page
     const log_select = <HTMLInputElement>document.getElementById("log_select");

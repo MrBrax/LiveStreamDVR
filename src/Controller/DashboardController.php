@@ -35,6 +35,12 @@ class DashboardController
         $match_vod = isset($_GET['match_vod']);
         $rebuild_segments = isset($_GET['rebuild_segments']);
 
+        /*
+        usort( $streamerListStatic, function($a, $b){
+            return $a->display_name <=> $b->display_name;
+        });
+        */
+        
         foreach ($streamerListStatic as $streamer) {
 
             /*

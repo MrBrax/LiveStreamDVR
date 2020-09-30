@@ -3,7 +3,11 @@ $fa-font-path: "../assets/webfonts";
 @import "./fontawesome/scss/solid.scss";
 @import "./fontawesome/scss/brands.scss";
 
-@import "normalize.css";
+@import "normalize";
+
+$favourite-base: #356e35;
+$converting-base: #bb15ca;
+$recording-base: #ca1515;
 
 * {
 	box-sizing: border-box;

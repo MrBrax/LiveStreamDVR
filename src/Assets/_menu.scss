@@ -181,6 +181,7 @@ a.linkback {
 		padding: 0;
 		li {
 			a {
+				font-family: 'Roboto Condensed';
 				$base-bg: #09182c;
 				background-color: $base-bg;
 				// border-color: darken($base-bg, 5%);
@@ -188,29 +189,33 @@ a.linkback {
 				color: rgba(255, 255, 255, .5);
 				display: block;
 				text-decoration: none;
-				padding: 2px 5px;
+				padding: 3px 5px;
 				font-size: 0.8em;
 				&:hover {
 					color: #fff;
 					background-color: lighten($base-bg, 5%);
 				}
 				&.is-favourite {
-					background-color: #356e35;
+					background-color: $favourite-base;
 					&:hover {
-						background-color: lighten(#356e35, 5%);
+						background-color: lighten($favourite-base, 5%);
 					}
 				}
 				&.is-live {
-					background-color: #a82929;
+					background-color: $recording-base;
 					&:hover {
-						background-color: lighten(#a82929, 5%);
+						background-color: lighten($recording-base, 5%);
 					}
 				}
 				&.is-converting {
-					background-color: #a829a8;
+					background-color: $converting-base;
 					&:hover {
-						background-color: lighten(#a829a8, 5%);
+						background-color: lighten($converting-base, 5%);
 					}
+				}
+				&.is-active {
+					border-left: 2px solid #81b1e6;
+					// padding-left: 0;
 				}
 			}
 		}

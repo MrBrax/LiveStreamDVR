@@ -32,6 +32,12 @@ class ApiController
         $streamerListStatic = TwitchConfig::getStreamers();
         $streamerList = [];
 
+        /*
+        usort( $streamerListStatic, function($a, $b){
+            return $a->display_name <=> $b->display_name;
+        });
+        */
+        
         foreach ($streamerListStatic as $streamer) {
 
             $data = new TwitchChannel();

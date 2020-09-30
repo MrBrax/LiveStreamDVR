@@ -85,10 +85,10 @@
 	&.is-recording {
 		
 		.video-title {
-			background-color: #ca1515;
+			background-color: $recording-base;
 			animation: recording ease-in-out 1s infinite;
 			h3 {
-				text-shadow: 0 2px 0 #851818;
+				text-shadow: 0 2px 0 darken($recording-base, 10%);
 			}
 		}
 
@@ -97,9 +97,20 @@
 	&.is-converting {
 	
 		.video-title {
-			background-color: #bb15ca;
+			background-color: $converting-base;
 			h3 {
-				text-shadow: 0 2px 0 darken(#bb15ca, 10%);
+				text-shadow: 0 2px 0 darken($converting-base, 10%);
+			}
+		}
+
+	}
+
+	&.is-favourite {
+	
+		.video-title {
+			background-color: $favourite-base;
+			h3 {
+				text-shadow: 0 2px 0 darken($favourite-base, 10%);
 			}
 		}
 

@@ -5,7 +5,8 @@
     <div class="{{ html_classes('video', {
         'is-recording': vodclass.is_capturing,
         'is-converting': vodclass.is_converting,
-        'is-finalized': vodclass.is_finalized
+        'is-finalized': vodclass.is_finalized,
+        'is-favourite': vodclass.hasFavouriteGame,
     }) }}" data-basename="{{ vodclass.basename }}">
 
         <div id="vod_{{ vodclass.basename }}" class="anchor"></div>

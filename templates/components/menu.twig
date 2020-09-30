@@ -45,13 +45,13 @@
                 <ul>
                 {% for vodclass in streamer.vods_list %}
                     <li>
-                        <a href="#vod_{{ vodclass.basename }}" class="{{ html_classes({
+                        <a href="#vod_{{ vodclass.basename }}" data-basename="{{ vodclass.basename }}" class="{{ html_classes({
                                 'is-favourite': vodclass.hasFavouriteGame,
                                 'is-live': vodclass.is_recording,
                                 'is-converting': vodclass.is_converting,
                                 'is-waiting': not vodclass.is_capturing and not vodclass.is_converting and not vodclass.is_finalized
                             }) }}" title="{{ vodclass.started_at|date('Y-m-d H:i:s') }}">
-                            <!--<span class="icon"><i class="fa fa-arrow-circle-right"></i></span>-->
+                            {# <span class="icon is-active"><i class="fa fa-arrow-circle-right"></i></span> #}
                             {% if vodclass.is_recording %}
                                 <span class="icon"><i class="fa fa-sync fa-spin"></i></span>
                             {% elseif vodclass.is_converting %}
