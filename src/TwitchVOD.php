@@ -1337,6 +1337,7 @@ class TwitchVOD {
 		$this->is_finalized = true;
 	}
 
+	/** @todo Something */
 	public function repair(){
 
 		$username = explode( "_", $this->basename )[0];

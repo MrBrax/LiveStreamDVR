@@ -127,8 +127,7 @@
 			line-height: 0.8em;
 			color: #444;
 			padding-bottom: 5px;
-			&:empty, &:-moz-only-whitespace {
-				// background: #f00;
+			&:empty, &:blank, &:-moz-only-whitespace {
 				display:none;
 			}
 		}
@@ -203,18 +202,21 @@ a.linkback {
 					&:hover {
 						background-color: lighten($favourite-base, 5%);
 					}
+					.tooltip { background-color: rgba($favourite-base, 0.95); }
 				}
 				&.is-live {
 					background-color: $recording-base;
 					&:hover {
 						background-color: lighten($recording-base, 5%);
 					}
+					.tooltip { background-color: rgba($recording-base, 0.95); }
 				}
 				&.is-converting {
 					background-color: $converting-base;
 					&:hover {
 						background-color: lighten($converting-base, 5%);
 					}
+					.tooltip { background-color: rgba($converting-base, 0.95); }
 				}
 				&.is-active {
 					&.is-favourite { border-color: lighten($favourite-base, 60%); }

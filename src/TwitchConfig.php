@@ -46,6 +46,7 @@ class TwitchConfig {
 		return self::$config[$var] ?: $def;
 	}
 
+	/** @deprecated 3.2.0 */
 	public static function path( $parts ){
 		return join(DIRECTORY_SEPARATOR, $parts);
 	}

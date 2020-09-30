@@ -6,6 +6,8 @@
 	position: sticky;
 	top: 0px;
 	z-index: 1;
+
+	height: 50px;
 	
 	background-color: #243e94;
 	
@@ -126,14 +128,12 @@
 
 	// good idea?
 	position: sticky;
-	top: 51px;
-
+	top: 50px;
 	
 	.icon {
 		margin-right: 0.3em;
 	}
 	
-
 	h3 {
 		margin: 0;
 		padding: 0;

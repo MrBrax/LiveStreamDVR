@@ -468,6 +468,7 @@ class TwitchHelper {
         return implode(DIRECTORY_SEPARATOR, $absolutes);
 	}
 	
+	/** @deprecated 3.2.0 */
 	public static function checkForDeletedVods(){
 
 		$deleted = false;
