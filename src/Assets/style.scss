@@ -59,10 +59,15 @@ code, pre {
 @import "vod";
 @import "input";
 
+$icon-dimensions: 1.2em !default;
+
 .icon {
-	display: inline-block;
-	width: 1em;
-	text-align: center;
+	align-items: center;
+	justify-content: center;
+	display: inline-flex;
+	width: $icon-dimensions;
+	height: $icon-dimensions;
+
 }
 
 .error {

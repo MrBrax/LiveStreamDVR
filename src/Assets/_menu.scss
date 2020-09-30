@@ -214,8 +214,10 @@ a.linkback {
 					}
 				}
 				&.is-active {
+					&.is-favourite { border-color: lighten($favourite-base, 30%); }
+					&.is-live { border-color: lighten($recording-base, 30%); }
+					&.is-converting { border-color: lighten($converting-base, 30%); }
 					border-left: 2px solid #81b1e6;
-					// padding-left: 0;
 				}
 			}
 		}

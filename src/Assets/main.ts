@@ -115,7 +115,7 @@ function setupObserver(){
                 // console.log(target, basename);
                 // find matching link & add appropriate class
                 let menuItem = document.querySelector(`div.streamer-jumpto a[data-basename="${basename}"]`);
-                console.log(menuItem);
+                // console.log(menuItem);
                 if(menuItem){
                     let newLink = menuItem.classList.add('is-active');
                 }
