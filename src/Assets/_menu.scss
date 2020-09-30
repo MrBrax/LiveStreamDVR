@@ -127,7 +127,7 @@
 			line-height: 0.8em;
 			color: #444;
 			padding-bottom: 5px;
-			&:empty, &:blank, &:-moz-only-whitespace {
+			&:empty, &:-moz-only-whitespace { // @todo: multiplatform
 				display:none;
 			}
 		}

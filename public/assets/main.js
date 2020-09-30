@@ -124,6 +124,7 @@ function setupObserver() {
     });
 }
 document.addEventListener("DOMContentLoaded", () => {
+    let isDashboard = window.route == "/dashboard";
     let delay = 120;
     let previousData = {};
     let timeout_store = 0;
@@ -248,7 +249,10 @@ document.addEventListener("DOMContentLoaded", () => {
         clearTimeout(timeout_store);
         updateStreamers();
     };
-    setStatus(`Refreshing in ${delay} seconds...`, false);
+    if (isDashboard) {
+        setStatus(`Refreshing in ${delay} seconds...`, false);
+        timeout_store = setTimeout(updateStreamers, delay * 1000);
+    }
     // speech settings
     // (<any>window).useSpeech = config.useSpeech;
     let opt_speech = document.getElementById("useSpeechOption");
@@ -271,7 +275,6 @@ document.addEventListener("DOMContentLoaded", () => {
             location.reload();
         });
     }
-    timeout_store = setTimeout(updateStreamers, delay * 1000);
     // show and hide streamers
     if (!config.singlePage) {
         const menu_streamer_buttons = document.querySelectorAll("div.top-menu-item.streamer");

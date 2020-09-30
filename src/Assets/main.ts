@@ -142,6 +142,8 @@ function setupObserver(){
 
 document.addEventListener("DOMContentLoaded", () => {
 
+    let isDashboard = (<any>window).route == "/dashboard";
+
     let delay: number = 120;
 
     let previousData = {};
@@ -306,7 +308,10 @@ document.addEventListener("DOMContentLoaded", () => {
         updateStreamers();
     }
 
-    setStatus(`Refreshing in ${delay} seconds...`, false);
+    if( isDashboard ){
+        setStatus(`Refreshing in ${delay} seconds...`, false);
+        timeout_store = setTimeout(updateStreamers, delay * 1000);
+    }
 
     // speech settings
     // (<any>window).useSpeech = config.useSpeech;
@@ -331,8 +336,6 @@ document.addEventListener("DOMContentLoaded", () => {
             location.reload();
         });
     }
-
-    timeout_store = setTimeout(updateStreamers, delay * 1000);
 
     // show and hide streamers
     if( !config.singlePage ){
