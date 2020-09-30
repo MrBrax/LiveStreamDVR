@@ -4,6 +4,7 @@ let scrollTop = 0;
 let refresh_number = 0;
 let log_name: string = "";
 let previousData = {};
+let fluffInterval : number;
 let config = {
     useSpeech: false,
     singlePage: true
@@ -79,33 +80,35 @@ function showStreamer( username: string ){
     }
 }
 
+function formatDuration( sec_num : number ) {
+    var date = new Date(0);
+    date.setSeconds( sec_num );
+    return date.toISOString().substr(11, 8);
+}
+
 function fluffTick(){
     
     if(!previousData){
-        console.log("no previous data");   
         return;
     }
 
     for( let username in previousData ){
 
-        if( !previousData[username].is_live ){
-            console.log("not live", previousData[username]);    
+        if( !previousData[username].is_live ){   
             continue;
         }
 
         let div = document.getElementById("duration_" + username);
         if( div ){
-            console.log(div);
             let ts = previousData[username].current_vod.started_at.date;
-            div.innerHTML = ts; // todo: format
-            console.log( previousData[username] );
-        }else{
-            console.log("no div", username);
+            let date = new Date(ts + "+00:00");
+            let now = new Date();
+            // console.log("fluff", date, now);
+            let diff = Math.abs( Math.round( ( date.getTime() - now.getTime() ) / 1000 ) );            
+            div.innerHTML = formatDuration( diff ); // todo: format
         }
 
     }
-
-    console.log("fluffed");
 
 }
 
@@ -340,6 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if( isDashboard ){
         setStatus(`Refreshing in ${delay} seconds...`, false);
         timeout_store = setTimeout(updateStreamers, delay * 1000);
+        fluffInterval = setInterval(fluffTick, 1000);
     }
 
     // speech settings
