@@ -60,7 +60,13 @@ $twig = TwigMiddleware::createFromContainer($app);
 // Add Twig-View Middleware
 $app->add($twig);
 
+// html extension
 $container->get('view')->getEnvironment()->addExtension(new HtmlExtension());
+
+// timezone
+if( TwitchConfig::cfg('timezone', 'UTC') != 'UTC' ){
+    $container->get('view')->getEnvironment()->getExtension(\Twig\Extension\CoreExtension::class)->setTimezone( TwitchConfig::cfg('timezone', 'UTC') );
+}
 
 // config available everywhere
 $container->get('view')->getEnvironment()->addGlobal('config', TwitchConfig::$config);

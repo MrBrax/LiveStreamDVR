@@ -487,7 +487,12 @@ class TwitchVOD {
 
 		$successful = file_exists( $chat_filename ) && filesize( $chat_filename ) > 0;
 
-		if( $successful ) $this->is_chat_downloaded = true;
+		if( $successful ){
+			$this->is_chat_downloaded = true;
+			TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "Chat downloaded for " . $this->basename );
+		}else{
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Chat couldn't be downloaded for " . $this->basename );
+		}
 
 		return $successful;
 		// return [$chat_filename, $capture_output, $cmd];
@@ -592,7 +597,12 @@ class TwitchVOD {
 
 		$successful = file_exists( $video_filename ) && filesize( $video_filename) > 0;
 
-		if( $successful ) $this->is_chat_rendered = true;
+		if( $successful ){
+			$this->is_chat_rendered = true;
+			TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "Chat rendered for " . $this->basename );
+		}else{
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Chat couldn't be rendered for " . $this->basename );
+		}
 
 		return $successful;
 
@@ -691,7 +701,12 @@ class TwitchVOD {
 
 		$successful = file_exists( $final_filename ) && filesize( $final_filename) > 0;
 
-		if( $successful ) $this->is_chat_burned = true;
+		if( $successful ){
+			$this->is_chat_burned = true;
+			TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "Chat burned for " . $this->basename );
+		}else{
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Chat couldn't be burned for " . $this->basename );
+		}
 
 		return $successful;
 

@@ -2,6 +2,8 @@
 
 namespace App;
 
+use DateTimeZone;
+
 class TwitchConfig {
 
 	public static $config = [];
@@ -23,7 +25,8 @@ class TwitchConfig {
 		[ 'key' => 'api_client_id', 		'text' => 'Twitch client ID', 																'type' => 'string', 'required' => true ],
 		[ 'key' => 'api_secret', 			'text' => 'Twitch secret (keep blank to not change)', 										'type' => 'string', 'secret' => true, 'required' => true ],
 		[ 'key' => 'hook_callback', 		'text' => 'Hook callback', 																	'type' => 'string', 'required' => true ],
-		
+		[ 'key' => 'timezone', 				'text' => 'Timezone', 																		'type' => 'string', 'default' => 'UTC' ],
+
 		[ 'key' => 'vod_container', 		'text' => 'VOD container (not tested)', 													'type' => 'array', 'choices' => ['mp4', 'mkv', 'mov'], 'default' => 'mp4' ],
 
 		[ 'key' => 'burn_preset', 			'text' => 'Burning h264 preset', 															'type' => 'array', 'choices' => ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower', 'veryslow', 'placebo'], 'default' => 'slow' ],
@@ -37,6 +40,8 @@ class TwitchConfig {
 		[ 'key' => 'relative_time', 		'text' => 'Relative time', 																	'type' => 'boolean' ],
 		[ 'key' => 'low_latency', 			'text' => 'Low latency (untested)', 														'type' => 'boolean' ],
 	];
+
+	public static $timezone;
 
 	function __constructor(){
 		$this->loadConfig();
@@ -145,6 +150,15 @@ class TwitchConfig {
 }
 
 TwitchConfig::loadConfig();
+
+try {
+	TwitchConfig::$timezone = new DateTimeZone( TwitchConfig::cfg('timezone', 'UTC') );
+} catch (\Throwable $th) {
+	TwitchConfig::$timezone = new DateTimeZone('UTC');
+	TwitchHelper::log(TwitchHelper::LOG_ERROR, "Config has invalid timezone set");
+}
+
+
 
 if( !TwitchConfig::cfg('bin_dir') ){
 	TwitchHelper::find_bin_dir();

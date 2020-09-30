@@ -259,6 +259,10 @@ body.black {
 	overflow-y: scroll;
 }
 
+.is-shade {
+	color: rgba(255, 255, 255, .6);
+}
+
 .dialog {
 	margin: 15px;
 	font-weight: 700;
