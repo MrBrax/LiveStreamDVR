@@ -3,6 +3,7 @@ let current_username = "";
 let scrollTop = 0;
 let refresh_number = 0;
 let log_name: string = "";
+let previousData = {};
 let config = {
     useSpeech: false,
     singlePage: true
@@ -78,6 +79,36 @@ function showStreamer( username: string ){
     }
 }
 
+function fluffTick(){
+    
+    if(!previousData){
+        console.log("no previous data");   
+        return;
+    }
+
+    for( let username in previousData ){
+
+        if( !previousData[username].is_live ){
+            console.log("not live", previousData[username]);    
+            continue;
+        }
+
+        let div = document.getElementById("duration_" + username);
+        if( div ){
+            console.log(div);
+            let ts = previousData[username].current_vod.started_at.date;
+            div.innerHTML = ts; // todo: format
+            console.log( previousData[username] );
+        }else{
+            console.log("no div", username);
+        }
+
+    }
+
+    console.log("fluffed");
+
+}
+
 function saveConfig(){
     localStorage.setItem("twitchautomator_config", JSON.stringify(config) );
     console.log("Saving config");
@@ -145,8 +176,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let isDashboard = window.location.pathname == (<any>window).base_path + "/dashboard";
 
     let delay: number = 120;
-
-    let previousData = {};
 
     let timeout_store: number = 0;
 

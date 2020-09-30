@@ -24,7 +24,7 @@
                                 Playing <strong>{{ streamer.current_game.game_name }}</strong>
                             {% endif %}
 
-                            for {{ streamer.current_vod.duration_live|humanDuration }}
+                            for <span id="duration_{{ streamer.display_name }}">{{ streamer.current_vod.duration_live|humanDuration }}</span>
 
                         {% elseif streamer.is_converting %}
                             Converting...
