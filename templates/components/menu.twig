@@ -56,7 +56,7 @@
                                 <span class="icon"><i class="fa fa-star"></i></span>
                             {% elseif not vodclass.is_capturing and not vodclass.is_converting and not vodclass.is_finalized %}
                                 <span class="icon"><i class="far fa-hourglass"></i></span>
-                            {% else %}
+                            {% elseif vodclass.is_finalized %}
                                 <span class="icon"><i class="fa fa-film"></i></span>
                             {% endif %}
                             {% if not config.relative_time and vodclass.started_at %}{{ vodclass.started_at|date('Y-m-d H:i:s') }}{% endif %}

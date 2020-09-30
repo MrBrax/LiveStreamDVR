@@ -206,6 +206,7 @@ a.linkback {
 				}
 				&.is-live {
 					background-color: $recording-base;
+					animation: 1s ease-in-out infinite recording; // @todo: keep?
 					&:hover {
 						background-color: lighten($recording-base, 5%);
 					}
@@ -217,6 +218,13 @@ a.linkback {
 						background-color: lighten($converting-base, 5%);
 					}
 					.tooltip { background-color: rgba($converting-base, 0.95); }
+				}
+				&.is-waiting {
+					background-color: $waiting-base;
+					&:hover {
+						background-color: lighten($waiting-base, 5%);
+					}
+					.tooltip { background-color: rgba($waiting-base, 0.95); }
 				}
 				&.is-active {
 					&.is-favourite { border-color: lighten($favourite-base, 60%); }

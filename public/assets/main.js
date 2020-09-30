@@ -167,6 +167,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.data) {
             for (let streamer of data.data.streamerList) {
                 let username = streamer.display_name;
+                if (streamer.is_live) {
+                    any_live = true;
+                }
                 /*
                 let menu = document.querySelector(`.top-menu-item.streamer[data-streamer='${username}']`);
                 if( menu ){

@@ -573,7 +573,22 @@ class TwitchAutomator {
 		
 		// $capture_output = shell_exec( $cmd );
 		$process = new Process( $cmd, dirname($capture_filename), null, null, null );
-		$process->run();
+		
+		$process->run(function($type, $buffer) use($basename) {
+			if (Process::ERR === $type) {
+				// echo 'ERR > '.$buffer;
+			} else {
+				// echo 'OUT > '.$buffer;
+			}
+			
+			preg_match("/stream:\s([0-9_a-z]+)\s/", $buffer, $matches);
+			if($matches){
+				$this->stream_resolution = $matches[1];
+				TwitchHelper::log( TwitchHelper::LOG_INFO, "Stream resolution found in buffer for " . $basename . ": " . $this->stream_resolution );
+			}
+			
+		});
+
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Finishing capture with filename " . basename($capture_filename) );
 
