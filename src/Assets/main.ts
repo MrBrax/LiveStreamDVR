@@ -142,7 +142,7 @@ function setupObserver(){
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    let isDashboard = (<any>window).route == "/dashboard";
+    let isDashboard = window.location.pathname == (<any>window).base_path + "/dashboard";
 
     let delay: number = 120;
 

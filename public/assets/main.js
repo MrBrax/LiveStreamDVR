@@ -124,7 +124,7 @@ function setupObserver() {
     });
 }
 document.addEventListener("DOMContentLoaded", () => {
-    let isDashboard = window.route == "/dashboard";
+    let isDashboard = window.location.pathname == window.base_path + "/dashboard";
     let delay = 120;
     let previousData = {};
     let timeout_store = 0;
