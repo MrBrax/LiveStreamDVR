@@ -41,7 +41,9 @@
 	.menu-bottom {
 		display: flex;
 		text-align: center;
+		height: 50px;
 		.top-menu-item {
+			height: 50px;
 			flex-grow: 1;
 			a { width: 100% }
 		}

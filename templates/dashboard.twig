@@ -28,12 +28,14 @@
 
                 <button class="button" onclick="window.forceRefresh()"><span class="icon"><i class="fa fa-sync"></i></span> Refresh vods</button>
 
+            </div>
+
+            <br>
+
+            <div class="field">
                 <label class="checkbox"><input type="checkbox" id="useSpeechOption" /> Speech</label>
                 <label class="checkbox"><input type="checkbox" id="singlePageOption" /> Single Page</label>
-
             </div>
-            
-            <br>
 
             {% for streamer in streamerList|sort((a, b) => a.display_name > b.display_name) %}
 

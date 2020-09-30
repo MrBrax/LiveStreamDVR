@@ -335,10 +335,30 @@ body.black {
 	}
 
 	.button-bar {
-		flex-direction: column;
+		display: flex;
 		.button {
-			font-size: 16px;
-			padding: 10px;
+			flex-grow: 1;
+			text-align: center;
+			.icon {
+				display: block;
+				font-size: 1.75em;
+				margin: 0 auto 0.25em auto;
+				text-align: center;
+			}
+		}
+	}
+
+	.video-controls {
+		display: flex;
+		.button {
+			flex-grow: 1;
+			text-align: center;
+			.icon {
+				display: block;
+				font-size: 1.75em;
+				margin: 0 auto 0.25em auto;
+				text-align: center;
+			}
 		}
 	}
 
