@@ -146,7 +146,7 @@
             {% if vodclass.is_capturing %}
 
                 <ul class="video-info">
-                    <li><strong>Current duration:</strong> {{ vodclass.duration_live }}</li>
+                    <li><strong>Current duration:</strong> {{ vodclass.duration_live|humanDuration }}</li>
                     <li><strong>Watch live:</strong> <a href="https://twitch.tv/{{ streamer.display_name }}" rel="noreferrer" target="_blank">Twitch</a>
                 </ul>
 
@@ -346,7 +346,7 @@
                         
                         <tr>
                             {% if vodclass.started_at %}
-                                <td>{{ vodclass.getDurationLive }}</td>
+                                <td>{{ vodclass.getDurationLive|humanDuration }}</td>
                             {% endif %}
                             <td colspan="4"><em><strong>ONGOING</strong></em></td>
                         </tr>

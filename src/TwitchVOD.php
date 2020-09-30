@@ -101,8 +101,6 @@ class TwitchVOD {
 			return false;
 		}
 
-		
-
 		$this->json = json_decode($data, true);
 		$this->json_hash = md5($data);
 
@@ -163,6 +161,10 @@ class TwitchVOD {
 			$this->dt_capture_started 		= new \DateTime($this->json['dt_capture_started']['date']);
 			$this->dt_conversion_started 	= new \DateTime($this->json['dt_conversion_started']['date']);
 			$this->dt_ended_at 				= new \DateTime($this->json['dt_ended']['date']);
+		}
+
+		if( $this->meta && $this->meta['data'][0]['title'] ){
+			$this->stream_title = $this->meta['data'][0]['title'];
 		}
 
 		// $this->duration 			= $this->json['duration'];
@@ -334,8 +336,11 @@ class TwitchVOD {
 
 	public function getDurationLive(){
 		if(!$this->started_at) return false;
-		$diff = $this->started_at->diff( new \DateTime() );
-        return $diff->format('%H:%I:%S');
+		$now = new DateTime();
+		return abs( $this->started_at->getTimestamp() - $now->getTimestamp() );
+		// $diff = $this->started_at->diff( new \DateTime() );
+		// $diff->format("%s");
+        //return $diff->format('%H:%I:%S');
 	}
 
 	public function getStartOffset(){

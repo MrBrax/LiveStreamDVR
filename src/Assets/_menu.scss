@@ -12,7 +12,7 @@
 	display: flex;
 	flex-direction: column;
 	// flex-wrap: wrap;
-	overflow: hidden;
+	// overflow: hidden;
 
 	&.collapsed {
 		width: 150px;
@@ -214,10 +214,28 @@ a.linkback {
 					}
 				}
 				&.is-active {
-					&.is-favourite { border-color: lighten($favourite-base, 30%); }
-					&.is-live { border-color: lighten($recording-base, 30%); }
-					&.is-converting { border-color: lighten($converting-base, 30%); }
-					border-left: 2px solid #81b1e6;
+					&.is-favourite { border-color: lighten($favourite-base, 60%); }
+					&.is-live { border-color: lighten($recording-base, 60%); }
+					&.is-converting { border-color: lighten($converting-base, 60%); }
+					border-left: 2px solid lighten($base-bg, 60%);
+					color: #fff;
+				}
+				.tooltip {
+					position: absolute;
+					left: 310px;
+					background-color: rgba(0, 0, 0, .95);
+					border-radius: 3px;
+					padding: 8px;
+					display: none;
+					word-wrap: none;
+					width: max-content;
+					p {
+						margin: 0;
+						padding: 0;
+					}
+				}
+				&:hover > .tooltip {
+					display: block;
 				}
 			}
 		}

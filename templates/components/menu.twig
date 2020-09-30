@@ -28,7 +28,7 @@
                                 Playing <strong>{{ streamer.current_game.game_name }}</strong>
                             {% endif %}
 
-                            for {{ streamer.current_vod.duration_live }}
+                            for {{ streamer.current_vod.duration_live|humanDuration }}
 
                         {% elseif streamer.is_converting %}
                             Converting...
@@ -65,8 +65,21 @@
                             {% endif %}
                             {% if not config.relative_time and vodclass.started_at %}{{ vodclass.started_at|date('Y-m-d H:i:s') }}{% endif %}
                             {% if config.relative_time and vodclass.started_at %}{{ vodclass.started_at|humanDate }}{% endif %}
-                            {% if vodclass.duration_seconds %}&middot; ({{ config.relative_time ? vodclass.duration_seconds|humanRealDuration : vodclass.duration_seconds|humanDuration }}){% endif %}
-                            {% if vodclass.total_size %}&middot; {{ vodclass.total_size|formatBytes }}{% endif %}
+                            {% if vodclass.is_recording %}
+                                {% if vodclass.duration_live %}&middot; ({{ config.relative_time ? vodclass.duration_live|humanRealDuration : vodclass.duration_live|humanDuration }}+){% endif %}
+                                {% if vodclass.getRecordingSize %}&middot; {{ vodclass.getRecordingSize|formatBytes }}+{% endif %}
+                            {% else %}
+                                {% if vodclass.duration_seconds %}&middot; ({{ config.relative_time ? vodclass.duration_seconds|humanRealDuration : vodclass.duration_seconds|humanDuration }}){% endif %}
+                                {% if vodclass.total_size %}&middot; {{ vodclass.total_size|formatBytes }}{% endif %}
+                            {% endif %}
+                            <div class="tooltip">
+                                <div class="boxart-carousel">
+                                    {% for game in vodclass.getUniqueGames %}
+                                        {% if game.name %}<img class="boxart-big" title="{{ game.name }}" src="{{ game.image_url }}" />{% endif %}
+                                    {% endfor %}
+                                </div>
+                                <p>{{ vodclass.stream_title }}</p>
+                            </div>
                         </a>
                     </li>
                 {% endfor %}
