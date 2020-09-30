@@ -11,11 +11,7 @@
 
             <div class="top-menu-item{{ streamer.is_live ? ' is-live' : '' }} streamer" data-streamer="{{ streamer.display_name }}">
                 
-                {% if streamer.is_live %}
-                    <a href="#vod_{{ streamer.current_vod.basename }}">
-                {% else %}
-                    <a href="#streamer_{{ streamer.display_name }}">
-                {% endif %}
+                <a href="#streamer_{{ streamer.display_name }}">
 
                     <span class="username">{{ streamer.display_name }}</span>
                     <span class="vodcount">{{ streamer.vods_list|length }}</span>
@@ -47,12 +43,12 @@
                     <li>
                         <a href="#vod_{{ vodclass.basename }}" data-basename="{{ vodclass.basename }}" class="{{ html_classes({
                                 'is-favourite': vodclass.hasFavouriteGame,
-                                'is-live': vodclass.is_recording,
+                                'is-live': vodclass.is_capturing,
                                 'is-converting': vodclass.is_converting,
                                 'is-waiting': not vodclass.is_capturing and not vodclass.is_converting and not vodclass.is_finalized
                             }) }}" title="{{ vodclass.started_at|date('Y-m-d H:i:s') }}">
                             {# <span class="icon is-active"><i class="fa fa-arrow-circle-right"></i></span> #}
-                            {% if vodclass.is_recording %}
+                            {% if vodclass.is_capturing %}
                                 <span class="icon"><i class="fa fa-sync fa-spin"></i></span>
                             {% elseif vodclass.is_converting %}
                                 <span class="icon"><i class="fa fa-cog fa-spin"></i></span>
@@ -65,7 +61,7 @@
                             {% endif %}
                             {% if not config.relative_time and vodclass.started_at %}{{ vodclass.started_at|date('Y-m-d H:i:s') }}{% endif %}
                             {% if config.relative_time and vodclass.started_at %}{{ vodclass.started_at|humanDate }}{% endif %}
-                            {% if vodclass.is_recording %}
+                            {% if vodclass.is_capturing %}
                                 {% if vodclass.duration_live %}&middot; ({{ config.relative_time ? vodclass.duration_live|humanRealDuration : vodclass.duration_live|humanDuration }}+){% endif %}
                                 {% if vodclass.getRecordingSize %}&middot; {{ vodclass.getRecordingSize|formatBytes }}+{% endif %}
                             {% else %}

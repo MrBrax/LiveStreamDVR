@@ -193,6 +193,7 @@ a.linkback {
 				text-decoration: none;
 				padding: 3px 5px;
 				font-size: 0.8em;
+				transition: 0.1s border-width ease-in-out;
 				&:hover {
 					color: #fff;
 					background-color: lighten($base-bg, 5%);

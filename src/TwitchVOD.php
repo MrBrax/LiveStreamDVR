@@ -10,8 +10,9 @@ class TwitchVOD {
 	
 	public $vod_path = 'vods';
 
-	public $filename = '';
-	public $basename = '';
+	public $filename 	= '';
+	public $basename 	= '';
+	public $directory 	= null;
 	public $json = [];
 	public $meta = [];
 
@@ -37,6 +38,7 @@ class TwitchVOD {
 	public $game_offset = null;
 
 	public $stream_resolution = null;
+	public $stream_title = null;
 
 	public $total_size = null;
 
@@ -51,7 +53,8 @@ class TwitchVOD {
 	public $twitch_vod_neversaved = null;
 	public $twitch_vod_muted = null;
 
-	public $is_recording = false;
+	/** @deprecated 3.2.0 use $is_capturing instead */
+	public $is_recording = false; 
 	public $is_converted = false;
 	public $is_capturing = false;
 	public $is_converting = false;
@@ -64,12 +67,11 @@ class TwitchVOD {
 	public $is_vod_downloaded = false;
 	public $is_chat_rendered = false;
 	public $is_chat_burned = false;
+	public $is_lossless_cut_generated = false;
 
 	public $dt_ended_at = null;
 	public $dt_capture_started = null;
 	public $dt_conversion_started = null;
-
-	public $is_lossless_cut_generated = false;
 
 	public $json_hash = null;
 
@@ -206,7 +208,12 @@ class TwitchVOD {
 
 	}
 
-	// test
+	/**
+	 * Create new VOD and mark it as created, enabling safeguards.
+	 *
+	 * @param string $filename
+	 * @return bool
+	 */
 	public function create( $filename ){
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Create VOD JSON: " . basename($filename) );
 		$this->created = true;
@@ -215,7 +222,12 @@ class TwitchVOD {
 		$this->saveJSON();
 		return true;
 	}
-
+	
+	/**
+	 * Reload JSON to make sure you don't overwrite anything.
+	 *
+	 * @return bool
+	 */
 	public function refreshJSON(){
 		if(!$this->filename){
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Can't refresh vod, not found!");
@@ -294,6 +306,12 @@ class TwitchVOD {
 
 	}
 
+	/**
+	 * Run MediaInfo on the selected segment
+	 *
+	 * @param integer $segment_num
+	 * @return array|boolean
+	 */
 	public function getMediainfo( $segment_num = 0 ){
 
 		TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Fetching mediainfo of " . $this->basename);
@@ -334,6 +352,11 @@ class TwitchVOD {
 
 	}
 
+	/**
+	 * Get the current recording duration
+	 *
+	 * @return int
+	 */
 	public function getDurationLive(){
 		if(!$this->started_at) return false;
 		$now = new DateTime();
@@ -343,6 +366,11 @@ class TwitchVOD {
         //return $diff->format('%H:%I:%S');
 	}
 
+	/**
+	 * Get the start offset with the twitch vod, for syncing chat etc
+	 *
+	 * @return int|bool
+	 */
 	public function getStartOffset(){
 		if(!$this->twitch_vod_id) return false;
 		return $this->twitch_vod_duration - $this->getDuration();
@@ -350,9 +378,7 @@ class TwitchVOD {
 
 	/**
 	 * Download chat with tcd
-	 * @param  int 		$video_id [description]
-	 * @param  string 	$basename [description]
-	 * @return array    filename, cmd output, cmd
+	 * @return bool success
 	 */
 	public function downloadChat(){
 
@@ -468,6 +494,11 @@ class TwitchVOD {
 
 	}
 
+	/**
+	 * Render chat to mp4
+	 *
+	 * @return bool
+	 */
 	public function renderChat(){
 
 		if(!$this->is_chat_downloaded){
@@ -567,6 +598,13 @@ class TwitchVOD {
 
 	}
 
+	/**
+	 * Burn chat to vod in a new file
+	 *
+	 * @param integer $chat_width
+	 * @param boolean $use_vod Use downloaded VOD instead of captured one?
+	 * @return boolean success
+	 */
 	public function burnChat( $chat_width = 300, $use_vod = false ){
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Burn chat for " . $this->basename );
@@ -662,7 +700,7 @@ class TwitchVOD {
 	/**
 	 * Fetch streamer's videos and try to match this VOD with an archived one.
 	 *
-	 * @return string
+	 * @return string|boolean
 	 */
 	public function matchTwitchVod(){
 
@@ -719,7 +757,7 @@ class TwitchVOD {
 	/**
 	 * Check if VOD has been deleted from Twitch
 	 *
-	 * @return void
+	 * @return boolean
 	 */
 	public function checkValidVod(){
 
