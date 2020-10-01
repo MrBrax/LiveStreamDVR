@@ -233,6 +233,9 @@ a.linkback {
 					border-left: 2px solid lighten($base-bg, 60%);
 					color: #fff;
 				}
+				.flags {
+					float: right;
+				}
 				.tooltip {
 					position: absolute;
 					left: 310px;

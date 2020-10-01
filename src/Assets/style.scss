@@ -72,7 +72,7 @@ $icon-dimensions: 1.2em !default;
 
 }
 
-.error {
+.error, .is-error {
 	color: #f00;
 	&.flashing {
 		animation: 1s ease-in-out infinite live;

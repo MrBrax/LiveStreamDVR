@@ -1,5 +1,5 @@
 {% if not vodclass %}
-    <div class="error">Failed to load {{ vodclass.basename }}</div>
+    <div class="is-error">Failed to load {{ vodclass.basename }}</div>
 {% else %}
 
     <div class="{{ html_classes('video', {
@@ -26,7 +26,7 @@
             {# box art #}
             <div class="boxart-carousel">
                 {% for game in vodclass.getUniqueGames %}
-                    {% if game.name %}<img class="boxart-big" title="{{ game.name }}" src="{{ game.image_url }}" />{% endif %}
+                    {% if game.name %}<img class="boxart-big" title="{{ game.name }}" src="{{ game.image_url }}" loading="lazy" />{% endif %}
                 {% endfor %}
             </div>
             
@@ -94,7 +94,7 @@
                                             {% if vodclass.twitch_vod_exists %}
                                                 (exists)
                                             {% else %}
-                                                <strong class="error">(deleted)</strong>
+                                                <strong class="is-error">(deleted)</strong>
                                             {% endif %}
 
                                         {% endif %}
@@ -122,7 +122,7 @@
                                 <li>				
                                     <strong>Is muted:</strong> 
                                     {% if vodclass.twitch_vod_muted is same as(true) %}
-                                        <strong class="error">Yes</strong>
+                                        <strong class="is-error">Yes</strong>
                                     {% elseif vodclass.twitch_vod_muted is same as(false) %}
                                         <span>No</span>
                                     {% else %}
@@ -131,7 +131,7 @@
                                 </li>
                             {% elseif vodclass.twitch_vod_exists is same as(false) %}
                                 <li>
-                                    <strong class="error">VOD is deleted</strong>
+                                    <strong class="is-error">VOD is deleted</strong>
                                 </li>
                                 <li>
                                     {% if vodclass.twitch_vod_id %}	
@@ -181,7 +181,7 @@
                         <a href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ segment.basename }}">
                             <span class="text-overflow">{{ segment.basename }}</span>
                             {% if segment.deleted %}
-                                <strong class="error">(deleted)</strong>
+                                <strong class="is-error">(deleted)</strong>
                             {% else %}
                                 ({{ segment.filesize|formatBytes }})
                             {% endif %}
@@ -243,7 +243,7 @@
                     {% if vodclass.getConvertingStatus %}
                         <span class="icon"><i class="fa fa-sync fa-spin"></i></span> Running (pid {{ vodclass.getConvertingStatus }})
                     {% else %}
-                        <strong class="error flashing"><span class="icon"><i class="fa fa-exclamation-triangle"></i></span> Not running, did it crash?</strong>
+                        <strong class="is-error flashing"><span class="icon"><i class="fa fa-exclamation-triangle"></i></span> Not running, did it crash?</strong>
                     {% endif %}
                 </em>
 
@@ -258,7 +258,7 @@
                     {% if vodclass.getCapturingStatus %}
                         <span class="icon"><i class="fa fa-sync fa-spin"></i></span> Running (pid {{ vodclass.getCapturingStatus }})
                     {% else %}
-                        <strong class="error flashing"><span class="icon"><i class="fa fa-exclamation-triangle"></i></span> Not running, did it crash?</strong>
+                        <strong class="is-error flashing"><span class="icon"><i class="fa fa-exclamation-triangle"></i></span> Not running, did it crash?</strong>
                     {% endif %}
                 </em>
 
@@ -326,7 +326,7 @@
 
                             {# chapter name #}
                             <td>
-                                {% if chapter.box_art_url %}<img class="boxart" src="{{ chapter.box_art_url }}" />{% endif %}
+                                {% if chapter.box_art_url %}<img class="boxart" src="{{ chapter.box_art_url }}" loading="lazy" />{% endif %}
 
                                 {% if vodclass.is_finalized %}
                                     <a href="{{ url_for('player', { 'vod': vodclass.basename }) }}?start={{ chapter.offset }}">
