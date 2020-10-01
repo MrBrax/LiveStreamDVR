@@ -318,6 +318,11 @@ class TwitchAutomator {
 		$this->vod->streamer_id = TwitchHelper::getChannelId( $data_username );
 		$this->vod->started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $data_started );
 
+		// add to history, testing
+		$history = file_exists( TwitchConfig::$historyPath ) ? json_decode( file_get_contents( TwitchConfig::$historyPath ), true ) : [];
+		$history[] = [ 'streamer_name' => $this->vod->streamer_name, 'started_at' => $this->vod->started_at, 'title' => $data_title ];
+		file_put_contents( TwitchConfig::$historyPath, json_encode($history) );
+
 		if( $this->force_record ) $this->vod->force_record = true;
 
 		$this->vod->saveJSON();

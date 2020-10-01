@@ -10,6 +10,7 @@ class TwitchConfig {
 
 	public static $configPath = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "config.json";
 	public static $gameDbPath = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "games_v2.json";
+	public static $historyPath = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "history.json";
 
 	public static $settingsFields = [
 		[ 'key' => 'bin_dir', 				'text' => 'Python binary directory', 														'type' => 'string', 'required' => true ],
