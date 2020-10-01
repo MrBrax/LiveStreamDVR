@@ -25,7 +25,7 @@
                     <ul>
                         {% for streamer in streamerList|sort((a, b) => a.display_name > b.display_name) %}
                             {% for vodclass in streamer.vods_list %}
-                                {% if not vodclass.twitch_vod_exists %}
+                                {% if vodclass.is_finalized and not vodclass.twitch_vod_exists %}
                                     <li>
                                         <a href="#vod_{{ vodclass.basename }}">{{ vodclass.basename }}</a>
                                         {% if vodclass.twitch_vod_neversaved %}(never saved?){% endif %}

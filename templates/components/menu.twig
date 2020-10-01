@@ -68,10 +68,12 @@
                                 {% if vodclass.duration_seconds %}&middot; ({{ config.relative_time ? vodclass.duration_seconds|humanRealDuration : vodclass.duration_seconds|humanDuration }}){% endif %}
                                 {% if vodclass.total_size %}&middot; {{ vodclass.total_size|formatBytes }}{% endif %}
                             {% endif %}
-                            <span class="flags">
-                                {% if vodclass.twitch_vod_exists is same as(false) %}<span class="icon is-error"><i class="fa fa-trash"></i></span>{% endif %}
-                                {% if vodclass.twitch_vod_exists is same as(null) %}<span class="icon is-error"><i class="fa fa-question"></i></span>{% endif %}
-                            </span>
+                            {% if vodclass.is_finalized %}
+                                <span class="flags">
+                                    {% if vodclass.twitch_vod_exists is same as(false) %}<span class="icon is-error"><i class="fa fa-trash"></i></span>{% endif %}
+                                    {% if vodclass.twitch_vod_exists is same as(null) %}<span class="icon is-error"><i class="fa fa-question"></i></span>{% endif %}
+                                </span>
+                            {% endif %}
                             <div class="tooltip">
                                 <div class="boxart-carousel is-small">
                                     {% for game in vodclass.getUniqueGames %}

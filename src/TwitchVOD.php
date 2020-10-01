@@ -737,6 +737,7 @@ class TwitchVOD {
 		if( !$channel_videos ){
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "No videos returned from streamer of " . $this->basename);
 			$this->twitch_vod_neversaved = true;
+			$this->twitch_vod_exists = false; // @todo: check this
 			return false;
 		}
 
@@ -754,6 +755,7 @@ class TwitchVOD {
 				$this->twitch_vod_duration 	= TwitchHelper::parseTwitchDuration($vid['duration']);
 				$this->twitch_vod_title 	= $vid['title'];
 				$this->twitch_vod_date 		= $vid['created_at'];
+				$this->twitch_vod_exists	= true;
 
 				TwitchHelper::log( TwitchHelper::LOG_INFO, "Matched twitch vod for " . $this->basename);
 
@@ -765,6 +767,7 @@ class TwitchVOD {
 
 		$this->twitch_vod_attempted = true;
 		$this->twitch_vod_neversaved = true;
+		$this->twitch_vod_exists = false; // @todo: check this
 
 		TwitchHelper::log( TwitchHelper::LOG_ERROR, "Couldn't match vod for " . $this->basename);
 
@@ -778,6 +781,11 @@ class TwitchVOD {
 	public function checkValidVod( $save = false ){
 
 		$current_status = $this->twitch_vod_exists;
+
+		if( !$this->is_finalized ){
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Trying to check vod valid while not finalized on " . $this->basename);
+			return null;
+		}
 
 		if( !$this->twitch_vod_id ){
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "No twitch VOD id for valid checking on " . $this->basename);
@@ -1385,6 +1393,11 @@ class TwitchVOD {
 				return ["fixable" => false, "text" => "reached finalize step, but the .mp4 file never got created."];
 			}
 			if( !$this->twitch_vod_id ){
+
+				if( $this->twitch_vod_exists === false ){
+					return ["fixable" => false, "text" => "reached finalize step, was never able to match twitch vod."];
+				}
+
 				if($fix){
 					if( $this->matchTwitchVod() ){
 						$this->saveJSON('troubleshoot vod match');

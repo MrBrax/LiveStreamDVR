@@ -91,6 +91,7 @@ class TwitchChannel {
      */
     public function matchVods(){
         foreach( $this->vods_list as $vod ){
+            if( !$vod->is_finalized ) continue;
             if( $vod->matchTwitchVod() ){
                 $vod->saveJSON('matched vod');
             }
@@ -109,6 +110,8 @@ class TwitchChannel {
         $is_a_vod_deleted = false;
 
         foreach( $this->vods_list as $vod ){
+
+            if( !$vod->is_finalized ) continue;
             
             $isvalid = $vod->checkValidVod( true );
 
