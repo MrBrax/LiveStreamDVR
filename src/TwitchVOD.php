@@ -149,6 +149,7 @@ class TwitchVOD {
 		$this->twitch_vod_duration 		= isset($this->json['twitch_vod_duration']) ? $this->json['twitch_vod_duration'] : null;
 		$this->twitch_vod_title 		= isset($this->json['twitch_vod_title']) ? $this->json['twitch_vod_title'] : null;
 		$this->twitch_vod_date 			= isset($this->json['twitch_vod_date']) ? $this->json['twitch_vod_date'] : null;
+		$this->twitch_vod_exists 		= isset($this->json['twitch_vod_exists']) ? $this->json['twitch_vod_exists'] : null;
 		$this->twitch_vod_neversaved 	= isset($this->json['twitch_vod_neversaved']) ? $this->json['twitch_vod_neversaved'] : null;
 		$this->twitch_vod_attempted 	= isset($this->json['twitch_vod_attempted']) ? $this->json['twitch_vod_attempted'] : null;
 		$this->twitch_vod_muted 		= isset($this->json['twitch_vod_muted']) ? $this->json['twitch_vod_muted'] : null;
@@ -194,7 +195,7 @@ class TwitchVOD {
 		if( !$this->video_metadata && $this->is_finalized && count($this->segments_raw) > 0 && !$this->video_fail2 && TwitchHelper::path_mediainfo() ){
 			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "VOD " . $this->basename . " finalized but no metadata, trying to fix" );
 			$this->getMediainfo();
-			$this->saveJSON();
+			$this->saveJSON('fix mediainfo');
 		}
 
 		$this->is_chat_downloaded = file_exists( $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat' );
@@ -219,7 +220,7 @@ class TwitchVOD {
 		$this->created = true;
 		$this->filename = $filename;
 		$this->basename = basename($filename, '.json');
-		$this->saveJSON();
+		$this->saveJSON('create json');
 		return true;
 	}
 	
@@ -293,7 +294,7 @@ class TwitchVOD {
 
 			if( $save ){
 				TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Saved duration for " . $this->basename);
-				$this->saveJSON();
+				$this->saveJSON('duration save');
 			}
 
 			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Duration fetched for " . $this->basename . ": " . $this->duration_seconds );
@@ -774,13 +775,19 @@ class TwitchVOD {
 	 *
 	 * @return boolean
 	 */
-	public function checkValidVod(){
+	public function checkValidVod( $save = false ){
+
+		$current_status = $this->twitch_vod_exists;
 
 		if( !$this->twitch_vod_id ){
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "No twitch VOD id for valid checking on " . $this->basename);
+			if( $this->twitch_vod_neversaved ){
+				if( $save && $current_status !== false ){
+					$this->twitch_vod_exists = false;
+					$this->saveJSON("vod check neversaved");
+				}
+			}
 			return false;
-			// throw new \Exception("No twitch vod id for valid checking on " . $this->basename);
-			// return null;
 		}
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Check valid VOD for " . $this->basename);
@@ -790,12 +797,19 @@ class TwitchVOD {
 		if( $video ){
 			TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "VOD exists for " . $this->basename);
 			$this->twitch_vod_exists = true;
+			if( $save && $current_status !== $this->twitch_vod_exists ){
+				$this->saveJSON("vod check true");
+			}
 			return true;
 		}
 
 		TwitchHelper::log( TwitchHelper::LOG_WARNING, "No VOD for " . $this->basename);
 
 		$this->twitch_vod_exists = false;
+
+		if( $save && $current_status !== $this->twitch_vod_exists ){
+			$this->saveJSON("vod check false");
+		}
 
 		return false;
 
@@ -804,7 +818,7 @@ class TwitchVOD {
 	/**
 	 * Save JSON to file, be sure to load it first!
 	 */
-	public function saveJSON(){
+	public function saveJSON( $reason = null ){
 
 		if( file_exists($this->filename) ){
 			$tmp = file_get_contents($this->filename);
@@ -836,6 +850,7 @@ class TwitchVOD {
 			$generated['twitch_vod_date'] 		= $this->twitch_vod_date;
 		}
 
+		$generated['twitch_vod_exists'] 		= $this->twitch_vod_exists;
 		$generated['twitch_vod_attempted'] 		= $this->twitch_vod_attempted;
 		$generated['twitch_vod_neversaved'] 	= $this->twitch_vod_neversaved;
 		$generated['twitch_vod_muted'] 			= $this->twitch_vod_muted;
@@ -878,7 +893,7 @@ class TwitchVOD {
 		}
 		
 
-		TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Saving JSON of " . $this->basename);
+		TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Saving JSON of " . $this->basename . ( $reason ? ' (' . $reason . ')' : '' ) );
 
 		file_put_contents($this->filename, json_encode($generated));
 
@@ -1139,7 +1154,7 @@ class TwitchVOD {
 
 		$this->parseSegments( $this->segments_raw );
 
-		$this->saveJSON();
+		$this->saveJSON('segments rebuild');
 
 	}
 
@@ -1371,7 +1386,7 @@ class TwitchVOD {
 			if( !$this->twitch_vod_id ){
 				if($fix){
 					if( $this->matchTwitchVod() ){
-						$this->saveJSON();
+						$this->saveJSON('troubleshoot vod match');
 						return ["fixed" => true, "text" => "twitch vod matched successfully"];
 					}else{
 						return ["fixed" => false, "text" => "tried to match, but couldn't. maybe it's deleted?"];
@@ -1395,7 +1410,7 @@ class TwitchVOD {
 					$this->is_converting = false;
 					$this->is_converted = true;
 					$this->finalize();
-					$this->saveJSON();
+					$this->saveJSON('troubleshoot finalize');
 				}
 				return ["fixable" => true, "text" => "reached conversion step, ffmpeg exited and conversion probably completed, but the .ts file got removed."];
 			}elseif( !file_exists( $base . '.mp4' ) && file_exists( $base . '.ts' ) ){

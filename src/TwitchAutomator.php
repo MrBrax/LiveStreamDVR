@@ -265,7 +265,7 @@ class TwitchAutomator {
 		];
 		
 		$this->vod->addChapter($chapter);
-		$this->vod->saveJSON();
+		$this->vod->saveJSON('game update');
 
 		$this->notify('', '[' . $data_username . '] [game update: ' . $game_name . ']', self::NOTIFY_GAMECHANGE);
 
@@ -325,7 +325,7 @@ class TwitchAutomator {
 
 		if( $this->force_record ) $this->vod->force_record = true;
 
-		$this->vod->saveJSON();
+		$this->vod->saveJSON('stream download');
 		$this->vod->refreshJSON();
 		
         
@@ -355,7 +355,7 @@ class TwitchAutomator {
 		}
 
 		$this->vod->is_capturing = true;
-		$this->vod->saveJSON();
+		$this->vod->saveJSON('is_capturing set');
 
 		// in progress
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Update game for " . $basename);
@@ -402,7 +402,7 @@ class TwitchAutomator {
 		$this->vod->dt_ended_at = new \DateTime();
 		$this->vod->is_capturing = false;
 		if( $this->stream_resolution ) $this->vod->stream_resolution = $this->stream_resolution;
-		$this->vod->saveJSON();
+		$this->vod->saveJSON('stream capture end');
 
 		sleep(60);
 
@@ -412,7 +412,7 @@ class TwitchAutomator {
 
 		$this->vod->refreshJSON();
 		$this->vod->is_converting = true;
-		$this->vod->saveJSON();
+		$this->vod->saveJSON('is_converting set');
 		
 		// convert with ffmpeg
 		$converted_filename = $this->convert( $basename );
@@ -437,7 +437,7 @@ class TwitchAutomator {
 		$this->vod->is_converting = false;
 		// if(!$this->json['segments_raw']) $this->json['segments_raw'] = [];
 		$this->vod->addSegment( $converted_filename );
-		$this->vod->saveJSON();
+		$this->vod->saveJSON('add segment');
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Cleanup old VODs for " . $data_username);
 		$this->cleanup( $data_username, $basename );
@@ -464,7 +464,7 @@ class TwitchAutomator {
 		$vodclass->is_finalized = true;
 		*/
 		$vodclass->finalize();
-		$vodclass->saveJSON();
+		$vodclass->saveJSON('finalized');
 		
 		if( ( TwitchConfig::cfg('download_chat') || ( TwitchConfig::getStreamer($data_username)['download_chat'] ) && $vodclass->twitch_vod_id ) ){
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "Auto download chat on " . $basename);
@@ -572,7 +572,7 @@ class TwitchAutomator {
 
 		$this->vod->refreshJSON();
 		$this->vod->dt_capture_started = new \DateTime();
-		$this->vod->saveJSON();
+		$this->vod->saveJSON('dt_capture_started set');
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting capture with filename " . basename($capture_filename) );
 		
@@ -686,7 +686,7 @@ class TwitchAutomator {
 
 		$this->vod->refreshJSON();
 		$this->vod->dt_conversion_started = new \DateTime();
-		$this->vod->saveJSON();
+		$this->vod->saveJSON('dt_conversion_started set');
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting conversion of " . basename($capture_filename) . " to " . basename($converted_filename) );
 

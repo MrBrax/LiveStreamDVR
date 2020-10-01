@@ -27,7 +27,7 @@ class TwitchChannel {
 	 * Load
 	 *
 	 * @param string $username
-	 * @return bool
+	 * @return void
 	 */
 	public function load( $username ){
 
@@ -47,6 +47,11 @@ class TwitchChannel {
 
     }
 
+    /**
+     * Load and add each vod to channel
+     *
+     * @return void
+     */
     private function parseVODs(){
 
         $this->vods_raw = glob( TwitchHelper::vod_folder( $this->display_name ) . DIRECTORY_SEPARATOR . $this->display_name . "_*.json" );
@@ -79,14 +84,24 @@ class TwitchChannel {
 
     }
 
+    /**
+     * Match vods online
+     *
+     * @return void
+     */
     public function matchVods(){
         foreach( $this->vods_list as $vod ){
             if( $vod->matchTwitchVod() ){
-                $vod->saveJSON();
+                $vod->saveJSON('matched vod');
             }
         }
     }
 
+    /**
+     * Check vods online
+     *
+     * @return boolean Is a vod deleted?
+     */
     public function checkValidVods(){
 
         $list = [];
@@ -94,7 +109,8 @@ class TwitchChannel {
         $is_a_vod_deleted = false;
 
         foreach( $this->vods_list as $vod ){
-            $isvalid = $vod->checkValidVod();
+            
+            $isvalid = $vod->checkValidVod( true );
 
             $list[ $vod->basename ] = $isvalid;
 

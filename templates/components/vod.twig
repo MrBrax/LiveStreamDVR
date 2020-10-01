@@ -74,60 +74,77 @@
                     <div class="info-column">
                         <h4>Twitch VOD</h4>
                         <ul class="video-info">
-                            <li>
-                                <strong>Duration:</strong>
-                                {% if vodclass.twitch_vod_duration %}
-                                    {{ vodclass.twitch_vod_duration|humanDuration }}
-                                {% else %}
-                                    <strong><em>No data</em></strong>
-                                {% endif %}
-                            </li>
-                            <li>
-                                <strong>ID:</strong> 
-                                {% if vodclass.twitch_vod_url %}	
-                                    
-                                    <a href="{{ vodclass.twitch_vod_url }}" rel="noreferrer" target="_blank">{{ vodclass.twitch_vod_id }}</a>
-
-                                    {% if checkvod %}
+                            {% if vodclass.twitch_vod_exists is same as(true) %}
+                                <li>
+                                    <strong>Duration:</strong>
+                                    {% if vodclass.twitch_vod_duration %}
+                                        {{ vodclass.twitch_vod_duration|humanDuration }}
+                                    {% else %}
+                                        <strong><em>No data</em></strong>
+                                    {% endif %}
+                                </li>
+                                <li>
+                                    <strong>ID:</strong> 
+                                    {% if vodclass.twitch_vod_url %}	
                                         
-                                        {% if vodclass.twitch_vod_exists %}
-                                            (exists)
-                                        {% else %}
-                                            <strong class="error">(deleted)</strong>
+                                        <a href="{{ vodclass.twitch_vod_url }}" rel="noreferrer" target="_blank">{{ vodclass.twitch_vod_id }}</a>
+
+                                        {% if checkvod %}
+                                            
+                                            {% if vodclass.twitch_vod_exists %}
+                                                (exists)
+                                            {% else %}
+                                                <strong class="error">(deleted)</strong>
+                                            {% endif %}
+
                                         {% endif %}
 
+                                    {% else %}
+                                        <strong><em>Not matched or VOD deleted</em></strong>
                                     {% endif %}
-
-                                {% else %}
-                                    <strong><em>Not matched or VOD deleted</em></strong>
-                                {% endif %}
-                            </li>
-                            <li>
-                                <strong>Date:</strong>
-                                {% if vodclass.twitch_vod_date %}
-                                    {{ vodclass.twitch_vod_date|date('Y-m-d H:i:s') }}
-                                {% else %}
-                                    <strong><em>No data</em></strong>
-                                {% endif %}
-                            </li>
-                            <li>
-                                <strong>Title:</strong> 
-                                {% if vodclass.twitch_vod_title %}
-                                    <span class="text-overflow">{{ vodclass.twitch_vod_title }}</span>
-                                {% else %}
-                                    <strong><em>No data</em></strong>
-                                {% endif %}
-                            </li>
-                            <li>				
-                                <strong>Is muted:</strong> 
-                                {% if vodclass.twitch_vod_muted is same as(true) %}
-                                    <strong class="error">Yes</strong>
-                                {% elseif vodclass.twitch_vod_muted is same as(false) %}
-                                    <span>No</span>
-                                {% else %}
-                                    <em>No data</em>
-                                {% endif %}
-                            </li>
+                                </li>
+                                <li>
+                                    <strong>Date:</strong>
+                                    {% if vodclass.twitch_vod_date %}
+                                        {{ vodclass.twitch_vod_date|date('Y-m-d H:i:s') }}
+                                    {% else %}
+                                        <strong><em>No data</em></strong>
+                                    {% endif %}
+                                </li>
+                                <li>
+                                    <strong>Title:</strong> 
+                                    {% if vodclass.twitch_vod_title %}
+                                        <span class="text-overflow">{{ vodclass.twitch_vod_title }}</span>
+                                    {% else %}
+                                        <strong><em>No data</em></strong>
+                                    {% endif %}
+                                </li>
+                                <li>				
+                                    <strong>Is muted:</strong> 
+                                    {% if vodclass.twitch_vod_muted is same as(true) %}
+                                        <strong class="error">Yes</strong>
+                                    {% elseif vodclass.twitch_vod_muted is same as(false) %}
+                                        <span>No</span>
+                                    {% else %}
+                                        <em>No data</em>
+                                    {% endif %}
+                                </li>
+                            {% elseif vodclass.twitch_vod_exists is same as(false) %}
+                                <li>
+                                    <strong class="error">VOD is deleted</strong>
+                                </li>
+                                <li>
+                                    {% if vodclass.twitch_vod_id %}	
+                                        The ID was <a href="{{ vodclass.twitch_vod_url }}" rel="noreferrer" target="_blank">{{ vodclass.twitch_vod_id }}</a>.
+                                    {% else %}
+                                        The VOD probably never got saved.
+                                    {% endif %}
+                                </li>
+                            {% else %}
+                                <li>
+                                    <em>VOD has not been checked</em>
+                                </li>
+                            {% endif %}
                             <li>				
                                 <strong>Downloaded:</strong> 
                                 {% if vodclass.is_vod_downloaded %}

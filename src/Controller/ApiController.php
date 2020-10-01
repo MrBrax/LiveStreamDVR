@@ -198,7 +198,7 @@ class ApiController
 
             foreach( $streamer->vods_list as $vod ){
 
-                $check = $vod->checkValidVod();
+                $check = $vod->checkValidVod( true );
 
                 if( $vod->twitch_vod_id && !$check ){
                     // notify

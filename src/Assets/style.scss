@@ -342,6 +342,7 @@ body.black {
 
 	.button-bar {
 		display: flex;
+		flex-wrap: wrap;
 		.button {
 			flex-grow: 1;
 			text-align: center;
@@ -356,6 +357,7 @@ body.black {
 
 	.video-controls {
 		display: flex;
+		flex-wrap: wrap;
 		.button {
 			flex-grow: 1;
 			text-align: center;

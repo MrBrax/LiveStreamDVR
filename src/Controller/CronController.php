@@ -66,7 +66,7 @@ class CronController
 
                 if( $this->isInNotifyCache( 'deleted_' . $vod->basename ) ) continue;
 
-                $check = $vod->checkValidVod();
+                $check = $vod->checkValidVod( true );
 
                 if( $vod->twitch_vod_id && !$check ){
                     // notify

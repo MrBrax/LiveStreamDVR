@@ -1,3 +1,7 @@
+/**
+ * TODO: Scrap this entire file and build a reactive user interface
+ */
+
 let api_base = `${(<any>window).base_path}/api/v0`;
 let current_username = "";
 let scrollTop = 0;
@@ -358,7 +362,7 @@ document.addEventListener("DOMContentLoaded", () => {
         opt_speech.addEventListener("change", () => {
             config.useSpeech = opt_speech.checked;
             saveConfig();
-            alert("Speech " + ( config.useSpeech ? "enabled" : "disabled" ) );
+            alert(`Speech ${config.useSpeech ? "enabled" : "disabled"}` );
         });
     }
 
@@ -369,7 +373,7 @@ document.addEventListener("DOMContentLoaded", () => {
         opt_spa.addEventListener("change", () => {
             config.singlePage = opt_spa.checked;
             saveConfig();
-            alert("Single page " + ( config.singlePage ? "enabled" : "disabled" ) );
+            alert(`Single page ${config.singlePage ? "enabled" : "disabled"}` );
             location.reload();
         });
     }

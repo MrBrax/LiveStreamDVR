@@ -280,7 +280,7 @@ class VodController
         $isMuted = $vodclass->checkMutedVod();
         
         $vodclass->twitch_vod_muted = $isMuted;
-        $vodclass->saveJSON();
+        $vodclass->saveJSON('mute check');
 
         // return $response;
 
