@@ -24,9 +24,9 @@
         <div class="video-description">
 
             {# box art #}
-            <div class="boxart-carousel">
+            <div class="boxart-carousel is-small">
                 {% for game in vodclass.getUniqueGames %}
-                    {% if game.name %}<img class="boxart-big" title="{{ game.name }}" src="{{ game.image_url }}" loading="lazy" />{% endif %}
+                    <div class="boxart-item">{% if game.image_url %}<img title="{{ game.name }}" src="{{ game.image_url }}" loading="lazy" />{% else %}{{ game.name }}{% endif %}</div>
                 {% endfor %}
             </div>
             

@@ -400,11 +400,13 @@ class TwitchHelper {
 
 			file_put_contents( TwitchConfig::$gameDbPath, json_encode( self::$game_db ) );
 
-			self::log( self::LOG_INFO, "New game saved to cache: " . $game["name"] );
+			self::log( self::LOG_SUCCESS, "New game saved to cache: " . $game["name"] );
 
 			return $game;
 
 		}else{
+
+			self::log( self::LOG_ERROR, "Invalid game returned in query for " . $game_id );
 
 			return null;
 			

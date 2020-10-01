@@ -183,8 +183,12 @@
                     
                     <div class="favourites_list">
                         {% for id, game in games|sort %}
-                        <div class="control">
-                            <label><input type="checkbox" name="games[{{ id }}]" {{ config.favourites[id] ? 'checked="checked"' : '' }} /> {{ game.name }}</label>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="games[{{ id }}]" {{ config.favourites[id] ? 'checked="checked"' : '' }} />
+                                {{ game.name }}
+                                <span class="is-gray">{{ game.added|date("Y-m-d") }}</span>
+                            </label>
                         </div>
                         {% endfor %}
                     </div>

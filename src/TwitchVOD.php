@@ -964,10 +964,12 @@ class TwitchVOD {
 
 			// box art
 			if( $game_data && $game_data['box_art_url'] ){
+				
 				$img_url = $game_data['box_art_url'];
 				$img_url = str_replace("{width}", 14, $img_url);
 				$img_url = str_replace("{height}", 19, $img_url);
 				$entry['box_art_url'] = $img_url;
+				
 			}
 
 			$chapters[] = $entry;
@@ -1073,7 +1075,6 @@ class TwitchVOD {
 				'name' => $gd['name'],
 				'image_url' => $img_url
 			];
-			// echo '<img class="boxart-big" title="' . $gd['name'] . '" src="' . $img_url . '" />';
 		}
 
 		return $data;

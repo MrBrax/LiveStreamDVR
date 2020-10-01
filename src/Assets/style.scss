@@ -79,6 +79,10 @@ $icon-dimensions: 1.2em !default;
 	}
 }
 
+.is-gray {
+	color: #ccc;
+}
+
 .videoplayer { width: 1280px; }
 
 .videoplayer-chapters { display: flex; width: 100%; }
@@ -157,6 +161,33 @@ $icon-dimensions: 1.2em !default;
 		color: #9c9c9c;
 		font-weight: 200;
 	}
+}
+
+.boxart-carousel {
+
+	display: flex;
+	flex-direction: row;
+	width: max-content;
+
+	.boxart-item {
+		width: 140px;
+		height: 190px;
+		img {
+			width: 140px;
+			height: 190px;
+		}
+		font-size: 0.5em;
+		color: #fff;
+		word-break: break-all;
+		overflow: hidden;
+	}
+
+	&.is-small .boxart-item {
+		width: 74px;
+		height: 100px;
+		img { width: 74px; height: 100px; }
+	}
+
 }
 
 .boxart {
