@@ -158,8 +158,6 @@ class DashboardController
             }
         }
 
-        
-
         $errors = [];
 
         if(!TwitchConfig::cfg('hook_callback')) $errors[] = 'No hook callback set, please visit settings.';

@@ -3,10 +3,11 @@
     {% for line in log_lines %}
         <div class="log_{{ line.level|lower }}">
             {% if line.source %}
-                {{ line.date_string }} &lt;{{ line.level }}&gt; [{{ line.source.file|basename }}:{{ line.source.line }} {{line.source.function}}({{ line.source.args|join }})] {{ line.text }}
+                {{ line.date_string }} &lt;{{ line.level }}&gt; [{{ line.source.file|basename }}:{{ line.source.line }} {{line.source.function}}({{ line.source.args ? line.source.args|join : '' }})] {{ line.text }}
             {% else %}
                 {{ line.date_string }} &lt;{{ line.level }}&gt; {{ line.text }}
             {% endif %}
+            {% if line.count %}<span class="tag tag-error">{{ line.count }}</span>{% endif %}
         </div>
     {% endfor %}
     {% endapply %}

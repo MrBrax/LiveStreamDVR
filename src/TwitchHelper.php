@@ -38,6 +38,8 @@ class TwitchHelper {
 		__DIR__ . "/../public/saved_clips"
 	];
 
+	private static $last_log_line;
+
 	/**
 	 * Set up directories for first use
 	 *
@@ -136,11 +138,23 @@ class TwitchHelper {
 		$log_text = file_exists( $filename ) ? file_get_contents( $filename ) : '';
 		$log_json = file_exists( $filename_json ) ? json_decode( file_get_contents( $filename_json ), true ) : [];
 
-		$date = new \DateTime();
+		// test
+		if( $level . $text == self::$last_log_line ){
+			if( isset( $log_json[ count( $log_json ) - 1 ]) ){
+				if( !isset($log_json[ count( $log_json ) - 1 ]['count']) ){
+					$log_json[ count( $log_json ) - 1 ]['count'] = 0;
+				}
+				$log_json[ count( $log_json ) - 1 ]['count'] += 1;
+				file_put_contents($filename_json, json_encode($log_json));
+				return;
+			}
+		}
 
-		$text_line = $date->format("Y-m-d H:i:s.v") . " | <" . $level . "> " . $text;
+		// $date = new \DateTime();
 
-		$log_text .= "\n" . $text_line;
+		// $text_line = $date->format("Y-m-d H:i:s.v") . " | <" . $level . "> " . $text;
+
+		// $log_text .= "\n" . $text_line;
 
 		$log_data = [
 			"date" => microtime(true),
@@ -148,9 +162,11 @@ class TwitchHelper {
 			"text" => $text
 		];
 
+		/* // too buggy
 		if( TwitchConfig::cfg("debug") ){
 			$log_data['source'] = debug_backtrace()[1]; // 1 or 0?
 		}
+		*/
 
 		if( $level == self::LOG_FATAL ){
 			error_log($text, 0);
@@ -158,9 +174,11 @@ class TwitchHelper {
 
 		$log_json[] = $log_data;
 
-		file_put_contents($filename, $log_text);
+		// file_put_contents($filename, $log_text);
 
 		file_put_contents($filename_json, json_encode($log_json));
+
+		self::$last_log_line = $level . $text;
 		
 	}
 

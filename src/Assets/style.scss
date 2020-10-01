@@ -314,6 +314,16 @@ body.black {
 	}
 }
 
+.tag {
+	color: #fff;
+	padding: 0 2px;
+	border-radius: 2px;
+	background-color: #5a6fe6;
+	&:tag-error {
+		background-color: #8a2020;
+	}
+}
+
 @media screen and (orientation: portrait) {
 	body { font-size: 1rem; }
 	.container { display: block; width: 100%; }

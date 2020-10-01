@@ -589,7 +589,11 @@ class TwitchAutomator {
 			preg_match("/stream:\s([0-9_a-z]+)\s/", $buffer, $matches);
 			if($matches){
 				$this->stream_resolution = $matches[1];
-				TwitchHelper::log( TwitchHelper::LOG_INFO, "Stream resolution found in buffer for " . $basename . ": " . $this->stream_resolution );
+				TwitchHelper::log( TwitchHelper::LOG_INFO, "Stream resolution for " . $basename . ": " . $this->stream_resolution );
+			}
+
+			if( strpos($buffer, "404 Client Error") !== false ){
+				TwitchHelper::log( TwitchHelper::LOG_WARNING, "Chunk removed for " . $basename . "!" );
 			}
 			
 		});
