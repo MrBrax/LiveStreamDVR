@@ -11,24 +11,34 @@
         <div class="section-content">
 
             <div class="button-bar">
-
                 <a class="button" href="?checkvod=1"><span class="icon"><i class="fa fa-globe"></i></span> Check if VODs exist</a>
-                {% if checkvod %}
-                    {% if is_a_vod_deleted %}
-                        - <strong>A VOD IS DELETED</strong>
-                    {% else %}
-                        - all vods seem to still exist
-                    {% endif %}
-                {% endif %}
-
                 <a class="button" href="?rebuild_segments=1"><span class="icon"><i class="fa fa-video-slash"></i></span> Rebuild segments</a>
                 <a class="button" href="?match_vod=1"><span class="icon"><i class="fa fa-copy"></i></span> Match VODs</a>
-
                 <!-- <button class="button" onclick="notifyMe();"><span class="icon"><i class="fa fa-bell"></i></span> Notify</button> -->
-
                 <!-- <button class="button" onclick="window.forceRefresh()"><span class="icon"><i class="fa fa-sync"></i></span> Refresh vods</button> -->
-
             </div>
+
+            {% if checkvod %}
+                <hr>
+                {% if is_a_vod_deleted %}
+                    <p><strong>A VOD IS DELETED <span class="icon"><i class="fas fa-exclamation-triangle"></i></span></strong></p>
+                    <ul>
+                        {% for streamer in streamerList|sort((a, b) => a.display_name > b.display_name) %}
+                            {% for vodclass in streamer.vods_list %}
+                                {% if not vodclass.twitch_vod_exists %}
+                                    <li>
+                                        <a href="#vod_{{ vodclass.basename }}">{{ vodclass.basename }}</a>
+                                        {% if vodclass.twitch_vod_neversaved %}(never saved?){% endif %}
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p><em>All vods seem to still exist! <span class="icon"><i class="fas fa-thumbs-up"></i></span></em></p>
+                {% endif %}
+                <hr>
+            {% endif %}
 
             <br>
 
