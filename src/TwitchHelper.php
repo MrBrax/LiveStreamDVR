@@ -684,8 +684,10 @@ class TwitchHelper {
 		$url = 'https://api.twitch.tv/helix/webhooks/hub';
 		$method = 'POST';
 
+		$hook_callback = TwitchConfig::cfg('app_url') ? TwitchConfig::cfg('app_url') . '/sub' : TwitchConfig::cfg('hook_callback');
+
 		$data = [
-			'hub.callback' => TwitchConfig::cfg('hook_callback'),
+			'hub.callback' => $hook_callback,
 			'hub.mode' => $mode,
 			'hub.topic' => 'https://api.twitch.tv/helix/streams?user_id=' . $streamer_id,
 			'hub.lease_seconds' => TwitchConfig::cfg('sub_lease')

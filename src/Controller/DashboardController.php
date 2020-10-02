@@ -160,7 +160,7 @@ class DashboardController
 
         $errors = [];
 
-        if(!TwitchConfig::cfg('hook_callback')) $errors[] = 'No hook callback set, please visit settings.';
+        if(!TwitchConfig::cfg('app_url')) $errors[] = 'No app url set, please visit settings.';
         if(!TwitchConfig::cfg('api_client_id')) $errors[] = 'No API client id set, please visit settings.';
         if(!TwitchConfig::cfg('api_secret')) $errors[] = 'No API secret set, please visit settings.';
         if(!TwitchConfig::cfg('bin_dir')) $errors[] = 'No Python bin directory set, please visit settings.';

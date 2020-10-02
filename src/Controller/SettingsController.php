@@ -29,13 +29,17 @@ class SettingsController
         $sub_callback = TwitchConfig::cfg('hook_callback');
         $sub_callback = str_replace('/hook', '/sub', $sub_callback);
 
+        $app_calc = "http" . ( $_SERVER['SERVER_PORT'] ? 's' : '' ) . "://" . $_SERVER["HTTP_HOST"] . str_replace("/settings", "", $_SERVER["REQUEST_URI"]);
+        // $app_calc = 
+
         $games = TwitchConfig::getGames();
 
         return $this->twig->render($response, 'settings.twig', [
             'streamers' => TwitchConfig::getStreamers(),
             'sub_callback' => $sub_callback,
             'games' => $games,
-            'settings' => TwitchConfig::$settingsFields
+            'settings' => TwitchConfig::$settingsFields,
+            'app_calc' => $app_calc
         ]);
 
     }

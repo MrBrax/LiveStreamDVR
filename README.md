@@ -41,9 +41,9 @@ Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in
 where streamlink, youtube-dl, and tcd is installed with python
 
 ---
-`hook_callback`
+`app_url`
 
-full url of where the webhook from twitch should post to, ending with `/hook`
+base url of where the app is, e.g. `http://example.com/twitchautomator`
 
 e.g. `http://example.com/twitchautomator/hook`
 

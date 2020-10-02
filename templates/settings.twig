@@ -157,16 +157,22 @@
                 </form>
 
                 <hr>
+                    Calculated app url: <code>{{ app_calc }}</code>
+                <hr>
 
                 <p>Check the status of the external utilities on the <a href="{{ url_for('about') }}">about</a> page.
 
                 <hr>
 
-                <strong>Crontab example (run every week at 5am)</strong><br>
-                {% if sub_callback %}
-                    <code>0 5 * * 1 curl {{ sub_callback }}</code>
+                <strong>Crontab example</strong><br>
+                {% if config.app_url %}
+                    <code>
+                        0 5 * * 1 curl {{ config.app_url }}/sub<br>
+                        0 2 * * * curl {{ config.app_url }}/cron/check_muted_vods<br>
+                        0 2 * * * curl {{ config.app_url }}/cron/check_deleted_vods
+                    </code>
                 {% else %}
-                    <em class="is-error">Can't show example, hook callback has not been set</em>
+                    <em class="is-error">Can't show example, <strong>app url</strong> has not been set</em>
                 {% endif %}
                 
             </div>

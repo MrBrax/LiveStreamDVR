@@ -19,13 +19,14 @@ class TwitchConfig {
 		[ 'key' => 'twitchdownloader_path', 'text' => 'TwitchDownloaderCLI path', 														'type' => 'string' ],
 
 		[ 'key' => 'basepath', 				'text' => 'Base path (for reverse proxy etc)', 												'type' => 'string' ],
+		[ 'key' => 'app_url', 				'text' => 'App URL', 																		'type' => 'string', 'required' => true ],
 		[ 'key' => 'password', 				'text' => 'Password (keep blank for none) - username is admin', 							'type' => 'string' ],
 		[ 'key' => 'storage_per_streamer', 	'text' => 'Gigabytes of storage per streamer', 												'type' => 'number', 'default' => 100 ],
 		[ 'key' => 'hls_timeout', 			'text' => 'HLS Timeout in seconds (ads)', 													'type' => 'number', 'default' => 200 ],
 		[ 'key' => 'vods_to_keep', 			'text' => 'VODs to keep per streamer', 														'type' => 'number', 'default' => 5 ],
 		[ 'key' => 'api_client_id', 		'text' => 'Twitch client ID', 																'type' => 'string', 'required' => true ],
 		[ 'key' => 'api_secret', 			'text' => 'Twitch secret (keep blank to not change)', 										'type' => 'string', 'secret' => true, 'required' => true ],
-		[ 'key' => 'hook_callback', 		'text' => 'Hook callback', 																	'type' => 'string', 'required' => true ],
+		// [ 'key' => 'hook_callback', 		'text' => 'Hook callback', 																	'type' => 'string', 'required' => true ],
 		[ 'key' => 'timezone', 				'text' => 'Timezone', 																		'type' => 'string', 'default' => 'UTC' ],
 
 		[ 'key' => 'vod_container', 		'text' => 'VOD container (not tested)', 													'type' => 'array', 'choices' => ['mp4', 'mkv', 'mov'], 'default' => 'mp4' ],
