@@ -72,6 +72,7 @@
                                 <span class="flags">
                                     {% if vodclass.twitch_vod_exists is same as(false) %}<span class="icon is-error"><i class="fa fa-trash"></i></span>{% endif %}
                                     {% if vodclass.twitch_vod_exists is same as(null) %}<span class="icon is-error"><i class="fa fa-question"></i></span>{% endif %}
+                                    {% if vodclass.twitch_vod_muted is same as(true) %}<span class="icon is-error"><i class="fa fa-volume-mute"></i></span>{% endif %}
                                 </span>
                             {% endif %}
                             <div class="tooltip">

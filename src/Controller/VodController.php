@@ -159,7 +159,7 @@ class VodController
             return $response;
         }
 
-        $is_muted = $vodclass->checkMutedVod();
+        $is_muted = $vodclass->checkMutedVod( true );
 
         // download chat if not downloaded
         if( !$vodclass->is_chat_downloaded ){
@@ -277,10 +277,10 @@ class VodController
             return $response;
         }
         
-        $isMuted = $vodclass->checkMutedVod();
+        $isMuted = $vodclass->checkMutedVod( true );
         
-        $vodclass->twitch_vod_muted = $isMuted;
-        $vodclass->saveJSON('mute check');
+        // $vodclass->twitch_vod_muted = $isMuted;
+        // $vodclass->saveJSON('mute check');
 
         // return $response;
 

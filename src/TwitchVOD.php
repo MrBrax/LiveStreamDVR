@@ -1292,11 +1292,13 @@ class TwitchVOD {
 
 	}
 
-	public function checkMutedVod(){
+	public function checkMutedVod( $save = false ){
 
 		if( !$this->twitch_vod_id ){
 			return null;
 		}
+
+		$previous = $this->twitch_vod_muted;
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Check muted VOD for " . $this->basename );
 
@@ -1322,10 +1324,16 @@ class TwitchVOD {
 		if( strpos($output, "index-muted-") !== false ){
 			$this->twitch_vod_muted = true;
 			TwitchHelper::log( TwitchHelper::LOG_WARNING, "VOD " . $this->basename . " is muted!" );
+			if( $previous !== $this->twitch_vod_muted && $save ){
+				$this->saveJSON("vod mute true");
+			}
 			return true;
 		}else{
 			$this->twitch_vod_muted = false;
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "VOD " . $this->basename . " is not muted!" );
+			if( $previous !== $this->twitch_vod_muted && $save ){
+				$this->saveJSON("vod mute false");
+			}
 			return false;
 		}
 

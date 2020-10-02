@@ -94,6 +94,11 @@ $container->get('view')->getEnvironment()->addFilter(new TwigFilter('humanRealDu
     return TwitchHelper::getNiceDuration($string);
 }));
 
+// human duration
+$container->get('view')->getEnvironment()->addFilter(new TwigFilter('twitchDuration', function ($string) {
+    return TwitchHelper::getTwitchDuration($string);
+}));
+
 // human date
 $container->get('view')->getEnvironment()->addFilter(new TwigFilter('humanDate', function ($string) {
     return TwitchHelper::printHumanDate($string);

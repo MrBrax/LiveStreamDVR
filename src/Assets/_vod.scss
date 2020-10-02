@@ -245,4 +245,16 @@
 			background-color: $favourite-bg;
 		}
 	}
+
+	a {
+		color: blue;
+		text-decoration: none;
+		&:hover {
+			color: #4481d1;
+		}
+		&:visited {
+			color: purple;
+		}
+	}
+
 }

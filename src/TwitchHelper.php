@@ -550,6 +550,10 @@ class TwitchHelper {
 		return trim($duration);
 	}
 
+	public static function getTwitchDuration( $seconds ) {
+		return trim( str_replace(" ", "", self::getNiceDuration($seconds)));
+	}
+
 	/**
 	 * https://stackoverflow.com/a/2510459
 	 *

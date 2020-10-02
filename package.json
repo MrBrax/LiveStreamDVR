@@ -1,6 +1,6 @@
 {
   "name": "twitchautomator",
-  "version": "3.2.3",
+  "version": "3.2.4",
   "description": "Twitch VOD automator fluff",
   "main": "src/Client/main.ts",
   "scripts": {

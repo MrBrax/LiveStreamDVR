@@ -332,6 +332,9 @@
                                     <a href="{{ url_for('player', { 'vod': vodclass.basename }) }}?start={{ chapter.offset }}">
                                         {{ chapter.game_name ?: 'None' }}
                                     </a>
+                                    {% if vodclass.twitch_vod_exists %}
+                                        <a href="{{ vodclass.twitch_vod_url }}?t={{ chapter.offset|twitchDuration }}" target="_blank"><span class="icon"><i class="fas fa-external-link-alt"></i></span></a>
+                                    {% endif %}
                                 {% else %}
                                     {{ chapter.game_name ?: 'None' }}
                                 {% endif %}
