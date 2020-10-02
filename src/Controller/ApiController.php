@@ -121,8 +121,9 @@ class ApiController
 
                 if( $line["date"] ){
                     $dt = \DateTime::createFromFormat("U.u", $line["date"]);
-                    $dt->setTimezone( TwitchConfig::$timezone );
+                    if(!$dt) $dt = \DateTime::createFromFormat( "U", $line["date"] );
                     if($dt){
+                        $dt->setTimezone( TwitchConfig::$timezone );
                         $line['date_string'] = $dt->format("Y-m-d H:i:s.v");
                     }else{
                         $line['date_string'] = "ERROR:" . $line["date"];

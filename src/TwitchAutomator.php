@@ -578,8 +578,11 @@ class TwitchAutomator {
 		
 		// $capture_output = shell_exec( $cmd );
 		$process = new Process( $cmd, dirname($capture_filename), null, null, null );
-		
-		$process->run(function($type, $buffer) use($basename) {
+
+		TwitchHelper::append_log("streamlink_" . $basename . "_stdout." . $int, "$ " . implode(" ", $cmd) );
+		TwitchHelper::append_log("streamlink_" . $basename . "_stderr." . $int, "$ " . implode(" ", $cmd) );
+
+		$process->run(function($type, $buffer) use($basename, $int) {
 			if (Process::ERR === $type) {
 				// echo 'ERR > '.$buffer;
 			} else {
@@ -595,6 +598,12 @@ class TwitchAutomator {
 			if( strpos($buffer, "404 Client Error") !== false ){
 				TwitchHelper::log( TwitchHelper::LOG_WARNING, "Chunk removed for " . $basename . "!" );
 			}
+
+			if( Process::ERR === $type ){
+				TwitchHelper::append_log("streamlink_" . $basename . "_stderr." . $int, $buffer );
+			}else{
+				TwitchHelper::append_log("streamlink_" . $basename . "_stdout." . $int, $buffer );
+			}
 			
 		});
 
@@ -605,8 +614,8 @@ class TwitchAutomator {
 		$this->info[] = 'Streamlink error: ' . $process->getErrorOutput();
 
 		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_" . $basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $capture_output);
-		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_" . $basename . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
-		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_" . $basename . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
+		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_" . $basename . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
+		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_" . $basename . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 
 
 		// download with youtube-dl if streamlink fails
@@ -634,8 +643,8 @@ class TwitchAutomator {
 
 			$this->info[] = 'Youtube-dl output: ' . $capture_output;
 
-			file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "youtubedl_" . $basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $capture_output);
-			
+			// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "youtubedl_" . $basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $capture_output);
+			TwitchHelper::append_log( "youtubedl_" . $basename . "_" . time(), "$ " . $cmd . "\n" . $capture_output );
 
 			// exit(500);
 		}
@@ -704,8 +713,9 @@ class TwitchAutomator {
 
 		$this->info[] = 'ffmpeg output: ' . $output_convert;
 
-		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "convert_" . $basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $output_convert);
-		
+		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "convert_" . $basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $output_convert);
+		TwitchHelper::append_log( "convert_" . $basename . "_" . time(), "$ " . $cmd . "\n" . $output_convert );
+
 		return $converted_filename;
 
 	}

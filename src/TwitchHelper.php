@@ -25,6 +25,9 @@ class TwitchHelper {
 	const LOG_FATAL = "FATAL";
 	const LOG_SUCCESS = "SUCCESS";
 
+	const LOG_STDOUT = "stdout";
+	const LOG_STDERR = "stderr";
+
 	public static $public_folder = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public";
 	// public static $saved_vods_folder = self::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods';
 	// public static $clips_folder = self::$public_folder . DIRECTORY_SEPARATOR . 'saved_clips';
@@ -139,6 +142,7 @@ class TwitchHelper {
 		$log_json = file_exists( $filename_json ) ? json_decode( file_get_contents( $filename_json ), true ) : [];
 
 		// test
+		/*
 		if( $level . $text === self::$last_log_line ){
 			$last = count( $log_json ) - 1;
 			if( isset( $log_json[ $last ]) ){
@@ -150,6 +154,7 @@ class TwitchHelper {
 				return;
 			}
 		}
+		*/
 
 		// $date = new \DateTime();
 
@@ -181,6 +186,14 @@ class TwitchHelper {
 
 		self::$last_log_line = $level . $text;
 		
+	}
+
+	public static function append_log( $basename, $text, $newline = true ){
+		$basepath =  __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs";
+		$filepath = $basepath . DIRECTORY_SEPARATOR . $basename . ".log";
+		$filetext = file_exists($filepath) ? file_get_contents( $filepath ) . ( $newline ? "\n" : "" ) : "";
+		$filetext .= trim($text);
+		file_put_contents( $filepath, $filetext );
 	}
 
 	/**
