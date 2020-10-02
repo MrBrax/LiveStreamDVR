@@ -139,12 +139,13 @@ class TwitchHelper {
 		$log_json = file_exists( $filename_json ) ? json_decode( file_get_contents( $filename_json ), true ) : [];
 
 		// test
-		if( $level . $text == self::$last_log_line ){
-			if( isset( $log_json[ count( $log_json ) - 1 ]) ){
-				if( !isset($log_json[ count( $log_json ) - 1 ]['count']) ){
-					$log_json[ count( $log_json ) - 1 ]['count'] = 0;
+		if( $level . $text === self::$last_log_line ){
+			$last = count( $log_json ) - 1;
+			if( isset( $log_json[ $last ]) ){
+				if( !isset($log_json[ $last ]['count']) ){
+					$log_json[ $last ]['count'] = 0;
 				}
-				$log_json[ count( $log_json ) - 1 ]['count'] += 1;
+				$log_json[ $last ]['count'] += 1;
 				file_put_contents($filename_json, json_encode($log_json));
 				return;
 			}

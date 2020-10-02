@@ -78,6 +78,12 @@ class TwitchVOD {
 	public $created = false;
 	public $force_record = false;
 
+	public $path_chat = null; 		
+	public $path_downloaded_vod = null;
+	public $path_losslesscut = null; 
+	public $path_chatrender = null;	
+	public $path_chatburn = null;	
+
 	private $pid_cache = [];
 
 	/**
@@ -198,12 +204,18 @@ class TwitchVOD {
 			$this->saveJSON('fix mediainfo');
 		}
 
-		$this->is_chat_downloaded = file_exists( $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat' );
-		$this->is_vod_downloaded = file_exists( $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_vod.mp4' );
-		$this->is_lossless_cut_generated = file_exists( $this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv' );
+		$this->path_chat 				= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
+		$this->path_downloaded_vod 		= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_vod.mp4';
+		$this->path_losslesscut 		= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv';
+		$this->path_chatrender			= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
+		$this->path_chatburn			= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_burned.mp4';
 
-		$this->is_chat_rendered = file_exists( $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4' );
-		$this->is_chat_burned = file_exists( $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_burned.mp4' );
+		$this->is_chat_downloaded 			= file_exists( $this->path_chat );
+		$this->is_vod_downloaded 			= file_exists( $this->path_downloaded_vod );
+		$this->is_lossless_cut_generated 	= file_exists( $this->path_losslesscut );
+
+		$this->is_chat_rendered 	= file_exists( $this->path_chatrender );
+		$this->is_chat_burned 		= file_exists( $this->path_chatburn );
 
 		return true;
 
@@ -393,13 +405,13 @@ class TwitchVOD {
 			return false;
 		}
 
-		$chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
+		// $chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
 
 		$compressed_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat.gz';
 
 		$tcd_filename = $this->directory . DIRECTORY_SEPARATOR . $this->twitch_vod_id . '.json';
 
-		if( file_exists( $chat_filename ) ){
+		if( file_exists( $this->path_chat ) ){
 			return true;
 		}
 
@@ -412,15 +424,15 @@ class TwitchVOD {
 				return;
 			}
 
-			if( file_exists( $chat_filename ) ){
+			if( file_exists( $this->path_chat ) ){
 				TwitchHelper::log(TwitchHelper::LOG_WARNING, "Chat already exists for " . $this->basename);
-				shell_exec( "gzip " . $chat_filename );
+				shell_exec( "gzip " . $this->path_chat );
 				return;
 			}
 
 		}else{
 		
-			if( file_exists( $chat_filename ) ){
+			if( file_exists( $this->path_chat ) ){
 				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Chat already exists for " . $this->basename);
 				return;
 			}
@@ -430,7 +442,7 @@ class TwitchVOD {
 		// if tcd generated file exists, rename it
 		if( file_exists( $tcd_filename ) ){
 			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Renamed chat file for " . $this->basename);
-			rename( $tcd_filename, $chat_filename );
+			rename( $tcd_filename, $this->path_chat );
 			return;
 		}
 
@@ -472,10 +484,10 @@ class TwitchVOD {
 
 		if( file_exists( $tcd_filename ) ){
 			
-			rename( $tcd_filename, $chat_filename );
+			rename( $tcd_filename, $this->path_chat );
 
 			if( TwitchConfig::cfg('chat_compress', false) ){
-				shell_exec( "gzip " . $chat_filename );
+				shell_exec( "gzip " . $this->path_chat );
 			}
 
 		}else{
@@ -486,7 +498,7 @@ class TwitchVOD {
 
 		}
 
-		$successful = file_exists( $chat_filename ) && filesize( $chat_filename ) > 0;
+		$successful = file_exists( $this->path_chat ) && filesize( $this->path_chat ) > 0;
 
 		if( $successful ){
 			$this->is_chat_downloaded = true;
@@ -519,17 +531,16 @@ class TwitchVOD {
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Render chat for " . $this->basename );
 
-		$chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
-		$video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
+		// $chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
+		// $video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
 		$chat_width = 300;
 
-		if( file_exists($chat_filename) && file_exists($video_filename) ){
+		if( file_exists( $this->path_chat ) && file_exists( $this->path_chatrender ) ){
 			return true;
 			// $this->burnChat($chat_width);
 			// return;
 		}
 
-		// TwitchDownloaderCLI -m ChatRender -i KrustingKevin_2020-09-25T11_27_57Z_39847598366.chat -h 720 -w 300 --framerate 60 --update-rate 0 --font-size 18 -o chat.mp4
 		$cmd = [];
 
 		$cmd[] = TwitchHelper::path_twitchdownloader();
@@ -538,7 +549,7 @@ class TwitchVOD {
 		$cmd[] = 'ChatRender';
 
 		$cmd[] = '--input';
-		$cmd[] = realpath($chat_filename);
+		$cmd[] = realpath($this->path_chat);
 		
 		$cmd[] = '--chat-height';
 		$cmd[] = $this->video_metadata['video']['Height'];
@@ -563,7 +574,7 @@ class TwitchVOD {
 		$cmd[] = '--generate-mask';
 		
 		$cmd[] = '--output';
-		$cmd[] = $video_filename;
+		$cmd[] = $this->path_chatrender;
 		// $cmd[] = ' 2>&1'; // console output
 		
 		$env = [
@@ -596,7 +607,7 @@ class TwitchVOD {
 
 		// return [$video_filename, $capture_output, $cmd];
 
-		$successful = file_exists( $video_filename ) && filesize( $video_filename) > 0;
+		$successful = file_exists( $this->path_chatrender ) && filesize( $this->path_chatrender ) > 0;
 
 		if( $successful ){
 			$this->is_chat_rendered = true;
@@ -633,9 +644,9 @@ class TwitchVOD {
 			$video_filename = $this->directory . DIRECTORY_SEPARATOR . basename( $this->segments_raw[0] );
 		}
 
-		$chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
-		$mask_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat_mask.mp4';
-		$final_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_burned.mp4';
+		// $chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
+		// $mask_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat_mask.mp4';
+		// $final_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_burned.mp4';
 
 		$chat_x = $this->video_metadata['video']['Width'] - $chat_width;
 
@@ -651,7 +662,7 @@ class TwitchVOD {
 
 		// chat render
 		$cmd[] = '-i';
-		$cmd[] = $chat_filename;
+		$cmd[] = $this->path_chatrender;
 
 		// chat mask offset
 		if( $this->getStartOffset() && !$use_vod ){
@@ -661,7 +672,7 @@ class TwitchVOD {
 
 		// chat mask
 		$cmd[] = '-i';
-		$cmd[] = $mask_filename;
+		$cmd[] = $this->path_chatmask;
 		
 		// vod
 		$cmd[] = '-i';
@@ -686,7 +697,7 @@ class TwitchVOD {
 		$cmd[] = '-crf';
 		$cmd[] = TwitchConfig::cfg('burn_crf', '26');
 
-		$cmd[] = $final_filename;
+		$cmd[] = $this->path_chatburn;
 
 		$process = new Process( $cmd, $this->directory, null, null, null );
 
@@ -700,7 +711,7 @@ class TwitchVOD {
 		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "burnchat_" . $this->basename . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
 		file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "burnchat_" . $this->basename . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 
-		$successful = file_exists( $final_filename ) && filesize( $final_filename) > 0;
+		$successful = file_exists( $this->path_chatburn ) && filesize( $this->path_chatburn) > 0;
 
 		if( $successful ){
 			$this->is_chat_burned = true;
