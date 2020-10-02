@@ -27,7 +27,7 @@ class TwitchConfig {
 		[ 'key' => 'api_client_id', 		'text' => 'Twitch client ID', 																'type' => 'string', 'required' => true ],
 		[ 'key' => 'api_secret', 			'text' => 'Twitch secret (keep blank to not change)', 										'type' => 'string', 'secret' => true, 'required' => true ],
 		// [ 'key' => 'hook_callback', 		'text' => 'Hook callback', 																	'type' => 'string', 'required' => true ],
-		[ 'key' => 'timezone', 				'text' => 'Timezone', 																		'type' => 'string', 'default' => 'UTC' ],
+		[ 'key' => 'timezone', 				'text' => 'Timezone', 																		'type' => 'array', 'choices' => 'timezones', 'default' => 'UTC' ],
 
 		[ 'key' => 'vod_container', 		'text' => 'VOD container (not tested)', 													'type' => 'array', 'choices' => ['mp4', 'mkv', 'mov'], 'default' => 'mp4' ],
 

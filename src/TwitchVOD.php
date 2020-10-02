@@ -75,7 +75,9 @@ class TwitchVOD {
 
 	public $json_hash = null;
 
+	/** Recently created? */
 	public $created = false;
+	/** Manually started? */
 	public $force_record = false;
 
 	public $path_chat = null; 		
@@ -846,7 +848,7 @@ class TwitchVOD {
 			}
 		}
 
-		if( $this->is_capturing || $this->is_converting || !$this->is_finalized ){
+		if( !$this->created && ( $this->is_capturing || $this->is_converting || !$this->is_finalized ) ){
 			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Saving JSON of " . $this->basename . " while not finalized!");
 		}
 

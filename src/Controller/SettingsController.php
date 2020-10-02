@@ -39,7 +39,8 @@ class SettingsController
             'sub_callback' => $sub_callback,
             'games' => $games,
             'settings' => TwitchConfig::$settingsFields,
-            'app_calc' => $app_calc
+            'app_calc' => $app_calc,
+            'timezones' => \DateTimeZone::listIdentifiers()
         ]);
 
     }

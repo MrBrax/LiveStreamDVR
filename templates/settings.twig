@@ -142,8 +142,8 @@
                                         <input class="input{{ setting.required ? ' input-required' : '' }}" type="number" id="input_{{ setting.key }}" name="{{ setting.key }}" value="{{ setting.secret ? '' : ( config[setting.key] ?: setting.default ) }}" />
                                     {% elseif setting.type == "array" %}
                                         <select name="{{ setting.key }}" id="input_{{ setting.key }}" class="input{{ setting.required ? ' required' : '' }}">
-                                            {% for option in setting.choices %}
-                                                <option {{ config[setting.key] ? ( config[setting.key] == option ) : ( setting.default == option ) ? 'selected="selected"' : '' }}>{{ option }}</option>
+                                            {% for option in ( setting.choices is iterable ? setting.choices : _context[setting.choices] ) %}
+                                                <option{% if config[setting.key] == option or ( not config[setting.key] and setting.default == option ) %} selected="selected"{% endif %}>{{ option }}</option>
                                             {% endfor %}
                                         </select>
                                     {% endif %}
