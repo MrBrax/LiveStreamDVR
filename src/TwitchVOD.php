@@ -797,7 +797,7 @@ class TwitchVOD {
 	 *
 	 * @return boolean
 	 */
-	public function checkValidVod( $save = false ){
+	public function checkValidVod( $save = false, $force = false ){
 
 		$current_status = $this->twitch_vod_exists;
 
@@ -805,7 +805,7 @@ class TwitchVOD {
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Trying to check vod valid while not finalized on " . $this->basename);
 			return null;
 		}
-
+		
 		if( !$this->twitch_vod_id ){
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "No twitch VOD id for valid checking on " . $this->basename);
 			if( $this->twitch_vod_neversaved ){
@@ -1315,7 +1315,7 @@ class TwitchVOD {
 
 	}
 
-	public function checkMutedVod( $save = false ){
+	public function checkMutedVod( $save = false, $force = false ){
 
 		if( !$this->twitch_vod_id ){
 			return null;

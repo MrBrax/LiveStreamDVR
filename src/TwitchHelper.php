@@ -68,9 +68,9 @@ class TwitchHelper {
 
 		// token should last 60 days, delete it after 30 just to be sure
 		if( file_exists( self::$accessTokenFile ) ){
-			$tokenRefresh = time() - filemtime( self::$accessTokenFile ) > TwitchHelper::$accessTokenRefresh;
-			$tokenExpire = time() - filemtime( self::$accessTokenFile ) > TwitchHelper::$accessTokenExpire;
-			if( $tokenRefresh || $tokenExpire ){ // TODO: fix this, i'm bad at math
+			// $tokenRefresh = time() - filemtime( self::$accessTokenFile ) > TwitchHelper::$accessTokenRefresh;
+			// $tokenExpire = time() - filemtime( self::$accessTokenFile ) > TwitchHelper::$accessTokenExpire;
+			if( time() > filemtime( self::$accessTokenFile ) + TwitchHelper::$accessTokenRefresh ){ // TODO: fix this, i'm bad at math
 				self::log( self::LOG_INFO, "Deleting old access token");
 				unlink( self::$accessTokenFile );
 			}
@@ -142,7 +142,7 @@ class TwitchHelper {
 		$log_json = file_exists( $filename_json ) ? json_decode( file_get_contents( $filename_json ), true ) : [];
 
 		// test
-		/*
+		
 		if( $level . $text === self::$last_log_line ){
 			$last = count( $log_json ) - 1;
 			if( isset( $log_json[ $last ]) ){
@@ -150,11 +150,11 @@ class TwitchHelper {
 					$log_json[ $last ]['count'] = 0;
 				}
 				$log_json[ $last ]['count'] += 1;
-				file_put_contents($filename_json, json_encode($log_json));
-				return;
+				// file_put_contents($filename_json, json_encode($log_json));
+				// return;
 			}
 		}
-		*/
+		
 
 		// $date = new \DateTime();
 

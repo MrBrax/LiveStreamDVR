@@ -58,19 +58,24 @@ class CronController
 
         TwitchHelper::log( TwitchHelper::LOG_INFO, "Cronjob deleted check start" );
 
+        $force = isset($_GET['force']);
+
         $streamerList = $this->generateStreamerList();
 
         $data = [];
 
         foreach( $streamerList as $streamer ){
-
+            
+            /**
+             * @var TwitchVOD
+             */
             foreach( $streamer->vods_list as $vod ){
 
-                if( $this->isInNotifyCache( 'deleted_' . $vod->basename ) ) continue;
+                if( !$force && $this->isInNotifyCache( 'deleted_' . $vod->basename ) ) continue;
 
-                $check = $vod->checkValidVod( true );
+                $check = $vod->checkValidVod( true, $force );
 
-                if( $vod->twitch_vod_id && !$check ){
+                if( $vod->twitch_vod_id && $check === false ){
                     // notify
                     $this->sendNotify( $vod->basename . " deleted" );
                     $response->getBody()->write( $vod->basename . " deleted<br>\n" );
@@ -92,6 +97,8 @@ class CronController
 
         TwitchHelper::log( TwitchHelper::LOG_INFO, "Cronjob mute check start" );
 
+        $force = isset($_GET['force']);
+
         $streamerList = $this->generateStreamerList();
 
         $data = [];
@@ -100,7 +107,7 @@ class CronController
 
             foreach( $streamer->vods_list as $vod ){
 
-                if( $this->isInNotifyCache( 'mute_' . $vod->basename ) ) continue;
+                if( !$force && $this->isInNotifyCache( 'mute_' . $vod->basename ) ) continue;
 
                 if( $vod->twitch_vod_muted === true ){
                     // muted forever
@@ -109,7 +116,7 @@ class CronController
 
                 $old = $vod->twitch_vod_muted;
 
-                $check = $vod->checkMutedVod( true );
+                $check = $vod->checkMutedVod( true, $force );
 
                 if( $check === true ){
                     // notify

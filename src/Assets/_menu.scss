@@ -5,14 +5,14 @@
 	top: 0;
 	left: 0;
 	bottom: 0;
-	width: 300px;
+	width: $sidemenu-width;
 
 	background-color: #000;
 	color: #fff;
 	display: flex;
 	flex-direction: column;
 	// flex-wrap: wrap;
-	// overflow: hidden;
+	overflow-y: auto;
 
 	&.collapsed {
 		width: 150px;
@@ -235,6 +235,7 @@ a.linkback {
 				}
 				.flags {
 					float: right;
+					.icon { margin: 0; padding: 0; }
 				}
 				.tooltip {
 					position: absolute;
