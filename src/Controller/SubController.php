@@ -12,8 +12,6 @@ use App\TwitchHelper;
 class SubController {
 
     public function sub( Request $request, Response $response, $args ) {
-        
-        $TwitchAutomator = new TwitchAutomator();
 
         $response->getBody()->write('<h1>Subbing...</h1>');
 
@@ -50,8 +48,6 @@ class SubController {
     }
 
     public function subs( Request $request, Response $response, $args ) {
-
-        $TwitchAutomator = new TwitchAutomator();
 
         var_dump( TwitchHelper::getSubs() );
 

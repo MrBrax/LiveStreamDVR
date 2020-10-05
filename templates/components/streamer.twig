@@ -16,9 +16,9 @@
                  &middot; <span class="streamer-vods-amount">{{ streamer.vods_list|length }} vods</span>
                  &middot; <span class="streamer-vods-size">{{ streamer.vods_size|formatBytes }}</span>
                  {% if streamer.is_live %}
-                 &middot; <a href="{{ url_for('abort_record', { 'username': streamer.display_name }) }}">abort record</a>
+                 &middot; <a href="{{ url_for('abort_record', { 'username': streamer.display_name }) }}" title="Abort record"><span class="icon"><i class="fa fa-video-slash"></i></span></a>
                  {% else %}
-                 &middot; <a href="{{ url_for('force_record', { 'username': streamer.display_name }) }}">force record</a>
+                 &middot; <a href="{{ url_for('force_record', { 'username': streamer.display_name }) }}" title="Force record"><span class="icon"><i class="fa fa-video"></i></span></a>
                  {% endif %}
             </span>
         </div>

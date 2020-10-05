@@ -90,16 +90,24 @@ class TwitchHelper {
 		// oauth2
 		$oauth_url = 'https://id.twitch.tv/oauth2/token';
 		$client = new \GuzzleHttp\Client();
-		$response = $client->post($oauth_url, [
-			'query' => [
-				'client_id' => TwitchConfig::cfg('api_client_id'),
-				'client_secret' => TwitchConfig::cfg('api_secret'),
-				'grant_type' => 'client_credentials'
-			],
-			'headers' => [
-				'Client-ID: ' . TwitchConfig::cfg('api_client_id')
-			]
-		]);
+		
+		try {
+			$response = $client->post($oauth_url, [
+				'query' => [
+					'client_id' => TwitchConfig::cfg('api_client_id'),
+					'client_secret' => TwitchConfig::cfg('api_secret'),
+					'grant_type' => 'client_credentials'
+				],
+				'headers' => [
+					'Client-ID: ' . TwitchConfig::cfg('api_client_id')
+				]
+			]);
+		} catch (\Throwable $th) {
+			self::log( self::LOG_FATAL, "Tried to get oauth token but server returned: " . $th->getMessage() );
+			sleep(5);
+			return false;
+		}
+		
 
 		$server_output = $response->getBody()->getContents();
 
@@ -156,11 +164,9 @@ class TwitchHelper {
 		}
 		
 
-		// $date = new \DateTime();
-
-		// $text_line = $date->format("Y-m-d H:i:s.v") . " | <" . $level . "> " . $text;
-
-		// $log_text .= "\n" . $text_line;
+		$date = new \DateTime();
+		$text_line = $date->format("Y-m-d H:i:s.v") . " | <" . $level . "> " . $text;
+		$log_text .= "\n" . $text_line;
 
 		$log_data = [
 			"date" => microtime(true),
@@ -180,7 +186,7 @@ class TwitchHelper {
 
 		$log_json[] = $log_data;
 
-		// file_put_contents($filename, $log_text);
+		file_put_contents($filename, $log_text);
 
 		file_put_contents($filename_json, json_encode($log_json));
 
@@ -686,6 +692,11 @@ class TwitchHelper {
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Calling " . $mode . " for " . $streamer_name);
 
+		if( !TwitchConfig::cfg('app_url') ){
+			throw new \Exception('Neither app_url or hook_callback is set in config');
+			return false;
+		}
+
 		$streamer_id = TwitchHelper::getChannelId($streamer_name);
 
 		if( !$streamer_id ) {
@@ -697,7 +708,7 @@ class TwitchHelper {
 		$url = 'https://api.twitch.tv/helix/webhooks/hub';
 		$method = 'POST';
 
-		$hook_callback = TwitchConfig::cfg('app_url') ? TwitchConfig::cfg('app_url') . '/sub' : TwitchConfig::cfg('hook_callback');
+		$hook_callback = TwitchConfig::cfg('app_url') . '/hook';
 
 		$data = [
 			'hub.callback' => $hook_callback,
@@ -719,15 +730,33 @@ class TwitchHelper {
 		]);
 		*/
 
-		$response = self::$guzzler->request('POST', '/helix/webhooks/hub', [
-			'json' => $data
-		]);
+		try {
+			
+			$response = self::$guzzler->request('POST', '/helix/webhooks/hub', [
+				'json' => $data
+			]);
+			
+			if( $response->getStatusCode() == 429 ){
+				TwitchHelper::log( TwitchHelper::LOG_FATAL, "429 response" );
+				sleep(10);
+				// throw new \Exception("429 error");
+				return false;
+			}
 
+		} catch (\Throwable $th) {
+			TwitchHelper::log( TwitchHelper::LOG_FATAL, "Sub return, sleep: " . $th->getMessage() );
+			sleep(10);
+			return false;
+		}
+		
 		$server_output = $response->getBody()->getContents();
 		$http_code = $response->getStatusCode();		
 
 		$json = json_decode( $server_output, true );
-		
+
+		if( $json['status'] ) $http_code = $json['status'];
+
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Sub response code: " . $http_code );
 
 		if( $http_code == 202 ){
 
@@ -741,7 +770,7 @@ class TwitchHelper {
 
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Failed to " . $mode . " to " . $streamer_name . " | " . $server_output . " | HTTP " . $http_code );
 			
-			return $server_output;
+			return false;
 
 		}
 
@@ -767,9 +796,14 @@ class TwitchHelper {
 		]);
 		*/
 
-		$response = self::$guzzler->request('GET', '/helix/webhooks/subscriptions', [
-			// 'headers' => $headers
-		]);
+		try {
+			$response = self::$guzzler->request('GET', '/helix/webhooks/subscriptions', [
+				// 'headers' => $headers
+			]);
+		} catch (\Throwable $th) {
+			TwitchHelper::log( TwitchHelper::LOG_FATAL, "Subs return: " . $th->getMessage() );
+			return false;
+		}
 
 		$server_output = $response->getBody()->getContents();	
 

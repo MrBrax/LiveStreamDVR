@@ -1,3 +1,6 @@
+.section .streamer-box {
+	margin-bottom: 20px;
+}
 
 .streamer-title {
 
@@ -27,7 +30,7 @@
 		background-repeat: no-repeat;
 		background-position: center;
 		// animation: zoom 1s infinite ease-in-out;
-		width: 60px; // css, why
+		width: 50px; // css, why
 		/*
 		img {
 			background-color: #f00;
@@ -90,7 +93,7 @@
 			background-color: $recording-base;
 			animation: recording ease-in-out 1s infinite;
 			h3 {
-				text-shadow: 0 2px 0 darken($recording-base, 10%);
+				// text-shadow: 0 2px 0 darken($recording-base, 10%);
 			}
 		}
 
@@ -101,7 +104,7 @@
 		.video-title {
 			background-color: $converting-base;
 			h3 {
-				text-shadow: 0 2px 0 darken($converting-base, 10%);
+				// text-shadow: 0 2px 0 darken($converting-base, 10%);
 			}
 		}
 
@@ -112,7 +115,7 @@
 		.video-title {
 			background-color: $favourite-base;
 			h3 {
-				text-shadow: 0 2px 0 darken($favourite-base, 10%);
+				// text-shadow: 0 2px 0 darken($favourite-base, 10%);
 			}
 		}
 
@@ -139,7 +142,8 @@
 	h3 {
 		margin: 0;
 		padding: 0;
-		text-shadow: 0 2px 0 #1e4599;
+		// text-shadow: 0 2px 0 #1e4599;
+		text-shadow: 0 2px 0 rgba(0, 0, 0, .2);
 	}
 
 }

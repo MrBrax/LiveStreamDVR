@@ -1,0 +1,107 @@
+.dialog {
+	margin: 15px;
+	font-weight: 700;
+	color: #fff;
+	.dialog-title {
+		padding: 5px 10px;
+		font-size: 120%;
+		background-color: rgba(0, 0, 0, .3);
+	}
+	.dialog-content {
+		padding: 10px;
+	}
+	&.success {
+		background-color: #43b543;
+	}
+	&.error {
+		background-color: #8f2a2a;
+	}
+}
+
+.tag {
+	color: #fff;
+	padding: 0 2px;
+	border-radius: 2px;
+	background-color: #5a6fe6;
+	&:tag-error {
+		background-color: #8a2020;
+	}
+}
+
+.big-error {
+	padding: 10px;
+	background-color: #f00;
+	font-weight: 700;
+	color:#fff;
+	&:empty {
+		display: none;
+	}
+}
+
+.boxart-carousel {
+
+	display: flex;
+	flex-direction: row;
+	width: max-content;
+
+	.boxart-item {
+		width: 140px;
+		height: 190px;
+		img {
+			width: 140px;
+			height: 190px;
+		}
+		font-size: 0.5em;
+		color: #fff;
+		word-break: break-all;
+		overflow: hidden;
+	}
+
+	&.is-small .boxart-item {
+		width: 74px;
+		height: 100px;
+		img { width: 74px; height: 100px; }
+	}
+
+}
+
+.boxart {
+	vertical-align: -4px;
+	width: 14px;
+	height: 19px;
+}
+
+.boxart-big {
+	height: 100px;
+}
+
+.log_viewer {
+	font-family: Consolas, monospace;
+	font-size: 80%;
+	color: #333;
+	max-height: 600px;
+	// max-width: 600px;
+	overflow-x: scroll;
+	overflow-y: scroll;
+	.log_success {
+		color: #3ea335;
+		font-weight: 700;
+	}
+	.log_fatal {
+		color: #ff0000;
+		font-weight: 700;
+		animation: 0.5s live infinite ease-in-out;
+	}
+	.log_warning {
+		color: #ff7300;
+		font-weight: 700;
+	}
+	.log_error {
+		color: #f00;
+		font-weight: 700;
+	}
+	.log_debug {
+		color: #9c9c9c;
+		font-weight: 200;
+	}
+}
