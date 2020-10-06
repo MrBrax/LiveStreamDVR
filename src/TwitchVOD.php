@@ -959,7 +959,11 @@ class TwitchVOD {
 			
 			$entry = $chapter;
 
-			$game_data = TwitchHelper::getGameData( $entry['game_id'] );
+			if( $entry['game_id'] ){
+				$game_data = TwitchHelper::getGameData( $entry['game_id'] );
+			}else{
+				$game_data = null;
+			}
 
 			// $entry = array_merge($game_data, $entry); // is this a good idea?
 

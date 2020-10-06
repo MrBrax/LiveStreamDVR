@@ -404,6 +404,11 @@ class TwitchHelper {
 			self::$game_db = json_decode( file_get_contents( TwitchConfig::$gameDbPath ), true );
 		}
 
+		if( !$game_id ){
+			self::log( self::LOG_ERROR, "No game id supplied for game fetch!" );
+			return false;
+		}
+
 		if( self::$game_db[ $game_id ] ){
 			return self::$game_db[ $game_id ];
 		}
@@ -444,7 +449,7 @@ class TwitchHelper {
 
 		}else{
 
-			self::log( self::LOG_ERROR, "Invalid game returned in query for " . $game_id );
+			self::log( self::LOG_ERROR, "Invalid game returned in query for " . $game_id . " (" . $server_output . ")" );
 
 			return null;
 			

@@ -11,6 +11,9 @@ hr {
 	margin: 10px;
 	// border-radius: 5px;
 	/* overflow: hidden; */
+	&[data-collapsed="1"] .section-content {
+		display: none;
+	}
 }
 
 .section-title {

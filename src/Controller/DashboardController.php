@@ -161,6 +161,11 @@ class DashboardController
 
         $errors = [];
 
+        $history_data = file_exists( TwitchConfig::$historyPath ) ? json_decode( file_get_contents( TwitchConfig::$historyPath ), true ) : [];
+        while( count($history_data) > 20 ){
+            array_shift($history_data);
+        }
+
         if(!TwitchConfig::cfg('app_url')) $errors[] = 'No app url set, please visit settings.';
         if(!TwitchConfig::cfg('api_client_id')) $errors[] = 'No API client id set, please visit settings.';
         if(!TwitchConfig::cfg('api_secret')) $errors[] = 'No API secret set, please visit settings.';
@@ -177,7 +182,8 @@ class DashboardController
             'log_lines' => $log_lines,
             'log_files' => $log_files,
             'free_size' => disk_free_space( TwitchHelper::vod_folder() ),
-            'errors' => $errors
+            'errors' => $errors,
+            'history_data' => $history_data
         ]);
 
     }

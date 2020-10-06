@@ -411,17 +411,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const title = <HTMLElement>section.querySelector("div.section-title");
             const content = <HTMLElement>section.querySelector("div.section-content");
             title?.addEventListener("click", event => {
-                console.debug("toggle section");
-                if(content) content.style.display = ( content.style.display == "block" || !content.style.display ) ? "none" : "block";
+  
+                section.dataset.collapsed = section.dataset.collapsed == "1" ? "0" : "1";
+                section.parentElement?.classList.toggle('is-active', section.dataset.collapsed == "1");
+                // if(content) content.style.display = ( content.style.display == "block" || !content.style.display ) ? "none" : "block";
             });
-        }
-
-        // default to hidden, good?
-        let logs = <HTMLElement>document.querySelector(`section[data-section="logs"] div.section-content`);
-        if(logs){
-            logs.style.display = "none";
-        }else{
-            console.debug("no logs found");
         }
     }
 

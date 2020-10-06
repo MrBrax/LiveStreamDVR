@@ -62,6 +62,32 @@
 
     </section>
 
+    <section class="section" data-section="history" data-collapsed="1">
+
+        <div class="section-title"><h1>History</h1></div>
+
+        <div class="section-content">
+
+            <table class="table">
+                <tr>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Streamer</th>
+                    <th>Title</th>
+                </tr>
+                {% for line in history_data %}
+                    <tr>
+                        <td>{{ line.started_at.date|date('Y-m-d H:i:s') }}</td>
+                        <td>{{ line.ended_at.date|date('Y-m-d H:i:s') }}</td>
+                        <td>{{ line.streamer_name }}</td>
+                        <td>{{ line.title }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+
+        </div>
+
+    </section>
 
     <section class="section" style="display: none;" data-section="debug">
 
@@ -79,7 +105,7 @@
     </section>
 
     {# logs #}
-    <section class="section" data-section="logs">
+    <section class="section" data-section="logs" data-collapsed="1">
 
         <div class="section-title"><h1>Logs</h1></div>
 

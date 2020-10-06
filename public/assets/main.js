@@ -1,4 +1,7 @@
 "use strict";
+/**
+ * TODO: Scrap this entire file and build a reactive user interface
+ */
 let api_base = `${window.base_path}/api/v0`;
 let current_username = "";
 let scrollTop = 0;
@@ -290,7 +293,7 @@ document.addEventListener("DOMContentLoaded", () => {
         opt_speech.addEventListener("change", () => {
             config.useSpeech = opt_speech.checked;
             saveConfig();
-            alert("Speech " + (config.useSpeech ? "enabled" : "disabled"));
+            alert(`Speech ${config.useSpeech ? "enabled" : "disabled"}`);
         });
     }
     // single page
@@ -300,7 +303,7 @@ document.addEventListener("DOMContentLoaded", () => {
         opt_spa.addEventListener("change", () => {
             config.singlePage = opt_spa.checked;
             saveConfig();
-            alert("Single page " + (config.singlePage ? "enabled" : "disabled"));
+            alert(`Single page ${config.singlePage ? "enabled" : "disabled"}`);
             location.reload();
         });
     }
@@ -335,18 +338,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const title = section.querySelector("div.section-title");
             const content = section.querySelector("div.section-content");
             title === null || title === void 0 ? void 0 : title.addEventListener("click", event => {
-                console.debug("toggle section");
-                if (content)
-                    content.style.display = (content.style.display == "block" || !content.style.display) ? "none" : "block";
+                var _a;
+                section.dataset.collapsed = section.dataset.collapsed == "1" ? "0" : "1";
+                (_a = section.parentElement) === null || _a === void 0 ? void 0 : _a.classList.toggle('is-active', section.dataset.collapsed == "1");
+                // if(content) content.style.display = ( content.style.display == "block" || !content.style.display ) ? "none" : "block";
             });
-        }
-        // default to hidden, good?
-        let logs = document.querySelector(`section[data-section="logs"] div.section-content`);
-        if (logs) {
-            logs.style.display = "none";
-        }
-        else {
-            console.debug("no logs found");
         }
     }
     // compressor
