@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\TwitchConfig;
 use App\TwitchHelper;
 use App\TwitchAutomator;
+use App\TwitchChannel;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 use Slim\Views\Twig;
@@ -255,8 +256,19 @@ class SettingsController
         $username = $_POST['username'];
 
         if( !TwitchConfig::getStreamer($username) ){
-            $response->getBody()->write("Streamer with that username does not exist in config");
-            return $response;
+            return $this->twig->render($response, 'dialog.twig', [
+                'text' => 'Streamer with that username does not exist in config',
+                'type' => 'error'
+            ]);
+        }
+
+        $streamer = new TwitchChannel();
+        $streamer->load($username);
+        if( $streamer->is_live ){
+            return $this->twig->render($response, 'dialog.twig', [
+                'text' => 'Please wait until the streamer has stopped streaming before deleting.',
+                'type' => 'error'
+            ]);
         }
     
         $key = null;
@@ -264,8 +276,10 @@ class SettingsController
             if( $v['username'] == $username ) $key = $k;
         }
         if(!$key){
-            $response->getBody()->write("Streamer not found.");
-            return $response;
+            return $this->twig->render($response, 'dialog.twig', [
+                'text' => 'Streamer not found.',
+                'type' => 'error'
+            ]);
         }
 
         TwitchHelper::unsub( $username );

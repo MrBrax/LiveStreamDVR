@@ -1097,6 +1097,7 @@ class TwitchVOD {
 		$data = [];
 
 		foreach($unique_games as $id => $n){
+			if(!$id) continue;
 			$gd = TwitchHelper::getGameData($id);
 			if(!$gd) continue;
 			$img_url = $gd['box_art_url'];

@@ -459,6 +459,8 @@ class TwitchHelper {
 
 	public static function getGameName( $id ){
 
+		if( !$id ) return false;
+
 		$data = self::getGameData( $id );
 
 		if($data){
