@@ -958,7 +958,7 @@ class TwitchHelper {
 	}
 
 	public static function path_youtubedl(){
-		$path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "youtube-dl" . ( self::is_windows() ? '.exe' : '' );
+		$path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "youtube-dl" . ( TwitchConfig::cfg('youtube_dlc') ? 'c' : '' ) . ( self::is_windows() ? '.exe' : '' );
 		return file_exists($path) ? $path : false;
 	}
 

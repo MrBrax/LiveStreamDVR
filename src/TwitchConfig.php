@@ -41,6 +41,7 @@ class TwitchConfig {
 		[ 'key' => 'chat_compress', 		'text' => 'Compress chat with gzip (untested)', 											'type' => 'boolean' ],
 		[ 'key' => 'relative_time', 		'text' => 'Relative time', 																	'type' => 'boolean' ],
 		[ 'key' => 'low_latency', 			'text' => 'Low latency (untested)', 														'type' => 'boolean' ],
+		[ 'key' => 'youtube_dlc', 			'text' => 'Use youtube-dlc instead of the regular one', 									'type' => 'boolean' ],
 	];
 
 	public static $timezone;

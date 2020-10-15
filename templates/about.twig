@@ -44,7 +44,7 @@
                     </tr>
 
                     <tr>
-                        <td>youtube-dl</td>
+                        <td>youtube-dl{{ config.youtube_dlc ? 'c' : '' }}</td>
                         <td>{{ bins.youtubedl.path }}</td>
                         <td>{{ bins.youtubedl.status }}</td>
                     </tr>
