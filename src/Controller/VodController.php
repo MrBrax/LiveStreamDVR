@@ -11,6 +11,9 @@ use App\TwitchHelper;
 use App\TwitchVOD;
 use Slim\Views\Twig;
 
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
+
 class VodController
 {
 
@@ -33,7 +36,7 @@ class VodController
         
         set_time_limit(0);
 
-        $TwitchAutomator = new TwitchAutomator();
+        // $TwitchAutomator = new TwitchAutomator();
 
         if( isset( $_POST['vod'] ) ){
 
@@ -41,10 +44,11 @@ class VodController
 
             $username = explode("_", $vod)[0];
 
-            $json = json_decode(file_get_contents(TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json'), true);
+            // $json = json_decode(file_get_contents(TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json'), true);
 
             $second_start   = (int)$_POST['start'];
             $second_end     = (int)$_POST['end'];
+            $name           = $_POST['name'];
 
             if( !$second_start || $second_start > $second_end  ){
                 $response->getBody()->write("Invalid start time (" . $second_start . ")");
@@ -58,28 +62,48 @@ class VodController
 
 
             $filename_in = TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.mp4';
-            $filename_out = TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_clips" . DIRECTORY_SEPARATOR . $vod . '-cut-' . $second_start . '-' . $second_end . '.mp4';
+            $filename_out = TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_clips" . DIRECTORY_SEPARATOR . $vod . '-cut-' . $second_start . '-' . $second_end . ( $name ? '-' . $name : '' ) . '.mp4';
 
             if( file_exists($filename_out) ){
                 $response->getBody()->write("Output file already exists");
                 return $response;
             }
 
-            $cmd = TwitchConfig::cfg('ffmpeg_path');
-            $cmd .= ' -i ' . escapeshellarg($filename_in); // input file
-            $cmd .= ' -ss ' . escapeshellarg($second_start); // start timestamp
-            $cmd .= ' -t ' . escapeshellarg($second_end - $second_start); // length
-            $cmd .= ' -codec copy'; // remux
-            $cmd .= ' ' . escapeshellarg($filename_out); // output file
-            $cmd .= ' 2>&1'; // console output
+            $cmd = [];
 
-            $response->getBody()->write( $cmd );
+            $cmd[] = TwitchConfig::cfg('ffmpeg_path');
+            
+            $cmd[] = '-i';
+            $cmd[] = escapeshellarg($filename_in); // input file
 
-            $output = shell_exec($cmd);
+            $cmd[] = '-ss';
+            $cmd[] = escapeshellarg($second_start); // start timestamp
 
-            file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "ffmpeg_" . $vod . "-cut-" . $second_start . "-" . $second_end . "_" . time() . ".log", "$ " . $cmd . "\n" . $output);
+            $cmd[] = '-t';
+            $cmd[] = escapeshellarg($second_end - $second_start); // length
 
-            $response->getBody()->write("<pre>" . $output . "</pre>");
+            $cmd[] = '-codec';
+            $cmd[] = 'copy'; // remux
+
+            $cmd[] = escapeshellarg($filename_out); // output file
+
+            $env = [
+                // 'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache",
+                'PATH' => dirname( TwitchHelper::path_ffmpeg() ),
+                'TEMP' => __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache"
+            ];
+
+            $process = new Process( $cmd, $this->directory, $env, null, null );
+
+            // $cmd[] = '2>&1'; // console output
+
+            $response->getBody()->write( "$ " . implode(" ", $cmd) );
+
+            TwitchHelper::append_log( "ffmpeg_" . $vod . "-cut-" . $second_start . "-" . $second_end . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
+            TwitchHelper::append_log( "ffmpeg_" . $vod . "-cut-" . $second_start . "-" . $second_end . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
+
+            $response->getBody()->write("<pre>" . $process->getOutput() . "</pre>");
+            $response->getBody()->write("<pre>" . $process->getErrorOutput() . "</pre>");
 
             $response->getBody()->write("Done");
 

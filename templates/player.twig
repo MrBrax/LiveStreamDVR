@@ -23,7 +23,7 @@
         </div>
 
         <div class="videoplayer-cut">
-			<form method="post" action="/cut">
+			<form method="post" action="{{ base_path() }}/cut">
 
 				<input type="hidden" name="vod" value="{{ vodclass.basename }}" />
 
@@ -35,6 +35,10 @@
 				<div>
 					<button type="button" class="button" onclick="cut_video('out')">Mark out</button>
 					<input class="input" name="end" id="value_out" placeholder="Out timestamp">
+				</div>
+
+				<div>
+					<input class="input" type="text" name="name" placeholder="Name (optional)">
 				</div>
 
 				<div>

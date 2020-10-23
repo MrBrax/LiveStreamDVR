@@ -28,7 +28,8 @@ class TwitchHelper {
 	const LOG_STDOUT = "stdout";
 	const LOG_STDERR = "stderr";
 
-	public static $public_folder = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public";
+	public static $public_folder 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public";
+	public static $logs_folder 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs";
 	// public static $saved_vods_folder = self::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods';
 	// public static $clips_folder = self::$public_folder . DIRECTORY_SEPARATOR . 'saved_clips';
 
@@ -143,8 +144,8 @@ class TwitchHelper {
 
 		if( !TwitchConfig::cfg("debug") && $level == self::LOG_DEBUG ) return;
 		
-		$filename 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log";
-		$filename_json 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log.json";
+		$filename 		= TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log";
+		$filename_json 	= TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log.json";
 		
 		$log_text = file_exists( $filename ) ? file_get_contents( $filename ) : '';
 		$log_json = file_exists( $filename_json ) ? json_decode( file_get_contents( $filename_json ), true ) : [];
@@ -195,7 +196,7 @@ class TwitchHelper {
 	}
 
 	public static function append_log( $basename, $text, $newline = true ){
-		$basepath =  __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs";
+		$basepath = self::$logs_folder;
 		$filepath = $basepath . DIRECTORY_SEPARATOR . $basename . ".log";
 		$filetext = file_exists($filepath) ? file_get_contents( $filepath ) . ( $newline ? "\n" : "" ) : "";
 		$filetext .= trim($text);
