@@ -1,11 +1,20 @@
 # TwitchAutomator
 
-1. Install dependencies with composer.
-2. Install utilities with pip, see below
-3. ~~Configure using the `config.json` file in the `config` directory.~~ Go to the settings page and set up basic stuff
-4. Visit `/sub` in your web browser to check that subscribing to the webhooks work. Make it automatic with a cronjob using wget/curl later (check `/settings` for syntax). Check `/subs` for subscription status. **This thing requires a public facing webserver.**
+1. Place the downloaded files in a separate folder from your www directory.
+2. Install dependencies with composer.
+3. Install utilities with pip, see below
+4. Point your webserver virtualhost to the `public` directory of this app, not the root.
+5. Go to the settings page and set up basic stuff, get api key from twitch dev site
+6. Visit `/sub` in your web browser to check that subscribing to the webhooks work.
+7. Add cronjobs shown on the settings page.
+
+Check `/subs` for subscription status.
+
+**This thing requires a public facing webserver.**
 
 Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in-subdirectory
+
+Post issues/help on the issues tab above. I already run an up to date version, so starting fresh might break stuff.
 
 *One high-profile streamer VOD of 10 hours is about 30-50GB.*
 
@@ -30,7 +39,7 @@ Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in
 - Basic video cutter with chapter display for easy exporting
 - Writes a [losslesscut](https://github.com/mifi/lossless-cut/) compatible csv file for the full VOD so you don't have to find all the games.
 - Uses `ts` instead of `mp4` so if the stream or program crashes, the file won't be corrupted
-- Can be set to automatically download the whole stream chat to a JSON file, to be used in my [twitch-vod-chat](https://github.com/MrBrax/twitch-vod-chat) webapp.
+- Can be set to automatically download the whole stream chat to a JSON file, to be used in my [twitch-vod-chat](https://github.com/MrBrax/twitch-vod-chat) webapp or automatically burned in with TwitchDownloader.
 
 ## Some config help
 
