@@ -147,6 +147,7 @@ class TwitchConfig {
 	}
 
 	public static function getGames(){
+		if(!file_exists(self::$gameDbPath)) return [];
 		return json_decode( file_get_contents( self::$gameDbPath ), true );
     }
 

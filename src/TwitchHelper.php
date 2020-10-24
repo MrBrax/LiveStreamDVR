@@ -225,11 +225,19 @@ class TwitchHelper {
 
 		$streamers_file =  __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "streamers_v2.json";
 
-		$json_streamers = json_decode( file_get_contents( $streamers_file ), true );
+		if( file_exists($streamers_file) ){
 
-		if( $json_streamers && isset($json_streamers[$username]) ){
-			self::log( self::LOG_DEBUG, "Fetched channel data from cache for " . $username);	
-			return $json_streamers[$username];
+			$json_streamers = json_decode( file_get_contents( $streamers_file ), true );
+
+			if( $json_streamers && isset($json_streamers[$username]) ){
+				self::log( self::LOG_DEBUG, "Fetched channel data from cache for " . $username);	
+				return $json_streamers[$username];
+			}
+
+		}else{
+
+			$json_streamers = [];
+
 		}
 
 		$access_token = self::getAccessToken();
@@ -401,7 +409,7 @@ class TwitchHelper {
 	 */
 	public static function getGameData( $game_id ){
 
-		if( !self::$game_db ){
+		if( !self::$game_db && file_exists(TwitchConfig::$gameDbPath) ){
 			self::$game_db = json_decode( file_get_contents( TwitchConfig::$gameDbPath ), true );
 		}
 
@@ -410,8 +418,12 @@ class TwitchHelper {
 			return false;
 		}
 
-		if( self::$game_db[ $game_id ] ){
+		if( self::$game_db && self::$game_db[ $game_id ] ){
 			return self::$game_db[ $game_id ];
+		}
+
+		if( !self::$game_db ){
+			self::$game_db = [];
 		}
 
 		self::log( self::LOG_DEBUG, "Game id " . $game_id . " not in cache, fetching..." );
