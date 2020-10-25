@@ -6,7 +6,7 @@ USER root
 
 # FROM composer AS composer
 
-RUN apk --no-cache add gcc libc-dev git python3 py3-pip composer ffmpeg mediainfo util-linux
+RUN apk --no-cache add gcc libc-dev git python3 py3-pip composer ffmpeg mediainfo util-linux busybox-initscripts
 
 RUN pip install streamlink youtube-dl tcd
 
@@ -23,6 +23,14 @@ RUN cd /var/www/twitchautomator/ && composer install
 
 # RUN mkdir -p /home/appuser && addgroup --gid 1001 appuser && adduser --uid 1001 --home /home/appuser --ingroup appuser appuser && chown -R appuser:appuser /home/appuser
 
+# cronjobs
+COPY ./config/cron.txt /etc/crontabs/nobody
+RUN chown nobody:nobody /etc/crontabs/nobody && chmod 775 /etc/crontabs/nobody
+RUN echo "* * * * * echo \"Crontab is working - watchdog 1\"" > /etc/crontabs/test
+
+# CMD ["exec", "crond", "-f", "-l", "2"]
+
+# src perms
 RUN chown -R nobody:nobody /var/www/twitchautomator && chmod -R 775 /var/www/twitchautomator
 
 COPY ./docker/nginx.conf /etc/nginx/nginx.conf
@@ -36,6 +44,10 @@ ENV TCD_MEDIAINFO_PATH=/usr/bin/mediainfo
 
 USER nobody
 WORKDIR /var/www/twitchautomator
+
+# RUN /usr/bin/crontab /var/www/twitchautomator/config/cron.txt
+# CMD ["/var/www/twitchautomator/docker/entry.sh"]
+# ENTRYPOINT ["/var/www/twitchautomator/docker/entry.sh"]
 
 # RUN composer install \
 #   --optimize-autoloader \

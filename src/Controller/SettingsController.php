@@ -46,6 +46,26 @@ class SettingsController
 
     }
 
+    private function generate_cron(){
+
+        if( !TwitchConfig::cfg('app_url') ) return;
+
+        $text = "";
+
+        $text .= "0 5 * * 1 curl " . TwitchConfig::cfg('app_url') . "/sub";
+        $text .= "\n0 2 * * * curl " . TwitchConfig::cfg('app_url') . "/cron/check_muted_vods";
+        $text .= "\n0 2 * * * curl " . TwitchConfig::cfg('app_url') . "/cron/check_deleted_vods";
+        $text .= "\n";
+
+        // $base = realpath( __DIR__ . '/../../');
+        // $text .= "0 5 * * 1 php " . $base . DIRECTORY_SEPARATOR . "sub";
+        // $text .= "\n0 2 * * * php " . $base . DIRECTORY_SEPARATOR . "cron" . DIRECTORY_SEPARATOR . "check_muted_vods";
+        // $text .= "\n0 2 * * * php " . $base . DIRECTORY_SEPARATOR . "cron" . DIRECTORY_SEPARATOR . "check_deleted_vods";
+
+        file_put_contents( TwitchHelper::$config_folder . DIRECTORY_SEPARATOR . 'cron.txt', $text );
+
+    }
+
     public function settings_save(Request $request, Response $response, array $args) {
         
         // $app_name               = $_POST['app_name'];
@@ -109,6 +129,8 @@ class SettingsController
         }
 
         TwitchConfig::saveConfig("settings/save");
+
+        $this->generate_cron();
 
         return $this->twig->render($response, 'dialog.twig', [
             'text' => 'Settings saved.',
