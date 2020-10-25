@@ -9,9 +9,9 @@ logs
 node_modules
 payloads
 vendor
+docker/vods
+docker/saved_clips
+docker/saved_vods
 public/vods
 public/saved_clips
 public/saved_vods
-docker_saved_clips
-docker_saved_vods
-docker_vods

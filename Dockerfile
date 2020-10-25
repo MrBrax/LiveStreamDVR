@@ -25,7 +25,7 @@ RUN cd /var/www/twitchautomator/ && composer install
 
 RUN chown -R nobody:nobody /var/www/twitchautomator && chmod -R 775 /var/www/twitchautomator
 
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY ./docker/nginx.conf /etc/nginx/nginx.conf
 
 # RUN pip install --user streamlink youtube-dl tcd
 
