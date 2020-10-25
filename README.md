@@ -1,5 +1,9 @@
 # TwitchAutomator
 
+![1603661434863-wc](https://user-images.githubusercontent.com/1517911/97119662-fe1b0a80-1711-11eb-8f40-20c1690a01c9.png)
+
+## Standalone setup
+
 1. Place the downloaded files in a separate folder from your www directory.
 2. Install dependencies with composer.
 3. Install utilities with pip, see below
@@ -18,7 +22,7 @@ Post issues/help on the issues tab above. I already run an up to date version, s
 
 *One high-profile streamer VOD of 10 hours is about 30-50GB.*
 
-## Main requirements
+### Main requirements
 - PHP 7+ (developed with 7.4)
 - Python 3.6
     - Python 3.7+ for tcd support
@@ -33,6 +37,10 @@ Post issues/help on the issues tab above. I already run an up to date version, s
 - [youtube-dl](https://github.com/ytdl-org/youtube-dl) (recommended) (dmca'd, unfortunate)
 - [tcd](https://pypi.org/project/tcd/) (optional)
 - [pipenv](https://github.com/pypa/pipenv) (optional, experimental)
+
+## Docker setup
+
+Run `docker-compose up -d` or build it in beforehand. Not fully tested.
 
 ## Features
 - Automatic VOD recording pretty much the second the stream goes live, instead of checking it every minute like many other scripts do
