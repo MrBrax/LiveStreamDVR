@@ -30,7 +30,7 @@ Post issues/help on the issues tab above. I already run an up to date version, s
 
 ### pip packages
 - [streamlink](https://github.com/streamlink/streamlink) (required)
-- [youtube-dl](https://github.com/ytdl-org/youtube-dl) (recommended)
+- [youtube-dl](https://github.com/ytdl-org/youtube-dl) (recommended) (dmca'd, unfortunate)
 - [tcd](https://pypi.org/project/tcd/) (optional)
 - [pipenv](https://github.com/pypa/pipenv) (optional, experimental)
 

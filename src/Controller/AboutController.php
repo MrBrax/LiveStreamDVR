@@ -24,13 +24,6 @@ class AboutController
         $this->twig = $twig;
     }
 
-    private function pypi_get( $package ){
-        $client = new \GuzzleHttp\Client();
-        $response = $client->get("https://pypi.org/pypi/" . $package . "/json");
-        $json = json_decode( $response->getBody()->getContents(), true );
-        return $json ?: false;
-    }
-
     public function about(Request $request, Response $response, array $args)
     {
 
@@ -71,18 +64,6 @@ class AboutController
             $bins['tcd']['status'] = 'Not installed.';
         }
 
-        if( $update_check && $bins['tcd']['installed'] ){
-            $json = $this->pypi_get('tcd');
-            if($json){
-                preg_match("/([0-9]\.[0-9]\.[0-9])/", $bins['tcd']['status'], $matches);
-                if( $matches && $matches[1] !== $json['info']['version']){
-                    $bins['tcd']['status'] .= ' - version ' . $json['info']['version'] . ' available';
-                }else{
-                    $bins['tcd']['status'] .= ' - up to date';
-                }
-                $matches = null;
-            }
-        }
 
         // streamlink
         $bins['streamlink'] = [];
@@ -95,19 +76,6 @@ class AboutController
             $bins['streamlink']['status'] = 'Not installed.';
         }
 
-        if( $update_check && $bins['streamlink']['installed'] ){
-            $json = $this->pypi_get('streamlink');
-            if($json){
-                preg_match("/([0-9]\.[0-9]\.[0-9])/", $bins['streamlink']['status'], $matches);
-                if( $matches && $matches[1] !== $json['info']['version']){
-                    $bins['streamlink']['status'] .= ' - version ' . $json['info']['version'] . ' available';
-                }else{
-                    $bins['streamlink']['status'] .= ' - up to date';
-                }
-                $matches = null;
-            }
-        }
-
         // youtube-dl
         $bins['youtubedl'] = [];
         $bins['youtubedl']['path'] = TwitchHelper::path_youtubedl();
@@ -117,17 +85,6 @@ class AboutController
             $bins['youtubedl']['installed'] = true;
         } else {
             $bins['youtubedl']['status'] = 'Not installed.';
-        }
-
-        if( $update_check && $bins['youtubedl']['installed'] ){
-            $json = $this->pypi_get('youtube-dl');
-            if($json){
-                if( $bins['youtubedl']['status'] !== $json['info']['version']){
-                    $bins['youtubedl']['status'] .= ' - version ' . $json['info']['version'] . ' available';
-                }else{
-                    $bins['youtubedl']['status'] .= ' - up to date';
-                }
-            }
         }
 
         $bins['twitchdownloader'] = [];
@@ -167,6 +124,7 @@ class AboutController
 
         return $this->twig->render($response, 'about.twig', [
             'bins' => $bins,
+            // 'envs' => TwitchConfig::cfg('debug') ? getenv() : null
         ]);
 
     }

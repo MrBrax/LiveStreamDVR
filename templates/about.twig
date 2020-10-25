@@ -7,10 +7,11 @@
 
         <div class="section-content">
 
-            <div class="section-title"><h1>Utilities status</h1></div>
+            <div class="section-title"><h1>About</h1></div>
             
             <div class="section-content">
 
+                <h3>Installed utilities</h3>
                 <table class="table">
 
                     <tr>
@@ -63,25 +64,37 @@
 
                 </table>
 
-                <hr />
-
-                <a href="?update_check=1">Check for updates</a>
-
-                <hr />
-
                 <p>This app tries to find all the executables using system utilities. This may not work if they're on a custom PATH. Please visit <a href="{{ url_for('settings') }}">settings</a> to manually change them.</p>
 
                 <hr />
 
+                <h3>Software</h3>
                 <strong>Python version:</strong> {{ bins.python.version ?: '(no output)' }}<br />
                 <strong>Python3 version:</strong> {{ bins.python3.version ?: '(no output)' }}<br />
                 <strong>PHP version:</strong> {{ bins.php.version ?: '(no output)' }}<br />
                 <strong>Platform:</strong> {{ bins.php.platform ?: '(no output)' }}
 
                 <hr />
-                
+
+                {% if envs %}
+                <h3>Environment variables</h3>
+                <table class="table">
+                    {% for k,v in envs %}
+                        <tr>
+                            <td>{{ k }}</td><td>{{ v }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+
+                <hr />
+                {% endif %}
+
+                <h3>Pip update</h3>                
                 <code>pip install --user youtube-dl streamlink tcd pipenv</code>
 
+                <hr />
+
+                <h3>Links</h3>
                 <ul>
                     <li><a href="https://www.python.org/downloads/" target="_blank">Python</a></li>
                     <li><a href="https://ffmpeg.zeranoe.com/builds/" target="_blank">FFmpeg builds for windows</a></li>

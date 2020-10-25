@@ -49,30 +49,30 @@
                             }) }}" title="{{ vodclass.started_at|date('Y-m-d H:i:s') }}">
                             {# <span class="icon is-active"><i class="fa fa-arrow-circle-right"></i></span> #}
                             {% if vodclass.is_capturing %}
-                                <span class="icon"><i class="fa fa-sync fa-spin"></i></span>
+                                <span class="icon"><i class="fa fa-sync fa-spin"></i></span> {# capturing #}
                             {% elseif vodclass.is_converting %}
-                                <span class="icon"><i class="fa fa-cog fa-spin"></i></span>
+                                <span class="icon"><i class="fa fa-cog fa-spin"></i></span> {# converting #}
                             {% elseif vodclass.hasFavouriteGame %}
-                                <span class="icon"><i class="fa fa-star"></i></span>
+                                <span class="icon"><i class="fa fa-star"></i></span> {# favourite #}
                             {% elseif not vodclass.is_capturing and not vodclass.is_converting and not vodclass.is_finalized %}
-                                <span class="icon"><i class="far fa-hourglass"></i></span>
+                                <span class="icon"><i class="far fa-hourglass"></i></span> {# waiting after capture #}
                             {% elseif vodclass.is_finalized %}
-                                <span class="icon"><i class="fa fa-film"></i></span>
+                                <span class="icon"><i class="fa fa-film"></i></span> {# video #}
                             {% endif %}
-                            {% if not config.relative_time and vodclass.started_at %}{{ vodclass.started_at|date('Y-m-d H:i:s') }}{% endif %}
-                            {% if config.relative_time and vodclass.started_at %}{{ vodclass.started_at|humanDate }}{% endif %}
+                            {% if not config.relative_time and vodclass.started_at %}{{ vodclass.started_at|date('Y-m-d H:i:s') }}{% endif %} {# absolute time #}
+                            {% if config.relative_time and vodclass.started_at %}{{ vodclass.started_at|humanDate }}{% endif %} {# relative time #}
                             {% if vodclass.is_capturing %}
-                                {% if vodclass.duration_live %}&middot; ({{ config.relative_time ? vodclass.duration_live|humanRealDuration : vodclass.duration_live|humanDuration }}+){% endif %}
-                                {% if vodclass.getRecordingSize %}&middot; {{ vodclass.getRecordingSize|formatBytes }}+{% endif %}
+                                {% if vodclass.duration_live %}&middot; ({{ config.relative_time ? vodclass.duration_live|humanRealDuration : vodclass.duration_live|humanDuration }}+){% endif %} {# duration #}
+                                {% if vodclass.getRecordingSize %}&middot; {{ vodclass.getRecordingSize|formatBytes }}+{% endif %} {# filesize #}
                             {% else %}
                                 {% if vodclass.duration_seconds %}&middot; ({{ config.relative_time ? vodclass.duration_seconds|humanRealDuration : vodclass.duration_seconds|humanDuration }}){% endif %}
                                 {% if vodclass.total_size %}&middot; {{ vodclass.total_size|formatBytes }}{% endif %}
                             {% endif %}
                             {% if vodclass.is_finalized %}
                                 <span class="flags">
-                                    {% if vodclass.twitch_vod_exists is same as(false) %}<span class="icon is-error"><i class="fa fa-trash"></i></span>{% endif %}
-                                    {% if vodclass.twitch_vod_exists is same as(null) %}<span class="icon is-error"><i class="fa fa-question"></i></span>{% endif %}
-                                    {% if vodclass.twitch_vod_muted is same as(true) %}<span class="icon is-error"><i class="fa fa-volume-mute"></i></span>{% endif %}
+                                    {% if vodclass.twitch_vod_exists is same as(false) %}<span class="icon is-error" title="Deleted"><i class="fa fa-trash"></i></span>{% endif %}
+                                    {% if vodclass.twitch_vod_exists is same as(null) %}<span class="icon is-error" title="Not checked"><i class="fa fa-question"></i></span>{% endif %}
+                                    {% if vodclass.twitch_vod_muted is same as(true) %}<span class="icon is-error" title="Muted"><i class="fa fa-volume-mute"></i></span>{% endif %}
                                 </span>
                             {% endif %}
                             <div class="tooltip">

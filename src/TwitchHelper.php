@@ -223,11 +223,9 @@ class TwitchHelper {
 	 */
 	public static function getChannelData( $username ){
 
-		$streamers_file =  __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "streamers_v2.json";
+		if( file_exists( TwitchConfig::$streamerDbPath ) ){
 
-		if( file_exists($streamers_file) ){
-
-			$json_streamers = json_decode( file_get_contents( $streamers_file ), true );
+			$json_streamers = json_decode( file_get_contents( TwitchConfig::$streamerDbPath ), true );
 
 			if( $json_streamers && isset($json_streamers[$username]) ){
 				self::log( self::LOG_DEBUG, "Fetched channel data from cache for " . $username);	
@@ -246,23 +244,6 @@ class TwitchHelper {
 			throw new \Exception('Fatal error, could not get access token for channel id request');
 			return false;
 		}
-
-		// webhook list
-		/*
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/users?login=' . $username);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, [
-		    'Authorization: Bearer ' . $access_token,
-		    'Client-ID: ' . TwitchConfig::cfg('api_client_id')
-		]);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-
-		$server_output = curl_exec($ch);
-
-		curl_close ($ch);
-
-		$json = json_decode( $server_output, true );
-		*/
 		
 		/*
 		$client = new \GuzzleHttp\Client([
@@ -293,7 +274,7 @@ class TwitchHelper {
 		$data = $json["data"][0];
 		
 		$json_streamers[ $username ] = $data;
-		file_put_contents( $streamers_file, json_encode($json_streamers) );
+		file_put_contents( TwitchConfig::$streamerDbPath, json_encode($json_streamers) );
 
 		self::log( self::LOG_INFO, "Fetched channel data online for " . $username);
 
