@@ -171,7 +171,10 @@ class TwitchVOD {
 		if( isset($this->json['dt_capture_started']) ){
 			$this->dt_capture_started 		= new \DateTime($this->json['dt_capture_started']['date']);
 			$this->dt_conversion_started 	= new \DateTime($this->json['dt_conversion_started']['date']);
-			$this->dt_ended_at 				= new \DateTime($this->json['dt_ended']['date']);
+		}
+		
+		if( isset( $this->json['dt_ended']) ){
+			$this->dt_ended_at = new \DateTime($this->json['dt_ended']['date']);
 		}
 
 		if( $this->meta && $this->meta['data'][0]['title'] ){
@@ -972,7 +975,7 @@ class TwitchVOD {
 
 			$entry['datetime'] = \DateTime::createFromFormat( TwitchConfig::cfg("date_format"), $entry['time'] );
 
-			if( TwitchConfig::$config['favourites'] ){
+			if( isset( TwitchConfig::$config['favourites'] ) && count( TwitchConfig::$config['favourites'] ) > 0 ){
 				$entry['favourite'] = isset( TwitchConfig::$config['favourites'][ $entry['game_id'] ] );
 			}
 
@@ -981,7 +984,7 @@ class TwitchVOD {
 				$entry['offset'] = $entry['datetime']->getTimestamp() - $this->started_at->getTimestamp();
 			}
 
-			if( $this->is_finalized && $this->getDuration() !== false && $this->getDuration() > 0 ){
+			if( $this->is_finalized && $this->getDuration() !== false && $this->getDuration() > 0 && isset($entry['duration']) ){
 				$entry['width'] = ( $entry['duration'] / $this->getDuration() ) * 100; // temp
 			}
 
@@ -1373,7 +1376,7 @@ class TwitchVOD {
 	public function hasFavouriteGame(){
 		if(!$this->chapters) return false;
 		foreach( $this->chapters as $chapter ){
-			if( $chapter['favourite'] ) return true;
+			if( isset( $chapter['favourite']) && $chapter['favourite'] ) return true;
 		}
 		return false;
 	}
@@ -1384,6 +1387,7 @@ class TwitchVOD {
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Fetch capture process status of " . $this->basename );
 		$output = shell_exec("ps aux | grep -i " . escapeshellarg("twitch.tv/" . $this->streamer_name) . " | grep -v grep");
 		preg_match("/^([a-z0-9]+)\s+([0-9]+)/i", trim($output), $matches);
+		if(!$matches) return false;
 		$this->pid_cache['capture'] = $matches[2];
 		return isset($matches[2]) ? $matches[2] : false;
 	}
@@ -1393,6 +1397,7 @@ class TwitchVOD {
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Fetch converting process status of " . $this->basename );
 		$output = shell_exec("ps aux | grep -i " . escapeshellarg( $this->basename . ".mp4" ) . " | grep -v grep");
 		preg_match("/^([a-z0-9]+)\s+([0-9]+)/i", trim($output), $matches);
+		if(!$matches) return false;
 		$this->pid_cache['convert'] = $matches[2];
 		return isset($matches[2]) ? $matches[2] : false;
 	}
@@ -1402,6 +1407,7 @@ class TwitchVOD {
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Fetch chat download process status of " . $this->basename );
 		$output = shell_exec("ps aux | grep -i " . escapeshellarg( "tcd --video " . $this->twitch_vod_id ) . " | grep -v grep");
 		preg_match("/^([a-z0-9]+)\s+([0-9]+)/i", trim($output), $matches);
+		if(!$matches) return false;
 		$this->pid_cache['download'] = $matches[2];
 		return isset($matches[2]) ? $matches[2] : false;
 	}
