@@ -28,6 +28,7 @@ class TwitchHelper {
 	const LOG_STDOUT = "stdout";
 	const LOG_STDERR = "stderr";
 
+	public static $config_folder 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config";
 	public static $public_folder 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public";
 	public static $logs_folder 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs";
 	// public static $saved_vods_folder = self::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods';
@@ -53,8 +54,10 @@ class TwitchHelper {
 		foreach( self::$required_directories as $dir ){
 			// self::log(self::LOG_DEBUG, "Checking directory " . $dir);
 			if(!file_exists($dir)){
-				self::log(self::LOG_INFO, "Making directory " . $dir);
-				mkdir( $dir );
+				if( !mkdir( $dir ) ){
+					throw new Exception("Couldn't make directory: " . $dir );
+				}
+				// self::log(self::LOG_INFO, "Made directory " . $dir);
 			}
 		}
 	}

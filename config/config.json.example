@@ -18,5 +18,7 @@
     "debug": false,
     "pipenv": false,
     "vod_container": "mp4",
+    "disable_ads": true,
+    "channel_folders": true,
     "streamers": []
 }

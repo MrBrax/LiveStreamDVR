@@ -1,0 +1,12 @@
+version: "3.8"
+services:
+  web:
+    build: .
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./config:/var/www/twitchautomator/config
+      - ./cache:/var/www/twitchautomator/cache
+      - ./docker_vods:/var/www/twitchautomator/public/vods
+      - ./docker_saved_clips:/var/www/twitchautomator/public/saved_clips
+      - ./docker_saved_vods:/var/www/twitchautomator/public/saved_vods

@@ -11,3 +11,4 @@ cache/
 public/vods/
 config/streamers.json
 config/oauth.bin
+config/tcd_settings.json

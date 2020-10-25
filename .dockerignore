@@ -1,0 +1,17 @@
+.vscode
+cache
+config/config.json
+config/games_v2.json
+config/oauth.bin
+config/streamers.json
+dist
+logs
+node_modules
+payloads
+vendor
+public/vods
+public/saved_clips
+public/saved_vods
+docker_saved_clips
+docker_saved_vods
+docker_vods

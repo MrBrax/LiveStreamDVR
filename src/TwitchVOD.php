@@ -455,6 +455,9 @@ class TwitchVOD {
 		}else{
 			$cmd[] = TwitchHelper::path_tcd();
 		}
+
+		$cmd[] = '--settings-file';
+		$cmd[] = TwitchHelper::$config_folder . DIRECTORY_SEPARATOR . 'tcd_settings.json';
 		
 		$cmd[] = '--video';
 		$cmd[] = $this->twitch_vod_id;

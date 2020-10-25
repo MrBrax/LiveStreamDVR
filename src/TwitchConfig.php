@@ -35,10 +35,10 @@ class TwitchConfig {
 		[ 'key' => 'burn_preset', 			'text' => 'Burning h264 preset', 															'type' => 'array', 'choices' => ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower', 'veryslow', 'placebo'], 'default' => 'slow' ],
 		[ 'key' => 'burn_crf', 				'text' => 'Burning h264 crf', 																'type' => 'number', 'default' => 26 ],
 
-		[ 'key' => 'disable_ads', 			'text' => 'Try to remove ads from captured file',											'type' => 'boolean' ],
+		[ 'key' => 'disable_ads', 			'text' => 'Try to remove ads from captured file',											'type' => 'boolean', 'default' => true ],
 		[ 'key' => 'debug', 				'text' => 'Debug', 																			'type' => 'boolean' ],
 		[ 'key' => 'app_verbose', 			'text' => 'Verbose app output', 															'type' => 'boolean' ],
-		[ 'key' => 'channel_folders', 		'text' => 'Channel folders', 																'type' => 'boolean' ],
+		[ 'key' => 'channel_folders', 		'text' => 'Channel folders', 																'type' => 'boolean', 'default' => true ],
 		[ 'key' => 'chat_compress', 		'text' => 'Compress chat with gzip (untested)', 											'type' => 'boolean' ],
 		[ 'key' => 'relative_time', 		'text' => 'Relative time', 																	'type' => 'boolean' ],
 		[ 'key' => 'low_latency', 			'text' => 'Low latency (untested)', 														'type' => 'boolean' ],
@@ -52,8 +52,14 @@ class TwitchConfig {
 	}
 
 	public static function cfg( $var, $def = null ){
-		if( !isset(self::$config[$var]) ) return $def;
+
+		if( getenv( 'TCD_' . strtoupper($var) ) ) return getenv( 'TCD_' . strtoupper($var) ); // environment variable
+
+		if( !isset(self::$config[$var]) ) return $def; // if not defined
+		
 		return self::$config[$var] ?: $def;
+
+
 	}
 
 	/** @deprecated 3.2.0 */

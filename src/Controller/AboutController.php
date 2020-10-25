@@ -57,7 +57,7 @@ class AboutController
         $bins['tcd'] = [];
         $bins['tcd']['path'] = TwitchHelper::path_tcd();
         if (file_exists(TwitchHelper::path_tcd())) {
-            $out = shell_exec(TwitchHelper::path_tcd() . " --version");
+            $out = shell_exec(TwitchHelper::path_tcd() . " --version --settings-file " . TwitchHelper::$config_folder . DIRECTORY_SEPARATOR . "tcd_settings.json");
             $bins['tcd']['status'] = $out;
             $bins['tcd']['installed'] = true;
         } else {
