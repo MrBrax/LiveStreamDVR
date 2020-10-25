@@ -406,7 +406,7 @@ class TwitchHelper {
 			return false;
 		}
 
-		if( self::$game_db && self::$game_db[ $game_id ] ){
+		if( self::$game_db && isset( self::$game_db[ $game_id ] ) ){
 			return self::$game_db[ $game_id ];
 		}
 

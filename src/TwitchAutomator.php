@@ -16,6 +16,8 @@ class TwitchAutomator {
 	public $errors = [];
 	public $info = [];
 
+	public $force_record;
+
 	public $vod;
 
 	const NOTIFY_GENERIC = 1;
@@ -327,7 +329,7 @@ class TwitchAutomator {
         $streamer = TwitchConfig::getStreamer( $data_username );
 
 		// check matched title, broken?
-		if( $streamer && $streamer['match'] ){
+		if( $streamer && isset( $streamer['match'] ) ){
 
 			$match = false;
 

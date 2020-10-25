@@ -36,7 +36,7 @@ class TwitchConfig {
 		[ 'key' => 'burn_crf', 				'text' => 'Burning h264 crf', 																'type' => 'number', 'default' => 26 ],
 
 		[ 'key' => 'disable_ads', 			'text' => 'Try to remove ads from captured file',											'type' => 'boolean', 'default' => true ],
-		[ 'key' => 'debug', 				'text' => 'Debug', 																			'type' => 'boolean' ],
+		[ 'key' => 'debug', 				'text' => 'Debug', 																			'type' => 'boolean', 'default' => false ],
 		[ 'key' => 'app_verbose', 			'text' => 'Verbose app output', 															'type' => 'boolean' ],
 		[ 'key' => 'channel_folders', 		'text' => 'Channel folders', 																'type' => 'boolean', 'default' => true ],
 		[ 'key' => 'chat_compress', 		'text' => 'Compress chat with gzip (untested)', 											'type' => 'boolean' ],
@@ -124,10 +124,15 @@ class TwitchConfig {
 		$example_file = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "config.json.example";
 		
 		if( !file_exists($example_file) ){
-			die("No example config found");
+			//die("No example config found");
+			// test
+			$example = [];
+			foreach( self::$settingsFields as $field ){
+				$example[ $field['key'] ] = $field['default'];
+			}
+		}else{
+			$example = json_decode( file_get_contents( $example_file ), true );
 		}
-
-		$example = json_decode( file_get_contents( $example_file ), true );
 
 		self::$config = $example;
 		self::saveConfig();
