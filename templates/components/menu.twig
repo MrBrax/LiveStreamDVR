@@ -105,6 +105,9 @@
         <div class="top-menu-item icon right">
             <a href="javascript:notifyMe();" title="Notify"><i class="fa fa-bell"></i></a>
         </div>
+        <div class="top-menu-item icon right{{ is_current_url('tools') ? ' active' : '' }}">
+            <a href="{{ url_for('tools') }}" title="Tools"><i class="fa fa-wrench"></i></a>
+        </div>
         <div class="top-menu-item icon right{{ is_current_url('settings') ? ' active' : '' }}">
             <a href="{{ url_for('settings') }}" title="Settings"><i class="fa fa-cog"></i></a>
         </div>

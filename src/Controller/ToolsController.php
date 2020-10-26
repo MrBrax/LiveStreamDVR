@@ -134,7 +134,10 @@ class ToolsController {
         }
 
         $cmd[] = '-o';
-        $cmd[] = $destination; // output file
+		$cmd[] = $destination; // output file
+		
+		$cmd[] = '--hls-segment-threads';
+		$cmd[] = 10;
 
         $cmd[] = '--url';
         $cmd[] = $video_url; // stream url
@@ -199,12 +202,20 @@ class ToolsController {
 			return false;
 		}
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Render chat for " . $this->basename );
+		if( !TwitchHelper::path_mediainfo() ){
+			throw new \Exception('Mediainfo not installed');
+			return false;
+		}
 
 		// $chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
 		// $video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
         
-        $mediainfo = $this->mediainfo( $video_filename );
+		$mediainfo = $this->mediainfo( $video_filename );
+		
+		if(!$mediainfo){
+			throw new \Exception('No mediainfo returned');
+			return false;
+		}
         
         $chat_width = 300;
         $chat_height = $mediainfo['video']['Height'];
@@ -323,14 +334,14 @@ class ToolsController {
 
 		$cmd[] = $destination;
 
-		$process = new Process( $cmd, $this->directory, null, null, null );
+		$process = new Process( $cmd, dirname($video_filename), null, null, null );
 
 		$process->run();
 
         $this->logs['td_burn']['stdout'] = $process->getOutput();
         $this->logs['td_burn']['stderr'] = $process->getErrorOutput();
 
-		$successful = file_exists( $this->path_chatburn ) && filesize( $this->path_chatburn ) > 0;
+		$successful = file_exists( $destination ) && filesize( $destination ) > 0;
 
 		return $successful;
 
@@ -368,11 +379,17 @@ class ToolsController {
         // $burned         = $basedir . DIRECTORY_SEPARATOR . $video_id . "_burned.mp4";
         $burned         = TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . "_burned.mp4";
 
+		if( file_exists( $burned ) ){
+			$response->getBody()->write( "VOD has already been burned." );
+			return $response;
+		}
+
         if( !file_exists( $dstfile ) && !file_exists( $srcfile ) ){
             if( $this->downloadVod( $video_id, $srcfile, $quality ) ){
                 $response->getBody()->write( "<br>VOD download successful" );
             }else{
-                $response->getBody()->write( "<br>VOD download error" );
+				$response->getBody()->write( "<br>VOD download error" );
+				return $response;
             }
         }
 
@@ -380,7 +397,8 @@ class ToolsController {
             if( $this->remuxMp4( $srcfile, $dstfile ) ){
                 $response->getBody()->write( "<br>Remux successful" );
             }else{
-                $response->getBody()->write( "<br>Remux error" );
+				$response->getBody()->write( "<br>Remux error" );
+				return $response;
             }
         }
 
@@ -388,7 +406,8 @@ class ToolsController {
             if( $this->downloadChat( $video_id, $chatfile ) ){
                 $response->getBody()->write( "<br>Chat download successful" );
             }else{
-                $response->getBody()->write( "<br>Chat download error" );
+				$response->getBody()->write( "<br>Chat download error" );
+				return $response;
             }
         }
 
@@ -396,7 +415,8 @@ class ToolsController {
             if( $this->renderChat( $video_id, $dstfile, $chatfile, $chatrender ) ){
                 $response->getBody()->write( "<br>Chat render successful" );
             }else{
-                $response->getBody()->write( "<br>Chat render error" );
+				$response->getBody()->write( "<br>Chat render error" );
+				return $response;
             }
         }
 
@@ -404,7 +424,8 @@ class ToolsController {
             if( $this->burnChat( $video_id, $dstfile, $chatrender, $burned ) ){
                 $response->getBody()->write( "<br>Chat burn successful" );
             }else{
-                $response->getBody()->write( "<br>Chat burn error" );
+				$response->getBody()->write( "<br>Chat burn error" );
+				return $response;
             }
         }
         
