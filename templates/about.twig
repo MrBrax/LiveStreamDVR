@@ -69,11 +69,13 @@
                 <hr />
 
                 <h3>Software</h3>
-                <strong>Python version:</strong> {{ bins.python.version ?: '(no output)' }}<br />
-                <strong>Python3 version:</strong> {{ bins.python3.version ?: '(no output)' }}<br />
-                <strong>PHP version:</strong> {{ bins.php.version ?: '(no output)' }}<br />
-                <strong>Platform:</strong> {{ bins.php.platform ?: '(no output)' }}
-
+                <strong>Python version:</strong> {{ bins.python.version ?: '(no output)' }}
+                <br /><strong>Python3 version:</strong> {{ bins.python3.version ?: '(no output)' }}
+                <br /><strong>PHP version:</strong> {{ bins.php.version ?: '(no output)' }}
+                <br /><strong>Platform:</strong> {{ bins.php.platform ?: '(no output)' }}
+                {% if envs %}
+                {% if envs.NODE %}<br /><strong>Node:</strong> {{ envs.npm_config_node_version }}{% endif %}
+                {% endif %}
                 <hr />
 
                 {% if envs %}
@@ -89,8 +91,9 @@
                 <hr />
                 {% endif %}
 
-                <h3>Pip update</h3>                
+                <h3>Pip update</h3>
                 <code>pip install --user youtube-dl streamlink tcd pipenv</code>
+                <br>You might want to install without the --user switch depending on environment.
 
                 <hr />
 

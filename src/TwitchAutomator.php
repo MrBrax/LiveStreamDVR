@@ -334,7 +334,7 @@ class TwitchAutomator {
 			$match = false;
 
 			$this->notify($basename, 'Check keyword matches for user ' . json_encode( $streamer ), self::NOTIFY_GENERIC);
-			TwitchHelper::log( TwitchHelper::LOG_INFO, "Check keyword matches for " . $basename);
+			TwitchHelper::log( TwitchHelper::LOG_INFO, "Check keyword matches for " . $basename, ['download' => $data_username] );
 
 			foreach( $streamer['match'] as $m ){
 				if( strpos( strtolower($data_title), $m ) !== false ){
@@ -345,7 +345,7 @@ class TwitchAutomator {
 
 			if(!$match){
 				$this->notify($basename, 'Cancel download because stream title does not contain keywords', self::NOTIFY_GENERIC);
-				TwitchHelper::log( TwitchHelper::LOG_WARNING, "Cancel download of " . $basename . " due to missing keywords");
+				TwitchHelper::log( TwitchHelper::LOG_WARNING, "Cancel download of " . $basename . " due to missing keywords", ['download' => $data_username] );
 				return;
 			}
 
@@ -355,7 +355,7 @@ class TwitchAutomator {
 		$this->vod->saveJSON('is_capturing set');
 
 		// in progress
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Update game for " . $basename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Update game for " . $basename, ['download' => $data_username]);
 		$this->updateGame( $data );
 
 		// download notification
@@ -372,6 +372,7 @@ class TwitchAutomator {
 			if( $tries >= TwitchConfig::cfg('download_retries') ){
 				$this->errors[] = 'Giving up on downloading, too many tries';
 				$this->notify($basename, 'GIVING UP, TOO MANY TRIES', self::NOTIFY_ERROR);
+				TwitchHelper::log( TwitchHelper::LOG_ERROR, "Giving up on downloading, too many tries for " . $basename, ['download' => $data_username] );
 				rename( $folder_base . DIRECTORY_SEPARATOR . $basename . '.json', $folder_base . DIRECTORY_SEPARATOR . $basename . '.json.broken' );
 				throw new \Exception('Too many tries');
 				return;
@@ -382,6 +383,8 @@ class TwitchAutomator {
 			$this->info[] = 'Capture name: ' . $capture_filename;
 
 			$this->notify($basename, 'MISSING DOWNLOAD, TRYING AGAIN (#' . $tries . ')', self::NOTIFY_ERROR);
+			
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Error when downloading, retrying " . $basename, ['download' => $data_username] );
 
 			sleep(15);
 
@@ -392,7 +395,7 @@ class TwitchAutomator {
 		}
 
 		// timestamp
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Add end timestamp for " . $basename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Add end timestamp for " . $basename, ['download' => $data_username] );
 
 		$this->vod->refreshJSON();
 		$this->vod->ended_at = $this->getDateTime();
@@ -429,14 +432,14 @@ class TwitchAutomator {
 
 		}
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Add segments to " . $basename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Add segments to " . $basename, ['download' => $data_username] );
 		$this->vod->refreshJSON();
 		$this->vod->is_converting = false;
 		// if(!$this->json['segments_raw']) $this->json['segments_raw'] = [];
 		$this->vod->addSegment( $converted_filename );
 		$this->vod->saveJSON('add segment');
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Cleanup old VODs for " . $data_username);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Cleanup old VODs for " . $data_username, ['download' => $data_username] );
 		$this->cleanup( $data_username, $basename );
 
 		$this->notify($basename, '[' . $data_username . '] [end]', self::NOTIFY_DOWNLOAD);
@@ -444,10 +447,10 @@ class TwitchAutomator {
 		// finalize
 
 		// metadata stuff
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Sleep 5 minutes for " . $basename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Sleep 5 minutes for " . $basename, ['download' => $data_username] );
 		sleep(60 * 5);
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Do metadata on " . $basename);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Do metadata on " . $basename, ['download' => $data_username] );
 
 		$vodclass = new TwitchVOD();
 		$vodclass->load( $folder_base . DIRECTORY_SEPARATOR . $basename . '.json');
@@ -464,7 +467,7 @@ class TwitchAutomator {
 		$vodclass->saveJSON('finalized');
 		
 		if( ( TwitchConfig::cfg('download_chat') || ( TwitchConfig::getStreamer($data_username)['download_chat'] ) && $vodclass->twitch_vod_id ) ){
-			TwitchHelper::log( TwitchHelper::LOG_INFO, "Auto download chat on " . $basename);
+			TwitchHelper::log( TwitchHelper::LOG_INFO, "Auto download chat on " . $basename, ['download' => $data_username] );
 			$vodclass->downloadChat();
 
 			if( TwitchConfig::getStreamer($data_username)['burn_chat'] ){
@@ -480,7 +483,7 @@ class TwitchAutomator {
 		$history[] = [ 'streamer_name' => $this->vod->streamer_name, 'started_at' => $this->vod->started_at, 'ended_at' => $this->vod->ended_at, 'title' => $data_title ];
 		file_put_contents( TwitchConfig::$historyPath, json_encode($history) );
 
-		TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "All done for " . $basename);
+		TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "All done for " . $basename, ['download' => $data_username] );
 
 	}
 
@@ -516,7 +519,7 @@ class TwitchAutomator {
 		$int = 1;
 		while( file_exists( $capture_filename ) ){
 			$this->errors[] = 'File exists while capturing, making a new name';
-			TwitchHelper::log( TwitchHelper::LOG_ERROR, "File exists while capturing, making a new name for " . $basename . ", attempt #" . $int);
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "File exists while capturing, making a new name for " . $basename . ", attempt #" . $int, ['download-capture' => $data_username] );
 			$capture_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '-' . $int . '.ts';
 			$int++;
 		}
@@ -576,7 +579,7 @@ class TwitchAutomator {
 		$this->vod->dt_capture_started = new \DateTime();
 		$this->vod->saveJSON('dt_capture_started set');
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting capture with filename " . basename($capture_filename) );
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting capture with filename " . basename($capture_filename), ['download-capture' => $data_username] );
 		
 		// $capture_output = shell_exec( $cmd );
 		$process = new Process( $cmd, dirname($capture_filename), null, null, null );
@@ -584,7 +587,7 @@ class TwitchAutomator {
 		TwitchHelper::append_log("streamlink_" . $basename . "_stdout." . $int, "$ " . implode(" ", $cmd) );
 		TwitchHelper::append_log("streamlink_" . $basename . "_stderr." . $int, "$ " . implode(" ", $cmd) );
 
-		$process->run(function($type, $buffer) use($basename, $int) {
+		$process->run(function($type, $buffer) use($basename, $int, $data_username) {
 			if (Process::ERR === $type) {
 				// echo 'ERR > '.$buffer;
 			} else {
@@ -594,11 +597,11 @@ class TwitchAutomator {
 			preg_match("/stream:\s([0-9_a-z]+)\s/", $buffer, $matches);
 			if($matches){
 				$this->stream_resolution = $matches[1];
-				TwitchHelper::log( TwitchHelper::LOG_INFO, "Stream resolution for " . $basename . ": " . $this->stream_resolution );
+				TwitchHelper::log( TwitchHelper::LOG_INFO, "Stream resolution for " . $basename . ": " . $this->stream_resolution, ['download-capture' => $data_username] );
 			}
 
 			if( strpos($buffer, "404 Client Error") !== false ){
-				TwitchHelper::log( TwitchHelper::LOG_WARNING, "Chunk removed for " . $basename . "!" );
+				TwitchHelper::log( TwitchHelper::LOG_WARNING, "Chunk removed for " . $basename . "!", ['download-capture' => $data_username] );
 			}
 
 			if( Process::ERR === $type ){
@@ -610,7 +613,7 @@ class TwitchAutomator {
 		});
 
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Finishing capture with filename " . basename($capture_filename) );
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Finishing capture with filename " . basename($capture_filename), ['download-capture' => $data_username] );
 
 		$this->info[] = 'Streamlink output: ' . $process->getOutput();
 		$this->info[] = 'Streamlink error: ' . $process->getErrorOutput();
@@ -652,7 +655,7 @@ class TwitchAutomator {
 		}
 
 		if( strpos($capture_output, 'already exists, use') !== false ){
-			TwitchHelper::log( TwitchHelper::LOG_FATAL, "Unexplainable, " . basename($capture_filename) . " could not be captured due to existing file already.");
+			TwitchHelper::log( TwitchHelper::LOG_FATAL, "Unexplainable, " . basename($capture_filename) . " could not be captured due to existing file already.", ['download-capture' => $data_username] );
 		}
 
 		preg_match("/stream:\s([0-9_a-z]+)\s/", $capture_output, $matches);
@@ -680,11 +683,13 @@ class TwitchAutomator {
 
 		$converted_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '.' . $container_ext;
 
+		$data_username = $this->vod->streamer_name;
+
 		$int = 1;
 
 		while( file_exists( $converted_filename ) ){
 			$this->errors[] = 'File exists while converting, making a new name';
-			TwitchHelper::log( TwitchHelper::LOG_ERROR, "File exists while converting, making a new name for " . $basename . ", attempt #" . $int);
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "File exists while converting, making a new name for " . $basename . ", attempt #" . $int, ['download-convert' => $data_username]);
 			$converted_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '-' . $int . '.' . $container_ext;
 			$int++;
 		}
@@ -703,14 +708,14 @@ class TwitchAutomator {
 		$this->vod->dt_conversion_started = new \DateTime();
 		$this->vod->saveJSON('dt_conversion_started set');
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting conversion of " . basename($capture_filename) . " to " . basename($converted_filename) );
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting conversion of " . basename($capture_filename) . " to " . basename($converted_filename), ['download-convert' => $data_username] );
 
 		$output_convert = shell_exec( $cmd ); // do it
 
 		if( file_exists( $converted_filename ) ){
-			TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "Finished conversion of " . basename($capture_filename) . " to " . basename($converted_filename) );
+			TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "Finished conversion of " . basename($capture_filename) . " to " . basename($converted_filename), ['download-convert' => $data_username] );
 		}else{
-			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Failed conversion of " . basename($capture_filename) . " to " . basename($converted_filename) );
+			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Failed conversion of " . basename($capture_filename) . " to " . basename($converted_filename), ['download-convert' => $data_username] );
 		}
 
 		$this->info[] = 'ffmpeg output: ' . $output_convert;

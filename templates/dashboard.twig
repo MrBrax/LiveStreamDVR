@@ -53,6 +53,11 @@
                 
             {% endfor %}
 
+            {% if not streamerList %}
+                <span class="error">No streamers added</span>
+                <br><br>
+            {% endif %}
+
             <div>
                 <strong>Total size: {{ total_size|formatBytes }}</strong><br>
                 <strong>Free space: {{ free_size|formatBytes }}</strong>
@@ -68,6 +73,7 @@
 
         <div class="section-content">
 
+            {% if history_data %}
             <table class="table">
                 <tr>
                     <th>Start</th>
@@ -84,6 +90,9 @@
                     </tr>
                 {% endfor %}
             </table>
+            {% else %}
+                No streams have been encountered yet
+            {% endif %}
 
         </div>
 

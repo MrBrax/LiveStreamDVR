@@ -141,9 +141,10 @@ class TwitchHelper {
 	 *
 	 * @param const $level
 	 * @param string $text
+	 * @param array $metadata
 	 * @return void
 	 */
-	public static function log( $level, $text ){
+	public static function log( $level, $text, $metadata = null ){
 
 		if( !TwitchConfig::cfg("debug") && $level == self::LOG_DEBUG ) return;
 
@@ -181,6 +182,8 @@ class TwitchHelper {
 			"level" => $level,
 			"text" => $text
 		];
+
+		if( isset($metadata) ) $log_data['metadata'] = $metadata;
 
 		/* // too buggy
 		if( TwitchConfig::cfg("debug") ){
