@@ -42,7 +42,13 @@ When upgrading, delete the `twig` folder in the `cache` folder.
 
 ## Docker setup
 
-Run `docker-compose up -d` or build it in beforehand. Not fully tested.
+Run `docker-compose up --build -d` or build it in beforehand. Not fully tested.
+
+Docker hub: https://hub.docker.com/repository/docker/mrbrax/twitchautomator
+
+Known issues:
+- No cron jobs yet
+- GLOB_BRACE issue?
 
 ## Features
 - Automatic VOD recording pretty much the second the stream goes live, instead of checking it every minute like many other scripts do

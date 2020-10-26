@@ -2,6 +2,7 @@ version: "3.8"
 services:
   web:
     build: .
+    image: mrbrax/twitchautomator
     ports:
       - "8081:8080"
     volumes:

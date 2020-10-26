@@ -24,9 +24,9 @@ RUN cd /var/www/twitchautomator/ && composer install
 # RUN mkdir -p /home/appuser && addgroup --gid 1001 appuser && adduser --uid 1001 --home /home/appuser --ingroup appuser appuser && chown -R appuser:appuser /home/appuser
 
 # cronjobs
-COPY ./config/cron.txt /etc/crontabs/nobody
-RUN chown nobody:nobody /etc/crontabs/nobody && chmod 775 /etc/crontabs/nobody
-RUN echo "* * * * * echo \"Crontab is working - watchdog 1\"" > /etc/crontabs/test
+# COPY ./config/cron.txt /etc/crontabs/nobody
+# RUN chown nobody:nobody /etc/crontabs/nobody && chmod 775 /etc/crontabs/nobody
+# RUN echo "* * * * * echo \"Crontab is working - watchdog 1\"" > /etc/crontabs/test
 
 # CMD ["exec", "crond", "-f", "-l", "2"]
 
