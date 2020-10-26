@@ -10,7 +10,7 @@
 
             <div class="section-content">
                
-                <form method="POST" action="{{ url_for('fullvodburn') }}">
+                <form method="POST" action="{{ url_for('tools_fullvodburn') }}">
 
                     <div class="field">
                         <label class="label">VOD URL</label>
@@ -39,6 +39,50 @@
                     <div class="field">
                         <div class="control">
                             <button class="button is-confirm" type="submit"><span class="icon"><i class="fa fa-burn"></i></span> Execute</button>
+                        </div>
+                    </div>
+
+                </form>    
+
+            </div>
+
+        </section>
+
+        <section class="section">
+
+            <div class="section-title"><h1>VOD download</h1></div>
+
+            <div class="section-content">
+               
+                <form method="POST" action="{{ url_for('tools_voddownload') }}">
+
+                    <div class="field">
+                        <label class="label">VOD URL</label>
+                        <div class="control">
+                            <input class="input input-required" type="text" name="url" value="" />
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Quality</label>
+                        <div class="control">
+                            <select class="input input-required" name="quality">
+                                <option>best</option>
+                                <option>1080p60</option>
+                                <option>1080p</option>
+                                <option>720p60</option>
+                                <option>720p</option>
+                                <option>480p</option>
+                                <option>360p</option>
+                                <option>140p</option>
+                                </option>worst</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="control">
+                            <button class="button is-confirm" type="submit"><span class="icon"><i class="fa fa-download"></i></span> Execute</button>
                         </div>
                     </div>
 

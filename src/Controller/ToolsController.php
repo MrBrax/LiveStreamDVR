@@ -449,6 +449,68 @@ class ToolsController {
 
         return $response;
 
+	}
+	
+	public function voddownload(Request $request, Response $response, array $args) {
+
+        $url        = $_POST['url'];
+        $quality    = $_POST['quality'];
+
+        set_time_limit(0);
+
+        preg_match("/\/videos\/([0-9]+)/", $url, $matches);
+
+        if(!$matches){
+            return $this->twig->render($response, 'dialog.twig', [
+                'text' => 'No video found: ' . $url,
+                'type' => 'error'
+            ]);
+        }
+
+        $video_id = $matches[1];
+
+        $response->getBody()->write( "Beginning download of " . $video_id );
+
+        $basedir = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools';
+        if( !file_exists( $basedir ) ){
+            mkdir( $basedir );
+        }
+
+        $srcfile        	= $basedir . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . ".ts";
+        $dstfile        	= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . ".mp4";
+
+		if( !file_exists( $dstfile ) ){
+				
+			if( !file_exists( $dstfile ) && !file_exists( $srcfile ) ){
+				if( $this->downloadVod( $video_id, $srcfile, $quality ) ){
+					$response->getBody()->write( "<br>VOD download successful" );
+				}else{
+					$response->getBody()->write( "<br>VOD download error" );
+					$response->getBody()->write( "<pre>" . print_r( $this->logs, true ) . "</pre>" );
+					return $response;
+				}
+			}
+
+			if( !file_exists( $dstfile ) && file_exists( $srcfile ) ){
+				if( $this->remuxMp4( $srcfile, $dstfile ) ){
+					$response->getBody()->write( "<br>Remux successful" );
+				}else{
+					$response->getBody()->write( "<br>Remux error" );
+					$response->getBody()->write( "<pre>" . print_r( $this->logs, true ) . "</pre>" );
+					return $response;
+				}
+			}
+
+			unlink($srcfile);
+		
+		}
+        
+        $response->getBody()->write( "<br>Done?" );
+
+        $response->getBody()->write( "<pre>" . print_r( $this->logs, true ) . "</pre>" );
+
+        return $response;
+
     }
 
 }
