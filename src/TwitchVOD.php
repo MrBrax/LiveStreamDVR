@@ -485,7 +485,14 @@ class TwitchVOD {
 		// $capture_output = shell_exec( $cmd );
 
 		$process = new Process( $cmd, $this->directory, null, null, null );
-		$process->run();
+		$process->start();
+		
+		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tcd_' . $this->streamer_name . '.pid';
+		file_put_contents( $pidfile, $process->getPid() );
+		
+		$process->wait();
+
+		if( file_exists( $pidfile ) ) unlink( $pidfile );
 
 		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tcd_" . $this->basename . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
 		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tcd_" . $this->basename . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
@@ -594,16 +601,14 @@ class TwitchVOD {
 		];
 
 		$process = new Process( $cmd, $this->directory, $env, null, null );
-
-		$process->run();
+		$process->start();
 		
-		$capture_output = $process->getErrorOutput();
+		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tdrender_' . $this->streamer_name . '.pid';
+		file_put_contents( $pidfile, $process->getPid() );
+		
+		$process->wait();
 
-		// var_dump( $cmd );
-		// var_dump( $env );
-
-		// var_dump( $process->getOutput() );
-		// var_dump( $process->getErrorOutput() );
+		if( file_exists( $pidfile ) ) unlink( $pidfile );
 
 		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tdrender_" . $this->basename . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
 		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tdrender_" . $this->basename . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
@@ -712,16 +717,18 @@ class TwitchVOD {
 		$cmd[] = $this->path_chatburn;
 
 		$process = new Process( $cmd, $this->directory, null, null, null );
+		$process->start();
+		
+		// create pidfile
+		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'burnchat_' . $this->streamer_name . '.pid';
+		file_put_contents( $pidfile, $process->getPid() );
+		
+		// wait until process is done
+		$process->wait();
 
-		$process->run();
+		// remove pidfile
+		if( file_exists( $pidfile ) ) unlink( $pidfile );
 
-		// var_dump( implode(" ", $cmd) );
-
-		// var_dump( $process->getOutput() );
-		// var_dump( $process->getErrorOutput() );
-
-		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "burnchat_" . $this->basename . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
-		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "burnchat_" . $this->basename . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 		TwitchHelper::append_log( "burnchat_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
 		TwitchHelper::append_log( "burnchat_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 
@@ -1347,6 +1354,7 @@ class TwitchVOD {
 
 	// TODO: finish this
 	public function getCapturingStatus(){
+		/*
 		if( $this->pid_cache['capture'] ) return $this->pid_cache['capture'];
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Fetch capture process status of " . $this->basename );
 		$output = shell_exec("ps aux | grep -i " . escapeshellarg("twitch.tv/" . $this->streamer_name) . " | grep -v grep");
@@ -1354,6 +1362,18 @@ class TwitchVOD {
 		if(!$matches) return false;
 		$this->pid_cache['capture'] = $matches[2];
 		return isset($matches[2]) ? $matches[2] : false;
+		*/
+		
+		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'capture_' . $this->streamer_name . '.pid';
+		
+		if( !file_exists( $pidfile ) ) return false;
+
+		$pid = file_get_contents( $pidfile );
+
+		$output = shell_exec( "ps -p " . escapeshellarg( $pid ) );
+
+		return strpos( $output, $pid ) !== false ? $pid : false;
+		
 	}
 
 	public function getConvertingStatus(){

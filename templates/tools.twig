@@ -48,6 +48,22 @@
 
         </section>
 
+        <section class="section">
+
+            <div class="section-title"><h1>Saved VODs</h1></div>
+
+            <div class="section-content">
+
+                <ul>
+                {% for vod in saved_vods %}
+                    <li>{{ vod }}</li>
+                {% endfor %}
+                </ul>
+
+            </div>
+
+        </section>
+
     </div>
 
 {% endblock %}

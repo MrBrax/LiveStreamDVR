@@ -27,9 +27,11 @@ class ToolsController {
     }
 
     public function tools(Request $request, Response $response, array $args) {
-    
+	
+		$saved_vods = glob( TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . DIRECTORY_SEPARATOR . "*.mp4");
+		
         return $this->twig->render($response, 'tools.twig', [
-            
+			'saved_vods' => $saved_vods
         ]);
 
     }
@@ -372,12 +374,13 @@ class ToolsController {
             mkdir( $basedir );
         }
 
-        $srcfile        = $basedir . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . ".ts";
-        $dstfile        = $basedir . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . ".mp4";
-        $chatfile       = $basedir . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . "_chat.json";
-        $chatrender     = $basedir . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . "_chat.mp4";
-        // $burned         = $basedir . DIRECTORY_SEPARATOR . $video_id . "_burned.mp4";
-        $burned         = TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . "_burned.mp4";
+        $srcfile        	= $basedir . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . ".ts";
+        $dstfile        	= $basedir . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . ".mp4";
+        $chatfile       	= $basedir . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . "_chat.json";
+		$chatrender     	= $basedir . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . "_chat.mp4";
+		$chatrender_mask	= str_replace(".mp4", "_mask.mp4", $chatrender);
+        // $burned         	= $basedir . DIRECTORY_SEPARATOR . $video_id . "_burned.mp4";
+        $burned        		= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . "_burned.mp4";
 
 		if( file_exists( $burned ) ){
 			$response->getBody()->write( "VOD has already been burned." );
@@ -389,6 +392,7 @@ class ToolsController {
                 $response->getBody()->write( "<br>VOD download successful" );
             }else{
 				$response->getBody()->write( "<br>VOD download error" );
+				$response->getBody()->write( "<pre>" . print_r( $this->logs, true ) . "</pre>" );
 				return $response;
             }
         }
@@ -398,6 +402,7 @@ class ToolsController {
                 $response->getBody()->write( "<br>Remux successful" );
             }else{
 				$response->getBody()->write( "<br>Remux error" );
+				$response->getBody()->write( "<pre>" . print_r( $this->logs, true ) . "</pre>" );
 				return $response;
             }
         }
@@ -407,6 +412,7 @@ class ToolsController {
                 $response->getBody()->write( "<br>Chat download successful" );
             }else{
 				$response->getBody()->write( "<br>Chat download error" );
+				$response->getBody()->write( "<pre>" . print_r( $this->logs, true ) . "</pre>" );
 				return $response;
             }
         }
@@ -416,6 +422,7 @@ class ToolsController {
                 $response->getBody()->write( "<br>Chat render successful" );
             }else{
 				$response->getBody()->write( "<br>Chat render error" );
+				$response->getBody()->write( "<pre>" . print_r( $this->logs, true ) . "</pre>" );
 				return $response;
             }
         }
@@ -425,9 +432,16 @@ class ToolsController {
                 $response->getBody()->write( "<br>Chat burn successful" );
             }else{
 				$response->getBody()->write( "<br>Chat burn error" );
+				$response->getBody()->write( "<pre>" . print_r( $this->logs, true ) . "</pre>" );
 				return $response;
             }
-        }
+		}
+		
+		unlink($srcfile);
+		unlink($dstfile);
+		unlink($chatfile);
+		unlink($chatrender);
+		unlink($chatrender_mask);
         
         $response->getBody()->write( "<br>Done?" );
 

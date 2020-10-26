@@ -581,29 +581,41 @@ class TwitchAutomator {
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting capture with filename " . basename($capture_filename), ['download-capture' => $data_username] );
 		
-		// $capture_output = shell_exec( $cmd );
+		// start process in async mode
 		$process = new Process( $cmd, dirname($capture_filename), null, null, null );
+		$process->start();
 
-		TwitchHelper::append_log("streamlink_" . $basename . "_stdout." . $int, "$ " . implode(" ", $cmd) );
-		TwitchHelper::append_log("streamlink_" . $basename . "_stderr." . $int, "$ " . implode(" ", $cmd) );
+		// output command line
+		TwitchHelper::append_log("streamlink_capture_" . $basename . "_stdout." . $int, "$ " . implode(" ", $cmd) );
+		TwitchHelper::append_log("streamlink_capture_" . $basename . "_stderr." . $int, "$ " . implode(" ", $cmd) );
 
-		$process->run(function($type, $buffer) use($basename, $int, $data_username) {
+		// save pid to file
+		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'capture_' . $data_username . '.pid';
+		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Capture " . basename($capture_filename) . " has PID " . $process->getPid(), ['download-capture' => $data_username] );
+		file_put_contents( $pidfile, $process->getPid() );
+
+		// wait loop until it's done
+		$process->wait(function($type, $buffer) use($basename, $int, $data_username) {
+			
 			if (Process::ERR === $type) {
 				// echo 'ERR > '.$buffer;
 			} else {
 				// echo 'OUT > '.$buffer;
 			}
 			
+			// get stream resolution
 			preg_match("/stream:\s([0-9_a-z]+)\s/", $buffer, $matches);
 			if($matches){
 				$this->stream_resolution = $matches[1];
 				TwitchHelper::log( TwitchHelper::LOG_INFO, "Stream resolution for " . $basename . ": " . $this->stream_resolution, ['download-capture' => $data_username] );
 			}
 
+			// stream stop
 			if( strpos($buffer, "404 Client Error") !== false ){
 				TwitchHelper::log( TwitchHelper::LOG_WARNING, "Chunk removed for " . $basename . "!", ['download-capture' => $data_username] );
 			}
 
+			// log output
 			if( Process::ERR === $type ){
 				TwitchHelper::append_log("streamlink_" . $basename . "_stderr." . $int, $buffer );
 			}else{
@@ -612,18 +624,12 @@ class TwitchAutomator {
 			
 		});
 
-
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Finishing capture with filename " . basename($capture_filename), ['download-capture' => $data_username] );
 
 		$this->info[] = 'Streamlink output: ' . $process->getOutput();
 		$this->info[] = 'Streamlink error: ' . $process->getErrorOutput();
 
-		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_" . $basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $capture_output);
-		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_" . $basename . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
-		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_" . $basename . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
-
-
-		// download with youtube-dl if streamlink fails
+		// download with youtube-dl if streamlink fails, shouldn't be required anymore
 		if( strpos($process->getOutput(), '410 Client Error') !== false ){
 			
 			$this->notify($basename, '410 Error', self::NOTIFY_ERROR);
@@ -658,10 +664,14 @@ class TwitchAutomator {
 			TwitchHelper::log( TwitchHelper::LOG_FATAL, "Unexplainable, " . basename($capture_filename) . " could not be captured due to existing file already.", ['download-capture' => $data_username] );
 		}
 
+		// get stream resolution
 		preg_match("/stream:\s([0-9_a-z]+)\s/", $capture_output, $matches);
 		if($matches){
 			$this->stream_resolution = $matches[1];
 		}
+
+		// delete pid file
+		if( file_exists( $pidfile ) ) unlink( $pidfile );
 
 		return $capture_filename;
 
@@ -694,6 +704,7 @@ class TwitchAutomator {
 			$int++;
 		}
 
+		/*
 		$cmd = TwitchHelper::path_ffmpeg();
 		$cmd .= ' -i ' . escapeshellarg($capture_filename); // input filename
 		$cmd .= ' -codec copy'; // use same codec
@@ -703,6 +714,27 @@ class TwitchAutomator {
 		$cmd .= ' 2>&1'; // console output
 		
 		$this->info[] = 'ffmpeg cmd: ' . $cmd;
+		*/
+
+		$cmd = [];
+
+		$cmd[] = TwitchHelper::path_ffmpeg();
+		
+		$cmd[] = '-i';
+		$cmd[] = $capture_filename; // input filename
+
+		$cmd[] = '-codec';
+		$cmd[] = 'copy'; // use same codec
+
+		$cmd[] = '-bsf:a';
+		$cmd[] = 'aac_adtstoasc'; // fix audio sync in ts
+
+		if( TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false) ){
+			$cmd[] = '-loglevel';
+			$cmd[] = 'repeat+level+verbose';
+		}
+		
+		$cmd[] = $converted_filename; // output filename
 
 		$this->vod->refreshJSON();
 		$this->vod->dt_conversion_started = new \DateTime();
@@ -710,7 +742,22 @@ class TwitchAutomator {
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting conversion of " . basename($capture_filename) . " to " . basename($converted_filename), ['download-convert' => $data_username] );
 
-		$output_convert = shell_exec( $cmd ); // do it
+		// $output_convert = shell_exec( $cmd ); // do it
+		$process = new Process( $cmd, dirname($capture_filename), null, null, null );
+		$process->start();
+
+		// create pidfile
+		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'convert_' . $this->streamer_name . '.pid';
+		file_put_contents( $pidfile, $process->getPid() );
+		
+		// wait until process is done
+		$process->wait();
+
+		// remove pidfile
+		if( file_exists( $pidfile ) ) unlink( $pidfile );
+
+		TwitchHelper::append_log( "ffmpeg_convert_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
+		TwitchHelper::append_log( "ffmpeg_convert_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 
 		if( file_exists( $converted_filename ) ){
 			TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "Finished conversion of " . basename($capture_filename) . " to " . basename($converted_filename), ['download-convert' => $data_username] );
@@ -718,10 +765,10 @@ class TwitchAutomator {
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Failed conversion of " . basename($capture_filename) . " to " . basename($converted_filename), ['download-convert' => $data_username] );
 		}
 
-		$this->info[] = 'ffmpeg output: ' . $output_convert;
+		// $this->info[] = 'ffmpeg output: ' . $output_convert;
 
 		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "convert_" . $basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $output_convert);
-		TwitchHelper::append_log( "convert_" . $basename . "_" . time(), "$ " . $cmd . "\n" . $output_convert );
+		// TwitchHelper::append_log( "convert_" . $basename . "_" . time(), "$ " . $cmd . "\n" . $output_convert );
 
 		return $converted_filename;
 
