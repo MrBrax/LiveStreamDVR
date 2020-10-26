@@ -828,6 +828,43 @@ class TwitchHelper {
 
 	}
 
+	/**
+	 * Get pidfile by name, int if running, false if not
+	 *
+	 * @param string $name
+	 * @return int|false
+	 */
+	public static function getPidfileStatus( $name ){
+		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . '.pid';
+		if( !file_exists( $pidfile ) ) return false;
+		$pid = file_get_contents( $pidfile );
+		$output = shell_exec( "ps -p " . escapeshellarg( $pid ) );
+		return strpos( $output, $pid ) !== false ? $pid : false;
+	}
+
+	public static function whereis( $name_linux, $name_windows ){
+
+		if( self::is_windows() ){
+			$out = shell_exec( "where " . escapeshellarg($name_windows) );
+			if($out){
+				$path = explode("\n", $out)[0];
+				return $path;
+			}
+		}else{
+			$out = shell_exec( "whereis " . escapeshellarg($name_linux) );
+			if($out){
+				preg_match("/^[a-z]+\:\s([a-z\-\_\/\.]+)/", $out, $matches);
+				if($matches){
+					$path = $matches[1];
+					return $path;
+				}
+			}
+		}
+
+		return false;
+
+	}
+
 	// path helpers
 	public static function is_windows(){
 		return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
@@ -836,8 +873,8 @@ class TwitchHelper {
 	public static function path_ffmpeg(){		
 		
 		if( TwitchConfig::cfg('ffmpeg_path') ) return TwitchConfig::cfg('ffmpeg_path');
-		// if( file_exists("/usr/bin/ffmpeg") ) return "/usr/bin/ffmpeg";
 
+		/*
 		if( self::is_windows() ){
 			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Windows system, requesting ffmpeg binary from path...");
 			$out = shell_exec("where ffmpeg.exe");
@@ -859,9 +896,17 @@ class TwitchHelper {
 					return $path;
 				}
 			}
-		}		
+		}*/
+		
+		$path = self::whereis("ffmpeg", "ffmpeg.exe");
+		if($path){
+			TwitchConfig::$config['ffmpeg_path'] = $path;
+			TwitchConfig::saveConfig("path resolver");
+			return $path;
+		}
 
 		return false;
+
 	}
 
 	public static function path_mediainfo(){
@@ -869,6 +914,7 @@ class TwitchHelper {
 		if( TwitchConfig::cfg('mediainfo_path') ) return TwitchConfig::cfg('mediainfo_path');
 		// if( file_exists("/usr/bin/mediainfo") ) return "/usr/bin/mediainfo";
 
+		/*
 		// TODO: merge these two
 		if( self::is_windows() ){
 			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Windows system, requesting mediainfo binary from path...");
@@ -894,12 +940,24 @@ class TwitchHelper {
 		}
 
 		return false;
+		*/
+
+		$path = self::whereis("mediainfo", "mediainfo.exe");
+		if($path){
+			TwitchConfig::$config['mediainfo_path'] = $path;
+			TwitchConfig::saveConfig("path resolver");
+			return $path;
+		}
+
+		return false;
+
 	}
 
 	public static function path_twitchdownloader(){
 		
 		if( TwitchConfig::cfg('twitchdownloader_path') ) return TwitchConfig::cfg('twitchdownloader_path');
 
+		/*
 		// TODO: merge these two
 		if( self::is_windows() ){
 			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Windows system, requesting TwitchDownloaderCLI binary from path...");
@@ -926,8 +984,18 @@ class TwitchHelper {
 				TwitchHelper::log( TwitchHelper::LOG_DEBUG, "No output from TwitchDownloaderCLI whereis...");
 			}
 		}
+		return false;
+		*/
+
+		$path = self::whereis("TwitchDownloaderCLI", "TwitchDownloaderCLI.exe");
+		if($path){
+			TwitchConfig::$config['twitchdownloader_path'] = $path;
+			TwitchConfig::saveConfig("path resolver");
+			return $path;
+		}
 
 		return false;
+		
 	}
 
 	public static function find_bin_dir(){
@@ -954,10 +1022,6 @@ class TwitchHelper {
 			}
 		}
 		return false;
-	}
-
-	private static function whereis( $bin ){
-		
 	}
 
 	public static function path_streamlink(){

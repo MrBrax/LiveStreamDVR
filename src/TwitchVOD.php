@@ -487,7 +487,7 @@ class TwitchVOD {
 		$process = new Process( $cmd, $this->directory, null, null, null );
 		$process->start();
 		
-		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tcd_' . $this->streamer_name . '.pid';
+		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tcd_' . $this->basename . '.pid';
 		file_put_contents( $pidfile, $process->getPid() );
 		
 		$process->wait();
@@ -1239,6 +1239,9 @@ class TwitchVOD {
 			$cmd[] = '-o';
 			$cmd[] = $capture_filename; // output file
 
+			$cmd[] = '--hls-segment-threads';
+			$cmd[] = 10;
+
 			$cmd[] = '--url';
 			$cmd[] = $video_url; // stream url
 
@@ -1364,6 +1367,7 @@ class TwitchVOD {
 		return isset($matches[2]) ? $matches[2] : false;
 		*/
 		
+		/*
 		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'capture_' . $this->streamer_name . '.pid';
 		
 		if( !file_exists( $pidfile ) ) return false;
@@ -1373,10 +1377,14 @@ class TwitchVOD {
 		$output = shell_exec( "ps -p " . escapeshellarg( $pid ) );
 
 		return strpos( $output, $pid ) !== false ? $pid : false;
+		*/
+
+		return TwitchHelper::getPidfileStatus('capture_' . $this->streamer_name);
 		
 	}
 
 	public function getConvertingStatus(){
+		/*
 		if( $this->pid_cache['convert'] ) return $this->pid_cache['convert'];
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Fetch converting process status of " . $this->basename );
 		$output = shell_exec("ps aux | grep -i " . escapeshellarg( $this->basename . ".mp4" ) . " | grep -v grep");
@@ -1384,9 +1392,12 @@ class TwitchVOD {
 		if(!$matches) return false;
 		$this->pid_cache['convert'] = $matches[2];
 		return isset($matches[2]) ? $matches[2] : false;
+		*/
+		return TwitchHelper::getPidfileStatus('convert_' . $this->streamer_name);
 	}
 
 	public function getChatDownloadStatus(){
+		/*
 		if( $this->pid_cache['download'] ) return $this->pid_cache['download'];
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Fetch chat download process status of " . $this->basename );
 		$output = shell_exec("ps aux | grep -i " . escapeshellarg( "tcd --video " . $this->twitch_vod_id ) . " | grep -v grep");
@@ -1394,6 +1405,8 @@ class TwitchVOD {
 		if(!$matches) return false;
 		$this->pid_cache['download'] = $matches[2];
 		return isset($matches[2]) ? $matches[2] : false;
+		*/
+		return TwitchHelper::getPidfileStatus('tcd_' . $this->basename);
 	}
 
 	public function finalize(){
