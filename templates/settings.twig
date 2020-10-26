@@ -149,6 +149,9 @@
                                     {% endif %}
                                 </div>
                             {% endif %}
+                            {% if setting.help %}
+                                <p class="input-help">{{ setting.help }}</p>
+                            {% endif %}
                         </div>
                     {% endfor %}
                     <div class="control">

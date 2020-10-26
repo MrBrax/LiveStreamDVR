@@ -20,6 +20,8 @@ Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in
 
 Post issues/help on the issues tab above. I already run an up to date version, so starting fresh might break stuff.
 
+When upgrading, delete the `twig` folder in the `cache` folder.
+
 *One high-profile streamer VOD of 10 hours is about 30-50GB.*
 
 ### Main requirements

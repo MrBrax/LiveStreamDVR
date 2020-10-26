@@ -30,7 +30,7 @@ class SettingsController
         $sub_callback = TwitchConfig::cfg('hook_callback');
         $sub_callback = str_replace('/hook', '/sub', $sub_callback);
 
-        $app_calc = "http" . ( $_SERVER['SERVER_PORT'] ? 's' : '' ) . "://" . $_SERVER["HTTP_HOST"] . str_replace("/settings", "", $_SERVER["REQUEST_URI"]);
+        $app_calc = "http" . ( $_SERVER['SERVER_PORT'] == 443 ? 's' : '' ) . "://" . $_SERVER["HTTP_HOST"] . str_replace("/settings", "", $_SERVER["REQUEST_URI"]);
         // $app_calc = 
 
         $games = TwitchConfig::getGames();

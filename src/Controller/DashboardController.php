@@ -174,6 +174,12 @@ class DashboardController
         if(!TwitchHelper::path_mediainfo()) $errors[] = 'No MediaInfo path set, please visit settings.';
         if(!getenv('PATH')) $errors[] = 'Environment variables not available, this could cause issues with the process library. Check the php.ini file for this.';
 
+        if( TwitchConfig::cfg('bin_dir') ){
+            if(!TwitchHelper::path_streamlink()) $errors[] = 'Streamlink not found. Please install it.';
+            if(!TwitchHelper::path_youtubedl()) $errors[] = 'youtube-dl not found. Please install it.';
+            // if(!TwitchHelper::path_tcd()) $errors[] = 'tcd not found. Please install it.';
+        }
+
         return $this->twig->render($response, 'dashboard.twig', [
             'streamerList' => $streamerList,
             'clips' => glob(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . "clips" . DIRECTORY_SEPARATOR . "*.mp4"),
