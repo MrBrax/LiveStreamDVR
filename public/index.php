@@ -24,7 +24,7 @@ AppFactory::setContainer($container);
 // Set view in Container
 
 $twigConfig = Twig::create( __DIR__ . '/../templates', [
-    'cache' => __DIR__ . '/../cache/twig',
+    'cache' => TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'twig',
     'debug' => TwitchConfig::cfg('debug', false)
 ]);
 

@@ -90,7 +90,7 @@ class VodController
             $env = [
                 // 'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache",
                 'PATH' => dirname( TwitchHelper::path_ffmpeg() ),
-                'TEMP' => __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache"
+                'TEMP' => TwitchHelper::$cache_folder
             ];
 
             $process = new Process( $cmd, $this->directory, $env, null, null );

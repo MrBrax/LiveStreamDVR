@@ -590,7 +590,7 @@ class TwitchVOD {
 		$env = [
 			// 'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache",
 			'PATH' => dirname( TwitchHelper::path_ffmpeg() ),
-			'TEMP' => __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache"
+			'TEMP' => TwitchHelper::$cache_folder
 		];
 
 		$process = new Process( $cmd, $this->directory, $env, null, null );
@@ -725,7 +725,7 @@ class TwitchVOD {
 		TwitchHelper::append_log( "burnchat_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
 		TwitchHelper::append_log( "burnchat_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 
-		$successful = file_exists( $this->path_chatburn ) && filesize( $this->path_chatburn) > 0;
+		$successful = file_exists( $this->path_chatburn ) && filesize( $this->path_chatburn ) > 0;
 
 		if( $successful ){
 			$this->is_chat_burned = true;
@@ -1238,49 +1238,15 @@ class TwitchVOD {
 			$cmd[] = '--default-stream';
 			$cmd[] = 'best'; // twitch url and quality
 
-			/*
-			// use python pipenv or regular executable
-			if( TwitchConfig::cfg('pipenv') ){
-				$cmd = 'pipenv run streamlink';
-			}else{
-				$cmd = TwitchHelper::path_streamlink();
-			}
-
-			$cmd .= ' -o ' . escapeshellarg($capture_filename); // output file
-			$cmd .= ' ' . escapeshellarg($video_url) . ' best'; // twitch url and quality
-
-			TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting vod download of " . $this->basename );
-			
-			$capture_output = shell_exec( $cmd );
-
-			file_put_contents( __DIR__ . "/../logs/streamlink_vod_" . $this->basename . ".log", $capture_output);
-			*/
-
 			$process = new Process( $cmd, $this->directory, null, null, null );
 			$process->run();
 
-			// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_vod_" . $this->basename . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
-			// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "streamlink_vod_" . $this->basename . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 			TwitchHelper::append_log( "streamlink_vod_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
 			TwitchHelper::append_log( "streamlink_vod_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 
 		}
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting remux of " . $this->basename );
-
-		/*
-		$cmd = TwitchHelper::path_ffmpeg();
-		$cmd .= ' -i ' . escapeshellarg($capture_filename); // input filename
-		$cmd .= ' -codec copy'; // use same codec
-		$cmd .= ' -bsf:a aac_adtstoasc'; // fix audio sync in ts
-		if( TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false) ) $cmd .= ' -loglevel repeat+level+verbose';
-		$cmd .= ' ' . escapeshellarg($converted_filename); // output filename
-		$cmd .= ' 2>&1'; // console output
-
-		$capture_output = shell_exec( $cmd );
-
-		file_put_contents( __DIR__ . "/../logs/ffmpeg_vod_" . $this->basename . ".log", $capture_output);
-		*/
 
 		$cmd = [];
 
@@ -1305,8 +1271,6 @@ class TwitchVOD {
 		$process = new Process( $cmd, $this->directory, null, null, null );
 		$process->run();
 
-		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "ffmpeg_vod_" . $this->basename . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
-		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "ffmpeg_vod_" . $this->basename . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 		TwitchHelper::append_log( "ffmpeg_vod_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
 		TwitchHelper::append_log( "ffmpeg_vod_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 
