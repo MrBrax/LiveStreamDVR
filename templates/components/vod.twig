@@ -136,6 +136,9 @@
                                 <li>
                                     {% if vodclass.twitch_vod_id %}	
                                         The ID was <a href="{{ vodclass.twitch_vod_url }}" rel="noreferrer" target="_blank">{{ vodclass.twitch_vod_id }}</a>.
+                                        <!--<br>The title was "<span class="text-overflow">{{ vodclass.twitch_vod_title }}</span>".
+                                        <br>The date was {{ vodclass.twitch_vod_date|date('Y-m-d H:i:s') }}.
+                                        <br>The duration was {{ vodclass.twitch_vod_duration|humanDuration }}.-->
                                     {% else %}
                                         The VOD probably never got saved.
                                     {% endif %}

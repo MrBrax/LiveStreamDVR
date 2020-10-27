@@ -99,7 +99,7 @@ class TwitchAutomator {
 		if( TwitchConfig::cfg('notify_to') ){
 			mail(TwitchConfig::cfg('notify_to'), TwitchConfig::cfg('app_name') . ' - ' . $title, $body, $headers);
 		}else{
-			file_put_contents( __DIR__ . "/../logs/" . date("Y-m-d.H_i_s") . ".html", $body);
+			file_put_contents( TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . "html" . DIRECTORY_SEPARATOR . date("Y-m-d.H_i_s") . ".html", $body);
 		}
 
 	}

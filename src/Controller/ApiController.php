@@ -109,7 +109,7 @@ class ApiController
         $current_log = date("Y-m-d");
         if( isset($args['filename']) ) $current_log = $args['filename'];
 
-        $log_path = __DIR__ . "/../../logs/" . $current_log . ".log.json";
+        $log_path = TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . $current_log . ".log.json";
 
         if( file_exists( $log_path ) ){
             

@@ -118,9 +118,9 @@ class DashboardController
         $current_log = date("Y-m-d");
         if( isset($_GET['log']) ) $current_log = $_GET['log'];
 
-        $log_path = __DIR__ . "/../../logs/" . $current_log . ".log.json";
+        $log_path = TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . $current_log . ".log.json";
 
-        $log_files_raw = glob( __DIR__ . "/../../logs/*.log.json", GLOB_BRACE );
+        $log_files_raw = glob( TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . "*.log.json", GLOB_BRACE );
         if( $log_files_raw ) $log_files = array_map( 'basename', $log_files_raw );
 
         if( file_exists( $log_path ) ){

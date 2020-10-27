@@ -43,6 +43,7 @@ class TwitchHelper {
 		__DIR__ . "/../cache",
 		__DIR__ . "/../cache/pids",
 		__DIR__ . "/../logs",
+		__DIR__ . "/../logs/html",
 		__DIR__ . "/../payloads",
 		__DIR__ . "/../public",
 		__DIR__ . "/../public/vods",
