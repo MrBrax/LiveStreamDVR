@@ -28,6 +28,7 @@ class ToolsController {
 
     public function tools(Request $request, Response $response, array $args) {
 	
+		$saved_vods = [];
 		$saved_vods_raw = glob( TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . DIRECTORY_SEPARATOR . "*.mp4");
 		if( $saved_vods_raw ) $saved_vods = array_map( 'basename', $saved_vods_raw );
 

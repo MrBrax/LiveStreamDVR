@@ -81,12 +81,16 @@
             <div class="section-title"><h1>Saved VODs</h1></div>
 
             <div class="section-content">
-
-                <ul>
-                {% for vod in saved_vods %}
-                    <li><a href="{{ base_path() }}/saved_vods/{{ vod }}">{{ vod }}</a></li>
-                {% endfor %}
-                </ul>
+                
+                {% if saved_vods %}
+                    <ul>
+                    {% for vod in saved_vods %}
+                        <li><a href="{{ base_path() }}/saved_vods/{{ vod }}">{{ vod }}</a></li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <em>None</em>
+                {% endif %}
 
             </div>
 
@@ -107,6 +111,10 @@
                     </tr>
                 {% endfor %}
                 </table>
+
+                {% if not current_jobs %}
+                    <em>None</em>
+                {% endif %}
 
             </div>
 
