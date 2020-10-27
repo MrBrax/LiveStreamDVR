@@ -92,6 +92,26 @@
 
         </section>
 
+        <section class="section">
+
+            <div class="section-title"><h1>Current jobs</h1></div>
+
+            <div class="section-content">
+
+                <table>
+                {% for job in current_jobs %}
+                    <tr>
+                        <td>{{ job.name }}</td>
+                        <td>{{ job.pid }}</td>
+                        <td>{{ job.status ? 'Running' : 'Unexpected exit' }}</td>
+                    </tr>
+                {% endfor %}
+                </table>
+
+            </div>
+
+        </section>
+
     </div>
 
 {% endblock %}

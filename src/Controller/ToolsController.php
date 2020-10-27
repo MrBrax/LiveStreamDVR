@@ -31,8 +31,23 @@ class ToolsController {
 		$saved_vods_raw = glob( TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . DIRECTORY_SEPARATOR . "*.mp4");
 		if( $saved_vods_raw ) $saved_vods = array_map( 'basename', $saved_vods_raw );
 
+
+		$current_jobs_raw = glob( TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . "*.pid");
+		$current_jobs = [];
+		foreach( $current_jobs_raw as $v ){
+			$pid = file_get_contents($v);
+			$status = TwitchHelper::getPidfileStatus( basename($v, ".pid") );
+			$current_jobs[] = [
+				'name' => basename($v, ".pid"),
+				'pid' => $pid,
+				'status' => $status !== false
+			];
+		}
+		// if( $current_jobs_raw ) $current_jobs = array_map( 'basename', $current_jobs_raw );
+
         return $this->twig->render($response, 'tools.twig', [
 			'saved_vods' => $saved_vods,
+			'current_jobs' => $current_jobs,
 			'twitch_quality' => TwitchHelper::$twitchQuality
         ]);
 
@@ -77,7 +92,14 @@ class ToolsController {
 		// $capture_output = shell_exec( $cmd );
 
 		$process = new Process( $cmd, TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools', null, null, null );
-        $process->run();
+        $process->start();
+		
+		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_download_' . $video_id . '.pid';
+		file_put_contents( $pidfile, $process->getPid() );
+		
+		$process->wait();
+
+		if( file_exists( $pidfile ) ) unlink( $pidfile );
         
         $tcd_filename = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools' . DIRECTORY_SEPARATOR . $video_id . '.json';
 
@@ -121,7 +143,14 @@ class ToolsController {
         $cmd[] = $quality; // twitch url and quality
 
         $process = new Process( $cmd, dirname($destination), null, null, null );
-        $process->run();
+        $process->start();
+		
+		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_vod_download_' . $video_id . '.pid';
+		file_put_contents( $pidfile, $process->getPid() );
+		
+		$process->wait();
+
+		if( file_exists( $pidfile ) ) unlink( $pidfile );
 
         $this->logs['streamlink']['stdout'] = $process->getOutput();
         $this->logs['streamlink']['stderr'] = $process->getErrorOutput();
@@ -132,7 +161,7 @@ class ToolsController {
         
     }
 
-    private function remuxMp4( $source, $destination ){
+    private function convertVod( $video_id, $source, $destination ){
 
         $cmd = [];
 
@@ -155,7 +184,14 @@ class ToolsController {
 		$cmd[] = $destination; // output filename
 
 		$process = new Process( $cmd, dirname($source), null, null, null );
-		$process->run();
+		$process->start();
+		
+		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_vod_convert_' . $video_id . '.pid';
+		file_put_contents( $pidfile, $process->getPid() );
+		
+		$process->wait();
+
+		if( file_exists( $pidfile ) ) unlink( $pidfile );
 
         $this->logs['ffmpeg']['stdout'] = $process->getOutput();
         $this->logs['ffmpeg']['stderr'] = $process->getErrorOutput();
@@ -229,9 +265,6 @@ class ToolsController {
 		
         $cmd[] = '--output';
         $cmd[] = $destination;
-
-		// $cmd[] = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools' . DIRECTORY_SEPARATOR . $video_id . '_chat.mp4';
-		// $cmd[] = ' 2>&1'; // console output
 		
 		$env = [
 			// 'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache",
@@ -241,8 +274,14 @@ class ToolsController {
 		];
 
 		$process = new Process( $cmd, TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools', $env, null, null );
+		$process->start();
+		
+		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_render_' . $video_id . '.pid';
+		file_put_contents( $pidfile, $process->getPid() );
+		
+		$process->wait();
 
-		$process->run();
+		if( file_exists( $pidfile ) ) unlink( $pidfile );
 		
         $this->logs['td_chat']['stdout'] = $process->getOutput();
         $this->logs['td_chat']['stderr'] = $process->getErrorOutput();
@@ -310,8 +349,14 @@ class ToolsController {
 		$cmd[] = $destination;
 
 		$process = new Process( $cmd, dirname($video_filename), null, null, null );
+		$process->start();
+		
+		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_burn_' . $video_id . '.pid';
+		file_put_contents( $pidfile, $process->getPid() );
+		
+		$process->wait();
 
-		$process->run();
+		if( file_exists( $pidfile ) ) unlink( $pidfile );
 
         $this->logs['td_burn']['stdout'] = $process->getOutput();
         $this->logs['td_burn']['stderr'] = $process->getErrorOutput();
@@ -388,7 +433,7 @@ class ToolsController {
         }
 
         if( !file_exists( $dstfile ) && file_exists( $srcfile ) ){
-            if( $this->remuxMp4( $srcfile, $dstfile ) ){
+            if( $this->convertVod( $video_id, $srcfile, $dstfile ) ){
                 $response->getBody()->write( "<br>Remux successful" );
             }else{
 				$response->getBody()->write( "<br>Remux error" );
@@ -494,7 +539,7 @@ class ToolsController {
 			}
 
 			if( !file_exists( $dstfile ) && file_exists( $srcfile ) ){
-				if( $this->remuxMp4( $srcfile, $dstfile ) ){
+				if( $this->convertVod( $video_id, $srcfile, $dstfile ) ){
 					$response->getBody()->write( "<br>Remux successful" );
 				}else{
 					$response->getBody()->write( "<br>Remux error" );
@@ -503,7 +548,7 @@ class ToolsController {
 				}
 			}
 
-			unlink($srcfile);
+			if( file_exists( $srcfile ) ) unlink($srcfile);
 		
 		}
 
