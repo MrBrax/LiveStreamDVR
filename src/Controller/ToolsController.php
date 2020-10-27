@@ -28,8 +28,9 @@ class ToolsController {
 
     public function tools(Request $request, Response $response, array $args) {
 	
-		$saved_vods = glob( TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . DIRECTORY_SEPARATOR . "*.mp4");
-		
+		$saved_vods_raw = glob( TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . DIRECTORY_SEPARATOR . "*.mp4");
+		if( $saved_vods_raw ) $saved_vods = array_map( 'basename', $saved_vods_raw );
+
         return $this->twig->render($response, 'tools.twig', [
 			'saved_vods' => $saved_vods,
 			'twitch_quality' => TwitchHelper::$twitchQuality
@@ -37,36 +38,7 @@ class ToolsController {
 
     }
 
-    private function mediainfo( $filename ){
-
-		$output = shell_exec( TwitchHelper::path_mediainfo() . ' --Full --Output=JSON ' . escapeshellarg($filename) );
-
-		if( $output ){
-			
-			$json = json_decode( $output, true );
-			
-			$data = [];
-
-			foreach( $json['media']['track'] as $track ){
-				if( $track["@type"] == "General"){
-					$data['general'] = $track;
-				}else if( $track["@type"] == "Video"){
-					$data['video'] = $track;
-				}else if( $track["@type"] == "Audio"){
-					$data['audio'] = $track;
-				}
-			}
-
-			return $data;
-
-		}else{
-
-            return false;
-            
-		}
-
-	}
-
+	// TODO: unify these functions for all classes
     private function downloadChat( $video_id, $destination ){
 
         if( !TwitchHelper::path_tcd() ) return false;	
@@ -213,7 +185,7 @@ class ToolsController {
 		// $chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
 		// $video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
         
-		$mediainfo = $this->mediainfo( $video_filename );
+		$mediainfo = TwitchHelper::mediainfo( $video_filename );
 		
 		if(!$mediainfo){
 			throw new \Exception('No mediainfo returned');
@@ -373,16 +345,25 @@ class ToolsController {
         $basedir = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools';
         if( !file_exists( $basedir ) ){
             mkdir( $basedir );
-        }
+		}
 
-        $srcfile        	= $basedir . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . ".ts";
-        $dstfile        	= $basedir . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . ".mp4";
-        $chatfile       	= $basedir . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . "_chat.json";
-		$chatrender     	= $basedir . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . "_chat.mp4";
+		$metadata = TwitchHelper::getVideo($video_id);
+
+		if( !$metadata ){
+			$response->getBody()->write( "VOD not found." );
+			return $response;
+		}
+		
+		$basename = $metadata['user_name'] . '_' . $video_id;
+
+        $srcfile        	= $basedir . DIRECTORY_SEPARATOR . $basename . "_" . $quality . ".ts";
+        $dstfile        	= $basedir . DIRECTORY_SEPARATOR . $basename . "_" . $quality . ".mp4";
+        $chatfile       	= $basedir . DIRECTORY_SEPARATOR . $basename . "_" . $quality . "_chat.json";
+		$chatrender     	= $basedir . DIRECTORY_SEPARATOR . $basename . "_" . $quality . "_chat.mp4";
 		$chatrender_mask	= str_replace(".mp4", "_mask.mp4", $chatrender);
-        $vod_downloaded     = TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . ".mp4";
-		$burned        		= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . "_burned.mp4";
-		$metafile        	= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $video_id . ".info.json";
+        $vod_downloaded     = TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $basename . "_" . $quality . ".mp4";
+		$burned        		= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $basename . "_" . $quality . "_burned.mp4";
+		$metafile        	= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $basename . ".info.json";
 		$no_delete = false;
 
 		if( file_exists( $burned ) ){
@@ -446,7 +427,6 @@ class ToolsController {
             }
 		}
 
-		$metadata = TwitchHelper::getVideo($video_id);
 		file_put_contents($metafile, json_encode($metadata));
 		
 		unlink($srcfile);
@@ -479,18 +459,27 @@ class ToolsController {
             ]);
         }
 
-        $video_id = $matches[1];
-
+		$video_id = $matches[1];
+		
         $response->getBody()->write( "Beginning download of " . $video_id );
 
         $basedir = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools';
         if( !file_exists( $basedir ) ){
             mkdir( $basedir );
-        }
+		}
 
-        $srcfile        	= $basedir . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . ".ts";
-        $dstfile        	= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . ".mp4";
-		$metafile        	= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $video_id . ".info.json";
+		$metadata = TwitchHelper::getVideo($video_id);
+
+		if( !$metadata ){
+			$response->getBody()->write( "VOD not found." );
+			return $response;
+		}
+		
+		$basename = $metadata['user_name'] . '_' . $video_id;
+
+        $srcfile        	= $basedir . DIRECTORY_SEPARATOR . $basename . "_" . $quality . ".ts";
+        $dstfile        	= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $basename . "_" . $quality . ".mp4";
+		$metafile        	= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $basename . ".info.json";
 
 		if( !file_exists( $dstfile ) ){
 				
@@ -519,7 +508,6 @@ class ToolsController {
 		}
 
 		if(!file_exists($metafile)){
-			$metadata = TwitchHelper::getVideo($video_id);
 			file_put_contents($metafile, json_encode($metadata));
 		}
         

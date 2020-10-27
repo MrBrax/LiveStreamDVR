@@ -341,6 +341,7 @@ class TwitchVOD {
 
 		$filename = $this->directory . DIRECTORY_SEPARATOR . basename( $this->segments_raw[ $segment_num ] );
 
+		/*
 		$output = shell_exec( TwitchHelper::path_mediainfo() . ' --Full --Output=JSON ' . escapeshellarg($filename) );
 
 		if( $output ){
@@ -367,6 +368,15 @@ class TwitchVOD {
 			$this->video_fail2 = true;
 			return false;
 		}
+		*/
+		$data = TwitchHelper::mediainfo($filename);
+		if($data){
+			$this->video_metadata = $data;
+			return $this->video_metadata;
+		}
+
+		$this->video_fail2 = true;
+		return false;
 
 	}
 

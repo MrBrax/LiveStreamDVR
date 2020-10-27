@@ -9,6 +9,7 @@ logs/
 node_modules/
 cache/
 public/vods/
+public/saved_vods/
 config/streamers.json
 config/oauth.bin
 config/tcd_settings.json

@@ -6,7 +6,7 @@
 
         <section class="section">
 
-            <div class="section-title"><h1>Full VOD fetch and burn</h1></div>
+            <div class="section-title"><h1>Full VOD fetch and burn chat</h1></div>
 
             <div class="section-content">
                
@@ -84,7 +84,7 @@
 
                 <ul>
                 {% for vod in saved_vods %}
-                    <li>{{ vod }}</li>
+                    <li><a href="{{ base_path() }}/saved_vods/{{ vod }}">{{ vod }}</a></li>
                 {% endfor %}
                 </ul>
 
