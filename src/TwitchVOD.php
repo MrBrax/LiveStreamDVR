@@ -1259,7 +1259,14 @@ class TwitchVOD {
 			$cmd[] = 'best'; // twitch url and quality
 
 			$process = new Process( $cmd, $this->directory, null, null, null );
-			$process->run();
+			$process->start();
+		
+			$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_download_' . $this->basename . '.pid';
+			file_put_contents( $pidfile, $process->getPid() );
+			
+			$process->wait();
+
+			if( file_exists( $pidfile ) ) unlink( $pidfile );
 
 			TwitchHelper::append_log( "streamlink_vod_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
 			TwitchHelper::append_log( "streamlink_vod_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
@@ -1289,7 +1296,14 @@ class TwitchVOD {
 		$cmd[] = $converted_filename; // output filename
 
 		$process = new Process( $cmd, $this->directory, null, null, null );
-		$process->run();
+		$process->start();
+		
+		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_convert_' . $this->basename . '.pid';
+		file_put_contents( $pidfile, $process->getPid() );
+		
+		$process->wait();
+
+		if( file_exists( $pidfile ) ) unlink( $pidfile );
 
 		TwitchHelper::append_log( "ffmpeg_vod_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
 		TwitchHelper::append_log( "ffmpeg_vod_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );

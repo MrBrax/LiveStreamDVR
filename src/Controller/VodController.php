@@ -94,8 +94,14 @@ class VodController
             ];
 
             $process = new Process( $cmd, $this->directory, $env, null, null );
+            $process->start();
+		
+            $pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_cut_' . $vod . '.pid';
+            file_put_contents( $pidfile, $process->getPid() );
+            
+            $process->wait();
 
-            // $cmd[] = '2>&1'; // console output
+            if( file_exists( $pidfile ) ) unlink( $pidfile );
 
             $response->getBody()->write( "$ " . implode(" ", $cmd) );
 

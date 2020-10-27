@@ -128,6 +128,10 @@ class AboutController
 
         return $this->twig->render($response, 'about.twig', [
             'bins' => $bins,
+            'php_user' => get_current_user(),
+            'php_pid' => getmypid(),
+            'php_uid' => getmyuid(),
+            'php_gid' => getmygid()
             // 'envs' => TwitchConfig::cfg('debug') ? getenv() : null
         ]);
 

@@ -72,6 +72,10 @@
                 <strong>Python version:</strong> {{ bins.python.version ?: '(no output)' }}
                 <br /><strong>Python3 version:</strong> {{ bins.python3.version ?: '(no output)' }}
                 <br /><strong>PHP version:</strong> {{ bins.php.version ?: '(no output)' }}
+                <br /><strong>PHP User:</strong> {{ php_user }}
+                <br /><strong>PHP PID:</strong> {{ php_pid }}
+                <br /><strong>PHP UID:</strong> {{ php_uid }}
+                <br /><strong>PHP GID:</strong> {{ php_gid }}
                 <br /><strong>Platform:</strong> {{ bins.php.platform ?: '(no output)' }}
                 {% if envs %}
                 {% if envs.NODE %}<br /><strong>Node:</strong> {{ envs.npm_config_node_version }}{% endif %}
