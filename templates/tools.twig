@@ -23,15 +23,7 @@
                         <label class="label">Quality</label>
                         <div class="control">
                             <select class="input input-required" name="quality">
-                                <option>best</option>
-                                <option>1080p60</option>
-                                <option>1080p</option>
-                                <option>720p60</option>
-                                <option>720p</option>
-                                <option>480p</option>
-                                <option>360p</option>
-                                <option>140p</option>
-                                </option>worst</option>
+                                {% for quality in twitch_quality %}<option>{{ quality }}</option>{% endfor %}
                             </select>
                         </div>
                     </div>
@@ -67,15 +59,7 @@
                         <label class="label">Quality</label>
                         <div class="control">
                             <select class="input input-required" name="quality">
-                                <option>best</option>
-                                <option>1080p60</option>
-                                <option>1080p</option>
-                                <option>720p60</option>
-                                <option>720p</option>
-                                <option>480p</option>
-                                <option>360p</option>
-                                <option>140p</option>
-                                </option>worst</option>
+                                {% for quality in twitch_quality %}<option>{{ quality }}</option>{% endfor %}
                             </select>
                         </div>
                     </div>

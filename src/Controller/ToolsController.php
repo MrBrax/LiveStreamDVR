@@ -31,7 +31,8 @@ class ToolsController {
 		$saved_vods = glob( TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . DIRECTORY_SEPARATOR . "*.mp4");
 		
         return $this->twig->render($response, 'tools.twig', [
-			'saved_vods' => $saved_vods
+			'saved_vods' => $saved_vods,
+			'twitch_quality' => TwitchHelper::$twitchQuality
         ]);
 
     }
@@ -379,14 +380,22 @@ class ToolsController {
         $chatfile       	= $basedir . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . "_chat.json";
 		$chatrender     	= $basedir . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . "_chat.mp4";
 		$chatrender_mask	= str_replace(".mp4", "_mask.mp4", $chatrender);
-        // $burned         	= $basedir . DIRECTORY_SEPARATOR . $video_id . "_burned.mp4";
-        $burned        		= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . "_burned.mp4";
+        $vod_downloaded     = TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . ".mp4";
+		$burned        		= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . "_burned.mp4";
+		$metafile        	= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $video_id . ".info.json";
+		$no_delete = false;
 
 		if( file_exists( $burned ) ){
 			$response->getBody()->write( "VOD has already been burned." );
 			return $response;
 		}
 
+		if( file_exists($vod_downloaded) ){
+			$dstfile = $vod_downloaded;
+			$no_delete = true;
+			$response->getBody()->write( "<br>VOD downloaded via other tool already" );
+		}
+			
         if( !file_exists( $dstfile ) && !file_exists( $srcfile ) ){
             if( $this->downloadVod( $video_id, $srcfile, $quality ) ){
                 $response->getBody()->write( "<br>VOD download successful" );
@@ -436,9 +445,12 @@ class ToolsController {
 				return $response;
             }
 		}
+
+		$metadata = TwitchHelper::getVideo($video_id);
+		file_put_contents($metafile, json_encode($metadata));
 		
 		unlink($srcfile);
-		unlink($dstfile);
+		if(!$no_delete) unlink($dstfile);
 		unlink($chatfile);
 		unlink($chatrender);
 		unlink($chatrender_mask);
@@ -478,6 +490,7 @@ class ToolsController {
 
         $srcfile        	= $basedir . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . ".ts";
         $dstfile        	= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $video_id . "_" . $quality . ".mp4";
+		$metafile        	= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $video_id . ".info.json";
 
 		if( !file_exists( $dstfile ) ){
 				
@@ -503,6 +516,11 @@ class ToolsController {
 
 			unlink($srcfile);
 		
+		}
+
+		if(!file_exists($metafile)){
+			$metadata = TwitchHelper::getVideo($video_id);
+			file_put_contents($metafile, json_encode($metadata));
 		}
         
         $response->getBody()->write( "<br>Done?" );

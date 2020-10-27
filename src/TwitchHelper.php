@@ -47,6 +47,18 @@ class TwitchHelper {
 		__DIR__ . "/../public/saved_clips"
 	];
 
+	public static $twitchQuality = [
+		'best',
+		'1080p60',
+		'1080p',
+		'720p60',
+		'720p',
+		'480p',
+		'360p',
+		'140p',
+		'worst'
+	];
+
 	private static $last_log_line;
 
 	/**
