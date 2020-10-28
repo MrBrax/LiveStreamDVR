@@ -704,18 +704,6 @@ class TwitchAutomator {
 			$int++;
 		}
 
-		/*
-		$cmd = TwitchHelper::path_ffmpeg();
-		$cmd .= ' -i ' . escapeshellarg($capture_filename); // input filename
-		$cmd .= ' -codec copy'; // use same codec
-		$cmd .= ' -bsf:a aac_adtstoasc'; // fix audio sync in ts
-		if( TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false) ) $cmd .= ' -loglevel repeat+level+verbose';
-		$cmd .= ' ' . escapeshellarg($converted_filename); // output filename
-		$cmd .= ' 2>&1'; // console output
-		
-		$this->info[] = 'ffmpeg cmd: ' . $cmd;
-		*/
-
 		$cmd = [];
 
 		$cmd[] = TwitchHelper::path_ffmpeg();
@@ -742,12 +730,11 @@ class TwitchAutomator {
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting conversion of " . basename($capture_filename) . " to " . basename($converted_filename), ['download-convert' => $data_username] );
 
-		// $output_convert = shell_exec( $cmd ); // do it
 		$process = new Process( $cmd, dirname($capture_filename), null, null, null );
 		$process->start();
 
 		// create pidfile
-		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'convert_' . $this->streamer_name . '.pid';
+		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'convert_' . $data_username . '.pid';
 		file_put_contents( $pidfile, $process->getPid() );
 		
 		// wait until process is done
@@ -764,11 +751,6 @@ class TwitchAutomator {
 		}else{
 			TwitchHelper::log( TwitchHelper::LOG_ERROR, "Failed conversion of " . basename($capture_filename) . " to " . basename($converted_filename), ['download-convert' => $data_username] );
 		}
-
-		// $this->info[] = 'ffmpeg output: ' . $output_convert;
-
-		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "convert_" . $basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $output_convert);
-		// TwitchHelper::append_log( "convert_" . $basename . "_" . time(), "$ " . $cmd . "\n" . $output_convert );
 
 		return $converted_filename;
 
