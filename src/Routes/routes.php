@@ -64,8 +64,9 @@ $app->get('/cron/check_deleted_vods', CronController::class . ':check_deleted_vo
 $app->get('/cron/check_muted_vods', CronController::class . ':check_muted_vods')->setName('check_muted_vods');
 
 $app->get('/tools', ToolsController::class . ':tools')->setName('tools');
-$app->post('/tools/fullvodburn', ToolsController::class . ':fullvodburn')->setName('tools_fullvodburn');
-$app->post('/tools/voddownload', ToolsController::class . ':voddownload')->setName('tools_voddownload');
+$app->post('/tools/fullvodburn', ToolsController::class . ':page_fullvodburn')->setName('tools_fullvodburn');
+$app->post('/tools/voddownload', ToolsController::class . ':page_voddownload')->setName('tools_voddownload');
+$app->post('/tools/chatdownload', ToolsController::class . ':page_chatdownload')->setName('tools_chatdownload');
 
 // force start recording of streamer
 $app->get('/force_record/{username}', function (Request $request, Response $response, array $args) {
