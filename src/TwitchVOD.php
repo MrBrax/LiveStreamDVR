@@ -504,8 +504,6 @@ class TwitchVOD {
 
 		if( file_exists( $pidfile ) ) unlink( $pidfile );
 
-		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tcd_" . $this->basename . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
-		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tcd_" . $this->basename . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 		TwitchHelper::append_log( "tcd_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
 		TwitchHelper::append_log( "tcd_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 
@@ -620,8 +618,6 @@ class TwitchVOD {
 
 		if( file_exists( $pidfile ) ) unlink( $pidfile );
 
-		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tdrender_" . $this->basename . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
-		// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "tdrender_" . $this->basename . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 		TwitchHelper::append_log( "tdrender_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
 		TwitchHelper::append_log( "tdrender_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 
@@ -1334,19 +1330,22 @@ class TwitchVOD {
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Check muted VOD for " . $this->basename );
 
+		$cmd = [];
+
 		if( TwitchConfig::cfg('pipenv') ){
-			$cmd = 'pipenv run streamlink';
+			$cmd[] = 'pipenv run streamlink';
 		}else{
-			$cmd = TwitchHelper::path_streamlink();
+			$cmd[] = TwitchHelper::path_streamlink();
 		}
 
-		$cmd .= " --stream-url";
-		$cmd .= " https://www.twitch.tv/videos/" . $this->twitch_vod_id;
-		$cmd .= " best";
+		$cmd[] = "--stream-url";
+		$cmd[] = "https://www.twitch.tv/videos/" . $this->twitch_vod_id;
 
-		$output = shell_exec( $cmd );
+		$cmd[] = "best";
 
-		$stream_url = $output;
+		$output = TwitchHelper::exec( $cmd );
+
+		// $stream_url = $output;
 
 		if(!$output){
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "VOD " . $this->basename . " could not be checked for mute status!" );
@@ -1381,55 +1380,15 @@ class TwitchVOD {
 
 	// TODO: finish this
 	public function getCapturingStatus(){
-		/*
-		if( $this->pid_cache['capture'] ) return $this->pid_cache['capture'];
-		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Fetch capture process status of " . $this->basename );
-		$output = shell_exec("ps aux | grep -i " . escapeshellarg("twitch.tv/" . $this->streamer_name) . " | grep -v grep");
-		preg_match("/^([a-z0-9]+)\s+([0-9]+)/i", trim($output), $matches);
-		if(!$matches) return false;
-		$this->pid_cache['capture'] = $matches[2];
-		return isset($matches[2]) ? $matches[2] : false;
-		*/
-		
-		/*
-		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'capture_' . $this->streamer_name . '.pid';
-		
-		if( !file_exists( $pidfile ) ) return false;
-
-		$pid = file_get_contents( $pidfile );
-
-		$output = shell_exec( "ps -p " . escapeshellarg( $pid ) );
-
-		return strpos( $output, $pid ) !== false ? $pid : false;
-		*/
-
 		return TwitchHelper::getPidfileStatus('capture_' . $this->streamer_name);
 		
 	}
 
 	public function getConvertingStatus(){
-		/*
-		if( $this->pid_cache['convert'] ) return $this->pid_cache['convert'];
-		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Fetch converting process status of " . $this->basename );
-		$output = shell_exec("ps aux | grep -i " . escapeshellarg( $this->basename . ".mp4" ) . " | grep -v grep");
-		preg_match("/^([a-z0-9]+)\s+([0-9]+)/i", trim($output), $matches);
-		if(!$matches) return false;
-		$this->pid_cache['convert'] = $matches[2];
-		return isset($matches[2]) ? $matches[2] : false;
-		*/
 		return TwitchHelper::getPidfileStatus('convert_' . $this->streamer_name);
 	}
 
 	public function getChatDownloadStatus(){
-		/*
-		if( $this->pid_cache['download'] ) return $this->pid_cache['download'];
-		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Fetch chat download process status of " . $this->basename );
-		$output = shell_exec("ps aux | grep -i " . escapeshellarg( "tcd --video " . $this->twitch_vod_id ) . " | grep -v grep");
-		preg_match("/^([a-z0-9]+)\s+([0-9]+)/i", trim($output), $matches);
-		if(!$matches) return false;
-		$this->pid_cache['download'] = $matches[2];
-		return isset($matches[2]) ? $matches[2] : false;
-		*/
 		return TwitchHelper::getPidfileStatus('tcd_' . $this->basename);
 	}
 

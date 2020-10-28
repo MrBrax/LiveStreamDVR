@@ -9,6 +9,20 @@ use App\TwitchHelper;
 
 trait SoftwareWrappers {
 
+	/**
+	 * Execute a command
+	 *
+	 * @param array $cmd
+	 * @param boolean $stderr
+	 * @return void
+	 */
+	public static function exec( array $cmd, $stderr = false ){
+		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Executing command: " . implode(" ", $cmd) );
+		$process = new Process( $cmd );
+        $process->run();
+		return $process->getOutput() . ( $stderr ? $process->getErrorOutput() : '' );
+	}
+
     public static function whereis( $name_linux, $name_windows ){
 
 		if( self::is_windows() ){

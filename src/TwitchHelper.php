@@ -178,8 +178,7 @@ class TwitchHelper {
 		$log_text = file_exists( $filename ) ? file_get_contents( $filename ) : '';
 		$log_json = file_exists( $filename_json ) ? json_decode( file_get_contents( $filename_json ), true ) : [];
 
-		// test
-		
+		// TODO: this still isn't working properly
 		if( $level . $text === self::$last_log_line ){
 			$last = count( $log_json ) - 1;
 			if( isset( $log_json[ $last ]) ){
@@ -854,7 +853,7 @@ class TwitchHelper {
 		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . '.pid';
 		if( !file_exists( $pidfile ) ) return false;
 		$pid = file_get_contents( $pidfile );
-		$output = shell_exec( "ps -p " . escapeshellarg( $pid ) );
+		$output = TwitchHelper::exec( ["ps", "-p", escapeshellarg($pid) ] );
 		return strpos( $output, $pid ) !== false ? $pid : false;
 	}	
 	

@@ -8,6 +8,9 @@ use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 use Slim\Views\Twig;
 
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
+
 /**
  * About page
  */
@@ -36,7 +39,7 @@ class AboutController
         $bins['ffmpeg'] = [];
         $bins['ffmpeg']['path'] = TwitchHelper::path_ffmpeg();
         if (file_exists(TwitchHelper::path_ffmpeg())) {
-            $out = shell_exec(TwitchHelper::path_ffmpeg() . " -version");
+            $out = TwitchHelper::exec( [TwitchHelper::path_ffmpeg(),"-version"] );
             $out = explode("\n", $out)[0];
             $bins['ffmpeg']['status'] = $out;
         } else {
@@ -46,7 +49,7 @@ class AboutController
         $bins['mediainfo'] = [];
         $bins['mediainfo']['path'] = TwitchHelper::path_mediainfo();
         if (file_exists(TwitchHelper::path_mediainfo())) {
-            $out = shell_exec(TwitchHelper::path_mediainfo() . " --Version");
+            $out = TwitchHelper::exec( [ TwitchHelper::path_mediainfo(), "--Version" ] );
             if($out){
                 $out = explode("\n", $out)[1];
                 $bins['mediainfo']['status'] = $out;
@@ -61,7 +64,7 @@ class AboutController
         $bins['tcd'] = [];
         $bins['tcd']['path'] = TwitchHelper::path_tcd();
         if (file_exists(TwitchHelper::path_tcd())) {
-            $out = shell_exec(TwitchHelper::path_tcd() . " --version --settings-file " . TwitchHelper::$config_folder . DIRECTORY_SEPARATOR . "tcd_settings.json");
+            $out = TwitchHelper::exec( [ TwitchHelper::path_tcd(), "--version", "--settings-file", TwitchHelper::$config_folder . DIRECTORY_SEPARATOR . "tcd_settings.json" ] );
             $bins['tcd']['status'] = $out;
             $bins['tcd']['installed'] = true;
         } else {
@@ -73,7 +76,7 @@ class AboutController
         $bins['streamlink'] = [];
         $bins['streamlink']['path'] = TwitchHelper::path_streamlink();
         if (file_exists(TwitchHelper::path_streamlink())) {
-            $out = shell_exec(TwitchHelper::path_streamlink() . " --version");
+            $out = TwitchHelper::exec( [ TwitchHelper::path_streamlink(), "--version" ] );
             $bins['streamlink']['status'] = trim($out);
             $bins['streamlink']['installed'] = true;
         } else {
@@ -84,7 +87,7 @@ class AboutController
         $bins['youtubedl'] = [];
         $bins['youtubedl']['path'] = TwitchHelper::path_youtubedl();
         if (file_exists(TwitchHelper::path_youtubedl())) {
-            $out = shell_exec(TwitchHelper::path_youtubedl() . " --version");
+            $out = TwitchHelper::exec( [ TwitchHelper::path_youtubedl(), "--version"] );
             $bins['youtubedl']['status'] = trim($out);
             $bins['youtubedl']['installed'] = true;
         } else {
@@ -94,7 +97,7 @@ class AboutController
         $bins['twitchdownloader'] = [];
         $bins['twitchdownloader']['path'] = TwitchHelper::path_twitchdownloader();
         if (file_exists(TwitchHelper::path_twitchdownloader())) {
-            $out = shell_exec(TwitchHelper::path_twitchdownloader() . " --version 2>&1");
+            $out = TwitchHelper::exec( [ TwitchHelper::path_twitchdownloader(), "--version"], true );
             $bins['twitchdownloader']['status'] = trim($out);
             $bins['twitchdownloader']['installed'] = true;
         } else {
@@ -105,7 +108,7 @@ class AboutController
         $bins['pipenv'] = [];
         $bins['pipenv']['path'] = TwitchHelper::path_pipenv();
         if (file_exists(TwitchHelper::path_pipenv())) {
-            $out = shell_exec(TwitchHelper::path_pipenv() . " --version");
+            $out = TwitchHelper::exec( [ TwitchHelper::path_pipenv(), "--version" ] );
             $bins['pipenv']['status'] = trim($out);
             $bins['pipenv']['installed'] = true;
         } else {
@@ -115,11 +118,11 @@ class AboutController
 
 
         $bins['python'] = [];
-        $out = shell_exec("python --version");
+        $out = TwitchHelper::exec( ["python", "--version"] );
         $bins['python']['version'] = trim($out);
 
         $bins['python3'] = [];
-        $out = shell_exec("python3 --version");
+        $out = TwitchHelper::exec( ["python3", "--version"] );
         $bins['python3']['version'] = trim($out);
 
         $bins['php'] = [];
