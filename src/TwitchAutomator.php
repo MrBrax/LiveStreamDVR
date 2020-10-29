@@ -612,6 +612,8 @@ class TwitchAutomator {
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting chat dump with filename " . basename($chat_filename), ['download-capture' => $data_username] );
 			$chat_process = new Process($chat_cmd, './Utilities/', null, null, null );
 			$chat_process->start();
+			$chat_pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'chatdump_' . $data_username . '.pid';
+			file_put_contents( $chat_pidfile, $process->getPid() );
 		}
 
 		// wait loop until it's done
@@ -648,6 +650,8 @@ class TwitchAutomator {
 		if( TwitchConfig::cfg('chat_dump') ){
 			// gracefully kill chat dump
 			$chat_process->signal(SIGINT);
+			$chat_process->wait();
+			if( file_exists( $chat_pidfile ) ) unlink( $chat_pidfile );
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "Ended chat dump with filename " . basename($chat_filename), ['download-capture' => $data_username] );
 		}
 
