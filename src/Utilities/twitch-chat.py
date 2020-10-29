@@ -102,10 +102,12 @@ while( True ):
             print("received ping")
             buf = str.encode("PONG tmi.twitch.tv\r\n")
             irc.send(buf)
+            continue
 
         if buf == ":tmi.twitch.tv RECONNECT":
             print("received reconnect :S?")
             irc = connect()
+            continue
 
         
         extracted_info = privmsg_prog.match( buf )
@@ -236,13 +238,13 @@ while( True ):
             
             jsondata['comments'].append( comment )
             print( "Message >> " + comment['commenter']['name'] + ": " + comment['message']['body'] )
-            print( " Emotes: ", emoticons )
-            print( " Badges: ", badges )
-            print( " Fragments: ", fragments )
-            print( "" )
+            # print( " Emotes: ", emoticons )
+            # print( " Badges: ", badges )
+            # print( " Fragments: ", fragments )
+            # print( "" )
             # chat_log.write("{time}{user}:{message}\r\n".format(,,))
         else:
-            print( "Failed regex: " + buf )
+            print( "Unhandled >> " + buf )
 
         # except:
         #     try:
@@ -257,7 +259,7 @@ while( True ):
 print("Exited loop...")
 
 with open(output_path, 'w') as outfile:
-    
+
     print("Saving JSON...")
 
     time_duration = time.time() - time_start
