@@ -74,18 +74,18 @@ class VodController
             $cmd[] = TwitchConfig::cfg('ffmpeg_path');
             
             $cmd[] = '-i';
-            $cmd[] = escapeshellarg($filename_in); // input file
+            $cmd[] = $filename_in; // input file
 
             $cmd[] = '-ss';
-            $cmd[] = escapeshellarg($second_start); // start timestamp
+            $cmd[] = $second_start; // start timestamp
 
             $cmd[] = '-t';
-            $cmd[] = escapeshellarg($second_end - $second_start); // length
+            $cmd[] = $second_end - $second_start; // length
 
             $cmd[] = '-codec';
             $cmd[] = 'copy'; // remux
 
-            $cmd[] = escapeshellarg($filename_out); // output file
+            $cmd[] = $filename_out; // output file
 
             $env = [
                 // 'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache",

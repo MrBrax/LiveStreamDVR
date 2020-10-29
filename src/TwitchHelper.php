@@ -851,10 +851,21 @@ class TwitchHelper {
 	 */
 	public static function getPidfileStatus( $name ){
 		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . '.pid';
-		if( !file_exists( $pidfile ) ) return false;
+		
+		if( !file_exists( $pidfile ) ){
+			return false;
+		}
+
 		$pid = file_get_contents( $pidfile );
-		$output = TwitchHelper::exec( ["ps", "-p", escapeshellarg($pid) ] );
-		return strpos( $output, $pid ) !== false ? $pid : false;
+
+		$output = TwitchHelper::exec( ["ps", "-p", $pid] );
+
+		if( strpos( $output, $pid ) !== false ){
+			return $pid;
+		}else{
+			return false;
+		}
+
 	}	
 	
 	public static function vod_folder( $username = null ){

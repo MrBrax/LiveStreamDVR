@@ -1381,7 +1381,6 @@ class TwitchVOD {
 	// TODO: finish this
 	public function getCapturingStatus(){
 		return TwitchHelper::getPidfileStatus('capture_' . $this->streamer_name);
-		
 	}
 
 	public function getConvertingStatus(){

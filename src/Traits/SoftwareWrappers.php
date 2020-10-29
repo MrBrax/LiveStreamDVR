@@ -14,7 +14,7 @@ trait SoftwareWrappers {
 	 *
 	 * @param array $cmd
 	 * @param boolean $stderr
-	 * @return void
+	 * @return string
 	 */
 	public static function exec( array $cmd, $stderr = false ){
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Executing command: " . implode(" ", $cmd) );

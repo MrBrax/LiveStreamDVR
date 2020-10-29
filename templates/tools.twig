@@ -134,7 +134,7 @@
                     <tr>
                         <td>{{ job.name }}</td>
                         <td>{{ job.pid }}</td>
-                        <td>{{ job.status ? 'Running' : 'Unexpected exit' }}</td>
+                        <td><!-- {{ job.status }}-->{{ job.status ? 'Running' : 'Unexpected exit' }}</td>
                     </tr>
                 {% endfor %}
                 </table>
