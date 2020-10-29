@@ -20,6 +20,7 @@ sub = False
 sub_time = None
 
 num_to_save = 500
+last_save = 0
 
 output_path = sys.argv[3]
 
@@ -276,12 +277,16 @@ while( True ):
             print( "Message >> " + comment['commenter']['name'] + ": " + comment['message']['body'] )
             raw_text += "<{date}> {user}: {message}\n".format( date=now.strftime(dateformat), user=tags["display-name"], message=body_text )
             
-            num_since_saved += 1
-            if num_since_saved > num_to_save:
-                print("Reached {num} messages, saving just to be sure!".format(num=num_to_save))
-                num_since_saved = 0
+            # num_since_saved += 1
+            # if num_since_saved > num_to_save:
+            #     print("Reached {num} messages, saving just to be sure!".format(num=num_to_save))
+            #     num_since_saved = 0
+            #     saveJSON()
+            if time.time() > last_save + 60:
+                print("Saving after one minute just to be sure!")
+                last_save = time.time()
                 saveJSON()
-                
+
             # print( " Emotes: ", emoticons )
             # print( " Badges: ", badges )
             # print( " Fragments: ", fragments )

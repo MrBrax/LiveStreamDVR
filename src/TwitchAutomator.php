@@ -613,7 +613,7 @@ class TwitchAutomator {
 			$chat_process = new Process($chat_cmd, null, null, null, null );
 			$chat_process->start();
 			$chat_pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'chatdump_' . $data_username . '.pid';
-			file_put_contents( $chat_pidfile, $process->getPid() );
+			file_put_contents( $chat_pidfile, $chat_process->getPid() );
 		}
 
 		// wait loop until it's done
