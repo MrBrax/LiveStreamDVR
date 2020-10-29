@@ -19,14 +19,18 @@ chat_log_path = "./"
 sub = False
 sub_time = None
 
+num_to_save = 500
+
 output_path = sys.argv[3]
+
+raw_text = ""
 
 running = True
 
 dateformat = "%Y-%m-%dT%H:%M:%SZ"
 
 time_start = time.time()
-date_start = datetime.datetime.now().strftime(dateformat)
+date_start = datetime.datetime.utcnow().strftime(dateformat)
 
 jsondata = {
     "comments": [],
@@ -83,6 +87,30 @@ signal.signal(signal.SIGINT, exit_gracefully)
 signal.signal(signal.SIGTERM, exit_gracefully)
 
 privmsg_prog = re.compile(r"@(.*)\s:(\w+)!\w+@\w+\.tmi\.twitch\.tv\sPRIVMSG\s#(\w+) :(.*)")
+clearchat_prog = re.compile(r"@(.*)\s\:tmi\.twitch\.tv\sCLEARCHAT\s#(\w+) :(\w+)")
+
+def saveJSON():
+    with open(output_path, 'w') as outfile:
+
+        print("Saving JSON...")
+
+        time_duration = time.time() - time_start
+        hours, remainder = divmod(time_duration, 3600)
+        minutes, seconds = divmod(remainder, 60)
+
+        total_duration = "{hour}h{minute}m{second}s".format(hour=round(hours), minute=round(minutes), second=round(seconds))
+        
+        jsondata['video']['duration'] = total_duration
+        json.dump(jsondata, outfile)
+
+        print("JSON saved, hopefully!")
+    
+    print("Saving raw txt...")
+    outfile = open(output_path + ".txt", 'w+')
+    outfile.write(raw_text)
+    outfile.close()
+
+num_since_saved = 0
 
 while( True ):
 
@@ -90,10 +118,18 @@ while( True ):
         break
 
     #buff as in buffer, but that is a registered python word/function
-    buff = irc.recv(8192).decode('utf-8')
+    buff_raw = irc.recv(8192)
+
+    try:
+        buff_utf = buff_raw.decode('utf-8')
+    except UnicodeDecodeError as err:
+        print("Couldn't decode packet (" + str(err) + "): ", buff_raw)
+        continue
+        pass
+    
     # print("Buffer: " + buff)
-    buff = buff.split("\r\n")
-    for buf in buff[:-1]:
+    buff_split = buff_utf.split("\r\n")
+    for buf in buff_split[:-1]:
         # print(" - line: " + buf)
         #to keep the connection alive, we have to reply to the ping
         #Twitch terminates the connection if it doesn't receive a reply after 3 pings
@@ -110,13 +146,13 @@ while( True ):
             continue
 
         
-        extracted_info = privmsg_prog.match( buf )
-        # print(extracted_info)
-        #extracted_info = re.compile(r"^:\w+!\w+@\w+\.tmi\.twitch\.tv PRIVMSG #\w+ :")
-        if extracted_info:
+        privmsg_data = privmsg_prog.match( buf )
+        clearchat_data = clearchat_prog.match( buf )
+        
+        if privmsg_data:
             
             tags = {}
-            raw_tags = extracted_info.group(1).split(";")
+            raw_tags = privmsg_data.group(1).split(";")
             for tag in raw_tags:
                 tags[ tag.split("=")[0] ] = tag.split("=")[1]
                 # print( "Tag: " + key + " = " + value )
@@ -124,9 +160,9 @@ while( True ):
             # print(tags)
 
             offset = time.time() - time_start
-            now = datetime.datetime.now()
+            now = datetime.datetime.utcnow()
 
-            body_text = extracted_info.group(4)
+            body_text = privmsg_data.group(4)
 
             # unsure how to handle this yet
             body_text = body_text.replace("\u0001ACTION", "")
@@ -212,25 +248,25 @@ while( True ):
             comment = {
                 "commenter": {
                     "_id": tags["user-id"],
-                    "bio": None,
+                    "bio": None, # fake
                     "created_at": now.strftime( dateformat ),
                     "display_name": tags["display-name"],
-                    "logo": None,
-                    "name": extracted_info.group(2),
-                    "type": "user",
+                    "logo": None, # fake
+                    "name": privmsg_data.group(2),
+                    "type": "user", # fake
                     "updated_at": now.strftime( dateformat )
                 },
                 "message": {
                     "body": body_text,
                     "emoticons": emoticons,
                     "fragments": fragments,
-                    "is_action": False,
+                    "is_action": False, # fake
                     "user_badges": badges,
                     "user_color": tags["color"] or "#FFFFFF",
-                    "user_notice_params": {}
+                    "user_notice_params": {} # fake
                 },
-                "source": "chat",
-                "state": "published",
+                "source": "chat", # fake
+                "state": "published", # fake
                 "content_offset_seconds": round(offset, 4),
                 "created_at": now.strftime( dateformat ),
                 "updated_at": now.strftime( dateformat )
@@ -238,11 +274,30 @@ while( True ):
             
             jsondata['comments'].append( comment )
             print( "Message >> " + comment['commenter']['name'] + ": " + comment['message']['body'] )
+            raw_text += "<{date}> {user}: {message}\n".format( date=now.strftime(dateformat), user=tags["display-name"], message=body_text )
+            
+            num_since_saved += 1
+            if num_since_saved > num_to_save:
+                print("Reached {num} messages, saving just to be sure!".format(num=num_to_save))
+                num_since_saved = 0
+                saveJSON()
+                
             # print( " Emotes: ", emoticons )
             # print( " Badges: ", badges )
             # print( " Fragments: ", fragments )
             # print( "" )
             # chat_log.write("{time}{user}:{message}\r\n".format(,,))
+        
+        elif clearchat_data:
+            
+            tags = {}
+            raw_tags = clearchat_data.group(1).split(";")
+            for tag in raw_tags:
+                tags[ tag.split("=")[0] ] = tag.split("=")[1]
+                # print( "Tag: " + key + " = " + value )
+
+            print( "Clear chat >> ", tags)
+        
         else:
             print( "Unhandled >> " + buf )
 
@@ -258,17 +313,4 @@ while( True ):
 
 print("Exited loop...")
 
-with open(output_path, 'w') as outfile:
-
-    print("Saving JSON...")
-
-    time_duration = time.time() - time_start
-    hours, remainder = divmod(time_duration, 3600)
-    minutes, seconds = divmod(remainder, 60)
-
-    total_duration = "{hour}h{minute}m{second}s".format(hour=round(hours), minute=round(minutes), second=round(seconds))
-    
-    jsondata['video']['duration'] = total_duration
-    json.dump(jsondata, outfile)
-
-    print("JSON saved, hopefully!")
+saveJSON()
