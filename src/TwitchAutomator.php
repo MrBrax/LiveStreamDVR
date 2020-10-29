@@ -605,12 +605,12 @@ class TwitchAutomator {
 		if( TwitchConfig::cfg('chat_dump') ){
 			$chat_cmd = [];
 			$chat_cmd[] = 'python';
-			$chat_cmd[] = './Utilities/twitch-chat.py';
+			$chat_cmd[] = __DIR__ . '/Utilities/twitch-chat.py';
 			$chat_cmd[] = $this->vod->streamer_name;
 			$chat_cmd[] = $this->vod->streamer_id;
 			$chat_cmd[] = $chat_filename;
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting chat dump with filename " . basename($chat_filename), ['download-capture' => $data_username] );
-			$chat_process = new Process($chat_cmd, './Utilities/', null, null, null );
+			$chat_process = new Process($chat_cmd, null, null, null, null );
 			$chat_process->start();
 			$chat_pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'chatdump_' . $data_username . '.pid';
 			file_put_contents( $chat_pidfile, $process->getPid() );

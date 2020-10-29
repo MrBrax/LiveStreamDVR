@@ -179,7 +179,7 @@ class TwitchHelper {
 		$log_json = file_exists( $filename_json ) ? json_decode( file_get_contents( $filename_json ), true ) : [];
 
 		// TODO: this still isn't working properly
-		if( $level . $text === self::$last_log_line ){
+		if( $level . $text === self::$last_log_line && $log_json ){
 			$last = count( $log_json ) - 1;
 			if( isset( $log_json[ $last ]) ){
 				if( !isset($log_json[ $last ]['count']) ){
