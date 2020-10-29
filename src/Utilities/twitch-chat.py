@@ -5,16 +5,21 @@ from random import random
 import re
 import json
 import signal
+import sys
 
 # http://www.rikels.info/index.php/en/articles/55-enter-a-twich-chat-without-account
 
+# twitch-chat.py CHANNEL USERID OUTPUT
+
 Twitch_user = "justinfan{random}".format(random=int(random()*9999999))
 Twitch_pass = "blah"
-Twitch_channel = "xQcOW"
-Twitch_userid = "71092938"
+Twitch_channel = sys.argv[1]
+Twitch_userid = sys.argv[2]
 chat_log_path = "./"
 sub = False
 sub_time = None
+
+output_path = sys.argv[3]
 
 running = True
 
@@ -121,6 +126,11 @@ while( True ):
 
             body_text = extracted_info.group(4)
 
+            # unsure how to handle this yet
+            body_text = body_text.replace("\u0001ACTION", "")
+            body_text = body_text.replace("\x01", "")
+            body_text = body_text.strip()
+
             # 304253289:12-22/304253291:24-34/304253295:36-46
             # 555555563:13-14,29-30,45-46,61-62,77-78,93-94,109-110,125-126,141-142,157-158,173-174,189-190,205-206
             emoticons = []
@@ -134,7 +144,7 @@ while( True ):
                             "begin": int(emote_pos.split("-")[0]),
                             "end": int(emote_pos.split("-")[1]),
                         }
-                        print( emote_data )
+                        # print( emote_data )
                         emoticons.append(emote_data)
             
             fragments = []
@@ -143,6 +153,18 @@ while( True ):
             #{'_id': '1035663', 'begin': '155', 'end': '158'}
             #{'_id': '1035693', 'begin': '160', 'end': '167'}
             #{'_id': '1035664', 'begin': '169', 'end': '175'}
+
+            # subscriber/3,premium/1
+            badges = []
+            raw_badges = tags['badges'].split(",")
+            if raw_badges:
+                for badge_pair in raw_badges:
+                    if not badge_pair:
+                        continue
+                    badges.append({
+                        "_id": badge_pair.split("/")[0],
+                        "version": badge_pair.split("/")[1],
+                    })
 
             text_buffer = ""
 
@@ -164,7 +186,7 @@ while( True ):
                             fragments.append({
                                 "text": text_buffer
                             })
-                            print("Append text: " + text_buffer)
+                            # print("Append text: " + text_buffer)
                             text_buffer = ""
                         
                         if i == emote['end']:
@@ -175,7 +197,7 @@ while( True ):
                                 },
                                 "text": text_buffer
                             })
-                            print("Append emoticon: " + text_buffer)
+                            # print("Append emoticon: " + text_buffer)
                             text_buffer = ""
 
                         
@@ -201,6 +223,7 @@ while( True ):
                     "emoticons": emoticons,
                     "fragments": fragments,
                     "is_action": False,
+                    "user_badges": badges,
                     "user_color": tags["color"] or "#FFFFFF",
                     "user_notice_params": {}
                 },
@@ -214,7 +237,7 @@ while( True ):
             jsondata['comments'].append( comment )
             print( "Message >> " + comment['commenter']['name'] + ": " + comment['message']['body'] )
             print( " Emotes: ", emoticons )
-            print( " Badges: ", tags['badges'] )
+            print( " Badges: ", badges )
             print( " Fragments: ", fragments )
             print( "" )
             # chat_log.write("{time}{user}:{message}\r\n".format(,,))
@@ -231,8 +254,11 @@ while( True ):
         #     except Exception as error:
         #         print(error)
 
-with open(Twitch_channel + '.json', 'w') as outfile:
-    print("Output JSON")
+print("Exited loop...")
+
+with open(output_path, 'w') as outfile:
+    
+    print("Saving JSON...")
 
     time_duration = time.time() - time_start
     hours, remainder = divmod(time_duration, 3600)
@@ -242,3 +268,5 @@ with open(Twitch_channel + '.json', 'w') as outfile:
     
     jsondata['video']['duration'] = total_duration
     json.dump(jsondata, outfile)
+
+    print("JSON saved, hopefully!")

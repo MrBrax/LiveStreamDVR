@@ -44,6 +44,7 @@ class TwitchConfig {
 		[ 'key' => 'relative_time', 		'text' => 'Relative time', 																	'type' => 'boolean' ],
 		[ 'key' => 'low_latency', 			'text' => 'Low latency (untested)', 														'type' => 'boolean' ],
 		[ 'key' => 'youtube_dlc', 			'text' => 'Use youtube-dlc instead of the regular one', 									'type' => 'boolean' ],
+		[ 'key' => 'chat_dump', 			'text' => 'Dump chat during capture', 														'type' => 'boolean', 'default' => false ],
 	];
 
 	public static $timezone;

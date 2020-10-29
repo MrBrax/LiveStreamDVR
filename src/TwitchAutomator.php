@@ -18,6 +18,11 @@ class TwitchAutomator {
 
 	public $force_record;
 
+	/**
+	 * Working VOD
+	 *
+	 * @var TwitchVOD
+	 */
 	public $vod;
 
 	const NOTIFY_GENERIC = 1;
@@ -514,6 +519,8 @@ class TwitchAutomator {
 		$folder_base = TwitchHelper::vod_folder( $data_username );
 
 		$capture_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '.ts';
+		
+		$chat_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '.chatdump';
 
 		// failure
 		$int = 1;
@@ -594,6 +601,19 @@ class TwitchAutomator {
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Capture " . basename($capture_filename) . " has PID " . $process->getPid(), ['download-capture' => $data_username] );
 		file_put_contents( $pidfile, $process->getPid() );
 
+		// chat capture
+		if( TwitchConfig::cfg('chat_dump') ){
+			$chat_cmd = [];
+			$chat_cmd[] = 'python';
+			$chat_cmd[] = './Utilities/twitch-chat.py';
+			$chat_cmd[] = $this->vod->streamer_name;
+			$chat_cmd[] = $this->vod->streamer_id;
+			$chat_cmd[] = $chat_filename;
+			TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting chat dump with filename " . basename($chat_filename), ['download-capture' => $data_username] );
+			$chat_process = new Process($chat_cmd, './Utilities/', null, null, null );
+			$chat_process->start();
+		}
+
 		// wait loop until it's done
 		$process->wait(function($type, $buffer) use($basename, $int, $data_username) {
 			
@@ -623,8 +643,13 @@ class TwitchAutomator {
 			}
 			
 		});
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Finished capture with filename " . basename($capture_filename), ['download-capture' => $data_username] );
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Finishing capture with filename " . basename($capture_filename), ['download-capture' => $data_username] );
+		if( TwitchConfig::cfg('chat_dump') ){
+			// gracefully kill chat dump
+			$chat_process->signal(SIGINT);
+			TwitchHelper::log( TwitchHelper::LOG_INFO, "Ended chat dump with filename " . basename($chat_filename), ['download-capture' => $data_username] );
+		}
 
 		$this->info[] = 'Streamlink output: ' . $process->getOutput();
 		$this->info[] = 'Streamlink error: ' . $process->getErrorOutput();
