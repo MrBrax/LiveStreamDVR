@@ -1391,6 +1391,10 @@ class TwitchVOD {
 		return TwitchHelper::getPidfileStatus('tcd_' . $this->basename);
 	}
 
+	public function getChatDumpStatus(){
+		return TwitchHelper::getPidfileStatus('chatdump_' . $this->streamer_name);
+	}
+
 	public function finalize(){
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Finalize " . $this->basename);
 		$this->getMediainfo();

@@ -259,11 +259,20 @@
                 <em><span class="icon"><i class="fa fa-video"></i></span> Capturing to <strong>{{ vodclass.basename }}.ts</strong> (<strong>{{ vodclass.getRecordingSize|formatBytes }}</strong>)</em><br />
                 <em>
                     {% if vodclass.getCapturingStatus %}
-                        <span class="icon"><i class="fa fa-sync fa-spin"></i></span> Running (pid {{ vodclass.getCapturingStatus }})
+                        <span class="icon"><i class="fa fa-sync fa-spin"></i></span> Video capture running (pid {{ vodclass.getCapturingStatus }})
                     {% else %}
-                        <strong class="is-error flashing"><span class="icon"><i class="fa fa-exclamation-triangle"></i></span> Not running, did it crash?</strong>
+                        <strong class="is-error flashing"><span class="icon"><i class="fa fa-exclamation-triangle"></i></span> Video capture not running, did it crash?</strong>
                     {% endif %}
                 </em>
+                {% if config.chat_dump %}
+                <br /><em>
+                    {% if vodclass.getChatDumpStatus %}
+                        <span class="icon"><i class="fa fa-sync fa-spin"></i></span> Chat dump running (pid {{ vodclass.getChatDumpStatus }})
+                    {% else %}
+                        <strong class="is-error flashing"><span class="icon"><i class="fa fa-exclamation-triangle"></i></span> Chat dump not running, did it crash?</strong>
+                    {% endif %}
+                </em>
+                {% endif %}
 
             {% elseif not vodclass.is_capturing and not vodclass.is_converting and not vodclass.is_finalized %}
 
