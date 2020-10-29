@@ -6,6 +6,7 @@ import re
 import json
 import signal
 import sys
+import select
 
 # http://www.rikels.info/index.php/en/articles/55-enter-a-twich-chat-without-account
 
@@ -54,8 +55,11 @@ jsondata = {
 }
 
 def connect():
+
     print( "connecting to " + Twitch_channel + " as " + Twitch_user )
+    
     irc = socket.socket()
+
     irc.connect(("irc.twitch.tv", 6667))
     
     # get advanced ircv3 features
@@ -107,7 +111,7 @@ def saveJSON():
         print("JSON saved, hopefully!")
     
     print("Saving raw txt...")
-    outfile = open(output_path + ".txt", 'w+')
+    outfile = open(output_path + ".txt", 'w+', encoding='utf-8')
     outfile.write(raw_text)
     outfile.close()
 
@@ -118,8 +122,24 @@ while( True ):
     if not running:
         break
 
-    #buff as in buffer, but that is a registered python word/function
-    buff_raw = irc.recv(8192)
+    ready = select.select([irc], [], [], 5)
+
+    buff_raw = b''
+
+    if ready[0]:
+        buff_raw += irc.recv( 16384 )
+    else:
+        print("No response, retrying...")
+        continue
+
+    # while True:
+    #     if not running:
+    #         break
+    #     newdata = irc.recv( 1024 )
+    #     if not newdata:
+    #         break
+    #     buff_raw += newdata
+
 
     try:
         buff_utf = buff_raw.decode('utf-8')
@@ -128,24 +148,32 @@ while( True ):
         continue
         pass
     
-    # print("Buffer: " + buff)
+    # print( "Buffer >> ", buff_utf )
+    # print( "" )
+
     buff_split = buff_utf.split("\r\n")
+    # print("Buffer newlines: " + str( len( buff_split ) ) )
     for buf in buff_split[:-1]:
-        # print(" - line: " + buf)
+
+        # print(" >> Line >> " + buf)
+
         #to keep the connection alive, we have to reply to the ping
         #Twitch terminates the connection if it doesn't receive a reply after 3 pings
         
         if "PING" in buf:
-            print("received ping")
+            print(">> Received ping")
             buf = str.encode("PONG tmi.twitch.tv\r\n")
             irc.send(buf)
             continue
 
         if buf == ":tmi.twitch.tv RECONNECT":
-            print("received reconnect :S?")
+            print(">> Received reconnect!")
             irc = connect()
             continue
 
+        if buf[0] != "@":
+            print( "Corrupt >> " + str(buf) )
+            print( "" )
         
         privmsg_data = privmsg_prog.match( buf )
         clearchat_data = clearchat_prog.match( buf )
@@ -274,7 +302,7 @@ while( True ):
             }
             
             jsondata['comments'].append( comment )
-            print( "Message >> " + comment['commenter']['name'] + ": " + comment['message']['body'] )
+            # print( "Message >> " + comment['commenter']['name'] + ": " + comment['message']['body'] )
             raw_text += "<{date}> {user}: {message}\n".format( date=now.strftime(dateformat), user=tags["display-name"], message=body_text )
             
             # num_since_saved += 1
