@@ -649,6 +649,7 @@ class TwitchAutomator {
 
 		if( TwitchConfig::cfg('chat_dump') ){
 			// gracefully kill chat dump
+			$chat_process->setTimeout(90);
 			$chat_process->signal(SIGINT);
 			$chat_process->wait();
 			if( file_exists( $chat_pidfile ) ) unlink( $chat_pidfile );
