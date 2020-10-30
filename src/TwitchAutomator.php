@@ -651,7 +651,7 @@ class TwitchAutomator {
 			// gracefully kill chat dump
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "Ending chat dump with filename " . basename($chat_filename), ['download-capture' => $data_username] );
 			$chat_process->setTimeout(90);
-			$chat_process->signal(SIGINT);
+			$chat_process->signal( 2 ); // SIGINT
 			$chat_process->wait();
 			if( file_exists( $chat_pidfile ) ) unlink( $chat_pidfile );
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "Ended chat dump with filename " . basename($chat_filename), ['download-capture' => $data_username] );
