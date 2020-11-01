@@ -70,9 +70,12 @@ jsondata = {
     }
 }
 
+def date_log( *args ):
+    print( "<{date}>".format( date=bcolors.HEADER+datetime.datetime.utcnow().strftime(dateformat) ), bcolors.OKGREEN, ' '.join(args), bcolors.ENDC )
+
 def connect():
 
-    print( "connecting to " + Twitch_channel + " as " + Twitch_user )
+    date_log( "Connecting to " + Twitch_channel + " as " + Twitch_user )
     
     irc = socket.socket()
 
@@ -103,7 +106,7 @@ irc = connect()
 
 def exit_gracefully(self, signum):
     global running
-    print("Shutting down...")
+    date_log("Shutting down...")
     running = False
 
 signal.signal(signal.SIGINT, exit_gracefully)
@@ -130,7 +133,7 @@ def saveJSON():
     global dateformat
     with open(output_path, 'w') as outfile:
 
-        print( bcolors.OKGREEN + "Saving JSON..." + bcolors.ENDC )
+        date_log( "Saving JSON..." )
 
         time_duration = time.time() - time_start
         hours, remainder = divmod(time_duration, 3600)
@@ -142,9 +145,9 @@ def saveJSON():
         jsondata['video']['duration'] = total_duration
         json.dump(jsondata, outfile)
 
-        print( bcolors.OKGREEN + "JSON saved, hopefully!" + bcolors.ENDC )
+        date_log( "JSON saved, hopefully!" )
     
-    print( bcolors.OKGREEN + "Saving raw txt..." + bcolors.ENDC )
+    date_log( "Saving raw txt..." )
     outfile = open(output_path + ".txt", 'a', encoding='utf-8')
     outfile.write(raw_text)
     outfile.close()
@@ -224,11 +227,11 @@ def process_buffer( irc, buff_raw ):
     try:
         buff_utf = buff_raw.decode('utf-8')
     except UnicodeDecodeError as err:
-        print("Couldn't decode packet (" + str(err) + "): ", buff_raw)
+        date_log("Couldn't decode packet (" + str(err) + "): ", buff_raw)
         return False
     
     if not buff_raw:
-        print("Nothing to process")
+        date_log("Nothing to process")
         return False
 
     # print( "Buffer >> ", buff_utf )
@@ -390,7 +393,6 @@ def process_buffer( irc, buff_raw ):
             print( "<{date}> {user}: {message}".format( date=bcolors.HEADER+cmd_datetime.strftime(dateformat), user=bcolors.OKBLUE + comment['commenter']['display_name'], message=bcolors.ENDC+cmd_message ) )
         except:
             print("Print error", file=sys.stderr)
-            pass
         
         # print( "Tags: ", tags )
         raw_text += "<{date}> {user}: {message}\n".format( date=cmd_datetime.strftime(dateformat), user=comment['commenter']['display_name'], message=body_text )
@@ -401,7 +403,7 @@ def process_buffer( irc, buff_raw ):
         #     num_since_saved = 0
         #     saveJSON()
         if time.time() > last_save + time_to_save:
-            print( bcolors.OKGREEN + "Saving after one minute just to be sure!" + bcolors.ENDC )
+            date_log( "Saving after one minute just to be sure!" )
             last_save = time.time()
             saveJSON()
 
@@ -473,15 +475,15 @@ while( True ):
         # print("Process buffer...")
         process_buffer(irc, buff_raw)
     else:
-        print("No response, retrying...")
+        date_log("No response, retrying...")
 
     msg_counter += 1
     if msg_counter > 100:
-        print("Stats: extra=" + str( len(extra) ) + " text=" + str( len(raw_text) ) + " json=" + str( len( jsondata['comments'] ) ) )
+        date_log("Stats: extra=" + str( len(extra) ) + " text=" + str( len(raw_text) ) + " json=" + str( len( jsondata['comments'] ) ) )
         msg_counter = 0
 
     # process_buffer( buff_raw )
     
-print("Exited loop...")
+date_log("Exited loop...")
 
 saveJSON()

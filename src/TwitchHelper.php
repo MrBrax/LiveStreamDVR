@@ -44,6 +44,7 @@ class TwitchHelper {
 		__DIR__ . "/../cache/pids",
 		__DIR__ . "/../logs",
 		__DIR__ . "/../logs/html",
+		__DIR__ . "/../logs/software",
 		__DIR__ . "/../payloads",
 		__DIR__ . "/../public",
 		__DIR__ . "/../public/vods",
@@ -225,7 +226,7 @@ class TwitchHelper {
 	}
 
 	public static function append_log( $basename, $text, $newline = true ){
-		$basepath = self::$logs_folder;
+		$basepath = self::$logs_folder . DIRECTORY_SEPARATOR . 'software';
 		$filepath = $basepath . DIRECTORY_SEPARATOR . $basename . ".log";
 		$filetext = file_exists($filepath) ? file_get_contents( $filepath ) . ( $newline ? "\n" : "" ) : "";
 		$filetext .= trim($text);

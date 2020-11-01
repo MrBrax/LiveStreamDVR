@@ -586,7 +586,7 @@ class TwitchAutomator {
 		$this->vod->dt_capture_started = new \DateTime();
 		$this->vod->saveJSON('dt_capture_started set');
 
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting capture with filename " . basename($capture_filename), ['download-capture' => $data_username] );
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting capture with filename " . basename($capture_filename), ['download-capture' => $data_username, 'cmd' => implode(' ', $cmd)  ] );
 		
 		// start process in async mode
 		$process = new Process( $cmd, dirname($capture_filename), null, null, null );
@@ -603,19 +603,33 @@ class TwitchAutomator {
 
 		// chat capture
 		if( TwitchConfig::cfg('chat_dump') ){
+
 			$chat_cmd = [];
+
+			// test
+			// $chat_cmd[] = 'screen';
+			// $chat_cmd[] = '-S';
+			// $chat_cmd[] = $basename;
+
 			$chat_cmd[] = 'python';
 			$chat_cmd[] = __DIR__ . '/Utilities/twitch-chat.py';
 			$chat_cmd[] = $this->vod->streamer_name;
 			$chat_cmd[] = $this->vod->streamer_id;
 			$chat_cmd[] = $chat_filename;
-			TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting chat dump with filename " . basename($chat_filename), ['download-capture' => $data_username] );
+
+			TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting chat dump with filename " . basename($chat_filename), ['download-capture' => $data_username, 'cmd' => implode(' ', $chat_cmd) ] );
+			
 			$chat_process = new Process($chat_cmd, null, null, null, null );
 			$chat_process->setTimeout(null);
 			$chat_process->setIdleTimeout(null);
 			$chat_process->start();
+			
 			$chat_pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'chatdump_' . $data_username . '.pid';
 			file_put_contents( $chat_pidfile, $chat_process->getPid() );
+
+			TwitchHelper::append_log("chatdump_" . $basename . "_stdout." . $int, implode(" ", $chat_cmd) );
+			TwitchHelper::append_log("chatdump_" . $basename . "_stderr." . $int, implode(" ", $chat_cmd) );
+
 		}
 
 		// wait loop until it's done
@@ -804,8 +818,8 @@ class TwitchAutomator {
 		// remove pidfile
 		if( file_exists( $pidfile ) ) unlink( $pidfile );
 
-		TwitchHelper::append_log( "ffmpeg_convert_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
-		TwitchHelper::append_log( "ffmpeg_convert_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
+		TwitchHelper::append_log( "ffmpeg_convert_" . $basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput() );
+		TwitchHelper::append_log( "ffmpeg_convert_" . $basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput() );
 
 		if( file_exists( $converted_filename ) ){
 			TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "Finished conversion of " . basename($capture_filename) . " to " . basename($converted_filename), ['download-convert' => $data_username] );
