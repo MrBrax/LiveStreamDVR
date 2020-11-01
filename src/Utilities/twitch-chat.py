@@ -31,6 +31,7 @@ time_start = time.time()
 date_start = datetime.datetime.utcnow().strftime(dateformat)
 ls_cap = True
 last_save = 0
+msg_counter = 0
 
 irc_newline = "\r\n"
 
@@ -125,6 +126,8 @@ serv_prog = re.compile( r"@(?P<tags>.*)\s\:tmi\.twitch\.tv\s(?P<action>[A-Z]+)\s
 # clearchat_prog = re.compile(r"@(.*)\s\:tmi\.twitch\.tv\sCLEARCHAT\s#(\w+) :(\w+)")
 
 def saveJSON():
+    global raw_text
+    global dateformat
     with open(output_path, 'w') as outfile:
 
         print( bcolors.OKGREEN + "Saving JSON..." + bcolors.ENDC )
@@ -135,15 +138,17 @@ def saveJSON():
 
         total_duration = "{hour}h{minute}m{second}s".format(hour=round(hours), minute=round(minutes), second=round(seconds))
         
+        jsondata['saved_at'] = datetime.datetime.utcnow().strftime(dateformat)
         jsondata['video']['duration'] = total_duration
         json.dump(jsondata, outfile)
 
         print( bcolors.OKGREEN + "JSON saved, hopefully!" + bcolors.ENDC )
     
     print( bcolors.OKGREEN + "Saving raw txt..." + bcolors.ENDC )
-    outfile = open(output_path + ".txt", 'w+', encoding='utf-8')
+    outfile = open(output_path + ".txt", 'a', encoding='utf-8')
     outfile.write(raw_text)
     outfile.close()
+    raw_text = ""
 
 num_since_saved = 0
 
@@ -297,7 +302,8 @@ def process_buffer( irc, buff_raw ):
         tags = None
 
         if irc_tags:
-
+            
+            ''' badge-info, badges, client-nonce, color, display-name, emotes, flags, id, mod, room-id, subscriber, tmi-sent-ts, turbo, user-id, user-type '''
             tags = parse_irc_tags( irc_tags )
         
             emoticons = parse_emoticons( tags['emotes'] )
@@ -307,6 +313,9 @@ def process_buffer( irc, buff_raw ):
             fragments = []
 
             text_buffer = ""
+
+            comment_server_timestamp = round( int( tags['tmi-sent-ts'] ) / 1000 )
+            comment_server_datetime = datetime.datetime.utcfromtimestamp( comment_server_timestamp )
 
             if emoticons:
 
@@ -367,15 +376,24 @@ def process_buffer( irc, buff_raw ):
             "state": "published", # fake
             "content_offset_seconds": round(offset, 4),
             "created_at": now.strftime( dateformat ),
-            "updated_at": now.strftime( dateformat )
+            "updated_at": now.strftime( dateformat ),
+            "server_created_at": comment_server_datetime.strftime( dateformat )
         }
         
         jsondata['comments'].append( comment )
 
+        cmd_datetime = now # comment_server_datetime, now
         cmd_message = comment['message']['body']
         cmd_message = re.sub(r'(\@\w+)\s', bcolors.FAIL + bcolors.BOLD + r'\1 ' + bcolors.ENDC, cmd_message )
-        print( "<{date}> {user}: {message}".format( date=bcolors.HEADER+now.strftime(dateformat), user=bcolors.OKBLUE + comment['commenter']['display_name'], message=bcolors.ENDC+cmd_message ) )
-        raw_text += "<{date}> {user}: {message}\n".format( date=now.strftime(dateformat), user=comment['commenter']['display_name'], message=body_text )
+
+        try:
+            print( "<{date}> {user}: {message}".format( date=bcolors.HEADER+cmd_datetime.strftime(dateformat), user=bcolors.OKBLUE + comment['commenter']['display_name'], message=bcolors.ENDC+cmd_message ) )
+        except:
+            print("Print error", file=sys.stderr)
+            pass
+        
+        # print( "Tags: ", tags )
+        raw_text += "<{date}> {user}: {message}\n".format( date=cmd_datetime.strftime(dateformat), user=comment['commenter']['display_name'], message=body_text )
         
         # num_since_saved += 1
         # if num_since_saved > num_to_save:
@@ -392,17 +410,7 @@ def process_buffer( irc, buff_raw ):
         # print( " Fragments: ", fragments )
         # print( "" )
         # chat_log.write("{time}{user}:{message}\r\n".format(,,))
-    
-    #elif clearchat_data:
-    #    
-    #    tags = {}
-    #    raw_tags = clearchat_data.group(1).split(";")
-    #    for tag in raw_tags:
-    #        tags[ tag.split("=")[0] ] = tag.split("=")[1]
-    #        # print( "Tag: " + key + " = " + value )
-    #
-    #    print( "Clear chat >> ", tags)
-    
+        
     elif irc_action == "ROOMSTATE":
         print( bcolors.OKCYAN + "Room state >> ", buf, bcolors.ENDC )
     elif irc_action == "USERNOTICE":
@@ -466,6 +474,11 @@ while( True ):
         process_buffer(irc, buff_raw)
     else:
         print("No response, retrying...")
+
+    msg_counter += 1
+    if msg_counter > 100:
+        print("Stats: extra=" + str( len(extra) ) + " text=" + str( len(raw_text) ) + " json=" + str( len( jsondata['comments'] ) ) )
+        msg_counter = 0
 
     # process_buffer( buff_raw )
     

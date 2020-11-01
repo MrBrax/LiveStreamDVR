@@ -68,6 +68,7 @@ class TwitchVOD {
 	public $is_chat_rendered = false;
 	public $is_chat_burned = false;
 	public $is_lossless_cut_generated = false;
+	public $is_chatdump_captured = false;
 
 	public $dt_ended_at = null;
 	public $dt_capture_started = null;
@@ -85,6 +86,7 @@ class TwitchVOD {
 	public $path_losslesscut = null; 
 	public $path_chatrender = null;	
 	public $path_chatburn = null;	
+	public $path_chatdump = null;
 
 	private $pid_cache = [];
 
@@ -214,10 +216,12 @@ class TwitchVOD {
 		$this->path_losslesscut 		= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv';
 		$this->path_chatrender			= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
 		$this->path_chatburn			= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_burned.mp4';
+		$this->path_chatdump			= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chatdump';
 
 		$this->is_chat_downloaded 			= file_exists( $this->path_chat );
 		$this->is_vod_downloaded 			= file_exists( $this->path_downloaded_vod );
 		$this->is_lossless_cut_generated 	= file_exists( $this->path_losslesscut );
+		$this->is_chatdump_captured 		= file_exists( $this->path_chatdump );
 
 		$this->is_chat_rendered 	= file_exists( $this->path_chatrender );
 		$this->is_chat_burned 		= file_exists( $this->path_chatburn );

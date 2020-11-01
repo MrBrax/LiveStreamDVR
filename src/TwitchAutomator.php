@@ -611,18 +611,26 @@ class TwitchAutomator {
 			$chat_cmd[] = $chat_filename;
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting chat dump with filename " . basename($chat_filename), ['download-capture' => $data_username] );
 			$chat_process = new Process($chat_cmd, null, null, null, null );
+			$chat_process->setTimeout(null);
+			$chat_process->setIdleTimeout(null);
 			$chat_process->start();
 			$chat_pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'chatdump_' . $data_username . '.pid';
 			file_put_contents( $chat_pidfile, $chat_process->getPid() );
 		}
 
 		// wait loop until it's done
-		$process->wait(function($type, $buffer) use($basename, $int, $data_username) {
+		$process->wait(function($type, $buffer) use($basename, $int, $data_username, $chat_process) {
 			
 			if (Process::ERR === $type) {
 				// echo 'ERR > '.$buffer;
 			} else {
 				// echo 'OUT > '.$buffer;
+			}
+
+			if( isset($chat_process) && $chat_process->isRunning() ){
+				if( !$chat_process->getIncrementalOutput() ){
+					TwitchHelper::log( TwitchHelper::LOG_WARNING, "No chat output in chat dump", ['download-capture' => $data_username] );
+				}
 			}
 			
 			// get stream resolution
@@ -650,15 +658,37 @@ class TwitchAutomator {
 		if( TwitchConfig::cfg('chat_dump') ){
 			// gracefully kill chat dump
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "Ending chat dump with filename " . basename($chat_filename), ['download-capture' => $data_username] );
-			$chat_process->setTimeout(90);
-			$chat_process->signal( 2 ); // SIGINT
-			$chat_process->wait();
+			
+			// $chat_process->setTimeout(90);
+			
+			/*
+			$chat_process->signal( defined('SIGTERM') ? SIGTERM : 15 ); // SIGTERM
+
+			
+			sleep(10);
+			if( $chat_process->isRunning() ){
+				$chat_process->stop(0);
+			}
+			*/
+
+			$chat_process->stop(15);
+
+			/*
+			try {
+				$chat_process->wait();
+			} catch (\Throwable $th) {
+				TwitchHelper::log( TwitchHelper::LOG_ERROR, "Chat dump SIGTERM wait error: " . $th->getMessage(), ['download-capture' => $data_username] );
+			}
+			*/
+			
 			if( file_exists( $chat_pidfile ) ) unlink( $chat_pidfile );
+			TwitchHelper::append_log("chatdump_" . $basename . "_stdout." . $int, $chat_process->getOutput() );
+			TwitchHelper::append_log("chatdump_" . $basename . "_stderr." . $int, $chat_process->getErrorOutput() );
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "Ended chat dump with filename " . basename($chat_filename), ['download-capture' => $data_username] );
 		}
 
-		$this->info[] = 'Streamlink output: ' . $process->getOutput();
-		$this->info[] = 'Streamlink error: ' . $process->getErrorOutput();
+		// $this->info[] = 'Streamlink output: ' . $process->getOutput();
+		// $this->info[] = 'Streamlink error: ' . $process->getErrorOutput();
 
 		// download with youtube-dl if streamlink fails, shouldn't be required anymore
 		if( strpos($process->getOutput(), '410 Client Error') !== false ){
