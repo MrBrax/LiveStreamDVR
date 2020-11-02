@@ -16,6 +16,7 @@ use App\Controller\ApiController;
 use App\Controller\DebugController;
 use App\Controller\CronController;
 use App\Controller\ToolsController;
+use App\TwitchConfig;
 
 // Define named route
 $app->get('/', function (Request $request, Response $response, array $args) use ($app) {
@@ -89,6 +90,9 @@ $app->get('/force_record/{username}', function (Request $request, Response $resp
 // TODO: refactor
 $app->get('/abort_record/{username}', function (Request $request, Response $response, array $args) {
 
+    $username = $args['username'];
+
+    /*
     $vods = glob(TwitchHelper::vod_folder( $args['username'] ) . DIRECTORY_SEPARATOR . $args['username'] . "_*.json");
 
     foreach ($vods as $k => $v) {
@@ -102,6 +106,16 @@ $app->get('/abort_record/{username}', function (Request $request, Response $resp
             $response->getBody()->write( "<pre>" . $output . "</pre><br>");
         }
 
+    }*/
+
+    $pid = TwitchHelper::getPidfileStatus('capture_' . $username );
+    if($pid){
+        $output = TwitchHelper::exec( ["kill", $pid] );
+        $response->getBody()->write( "Killed process.<br><pre>" . $output . "</pre>");
+    }else{
+        $response->getBody()->write( "Found no process running for " . $username );
     }
+
+    return $response;
     
 })->setName('abort_record');

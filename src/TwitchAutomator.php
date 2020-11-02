@@ -7,6 +7,8 @@ use DateTime;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
+// declare(ticks=1); // test
+
 class TwitchAutomator {
 
 	public $data_cache = [];
@@ -452,8 +454,8 @@ class TwitchAutomator {
 		// finalize
 
 		// metadata stuff
-		TwitchHelper::log( TwitchHelper::LOG_INFO, "Sleep 5 minutes for " . $basename, ['download' => $data_username] );
-		sleep(60 * 5);
+		TwitchHelper::log( TwitchHelper::LOG_INFO, "Sleep 2 minutes for " . $basename, ['download' => $data_username] );
+		sleep(60 * 2);
 
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Do metadata on " . $basename, ['download' => $data_username] );
 
@@ -593,8 +595,8 @@ class TwitchAutomator {
 		$process->start();
 
 		// output command line
-		TwitchHelper::append_log("streamlink_capture_" . $basename . "_stdout." . $int, "$ " . implode(" ", $cmd) );
-		TwitchHelper::append_log("streamlink_capture_" . $basename . "_stderr." . $int, "$ " . implode(" ", $cmd) );
+		TwitchHelper::append_log("streamlink_" . $basename . "_stdout." . $int, "$ " . implode(" ", $cmd) );
+		TwitchHelper::append_log("streamlink_" . $basename . "_stderr." . $int, "$ " . implode(" ", $cmd) );
 
 		// save pid to file
 		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'capture_' . $data_username . '.pid';
@@ -619,9 +621,17 @@ class TwitchAutomator {
 
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting chat dump with filename " . basename($chat_filename), ['download-capture' => $data_username, 'cmd' => implode(' ', $chat_cmd) ] );
 			
+			// $chat_process = Process::fromShellCommandline( implode(" ", $cmd) );
 			$chat_process = new Process($chat_cmd, null, null, null, null );
 			$chat_process->setTimeout(null);
 			$chat_process->setIdleTimeout(null);
+
+			try {
+				$chat_process->setTty(true);
+			} catch (\Throwable $th) {
+				TwitchHelper::log( TwitchHelper::LOG_ERROR, "TTY not supported", ['download-capture' => $data_username] );
+			}
+
 			$chat_process->start();
 			
 			$chat_pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'chatdump_' . $data_username . '.pid';
@@ -633,6 +643,7 @@ class TwitchAutomator {
 		}
 
 		// wait loop until it's done
+		/*
 		$process->wait(function($type, $buffer) use($basename, $int, $data_username, $chat_process) {
 			
 			if (Process::ERR === $type) {
@@ -641,9 +652,14 @@ class TwitchAutomator {
 				// echo 'OUT > '.$buffer;
 			}
 
-			if( isset($chat_process) && $chat_process->isRunning() ){
-				if( !$chat_process->getIncrementalOutput() ){
-					TwitchHelper::log( TwitchHelper::LOG_WARNING, "No chat output in chat dump", ['download-capture' => $data_username] );
+			if( TwitchConfig::cfg('dump_chat') && isset($chat_process) ){
+				if( $chat_process->isRunning() ){
+					$chat_process->checkTimeout();
+					// if( !$chat_process->getIncrementalOutput() ){
+					// 	TwitchHelper::log( TwitchHelper::LOG_DEBUG, "No chat output in chat dump", ['download-capture' => $data_username] );
+					// }
+				}else{
+					TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Chat dump enabled but not running", ['download-capture' => $data_username] );
 				}
 			}
 			
@@ -667,6 +683,50 @@ class TwitchAutomator {
 			}
 			
 		});
+		*/
+		while( true ){
+
+			// check if capture is running, and quit if it isn't
+			if( !$process->isRunning() ){
+				TwitchHelper::log( TwitchHelper::LOG_INFO, "Streamlink exited, breaking loop", ['download-capture' => $data_username] );
+				break;
+			}
+
+			// check timeout of capture
+			try {
+				$process->checkTimeout();
+			} catch (\Throwable $th) {
+				TwitchHelper::log( TwitchHelper::LOG_ERROR, "Process timeout: " . $th->getMessage(), ['download-capture' => $data_username] );
+			}
+
+			$process->addOutput( "pad (" . date("Y-m-d H:i:s") . ")" );
+
+			// check timeout of chat dump
+			if( TwitchConfig::cfg('chat_dump') && isset($chat_process) ){
+				
+				try {
+					$chat_process->checkTimeout();
+				} catch (\Throwable $th) {
+					TwitchHelper::log( TwitchHelper::LOG_ERROR, "Process timeout: " . $th->getMessage(), ['download-capture' => $data_username] );
+				}
+
+				$chat_process->addOutput( "pad (" . date("Y-m-d H:i:s") . ")" );
+
+				$cmd_chatdump_stdout_buffer = $chat_process->getIncrementalOutput();
+				$cmd_chatdump_stderr_buffer = $chat_process->getIncrementalErrorOutput();
+				if( $cmd_chatdump_stdout_buffer ) TwitchHelper::append_log("chatdump_" . $basename . "_stdout." . $int, $cmd_chatdump_stdout_buffer );
+				if( $cmd_chatdump_stdout_buffer ) TwitchHelper::append_log("chatdump_" . $basename . "_stderr." . $int, $cmd_chatdump_stderr_buffer );
+
+			}
+
+			$cmd_stdout_buffer = $process->getIncrementalOutput();
+			$cmd_stderr_buffer = $process->getIncrementalErrorOutput();
+			if( $cmd_stdout_buffer ) TwitchHelper::append_log("streamlink_" . $basename . "_stdout." . $int, $cmd_stdout_buffer );
+			if( $cmd_stdout_buffer ) TwitchHelper::append_log("streamlink_" . $basename . "_stderr." . $int, $cmd_stderr_buffer );
+
+			sleep(10);
+
+		}
 		TwitchHelper::log( TwitchHelper::LOG_INFO, "Finished capture with filename " . basename($capture_filename), ['download-capture' => $data_username] );
 
 		if( TwitchConfig::cfg('chat_dump') ){
@@ -685,7 +745,7 @@ class TwitchAutomator {
 			}
 			*/
 
-			$chat_process->stop(15);
+			$chat_process->stop(60);
 
 			/*
 			try {
@@ -696,8 +756,8 @@ class TwitchAutomator {
 			*/
 			
 			if( file_exists( $chat_pidfile ) ) unlink( $chat_pidfile );
-			TwitchHelper::append_log("chatdump_" . $basename . "_stdout." . $int, $chat_process->getOutput() );
-			TwitchHelper::append_log("chatdump_" . $basename . "_stderr." . $int, $chat_process->getErrorOutput() );
+			// TwitchHelper::append_log("chatdump_" . $basename . "_stdout." . $int, $chat_process->getOutput() );
+			// TwitchHelper::append_log("chatdump_" . $basename . "_stderr." . $int, $chat_process->getErrorOutput() );
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "Ended chat dump with filename " . basename($chat_filename), ['download-capture' => $data_username] );
 		}
 

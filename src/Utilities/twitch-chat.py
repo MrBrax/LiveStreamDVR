@@ -121,6 +121,7 @@ irc_patterns = (
     # 
 )
 
+mention_prog = re.compile( r"(\@\w+)\s" )
 action_prog = re.compile( r"@(?P<tags>.*)\s:(?P<user>\w+)!\w+@\w+\.tmi\.twitch\.tv\s(?P<action>[A-Z]+)\s#(?P<channel>\w+)\s:(?P<message>.*)" )
 serv_prog = re.compile( r"@(?P<tags>.*)\s\:tmi\.twitch\.tv\s(?P<action>[A-Z]+)\s#(?P<channel>\w+)\s?:?(?P<message>.*)?" )
 # action_prog = re.compile(r"@(?P<tags>.*)\s:(?P<user>\w+)!\w+@\w+\.tmi\.twitch\.tv\s(?P<action>[A-Z]+)\s#(?P<channel>\w+)\s:(?P<message>.*)")
@@ -387,8 +388,8 @@ def process_buffer( irc, buff_raw ):
 
         cmd_datetime = now # comment_server_datetime, now
         cmd_message = comment['message']['body']
-        cmd_message = re.sub(r'(\@\w+)\s', bcolors.FAIL + bcolors.BOLD + r'\1 ' + bcolors.ENDC, cmd_message )
-
+        #cmd_message = re.sub(r'(\@\w+)\s', bcolors.FAIL + bcolors.BOLD + r'\1 ' + bcolors.ENDC, cmd_message )
+        cmd_message = mention_prog.sub( bcolors.FAIL + bcolors.BOLD + r'\1 ' + bcolors.ENDC, cmd_message )
         try:
             print( "<{date}> {user}: {message}".format( date=bcolors.HEADER+cmd_datetime.strftime(dateformat), user=bcolors.OKBLUE + comment['commenter']['display_name'], message=bcolors.ENDC+cmd_message ) )
         except:
@@ -403,7 +404,7 @@ def process_buffer( irc, buff_raw ):
         #     num_since_saved = 0
         #     saveJSON()
         if time.time() > last_save + time_to_save:
-            date_log( "Saving after one minute just to be sure!" )
+            date_log( "Saving after two minutes just to be sure!" )
             last_save = time.time()
             saveJSON()
 

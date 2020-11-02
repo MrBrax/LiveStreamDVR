@@ -851,19 +851,28 @@ class TwitchHelper {
 	 * @return int|false
 	 */
 	public static function getPidfileStatus( $name ){
+		
 		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . '.pid';
 		
 		if( !file_exists( $pidfile ) ){
+			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "PID file check, file does not exist (" . $name . ".pid)" );
 			return false;
 		}
 
 		$pid = file_get_contents( $pidfile );
 
+		if(!$pid){
+			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "PID file check, file does not contain any data (" . $name . ".pid)" );
+			return false;
+		}
+
 		$output = TwitchHelper::exec( ["ps", "-p", $pid] );
 
 		if( strpos( $output, $pid ) !== false ){
+			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "PID file check, process is running" );
 			return $pid;
 		}else{
+			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "PID file check, process does not exist" );
 			return false;
 		}
 

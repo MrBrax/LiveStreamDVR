@@ -171,11 +171,6 @@ class SettingsController
         $download_chat  = isset($_POST['download_chat']);
         $burn_chat  = isset($_POST['burn_chat']);
 
-        if( TwitchConfig::getStreamer($username) ){
-            $response->getBody()->write("Streamer with that username already exists in config");
-            return $response;
-        }
-
         $tmp = TwitchHelper::getChannelData( $username );
         if(!$tmp){
             $response->getBody()->write("Streamer with that username doesn't seem to exist on Twitch");
@@ -186,6 +181,11 @@ class SettingsController
         if( $tmp['display_name'] !== $username ){
             $response->getBody()->write("Username capitalization seems to be incorrect, fixing.<br>");
             $username = $tmp['display_name'];
+        }
+
+        if( TwitchConfig::getStreamer($username) ){
+            $response->getBody()->write("Streamer with that username already exists in config");
+            return $response;
         }
 
         // template
