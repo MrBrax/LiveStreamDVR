@@ -631,6 +631,17 @@ class TwitchAutomator {
 			} catch (\Throwable $th) {
 				TwitchHelper::log( TwitchHelper::LOG_ERROR, "TTY not supported", ['download-capture' => $data_username] );
 			}
+			
+			if( $chat_process->isTty() ){
+				TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "TTY enabled", ['download-capture' => $data_username] );
+			}
+
+			if( $chat_process->isPtySupported() ){
+				$chat_process->setPty(true);
+				TwitchHelper::log( TwitchHelper::LOG_SUCCESS, "PTY enabled", ['download-capture' => $data_username] );
+			}else{
+				TwitchHelper::log( TwitchHelper::LOG_ERROR, "PTY not supported", ['download-capture' => $data_username] );
+			}
 
 			$chat_process->start();
 			
