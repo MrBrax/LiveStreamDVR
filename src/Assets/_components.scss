@@ -105,3 +105,16 @@
 		font-weight: 200;
 	}
 }
+
+.jobs_list {
+	position: fixed;
+	bottom: 0px;
+	right: 250px;
+	color: #333;
+	background: #fff;
+	border: 1px solid #ccc;
+	border-bottom: none;
+	padding: 3px;
+	font-size: 10px;
+	table { font-size: 10px; color: #333; }
+}

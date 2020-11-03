@@ -7,6 +7,7 @@ import json
 import signal
 import sys
 import select
+import argparse
 
 # http://www.rikels.info/index.php/en/articles/55-enter-a-twich-chat-without-account
 
@@ -16,15 +17,25 @@ import select
 block_size = 128
 time_to_save = 120
 
+parser = argparse.ArgumentParser( description='Dump twitch chat to JSON' )
+parser.add_argument('--channel', type=str, help='Twitch username', required=True)
+parser.add_argument('--userid', type=str, help='Twitch userid', required=True)
+parser.add_argument('--output', type=str, help='Output path', required=True)
+parser.add_argument('--date', type=str, help='Start date')
+
+args = parser.parse_args()
 
 Twitch_user = "justinfan{random}".format(random=int(random()*9999999))
 Twitch_pass = "blah"
-Twitch_channel = sys.argv[1]
-Twitch_userid = sys.argv[2]
+
+Twitch_channel = args.channel
+Twitch_userid = args.userid
+output_path = args.output
+input_date = args.date
+
 chat_log_path = "./"
 sub = False
 sub_time = None
-output_path = sys.argv[3]
 running = True
 dateformat = "%Y-%m-%dT%H:%M:%S.%fZ"
 time_start = time.time()
@@ -71,7 +82,7 @@ jsondata = {
 }
 
 def date_log( *args ):
-    print( "<{date}>".format( date=bcolors.HEADER+datetime.datetime.utcnow().strftime(dateformat) ), bcolors.OKGREEN, ' '.join(args), bcolors.ENDC )
+    print( "<{date}>".format( date=bcolors.HEADER+datetime.datetime.utcnow().strftime(dateformat)+bcolors.ENDC ), bcolors.OKGREEN, ' '.join(args), bcolors.ENDC )
 
 def connect():
 
@@ -132,7 +143,7 @@ serv_prog = re.compile( r"@(?P<tags>.*)\s\:tmi\.twitch\.tv\s(?P<action>[A-Z]+)\s
 def saveJSON():
     global raw_text
     global dateformat
-    with open(output_path, 'w') as outfile:
+    with open(output_path, 'w', encoding='utf-8') as outfile:
 
         date_log( "Saving JSON..." )
 
@@ -381,7 +392,8 @@ def process_buffer( irc, buff_raw ):
             "content_offset_seconds": round(offset, 4),
             "created_at": now.strftime( dateformat ),
             "updated_at": now.strftime( dateformat ),
-            "server_created_at": comment_server_datetime.strftime( dateformat )
+            "server_created_at": comment_server_datetime.strftime( dateformat ),
+            "twitch_created_at": input_date or None
         }
         
         jsondata['comments'].append( comment )
@@ -391,7 +403,7 @@ def process_buffer( irc, buff_raw ):
         #cmd_message = re.sub(r'(\@\w+)\s', bcolors.FAIL + bcolors.BOLD + r'\1 ' + bcolors.ENDC, cmd_message )
         cmd_message = mention_prog.sub( bcolors.FAIL + bcolors.BOLD + r'\1 ' + bcolors.ENDC, cmd_message )
         try:
-            print( "<{date}> {user}: {message}".format( date=bcolors.HEADER+cmd_datetime.strftime(dateformat), user=bcolors.OKBLUE + comment['commenter']['display_name'], message=bcolors.ENDC+cmd_message ) )
+            print( "<{date}> {user}: {message}".format( date=bcolors.HEADER+cmd_datetime.strftime(dateformat)+bcolors.ENDC, user=bcolors.OKBLUE + comment['commenter']['display_name'], message=bcolors.ENDC+cmd_message ) )
         except:
             print("Print error", file=sys.stderr)
         

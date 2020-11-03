@@ -92,6 +92,30 @@ class ApiController
 
     }
 
+    public function list_jobs( Request $request, Response $response, $args ) {
+
+        $current_jobs_raw = glob( TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . "*.pid");
+        $current_jobs = [];
+        foreach( $current_jobs_raw as $v ){
+            $pid = file_get_contents($v);
+            $status = TwitchHelper::getPidfileStatus( basename($v, ".pid") );
+            $current_jobs[] = [
+                'name' => basename($v, ".pid"),
+                'pid' => $pid,
+                'status' => $status !== false
+            ];
+        }
+
+        $payload = json_encode([
+            'data' => $current_jobs,
+            'status' => 'OK'
+        ]);
+        
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+
+    }
+
     public function render_menu( Request $request, Response $response, $args ) {
         
         list($streamerList, $total_size) = $this->generateStreamerList();

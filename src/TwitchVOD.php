@@ -1489,7 +1489,10 @@ class TwitchVOD {
 		unlink( $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.json'); // data file
 		if( $this->is_lossless_cut_generated ) unlink( $this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv'); // losslesscut
 		if( $this->is_chat_downloaded ) unlink( $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat'); // chat download
-
+		if( $this->is_chatdump_captured ){
+			unlink( $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chatdump');
+			unlink( $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chatdump.txt');
+		}
 	}
 
 	/**

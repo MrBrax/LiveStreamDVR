@@ -615,8 +615,17 @@ class TwitchAutomator {
 
 			$chat_cmd[] = 'python';
 			$chat_cmd[] = __DIR__ . '/Utilities/twitch-chat.py';
+
+			$chat_cmd[] = '--channel';
 			$chat_cmd[] = $this->vod->streamer_name;
+
+			$chat_cmd[] = '--userid';
 			$chat_cmd[] = $this->vod->streamer_id;
+
+			$chat_cmd[] = '--date';
+			$chat_cmd[] = $data_started;
+
+			$chat_cmd[] = '--output';
 			$chat_cmd[] = $chat_filename;
 
 			TwitchHelper::log( TwitchHelper::LOG_INFO, "Starting chat dump with filename " . basename($chat_filename), ['download-capture' => $data_username, 'cmd' => implode(' ', $chat_cmd) ] );

@@ -136,6 +136,31 @@ async function renderLog( date: string ){
     }
 }
 
+let jobs_div;
+async function fetchJobs(){
+    
+    if( !jobs_div ){
+        jobs_div = document.createElement('div');
+        jobs_div.className = 'jobs_list';
+        document.body.appendChild(jobs_div);
+    }
+
+    let content_response = await fetch( `${api_base}/list_jobs` );
+    let content_data = await content_response.json();
+    let html = '';
+    if( content_data.data.length > 0 ){
+        html += '<table>';
+        for( let proc of content_data.data ){
+            html += '<tr><td>' + proc.name + '</td><td>' + proc.pid + '</td><td>' + ( proc.status ? 'Running' : 'Exited' ) + '</td></tr>';
+        }
+        html += '</table>';
+    }else{
+        html += 'No jobs';
+    }
+    jobs_div.innerHTML = html;
+    
+}
+
 let observer : IntersectionObserver;
 
 function setupObserver(){
@@ -339,6 +364,8 @@ document.addEventListener("DOMContentLoaded", () => {
         
         window.scrollTo(0, scrollTop);
 
+        fetchJobs();
+
         setupObserver();
 
     }
@@ -352,6 +379,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setStatus(`Refreshing in ${delay} seconds...`, false);
         timeout_store = setTimeout(updateStreamers, delay * 1000);
         fluffInterval = setInterval(fluffTick, 1000);
+        fetchJobs();
     }
 
     // speech settings
