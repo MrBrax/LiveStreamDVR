@@ -145,7 +145,7 @@ trait Paths {
 	public static function find_bin_dir(){
 		if( self::is_windows() ){
 			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Windows system, requesting bin dir from path...");
-			$out = shell_exec("where streamlink.exe");
+			$out = TwitchHelper::exec( ["where", "streamlink.exe"] );
 			if($out){
 				$path = explode("\n", $out)[0];
 				TwitchConfig::$config['bin_dir'] = pathinfo($path, PATHINFO_DIRNAME);
@@ -154,7 +154,7 @@ trait Paths {
 			}
 		}else{
 			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Linux system, requesting bin dir from path...");
-			$out = shell_exec("whereis streamlink");
+			$out = TwitchHelper::exec( ["whereis", "streamlink"] );
 			if($out){
 				preg_match("/^[a-z]+\:\s([a-z\-\_\/\.]+)/", $out, $matches);
 				if($matches){

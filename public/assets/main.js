@@ -121,13 +121,18 @@ async function fetchJobs() {
         jobs_div.className = 'jobs_list';
         document.body.appendChild(jobs_div);
     }
-    let content_response = await fetch(`${api_base}/list_jobs`);
+    let content_response = await fetch(`${api_base}/jobs/list`);
     let content_data = await content_response.json();
     let html = '';
     if (content_data.data.length > 0) {
         html += '<table>';
         for (let proc of content_data.data) {
-            html += '<tr><td>' + proc.name + '</td><td>' + proc.pid + '</td><td>' + (proc.status ? 'Running' : 'Exited') + '</td></tr>';
+            let icon = proc.status ? '<span class="icon"><i class="fa fa-sync fa-spin"></i></span>' : '<span class="icon is-error flashing"><i class="fa fa-exclamation-triangle"></i></span>';
+            html += '<tr>';
+            html += '<td>' + icon + ' ' + proc.name + '</td>';
+            html += '<td>' + proc.pid + '</td>';
+            html += '<td>' + (proc.status ? 'Running' : 'Exited') + '</td>';
+            html += '</tr>';
         }
         html += '</table>';
     }

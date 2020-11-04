@@ -106,15 +106,40 @@
 	}
 }
 
+#js-status {
+	position: fixed;
+	right: 10px;
+	bottom: 0px;
+	background: #eee;
+	padding: 4px 8px;
+	font-size: 14px;
+	border-radius: 3px 3px 0 0;
+	border: 1px solid #ccc;
+	border-bottom: none;
+	transition: ease-in-out 0.5s background-color;
+	z-index: 3;
+	&.active {
+		background-color: #d75252;
+		color: #fff;
+		animation: 1s ease-in-out infinite recording;
+		border-color: #222;
+	}
+}
+
 .jobs_list {
 	position: fixed;
 	bottom: 0px;
 	right: 250px;
 	color: #333;
-	background: #fff;
+	background: #eee;
+	border-radius: 3px 3px 0 0;
 	border: 1px solid #ccc;
 	border-bottom: none;
 	padding: 3px;
 	font-size: 10px;
-	table { font-size: 10px; color: #333; }
+	z-index: 3;
+	table {
+		font-size: 10px; color: #333;
+		td { padding: 1px 2px; }
+	}
 }

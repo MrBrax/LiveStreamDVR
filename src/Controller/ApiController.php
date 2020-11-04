@@ -92,7 +92,7 @@ class ApiController
 
     }
 
-    public function list_jobs( Request $request, Response $response, $args ) {
+    public function jobs_list( Request $request, Response $response, $args ) {
 
         $current_jobs_raw = glob( TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . "*.pid");
         $current_jobs = [];
@@ -112,6 +112,30 @@ class ApiController
         ]);
         
         $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+
+    }
+
+    public function jobs_kill( Request $request, Response $response, $args ) {
+
+        $pid = TwitchHelper::getPidfileStatus( $args['job'] );
+        if($pid){
+            $output = TwitchHelper::exec( ["kill", $pid] );
+            $response->getBody()->write( "Killed process.<br><pre>" . $output . "</pre>");
+            $payload = json_encode([
+                'data' => $output,
+                'status' => 'OK'
+            ]);
+        }else{
+            $response->getBody()->write( "Found no process running for " . $args['job'] );
+            $payload = json_encode([
+                'data' => null,
+                'status' => 'ERROR'
+            ]);
+        }
+
+        $response->getBody()->write($payload);
+
         return $response->withHeader('Content-Type', 'application/json');
 
     }

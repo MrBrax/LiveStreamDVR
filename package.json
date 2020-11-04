@@ -9,7 +9,8 @@
     "build:script": "tsc",
     "build:client": "vue-cli-service build src/Client/main.ts",
     "serve:server": "php -S localhost:8080 -t public",
-    "serve:client": "vue-cli-service serve src/Client/main.ts"
+    "serve:client": "vue-cli-service serve src/Client/main.ts",
+    "test:server": "php vendor/phpunit/phpunit/phpunit tests"
   },
   "repository": {
     "type": "git",

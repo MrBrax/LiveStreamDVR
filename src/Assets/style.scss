@@ -160,26 +160,6 @@ body.black {
 	word-break: break-word;
 }
 
-#js-status {
-	position: fixed;
-	right: 10px;
-	bottom: 0px;
-	background: #eee;
-	padding: 4px 8px;
-	font-size: 14px;
-	border-radius: 3px 3px 0 0;
-	border: 1px solid #ccc;
-	border-bottom: none;
-	transition: ease-in-out 0.5s background-color;
-	z-index: 3;
-	&.active {
-		background-color: #d75252;
-		color: #fff;
-		animation: 1s ease-in-out infinite recording;
-		border-color: #222;
-	}
-}
-
 .favourites_list {
 	max-height: 600px;
 	overflow-y: scroll;

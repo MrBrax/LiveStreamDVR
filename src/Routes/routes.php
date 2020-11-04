@@ -53,12 +53,14 @@ $app->get('/sub', SubController::class . ':sub')->setName('sub');
 $app->get('/subs', SubController::class . ':subs')->setName('subs');
 
 $app->get('/api/v0/list', ApiController::class . ':list')->setName('api_list');
-$app->get('/api/v0/list_jobs', ApiController::class . ':list_jobs')->setName('api_list_jobs');
 $app->get('/api/v0/vod/{vod}', ApiController::class . ':vod')->setName('api_vod');
 $app->get('/api/v0/render/menu', ApiController::class . ':render_menu')->setName('api_render_menu');
 $app->get('/api/v0/render/streamer/{username}', ApiController::class . ':render_streamer')->setName('api_render_streamer');
 $app->get('/api/v0/render/log/[{filename}]', ApiController::class . ':render_log')->setName('api_render_log');
 $app->get('/api/v0/check_vods', ApiController::class . ':check_vods')->setName('check_vods');
+
+$app->get('/api/v0/jobs/list', ApiController::class . ':jobs_list')->setName('api_jobs_list');
+$app->get('/api/v0/jobs/kill/{job}', ApiController::class . ':jobs_kill')->setName('api_jobs_kill');
 
 // $app->get('/dialog/{type}/{text}', DebugController::class . ':dialog')->setName('dialog');
 
@@ -89,6 +91,7 @@ $app->get('/force_record/{username}', function (Request $request, Response $resp
 
 // abort recording of streamer
 // TODO: refactor
+/*
 $app->get('/abort_record/{username}', function (Request $request, Response $response, array $args) {
 
     $username = $args['username'];
@@ -107,7 +110,7 @@ $app->get('/abort_record/{username}', function (Request $request, Response $resp
             $response->getBody()->write( "<pre>" . $output . "</pre><br>");
         }
 
-    }*/
+    }*
 
     $pid = TwitchHelper::getPidfileStatus('capture_' . $username );
     if($pid){
@@ -120,3 +123,4 @@ $app->get('/abort_record/{username}', function (Request $request, Response $resp
     return $response;
     
 })->setName('abort_record');
+*/

@@ -27,21 +27,19 @@ trait SoftwareWrappers {
 
 		if( self::is_windows() ){
            
-            $process = new Process( ['where', $name_windows] );
-            $process->run();
+            $output = TwitchHelper::exec( ['where', $name_windows] );
 
-			if($process->getOutput()){
-				$path = explode("\n", $process->getOutput())[0];
+			if($output){
+				$path = explode("\n", $output)[0];
 				return $path;
             }
             
 		}else{
             
-            $process = new Process( ['whereis', $name_linux] );
-            $process->run();
+            $output = TwitchHelper::exec( ['whereis', $name_linux] );
 
-			if($process->getOutput()){
-				preg_match("/^[a-z]+\:\s([a-z\-\_\/\.]+)/", $process->getOutput(), $matches);
+			if($output){
+				preg_match("/^[a-z]+\:\s([a-z\-\_\/\.]+)/", $output, $matches);
 				if($matches){
 					$path = $matches[1];
 					return $path;
@@ -59,12 +57,13 @@ trait SoftwareWrappers {
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Run mediainfo on " . $filename );
 
         // $output = shell_exec( TwitchHelper::path_mediainfo() . ' --Full --Output=JSON ' . escapeshellarg($filename) );
-        $process = new Process( [TwitchHelper::path_mediainfo(), '--Full', '--Output=JSON', $filename] );
-        $process->run();
+        // $process = new Process( [TwitchHelper::path_mediainfo(), '--Full', '--Output=JSON', $filename] );
+        // $process->run();
+		$output = TwitchHelper::exec( [TwitchHelper::path_mediainfo(), '--Full', '--Output=JSON', $filename] );
 
-		if( $process->getOutput() ){
+		if( $output ){
 			
-			$json = json_decode( $process->getOutput(), true );
+			$json = json_decode( $output, true );
 			
 			$data = [];
 
