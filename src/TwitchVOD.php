@@ -1287,6 +1287,19 @@ class TwitchVOD {
 
 		$cmd[] = '-bsf:a';
 		$cmd[] = 'aac_adtstoasc'; // fix audio sync in ts
+
+		if( TwitchConfig::cfg('ts_sync') ){
+
+			$cmd[] = '-async';
+			$cmd[] = '1';
+
+			// $cmd[] = '-filter_complex';
+			// $cmd[] = 'aresample';
+
+			// $cmd[] = '-af';
+			// $cmd[] = 'aresample=async=1';
+
+		}
 		
 		if( TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false) ){
 			$cmd[] = '-loglevel';

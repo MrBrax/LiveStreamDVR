@@ -872,6 +872,26 @@ class TwitchAutomator {
 		$cmd[] = '-bsf:a';
 		$cmd[] = 'aac_adtstoasc'; // fix audio sync in ts
 
+		if( TwitchConfig::cfg('ts_sync') ){
+
+			$cmd[] = '-async';
+			$cmd[] = '1';
+
+			// $cmd[] = '-use_wallclock_as_timestamps';
+			// $cmd[] = '1';
+
+			// $cmd[] = '-filter_complex';
+			// $cmd[] = 'aresample';
+
+			// $cmd[] = '-af';
+			// $cmd[] = 'aresample=async=1:first_pts=0';
+			// $cmd[] = 'aresample=async=1';
+
+			// $cmd[] = '-fflags';
+			// $cmd[] = '+genpts';
+
+		}
+
 		if( TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false) ){
 			$cmd[] = '-loglevel';
 			$cmd[] = 'repeat+level+verbose';

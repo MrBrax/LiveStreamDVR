@@ -45,6 +45,7 @@ class TwitchConfig {
 		[ 'key' => 'low_latency', 			'text' => 'Low latency (untested)', 														'type' => 'boolean' ],
 		[ 'key' => 'youtube_dlc', 			'text' => 'Use youtube-dlc instead of the regular one', 									'type' => 'boolean' ],
 		[ 'key' => 'chat_dump', 			'text' => 'Dump chat during capture', 														'type' => 'boolean', 'default' => false ],
+		[ 'key' => 'ts_sync', 				'text' => 'Try to force sync remuxing', 													'type' => 'boolean', 'default' => false ],
 	];
 
 	public static $timezone;
