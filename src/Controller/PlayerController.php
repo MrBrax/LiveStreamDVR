@@ -39,7 +39,7 @@ class PlayerController
         $username = explode("_", $vod)[0];
 
         $vodclass = new TwitchVOD();
-        $vodclass->load(TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+        $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
         return $this->twig->render($response, 'player.twig', [
             'start_offset' => $start_offset,

@@ -97,8 +97,8 @@ class TwitchConfig
 			}
 
 			// create subfolders
-			if (self::cfg('channel_folders') && !file_exists(TwitchHelper::vod_folder($s['username']))) {
-				mkdir(TwitchHelper::vod_folder($s['username']));
+			if (self::cfg('channel_folders') && !file_exists(TwitchHelper::vodFolder($s['username']))) {
+				mkdir(TwitchHelper::vodFolder($s['username']));
 			}
 		}
 		if ($save) {

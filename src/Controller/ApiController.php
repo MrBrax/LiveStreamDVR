@@ -60,9 +60,9 @@ class ApiController
 
         $data = [
             'streamerList' => $streamerList,
-            // 'clips' => glob(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . "clips" . DIRECTORY_SEPARATOR . "*.mp4"),
+            // 'clips' => glob(TwitchHelper::vodFolder() . DIRECTORY_SEPARATOR . "clips" . DIRECTORY_SEPARATOR . "*.mp4"),
             'total_size' => $total_size,
-            'free_size' => disk_free_space(TwitchHelper::vod_folder())
+            'free_size' => disk_free_space(TwitchHelper::vodFolder())
         ];
 
         $payload = json_encode([
@@ -82,7 +82,7 @@ class ApiController
         $username = explode("_", $vod)[0];
 
         $vodclass = new TwitchVOD();
-        $vodclass->load(TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+        $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
         $data = $vodclass;
 
@@ -202,7 +202,7 @@ class ApiController
 
         $data['channel_data'] = TwitchHelper::getChannelData( $data['username'] );
 
-        $data['vods_raw'] = glob(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $data['username'] . "_*.json");
+        $data['vods_raw'] = glob(TwitchHelper::vodFolder() . DIRECTORY_SEPARATOR . $data['username'] . "_*.json");
 
         $data['vods_list'] = [];
 
@@ -221,7 +221,7 @@ class ApiController
 
             if ($vodclass->segments) {
                 foreach ($vodclass->segments_raw as $s) {
-                    $data['vods_size'] += filesize(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $s );
+                    $data['vods_size'] += filesize(TwitchHelper::vodFolder() . DIRECTORY_SEPARATOR . $s );
                 }
             }
 

@@ -115,7 +115,7 @@ class TwitchAutomator
 	public function cleanup($streamer_name, $source_basename = null)
 	{
 
-		$vods = glob(TwitchHelper::vod_folder($streamer_name) . DIRECTORY_SEPARATOR . $streamer_name . "_*.json");
+		$vods = glob(TwitchHelper::vodFolder($streamer_name) . DIRECTORY_SEPARATOR . $streamer_name . "_*.json");
 
 		$total_size = 0;
 
@@ -129,7 +129,7 @@ class TwitchAutomator
 			$vod_list[] = $vodclass;
 
 			foreach ($vodclass->segments_raw as $s) {
-				$total_size += filesize(TwitchHelper::vod_folder($streamer_name) . DIRECTORY_SEPARATOR . basename($s));
+				$total_size += filesize(TwitchHelper::vodFolder($streamer_name) . DIRECTORY_SEPARATOR . basename($s));
 			}
 		}
 
@@ -187,7 +187,7 @@ class TwitchAutomator
 
 			$basename = $this->basename($data);
 
-			$folder_base = TwitchHelper::vod_folder($data_username);
+			$folder_base = TwitchHelper::vodFolder($data_username);
 
 			if (file_exists($folder_base . DIRECTORY_SEPARATOR . $basename . '.json')) {
 
@@ -225,7 +225,7 @@ class TwitchAutomator
 
 		$basename = $this->basename($data);
 
-		$folder_base = TwitchHelper::vod_folder($data_username);
+		$folder_base = TwitchHelper::vodFolder($data_username);
 
 		if ($this->vod) {
 			$this->vod->refreshJSON();
@@ -307,7 +307,7 @@ class TwitchAutomator
 
 		$basename = $this->basename($data);
 
-		$folder_base = TwitchHelper::vod_folder($data_username);
+		$folder_base = TwitchHelper::vodFolder($data_username);
 
 		$this->vod = new TwitchVOD();
 		$this->vod->create($folder_base . DIRECTORY_SEPARATOR . $basename . '.json');
@@ -504,7 +504,7 @@ class TwitchAutomator
 
 		$basename = $this->basename($data);
 
-		$folder_base = TwitchHelper::vod_folder($data_username);
+		$folder_base = TwitchHelper::vodFolder($data_username);
 
 		$capture_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '.ts';
 
@@ -581,8 +581,8 @@ class TwitchAutomator
 		$process->start();
 
 		// output command line
-		TwitchHelper::append_log("streamlink_" . $basename . "_stdout." . $int, "$ " . implode(" ", $cmd));
-		TwitchHelper::append_log("streamlink_" . $basename . "_stderr." . $int, "$ " . implode(" ", $cmd));
+		TwitchHelper::appendLog("streamlink_" . $basename . "_stdout." . $int, "$ " . implode(" ", $cmd));
+		TwitchHelper::appendLog("streamlink_" . $basename . "_stderr." . $int, "$ " . implode(" ", $cmd));
 
 		// save pid to file
 		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'capture_' . $data_username . '.pid';
@@ -643,8 +643,8 @@ class TwitchAutomator
 			$chat_pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'chatdump_' . $data_username . '.pid';
 			file_put_contents($chat_pidfile, $chat_process->getPid());
 
-			TwitchHelper::append_log("chatdump_" . $basename . "_stdout." . $int, implode(" ", $chat_cmd));
-			TwitchHelper::append_log("chatdump_" . $basename . "_stderr." . $int, implode(" ", $chat_cmd));
+			TwitchHelper::appendLog("chatdump_" . $basename . "_stdout." . $int, implode(" ", $chat_cmd));
+			TwitchHelper::appendLog("chatdump_" . $basename . "_stderr." . $int, implode(" ", $chat_cmd));
 		}
 
 		// wait loop until it's done
@@ -682,9 +682,9 @@ class TwitchAutomator
 
 			// log output
 			if( Process::ERR === $type ){
-				TwitchHelper::append_log("streamlink_" . $basename . "_stderr." . $int, $buffer );
+				TwitchHelper::appendLog("streamlink_" . $basename . "_stderr." . $int, $buffer );
 			}else{
-				TwitchHelper::append_log("streamlink_" . $basename . "_stdout." . $int, $buffer );
+				TwitchHelper::appendLog("streamlink_" . $basename . "_stdout." . $int, $buffer );
 			}
 			
 		});
@@ -719,14 +719,14 @@ class TwitchAutomator
 
 				$cmd_chatdump_stdout_buffer = $chat_process->getIncrementalOutput();
 				$cmd_chatdump_stderr_buffer = $chat_process->getIncrementalErrorOutput();
-				if ($cmd_chatdump_stdout_buffer) TwitchHelper::append_log("chatdump_" . $basename . "_stdout." . $int, $cmd_chatdump_stdout_buffer);
-				if ($cmd_chatdump_stdout_buffer) TwitchHelper::append_log("chatdump_" . $basename . "_stderr." . $int, $cmd_chatdump_stderr_buffer);
+				if ($cmd_chatdump_stdout_buffer) TwitchHelper::appendLog("chatdump_" . $basename . "_stdout." . $int, $cmd_chatdump_stdout_buffer);
+				if ($cmd_chatdump_stdout_buffer) TwitchHelper::appendLog("chatdump_" . $basename . "_stderr." . $int, $cmd_chatdump_stderr_buffer);
 			}
 
 			$cmd_stdout_buffer = $process->getIncrementalOutput();
 			$cmd_stderr_buffer = $process->getIncrementalErrorOutput();
-			if ($cmd_stdout_buffer) TwitchHelper::append_log("streamlink_" . $basename . "_stdout." . $int, $cmd_stdout_buffer);
-			if ($cmd_stdout_buffer) TwitchHelper::append_log("streamlink_" . $basename . "_stderr." . $int, $cmd_stderr_buffer);
+			if ($cmd_stdout_buffer) TwitchHelper::appendLog("streamlink_" . $basename . "_stdout." . $int, $cmd_stdout_buffer);
+			if ($cmd_stdout_buffer) TwitchHelper::appendLog("streamlink_" . $basename . "_stderr." . $int, $cmd_stderr_buffer);
 
 			sleep(10);
 		}
@@ -759,8 +759,8 @@ class TwitchAutomator
 			*/
 
 			if (file_exists($chat_pidfile)) unlink($chat_pidfile);
-			// TwitchHelper::append_log("chatdump_" . $basename . "_stdout." . $int, $chat_process->getOutput() );
-			// TwitchHelper::append_log("chatdump_" . $basename . "_stderr." . $int, $chat_process->getErrorOutput() );
+			// TwitchHelper::appendLog("chatdump_" . $basename . "_stdout." . $int, $chat_process->getOutput() );
+			// TwitchHelper::appendLog("chatdump_" . $basename . "_stderr." . $int, $chat_process->getErrorOutput() );
 			TwitchHelper::log(TwitchHelper::LOG_INFO, "Ended chat dump with filename " . basename($chat_filename), ['download-capture' => $data_username]);
 		}
 
@@ -793,7 +793,7 @@ class TwitchAutomator
 			$this->info[] = 'Youtube-dl output: ' . $capture_output;
 
 			// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "youtubedl_" . $basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $capture_output);
-			TwitchHelper::append_log("youtubedl_" . $basename . "_" . time(), "$ " . $cmd . "\n" . $capture_output);
+			TwitchHelper::appendLog("youtubedl_" . $basename . "_" . time(), "$ " . $cmd . "\n" . $capture_output);
 
 			// exit(500);
 		}
@@ -825,7 +825,7 @@ class TwitchAutomator
 
 		$container_ext = TwitchConfig::cfg('vod_container', 'mp4');
 
-		$folder_base = TwitchHelper::vod_folder($this->vod->streamer_name);
+		$folder_base = TwitchHelper::vodFolder($this->vod->streamer_name);
 
 		$capture_filename 	= $folder_base . DIRECTORY_SEPARATOR . $basename . '.ts';
 
@@ -901,8 +901,8 @@ class TwitchAutomator
 		// remove pidfile
 		if (file_exists($pidfile)) unlink($pidfile);
 
-		TwitchHelper::append_log("ffmpeg_convert_" . $basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
-		TwitchHelper::append_log("ffmpeg_convert_" . $basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+		TwitchHelper::appendLog("ffmpeg_convert_" . $basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+		TwitchHelper::appendLog("ffmpeg_convert_" . $basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
 
 		if (file_exists($converted_filename)) {
 			TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Finished conversion of " . basename($capture_filename) . " to " . basename($converted_filename), ['download-convert' => $data_username]);

@@ -50,7 +50,7 @@ class DashboardController
 
             $data['channel_data'] = TwitchHelper::getChannelData( $streamer['username'] );
 
-            $data['vods_raw'] = glob(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $streamer['username'] . "_*.json");
+            $data['vods_raw'] = glob(TwitchHelper::vodFolder() . DIRECTORY_SEPARATOR . $streamer['username'] . "_*.json");
 
             $data['vods_list'] = [];
 
@@ -87,7 +87,7 @@ class DashboardController
 
                 if ($vodclass->segments) {
                     foreach ($vodclass->segments as $s) {
-                        $data['vods_size'] += filesize(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . $s['basename'] );
+                        $data['vods_size'] += filesize(TwitchHelper::vodFolder() . DIRECTORY_SEPARATOR . $s['basename'] );
                     }
                 }
 
@@ -183,13 +183,13 @@ class DashboardController
 
         return $this->twig->render($response, 'dashboard.twig', [
             'streamerList' => $streamerList,
-            'clips' => glob(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . "clips" . DIRECTORY_SEPARATOR . "*.mp4"),
+            'clips' => glob(TwitchHelper::vodFolder() . DIRECTORY_SEPARATOR . "clips" . DIRECTORY_SEPARATOR . "*.mp4"),
             'total_size' => $total_size,
             'is_a_vod_deleted' => $is_a_vod_deleted,
             'checkvod' => $checkvod,
             'log_lines' => $log_lines,
             'log_files' => $log_files,
-            'free_size' => disk_free_space(TwitchHelper::vod_folder()),
+            'free_size' => disk_free_space(TwitchHelper::vodFolder()),
             'errors' => $errors,
             'history_data' => $history_data
         ]);

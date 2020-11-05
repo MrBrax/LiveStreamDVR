@@ -484,8 +484,8 @@ class TwitchVOD
 
 		if (file_exists($pidfile)) unlink($pidfile);
 
-		TwitchHelper::append_log("tcd_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
-		TwitchHelper::append_log("tcd_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+		TwitchHelper::appendLog("tcd_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+		TwitchHelper::appendLog("tcd_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
 
 		if (file_exists($tcd_filename)) {
 
@@ -597,8 +597,8 @@ class TwitchVOD
 
 		if (file_exists($pidfile)) unlink($pidfile);
 
-		TwitchHelper::append_log("tdrender_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
-		TwitchHelper::append_log("tdrender_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+		TwitchHelper::appendLog("tdrender_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+		TwitchHelper::appendLog("tdrender_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
 
 		// $this->burnChat( $chat_width );
 
@@ -713,8 +713,8 @@ class TwitchVOD
 		// remove pidfile
 		if (file_exists($pidfile)) unlink($pidfile);
 
-		TwitchHelper::append_log("burnchat_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
-		TwitchHelper::append_log("burnchat_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+		TwitchHelper::appendLog("burnchat_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+		TwitchHelper::appendLog("burnchat_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
 
 		$successful = file_exists($this->path_chatburn) && filesize($this->path_chatburn) > 0;
 
@@ -1156,13 +1156,13 @@ class TwitchVOD
 			$data .= "\n";
 		}
 
-		file_put_contents(TwitchHelper::vod_folder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', $data);
+		file_put_contents(TwitchHelper::vodFolder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', $data);
 	}
 
 	public function rebuildSegmentList()
 	{
 
-		if ($this->is_capturing || $this->is_converting || $this->no_files()) {
+		if ($this->is_capturing || $this->is_converting || $this->noFiles()) {
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Won't rebuild segment list on " . $this->basename . ", it's still recording.");
 			return false;
 		}
@@ -1245,8 +1245,8 @@ class TwitchVOD
 
 			if (file_exists($pidfile)) unlink($pidfile);
 
-			TwitchHelper::append_log("streamlink_vod_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
-			TwitchHelper::append_log("streamlink_vod_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+			TwitchHelper::appendLog("streamlink_vod_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+			TwitchHelper::appendLog("streamlink_vod_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
 		}
 
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Starting remux of " . $this->basename);
@@ -1294,8 +1294,8 @@ class TwitchVOD
 
 		if (file_exists($pidfile)) unlink($pidfile);
 
-		TwitchHelper::append_log("ffmpeg_vod_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
-		TwitchHelper::append_log("ffmpeg_vod_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+		TwitchHelper::appendLog("ffmpeg_vod_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+		TwitchHelper::appendLog("ffmpeg_vod_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
 
 		if (file_exists($capture_filename) && file_exists($converted_filename) && filesize($converted_filename) > 0) {
 			unlink($capture_filename);
@@ -1462,7 +1462,7 @@ class TwitchVOD
 		return false;
 	}
 
-	public function no_files()
+	public function noFiles()
 	{
 		return (!file_exists($this->directory . DIRECTORY_SEPARATOR . $this->basename . '.ts') && !file_exists($this->directory . DIRECTORY_SEPARATOR . $this->basename . '.mp4'));
 	}
@@ -1499,10 +1499,10 @@ class TwitchVOD
 	public function save()
 	{
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Save " . $this->basename);
-		rename(TwitchHelper::vod_folder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '.mp4', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '.mp4');
-		rename(TwitchHelper::vod_folder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '.json', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '.json');
-		rename(TwitchHelper::vod_folder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '-llc-edl.csv'); // losslesscut
-		rename(TwitchHelper::vod_folder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '.chat', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '.chat'); // chat
+		rename(TwitchHelper::vodFolder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '.mp4', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '.mp4');
+		rename(TwitchHelper::vodFolder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '.json', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '.json');
+		rename(TwitchHelper::vodFolder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '-llc-edl.csv'); // losslesscut
+		rename(TwitchHelper::vodFolder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '.chat', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '.chat'); // chat
 	}
 
 	public function convert()
@@ -1510,7 +1510,7 @@ class TwitchVOD
 
 		set_time_limit(0);
 
-		$captured_filename = TwitchHelper::vod_folder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '.ts';
+		$captured_filename = TwitchHelper::vodFolder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '.ts';
 
 		if (!file_exists($captured_filename)) {
 			throw new \Exception("No TS file found");

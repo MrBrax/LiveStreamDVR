@@ -54,7 +54,7 @@ class TwitchChannel
     private function parseVODs()
     {
 
-        $this->vods_raw = glob(TwitchHelper::vod_folder($this->display_name) . DIRECTORY_SEPARATOR . $this->display_name . "_*.json");
+        $this->vods_raw = glob(TwitchHelper::vodFolder($this->display_name) . DIRECTORY_SEPARATOR . $this->display_name . "_*.json");
 
         foreach ($this->vods_raw as $k => $v) {
 

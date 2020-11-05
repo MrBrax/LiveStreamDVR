@@ -100,7 +100,7 @@ $app->get('/abort_record/{username}', function (Request $request, Response $resp
     $username = $args['username'];
 
     /*
-    $vods = glob(TwitchHelper::vod_folder( $args['username'] ) . DIRECTORY_SEPARATOR . $args['username'] . "_*.json");
+    $vods = glob(TwitchHelper::vodFolder( $args['username'] ) . DIRECTORY_SEPARATOR . $args['username'] . "_*.json");
 
     foreach ($vods as $k => $v) {
 

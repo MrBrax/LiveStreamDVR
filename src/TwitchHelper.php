@@ -228,7 +228,7 @@ class TwitchHelper
 		self::$last_log_line = $level . $text;
 	}
 
-	public static function append_log(string $basename, string $text, bool $newline = true)
+	public static function appendLog(string $basename, string $text, bool $newline = true)
 	{
 		$basepath = self::$logs_folder . DIRECTORY_SEPARATOR . 'software';
 		$filepath = $basepath . DIRECTORY_SEPARATOR . $basename . ".log";
@@ -519,28 +519,6 @@ class TwitchHelper
 		return $total_seconds;
 	}
 
-	/**
-	 * https://www.php.net/manual/en/function.realpath.php#84012
-	 *
-	 * @param string $path
-	 * @return string
-	 */
-	public static function get_absolute_path(string $path)
-	{
-		$path = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $path);
-		$parts = array_filter(explode(DIRECTORY_SEPARATOR, $path), 'strlen');
-		$absolutes = array();
-		foreach ($parts as $part) {
-			if ('.' == $part) continue;
-			if ('..' == $part) {
-				array_pop($absolutes);
-			} else {
-				$absolutes[] = $part;
-			}
-		}
-		return implode(DIRECTORY_SEPARATOR, $absolutes);
-	}
-
 	/** @deprecated 3.2.0 */
 	public static function checkForDeletedVods()
 	{
@@ -553,7 +531,7 @@ class TwitchHelper
 
 		foreach ($streamers as $streamer) {
 
-			$vods = glob(TwitchHelper::vod_folder($streamer['username']) . DIRECTORY_SEPARATOR . $streamer['username'] . "_*.json");
+			$vods = glob(TwitchHelper::vodFolder($streamer['username']) . DIRECTORY_SEPARATOR . $streamer['username'] . "_*.json");
 
 			foreach ($vods as $k => $v) {
 
@@ -879,7 +857,7 @@ class TwitchHelper
 		}
 	}
 
-	public static function vod_folder(string $username = null)
+	public static function vodFolder(string $username = null)
 	{
 		return __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . "vods" . (TwitchConfig::cfg("channel_folders") && $username ? DIRECTORY_SEPARATOR . $username : '');
 	}
