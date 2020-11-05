@@ -25,7 +25,7 @@ When upgrading, delete the `twig` folder in the `cache` folder.
 *One high-profile streamer VOD of 10 hours is about 30-50GB.*
 
 ### Main requirements
-- PHP 7+ (developed with 7.4)
+- PHP 7.4+
 - Python 3.6
     - Python 3.7+ for tcd support
 - [pip](https://pypi.org/project/pip/)

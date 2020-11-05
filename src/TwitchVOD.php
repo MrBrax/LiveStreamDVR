@@ -175,6 +175,9 @@ class TwitchVOD
 
 		if (isset($this->json['dt_capture_started'])) {
 			$this->dt_capture_started 		= new \DateTime($this->json['dt_capture_started']['date']);
+		}
+
+		if (isset($this->json['dt_conversion_started'])) {
 			$this->dt_conversion_started 	= new \DateTime($this->json['dt_conversion_started']['date']);
 		}
 
@@ -1056,7 +1059,7 @@ class TwitchVOD
 
 			$segment['filename'] = realpath($this->directory . DIRECTORY_SEPARATOR . basename($v));
 			$segment['basename'] = basename($v);
-			if (file_exists($segment['filename'])) {
+			if (isset($segment['filename']) && $segment['filename'] != false && file_exists($segment['filename'])) {
 				$segment['filesize'] = filesize($segment['filename']);
 				$this->total_size += $segment['filesize'];
 			} else {

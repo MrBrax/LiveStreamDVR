@@ -90,22 +90,22 @@ $container->get('view')->getEnvironment()->addFilter(new TwigFilter('formatBytes
 
 // human duration
 $container->get('view')->getEnvironment()->addFilter(new TwigFilter('humanDuration', function ($string) {
-    return TwitchHelper::printHumanDuration($string);
+    return TwitchHelper::printHumanDuration((int)$string);
 }));
 
 // human duration 2
 $container->get('view')->getEnvironment()->addFilter(new TwigFilter('humanRealDuration', function ($string) {
-    return TwitchHelper::getNiceDuration($string);
+    return TwitchHelper::getNiceDuration((int)$string);
 }));
 
 // human duration
 $container->get('view')->getEnvironment()->addFilter(new TwigFilter('twitchDuration', function ($string) {
-    return TwitchHelper::getTwitchDuration($string);
+    return TwitchHelper::getTwitchDuration((int)$string);
 }));
 
 // human date
 $container->get('view')->getEnvironment()->addFilter(new TwigFilter('humanDate', function ($string) {
-    return TwitchHelper::printHumanDate($string);
+    return TwitchHelper::printHumanDate((int)$string);
 }));
 
 // basename, only for debug

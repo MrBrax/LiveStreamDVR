@@ -7,20 +7,20 @@ namespace App;
 class TwitchChannel
 {
 
-    public $username = null;
-    public $login = null;
-    public $display_name = null;
-    public $description = null;
-    public $profile_image_url = null;
-    public $is_live = false;
-    public $current_vod = null;
-    public $current_game = null;
-    public $current_duration = null;
-    public $quality = [];
+    public ?string $username = null;
+    public ?string $login = null;
+    public ?string $display_name = null;
+    public ?string $description = null;
+    public ?string $profile_image_url = null;
+    public ?bool $is_live = false;
+    public ?TwitchVOD $current_vod = null;
+    public ?array $current_game = null;
+    public ?int $current_duration = null;
+    public ?array $quality = [];
 
-    public $vods_list = [];
-    public $vods_raw = [];
-    public $vods_size = 0;
+    public array $vods_list = [];
+    public array $vods_raw = [];
+    public int $vods_size = 0;
 
     /**
      * Load
