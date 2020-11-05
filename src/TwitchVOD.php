@@ -130,13 +130,13 @@ class TwitchVOD
 		if (isset($this->json['started_at']) && isset($this->json['started_at']['date'])) {
 			$this->started_at = new \DateTime($this->json['started_at']['date']);
 		} else {
-			$this->started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['started_at']);
+			// $this->started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['started_at']);
 		}
 
 		if (isset($this->json['ended_at']) && isset($this->json['ended_at']['date'])) {
 			$this->ended_at = new \DateTime($this->json['ended_at']['date']);
 		} else {
-			$this->ended_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['ended_at']);
+			// $this->ended_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['ended_at']);
 		}
 
 		if (isset($this->json['saved_at']) && isset($this->json['saved_at']['date'])) {
@@ -968,8 +968,8 @@ class TwitchVOD
 
 			$entry['datetime'] = \DateTime::createFromFormat(TwitchConfig::cfg("date_format"), $entry['time']);
 
-			if (isset(TwitchConfig::$config['favourites']) && count(TwitchConfig::$config['favourites']) > 0) {
-				$entry['favourite'] = isset(TwitchConfig::$config['favourites'][$entry['game_id']]);
+			if (null !== TwitchConfig::cfg('favourites') && count(TwitchConfig::cfg('favourites')) > 0) {
+				$entry['favourite'] = isset(TwitchConfig::cfg('favourites')[$entry['game_id']]);
 			}
 
 			// offset
@@ -990,7 +990,9 @@ class TwitchVOD
 				$entry['strings']['started_at'] = $entry['datetime']->format("Y-m-d H:i:s");
 			}
 
-			$entry['strings']['duration'] = TwitchHelper::getNiceDuration($entry['duration']);
+			if (isset($entry['duration'])) {
+				$entry['strings']['duration'] = TwitchHelper::getNiceDuration($entry['duration']);
+			}
 
 			// box art
 			if ($game_data && $game_data['box_art_url']) {

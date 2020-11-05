@@ -77,15 +77,15 @@ class SettingsController
 
             if ($setting['type'] == "boolean") {
 
-                TwitchConfig::$config[$key] = isset($_POST[$key]);
+                TwitchConfig::setConfig($key, isset($_POST[$key]));
             } else {
 
                 if (isset($setting['secret'])) {
                     if ($_POST[$key]) {
-                        TwitchConfig::$config[$key] = $_POST[$key];
+                        TwitchConfig::setConfig($key, $_POST[$key]);
                     }
                 } else {
-                    TwitchConfig::$config[$key] = $_POST[$key];
+                    TwitchConfig::setConfig($key, $_POST[$key]);
                 }
             }
         }
@@ -106,7 +106,6 @@ class SettingsController
     public function favourites_save(Request $request, Response $response, array $args)
     {
 
-        // $app_name               = $_POST['app_name'];
         $games                  = $_POST['games'];
 
         $data = [];

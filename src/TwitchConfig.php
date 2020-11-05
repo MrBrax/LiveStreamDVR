@@ -18,7 +18,7 @@ class TwitchConfig
 		['key' => 'bin_dir', 				'text' => 'Python binary directory', 						'type' => 'string', 'required' => true, 'help' => 'No trailing slash'],
 		['key' => 'ffmpeg_path', 			'text' => 'FFmpeg path', 									'type' => 'string', 'required' => true],
 		['key' => 'mediainfo_path', 		'text' => 'Mediainfo path', 								'type' => 'string', 'required' => true],
-		['key' => 'twitchdownloader_path', 'text' => 'TwitchDownloaderCLI path', 						'type' => 'string'],
+		['key' => 'twitchdownloader_path',	'text' => 'TwitchDownloaderCLI path', 						'type' => 'string'],
 
 		['key' => 'basepath', 				'text' => 'Base path', 										'type' => 'string', 'help' => 'No trailing slash', 'help' => 'For reverse proxy etc'],
 		['key' => 'app_url', 				'text' => 'App URL', 										'type' => 'string', 'required' => true, 'help' => 'No trailing slash'],
@@ -66,21 +66,38 @@ class TwitchConfig
 		return self::$config[$var] ?: $def;
 	}
 
-	public static function settingExists( string $key ){
-		foreach(self::$settingsFields as $setting){
-			if( $setting['key'] == $key ) return true;
+	/**
+	 * Check if a setting exists
+	 *
+	 * @param string $key
+	 * @return bool
+	 */
+	public static function settingExists(string $key): bool
+	{
+		foreach (self::$settingsFields as $setting) {
+			if ($setting['key'] == $key) return true;
 		}
 		return false;
 	}
 
-	public static function setConfig(string $var, $value)
+	public static function setConfig(string $key, $value)
 	{
 
-		//if( !self::settingExists($var) ){
-		//	
-		//}
-		self::$config[$var] = $value;
-		
+		if (!self::settingExists($key)) {
+			throw new \Exception("Setting does not exist: {$key}");
+		}
+
+		self::$config[$key] = $value;
+	}
+
+	public static function appendConfig(string $key, $value)
+	{
+
+		if (!self::settingExists($key)) {
+			throw new \Exception("Setting does not exist: {$key}");
+		}
+
+		array_push(self::$config[$key], $value);
 	}
 
 	public static function loadConfig()

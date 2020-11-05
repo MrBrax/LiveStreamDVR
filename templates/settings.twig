@@ -12,54 +12,57 @@
 
                 {% for streamer in streamers %}
 
-                    <div class="settings-streamer">
-                        <h2>{{ streamer.username }}</h2>
-                        <form method="POST" action="{{ url_for('streamer_update') }}">
-                            <input type="hidden" name="key" value="{{ loop.index }}" />
-                            <input type="hidden" name="username" value="{{ streamer.username }}" />
-                            
-                            <div class="field">
-                                <label class="label">Quality</label>
-                                <div class="control">
-                                    <input class="input input-required" type="text" name="quality" value="{{ streamer.quality|join(" ") }}" />
-                                    <p class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</p>
+                    <div class="card">
+                        <div class="card-title"><h2>{{ streamer.username }}</h2></div>
+                        <div class="card-content">
+                            <form method="POST" action="{{ url_for('streamer_update') }}">
+                                <input type="hidden" name="key" value="{{ loop.index }}" />
+                                <input type="hidden" name="username" value="{{ streamer.username }}" />
+                                
+                                <div class="field">
+                                    <label class="label" for="input_{{ streamer.username }}_quality">Quality</label>
+                                    <div class="control">
+                                        <input class="input input-required" type="text" name="quality" id="input_{{ streamer.username }}_quality" value="{{ streamer.quality|join(" ") }}" />
+                                        <p class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</p>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="field">
-                                <label class="label">Match keywords</label>
-                                <div class="control">
-                                    <input class="input" type="text" name="match" value="{{ streamer.match|join(",") }}" />
-                                    <p class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</p>
+                                <div class="field">
+                                    <label class="label" for="input_{{ streamer.username }}_match">Match keywords</label>
+                                    <div class="control">
+                                        <input class="input" type="text" name="match" id="input_{{ streamer.username }}_match" value="{{ streamer.match|join(",") }}" />
+                                        <p class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</p>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="field">
-                                <label class="checkbox">
-                                    <input class="input" type="checkbox" name="download_chat" value="1" {{ streamer.download_chat ? 'checked="checked"' : '' }} />
-                                    Download chat
-                                </label>
-                            </div>
-
-                            <div class="field">
-                                <label class="checkbox">
-                                    <input class="input" type="checkbox" name="burn_chat" value="1" {{ streamer.burn_chat ? 'checked="checked"' : '' }} />
-                                    Burn chat after downloading
-                                </label>
-                            </div>
-
-                            <div class="field">
-                                <div class="control">
-                                    <button class="button is-confirm" type="submit"><span class="icon"><i class="fa fa-user-plus"></i></span> Save</button>
+                                <div class="field">
+                                    <label class="checkbox">
+                                        <input class="input" type="checkbox" name="download_chat" value="1" {{ streamer.download_chat ? 'checked="checked"' : '' }} />
+                                        Download chat
+                                    </label>
                                 </div>
-                            </div>
 
-                        </form>
-                        <form method="POST" action="{{ url_for('streamer_delete') }}">
-                            <input type="hidden" name="key" value="{{ loop.index }}" />
-                            <input type="hidden" name="username" value="{{ streamer.username }}" />
-                            <button class="button is-danger" type="submit"><span class="icon"><i class="fa fa-trash"></i></span> Delete</button> (no undo, no confirmation)
-                        </form>
+                                <div class="field">
+                                    <label class="checkbox">
+                                        <input class="input" type="checkbox" name="burn_chat" value="1" {{ streamer.burn_chat ? 'checked="checked"' : '' }} />
+                                        Burn chat after downloading
+                                    </label>
+                                </div>
+
+                                <div class="field">
+                                    <div class="control">
+                                        <button class="button is-confirm" type="submit"><span class="icon"><i class="fa fa-save"></i></span> Save</button>
+                                    </div>
+                                </div>
+
+                            </form>
+                            <hr>
+                            <form method="POST" action="{{ url_for('streamer_delete') }}">
+                                <input type="hidden" name="key" value="{{ loop.index }}" />
+                                <input type="hidden" name="username" value="{{ streamer.username }}" />
+                                <button class="button is-danger" type="submit"><span class="icon"><i class="fa fa-trash"></i></span> Delete</button> (no undo, no confirmation)
+                            </form>
+                        </div>
                     </div>
 
                 {% endfor %}

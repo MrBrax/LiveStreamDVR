@@ -30,7 +30,7 @@ trait Paths
 
 		$path = self::whereis("ffmpeg", "ffmpeg.exe");
 		if ($path) {
-			TwitchConfig::$config['ffmpeg_path'] = $path;
+			TwitchConfig::setConfig('ffmpeg_path', $path);
 			TwitchConfig::saveConfig("path resolver");
 			return $path;
 		}
@@ -51,7 +51,7 @@ trait Paths
 
 		$path = self::whereis("mediainfo", "mediainfo.exe");
 		if ($path) {
-			TwitchConfig::$config['mediainfo_path'] = $path;
+			TwitchConfig::setConfig('mediainfo_path', $path);
 			TwitchConfig::saveConfig("path resolver");
 			return $path;
 		}
@@ -66,7 +66,7 @@ trait Paths
 
 		$path = self::whereis("TwitchDownloaderCLI", "TwitchDownloaderCLI.exe");
 		if ($path) {
-			TwitchConfig::$config['twitchdownloader_path'] = $path;
+			TwitchConfig::setConfig('twitchdownloader_path', $path);
 			TwitchConfig::saveConfig("path resolver");
 			return $path;
 		}
@@ -81,7 +81,7 @@ trait Paths
 			$out = TwitchHelper::exec(["where", "streamlink.exe"]);
 			if ($out) {
 				$path = explode("\n", $out)[0];
-				TwitchConfig::$config['bin_dir'] = pathinfo($path, PATHINFO_DIRNAME);
+				TwitchConfig::setConfig('bin_dir', pathinfo($path, PATHINFO_DIRNAME));
 				TwitchConfig::saveConfig("bin path resolver");
 				return $path;
 			}
@@ -92,7 +92,7 @@ trait Paths
 				preg_match("/^[a-z]+\:\s([a-z\-\_\/\.]+)/", $out, $matches);
 				if ($matches) {
 					$path = $matches[1];
-					TwitchConfig::$config['bin_dir'] = pathinfo($path, PATHINFO_DIRNAME);
+					TwitchConfig::setConfig('bin_dir', pathinfo($path, PATHINFO_DIRNAME));
 					TwitchConfig::saveConfig("bin path resolver");
 					return $path;
 				}
