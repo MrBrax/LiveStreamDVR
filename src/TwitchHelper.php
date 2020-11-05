@@ -169,7 +169,7 @@ class TwitchHelper
 	 * @param array $metadata
 	 * @return void
 	 */
-	public static function log($level, $text, $metadata = null)
+	public static function log(string $level, string $text, array $metadata = null)
 	{
 
 		if (!TwitchConfig::cfg("debug") && $level == self::LOG_DEBUG) return;
@@ -229,7 +229,7 @@ class TwitchHelper
 		self::$last_log_line = $level . $text;
 	}
 
-	public static function append_log($basename, $text, $newline = true)
+	public static function append_log(string $basename, string $text, bool $newline = true)
 	{
 		$basepath = self::$logs_folder . DIRECTORY_SEPARATOR . 'software';
 		$filepath = $basepath . DIRECTORY_SEPARATOR . $basename . ".log";
@@ -242,13 +242,13 @@ class TwitchHelper
 	 * Get Twitch channel ID from username
 	 *
 	 * @param string $username
-	 * @return string
+	 * @return int|bool Channel ID
 	 */
-	public static function getChannelId($username)
+	public static function getChannelId(string $username)
 	{
 		$data = self::getChannelData($username);
 		if (!$data) return false;
-		return $data["id"];
+		return (int)$data["id"];
 	}
 
 	/**
@@ -257,7 +257,7 @@ class TwitchHelper
 	 * @param string $username
 	 * @return string
 	 */
-	public static function getChannelData($username)
+	public static function getChannelData(string $username)
 	{
 
 		if (file_exists(TwitchConfig::$streamerDbPath)) {
@@ -322,7 +322,7 @@ class TwitchHelper
 	 * @param int $streamer_id
 	 * @return array|false
 	 */
-	public static function getVideos($streamer_id)
+	public static function getVideos(int $streamer_id)
 	{
 
 		if (!$streamer_id) {
@@ -359,7 +359,7 @@ class TwitchHelper
 	 * @param string $video_id
 	 * @return array
 	 */
-	public static function getVideo($video_id)
+	public static function getVideo(int $video_id)
 	{
 
 		if (!$video_id) {
@@ -396,7 +396,7 @@ class TwitchHelper
 	 * @param int $streamer_id
 	 * @return array|false
 	 */
-	public static function getStreams($streamer_id)
+	public static function getStreams(int $streamer_id)
 	{
 
 		$response = self::$guzzler->request('GET', '/helix/streams', [
@@ -422,7 +422,7 @@ class TwitchHelper
 	 * @param string $id
 	 * @return array
 	 */
-	public static function getGameData($game_id)
+	public static function getGameData(int $game_id)
 	{
 
 		if (!self::$game_db && file_exists(TwitchConfig::$gameDbPath)) {
@@ -483,7 +483,7 @@ class TwitchHelper
 		}
 	}
 
-	public static function getGameName($id)
+	public static function getGameName(int $id)
 	{
 
 		if (!$id) return false;
@@ -504,7 +504,7 @@ class TwitchHelper
 	 * @param string $text Twitch duration
 	 * @return int Seconds
 	 */
-	public static function parseTwitchDuration($text)
+	public static function parseTwitchDuration(string $text)
 	{
 
 		preg_match('/([0-9]+)h/', $text, $hours_match);
@@ -526,7 +526,7 @@ class TwitchHelper
 	 * @param string $path
 	 * @return string
 	 */
-	public static function get_absolute_path($path)
+	public static function get_absolute_path(string $path)
 	{
 		$path = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $path);
 		$parts = array_filter(explode(DIRECTORY_SEPARATOR, $path), 'strlen');
@@ -576,7 +576,7 @@ class TwitchHelper
 		return $deleted;
 	}
 
-	public static function getNiceDuration($durationInSeconds)
+	public static function getNiceDuration(int $durationInSeconds)
 	{
 
 		$duration = '';
@@ -602,7 +602,7 @@ class TwitchHelper
 		return trim($duration);
 	}
 
-	public static function getTwitchDuration($seconds)
+	public static function getTwitchDuration(int $seconds)
 	{
 		return trim(str_replace(" ", "", self::getNiceDuration($seconds)));
 	}
@@ -614,7 +614,7 @@ class TwitchHelper
 	 * @param integer $precision
 	 * @return string
 	 */
-	public static function formatBytes($bytes, $precision = 2)
+	public static function formatBytes(int $bytes, $precision = 2)
 	{
 		$units = array('B', 'KB', 'MB', 'GB', 'TB');
 
@@ -636,7 +636,7 @@ class TwitchHelper
 	 * @param int $duration
 	 * @return string
 	 */
-	public static function printHumanDuration($duration)
+	public static function printHumanDuration(int $duration)
 	{
 
 		$time = new \DateTime();
@@ -651,7 +651,7 @@ class TwitchHelper
 	 * @param DateTime $duration
 	 * @return string
 	 */
-	public static function printHumanDate($duration)
+	public static function printHumanDate(int $duration)
 	{
 
 		$ts = $duration->getTimestamp();
@@ -697,7 +697,7 @@ class TwitchHelper
 	 * @param string $streamer_name
 	 * @return string|bool
 	 */
-	public static function sub($streamer_name)
+	public static function sub(string $streamer_name)
 	{
 		return self::sub_handler($streamer_name, 'subscribe');
 	}
@@ -708,12 +708,12 @@ class TwitchHelper
 	 * @param string $streamer_name
 	 * @return string|bool
 	 */
-	public static function unsub($streamer_name)
+	public static function unsub(string $streamer_name)
 	{
 		return self::sub_handler($streamer_name, 'unsubscribe');
 	}
 
-	private static function sub_handler($streamer_name, $mode = 'subscribe')
+	private static function sub_handler(string $streamer_name, $mode = 'subscribe')
 	{
 
 		/**
@@ -852,7 +852,7 @@ class TwitchHelper
 	 * @param string $name
 	 * @return int|false
 	 */
-	public static function getPidfileStatus($name)
+	public static function getPidfileStatus(string $name)
 	{
 
 		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . '.pid';
@@ -880,7 +880,7 @@ class TwitchHelper
 		}
 	}
 
-	public static function vod_folder($username = null)
+	public static function vod_folder(string $username = null)
 	{
 		return __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . "vods" . (TwitchConfig::cfg("channel_folders") && $username ? DIRECTORY_SEPARATOR . $username : '');
 	}

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 ini_set('memory_limit', '1024M');
@@ -83,7 +85,7 @@ if (file_exists(__DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "pa
 
 // format bytes
 $container->get('view')->getEnvironment()->addFilter(new TwigFilter('formatBytes', function ($string) {
-    return TwitchHelper::formatBytes($string);
+    return TwitchHelper::formatBytes((int)$string);
 }));
 
 // human duration

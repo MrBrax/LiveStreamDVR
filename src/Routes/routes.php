@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 
@@ -74,16 +76,17 @@ $app->post('/tools/chatdownload', ToolsController::class . ':page_chatdownload')
 
 // force start recording of streamer
 $app->get('/force_record/{username}', function (Request $request, Response $response, array $args) {
-    $streams = TwitchHelper::getStreams( TwitchHelper::getChannelId( $args['username'] ) );
-    if($streams){
+    $channel_id = TwitchHelper::getChannelId($args['username']);
+    $streams = TwitchHelper::getStreams($channel_id);
+    if ($streams) {
         set_time_limit(0);
         $data = [
             'data' => $streams
         ];
         $TwitchAutomator = new TwitchAutomator();
         $TwitchAutomator->force_record = true;
-        $TwitchAutomator->handle( $data );
-    }else{
+        $TwitchAutomator->handle($data);
+    } else {
         $response->getBody()->write("No streams found for " . $args['username']);
     }
     return $response;

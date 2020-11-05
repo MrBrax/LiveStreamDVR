@@ -18,34 +18,15 @@ trait Paths
 		return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
 	}
 
+	/**
+	 * Returns the path to ffmpeg
+	 *
+	 * @return string|bool
+	 */
 	public static function path_ffmpeg()
 	{
 
 		if (TwitchConfig::cfg('ffmpeg_path')) return TwitchConfig::cfg('ffmpeg_path');
-
-		/*
-		if( self::is_windows() ){
-			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Windows system, requesting ffmpeg binary from path...");
-			$out = shell_exec("where ffmpeg.exe");
-			if($out){
-				$path = explode("\n", $out)[0];
-				TwitchConfig::$config['ffmpeg_path'] = $path;
-				TwitchConfig::saveConfig("path resolver");
-				return $path;
-			}
-		}else{
-			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Linux system, requesting ffmpeg binary from path...");
-			$out = shell_exec("whereis ffmpeg");
-			if($out){
-				preg_match("/^[a-z]+\:\s([a-z\-\_\/\.]+)/", $out, $matches);
-				if($matches){
-					$path = $matches[1];
-					TwitchConfig::$config['ffmpeg_path'] = $path;
-					TwitchConfig::saveConfig("path resolver");
-					return $path;
-				}
-			}
-		}*/
 
 		$path = self::whereis("ffmpeg", "ffmpeg.exe");
 		if ($path) {
@@ -57,39 +38,16 @@ trait Paths
 		return false;
 	}
 
+	/**
+	 * Returns path to mediainfo
+	 *
+	 * @return string|bool
+	 */
 	public static function path_mediainfo()
 	{
 
 		if (TwitchConfig::cfg('mediainfo_path')) return TwitchConfig::cfg('mediainfo_path');
 		// if( file_exists("/usr/bin/mediainfo") ) return "/usr/bin/mediainfo";
-
-		/*
-		// TODO: merge these two
-		if( self::is_windows() ){
-			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Windows system, requesting mediainfo binary from path...");
-			$out = shell_exec("where mediainfo.exe");
-			if($out){
-				$path = explode("\n", $out)[0];
-				TwitchConfig::$config['mediainfo_path'] = $path;
-				TwitchConfig::saveConfig("path resolver");
-				return $path;
-			}
-		}else{
-			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Linux system, requesting mediainfo binary from path...");
-			$out = shell_exec("whereis mediainfo");
-			if($out){
-				preg_match("/^[a-z]+\:\s([a-z\-\_\/\.]+)/", $out, $matches);
-				if($matches){
-					$path = $matches[1];
-					TwitchConfig::$config['mediainfo_path'] = $path;
-					TwitchConfig::saveConfig("path resolver");
-					return $path;
-				}
-			}
-		}
-
-		return false;
-		*/
 
 		$path = self::whereis("mediainfo", "mediainfo.exe");
 		if ($path) {
@@ -105,36 +63,6 @@ trait Paths
 	{
 
 		if (TwitchConfig::cfg('twitchdownloader_path')) return TwitchConfig::cfg('twitchdownloader_path');
-
-		/*
-		// TODO: merge these two
-		if( self::is_windows() ){
-			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Windows system, requesting TwitchDownloaderCLI binary from path...");
-			$out = shell_exec("where TwitchDownloaderCLI.exe");
-			if($out){
-				$path = explode("\n", $out)[0];
-				TwitchConfig::$config['twitchdownloader_path'] = $path;
-				TwitchConfig::saveConfig("path resolver");
-				return $path;
-			}
-		}else{
-			TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Linux system, requesting TwitchDownloaderCLI binary from path...");
-			$out = shell_exec("whereis TwitchDownloaderCLI");
-			if($out){
-				preg_match("/^[A-Za-z]+\:\s([A-Za-z\-\_\/\.]+)/", $out, $matches);
-				if($matches){
-					$path = $matches[1];
-					TwitchConfig::$config['twitchdownloader_path'] = $path;
-					TwitchConfig::saveConfig("path resolver");
-					return $path;
-				}
-				TwitchHelper::log( TwitchHelper::LOG_DEBUG, "No matches from TwitchDownloaderCLI whereis (" . implode(", ", $matches) . ")...");
-			}else{
-				TwitchHelper::log( TwitchHelper::LOG_DEBUG, "No output from TwitchDownloaderCLI whereis...");
-			}
-		}
-		return false;
-		*/
 
 		$path = self::whereis("TwitchDownloaderCLI", "TwitchDownloaderCLI.exe");
 		if ($path) {

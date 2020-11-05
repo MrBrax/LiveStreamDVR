@@ -58,7 +58,7 @@ class TwitchConfig
 		$this->loadConfig();
 	}
 
-	public static function cfg($var, $def = null)
+	public static function cfg(string $var, $def = null)
 	{
 
 		if (getenv('TCD_' . strtoupper($var))) return getenv('TCD_' . strtoupper($var)); // environment variable
@@ -146,7 +146,7 @@ class TwitchConfig
 	 * @param string $username
 	 * @return array|false
 	 */
-	public static function getStreamer($username, $lowercase = false)
+	public static function getStreamer(string $username, $lowercase = false)
 	{
 		$streamers = self::getStreamers();
 		foreach ($streamers as $s) {
@@ -172,22 +172,6 @@ try {
 	TwitchHelper::log(TwitchHelper::LOG_ERROR, "Config has invalid timezone set");
 }
 
-
-
 if (!TwitchConfig::cfg('bin_dir')) {
 	TwitchHelper::find_bin_dir();
 }
-
-/*
-if( !TwitchConfig::cfg("api_client_id") ) die("api_client_id missing from config file");
-if( !TwitchConfig::cfg("api_secret") ) die("api_secret missing from config file");
-
-if( !is_dir( TwitchConfig::cfg("bin_dir") ) ) die("bin_dir is not set to a python scripts directory");
-
-if( !file_exists( TwitchHelper::path_ffmpeg() ) ){
-	die("ffmpeg_path is not set to the executable");
-}
-if( is_dir( TwitchHelper::path_ffmpeg() ) ){
-	die("ffmpeg_path is set to a directory, not an executable");
-}
-*/

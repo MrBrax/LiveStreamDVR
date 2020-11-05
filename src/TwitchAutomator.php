@@ -255,7 +255,7 @@ class TwitchAutomator
 		$this->vod->started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $data_started);
 
 		// fetch game name from either cache or twitch
-		$game_name = TwitchHelper::getGameName($data_game_id);
+		$game_name = TwitchHelper::getGameName((int)$data_game_id);
 
 		$chapter = [
 			'time' 			=> $this->getDateTime(),

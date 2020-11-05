@@ -31,7 +31,7 @@ class TwitchChannel
      * @param string $username
      * @return void
      */
-    public function load($username)
+    public function load(string $username)
     {
 
         $this->channel_data = TwitchHelper::getChannelData($username);

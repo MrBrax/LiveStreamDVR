@@ -99,7 +99,7 @@ class TwitchVOD
 	 * @param string $filename
 	 * @return bool
 	 */
-	public function load($filename)
+	public function load(string $filename)
 	{
 
 		TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Loading VOD Class for {$filename}");
@@ -239,7 +239,7 @@ class TwitchVOD
 	 * @param string $filename
 	 * @return bool
 	 */
-	public function create($filename)
+	public function create(string $filename)
 	{
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Create VOD JSON: " . basename($filename));
 		$this->created = true;
@@ -839,6 +839,9 @@ class TwitchVOD
 
 	/**
 	 * Save JSON to file, be sure to load it first!
+	 *
+	 * @param string $reason Reason/source for saving, will be included in log
+	 * @return bool|array
 	 */
 	public function saveJSON($reason = null)
 	{
@@ -915,7 +918,6 @@ class TwitchVOD
 			// return false;
 		}
 
-
 		TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Saving JSON of " . $this->basename . ($reason ? ' (' . $reason . ')' : ''));
 
 		file_put_contents($this->filename, json_encode($generated));
@@ -941,7 +943,7 @@ class TwitchVOD
 	 * @param array $array
 	 * @return void
 	 */
-	private function parseChapters($array)
+	private function parseChapters(array $array)
 	{
 
 		if (!$array || count($array) == 0) {
@@ -958,7 +960,7 @@ class TwitchVOD
 			$entry = $chapter;
 
 			if ($entry['game_id']) {
-				$game_data = TwitchHelper::getGameData($entry['game_id']);
+				$game_data = TwitchHelper::getGameData((int)$entry['game_id']);
 			} else {
 				$game_data = null;
 			}
@@ -1025,7 +1027,7 @@ class TwitchVOD
 		$this->chapters = $chapters;
 	}
 
-	public function parseSegments($array)
+	public function parseSegments(array $array)
 	{
 
 		if (!$array) {
@@ -1093,7 +1095,7 @@ class TwitchVOD
 
 		foreach ($unique_games as $id => $n) {
 			if (!$id) continue;
-			$gd = TwitchHelper::getGameData($id);
+			$gd = TwitchHelper::getGameData((int)$id);
 			if (!$gd) continue;
 			$img_url = $gd['box_art_url'];
 			$img_url = str_replace("{width}", 140, $img_url);

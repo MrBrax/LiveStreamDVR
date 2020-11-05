@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use Slim\Psr7\Request;
@@ -405,9 +407,9 @@ class ToolsController
 			]);
 		}
 
-		$video_id = $matches[1];
+		$video_id = (int)$matches[1];
 
-		$response->getBody()->write("Beginning download of " . $video_id);
+		$response->getBody()->write("Beginning download of {$video_id}");
 
 		$basedir = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools';
 		if (!file_exists($basedir)) {
@@ -526,9 +528,9 @@ class ToolsController
 			]);
 		}
 
-		$video_id = $matches[1];
+		$video_id = (int)$matches[1];
 
-		$response->getBody()->write("Beginning download of " . $video_id);
+		$response->getBody()->write("Beginning download of {$video_id}");
 
 		$basedir = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools';
 		if (!file_exists($basedir)) {
@@ -600,9 +602,9 @@ class ToolsController
 			]);
 		}
 
-		$video_id = $matches[1];
+		$video_id = (int)$matches[1];
 
-		$response->getBody()->write("Beginning download of chat " . $video_id);
+		$response->getBody()->write("Beginning download of chat {$video_id}");
 
 		/*
         $basedir = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools';
