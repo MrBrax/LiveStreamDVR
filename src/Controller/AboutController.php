@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Controller;
 
@@ -30,15 +30,11 @@ class AboutController
     public function about(Request $request, Response $response, array $args)
     {
 
-        $update_check = isset($_GET['update_check']);
-
-        
-
         $bins = [];
 
         $bins['ffmpeg'] = [];
         $bins['ffmpeg']['path'] = TwitchHelper::path_ffmpeg();
-        if (file_exists(TwitchHelper::path_ffmpeg())) {
+        if ( TwitchHelper::path_ffmpeg() && file_exists(TwitchHelper::path_ffmpeg()) ) {
             $out = TwitchHelper::exec( [TwitchHelper::path_ffmpeg(),"-version"] );
             $out = explode("\n", $out)[0];
             $bins['ffmpeg']['status'] = $out;
@@ -48,7 +44,7 @@ class AboutController
 
         $bins['mediainfo'] = [];
         $bins['mediainfo']['path'] = TwitchHelper::path_mediainfo();
-        if (file_exists(TwitchHelper::path_mediainfo())) {
+        if ( TwitchHelper::path_mediainfo() && file_exists(TwitchHelper::path_mediainfo()) ) {
             $out = TwitchHelper::exec( [ TwitchHelper::path_mediainfo(), "--Version" ] );
             if($out){
                 $out = explode("\n", $out)[1];
@@ -63,7 +59,7 @@ class AboutController
         // tcd
         $bins['tcd'] = [];
         $bins['tcd']['path'] = TwitchHelper::path_tcd();
-        if (file_exists(TwitchHelper::path_tcd())) {
+        if ( TwitchHelper::path_tcd() && file_exists(TwitchHelper::path_tcd()) ) {
             $out = TwitchHelper::exec( [ TwitchHelper::path_tcd(), "--version", "--settings-file", TwitchHelper::$config_folder . DIRECTORY_SEPARATOR . "tcd_settings.json" ] );
             $bins['tcd']['status'] = $out;
             $bins['tcd']['installed'] = true;
@@ -75,7 +71,7 @@ class AboutController
         // streamlink
         $bins['streamlink'] = [];
         $bins['streamlink']['path'] = TwitchHelper::path_streamlink();
-        if (file_exists(TwitchHelper::path_streamlink())) {
+        if ( TwitchHelper::path_streamlink() && file_exists(TwitchHelper::path_streamlink()) ) {
             $out = TwitchHelper::exec( [ TwitchHelper::path_streamlink(), "--version" ] );
             $bins['streamlink']['status'] = trim($out);
             $bins['streamlink']['installed'] = true;
@@ -86,7 +82,7 @@ class AboutController
         // youtube-dl
         $bins['youtubedl'] = [];
         $bins['youtubedl']['path'] = TwitchHelper::path_youtubedl();
-        if (file_exists(TwitchHelper::path_youtubedl())) {
+        if ( TwitchHelper::path_youtubedl() && file_exists(TwitchHelper::path_youtubedl()) ) {
             $out = TwitchHelper::exec( [ TwitchHelper::path_youtubedl(), "--version"] );
             $bins['youtubedl']['status'] = trim($out);
             $bins['youtubedl']['installed'] = true;
@@ -96,7 +92,7 @@ class AboutController
 
         $bins['twitchdownloader'] = [];
         $bins['twitchdownloader']['path'] = TwitchHelper::path_twitchdownloader();
-        if (file_exists(TwitchHelper::path_twitchdownloader())) {
+        if ( TwitchHelper::path_twitchdownloader() && file_exists(TwitchHelper::path_twitchdownloader()) ) {
             $out = TwitchHelper::exec( [ TwitchHelper::path_twitchdownloader(), "--version"], true );
             $bins['twitchdownloader']['status'] = trim($out);
             $bins['twitchdownloader']['installed'] = true;
@@ -107,7 +103,7 @@ class AboutController
 
         $bins['pipenv'] = [];
         $bins['pipenv']['path'] = TwitchHelper::path_pipenv();
-        if (file_exists(TwitchHelper::path_pipenv())) {
+        if ( TwitchHelper::path_pipenv() && file_exists(TwitchHelper::path_pipenv()) ) {
             $out = TwitchHelper::exec( [ TwitchHelper::path_pipenv(), "--version" ] );
             $bins['pipenv']['status'] = trim($out);
             $bins['pipenv']['installed'] = true;

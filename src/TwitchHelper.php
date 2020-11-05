@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App;
 
@@ -636,7 +636,7 @@ class TwitchHelper {
 	public static function printHumanDuration( $duration ){
 
 		$time = new \DateTime();
-		$time->setTimestamp( $duration );
+		$time->setTimestamp( (int)$duration );
 
 		return $time->format("H:i:s");
 

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Traits;
 
@@ -6,24 +6,32 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use App\TwitchConfig;
 use App\TwitchHelper;
+use Exception;
 
 trait SoftwareWrappers {
 
 	/**
-	 * Execute a command
+	 * Execute a command, blocking
 	 *
 	 * @param array $cmd
 	 * @param boolean $stderr
 	 * @return string
 	 */
-	public static function exec( array $cmd, $stderr = false ){
+	public static function exec( array $cmd, $stderr = false ) : string {
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Executing command: " . implode(" ", $cmd) );
 		$process = new Process( $cmd );
         $process->run();
 		return $process->getOutput() . ( $stderr ? $process->getErrorOutput() : '' );
 	}
 
-    public static function whereis( $name_linux, $name_windows ){
+	/**
+	 * Find out where a file is located on PATH
+	 *
+	 * @param string $name_linux
+	 * @param string $name_windows
+	 * @return string|false
+	 */
+    public static function whereis( string $name_linux, string $name_windows ){
 
 		if( self::is_windows() ){
            
@@ -52,9 +60,23 @@ trait SoftwareWrappers {
 
 	}
 
-	public static function mediainfo( $filename ){
+	/**
+	 * Run the mediainfo program on the file
+	 *
+	 * @param string $filename
+	 * @return array|false
+	 */
+	public static function mediainfo( string $filename ){
 
 		TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Run mediainfo on " . $filename );
+
+		if( !$filename){
+			throw new Exception('No filename supplied for mediainfo');
+		}
+
+		if( !file_exists( $filename ) ){
+			throw new Exception('File not found for mediainfo');
+		}
 
         // $output = shell_exec( TwitchHelper::path_mediainfo() . ' --Full --Output=JSON ' . escapeshellarg($filename) );
         // $process = new Process( [TwitchHelper::path_mediainfo(), '--Full', '--Output=JSON', $filename] );

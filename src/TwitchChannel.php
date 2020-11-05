@@ -1,10 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App;
 
 use DateTime;
 use Exception;
-use getID3;
 
 class TwitchChannel {
     

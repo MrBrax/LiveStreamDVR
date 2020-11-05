@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Controller;
 
@@ -143,7 +143,7 @@ class DashboardController
                 */
                 
                 if( $line["date"] ){
-                    $dt = \DateTime::createFromFormat( "U.u", $line["date"] );
+                    $dt = \DateTime::createFromFormat( "U.u", (string)$line["date"] );
                     if(!$dt) $dt = \DateTime::createFromFormat( "U", $line["date"] );
                     if($dt){
                         $dt->setTimezone( TwitchConfig::$timezone );

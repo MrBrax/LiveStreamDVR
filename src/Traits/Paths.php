@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Traits;
 
@@ -10,11 +10,11 @@ use App\TwitchHelper;
 trait Paths {
 
     // path helpers
-	public static function is_windows(){
+	public static function is_windows() : bool {
 		return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
 	}
 
-	public static function path_ffmpeg(){		
+	public static function path_ffmpeg() {		
 		
 		if( TwitchConfig::cfg('ffmpeg_path') ) return TwitchConfig::cfg('ffmpeg_path');
 

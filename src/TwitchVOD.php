@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App;
 
@@ -345,34 +345,6 @@ class TwitchVOD {
 
 		$filename = $this->directory . DIRECTORY_SEPARATOR . basename( $this->segments_raw[ $segment_num ] );
 
-		/*
-		$output = shell_exec( TwitchHelper::path_mediainfo() . ' --Full --Output=JSON ' . escapeshellarg($filename) );
-
-		if( $output ){
-			
-			$json = json_decode( $output, true );
-			
-			$data = [];
-
-			foreach( $json['media']['track'] as $track ){
-				if( $track["@type"] == "General"){
-					$data['general'] = $track;
-				}else if( $track["@type"] == "Video"){
-					$data['video'] = $track;
-				}else if( $track["@type"] == "Audio"){
-					$data['audio'] = $track;
-				}
-			}
-
-			$this->video_metadata = $data;
-
-			return $this->video_metadata;
-
-		}else{
-			$this->video_fail2 = true;
-			return false;
-		}
-		*/
 		$data = TwitchHelper::mediainfo($filename);
 		if($data){
 			$this->video_metadata = $data;
@@ -1211,6 +1183,8 @@ class TwitchVOD {
 		$this->parseSegments( $this->segments_raw );
 
 		$this->saveJSON('segments rebuild');
+
+		return true;
 
 	}
 
