@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App;
 
-use DateTimeZone;
-
 class TwitchConfig
 {
 
@@ -166,9 +164,9 @@ class TwitchConfig
 TwitchConfig::loadConfig();
 
 try {
-	TwitchConfig::$timezone = new DateTimeZone(TwitchConfig::cfg('timezone', 'UTC'));
+	TwitchConfig::$timezone = new \DateTimeZone(TwitchConfig::cfg('timezone', 'UTC'));
 } catch (\Throwable $th) {
-	TwitchConfig::$timezone = new DateTimeZone('UTC');
+	TwitchConfig::$timezone = new \DateTimeZone('UTC');
 	TwitchHelper::log(TwitchHelper::LOG_ERROR, "Config has invalid timezone set");
 }
 

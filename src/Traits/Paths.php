@@ -15,7 +15,7 @@ trait Paths
 	// path helpers
 	public static function is_windows(): bool
 	{
-		return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+		return strtoupper(mb_substr(PHP_OS, 0, 3)) === 'WIN';
 	}
 
 	/**

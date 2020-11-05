@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App;
 
-use Exception;
 use GuzzleHttp\Client;
 
 class TwitchHelper
@@ -80,7 +79,7 @@ class TwitchHelper
 			// self::log(self::LOG_DEBUG, "Checking directory " . $dir);
 			if (!file_exists($dir)) {
 				if (!mkdir($dir)) {
-					throw new Exception("Couldn't make directory: " . $dir);
+					throw new \Exception("Couldn't make directory: " . $dir);
 				}
 				// self::log(self::LOG_INFO, "Made directory " . $dir);
 			}
@@ -203,7 +202,7 @@ class TwitchHelper
 		$log_text .= "\n" . $text_line;
 
 		$log_data = [
-			"date" => microtime(true),
+			"date" => (string)microtime(true),
 			"level" => $level,
 			"text" => $text
 		];
@@ -871,7 +870,7 @@ class TwitchHelper
 
 		$output = TwitchHelper::exec(["ps", "-p", $pid]);
 
-		if (strpos($output, $pid) !== false) {
+		if (mb_strpos($output, $pid) !== false) {
 			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, process is running");
 			return $pid;
 		} else {

@@ -311,7 +311,7 @@ class ToolsController
 		$this->logs['td_chat']['stderr'] = $process->getErrorOutput();
 
 
-		if (strpos($process->getErrorOutput(), "Unhandled exception") !== false) {
+		if (mb_strpos($process->getErrorOutput(), "Unhandled exception") !== false) {
 			throw new \Exception('Error when running TwitchDownloaderCLI.');
 			return false;
 		}

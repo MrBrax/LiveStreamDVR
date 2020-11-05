@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App;
 
-use DateTime;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
@@ -368,7 +367,7 @@ class TwitchVOD
 	public function getDurationLive()
 	{
 		if (!$this->started_at) return false;
-		$now = new DateTime();
+		$now = new \DateTime();
 		return abs($this->started_at->getTimestamp() - $now->getTimestamp());
 		// $diff = $this->started_at->diff( new \DateTime() );
 		// $diff->format("%s");
@@ -603,7 +602,7 @@ class TwitchVOD
 
 		// $this->burnChat( $chat_width );
 
-		if (strpos($process->getErrorOutput(), "Unhandled exception") !== false) {
+		if (mb_strpos($process->getErrorOutput(), "Unhandled exception") !== false) {
 			throw new \Exception('Error when running TwitchDownloaderCLI. Please check logs.');
 			return false;
 		}
@@ -907,7 +906,7 @@ class TwitchVOD
 
 		$generated['meta']				= $this->meta;
 
-		$generated['saved_at']			= new DateTime();
+		$generated['saved_at']			= new \DateTime();
 
 		$generated['dt_capture_started'] 		= $this->dt_capture_started;
 		$generated['dt_conversion_started'] 	= $this->dt_conversion_started;
@@ -1346,7 +1345,7 @@ class TwitchVOD
 			return null;
 		}
 
-		if (strpos($output, "index-muted-") !== false) {
+		if (mb_strpos($output, "index-muted-") !== false) {
 			$this->twitch_vod_muted = true;
 			TwitchHelper::log(TwitchHelper::LOG_WARNING, "VOD " . $this->basename . " is muted!");
 			if ($previous !== $this->twitch_vod_muted && $save) {

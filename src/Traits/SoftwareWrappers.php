@@ -8,7 +8,6 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use App\TwitchConfig;
 use App\TwitchHelper;
-use Exception;
 
 trait SoftwareWrappers
 {
@@ -74,11 +73,11 @@ trait SoftwareWrappers
 		TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Run mediainfo on " . $filename);
 
 		if (!$filename) {
-			throw new Exception('No filename supplied for mediainfo');
+			throw new \Exception('No filename supplied for mediainfo');
 		}
 
 		if (!file_exists($filename)) {
-			throw new Exception('File not found for mediainfo');
+			throw new \Exception('File not found for mediainfo');
 		}
 
 		// $output = shell_exec( TwitchHelper::path_mediainfo() . ' --Full --Output=JSON ' . escapeshellarg($filename) );

@@ -2,8 +2,6 @@
 
 namespace App;
 
-use DateTime;
-
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
@@ -337,7 +335,7 @@ class TwitchAutomator
 			TwitchHelper::log(TwitchHelper::LOG_INFO, "Check keyword matches for " . $basename, ['download' => $data_username]);
 
 			foreach ($streamer['match'] as $m) {
-				if (strpos(strtolower($data_title), $m) !== false) {
+				if (mb_strpos(strtolower($data_title), $m) !== false) {
 					$match = true;
 					break;
 				}
@@ -770,7 +768,7 @@ class TwitchAutomator
 		// $this->info[] = 'Streamlink error: ' . $process->getErrorOutput();
 
 		// download with youtube-dl if streamlink fails, shouldn't be required anymore
-		if (strpos($process->getOutput(), '410 Client Error') !== false) {
+		if (mb_strpos($process->getOutput(), '410 Client Error') !== false) {
 
 			$this->notify($basename, '410 Error', self::NOTIFY_ERROR);
 			// return false;
@@ -800,7 +798,7 @@ class TwitchAutomator
 			// exit(500);
 		}
 
-		if (strpos($capture_output, 'already exists, use') !== false) {
+		if (mb_strpos($capture_output, 'already exists, use') !== false) {
 			TwitchHelper::log(TwitchHelper::LOG_FATAL, "Unexplainable, " . basename($capture_filename) . " could not be captured due to existing file already.", ['download-capture' => $data_username]);
 		}
 

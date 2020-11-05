@@ -171,8 +171,8 @@ class ApiController
                 if (!TwitchConfig::cfg("debug") && $line["level"] == 'DEBUG') continue;
 
                 if ($line["date"]) {
-                    $dt = \DateTime::createFromFormat("U.u", $line["date"]);
-                    if (!$dt) $dt = \DateTime::createFromFormat("U", $line["date"]);
+                    $dt = \DateTime::createFromFormat("U.u", (string)$line["date"]);
+                    if (!$dt) $dt = \DateTime::createFromFormat("U", (string)$line["date"]);
                     if ($dt) {
                         $dt->setTimezone(TwitchConfig::$timezone);
                         $line['date_string'] = $dt->format("Y-m-d H:i:s.v");
