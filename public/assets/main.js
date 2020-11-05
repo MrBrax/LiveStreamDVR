@@ -7,6 +7,7 @@ let current_username = "";
 let scrollTop = 0;
 let refresh_number = 0;
 let log_name = "";
+// let previousData = {};
 let previousData = {};
 let fluffInterval;
 let config = {
@@ -15,8 +16,8 @@ let config = {
 };
 let nongames = ['Just Chatting', 'IRL', 'Travel', 'Art'];
 let streamerPronounciation = {
-    pokelawls: 'pookelawls',
-    xQcOW: 'eckscueseeow'
+    'pokelawls': 'pookelawls',
+    'xQcOW': 'eckscueseeow'
 };
 function formatBytes(bytes, precision = 2) {
     let units = ['B', 'KB', 'MB', 'GB', 'TB'];

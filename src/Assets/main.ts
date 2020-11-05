@@ -2,13 +2,25 @@
  * TODO: Scrap this entire file and build a reactive user interface
  */
 
+interface DateTimeJSON { date: string, timezone_type: number, timezone: string }
+interface VODChapter { game_name: string }
+interface TwitchVOD { started_at: DateTimeJSON }
+
+interface StreamerData {
+    is_live: boolean,
+    current_vod: TwitchVOD,
+    started_at: DateTimeJSON,
+    current_game: VODChapter
+}
+
 let api_base = `${(<any>window).base_path}/api/v0`;
 let current_username = "";
 let scrollTop = 0;
 let refresh_number = 0;
 let log_name: string = "";
-let previousData = {};
-let fluffInterval : number;
+// let previousData = {};
+let previousData: { [key: string]: StreamerData } = {};
+let fluffInterval: number;
 let config = {
     useSpeech: false,
     singlePage: true
@@ -16,9 +28,9 @@ let config = {
 
 let nongames = ['Just Chatting', 'IRL', 'Travel', 'Art'];
 
-let streamerPronounciation = {
-    pokelawls: 'pookelawls',
-    xQcOW: 'eckscueseeow'
+let streamerPronounciation: { [key: string]: string } = {
+    'pokelawls': 'pookelawls',
+    'xQcOW': 'eckscueseeow'
 };
 
 function formatBytes(bytes : number, precision = 2) { 
@@ -136,7 +148,7 @@ async function renderLog( date: string ){
     }
 }
 
-let jobs_div;
+let jobs_div : HTMLElement;
 async function fetchJobs(){
     
     if( !jobs_div ){
