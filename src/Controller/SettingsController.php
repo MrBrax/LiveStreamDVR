@@ -35,7 +35,6 @@ class SettingsController
         $sub_callback = str_replace('/hook', '/sub', $sub_callback);
 
         $app_calc = "http" . ($_SERVER['SERVER_PORT'] == 443 ? 's' : '') . "://" . $_SERVER["HTTP_HOST"] . str_replace("/settings", "", $_SERVER["REQUEST_URI"]);
-        // $app_calc = 
 
         $games = TwitchConfig::getGames();
 
@@ -49,7 +48,7 @@ class SettingsController
         ]);
     }
 
-    private function generate_cron()
+    private function generateCron()
     {
 
         if (!TwitchConfig::cfg('app_url')) return;
@@ -72,45 +71,6 @@ class SettingsController
     public function settings_save(Request $request, Response $response, array $args)
     {
 
-        // $app_name               = $_POST['app_name'];
-        /*
-        $vods_to_keep           = $_POST['vods_to_keep'];
-        $storage_per_streamer   = $_POST['storage_per_streamer'];
-        $api_client_id          = $_POST['api_client_id'];
-        $api_secret             = $_POST['api_secret'];
-        $hook_callback          = $_POST['hook_callback'];
-        $debug                  = isset($_POST['debug']);
-        $disable_ads            = isset($_POST['disable_ads']);
-        $app_verbose            = isset($_POST['app_verbose']);
-        $basepath               = $_POST['basepath'];
-        $password               = $_POST['password'];
-        $channel_folders        = isset($_POST['channel_folders']);
-        $hls_timeout               = $_POST['hls_timeout'];
-        
-        $bin_dir               = $_POST['bin_dir'];
-        $ffmpeg_path           = $_POST['ffmpeg_path'];
-        $mediainfo_path        = $_POST['mediainfo_path'];
-        $twitchdownloader_path = $_POST['twitchdownloader_path'];
-
-        TwitchConfig::$config['vods_to_keep'] = (int)$vods_to_keep;
-        TwitchConfig::$config['storage_per_streamer'] = (int)$storage_per_streamer;
-        TwitchConfig::$config['api_client_id'] = $api_client_id;
-        TwitchConfig::$config['hook_callback'] = $hook_callback;
-        TwitchConfig::$config['debug'] = $debug;
-        TwitchConfig::$config['app_verbose'] = $app_verbose;
-        TwitchConfig::$config['disable_ads'] = $disable_ads;
-        TwitchConfig::$config['basepath'] = $basepath;
-        TwitchConfig::$config['password'] = $password;
-        TwitchConfig::$config['channel_folders'] = $channel_folders;
-        TwitchConfig::$config['hls_timeout'] = $hls_timeout;
-
-        TwitchConfig::$config['bin_dir'] = $bin_dir;
-        TwitchConfig::$config['ffmpeg_path'] = $ffmpeg_path;
-        TwitchConfig::$config['mediainfo_path'] = $mediainfo_path;
-        TwitchConfig::$config['twitchdownloader_path'] = $twitchdownloader_path;
-        if($api_secret) TwitchConfig::$config['api_secret'] = $api_secret;
-        */
-
         foreach (TwitchConfig::$settingsFields as $setting) {
 
             $key = $setting['key'];
@@ -132,7 +92,7 @@ class SettingsController
 
         TwitchConfig::saveConfig("settings/save");
 
-        $this->generate_cron();
+        $this->generateCron();
 
         return $this->twig->render($response, 'dialog.twig', [
             'text' => 'Settings saved.',
@@ -154,7 +114,7 @@ class SettingsController
             $data[$id] = true;
         }
 
-        TwitchConfig::$config['favourites'] = $data;
+        TwitchConfig::setConfig('favourites', $data);
         TwitchConfig::saveConfig("favourites/save");
 
         return $this->twig->render($response, 'dialog.twig', [
@@ -265,9 +225,6 @@ class SettingsController
         TwitchConfig::saveConfig("streamer/update");
 
         TwitchHelper::sub($username);
-
-        // $response->getBody()->write("Streamer updated.");
-        // return $response;
 
         return $this->twig->render($response, 'dialog.twig', [
             'text' => 'Streamer updated.',

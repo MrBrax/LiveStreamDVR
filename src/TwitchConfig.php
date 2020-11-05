@@ -66,10 +66,21 @@ class TwitchConfig
 		return self::$config[$var] ?: $def;
 	}
 
-	/** @deprecated 3.2.0 */
-	public static function path($parts)
+	public static function settingExists( string $key ){
+		foreach(self::$settingsFields as $setting){
+			if( $setting['key'] == $key ) return true;
+		}
+		return false;
+	}
+
+	public static function setConfig(string $var, $value)
 	{
-		return join(DIRECTORY_SEPARATOR, $parts);
+
+		//if( !self::settingExists($var) ){
+		//	
+		//}
+		self::$config[$var] = $value;
+		
 	}
 
 	public static function loadConfig()
