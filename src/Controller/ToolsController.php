@@ -13,24 +13,27 @@ use Slim\Views\Twig;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
-class ToolsController {
+class ToolsController
+{
 
-    /**
-     * @var Twig
-     */
-    private $twig;
+	/**
+	 * @var Twig
+	 */
+	private $twig;
 
-    private $logs = [];
+	private $logs = [];
 
-    public function __construct(Twig $twig) {
-        $this->twig = $twig;
-    }
+	public function __construct(Twig $twig)
+	{
+		$this->twig = $twig;
+	}
 
-    public function tools(Request $request, Response $response, array $args) {
-	
+	public function tools(Request $request, Response $response, array $args)
+	{
+
 		$saved_vods = [];
-		$saved_vods_raw = glob( TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . DIRECTORY_SEPARATOR . "*.mp4");
-		foreach( $saved_vods_raw as $v ){
+		$saved_vods_raw = glob(TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . DIRECTORY_SEPARATOR . "*.mp4");
+		foreach ($saved_vods_raw as $v) {
 			$saved_vods[] = [
 				'name' => basename($v),
 				'size' => filesize($v)
@@ -38,11 +41,11 @@ class ToolsController {
 		}
 
 
-		$current_jobs_raw = glob( TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . "*.pid");
+		$current_jobs_raw = glob(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . "*.pid");
 		$current_jobs = [];
-		foreach( $current_jobs_raw as $v ){
+		foreach ($current_jobs_raw as $v) {
 			$pid = file_get_contents($v);
-			$status = TwitchHelper::getPidfileStatus( basename($v, ".pid") );
+			$status = TwitchHelper::getPidfileStatus(basename($v, ".pid"));
 			$current_jobs[] = [
 				'name' => basename($v, ".pid"),
 				'pid' => $pid,
@@ -51,43 +54,43 @@ class ToolsController {
 		}
 		// if( $current_jobs_raw ) $current_jobs = array_map( 'basename', $current_jobs_raw );
 
-        return $this->twig->render($response, 'tools.twig', [
+		return $this->twig->render($response, 'tools.twig', [
 			'saved_vods' => $saved_vods,
 			'current_jobs' => $current_jobs,
 			'twitch_quality' => TwitchHelper::$twitchQuality
-        ]);
-
-    }
+		]);
+	}
 
 	// TODO: unify these functions for all classes
-    private function downloadChat( $video_id, $destination ){
+	private function downloadChat($video_id, $destination)
+	{
 
-        if( !TwitchHelper::path_tcd() ) return false;	
+		if (!TwitchHelper::path_tcd()) return false;
 
 		$cmd = [];
 
-		if( TwitchConfig::cfg('pipenv') ){
+		if (TwitchConfig::cfg('pipenv')) {
 			$cmd[] = 'pipenv run tcd';
-		}else{
+		} else {
 			$cmd[] = TwitchHelper::path_tcd();
 		}
 
 		$cmd[] = '--settings-file';
 		$cmd[] = TwitchHelper::$config_folder . DIRECTORY_SEPARATOR . 'tcd_settings.json';
-		
+
 		$cmd[] = '--video';
 		$cmd[] = $video_id;
 
 		$cmd[] = '--client-id';
 		$cmd[] = TwitchConfig::cfg('api_client_id');
-		
+
 		$cmd[] = '--client-secret';
 		$cmd[] = TwitchConfig::cfg('api_secret');
-		
+
 		$cmd[] = '--format';
 		$cmd[] = 'json';
-		
-		if( TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false) ){
+
+		if (TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false)) {
 			$cmd[] = '--verbose';
 			$cmd[] = '--debug';
 		}
@@ -97,92 +100,92 @@ class ToolsController {
 
 		// $capture_output = shell_exec( $cmd );
 
-		$process = new Process( $cmd, TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools', null, null, null );
-        $process->start();
-		
+		$process = new Process($cmd, TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools', null, null, null);
+		$process->start();
+
 		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_download_' . $video_id . '.pid';
-		file_put_contents( $pidfile, $process->getPid() );
-		
+		file_put_contents($pidfile, $process->getPid());
+
 		$process->wait();
 
-		if( file_exists( $pidfile ) ) unlink( $pidfile );
-        
-        $tcd_filename = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools' . DIRECTORY_SEPARATOR . $video_id . '.json';
+		if (file_exists($pidfile)) unlink($pidfile);
 
-        $this->logs['tcd']['stdout'] = $process->getOutput();
-        $this->logs['tcd']['stderr'] = $process->getErrorOutput();
+		$tcd_filename = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools' . DIRECTORY_SEPARATOR . $video_id . '.json';
 
-		if( file_exists( $tcd_filename ) ){
-			rename( $tcd_filename, $destination );
+		$this->logs['tcd']['stdout'] = $process->getOutput();
+		$this->logs['tcd']['stderr'] = $process->getErrorOutput();
+
+		if (file_exists($tcd_filename)) {
+			rename($tcd_filename, $destination);
 		}
 
-		$successful = file_exists( $destination ) && filesize( $destination ) > 0;
+		$successful = file_exists($destination) && filesize($destination) > 0;
 
 		return $successful;
-
 	}
 
-    private function downloadVod( $video_id, $destination, $quality ){
-        
-        if( !TwitchHelper::path_streamlink() ) return false;		
+	private function downloadVod($video_id, $destination, $quality)
+	{
 
-        $video_url = 'https://www.twitch.tv/videos/' . $video_id;
+		if (!TwitchHelper::path_streamlink()) return false;
 
-        $cmd = [];
+		$video_url = 'https://www.twitch.tv/videos/' . $video_id;
 
-        if( TwitchConfig::cfg('pipenv') ){
-            $cmd[] = 'pipenv run streamlink';
-        }else{
-            $cmd[] = TwitchHelper::path_streamlink();
-        }
+		$cmd = [];
 
-        $cmd[] = '-o';
+		if (TwitchConfig::cfg('pipenv')) {
+			$cmd[] = 'pipenv run streamlink';
+		} else {
+			$cmd[] = TwitchHelper::path_streamlink();
+		}
+
+		$cmd[] = '-o';
 		$cmd[] = $destination; // output file
-		
+
 		$cmd[] = '--hls-segment-threads';
 		$cmd[] = 10;
 
-        $cmd[] = '--url';
-        $cmd[] = $video_url; // stream url
+		$cmd[] = '--url';
+		$cmd[] = $video_url; // stream url
 
-        $cmd[] = '--default-stream';
-        $cmd[] = $quality; // twitch url and quality
+		$cmd[] = '--default-stream';
+		$cmd[] = $quality; // twitch url and quality
 
-        $process = new Process( $cmd, dirname($destination), null, null, null );
-        $process->start();
-		
+		$process = new Process($cmd, dirname($destination), null, null, null);
+		$process->start();
+
 		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_vod_download_' . $video_id . '.pid';
-		file_put_contents( $pidfile, $process->getPid() );
-		
+		file_put_contents($pidfile, $process->getPid());
+
 		$process->wait();
 
-		if( file_exists( $pidfile ) ) unlink( $pidfile );
+		if (file_exists($pidfile)) unlink($pidfile);
 
-        $this->logs['streamlink']['stdout'] = $process->getOutput();
-        $this->logs['streamlink']['stderr'] = $process->getErrorOutput();
+		$this->logs['streamlink']['stdout'] = $process->getOutput();
+		$this->logs['streamlink']['stderr'] = $process->getErrorOutput();
 
-        $successful = file_exists( $destination ) && filesize( $destination ) > 0;
+		$successful = file_exists($destination) && filesize($destination) > 0;
 
-        return $successful;
-        
-    }
+		return $successful;
+	}
 
-    private function convertVod( $video_id, $source, $destination ){
+	private function convertVod($video_id, $source, $destination)
+	{
 
-        $cmd = [];
+		$cmd = [];
 
 		$cmd[] = TwitchHelper::path_ffmpeg();
-		
+
 		$cmd[] = '-i';
 		$cmd[] = $source; // input filename
-		
+
 		$cmd[] = '-codec';
 		$cmd[] = 'copy'; // use same codec
 
 		$cmd[] = '-bsf:a';
 		$cmd[] = 'aac_adtstoasc'; // fix audio sync in ts
-		
-		if( TwitchConfig::cfg('ts_sync') ){
+
+		if (TwitchConfig::cfg('ts_sync')) {
 
 			$cmd[] = '-async';
 			$cmd[] = '1';
@@ -194,61 +197,61 @@ class ToolsController {
 			// $cmd[] = 'aresample=async=1';
 
 		}
-		
-		if( TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false) ){
+
+		if (TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false)) {
 			$cmd[] = '-loglevel';
 			$cmd[] = 'repeat+level+verbose';
 		}
 
 		$cmd[] = $destination; // output filename
 
-		$process = new Process( $cmd, dirname($source), null, null, null );
+		$process = new Process($cmd, dirname($source), null, null, null);
 		$process->start();
-		
+
 		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_vod_convert_' . $video_id . '.pid';
-		file_put_contents( $pidfile, $process->getPid() );
-		
+		file_put_contents($pidfile, $process->getPid());
+
 		$process->wait();
 
-		if( file_exists( $pidfile ) ) unlink( $pidfile );
+		if (file_exists($pidfile)) unlink($pidfile);
 
-        $this->logs['ffmpeg']['stdout'] = $process->getOutput();
-        $this->logs['ffmpeg']['stderr'] = $process->getErrorOutput();
+		$this->logs['ffmpeg']['stdout'] = $process->getOutput();
+		$this->logs['ffmpeg']['stderr'] = $process->getErrorOutput();
 
-		if( file_exists( $source ) && file_exists($destination) && filesize( $destination) > 0 ){
-			unlink( $source );
+		if (file_exists($source) && file_exists($destination) && filesize($destination) > 0) {
+			unlink($source);
 		}
 
-        $successful = file_exists( $destination ) && filesize( $destination ) > 0;
+		$successful = file_exists($destination) && filesize($destination) > 0;
 
-        return $successful;
-        
-    }
+		return $successful;
+	}
 
-    private function renderChat( $video_id, $video_filename, $chat_filename, $destination ){
+	private function renderChat($video_id, $video_filename, $chat_filename, $destination)
+	{
 
-		if( !TwitchHelper::path_twitchdownloader() || !file_exists( TwitchHelper::path_twitchdownloader() ) ){
+		if (!TwitchHelper::path_twitchdownloader() || !file_exists(TwitchHelper::path_twitchdownloader())) {
 			throw new \Exception('TwitchDownloaderCLI not installed');
 			return false;
 		}
 
-		if( !TwitchHelper::path_mediainfo() ){
+		if (!TwitchHelper::path_mediainfo()) {
 			throw new \Exception('Mediainfo not installed');
 			return false;
 		}
 
 		// $chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
 		// $video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
-        
-		$mediainfo = TwitchHelper::mediainfo( $video_filename );
-		
-		if(!$mediainfo){
+
+		$mediainfo = TwitchHelper::mediainfo($video_filename);
+
+		if (!$mediainfo) {
 			throw new \Exception('No mediainfo returned');
 			return false;
 		}
-        
-        $chat_width = 300;
-        $chat_height = $mediainfo['video']['Height'];
+
+		$chat_width = 300;
+		$chat_height = $mediainfo['video']['Height'];
 
 		$cmd = [];
 
@@ -258,8 +261,8 @@ class ToolsController {
 		$cmd[] = 'ChatRender';
 
 		$cmd[] = '--input';
-		$cmd[] = realpath( $chat_filename );
-		
+		$cmd[] = realpath($chat_filename);
+
 		$cmd[] = '--chat-height';
 		$cmd[] = $chat_height;
 
@@ -281,49 +284,49 @@ class ToolsController {
 		$cmd[] = '#00000000';
 
 		$cmd[] = '--generate-mask';
-		
-        $cmd[] = '--output';
-        $cmd[] = $destination;
-		
+
+		$cmd[] = '--output';
+		$cmd[] = $destination;
+
 		$env = [
 			// 'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache",
-			'PATH' => dirname( TwitchHelper::path_ffmpeg() ),
-            'TEMP' => TwitchHelper::$cache_folder,
-            'TMP' => TwitchHelper::$cache_folder,
+			'PATH' => dirname(TwitchHelper::path_ffmpeg()),
+			'TEMP' => TwitchHelper::$cache_folder,
+			'TMP' => TwitchHelper::$cache_folder,
 		];
 
-		$process = new Process( $cmd, TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools', $env, null, null );
+		$process = new Process($cmd, TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools', $env, null, null);
 		$process->start();
-		
+
 		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_render_' . $video_id . '.pid';
-		file_put_contents( $pidfile, $process->getPid() );
-		
+		file_put_contents($pidfile, $process->getPid());
+
 		$process->wait();
 
-		if( file_exists( $pidfile ) ) unlink( $pidfile );
-		
-        $this->logs['td_chat']['stdout'] = $process->getOutput();
-        $this->logs['td_chat']['stderr'] = $process->getErrorOutput();
-    
+		if (file_exists($pidfile)) unlink($pidfile);
 
-		if( strpos( $process->getErrorOutput(), "Unhandled exception") !== false ){
+		$this->logs['td_chat']['stdout'] = $process->getOutput();
+		$this->logs['td_chat']['stderr'] = $process->getErrorOutput();
+
+
+		if (strpos($process->getErrorOutput(), "Unhandled exception") !== false) {
 			throw new \Exception('Error when running TwitchDownloaderCLI.');
 			return false;
 		}
 
-		$successful = file_exists( $destination ) && filesize( $destination ) > 0;
+		$successful = file_exists($destination) && filesize($destination) > 0;
 
 		return $successful;
+	}
 
-    }
+	private function burnChat($video_id, $video_filename, $chatrender_filename, $destination)
+	{
 
-    private function burnChat( $video_id, $video_filename, $chatrender_filename, $destination ){
-
-        $chat_width = 300;
+		$chat_width = 300;
 
 		// $chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
-        
-        $mask_filename = str_replace(".mp4", "_mask.mp4", $chatrender_filename);
+
+		$mask_filename = str_replace(".mp4", "_mask.mp4", $chatrender_filename);
 
 		// $final_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_burned.mp4';
 
@@ -341,7 +344,7 @@ class ToolsController {
 		// chat mask
 		$cmd[] = '-i';
 		$cmd[] = $mask_filename;
-		
+
 		// vod
 		$cmd[] = '-i';
 		$cmd[] = $video_filename;
@@ -367,240 +370,239 @@ class ToolsController {
 
 		$cmd[] = $destination;
 
-		$process = new Process( $cmd, dirname($video_filename), null, null, null );
+		$process = new Process($cmd, dirname($video_filename), null, null, null);
 		$process->start();
-		
+
 		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_burn_' . $video_id . '.pid';
-		file_put_contents( $pidfile, $process->getPid() );
-		
+		file_put_contents($pidfile, $process->getPid());
+
 		$process->wait();
 
-		if( file_exists( $pidfile ) ) unlink( $pidfile );
+		if (file_exists($pidfile)) unlink($pidfile);
 
-        $this->logs['td_burn']['stdout'] = $process->getOutput();
-        $this->logs['td_burn']['stderr'] = $process->getErrorOutput();
+		$this->logs['td_burn']['stdout'] = $process->getOutput();
+		$this->logs['td_burn']['stderr'] = $process->getErrorOutput();
 
-		$successful = file_exists( $destination ) && filesize( $destination ) > 0;
+		$successful = file_exists($destination) && filesize($destination) > 0;
 
 		return $successful;
-
 	}
 
-    public function page_fullvodburn(Request $request, Response $response, array $args) {
+	public function page_fullvodburn(Request $request, Response $response, array $args)
+	{
 
-        $url        = $_POST['url'];
-        $quality    = $_POST['quality'];
+		$url        = $_POST['url'];
+		$quality    = $_POST['quality'];
 
-        set_time_limit(0);
+		set_time_limit(0);
 
-        preg_match("/\/videos\/([0-9]+)/", $url, $matches);
+		preg_match("/\/videos\/([0-9]+)/", $url, $matches);
 
-        if(!$matches){
-            return $this->twig->render($response, 'dialog.twig', [
-                'text' => 'No video found: ' . $url,
-                'type' => 'error'
-            ]);
-        }
+		if (!$matches) {
+			return $this->twig->render($response, 'dialog.twig', [
+				'text' => 'No video found: ' . $url,
+				'type' => 'error'
+			]);
+		}
 
-        $video_id = $matches[1];
+		$video_id = $matches[1];
 
-        $response->getBody()->write( "Beginning download of " . $video_id );
+		$response->getBody()->write("Beginning download of " . $video_id);
 
-        $basedir = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools';
-        if( !file_exists( $basedir ) ){
-            mkdir( $basedir );
+		$basedir = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools';
+		if (!file_exists($basedir)) {
+			mkdir($basedir);
 		}
 
 		$metadata = TwitchHelper::getVideo($video_id);
 
-		if( !$metadata ){
-			$response->getBody()->write( "VOD not found." );
+		if (!$metadata) {
+			$response->getBody()->write("VOD not found.");
 			return $response;
 		}
-		
+
 		$basename = $metadata['user_name'] . '_' . $video_id;
 
-        $srcfile        	= $basedir . DIRECTORY_SEPARATOR . $basename . "_" . $quality . ".ts";
-        $dstfile        	= $basedir . DIRECTORY_SEPARATOR . $basename . "_" . $quality . ".mp4";
-        $chatfile       	= $basedir . DIRECTORY_SEPARATOR . $basename . "_" . $quality . "_chat.json";
+		$srcfile        	= $basedir . DIRECTORY_SEPARATOR . $basename . "_" . $quality . ".ts";
+		$dstfile        	= $basedir . DIRECTORY_SEPARATOR . $basename . "_" . $quality . ".mp4";
+		$chatfile       	= $basedir . DIRECTORY_SEPARATOR . $basename . "_" . $quality . "_chat.json";
 		$chatrender     	= $basedir . DIRECTORY_SEPARATOR . $basename . "_" . $quality . "_chat.mp4";
 		$chatrender_mask	= str_replace(".mp4", "_mask.mp4", $chatrender);
-        $vod_downloaded     = TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $basename . "_" . $quality . ".mp4";
+		$vod_downloaded     = TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $basename . "_" . $quality . ".mp4";
 		$burned        		= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $basename . "_" . $quality . "_burned.mp4";
 		$metafile        	= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $basename . ".info.json";
 		$no_delete = false;
 
-		if( file_exists( $burned ) ){
-			$response->getBody()->write( "VOD has already been burned." );
+		if (file_exists($burned)) {
+			$response->getBody()->write("VOD has already been burned.");
 			return $response;
 		}
 
-		if( file_exists($vod_downloaded) ){
+		if (file_exists($vod_downloaded)) {
 			$dstfile = $vod_downloaded;
 			$no_delete = true;
-			$response->getBody()->write( "<br>VOD downloaded via other tool already" );
+			$response->getBody()->write("<br>VOD downloaded via other tool already");
 		}
-			
-        if( !file_exists( $dstfile ) && !file_exists( $srcfile ) ){
-            if( $this->downloadVod( $video_id, $srcfile, $quality ) ){
-                $response->getBody()->write( "<br>VOD download successful" );
-            }else{
-				$response->getBody()->write( "<br>VOD download error" );
-				$response->getBody()->write( "<pre>" . print_r( $this->logs, true ) . "</pre>" );
-				return $response;
-            }
-        }
 
-        if( !file_exists( $dstfile ) && file_exists( $srcfile ) ){
-            if( $this->convertVod( $video_id, $srcfile, $dstfile ) ){
-                $response->getBody()->write( "<br>Remux successful" );
-            }else{
-				$response->getBody()->write( "<br>Remux error" );
-				$response->getBody()->write( "<pre>" . print_r( $this->logs, true ) . "</pre>" );
+		if (!file_exists($dstfile) && !file_exists($srcfile)) {
+			if ($this->downloadVod($video_id, $srcfile, $quality)) {
+				$response->getBody()->write("<br>VOD download successful");
+			} else {
+				$response->getBody()->write("<br>VOD download error");
+				$response->getBody()->write("<pre>" . print_r($this->logs, true) . "</pre>");
 				return $response;
-            }
-        }
+			}
+		}
 
-        if( !file_exists( $chatfile ) ){
-            if( $this->downloadChat( $video_id, $chatfile ) ){
-                $response->getBody()->write( "<br>Chat download successful" );
-            }else{
-				$response->getBody()->write( "<br>Chat download error" );
-				$response->getBody()->write( "<pre>" . print_r( $this->logs, true ) . "</pre>" );
+		if (!file_exists($dstfile) && file_exists($srcfile)) {
+			if ($this->convertVod($video_id, $srcfile, $dstfile)) {
+				$response->getBody()->write("<br>Remux successful");
+			} else {
+				$response->getBody()->write("<br>Remux error");
+				$response->getBody()->write("<pre>" . print_r($this->logs, true) . "</pre>");
 				return $response;
-            }
-        }
+			}
+		}
 
-        if( !file_exists( $chatrender ) ){
-            if( $this->renderChat( $video_id, $dstfile, $chatfile, $chatrender ) ){
-                $response->getBody()->write( "<br>Chat render successful" );
-            }else{
-				$response->getBody()->write( "<br>Chat render error" );
-				$response->getBody()->write( "<pre>" . print_r( $this->logs, true ) . "</pre>" );
+		if (!file_exists($chatfile)) {
+			if ($this->downloadChat($video_id, $chatfile)) {
+				$response->getBody()->write("<br>Chat download successful");
+			} else {
+				$response->getBody()->write("<br>Chat download error");
+				$response->getBody()->write("<pre>" . print_r($this->logs, true) . "</pre>");
 				return $response;
-            }
-        }
+			}
+		}
 
-        if( !file_exists( $burned ) ){
-            if( $this->burnChat( $video_id, $dstfile, $chatrender, $burned ) ){
-                $response->getBody()->write( "<br>Chat burn successful" );
-            }else{
-				$response->getBody()->write( "<br>Chat burn error" );
-				$response->getBody()->write( "<pre>" . print_r( $this->logs, true ) . "</pre>" );
+		if (!file_exists($chatrender)) {
+			if ($this->renderChat($video_id, $dstfile, $chatfile, $chatrender)) {
+				$response->getBody()->write("<br>Chat render successful");
+			} else {
+				$response->getBody()->write("<br>Chat render error");
+				$response->getBody()->write("<pre>" . print_r($this->logs, true) . "</pre>");
 				return $response;
-            }
+			}
+		}
+
+		if (!file_exists($burned)) {
+			if ($this->burnChat($video_id, $dstfile, $chatrender, $burned)) {
+				$response->getBody()->write("<br>Chat burn successful");
+			} else {
+				$response->getBody()->write("<br>Chat burn error");
+				$response->getBody()->write("<pre>" . print_r($this->logs, true) . "</pre>");
+				return $response;
+			}
 		}
 
 		file_put_contents($metafile, json_encode($metadata));
-		
+
 		unlink($srcfile);
-		if(!$no_delete) unlink($dstfile);
+		if (!$no_delete) unlink($dstfile);
 		unlink($chatfile);
 		unlink($chatrender);
 		unlink($chatrender_mask);
-        
-        $response->getBody()->write( "<br>Done?" );
 
-        $response->getBody()->write( "<pre>" . print_r( $this->logs, true ) . "</pre>" );
+		$response->getBody()->write("<br>Done?");
 
-        return $response;
+		$response->getBody()->write("<pre>" . print_r($this->logs, true) . "</pre>");
 
+		return $response;
 	}
-	
-	public function page_voddownload(Request $request, Response $response, array $args) {
 
-        $url        = $_POST['url'];
-        $quality    = $_POST['quality'];
+	public function page_voddownload(Request $request, Response $response, array $args)
+	{
 
-        set_time_limit(0);
+		$url        = $_POST['url'];
+		$quality    = $_POST['quality'];
 
-        preg_match("/\/videos\/([0-9]+)/", $url, $matches);
+		set_time_limit(0);
 
-        if(!$matches){
-            return $this->twig->render($response, 'dialog.twig', [
-                'text' => 'No video found: ' . $url,
-                'type' => 'error'
-            ]);
-        }
+		preg_match("/\/videos\/([0-9]+)/", $url, $matches);
+
+		if (!$matches) {
+			return $this->twig->render($response, 'dialog.twig', [
+				'text' => 'No video found: ' . $url,
+				'type' => 'error'
+			]);
+		}
 
 		$video_id = $matches[1];
-		
-        $response->getBody()->write( "Beginning download of " . $video_id );
 
-        $basedir = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools';
-        if( !file_exists( $basedir ) ){
-            mkdir( $basedir );
+		$response->getBody()->write("Beginning download of " . $video_id);
+
+		$basedir = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools';
+		if (!file_exists($basedir)) {
+			mkdir($basedir);
 		}
 
 		$metadata = TwitchHelper::getVideo($video_id);
 
-		if( !$metadata ){
-			$response->getBody()->write( "VOD not found." );
+		if (!$metadata) {
+			$response->getBody()->write("VOD not found.");
 			return $response;
 		}
-		
+
 		$basename = $metadata['user_name'] . '_' . $video_id;
 
-        $srcfile        	= $basedir . DIRECTORY_SEPARATOR . $basename . "_" . $quality . ".ts";
-        $dstfile        	= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $basename . "_" . $quality . ".mp4";
+		$srcfile        	= $basedir . DIRECTORY_SEPARATOR . $basename . "_" . $quality . ".ts";
+		$dstfile        	= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $basename . "_" . $quality . ".mp4";
 		$metafile        	= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $basename . ".info.json";
 
-		if( !file_exists( $dstfile ) ){
-				
-			if( !file_exists( $dstfile ) && !file_exists( $srcfile ) ){
-				if( $this->downloadVod( $video_id, $srcfile, $quality ) ){
-					$response->getBody()->write( "<br>VOD download successful" );
-				}else{
-					$response->getBody()->write( "<br>VOD download error" );
-					$response->getBody()->write( "<pre>" . print_r( $this->logs, true ) . "</pre>" );
+		if (!file_exists($dstfile)) {
+
+			if (!file_exists($dstfile) && !file_exists($srcfile)) {
+				if ($this->downloadVod($video_id, $srcfile, $quality)) {
+					$response->getBody()->write("<br>VOD download successful");
+				} else {
+					$response->getBody()->write("<br>VOD download error");
+					$response->getBody()->write("<pre>" . print_r($this->logs, true) . "</pre>");
 					return $response;
 				}
 			}
 
-			if( !file_exists( $dstfile ) && file_exists( $srcfile ) ){
-				if( $this->convertVod( $video_id, $srcfile, $dstfile ) ){
-					$response->getBody()->write( "<br>Remux successful" );
-				}else{
-					$response->getBody()->write( "<br>Remux error" );
-					$response->getBody()->write( "<pre>" . print_r( $this->logs, true ) . "</pre>" );
+			if (!file_exists($dstfile) && file_exists($srcfile)) {
+				if ($this->convertVod($video_id, $srcfile, $dstfile)) {
+					$response->getBody()->write("<br>Remux successful");
+				} else {
+					$response->getBody()->write("<br>Remux error");
+					$response->getBody()->write("<pre>" . print_r($this->logs, true) . "</pre>");
 					return $response;
 				}
 			}
 
-			if( file_exists( $srcfile ) ) unlink($srcfile);
-		
+			if (file_exists($srcfile)) unlink($srcfile);
 		}
 
-		if(!file_exists($metafile)){
+		if (!file_exists($metafile)) {
 			file_put_contents($metafile, json_encode($metadata));
 		}
-        
-        $response->getBody()->write( "<br>Done?" );
 
-        $response->getBody()->write( "<pre>" . print_r( $this->logs, true ) . "</pre>" );
+		$response->getBody()->write("<br>Done?");
 
-        return $response;
+		$response->getBody()->write("<pre>" . print_r($this->logs, true) . "</pre>");
 
+		return $response;
 	}
-	
-	public function page_chatdownload(Request $request, Response $response, array $args) {
 
-        $url = $_POST['url'];
+	public function page_chatdownload(Request $request, Response $response, array $args)
+	{
 
-        set_time_limit(0);
+		$url = $_POST['url'];
 
-        preg_match("/\/videos\/([0-9]+)/", $url, $matches);
+		set_time_limit(0);
 
-        if(!$matches){
-            return $this->twig->render($response, 'dialog.twig', [
-                'text' => 'No video found: ' . $url,
-                'type' => 'error'
-            ]);
-        }
+		preg_match("/\/videos\/([0-9]+)/", $url, $matches);
+
+		if (!$matches) {
+			return $this->twig->render($response, 'dialog.twig', [
+				'text' => 'No video found: ' . $url,
+				'type' => 'error'
+			]);
+		}
 
 		$video_id = $matches[1];
-		
-        $response->getBody()->write( "Beginning download of chat " . $video_id );
+
+		$response->getBody()->write("Beginning download of chat " . $video_id);
 
 		/*
         $basedir = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools';
@@ -611,36 +613,34 @@ class ToolsController {
 
 		$metadata = TwitchHelper::getVideo($video_id);
 
-		if( !$metadata ){
-			$response->getBody()->write( "VOD not found." );
+		if (!$metadata) {
+			$response->getBody()->write("VOD not found.");
 			return $response;
 		}
-		
+
 		$basename = $metadata['user_name'] . '_' . $video_id;
 
 		$chatfile = TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $basename . "_chat.json";
 		$metafile = TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $basename . ".info.json";
 
-		if( !file_exists( $chatfile ) ){
-            if( $this->downloadChat( $video_id, $chatfile ) ){
-                $response->getBody()->write( "<br>Chat download successful" );
-            }else{
-				$response->getBody()->write( "<br>Chat download error" );
-				$response->getBody()->write( "<pre>" . print_r( $this->logs, true ) . "</pre>" );
+		if (!file_exists($chatfile)) {
+			if ($this->downloadChat($video_id, $chatfile)) {
+				$response->getBody()->write("<br>Chat download successful");
+			} else {
+				$response->getBody()->write("<br>Chat download error");
+				$response->getBody()->write("<pre>" . print_r($this->logs, true) . "</pre>");
 				return $response;
-            }
-        }
+			}
+		}
 
-		if(!file_exists($metafile)){
+		if (!file_exists($metafile)) {
 			file_put_contents($metafile, json_encode($metadata));
 		}
-        
-        $response->getBody()->write( "<br>Done?" );
 
-        $response->getBody()->write( "<pre>" . print_r( $this->logs, true ) . "</pre>" );
+		$response->getBody()->write("<br>Done?");
 
-        return $response;
+		$response->getBody()->write("<pre>" . print_r($this->logs, true) . "</pre>");
 
-    }
-
+		return $response;
+	}
 }

@@ -1,17 +1,20 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App;
 
 use DateTime;
 use Exception;
 
-class TwitchChannel {
-    
-    public $username = null;          
-    public $login = null;             
-    public $display_name = null;      
-    public $description = null;       
-    public $profile_image_url = null; 
+class TwitchChannel
+{
+
+    public $username = null;
+    public $login = null;
+    public $display_name = null;
+    public $description = null;
+    public $profile_image_url = null;
     public $is_live = false;
     public $current_vod = null;
     public $current_game = null;
@@ -23,16 +26,17 @@ class TwitchChannel {
     public $vods_size = 0;
 
     /**
-	 * Load
-	 *
-	 * @param string $username
-	 * @return void
-	 */
-	public function load( $username ){
+     * Load
+     *
+     * @param string $username
+     * @return void
+     */
+    public function load($username)
+    {
 
-        $this->channel_data = TwitchHelper::getChannelData( $username );
+        $this->channel_data = TwitchHelper::getChannelData($username);
 
-        $config = TwitchConfig::getStreamer( $username );
+        $config = TwitchConfig::getStreamer($username);
 
         $this->username             = $this->channel_data['login'];
         $this->login                = $this->channel_data['login'];
@@ -43,7 +47,6 @@ class TwitchChannel {
         $this->match                = isset($config['match']) ? $config['match'] : [];
 
         $this->parseVODs();
-
     }
 
     /**
@@ -51,23 +54,24 @@ class TwitchChannel {
      *
      * @return void
      */
-    private function parseVODs(){
+    private function parseVODs()
+    {
 
-        $this->vods_raw = glob( TwitchHelper::vod_folder( $this->display_name ) . DIRECTORY_SEPARATOR . $this->display_name . "_*.json" );
+        $this->vods_raw = glob(TwitchHelper::vod_folder($this->display_name) . DIRECTORY_SEPARATOR . $this->display_name . "_*.json");
 
         foreach ($this->vods_raw as $k => $v) {
 
             $vodclass = new TwitchVOD();
-            if(!$vodclass->load($v)) continue;
+            if (!$vodclass->load($v)) continue;
 
-            if ( $vodclass->is_recording && !$vodclass->is_converting ){
+            if ($vodclass->is_recording && !$vodclass->is_converting) {
                 $this->is_live = true;
                 $this->current_vod = $vodclass;
                 $this->current_game = $vodclass->getCurrentGame();
                 $this->current_duration = $vodclass->getDurationLive();
             }
 
-            if( $vodclass->is_converting ){
+            if ($vodclass->is_converting) {
                 $this->is_converting = true;
             }
 
@@ -78,9 +82,7 @@ class TwitchChannel {
             }
 
             $this->vods_list[] = $vodclass;
-
         }
-
     }
 
     /**
@@ -88,10 +90,11 @@ class TwitchChannel {
      *
      * @return void
      */
-    public function matchVods(){
-        foreach( $this->vods_list as $vod ){
-            if( !$vod->is_finalized ) continue;
-            if( $vod->matchTwitchVod() ){
+    public function matchVods()
+    {
+        foreach ($this->vods_list as $vod) {
+            if (!$vod->is_finalized) continue;
+            if ($vod->matchTwitchVod()) {
                 $vod->saveJSON('matched vod');
             }
         }
@@ -102,29 +105,27 @@ class TwitchChannel {
      *
      * @return boolean Is a vod deleted?
      */
-    public function checkValidVods(){
+    public function checkValidVods()
+    {
 
         $list = [];
 
         $is_a_vod_deleted = false;
 
-        foreach( $this->vods_list as $vod ){
+        foreach ($this->vods_list as $vod) {
 
-            if( !$vod->is_finalized ) continue;
-            
-            $isvalid = $vod->checkValidVod( true );
+            if (!$vod->is_finalized) continue;
 
-            $list[ $vod->basename ] = $isvalid;
+            $isvalid = $vod->checkValidVod(true);
+
+            $list[$vod->basename] = $isvalid;
 
             if (!$isvalid) {
                 $is_a_vod_deleted = true;
                 // echo '<!-- deleted: ' . $vod->basename . ' -->';
             }
-            
         }
 
         return $is_a_vod_deleted;
-
     }
-
 }

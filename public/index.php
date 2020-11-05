@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-ini_set('memory_limit','1024M');
+ini_set('memory_limit', '1024M');
 
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
@@ -23,7 +23,7 @@ AppFactory::setContainer($container);
 // Create Twig
 // Set view in Container
 
-$twigConfig = Twig::create( __DIR__ . '/../templates', [
+$twigConfig = Twig::create(__DIR__ . '/../templates', [
     'cache' => TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'twig',
     'debug' => TwitchConfig::cfg('debug', false)
 ]);
@@ -32,10 +32,10 @@ $container->set('view', function () use ($twigConfig) {
     return $twigConfig;
 });
 
-$container->set( Twig::class, $twigConfig );
+$container->set(Twig::class, $twigConfig);
 
 // this seems cool, but i have no idea how to access it later :(
-$container->set('guzzle', function(){
+$container->set('guzzle', function () {
     return new \GuzzleHttp\Client([
         'base_uri' => 'https://api.twitch.tv',
         'headers' => [
@@ -51,8 +51,8 @@ $app = AppFactory::create();
 
 $app->addRoutingMiddleware();
 
-if( TwitchConfig::cfg('basepath') ){
-    $app->setBasePath( TwitchConfig::cfg('basepath') );
+if (TwitchConfig::cfg('basepath')) {
+    $app->setBasePath(TwitchConfig::cfg('basepath'));
 }
 
 $twig = TwigMiddleware::createFromContainer($app);
@@ -66,8 +66,8 @@ $app->add($twig);
 $container->get('view')->getEnvironment()->addExtension(new HtmlExtension());
 
 // timezone
-if( TwitchConfig::cfg('timezone', 'UTC') != 'UTC' ){
-    $container->get('view')->getEnvironment()->getExtension(\Twig\Extension\CoreExtension::class)->setTimezone( TwitchConfig::cfg('timezone', 'UTC') );
+if (TwitchConfig::cfg('timezone', 'UTC') != 'UTC') {
+    $container->get('view')->getEnvironment()->getExtension(\Twig\Extension\CoreExtension::class)->setTimezone(TwitchConfig::cfg('timezone', 'UTC'));
 }
 
 // config available everywhere
@@ -77,8 +77,8 @@ $container->get('view')->getEnvironment()->addGlobal('config', TwitchConfig::$co
 $container->get('view')->getEnvironment()->addGlobal('debug', TwitchConfig::cfg('debug', false));
 
 // version
-if( file_exists( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "package.json" ) ) {
-    $container->get('view')->getEnvironment()->addGlobal('app_version', json_decode( file_get_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "package.json" ) )->version );
+if (file_exists(__DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "package.json")) {
+    $container->get('view')->getEnvironment()->addGlobal('app_version', json_decode(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "package.json"))->version);
 }
 
 // format bytes
@@ -112,7 +112,7 @@ $container->get('view')->getEnvironment()->addFilter(new TwigFilter('basename', 
 }));
 
 // authentication
-if( TwitchConfig::cfg('password') ){
+if (TwitchConfig::cfg('password')) {
     $app->add(new Tuupola\Middleware\HttpBasicAuthentication([
         "path" => ["/"],
         "ignore" => ["/hook", "/sub"],
@@ -124,7 +124,7 @@ if( TwitchConfig::cfg('password') ){
 }
 
 // debug settings
-if( TwitchConfig::cfg('debug', false) ){
+if (TwitchConfig::cfg('debug', false)) {
     // TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Enabling debugging settings for slim..." );
     $container->get('view')->getEnvironment()->addExtension(new DebugExtension());
     $errorMiddleware = $app->addErrorMiddleware(true, true, true);
@@ -134,4 +134,3 @@ require __DIR__ . "/../src/Routes/routes.php";
 
 // Run app
 $app->run();
-

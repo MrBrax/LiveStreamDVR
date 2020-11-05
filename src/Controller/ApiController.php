@@ -25,7 +25,8 @@ class ApiController
         $this->twig = $twig;
     }
 
-    private function generateStreamerList(){
+    private function generateStreamerList()
+    {
 
         $total_size = 0;
 
@@ -37,49 +38,49 @@ class ApiController
             return $a->display_name <=> $b->display_name;
         });
         */
-        
+
         foreach ($streamerListStatic as $streamer) {
 
             $data = new TwitchChannel();
-            $data->load( $streamer['username'] );
+            $data->load($streamer['username']);
 
             $total_size += $data->vods_size;
 
             $streamerList[] = $data;
-
         }
-        return [ $streamerList, $total_size ];
+        return [$streamerList, $total_size];
     }
 
-    public function list( Request $request, Response $response, $args ) {
-        
+    public function list(Request $request, Response $response, $args)
+    {
+
         list($streamerList, $total_size) = $this->generateStreamerList();
 
         $data = [
             'streamerList' => $streamerList,
             // 'clips' => glob(TwitchHelper::vod_folder() . DIRECTORY_SEPARATOR . "clips" . DIRECTORY_SEPARATOR . "*.mp4"),
             'total_size' => $total_size,
-            'free_size' => disk_free_space( TwitchHelper::vod_folder() )
+            'free_size' => disk_free_space(TwitchHelper::vod_folder())
         ];
-        
+
         $payload = json_encode([
             'data' => $data,
             'status' => 'OK'
         ]);
         $response->getBody()->write($payload);
-        
-        return $response->withHeader('Content-Type', 'application/json')->withHeader('Access-Control-Allow-Origin', '*');
 
+        return $response->withHeader('Content-Type', 'application/json')->withHeader('Access-Control-Allow-Origin', '*');
     }
 
-    public function vod( Request $request, Response $response, $args ) {
+    public function vod(Request $request, Response $response, $args)
+    {
 
         $vod = $args['vod'];
 
         $username = explode("_", $vod)[0];
 
         $vodclass = new TwitchVOD();
-        $vodclass->load( TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+        $vodclass->load(TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
         $data = $vodclass;
 
@@ -89,16 +90,16 @@ class ApiController
         ]);
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
-
     }
 
-    public function jobs_list( Request $request, Response $response, $args ) {
+    public function jobs_list(Request $request, Response $response, $args)
+    {
 
-        $current_jobs_raw = glob( TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . "*.pid");
+        $current_jobs_raw = glob(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . "*.pid");
         $current_jobs = [];
-        foreach( $current_jobs_raw as $v ){
+        foreach ($current_jobs_raw as $v) {
             $pid = file_get_contents($v);
-            $status = TwitchHelper::getPidfileStatus( basename($v, ".pid") );
+            $status = TwitchHelper::getPidfileStatus(basename($v, ".pid"));
             $current_jobs[] = [
                 'name' => basename($v, ".pid"),
                 'pid' => $pid,
@@ -110,24 +111,24 @@ class ApiController
             'data' => $current_jobs,
             'status' => 'OK'
         ]);
-        
+
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
-
     }
 
-    public function jobs_kill( Request $request, Response $response, $args ) {
+    public function jobs_kill(Request $request, Response $response, $args)
+    {
 
-        $pid = TwitchHelper::getPidfileStatus( $args['job'] );
-        if($pid){
-            $output = TwitchHelper::exec( ["kill", $pid] );
-            $response->getBody()->write( "Killed process.<br><pre>" . $output . "</pre>");
+        $pid = TwitchHelper::getPidfileStatus($args['job']);
+        if ($pid) {
+            $output = TwitchHelper::exec(["kill", $pid]);
+            $response->getBody()->write("Killed process.<br><pre>" . $output . "</pre>");
             $payload = json_encode([
                 'data' => $output,
                 'status' => 'OK'
             ]);
-        }else{
-            $response->getBody()->write( "Found no process running for " . $args['job'] );
+        } else {
+            $response->getBody()->write("Found no process running for " . $args['job']);
             $payload = json_encode([
                 'data' => null,
                 'status' => 'ERROR'
@@ -137,61 +138,60 @@ class ApiController
         $response->getBody()->write($payload);
 
         return $response->withHeader('Content-Type', 'application/json');
-
     }
 
-    public function render_menu( Request $request, Response $response, $args ) {
-        
+    public function render_menu(Request $request, Response $response, $args)
+    {
+
         list($streamerList, $total_size) = $this->generateStreamerList();
-        
+
         return $this->twig->render($response, 'components/menu.twig', [
             'streamerList' => $streamerList
         ]);
-
     }
 
-    public function render_log( Request $request, Response $response, $args ) {
-        
+    public function render_log(Request $request, Response $response, $args)
+    {
+
         $log_lines = [];
 
         $current_log = date("Y-m-d");
-        if( isset($args['filename']) ) $current_log = $args['filename'];
+        if (isset($args['filename'])) $current_log = $args['filename'];
 
         $log_path = TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . $current_log . ".log.json";
 
-        if( file_exists( $log_path ) ){
-            
-            $json = json_decode( file_get_contents( $log_path ), true );
-            
-            foreach( $json as $line ){
+        if (file_exists($log_path)) {
 
-                if( !TwitchConfig::cfg("debug") && $line["level"] == 'DEBUG' ) continue;
+            $json = json_decode(file_get_contents($log_path), true);
 
-                if( $line["date"] ){
+            foreach ($json as $line) {
+
+                if (!TwitchConfig::cfg("debug") && $line["level"] == 'DEBUG') continue;
+
+                if ($line["date"]) {
                     $dt = \DateTime::createFromFormat("U.u", $line["date"]);
-                    if(!$dt) $dt = \DateTime::createFromFormat( "U", $line["date"] );
-                    if($dt){
-                        $dt->setTimezone( TwitchConfig::$timezone );
+                    if (!$dt) $dt = \DateTime::createFromFormat("U", $line["date"]);
+                    if ($dt) {
+                        $dt->setTimezone(TwitchConfig::$timezone);
                         $line['date_string'] = $dt->format("Y-m-d H:i:s.v");
-                    }else{
+                    } else {
                         $line['date_string'] = "ERROR:" . $line["date"];
                     }
-                }else{
+                } else {
                     $line['date_string'] = '???';
                 }
 
                 $log_lines[] = $line;
-
             }
         }
-        
+
         return $this->twig->render($response, 'components/logviewer.twig', [
             'log_lines' => $log_lines
         ]);
-
     }
 
-    public function render_streamer( Request $request, Response $response, $args ) {
+    public function render_streamer(Request $request, Response $response, $args)
+    {
 
         $username = $args['username'];
 
@@ -229,27 +229,27 @@ class ApiController
         */
 
         $data = new TwitchChannel();
-        $data->load( $username );
+        $data->load($username);
 
         return $this->twig->render($response, 'components/streamer.twig', [
             'streamer' => $data
         ]);
-
     }
 
-    public function check_vods( Request $request, Response $response, $args ) {
+    public function check_vods(Request $request, Response $response, $args)
+    {
 
         list($streamerList, $total_size) = $this->generateStreamerList();
 
         $data = [];
 
-        foreach( $streamerList as $streamer ){
+        foreach ($streamerList as $streamer) {
 
-            foreach( $streamer->vods_list as $vod ){
+            foreach ($streamer->vods_list as $vod) {
 
-                $check = $vod->checkValidVod( true );
+                $check = $vod->checkValidVod(true);
 
-                if( $vod->twitch_vod_id && !$check ){
+                if ($vod->twitch_vod_id && !$check) {
                     // notify
                 }
 
@@ -261,9 +261,7 @@ class ApiController
                     'deleted' => $vod->twitch_vod_id && !$check,
                     'never_saved' => $vod->twitch_vod_neversaved
                 ];
-
             }
-
         }
 
         $payload = json_encode([
@@ -272,7 +270,5 @@ class ApiController
         ]);
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
-
     }
-
 }

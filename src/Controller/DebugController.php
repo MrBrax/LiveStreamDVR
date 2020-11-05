@@ -14,7 +14,8 @@ class DebugController
      */
     private $twig;
 
-    public function __construct(Twig $twig) {
+    public function __construct(Twig $twig)
+    {
         $this->twig = $twig;
     }
 
@@ -23,13 +24,12 @@ class DebugController
      *
      * @return void
      */
-    public function dialog( Request $request, Response $response, $args ) {
-        
+    public function dialog(Request $request, Response $response, $args)
+    {
+
         return $this->twig->render($response, 'dialog.twig', [
             'text' => $args['text'],
             'type' => $args['type']
         ]);
-        
     }
-
 }

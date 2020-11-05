@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Controller;
 
@@ -25,7 +27,7 @@ class PlayerController
         $this->twig = $twig;
     }
 
-    public function player( Request $request, Response $response, $args )
+    public function player(Request $request, Response $response, $args)
     {
 
         $start_offset = isset($_GET['start']) ? $_GET['start'] : 0;
@@ -37,12 +39,11 @@ class PlayerController
         $username = explode("_", $vod)[0];
 
         $vodclass = new TwitchVOD();
-        $vodclass->load( TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+        $vodclass->load(TwitchHelper::vod_folder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
         return $this->twig->render($response, 'player.twig', [
             'start_offset' => $start_offset,
             'vodclass' => $vodclass
         ]);
-
     }
 }
