@@ -144,8 +144,8 @@ class TwitchHelper
 
 
 		if (!$json || !isset($json['access_token']) || !$json['access_token']) {
-			self::log(TwitchHelper::LOG_ERROR, "Failed to fetch access token: " . $server_output);
-			throw new \Exception("Failed to fetch access token: " . $server_output);
+			self::log(TwitchHelper::LOG_ERROR, "Failed to fetch access token: {$server_output}");
+			throw new \Exception("Failed to fetch access token: {$server_output}");
 			return false;
 		}
 
@@ -264,7 +264,7 @@ class TwitchHelper
 			$json_streamers = json_decode(file_get_contents(TwitchConfig::$streamerDbPath), true);
 
 			if ($json_streamers && isset($json_streamers[$username])) {
-				self::log(self::LOG_DEBUG, "Fetched channel data from cache for " . $username);
+				self::log(self::LOG_DEBUG, "Fetched channel data from cache for {$username}");
 				return $json_streamers[$username];
 			}
 		} else {
@@ -298,7 +298,7 @@ class TwitchHelper
 		$json = json_decode($server_output, true);
 
 		if (!$json["data"]) {
-			self::log(self::LOG_ERROR, "Failed to fetch channel data for " . $username . ": " . $server_output);
+			self::log(self::LOG_ERROR, "Failed to fetch channel data for {$username}: {$server_output}");
 			// var_dump($json);
 			// var_dump( $response->getStatusCode() );
 			// throw new Exception( "Failed to fetch channel id: " . $server_output );
@@ -310,7 +310,7 @@ class TwitchHelper
 		$json_streamers[$username] = $data;
 		file_put_contents(TwitchConfig::$streamerDbPath, json_encode($json_streamers));
 
-		self::log(self::LOG_INFO, "Fetched channel data online for " . $username);
+		self::log(self::LOG_INFO, "Fetched channel data online for {$username}");
 
 		return $data;
 	}
@@ -335,7 +335,7 @@ class TwitchHelper
 				'query' => ['user_id' => $streamer_id]
 			]);
 		} catch (\Throwable $th) {
-			self::log(self::LOG_FATAL, "Tried to get videos for " . $streamer_id . " but server returned: " . $th->getMessage());
+			self::log(self::LOG_FATAL, "Tried to get videos for {$streamer_id} but server returned: " . $th->getMessage());
 			return false;
 		}
 
@@ -343,11 +343,11 @@ class TwitchHelper
 		$json = json_decode($server_output, true);
 
 		if (!$json['data']) {
-			self::log(self::LOG_ERROR, "No videos found for user id " . $streamer_id);
+			self::log(self::LOG_ERROR, "No videos found for user id {$streamer_id}");
 			return false;
 		}
 
-		self::log(self::LOG_INFO, "Querying videos for streamer id " . $streamer_id);
+		self::log(self::LOG_INFO, "Querying videos for streamer id {$streamer_id}");
 
 		return $json['data'] ?: false;
 	}
@@ -372,7 +372,7 @@ class TwitchHelper
 				'query' => ['id' => $video_id]
 			]);
 		} catch (\Throwable $th) {
-			self::log(self::LOG_FATAL, "Tried to get video id " . $video_id . " but server returned: " . $th->getMessage());
+			self::log(self::LOG_FATAL, "Tried to get video id {$video_id} but server returned: " . $th->getMessage());
 			return false;
 		}
 
@@ -380,11 +380,11 @@ class TwitchHelper
 		$json = json_decode($server_output, true);
 
 		if (!$json['data']) {
-			self::log(self::LOG_ERROR, "No video found for video id " . $video_id);
+			self::log(self::LOG_ERROR, "No video found for video id {$video_id}");
 			return null;
 		}
 
-		self::log(self::LOG_INFO, "Querying video info for id " . $video_id);
+		self::log(self::LOG_INFO, "Querying video info for id {$video_id}");
 
 		return $json['data'][0];
 	}
@@ -406,11 +406,11 @@ class TwitchHelper
 		$json = json_decode($server_output, true);
 
 		if (!$json['data']) {
-			self::log(self::LOG_ERROR, "No streams found for user id " . $streamer_id);
+			self::log(self::LOG_ERROR, "No streams found for user id {$streamer_id}");
 			return false;
 		}
 
-		self::log(self::LOG_INFO, "Querying streams for streamer id " . $streamer_id);
+		self::log(self::LOG_INFO, "Querying streams for streamer id {$streamer_id}");
 
 		return $json['data'] ?: false;
 	}
@@ -441,14 +441,14 @@ class TwitchHelper
 			self::$game_db = [];
 		}
 
-		self::log(self::LOG_DEBUG, "Game id " . $game_id . " not in cache, fetching...");
+		self::log(self::LOG_DEBUG, "Game id {$game_id} not in cache, fetching...");
 
 		try {
 			$response = self::$guzzler->request('GET', '/helix/games', [
 				'query' => ['id' => $game_id]
 			]);
 		} catch (\Throwable $th) {
-			self::log(self::LOG_FATAL, "Tried to get game data for " . $game_id . " but server returned: " . $th->getMessage());
+			self::log(self::LOG_FATAL, "Tried to get game data for {$game_id} but server returned: " . $th->getMessage());
 			return false;
 		}
 
@@ -471,12 +471,12 @@ class TwitchHelper
 
 			file_put_contents(TwitchConfig::$gameDbPath, json_encode(self::$game_db));
 
-			self::log(self::LOG_SUCCESS, "New game saved to cache: " . $game["name"]);
+			self::log(self::LOG_SUCCESS, "New game saved to cache: {$game['name']}");
 
 			return $game;
 		} else {
 
-			self::log(self::LOG_ERROR, "Invalid game returned in query for " . $game_id . " (" . $server_output . ")");
+			self::log(self::LOG_ERROR, "Invalid game returned in query for {$game_id} ({$server_output})");
 
 			return null;
 		}
@@ -543,7 +543,7 @@ class TwitchHelper
 					$isvalid = $vodclass->checkValidVod();
 
 					if (!$isvalid) {
-						TwitchHelper::log(TwitchHelper::LOG_WARNING, "VOD deleted: " . $vodclass->basename);
+						TwitchHelper::log(TwitchHelper::LOG_WARNING, "VOD deleted: {$vodclass->basename}");
 						$deleted = true;
 					}
 				}
@@ -704,7 +704,7 @@ class TwitchHelper
 		}
 		*/
 
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Calling " . $mode . " for " . $streamer_name);
+		TwitchHelper::log(TwitchHelper::LOG_INFO, "Calling {$mode} for {$streamer_name}");
 
 		if (!TwitchConfig::cfg('app_url')) {
 			throw new \Exception('Neither app_url or hook_callback is set in config');
@@ -714,7 +714,7 @@ class TwitchHelper
 		$streamer_id = TwitchHelper::getChannelId($streamer_name);
 
 		if (!$streamer_id) {
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Streamer ID not found for: " . $streamer_name);
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Streamer ID not found for: {$streamer_name}");
 			// throw new \Exception('Streamer ID not found for: ' . $streamer_name);
 			return false;
 		}

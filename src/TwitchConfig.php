@@ -85,20 +85,20 @@ class TwitchConfig
 
 		self::$config = $config;
 
-		$t = self::getStreamers();
+		$streamerList = self::getStreamers();
 		$save = false;
-		foreach ($t as $i => $s) {
+		foreach ($streamerList as $i => $streamer) {
 
 			// fix quality string
-			if (isset($s['quality']) && gettype($s['quality']) == "string") {
-				TwitchHelper::log(TwitchHelper::LOG_WARNING, "Invalid quality setting on " . $s['username'] . ", fixing...");
+			if (isset($streamer['quality']) && gettype($streamer['quality']) == "string") {
+				TwitchHelper::log(TwitchHelper::LOG_WARNING, "Invalid quality setting on {$streamer['username']}, fixing...");
 				self::$config['streamers'][$i]['quality'] = explode(" ", self::$config['streamers'][$i]['quality']);
 				$save = true;
 			}
 
 			// create subfolders
-			if (self::cfg('channel_folders') && !file_exists(TwitchHelper::vodFolder($s['username']))) {
-				mkdir(TwitchHelper::vodFolder($s['username']));
+			if (self::cfg('channel_folders') && !file_exists(TwitchHelper::vodFolder($streamer['username']))) {
+				mkdir(TwitchHelper::vodFolder($streamer['username']));
 			}
 		}
 		if ($save) {
@@ -116,7 +116,7 @@ class TwitchConfig
 
 		file_put_contents(self::$configPath, json_encode(self::$config, JSON_PRETTY_PRINT));
 
-		TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Saved config from " . $source);
+		TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Saved config from {$source}");
 	}
 
 	public static function generateConfig()

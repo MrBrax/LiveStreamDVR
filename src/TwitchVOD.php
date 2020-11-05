@@ -196,7 +196,7 @@ class TwitchVOD
 		if (isset($this->json['chapters']) && count($this->json['chapters']) > 0) {
 			$this->parseChapters($this->json['chapters']);
 		} else {
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No chapters on " . $this->basename . "!");
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No chapters on {$this->basename}!");
 		}
 
 		if ($this->is_finalized) {
@@ -283,7 +283,7 @@ class TwitchVOD
 				$this->duration_seconds = $this->video_metadata['general']['Duration'];
 				return $this->video_metadata['general']['Duration'];
 			}
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Video metadata for " . $this->basename . " does not include duration!");
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Video metadata for {$this->basename} does not include duration!");
 			return null;
 		}
 
@@ -412,31 +412,31 @@ class TwitchVOD
 			return true;
 		}
 
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Download chat for " . $this->basename);
+		TwitchHelper::log(TwitchHelper::LOG_INFO, "Download chat for {$this->basename}");
 
 		if (TwitchConfig::cfg('chat_compress', false)) {
 
 			if (file_exists($compressed_filename)) {
-				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Chat compressed already exists for " . $this->basename);
+				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Chat compressed already exists for {$this->basename}");
 				return;
 			}
 
 			if (file_exists($this->path_chat)) {
-				TwitchHelper::log(TwitchHelper::LOG_WARNING, "Chat already exists for " . $this->basename);
+				TwitchHelper::log(TwitchHelper::LOG_WARNING, "Chat already exists for {$this->basename}");
 				shell_exec("gzip " . $this->path_chat);
 				return;
 			}
 		} else {
 
 			if (file_exists($this->path_chat)) {
-				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Chat already exists for " . $this->basename);
+				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Chat already exists for {$this->basename}");
 				return;
 			}
 		}
 
 		// if tcd generated file exists, rename it
 		if (file_exists($tcd_filename)) {
-			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Renamed chat file for " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Renamed chat file for {$this->basename}");
 			rename($tcd_filename, $this->path_chat);
 			return;
 		}
@@ -496,7 +496,7 @@ class TwitchVOD
 			}
 		} else {
 
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No chat file for " . $this->basename . " created.");
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No chat file for {$this->basename} created.");
 
 			return false;
 		}
@@ -505,9 +505,9 @@ class TwitchVOD
 
 		if ($successful) {
 			$this->is_chat_downloaded = true;
-			TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Chat downloaded for " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Chat downloaded for {$this->basename}");
 		} else {
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Chat couldn't be downloaded for " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Chat couldn't be downloaded for {$this->basename}");
 		}
 
 		return $successful;
@@ -533,7 +533,7 @@ class TwitchVOD
 			return false;
 		}
 
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Render chat for " . $this->basename);
+		TwitchHelper::log(TwitchHelper::LOG_INFO, "Render chat for {$this->basename}");
 
 		// $chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
 		// $video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
@@ -613,9 +613,9 @@ class TwitchVOD
 
 		if ($successful) {
 			$this->is_chat_rendered = true;
-			TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Chat rendered for " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Chat rendered for {$this->basename}");
 		} else {
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Chat couldn't be rendered for " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Chat couldn't be rendered for {$this->basename}");
 		}
 
 		return $successful;
@@ -631,7 +631,7 @@ class TwitchVOD
 	public function burnChat($chat_width = 300, $use_vod = false)
 	{
 
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Burn chat for " . $this->basename);
+		TwitchHelper::log(TwitchHelper::LOG_INFO, "Burn chat for {$this->basename}");
 
 		if ($use_vod) {
 
@@ -720,9 +720,9 @@ class TwitchVOD
 
 		if ($successful) {
 			$this->is_chat_burned = true;
-			TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Chat burned for " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Chat burned for {$this->basename}");
 		} else {
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Chat couldn't be burned for " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Chat couldn't be burned for {$this->basename}");
 		}
 
 		return $successful;
@@ -736,22 +736,22 @@ class TwitchVOD
 	public function matchTwitchVod()
 	{
 
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Try to match twitch vod for " . $this->basename);
+		TwitchHelper::log(TwitchHelper::LOG_INFO, "Try to match twitch vod for {$this->basename}");
 
 		if ($this->twitch_vod_id) {
-			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Twitch vod already matched for " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Twitch vod already matched for {$this->basename}");
 			return $this->twitch_vod_id;
 		}
 
 		if ($this->is_capturing || $this->is_converting) {
-			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Twitch vod can't match, recording in progress of " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Twitch vod can't match, recording in progress of {$this->basename}");
 			return false;
 		}
 
 		$channel_videos = TwitchHelper::getVideos($this->streamer_id);
 
 		if (!$channel_videos) {
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No videos returned from streamer of " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No videos returned from streamer of {$this->basename}");
 			$this->twitch_vod_neversaved = true;
 			$this->twitch_vod_exists = false; // @todo: check this
 			return false;
@@ -773,7 +773,7 @@ class TwitchVOD
 				$this->twitch_vod_date 		= $vid['created_at'];
 				$this->twitch_vod_exists	= true;
 
-				TwitchHelper::log(TwitchHelper::LOG_INFO, "Matched twitch vod for " . $this->basename);
+				TwitchHelper::log(TwitchHelper::LOG_INFO, "Matched twitch vod for {$this->basename}");
 
 				return $this->twitch_vod_id;
 			}
@@ -783,7 +783,7 @@ class TwitchVOD
 		$this->twitch_vod_neversaved = true;
 		$this->twitch_vod_exists = false; // @todo: check this
 
-		TwitchHelper::log(TwitchHelper::LOG_ERROR, "Couldn't match vod for " . $this->basename);
+		TwitchHelper::log(TwitchHelper::LOG_ERROR, "Couldn't match vod for {$this->basename}");
 	}
 
 	/**
@@ -797,12 +797,12 @@ class TwitchVOD
 		$current_status = $this->twitch_vod_exists;
 
 		if (!$this->is_finalized) {
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Trying to check vod valid while not finalized on " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Trying to check vod valid while not finalized on {$this->basename}");
 			return null;
 		}
 
 		if (!$this->twitch_vod_id) {
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No twitch VOD id for valid checking on " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No twitch VOD id for valid checking on {$this->basename}");
 			if ($this->twitch_vod_neversaved) {
 				if ($save && $current_status !== false) {
 					$this->twitch_vod_exists = false;
@@ -812,12 +812,12 @@ class TwitchVOD
 			return false;
 		}
 
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Check valid VOD for " . $this->basename);
+		TwitchHelper::log(TwitchHelper::LOG_INFO, "Check valid VOD for {$this->basename}");
 
 		$video = TwitchHelper::getVideo($this->twitch_vod_id);
 
 		if ($video) {
-			TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "VOD exists for " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "VOD exists for {$this->basename}");
 			$this->twitch_vod_exists = true;
 			if ($save && $current_status !== $this->twitch_vod_exists) {
 				$this->saveJSON("vod check true");
@@ -825,7 +825,7 @@ class TwitchVOD
 			return true;
 		}
 
-		TwitchHelper::log(TwitchHelper::LOG_WARNING, "No VOD for " . $this->basename);
+		TwitchHelper::log(TwitchHelper::LOG_WARNING, "No VOD for {$this->basename}");
 
 		$this->twitch_vod_exists = false;
 
@@ -848,20 +848,20 @@ class TwitchVOD
 		if (file_exists($this->filename)) {
 			$tmp = file_get_contents($this->filename);
 			if (md5($tmp) !== $this->json_hash) {
-				TwitchHelper::log(TwitchHelper::LOG_WARNING, "JSON has been changed since loading of " . $this->basename);
+				TwitchHelper::log(TwitchHelper::LOG_WARNING, "JSON has been changed since loading of {$this->basename}");
 			}
 		}
 
 		if (!$this->created && ($this->is_capturing || $this->is_converting || !$this->is_finalized)) {
-			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Saving JSON of " . $this->basename . " while not finalized!");
+			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Saving JSON of {$this->basename} while not finalized!");
 		}
 
 		if (!$this->chapters || count($this->chapters) == 0) {
-			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Saving JSON of " . $this->basename . " with no chapters!!");
+			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Saving JSON of {$this->basename} with no chapters!!");
 		}
 
 		if (!$this->streamer_name && !$this->created) {
-			TwitchHelper::log(TwitchHelper::LOG_FATAL, "Found no streamer name in class of " . $this->basename . ", not saving!");
+			TwitchHelper::log(TwitchHelper::LOG_FATAL, "Found no streamer name in class of {$this->basename}, not saving!");
 			return false;
 		}
 
@@ -917,7 +917,7 @@ class TwitchVOD
 			// return false;
 		}
 
-		TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Saving JSON of " . $this->basename . ($reason ? ' (' . $reason . ')' : ''));
+		TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Saving JSON of {$this->basename}" . ($reason ? ' (' . $reason . ')' : ''));
 
 		file_put_contents($this->filename, json_encode($generated));
 
@@ -926,13 +926,13 @@ class TwitchVOD
 
 	public function addSegment($data)
 	{
-		TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Adding segment to " . $this->basename . ": " . basename($data));
+		TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Adding segment to {$this->basename}: " . basename($data));
 		$this->segments_raw[] = basename($data);
 	}
 
 	public function addChapter($data)
 	{
-		TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Adding chapter to " . $this->basename);
+		TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Adding chapter to {$this->basename}");
 		$this->chapters[] = $data;
 	}
 
@@ -946,7 +946,7 @@ class TwitchVOD
 	{
 
 		if (!$array || count($array) == 0) {
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No chapter data found for " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No chapter data found for {$this->basename}");
 			return false;
 		}
 
@@ -1030,10 +1030,10 @@ class TwitchVOD
 	{
 
 		if (!$array) {
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No segment data supplied on " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No segment data supplied on {$this->basename}");
 
 			if (!$this->segments_raw) {
-				TwitchHelper::log(TwitchHelper::LOG_ERROR, "No segment_raw data on " . $this->basename . ", calling rebuild...");
+				TwitchHelper::log(TwitchHelper::LOG_ERROR, "No segment_raw data on {$this->basename}, calling rebuild...");
 				$this->rebuildSegmentList();
 			}
 
@@ -1045,7 +1045,7 @@ class TwitchVOD
 		foreach ($array as $k => $v) {
 
 			if (gettype($v) != 'string') {
-				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Segment list containing invalid data for " . $this->basename . ", rebuilding...");
+				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Segment list containing invalid data for {$this->basename}, rebuilding...");
 				$this->rebuildSegmentList();
 				return;
 			}
@@ -1134,7 +1134,7 @@ class TwitchVOD
 	public function saveLosslessCut()
 	{
 
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Saving lossless cut csv for " . $this->basename);
+		TwitchHelper::log(TwitchHelper::LOG_INFO, "Saving lossless cut csv for {$this->basename}");
 
 		$data = "";
 
@@ -1163,16 +1163,16 @@ class TwitchVOD
 	{
 
 		if ($this->is_capturing || $this->is_converting || $this->noFiles()) {
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Won't rebuild segment list on " . $this->basename . ", it's still recording.");
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Won't rebuild segment list on {$this->basename}, it's still recording.");
 			return false;
 		}
 
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Rebuild segment list for " . $this->basename);
+		TwitchHelper::log(TwitchHelper::LOG_INFO, "Rebuild segment list for {$this->basename}");
 
 		$videos = glob($this->directory . DIRECTORY_SEPARATOR . $this->basename . "*.mp4");
 
 		if (!$videos) {
-			TwitchHelper::log(TwitchHelper::LOG_WARNING, "No segments found for " . $this->basename);
+			TwitchHelper::log(TwitchHelper::LOG_WARNING, "No segments found for {$this->basename}");
 			return false;
 		}
 
@@ -1203,7 +1203,7 @@ class TwitchVOD
 			return false;
 		}
 
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Download VOD for " . $this->basename);
+		TwitchHelper::log(TwitchHelper::LOG_INFO, "Download VOD for {$this->basename}");
 
 		set_time_limit(0); // todo: hotfix
 
@@ -1249,7 +1249,7 @@ class TwitchVOD
 			TwitchHelper::appendLog("streamlink_vod_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
 		}
 
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Starting remux of " . $this->basename);
+		TwitchHelper::log(TwitchHelper::LOG_INFO, "Starting remux of {$this->basename}");
 
 		$cmd = [];
 
@@ -1321,7 +1321,7 @@ class TwitchVOD
 
 		$previous = $this->twitch_vod_muted;
 
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Check muted VOD for " . $this->basename);
+		TwitchHelper::log(TwitchHelper::LOG_INFO, "Check muted VOD for {$this->basename}");
 
 		$cmd = [];
 
@@ -1341,20 +1341,20 @@ class TwitchVOD
 		// $stream_url = $output;
 
 		if (!$output) {
-			TwitchHelper::log(TwitchHelper::LOG_INFO, "VOD " . $this->basename . " could not be checked for mute status!");
+			TwitchHelper::log(TwitchHelper::LOG_INFO, "VOD {$this->basename} could not be checked for mute status!");
 			return null;
 		}
 
 		if (mb_strpos($output, "index-muted-") !== false) {
 			$this->twitch_vod_muted = true;
-			TwitchHelper::log(TwitchHelper::LOG_WARNING, "VOD " . $this->basename . " is muted!");
+			TwitchHelper::log(TwitchHelper::LOG_WARNING, "VOD {$this->basename} is muted!");
 			if ($previous !== $this->twitch_vod_muted && $save) {
 				$this->saveJSON("vod mute true");
 			}
 			return true;
 		} else {
 			$this->twitch_vod_muted = false;
-			TwitchHelper::log(TwitchHelper::LOG_INFO, "VOD " . $this->basename . " is not muted!");
+			TwitchHelper::log(TwitchHelper::LOG_INFO, "VOD {$this->basename} is not muted!");
 			if ($previous !== $this->twitch_vod_muted && $save) {
 				$this->saveJSON("vod mute false");
 			}
@@ -1394,7 +1394,7 @@ class TwitchVOD
 
 	public function finalize()
 	{
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Finalize " . $this->basename);
+		TwitchHelper::log(TwitchHelper::LOG_INFO, "Finalize {$this->basename}");
 		$this->getMediainfo();
 		$this->saveLosslessCut();
 		$this->matchTwitchVod();
@@ -1475,7 +1475,7 @@ class TwitchVOD
 	public function delete()
 	{
 
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Delete " . $this->basename);
+		TwitchHelper::log(TwitchHelper::LOG_INFO, "Delete {$this->basename}");
 
 		// segments
 		foreach ($this->segments_raw as $s) {
@@ -1498,7 +1498,7 @@ class TwitchVOD
 	 */
 	public function save()
 	{
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Save " . $this->basename);
+		TwitchHelper::log(TwitchHelper::LOG_INFO, "Save {$this->basename}");
 		rename(TwitchHelper::vodFolder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '.mp4', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '.mp4');
 		rename(TwitchHelper::vodFolder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '.json', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '.json');
 		rename(TwitchHelper::vodFolder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '-llc-edl.csv'); // losslesscut

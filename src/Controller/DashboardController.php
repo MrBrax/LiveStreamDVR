@@ -45,59 +45,6 @@ class DashboardController
 
         foreach ($streamerListStatic as $streamer) {
 
-            /*
-            $data = $streamer;
-
-            $data['channel_data'] = TwitchHelper::getChannelData( $streamer['username'] );
-
-            $data['vods_raw'] = glob(TwitchHelper::vodFolder() . DIRECTORY_SEPARATOR . $streamer['username'] . "_*.json");
-
-            $data['vods_list'] = [];
-
-            $data['vods_size'] = 0;
-
-            foreach ($data['vods_raw'] as $k => $v) {
-
-                $vodclass = new TwitchVOD();
-                if(!$vodclass->load($v)) continue;
-
-                if( $rebuild_segments ){
-                    $vodclass->rebuildSegmentList();
-                }
-
-                if( $match_vod ){
-                    if( $vodclass->matchTwitchVod() ){
-                        $vodclass->saveJSON();
-                    }
-                }
-
-                if ($vodclass->is_recording){
-                    $data['is_live'] = true;
-                    $data['current_vod'] = $vodclass;
-                    $data['current_game'] = $vodclass->getCurrentGame();
-                }
-
-                if ($checkvod && !$vodclass->is_recording) {
-                    $isvalid = $vodclass->checkValidVod();
-                    if (!$isvalid) {
-                        $is_a_vod_deleted = true;
-                        echo '<!-- deleted: ' . $vodclass->basename . ' -->';
-                    }
-                }
-
-                if ($vodclass->segments) {
-                    foreach ($vodclass->segments as $s) {
-                        $data['vods_size'] += filesize(TwitchHelper::vodFolder() . DIRECTORY_SEPARATOR . $s['basename'] );
-                    }
-                }
-
-                $data['vods_list'][] = $vodclass;
-
-            }
-
-            $total_size += $data['vods_size'];
-            */
-
             $data = new TwitchChannel();
             $data->load($streamer['username']);
 
