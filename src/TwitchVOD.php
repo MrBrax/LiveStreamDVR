@@ -182,9 +182,9 @@ class TwitchVOD
 		$this->streamer_name 	= $this->json['meta']['data'][0]['user_name'];
 		$this->streamer_id 		= TwitchHelper::getChannelId($this->streamer_name);
 
-		$this->twitch_vod_id 			= isset($this->json['twitch_vod_id']) ? $this->json['twitch_vod_id'] : null;
+		$this->twitch_vod_id 			= isset($this->json['twitch_vod_id']) ? (int)$this->json['twitch_vod_id'] : null;
 		$this->twitch_vod_url 			= isset($this->json['twitch_vod_url']) ? $this->json['twitch_vod_url'] : null;
-		$this->twitch_vod_duration 		= isset($this->json['twitch_vod_duration']) ? $this->json['twitch_vod_duration'] : null;
+		$this->twitch_vod_duration 		= isset($this->json['twitch_vod_duration']) ? (int)$this->json['twitch_vod_duration'] : null;
 		$this->twitch_vod_title 		= isset($this->json['twitch_vod_title']) ? $this->json['twitch_vod_title'] : null;
 		$this->twitch_vod_date 			= isset($this->json['twitch_vod_date']) ? $this->json['twitch_vod_date'] : null;
 		$this->twitch_vod_exists 		= isset($this->json['twitch_vod_exists']) ? $this->json['twitch_vod_exists'] : null;
@@ -788,7 +788,7 @@ class TwitchVOD
 			// if within 5 minutes difference
 			if (abs($this->dt_started_at->getTimestamp() - $video_time->getTimestamp()) < 300) {
 
-				$this->twitch_vod_id 		= $vid['id'];
+				$this->twitch_vod_id 		= (int)$vid['id'];
 				$this->twitch_vod_url 		= $vid['url'];
 				$this->twitch_vod_duration 	= TwitchHelper::parseTwitchDuration($vid['duration']);
 				$this->twitch_vod_title 	= $vid['title'];

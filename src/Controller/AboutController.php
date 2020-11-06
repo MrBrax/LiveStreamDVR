@@ -126,13 +126,15 @@ class AboutController
         $bins['php'] = [];
         $bins['php']['version'] = phpversion();
         $bins['php']['platform'] = PHP_OS;
+        $bins['php']['platform_family'] = PHP_OS_FAMILY;
+        $bins['php']['sapi'] = PHP_SAPI;
+        $bins['php']['user'] = get_current_user();
+        $bins['php']['pid'] = getmypid();
+        $bins['php']['uid'] = getmyuid();
+        $bins['php']['gid'] = getmygid();
 
         return $this->twig->render($response, 'about.twig', [
             'bins' => $bins,
-            'php_user' => get_current_user(),
-            'php_pid' => getmypid(),
-            'php_uid' => getmyuid(),
-            'php_gid' => getmygid()
             // 'envs' => TwitchConfig::cfg('debug') ? getenv() : null
         ]);
     }
