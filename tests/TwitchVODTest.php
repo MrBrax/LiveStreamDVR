@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\TwitchChannel;
+use App\TwitchConfig;
 use App\TwitchHelper;
 use App\TwitchVOD;
 use PHPUnit\Framework\TestCase;
@@ -9,17 +11,30 @@ use PHPUnit\Framework\TestCase;
 class TwitchVODTest extends TestCase
 {
 
+    private function findFirstVod(): TwitchVOD
+    {
+        $streamers = TwitchConfig::getStreamers();
+        $vodclass = null;
+        foreach ($streamers as $sc) {
+            $streamer = new TwitchChannel();
+            $streamer->load($sc['username']);
+            if ($streamer->vods_list) {
+                return $streamer->vods_list[0];
+            }
+        }
+
+        return null;
+    }
+
     public function test_attributes(): void
     {
 
-        $username = 'xQcOW';
-        $vod = 'xQcOW_2020-09-25T18_50_44Z_39850132270';
-        $vod_path = TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json';
+        $vodclass = $this->findFirstVod();
 
-        $this->assertFileExists($vod_path, 'vod exists');
+        $this->assertNotNull($vodclass, 'vox test exists');
 
-        $vodclass = new TwitchVOD();
-        $vodclass->load($vod_path);
+        // $vodclass = new TwitchVOD();
+        // $vodclass->load($vod_path);
 
         $this->assertIsString($vodclass->filename, 'filename wrong type');
         $this->assertIsString($vodclass->basename, 'basename wrong type');
@@ -36,5 +51,37 @@ class TwitchVODTest extends TestCase
         $this->assertIsString($vodclass->stream_title, 'stream_title wrong type');
         $this->assertIsInt($vodclass->total_size, 'total_size wrong type');
         $this->assertGreaterThan(0, $vodclass->duration_seconds, 'correct capture duration');
+    }
+
+    public function test_vod_download()
+    {
+
+        $vodclass = $this->findFirstVod();
+        $this->assertNotNull($vodclass, 'vod test does not exist');
+
+        $vod_path = $vodclass->directory . DIRECTORY_SEPARATOR . $vodclass->basename . '_vod.mp4';
+
+        // if (file_exists($vod_path)) throw new Exception('VOD file already exists: ' . $vod_path);
+        if (file_exists($vod_path)) unlink( $vod_path );
+
+        $vodclass->downloadVod();
+
+        $this->assertFileExists($vod_path);
+    }
+
+    public function test_chat_download()
+    {
+
+        $vodclass = $this->findFirstVod();
+        $this->assertNotNull($vodclass, 'vod test does not exist');
+
+        $chat_path = $vodclass->directory . DIRECTORY_SEPARATOR . $vodclass->basename . '.chat';
+
+        // if (file_exists($chat_path)) throw new Exception('Chat file already exists: ' . $chat_path);
+        if (file_exists($chat_path)) unlink( $chat_path );
+
+        $vodclass->downloadChat();
+
+        $this->assertFileExists($chat_path);
     }
 }

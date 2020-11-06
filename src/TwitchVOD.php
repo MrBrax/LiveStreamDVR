@@ -14,7 +14,7 @@ class TwitchVOD
 
 	public string $filename = '';
 	public string $basename = '';
-	public ?string $directory = null;
+	public string $directory = '';
 	public array $json = [];
 	public array $meta = [];
 
@@ -41,8 +41,8 @@ class TwitchVOD
 
 	public ?int $game_offset = null;
 
-	public ?string $stream_resolution = null;
-	public ?string $stream_title = null;
+	public string $stream_resolution = '';
+	public string $stream_title = '';
 
 	public ?int $total_size = null;
 
@@ -194,7 +194,7 @@ class TwitchVOD
 
 		$this->force_record				= isset($this->json['force_record']) ? $this->json['force_record'] : false;
 
-		$this->stream_resolution		= isset($this->json['stream_resolution']) && gettype($this->json['stream_resolution']) == 'string' ? $this->json['stream_resolution'] : null;
+		$this->stream_resolution		= isset($this->json['stream_resolution']) && gettype($this->json['stream_resolution']) == 'string' ? $this->json['stream_resolution'] : '';
 
 		$this->meta = $this->json['meta'];
 
@@ -882,7 +882,7 @@ class TwitchVOD
 			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Saving JSON of {$this->basename} with no chapters!!");
 		}
 
-		if (!$this->streamer_name && !$this->created) {
+		if (!isset($this->streamer_name) && !$this->created) {
 			TwitchHelper::log(TwitchHelper::LOG_FATAL, "Found no streamer name in class of {$this->basename}, not saving!");
 			return false;
 		}
