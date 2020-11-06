@@ -33,6 +33,8 @@ class TwitchHelper
 	const LOG_STDOUT = "stdout";
 	const LOG_STDERR = "stderr";
 
+	const DATE_FORMAT = "Y-m-d\TH:i:s\Z";
+
 	public static $config_folder 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config";
 	public static $public_folder 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public";
 	public static $logs_folder 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs";

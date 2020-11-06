@@ -194,7 +194,7 @@ class TwitchVOD
 
 		$this->force_record				= isset($this->json['force_record']) ? $this->json['force_record'] : false;
 
-		$this->stream_resolution		= isset($this->json['stream_resolution']) ? $this->json['stream_resolution'] : null;
+		$this->stream_resolution		= isset($this->json['stream_resolution']) && gettype($this->json['stream_resolution']) == 'string' ? $this->json['stream_resolution'] : null;
 
 		$this->meta = $this->json['meta'];
 
@@ -783,7 +783,7 @@ class TwitchVOD
 
 		foreach ($channel_videos as $vid) {
 
-			$video_time = \DateTime::createFromFormat(TwitchConfig::cfg('date_format'), $vid['created_at']);
+			$video_time = \DateTime::createFromFormat(TwitchHelper::DATE_FORMAT, $vid['created_at']);
 
 			// if within 5 minutes difference
 			if (abs($this->dt_started_at->getTimestamp() - $video_time->getTimestamp()) < 300) {
@@ -989,7 +989,7 @@ class TwitchVOD
 
 			// $entry = array_merge($game_data, $entry); // is this a good idea?
 
-			$entry['datetime'] = \DateTime::createFromFormat(TwitchConfig::cfg("date_format"), $entry['time']);
+			$entry['datetime'] = \DateTime::createFromFormat(TwitchHelper::DATE_FORMAT, $entry['time']);
 
 			if (null !== TwitchConfig::cfg('favourites') && count(TwitchConfig::cfg('favourites')) > 0) {
 				$entry['favourite'] = isset(TwitchConfig::cfg('favourites')[$entry['game_id']]);
