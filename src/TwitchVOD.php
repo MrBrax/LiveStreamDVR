@@ -12,86 +12,87 @@ class TwitchVOD
 
 	public $vod_path = 'vods';
 
-	public $filename 	= '';
-	public $basename 	= '';
-	public $directory 	= null;
-	public $json = [];
-	public $meta = [];
+	public string $filename = '';
+	public string $basename = '';
+	public ?string $directory = null;
+	public array $json = [];
+	public array $meta = [];
 
-	public $streamer_name = null;
-	public $streamer_id = null;
+	public ?string $streamer_name = null;
+	public ?int $streamer_id = null;
 
-	public $segments = [];
-	public $segments_raw = [];
+	public array $segments = [];
+	public array $segments_raw = [];
 
 	/**
 	 * Chapters
 	 *
 	 * @var [ 'time', 'game_id', 'game_name', 'viewer_count', 'title', 'datetime', 'offset', 'duration' ]
 	 */
-	public $chapters = [];
+	public array $chapters = [];
 
 	/** @deprecated 3.4.0 */
 	public $started_at = null;
 	/** @deprecated 3.4.0 */
 	public $ended_at = null;
 
-	// public $duration = null; // deprecated?
-	public $duration_seconds = null;
+	public ?int $duration_seconds = null;
+	public ?int $duration_live = null;
 
-	public $game_offset = null;
+	public ?int $game_offset = null;
 
-	public $stream_resolution = null;
-	public $stream_title = null;
+	public ?string $stream_resolution = null;
+	public ?string $stream_title = null;
 
-	public $total_size = null;
+	public ?int $total_size = null;
 
 	// TODO: make these into an array instead
-	public $twitch_vod_id = null;
-	public $twitch_vod_url = null;
-	public $twitch_vod_duration = null;
-	public $twitch_vod_title = null;
-	public $twitch_vod_date = null;
-	public $twitch_vod_exists = null;
-	public $twitch_vod_attempted = null;
-	public $twitch_vod_neversaved = null;
-	public $twitch_vod_muted = null;
+	public ?int $twitch_vod_id = null;
+	public ?string $twitch_vod_url = null;
+	public ?int $twitch_vod_duration = null;
+	public ?string $twitch_vod_title = null;
+	public ?string $twitch_vod_date = null;
+	public ?bool $twitch_vod_exists = null;
+	public ?bool $twitch_vod_attempted = null;
+	public ?bool $twitch_vod_neversaved = null;
+	public ?bool $twitch_vod_muted = null;
 
 	/** @deprecated 3.2.0 use $is_capturing instead */
-	public $is_recording = false;
-	public $is_converted = false;
-	public $is_capturing = false;
-	public $is_converting = false;
-	public $is_finalized = false;
+	public bool $is_recording = false;
+	public bool $is_converted = false;
+	public bool $is_capturing = false;
+	public bool $is_converting = false;
+	public bool $is_finalized = false;
 
-	public $video_fail2 = false;
-	public $video_metadata = [];
+	public bool $video_fail2 = false;
+	public array $video_metadata = [];
 
-	public $is_chat_downloaded = false;
-	public $is_vod_downloaded = false;
-	public $is_chat_rendered = false;
-	public $is_chat_burned = false;
-	public $is_lossless_cut_generated = false;
-	public $is_chatdump_captured = false;
+	public bool $is_chat_downloaded = false;
+	public bool $is_vod_downloaded = false;
+	public bool $is_chat_rendered = false;
+	public bool $is_chat_burned = false;
+	public bool $is_lossless_cut_generated = false;
+	public bool $is_chatdump_captured = false;
 
+	public ?\DateTime $dt_saved_at = null;
 	public ?\DateTime $dt_started_at = null;
 	public ?\DateTime $dt_ended_at = null;
 	public ?\DateTime $dt_capture_started = null;
 	public ?\DateTime $dt_conversion_started = null;
 
-	public $json_hash = null;
+	public ?string $json_hash = null;
 
 	/** Recently created? */
-	public $created = false;
+	public bool $created = false;
 	/** Manually started? */
-	public $force_record = false;
+	public bool $force_record = false;
 
-	public $path_chat = null;
-	public $path_downloaded_vod = null;
-	public $path_losslesscut = null;
-	public $path_chatrender = null;
-	public $path_chatburn = null;
-	public $path_chatdump = null;
+	public ?string $path_chat = null;
+	public ?string $path_downloaded_vod = null;
+	public ?string $path_losslesscut = null;
+	public ?string $path_chatrender = null;
+	public ?string $path_chatburn = null;
+	public ?string $path_chatdump = null;
 
 	private $pid_cache = [];
 
@@ -130,30 +131,39 @@ class TwitchVOD
 		}
 		*/
 
+		// started at
 		if (isset($this->json['dt_started_at']) && isset($this->json['dt_started_at']['date'])) {
 			$this->dt_started_at = new \DateTime($this->json['dt_started_at']['date']);
-		}elseif(isset($this->json['started_at']) && gettype($this->json['started_at']) == 'string'){ /** @deprecated 3.4.0 */
+		} elseif (isset($this->json['started_at']) && gettype($this->json['started_at']) == 'string') {
+			/** @deprecated 3.4.0 */
 			$this->dt_started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['started_at']);
-		}elseif(isset($this->json['started_at']) && gettype($this->json['started_at']) == 'array'){ /** @deprecated 3.4.0 */
+		} elseif (isset($this->json['started_at']) && gettype($this->json['started_at']) == 'array') {
+			/** @deprecated 3.4.0 */
 			$this->dt_started_at = new \DateTime($this->json['started_at']['date']);
 		}
 
+		// ended at
 		if (isset($this->json['dt_ended_at']) && isset($this->json['dt_ended_at']['date'])) {
 			$this->dt_ended_at = new \DateTime($this->json['dt_ended_at']['date']);
-		}elseif(isset($this->json['ended_at']) && gettype($this->json['ended_at']) == 'string'){ /** @deprecated 3.4.0 */
+		} elseif (isset($this->json['ended_at']) && gettype($this->json['ended_at']) == 'string') {
+			/** @deprecated 3.4.0 */
 			$this->dt_ended_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['ended_at']);
-		}elseif(isset($this->json['ended_at']) && gettype($this->json['ended_at']) == 'array'){ /** @deprecated 3.4.0 */
+		} elseif (isset($this->json['ended_at']) && gettype($this->json['ended_at']) == 'array') {
+			/** @deprecated 3.4.0 */
 			$this->dt_ended_at = new \DateTime($this->json['ended_at']['date']);
 		}
 
+		// saved at
 		if (isset($this->json['saved_at']) && isset($this->json['saved_at']['date'])) {
 			$this->dt_saved_at = new \DateTime($this->json['saved_at']['date']);
 		}
 
+		// capture started
 		if (isset($this->json['dt_capture_started'])) {
 			$this->dt_capture_started 		= new \DateTime($this->json['dt_capture_started']['date']);
 		}
 
+		// conversion started
 		if (isset($this->json['dt_conversion_started'])) {
 			$this->dt_conversion_started 	= new \DateTime($this->json['dt_conversion_started']['date']);
 		}
@@ -199,7 +209,7 @@ class TwitchVOD
 		}
 
 		// $this->duration 			= $this->json['duration'];
-		$this->duration_seconds 	= $this->json['duration_seconds'] ?: null;
+		$this->duration_seconds 	= $this->json['duration_seconds'] ? (int)$this->json['duration_seconds'] : null;
 		$this->duration_live		= $this->getDurationLive();
 
 		$this->video_fail2 			= isset($this->json['video_fail2']) ? $this->json['video_fail2'] : false;
@@ -279,7 +289,7 @@ class TwitchVOD
 	 * Get duration of the mp4 file.
 	 *
 	 * @param boolean $save Save the duration to the JSON file
-	 * @return string Duration in seconds
+	 * @return int Duration in seconds
 	 */
 	public function getDuration($save = false)
 	{
@@ -292,8 +302,8 @@ class TwitchVOD
 		if ($this->video_metadata) {
 			if (isset($this->video_metadata['general']['Duration'])) {
 				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "No duration_seconds but metadata exists for {$this->basename}: " . $this->video_metadata['general']['Duration']);
-				$this->duration_seconds = $this->video_metadata['general']['Duration'];
-				return $this->video_metadata['general']['Duration'];
+				$this->duration_seconds = (int)$this->video_metadata['general']['Duration'];
+				return $this->duration_seconds;
 			}
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Video metadata for {$this->basename} does not include duration!");
 			return null;
@@ -328,7 +338,7 @@ class TwitchVOD
 		} else {
 
 			// $this->duration 			= $file['playtime_string'];
-			$this->duration_seconds 	= $file['general']['Duration'];
+			$this->duration_seconds 	= (int)$file['general']['Duration'];
 
 			if ($save) {
 				TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Saved duration for {$this->basename}");
@@ -1389,22 +1399,22 @@ class TwitchVOD
 	// TODO: finish this
 	public function getCapturingStatus()
 	{
-		return TwitchHelper::getPidfileStatus('capture_' . $this->streamer_name);
+		return TwitchHelper::getPidfileStatus("capture_{$this->streamer_name}");
 	}
 
 	public function getConvertingStatus()
 	{
-		return TwitchHelper::getPidfileStatus('convert_' . $this->streamer_name);
+		return TwitchHelper::getPidfileStatus("convert_{$this->streamer_name}");
 	}
 
 	public function getChatDownloadStatus()
 	{
-		return TwitchHelper::getPidfileStatus('tcd_' . $this->basename);
+		return TwitchHelper::getPidfileStatus("tcd_{$this->basename}");
 	}
 
 	public function getChatDumpStatus()
 	{
-		return TwitchHelper::getPidfileStatus('chatdump_' . $this->streamer_name);
+		return TwitchHelper::getPidfileStatus("chatdump_{$this->streamer_name}");
 	}
 
 	public function finalize()
@@ -1452,8 +1462,8 @@ class TwitchVOD
 				}
 				return ["fixable" => true, "text" => "reached finalize step, but does not have a matched twitch vod."];
 			}
-		}else{
-			if( !$this->is_converted && isset($this->dt_ended_at) && $now->getTimestamp() > $this->dt_ended_at->getTimestamp() + 600 ){
+		} else {
+			if (!$this->is_converted && isset($this->dt_ended_at) && $now->getTimestamp() > $this->dt_ended_at->getTimestamp() + 600) {
 				return ["fixable" => false, "text" => "waited a few minutes, but didn't manage to finalize"];
 			}
 		}
@@ -1526,6 +1536,7 @@ class TwitchVOD
 		rename(TwitchHelper::vodFolder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '.chat', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '.chat'); // chat
 	}
 
+	/** @deprecated 3.4.0 this function sucks */
 	public function convert()
 	{
 

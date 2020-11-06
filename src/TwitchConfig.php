@@ -30,22 +30,22 @@ class TwitchConfig
 		['key' => 'api_client_id', 			'text' => 'Twitch client ID', 								'type' => 'string', 'required' => true],
 		['key' => 'api_secret', 			'text' => 'Twitch secret', 									'type' => 'string', 'secret' => true, 'required' => true, 'help' => 'Keep blank to not change'],
 		// [ 'key' => 'hook_callback', 		'text' => 'Hook callback', 									'type' => 'string', 'required' => true ],
-		['key' => 'timezone', 				'text' => 'Timezone', 										'type' => 'array', 'choices' => 'timezones', 'default' => 'UTC'],
+		['key' => 'timezone', 				'text' => 'Timezone', 										'type' => 'array', 'choices' => 'timezones', 'default' => 'UTC', 'help' => 'This only affects the GUI, not the values stored'],
 
 		['key' => 'vod_container', 			'text' => 'VOD container (not tested)', 					'type' => 'array', 'choices' => ['mp4', 'mkv', 'mov'], 'default' => 'mp4'],
 
 		['key' => 'burn_preset', 			'text' => 'Burning h264 preset', 							'type' => 'array', 'choices' => ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower', 'veryslow', 'placebo'], 'default' => 'slow'],
-		['key' => 'burn_crf', 				'text' => 'Burning h264 crf', 								'type' => 'number', 'default' => 26],
+		['key' => 'burn_crf', 				'text' => 'Burning h264 crf', 								'type' => 'number', 'default' => 26, 'help' => 'Essentially a quality control. Lower is higher quality.'],
 
-		['key' => 'disable_ads', 			'text' => 'Try to remove ads from captured file',			'type' => 'boolean', 'default' => true],
-		['key' => 'debug', 					'text' => 'Debug', 											'type' => 'boolean', 'default' => false],
-		['key' => 'app_verbose', 			'text' => 'Verbose app output', 							'type' => 'boolean'],
-		['key' => 'channel_folders', 		'text' => 'Channel folders', 								'type' => 'boolean', 'default' => true],
+		['key' => 'disable_ads', 			'text' => 'Try to remove ads from captured file',			'type' => 'boolean', 'default' => true, 'help' => 'This removes the "Commercial break in progress", but stream is probably going to be cut off anyway'],
+		['key' => 'debug', 					'text' => 'Debug', 											'type' => 'boolean', 'default' => false, 'help' => 'Verbose logging, extra file outputs, more information available. Not for general use.'],
+		['key' => 'app_verbose', 			'text' => 'Verbose app output', 							'type' => 'boolean', 'help' => 'Only verbose output'],
+		['key' => 'channel_folders', 		'text' => 'Channel folders', 								'type' => 'boolean', 'default' => true, 'help' => 'Store VODs in subfolders instead of root'],
 		['key' => 'chat_compress', 			'text' => 'Compress chat with gzip (untested)', 			'type' => 'boolean'],
-		['key' => 'relative_time', 			'text' => 'Relative time', 									'type' => 'boolean'],
+		['key' => 'relative_time', 			'text' => 'Relative time', 									'type' => 'boolean', 'help' => '"1 hour ago" instead of 2020-01-01'],
 		['key' => 'low_latency', 			'text' => 'Low latency (untested)', 						'type' => 'boolean'],
 		['key' => 'youtube_dlc', 			'text' => 'Use youtube-dlc instead of the regular one', 	'type' => 'boolean'],
-		['key' => 'chat_dump', 				'text' => 'Dump chat during capture', 						'type' => 'boolean', 'default' => false],
+		['key' => 'chat_dump', 				'text' => 'Dump chat during capture', 						'type' => 'boolean', 'default' => false, 'help' => 'Dump chat from IRC with an external python script'],
 		['key' => 'ts_sync', 				'text' => 'Try to force sync remuxing', 					'type' => 'boolean', 'default' => false],
 	];
 
@@ -74,6 +74,8 @@ class TwitchConfig
 	 */
 	public static function settingExists(string $key): bool
 	{
+		if(in_array($key, ['favourites', 'streamers'])) return true;
+
 		foreach (self::$settingsFields as $setting) {
 			if ($setting['key'] == $key) return true;
 		}
@@ -141,6 +143,8 @@ class TwitchConfig
 			TwitchHelper::log(TwitchHelper::LOG_FATAL, "Saving config failed, permissions issue?");
 			// return false;
 		}
+
+		copy(self::$configPath, self::$configPath . '.bak');
 
 		file_put_contents(self::$configPath, json_encode(self::$config, JSON_PRETTY_PRINT));
 

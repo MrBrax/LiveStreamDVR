@@ -61,7 +61,8 @@ class TwitchChannel
             $vodclass = new TwitchVOD();
             if (!$vodclass->load($v)) continue;
 
-            if ($vodclass->is_recording && !$vodclass->is_converting) {
+            // if ($vodclass->is_recording && !$vodclass->is_converting) {
+            if ($vodclass->is_capturing) {
                 $this->is_live = true;
                 $this->current_vod = $vodclass;
                 $this->current_game = $vodclass->getCurrentGame();
