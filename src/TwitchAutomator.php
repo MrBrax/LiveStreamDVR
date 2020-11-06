@@ -253,7 +253,7 @@ class TwitchAutomator
 
 		// full datetime-stamp of stream start
 		// $this->json['started_at'] = $data_started;
-		$this->vod->started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $data_started);
+		$this->vod->dt_started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $data_started);
 
 		// fetch game name from either cache or twitch
 		$game_name = TwitchHelper::getGameName((int)$data_game_id);
@@ -321,7 +321,7 @@ class TwitchAutomator
 		$this->vod->json['meta'] = $data;
 		$this->vod->streamer_name = $data_username;
 		$this->vod->streamer_id = TwitchHelper::getChannelId($data_username);
-		$this->vod->started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $data_started);
+		$this->vod->dt_started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $data_started);
 
 		if ($this->force_record) $this->vod->force_record = true;
 
@@ -399,7 +399,7 @@ class TwitchAutomator
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Add end timestamp for {$basename}", ['download' => $data_username]);
 
 		$this->vod->refreshJSON();
-		$this->vod->ended_at = $this->getDateTime();
+		// $this->vod->ended_at = $this->getDateTime();
 		$this->vod->dt_ended_at = new \DateTime();
 		$this->vod->is_capturing = false;
 		if ($this->stream_resolution) $this->vod->stream_resolution = $this->stream_resolution;
@@ -478,7 +478,7 @@ class TwitchAutomator
 
 		// add to history, testing
 		$history = file_exists(TwitchConfig::$historyPath) ? json_decode(file_get_contents(TwitchConfig::$historyPath), true) : [];
-		$history[] = ['streamer_name' => $this->vod->streamer_name, 'started_at' => $this->vod->started_at, 'ended_at' => $this->vod->ended_at, 'title' => $data_title];
+		$history[] = ['streamer_name' => $this->vod->streamer_name, 'started_at' => $this->vod->dt_started_at, 'ended_at' => $this->vod->dt_ended_at, 'title' => $data_title];
 		file_put_contents(TwitchConfig::$historyPath, json_encode($history));
 
 		TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "All done for {$basename}", ['download' => $data_username]);

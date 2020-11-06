@@ -31,7 +31,9 @@ class TwitchVOD
 	 */
 	public $chapters = [];
 
+	/** @deprecated 3.4.0 */
 	public $started_at = null;
+	/** @deprecated 3.4.0 */
 	public $ended_at = null;
 
 	// public $duration = null; // deprecated?
@@ -72,9 +74,10 @@ class TwitchVOD
 	public $is_lossless_cut_generated = false;
 	public $is_chatdump_captured = false;
 
-	public $dt_ended_at = null;
-	public $dt_capture_started = null;
-	public $dt_conversion_started = null;
+	public ?\DateTime $dt_started_at = null;
+	public ?\DateTime $dt_ended_at = null;
+	public ?\DateTime $dt_capture_started = null;
+	public ?\DateTime $dt_conversion_started = null;
 
 	public $json_hash = null;
 
@@ -127,20 +130,32 @@ class TwitchVOD
 		}
 		*/
 
-		if (isset($this->json['started_at']) && isset($this->json['started_at']['date'])) {
-			$this->started_at = new \DateTime($this->json['started_at']['date']);
-		} else {
-			// $this->started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['started_at']);
+		if (isset($this->json['dt_started_at']) && isset($this->json['dt_started_at']['date'])) {
+			$this->dt_started_at = new \DateTime($this->json['dt_started_at']['date']);
+		}elseif(isset($this->json['started_at']) && gettype($this->json['started_at']) == 'string'){ /** @deprecated 3.4.0 */
+			$this->dt_started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['started_at']);
+		}elseif(isset($this->json['started_at']) && gettype($this->json['started_at']) == 'array'){ /** @deprecated 3.4.0 */
+			$this->dt_started_at = new \DateTime($this->json['started_at']['date']);
 		}
 
-		if (isset($this->json['ended_at']) && isset($this->json['ended_at']['date'])) {
-			$this->ended_at = new \DateTime($this->json['ended_at']['date']);
-		} else {
-			// $this->ended_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['ended_at']);
+		if (isset($this->json['dt_ended_at']) && isset($this->json['dt_ended_at']['date'])) {
+			$this->dt_ended_at = new \DateTime($this->json['dt_ended_at']['date']);
+		}elseif(isset($this->json['ended_at']) && gettype($this->json['ended_at']) == 'string'){ /** @deprecated 3.4.0 */
+			$this->dt_ended_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['ended_at']);
+		}elseif(isset($this->json['ended_at']) && gettype($this->json['ended_at']) == 'array'){ /** @deprecated 3.4.0 */
+			$this->dt_ended_at = new \DateTime($this->json['ended_at']['date']);
 		}
 
 		if (isset($this->json['saved_at']) && isset($this->json['saved_at']['date'])) {
-			$this->saved_at = new \DateTime($this->json['saved_at']['date']);
+			$this->dt_saved_at = new \DateTime($this->json['saved_at']['date']);
+		}
+
+		if (isset($this->json['dt_capture_started'])) {
+			$this->dt_capture_started 		= new \DateTime($this->json['dt_capture_started']['date']);
+		}
+
+		if (isset($this->json['dt_conversion_started'])) {
+			$this->dt_conversion_started 	= new \DateTime($this->json['dt_conversion_started']['date']);
 		}
 
 		$this->filename = $filename;
@@ -173,17 +188,11 @@ class TwitchVOD
 
 		$this->meta = $this->json['meta'];
 
-		if (isset($this->json['dt_capture_started'])) {
-			$this->dt_capture_started 		= new \DateTime($this->json['dt_capture_started']['date']);
-		}
-
-		if (isset($this->json['dt_conversion_started'])) {
-			$this->dt_conversion_started 	= new \DateTime($this->json['dt_conversion_started']['date']);
-		}
-
+		/*
 		if (isset($this->json['dt_ended'])) {
 			$this->dt_ended_at = new \DateTime($this->json['dt_ended']['date']);
 		}
+		*/
 
 		if ($this->meta && $this->meta['data'][0]['title']) {
 			$this->stream_title = $this->meta['data'][0]['title'];
@@ -369,9 +378,9 @@ class TwitchVOD
 	 */
 	public function getDurationLive()
 	{
-		if (!$this->started_at) return false;
+		if (!$this->dt_started_at) return false;
 		$now = new \DateTime();
-		return abs($this->started_at->getTimestamp() - $now->getTimestamp());
+		return abs($this->dt_started_at->getTimestamp() - $now->getTimestamp());
 		// $diff = $this->started_at->diff( new \DateTime() );
 		// $diff->format("%s");
 		//return $diff->format('%H:%I:%S');
@@ -767,7 +776,7 @@ class TwitchVOD
 			$video_time = \DateTime::createFromFormat(TwitchConfig::cfg('date_format'), $vid['created_at']);
 
 			// if within 5 minutes difference
-			if (abs($this->started_at->getTimestamp() - $video_time->getTimestamp()) < 300) {
+			if (abs($this->dt_started_at->getTimestamp() - $video_time->getTimestamp()) < 300) {
 
 				$this->twitch_vod_id 		= $vid['id'];
 				$this->twitch_vod_url 		= $vid['url'];
@@ -913,6 +922,7 @@ class TwitchVOD
 
 		$generated['dt_capture_started'] 		= $this->dt_capture_started;
 		$generated['dt_conversion_started'] 	= $this->dt_conversion_started;
+		$generated['dt_started_at'] 			= $this->dt_started_at;
 		$generated['dt_ended_at'] 				= $this->dt_ended_at;
 
 		if (!is_writable($this->filename)) { // this is not the function i want
@@ -976,8 +986,8 @@ class TwitchVOD
 			}
 
 			// offset
-			if ($this->started_at) {
-				$entry['offset'] = $entry['datetime']->getTimestamp() - $this->started_at->getTimestamp();
+			if ($this->dt_started_at) {
+				$entry['offset'] = $entry['datetime']->getTimestamp() - $this->dt_started_at->getTimestamp();
 			}
 
 			if ($this->is_finalized && $this->getDuration() !== false && $this->getDuration() > 0 && isset($entry['duration'])) {
@@ -986,8 +996,8 @@ class TwitchVOD
 
 			// strings for templates
 			$entry['strings'] = [];
-			if ($this->started_at) {
-				$diff = $entry['datetime']->diff($this->started_at);
+			if ($this->dt_started_at) {
+				$diff = $entry['datetime']->diff($this->dt_started_at);
 				$entry['strings']['started_at'] = $diff->format('%H:%I:%S');
 			} else {
 				$entry['strings']['started_at'] = $entry['datetime']->format("Y-m-d H:i:s");
@@ -1021,8 +1031,8 @@ class TwitchVOD
 				$this->game_offset = $chapter['offset'];
 			}
 
-			if ($i == sizeof($chapters) - 1 && $this->ended_at) {
-				$chapters[$i]['duration'] = $this->ended_at->getTimestamp() - $chapter['datetime']->getTimestamp();
+			if ($i == sizeof($chapters) - 1 && $this->dt_ended_at) {
+				$chapters[$i]['duration'] = $this->dt_ended_at->getTimestamp() - $chapter['datetime']->getTimestamp();
 			}
 
 			$i++;
@@ -1078,8 +1088,8 @@ class TwitchVOD
 
 	public function getWebhookDuration()
 	{
-		if ($this->started_at && $this->ended_at) {
-			$diff = $this->started_at->diff($this->ended_at);
+		if ($this->dt_started_at && $this->dt_ended_at) {
+			$diff = $this->dt_started_at->diff($this->dt_ended_at);
 			return $diff->format('%H:%I:%S');
 		} else {
 			return null;

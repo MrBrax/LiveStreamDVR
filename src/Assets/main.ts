@@ -116,7 +116,7 @@ function fluffTick(){
 
         let div = document.getElementById("duration_" + username);
         if( div ){
-            let ts = previousData[username].current_vod.started_at.date;
+            let ts = previousData[username].current_vod.dt_started_at.date;
             let date = new Date(ts + "+00:00");
             let now = new Date();
             // console.log("fluff", date, now);

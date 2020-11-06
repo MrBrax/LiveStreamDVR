@@ -65,7 +65,7 @@ class TwitchChannel
                 $this->is_live = true;
                 $this->current_vod = $vodclass;
                 $this->current_game = $vodclass->getCurrentGame();
-                $this->current_duration = $vodclass->getDurationLive();
+                $this->current_duration = $vodclass->getDurationLive() ?: null;
             }
 
             if ($vodclass->is_converting) {

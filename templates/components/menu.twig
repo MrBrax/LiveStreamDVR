@@ -46,7 +46,7 @@
                                 'is-live': vodclass.is_capturing,
                                 'is-converting': vodclass.is_converting,
                                 'is-waiting': not vodclass.is_capturing and not vodclass.is_converting and not vodclass.is_finalized
-                            }) }}" title="{{ vodclass.started_at|date('Y-m-d H:i:s') }}">
+                            }) }}" title="{{ vodclass.dt_started_at|date('Y-m-d H:i:s') }}">
                             {# <span class="icon is-active"><i class="fa fa-arrow-circle-right"></i></span> #}
                             {% if vodclass.is_capturing %}
                                 <span class="icon"><i class="fa fa-sync fa-spin"></i></span> {# capturing #}
@@ -59,8 +59,8 @@
                             {% elseif vodclass.is_finalized %}
                                 <span class="icon"><i class="fa fa-film"></i></span> {# video #}
                             {% endif %}
-                            {% if not config.relative_time and vodclass.started_at %}{{ vodclass.started_at|date('Y-m-d H:i:s') }}{% endif %} {# absolute time #}
-                            {% if config.relative_time and vodclass.started_at %}{{ vodclass.started_at|humanDate }}{% endif %} {# relative time #}
+                            {% if not config.relative_time and vodclass.dt_started_at %}{{ vodclass.dt_started_at|date('Y-m-d H:i:s') }}{% endif %} {# absolute time #}
+                            {% if config.relative_time and vodclass.dt_started_at %}{{ vodclass.dt_started_at|humanDate }}{% endif %} {# relative time #}
                             {% if vodclass.is_capturing %}
                                 {% if vodclass.duration_live %}&middot; ({{ config.relative_time ? vodclass.duration_live|humanRealDuration : vodclass.duration_live|humanDuration }}+){% endif %} {# duration #}
                                 {% if vodclass.getRecordingSize %}&middot; {{ vodclass.getRecordingSize|formatBytes }}+{% endif %} {# filesize #}

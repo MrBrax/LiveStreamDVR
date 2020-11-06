@@ -2,6 +2,8 @@
     <div class="is-error">Failed to load {{ vodclass.basename }}</div>
 {% else %}
 
+    {# @var vodclass \TwitchVOD #}
+
     <div class="{{ html_classes('video', {
         'is-recording': vodclass.is_capturing,
         'is-converting': vodclass.is_converting,
@@ -15,7 +17,7 @@
         <div class="video-title">
             <h3>
                 <span class="icon"><i class="fas fa-file-video"></i></span>
-                {% if vodclass.started_at %}{{ vodclass.started_at|date('Y-m-d H:i:s') }}{% endif %}
+                {% if vodclass.dt_started_at %}{{ vodclass.dt_started_at|date('Y-m-d H:i:s') }}{% endif %}
                 <span class="video-filename"> &middot; {{ vodclass.basename }}</span>
             </h3>
         </div>
@@ -40,7 +42,7 @@
                         <h4>General</h4>
                         <ul class="video-info">
                             <li><strong>Webhook duration:</strong> {{ vodclass.getWebhookDuration }}</li>
-                            <li><strong>Stream start:</strong> {{ vodclass.started_at|date('Y-m-d H:i:s') }}</li>
+                            <li><strong>Stream start:</strong> {{ vodclass.dt_started_at|date('Y-m-d H:i:s') }}</li>
                             {% if vodclass.dt_capture_started %}
                             <li><strong>Capture start:</strong> {{ vodclass.dt_capture_started|date('Y-m-d H:i:s') }}</li>
                             <li><strong>Conversion start:</strong> {{ vodclass.dt_conversion_started|date('Y-m-d H:i:s') }}</li>	
@@ -253,7 +255,7 @@
 
             {% elseif vodclass.is_capturing %}
 
-                {% if vodclass.ended_at %}
+                {% if vodclass.dt_ended_at %}
                     <a class="button" href="{{ url_for('convert', { 'vod': vodclass.basename }) }}">Convert</a>
                 {% endif %}
 
@@ -365,7 +367,7 @@
 
                     {% endfor %}
 
-                    {% if vodclass.ended_at %}
+                    {% if vodclass.dt_ended_at %}
                         
                         <tr>
                             <td>
@@ -379,7 +381,7 @@
                     {% else %}
                         
                         <tr>
-                            {% if vodclass.started_at %}
+                            {% if vodclass.dt_started_at %}
                                 <td>{{ vodclass.getDurationLive|humanDuration }}</td>
                             {% endif %}
                             <td colspan="4"><em><strong>ONGOING</strong></em></td>
