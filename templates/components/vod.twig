@@ -279,7 +279,7 @@
 
             {% elseif not vodclass.is_capturing and not vodclass.is_converting and not vodclass.is_finalized %}
 
-                <em>Waiting to finalize video</em>
+                <em>Waiting to finalize video (since {{ vodclass.dt_ended_at|date('Y-m-d H:i:s') }})</em>
 
             {% else %}
                 

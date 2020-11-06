@@ -1430,6 +1430,8 @@ class TwitchVOD
 
 		$base = $this->directory . DIRECTORY_SEPARATOR . $this->basename;
 
+		$now = new \DateTime();
+
 		if ($this->is_finalized) {
 			if (!file_exists($base . '.mp4')) {
 				return ["fixable" => false, "text" => "reached finalize step, but the .mp4 file never got created."];
@@ -1449,6 +1451,10 @@ class TwitchVOD
 					}
 				}
 				return ["fixable" => true, "text" => "reached finalize step, but does not have a matched twitch vod."];
+			}
+		}else{
+			if( !$this->is_converted && isset($this->dt_ended_at) && $now->getTimestamp() > $this->dt_ended_at->getTimestamp() + 600 ){
+				return ["fixable" => false, "text" => "waited a few minutes, but didn't manage to finalize"];
 			}
 		}
 

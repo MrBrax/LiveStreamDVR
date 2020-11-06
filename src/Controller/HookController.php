@@ -8,6 +8,7 @@ use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 
 use App\TwitchAutomator;
+use App\TwitchConfig;
 use App\TwitchHelper;
 
 class HookController
@@ -43,9 +44,11 @@ class HookController
 
         if ($data) {
 
-            TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Dumping payload...");
-            file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . 'payloads' . DIRECTORY_SEPARATOR . date("Y-m-d.h_i_s") . '.json', json_encode($data));
-
+            if( TwitchConfig::cfg('debug') ){
+                TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Dumping payload...");
+                file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . 'payloads' . DIRECTORY_SEPARATOR . date("Y-m-d.h_i_s") . '.json', json_encode($data));
+            }
+            
             /*
             $data_id = $data['data'][0]['id'];
             $data_title = $data['data'][0]['title'];
