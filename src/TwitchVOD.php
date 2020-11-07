@@ -1096,6 +1096,38 @@ class TwitchVOD
 		$this->segments = $segments;
 	}
 
+	public function parseChatDump(){
+
+		if(!file_exists($this->path_chatdump . '.txt')){
+			return false;
+		}
+
+		$reg = ["/daily dose/i", "/unusual memes/i"];
+
+		$line_regex = "/^\<(.*)\>\s(\w+)\:\s(.*)$/";
+
+		$handle = fopen($this->path_chatdump . '.txt', 'r');
+		$lines = 0;
+		$found_lines = [];
+		if($handle){
+			$line = fgets($handle);
+			while( $line !== false ){
+				$lines++;
+				foreach($reg as $r){
+					if(preg_match($r, $line)){
+						preg_match($line_regex, trim($line), $matches);
+						if($matches) $found_lines[] = ['date' => $matches[1], 'username' => $matches[2], 'text' => $matches[3]];
+						break;
+					}
+				}
+				$line = fgets($handle);
+			}
+		}
+
+		return $found_lines;
+
+	}
+
 	public function getWebhookDuration()
 	{
 		if ($this->dt_started_at && $this->dt_ended_at) {

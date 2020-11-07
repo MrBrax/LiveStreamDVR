@@ -94,6 +94,26 @@ class ApiController
         return $response->withHeader('Content-Type', 'application/json');
     }
 
+    public function vod_chatdump(Request $request, Response $response, $args)
+    {
+
+        $vod = $args['vod'];
+
+        $username = explode("_", $vod)[0];
+
+        $vodclass = new TwitchVOD();
+        $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+
+        $data = $vodclass->parseChatDump();
+
+        $payload = json_encode([
+            'data' => $data,
+            'status' => 'OK'
+        ]);
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
     public function jobs_list(Request $request, Response $response, $args)
     {
 
