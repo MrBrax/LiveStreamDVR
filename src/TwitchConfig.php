@@ -47,6 +47,7 @@ class TwitchConfig
 		['key' => 'youtube_dlc', 			'text' => 'Use youtube-dlc instead of the regular one', 	'type' => 'boolean'],
 		['key' => 'chat_dump', 				'text' => 'Dump chat during capture', 						'type' => 'boolean', 'default' => false, 'help' => 'Dump chat from IRC with an external python script'],
 		['key' => 'ts_sync', 				'text' => 'Try to force sync remuxing', 					'type' => 'boolean', 'default' => false],
+		['key' => 'encode_audio', 			'text' => 'Encode audio stream', 							'type' => 'boolean', 'default' => false, 'help' => 'This may help with audio syncing.'],
 	];
 
 	public static $timezone;

@@ -181,8 +181,19 @@ class ToolsController
 		$cmd[] = '-i';
 		$cmd[] = $source; // input filename
 
-		$cmd[] = '-codec';
-		$cmd[] = 'copy'; // use same codec
+		if (TwitchConfig::cfg('encode_audio')) {
+			$cmd[] = '-c:v';
+			$cmd[] = 'copy'; // use same video codec
+
+			$cmd[] = '-c:a';
+			$cmd[] = 'aac'; // re-encode audio
+
+			$cmd[] = '-b:a';
+			$cmd[] = '160k'; // use same audio bitrate
+		} else {
+			$cmd[] = '-codec';
+			$cmd[] = 'copy'; // use same codec
+		}
 
 		$cmd[] = '-bsf:a';
 		$cmd[] = 'aac_adtstoasc'; // fix audio sync in ts
