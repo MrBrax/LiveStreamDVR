@@ -62,7 +62,7 @@ class TwitchVODTest extends TestCase
         $vod_path = $vodclass->directory . DIRECTORY_SEPARATOR . $vodclass->basename . '_vod.mp4';
 
         // if (file_exists($vod_path)) throw new Exception('VOD file already exists: ' . $vod_path);
-        if (file_exists($vod_path)) unlink( $vod_path );
+        if (file_exists($vod_path)) unlink($vod_path);
 
         $vodclass->downloadVod();
 
@@ -78,7 +78,7 @@ class TwitchVODTest extends TestCase
         $chat_path = $vodclass->directory . DIRECTORY_SEPARATOR . $vodclass->basename . '.chat';
 
         // if (file_exists($chat_path)) throw new Exception('Chat file already exists: ' . $chat_path);
-        if (file_exists($chat_path)) unlink( $chat_path );
+        if (file_exists($chat_path)) unlink($chat_path);
 
         $vodclass->downloadChat();
 

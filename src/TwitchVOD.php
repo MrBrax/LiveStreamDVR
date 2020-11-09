@@ -509,6 +509,10 @@ class TwitchVOD
 		TwitchHelper::appendLog("tcd_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
 		TwitchHelper::appendLog("tcd_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
 
+		if (mb_strpos($process->getErrorOutput(), "404 Client Error:") !== false) {
+			throw new \Exception("VOD on Twitch not found, is it deleted?");
+		}
+
 		if (file_exists($tcd_filename)) {
 
 			rename($tcd_filename, $this->path_chat);
@@ -1096,9 +1100,10 @@ class TwitchVOD
 		$this->segments = $segments;
 	}
 
-	public function parseChatDump(){
+	public function parseChatDump()
+	{
 
-		if(!file_exists($this->path_chatdump . '.txt')){
+		if (!file_exists($this->path_chatdump . '.txt')) {
 			return false;
 		}
 
@@ -1109,14 +1114,14 @@ class TwitchVOD
 		$handle = fopen($this->path_chatdump . '.txt', 'r');
 		$lines = 0;
 		$found_lines = [];
-		if($handle){
+		if ($handle) {
 			$line = fgets($handle);
-			while( $line !== false ){
+			while ($line !== false) {
 				$lines++;
-				foreach($reg as $r){
-					if(preg_match($r, $line)){
+				foreach ($reg as $r) {
+					if (preg_match($r, $line)) {
 						preg_match($line_regex, trim($line), $matches);
-						if($matches) $found_lines[] = ['date' => $matches[1], 'username' => $matches[2], 'text' => $matches[3]];
+						if ($matches) $found_lines[] = ['date' => $matches[1], 'username' => $matches[2], 'text' => $matches[3]];
 						break;
 					}
 				}
@@ -1125,7 +1130,6 @@ class TwitchVOD
 		}
 
 		return $found_lines;
-
 	}
 
 	public function getWebhookDuration()
@@ -1304,6 +1308,10 @@ class TwitchVOD
 
 			TwitchHelper::appendLog("streamlink_vod_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
 			TwitchHelper::appendLog("streamlink_vod_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+
+			if (mb_strpos($process->getOutput(), "error: Unable to find video:") !== false) {
+				throw new \Exception("VOD on Twitch not found, is it deleted?");
+			}
 		}
 
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Starting remux of {$this->basename}");

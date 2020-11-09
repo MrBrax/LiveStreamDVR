@@ -217,39 +217,6 @@ class ApiController
 
         $username = $args['username'];
 
-        /*
-        $data = TwitchConfig::getStreamer($username);
-
-        $data['channel_data'] = TwitchHelper::getChannelData( $data['username'] );
-
-        $data['vods_raw'] = glob(TwitchHelper::vodFolder() . DIRECTORY_SEPARATOR . $data['username'] . "_*.json");
-
-        $data['vods_list'] = [];
-
-        $data['vods_size'] = 0;
-
-        foreach ($data['vods_raw'] as $k => $v) {
-
-            $vodclass = new TwitchVOD();
-            if(!$vodclass->load($v)) continue;
-
-            if ($vodclass->is_recording){
-                $data['is_live'] = true;
-                $data['current_vod'] = $vodclass;
-                $data['current_game'] = $vodclass->getCurrentGame();
-            }
-
-            if ($vodclass->segments) {
-                foreach ($vodclass->segments_raw as $s) {
-                    $data['vods_size'] += filesize(TwitchHelper::vodFolder() . DIRECTORY_SEPARATOR . $s );
-                }
-            }
-
-            $data['vods_list'][] = $vodclass;
-
-        }
-        */
-
         $data = new TwitchChannel();
         $data->load($username);
 
