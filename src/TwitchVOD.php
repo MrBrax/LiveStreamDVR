@@ -540,6 +540,13 @@ class TwitchVOD
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Chat couldn't be downloaded for {$this->basename}");
 		}
 
+		TwitchHelper::webhook([
+			'action' => 'chat_download',
+			'success' => $successful,
+			'path' => $this->path_chat,
+			'vod' => $this
+		]);
+
 		return $successful;
 		// return [$chat_filename, $capture_output, $cmd];
 
@@ -1388,6 +1395,13 @@ class TwitchVOD
 		} else {
 			return false;
 		}
+
+		TwitchHelper::webhook([
+			'action' => 'vod_download',
+			'success' => $successful,
+			'path' => $converted_filename,
+			'vod' => $this
+		]);
 
 		return $converted_filename;
 	}

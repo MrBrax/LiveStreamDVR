@@ -22,6 +22,7 @@ class TwitchConfig
 
 		['key' => 'basepath', 				'text' => 'Base path', 										'type' => 'string', 'help' => 'No trailing slash', 'help' => 'For reverse proxy etc'],
 		['key' => 'app_url', 				'text' => 'App URL', 										'type' => 'string', 'required' => true, 'help' => 'No trailing slash'],
+		['key' => 'webhook_url', 			'text' => 'Webhook URL', 									'type' => 'string', 'help' => 'For external scripting'],
 		['key' => 'password', 				'text' => 'Password', 										'type' => 'string', 'help' => 'Keep blank for none. Username is admin'],
 		['key' => 'storage_per_streamer', 	'text' => 'Gigabytes of storage per streamer', 				'type' => 'number', 'default' => 100],
 		['key' => 'hls_timeout', 			'text' => 'HLS Timeout in seconds (ads)', 					'type' => 'number', 'default' => 200],
@@ -76,7 +77,7 @@ class TwitchConfig
 	 */
 	public static function settingExists(string $key): bool
 	{
-		if(in_array($key, ['favourites', 'streamers'])) return true;
+		if (in_array($key, ['favourites', 'streamers'])) return true;
 
 		foreach (self::$settingsFields as $setting) {
 			if ($setting['key'] == $key) return true;
@@ -149,6 +150,10 @@ class TwitchConfig
 		copy(self::$configPath, self::$configPath . '.bak');
 
 		file_put_contents(self::$configPath, json_encode(self::$config, JSON_PRETTY_PRINT));
+
+		TwitchHelper::webhook([
+			'action' => 'config_save'
+		]);
 
 		TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Saved config from {$source}");
 	}

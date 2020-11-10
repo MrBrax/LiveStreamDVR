@@ -60,58 +60,6 @@ class TwitchAutomator
 	}
 
 	/**
-	 * Either send email or store in logs directory
-	 * TODO: remove this, obsolete
-	 *
-	 * @param string $body
-	 * @param string $title
-	 * @param int $notification_type
-	 * @return void
-	 */
-	/*
-	public function notify($body, $title, $notification_type = self::NOTIFY_GENERIC)
-	{
-
-		$headers = "From: " . TwitchConfig::cfg('notify_from') . "\r\n";
-		$headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-
-		$body = '<h1>' . $title . '</h1>' . $body;
-
-		if ($this->data_cache) {
-			$body .= '<pre>' . print_r($this->data_cache, true) . '</pre>';
-		}
-
-		if (sizeof($this->errors) > 0) {
-
-			$body .= '<h3>Errors</h3>';
-
-			$body .= '<ul class="errors">';
-			foreach ($this->errors as $k => $v) {
-				$body .= '<li>' . $v . '</li>';
-			}
-			$body .= '</ul>';
-		}
-
-		if (sizeof($this->info) > 0) {
-
-			$body .= '<h3>Info</h3>';
-
-			$body .= '<ul class="info">';
-			foreach ($this->info as $k => $v) {
-				$body .= '<li>' . $v . '</li>';
-			}
-			$body .= '</ul>';
-		}
-
-		if (TwitchConfig::cfg('notify_to')) {
-			mail(TwitchConfig::cfg('notify_to'), TwitchConfig::cfg('app_name') . ' - ' . $title, $body, $headers);
-		} else {
-			file_put_contents(TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . "html" . DIRECTORY_SEPARATOR . date("Y-m-d.H_i_s") . ".html", $body);
-		}
-	}
-	*/
-
-	/**
 	 * Remove old VODs by streamer name, this has to be properly rewritten
 	 */
 	public function cleanup($streamer_name, $source_basename = null)
@@ -272,6 +220,12 @@ class TwitchAutomator
 
 		// $this->notify('', '[' . $data_username . '] [game update: ' . $game_name . ']', self::NOTIFY_GAMECHANGE);
 
+		TwitchHelper::webhook([
+			'action' => 'chapter_update',
+			'chapter' => $chapter,
+			'vod' => $this->vod
+		]);
+
 		TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Game updated on {$data_username} to {$game_name}");
 	}
 
@@ -355,6 +309,11 @@ class TwitchAutomator
 
 		$this->vod->is_capturing = true;
 		$this->vod->saveJSON('is_capturing set');
+
+		TwitchHelper::webhook([
+			'action' => 'start_capture',
+			'vod' => $this->vod
+		]);
 
 		// in progress
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Update game for {$basename}", ['download' => $data_username]);
@@ -482,6 +441,12 @@ class TwitchAutomator
 		file_put_contents(TwitchConfig::$historyPath, json_encode($history));
 
 		TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "All done for {$basename}", ['download' => $data_username]);
+
+		TwitchHelper::webhook([
+			'action' => 'finish_capture',
+			'vod' => $vodclass
+		]);
+
 	}
 
 	/**
@@ -560,9 +525,12 @@ class TwitchAutomator
 		$cmd[] = '--retry-max';
 		$cmd[] = '5'; //  stop retrying the fetch after COUNT retry attempt(s).
 
-		if (TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false)) {
+		if (TwitchConfig::cfg('debug', false)) {
 			$cmd[] = '--loglevel';
 			$cmd[] = 'debug';
+		} elseif (TwitchConfig::cfg('app_verbose', false)) {
+			$cmd[] = '--loglevel';
+			$cmd[] = 'info';
 		}
 
 		$cmd[] = '-o';
@@ -897,6 +865,7 @@ class TwitchAutomator
 
 			// $cmd[] = '-fflags';
 			// $cmd[] = '+genpts';
+			// $cmd[] = '+igndts';
 
 		}
 
@@ -928,6 +897,10 @@ class TwitchAutomator
 
 		TwitchHelper::appendLog("ffmpeg_convert_" . $basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
 		TwitchHelper::appendLog("ffmpeg_convert_" . $basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+
+		if (strpos($process->getErrorOutput(), "Packet corrupt") !== false || strpos($process->getErrorOutput(), "Non-monotonous DTS in output stream") !== false) {
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Found corrupt packets when converting " . basename($capture_filename) . " to " . basename($converted_filename), ['download-convert' => $data_username]);
+		}
 
 		if (file_exists($converted_filename)) {
 			TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Finished conversion of " . basename($capture_filename) . " to " . basename($converted_filename), ['download-convert' => $data_username]);
