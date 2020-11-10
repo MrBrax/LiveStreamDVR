@@ -85,6 +85,11 @@ class VodController
             $cmd[] = '-t';
             $cmd[] = $second_end - $second_start; // length
 
+            if (TwitchConfig::cfg('fix_corruption')) {
+                $cmd[] = '-map 0';
+                $cmd[] = '-ignore_unknown/-copy_unknown';
+            }
+
             if (TwitchConfig::cfg('encode_audio')) {
                 $cmd[] = '-c:v';
                 $cmd[] = 'copy'; // use same video codec

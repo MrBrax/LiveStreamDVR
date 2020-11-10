@@ -857,6 +857,12 @@ class TwitchAutomator
 		$cmd[] = '-i';
 		$cmd[] = $capture_filename; // input filename
 
+		// https://github.com/stoyanovgeorge/ffmpeg/wiki/How-to-Find-and-Fix-Corruptions-in-FFMPEG
+		if (TwitchConfig::cfg('fix_corruption')) {
+			$cmd[] = '-map 0';
+			$cmd[] = '-ignore_unknown/-copy_unknown';
+		}
+
 		if (TwitchConfig::cfg('encode_audio')) {
 			$cmd[] = '-c:v';
 			$cmd[] = 'copy'; // use same video codec

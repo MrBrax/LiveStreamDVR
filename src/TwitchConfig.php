@@ -48,6 +48,7 @@ class TwitchConfig
 		['key' => 'chat_dump', 				'text' => 'Dump chat during capture', 						'type' => 'boolean', 'default' => false, 'help' => 'Dump chat from IRC with an external python script'],
 		['key' => 'ts_sync', 				'text' => 'Try to force sync remuxing', 					'type' => 'boolean', 'default' => false],
 		['key' => 'encode_audio', 			'text' => 'Encode audio stream', 							'type' => 'boolean', 'default' => false, 'help' => 'This may help with audio syncing.'],
+		['key' => 'fix_corruption', 		'text' => 'Try to fix corruption in remuxing',				'type' => 'boolean', 'default' => false, 'help' => 'This may help with audio syncing.'],
 	];
 
 	public static $timezone;
