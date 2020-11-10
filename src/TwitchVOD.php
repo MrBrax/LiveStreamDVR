@@ -513,6 +513,10 @@ class TwitchVOD
 			throw new \Exception("VOD on Twitch not found, is it deleted?");
 		}
 
+		if (mb_strpos($process->getErrorOutput(), "401 Client Error: Unauthorized") !== false) {
+			throw new \Exception("Unauthorized, probably need a new oauth token?");
+		}
+
 		if (file_exists($tcd_filename)) {
 
 			rename($tcd_filename, $this->path_chat);
