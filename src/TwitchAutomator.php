@@ -141,6 +141,18 @@ class TwitchAutomator
 
 			if (file_exists($folder_base . DIRECTORY_SEPARATOR . $basename . '.json')) {
 
+				$vodclass = new TwitchVOD();
+				if ($vodclass->load($folder_base . DIRECTORY_SEPARATOR . $basename . '.json')) {
+
+					if ($vodclass->is_capturing) {
+						$this->updateGame($data);
+					} else {
+						TwitchHelper::log(TwitchHelper::LOG_ERROR, "VOD exists but isn't capturing anymore on " . $basename);
+					}
+				} else {
+					TwitchHelper::log(TwitchHelper::LOG_ERROR, "Could not load VOD in handle for " . $basename);
+				}
+				/*
 				if (!file_exists($folder_base . DIRECTORY_SEPARATOR . $basename . '.ts')) {
 
 					// $this->notify($basename, 'VOD JSON EXISTS BUT NOT VIDEO', self::NOTIFY_ERROR);
@@ -151,6 +163,7 @@ class TwitchAutomator
 
 					$this->updateGame($data);
 				}
+				*/
 			} else {
 
 				$this->download($data);
@@ -326,7 +339,7 @@ class TwitchAutomator
 		$capture_filename = $this->capture($data);
 
 		// error handling if nothing got downloaded
-		if (!file_exists($capture_filename)) {
+		if (!$capture_filename || (isset($capture_filename) && !file_exists($capture_filename))) {
 
 			TwitchHelper::log(TwitchHelper::LOG_WARNING, "Panic handler for {$basename}, no captured file!");
 
@@ -337,13 +350,8 @@ class TwitchAutomator
 				rename($folder_base . DIRECTORY_SEPARATOR . $basename . '.json', $folder_base . DIRECTORY_SEPARATOR . $basename . '.json.broken');
 				throw new \Exception('Too many tries');
 				return;
+				// @TODO: fatal error
 			}
-
-			// $this->errors[] = 'Error when downloading, retrying';
-
-			// $this->info[] = 'Capture name: ' . $capture_filename;
-
-			// $this->notify($basename, 'MISSING DOWNLOAD, TRYING AGAIN (#' . $tries . ')', self::NOTIFY_ERROR);
 
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Error when downloading, retrying {$basename}", ['download' => $data_username]);
 
@@ -381,13 +389,10 @@ class TwitchAutomator
 
 		// remove ts if both files exist
 		if (file_exists($capture_filename) && file_exists($converted_filename)) {
-
 			unlink($capture_filename);
 		} else {
-
-			// $this->errors[] = 'Video files are missing';
-			// $this->notify($basename, 'MISSING FILES', self::NOTIFY_ERROR);
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Missing conversion files for {$basename}");
+			// return @TODO: fatal error
 		}
 
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Add segments to {$basename}", ['download' => $data_username]);
@@ -639,47 +644,55 @@ class TwitchAutomator
 		}
 
 		// wait loop until it's done
-		/*
-		$process->wait(function($type, $buffer) use($basename, $int, $data_username, $chat_process) {
-			
+		$process->wait(function ($type, $buffer) use ($basename, $int, $data_username, $chat_process) {
+
 			if (Process::ERR === $type) {
 				// echo 'ERR > '.$buffer;
 			} else {
 				// echo 'OUT > '.$buffer;
 			}
 
-			if( TwitchConfig::cfg('dump_chat') && isset($chat_process) ){
-				if( $chat_process->isRunning() ){
+			if (TwitchConfig::cfg('dump_chat') && isset($chat_process)) {
+				if ($chat_process->isRunning()) {
 					$chat_process->checkTimeout();
 					// if( !$chat_process->getIncrementalOutput() ){
 					// 	TwitchHelper::log( TwitchHelper::LOG_DEBUG, "No chat output in chat dump", ['download-capture' => $data_username] );
 					// }
-				}else{
-					TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Chat dump enabled but not running", ['download-capture' => $data_username] );
+				} else {
+					TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Chat dump enabled but not running", ['download-capture' => $data_username]);
 				}
 			}
-			
+
 			// get stream resolution
 			preg_match("/stream:\s([0-9_a-z]+)\s/", $buffer, $matches);
-			if($matches){
+			if ($matches) {
 				$this->stream_resolution = $matches[1];
-				TwitchHelper::log( TwitchHelper::LOG_INFO, "Stream resolution for " . $basename . ": " . $this->stream_resolution, ['download-capture' => $data_username] );
+				TwitchHelper::log(TwitchHelper::LOG_INFO, "Stream resolution for " . $basename . ": " . $this->stream_resolution, ['download-capture' => $data_username]);
 			}
 
 			// stream stop
-			if( strpos($buffer, "404 Client Error") !== false ){
-				TwitchHelper::log( TwitchHelper::LOG_WARNING, "Chunk removed for " . $basename . "!", ['download-capture' => $data_username] );
+			if (strpos($buffer, "404 Client Error") !== false) {
+				TwitchHelper::log(TwitchHelper::LOG_WARNING, "Chunk removed for " . $basename . "!", ['download-capture' => $data_username]);
+			}
+
+			// ad removal
+			if (strpos($buffer, "Filtering out segments and pausing stream output") !== false) {
+				TwitchHelper::log(TwitchHelper::LOG_INFO, "Pausing capture for " . $basename . " due to ad segment!", ['download-capture' => $data_username]);
+			}
+
+			if (strpos($buffer, "Resuming stream output") !== false) {
+				TwitchHelper::log(TwitchHelper::LOG_INFO, "Resuming capture for " . $basename . " due to ad segment!", ['download-capture' => $data_username]);
 			}
 
 			// log output
-			if( Process::ERR === $type ){
-				TwitchHelper::appendLog("streamlink_" . $basename . "_stderr." . $int, $buffer );
-			}else{
-				TwitchHelper::appendLog("streamlink_" . $basename . "_stdout." . $int, $buffer );
+			if (Process::ERR === $type) {
+				TwitchHelper::appendLog("streamlink_" . $basename . "_stderr." . $int, $buffer);
+			} else {
+				TwitchHelper::appendLog("streamlink_" . $basename . "_stdout." . $int, $buffer);
 			}
-			
 		});
-		*/
+
+		/*
 		while (true) {
 
 			// check if capture is running, and quit if it isn't
@@ -721,6 +734,8 @@ class TwitchAutomator
 
 			sleep(10);
 		}
+		*/
+
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Finished capture with filename " . basename($capture_filename), ['download-capture' => $data_username]);
 
 		if (TwitchConfig::cfg('chat_dump')) {
@@ -804,6 +819,11 @@ class TwitchAutomator
 		// delete pid file
 		if (file_exists($pidfile)) unlink($pidfile);
 
+		if (!file_exists($capture_filename)) {
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "File " . basename($capture_filename) . " never got created.", ['download-capture' => $data_username]);
+			return false;
+		}
+
 		return $capture_filename;
 	}
 
@@ -844,7 +864,8 @@ class TwitchAutomator
 
 		// https://github.com/stoyanovgeorge/ffmpeg/wiki/How-to-Find-and-Fix-Corruptions-in-FFMPEG
 		if (TwitchConfig::cfg('fix_corruption')) {
-			$cmd[] = '-map 0';
+			$cmd[] = '-map';
+			$cmd[] = '0';
 			$cmd[] = '-ignore_unknown';
 			// $cmd[] = '-copy_unknown';
 		}
@@ -924,6 +945,7 @@ class TwitchAutomator
 			TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Finished conversion of " . basename($capture_filename) . " to " . basename($converted_filename), ['download-convert' => $data_username]);
 		} else {
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Failed conversion of " . basename($capture_filename) . " to " . basename($converted_filename), ['download-convert' => $data_username]);
+			return false;
 		}
 
 		return $converted_filename;

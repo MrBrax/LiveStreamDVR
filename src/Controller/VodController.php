@@ -86,7 +86,8 @@ class VodController
             $cmd[] = $second_end - $second_start; // length
 
             if (TwitchConfig::cfg('fix_corruption')) {
-                $cmd[] = '-map 0';
+                $cmd[] = '-map';
+			    $cmd[] = '0';
                 $cmd[] = '-ignore_unknown';
                 // $cmd[] = '-copy_unknown';
             }
