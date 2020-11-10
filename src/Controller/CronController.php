@@ -43,6 +43,12 @@ class CronController
     {
         TwitchHelper::log(TwitchHelper::LOG_INFO, "Notification: " . $string);
         // this is where it would notify if i had a solution
+        
+        TwitchHelper::webhook([
+			'action' => 'notify',
+			'text' => $string
+        ]);
+        
     }
 
     private function generateStreamerList()

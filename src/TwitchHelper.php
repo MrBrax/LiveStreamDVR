@@ -23,17 +23,17 @@ class TwitchHelper
 
 	public static $guzzler;
 
-	const LOG_ERROR = "ERROR";
-	const LOG_WARNING = "WARNING";
-	const LOG_INFO = "INFO";
-	const LOG_DEBUG = "DEBUG";
-	const LOG_FATAL = "FATAL";
-	const LOG_SUCCESS = "SUCCESS";
+	public const LOG_ERROR = "ERROR";
+	public const LOG_WARNING = "WARNING";
+	public const LOG_INFO = "INFO";
+	public const LOG_DEBUG = "DEBUG";
+	public const LOG_FATAL = "FATAL";
+	public const LOG_SUCCESS = "SUCCESS";
 
-	const LOG_STDOUT = "stdout";
-	const LOG_STDERR = "stderr";
+	public const LOG_STDOUT = "stdout";
+	public const LOG_STDERR = "stderr";
 
-	const DATE_FORMAT = "Y-m-d\TH:i:s\Z";
+	public const DATE_FORMAT = "Y-m-d\TH:i:s\Z";
 
 	public static $config_folder 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config";
 	public static $public_folder 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public";
@@ -521,41 +521,7 @@ class TwitchHelper
 		return $total_seconds;
 	}
 
-	/** @deprecated 3.2.0 */
-	public static function checkForDeletedVods()
-	{
-
-		$deleted = false;
-
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Check for deleted vods");
-
-		$streamers = TwitchConfig::getStreamers();
-
-		foreach ($streamers as $streamer) {
-
-			$vods = glob(TwitchHelper::vodFolder($streamer['username']) . DIRECTORY_SEPARATOR . $streamer['username'] . "_*.json");
-
-			foreach ($vods as $k => $v) {
-
-				$vodclass = new TwitchVOD();
-				$vodclass->load($v);
-
-				if (!$vodclass->is_recording) {
-
-					$isvalid = $vodclass->checkValidVod();
-
-					if (!$isvalid) {
-						TwitchHelper::log(TwitchHelper::LOG_WARNING, "VOD deleted: {$vodclass->basename}");
-						$deleted = true;
-					}
-				}
-			}
-		}
-
-		return $deleted;
-	}
-
-	public static function getNiceDuration(int $durationInSeconds)
+	public static function getNiceDuration(int $durationInSeconds): string
 	{
 
 		$duration = '';
@@ -581,7 +547,13 @@ class TwitchHelper
 		return trim($duration);
 	}
 
-	public static function getTwitchDuration(int $seconds)
+	/**
+	 * Returns something like "1h1m1s"
+	 *
+	 * @param integer $seconds
+	 * @return string
+	 */
+	public static function getTwitchDuration(int $seconds): string
 	{
 		return trim(str_replace(" ", "", self::getNiceDuration($seconds)));
 	}
@@ -694,17 +666,6 @@ class TwitchHelper
 
 	private static function sub_handler(string $streamer_name, $mode = 'subscribe')
 	{
-
-		/**
-		 * TODO: Fix this
-		 */
-		/*
-		 if( !TwitchConfig::getStreamers()[$streamer_name] ) {
-			$this->notify('Streamer not found: ' . $streamer_name, '[' . $streamer_name . '] [subscribing error]', self::NOTIFY_ERROR);
-			throw new Exception('Streamer not found: ' . $streamer_name);
-			return false;
-		}
-		*/
 
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Calling {$mode} for {$streamer_name}");
 
@@ -878,7 +839,6 @@ class TwitchHelper
 		} catch (\Throwable $th) {
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Webhook POST error: " . $th->getMessage());
 		}
-		
 	}
 
 	public static function vodFolder(string $username = null)

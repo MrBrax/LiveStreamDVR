@@ -87,7 +87,8 @@ class VodController
 
             if (TwitchConfig::cfg('fix_corruption')) {
                 $cmd[] = '-map 0';
-                $cmd[] = '-ignore_unknown/-copy_unknown';
+                $cmd[] = '-ignore_unknown';
+                // $cmd[] = '-copy_unknown';
             }
 
             if (TwitchConfig::cfg('encode_audio')) {

@@ -136,7 +136,7 @@ class TwitchVOD
 			$this->dt_started_at = new \DateTime($this->json['dt_started_at']['date']);
 		} elseif (isset($this->json['started_at']) && gettype($this->json['started_at']) == 'string') {
 			/** @deprecated 3.4.0 */
-			$this->dt_started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['started_at']);
+			$this->dt_started_at = \DateTime::createFromFormat(TwitchHelper::DATE_FORMAT, $this->json['started_at']);
 		} elseif (isset($this->json['started_at']) && gettype($this->json['started_at']) == 'array') {
 			/** @deprecated 3.4.0 */
 			$this->dt_started_at = new \DateTime($this->json['started_at']['date']);
@@ -147,7 +147,7 @@ class TwitchVOD
 			$this->dt_ended_at = new \DateTime($this->json['dt_ended_at']['date']);
 		} elseif (isset($this->json['ended_at']) && gettype($this->json['ended_at']) == 'string') {
 			/** @deprecated 3.4.0 */
-			$this->dt_ended_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $this->json['ended_at']);
+			$this->dt_ended_at = \DateTime::createFromFormat(TwitchHelper::DATE_FORMAT, $this->json['ended_at']);
 		} elseif (isset($this->json['ended_at']) && gettype($this->json['ended_at']) == 'array') {
 			/** @deprecated 3.4.0 */
 			$this->dt_ended_at = new \DateTime($this->json['ended_at']['date']);
@@ -309,7 +309,7 @@ class TwitchVOD
 			return null;
 		}
 
-		if ($this->is_capturing || $this->is_recording) {
+		if ($this->is_capturing) {
 			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Can't request duration because {$this->basename} is still recording!");
 			return null;
 		}
@@ -922,8 +922,8 @@ class TwitchVOD
 		$generated['streamer_name'] 	= $this->streamer_name;
 		$generated['streamer_id'] 		= $this->streamer_id;
 
-		$generated['started_at'] 		= $this->started_at;
-		$generated['ended_at'] 			= $this->ended_at;
+		// $generated['started_at'] 		= $this->started_at;
+		// $generated['ended_at'] 			= $this->ended_at;
 
 		$generated['chapters'] 			= $this->chapters;
 		$generated['segments_raw'] 		= $this->segments_raw;
@@ -1546,7 +1546,6 @@ class TwitchVOD
 				return ["fixable" => false, "text" => "reached conversion step, ffmpeg exited but conversion didn't complete, both .ts and .mp4 still exist."];
 			} elseif (file_exists($base . '.mp4') && !file_exists($base . '.ts')) {
 				if ($fix) {
-					$this->is_recording = false;
 					$this->is_capturing = false;
 					$this->is_converting = false;
 					$this->is_converted = true;

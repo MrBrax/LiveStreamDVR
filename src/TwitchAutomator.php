@@ -56,7 +56,7 @@ class TwitchAutomator
 	public function getDateTime()
 	{
 		date_default_timezone_set('UTC');
-		return date("Y-m-d\TH:i:s\Z");
+		return date(TwitchHelper::DATE_FORMAT);
 	}
 
 	/**
@@ -86,7 +86,7 @@ class TwitchAutomator
 		$gb = $total_size / 1024 / 1024 / 1024;
 
 		// $this->info[] = 'Total filesize for ' . $streamer_name . ': ' . $gb;
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Total filesize for {$streamer_name}: " . round($gb, 2));
+		TwitchHelper::log(TwitchHelper::LOG_INFO, "Total filesize for {$streamer_name}: " . TwitchHelper::formatBytes($total_size));
 
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Amount for {$streamer_name}: " . sizeof($vod_list) . "/" . (TwitchConfig::cfg("vods_to_keep") + 1));
 
@@ -201,7 +201,7 @@ class TwitchAutomator
 
 		// full datetime-stamp of stream start
 		// $this->json['started_at'] = $data_started;
-		$this->vod->dt_started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $data_started);
+		$this->vod->dt_started_at = \DateTime::createFromFormat(TwitchHelper::DATE_FORMAT, $data_started);
 
 		// fetch game name from either cache or twitch
 		$game_name = TwitchHelper::getGameName((int)$data_game_id);
@@ -275,7 +275,7 @@ class TwitchAutomator
 		$this->vod->json['meta'] = $data;
 		$this->vod->streamer_name = $data_username;
 		$this->vod->streamer_id = TwitchHelper::getChannelId($data_username);
-		$this->vod->dt_started_at = \DateTime::createFromFormat("Y-m-d\TH:i:s\Z", $data_started);
+		$this->vod->dt_started_at = \DateTime::createFromFormat(TwitchHelper::DATE_FORMAT, $data_started);
 
 		if ($this->force_record) $this->vod->force_record = true;
 
@@ -446,7 +446,6 @@ class TwitchAutomator
 			'action' => 'finish_capture',
 			'vod' => $vodclass
 		]);
-
 	}
 
 	/**
@@ -828,7 +827,8 @@ class TwitchAutomator
 		// https://github.com/stoyanovgeorge/ffmpeg/wiki/How-to-Find-and-Fix-Corruptions-in-FFMPEG
 		if (TwitchConfig::cfg('fix_corruption')) {
 			$cmd[] = '-map 0';
-			$cmd[] = '-ignore_unknown/-copy_unknown';
+			$cmd[] = '-ignore_unknown';
+			// $cmd[] = '-copy_unknown';
 		}
 
 		if (TwitchConfig::cfg('encode_audio')) {
