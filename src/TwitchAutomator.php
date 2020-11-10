@@ -93,7 +93,7 @@ class TwitchAutomator
 		// don't include the current vod
 		if (sizeof($vod_list) > (TwitchConfig::cfg('vods_to_keep') + 1) || $gb > TwitchConfig::cfg('storage_per_streamer')) {
 
-			TwitchHelper::log(TwitchHelper::LOG_INFO, 'Total filesize for {$streamer_name} exceeds either vod amount or storage per streamer');
+			TwitchHelper::log(TwitchHelper::LOG_INFO, "Total filesize for {$streamer_name} exceeds either vod amount or storage per streamer");
 
 			// don't delete the newest vod, hopefully
 			if ($source_basename != null && $vod_list[0]->basename == $source_basename) {
@@ -498,32 +498,47 @@ class TwitchAutomator
 			$cmd[] = TwitchHelper::path_streamlink();
 		}
 
-		$cmd[] = '--hls-live-restart'; // start recording from start of stream, though twitch doesn't support this
+		// start recording from start of stream, though twitch doesn't support this
+		$cmd[] = '--hls-live-restart';
 
+		// How many segments from the end to start live HLS streams on.
 		$cmd[] = '--hls-live-edge';
-		$cmd[] = '99999'; // How many segments from the end to start live HLS streams on.
+		$cmd[] = '99999';
 
+		// timeout due to ads
 		$cmd[] = '--hls-timeout';
-		$cmd[] = TwitchConfig::cfg('hls_timeout', 120); // timeout due to ads
+		$cmd[] = TwitchConfig::cfg('hls_timeout', 120);
 
+		// timeout due to ads
+		$cmd[] = '--hls-segment-timeout';
+		$cmd[] = TwitchConfig::cfg('hls_timeout', 120);
+
+		// The size of the thread pool used to download HLS segments.
 		$cmd[] = '--hls-segment-threads';
-		$cmd[] = '5'; // The size of the thread pool used to download HLS segments.
+		$cmd[] = '5';
 
-		$cmd[] = '--twitch-disable-hosting'; // disable channel hosting
+		// disable channel hosting
+		$cmd[] = '--twitch-disable-hosting';
 
+		// enable low latency mode, probably not a good idea without testing
 		if (TwitchConfig::cfg('low_latency', false)) {
-			$cmd[] = '--twitch-low-latency'; // enable low latency mode, probably not a good idea without testing
+			$cmd[] = '--twitch-low-latency';
 		}
+
+		// Skip embedded advertisement segments at the beginning or during a stream
 		if (TwitchConfig::cfg('disable_ads', false)) {
-			$cmd[] = '--twitch-disable-ads'; // Skip embedded advertisement segments at the beginning or during a stream
+			$cmd[] = '--twitch-disable-ads';
 		}
 
+		// Retry fetching the list of available streams until streams are found 
 		$cmd[] = '--retry-streams';
-		$cmd[] = '10'; // Retry fetching the list of available streams until streams are found 
+		$cmd[] = '10';
 
+		// stop retrying the fetch after COUNT retry attempt(s).
 		$cmd[] = '--retry-max';
-		$cmd[] = '5'; //  stop retrying the fetch after COUNT retry attempt(s).
+		$cmd[] = '5';
 
+		// logging level
 		if (TwitchConfig::cfg('debug', false)) {
 			$cmd[] = '--loglevel';
 			$cmd[] = 'debug';
@@ -532,12 +547,15 @@ class TwitchAutomator
 			$cmd[] = 'info';
 		}
 
+		// output file
 		$cmd[] = '-o';
-		$cmd[] = $capture_filename; // output file
+		$cmd[] = $capture_filename;
 
+		// twitch url
 		$cmd[] = '--url';
-		$cmd[] = $stream_url; // twitch url
+		$cmd[] = $stream_url;
 
+		// twitch quality
 		$cmd[] = '--default-stream';
 		$cmd[] = implode(",", TwitchConfig::getStreamer($data_username)['quality']); // quality
 

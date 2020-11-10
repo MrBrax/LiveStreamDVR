@@ -144,13 +144,13 @@ class ApiController
         $pid = TwitchHelper::getPidfileStatus($args['job']);
         if ($pid) {
             $output = TwitchHelper::exec(["kill", $pid]);
-            $response->getBody()->write("Killed process.<br><pre>" . $output . "</pre>");
+            // $response->getBody()->write("Killed process.<br><pre>" . $output . "</pre>");
             $payload = json_encode([
                 'data' => $output,
                 'status' => 'OK'
             ]);
         } else {
-            $response->getBody()->write("Found no process running for " . $args['job']);
+            // $response->getBody()->write("Found no process running for " . $args['job']);
             $payload = json_encode([
                 'data' => null,
                 'status' => 'ERROR'

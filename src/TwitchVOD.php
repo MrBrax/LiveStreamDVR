@@ -232,8 +232,9 @@ class TwitchVOD
 
 		if (!$this->video_metadata && $this->is_finalized && count($this->segments_raw) > 0 && !$this->video_fail2 && TwitchHelper::path_mediainfo()) {
 			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "VOD {$this->basename} finalized but no metadata, trying to fix");
-			$this->getMediainfo();
-			$this->saveJSON('fix mediainfo');
+			if( $this->getMediainfo() ){
+				$this->saveJSON('fix mediainfo');
+			}
 		}
 
 		$this->path_chat 				= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
@@ -370,6 +371,11 @@ class TwitchVOD
 		}
 
 		$filename = $this->directory . DIRECTORY_SEPARATOR . basename($this->segments_raw[$segment_num]);
+
+		if(!file_exists($filename)){
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No file available for mediainfo of {$this->basename}");
+			return false;
+		}
 
 		$data = TwitchHelper::mediainfo($filename);
 		if ($data) {
