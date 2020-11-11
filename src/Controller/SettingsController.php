@@ -31,8 +31,7 @@ class SettingsController
     public function settings(Request $request, Response $response, array $args)
     {
 
-        $sub_callback = TwitchConfig::cfg('hook_callback');
-        $sub_callback = str_replace('/hook', '/sub', $sub_callback);
+        $sub_callback = TwitchConfig::cfg('app_url') . '/sub';
 
         $app_calc = "http" . ($_SERVER['SERVER_PORT'] == 443 ? 's' : '') . "://" . $_SERVER["HTTP_HOST"] . str_replace("/settings", "", $_SERVER["REQUEST_URI"]);
 

@@ -182,9 +182,9 @@ class ToolsController
 		$cmd[] = $source; // input filename
 
 		if (TwitchConfig::cfg('fix_corruption')) {
-			$cmd[] = '-map';
-			$cmd[] = '0';
-			$cmd[] = '-ignore_unknown';
+			// $cmd[] = '-map';
+			// $cmd[] = '0';
+			// $cmd[] = '-ignore_unknown';
 			// $cmd[] = '-copy_unknown';
 		}
 

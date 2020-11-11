@@ -62,6 +62,10 @@ class TwitchConfig
 	public static function cfg(string $var, $def = null)
 	{
 
+		if (!self::settingExists($var)) {
+			TwitchHelper::log(TwitchHelper::LOG_WARNING, "No such config variable '{$var}'.");
+		}
+
 		if (getenv('TCD_' . strtoupper($var))) return getenv('TCD_' . strtoupper($var)); // environment variable
 
 		if (!isset(self::$config[$var])) return $def; // if not defined

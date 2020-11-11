@@ -144,7 +144,9 @@ class TwitchAutomator
 				$vodclass = new TwitchVOD();
 				if ($vodclass->load($folder_base . DIRECTORY_SEPARATOR . $basename . '.json')) {
 
-					if ($vodclass->is_capturing) {
+					if ($vodclass->is_finalized) {
+						TwitchHelper::log(TwitchHelper::LOG_ERROR, "VOD is finalized, but wanted more info on " . $basename);
+					} elseif ($vodclass->is_capturing) {
 						$this->updateGame($data);
 					} else {
 						TwitchHelper::log(TwitchHelper::LOG_ERROR, "VOD exists but isn't capturing anymore on " . $basename);
@@ -393,7 +395,9 @@ class TwitchAutomator
 		} else {
 			TwitchHelper::log(TwitchHelper::LOG_FATAL, "Missing conversion files for {$basename}");
 			$this->vod->automator_fail = true;
+			$this->vod->is_converting = false;
 			$this->vod->saveJSON('automator fail');
+			return false;
 			// return @TODO: fatal error
 		}
 
@@ -407,8 +411,6 @@ class TwitchAutomator
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Cleanup old VODs for {$data_username}", ['download' => $data_username]);
 		$this->cleanup($data_username, $basename);
 
-		// $this->notify($basename, '[' . $data_username . '] [end]', self::NOTIFY_DOWNLOAD);
-
 		// finalize
 
 		// metadata stuff
@@ -420,14 +422,6 @@ class TwitchAutomator
 		$vodclass = new TwitchVOD();
 		$vodclass->load($folder_base . DIRECTORY_SEPARATOR . $basename . '.json');
 
-		// $vodclass->getDuration();
-		// $vodclass->saveVideoMetadata();
-		/*
-		$vodclass->getMediainfo();
-		$vodclass->saveLosslessCut();
-		$vodclass->matchTwitchVod();
-		$vodclass->is_finalized = true;
-		*/
 		$vodclass->finalize();
 		$vodclass->saveJSON('finalized');
 
@@ -444,7 +438,12 @@ class TwitchAutomator
 
 		// add to history, testing
 		$history = file_exists(TwitchConfig::$historyPath) ? json_decode(file_get_contents(TwitchConfig::$historyPath), true) : [];
-		$history[] = ['streamer_name' => $this->vod->streamer_name, 'started_at' => $this->vod->dt_started_at, 'ended_at' => $this->vod->dt_ended_at, 'title' => $data_title];
+		$history[] = [
+			'streamer_name' => $this->vod->streamer_name,
+			'started_at' => $this->vod->dt_started_at,
+			'ended_at' => $this->vod->dt_ended_at,
+			'title' => $data_title
+		];
 		file_put_contents(TwitchConfig::$historyPath, json_encode($history));
 
 		TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "All done for {$basename}", ['download' => $data_username]);
@@ -645,6 +644,10 @@ class TwitchAutomator
 			TwitchHelper::appendLog("chatdump_" . $basename . "_stderr." . $int, implode(" ", $chat_cmd));
 		}
 
+		// $time_start = time();
+		// $current_ad_start = null;
+		// $vod = $this->vod;
+
 		// wait loop until it's done
 		$process->wait(function ($type, $buffer) use ($basename, $int, $data_username, $chat_process) {
 
@@ -654,7 +657,7 @@ class TwitchAutomator
 				// echo 'OUT > '.$buffer;
 			}
 
-			if (TwitchConfig::cfg('dump_chat') && isset($chat_process)) {
+			if (TwitchConfig::cfg('chat_dump') && isset($chat_process)) {
 				if ($chat_process->isRunning()) {
 					$chat_process->checkTimeout();
 					// if( !$chat_process->getIncrementalOutput() ){
@@ -674,16 +677,25 @@ class TwitchAutomator
 
 			// stream stop
 			if (strpos($buffer, "404 Client Error") !== false) {
-				TwitchHelper::log(TwitchHelper::LOG_WARNING, "Chunk removed for " . $basename . "!", ['download-capture' => $data_username]);
+				TwitchHelper::log(TwitchHelper::LOG_WARNING, "Chunk 404'd for " . $basename . "!", ['download-capture' => $data_username]);
 			}
 
 			// ad removal
 			if (strpos($buffer, "Filtering out segments and pausing stream output") !== false) {
 				TwitchHelper::log(TwitchHelper::LOG_INFO, "Pausing capture for " . $basename . " due to ad segment!", ['download-capture' => $data_username]);
+				// $current_ad_start = time();
 			}
 
 			if (strpos($buffer, "Resuming stream output") !== false) {
 				TwitchHelper::log(TwitchHelper::LOG_INFO, "Resuming capture for " . $basename . " due to ad segment!", ['download-capture' => $data_username]);
+				/*
+				if( isset($current_ad_start) ){
+					$vod->addAdvertisement([
+						'start' => $current_ad_start,
+						'end' => $current_ad_start - time()
+					]);
+				}
+				*/
 			}
 
 			// log output
@@ -871,28 +883,47 @@ class TwitchAutomator
 
 		// https://github.com/stoyanovgeorge/ffmpeg/wiki/How-to-Find-and-Fix-Corruptions-in-FFMPEG
 		if (TwitchConfig::cfg('fix_corruption')) {
-			$cmd[] = '-map';
-			$cmd[] = '0';
-			$cmd[] = '-ignore_unknown';
+			
+			// @todo: these error out
+			// $cmd[] = '-map';
+			// $cmd[] = '0';
+			// $cmd[] = '-ignore_unknown';
 			// $cmd[] = '-copy_unknown';
+			
+			// @todo: test these
+			// $cmd[] = '-fflags';
+			// $cmd[] = '+genpts+igndts';
+
+			$cmd[] = '-use_wallclock_as_timestamps';
+			$cmd[] = '1';
+
+			// @todo: needs encoding
+			// $cmd[] = '-filter:a';
+			// $cmd[] = 'async=1';
+
 		}
+
+		// use same video codec
+		$cmd[] = '-c:v';
+		$cmd[] = 'copy';
 
 		if (TwitchConfig::cfg('encode_audio')) {
-			$cmd[] = '-c:v';
-			$cmd[] = 'copy'; // use same video codec
-
+			// re-encode audio
 			$cmd[] = '-c:a';
-			$cmd[] = 'aac'; // re-encode audio
+			$cmd[] = 'aac';
 
+			// use same audio bitrate
 			$cmd[] = '-b:a';
-			$cmd[] = '160k'; // use same audio bitrate
+			$cmd[] = '160k';
 		} else {
-			$cmd[] = '-codec';
-			$cmd[] = 'copy'; // use same codec
+			// use same audio codec
+			$cmd[] = '-c:a';
+			$cmd[] = 'copy';
 		}
 
+		// fix audio sync in ts
 		$cmd[] = '-bsf:a';
-		$cmd[] = 'aac_adtstoasc'; // fix audio sync in ts
+		$cmd[] = 'aac_adtstoasc'; 
 
 		if (TwitchConfig::cfg('ts_sync')) {
 
@@ -915,6 +946,7 @@ class TwitchAutomator
 
 		}
 
+		// logging level
 		if (TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false)) {
 			$cmd[] = '-loglevel';
 			$cmd[] = 'repeat+level+verbose';

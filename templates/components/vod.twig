@@ -178,6 +178,7 @@
 
         </div>
 
+        {# segment list #}
         {% if vodclass.is_finalized %}
         <div class="video-segments">
             <strong>Segments</strong>
@@ -289,12 +290,14 @@
 
         </div>
 
+        {# no chapters error #}
         {% if not vodclass.chapters %}
             <div class="video-error">
                 No chapter data!?
             </div>
         {% endif %}
 
+        {# troubleshoot error #}
         {% if vodclass.troubleshoot %}
             <div class="video-error">
                 {{ vodclass.troubleshoot.text }}

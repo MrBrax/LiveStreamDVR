@@ -31,6 +31,8 @@ class TwitchVOD
 	 */
 	public array $chapters = [];
 
+	public array $ads = [];
+
 	/** @deprecated 3.4.0 */
 	public $started_at = null;
 	/** @deprecated 3.4.0 */
@@ -218,6 +220,8 @@ class TwitchVOD
 		$this->video_fail2 			= isset($this->json['video_fail2']) ? $this->json['video_fail2'] : false;
 		$this->video_metadata		= isset($this->json['video_metadata']) ? $this->json['video_metadata'] : null;
 
+		$this->ads = isset($this->json['ads']) ? $this->json['ads'] : [];
+
 		if (isset($this->json['chapters']) && count($this->json['chapters']) > 0) {
 			$this->parseChapters($this->json['chapters']);
 		} else {
@@ -392,7 +396,7 @@ class TwitchVOD
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Trying to get mediainfo of {$this->basename} returned: " . $th->getMessage());
 			return false;
 		}
-		
+
 		if ($data) {
 			$this->video_metadata = $data;
 			return $this->video_metadata;
@@ -949,6 +953,7 @@ class TwitchVOD
 		$generated['chapters'] 			= $this->chapters;
 		$generated['segments_raw'] 		= $this->segments_raw;
 		$generated['segments'] 			= $this->segments;
+		$generated['ads'] 				= $this->ads;
 
 		$generated['is_capturing']		= $this->is_capturing;
 		$generated['is_converting']		= $this->is_converting;
@@ -995,6 +1000,12 @@ class TwitchVOD
 	{
 		TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Adding chapter to {$this->basename}");
 		$this->chapters[] = $data;
+	}
+
+	public function addAdvertisement($data)
+	{
+		TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Adding advertisement to {$this->basename}: " . basename($data));
+		$this->ads[] = $data;
 	}
 
 	/**
