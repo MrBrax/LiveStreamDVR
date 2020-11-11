@@ -388,10 +388,12 @@ class TwitchAutomator
 		sleep(10);
 
 		// remove ts if both files exist
-		if (file_exists($capture_filename) && file_exists($converted_filename)) {
+		if (file_exists($capture_filename) && $converted_filename && file_exists($converted_filename)) {
 			unlink($capture_filename);
 		} else {
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Missing conversion files for {$basename}");
+			TwitchHelper::log(TwitchHelper::LOG_FATAL, "Missing conversion files for {$basename}");
+			$this->vod->automator_fail = true;
+			$this->vod->saveJSON('automator fail');
 			// return @TODO: fatal error
 		}
 

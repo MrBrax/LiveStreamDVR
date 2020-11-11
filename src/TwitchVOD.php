@@ -87,6 +87,8 @@ class TwitchVOD
 	/** Manually started? */
 	public bool $force_record = false;
 
+	public bool $automator_fail = false;
+
 	public ?string $path_chat = null;
 	public ?string $path_downloaded_vod = null;
 	public ?string $path_losslesscut = null;
@@ -193,6 +195,7 @@ class TwitchVOD
 		$this->twitch_vod_muted 		= isset($this->json['twitch_vod_muted']) ? $this->json['twitch_vod_muted'] : null;
 
 		$this->force_record				= isset($this->json['force_record']) ? $this->json['force_record'] : false;
+		$this->automator_fail			= isset($this->json['automator_fail']) ? $this->json['automator_fail'] : false;
 
 		$this->stream_resolution		= isset($this->json['stream_resolution']) && gettype($this->json['stream_resolution']) == 'string' ? $this->json['stream_resolution'] : '';
 
@@ -232,7 +235,7 @@ class TwitchVOD
 
 		if (!$this->video_metadata && $this->is_finalized && count($this->segments_raw) > 0 && !$this->video_fail2 && TwitchHelper::path_mediainfo()) {
 			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "VOD {$this->basename} finalized but no metadata, trying to fix");
-			if( $this->getMediainfo() ){
+			if ($this->getMediainfo()) {
 				$this->saveJSON('fix mediainfo');
 			}
 		}
@@ -301,6 +304,12 @@ class TwitchVOD
 		}
 
 		if ($this->video_metadata) {
+
+			if (isset($this->video_metadata['general']['FileSize']) && $this->video_metadata['general']['FileSize'] == '0') {
+				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Invalid video metadata for {$this->basename}!");
+				return null;
+			}
+
 			if (isset($this->video_metadata['general']['Duration'])) {
 				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "No duration_seconds but metadata exists for {$this->basename}: " . $this->video_metadata['general']['Duration']);
 				$this->duration_seconds = (int)$this->video_metadata['general']['Duration'];
@@ -372,12 +381,18 @@ class TwitchVOD
 
 		$filename = $this->directory . DIRECTORY_SEPARATOR . basename($this->segments_raw[$segment_num]);
 
-		if(!file_exists($filename)){
+		if (!file_exists($filename)) {
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No file available for mediainfo of {$this->basename}");
 			return false;
 		}
 
-		$data = TwitchHelper::mediainfo($filename);
+		try {
+			$data = TwitchHelper::mediainfo($filename);
+		} catch (\Throwable $th) {
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Trying to get mediainfo of {$this->basename} returned: " . $th->getMessage());
+			return false;
+		}
+		
 		if ($data) {
 			$this->video_metadata = $data;
 			return $this->video_metadata;
@@ -947,6 +962,8 @@ class TwitchVOD
 
 		$generated['force_record'] 		= $this->force_record;
 
+		$generated['automator_fail'] 	= $this->automator_fail;
+
 		$generated['meta']				= $this->meta;
 
 		$generated['saved_at']			= new \DateTime();
@@ -1100,7 +1117,7 @@ class TwitchVOD
 
 			$segment['filename'] = realpath($this->directory . DIRECTORY_SEPARATOR . basename($v));
 			$segment['basename'] = basename($v);
-			if (isset($segment['filename']) && $segment['filename'] != false && file_exists($segment['filename'])) {
+			if (isset($segment['filename']) && $segment['filename'] != false && file_exists($segment['filename']) && filesize($segment['filename']) > 0) {
 				$segment['filesize'] = filesize($segment['filename']);
 				$this->total_size += $segment['filesize'];
 			} else {

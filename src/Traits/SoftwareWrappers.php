@@ -80,6 +80,10 @@ trait SoftwareWrappers
 			throw new \Exception('File not found for mediainfo');
 		}
 
+		if (filesize($filename) == 0) {
+			throw new \Exception('Filesize is 0 for mediainfo');
+		}
+
 		// $output = shell_exec( TwitchHelper::path_mediainfo() . ' --Full --Output=JSON ' . escapeshellarg($filename) );
 		// $process = new Process( [TwitchHelper::path_mediainfo(), '--Full', '--Output=JSON', $filename] );
 		// $process->run();
