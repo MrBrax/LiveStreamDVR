@@ -2,6 +2,16 @@
 
 ![1603661434863-wc](https://user-images.githubusercontent.com/1517911/97119662-fe1b0a80-1711-11eb-8f40-20c1690a01c9.png)
 
+## Features
+- Automatic VOD recording pretty much the second the stream goes live, instead of checking it every minute like many other scripts do
+- Tons of metadata, maybe too much. Stores info about games played, stream titles, duration, if the stream got muted from copyrighted music, etc.
+- Basic video cutter with chapter display for easy exporting
+- Writes a [losslesscut](https://github.com/mifi/lossless-cut/) compatible csv file for the full VOD so you don't have to find all the games.
+- Uses `ts` instead of `mp4` so if the stream or program crashes, the file won't be corrupted
+- Optionall either dumps chat while capturing (unstable) or downloads the chat file after it's done.
+- Basic tools for downloading any VOD or chat.
+- Can be set to automatically download the whole stream chat to a JSON file, to be used in my [twitch-vod-chat](https://github.com/MrBrax/twitch-vod-chat) webapp or automatically burned in with TwitchDownloader.
+
 ## Standalone setup
 
 1. Place the downloaded files in a separate folder from your www directory.
@@ -49,31 +59,3 @@ Docker hub: https://hub.docker.com/repository/docker/mrbrax/twitchautomator
 Known issues:
 - No cron jobs yet
 - GLOB_BRACE issue?
-
-## Features
-- Automatic VOD recording pretty much the second the stream goes live, instead of checking it every minute like many other scripts do
-- Basic video cutter with chapter display for easy exporting
-- Writes a [losslesscut](https://github.com/mifi/lossless-cut/) compatible csv file for the full VOD so you don't have to find all the games.
-- Uses `ts` instead of `mp4` so if the stream or program crashes, the file won't be corrupted
-- Can be set to automatically download the whole stream chat to a JSON file, to be used in my [twitch-vod-chat](https://github.com/MrBrax/twitch-vod-chat) webapp or automatically burned in with TwitchDownloader.
-
-## Some config help
-
-**There is now a settings page, editing the json file shouldn't be required anymore**
-
-`bin_dir`
-
-where streamlink, youtube-dl, and tcd is installed with python
-
----
-`app_url`
-
-base url of where the app is, e.g. `http://example.com/twitchautomator`
-
-e.g. `http://example.com/twitchautomator/hook`
-
----
-`vods_to_keep`
-`storage_per_streamer`
-
-vods per streamer and gigabytes per streamer to keep at one time before removing the oldest ones
