@@ -425,11 +425,11 @@ class TwitchAutomator
 		$vodclass->finalize();
 		$vodclass->saveJSON('finalized');
 
-		if ((TwitchConfig::cfg('download_chat') || (TwitchConfig::getStreamer($data_username)['download_chat']) && $vodclass->twitch_vod_id)) {
+		if ($streamer['download_chat'] && $vodclass->twitch_vod_id) {
 			TwitchHelper::log(TwitchHelper::LOG_INFO, "Auto download chat on {$basename}", ['download' => $data_username]);
 			$vodclass->downloadChat();
 
-			if (TwitchConfig::getStreamer($data_username)['burn_chat']) {
+			if ($streamer['burn_chat']) {
 				if ($vodclass->renderChat()) {
 					$vodclass->burnChat();
 				}
@@ -498,7 +498,7 @@ class TwitchAutomator
 		$cmd = [];
 
 		// use python pipenv or regular executable
-		if (TwitchConfig::cfg('pipenv')) {
+		if (TwitchConfig::cfg('pipenv_enabled')) {
 			$cmd[] = 'pipenv run streamlink';
 		} else {
 			$cmd[] = TwitchHelper::path_streamlink();
@@ -795,7 +795,7 @@ class TwitchAutomator
 
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "410 error for {$basename}");
 
-			if (TwitchConfig::cfg('pipenv')) {
+			if (TwitchConfig::cfg('pipenv_enabled')) {
 				$cmd = 'pipenv run youtube-dl';
 			} else {
 				$cmd = TwitchHelper::path_youtubedl();
@@ -883,13 +883,13 @@ class TwitchAutomator
 
 		// https://github.com/stoyanovgeorge/ffmpeg/wiki/How-to-Find-and-Fix-Corruptions-in-FFMPEG
 		if (TwitchConfig::cfg('fix_corruption')) {
-			
+
 			// @todo: these error out
 			// $cmd[] = '-map';
 			// $cmd[] = '0';
 			// $cmd[] = '-ignore_unknown';
 			// $cmd[] = '-copy_unknown';
-			
+
 			// @todo: test these
 			// $cmd[] = '-fflags';
 			// $cmd[] = '+genpts+igndts';
@@ -923,7 +923,7 @@ class TwitchAutomator
 
 		// fix audio sync in ts
 		$cmd[] = '-bsf:a';
-		$cmd[] = 'aac_adtstoasc'; 
+		$cmd[] = 'aac_adtstoasc';
 
 		if (TwitchConfig::cfg('ts_sync')) {
 

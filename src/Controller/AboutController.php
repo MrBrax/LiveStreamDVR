@@ -112,7 +112,7 @@ class AboutController
         } else {
             $bins['pipenv']['status'] = 'Not installed';
         }
-        $bins['pipenv']['status'] .= TwitchConfig::cfg('pipenv') ? ', <em>enabled</em>.' : ', <em>not enabled</em>.';
+        $bins['pipenv']['status'] .= TwitchConfig::cfg('pipenv_enabled') ? ', <em>enabled</em>.' : ', <em>not enabled</em>.';
 
 
         $bins['python'] = [];

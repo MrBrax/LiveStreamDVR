@@ -46,6 +46,7 @@ class TwitchConfig
 		['key' => 'relative_time', 			'text' => 'Relative time', 									'type' => 'boolean', 'help' => '"1 hour ago" instead of 2020-01-01'],
 		['key' => 'low_latency', 			'text' => 'Low latency (untested)', 						'type' => 'boolean'],
 		['key' => 'youtube_dlc', 			'text' => 'Use youtube-dlc instead of the regular one', 	'type' => 'boolean'],
+		['key' => 'pipenv_enabled', 		'text' => 'Use pipenv', 									'type' => 'boolean', 'default' => false],
 		['key' => 'chat_dump', 				'text' => 'Dump chat during capture', 						'type' => 'boolean', 'default' => false, 'help' => 'Dump chat from IRC with an external python script'],
 		['key' => 'ts_sync', 				'text' => 'Try to force sync remuxing', 					'type' => 'boolean', 'default' => false],
 		['key' => 'encode_audio', 			'text' => 'Encode audio stream', 							'type' => 'boolean', 'default' => false, 'help' => 'This may help with audio syncing.'],

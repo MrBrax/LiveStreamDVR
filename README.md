@@ -77,8 +77,3 @@ e.g. `http://example.com/twitchautomator/hook`
 `storage_per_streamer`
 
 vods per streamer and gigabytes per streamer to keep at one time before removing the oldest ones
-
----
-`download_chat`
-
-automatically download vod chat after capturing is completed

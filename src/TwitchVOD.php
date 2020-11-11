@@ -490,7 +490,7 @@ class TwitchVOD
 
 		$cmd = [];
 
-		if (TwitchConfig::cfg('pipenv')) {
+		if (TwitchConfig::cfg('pipenv_enabled')) {
 			$cmd[] = 'pipenv run tcd';
 		} else {
 			$cmd[] = TwitchHelper::path_tcd();
@@ -1323,7 +1323,7 @@ class TwitchVOD
 
 			$cmd = [];
 
-			if (TwitchConfig::cfg('pipenv')) {
+			if (TwitchConfig::cfg('pipenv_enabled')) {
 				$cmd[] = 'pipenv run streamlink';
 			} else {
 				$cmd[] = TwitchHelper::path_streamlink();
@@ -1453,7 +1453,7 @@ class TwitchVOD
 
 		$cmd = [];
 
-		if (TwitchConfig::cfg('pipenv')) {
+		if (TwitchConfig::cfg('pipenv_enabled')) {
 			$cmd[] = 'pipenv run streamlink';
 		} else {
 			$cmd[] = TwitchHelper::path_streamlink();

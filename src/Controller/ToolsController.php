@@ -71,7 +71,7 @@ class ToolsController
 
 		$cmd = [];
 
-		if (TwitchConfig::cfg('pipenv')) {
+		if (TwitchConfig::cfg('pipenv_enabled')) {
 			$cmd[] = 'pipenv run tcd';
 		} else {
 			$cmd[] = TwitchHelper::path_tcd();
@@ -135,7 +135,7 @@ class ToolsController
 
 		$cmd = [];
 
-		if (TwitchConfig::cfg('pipenv')) {
+		if (TwitchConfig::cfg('pipenv_enabled')) {
 			$cmd[] = 'pipenv run streamlink';
 		} else {
 			$cmd[] = TwitchHelper::path_streamlink();
