@@ -824,6 +824,11 @@ class TwitchAutomator
 			return false;
 		}
 
+		if (filesize($capture_filename) == 0) {
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "File " . basename($capture_filename) . " never got any data.", ['download-capture' => $data_username]);
+			return false;
+		}
+
 		return $capture_filename;
 	}
 
@@ -941,7 +946,7 @@ class TwitchAutomator
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Found corrupt packets when converting " . basename($capture_filename) . " to " . basename($converted_filename), ['download-convert' => $data_username]);
 		}
 
-		if (file_exists($converted_filename)) {
+		if (file_exists($converted_filename) && filesize($converted_filename) > 0) {
 			TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Finished conversion of " . basename($capture_filename) . " to " . basename($converted_filename), ['download-convert' => $data_username]);
 		} else {
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Failed conversion of " . basename($capture_filename) . " to " . basename($converted_filename), ['download-convert' => $data_username]);
