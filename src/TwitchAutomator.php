@@ -241,7 +241,7 @@ class TwitchAutomator
 			'vod' => $this->vod
 		]);
 
-		TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Game updated on {$data_username} to {$game_name}");
+		TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Game updated on {$data_username} to {$game_name} ({$data_title})");
 	}
 
 	public function end()
@@ -578,6 +578,8 @@ class TwitchAutomator
 		$process->start();
 
 		// output command line
+		TwitchHelper::clearLog("streamlink_" . $basename . "_stdout." . $int);
+		TwitchHelper::clearLog("streamlink_" . $basename . "_stderr." . $int);
 		TwitchHelper::appendLog("streamlink_" . $basename . "_stdout." . $int, "$ " . implode(" ", $cmd));
 		TwitchHelper::appendLog("streamlink_" . $basename . "_stderr." . $int, "$ " . implode(" ", $cmd));
 
@@ -640,6 +642,8 @@ class TwitchAutomator
 			$chat_pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'chatdump_' . $data_username . '.pid';
 			file_put_contents($chat_pidfile, $chat_process->getPid());
 
+			TwitchHelper::clearLog("chatdump_" . $basename . "_stdout." . $int);
+			TwitchHelper::clearLog("chatdump_" . $basename . "_stderr." . $int);
 			TwitchHelper::appendLog("chatdump_" . $basename . "_stdout." . $int, implode(" ", $chat_cmd));
 			TwitchHelper::appendLog("chatdump_" . $basename . "_stderr." . $int, implode(" ", $chat_cmd));
 		}
@@ -681,6 +685,11 @@ class TwitchAutomator
 			}
 
 			// ad removal
+			if (strpos($buffer, "Will skip ad segments") !== false) {
+				TwitchHelper::log(TwitchHelper::LOG_INFO, "Capturing of " . $basename . " will try to remove ads!", ['download-capture' => $data_username]);
+				// $current_ad_start = time();
+			}
+			
 			if (strpos($buffer, "Filtering out segments and pausing stream output") !== false) {
 				TwitchHelper::log(TwitchHelper::LOG_INFO, "Pausing capture for " . $basename . " due to ad segment!", ['download-capture' => $data_username]);
 				// $current_ad_start = time();

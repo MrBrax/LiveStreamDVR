@@ -230,13 +230,27 @@ class TwitchHelper
 		self::$last_log_line = $level . $text;
 	}
 
+	public static function clearLog(string $basename)
+	{
+		$basepath = self::$logs_folder . DIRECTORY_SEPARATOR . 'software';
+		$filepath = $basepath . DIRECTORY_SEPARATOR . $basename . ".log";
+		if (file_exists($filepath)) {
+			unlink($filepath);
+		}
+	}
+
 	public static function appendLog(string $basename, string $text, bool $newline = true)
 	{
 		$basepath = self::$logs_folder . DIRECTORY_SEPARATOR . 'software';
 		$filepath = $basepath . DIRECTORY_SEPARATOR . $basename . ".log";
-		$filetext = file_exists($filepath) ? file_get_contents($filepath) . ($newline ? "\n" : "") : "";
-		$filetext .= trim($text);
-		file_put_contents($filepath, $filetext);
+
+		$fp = fopen($filepath, 'a');
+		fwrite($fp, ($newline ? "\n" : "") . trim($text));
+		fclose($fp);
+
+		// $filetext = file_exists($filepath) ? file_get_contents($filepath) . ($newline ? "\n" : "") : "";
+		// $filetext .= trim($text);
+		// file_put_contents($filepath, $filetext);
 	}
 
 	/**

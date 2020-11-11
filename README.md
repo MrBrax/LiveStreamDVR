@@ -10,7 +10,8 @@
 - Uses `ts` instead of `mp4` so if the stream or program crashes, the file won't be corrupted
 - Optionall either dumps chat while capturing (unstable) or downloads the chat file after it's done.
 - Basic tools for downloading any VOD or chat.
-- Can be set to automatically download the whole stream chat to a JSON file, to be used in my [twitch-vod-chat](https://github.com/MrBrax/twitch-vod-chat) webapp or automatically burned in with TwitchDownloader.
+- Can be set to automatically download the whole stream chat to a JSON file, to be used in my [twitch-vod-chat](https://github.com/MrBrax/twitch-vod-chat) webapp or automatically burned in with [TwitchDownloader](https://github.com/lay295/TwitchDownloader).
+- Webhook support for external scripting
 
 ## Standalone setup
 
@@ -24,8 +25,6 @@
 
 Check `/subs` for subscription status.
 
-**This thing requires a public facing webserver.**
-
 Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in-subdirectory
 
 Post issues/help on the issues tab above. I already run an up to date version, so starting fresh might break stuff.
@@ -35,19 +34,19 @@ When upgrading, delete the `twig` folder in the `cache` folder.
 *One high-profile streamer VOD of 10 hours is about 30-50GB.*
 
 ### Main requirements
+- Public facing webserver (nginx, apache, etc)
 - PHP 7.4+
-- Python 3.6
-    - Python 3.7+ for tcd support
+- Python 3.7+
 - [pip](https://pypi.org/project/pip/)
 - [Composer](https://getcomposer.org/)
 - [FFmpeg](https://ffmpeg.org/download.html)
-- [Mediainfo](https://mediaarea.net/en/MediaInfo)
+- [MediaInfo](https://mediaarea.net/en/MediaInfo)
 - [TwitchDownloader](https://github.com/lay295/TwitchDownloader) (optional for chat burning)
 
 ### pip packages
 - [streamlink](https://github.com/streamlink/streamlink) (required)
-- [youtube-dl](https://github.com/ytdl-org/youtube-dl) (recommended) (dmca'd, unfortunate)
-- [tcd](https://pypi.org/project/tcd/) (optional)
+- [youtube-dl](https://youtube-dl.org/) (recommended)
+- [tcd](https://pypi.org/project/tcd/) (optional for chat downloading)
 - [pipenv](https://github.com/pypa/pipenv) (optional, experimental)
 
 ## Docker setup
