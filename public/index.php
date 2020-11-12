@@ -23,18 +23,36 @@ $container = new Container();
 AppFactory::setContainer($container);
 
 // Create Twig
-// Set view in Container
-
 $twigConfig = Twig::create(__DIR__ . '/../templates', [
     'cache' => TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'twig',
     'debug' => TwitchConfig::cfg('debug', false)
 ]);
 
+// Set view in Container
 $container->set('view', function () use ($twigConfig) {
     return $twigConfig;
 });
-
+// what
 $container->set(Twig::class, $twigConfig);
+
+// Create App
+$app = AppFactory::create();
+
+$app->addRoutingMiddleware();
+
+// base path
+if (TwitchConfig::cfg('basepath')) {
+    $app->setBasePath(TwitchConfig::cfg('basepath'));
+}
+
+// what
+$twig = TwigMiddleware::createFromContainer($app);
+
+// Add Twig-View Middleware
+$app->add($twig);
+
+// html extension
+$container->get('view')->getEnvironment()->addExtension(new HtmlExtension());
 
 // this seems cool, but i have no idea how to access it later :(
 $container->set('guzzle', function () {
@@ -47,25 +65,6 @@ $container->set('guzzle', function () {
         ]
     ]);
 });
-
-// Create App
-$app = AppFactory::create();
-
-$app->addRoutingMiddleware();
-
-if (TwitchConfig::cfg('basepath')) {
-    $app->setBasePath(TwitchConfig::cfg('basepath'));
-}
-
-$twig = TwigMiddleware::createFromContainer($app);
-
-
-
-// Add Twig-View Middleware
-$app->add($twig);
-
-// html extension
-$container->get('view')->getEnvironment()->addExtension(new HtmlExtension());
 
 // timezone
 if (TwitchConfig::cfg('timezone', 'UTC') != 'UTC') {
