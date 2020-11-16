@@ -160,7 +160,7 @@ class TwitchConfig
 		}
 
 		// backup
-		if(file_exists(self::$configPath)) copy(self::$configPath, self::$configPath . '.bak');
+		if (file_exists(self::$configPath)) copy(self::$configPath, self::$configPath . '.bak');
 
 		file_put_contents(self::$configPath, json_encode(self::$config, JSON_PRETTY_PRINT));
 

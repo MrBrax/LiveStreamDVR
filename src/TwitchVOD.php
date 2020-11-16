@@ -1145,14 +1145,14 @@ class TwitchVOD
 		$this->segments = $segments;
 	}
 
-	public function parseChatDump()
+	public function searchChatDump(array $words)
 	{
 
 		if (!file_exists($this->path_chatdump . '.txt')) {
 			return false;
 		}
 
-		$reg = ["/daily dose/i", "/unusual memes/i"];
+		// $reg = ["/daily dose/i", "/unusual memes/i"];
 
 		$line_regex = "/^\<(.*)\>\s(\w+)\:\s(.*)$/";
 
@@ -1163,10 +1163,17 @@ class TwitchVOD
 			$line = fgets($handle);
 			while ($line !== false) {
 				$lines++;
-				foreach ($reg as $r) {
-					if (preg_match($r, $line)) {
+				foreach ($words as $word) {
+					if (stripos($line, $word) !== false) {
+						// if (preg_match($word, $line)) {
 						preg_match($line_regex, trim($line), $matches);
-						if ($matches) $found_lines[] = ['date' => $matches[1], 'username' => $matches[2], 'text' => $matches[3]];
+						if ($matches) {
+							$found_lines[] = [
+								'date' => $matches[1],
+								'username' => $matches[2],
+								'text' => $matches[3]
+							];
+						}
 						break;
 					}
 				}

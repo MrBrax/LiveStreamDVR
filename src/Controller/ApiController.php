@@ -94,7 +94,7 @@ class ApiController
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    public function vod_chatdump(Request $request, Response $response, $args)
+    public function vod_search_chatdump(Request $request, Response $response, $args)
     {
 
         $vod = $args['vod'];
@@ -104,13 +104,26 @@ class ApiController
         $vodclass = new TwitchVOD();
         $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
-        $data = $vodclass->parseChatDump();
+        if (!isset($_GET['words'])) {
 
-        $payload = json_encode([
-            'data' => $data,
-            'status' => 'OK'
-        ]);
+            $payload = json_encode([
+                'message' => 'No words provided',
+                'status' => 'ERROR'
+            ]);
+        } else {
+
+            $words = explode(",", $_GET['words']);
+
+            $data = $vodclass->searchChatDump($words);
+
+            $payload = json_encode([
+                'data' => $data,
+                'status' => 'OK'
+            ]);
+        }
+
         $response->getBody()->write($payload);
+
         return $response->withHeader('Content-Type', 'application/json');
     }
 

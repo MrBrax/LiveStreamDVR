@@ -43,7 +43,7 @@ trait SoftwareWrappers
 
 			if ($output) {
 				$path = explode("\n", $output)[0];
-				return $path;
+				return trim($path);
 			}
 		} else {
 
@@ -53,7 +53,7 @@ trait SoftwareWrappers
 				preg_match("/^[a-z]+\:\s([a-z\-\_\/\.]+)/", $output, $matches);
 				if ($matches) {
 					$path = $matches[1];
-					return $path;
+					return trim($path);
 				}
 			}
 		}
