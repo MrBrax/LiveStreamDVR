@@ -117,7 +117,14 @@ class TwitchConfig
 			self::generateConfig();
 		}
 
-		$config = json_decode(file_get_contents(self::$configPath), true);
+		// second test
+		if (!file_exists(self::$configPath)) {
+			throw new \Exception("Could not generate config, please check your permissions");
+		}
+
+		$config_str = file_get_contents(self::$configPath);
+
+		$config = json_decode($config_str, true);
 
 		$config['app_name'] = "TwitchAutomator";
 
@@ -152,7 +159,8 @@ class TwitchConfig
 			// return false;
 		}
 
-		copy(self::$configPath, self::$configPath . '.bak');
+		// backup
+		if(file_exists(self::$configPath)) copy(self::$configPath, self::$configPath . '.bak');
 
 		file_put_contents(self::$configPath, json_encode(self::$config, JSON_PRETTY_PRINT));
 
@@ -168,7 +176,7 @@ class TwitchConfig
 
 		$example = [];
 		foreach (self::$settingsFields as $field) {
-			$example[$field['key']] = $field['default'];
+			$example[$field['key']] = isset($field['default']) ? $field['default'] : null;
 		}
 		$example['favourites'] = [];
 		$example['streamers'] = [];

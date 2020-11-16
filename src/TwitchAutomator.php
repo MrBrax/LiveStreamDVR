@@ -646,6 +646,8 @@ class TwitchAutomator
 			TwitchHelper::clearLog("chatdump_" . $basename . "_stderr." . $int);
 			TwitchHelper::appendLog("chatdump_" . $basename . "_stdout." . $int, implode(" ", $chat_cmd));
 			TwitchHelper::appendLog("chatdump_" . $basename . "_stderr." . $int, implode(" ", $chat_cmd));
+		}else{
+			$chat_process = null;
 		}
 
 		// $time_start = time();

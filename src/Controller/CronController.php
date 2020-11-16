@@ -119,6 +119,8 @@ class CronController
 
             foreach ($streamer->vods_list as $vod) {
 
+                /** @var TwitchVOD $vod */
+
                 if (!$force && $this->isInNotifyCache('mute_' . $vod->basename)) continue;
 
                 if ($vod->twitch_vod_muted === true) {
