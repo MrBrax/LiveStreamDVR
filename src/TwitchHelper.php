@@ -44,6 +44,7 @@ class TwitchHelper
 	// public static $clips_folder = self::$public_folder . DIRECTORY_SEPARATOR . 'saved_clips';
 
 	private static $required_directories = [
+		__DIR__ . "/../config",
 		__DIR__ . "/../cache",
 		__DIR__ . "/../cache/pids",
 		__DIR__ . "/../logs",

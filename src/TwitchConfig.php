@@ -159,6 +159,10 @@ class TwitchConfig
 			// return false;
 		}
 
+		if(!file_exists(TwitchHelper::$config_folder)){
+			throw new \Exception("Config folder does not exist and could not be automatically created, please create it.");
+		}
+
 		// backup
 		if (file_exists(self::$configPath)) copy(self::$configPath, self::$configPath . '.bak');
 
