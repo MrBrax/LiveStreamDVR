@@ -1487,6 +1487,9 @@ class TwitchVOD
 				$this->saveJSON("vod mute true");
 			}
 			return true;
+		} elseif (mb_strpos($output, "Unable to find video") !== false) {
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "VOD {$this->basename} is deleted!");
+			// return null;
 		} else {
 			$this->twitch_vod_muted = false;
 			TwitchHelper::log(TwitchHelper::LOG_INFO, "VOD {$this->basename} is not muted!");
