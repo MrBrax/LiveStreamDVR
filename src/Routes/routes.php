@@ -20,10 +20,12 @@ use App\Controller\CronController;
 use App\Controller\ToolsController;
 use App\TwitchConfig;
 
+/** @var \Slim\App $app  */
+
 // Define named route
 $app->get('/', function (Request $request, Response $response, array $args) use ($app) {
-    $response->getBody()->write("Hello, World! Visit <a href=\"./dashboard\">/dashboard</a> to continue.<br>Slim 4 doesn't seem to support relative redirects.");
-    return $response;
+    $url = $app->getBasePath() . '/dashboard';
+    return $response->withStatus(302)->withHeader("Location", $url);
 })->setName('index');
 
 $app->get('/dashboard', DashboardController::class . ':dashboard')->setName('dashboard');

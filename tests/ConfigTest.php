@@ -31,6 +31,8 @@ class ConfigTest extends TestCase
 
         $this->assertFileExists(TwitchConfig::$configPath, 'config generated');
 
+        TwitchConfig::loadConfig();
+
         // default
         $this->assertEquals(604800, TwitchConfig::cfg('sub_lease'), 'default config sub_lease set');
         $this->assertEquals(true, TwitchConfig::cfg('disable_ads'), 'default config disable_ads set');
