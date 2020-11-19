@@ -27,6 +27,7 @@ class TwitchConfig
 		['key' => 'storage_per_streamer', 	'text' => 'Gigabytes of storage per streamer', 				'type' => 'number', 'default' => 100],
 		['key' => 'hls_timeout', 			'text' => 'HLS Timeout in seconds (ads)', 					'type' => 'number', 'default' => 200],
 		['key' => 'vods_to_keep', 			'text' => 'VODs to keep per streamer', 						'type' => 'number', 'default' => 5],
+		['key' => 'download_retries', 		'text' => 'Download/capture retries', 						'type' => 'number', 'default' => 5],
 		['key' => 'sub_lease', 				'text' => 'Subscription lease', 							'type' => 'number', 'default' => 604800],
 		['key' => 'api_client_id', 			'text' => 'Twitch client ID', 								'type' => 'string', 'required' => true],
 		['key' => 'api_secret', 			'text' => 'Twitch secret', 									'type' => 'string', 'secret' => true, 'required' => true, 'help' => 'Keep blank to not change'],

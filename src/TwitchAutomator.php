@@ -646,7 +646,7 @@ class TwitchAutomator
 			TwitchHelper::clearLog("chatdump_" . $basename . "_stderr." . $int);
 			TwitchHelper::appendLog("chatdump_" . $basename . "_stdout." . $int, implode(" ", $chat_cmd));
 			TwitchHelper::appendLog("chatdump_" . $basename . "_stderr." . $int, implode(" ", $chat_cmd));
-		}else{
+		} else {
 			$chat_process = null;
 		}
 
@@ -691,7 +691,7 @@ class TwitchAutomator
 				TwitchHelper::log(TwitchHelper::LOG_INFO, "Capturing of " . $basename . " will try to remove ads!", ['download-capture' => $data_username]);
 				// $current_ad_start = time();
 			}
-			
+
 			if (strpos($buffer, "Filtering out segments and pausing stream output") !== false) {
 				TwitchHelper::log(TwitchHelper::LOG_INFO, "Pausing capture for " . $basename . " due to ad segment!", ['download-capture' => $data_username]);
 				// $current_ad_start = time();
@@ -795,48 +795,55 @@ class TwitchAutomator
 			TwitchHelper::log(TwitchHelper::LOG_INFO, "Ended chat dump with filename " . basename($chat_filename), ['download-capture' => $data_username]);
 		}
 
-		// $this->info[] = 'Streamlink output: ' . $process->getOutput();
-		// $this->info[] = 'Streamlink error: ' . $process->getErrorOutput();
-
 		// download with youtube-dl if streamlink fails, shouldn't be required anymore
 		if (mb_strpos($process->getOutput(), '410 Client Error') !== false) {
 
-			// $this->notify($basename, '410 Error', self::NOTIFY_ERROR);
-			// return false;
-
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "410 error for {$basename}");
 
+			$yt_cmd = [];
+
 			if (TwitchConfig::cfg('pipenv_enabled')) {
-				$cmd = 'pipenv run youtube-dl';
+				$yt_cmd[] = 'pipenv';
+				$yt_cmd[] = 'run';
+				$yt_cmd[] = 'youtube-dl';
 			} else {
-				$cmd = TwitchHelper::path_youtubedl();
+				$yt_cmd[] = TwitchHelper::path_youtubedl();
 			}
 
-			$cmd .= ' --hls-use-mpegts'; // use ts instead of mp4
-			$cmd .= ' --no-part';
-			$cmd .= ' -o ' . escapeshellarg($capture_filename); // output file
-			$cmd .= ' -f ' . escapeshellarg(implode('/', TwitchConfig::getStreamer($data_username)['quality'])); // format, does this work?
-			if (TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false)) $cmd .= ' -v';
-			$cmd .= ' ' . escapeshellarg($stream_url);
+			// use ts instead of mp4
+			$yt_cmd[] = '--hls-use-mpegts';
 
-			// $this->info[] = 'Youtube-dl cmd: ' . $cmd;
+			$yt_cmd[] = '--no-part';
 
-			$capture_output = shell_exec($cmd);
+			// output file
+			$yt_cmd[] = '-o';
+			$yt_cmd[] = $capture_filename;
 
-			// $this->info[] = 'Youtube-dl output: ' . $capture_output;
+			// format, does this work?
+			$yt_cmd[] = '-f';
+			$yt_cmd[] = implode('/', TwitchConfig::getStreamer($data_username)['quality']);
 
-			// file_put_contents( __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "youtubedl_" . $basename . "_" . time() . ".log", "$ " . $cmd . "\n" . $capture_output);
-			TwitchHelper::appendLog("youtubedl_" . $basename . "_" . time(), "$ " . $cmd . "\n" . $capture_output);
+			// verbose
+			if (TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false)) {
+				$yt_cmd[] = '-v';
+			}
 
-			// exit(500);
+			// stream url
+			$yt_cmd[] = $stream_url;
+
+			$yt_process = new Process($yt_cmd, null, null, null, null);
+			$yt_process->run();
+
+			TwitchHelper::appendLog("youtubedl_" . $basename . "_" . time() . "_stdout", "$ " . implode(" ", $yt_cmd) . "\n" . $yt_process->getOutput());
+			TwitchHelper::appendLog("youtubedl_" . $basename . "_" . time() . "_stderr", "$ " . implode(" ", $yt_cmd) . "\n" . $yt_process->getErrorOutput());
 		}
 
-		if (mb_strpos($capture_output, 'already exists, use') !== false) {
+		if (mb_strpos($process->getOutput(), 'already exists, use') !== false) {
 			TwitchHelper::log(TwitchHelper::LOG_FATAL, "Unexplainable, " . basename($capture_filename) . " could not be captured due to existing file already.", ['download-capture' => $data_username]);
 		}
 
 		// get stream resolution
-		preg_match("/stream:\s([0-9_a-z]+)\s/", $capture_output, $matches);
+		preg_match("/stream:\s([0-9_a-z]+)\s/", $process->getOutput(), $matches);
 		if ($matches) {
 			$this->stream_resolution = $matches[1];
 		}

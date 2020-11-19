@@ -199,24 +199,27 @@ class ApiController
 
             $json = json_decode(file_get_contents($log_path), true);
 
-            foreach ($json as $line) {
+            if ($json) {
 
-                if (!TwitchConfig::cfg("debug") && $line["level"] == 'DEBUG') continue;
+                foreach ($json as $line) {
 
-                if ($line["date"]) {
-                    $dt = \DateTime::createFromFormat("U.u", (string)$line["date"]);
-                    if (!$dt) $dt = \DateTime::createFromFormat("U", (string)$line["date"]);
-                    if ($dt) {
-                        $dt->setTimezone(TwitchConfig::$timezone);
-                        $line['date_string'] = $dt->format("Y-m-d H:i:s.v");
+                    if (!TwitchConfig::cfg("debug") && $line["level"] == 'DEBUG') continue;
+
+                    if ($line["date"]) {
+                        $dt = \DateTime::createFromFormat("U.u", (string)$line["date"]);
+                        if (!$dt) $dt = \DateTime::createFromFormat("U", (string)$line["date"]);
+                        if ($dt) {
+                            $dt->setTimezone(TwitchConfig::$timezone);
+                            $line['date_string'] = $dt->format("Y-m-d H:i:s.v");
+                        } else {
+                            $line['date_string'] = "ERROR:" . $line["date"];
+                        }
                     } else {
-                        $line['date_string'] = "ERROR:" . $line["date"];
+                        $line['date_string'] = '???';
                     }
-                } else {
-                    $line['date_string'] = '???';
-                }
 
-                $log_lines[] = $line;
+                    $log_lines[] = $line;
+                }
             }
         }
 
