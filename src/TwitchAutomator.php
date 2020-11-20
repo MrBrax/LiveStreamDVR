@@ -275,13 +275,17 @@ class TwitchAutomator
 			return;
 		}
 
-		// $this->notify('', '[' . $data_username . '] [prepare download]');
-
 		$stream_url = 'twitch.tv/' . $data_username;
 
 		$basename = $this->basename($data);
 
 		$folder_base = TwitchHelper::vodFolder($data_username);
+
+		// if running
+		if( TwitchHelper::getPidfileStatus("capture_{$data_username}") ){
+			TwitchHelper::log(TwitchHelper::LOG_FATAL, "Stream already capturing to {$basename}, but reached download function regardless!", ['download' => $data_username]);
+			return false;
+		}
 
 		$this->vod = new TwitchVOD();
 		$this->vod->create($folder_base . DIRECTORY_SEPARATOR . $basename . '.json');
