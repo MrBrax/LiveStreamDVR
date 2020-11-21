@@ -24,14 +24,41 @@ class HookController
         set_time_limit(0);
 
         if (isset($_GET['hub_challenge'])) {
-            $response->getBody()->write($_GET['hub_challenge']);
+
+            $challenge_token = $_GET['hub_challenge'];
+
+            $user_id = null;
+            if (isset($_GET['hub_topic'])) {
+                $user_url = parse_url($_GET['hub_topic']);
+                parse_str($user_url['query'], $user_query);
+                if (isset($user_query['user_id'])) {
+                    $user_id = $user_query['user_id'];
+                }
+            }
+
+            $hub_reason = isset($_GET['hub_reason']) ? $_GET['hub_reason'] : null;
+
+            if (isset($hub_reason)) {
+                TwitchHelper::log(TwitchHelper::LOG_ERROR, "Received hub challenge with error for userid {$user_id}: {$hub_reason}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
+            } else {
+                TwitchHelper::log(TwitchHelper::LOG_INFO, "Received hub challenge for userid {$user_id}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
+            }
+
+            $response->getBody()->write($challenge_token);
+
             return $response;
         }
 
+        /*
         if (isset($_GET['hub.challenge'])) {
+
+            $data = print_r($_GET, true);
+            TwitchHelper::log(TwitchHelper::LOG_INFO, "Received hub challenge 2: {$data}");
+
             $response->getBody()->write($_GET['hub.challenge']);
             return $response;
         }
+        */
 
         $data = json_decode(file_get_contents('php://input'), true);
 
@@ -44,11 +71,11 @@ class HookController
 
         if ($data) {
 
-            if( TwitchConfig::cfg('debug') ){
+            if (TwitchConfig::cfg('debug')) {
                 TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Dumping payload...");
                 file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . 'payloads' . DIRECTORY_SEPARATOR . date("Y-m-d.h_i_s") . '.json', json_encode($data));
             }
-            
+
             /*
             $data_id = $data['data'][0]['id'];
             $data_title = $data['data'][0]['title'];

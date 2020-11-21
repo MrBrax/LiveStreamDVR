@@ -268,10 +268,10 @@ class TwitchHelper
 	}
 
 	/**
-	 * Get Twitch channel ID from username
+	 * Get Twitch channel data from username or id
 	 *
 	 * @param string $username
-	 * @return string
+	 * @return array
 	 */
 	public static function getChannelData(string $username)
 	{
@@ -296,19 +296,11 @@ class TwitchHelper
 			return false;
 		}
 
-		/*
-		$client = new \GuzzleHttp\Client([
-			'base_uri' => 'https://api.twitch.tv',
-			'headers' => [
-				'Client-ID' => TwitchConfig::cfg('api_client_id'),
-				'Content-Type' => 'application/json',
-				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
-			]
-		]);
-		*/
+		$query = [];
+		$query['login'] = $username;
 
 		$response = self::$guzzler->request('GET', '/helix/users', [
-			'query' => ['login' => $username]
+			'query' => $query
 		]);
 
 		$server_output = $response->getBody()->getContents();
@@ -751,14 +743,16 @@ class TwitchHelper
 
 		if ($http_code == 202) {
 
-			TwitchHelper::log(TwitchHelper::LOG_INFO, "Successfully " . $mode . " to " . $streamer_name);
+			TwitchHelper::log(TwitchHelper::LOG_INFO, "Sent {$mode} request for {$streamer_name} ({$streamer_id})");
 
 			// $this->notify($server_output, '[' . $streamer_name . '] [subscribing]', self::NOTIFY_GENERIC);
 
 			return true;
 		} else {
 
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Failed to " . $mode . " to " . $streamer_name . " | " . $server_output . " | HTTP " . $http_code);
+			// throw new \Exception("Failed to send {$mode} request for {$streamer_name} ({$streamer_id}): {$server_output}");
+
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Failed to send {$mode} request for {$streamer_name} ({$streamer_id}) ({$server_output}, HTTP {$http_code})");
 
 			return false;
 		}
