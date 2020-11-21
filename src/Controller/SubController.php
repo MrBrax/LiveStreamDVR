@@ -32,7 +32,7 @@ class SubController
             $ret = TwitchHelper::sub($username);
 
             if ($ret === true) {
-                $response->getBody()->write('Subscribed');
+                $response->getBody()->write('Subscription request sent, check logs for details');
             } else {
                 $response->getBody()->write("Error: " . $ret);
             }

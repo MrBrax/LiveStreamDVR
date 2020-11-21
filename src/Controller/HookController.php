@@ -23,6 +23,7 @@ class HookController
 
         set_time_limit(0);
 
+        // handle hub challenge after subscribing
         if (isset($_GET['hub_challenge'])) {
 
             $challenge_token = $_GET['hub_challenge'];
@@ -41,7 +42,7 @@ class HookController
             if (isset($hub_reason)) {
                 TwitchHelper::log(TwitchHelper::LOG_ERROR, "Received hub challenge with error for userid {$user_id}: {$hub_reason}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
             } else {
-                TwitchHelper::log(TwitchHelper::LOG_INFO, "Received hub challenge for userid {$user_id}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
+                TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Received hub challenge for userid {$user_id}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
             }
 
             $response->getBody()->write($challenge_token);
@@ -49,17 +50,8 @@ class HookController
             return $response;
         }
 
-        /*
-        if (isset($_GET['hub.challenge'])) {
-
-            $data = print_r($_GET, true);
-            TwitchHelper::log(TwitchHelper::LOG_INFO, "Received hub challenge 2: {$data}");
-
-            $response->getBody()->write($_GET['hub.challenge']);
-            return $response;
-        }
-        */
-
+        
+        // handle regular hook
         $data = json_decode(file_get_contents('php://input'), true);
 
         $post_json = isset($_POST['json']) ? $_POST['json'] : null;

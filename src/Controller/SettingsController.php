@@ -89,6 +89,26 @@ class SettingsController
             }
         }
 
+        if( TwitchConfig::cfg('app_url') ){
+
+            $full_url = TwitchConfig::cfg('app_url') . '/hook';
+
+            $client = new \GuzzleHttp\Client();
+
+            try {
+                $response = $client->request('GET', $full_url);
+            } catch (\Throwable $th) {
+                $response->getBody()->write("External app url could be contacted at all ({$full_url}).");
+                return $response;
+            }
+
+            if( $response->getBody()->getContents() !== 'No data supplied' ){
+                $response->getBody()->write("External app url could be contacted but didn't get the expected response ({$full_url}).");
+                return $response;
+            }
+
+        }
+
         TwitchConfig::saveConfig("settings/save");
 
         $this->generateCron();

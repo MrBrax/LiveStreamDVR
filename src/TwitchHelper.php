@@ -739,11 +739,11 @@ class TwitchHelper
 
 		if ($json['status']) $http_code = $json['status'];
 
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Sub response code: " . $http_code);
+		// TwitchHelper::log(TwitchHelper::LOG_INFO, "Sub response code: " . $http_code);
 
 		if ($http_code == 202) {
 
-			TwitchHelper::log(TwitchHelper::LOG_INFO, "Sent {$mode} request for {$streamer_name} ({$streamer_id})");
+			TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Sent {$mode} request for {$streamer_name} ({$streamer_id})", ['hub' => $data]);
 
 			// $this->notify($server_output, '[' . $streamer_name . '] [subscribing]', self::NOTIFY_GENERIC);
 
@@ -752,7 +752,7 @@ class TwitchHelper
 
 			// throw new \Exception("Failed to send {$mode} request for {$streamer_name} ({$streamer_id}): {$server_output}");
 
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Failed to send {$mode} request for {$streamer_name} ({$streamer_id}) ({$server_output}, HTTP {$http_code})");
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Failed to send {$mode} request for {$streamer_name} ({$streamer_id}) ({$server_output}, HTTP {$http_code})", ['hub' => $data]);
 
 			return false;
 		}
