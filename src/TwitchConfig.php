@@ -15,13 +15,13 @@ class TwitchConfig
 	public static $streamerDbPath 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "streamers_v2.json";
 
 	public static $settingsFields = [
-		['key' => 'bin_dir', 				'text' => 'Python binary directory', 						'type' => 'string', 'required' => true, 'help' => 'No trailing slash'],
+		['key' => 'bin_dir', 				'text' => 'Python binary directory', 						'type' => 'string', 'required' => true, 'help' => 'No trailing slash', 'stripslash' => true],
 		['key' => 'ffmpeg_path', 			'text' => 'FFmpeg path', 									'type' => 'string', 'required' => true],
 		['key' => 'mediainfo_path', 		'text' => 'Mediainfo path', 								'type' => 'string', 'required' => true],
 		['key' => 'twitchdownloader_path',	'text' => 'TwitchDownloaderCLI path', 						'type' => 'string'],
 
-		['key' => 'basepath', 				'text' => 'Base path', 										'type' => 'string', 'help' => 'No trailing slash', 'help' => 'For reverse proxy etc'],
-		['key' => 'app_url', 				'text' => 'App URL', 										'type' => 'string', 'required' => true, 'help' => 'No trailing slash'],
+		['key' => 'basepath', 				'text' => 'Base path', 										'type' => 'string', 'help' => 'No trailing slash', 'help' => 'For reverse proxy etc', 'stripslash' => true],
+		['key' => 'app_url', 				'text' => 'App URL', 										'type' => 'string', 'required' => true, 'help' => 'No trailing slash', 'stripslash' => true],
 		['key' => 'webhook_url', 			'text' => 'Webhook URL', 									'type' => 'string', 'help' => 'For external scripting'],
 		['key' => 'password', 				'text' => 'Password', 										'type' => 'string', 'help' => 'Keep blank for none. Username is admin'],
 		['key' => 'storage_per_streamer', 	'text' => 'Gigabytes of storage per streamer', 				'type' => 'number', 'default' => 100],
@@ -48,7 +48,7 @@ class TwitchConfig
 		['key' => 'low_latency', 			'text' => 'Low latency (untested)', 						'type' => 'boolean'],
 		['key' => 'youtube_dlc', 			'text' => 'Use youtube-dlc instead of the regular one', 	'type' => 'boolean'],
 		['key' => 'pipenv_enabled', 		'text' => 'Use pipenv', 									'type' => 'boolean', 'default' => false],
-		['key' => 'chat_dump', 				'text' => 'Dump chat during capture', 						'type' => 'boolean', 'default' => false, 'help' => 'Dump chat from IRC with an external python script'],
+		['key' => 'chat_dump', 				'text' => 'Dump chat during capture', 						'type' => 'boolean', 'default' => false, 'help' => "Dump chat from IRC with an external python script. This isn't all that stable."],
 		['key' => 'ts_sync', 				'text' => 'Try to force sync remuxing', 					'type' => 'boolean', 'default' => false],
 		['key' => 'encode_audio', 			'text' => 'Encode audio stream', 							'type' => 'boolean', 'default' => false, 'help' => 'This may help with audio syncing.'],
 		['key' => 'fix_corruption', 		'text' => 'Try to fix corruption in remuxing',				'type' => 'boolean', 'default' => false, 'help' => 'This may help with audio syncing.'],
@@ -72,6 +72,14 @@ class TwitchConfig
 
 		if (!isset(self::$config[$var])) return $def; // if not defined
 
+		/* i should test this
+		if( self::$config[$var] === null ){
+			return $def;
+		}else{
+			return self::$config[$var];
+		}
+		*/
+
 		return self::$config[$var] ?: $def;
 	}
 
@@ -91,12 +99,32 @@ class TwitchConfig
 		return false;
 	}
 
+	public static function getSettingField(string $key)
+	{
+
+		foreach (self::$settingsFields as $setting) {
+			if ($setting['key'] == $key) return $setting;
+		}
+
+		return null;
+
+	}
+
 	public static function setConfig(string $key, $value)
 	{
 
 		if (!self::settingExists($key)) {
 			throw new \Exception("Setting does not exist: {$key}");
 		}
+
+		$field = self::getSettingField($key);
+		if( $field['stripslash'] ){
+			$value = rtrim($value, "\\/"); // strip ending slashes
+		}
+
+		// hmm
+		if( $field['type'] == 'number' ) $value = (int)$value;
+		if( $field['type'] == 'string' ) $value = (string)$value;
 
 		self::$config[$key] = $value;
 	}

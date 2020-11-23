@@ -163,7 +163,10 @@
                 </form>
 
                 <hr>
-                    Calculated app url: <code>{{ app_calc }}</code>
+                    <strong>Guessed app url</strong>
+                    <code>{{ app_calc }}</code>
+
+                    <span class="input-help">This might not be correct. Please enter it manually, and take proxies and custom port numbers into consideration.</span>
                 <hr>
 
                 <p>Check the status of the external utilities on the <a href="{{ url_for('about') }}">about</a> page.
@@ -171,12 +174,14 @@
                 <hr>
 
                 <strong>Crontab example</strong><br>
+                <span class="input-help">The Slim framework doesn't have a good way to execute code from the command line, so you'll have to set up cron manually.</span>
                 {% if config.app_url %}
                     <code>
                         0 5 * * 1 curl {{ config.app_url }}/sub<br>
-                        0 2 * * * curl {{ config.app_url }}/cron/check_muted_vods<br>
-                        0 2 * * * curl {{ config.app_url }}/cron/check_deleted_vods
+                        0 */12 * * * curl {{ config.app_url }}/cron/check_muted_vods<br>
+                        0 */12 * * * curl {{ config.app_url }}/cron/check_deleted_vods
                     </code>
+                    <span class="input-help">This will subscribe to the webhook every 5 days, and check muted &amp; deleted vods every 12 hours.</span>
                 {% else %}
                     <em class="is-error">Can't show example, <strong>app url</strong> has not been set</em>
                 {% endif %}

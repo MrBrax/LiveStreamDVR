@@ -1,4 +1,4 @@
 # TwitchAutomator
 - [x] Add TODO
-- [ ] Add tests
+- [x] Add tests
 - [ ] Rebuilt GUI in JS
