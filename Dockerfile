@@ -17,7 +17,7 @@ COPY . /var/www/twitchautomator/
 
 # RUN git clone https://github.com/MrBrax/TwitchAutomator /var/www/twitchautomator/
 
-RUN cd /var/www/twitchautomator/ && composer install
+RUN cd /var/www/twitchautomator/ && composer install --no-dev
 
 # RUN cd /var/www/twitchautomator/ && npm install # nodejs
 
@@ -44,6 +44,9 @@ ENV TCD_MEDIAINFO_PATH=/usr/bin/mediainfo
 
 USER nobody
 WORKDIR /var/www/twitchautomator
+
+# cron, does this even work?
+COPY ./docker/crontab /etc/crontab
 
 # RUN /usr/bin/crontab /var/www/twitchautomator/config/cron.txt
 # CMD ["/var/www/twitchautomator/docker/entry.sh"]

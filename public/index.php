@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+if (version_compare(PHP_VERSION, '7.4.0', '<') ) {
+    die("PHP needs to be at least on version 7.4.0, your version: " . PHP_VERSION . "\n");
+}
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 ini_set('memory_limit', '1024M');

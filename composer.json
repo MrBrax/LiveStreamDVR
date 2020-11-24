@@ -23,5 +23,10 @@
     "phpunit/phpunit": "9",
     "squizlabs/php_codesniffer": "^3.5",
     "mockery/mockery": "^1.4"
+  },
+  "config": {
+    "platform": {
+      "php": "7.4"
+    }
   }
 }
