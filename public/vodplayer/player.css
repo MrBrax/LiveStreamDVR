@@ -246,14 +246,18 @@ hr {
 #timeline-markers {
   position: relative;
   width: 1280px;
-  height: 24px;
+  height: 16px;
   pointer-events: none; }
 
 .timeline-marker {
   position: absolute;
   top: 0px;
   left: 0px;
-  border-left: 1px solid #fff; }
+  padding-left: 2px;
+  border-left: 1px solid #555;
+  font-family: 'Roboto Condensed';
+  font-weight: 400;
+  color: #ccc; }
 
 #playback_info {
   overflow: hidden;

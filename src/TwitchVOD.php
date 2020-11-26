@@ -432,6 +432,18 @@ class TwitchVOD
 		return $this->twitch_vod_duration - $this->getDuration();
 	}
 
+	public function getChapterString()
+	{
+		$str = '';
+		if ($this->chapters) {
+			foreach ($this->chapters as $chapter) {
+				if(!$chapter['offset'] || !$chapter['game_name']) continue;
+				$str .= $chapter['offset'] . ':' . str_replace(" ", "_", $chapter['game_name']) . ';';
+			}
+		}
+		return trim($str, ";");
+	}
+
 	/**
 	 * Download chat with tcd
 	 * @return bool success
@@ -1500,8 +1512,9 @@ class TwitchVOD
 		}
 	}
 
-	public function getPublicBasename(){
-		return 'vods/' . ( TwitchConfig::cfg("channel_folders") ? $this->streamer_name . '/' : '' ) . $this->basename;
+	public function getPublicBasename()
+	{
+		return 'vods/' . (TwitchConfig::cfg("channel_folders") ? $this->streamer_name . '/' : '') . $this->basename;
 	}
 
 	public function hasFavouriteGame()
