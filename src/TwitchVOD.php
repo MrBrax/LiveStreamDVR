@@ -1500,6 +1500,10 @@ class TwitchVOD
 		}
 	}
 
+	public function getPublicBasename(){
+		return 'vods/' . ( TwitchConfig::cfg("channel_folders") ? $this->streamer_name . '/' : '' ) . $this->basename;
+	}
+
 	public function hasFavouriteGame()
 	{
 		if (!$this->chapters) return false;

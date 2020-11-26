@@ -214,11 +214,23 @@
 
             {% if vodclass.is_finalized %}
 
-                <a class="button is-blue" href="{{ url_for('player', { 'vod': vodclass.basename }) }}"><span class="icon"><i class="fa fa-cut"></i></span> Editor</a>
+                <a class="button is-blue" href="{{ url_for('player', { 'vod': vodclass.basename }) }}">
+                    <span class="icon"><i class="fa fa-cut"></i></span> Editor
+                </a>
+                
+                {% if vodclass.is_chat_downloaded %}
+                    <a class="button is-blue" href="{{ base_path() }}/vodplayer/#source=file&video_path=../{{ vodclass.getPublicBaseName }}.mp4&chatfile=../{{ vodclass.getPublicBaseName }}.chat&tci={{ config.api_client_id }}&ts={{ config.api_secret }}">
+                        <span class="icon"><i class="fa fa-play"></i></span> Player
+                    </a>
+                {% endif %}
 
-                <a class="button" href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}.json"><span class="icon"><i class="fa fa-database"></i></span> JSON</a>
+                <a class="button" href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}.json">
+                    <span class="icon"><i class="fa fa-database"></i></span> JSON
+                </a>
 
-                <a class="button" href="{{ url_for('save', { 'vod': vodclass.basename }) }}"><span class="icon"><i class="fa fa-archive"></i></span> Archive</a>
+                <a class="button" href="{{ url_for('save', { 'vod': vodclass.basename }) }}">
+                    <span class="icon"><i class="fa fa-archive"></i></span> Archive
+                </a>
 
                 {% if vodclass.twitch_vod_id and not vodclass.is_chat_downloaded %}
                     <a class="button" href="{{ url_for('chat', { 'vod': vodclass.basename }) }}"><span class="icon"><i class="fa fa-comments"></i></span> Download chat</a>
