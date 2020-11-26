@@ -219,7 +219,11 @@
                 </a>
                 
                 {% if vodclass.is_chat_downloaded %}
-                    <a class="button is-blue" href="{{ base_path() }}/vodplayer/#source=file&video_path=../{{ vodclass.getPublicBaseName }}.mp4&chatfile=../{{ vodclass.getPublicBaseName }}.chat&tci={{ config.api_client_id }}&ts={{ config.api_secret }}">
+                    <a class="button is-blue" href="{{ base_path() }}/vodplayer/index.html#source=file&video_path=../{{ vodclass.getPublicBaseName }}.mp4&chatfile=../{{ vodclass.getPublicBaseName }}.chat&tci={{ config.api_client_id }}&ts={{ config.api_secret }}&offset={{ vodclass.getStartOffset }}">
+                        <span class="icon"><i class="fa fa-play"></i></span> Player
+                    </a>
+                {% elseif vodclass.is_chatdump_captured %}
+                    <a class="button is-blue" href="{{ base_path() }}/vodplayer/index.html#source=file&video_path=../{{ vodclass.getPublicBaseName }}.mp4&chatfile=../{{ vodclass.getPublicBaseName }}.chatdump&tci={{ config.api_client_id }}&ts={{ config.api_secret }}">
                         <span class="icon"><i class="fa fa-play"></i></span> Player
                     </a>
                 {% endif %}
