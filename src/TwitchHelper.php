@@ -47,6 +47,7 @@ class TwitchHelper
 		__DIR__ . "/../config",
 		__DIR__ . "/../cache",
 		__DIR__ . "/../cache/pids",
+		__DIR__ . "/../cache/playlist",
 		__DIR__ . "/../logs",
 		__DIR__ . "/../logs/html",
 		__DIR__ . "/../logs/software",

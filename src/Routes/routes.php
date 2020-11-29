@@ -67,6 +67,11 @@ $app->get('/api/v0/check_vods', ApiController::class . ':check_vods')->setName('
 $app->get('/api/v0/jobs/list', ApiController::class . ':jobs_list')->setName('api_jobs_list');
 $app->get('/api/v0/jobs/kill/{job}', ApiController::class . ':jobs_kill')->setName('api_jobs_kill');
 
+$app->get('/api/v0/twitchapi/videos/{username}', ApiController::class . ':twitchapi_videos')->setName('api_twitchapi_videos');
+$app->get('/api/v0/twitchapi/video/{video_id}', ApiController::class . ':twitchapi_video')->setName('api_twitchapi_video');
+
+$app->get('/api/v0/playlist_dump/{username}', ApiController::class . ':playlist_dump')->setName('api_playlist_dump');
+
 // $app->get('/dialog/{type}/{text}', DebugController::class . ':dialog')->setName('dialog');
 
 $app->get('/cron/check_deleted_vods', CronController::class . ':check_deleted_vods')->setName('check_deleted_vods');

@@ -13,6 +13,7 @@ use App\TwitchConfig;
 use App\TwitchHelper;
 use App\TwitchVOD;
 use App\TwitchChannel;
+use App\TwitchPlaylistAutomator;
 
 class ApiController
 {
@@ -276,4 +277,53 @@ class ApiController
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
+
+    public function twitchapi_videos(Request $request, Response $response, $args)
+    {
+
+        $username = $args['username'];
+
+        $userid = TwitchHelper::getChannelId($username);
+
+        $data = TwitchHelper::getVideos($userid);
+
+        $payload = json_encode([
+            'data' => $data,
+            'status' => 'OK'
+        ]);
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    public function twitchapi_video(Request $request, Response $response, $args)
+    {
+
+        $video_id = $args['video_id'];
+
+        $data = TwitchHelper::getVideo((int)$video_id);
+
+        $payload = json_encode([
+            'data' => $data,
+            'status' => 'OK'
+        ]);
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    public function playlist_dump(Request $request, Response $response, $args)
+    {
+
+        $username = $args['username'];
+
+        $pa = new TwitchPlaylistAutomator();
+        $data = $pa->downloadLatest($username);
+
+        $payload = json_encode([
+            'data' => $data,
+            'status' => 'OK'
+        ]);
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
 }
