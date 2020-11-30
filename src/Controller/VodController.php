@@ -141,6 +141,7 @@ class VodController
         return $response;
     }
 
+    /*
     public function convert(Request $request, Response $response, $args)
     {
 
@@ -156,6 +157,7 @@ class VodController
 
         return $response;
     }
+    */
 
     public function troubleshoot(Request $request, Response $response, $args)
     {

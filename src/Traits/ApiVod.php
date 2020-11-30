@@ -193,7 +193,7 @@ trait ApiVod
         return $response;
     }
 
-    public function vod_fullburn(Request $request, Response $response, $args)
+    public function vod_full_burn(Request $request, Response $response, $args)
     {
 
         set_time_limit(0);

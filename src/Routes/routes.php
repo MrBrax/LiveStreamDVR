@@ -46,7 +46,7 @@ $app->post('/cut', VodController::class . ':cut')->setName('cut');
 // $app->get('/chat/{vod}', VodController::class . ':chat')->setName('chat');
 // $app->get('/save/{vod}', VodController::class . ':save')->setName('save');
 // $app->get('/delete/{vod}', VodController::class . ':delete')->setName('delete');
-$app->get('/convert/{vod}', VodController::class . ':convert')->setName('convert');
+// $app->get('/convert/{vod}', VodController::class . ':convert')->setName('convert');
 // $app->get('/download/{vod}', VodController::class . ':download')->setName('download');
 $app->get('/troubleshoot/{vod}', VodController::class . ':troubleshoot')->setName('troubleshoot');
 // $app->get('/check_mute/{vod}', VodController::class . ':check_mute')->setName('check_mute');
@@ -64,25 +64,31 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
 
     $group->get('/list', ApiController::class . ':list')->setName('api_list');
 
+    // $group->get('/help', ApiController::class . ':help')->setName('api_help');
+
+    // vod manipulation
     $group->get('/vod/{vod}', ApiController::class . ':vod')->setName('api_vod');
     $group->get('/vod/{vod}/search_chatdump', ApiController::class . ':vod_search_chatdump')->setName('api_vod_search_chatdump');
     $group->get('/vod/{vod}/download_chat', ApiController::class . ':vod_download_chat')->setName('api_vod_download_chat');
     $group->get('/vod/{vod}/download', ApiController::class . ':vod_download')->setName('api_vod_download');
     $group->get('/vod/{vod}/check_mute', ApiController::class . ':vod_check_mute')->setName('api_vod_check_mute');
-    $group->get('/vod/{vod}/fullburn', ApiController::class . ':vod_fullburn')->setName('api_vod_fullburn');
+    $group->get('/vod/{vod}/full_burn', ApiController::class . ':vod_full_burn')->setName('api_vod_full_burn');
     $group->get('/vod/{vod}/render_chat', ApiController::class . ':vod_render_chat')->setName('api_vod_render_chat');
     $group->get('/vod/{vod}/delete', ApiController::class . ':vod_delete')->setName('api_vod_delete');
     $group->get('/vod/{vod}/save', ApiController::class . ':vod_save')->setName('api_vod_save');
 
+    // html render, make this obsolete some day
     $group->get('/render/menu', ApiController::class . ':render_menu')->setName('api_render_menu');
     $group->get('/render/streamer/{username}', ApiController::class . ':render_streamer')->setName('api_render_streamer');
     $group->get('/render/log/[{filename}]', ApiController::class . ':render_log')->setName('api_render_log');
+
     $group->get('/check_vods', ApiController::class . ':check_vods')->setName('check_vods');
 
+    // job manipulation
     $group->get('/jobs/list', ApiController::class . ':jobs_list')->setName('api_jobs_list');
     $group->get('/jobs/kill/{job}', ApiController::class . ':jobs_kill')->setName('api_jobs_kill');
 
-    // proxy
+    // twitch api proxy
     $group->get('/twitchapi/videos/{username}', ApiController::class . ':twitchapi_videos')->setName('api_twitchapi_videos');
     $group->get('/twitchapi/video/{video_id}', ApiController::class . ':twitchapi_video')->setName('api_twitchapi_video');
 
@@ -92,8 +98,11 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
 
 // $app->get('/dialog/{type}/{text}', DebugController::class . ':dialog')->setName('dialog');
 
-$app->get('/cron/check_deleted_vods', CronController::class . ':check_deleted_vods')->setName('check_deleted_vods');
-$app->get('/cron/check_muted_vods', CronController::class . ':check_muted_vods')->setName('check_muted_vods');
+// cronjobs
+$app->group('/cron', function (RouteCollectorProxy $group) {
+    $group->get('/check_deleted_vods', CronController::class . ':check_deleted_vods')->setName('check_deleted_vods');
+    $group->get('/check_muted_vods', CronController::class . ':check_muted_vods')->setName('check_muted_vods');
+});
 
 // tools
 $app->group('/tools', function (RouteCollectorProxy $group) {
@@ -120,39 +129,3 @@ $app->get('/force_record/{username}', function (Request $request, Response $resp
     }
     return $response;
 })->setName('force_record');
-
-// abort recording of streamer
-// TODO: refactor
-/*
-$app->get('/abort_record/{username}', function (Request $request, Response $response, array $args) {
-
-    $username = $args['username'];
-
-    /*
-    $vods = glob(TwitchHelper::vodFolder( $args['username'] ) . DIRECTORY_SEPARATOR . $args['username'] . "_*.json");
-
-    foreach ($vods as $k => $v) {
-
-        $vodclass = new App\TwitchVOD();
-        $vodclass->load($v);
-
-        $pid = $vodclass->getCapturingStatus();
-        if($pid){
-            $output = shell_exec("pkill " . escapeshellarg($pid));
-            $response->getBody()->write( "<pre>" . $output . "</pre><br>");
-        }
-
-    }*
-
-    $pid = TwitchHelper::getPidfileStatus('capture_' . $username );
-    if($pid){
-        $output = TwitchHelper::exec( ["kill", $pid] );
-        $response->getBody()->write( "Killed process.<br><pre>" . $output . "</pre>");
-    }else{
-        $response->getBody()->write( "Found no process running for " . $username );
-    }
-
-    return $response;
-    
-})->setName('abort_record');
-*/

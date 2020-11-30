@@ -253,7 +253,7 @@
                     {% endif %}
                     <a class="button" href="{{ url_for('api_vod_check_mute', { 'vod': vodclass.basename }) }}"><span class="icon"><i class="fa fa-volume-mute"></i></span> Check mute</a>
                     {% if not vodclass.is_chat_burned %}
-                        <a class="button" href="{{ url_for('api_vod_fullburn', { 'vod': vodclass.basename }) }}"><span class="icon"><i class="fa fa-burn"></i></span> Render &amp; burn</a>
+                        <a class="button" href="{{ url_for('api_vod_full_burn', { 'vod': vodclass.basename }) }}"><span class="icon"><i class="fa fa-burn"></i></span> Render &amp; burn</a>
                     {% endif %}
                 {% endif %}
 
@@ -272,9 +272,11 @@
 
             {% elseif vodclass.is_capturing %}
 
+                {#
                 {% if vodclass.dt_ended_at %}
                     <a class="button" href="{{ url_for('convert', { 'vod': vodclass.basename }) }}">Convert</a>
                 {% endif %}
+                #}
 
                 <em><span class="icon"><i class="fa fa-video"></i></span> Capturing to <strong>{{ vodclass.basename }}.ts</strong> (<strong>{{ vodclass.getRecordingSize|formatBytes }}</strong>)</em><br />
                 <em>
