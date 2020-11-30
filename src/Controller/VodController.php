@@ -87,7 +87,7 @@ class VodController
 
             if (TwitchConfig::cfg('fix_corruption')) {
                 // $cmd[] = '-map';
-			    // $cmd[] = '0';
+                // $cmd[] = '0';
                 // $cmd[] = '-ignore_unknown';
                 // $cmd[] = '-copy_unknown';
             }
@@ -95,10 +95,10 @@ class VodController
             if (TwitchConfig::cfg('encode_audio')) {
                 $cmd[] = '-c:v';
                 $cmd[] = 'copy'; // use same video codec
-    
+
                 $cmd[] = '-c:a';
                 $cmd[] = 'aac'; // re-encode audio
-    
+
                 $cmd[] = '-b:a';
                 $cmd[] = '160k'; // use same audio bitrate
             } else {

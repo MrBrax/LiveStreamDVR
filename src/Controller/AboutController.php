@@ -34,6 +34,22 @@ class AboutController
 
         $bins = [];
 
+        $pip_requirements = [];
+        $requirements_file = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'requirements.txt';
+        if(file_exists($requirements_file)){
+            $requirements_data = file_get_contents($requirements_file);
+            $lines = explode("\n", $requirements_data);
+            foreach($lines as $line){
+                preg_match("/^([a-z_-]+)([=<>]+)(.*)$/", $line, $matches);
+                if($matches){
+                    $pip_requirements[ trim($matches[1]) ] = [
+                        'comparator' => trim($matches[2]),
+                        'version' => trim($matches[3])
+                    ];
+                }
+            }
+        }
+
         $bins['ffmpeg'] = [];
         $bins['ffmpeg']['path'] = TwitchHelper::path_ffmpeg();
         if (TwitchHelper::path_ffmpeg() && file_exists(TwitchHelper::path_ffmpeg())) {
@@ -65,6 +81,13 @@ class AboutController
             $out = TwitchHelper::exec([TwitchHelper::path_tcd(), "--version", "--settings-file", TwitchHelper::$config_folder . DIRECTORY_SEPARATOR . "tcd_settings.json"]);
             $bins['tcd']['status'] = $out;
             $bins['tcd']['installed'] = true;
+
+            $version = trim(substr($bins['tcd']['status'], 23));
+            if(version_compare($version, $pip_requirements['tcd']['version'], $pip_requirements['tcd']['comparator'])){
+                $bins['tcd']['update'] = 'Version OK';
+            }else{
+                $bins['tcd']['update'] = 'Please update to at least ' . $pip_requirements['tcd']['version'];
+            }
         } else {
             $bins['tcd']['status'] = 'Not installed.';
         }
@@ -77,6 +100,13 @@ class AboutController
             $out = TwitchHelper::exec([TwitchHelper::path_streamlink(), "--version"]);
             $bins['streamlink']['status'] = trim($out);
             $bins['streamlink']['installed'] = true;
+
+            $version = trim(substr($bins['streamlink']['status'], 11));
+            if(version_compare($version, $pip_requirements['streamlink']['version'], $pip_requirements['streamlink']['comparator'])){
+                $bins['streamlink']['update'] = 'Version OK';
+            }else{
+                $bins['streamlink']['update'] = 'Please update to at least ' . $pip_requirements['streamlink']['version'];
+            }
         } else {
             $bins['streamlink']['status'] = 'Not installed.';
         }
@@ -88,6 +118,12 @@ class AboutController
             $out = TwitchHelper::exec([TwitchHelper::path_youtubedl(), "--version"]);
             $bins['youtubedl']['status'] = trim($out);
             $bins['youtubedl']['installed'] = true;
+
+            if(version_compare(trim($out), $pip_requirements['youtube-dl']['version'], $pip_requirements['youtube-dl']['comparator'])){
+                $bins['youtubedl']['update'] = 'Version OK';
+            }else{
+                $bins['youtubedl']['update'] = 'Please update to at least ' . $pip_requirements['youtube-dl']['version'];
+            }
         } else {
             $bins['youtubedl']['status'] = 'Not installed.';
         }

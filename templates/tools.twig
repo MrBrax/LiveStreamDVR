@@ -135,6 +135,7 @@
                         <td>{{ job.name }}</td>
                         <td>{{ job.pid }}</td>
                         <td><!-- {{ job.status }}-->{{ job.status ? 'Running' : 'Unexpected exit' }}</td>
+                        <td>{% if job.status %}<a href="{{ base_path() }}/api/v0/jobs/kill/{{ job.name }}">Kill</a>{% endif %}
                     </tr>
                 {% endfor %}
                 </table>

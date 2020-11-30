@@ -76,7 +76,7 @@ class ApiController
         $response->getBody()->write($payload);
 
         return $response->withHeader('Content-Type', 'application/json')->withHeader('Access-Control-Allow-Origin', '*');
-    }    
+    }
 
     public function jobs_list(Request $request, Response $response, $args)
     {
@@ -284,5 +284,4 @@ class ApiController
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
-
 }

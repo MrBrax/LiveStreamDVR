@@ -103,7 +103,7 @@ class TwitchHelper
 		if (file_exists(self::$accessTokenFile)) {
 			// $tokenRefresh = time() - filemtime( self::$accessTokenFile ) > TwitchHelper::$accessTokenRefresh;
 			// $tokenExpire = time() - filemtime( self::$accessTokenFile ) > TwitchHelper::$accessTokenExpire;
-			if (time() > filemtime(self::$accessTokenFile) + TwitchHelper::$accessTokenRefresh) { // TODO: fix this, i'm bad at math
+			if (time() > filemtime(self::$accessTokenFile) + TwitchHelper::$accessTokenRefresh) {
 				self::log(self::LOG_INFO, "Deleting old access token");
 				unlink(self::$accessTokenFile);
 			}
@@ -187,7 +187,7 @@ class TwitchHelper
 		$log_text = file_exists($filename) ? file_get_contents($filename) : '';
 		$log_json = file_exists($filename_json) ? json_decode(file_get_contents($filename_json), true) : [];
 
-		// TODO: this still isn't working properly
+		/** @todo: this still isn't working properly **/
 		if ($level . $text === self::$last_log_line && $log_json) {
 			$last = count($log_json) - 1;
 			if (isset($log_json[$last])) {

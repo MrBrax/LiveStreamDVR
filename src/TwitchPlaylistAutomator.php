@@ -72,11 +72,11 @@ class TwitchPlaylistAutomator
 
         $run_file = $download_path . DIRECTORY_SEPARATOR . 'running';
 
-        if(isset($_GET['force'])){
-            if(file_exists($run_file)) unlink($run_file);
+        if (isset($_GET['force'])) {
+            if (file_exists($run_file)) unlink($run_file);
         }
 
-        if(file_exists($run_file)){
+        if (file_exists($run_file)) {
             throw new \Exception("Job is already running for this user, probably. Use ?force=1 to force.");
         }
 
@@ -322,7 +322,6 @@ class TwitchPlaylistAutomator
 
         TwitchHelper::log(TwitchHelper::LOG_INFO, "No more playlist chunks to download for {$unique_id}");
 
-        if(file_exists($run_file)) unlink($run_file);
-
+        if (file_exists($run_file)) unlink($run_file);
     }
 }

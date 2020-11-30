@@ -15,6 +15,10 @@ use App\TwitchVOD;
 trait ApiVod
 {
 
+    /**
+     * @todo: make responses more automated
+     */
+
     public function vod(Request $request, Response $response, $args)
     {
 
@@ -80,13 +84,13 @@ trait ApiVod
         $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
         if ($vodclass->twitch_vod_id) {
-            
-            if($vodclass->downloadChat()){
+
+            if ($vodclass->downloadChat()) {
                 $payload = json_encode([
                     'data' => 'Chat downloaded',
                     'status' => 'OK'
                 ]);
-            }else{
+            } else {
                 $payload = json_encode([
                     'data' => 'Chat download unsuccessful',
                     'status' => 'ERROR'
@@ -101,7 +105,6 @@ trait ApiVod
 
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
-
     }
 
     public function vod_download(Request $request, Response $response, $args)
@@ -113,13 +116,13 @@ trait ApiVod
 
         $vodclass = new TwitchVOD();
         $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
-        
-        if($vodclass->downloadVod()){
+
+        if ($vodclass->downloadVod()) {
             $payload = json_encode([
                 'data' => 'VOD downloaded',
                 'status' => 'OK'
             ]);
-        }else{
+        } else {
             $payload = json_encode([
                 'error' => 'VOD could not be downloaded',
                 'status' => 'ERROR'
@@ -148,7 +151,7 @@ trait ApiVod
             // $response->getBody()->write("VOD does not have an ID");
             // $response->getBody()->write($payload);
             // return $response->withHeader('Content-Type', 'application/json');
-        }else{
+        } else {
 
             $isMuted = $vodclass->checkMutedVod(true);
 
@@ -159,7 +162,6 @@ trait ApiVod
                 ],
                 'status' => 'OK'
             ]);
-
         }
 
         $response->getBody()->write($payload);
@@ -295,5 +297,4 @@ trait ApiVod
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
-
 }

@@ -93,7 +93,6 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     $group->get('/twitchapi/video/{video_id}', ApiController::class . ':twitchapi_video')->setName('api_twitchapi_video');
 
     $group->get('/playlist_dump/{username}', ApiController::class . ':playlist_dump')->setName('api_playlist_dump');
-
 });
 
 // $app->get('/dialog/{type}/{text}', DebugController::class . ':dialog')->setName('dialog');

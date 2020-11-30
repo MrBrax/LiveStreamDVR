@@ -48,7 +48,7 @@ class TwitchVOD
 
 	public ?int $total_size = null;
 
-	// TODO: make these into an array instead
+	/** @todo: make these into an array instead **/
 	public ?int $twitch_vod_id = null;
 	public ?string $twitch_vod_url = null;
 	public ?int $twitch_vod_duration = null;
@@ -1526,7 +1526,6 @@ class TwitchVOD
 		return false;
 	}
 
-	// TODO: finish this
 	public function getCapturingStatus()
 	{
 		return TwitchHelper::getPidfileStatus("capture_{$this->streamer_name}");
