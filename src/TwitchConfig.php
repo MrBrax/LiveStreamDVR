@@ -52,6 +52,7 @@ class TwitchConfig
 		['key' => 'ts_sync', 				'text' => 'Try to force sync remuxing', 					'type' => 'boolean', 'default' => false],
 		['key' => 'encode_audio', 			'text' => 'Encode audio stream', 							'type' => 'boolean', 'default' => false, 'help' => 'This may help with audio syncing.'],
 		['key' => 'fix_corruption', 		'text' => 'Try to fix corruption in remuxing',				'type' => 'boolean', 'default' => false, 'help' => 'This may help with audio syncing.'],
+		['key' => 'playlist_dump', 			'text' => 'Use playlist dumping (experimental)',			'type' => 'boolean', 'default' => false],
 	];
 
 	public static $timezone;
