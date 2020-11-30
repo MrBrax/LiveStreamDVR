@@ -14,9 +14,12 @@ use App\TwitchHelper;
 use App\TwitchVOD;
 use App\TwitchChannel;
 use App\TwitchPlaylistAutomator;
+use App\Traits\ApiVod;
 
 class ApiController
 {
+
+    use ApiVod;
 
     /**
      * @var Twig
@@ -73,60 +76,7 @@ class ApiController
         $response->getBody()->write($payload);
 
         return $response->withHeader('Content-Type', 'application/json')->withHeader('Access-Control-Allow-Origin', '*');
-    }
-
-    public function vod(Request $request, Response $response, $args)
-    {
-
-        $vod = $args['vod'];
-
-        $username = explode("_", $vod)[0];
-
-        $vodclass = new TwitchVOD();
-        $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
-
-        $data = $vodclass;
-
-        $payload = json_encode([
-            'data' => $data,
-            'status' => 'OK'
-        ]);
-        $response->getBody()->write($payload);
-        return $response->withHeader('Content-Type', 'application/json');
-    }
-
-    public function vod_search_chatdump(Request $request, Response $response, $args)
-    {
-
-        $vod = $args['vod'];
-
-        $username = explode("_", $vod)[0];
-
-        $vodclass = new TwitchVOD();
-        $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
-
-        if (!isset($_GET['words'])) {
-
-            $payload = json_encode([
-                'message' => 'No words provided',
-                'status' => 'ERROR'
-            ]);
-        } else {
-
-            $words = explode(",", $_GET['words']);
-
-            $data = $vodclass->searchChatDump($words);
-
-            $payload = json_encode([
-                'data' => $data,
-                'status' => 'OK'
-            ]);
-        }
-
-        $response->getBody()->write($payload);
-
-        return $response->withHeader('Content-Type', 'application/json');
-    }
+    }    
 
     public function jobs_list(Request $request, Response $response, $args)
     {
@@ -316,7 +266,16 @@ class ApiController
         $username = $args['username'];
 
         $pa = new TwitchPlaylistAutomator();
-        $data = $pa->downloadLatest($username);
+
+        try {
+            $data = $pa->downloadLatest($username);
+        } catch (\Throwable $th) {
+            $response->getBody()->write(json_encode([
+                'error' => $th->getMessage(),
+                'status' => 'ERROR'
+            ]));
+            return $response->withHeader('Content-Type', 'application/json');
+        }
 
         $payload = json_encode([
             'data' => $data,
