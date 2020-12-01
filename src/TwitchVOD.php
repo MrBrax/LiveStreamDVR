@@ -1553,12 +1553,15 @@ class TwitchVOD
 
 	public function getCapturingStatus()
 	{
-		return (new TwitchAutomatorJob("capture_{$this->streamer_name}"))->getStatus();
+		$job = TwitchHelper::findJob("capture_{$this->streamer_name}");
+		return $job ? $job->getStatus() : false;
 	}
 
 	public function getConvertingStatus()
 	{
-		return (new TwitchAutomatorJob("convert_{$this->streamer_name}"))->getStatus();
+		//return (new TwitchAutomatorJob("convert_{$this->streamer_name}"))->getStatus();
+		$job = TwitchHelper::findJob("convert_{$this->streamer_name}");
+		return $job ? $job->getStatus() : false;
 	}
 
 	public function getChatDownloadStatus()
@@ -1568,7 +1571,9 @@ class TwitchVOD
 
 	public function getChatDumpStatus()
 	{
-		return (new TwitchAutomatorJob("chatdump_{$this->streamer_name}"))->getStatus();
+		// return (new TwitchAutomatorJob("chatdump_{$this->streamer_name}"))->getStatus();
+		$job = TwitchHelper::findJob("chatdump_{$this->streamer_name}");
+		return $job ? $job->getStatus() : false;
 	}
 
 	public function finalize()

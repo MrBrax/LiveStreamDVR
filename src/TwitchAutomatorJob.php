@@ -34,10 +34,10 @@ class TwitchAutomatorJob
 	{
 		$tried_loading = true;
 		if (!file_exists($this->pidfile)) {
-            TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Loading job {$this->name} failed, no json file", $this->metadata);
-			return $this->loadSimple();
-			// $this->error = TwitchAutomatorJob::NO_FILE;
-			// return false;
+            TwitchHelper::log(TwitchHelper::LOG_ERROR, "Loading job {$this->name} failed, no json file", $this->metadata);
+			// return $this->loadSimple();
+			$this->error = TwitchAutomatorJob::NO_FILE;
+			return false;
 		}
 		$raw = file_get_contents($this->pidfile);
 		if (!$raw) {
@@ -50,6 +50,7 @@ class TwitchAutomatorJob
 		$this->getStatus();
 	}
 
+    /*
 	function loadSimple()
 	{
 		$tried_loading = true;
@@ -65,7 +66,8 @@ class TwitchAutomatorJob
 		}
 		$this->pid = $raw;
 		$this->getStatus();
-	}
+    }
+    */
 
 	function save()
 	{

@@ -282,7 +282,7 @@ class TwitchAutomator
 		$folder_base = TwitchHelper::vodFolder($data_username);
 
 		// if running
-		$job = new TwitchAutomatorJob("capture_{$data_username}");
+		$job = new TwitchAutomatorJob("capture_{$basename}");
 		if ( $job->getStatus() ) {
 			TwitchHelper::log(TwitchHelper::LOG_FATAL, "Stream already capturing to {$job->metadata['basename']} from {$data_username}, but reached download function regardless!", ['download' => $data_username]);
 			return false;
@@ -601,7 +601,7 @@ class TwitchAutomator
 		// $pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'capture_' . $data_username . '.pid';
 		TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Capture " . basename($capture_filename) . " has PID " . $process->getPid(), ['download-capture' => $data_username]);
 		// file_put_contents($pidfile, $process->getPid());
-		$captureJob = new TwitchAutomatorJob("capture_{$data_username}");
+		$captureJob = new TwitchAutomatorJob("capture_{$basename}");
 		$captureJob->setPid($process->getPid());
 		$captureJob->setProcess($process);
 		$captureJob->setMetadata([
@@ -665,7 +665,7 @@ class TwitchAutomator
 
 			// $chat_pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'chatdump_' . $data_username . '.pid';
 			// file_put_contents($chat_pidfile, $chat_process->getPid());
-			$chatJob = new TwitchAutomatorJob("chatdump_{$data_username}");
+			$chatJob = new TwitchAutomatorJob("chatdump_{$basename}");
 			$chatJob->setPid($chat_process->getPid());
 			$chatJob->setProcess($chat_process);
 			$chatJob->setMetadata([
@@ -901,6 +901,9 @@ class TwitchAutomator
 		return $capture_filename;
 	}
 
+	/**
+	 * experimental
+	 */
 	public function playlistDump($data)
 	{
 
@@ -1332,7 +1335,7 @@ class TwitchAutomator
 		$process->start();
 
 		// create pidfile
-		$convertJob = new TwitchAutomatorJob("convert_{$data_username}");
+		$convertJob = new TwitchAutomatorJob("convert_{$basename}");
 		$convertJob->setPid($process->getPid());
 		$convertJob->setProcess($process);
 		$convertJob->setMetadata([

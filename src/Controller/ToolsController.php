@@ -56,11 +56,11 @@ class ToolsController
 			];
 		}
 		*/
-		$current_jobs_raw = glob(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . "*.pid");
+		$current_jobs_raw = glob(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . "*.json");
         $current_jobs = [];
         foreach ($current_jobs_raw as $v) {
             // $pid = file_get_contents($v);
-			$job = new TwitchAutomatorJob(basename($v, ".pid"));
+			$job = new TwitchAutomatorJob(basename($v, ".json"));
 			$job->load();
             $current_jobs[] = $job;
 		}
