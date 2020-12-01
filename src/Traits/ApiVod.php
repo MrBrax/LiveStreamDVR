@@ -11,6 +11,7 @@ use Symfony\Component\Process\Process;
 use App\TwitchConfig;
 use App\TwitchHelper;
 use App\TwitchVOD;
+use App\Exporters\YouTubeExporter;
 
 trait ApiVod
 {
@@ -291,6 +292,47 @@ trait ApiVod
 
         $payload = json_encode([
             'data' => 'VOD saved',
+            'status' => 'OK'
+        ]);
+
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    public function vod_export(Request $request, Response $response, $args)
+    {
+
+        $vod = $args['vod'];
+        // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
+        $username = explode("_", $vod)[0];
+
+        $vodclass = new TwitchVOD();
+        $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+
+        $destination = isset($_GET['destination']) ? $_GET['destination'] : null;
+        $exporter = null;
+        switch ($destination) {
+            case 'YouTube':
+                $exporter = new YouTubeExporter();
+                break;
+        }
+
+        if (!$exporter) {
+            throw new \Exception("No exporter");
+        }
+
+        $exporter->setVod($vodclass);
+
+        $output = null;
+
+        if (isset($_GET['segment'])) {
+            $output = $exporter->exportSegment($vodclass->segment, 0, 1);
+        } else {
+            $output = $exporter->exportAllSegments();
+        }
+
+        $payload = json_encode([
+            'data' => "Exporter returned: " . implode(", ", $output),
             'status' => 'OK'
         ]);
 

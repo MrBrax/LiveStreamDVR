@@ -76,6 +76,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     $group->get('/vod/{vod}/render_chat', ApiController::class . ':vod_render_chat')->setName('api_vod_render_chat');
     $group->get('/vod/{vod}/delete', ApiController::class . ':vod_delete')->setName('api_vod_delete');
     $group->get('/vod/{vod}/save', ApiController::class . ':vod_save')->setName('api_vod_save');
+    $group->get('/vod/{vod}/export', ApiController::class . ':vod_export')->setName('api_vod_export');
 
     // html render, make this obsolete some day
     $group->get('/render/menu', ApiController::class . ':render_menu')->setName('api_render_menu');

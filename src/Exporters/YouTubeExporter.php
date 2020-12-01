@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Exporters;
 
 class YouTubeExporter extends BaseExporter
 {
@@ -10,6 +10,6 @@ class YouTubeExporter extends BaseExporter
         $full_title = $this->makeTitle($segment, $part, $total_parts);
 
         // upload via youtube api
-
+        return "Not implemented";
     }
 }

@@ -1,6 +1,9 @@
 <?php
 
-namespace App;
+namespace App\Exporters;
+
+use App\TwitchVOD;
+use App\TwitchHelper;
 
 class BaseExporter
 {
@@ -22,15 +25,28 @@ class BaseExporter
     }
 
     /**
-     * Call this
+     * Load VOD file by class
      *
+     * @param TwitchVOD $vodclass
      * @return void
      */
-    function getVideoFiles()
+    function setVod(TwitchVOD $vodclass)
     {
+        $this->vodclass = $vodclass;
+    }
+
+    /**
+     * Call this
+     *
+     * @return array
+     */
+    function exportAllSegments() : array
+    {
+        $output = [];
         foreach ($this->vodclass->segments as $i => $segment) {
-            $this->exportSegment($segment['filename'], $i, count($this->vodclass->segments));
+            $output[] = $this->exportSegment($segment, $i, count($this->vodclass->segments));
         }
+        return $output;
     }
 
     /**
