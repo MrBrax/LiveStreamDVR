@@ -13,14 +13,14 @@ class TwitchAutomatorJob
 	const NO_FILE = 1;
 	const NO_DATA = 2;
 
-	public $name;
+	public string $name;
 	public $pid;
-	public $pidfile;
-	public $pidfile_simple;
-	public $metadata;
+	public string $pidfile;
+	public string $pidfile_simple;
+	public array $metadata = [];
 	public $status;
-	public $error;
-	private $tried_loading;
+	public int $error;
+	// private $tried_loading;
 
 	function __construct(string $name)
 	{
@@ -30,17 +30,23 @@ class TwitchAutomatorJob
 		return $this;
 	}
 
+	/**
+	 * Load data from disk
+	 *
+	 * @return bool successful
+	 */
 	function load()
 	{
 		$tried_loading = true;
 		if (!file_exists($this->pidfile)) {
-            TwitchHelper::log(TwitchHelper::LOG_ERROR, "Loading job {$this->name} failed, no json file", $this->metadata);
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Loading job {$this->name} failed, no json file", $this->metadata);
 			// return $this->loadSimple();
 			$this->error = TwitchAutomatorJob::NO_FILE;
 			return false;
 		}
 		$raw = file_get_contents($this->pidfile);
 		if (!$raw) {
+			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Loading job {$this->name} failed, no data in json file", $this->metadata);
 			$this->error = TwitchAutomatorJob::NO_DATA;
 			return false;
 		}
@@ -48,9 +54,10 @@ class TwitchAutomatorJob
 		$this->pid = $data->pid;
 
 		$this->getStatus();
+		return true;
 	}
 
-    /*
+	/*
 	function loadSimple()
 	{
 		$tried_loading = true;
@@ -69,18 +76,28 @@ class TwitchAutomatorJob
     }
     */
 
+	/**
+	 * Save to disk, like when the process starts
+	 *
+	 * @return bool
+	 */
 	function save()
 	{
-		file_put_contents($this->pidfile, json_encode($this));
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Save job {$this->name} with PID {$this->pid}", $this->metadata);
+		return file_put_contents($this->pidfile, json_encode($this)) != false;
 	}
 
+	/**
+	 * Remove from disk, like when the process quits
+	 *
+	 * @return bool success
+	 */
 	function clear()
 	{
-		if($this->process){
+		if ($this->process) {
 			$this->process = null;
 		}
-		
+
 		if (file_exists($this->pidfile)) {
 			TwitchHelper::log(TwitchHelper::LOG_INFO, "Clear job {$this->name} with PID {$this->pid}", $this->metadata);
 			return unlink($this->pidfile);
@@ -88,41 +105,71 @@ class TwitchAutomatorJob
 		return false;
 	}
 
+	/**
+	 * Set process PID
+	 *
+	 * @param int $pid
+	 * @return void
+	 */
 	function setPid($pid)
 	{
 		$this->pid = $pid;
-    }
-    
-    function getPid(){
-        if(!$this->pid){
-            $this->load();
-        }
-        return $this->pid;
-    }
+	}
 
-	function setProcess( Process $process ){
+	/**
+	 * Get process PID
+	 *
+	 * @return int Process ID
+	 */
+	function getPid()
+	{
+		if (!$this->pid) {
+			$this->load();
+		}
+		return $this->pid;
+	}
+
+	/**
+	 * Attach process
+	 *
+	 * @param Process $process
+	 * @return void
+	 */
+	function setProcess(Process $process)
+	{
 		// $this->process = $process;
 	}
 
-	function setMetadata($metadata)
+	/**
+	 * Attach metadata
+	 *
+	 * @param array $metadata
+	 * @return void
+	 */
+	function setMetadata(array $metadata)
 	{
 		$this->metadata = $metadata;
 	}
 
+	/**
+	 * Get running status of job, PID if running.
+	 *
+	 * @return int|false
+	 */
 	function getStatus()
 	{
-        $pid = $this->getPid();
+		$pid = $this->getPid();
 
-        if(!$pid){
-            return false;
-        }
+		if (!$pid) {
+			return false;
+		}
 
 		$output = TwitchHelper::exec(["ps", "-p", $pid]);
 
 		//if (!$this->pid && !$this->tried_loading) {
 		//	$this->load();
 		//}
-        //
+		//
 		//if (!$this->pid) {
 		//	return false;
 		//}
@@ -138,6 +185,11 @@ class TwitchAutomatorJob
 		}
 	}
 
+	/**
+	 * Quit the process via PID
+	 *
+	 * @return string kill output
+	 */
 	function kill()
 	{
 		return TwitchHelper::exec(["kill", $this->getPid()]);
