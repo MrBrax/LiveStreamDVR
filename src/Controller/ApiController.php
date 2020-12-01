@@ -263,7 +263,7 @@ class ApiController
         $pa = new TwitchPlaylistAutomator();
 
         try {
-            $data = $pa->downloadLatest($username);
+            $data = $pa->downloadLatest($username, isset($_GET['quality']) ? $_GET['quality'] : 'best');
         } catch (\Throwable $th) {
             $response->getBody()->write(json_encode([
                 'error' => $th->getMessage(),

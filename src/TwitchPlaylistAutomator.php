@@ -33,10 +33,12 @@ class TwitchPlaylistAutomator
     {
     }
 
-    public function downloadLatest($username)
+    public function downloadLatest($username, $quality = 'best')
     {
 
         set_time_limit(0);
+
+        $time_started = time();
 
         $userid = TwitchHelper::getChannelId($username);
 
@@ -58,7 +60,6 @@ class TwitchPlaylistAutomator
 
         $unique_id = $username . '-' . $video_id;
 
-        $quality = isset($_GET['quality']) ? $_GET['quality'] : 'best';
         $new_chunks_timeout = 300;
         $amount_of_tries = 3;
 
@@ -71,6 +72,8 @@ class TwitchPlaylistAutomator
         $download_path = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'playlist' . DIRECTORY_SEPARATOR . $unique_id;
 
         $run_file = $download_path . DIRECTORY_SEPARATOR . 'running';
+        $capture_info_file = $download_path . DIRECTORY_SEPARATOR . 'capture.json';
+        // $total_chunks_file = $download_path . DIRECTORY_SEPARATOR . 'total_chunks';
 
         if (isset($_GET['force'])) {
             if (file_exists($run_file)) unlink($run_file);
@@ -114,6 +117,7 @@ class TwitchPlaylistAutomator
         $num_new_chunks = 0;
 
         $last_deleted_chunk = -1;
+        $last_downloaded_chunk = -1;
 
         $first_run = true;
 
@@ -130,6 +134,8 @@ class TwitchPlaylistAutomator
 
             // extract all chunks
             $playlist_lines = explode("\n", $playlist);
+
+            /** @var Chunk[] $chunks */
             $chunks = [];
             // $chunks_obj = [];
             foreach ($playlist_lines as $i => $line) {
@@ -160,6 +166,11 @@ class TwitchPlaylistAutomator
 
             TwitchHelper::log(TwitchHelper::LOG_DEBUG, count($chunks) . " chunks read for {$unique_id}");
 
+            if (count($chunks) > 0) {
+                $last_chunk = $chunks[count($chunks) - 1];
+                // file_put_contents($total_chunks_file, $last_chunk->chunk_num);
+            }
+
             $new_chunks = [];
 
             // download chunks
@@ -188,6 +199,7 @@ class TwitchPlaylistAutomator
                 $num_new_chunks++;
                 $new_chunks[] = $chunk;
                 $chunk_data = null;
+                $last_downloaded_chunk = $chunk;
             }
 
             // $last_chunk_num = (int)str_replace(".ts", "", $chunks[count($chunks) - 1]);
@@ -314,6 +326,16 @@ class TwitchPlaylistAutomator
                 TwitchHelper::log(TwitchHelper::LOG_DEBUG, "No new chunks downloaded, try #{$num_new_chunks}");
                 $tries++;
             }
+
+            file_put_contents($capture_info_file, json_encode([
+                'time_started' => $time_started,
+                'chunks' => $chunks,
+                'total_chunks' => $last_chunk->chunk_num,
+                'last_downloaded_chunk' => $last_downloaded_chunk,
+                'stream_urls' => $stream_urls['streams'],
+                'tries' => $tries,
+                'pid' => getmypid()
+            ]));
 
             sleep($new_chunks_timeout);
 
