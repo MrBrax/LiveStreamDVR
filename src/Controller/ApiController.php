@@ -15,6 +15,7 @@ use App\TwitchVOD;
 use App\TwitchChannel;
 use App\TwitchPlaylistAutomator;
 use App\Traits\ApiVod;
+use App\TwitchAutomatorJob;
 
 class ApiController
 {
@@ -84,13 +85,10 @@ class ApiController
         $current_jobs_raw = glob(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . "*.pid");
         $current_jobs = [];
         foreach ($current_jobs_raw as $v) {
-            $pid = file_get_contents($v);
-            $status = TwitchHelper::getPidfileStatus(basename($v, ".pid"));
-            $current_jobs[] = [
-                'name' => basename($v, ".pid"),
-                'pid' => $pid,
-                'status' => $status !== false
-            ];
+            // $pid = file_get_contents($v);
+            $job = new TwitchAutomatorJob(basename($v, ".pid"));
+            $job->load();
+            $current_jobs[] = $job;
         }
 
         $payload = json_encode([
@@ -105,16 +103,13 @@ class ApiController
     public function jobs_kill(Request $request, Response $response, $args)
     {
 
-        $pid = TwitchHelper::getPidfileStatus($args['job']);
-        if ($pid) {
-            $output = TwitchHelper::exec(["kill", $pid]);
-            // $response->getBody()->write("Killed process.<br><pre>" . $output . "</pre>");
+        $job = new TwitchAutomatorJob($args['job']);
+        if ($job->load()) {
             $payload = json_encode([
-                'data' => $output,
+                'data' => $job->kill(),
                 'status' => 'OK'
             ]);
         } else {
-            // $response->getBody()->write("Found no process running for " . $args['job']);
             $payload = json_encode([
                 'data' => null,
                 'status' => 'ERROR'

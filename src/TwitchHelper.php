@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App;
 
 use GuzzleHttp\Client;
+use Symfony\Component\Process\Process;
 
 class TwitchHelper
 {
@@ -71,6 +72,8 @@ class TwitchHelper
 	];
 
 	private static $last_log_line;
+
+	private static $pid_cache;
 
 	/**
 	 * Set up directories for first use
@@ -801,10 +804,11 @@ class TwitchHelper
 	 *
 	 * @param string $name
 	 * @return int|false
+	 * @deprecated 3.5.0
 	 */
 	public static function getPidfileStatus(string $name)
 	{
-
+		/*
 		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . '.pid';
 
 		if (!file_exists($pidfile)) {
@@ -828,7 +832,83 @@ class TwitchHelper
 			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, process does not exist");
 			return false;
 		}
+		*/
+		$data = self::getPidfileStatus($name);
+		return $data['status'] ? $data['pid'] : false;
 	}
+
+	/*
+	public static function getJob(string $name)
+	{
+
+		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . '.pid';
+
+		$obj = new TwitchAutomatorJob($name);
+
+		if (!file_exists($pidfile)) {
+			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, file does not exist (" . $name . ".pid)");
+			$obj->error = TwitchAutomatorJob::NO_FILE;
+			return $obj;
+		}
+
+		$pid = file_get_contents($pidfile);
+
+		if (!$pid) {
+			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, file does not contain any data (" . $name . ".pid)");
+			$obj->error = TwitchAutomatorJob::NO_DATA;
+			return $obj;
+		}
+
+		$data = json_decode($pid);		
+
+		if($data){
+
+			$obj->pid = $data['pid'];
+			$obj->metadata = $data['metadata'];
+
+			$output = TwitchHelper::exec(["ps", "-p", $data['pid']]);
+
+			if (mb_strpos($output, $pid) !== false) {
+				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, process is running");
+				$obj->status = true;
+			} else {
+				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, process does not exist");
+				$obj->status = false;
+			}
+
+		}else{
+
+			$obj->name = $name;
+			$obj->pid = $pid;
+
+			$output = TwitchHelper::exec(["ps", "-p", $pid]);
+
+			if (mb_strpos($output, $pid) !== false) {
+				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, process is running");
+				$obj->status = true;
+			} else {
+				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, process does not exist");
+				$obj->status = false;
+			}
+
+		}
+
+		return $obj;
+
+	}
+
+	public static function setJob(string $name, int $pid, $metadata = null)
+	{
+		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . '.pid';
+
+		$data = json_encode([
+			'name' => $name,
+			'pid' => $pid,
+			'metadata' => $metadata
+		]);
+		file_put_contents($pidfile, $data);
+	}
+	*/
 
 	public static function webhook(array $data)
 	{

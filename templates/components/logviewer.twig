@@ -1,13 +1,14 @@
 <div class="log_viewer">
     {% apply spaceless %}
     {% for line in log_lines %}
-        <div class="log_{{ line.level|lower }}">
+        <div class="log_{{ line.level|lower }}"{% if config.debug %} title="{{ line.metadata }}"{% endif %}>
             {% if line.source %}
                 {{ line.date_string }} &lt;{{ line.level }}&gt; [{{ line.source.file|basename }}:{{ line.source.line }} {{line.source.function}}({{ line.source.args ? line.source.args|join : '' }})] {{ line.text }}
             {% else %}
                 {{ line.date_string }} &lt;{{ line.level }}&gt; {{ line.text }}
             {% endif %}
             {% if line.count %}<span class="tag tag-error">{{ line.count }}</span>{% endif %}
+            {% if config.debug and line.metadata %}<span class="tag tag-error">m</span>{% endif %}
         </div>
     {% endfor %}
     {% endapply %}

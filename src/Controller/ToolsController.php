@@ -10,6 +10,7 @@ use Slim\Psr7\Response;
 use App\TwitchAutomator;
 use App\TwitchConfig;
 use App\TwitchHelper;
+use App\TwitchAutomatorJob;
 use Slim\Views\Twig;
 
 use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -42,7 +43,7 @@ class ToolsController
 			];
 		}
 
-
+		/*
 		$current_jobs_raw = glob(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . "*.pid");
 		$current_jobs = [];
 		foreach ($current_jobs_raw as $v) {
@@ -54,6 +55,16 @@ class ToolsController
 				'status' => $status !== false
 			];
 		}
+		*/
+		$current_jobs_raw = glob(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . "*.pid");
+        $current_jobs = [];
+        foreach ($current_jobs_raw as $v) {
+            // $pid = file_get_contents($v);
+			$job = new TwitchAutomatorJob(basename($v, ".pid"));
+			$job->load();
+            $current_jobs[] = $job;
+		}
+		
 		// if( $current_jobs_raw ) $current_jobs = array_map( 'basename', $current_jobs_raw );
 
 		return $this->twig->render($response, 'tools.twig', [
@@ -105,12 +116,17 @@ class ToolsController
 		$process = new Process($cmd, TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools', null, null, null);
 		$process->start();
 
-		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_download_' . $video_id . '.pid';
-		file_put_contents($pidfile, $process->getPid());
+		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_download_' . $video_id . '.pid';
+		//file_put_contents($pidfile, $process->getPid());
+		$tools_chat_downloadJob = new TwitchAutomatorJob("tools_chat_download_{$video_id}");
+		$tools_chat_downloadJob->setPid($process->getPid());
+		$tools_chat_downloadJob->setProcess($process);
+		$tools_chat_downloadJob->save();
 
 		$process->wait();
 
-		if (file_exists($pidfile)) unlink($pidfile);
+		//if (file_exists($pidfile)) unlink($pidfile);
+		$tools_chat_downloadJob->clear();
 
 		$tcd_filename = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools' . DIRECTORY_SEPARATOR . $video_id . '.json';
 
@@ -156,12 +172,17 @@ class ToolsController
 		$process = new Process($cmd, dirname($destination), null, null, null);
 		$process->start();
 
-		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_vod_download_' . $video_id . '.pid';
-		file_put_contents($pidfile, $process->getPid());
+		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_vod_download_' . $video_id . '.pid';
+		//file_put_contents($pidfile, $process->getPid());
+		$tools_vod_downloadJob = new TwitchAutomatorJob("tools_vod_download_{$video_id}");
+		$tools_vod_downloadJob->setPid($process->getPid());
+		$tools_vod_downloadJob->setProcess($process);
+		$tools_vod_downloadJob->save();
 
 		$process->wait();
 
-		if (file_exists($pidfile)) unlink($pidfile);
+		//if (file_exists($pidfile)) unlink($pidfile);
+		$tools_vod_downloadJob->clear();
 
 		$this->logs['streamlink']['stdout'] = $process->getOutput();
 		$this->logs['streamlink']['stderr'] = $process->getErrorOutput();
@@ -228,12 +249,17 @@ class ToolsController
 		$process = new Process($cmd, dirname($source), null, null, null);
 		$process->start();
 
-		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_vod_convert_' . $video_id . '.pid';
-		file_put_contents($pidfile, $process->getPid());
+		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_vod_convert_' . $video_id . '.pid';
+		//file_put_contents($pidfile, $process->getPid());
+		$tools_vod_convertJob = new TwitchAutomatorJob("tools_vod_convert_{$video_id}");
+		$tools_vod_convertJob->setPid($process->getPid());
+		$tools_vod_convertJob->setProcess($process);
+		$tools_vod_convertJob->save();
 
 		$process->wait();
 
-		if (file_exists($pidfile)) unlink($pidfile);
+		//if (file_exists($pidfile)) unlink($pidfile);
+		$tools_vod_convertJob->clear();
 
 		$this->logs['ffmpeg']['stdout'] = $process->getOutput();
 		$this->logs['ffmpeg']['stderr'] = $process->getErrorOutput();
@@ -318,12 +344,17 @@ class ToolsController
 		$process = new Process($cmd, TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools', $env, null, null);
 		$process->start();
 
-		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_render_' . $video_id . '.pid';
-		file_put_contents($pidfile, $process->getPid());
+		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_render_' . $video_id . '.pid';
+		//file_put_contents($pidfile, $process->getPid());
+		$tools_chat_renderJob = new TwitchAutomatorJob("tools_chat_render_{$video_id}");
+		$tools_chat_renderJob->setPid($process->getPid());
+		$tools_chat_renderJob->setProcess($process);
+		$tools_chat_renderJob->save();
 
 		$process->wait();
 
-		if (file_exists($pidfile)) unlink($pidfile);
+		//if (file_exists($pidfile)) unlink($pidfile);
+		$tools_chat_renderJob->clear();
 
 		$this->logs['td_chat']['stdout'] = $process->getOutput();
 		$this->logs['td_chat']['stderr'] = $process->getErrorOutput();
@@ -393,12 +424,17 @@ class ToolsController
 		$process = new Process($cmd, dirname($video_filename), null, null, null);
 		$process->start();
 
-		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_burn_' . $video_id . '.pid';
-		file_put_contents($pidfile, $process->getPid());
+		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_burn_' . $video_id . '.pid';
+		//file_put_contents($pidfile, $process->getPid());
+		$tools_chat_burnJob = new TwitchAutomatorJob("tools_chat_burn_{$video_id}");
+		$tools_chat_burnJob->setPid($process->getPid());
+		$tools_chat_burnJob->setProcess($process);
+		$tools_chat_burnJob->save();
 
 		$process->wait();
 
-		if (file_exists($pidfile)) unlink($pidfile);
+		//if (file_exists($pidfile)) unlink($pidfile);
+		$tools_chat_burnJob->clear();
 
 		$this->logs['td_burn']['stdout'] = $process->getOutput();
 		$this->logs['td_burn']['stderr'] = $process->getErrorOutput();
@@ -651,6 +687,11 @@ class ToolsController
 				$response->getBody()->write("<pre>" . print_r($this->logs, true) . "</pre>");
 				return $response;
 			}
+		}
+
+		if (!file_exists($chatfile)) {
+			$response->getBody()->write("<br>Error while downloading chat");
+			return $response;
 		}
 
 		if (!file_exists($metafile)) {

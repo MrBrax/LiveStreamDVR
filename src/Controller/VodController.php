@@ -11,6 +11,7 @@ use App\TwitchAutomator;
 use App\TwitchConfig;
 use App\TwitchHelper;
 use App\TwitchVOD;
+use App\TwitchAutomatorJob;
 use Slim\Views\Twig;
 
 use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -117,12 +118,17 @@ class VodController
             $process = new Process($cmd, $this->directory, $env, null, null);
             $process->start();
 
-            $pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_cut_' . $vod . '.pid';
-            file_put_contents($pidfile, $process->getPid());
-
+            // $pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_cut_' . $vod . '.pid';
+            // file_put_contents($pidfile, $process->getPid());
+            $vod_cutJob = new TwitchAutomatorJob("vod_cut_{$vod}");
+            $vod_cutJob->setPid($process->getPid());
+            $vod_cutJob->setProcess($process);
+            $vod_cutJob->save();
+        
             $process->wait();
 
-            if (file_exists($pidfile)) unlink($pidfile);
+            // if (file_exists($pidfile)) unlink($pidfile);
+            $vod_cutJob->clear();
 
             $response->getBody()->write("$ " . implode(" ", $cmd));
 

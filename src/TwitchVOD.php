@@ -536,12 +536,17 @@ class TwitchVOD
 		$process = new Process($cmd, $this->directory, null, null, null);
 		$process->start();
 
-		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tcd_' . $this->basename . '.pid';
-		file_put_contents($pidfile, $process->getPid());
+		$tcdJob = new TwitchAutomatorJob("tcd_{$this->basename}");
+		$tcdJob->setPid($process->getPid());
+		$tcdJob->setProcess($process);
+		$tcdJob->save();
+		// $pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tcd_' . $this->basename . '.pid';
+		// file_put_contents($pidfile, $process->getPid());
 
 		$process->wait();
 
-		if (file_exists($pidfile)) unlink($pidfile);
+		//if (file_exists($pidfile)) unlink($pidfile);
+		$tcdJob->clear();
 
 		TwitchHelper::appendLog("tcd_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
 		TwitchHelper::appendLog("tcd_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
@@ -664,12 +669,17 @@ class TwitchVOD
 		$process = new Process($cmd, $this->directory, $env, null, null);
 		$process->start();
 
-		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tdrender_' . $this->streamer_name . '.pid';
-		file_put_contents($pidfile, $process->getPid());
+		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tdrender_' . $this->streamer_name . '.pid';
+		//file_put_contents($pidfile, $process->getPid());
+		$tdrenderJob = new TwitchAutomatorJob("tdrender_{$this->streamer_name}");
+		$tdrenderJob->setPid($process->getPid());
+		$tdrenderJob->setProcess($process);
+		$tdrenderJob->save();
 
 		$process->wait();
 
-		if (file_exists($pidfile)) unlink($pidfile);
+		// if (file_exists($pidfile)) unlink($pidfile);
+		$tdrenderJob->clear();
 
 		TwitchHelper::appendLog("tdrender_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
 		TwitchHelper::appendLog("tdrender_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
@@ -778,14 +788,19 @@ class TwitchVOD
 		$process->start();
 
 		// create pidfile
-		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'burnchat_' . $this->streamer_name . '.pid';
-		file_put_contents($pidfile, $process->getPid());
+		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'burnchat_' . $this->streamer_name . '.pid';
+		//file_put_contents($pidfile, $process->getPid());
+		$burnchatJob = new TwitchAutomatorJob("burnchat_{$this->streamer_name}");
+		$burnchatJob->setPid($process->getPid());
+		$burnchatJob->setProcess($process);
+		$burnchatJob->save();
 
 		// wait until process is done
 		$process->wait();
 
 		// remove pidfile
-		if (file_exists($pidfile)) unlink($pidfile);
+		//if (file_exists($pidfile)) unlink($pidfile);
+		$burnchatJob->clear();
 
 		TwitchHelper::appendLog("burnchat_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
 		TwitchHelper::appendLog("burnchat_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
@@ -1363,12 +1378,17 @@ class TwitchVOD
 			$process = new Process($cmd, $this->directory, null, null, null);
 			$process->start();
 
-			$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_download_' . $this->basename . '.pid';
-			file_put_contents($pidfile, $process->getPid());
+			//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_download_' . $this->basename . '.pid';
+			//file_put_contents($pidfile, $process->getPid());
+			$vod_downloadJob = new TwitchAutomatorJob("vod_download_{$this->basename}");
+			$vod_downloadJob->setPid($process->getPid());
+			$vod_downloadJob->setProcess($process);
+			$vod_downloadJob->save();
 
 			$process->wait();
 
-			if (file_exists($pidfile)) unlink($pidfile);
+			//if (file_exists($pidfile)) unlink($pidfile);
+			$vod_downloadJob->clear();
 
 			TwitchHelper::appendLog("streamlink_vod_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
 			TwitchHelper::appendLog("streamlink_vod_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
@@ -1427,12 +1447,17 @@ class TwitchVOD
 		$process = new Process($cmd, $this->directory, null, null, null);
 		$process->start();
 
-		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_convert_' . $this->basename . '.pid';
-		file_put_contents($pidfile, $process->getPid());
+		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_convert_' . $this->basename . '.pid';
+		//file_put_contents($pidfile, $process->getPid());
+		$vod_convertJob = new TwitchAutomatorJob("vod_convert_{$this->basename}");
+		$vod_convertJob->setPid($process->getPid());
+		$vod_convertJob->setProcess($process);
+		$vod_convertJob->save();
 
 		$process->wait();
 
-		if (file_exists($pidfile)) unlink($pidfile);
+		//if (file_exists($pidfile)) unlink($pidfile);
+		$vod_convertJob->clear();
 
 		TwitchHelper::appendLog("ffmpeg_vod_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
 		TwitchHelper::appendLog("ffmpeg_vod_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
@@ -1528,22 +1553,22 @@ class TwitchVOD
 
 	public function getCapturingStatus()
 	{
-		return TwitchHelper::getPidfileStatus("capture_{$this->streamer_name}");
+		return (new TwitchAutomatorJob("capture_{$this->streamer_name}"))->getStatus();
 	}
 
 	public function getConvertingStatus()
 	{
-		return TwitchHelper::getPidfileStatus("convert_{$this->streamer_name}");
+		return (new TwitchAutomatorJob("convert_{$this->streamer_name}"))->getStatus();
 	}
 
 	public function getChatDownloadStatus()
 	{
-		return TwitchHelper::getPidfileStatus("tcd_{$this->basename}");
+		return (new TwitchAutomatorJob("tcd_{$this->basename}"))->getStatus();
 	}
 
 	public function getChatDumpStatus()
 	{
-		return TwitchHelper::getPidfileStatus("chatdump_{$this->streamer_name}");
+		return (new TwitchAutomatorJob("chatdump_{$this->streamer_name}"))->getStatus();
 	}
 
 	public function finalize()
