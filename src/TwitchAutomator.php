@@ -283,7 +283,7 @@ class TwitchAutomator
 
 		// if running
 		$job = new TwitchAutomatorJob("capture_{$basename}");
-		if ( $job->getStatus() ) {
+		if ($job->getStatus()) {
 			TwitchHelper::log(TwitchHelper::LOG_FATAL, "Stream already capturing to {$job->metadata['basename']} from {$data_username}, but reached download function regardless!", ['download' => $data_username]);
 			return false;
 		}
@@ -343,7 +343,7 @@ class TwitchAutomator
 		// $this->notify($basename, '[' . $data_username . '] [download]', self::NOTIFY_DOWNLOAD);
 
 		/** @todo: non-blocking, how */
-		if( TwitchConfig::cfg('playlist_dump') ){
+		if (TwitchConfig::cfg('playlist_dump')) {
 			/*
 			$client = new \GuzzleHttp\Client();
 			$client->request("GET", "http://localhost:8080/hook", []);
@@ -823,7 +823,7 @@ class TwitchAutomator
 			*/
 
 			// if (file_exists($chat_pidfile)) unlink($chat_pidfile);
-			if($chatJob){
+			if ($chatJob) {
 				$chatJob->clear();
 			}
 			// TwitchHelper::appendLog("chatdump_" . $basename . "_stdout." . $int, $chat_process->getOutput() );
@@ -886,7 +886,7 @@ class TwitchAutomator
 
 		// delete pid file
 		// if (file_exists($pidfile)) unlink($pidfile);
-		if($captureJob) $captureJob->clear();
+		if ($captureJob) $captureJob->clear();
 
 		if (!file_exists($capture_filename)) {
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "File " . basename($capture_filename) . " never got created.", ['download-capture' => $data_username]);
@@ -899,322 +899,6 @@ class TwitchAutomator
 		}
 
 		return $capture_filename;
-	}
-
-	/**
-	 * experimental
-	 */
-	public function playlistDump($data)
-	{
-
-		$data_id = $data['data'][0]['id'];
-		$data_title = $data['data'][0]['title'];
-		$data_started = $data['data'][0]['started_at'];
-		$data_game_id = $data['data'][0]['game_id'];
-		$data_username = $data['data'][0]['user_name'];
-
-		$userid = TwitchHelper::getChannelId($data_username);
-
-		$videos = TwitchHelper::getVideos($userid);
-
-		if (!$videos) {
-			throw new \Exception("No videos");
-		}
-
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Start playlist download for {$data_username}");
-
-		$video = $videos[0];
-
-		if (isset($video['thumbnail_url']) && $video['thumbnail_url'] != '') {
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Newest vod is finalized");
-			return false;
-			//throw new \Exception("Newest vod is finalized");
-		}
-
-		$video_id = $video['id'];
-
-		$unique_id = $data_username . '-' . $video_id;
-
-		$quality = isset($_GET['quality']) ? $_GET['quality'] : 'best';
-		$new_chunks_timeout = 300;
-		$amount_of_tries = 3;
-
-		$concat_filename = $video_id . '.ts';
-
-		// fetch stream m3u8 urls with streamlink
-		$stream_urls_raw = TwitchHelper::exec([TwitchHelper::path_streamlink(), '--json', '--url', $video['url'], '--default-stream', $quality, '--stream-url']);
-		$stream_urls = json_decode($stream_urls_raw, true);
-
-		$download_path = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'playlist' . DIRECTORY_SEPARATOR . $unique_id;
-
-		$run_file = $download_path . DIRECTORY_SEPARATOR . 'running';
-
-		/*
-		if (isset($_GET['force'])) {
-			if (file_exists($run_file)) unlink($run_file);
-		}
-		*/
-
-		if (file_exists($run_file)) {
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Job is already running for this user, probably.");
-			return false;
-			// throw new \Exception("Job is already running for this user, probably. Use ?force=1 to force.");
-		}
-
-		// last added chunk
-		$last_chunk_appended_file = $download_path . DIRECTORY_SEPARATOR . 'lastchunk';
-		$last_chunk_appended = -1;
-		if (file_exists($last_chunk_appended_file)) {
-			$last_chunk_appended = file_get_contents($last_chunk_appended_file);
-		}
-
-		if (!file_exists($download_path)) {
-			if (!mkdir($download_path)) {
-				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Could not make download dir for {$unique_id}");
-				return false;
-				// throw new \Exception("Could not make download dir for {$unique_id}");
-			}
-		}
-
-		TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Download path: {$download_path}");
-
-		if (!$stream_urls || !$stream_urls['streams'][$quality]) {
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "No stream urls with quality {$quality} for {$unique_id}");
-			return false;
-			// throw new \Exception("No stream urls with quality {$quality} for {$unique_id}");
-		}
-
-		$stream_playlist_url = $stream_urls['streams'][$quality]['url'];
-
-		TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Playlist URL: {$stream_playlist_url}");
-
-		// save streams to file
-		file_put_contents($download_path . DIRECTORY_SEPARATOR . 'stream_urls.json', json_encode($stream_urls['streams']));
-
-		// save progress
-		file_put_contents($run_file, 1);
-
-		$basepath = dirname($stream_playlist_url);
-
-		$num_new_chunks = 0;
-
-		$last_deleted_chunk = -1;
-
-		$first_run = true;
-
-		$tries = 0;
-
-		do {
-
-			$num_new_chunks = 0;
-
-			// download playlist every loop
-			$playlist = file_get_contents($stream_playlist_url);
-
-			file_put_contents($download_path . DIRECTORY_SEPARATOR . 'playlist.m3u8', $playlist);
-
-			// extract all chunks
-			$playlist_lines = explode("\n", $playlist);
-			$chunks = [];
-			// $chunks_obj = [];
-			foreach ($playlist_lines as $i => $line) {
-
-				/*
-                if(substr($line, 0, 1) == '#'){
-                    $kv = explode( ":", substr($line, 1) );
-                    if($kv[0] ==)
-                    continue;
-                }
-                */
-
-				if (substr($line, -3) == '.ts') {
-					// $chunks[] = $line;
-
-					$chunk_obj = new Chunk();
-					$chunk_obj->chunk_num = substr($line, 0, -3);
-					$chunk_obj->filename = $line;
-					$chunk_obj->full_path = $download_path . DIRECTORY_SEPARATOR . $chunk_obj->filename;
-					$chunk_obj->full_url = $basepath . '/' . $chunk_obj->filename;
-					$chunk_obj->duration = substr(substr($playlist_lines[$i - 1], 8), 0, -1);
-
-					$chunks[] = $chunk_obj;
-				}
-			}
-
-			file_put_contents($download_path . DIRECTORY_SEPARATOR . 'chunks.json', json_encode($chunks));
-
-			TwitchHelper::log(TwitchHelper::LOG_DEBUG, count($chunks) . " chunks read for {$unique_id}");
-
-			$new_chunks = [];
-
-			// download chunks
-			foreach ($chunks as $chunk) {
-
-				/** @var Chunk $chunk */
-
-				// $full_url = $basepath . '/' . $chunk;
-				// $chunk_path = $download_path . DIRECTORY_SEPARATOR . $chunk;
-				// $chunk_num = (int)str_replace(".ts", "", $chunk);
-
-				// if (file_exists($chunk_path) || $chunk_num < $last_chunk_appended) { // hm
-				if (file_exists($chunk->full_path) || $chunk->chunk_num <= $last_chunk_appended) { // hm
-					continue;
-				}
-
-				$last_chunk_num = $chunk->chunk_num;
-
-				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Download chunk {$chunk->filename} for {$unique_id}");
-				$chunk_data = file_get_contents($chunk->full_url);
-				if (strlen($chunk_data) == 0) {
-					TwitchHelper::log(TwitchHelper::LOG_ERROR, "Empty chunk {$chunk->filename} for {$unique_id}");
-					break;
-				}
-				file_put_contents($chunk->full_path, $chunk_data);
-				$num_new_chunks++;
-				$new_chunks[] = $chunk;
-				$chunk_data = null;
-			}
-
-			// $last_chunk_num = (int)str_replace(".ts", "", $chunks[count($chunks) - 1]);
-
-			// exit out if no new files, test
-			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Compare for first run: {$last_chunk_num} == {$last_chunk_appended}");
-			if ($last_chunk_num == $last_chunk_appended) {
-				if ($first_run) {
-					TwitchHelper::log(TwitchHelper::LOG_WARNING, "No new chunks found for {$unique_id}");
-					return false;
-					// throw new \Exception("First run, no new chunks for {$unique_id}");
-				}
-			}
-
-			// concat into massive file
-			if ($num_new_chunks > 0) {
-
-				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Concat new chunks for {$unique_id} ({$num_new_chunks})");
-
-				$concat_file = $download_path . DIRECTORY_SEPARATOR . $concat_filename;
-
-				// build concat list
-				$chunks_to_append = [];
-				$concat_list = '';
-				foreach ($chunks as $chunk) {
-					/** @var Chunk $chunk */
-					// $chunk_path = $download_path . DIRECTORY_SEPARATOR . $chunk;
-					// $chunk_num = (int)str_replace(".ts", "", $chunk);
-					if ($chunk->chunk_num > $last_chunk_appended) { // duplicate last err
-						if (!file_exists($chunk->full_path)) {
-							TwitchHelper::log(TwitchHelper::LOG_ERROR, "Chunk {$chunk} does not exist for {$unique_id}");
-							return false;
-							// throw new \Exception("Chunk {$chunk} does not exist for {$unique_id}");
-						}
-						$chunks_to_append[] = $chunk;
-						// $concat_list .= "file '" . realpath($chunk_path) . "'\n"; // unsafe
-						$concat_list .= "file '" . $chunk->filename . "'\n";
-						// TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Append chunk {$chunk->filename} to all.ts for {$unique_id}");
-					}
-				}
-
-				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Append " . count($chunks_to_append) . " chunks to {$concat_filename} for {$unique_id}");
-
-				// prepend all.ts
-				if (file_exists($concat_file)) {
-					TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Include all.ts (not first run) for {$unique_id}");
-					$concat_list = "file 'all.ts'\n" . $concat_list;
-				}
-
-				$concat_list_file = $download_path . DIRECTORY_SEPARATOR . 'list.txt';
-				file_put_contents($concat_list_file, $concat_list);
-
-				/*
-                $cmd = [
-                    TwitchHelper::path_ffmpeg(),
-
-                    // concat format
-                    '-f',
-                    'concat',
-
-                    '-safe',
-                    '0',
-
-                    // input concat file
-                    '-i',
-                    realpath($concat_list_file),
-
-                    // force overwrite
-                    '-y',
-
-                    // copy coded
-                    '-codec',
-                    'copy',
-
-                    $concat_file
-                ];
-
-                // run concat
-                $process = new Process($cmd, $download_path, null, null, null);
-                $process->run();
-
-                TwitchHelper::appendLog("ffmpeg_concat_" . $video['id'] . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
-                TwitchHelper::appendLog("ffmpeg_concat_" . $video['id'] . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
-                */
-
-				// write every ts file to the big one, flush after every write to keep memory down
-				$handle = fopen($concat_file, 'a');
-				foreach ($chunks_to_append as $chunk) {
-					/** @var Chunk $chunk */
-					// $chunk_path = $download_path . DIRECTORY_SEPARATOR . $chunk;
-					$chunk_data = file_get_contents($chunk->full_path);
-					fwrite($handle, $chunk_data);
-					fflush($handle);
-					$chunk_data = null;
-				}
-				fclose($handle);
-
-				if (!file_exists($concat_file) || filesize($concat_file) == 0) {
-					TwitchHelper::log(TwitchHelper::LOG_ERROR, "File could not be concat for {$unique_id}");
-					return false;
-					// throw new \Exception("File could not be concat for {$unique_id}");
-				}
-
-				// remove old chunks
-				$removed_chunks = 0;
-				foreach ($chunks as $chunk) {
-					/** @var Chunk $chunk */
-					// $chunk_path = $download_path . DIRECTORY_SEPARATOR . $chunk;
-					// $chunk_num = (int)str_replace(".ts", "", $chunk);
-					if ($chunk->chunk_num >= $last_deleted_chunk && $chunk->chunk_num <= $last_chunk_num && file_exists($chunk->full_path)) {
-						unlink($chunk->full_path);
-						// TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Remove chunk {$chunk->filename} for {$unique_id}");
-						$last_deleted_chunk = $chunk->chunk_num;
-						$removed_chunks++;
-					}
-				}
-
-				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Removed {$removed_chunks} chunks for {$unique_id}");
-
-				// save last chunk name to file
-				$last_chunk_appended = $last_chunk_num;
-				file_put_contents($last_chunk_appended_file, $last_chunk_appended);
-				// unlink($concat_list_file);
-			}
-
-			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "{$num_new_chunks} new chunks downloaded, sleep for {$new_chunks_timeout} seconds for {$unique_id}");
-
-			if ($num_new_chunks == 0) {
-				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "No new chunks downloaded, try #{$num_new_chunks}");
-				$tries++;
-			}
-
-			sleep($new_chunks_timeout);
-
-			$first_run = false;
-		} while ($num_new_chunks > 0 && $tries < $amount_of_tries);
-
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "No more playlist chunks to download for {$unique_id}");
-
-		if (file_exists($run_file)) unlink($run_file);
-
-		return isset($concat_file) ? $concat_file : false;
 	}
 
 	/**

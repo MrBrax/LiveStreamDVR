@@ -127,10 +127,10 @@ class TwitchAutomatorJob
 		//	return false;
 		//}
 
-		if (mb_strpos($output, $this->pid) !== false) {
+		if (mb_strpos($output, (string)$pid) !== false) {
 			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, process is running");
-			$this->status = $this->pid;
-			return $this->pid;
+			$this->status = $pid;
+			return $pid;
 		} else {
 			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, process does not exist");
 			$this->status = false;

@@ -108,7 +108,6 @@ class TwitchConfig
 		}
 
 		return null;
-
 	}
 
 	public static function setConfig(string $key, $value)
@@ -119,13 +118,13 @@ class TwitchConfig
 		}
 
 		$field = self::getSettingField($key);
-		if( $field['stripslash'] ){
+		if ($field['stripslash']) {
 			$value = rtrim($value, "\\/"); // strip ending slashes
 		}
 
 		// hmm
-		if( $field['type'] == 'number' ) $value = (int)$value;
-		if( $field['type'] == 'string' ) $value = (string)$value;
+		if ($field['type'] == 'number') $value = (int)$value;
+		if ($field['type'] == 'string') $value = (string)$value;
 
 		self::$config[$key] = $value;
 	}
@@ -189,7 +188,7 @@ class TwitchConfig
 			// return false;
 		}
 
-		if(!file_exists(TwitchHelper::$config_folder)){
+		if (!file_exists(TwitchHelper::$config_folder)) {
 			throw new \Exception("Config folder does not exist and could not be automatically created, please create it.");
 		}
 

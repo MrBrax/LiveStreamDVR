@@ -111,7 +111,7 @@ class ApiController
             ]);
         } else {
             $payload = json_encode([
-                'data' => null,
+                'error' => 'Failed loading job',
                 'status' => 'ERROR'
             ]);
         }
