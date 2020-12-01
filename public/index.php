@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-if (version_compare(PHP_VERSION, '7.4.0', '<') ) {
+if (version_compare(PHP_VERSION, '7.4.0', '<')) {
     die("PHP needs to be at least on version 7.4.0, your version: " . PHP_VERSION . "\n");
 }
 
@@ -21,6 +21,7 @@ use Slim\Views\TwigMiddleware;
 use Twig\Extension\DebugExtension;
 use Twig\TwigFilter;
 use Twig\Extra\Html\HtmlExtension;
+use App\MyErrorHandler;
 
 // Create Container
 $container = new Container();
@@ -133,6 +134,10 @@ if (TwitchConfig::cfg('debug', false)) {
     // TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Enabling debugging settings for slim..." );
     $container->get('view')->getEnvironment()->addExtension(new DebugExtension());
     $errorMiddleware = $app->addErrorMiddleware(true, true, true);
+} else {
+    $myErrorHandler = new MyErrorHandler($app->getCallableResolver(), $app->getResponseFactory());
+    $errorMiddleware = $app->addErrorMiddleware(true, true, true);
+    $errorMiddleware->setDefaultErrorHandler($myErrorHandler);
 }
 
 require __DIR__ . "/../src/Routes/routes.php";
