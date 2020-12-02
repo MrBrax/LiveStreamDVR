@@ -20,6 +20,7 @@ class TwitchAutomatorJob
 	public array $metadata = [];
 	public $status;
 	public int $error;
+	public Process $process;
 	// private $tried_loading;
 
 	function __construct(string $name)
@@ -94,7 +95,7 @@ class TwitchAutomatorJob
 	 */
 	function clear()
 	{
-		if ($this->process) {
+		if (isset($this->process)) {
 			$this->process = null;
 		}
 
@@ -192,6 +193,9 @@ class TwitchAutomatorJob
 	 */
 	function kill()
 	{
+		if (isset($this->process)) {
+			return $this->process->stop();
+		}
 		return TwitchHelper::exec(["kill", $this->getPid()]);
 	}
 }

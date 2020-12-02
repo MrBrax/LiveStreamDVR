@@ -362,17 +362,15 @@ class TwitchAutomator
 					TwitchConfig::getStreamer($data_username)['quality'][0]
 				);
 			} catch (\Throwable $th) {
-				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Exception handler for playlist dump for {$basename}, capture normally: " . $th->getMessage() );
+				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Exception handler for playlist dump for {$basename}, capture normally: " . $th->getMessage());
 
 				// fallback
 				$capture_filename = $this->capture($data);
 			}
-
-		}else{
+		} else {
 
 			// capture with streamlink
 			$capture_filename = $this->capture($data);
-
 		}
 
 		// error handling if nothing got downloaded

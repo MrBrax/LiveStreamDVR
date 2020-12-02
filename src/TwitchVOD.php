@@ -437,7 +437,7 @@ class TwitchVOD
 		$str = '';
 		if ($this->chapters) {
 			foreach ($this->chapters as $chapter) {
-				if(!$chapter['offset'] || !$chapter['game_name']) continue;
+				if (!$chapter['offset'] || !$chapter['game_name']) continue;
 				$str .= $chapter['offset'] . ':' . str_replace(" ", "_", $chapter['game_name']) . ';';
 			}
 		}
@@ -1554,7 +1554,7 @@ class TwitchVOD
 	public function getCapturingStatus()
 	{
 
-		if( TwitchConfig::cfg('playlist_dump') ){
+		if (TwitchConfig::cfg('playlist_dump')) {
 			// check if running, whatever
 		}
 

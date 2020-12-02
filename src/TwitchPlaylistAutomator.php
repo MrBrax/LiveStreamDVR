@@ -132,7 +132,7 @@ class TwitchPlaylistAutomator
 
         $tries = 0;
 
-        if(!file_exists($output_file)){
+        if (!file_exists($output_file)) {
             touch($output_file);
         }
 

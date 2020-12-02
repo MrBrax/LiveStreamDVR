@@ -843,7 +843,7 @@ class TwitchHelper
 		$current_jobs = [];
 		foreach ($current_jobs_raw as $v) {
 			$name = basename($v, ".json");
-			if (strpos($name, $search) !== false){
+			if (strpos($name, $search) !== false) {
 				return new TwitchAutomatorJob($name);
 			}
 		}
