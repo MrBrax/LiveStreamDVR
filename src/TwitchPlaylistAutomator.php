@@ -8,7 +8,6 @@ use Exception;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
-
 class Chunk
 {
     public $chunk_num;
@@ -21,6 +20,11 @@ class Chunk
     }
 }
 
+/*
+class TwitchPlaylistAutomatorException extends \Throwable {
+
+}
+*/
 
 class TwitchPlaylistAutomator
 {
@@ -33,10 +37,12 @@ class TwitchPlaylistAutomator
     {
     }
 
-    public function downloadLatest($username, $quality = 'best')
+    public function downloadLatest($username, $output_file, $quality = 'best')
     {
 
         set_time_limit(0);
+
+        $output_basename = basename($output_file);
 
         $time_started = time();
 
@@ -45,6 +51,7 @@ class TwitchPlaylistAutomator
         $videos = TwitchHelper::getVideos($userid);
 
         if (!$videos) {
+            TwitchHelper::log(TwitchHelper::LOG_ERROR, "Playlist dump for {$username} error: No videos.");
             throw new \Exception("No videos");
         }
 
@@ -53,6 +60,7 @@ class TwitchPlaylistAutomator
         $video = $videos[0];
 
         if (isset($video['thumbnail_url']) && $video['thumbnail_url'] != '') {
+            TwitchHelper::log(TwitchHelper::LOG_ERROR, "Playlist dump for {$username} error: Newest vod is finalized.");
             throw new Exception("Newest vod is finalized");
         }
 
@@ -63,7 +71,7 @@ class TwitchPlaylistAutomator
         $new_chunks_timeout = 300;
         $amount_of_tries = 3;
 
-        $concat_filename = $video_id . '.ts';
+        // $concat_filename = $video_id . '.ts';
 
         // fetch stream m3u8 urls with streamlink
         $stream_urls_raw = TwitchHelper::exec([TwitchHelper::path_streamlink(), '--json', '--url', $video['url'], '--default-stream', $quality, '--stream-url']);
@@ -99,6 +107,7 @@ class TwitchPlaylistAutomator
         TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Download path: {$download_path}");
 
         if (!$stream_urls || !$stream_urls['streams'][$quality]) {
+            TwitchHelper::log(TwitchHelper::LOG_ERROR, "Playlist dump for {$username} error: No stream urls with quality {$quality} for {$unique_id}.");
             throw new \Exception("No stream urls with quality {$quality} for {$unique_id}");
         }
 
@@ -123,6 +132,11 @@ class TwitchPlaylistAutomator
 
         $tries = 0;
 
+        if(!file_exists($output_file)){
+            touch($output_file);
+        }
+
+        // full loop
         do {
 
             $num_new_chunks = 0;
@@ -149,8 +163,6 @@ class TwitchPlaylistAutomator
                 */
 
                 if (substr($line, -3) == '.ts') {
-                    // $chunks[] = $line;
-
                     $chunk_obj = new Chunk();
                     $chunk_obj->chunk_num = substr($line, 0, -3);
                     $chunk_obj->filename = $line;
@@ -178,17 +190,14 @@ class TwitchPlaylistAutomator
 
                 /** @var Chunk $chunk */
 
-                // $full_url = $basepath . '/' . $chunk;
-                // $chunk_path = $download_path . DIRECTORY_SEPARATOR . $chunk;
-                // $chunk_num = (int)str_replace(".ts", "", $chunk);
-
-                // if (file_exists($chunk_path) || $chunk_num < $last_chunk_appended) { // hm
+                // don't download old chunks
                 if (file_exists($chunk->full_path) || $chunk->chunk_num <= $last_chunk_appended) { // hm
                     continue;
                 }
 
                 $last_chunk_num = $chunk->chunk_num;
 
+                // regular php download, maybe handle this with aria some day
                 TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Download chunk {$chunk->filename} for {$unique_id}");
                 $chunk_data = file_get_contents($chunk->full_url);
                 if (strlen($chunk_data) == 0) {
@@ -201,8 +210,6 @@ class TwitchPlaylistAutomator
                 $chunk_data = null;
                 $last_downloaded_chunk = $chunk;
             }
-
-            // $last_chunk_num = (int)str_replace(".ts", "", $chunks[count($chunks) - 1]);
 
             // exit out if no new files, test
             TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Compare for first run: {$last_chunk_num} == {$last_chunk_appended}");
@@ -218,36 +225,36 @@ class TwitchPlaylistAutomator
 
                 TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Concat new chunks for {$unique_id} ({$num_new_chunks})");
 
-                $concat_file = $download_path . DIRECTORY_SEPARATOR . $concat_filename;
+                // $concat_file = $download_path . DIRECTORY_SEPARATOR . $concat_filename;
 
                 // build concat list
                 $chunks_to_append = [];
-                $concat_list = '';
+                // $concat_list = '';
                 foreach ($chunks as $chunk) {
                     /** @var Chunk $chunk */
-                    // $chunk_path = $download_path . DIRECTORY_SEPARATOR . $chunk;
-                    // $chunk_num = (int)str_replace(".ts", "", $chunk);
                     if ($chunk->chunk_num > $last_chunk_appended) { // duplicate last err
                         if (!file_exists($chunk->full_path)) {
                             throw new \Exception("Chunk {$chunk} does not exist for {$unique_id}");
                         }
                         $chunks_to_append[] = $chunk;
                         // $concat_list .= "file '" . realpath($chunk_path) . "'\n"; // unsafe
-                        $concat_list .= "file '" . $chunk->filename . "'\n";
+                        // $concat_list .= "file '" . $chunk->filename . "'\n";
                         // TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Append chunk {$chunk->filename} to all.ts for {$unique_id}");
                     }
                 }
 
-                TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Append " . count($chunks_to_append) . " chunks to {$concat_filename} for {$unique_id}");
+                TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Append " . count($chunks_to_append) . " chunks to {$output_basename} for {$unique_id}");
 
                 // prepend all.ts
-                if (file_exists($concat_file)) {
+                /*
+                if (file_exists($output_file)) {
                     TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Include all.ts (not first run) for {$unique_id}");
                     $concat_list = "file 'all.ts'\n" . $concat_list;
                 }
+                */
 
-                $concat_list_file = $download_path . DIRECTORY_SEPARATOR . 'list.txt';
-                file_put_contents($concat_list_file, $concat_list);
+                // $concat_list_file = $download_path . DIRECTORY_SEPARATOR . 'list.txt';
+                // file_put_contents($concat_list_file, $concat_list);
 
                 /*
                 $cmd = [
@@ -283,10 +290,9 @@ class TwitchPlaylistAutomator
                 */
 
                 // write every ts file to the big one, flush after every write to keep memory down
-                $handle = fopen($concat_file, 'a');
+                $handle = fopen($output_file, 'a');
                 foreach ($chunks_to_append as $chunk) {
                     /** @var Chunk $chunk */
-                    // $chunk_path = $download_path . DIRECTORY_SEPARATOR . $chunk;
                     $chunk_data = file_get_contents($chunk->full_path);
                     fwrite($handle, $chunk_data);
                     fflush($handle);
@@ -294,7 +300,7 @@ class TwitchPlaylistAutomator
                 }
                 fclose($handle);
 
-                if (!file_exists($concat_file) || filesize($concat_file) == 0) {
+                if (!file_exists($output_file) || filesize($output_file) == 0) {
                     throw new \Exception("File could not be concat for {$unique_id}");
                 }
 
@@ -302,8 +308,6 @@ class TwitchPlaylistAutomator
                 $removed_chunks = 0;
                 foreach ($chunks as $chunk) {
                     /** @var Chunk $chunk */
-                    // $chunk_path = $download_path . DIRECTORY_SEPARATOR . $chunk;
-                    // $chunk_num = (int)str_replace(".ts", "", $chunk);
                     if ($chunk->chunk_num >= $last_deleted_chunk && $chunk->chunk_num <= $last_chunk_num && file_exists($chunk->full_path)) {
                         unlink($chunk->full_path);
                         // TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Remove chunk {$chunk->filename} for {$unique_id}");
@@ -345,5 +349,11 @@ class TwitchPlaylistAutomator
         TwitchHelper::log(TwitchHelper::LOG_INFO, "No more playlist chunks to download for {$unique_id}");
 
         if (file_exists($run_file)) unlink($run_file);
+
+        if (!file_exists($output_file) || filesize($output_file) == 0) {
+            return false;
+        }
+
+        return $output_file;
     }
 }

@@ -188,7 +188,7 @@ class SettingsController
         TwitchHelper::sub($username);
 
         return $this->twig->render($response, 'dialog.twig', [
-            'text' => "Streamer added: " . $username . ".",
+            'text' => "Streamer added: {$username}.",
             'type' => 'success'
         ]);
     }

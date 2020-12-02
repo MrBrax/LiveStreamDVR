@@ -145,14 +145,14 @@ class TwitchAutomator
 				if ($vodclass->load($folder_base . DIRECTORY_SEPARATOR . $basename . '.json')) {
 
 					if ($vodclass->is_finalized) {
-						TwitchHelper::log(TwitchHelper::LOG_ERROR, "VOD is finalized, but wanted more info on " . $basename);
+						TwitchHelper::log(TwitchHelper::LOG_ERROR, "VOD is finalized, but wanted more info on {$basename}");
 					} elseif ($vodclass->is_capturing) {
 						$this->updateGame($data);
 					} else {
-						TwitchHelper::log(TwitchHelper::LOG_ERROR, "VOD exists but isn't capturing anymore on " . $basename);
+						TwitchHelper::log(TwitchHelper::LOG_ERROR, "VOD exists but isn't capturing anymore on {$basename}");
 					}
 				} else {
-					TwitchHelper::log(TwitchHelper::LOG_ERROR, "Could not load VOD in handle for " . $basename);
+					TwitchHelper::log(TwitchHelper::LOG_ERROR, "Could not load VOD in handle for {$basename}");
 				}
 				/*
 				if (!file_exists($folder_base . DIRECTORY_SEPARATOR . $basename . '.ts')) {
@@ -351,8 +351,29 @@ class TwitchAutomator
 			// $this->playlistDump($data);
 		}
 
-		// capture with streamlink
-		$capture_filename = $this->capture($data);
+		if (TwitchConfig::cfg('playlist_dump')) {
+
+			$psa = new TwitchPlaylistAutomator();
+
+			try {
+				$capture_filename = $psa->downloadLatest(
+					$data_username,
+					$folder_base . DIRECTORY_SEPARATOR . $basename . '.ts',
+					TwitchConfig::getStreamer($data_username)['quality'][0]
+				);
+			} catch (\Throwable $th) {
+				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Exception handler for playlist dump for {$basename}, capture normally: " . $th->getMessage() );
+
+				// fallback
+				$capture_filename = $this->capture($data);
+			}
+
+		}else{
+
+			// capture with streamlink
+			$capture_filename = $this->capture($data);
+
+		}
 
 		// error handling if nothing got downloaded
 		if (!$capture_filename || (isset($capture_filename) && !file_exists($capture_filename))) {
@@ -592,10 +613,10 @@ class TwitchAutomator
 		$process->start();
 
 		// output command line
-		TwitchHelper::clearLog("streamlink_" . $basename . "_stdout." . $int);
-		TwitchHelper::clearLog("streamlink_" . $basename . "_stderr." . $int);
-		TwitchHelper::appendLog("streamlink_" . $basename . "_stdout." . $int, "$ " . implode(" ", $cmd));
-		TwitchHelper::appendLog("streamlink_" . $basename . "_stderr." . $int, "$ " . implode(" ", $cmd));
+		TwitchHelper::clearLog("streamlink_{$basename}_stdout.{$int}");
+		TwitchHelper::clearLog("streamlink_{$basename}_stderr.{$int}");
+		TwitchHelper::appendLog("streamlink_{$basename}_stdout.{$int}", "$ " . implode(" ", $cmd));
+		TwitchHelper::appendLog("streamlink_{$basename}_stderr.{$int}", "$ " . implode(" ", $cmd));
 
 		// save pid to file
 		// $pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'capture_' . $data_username . '.pid';
@@ -675,10 +696,10 @@ class TwitchAutomator
 			]);
 			$chatJob->save();
 
-			TwitchHelper::clearLog("chatdump_" . $basename . "_stdout." . $int);
-			TwitchHelper::clearLog("chatdump_" . $basename . "_stderr." . $int);
-			TwitchHelper::appendLog("chatdump_" . $basename . "_stdout." . $int, implode(" ", $chat_cmd));
-			TwitchHelper::appendLog("chatdump_" . $basename . "_stderr." . $int, implode(" ", $chat_cmd));
+			TwitchHelper::clearLog("chatdump_{$basename}_stdout.{$int}");
+			TwitchHelper::clearLog("chatdump_{$basename}_stderr.{$int}");
+			TwitchHelper::appendLog("chatdump_{$basename}_stdout.{$int}", implode(" ", $chat_cmd));
+			TwitchHelper::appendLog("chatdump_{$basename}_stderr.{$int}", implode(" ", $chat_cmd));
 		} else {
 			$chat_process = null;
 		}
@@ -711,27 +732,27 @@ class TwitchAutomator
 			preg_match("/stream:\s([0-9_a-z]+)\s/", $buffer, $matches);
 			if ($matches) {
 				$this->stream_resolution = $matches[1];
-				TwitchHelper::log(TwitchHelper::LOG_INFO, "Stream resolution for " . $basename . ": " . $this->stream_resolution, ['download-capture' => $data_username]);
+				TwitchHelper::log(TwitchHelper::LOG_INFO, "Stream resolution for {$basename}: {$this->stream_resolution}", ['download-capture' => $data_username]);
 			}
 
 			// stream stop
 			if (strpos($buffer, "404 Client Error") !== false) {
-				TwitchHelper::log(TwitchHelper::LOG_WARNING, "Chunk 404'd for " . $basename . "!", ['download-capture' => $data_username]);
+				TwitchHelper::log(TwitchHelper::LOG_WARNING, "Chunk 404'd for {$basename}!", ['download-capture' => $data_username]);
 			}
 
 			// ad removal
 			if (strpos($buffer, "Will skip ad segments") !== false) {
-				TwitchHelper::log(TwitchHelper::LOG_INFO, "Capturing of " . $basename . " will try to remove ads!", ['download-capture' => $data_username]);
+				TwitchHelper::log(TwitchHelper::LOG_INFO, "Capturing of {$basename} will try to remove ads!", ['download-capture' => $data_username]);
 				// $current_ad_start = time();
 			}
 
 			if (strpos($buffer, "Filtering out segments and pausing stream output") !== false) {
-				TwitchHelper::log(TwitchHelper::LOG_INFO, "Pausing capture for " . $basename . " due to ad segment!", ['download-capture' => $data_username]);
+				TwitchHelper::log(TwitchHelper::LOG_INFO, "Pausing capture for {$basename} due to ad segment!", ['download-capture' => $data_username]);
 				// $current_ad_start = time();
 			}
 
 			if (strpos($buffer, "Resuming stream output") !== false) {
-				TwitchHelper::log(TwitchHelper::LOG_INFO, "Resuming capture for " . $basename . " due to ad segment!", ['download-capture' => $data_username]);
+				TwitchHelper::log(TwitchHelper::LOG_INFO, "Resuming capture for {$basename} due to ad segment!", ['download-capture' => $data_username]);
 				/*
 				if( isset($current_ad_start) ){
 					$vod->addAdvertisement([
@@ -744,9 +765,9 @@ class TwitchAutomator
 
 			// log output
 			if (Process::ERR === $type) {
-				TwitchHelper::appendLog("streamlink_" . $basename . "_stderr." . $int, $buffer);
+				TwitchHelper::appendLog("streamlink_{$basename}_stderr.{$int}", $buffer);
 			} else {
-				TwitchHelper::appendLog("streamlink_" . $basename . "_stdout." . $int, $buffer);
+				TwitchHelper::appendLog("streamlink_{$basename}_stdout.{$int}", $buffer);
 			}
 		});
 
@@ -870,8 +891,8 @@ class TwitchAutomator
 			$yt_process = new Process($yt_cmd, null, null, null, null);
 			$yt_process->run();
 
-			TwitchHelper::appendLog("youtubedl_" . $basename . "_" . time() . "_stdout", "$ " . implode(" ", $yt_cmd) . "\n" . $yt_process->getOutput());
-			TwitchHelper::appendLog("youtubedl_" . $basename . "_" . time() . "_stderr", "$ " . implode(" ", $yt_cmd) . "\n" . $yt_process->getErrorOutput());
+			TwitchHelper::appendLog("youtubedl_{$basename}_" . time() . "_stdout", "$ " . implode(" ", $yt_cmd) . "\n" . $yt_process->getOutput());
+			TwitchHelper::appendLog("youtubedl_{$basename}_" . time() . "_stderr", "$ " . implode(" ", $yt_cmd) . "\n" . $yt_process->getErrorOutput());
 		}
 
 		if (mb_strpos($process->getOutput(), 'already exists, use') !== false) {
@@ -1037,8 +1058,8 @@ class TwitchAutomator
 		$convertJob->clear();
 		//if (file_exists($pidfile)) unlink($pidfile);
 
-		TwitchHelper::appendLog("ffmpeg_convert_" . $basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
-		TwitchHelper::appendLog("ffmpeg_convert_" . $basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+		TwitchHelper::appendLog("ffmpeg_convert_{$basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+		TwitchHelper::appendLog("ffmpeg_convert_{$basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
 
 		if (strpos($process->getErrorOutput(), "Packet corrupt") !== false || strpos($process->getErrorOutput(), "Non-monotonous DTS in output stream") !== false) {
 			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Found corrupt packets when converting " . basename($capture_filename) . " to " . basename($converted_filename), ['download-convert' => $data_username]);

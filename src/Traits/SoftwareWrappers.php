@@ -8,6 +8,7 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use App\TwitchConfig;
 use App\TwitchHelper;
+use App\TwitchAutomatorJob;
 
 trait SoftwareWrappers
 {
@@ -70,7 +71,7 @@ trait SoftwareWrappers
 	public static function mediainfo(string $filename)
 	{
 
-		TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Run mediainfo on " . $filename);
+		TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Run mediainfo on {$filename}");
 
 		if (!$filename) {
 			throw new \Exception('No filename supplied for mediainfo');
@@ -111,4 +112,83 @@ trait SoftwareWrappers
 			return false;
 		}
 	}
+
+	public static function remuxVideo( string $input, string $output, $delete_input = false ){
+
+		$basename = basename($input);
+
+		$cmd = [];
+
+		$cmd[] = TwitchHelper::path_ffmpeg();
+
+		$cmd[] = '-i';
+		$cmd[] = $input; // input filename
+
+		if (TwitchConfig::cfg('encode_audio')) {
+			$cmd[] = '-c:v';
+			$cmd[] = 'copy'; // use same video codec
+
+			$cmd[] = '-c:a';
+			$cmd[] = 'aac'; // re-encode audio
+
+			$cmd[] = '-b:a';
+			$cmd[] = '160k'; // use same audio bitrate
+		} else {
+			$cmd[] = '-codec';
+			$cmd[] = 'copy'; // use same codec
+		}
+
+		$cmd[] = '-bsf:a';
+		$cmd[] = 'aac_adtstoasc'; // fix audio sync in ts
+
+		if (TwitchConfig::cfg('ts_sync')) {
+
+			$cmd[] = '-async';
+			$cmd[] = '1';
+
+			// $cmd[] = '-filter_complex';
+			// $cmd[] = 'aresample';
+
+			// $cmd[] = '-af';
+			// $cmd[] = 'aresample=async=1';
+
+		}
+
+		if (TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false)) {
+			$cmd[] = '-loglevel';
+			$cmd[] = 'repeat+level+verbose';
+		}
+
+		$cmd[] = $output; // output filename
+
+		$process = new Process($cmd, dirname($input), null, null, null);
+		$process->start();
+
+		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_convert_' . $this->basename . '.pid';
+		//file_put_contents($pidfile, $process->getPid());
+		$remuxVideoJob = new TwitchAutomatorJob("remux_video_{$basename}");
+		$remuxVideoJob->setPid($process->getPid());
+		$remuxVideoJob->setProcess($process);
+		$remuxVideoJob->save();
+
+		$process->wait();
+
+		//if (file_exists($pidfile)) unlink($pidfile);
+		$remuxVideoJob->clear();
+
+		TwitchHelper::appendLog("ffmpeg_remux_{$basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+		TwitchHelper::appendLog("ffmpeg_remux_{$basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+
+		if (file_exists($input) && file_exists($output) && filesize($output) > 0) {
+			if( $delete_input ){
+				unlink($input);
+			}
+		}
+
+		$successful = file_exists($output) && filesize($output) > 0;
+
+		return $successful;
+
+	}
+
 }

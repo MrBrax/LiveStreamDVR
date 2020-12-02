@@ -86,7 +86,7 @@ class TwitchHelper
 			// self::log(self::LOG_DEBUG, "Checking directory " . $dir);
 			if (!file_exists($dir)) {
 				if (!mkdir($dir)) {
-					throw new \Exception("Couldn't make directory: " . $dir);
+					throw new \Exception("Couldn't make directory: {$dir}");
 				}
 				// self::log(self::LOG_INFO, "Made directory " . $dir);
 			}
@@ -205,8 +205,8 @@ class TwitchHelper
 
 
 		$date = new \DateTime();
-		$text_line = $date->format("Y-m-d H:i:s.v") . " | <" . $level . "> " . $text;
-		$log_text .= "\n" . $text_line;
+		$text_line = $date->format("Y-m-d H:i:s.v") . " | <{$level}> {$text}";
+		$log_text .= "\n{$text_line}";
 
 		$log_data = [
 			"date" => (string)microtime(true),
@@ -843,7 +843,9 @@ class TwitchHelper
 		$current_jobs = [];
 		foreach ($current_jobs_raw as $v) {
 			$name = basename($v, ".json");
-			if (strpos($name, $search) !== -1) return new TwitchAutomatorJob($name);
+			if (strpos($name, $search) !== false){
+				return new TwitchAutomatorJob($name);
+			}
 		}
 		return null;
 	}

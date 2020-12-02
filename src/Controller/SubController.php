@@ -34,7 +34,7 @@ class SubController
             if ($ret === true) {
                 $response->getBody()->write('Subscription request sent, check logs for details');
             } else {
-                $response->getBody()->write("Error: " . $ret);
+                $response->getBody()->write("Error: {$ret}");
             }
 
             $response->getBody()->write('</pre>');

@@ -55,12 +55,12 @@ class VodController
             $name           = $_POST['name'];
 
             if (!$second_start || $second_start > $second_end) {
-                $response->getBody()->write("Invalid start time (" . $second_start . ")");
+                $response->getBody()->write("Invalid start time ({$second_start})");
                 return $response;
             }
 
             if (!$second_end || $second_end < $second_start) {
-                $response->getBody()->write("Invalid end time (" . $second_end . ")");
+                $response->getBody()->write("Invalid end time ({$second_end})");
                 return $response;
             }
 
@@ -132,8 +132,8 @@ class VodController
 
             $response->getBody()->write("$ " . implode(" ", $cmd));
 
-            TwitchHelper::appendLog("ffmpeg_" . $vod . "-cut-" . $second_start . "-" . $second_end . "_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
-            TwitchHelper::appendLog("ffmpeg_" . $vod . "-cut-" . $second_start . "-" . $second_end . "_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+            TwitchHelper::appendLog("ffmpeg_{$vod}-cut-{$second_start}-{$second_end}_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+            TwitchHelper::appendLog("ffmpeg_{$vod}-cut-{$second_start}-{$second_end}_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
 
             $response->getBody()->write("<pre>" . $process->getOutput() . "</pre>");
             $response->getBody()->write("<pre>" . $process->getErrorOutput() . "</pre>");

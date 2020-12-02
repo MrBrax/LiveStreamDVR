@@ -548,8 +548,8 @@ class TwitchVOD
 		//if (file_exists($pidfile)) unlink($pidfile);
 		$tcdJob->clear();
 
-		TwitchHelper::appendLog("tcd_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
-		TwitchHelper::appendLog("tcd_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+		TwitchHelper::appendLog("tcd_{$this->basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+		TwitchHelper::appendLog("tcd_{$this->basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
 
 		if (mb_strpos($process->getErrorOutput(), "404 Client Error:") !== false) {
 			throw new \Exception("VOD on Twitch not found, is it deleted?");
@@ -681,8 +681,8 @@ class TwitchVOD
 		// if (file_exists($pidfile)) unlink($pidfile);
 		$tdrenderJob->clear();
 
-		TwitchHelper::appendLog("tdrender_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
-		TwitchHelper::appendLog("tdrender_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+		TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+		TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
 
 		// $this->burnChat( $chat_width );
 
@@ -802,8 +802,8 @@ class TwitchVOD
 		//if (file_exists($pidfile)) unlink($pidfile);
 		$burnchatJob->clear();
 
-		TwitchHelper::appendLog("burnchat_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
-		TwitchHelper::appendLog("burnchat_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+		TwitchHelper::appendLog("burnchat_{$this->basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+		TwitchHelper::appendLog("burnchat_{$this->basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
 
 		$successful = file_exists($this->path_chatburn) && filesize($this->path_chatburn) > 0;
 
@@ -1390,8 +1390,8 @@ class TwitchVOD
 			//if (file_exists($pidfile)) unlink($pidfile);
 			$vod_downloadJob->clear();
 
-			TwitchHelper::appendLog("streamlink_vod_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
-			TwitchHelper::appendLog("streamlink_vod_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+			TwitchHelper::appendLog("streamlink_vod_{$this->basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+			TwitchHelper::appendLog("streamlink_vod_{$this->basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
 
 			if (mb_strpos($process->getOutput(), "error: Unable to find video:") !== false) {
 				throw new \Exception("VOD on Twitch not found, is it deleted?");
@@ -1459,8 +1459,8 @@ class TwitchVOD
 		//if (file_exists($pidfile)) unlink($pidfile);
 		$vod_convertJob->clear();
 
-		TwitchHelper::appendLog("ffmpeg_vod_" . $this->basename . "_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
-		TwitchHelper::appendLog("ffmpeg_vod_" . $this->basename . "_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+		TwitchHelper::appendLog("ffmpeg_vod_{$this->basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+		TwitchHelper::appendLog("ffmpeg_vod_{$this->basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
 
 		if (file_exists($capture_filename) && file_exists($converted_filename) && filesize($converted_filename) > 0) {
 			unlink($capture_filename);
@@ -1504,7 +1504,7 @@ class TwitchVOD
 		}
 
 		$cmd[] = "--stream-url";
-		$cmd[] = "https://www.twitch.tv/videos/" . $this->twitch_vod_id;
+		$cmd[] = "https://www.twitch.tv/videos/{$this->twitch_vod_id}";
 
 		$cmd[] = "best";
 
@@ -1553,7 +1553,12 @@ class TwitchVOD
 
 	public function getCapturingStatus()
 	{
-		$job = TwitchHelper::findJob("capture_{$this->streamer_name}");
+
+		if( TwitchConfig::cfg('playlist_dump') ){
+			// check if running, whatever
+		}
+
+		$job = TwitchHelper::findJob("capture_{$this->streamer_name}_");
 		return $job ? $job->getStatus() : false;
 	}
 
