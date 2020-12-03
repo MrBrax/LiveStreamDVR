@@ -354,13 +354,11 @@ class TwitchAutomator
 		if (TwitchConfig::cfg('playlist_dump')) {
 
 			$psa = new TwitchPlaylistAutomator();
+			$psa->setup($data_username, TwitchConfig::getStreamer($data_username)['quality'][0]);
+			$psa->output_file = $folder_base . DIRECTORY_SEPARATOR . $basename . '.ts';
 
 			try {
-				$capture_filename = $psa->downloadLatest(
-					$data_username,
-					$folder_base . DIRECTORY_SEPARATOR . $basename . '.ts',
-					TwitchConfig::getStreamer($data_username)['quality'][0]
-				);
+				$capture_filename = $psa->downloadLatest();
 			} catch (\Throwable $th) {
 				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Exception handler for playlist dump for {$basename}, capture normally: " . $th->getMessage());
 
@@ -740,7 +738,7 @@ class TwitchAutomator
 
 			// ad removal
 			if (strpos($buffer, "Will skip ad segments") !== false) {
-				TwitchHelper::log(TwitchHelper::LOG_INFO, "Capturing of {$basename} will try to remove ads!", ['download-capture' => $data_username]);
+				TwitchHelper::log(TwitchHelper::LOG_INFO, "Capturing of {$basename}, will try to remove ads!", ['download-capture' => $data_username]);
 				// $current_ad_start = time();
 			}
 

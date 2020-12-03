@@ -6,6 +6,7 @@ namespace App;
 
 use GuzzleHttp\Client;
 use Symfony\Component\Process\Process;
+use App\TwitchAutomatorJob;
 
 class TwitchHelper
 {

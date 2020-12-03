@@ -261,9 +261,14 @@ class ApiController
         $username = $args['username'];
 
         $pa = new TwitchPlaylistAutomator();
+        $pa->setup($username, isset($_GET['quality']) ? $_GET['quality'] : 'best');
+
+        // $output = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'playlist' . DIRECTORY_SEPARATOR . $username . 'vod.ts';
+
+        $pa->output_file = $pa->getCacheFolder() . DIRECTORY_SEPARATOR . $pa->username . '-' . $pa->video_id . '.ts';
 
         try {
-            $data = $pa->downloadLatest($username, isset($_GET['quality']) ? $_GET['quality'] : 'best');
+            $data = $pa->downloadLatest();
         } catch (\Throwable $th) {
             $response->getBody()->write(json_encode([
                 'error' => $th->getMessage(),
