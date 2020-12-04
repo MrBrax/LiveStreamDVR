@@ -41,7 +41,7 @@ class CronController
 
     private function sendNotify($string)
     {
-        TwitchHelper::log(TwitchHelper::LOG_INFO, "Notification: {$string}");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "cron", "Notification: {$string}");
         // this is where it would notify if i had a solution
         
         TwitchHelper::webhook([
@@ -70,7 +70,7 @@ class CronController
     public function check_deleted_vods(Request $request, Response $response, $args)
     {
 
-        TwitchHelper::log(TwitchHelper::LOG_INFO, "Cronjob deleted check start");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "cron", "Cronjob deleted check start");
 
         $force = isset($_GET['force']);
 
@@ -94,12 +94,12 @@ class CronController
                     $this->sendNotify("{$vod->basename} deleted");
                     $response->getBody()->write("{$vod->basename} deleted<br>\n");
                     $this->addToNotifyCache("deleted_{$vod->basename}");
-                    TwitchHelper::log(TwitchHelper::LOG_INFO, "Cronjob deleted check: {$vod->basename} deleted");
+                    TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "cron", "Cronjob deleted check: {$vod->basename} deleted");
                 }
             }
         }
 
-        TwitchHelper::log(TwitchHelper::LOG_INFO, "Cronjob deleted check end");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "cron", "Cronjob deleted check end");
 
         return $response;
     }
@@ -107,7 +107,7 @@ class CronController
     public function check_muted_vods(Request $request, Response $response, $args)
     {
 
-        TwitchHelper::log(TwitchHelper::LOG_INFO, "Cronjob mute check start");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "cron", "Cronjob mute check start");
 
         $force = isset($_GET['force']);
 
@@ -137,14 +137,14 @@ class CronController
                     $this->sendNotify("{$vod->basename} muted");
                     $response->getBody()->write("{$vod->basename} muted<br>\n");
                     $this->addToNotifyCache("mute_{$vod->basename}");
-                    TwitchHelper::log(TwitchHelper::LOG_INFO, "Cronjob mute check: {$vod->basename} muted");
+                    TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "cron", "Cronjob mute check: {$vod->basename} muted");
                 } elseif ($check === false) {
                     // $response->getBody()->write( $vod->basename . " not muted<br>\n" );
                 }
             }
         }
 
-        TwitchHelper::log(TwitchHelper::LOG_INFO, "Cronjob mute check end");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "cron", "Cronjob mute check end");
 
         return $response;
     }

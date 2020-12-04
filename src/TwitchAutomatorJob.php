@@ -40,14 +40,14 @@ class TwitchAutomatorJob
 	{
 		$tried_loading = true;
 		if (!file_exists($this->pidfile)) {
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Loading job {$this->name} failed, no json file", $this->metadata);
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "job", "Loading job {$this->name} failed, no json file", $this->metadata);
 			// return $this->loadSimple();
 			$this->error = TwitchAutomatorJob::NO_FILE;
 			return false;
 		}
 		$raw = file_get_contents($this->pidfile);
 		if (!$raw) {
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Loading job {$this->name} failed, no data in json file", $this->metadata);
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "job", "Loading job {$this->name} failed, no data in json file", $this->metadata);
 			$this->error = TwitchAutomatorJob::NO_DATA;
 			return false;
 		}
@@ -84,7 +84,7 @@ class TwitchAutomatorJob
 	 */
 	function save()
 	{
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Save job {$this->name} with PID {$this->pid}", $this->metadata);
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "job", "Save job {$this->name} with PID {$this->pid}", $this->metadata);
 		return file_put_contents($this->pidfile, json_encode($this)) != false;
 	}
 
@@ -100,7 +100,7 @@ class TwitchAutomatorJob
 		}
 
 		if (file_exists($this->pidfile)) {
-			TwitchHelper::log(TwitchHelper::LOG_INFO, "Clear job {$this->name} with PID {$this->pid}", $this->metadata);
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "job", "Clear job {$this->name} with PID {$this->pid}", $this->metadata);
 			return unlink($this->pidfile);
 		}
 		return false;
@@ -176,11 +176,11 @@ class TwitchAutomatorJob
 		//}
 
 		if (mb_strpos($output, (string)$pid) !== false) {
-			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, process is running");
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "PID file check, process is running");
 			$this->status = $pid;
 			return $pid;
 		} else {
-			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, process does not exist");
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "PID file check, process does not exist");
 			$this->status = false;
 			return false;
 		}

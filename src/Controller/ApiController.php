@@ -139,6 +139,8 @@ class ApiController
         $current_log = date("Y-m-d");
         if (isset($args['filename'])) $current_log = $args['filename'];
 
+        $filter = isset($_GET['filter']) ? $_GET['filter'] : null;
+
         $log_path = TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . $current_log . ".log.json";
 
         if (file_exists($log_path)) {
@@ -150,6 +152,11 @@ class ApiController
                 foreach ($json as $line) {
 
                     if (!TwitchConfig::cfg("debug") && $line["level"] == 'DEBUG') continue;
+
+                    // filter
+                    if( isset($filter) && isset($line['module']) && $filter != $line['module'] ){
+                        continue;
+                    }
 
                     if ($line["date"]) {
                         $dt = \DateTime::createFromFormat("U.u", (string)$line["date"]);

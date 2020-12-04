@@ -1,9 +1,12 @@
 <div class="log_viewer">
+    {#
     {% apply spaceless %}
     {% for line in log_lines %}
         <div class="log_{{ line.level|lower }}"{% if config.debug %} title="{{ line.metadata }}"{% endif %}>
             {% if line.source %}
                 {{ line.date_string }} &lt;{{ line.level }}&gt; [{{ line.source.file|basename }}:{{ line.source.line }} {{line.source.function}}({{ line.source.args ? line.source.args|join : '' }})] {{ line.text }}
+            {% elseif line.module %}
+                {{ line.date_string }} &lt;<a href="javascript:filterLog('{{ line.module }}');">{{ line.module }}</a>&gt; &lt;{{ line.level }}&gt; {{ line.text }}
             {% else %}
                 {{ line.date_string }} &lt;{{ line.level }}&gt; {{ line.text }}
             {% endif %}
@@ -12,4 +15,15 @@
         </div>
     {% endfor %}
     {% endapply %}
+    #}
+    <table>
+        {% for line in log_lines %}
+            <tr class="log_{{ line.level|lower }}"{% if config.debug %} title="{{ line.metadata }}"{% endif %}>
+                <td>{{ line.date_string }}</td>
+                <td><a href="javascript:filterLog('{{ line.module }}');">{{ line.module }}</a></td>
+                <td>{{ line.level }}</td>
+                <td>{{ line.text }}</td>
+            </tr>
+        {% endfor %}
+    </table>
 </div>

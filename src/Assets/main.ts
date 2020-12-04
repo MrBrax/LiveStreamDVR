@@ -4,7 +4,7 @@
 
 interface DateTimeJSON { date: string, timezone_type: number, timezone: string }
 interface VODChapter { game_name: string }
-interface TwitchVOD { started_at: DateTimeJSON }
+interface TwitchVOD { dt_started_at: DateTimeJSON }
 
 interface StreamerData {
     is_live: boolean,
@@ -25,6 +25,7 @@ let config = {
     useSpeech: false,
     singlePage: true
 };
+let log_filter = '';
 
 let nongames = ['Just Chatting', 'IRL', 'Travel', 'Art'];
 
@@ -136,7 +137,11 @@ function saveConfig(){
 async function renderLog( date: string ){
     let div_log = document.querySelector("div.log_viewer");
     if( div_log ){
-        let body_content_response = await fetch( `${api_base}/render/log/${date}` );
+
+        let log_url = `${api_base}/render/log/${date}`;
+        if(log_filter) log_url += `?filter=${log_filter}`;
+
+        let body_content_response = await fetch( log_url );
         let body_content_data = await body_content_response.text();
         div_log.outerHTML = body_content_data;
 
@@ -176,6 +181,11 @@ async function fetchJobs(){
     }
     jobs_div.innerHTML = html;
     
+}
+
+(<any>window).filterLog = (text: string) => {
+    log_filter = text === log_filter ? '' : text;
+    renderLog(log_name);
 }
 
 let observer : IntersectionObserver;

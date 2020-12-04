@@ -14,6 +14,7 @@ let config = {
     useSpeech: false,
     singlePage: true
 };
+let log_filter = '';
 let nongames = ['Just Chatting', 'IRL', 'Travel', 'Art'];
 let streamerPronounciation = {
     'pokelawls': 'pookelawls',
@@ -88,7 +89,7 @@ function fluffTick() {
         }
         let div = document.getElementById("duration_" + username);
         if (div) {
-            let ts = previousData[username].current_vod.started_at.date;
+            let ts = previousData[username].current_vod.dt_started_at.date;
             let date = new Date(ts + "+00:00");
             let now = new Date();
             // console.log("fluff", date, now);
@@ -104,7 +105,10 @@ function saveConfig() {
 async function renderLog(date) {
     let div_log = document.querySelector("div.log_viewer");
     if (div_log) {
-        let body_content_response = await fetch(`${api_base}/render/log/${date}`);
+        let log_url = `${api_base}/render/log/${date}`;
+        if (log_filter)
+            log_url += `?filter=${log_filter}`;
+        let body_content_response = await fetch(log_url);
         let body_content_data = await body_content_response.text();
         div_log.outerHTML = body_content_data;
         setTimeout(() => {
@@ -142,6 +146,10 @@ async function fetchJobs() {
     }
     jobs_div.innerHTML = html;
 }
+window.filterLog = (text) => {
+    log_filter = text === log_filter ? '' : text;
+    renderLog(log_name);
+};
 let observer;
 function setupObserver() {
     // simple function to use for callback in the intersection observer

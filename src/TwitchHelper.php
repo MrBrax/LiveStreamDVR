@@ -108,18 +108,18 @@ class TwitchHelper
 			// $tokenRefresh = time() - filemtime( self::$accessTokenFile ) > TwitchHelper::$accessTokenRefresh;
 			// $tokenExpire = time() - filemtime( self::$accessTokenFile ) > TwitchHelper::$accessTokenExpire;
 			if (time() > filemtime(self::$accessTokenFile) + TwitchHelper::$accessTokenRefresh) {
-				self::log(self::LOG_INFO, "Deleting old access token");
+				self::logAdvanced(self::LOG_INFO, "helper", "Deleting old access token");
 				unlink(self::$accessTokenFile);
 			}
 		}
 
 		if (!$force && file_exists(self::$accessTokenFile)) {
-			self::log(self::LOG_DEBUG, "Fetched access token from cache");
+			self::logAdvanced(self::LOG_DEBUG, "helper", "Fetched access token from cache");
 			return file_get_contents(self::$accessTokenFile);
 		}
 
 		if (!TwitchConfig::cfg('api_secret') || !TwitchConfig::cfg('api_client_id')) {
-			self::log(self::LOG_ERROR, "Missing either api secret or client id, aborting fetching of access token!");
+			self::logAdvanced(self::LOG_ERROR, "helper", "Missing either api secret or client id, aborting fetching of access token!");
 			return false;
 		}
 
@@ -140,7 +140,7 @@ class TwitchHelper
 				]
 			]);
 		} catch (\Throwable $th) {
-			self::log(self::LOG_FATAL, "Tried to get oauth token but server returned: " . $th->getMessage());
+			self::logAdvanced(self::LOG_FATAL, "helper", "Tried to get oauth token but server returned: " . $th->getMessage());
 			sleep(5);
 			return false;
 		}
@@ -152,7 +152,7 @@ class TwitchHelper
 
 
 		if (!$json || !isset($json['access_token']) || !$json['access_token']) {
-			self::log(TwitchHelper::LOG_ERROR, "Failed to fetch access token: {$server_output}");
+			self::logAdvanced(TwitchHelper::LOG_ERROR, "helper", "Failed to fetch access token: {$server_output}");
 			throw new \Exception("Failed to fetch access token: {$server_output}");
 			return false;
 		}
@@ -163,7 +163,7 @@ class TwitchHelper
 
 		file_put_contents(self::$accessTokenFile, $access_token);
 
-		self::log(TwitchHelper::LOG_INFO, "Fetched new access token");
+		self::logAdvanced(TwitchHelper::LOG_INFO, "helper", "Fetched new access token");
 
 		return $access_token;
 	}
@@ -177,6 +177,82 @@ class TwitchHelper
 	 * @return void
 	 */
 	public static function log(string $level, string $text, array $metadata = null)
+	{
+
+		/*
+		if (!TwitchConfig::cfg("debug") && $level == self::LOG_DEBUG) return;
+
+		if (!file_exists(TwitchHelper::$logs_folder)) {
+			return false;
+		}
+
+		$filename 		= TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log";
+		$filename_json 	= TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log.json";
+
+		$log_text = file_exists($filename) ? file_get_contents($filename) : '';
+		$log_json = file_exists($filename_json) ? json_decode(file_get_contents($filename_json), true) : [];
+
+		/** @todo: this still isn't working properly **
+		if ($level . $text === self::$last_log_line && $log_json) {
+			$last = count($log_json) - 1;
+			if (isset($log_json[$last])) {
+				if (!isset($log_json[$last]['count'])) {
+					$log_json[$last]['count'] = 0;
+				}
+				$log_json[$last]['count'] += 1;
+				// file_put_contents($filename_json, json_encode($log_json));
+				// return;
+			}
+		}
+
+
+		$date = new \DateTime();
+		$text_line = $date->format("Y-m-d H:i:s.v") . " | <{$level}> {$text}";
+		$log_text .= "\n{$text_line}";
+
+		$log_data = [
+			"date" => (string)microtime(true),
+			"level" => $level,
+			"text" => $text
+		];
+
+		if (isset($metadata)) $log_data['metadata'] = $metadata;
+
+		/* // too buggy
+		if( TwitchConfig::cfg("debug") ){
+			$log_data['source'] = debug_backtrace()[1]; // 1 or 0?
+		}
+		*
+
+		if ($level == self::LOG_FATAL) {
+			error_log($text, 0);
+		}
+
+		$log_json[] = $log_data;
+
+		file_put_contents($filename, $log_text);
+
+		file_put_contents($filename_json, json_encode($log_json));
+
+		self::$last_log_line = $level . $text;
+		*/
+
+		$dbg = debug_backtrace()[0];
+
+		$filename = basename($dbg['file']);
+
+		self::logAdvanced($level, $filename, $text, $metadata);
+	}
+
+	/**
+	 * Log a string to the current log file
+	 *
+	 * @param const $level
+	 * @param string $text
+	 * @param array $metadata
+	 * @return void
+	 */
+	public static function logAdvanced(string $level, string $module, string $text, array $metadata = null)
 	{
 
 		if (!TwitchConfig::cfg("debug") && $level == self::LOG_DEBUG) return;
@@ -210,6 +286,7 @@ class TwitchHelper
 		$log_text .= "\n{$text_line}";
 
 		$log_data = [
+			"module" => $module,
 			"date" => (string)microtime(true),
 			"level" => $level,
 			"text" => $text
@@ -286,7 +363,7 @@ class TwitchHelper
 			$json_streamers = json_decode(file_get_contents(TwitchConfig::$streamerDbPath), true);
 
 			if ($json_streamers && isset($json_streamers[$username])) {
-				self::log(self::LOG_DEBUG, "Fetched channel data from cache for {$username}");
+				self::logAdvanced(self::LOG_DEBUG, "helper", "Fetched channel data from cache for {$username}");
 				return $json_streamers[$username];
 			}
 		} else {
@@ -312,7 +389,7 @@ class TwitchHelper
 		$json = json_decode($server_output, true);
 
 		if (!$json["data"]) {
-			self::log(self::LOG_ERROR, "Failed to fetch channel data for {$username}: {$server_output}");
+			self::logAdvanced(self::LOG_ERROR, "helper", "Failed to fetch channel data for {$username}: {$server_output}");
 			// var_dump($json);
 			// var_dump( $response->getStatusCode() );
 			// throw new Exception( "Failed to fetch channel id: " . $server_output );
@@ -324,7 +401,7 @@ class TwitchHelper
 		$json_streamers[$username] = $data;
 		file_put_contents(TwitchConfig::$streamerDbPath, json_encode($json_streamers));
 
-		self::log(self::LOG_INFO, "Fetched channel data online for {$username}");
+		self::logAdvanced(self::LOG_INFO, "helper", "Fetched channel data online for {$username}");
 
 		return $data;
 	}
@@ -339,7 +416,7 @@ class TwitchHelper
 	{
 
 		if (!$streamer_id) {
-			self::log(self::LOG_ERROR, "No streamer id supplied for videos fetching");
+			self::logAdvanced(self::LOG_ERROR, "helper", "No streamer id supplied for videos fetching");
 			throw new \Exception("No streamer id supplied for videos fetching");
 			return false;
 		}
@@ -349,7 +426,7 @@ class TwitchHelper
 				'query' => ['user_id' => $streamer_id]
 			]);
 		} catch (\Throwable $th) {
-			self::log(self::LOG_FATAL, "Tried to get videos for {$streamer_id} but server returned: " . $th->getMessage());
+			self::logAdvanced(self::LOG_FATAL, "helper", "Tried to get videos for {$streamer_id} but server returned: " . $th->getMessage());
 			return false;
 		}
 
@@ -357,11 +434,11 @@ class TwitchHelper
 		$json = json_decode($server_output, true);
 
 		if (!$json['data']) {
-			self::log(self::LOG_ERROR, "No videos found for user id {$streamer_id}");
+			self::logAdvanced(self::LOG_ERROR, "helper", "No videos found for user id {$streamer_id}");
 			return false;
 		}
 
-		self::log(self::LOG_INFO, "Querying videos for streamer id {$streamer_id}");
+		self::logAdvanced(self::LOG_INFO, "helper", "Querying videos for streamer id {$streamer_id}");
 
 		return $json['data'] ?: false;
 	}
@@ -376,7 +453,7 @@ class TwitchHelper
 	{
 
 		if (!$video_id) {
-			self::log(self::LOG_ERROR, "No video id supplied for videos fetching");
+			self::logAdvanced(self::LOG_ERROR, "helper", "No video id supplied for videos fetching");
 			throw new \Exception("No video id supplied for videos fetching");
 			return false;
 		}
@@ -386,7 +463,7 @@ class TwitchHelper
 				'query' => ['id' => $video_id]
 			]);
 		} catch (\Throwable $th) {
-			self::log(self::LOG_FATAL, "Tried to get video id {$video_id} but server returned: " . $th->getMessage());
+			self::logAdvanced(self::LOG_FATAL, "helper", "Tried to get video id {$video_id} but server returned: " . $th->getMessage());
 			return false;
 		}
 
@@ -394,11 +471,11 @@ class TwitchHelper
 		$json = json_decode($server_output, true);
 
 		if (!$json['data']) {
-			self::log(self::LOG_ERROR, "No video found for video id {$video_id}");
+			self::logAdvanced(self::LOG_ERROR, "helper", "No video found for video id {$video_id}");
 			return null;
 		}
 
-		self::log(self::LOG_INFO, "Querying video info for id {$video_id}");
+		self::logAdvanced(self::LOG_INFO, "helper", "Querying video info for id {$video_id}");
 
 		return $json['data'][0];
 	}
@@ -420,11 +497,11 @@ class TwitchHelper
 		$json = json_decode($server_output, true);
 
 		if (!$json['data']) {
-			self::log(self::LOG_ERROR, "No streams found for user id {$streamer_id}");
+			self::logAdvanced(self::LOG_ERROR, "helper", "No streams found for user id {$streamer_id}");
 			return false;
 		}
 
-		self::log(self::LOG_INFO, "Querying streams for streamer id {$streamer_id}");
+		self::logAdvanced(self::LOG_INFO, "helper", "Querying streams for streamer id {$streamer_id}");
 
 		return $json['data'] ?: false;
 	}
@@ -443,7 +520,7 @@ class TwitchHelper
 		}
 
 		if (!$game_id) {
-			self::log(self::LOG_ERROR, "No game id supplied for game fetch!");
+			self::logAdvanced(self::LOG_ERROR, "helper", "No game id supplied for game fetch!");
 			return false;
 		}
 
@@ -455,14 +532,14 @@ class TwitchHelper
 			self::$game_db = [];
 		}
 
-		self::log(self::LOG_DEBUG, "Game id {$game_id} not in cache, fetching...");
+		self::logAdvanced(self::LOG_DEBUG, "helper", "Game id {$game_id} not in cache, fetching...");
 
 		try {
 			$response = self::$guzzler->request('GET', '/helix/games', [
 				'query' => ['id' => $game_id]
 			]);
 		} catch (\Throwable $th) {
-			self::log(self::LOG_FATAL, "Tried to get game data for {$game_id} but server returned: " . $th->getMessage());
+			self::logAdvanced(self::LOG_FATAL, "helper", "Tried to get game data for {$game_id} but server returned: " . $th->getMessage());
 			return false;
 		}
 
@@ -485,12 +562,12 @@ class TwitchHelper
 
 			file_put_contents(TwitchConfig::$gameDbPath, json_encode(self::$game_db));
 
-			self::log(self::LOG_SUCCESS, "New game saved to cache: {$game['name']}");
+			self::logAdvanced(self::LOG_SUCCESS, "helper", "New game saved to cache: {$game['name']}");
 
 			return $game;
 		} else {
 
-			self::log(self::LOG_ERROR, "Invalid game returned in query for {$game_id} ({$server_output})");
+			self::logAdvanced(self::LOG_ERROR, "helper", "Invalid game returned in query for {$game_id} ({$server_output})");
 
 			return null;
 		}
@@ -679,17 +756,17 @@ class TwitchHelper
 	private static function sub_handler(string $streamer_name, $mode = 'subscribe')
 	{
 
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Calling {$mode} for {$streamer_name}");
+		self::logAdvanced(self::LOG_INFO, "helper", "Calling {$mode} for {$streamer_name}");
 
 		if (!TwitchConfig::cfg('app_url')) {
 			throw new \Exception('Neither app_url or hook_callback is set in config');
 			return false;
 		}
 
-		$streamer_id = TwitchHelper::getChannelId($streamer_name);
+		$streamer_id = self::getChannelId($streamer_name);
 
 		if (!$streamer_id) {
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Streamer ID not found for: {$streamer_name}");
+			self::logAdvanced(self::LOG_ERROR, "helper", "Streamer ID not found for: {$streamer_name}");
 			// throw new \Exception('Streamer ID not found for: ' . $streamer_name);
 			return false;
 		}
@@ -726,13 +803,13 @@ class TwitchHelper
 			]);
 
 			if ($response->getStatusCode() == 429) {
-				TwitchHelper::log(TwitchHelper::LOG_FATAL, "429 response");
+				self::logAdvanced(self::LOG_FATAL, "helper", "429 response");
 				sleep(10);
 				// throw new \Exception("429 error");
 				return false;
 			}
 		} catch (\Throwable $th) {
-			TwitchHelper::log(TwitchHelper::LOG_FATAL, "Sub return, sleep: " . $th->getMessage());
+			self::logAdvanced(self::LOG_FATAL, "helper", "Sub return, sleep: " . $th->getMessage());
 			sleep(10);
 			return false;
 		}
@@ -748,7 +825,7 @@ class TwitchHelper
 
 		if ($http_code == 202) {
 
-			TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Sent {$mode} request for {$streamer_name} ({$streamer_id})", ['hub' => $data]);
+			self::logAdvanced(self::LOG_SUCCESS, "helper", "Sent {$mode} request for {$streamer_name} ({$streamer_id})", ['hub' => $data]);
 
 			// $this->notify($server_output, '[' . $streamer_name . '] [subscribing]', self::NOTIFY_GENERIC);
 
@@ -757,7 +834,7 @@ class TwitchHelper
 
 			// throw new \Exception("Failed to send {$mode} request for {$streamer_name} ({$streamer_id}): {$server_output}");
 
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Failed to send {$mode} request for {$streamer_name} ({$streamer_id}) ({$server_output}, HTTP {$http_code})", ['hub' => $data]);
+			self::logAdvanced(self::LOG_ERROR, "helper", "Failed to send {$mode} request for {$streamer_name} ({$streamer_id}) ({$server_output}, HTTP {$http_code})", ['hub' => $data]);
 
 			return false;
 		}
@@ -771,7 +848,7 @@ class TwitchHelper
 	public static function getSubs()
 	{
 
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Requesting subscriptions list");
+		self::logAdvanced(self::LOG_INFO, "helper", "Requesting subscriptions list");
 
 		/*
 		$client = new \GuzzleHttp\Client([
@@ -789,7 +866,7 @@ class TwitchHelper
 				// 'headers' => $headers
 			]);
 		} catch (\Throwable $th) {
-			TwitchHelper::log(TwitchHelper::LOG_FATAL, "Subs return: " . $th->getMessage());
+			self::logAdvanced(self::LOG_FATAL, "helper", "Subs return: " . $th->getMessage());
 			return false;
 		}
 
@@ -851,79 +928,6 @@ class TwitchHelper
 		return null;
 	}
 
-	/*
-	public static function getJob(string $name)
-	{
-
-		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . '.pid';
-
-		$obj = new TwitchAutomatorJob($name);
-
-		if (!file_exists($pidfile)) {
-			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, file does not exist (" . $name . ".pid)");
-			$obj->error = TwitchAutomatorJob::NO_FILE;
-			return $obj;
-		}
-
-		$pid = file_get_contents($pidfile);
-
-		if (!$pid) {
-			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, file does not contain any data (" . $name . ".pid)");
-			$obj->error = TwitchAutomatorJob::NO_DATA;
-			return $obj;
-		}
-
-		$data = json_decode($pid);		
-
-		if($data){
-
-			$obj->pid = $data['pid'];
-			$obj->metadata = $data['metadata'];
-
-			$output = TwitchHelper::exec(["ps", "-p", $data['pid']]);
-
-			if (mb_strpos($output, $pid) !== false) {
-				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, process is running");
-				$obj->status = true;
-			} else {
-				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, process does not exist");
-				$obj->status = false;
-			}
-
-		}else{
-
-			$obj->name = $name;
-			$obj->pid = $pid;
-
-			$output = TwitchHelper::exec(["ps", "-p", $pid]);
-
-			if (mb_strpos($output, $pid) !== false) {
-				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, process is running");
-				$obj->status = true;
-			} else {
-				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, process does not exist");
-				$obj->status = false;
-			}
-
-		}
-
-		return $obj;
-
-	}
-
-	public static function setJob(string $name, int $pid, $metadata = null)
-	{
-		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . '.pid';
-
-		$data = json_encode([
-			'name' => $name,
-			'pid' => $pid,
-			'metadata' => $metadata
-		]);
-		file_put_contents($pidfile, $data);
-	}
-	*/
-
 	public static function webhook(array $data)
 	{
 
@@ -941,7 +945,7 @@ class TwitchHelper
 				'timeout' => 10
 			]);
 		} catch (\Throwable $th) {
-			TwitchHelper::log(TwitchHelper::LOG_ERROR, "Webhook POST error: " . $th->getMessage());
+			self::logAdvanced(self::LOG_ERROR, "helper", "Webhook POST error: " . $th->getMessage());
 		}
 	}
 

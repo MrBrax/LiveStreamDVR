@@ -66,7 +66,7 @@ class TwitchConfig
 	{
 
 		if (!self::settingExists($var)) {
-			TwitchHelper::log(TwitchHelper::LOG_WARNING, "No such config variable '{$var}'.");
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "config", "No such config variable '{$var}'.");
 		}
 
 		if (getenv('TCD_' . strtoupper($var))) return getenv('TCD_' . strtoupper($var)); // environment variable
@@ -165,7 +165,7 @@ class TwitchConfig
 
 			// fix quality string
 			if (isset($streamer['quality']) && gettype($streamer['quality']) == "string") {
-				TwitchHelper::log(TwitchHelper::LOG_WARNING, "Invalid quality setting on {$streamer['username']}, fixing...");
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "config", "Invalid quality setting on {$streamer['username']}, fixing...");
 				self::$config['streamers'][$i]['quality'] = explode(" ", self::$config['streamers'][$i]['quality']);
 				$save = true;
 			}
@@ -184,7 +184,7 @@ class TwitchConfig
 	{
 
 		if (!is_writable(self::$configPath)) {
-			TwitchHelper::log(TwitchHelper::LOG_FATAL, "Saving config failed, permissions issue?");
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "config", "Saving config failed, permissions issue?");
 			// return false;
 		}
 
@@ -201,7 +201,7 @@ class TwitchConfig
 			'action' => 'config_save'
 		]);
 
-		TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Saved config from {$source}");
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "config", "Saved config from {$source}");
 	}
 
 	public static function generateConfig()
@@ -252,7 +252,7 @@ try {
 	TwitchConfig::$timezone = new \DateTimeZone(TwitchConfig::cfg('timezone', 'UTC'));
 } catch (\Throwable $th) {
 	TwitchConfig::$timezone = new \DateTimeZone('UTC');
-	TwitchHelper::log(TwitchHelper::LOG_ERROR, "Config has invalid timezone set");
+	TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "config", "Config has invalid timezone set");
 }
 
 if (!TwitchConfig::cfg('bin_dir')) {

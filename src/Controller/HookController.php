@@ -17,7 +17,7 @@ class HookController
     public function hook(Request $request, Response $response, $args)
     {
 
-        TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Hook called");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Hook called");
 
         $TwitchAutomator = new TwitchAutomator();
 
@@ -40,9 +40,9 @@ class HookController
             $hub_reason = isset($_GET['hub_reason']) ? $_GET['hub_reason'] : null;
 
             if (isset($hub_reason)) {
-                TwitchHelper::log(TwitchHelper::LOG_ERROR, "Received hub challenge with error for userid {$user_id}: {$hub_reason}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "hook", "Received hub challenge with error for userid {$user_id}: {$hub_reason}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
             } else {
-                TwitchHelper::log(TwitchHelper::LOG_SUCCESS, "Received hub challenge for userid {$user_id}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Received hub challenge for userid {$user_id}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
             }
 
             $response->getBody()->write($challenge_token);
@@ -57,14 +57,14 @@ class HookController
         $post_json = isset($_POST['json']) ? $_POST['json'] : null;
 
         if ($post_json) {
-            TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Custom payload received...");
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Custom payload received...");
             $data = json_decode($post_json, true);
         }
 
         if ($data) {
 
             if (TwitchConfig::cfg('debug')) {
-                TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Dumping payload...");
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Dumping payload...");
                 file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . 'payloads' . DIRECTORY_SEPARATOR . date("Y-m-d.h_i_s") . '.json', json_encode($data));
             }
 
@@ -76,11 +76,11 @@ class HookController
             $data_username = $data['data'][0]['user_name'];
             */
 
-            TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Run handle...");
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Run handle...");
             $TwitchAutomator->handle($data);
         } else {
 
-            TwitchHelper::log(TwitchHelper::LOG_WARNING, "Hook called with no data...");
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "hook", "Hook called with no data...");
             $response->getBody()->write("No data supplied");
         }
 

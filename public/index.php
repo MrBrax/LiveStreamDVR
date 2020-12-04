@@ -135,9 +135,9 @@ if (TwitchConfig::cfg('debug', false)) {
     $container->get('view')->getEnvironment()->addExtension(new DebugExtension());
     $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 } else {
-    $myErrorHandler = new MyErrorHandler($app->getCallableResolver(), $app->getResponseFactory());
-    $errorMiddleware = $app->addErrorMiddleware(true, true, true);
-    $errorMiddleware->setDefaultErrorHandler($myErrorHandler);
+    // $myErrorHandler = new MyErrorHandler($app->getCallableResolver(), $app->getResponseFactory());
+    // $errorMiddleware = $app->addErrorMiddleware(true, true, true);
+    // $errorMiddleware->setDefaultErrorHandler($myErrorHandler);
 }
 
 require __DIR__ . "/../src/Routes/routes.php";
