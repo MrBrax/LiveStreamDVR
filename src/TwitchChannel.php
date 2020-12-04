@@ -8,6 +8,7 @@ class TwitchChannel
 {
 
     public ?string $username = null;
+    public ?int $userid = null;
     public ?string $login = null;
     public ?string $display_name = null;
     public ?string $description = null;
@@ -35,6 +36,7 @@ class TwitchChannel
 
         $config = TwitchConfig::getStreamer($username);
 
+        $this->userid               = (int)$this->channel_data['id'];
         $this->username             = $this->channel_data['login'];
         $this->login                = $this->channel_data['login'];
         $this->display_name         = $this->channel_data['display_name'];
@@ -44,6 +46,11 @@ class TwitchChannel
         $this->match                = isset($config['match']) ? $config['match'] : [];
 
         $this->parseVODs();
+    }
+
+    public function getFolder()
+    {
+        return TwitchHelper::vodFolder($this->username);
     }
 
     /**
@@ -125,5 +132,35 @@ class TwitchChannel
         }
 
         return $is_a_vod_deleted;
+    }
+
+    public function getPlaylists()
+    {
+
+        $videos = TwitchHelper::getVideos($this->userid);
+
+        $data = [];
+
+        foreach ($videos as $i => $video) {
+            $video_id = $video['id'];
+            $video_url = $video['url'];
+            $playlist_urls = [];
+
+            $stream_urls_raw = TwitchHelper::exec([TwitchHelper::path_streamlink(), '--json', '--url', $video_url, '--stream-url']);
+            $stream_urls = json_decode($stream_urls_raw, true);
+
+            if ($stream_urls && isset($stream_urls['streams'])) {
+                $entry = array_merge($video, [
+                    "playlist_urls" => $stream_urls['streams']
+                ]);
+                $data[(string)$video_id] = $entry;
+            } else {
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "channel", "No videos api response for {$this->username}.", ['output' => $stream_urls_raw]);
+            }
+
+            if ($i > 5) break;
+        }
+
+        return $data;
     }
 }

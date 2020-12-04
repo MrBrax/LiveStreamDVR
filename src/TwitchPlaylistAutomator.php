@@ -95,6 +95,17 @@ class TwitchPlaylistAutomator
         return TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'playlist' . DIRECTORY_SEPARATOR . $this->unique_id;
     }
 
+    private function createCacheFolder()
+    {
+        if (!file_exists($this->getCacheFolder())) {
+            if (!mkdir($this->getCacheFolder())) {
+                $this->captureJob->clear();
+                $this->setRunning(false);
+                throw new Exception("Could not make download dir for {$this->unique_id}");
+            }
+        }
+    }
+
     private function fetchPlaylist()
     {
         return file_get_contents($this->stream_playlist_url);
@@ -107,7 +118,6 @@ class TwitchPlaylistAutomator
 
     private function setRunning(bool $state)
     {
-
         if ($state) {
             file_put_contents($this->run_file, getmypid());
         } else {
@@ -115,7 +125,7 @@ class TwitchPlaylistAutomator
         }
     }
 
-    private function appendChunks()
+    private function appendChunks($delete = false)
     {
         // write every ts file to the big one, flush after every write to keep memory down
         $handle = fopen($this->output_file, 'a');
@@ -125,12 +135,11 @@ class TwitchPlaylistAutomator
             fwrite($handle, $chunk_data);
             fflush($handle);
             $chunk_data = null;
-            /*
-            if(unlink($chunk->full_path)){ // test this
-                $last_deleted_chunk = $chunk->chunk_num;
-                $removed_chunks++;
+
+            if ($delete && unlink($chunk->full_path)) { // test this
+                $this->last_deleted_chunk = $chunk->chunk_num;
+                $this->removed_chunks++;
             }
-            */
         }
         fclose($handle);
     }
@@ -160,8 +169,10 @@ class TwitchPlaylistAutomator
 
         TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "playlist-download", "Start playlist download for {$this->username} (pid " . getmypid() . ")");
 
-        $new_chunks_timeout = 120;
-        $amount_of_tries = 8;
+        $new_chunks_timeout = 300;
+        $amount_of_tries = 4;
+
+        $this->createCacheFolder();
 
         $capture_info_file = $this->getCacheFolder() . DIRECTORY_SEPARATOR . 'capture.json';
 
@@ -171,7 +182,7 @@ class TwitchPlaylistAutomator
 
         // check if already running internal
         if ($this->isRunning()) {
-            // $captureJob->clear();
+            // $this->captureJob->clear();
             throw new \Exception("Job is already running for this playlist.");
             return false;
         }
@@ -180,14 +191,14 @@ class TwitchPlaylistAutomator
         $this->setRunning(true);
 
         // set job
-        $captureJob = new TwitchAutomatorJob("playlist_dump_{$this->unique_id}");
-        $captureJob->setPid(getmypid());
-        $captureJob->setMetadata([
+        $this->captureJob = new TwitchAutomatorJob("playlist_dump_{$this->unique_id}");
+        $this->captureJob->setPid(getmypid());
+        $this->captureJob->setMetadata([
             'username' => $this->username,
             'video_id' => $this->video_id,
             'output' => $this->output_file
         ]);
-        $captureJob->save();
+        $this->captureJob->save();
 
         // $concat_filename = $video_id . '.ts';
 
@@ -205,32 +216,24 @@ class TwitchPlaylistAutomator
             $this->last_chunk_appended = file_get_contents($last_chunk_appended_file);
         }
 
-        if (!file_exists($this->getCacheFolder())) {
-            if (!mkdir($this->getCacheFolder())) {
-                $captureJob->clear();
-                $this->setRunning(false);
-                throw new Exception("Could not make download dir for {$this->unique_id}");
-            }
-        }
-
         TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "playlist-download", "Download path: {$this->getCacheFolder()}");
 
         if (!$this->stream_urls) {
-            $captureJob->clear();
+            $this->captureJob->clear();
             $this->setRunning(false);
             TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "playlist-download", "No videos api response for {$this->username}.", ['output' => $stream_urls_raw]);
             throw new \Exception("No videos api response for {$this->username}");
         }
 
         if (!$this->stream_urls['streams']) {
-            $captureJob->clear();
+            $this->captureJob->clear();
             $this->setRunning(false);
             TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "playlist-download", "Playlist dump for {$this->username} error: No stream urls with uid {$this->unique_id}.", ['output' => $stream_urls_raw]);
             throw new \Exception("No stream urls for {$this->username} with uid {$this->unique_id}");
         }
 
         if (!$this->stream_urls['streams'][$this->quality]) {
-            $captureJob->clear();
+            $this->captureJob->clear();
             $this->setRunning(false);
             TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "playlist-download", "Playlist dump for {$this->username} error: No stream urls with quality {$this->quality} for {$this->unique_id}.", ['output' => $stream_urls_raw]);
             throw new \Exception("No stream urls for {$this->username} with quality {$this->quality} for {$this->unique_id}");
@@ -238,7 +241,7 @@ class TwitchPlaylistAutomator
 
         $this->stream_playlist_url = $this->stream_urls['streams'][$this->quality]['url'];
 
-        TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "playlist-download", "Playlist URL: {$this->stream_playlist_url}");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "playlist-download", "Playlist URL: {$this->stream_playlist_url}");
 
         // save streams to file
         file_put_contents($this->getCacheFolder() . DIRECTORY_SEPARATOR . 'stream_urls.json', json_encode($this->stream_urls['streams']));
@@ -264,11 +267,11 @@ class TwitchPlaylistAutomator
         // do {
         while (true) {
 
-            TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "playlist-download", "Execute playlist loop for {$this->unique_id} with quality {$this->quality}");
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "playlist-download", "Execute playlist loop for {$this->unique_id} with quality {$this->quality}");
 
             $num_new_chunks = 0;
 
-            if (!$first_run || !file_exists($this->getCacheFolder())) {
+            if (!file_exists($this->getCacheFolder())) {
                 TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "playlist-download", "Breaking loop for playlist dump of {$this->unique_id}, playlist removed");
                 break;
             }
@@ -276,7 +279,7 @@ class TwitchPlaylistAutomator
             // download playlist every loop
             $playlist = $this->fetchPlaylist();
 
-            if (isset($this->stream_playlist_crc) && crc32($playlist)) {
+            if (isset($this->stream_playlist_crc) && crc32($playlist) == $this->stream_playlist_crc) {
                 TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "playlist-download", "Playlist CRC is identical two times in a row");
             }
 
@@ -339,7 +342,7 @@ class TwitchPlaylistAutomator
                 $chunk_data = file_get_contents($chunk->full_url);
                 if (strlen($chunk_data) == 0) {
                     TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "playlist-download", "Empty chunk {$chunk->filename} for {$this->unique_id}");
-                    break;
+                    continue;
                 }
                 file_put_contents($chunk->full_path, $chunk_data);
                 $num_new_chunks++;
@@ -352,7 +355,7 @@ class TwitchPlaylistAutomator
             TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "playlist-download", "Compare for first run: {$this->last_chunk_num} == {$this->last_chunk_appended}");
             if ($this->last_chunk_num == $this->last_chunk_appended) {
                 if ($first_run) {
-                    $captureJob->clear();
+                    $this->captureJob->clear();
                     $this->setRunning(false);
                     TwitchHelper::log(TwitchHelper::LOG_WARNING, "No new chunks found for {$this->unique_id}");
                     throw new \Exception("First run, no new chunks for {$this->unique_id}");
@@ -373,7 +376,7 @@ class TwitchPlaylistAutomator
                     /** @var Chunk $chunk */
                     if ($chunk->chunk_num > $this->last_chunk_appended) { // duplicate last err
                         if (!file_exists($chunk->full_path)) {
-                            $captureJob->clear();
+                            $this->captureJob->clear();
                             $this->setRunning(false);
                             throw new \Exception("Chunk {$chunk} does not exist for {$this->unique_id}");
                         }
@@ -437,7 +440,7 @@ class TwitchPlaylistAutomator
 
                 // check if output file is valid
                 if (!file_exists($this->output_file) || filesize($this->output_file) == 0) {
-                    $captureJob->clear();
+                    $this->captureJob->clear();
                     $this->setRunning(false);
                     throw new \Exception("File could not be concat for {$this->unique_id}");
                 }
@@ -453,8 +456,8 @@ class TwitchPlaylistAutomator
             }
 
             if ($num_new_chunks == 0) {
-                TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "playlist-download", "No new chunks downloaded, try #{$num_new_chunks}. Sleep for {$new_chunks_timeout} seconds for {$this->unique_id}.");
                 $tries++;
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "playlist-download", "No new chunks downloaded, try #{$tries}. Sleep for {$new_chunks_timeout} seconds for {$this->unique_id}.");
             } else {
                 TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "playlist-download", "{$num_new_chunks} new chunks downloaded, sleep for {$new_chunks_timeout} seconds for {$this->unique_id}");
                 $tries = 0;
@@ -465,6 +468,7 @@ class TwitchPlaylistAutomator
                 'chunks' => $this->chunks,
                 'total_chunks' => $last_chunk->chunk_num,
                 'last_downloaded_chunk' => $this->last_downloaded_chunk,
+                'stream_basepath' => $basepath,
                 'stream_urls' => $this->stream_urls['streams'],
                 'tries' => $tries,
                 'pid' => getmypid()
@@ -474,7 +478,7 @@ class TwitchPlaylistAutomator
 
             $first_run = false;
 
-            if ($num_new_chunks == 0 && $tries > $amount_of_tries) {
+            if ($num_new_chunks == 0 && $tries >= $amount_of_tries) {
                 TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "playlist-download", "Reached {$tries}/{$amount_of_tries} tries on {$this->unique_id}.");
                 break;
             }
@@ -482,7 +486,7 @@ class TwitchPlaylistAutomator
 
         TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "playlist-download", "No more playlist chunks to download for {$this->unique_id}, " . count($this->chunks) . " total chunks. {$tries} tries.");
 
-        $captureJob->clear();
+        $this->captureJob->clear();
 
         // if (file_exists($run_file)) unlink($run_file);
         $this->setRunning(false);

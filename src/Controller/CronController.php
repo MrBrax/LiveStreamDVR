@@ -43,14 +43,18 @@ class CronController
     {
         TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "cron", "Notification: {$string}");
         // this is where it would notify if i had a solution
-        
+
         TwitchHelper::webhook([
-			'action' => 'notify',
-			'text' => $string
+            'action' => 'notify',
+            'text' => $string
         ]);
-        
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return TwitchChannel[]
+     */
     private function generateStreamerList()
     {
 
@@ -145,6 +149,37 @@ class CronController
         }
 
         TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "cron", "Cronjob mute check end");
+
+        return $response;
+    }
+
+    public function dump_playlists(Request $request, Response $response, $args)
+    {
+
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "cron", "Cronjob dump playlists start");
+
+        $streamerList = $this->generateStreamerList();
+
+        $data = [];
+
+        foreach ($streamerList as $streamer) {
+
+            $playlists = $streamer->getPlaylists();
+
+            $stored_data_file = $streamer->getFolder() . DIRECTORY_SEPARATOR . "playlists_{$streamer->username}.json";
+            $stored_data = [];
+            if (file_exists($stored_data_file)) {
+                $stored_data = json_decode(file_get_contents($stored_data_file), true);
+            }
+
+            $stored_data = $stored_data + $playlists;
+
+            file_put_contents($stored_data_file, json_encode($stored_data));
+
+            return $response;
+        }
+
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "cron", "Cronjob dump playlists end");
 
         return $response;
     }

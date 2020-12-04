@@ -196,6 +196,8 @@ class TwitchAutomatorJob
 		if (isset($this->process)) {
 			return $this->process->stop();
 		}
-		return TwitchHelper::exec(["kill", $this->getPid()]);
+		$exec = TwitchHelper::exec(["kill", $this->getPid()]);
+		$this->clear();
+		return $exec;
 	}
 }
