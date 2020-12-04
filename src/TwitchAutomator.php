@@ -344,10 +344,15 @@ class TwitchAutomator
 
 		/** @todo: non-blocking, how */
 		if (TwitchConfig::cfg('playlist_dump')) {
-			/*
-			$client = new \GuzzleHttp\Client();
-			$client->request("GET", "http://localhost:8080/hook", []);
-			*/
+			try {
+				$client = new \GuzzleHttp\Client();
+				$client->request("GET", TwitchConfig::cfg('app_url') . "/api/v0/playlist_dump/{$data_username}", [
+					'connect_timeout' => 5,
+					'timeout' => 5
+				]);
+			} catch (\Throwable $th) {
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Playlist dump fetch timeout for {$basename}, probably normal", ['download' => $data_username]);
+			}
 			// $this->playlistDump($data);
 		}
 
@@ -737,7 +742,7 @@ class TwitchAutomator
 			if (strpos($buffer, "404 Client Error") !== false) {
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "Chunk 404'd for {$basename}!", ['download-capture' => $data_username]);
 				$chunks_missing++;
-				if($chunks_missing > 100){
+				if ($chunks_missing > 100) {
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "Too many 404'd chunks for {$basename}, stopping!", ['download-capture' => $data_username]);
 					$process->stop();
 				}
