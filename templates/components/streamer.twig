@@ -18,9 +18,9 @@
                  {% if streamer.is_live %}
                  &middot; <a href="{{ url_for('api_jobs_kill', { 'job': 'capture_' ~ streamer.current_vod.basename }) }}" title="Abort record"><span class="icon"><i class="fa fa-video-slash"></i></span></a>
                  {% else %}
-                 &middot; <a href="{{ url_for('force_record', { 'username': streamer.display_name }) }}" title="Force record"><span class="icon"><i class="fa fa-video"></i></span></a>
+                 &middot; <a href="{{ url_for('api_channel_force_record', { 'username': streamer.display_name }) }}" title="Force record"><span class="icon"><i class="fa fa-video"></i></span></a>
                  {% endif %}
-                 <a href="{{ url_for('api_playlist_dump', { 'username': streamer.display_name }) }}" title="Playlist record"><span class="icon"><i class="fa fa-play-circle"></i></span></a>
+                 <a href="{{ url_for('api_channel_dump_playlist', { 'username': streamer.display_name }) }}" title="Playlist record"><span class="icon"><i class="fa fa-play-circle"></i></span></a>
             </span>
         </div>
     </div>

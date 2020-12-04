@@ -78,6 +78,11 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     $group->get('/vod/{vod}/save', ApiController::class . ':vod_save')->setName('api_vod_save');
     $group->get('/vod/{vod}/export', ApiController::class . ':vod_export')->setName('api_vod_export');
 
+    // channel
+    $group->get('/channel/{username}', ApiController::class . ':channel')->setName('api_channel');
+    $group->get('/channel/{username}/force_record', ApiController::class . ':channel_force_record')->setName('api_channel_force_record');
+    $group->get('/channel/{username}/dump_playlist', ApiController::class . ':channel_dump_playlist')->setName('api_channel_dump_playlist');
+
     // html render, make this obsolete some day
     $group->get('/render/menu', ApiController::class . ':render_menu')->setName('api_render_menu');
     $group->get('/render/streamer/{username}', ApiController::class . ':render_streamer')->setName('api_render_streamer');
@@ -93,7 +98,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     $group->get('/twitchapi/videos/{username}', ApiController::class . ':twitchapi_videos')->setName('api_twitchapi_videos');
     $group->get('/twitchapi/video/{video_id}', ApiController::class . ':twitchapi_video')->setName('api_twitchapi_video');
 
-    $group->get('/playlist_dump/{username}', ApiController::class . ':playlist_dump')->setName('api_playlist_dump');
+    // $group->get('/playlist_dump/{username}', ApiController::class . ':playlist_dump')->setName('api_playlist_dump');
 });
 
 // $app->get('/dialog/{type}/{text}', DebugController::class . ':dialog')->setName('dialog');
@@ -114,6 +119,7 @@ $app->group('/tools', function (RouteCollectorProxy $group) {
 });
 
 // force start recording of streamer
+/*
 $app->get('/force_record/{username}', function (Request $request, Response $response, array $args) {
     $channel_id = TwitchHelper::getChannelId($args['username']);
     $streams = TwitchHelper::getStreams($channel_id);
@@ -130,3 +136,4 @@ $app->get('/force_record/{username}', function (Request $request, Response $resp
     }
     return $response;
 })->setName('force_record');
+*/

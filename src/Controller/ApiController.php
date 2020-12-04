@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Traits\ApiChannel;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 use Slim\Views\Twig;
@@ -21,6 +22,7 @@ class ApiController
 {
 
     use ApiVod;
+    use ApiChannel;
 
     /**
      * @var Twig
