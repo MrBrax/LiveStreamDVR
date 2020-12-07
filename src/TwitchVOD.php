@@ -220,8 +220,9 @@ class TwitchVOD
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "No chapters on {$this->basename}!");
 		}
 
+		$this->segments_raw = isset($this->json['segments_raw']) ? $this->json['segments_raw'] : [];
+
 		if ($this->is_finalized) {
-			$this->segments_raw = $this->json['segments_raw'];
 			$this->parseSegments($this->segments_raw);
 			if (!$this->duration_seconds) {
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "VOD {$this->basename} finalized but no duration, trying to fix");

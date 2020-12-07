@@ -437,7 +437,7 @@ class TwitchAutomator
 			// return @TODO: fatal error
 		}
 
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Add segments to {$basename}", ['download' => $data_username]);
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Conversion done, add segments to {$basename}", ['download' => $data_username]);
 		$this->vod->refreshJSON();
 		$this->vod->is_converting = false;
 		// if(!$this->json['segments_raw']) $this->json['segments_raw'] = [];
