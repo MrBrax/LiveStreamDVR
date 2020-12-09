@@ -172,6 +172,7 @@
                 <ul class="video-info">
                     <li><strong>Current duration:</strong> {{ vodclass.duration_live|humanDuration }}</li>
                     <li><strong>Watch live:</strong> <a href="https://twitch.tv/{{ streamer.display_name }}" rel="noreferrer" target="_blank">Twitch</a>
+                    <li><a href="{{ url_for('api_jobs_kill', { 'job': 'capture_' ~ vodclass.basename }) }}">Kill job</a></li>
                 </ul>
 
             {% endif %}
