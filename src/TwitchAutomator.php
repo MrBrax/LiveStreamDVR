@@ -368,12 +368,12 @@ class TwitchAutomator
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Exception handler for playlist dump for {$basename}, capture normally: " . $th->getMessage());
 
 				// fallback
-				$capture_filename = $this->capture($data);
+				$capture_filename = $this->capture($data, $tries);
 			}
 		} else {
 
 			// capture with streamlink
-			$capture_filename = $this->capture($data);
+			$capture_filename = $this->capture($data, $tries);
 		}
 
 		// error handling if nothing got downloaded
@@ -497,7 +497,7 @@ class TwitchAutomator
 	 * @param array $data
 	 * @return string Captured filename
 	 */
-	public function capture($data)
+	public function capture($data, $tries = 0)
 	{
 
 		$data_id = $data['data'][0]['id'];
@@ -614,10 +614,10 @@ class TwitchAutomator
 		$process->start();
 
 		// output command line
-		TwitchHelper::clearLog("streamlink_{$basename}_stdout.{$int}");
-		TwitchHelper::clearLog("streamlink_{$basename}_stderr.{$int}");
-		TwitchHelper::appendLog("streamlink_{$basename}_stdout.{$int}", "$ " . implode(" ", $cmd));
-		TwitchHelper::appendLog("streamlink_{$basename}_stderr.{$int}", "$ " . implode(" ", $cmd));
+		TwitchHelper::clearLog("streamlink_{$basename}_stdout.{$tries}");
+		TwitchHelper::clearLog("streamlink_{$basename}_stderr.{$tries}");
+		TwitchHelper::appendLog("streamlink_{$basename}_stdout.{$tries}", "$ " . implode(" ", $cmd));
+		TwitchHelper::appendLog("streamlink_{$basename}_stderr.{$tries}", "$ " . implode(" ", $cmd));
 
 		// save pid to file
 		// $pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'capture_' . $data_username . '.pid';
@@ -697,22 +697,22 @@ class TwitchAutomator
 			]);
 			$chatJob->save();
 
-			TwitchHelper::clearLog("chatdump_{$basename}_stdout.{$int}");
-			TwitchHelper::clearLog("chatdump_{$basename}_stderr.{$int}");
-			TwitchHelper::appendLog("chatdump_{$basename}_stdout.{$int}", implode(" ", $chat_cmd));
-			TwitchHelper::appendLog("chatdump_{$basename}_stderr.{$int}", implode(" ", $chat_cmd));
+			TwitchHelper::clearLog("chatdump_{$basename}_stdout.{$tries}");
+			TwitchHelper::clearLog("chatdump_{$basename}_stderr.{$tries}");
+			TwitchHelper::appendLog("chatdump_{$basename}_stdout.{$tries}", implode(" ", $chat_cmd));
+			TwitchHelper::appendLog("chatdump_{$basename}_stderr.{$tries}", implode(" ", $chat_cmd));
 		} else {
 			$chat_process = null;
 		}
 
 		// $time_start = time();
-		// $current_ad_start = null;
+		$current_ad_start = null;
 		// $vod = $this->vod;
 
 		$chunks_missing = 0;
 
 		// wait loop until it's done
-		$process->wait(function ($type, $buffer) use ($process, $basename, $int, $data_username, $chat_process, $chunks_missing) {
+		$process->wait(function ($type, $buffer) use ($process, $basename, $int, $tries, $data_username, $chat_process, $chunks_missing, $current_ad_start) {
 
 			if (Process::ERR === $type) {
 				// echo 'ERR > '.$buffer;
@@ -751,16 +751,17 @@ class TwitchAutomator
 			// ad removal
 			if (strpos($buffer, "Will skip ad segments") !== false) {
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Capturing of {$basename}, will try to remove ads!", ['download-capture' => $data_username]);
-				// $current_ad_start = time();
+				$current_ad_start = time();
 			}
 
 			if (strpos($buffer, "Filtering out segments and pausing stream output") !== false) {
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Pausing capture for {$basename} due to ad segment!", ['download-capture' => $data_username]);
-				// $current_ad_start = time();
+				$current_ad_start = time();
 			}
 
 			if (strpos($buffer, "Resuming stream output") !== false) {
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Resuming capture for {$basename} due to ad segment!", ['download-capture' => $data_username]);
+				$ad_length = isset($current_ad_start) ? $current_ad_start - time() : -1;
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Resuming capture for {$basename} due to ad segment, {$ad_length} seconds!", ['download-capture' => $data_username]);
 				/*
 				if( isset($current_ad_start) ){
 					$vod->addAdvertisement([
@@ -771,11 +772,15 @@ class TwitchAutomator
 				*/
 			}
 
+			if (strpos($buffer, "bad interpreter: No such file or directory") !== false) {
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Fatal error with streamlink, please check logs", ['download-capture' => $data_username]);
+			}
+
 			// log output
 			if (Process::ERR === $type) {
-				TwitchHelper::appendLog("streamlink_{$basename}_stderr.{$int}", $buffer);
+				TwitchHelper::appendLog("streamlink_{$basename}_stderr.{$tries}", $buffer);
 			} else {
-				TwitchHelper::appendLog("streamlink_{$basename}_stdout.{$int}", $buffer);
+				TwitchHelper::appendLog("streamlink_{$basename}_stdout.{$tries}", $buffer);
 			}
 		});
 
