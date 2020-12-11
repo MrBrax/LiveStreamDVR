@@ -512,4 +512,23 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    /*
+    let all = document.querySelectorAll('.fieldset');
+    for( let element of all ){
+        element.classList.toggle('selected', element.id == `fieldset_${tab}`);
+    }
+    */
+    /*
+    let buttons = <NodeListOf<HTMLElement>>document.querySelectorAll('.fieldset-tabs button');
+    for( let button of buttons ){
+        button.addEventListener('click', (event) => {
+            let target = button.dataset.selectTab;
+            let all = document.querySelectorAll('.fieldset');
+            for( let fs of all ){
+                fs.classList.toggle('selected', button.id == `fieldset_${target}`);
+            }
+        });
+    }
+    */
+
 });

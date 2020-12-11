@@ -188,3 +188,28 @@
 	}
 
 }
+
+.fieldset {
+	border: none;
+	border-bottom: 1px solid #ddd;
+	padding-bottom: 10px;
+	margin-bottom: 10px;
+}
+/*
+.fieldset {
+	display: none;
+	&.selected {
+		display: block;
+	}
+}
+.fieldset-tabs {
+	padding: 0 5px;
+	button {
+		background-color: #eee;
+		padding: 2px 6px;
+		border-radius: 4px 4px 0 0;
+		border: 1px solid #333;
+		border-bottom: none;
+	}
+}
+*/

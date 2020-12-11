@@ -129,37 +129,55 @@
             <div class="section-content">
 
                 <form method="POST" action="{{ url_for('settings_save') }}">
-                    {% for setting in settings %}
-                        <div class="field">
-                            {% if setting.type == "boolean" %}
-                                <label class="checkbox">
-                                    <input type="checkbox" name="{{ setting.key }}" id="input_{{ setting.key }}" {{ config[setting.key] ? 'checked="checked"' : '' }} />
-                                    {{ setting.text }}
-                                </label>
-                            {% else %}
-                                <label class="label" for="input_{{ setting.key }}">{{ setting.text }} {% if setting.required %}<span class="required">*</span>{% endif %}</label>
-                                <div class="control">
-                                    {% if setting.type == "string" %}
-                                        <input class="input{{ setting.required ? ' input-required' : '' }}" type="text" id="input_{{ setting.key }}" name="{{ setting.key }}" value="{{ setting.secret ? '' : ( config[setting.key] ?: setting.default ) }}" />
-                                    {% elseif setting.type == "number" %}
-                                        <input class="input{{ setting.required ? ' input-required' : '' }}" type="number" id="input_{{ setting.key }}" name="{{ setting.key }}" value="{{ setting.secret ? '' : ( config[setting.key] ?: setting.default ) }}" />
-                                    {% elseif setting.type == "array" %}
-                                        <select name="{{ setting.key }}" id="input_{{ setting.key }}" class="input{{ setting.required ? ' required' : '' }}">
-                                            {% for option in ( setting.choices is iterable ? setting.choices : _context[setting.choices] ) %}
-                                                <option{% if config[setting.key] == option or ( not config[setting.key] and setting.default == option ) %} selected="selected"{% endif %}>{{ option }}</option>
-                                            {% endfor %}
-                                        </select>
+
+                    <!--
+                    <div class="fieldset-tabs">
+                        {% for index, category in settings %}
+                            <button type="button" data-select-tab="{{ index }}">{{ index }}</button>
+                        {% endfor %}
+                    </div>
+                    -->
+
+                    {% for index, category in settings %}
+                        {% if category|length > 0 %}
+                            <fieldset class="fieldset" id="fieldset_{{ index }}">
+                            <h3>{{ index }}</h3>
+                            {% for setting in category %}
+                                <div class="field">
+                                    {% if setting.type == "boolean" %}
+                                        <label class="checkbox">
+                                            <input type="checkbox" name="{{ setting.key }}" id="input_{{ setting.key }}" {{ config[setting.key] ? 'checked="checked"' : '' }} />
+                                            {{ setting.text }}
+                                        </label>
+                                    {% else %}
+                                        <label class="label" for="input_{{ setting.key }}">{{ setting.text }} {% if setting.required %}<span class="required">*</span>{% endif %}</label>
+                                        <div class="control">
+                                            {% if setting.type == "string" %}
+                                                <input class="input{{ setting.required ? ' input-required' : '' }}" type="text" id="input_{{ setting.key }}" name="{{ setting.key }}" value="{{ setting.secret ? '' : ( config[setting.key] ?: setting.default ) }}" />
+                                            {% elseif setting.type == "number" %}
+                                                <input class="input{{ setting.required ? ' input-required' : '' }}" type="number" id="input_{{ setting.key }}" name="{{ setting.key }}" value="{{ setting.secret ? '' : ( config[setting.key] ?: setting.default ) }}" />
+                                            {% elseif setting.type == "array" %}
+                                                <select name="{{ setting.key }}" id="input_{{ setting.key }}" class="input{{ setting.required ? ' required' : '' }}">
+                                                    {% for option in ( setting.choices is iterable ? setting.choices : _context[setting.choices] ) %}
+                                                        <option{% if config[setting.key] == option or ( not config[setting.key] and setting.default == option ) %} selected="selected"{% endif %}>{{ option }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                    {% if setting.help %}
+                                        <p class="input-help">{{ setting.help }}</p>
                                     {% endif %}
                                 </div>
-                            {% endif %}
-                            {% if setting.help %}
-                                <p class="input-help">{{ setting.help }}</p>
-                            {% endif %}
-                        </div>
+                            {% endfor %}
+                            </fieldset>
+                        {% endif %}
                     {% endfor %}
+
                     <div class="control">
                         <button class="button is-confirm" type="submit"><span class="icon"><i class="fa fa-save"></i></span> Save</button>
                     </div>
+
                 </form>
 
                 <hr>

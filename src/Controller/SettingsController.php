@@ -37,11 +37,22 @@ class SettingsController
 
         $games = TwitchConfig::getGames();
 
+        $settings = [];
+        $settings['Misc'] = [];
+        foreach (TwitchConfig::$settingsFields as $setting) {
+            if (isset($setting['group'])) {
+                if (!isset($settings[$setting['group']])) $settings[$setting['group']] = [];
+                $settings[$setting['group']][] = $setting;
+            } else {
+                $settings['Misc'][] = $setting;
+            }
+        }
+
         return $this->twig->render($response, 'settings.twig', [
             'streamers' => TwitchConfig::getStreamers(),
             'sub_callback' => $sub_callback,
             'games' => $games,
-            'settings' => TwitchConfig::$settingsFields,
+            'settings' => $settings,
             'app_calc' => $app_calc,
             'timezones' => \DateTimeZone::listIdentifiers()
         ]);
@@ -89,7 +100,7 @@ class SettingsController
             }
         }
 
-        if( TwitchConfig::cfg('app_url') ){
+        if (TwitchConfig::cfg('app_url')) {
 
             $full_url = TwitchConfig::cfg('app_url') . '/hook';
 
@@ -102,11 +113,10 @@ class SettingsController
                 return $response;
             }
 
-            if( $response->getBody()->getContents() !== 'No data supplied' ){
+            if ($response->getBody()->getContents() !== 'No data supplied') {
                 $response->getBody()->write("External app url could be contacted but didn't get the expected response ({$full_url}).");
                 return $response;
             }
-
         }
 
         TwitchConfig::saveConfig("settings/save");

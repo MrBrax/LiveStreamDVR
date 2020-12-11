@@ -51,6 +51,8 @@ When upgrading, delete the `twig` folder in the `cache` folder.
 
 ## Docker setup
 
+Not gonna work until the docker image i use updates php to 7.4
+
 Run `docker-compose up --build -d` or build it in beforehand. Not fully tested.
 
 Docker hub: https://hub.docker.com/repository/docker/mrbrax/twitchautomator
