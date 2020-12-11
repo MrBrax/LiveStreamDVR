@@ -707,12 +707,13 @@ class TwitchAutomator
 
 		// $time_start = time();
 		$current_ad_start = null;
+		$capture_start = time();
 		// $vod = $this->vod;
 
 		$chunks_missing = 0;
 
 		// wait loop until it's done
-		$process->wait(function ($type, $buffer) use ($process, $basename, $int, $tries, $data_username, $chat_process, $chunks_missing, $current_ad_start) {
+		$process->wait(function ($type, $buffer) use ($process, $basename, $int, $tries, $data_username, $chat_process, &$chunks_missing, &$current_ad_start, $capture_start) {
 
 			if (Process::ERR === $type) {
 				// echo 'ERR > '.$buffer;
@@ -760,8 +761,9 @@ class TwitchAutomator
 			}
 
 			if (strpos($buffer, "Resuming stream output") !== false) {
-				$ad_length = isset($current_ad_start) ? $current_ad_start - time() : -1;
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Resuming capture for {$basename} due to ad segment, {$ad_length} seconds!", ['download-capture' => $data_username]);
+				$ad_length = isset($current_ad_start) ? time() - $current_ad_start : -1;
+				$time_offset = time() - $capture_start;
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Resuming capture for {$basename} due to ad segment, {$ad_length}s/{$time_offset}s!", ['download-capture' => $data_username]);
 				/*
 				if( isset($current_ad_start) ){
 					$vod->addAdvertisement([
