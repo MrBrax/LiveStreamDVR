@@ -53,6 +53,7 @@ class TwitchConfig
 		['key' => 'encode_audio', 			'group' => 'Advanced',	'text' => 'Encode audio stream', 							'type' => 'boolean', 'default' => false, 'help' => 'This may help with audio syncing.'],
 		['key' => 'fix_corruption', 		'group' => 'Advanced',	'text' => 'Try to fix corruption in remuxing',				'type' => 'boolean', 'default' => false, 'help' => 'This may help with audio syncing.'],
 		['key' => 'playlist_dump', 			'group' => 'Advanced',	'text' => 'Use playlist dumping (experimental)',			'type' => 'boolean', 'default' => false],
+		['key' => 'process_wait_method', 	'group' => 'Advanced',	'text' => 'Process wait method',							'type' => 'number', 'default' => 1],
 	];
 
 	public static $timezone;

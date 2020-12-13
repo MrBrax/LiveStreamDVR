@@ -678,11 +678,18 @@ class TwitchHelper
 	 */
 	public static function printHumanDuration(int $duration)
 	{
-
+		/*
 		$time = new \DateTime();
 		$time->setTimestamp((int)$duration);
 
 		return $time->format("H:i:s");
+		*/
+
+		$hours = floor($duration / 3600);
+		$minutes = floor(($duration / 60) % 60);
+		$seconds = $duration % 60;
+
+		return str_pad((string)$hours, 2, "0", STR_PAD_LEFT) . ":" . str_pad((string)$minutes, 2, "0", STR_PAD_LEFT) . ":" . str_pad((string)$seconds, 2, "0", STR_PAD_LEFT);
 	}
 
 	/**

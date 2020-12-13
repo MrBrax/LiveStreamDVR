@@ -107,8 +107,9 @@ class ApiController
 
         $job = new TwitchAutomatorJob($args['job']);
         if ($job->load()) {
+            $out = $job->kill();
             $payload = json_encode([
-                'data' => $job->kill(),
+                'data' => $out == '' ? true : $out,
                 'status' => 'OK'
             ]);
         } else {

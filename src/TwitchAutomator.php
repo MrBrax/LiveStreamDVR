@@ -712,123 +712,172 @@ class TwitchAutomator
 
 		$chunks_missing = 0;
 
-		// wait loop until it's done
-		$process->wait(function ($type, $buffer) use ($process, $basename, $int, $tries, $data_username, $chat_process, &$chunks_missing, &$current_ad_start, $capture_start) {
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Using process wait method " . TwitchConfig::cfg('process_wait_method', 1), ['download-capture' => $data_username]);
 
-			if (Process::ERR === $type) {
-				// echo 'ERR > '.$buffer;
-			} else {
-				// echo 'OUT > '.$buffer;
-			}
+		if (TwitchConfig::cfg('process_wait_method', 1) == 1) {
 
-			if (TwitchConfig::cfg('chat_dump') && isset($chat_process)) {
-				if ($chat_process->isRunning()) {
-					$chat_process->checkTimeout();
-					// if( !$chat_process->getIncrementalOutput() ){
-					// 	TwitchHelper::log( TwitchHelper::LOG_DEBUG, "No chat output in chat dump", ['download-capture' => $data_username] );
-					// }
+			// wait loop until it's done
+			$process->wait(function ($type, $buffer) use ($process, $basename, $int, $tries, $data_username, $chat_process, &$chunks_missing, &$current_ad_start, $capture_start) {
+
+				// check timeout of chat dump
+				if (TwitchConfig::cfg('chat_dump') && isset($chat_process)) {
+					if ($chat_process->isRunning()) {
+						$chat_process->checkTimeout();
+						// if( !$chat_process->getIncrementalOutput() ){
+						// 	TwitchHelper::log( TwitchHelper::LOG_DEBUG, "No chat output in chat dump", ['download-capture' => $data_username] );
+						// }
+					} else {
+						TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "automator", "Chat dump enabled but not running", ['download-capture' => $data_username]);
+					}
+				}
+
+				// get stream resolution
+				preg_match("/stream:\s([0-9_a-z]+)\s/", $buffer, $matches);
+				if ($matches) {
+					$this->stream_resolution = $matches[1];
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Stream resolution for {$basename}: {$this->stream_resolution}", ['download-capture' => $data_username]);
+				}
+
+				// stream stop
+				if (strpos($buffer, "404 Client Error") !== false) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "Chunk 404'd for {$basename} ({$chunks_missing}/100)!", ['download-capture' => $data_username]);
+					$chunks_missing++;
+					if ($chunks_missing >= 100) {
+						TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "Too many 404'd chunks for {$basename}, stopping!", ['download-capture' => $data_username]);
+						$process->stop();
+					}
+				}
+
+				// ad removal
+				if (strpos($buffer, "Will skip ad segments") !== false) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Capturing of {$basename}, will try to remove ads!", ['download-capture' => $data_username]);
+					$current_ad_start = time();
+				}
+
+				/** @todo: this gets stuck for some reason, get streamlink devs to fix this */
+				if (strpos($buffer, "Filtering out segments and pausing stream output") !== false) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Pausing capture for {$basename} due to ad segment!", ['download-capture' => $data_username]);
+					$current_ad_start = time();
+				}
+
+				if (strpos($buffer, "Resuming stream output") !== false) {
+					$ad_length = isset($current_ad_start) ? time() - $current_ad_start : -1;
+					$time_offset = time() - $capture_start;
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Resuming capture for {$basename} due to ad segment, {$ad_length}s @ {$time_offset}s!", ['download-capture' => $data_username]);
+					/*
+					if( isset($current_ad_start) ){
+						$vod->addAdvertisement([
+							'start' => $current_ad_start,
+							'end' => $current_ad_start - time()
+						]);
+					}
+					*/
+				}
+
+				if (strpos($buffer, "bad interpreter: No such file or directory") !== false) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Fatal error with streamlink, please check logs", ['download-capture' => $data_username]);
+				}
+
+				// log output
+				if (Process::ERR === $type) {
+					TwitchHelper::appendLog("streamlink_{$basename}_stderr.{$tries}", $buffer);
 				} else {
-					TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "automator", "Chat dump enabled but not running", ['download-capture' => $data_username]);
+					TwitchHelper::appendLog("streamlink_{$basename}_stdout.{$tries}", $buffer);
 				}
-			}
+			});
+		} else {
 
-			// get stream resolution
-			preg_match("/stream:\s([0-9_a-z]+)\s/", $buffer, $matches);
-			if ($matches) {
-				$this->stream_resolution = $matches[1];
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Stream resolution for {$basename}: {$this->stream_resolution}", ['download-capture' => $data_username]);
-			}
+			while (true) {
 
-			// stream stop
-			if (strpos($buffer, "404 Client Error") !== false) {
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "Chunk 404'd for {$basename}!", ['download-capture' => $data_username]);
-				$chunks_missing++;
-				if ($chunks_missing > 100) {
-					TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "Too many 404'd chunks for {$basename}, stopping!", ['download-capture' => $data_username]);
-					$process->stop();
+				// check if capture is running, and quit if it isn't
+				if (!$process->isRunning()) {
+					TwitchHelper::log(TwitchHelper::LOG_INFO, "Streamlink exited, breaking loop", ['download-capture' => $data_username]);
+					break;
 				}
-			}
 
-			// ad removal
-			if (strpos($buffer, "Will skip ad segments") !== false) {
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Capturing of {$basename}, will try to remove ads!", ['download-capture' => $data_username]);
-				$current_ad_start = time();
-			}
-
-			if (strpos($buffer, "Filtering out segments and pausing stream output") !== false) {
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Pausing capture for {$basename} due to ad segment!", ['download-capture' => $data_username]);
-				$current_ad_start = time();
-			}
-
-			if (strpos($buffer, "Resuming stream output") !== false) {
-				$ad_length = isset($current_ad_start) ? time() - $current_ad_start : -1;
-				$time_offset = time() - $capture_start;
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Resuming capture for {$basename} due to ad segment, {$ad_length}s/{$time_offset}s!", ['download-capture' => $data_username]);
-				/*
-				if( isset($current_ad_start) ){
-					$vod->addAdvertisement([
-						'start' => $current_ad_start,
-						'end' => $current_ad_start - time()
-					]);
-				}
-				*/
-			}
-
-			if (strpos($buffer, "bad interpreter: No such file or directory") !== false) {
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Fatal error with streamlink, please check logs", ['download-capture' => $data_username]);
-			}
-
-			// log output
-			if (Process::ERR === $type) {
-				TwitchHelper::appendLog("streamlink_{$basename}_stderr.{$tries}", $buffer);
-			} else {
-				TwitchHelper::appendLog("streamlink_{$basename}_stdout.{$tries}", $buffer);
-			}
-		});
-
-		/*
-		while (true) {
-
-			// check if capture is running, and quit if it isn't
-			if (!$process->isRunning()) {
-				TwitchHelper::log(TwitchHelper::LOG_INFO, "Streamlink exited, breaking loop", ['download-capture' => $data_username]);
-				break;
-			}
-
-			// check timeout of capture
-			try {
-				$process->checkTimeout();
-			} catch (\Throwable $th) {
-				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Process timeout: " . $th->getMessage(), ['download-capture' => $data_username]);
-			}
-
-			$process->addOutput("pad (" . date("Y-m-d H:i:s") . ")");
-
-			// check timeout of chat dump
-			if (TwitchConfig::cfg('chat_dump') && isset($chat_process)) {
-
+				// check timeout of capture
 				try {
-					$chat_process->checkTimeout();
+					$process->checkTimeout();
 				} catch (\Throwable $th) {
 					TwitchHelper::log(TwitchHelper::LOG_ERROR, "Process timeout: " . $th->getMessage(), ['download-capture' => $data_username]);
 				}
 
-				$chat_process->addOutput("pad (" . date("Y-m-d H:i:s") . ")");
+				$cmd_stdout_buffer = $process->getIncrementalOutput();
+				$cmd_stderr_buffer = $process->getIncrementalErrorOutput();
 
-				$cmd_chatdump_stdout_buffer = $chat_process->getIncrementalOutput();
-				$cmd_chatdump_stderr_buffer = $chat_process->getIncrementalErrorOutput();
-				if ($cmd_chatdump_stdout_buffer) TwitchHelper::appendLog("chatdump_" . $basename . "_stdout." . $int, $cmd_chatdump_stdout_buffer);
-				if ($cmd_chatdump_stdout_buffer) TwitchHelper::appendLog("chatdump_" . $basename . "_stderr." . $int, $cmd_chatdump_stderr_buffer);
+				$process->addOutput("TwitchAutomator pad (" . date("Y-m-d H:i:s") . ")");
+
+				// get stream resolution
+				preg_match("/stream:\s([0-9_a-z]+)\s/", $cmd_stdout_buffer, $matches);
+				if ($matches) {
+					$this->stream_resolution = $matches[1];
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Stream resolution for {$basename}: {$this->stream_resolution}", ['download-capture' => $data_username]);
+				}
+
+				// stream stop
+				if (strpos($cmd_stdout_buffer, "404 Client Error") !== false) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "Chunk 404'd for {$basename} ({$chunks_missing}/100)!", ['download-capture' => $data_username]);
+					$chunks_missing++;
+					if ($chunks_missing >= 100) {
+						TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "Too many 404'd chunks for {$basename}, stopping!", ['download-capture' => $data_username]);
+						$process->stop();
+					}
+				}
+
+				// ad removal
+				if (strpos($cmd_stdout_buffer, "Will skip ad segments") !== false) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Capturing of {$basename}, will try to remove ads!", ['download-capture' => $data_username]);
+					$current_ad_start = time();
+				}
+
+				/** @todo: this gets stuck for some reason, get streamlink devs to fix this */
+				if (strpos($cmd_stdout_buffer, "Filtering out segments and pausing stream output") !== false) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Pausing capture for {$basename} due to ad segment!", ['download-capture' => $data_username]);
+					$current_ad_start = time();
+				}
+
+				if (strpos($cmd_stdout_buffer, "Resuming stream output") !== false) {
+					$ad_length = isset($current_ad_start) ? time() - $current_ad_start : -1;
+					$time_offset = time() - $capture_start;
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Resuming capture for {$basename} due to ad segment, {$ad_length}s @ {$time_offset}s!", ['download-capture' => $data_username]);
+					/*
+					if( isset($current_ad_start) ){
+						$vod->addAdvertisement([
+							'start' => $current_ad_start,
+							'end' => $current_ad_start - time()
+						]);
+					}
+					*/
+				}
+
+				if (strpos($cmd_stdout_buffer, "bad interpreter: No such file or directory") !== false) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Fatal error with streamlink, please check logs", ['download-capture' => $data_username]);
+				}
+
+				// check timeout of chat dump
+				if (TwitchConfig::cfg('chat_dump') && isset($chat_process)) {
+
+					try {
+						$chat_process->checkTimeout();
+					} catch (\Throwable $th) {
+						TwitchHelper::log(TwitchHelper::LOG_ERROR, "Process timeout: " . $th->getMessage(), ['download-capture' => $data_username]);
+					}
+
+					$chat_process->addOutput("pad (" . date("Y-m-d H:i:s") . ")");
+
+					$cmd_chatdump_stdout_buffer = $chat_process->getIncrementalOutput();
+					$cmd_chatdump_stderr_buffer = $chat_process->getIncrementalErrorOutput();
+					if ($cmd_chatdump_stdout_buffer) TwitchHelper::appendLog("chatdump_" . $basename . "_stdout." . $int, $cmd_chatdump_stdout_buffer);
+					if ($cmd_chatdump_stdout_buffer) TwitchHelper::appendLog("chatdump_" . $basename . "_stderr." . $int, $cmd_chatdump_stderr_buffer);
+				}
+
+				
+				if ($cmd_stdout_buffer) TwitchHelper::appendLog("streamlink_" . $basename . "_stdout." . $int, $cmd_stdout_buffer);
+				if ($cmd_stdout_buffer) TwitchHelper::appendLog("streamlink_" . $basename . "_stderr." . $int, $cmd_stderr_buffer);
+
+				sleep(10);
 			}
-
-			$cmd_stdout_buffer = $process->getIncrementalOutput();
-			$cmd_stderr_buffer = $process->getIncrementalErrorOutput();
-			if ($cmd_stdout_buffer) TwitchHelper::appendLog("streamlink_" . $basename . "_stdout." . $int, $cmd_stdout_buffer);
-			if ($cmd_stdout_buffer) TwitchHelper::appendLog("streamlink_" . $basename . "_stderr." . $int, $cmd_stderr_buffer);
-
-			sleep(10);
 		}
-		*/
 
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Finished capture with filename " . basename($capture_filename), ['download-capture' => $data_username]);
 
