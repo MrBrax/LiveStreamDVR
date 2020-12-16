@@ -140,8 +140,8 @@
 
                     {% for index, category in settings %}
                         {% if category|length > 0 %}
-                            <fieldset class="fieldset" id="fieldset_{{ index }}">
-                            <h3>{{ index }}</h3>
+                            <details class="settings-details">
+                            <summary>{{ index }}</summary>
                             {% for setting in category %}
                                 <div class="field">
                                     {% if setting.type == "boolean" %}
@@ -170,10 +170,12 @@
                                     {% endif %}
                                 </div>
                             {% endfor %}
-                            </fieldset>
+                            </details>
                         {% endif %}
                     {% endfor %}
-
+                    
+                    <br>
+                    
                     <div class="control">
                         <button class="button is-confirm" type="submit"><span class="icon"><i class="fa fa-save"></i></span> Save</button>
                     </div>

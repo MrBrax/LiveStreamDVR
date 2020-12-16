@@ -213,3 +213,20 @@
 	}
 }
 */
+
+details.settings-details {
+	summary {
+		font-size: 130%;
+		font-weight: 700;
+		cursor: pointer;
+		&:hover {
+			color: #444;
+		}
+	}
+	div.field:first-of-type {
+		padding-top: 10px;
+	}
+	div.field:last-of-type {
+		padding-bottom: 10px;
+	}
+}
