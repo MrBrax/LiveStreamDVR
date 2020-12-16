@@ -707,6 +707,7 @@ class TwitchAutomator
 
 		// $time_start = time();
 		$stream_paused_ticks = 0;
+		$stream_is_paused = false;
 		$current_ad_start = null;
 		$capture_start = time();
 		// $vod = $this->vod;
@@ -718,7 +719,7 @@ class TwitchAutomator
 		if (TwitchConfig::cfg('process_wait_method', 1) == 1) {
 
 			// wait loop until it's done
-			$process->wait(function ($type, $buffer) use ($process, $basename, $int, $tries, $data_username, $chat_process, &$chunks_missing, &$current_ad_start, $capture_start, &$stream_paused_ticks) {
+			$process->wait(function ($type, $buffer) use ($process, $basename, $int, $tries, $data_username, $chat_process, &$chunks_missing, &$current_ad_start, $capture_start, &$stream_is_paused, &$stream_paused_ticks) {
 
 				// check timeout of chat dump
 				if (TwitchConfig::cfg('chat_dump') && isset($chat_process)) {
@@ -757,18 +758,26 @@ class TwitchAutomator
 				
 				if($stream_paused_ticks >= 30){
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Stream is paused for {$stream_paused_ticks} ticks for {$basename}!", ['download-capture' => $data_username]);
+					if($stream_paused_ticks >= 300){
+						$process->stop();
+					}
+				}
+
+				if($stream_is_paused){
+					$stream_paused_ticks++;
 				}
 
 				/** @todo: this gets stuck for some reason, get streamlink devs to fix this */
 				if (strpos($buffer, "Filtering out segments and pausing stream output") !== false) {
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Pausing capture for {$basename} due to ad segment!", ['download-capture' => $data_username]);
 					$current_ad_start = time();
-					$stream_paused_ticks++;
+					$stream_is_paused = true;
 				}
 
 				if (strpos($buffer, "Resuming stream output") !== false) {
 					$ad_length = isset($current_ad_start) ? time() - $current_ad_start : -1;
 					$time_offset = time() - $capture_start;
+					$stream_is_paused = false;
 					$stream_paused_ticks = 0;
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Resuming capture for {$basename} due to ad segment, {$ad_length}s @ {$time_offset}s!", ['download-capture' => $data_username]);
 					/*
@@ -839,19 +848,27 @@ class TwitchAutomator
 
 				if($stream_paused_ticks >= 30){
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Stream is paused for {$stream_paused_ticks} ticks for {$basename}!", ['download-capture' => $data_username]);
+					if($stream_paused_ticks >= 300){
+						$process->stop();
+					}
+				}
+
+				if($stream_is_paused){
+					$stream_paused_ticks++;
 				}
 
 				/** @todo: this gets stuck for some reason, get streamlink devs to fix this */
 				if (strpos($cmd_stdout_buffer, "Filtering out segments and pausing stream output") !== false) {
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Pausing capture for {$basename} due to ad segment!", ['download-capture' => $data_username]);
 					$current_ad_start = time();
-					$stream_paused_ticks++;
+					$stream_is_paused = true;
 				}
 
 				if (strpos($cmd_stdout_buffer, "Resuming stream output") !== false) {
 					$ad_length = isset($current_ad_start) ? time() - $current_ad_start : -1;
 					$time_offset = time() - $capture_start;
 					$stream_paused_ticks = 0;
+					$stream_is_paused = false;
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Resuming capture for {$basename} due to ad segment, {$ad_length}s @ {$time_offset}s!", ['download-capture' => $data_username]);
 					/*
 					if( isset($current_ad_start) ){
