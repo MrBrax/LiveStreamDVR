@@ -98,6 +98,8 @@ class TwitchVOD
 	public ?string $path_chatburn = null;
 	public ?string $path_chatdump = null;
 
+	private array $associatedFiles = [];
+
 	private $pid_cache = [];
 
 	/**
@@ -251,6 +253,23 @@ class TwitchVOD
 
 		$this->is_chat_rendered 	= file_exists($this->path_chatrender);
 		$this->is_chat_burned 		= file_exists($this->path_chatburn);
+
+		$this->associatedFiles = [
+			$this->basename . '.json',
+			$this->basename . '.chat',
+			$this->basename . '_vod.mp4',
+			$this->basename . '-llc-edl.csv',
+			$this->basename . '_chat.mp4',
+			$this->basename . '_burned.mp4',
+			$this->basename . '.chatdump',
+			$this->basename . '.chatdump.txt',
+		];
+
+		if (isset($this->segments_raw)) {
+			foreach ($this->segments_raw as $seg) {
+				$this->associatedFiles[] = basename($seg);
+			}
+		}
 
 		return true;
 	}
@@ -1665,6 +1684,7 @@ class TwitchVOD
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Delete {$this->basename}");
 
 		// segments
+		/*
 		foreach ($this->segments_raw as $s) {
 			unlink($this->directory . DIRECTORY_SEPARATOR . basename($s));
 		}
@@ -1676,6 +1696,13 @@ class TwitchVOD
 			unlink($this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chatdump');
 			unlink($this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chatdump.txt');
 		}
+		*/
+		foreach ($this->associatedFiles as $file) {
+			if (file_exists($this->directory . DIRECTORY_SEPARATOR . $file)){
+				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Delete {$file}");
+				unlink($this->directory . DIRECTORY_SEPARATOR . $file);
+			}
+		}
 	}
 
 	/**
@@ -1686,10 +1713,18 @@ class TwitchVOD
 	public function save()
 	{
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Save {$this->basename}");
+		/*
 		rename(TwitchHelper::vodFolder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '.mp4', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '.mp4');
 		rename(TwitchHelper::vodFolder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '.json', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '.json');
 		rename(TwitchHelper::vodFolder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '-llc-edl.csv'); // losslesscut
 		rename(TwitchHelper::vodFolder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '.chat', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '.chat'); // chat
+		*/
+		foreach ($this->associatedFiles as $file) {
+			if (file_exists($this->directory . DIRECTORY_SEPARATOR . $file)) {
+				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Save {$file}");
+				rename($this->directory . DIRECTORY_SEPARATOR . $file, TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $file);
+			}
+		}
 	}
 
 	/** @deprecated 3.4.0 this function sucks */
