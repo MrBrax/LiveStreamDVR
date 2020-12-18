@@ -107,7 +107,7 @@ class SettingsController
             $client = new \GuzzleHttp\Client();
 
             try {
-                $response = $client->request('GET', $full_url);
+                $response = $client->request('GET', $full_url, ['connect_timeout' => 10, 'timeout' => 10]);
             } catch (\Throwable $th) {
                 $response->getBody()->write("External app url could be contacted at all ({$full_url}).");
                 return $response;

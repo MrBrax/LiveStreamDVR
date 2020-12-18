@@ -46,6 +46,12 @@
 				</div>
 				
 			</form>
+			<form method="post" action="{{ url_for('api_vod_export', { 'vod': vodclass.basename }) }}">
+				<select name="destination">
+					<option>YouTube</option>
+				</select>
+				<button type="submit" class="button" onclick="submit_cut();">Upload</button>
+			</form>
         </div>
 
     </div>

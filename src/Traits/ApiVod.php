@@ -309,7 +309,9 @@ trait ApiVod
         $vodclass = new TwitchVOD();
         $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
-        $destination = isset($_GET['destination']) ? $_GET['destination'] : null;
+        
+        $destination = isset($_POST['destination']) ? $_POST['destination'] : null;
+
         $exporter = null;
         switch ($destination) {
             case 'YouTube':

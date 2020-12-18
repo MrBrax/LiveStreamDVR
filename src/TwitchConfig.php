@@ -21,7 +21,7 @@ class TwitchConfig
 		['key' => 'twitchdownloader_path',	'group' => 'Binaries',	'text' => 'TwitchDownloaderCLI path', 						'type' => 'string'],
 
 		['key' => 'basepath', 				'group' => 'Advanced',	'text' => 'Base path', 										'type' => 'string', 'help' => 'No trailing slash', 'help' => 'For reverse proxy etc', 'stripslash' => true],
-		['key' => 'app_url', 				'group' => 'Interface',	'text' => 'App URL', 										'type' => 'string', 'required' => true, 'help' => 'No trailing slash', 'stripslash' => true],
+		['key' => 'app_url', 				'group' => 'Basic',	'text' => 'App URL', 										'type' => 'string', 'required' => true, 'help' => 'No trailing slash', 'stripslash' => true],
 		['key' => 'webhook_url', 			'group' => 'Basic',		'text' => 'Webhook URL', 									'type' => 'string', 'help' => 'For external scripting'],
 		['key' => 'password', 				'group' => 'Interface',	'text' => 'Password', 										'type' => 'string', 'help' => 'Keep blank for none. Username is admin'],
 		['key' => 'storage_per_streamer', 	'group' => 'Basic',		'text' => 'Gigabytes of storage per streamer', 				'type' => 'number', 'default' => 100],
@@ -54,6 +54,9 @@ class TwitchConfig
 		['key' => 'fix_corruption', 		'group' => 'Advanced',	'text' => 'Try to fix corruption in remuxing',				'type' => 'boolean', 'default' => false, 'help' => 'This may help with audio syncing.'],
 		['key' => 'playlist_dump', 			'group' => 'Advanced',	'text' => 'Use playlist dumping (experimental)',			'type' => 'boolean', 'default' => false],
 		['key' => 'process_wait_method', 	'group' => 'Advanced',	'text' => 'Process wait method',							'type' => 'number', 'default' => 1],
+
+		['key' => 'youtube_api_key', 		'group' => 'Exporters',	'text' => 'YouTube API Key',								'type' => 'string'],
+
 	];
 
 	public static $timezone;
