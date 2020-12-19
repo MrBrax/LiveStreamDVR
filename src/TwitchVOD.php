@@ -1722,7 +1722,7 @@ class TwitchVOD
 		foreach ($this->associatedFiles as $file) {
 			if (file_exists($this->directory . DIRECTORY_SEPARATOR . $file)) {
 				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Save {$file}");
-				rename($this->directory . DIRECTORY_SEPARATOR . $file, TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $file);
+				rename($this->directory . DIRECTORY_SEPARATOR . $file, TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . DIRECTORY_SEPARATOR . $file);
 			}
 		}
 	}
