@@ -1,4 +1,4 @@
-FROM trafex/alpine-nginx-php7:latest
+FROM erseco/alpine-php7-webserver:edge
 USER root
 
 # COPY --from=composer /usr/bin/composer /usr/bin/composer
@@ -17,7 +17,12 @@ COPY . /var/www/twitchautomator/
 
 # RUN git clone https://github.com/MrBrax/TwitchAutomator /var/www/twitchautomator/
 
-RUN cd /var/www/twitchautomator/ && composer install --no-dev
+COPY ./docker/memory_limit.ini /etc/php7/conf.d/memory_limit.ini
+ENV COMPOSER_MEMORY_LIMIT=256M
+ENV MEMORY_LIMIT=256M
+ENV PHP_MEMORY_LIMIT=256M
+ENV PHP7_MEMORY_LIMIT=256M
+RUN cd /var/www/twitchautomator/ && composer install --optimize-autoloader --no-interaction --no-dev
 
 # RUN cd /var/www/twitchautomator/ && npm install # nodejs
 

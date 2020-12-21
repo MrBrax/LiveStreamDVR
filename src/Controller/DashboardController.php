@@ -68,7 +68,7 @@ class DashboardController
 
         $log_path = TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . $current_log . ".log.json";
 
-        $log_files_raw = glob(TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . "*.log.json", GLOB_BRACE);
+        $log_files_raw = glob(TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . "*.log.json");
         if ($log_files_raw) $log_files = array_map('basename', $log_files_raw);
 
         if (file_exists($log_path)) {
