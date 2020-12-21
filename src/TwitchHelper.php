@@ -698,10 +698,10 @@ class TwitchHelper
 	 * @param DateTime $duration
 	 * @return string
 	 */
-	public static function printHumanDate(int $duration)
+	public static function printHumanDate(int $ts)
 	{
 
-		$ts = $duration->getTimestamp();
+		// $ts = $duration->getTimestamp();
 
 		$diff = time() - $ts;
 		if ($diff == 0) {

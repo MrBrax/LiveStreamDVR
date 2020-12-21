@@ -60,7 +60,7 @@
                                 <span class="icon"><i class="fa fa-film"></i></span> {# video #}
                             {% endif %}
                             {% if not config.relative_time and vodclass.dt_started_at %}{{ vodclass.dt_started_at|date('Y-m-d H:i:s') }}{% endif %} {# absolute time #}
-                            {% if config.relative_time and vodclass.dt_started_at %}{{ vodclass.dt_started_at|humanDate }}{% endif %} {# relative time #}
+                            {% if config.relative_time and vodclass.dt_started_at %}{{ vodclass.dt_started_at.getTimestamp|humanDate }}{% endif %} {# relative time #}
                             {% if vodclass.is_capturing %}
                                 {% if vodclass.duration_live %}&middot; ({{ config.relative_time ? vodclass.duration_live|humanRealDuration : vodclass.duration_live|humanDuration }}+){% endif %} {# duration #}
                                 {% if vodclass.getRecordingSize %}&middot; {{ vodclass.getRecordingSize|formatBytes }}+{% endif %} {# filesize #}
