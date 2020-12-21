@@ -123,6 +123,7 @@ if (TwitchConfig::cfg('password')) {
         "path" => ["/"],
         "ignore" => ["/hook", "/sub"],
         "realm" => "Protected",
+        "secure" => TwitchConfig::cfg('password_secure', true),
         "users" => [
             "admin" => TwitchConfig::cfg('password')
         ]
