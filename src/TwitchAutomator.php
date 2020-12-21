@@ -757,7 +757,9 @@ class TwitchAutomator
 				}
 				
 				if($stream_paused_ticks >= 30){
-					TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "Stream is paused for {$stream_paused_ticks} ticks for {$basename}!", ['download-capture' => $data_username]);
+					if( $stream_paused_ticks % 5 == 0 ){
+						TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "Stream is paused for {$stream_paused_ticks} ticks for {$basename}!", ['download-capture' => $data_username]);
+					}
 					if($stream_paused_ticks >= 300){
 						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Stream reached {$stream_paused_ticks} ticks for {$basename}, aborting capture!", ['download-capture' => $data_username]);
 						$process->stop();
@@ -848,7 +850,9 @@ class TwitchAutomator
 				}
 
 				if($stream_paused_ticks >= 30){
-					TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "Stream is paused for {$stream_paused_ticks} ticks for {$basename}!", ['download-capture' => $data_username]);
+					if( $stream_paused_ticks % 5 == 0 ){
+						TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "Stream is paused for {$stream_paused_ticks} ticks for {$basename}!", ['download-capture' => $data_username]);
+					}
 					if($stream_paused_ticks >= 300){
 						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Stream reached {$stream_paused_ticks} ticks for {$basename}, aborting capture!", ['download-capture' => $data_username]);
 						$process->stop();
