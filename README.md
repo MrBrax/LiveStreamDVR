@@ -8,10 +8,24 @@
 - Basic video cutter with chapter display for easy exporting
 - Writes a [losslesscut](https://github.com/mifi/lossless-cut/) compatible csv file for the full VOD so you don't have to find all the games.
 - Uses `ts` instead of `mp4` so if the stream or program crashes, the file won't be corrupted
-- Optionall either dumps chat while capturing (unstable) or downloads the chat file after it's done.
+- Optionally either dumps chat while capturing (unstable) or downloads the chat file after it's done.
 - Basic tools for downloading any VOD or chat.
 - Can be set to automatically download the whole stream chat to a JSON file, to be used in my [twitch-vod-chat](https://github.com/MrBrax/twitch-vod-chat) webapp or automatically burned in with [TwitchDownloader](https://github.com/lay295/TwitchDownloader).
 - Webhook support for external scripting
+
+## Docker setup
+
+Known issues:
+- TwitchDownloaderCLI doesn't work in alpine/docker: /bin/sh: ./TwitchDownloaderCLI: not found
+
+### Manual build
+Run `docker-compose up --build -d` in the app directory. The docker-compose.yml file is required.
+
+### Docker hub
+
+Pull the image from https://hub.docker.com/r/mrbrax/twitchautomator
+
+Docker hub doesn't seem to fully support docker-compose apps, so the cron stuff won't work.
 
 ## Standalone setup
 
@@ -48,13 +62,3 @@ When upgrading, delete the `twig` folder in the `cache` folder.
 - [youtube-dl](https://youtube-dl.org/) (recommended)
 - [tcd](https://pypi.org/project/tcd/) (optional for chat downloading)
 - [pipenv](https://github.com/pypa/pipenv) (optional, experimental)
-
-## Docker setup
-
-Run `docker-compose up --build -d` or build it in beforehand. Not fully tested.
-
-Docker hub: https://hub.docker.com/r/mrbrax/twitchautomator
-
-Known issues:
-- ~~No cron jobs yet, everything needs to be run manually.~~
-- TwitchDownloaderCLI doesn't work in alpine/docker: /bin/sh: ./TwitchDownloaderCLI: not found
