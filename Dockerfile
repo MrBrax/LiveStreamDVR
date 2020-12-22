@@ -54,6 +54,8 @@ WORKDIR /var/www/twitchautomator
 
 # cron, does this even work?
 COPY ./docker/crontab /etc/crontab
+# COPY ./docker/crontab /etc/crontabs/nobody
+# COPY ./docker/crontab /etc/crontabs/root
 
 # RUN /usr/bin/crontab /var/www/twitchautomator/config/cron.txt
 # CMD ["/var/www/twitchautomator/docker/entry.sh"]

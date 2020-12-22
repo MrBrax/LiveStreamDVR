@@ -1,3 +1,4 @@
 0 5 * * 1 curl http://localhost:8080/sub
 0 */12 * * * curl http://localhost:8080/cron/check_muted_vods
 10 */12 * * * curl http://localhost:8080/cron/check_deleted_vods
+* * * * * echo 'test' > /var/log/crontest
