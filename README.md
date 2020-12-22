@@ -53,7 +53,7 @@ When upgrading, delete the `twig` folder in the `cache` folder.
 
 Run `docker-compose up --build -d` or build it in beforehand. Not fully tested.
 
-Docker hub: https://hub.docker.com/repository/docker/mrbrax/twitchautomator
+Docker hub: https://hub.docker.com/r/mrbrax/twitchautomator
 
 Known issues:
 - No cron jobs yet, everything needs to be run manually.
