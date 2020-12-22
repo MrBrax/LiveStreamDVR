@@ -18,7 +18,7 @@
     #}
     <table>
         {% for line in log_lines %}
-            <tr class="log_{{ line.level|lower }}"{% if config.debug %} title="{{ line.metadata }}"{% endif %}>
+            <tr class="log_{{ line.level|lower }}"{% if config.debug %} title="{{ line.metadata|json_encode }}"{% endif %}>
                 <td>{{ line.date_string }}</td>
                 <td><a href="javascript:filterLog('{{ line.module }}');">{{ line.module }}</a></td>
                 <td>{{ line.level }}</td>
