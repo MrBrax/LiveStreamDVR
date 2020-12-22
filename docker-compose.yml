@@ -11,3 +11,5 @@ services:
       - ./docker/vods:/var/www/twitchautomator/public/vods
       - ./docker/saved_clips:/var/www/twitchautomator/public/saved_clips
       - ./docker/saved_vods:/var/www/twitchautomator/public/saved_vods
+  cron:
+    build: ./docker/cron-container/
