@@ -32,6 +32,10 @@ ENV PHP7_MEMORY_LIMIT=256M
 RUN cd /var/www/twitchautomator/ && composer install --optimize-autoloader --no-interaction --no-dev
 # RUN cd /var/www/twitchautomator/ && npm install # nodejs
 
+# download twitchdownloader, is this legal? lmao
+RUN sh /var/www/twitchautomator/src/Utilities/fetch-tdl.sh
+ENV TCD_TWITCHDOWNLOADER_PATH=/usr/local/bin/TwitchDownloaderCLI
+
 # src perms
 RUN chown -R nobody:nobody /var/www/twitchautomator && chmod -R 775 /var/www/twitchautomator
 
@@ -52,7 +56,7 @@ USER nobody
 WORKDIR /var/www/twitchautomator
 
 # cron, no support in alpine
-COPY ./docker/crontab /etc/crontab
+# COPY ./docker/crontab /etc/crontab
 # COPY ./docker/crontab /etc/crontabs/nobody
 # COPY ./docker/crontab /etc/crontabs/root
 

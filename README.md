@@ -56,4 +56,5 @@ Run `docker-compose up --build -d` or build it in beforehand. Not fully tested.
 Docker hub: https://hub.docker.com/r/mrbrax/twitchautomator
 
 Known issues:
-- No cron jobs yet, everything needs to be run manually.
+- ~~No cron jobs yet, everything needs to be run manually.~~
+- TwitchDownloaderCLI doesn't work in alpine/docker: /bin/sh: ./TwitchDownloaderCLI: not found
