@@ -81,6 +81,7 @@
                 <br /><strong>PHP GID:</strong> {{ bins.php.gid }}
                 <br /><strong>PHP SAPI:</strong> {{ bins.php.sapi }}
                 <br /><strong>Platform:</strong> {{ bins.php.platform ?: 'unknown' }}/{{ bins.php.platform_family ?: 'unknown' }}
+                <br /><strong>Docker:</strong> {{ is_docker ? 'Yes' : 'No' }}
                 {% if envs %}
                 {% if envs.NODE %}<br /><strong>Node:</strong> {{ envs.npm_config_node_version }}{% endif %}
                 {% endif %}

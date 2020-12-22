@@ -171,6 +171,7 @@ class AboutController
 
         return $this->twig->render($response, 'about.twig', [
             'bins' => $bins,
+            'is_docker' => getenv('TCD_DOCKER') == 1
             // 'envs' => TwitchConfig::cfg('debug') ? getenv() : null
         ]);
     }

@@ -6,7 +6,7 @@ USER root
 
 # FROM composer AS composer
 
-RUN apk --no-cache add gcc libc-dev git python3 py3-pip composer ffmpeg mediainfo util-linux busybox-initscripts
+RUN apk --no-cache add gcc libc-dev git python3 py3-pip composer ffmpeg mediainfo util-linux busybox-initscripts procps
 
 RUN pip install streamlink youtube-dl tcd
 
@@ -45,7 +45,9 @@ COPY ./docker/nginx.conf /etc/nginx/nginx.conf
 RUN mkdir -p /home/nobody && chown -R nobody:nobody /home/nobody
 ENV HOME /home/nobody
 ENV TCD_BIN_DIR=/usr/bin
+ENV TCD_FFMPEG_PATH=/usr/bin/ffmpeg
 ENV TCD_MEDIAINFO_PATH=/usr/bin/mediainfo
+ENV TCD_DOCKER=1
 
 USER nobody
 WORKDIR /var/www/twitchautomator
