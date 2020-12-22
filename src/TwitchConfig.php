@@ -78,6 +78,8 @@ class TwitchConfig
 
 		if (!isset(self::$config[$var])) return $def; // if not defined
 
+		// if (self::$config[$var] == null) return null;
+
 		/* i should test this
 		if( self::$config[$var] === null ){
 			return $def;
@@ -225,7 +227,7 @@ class TwitchConfig
 
 	public static function getStreamers()
 	{
-		return self::cfg("streamers", []);
+		return self::$config['streamers'];
 	}
 
 	/**

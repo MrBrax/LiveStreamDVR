@@ -59,4 +59,16 @@ class ConfigTest extends TestCase
         $this->assertIsInt(TwitchConfig::cfg('sub_lease'), 'sub_lease int');
     }
 
+    public function test_defaultConfigReturn(): void
+    {   
+        TwitchConfig::setConfig('password_secure', null);
+        $this->assertTrue(TwitchConfig::cfg('password_secure', true), 'password_secure = null, default true');
+
+        TwitchConfig::setConfig('password_secure', true);
+        $this->assertTrue(TwitchConfig::cfg('password_secure', true), 'password_secure = true, default true');
+
+        TwitchConfig::setConfig('password_secure', false);
+        $this->assertFalse(TwitchConfig::cfg('password_secure', true), 'password_secure = false, default true');
+    }
+
 }
