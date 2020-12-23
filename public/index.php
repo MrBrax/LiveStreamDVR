@@ -82,6 +82,9 @@ $container->get('view')->getEnvironment()->addGlobal('config', TwitchConfig::$co
 // debug available everywhere
 $container->get('view')->getEnvironment()->addGlobal('debug', TwitchConfig::cfg('debug', false));
 
+// docker
+$container->get('view')->getEnvironment()->addGlobal('is_docker', getenv('TCD_DOCKER') == 1);
+
 // version
 if (file_exists(__DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "package.json")) {
     $container->get('view')->getEnvironment()->addGlobal('app_version', json_decode(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "package.json"))->version);

@@ -100,6 +100,8 @@
                 <hr />
                 {% endif %}
 
+                {% if not is_docker %}
+
                 <h3>Pip update</h3>
                 <code>pip install --user --upgrade youtube-dl streamlink tcd pipenv</code>
                 <br>You might want to install without the --user switch depending on environment.
@@ -113,6 +115,8 @@
                     <li><a href="https://mediaarea.net/en/MediaInfo" target="_blank">MediaInfo</a></li>
                     <li><a href="https://github.com/lay295/TwitchDownloader" target="_blank">TwitchDownloader</a></li>
                 </ul>
+
+                {% endif %}
 
             </div>
             

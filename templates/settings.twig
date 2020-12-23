@@ -191,6 +191,8 @@
 
                 <p>Check the status of the external utilities on the <a href="{{ url_for('about') }}">about</a> page.
 
+                {% if not is_docker %}
+
                 <hr>
 
                 <strong>Crontab example</strong><br>
@@ -205,6 +207,8 @@
                     <span class="input-help">This will subscribe to the webhook every 5 days, check muted &amp; deleted vods every 12 hours, and dump playlists once per day.</span>
                 {% else %}
                     <em class="is-error">Can't show example, <strong>app url</strong> has not been set</em>
+                {% endif %}
+
                 {% endif %}
                 
             </div>
