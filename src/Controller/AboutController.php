@@ -36,13 +36,13 @@ class AboutController
 
         $pip_requirements = [];
         $requirements_file = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'requirements.txt';
-        if(file_exists($requirements_file)){
+        if (file_exists($requirements_file)) {
             $requirements_data = file_get_contents($requirements_file);
             $lines = explode("\n", $requirements_data);
-            foreach($lines as $line){
+            foreach ($lines as $line) {
                 preg_match("/^([a-z_-]+)([=<>]+)(.*)$/", $line, $matches);
-                if($matches){
-                    $pip_requirements[ trim($matches[1]) ] = [
+                if ($matches) {
+                    $pip_requirements[trim($matches[1])] = [
                         'comparator' => trim($matches[2]),
                         'version' => trim($matches[3])
                     ];
@@ -83,9 +83,9 @@ class AboutController
             $bins['tcd']['installed'] = true;
 
             $version = trim(substr($bins['tcd']['status'], 23));
-            if(version_compare($version, $pip_requirements['tcd']['version'], $pip_requirements['tcd']['comparator'])){
+            if (version_compare($version, $pip_requirements['tcd']['version'], $pip_requirements['tcd']['comparator'])) {
                 $bins['tcd']['update'] = 'Version OK';
-            }else{
+            } else {
                 $bins['tcd']['update'] = 'Please update to at least ' . $pip_requirements['tcd']['version'];
             }
         } else {
@@ -102,9 +102,9 @@ class AboutController
             $bins['streamlink']['installed'] = true;
 
             $version = trim(substr($bins['streamlink']['status'], 11));
-            if(version_compare($version, $pip_requirements['streamlink']['version'], $pip_requirements['streamlink']['comparator'])){
+            if (version_compare($version, $pip_requirements['streamlink']['version'], $pip_requirements['streamlink']['comparator'])) {
                 $bins['streamlink']['update'] = 'Version OK';
-            }else{
+            } else {
                 $bins['streamlink']['update'] = 'Please update to at least ' . $pip_requirements['streamlink']['version'];
             }
         } else {
@@ -119,9 +119,9 @@ class AboutController
             $bins['youtubedl']['status'] = trim($out);
             $bins['youtubedl']['installed'] = true;
 
-            if(version_compare(trim($out), $pip_requirements['youtube-dl']['version'], $pip_requirements['youtube-dl']['comparator'])){
+            if (version_compare(trim($out), $pip_requirements['youtube-dl']['version'], $pip_requirements['youtube-dl']['comparator'])) {
                 $bins['youtubedl']['update'] = 'Version OK';
-            }else{
+            } else {
                 $bins['youtubedl']['update'] = 'Please update to at least ' . $pip_requirements['youtube-dl']['version'];
             }
         } else {
@@ -131,7 +131,11 @@ class AboutController
         $bins['twitchdownloader'] = [];
         $bins['twitchdownloader']['path'] = TwitchHelper::path_twitchdownloader();
         if (TwitchHelper::path_twitchdownloader() && file_exists(TwitchHelper::path_twitchdownloader())) {
-            $out = TwitchHelper::exec([TwitchHelper::path_twitchdownloader(), "--version"], true);
+            try {
+                $out = TwitchHelper::exec([TwitchHelper::path_twitchdownloader(), "--version"], true);
+            } catch (\Throwable $th) {
+                $out = $th->getMessage();
+            }
             $bins['twitchdownloader']['status'] = trim($out);
             $bins['twitchdownloader']['installed'] = true;
         } else {

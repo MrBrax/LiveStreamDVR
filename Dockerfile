@@ -2,7 +2,9 @@ FROM erseco/alpine-php7-webserver:edge
 USER root
 
 # system packages
-RUN apk --no-cache add gcc libc-dev git python3 py3-pip composer ffmpeg mediainfo util-linux busybox-initscripts procps
+RUN apk --no-cache add gcc libc-dev git \
+    python3 py3-pip composer ffmpeg mediainfo \
+    util-linux busybox-initscripts procps gcompat
 
 # pip packages
 RUN pip install streamlink youtube-dl tcd
@@ -31,6 +33,11 @@ ENV PHP_MEMORY_LIMIT=256M
 ENV PHP7_MEMORY_LIMIT=256M
 RUN cd /var/www/twitchautomator/ && composer install --optimize-autoloader --no-interaction --no-dev
 # RUN cd /var/www/twitchautomator/ && npm install # nodejs
+
+# install dotnet for twitchdownloader
+# ADD https://dot.net/v1/dotnet-install.sh /tmp/dotnet-install.sh
+# RUN chmod +x /tmp/dotnet-install.sh && /tmp/dotnet-install.sh --channel 3.1 --verbose --install-dir /usr/share/dotnet
+# --runtime dotnet
 
 # download twitchdownloader, is this legal? lmao
 RUN sh /var/www/twitchautomator/src/Utilities/fetch-tdl.sh
