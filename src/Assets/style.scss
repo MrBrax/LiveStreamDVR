@@ -120,10 +120,19 @@ code, pre {
 }
 
 /** Black theme **/
-body.black {
-	
-	background-color: #111;
-	color: #e6e6e6;
+@media (prefers-color-scheme: dark) {
+
+	body {
+		background-color: #111;
+		color: #e6e6e6;
+	}
+
+	a {
+		color: #75ccee;
+		&:hover {
+			color: #fff;
+		}
+	}
 
 	.section {
 		background-color: #222;
@@ -147,6 +156,69 @@ body.black {
 		background-color: #484848;
 		border-color: #2b2b2b;
 		color: #d7d7d7;
+	}
+
+	.video-description {
+		background-color: #484848;
+	}
+
+	.video-chapters {
+		background-color: #333;
+	}
+
+	.video-controls {
+		background-color: #384d7d;
+	}
+
+	.video-segments {
+		background-color: #4c5884;
+	}
+
+	.video-description, .video-segments, .video-controls, .video-chapters {
+		border-color: #333;
+	}
+
+	.game-list {
+		td:nth-child(4){ color: #aaa; }
+		a {
+			color: #75ccee;
+			&:hover {
+				color: #fff;
+			}
+		}
+	}
+
+	.info-columns {
+		.video-info {
+			color: #c8c8c8;
+		}
+	}
+
+	#js-status, .jobs_list {
+		color: #eee;
+		background-color: #333;
+		border-color: #111;
+	}
+
+	.label {
+		color: #6eb4ff;
+	}
+
+	.input {
+		color: #aaa;
+		background-color: #333;
+		border-color: #666;
+		&:focus {
+			color: #eee;
+			border-color: #777;
+			background-color: #353535;
+		}
+	}
+
+	.card {
+		.card-content {
+			background-color: #3e3e3e;
+		}
 	}
 
 }
