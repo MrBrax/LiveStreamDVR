@@ -810,7 +810,7 @@ class TwitchAutomator
 
 				// check if capture is running, and quit if it isn't
 				if (!$process->isRunning()) {
-					TwitchHelper::log(TwitchHelper::LOG_INFO, "Streamlink exited, breaking loop", ['download-capture' => $data_username]);
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Streamlink exited, breaking loop", ['download-capture' => $data_username]);
 					break;
 				}
 
@@ -818,7 +818,7 @@ class TwitchAutomator
 				try {
 					$process->checkTimeout();
 				} catch (\Throwable $th) {
-					TwitchHelper::log(TwitchHelper::LOG_ERROR, "Process timeout: " . $th->getMessage(), ['download-capture' => $data_username]);
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Process timeout: " . $th->getMessage(), ['download-capture' => $data_username]);
 				}
 
 				$cmd_stdout_buffer = $process->getIncrementalOutput();
@@ -896,7 +896,7 @@ class TwitchAutomator
 					try {
 						$chat_process->checkTimeout();
 					} catch (\Throwable $th) {
-						TwitchHelper::log(TwitchHelper::LOG_ERROR, "Process timeout: " . $th->getMessage(), ['download-capture' => $data_username]);
+						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Process timeout: " . $th->getMessage(), ['download-capture' => $data_username]);
 					}
 
 					$chat_process->addOutput("pad (" . date("Y-m-d H:i:s") . ")");
