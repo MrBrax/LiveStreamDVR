@@ -580,6 +580,9 @@ class TwitchAutomator
 		$cmd[] = '--retry-max';
 		$cmd[] = '5';
 
+		// disable reruns
+		$cmd[] = '--twitch-disable-reruns';
+
 		// logging level
 		if (TwitchConfig::cfg('debug', false)) {
 			$cmd[] = '--loglevel';
@@ -750,6 +753,16 @@ class TwitchAutomator
 					}
 				}
 
+				// stream not found
+				if (strpos($buffer, "Waiting for streams") !== false) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "No streams found for {$basename}, retrying...", ['download-capture' => $data_username]);
+				}
+
+				// stream error
+				if (strpos($buffer, "403 Client Error") !== false) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Chunk 403'd for {$basename}!", ['download-capture' => $data_username]);
+				}
+
 				// ad removal
 				if (strpos($buffer, "Will skip ad segments") !== false) {
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Capturing of {$basename}, will try to remove ads!", ['download-capture' => $data_username]);
@@ -779,7 +792,7 @@ class TwitchAutomator
 
 				if (strpos($buffer, "Resuming stream output") !== false) {
 					$ad_length = isset($current_ad_start) ? time() - $current_ad_start : -1;
-					$time_offset = time() - $capture_start;
+					$time_offset = time() - $capture_start - $ad_length;
 					$stream_is_paused = false;
 					$stream_paused_ticks = 0;
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Resuming capture for {$basename} due to ad segment, {$ad_length}s @ {$time_offset}s!", ['download-capture' => $data_username]);
@@ -843,6 +856,16 @@ class TwitchAutomator
 					}
 				}
 
+				// stream not found
+				if (strpos($cmd_stdout_buffer, "Waiting for streams") !== false) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "No streams found for {$basename}, retrying...", ['download-capture' => $data_username]);
+				}
+
+				// stream error
+				if (strpos($cmd_stdout_buffer, "403 Client Error") !== false) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Chunk 403'd for {$basename}!", ['download-capture' => $data_username]);
+				}
+
 				// ad removal
 				if (strpos($cmd_stdout_buffer, "Will skip ad segments") !== false) {
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Capturing of {$basename}, will try to remove ads!", ['download-capture' => $data_username]);
@@ -872,7 +895,7 @@ class TwitchAutomator
 
 				if (strpos($cmd_stdout_buffer, "Resuming stream output") !== false) {
 					$ad_length = isset($current_ad_start) ? time() - $current_ad_start : -1;
-					$time_offset = time() - $capture_start;
+					$time_offset = time() - $capture_start - $ad_length;
 					$stream_paused_ticks = 0;
 					$stream_is_paused = false;
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Resuming capture for {$basename} due to ad segment, {$ad_length}s @ {$time_offset}s!", ['download-capture' => $data_username]);
