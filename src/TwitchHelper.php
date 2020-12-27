@@ -264,7 +264,7 @@ class TwitchHelper
 		$filename 		= TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log";
 		$filename_json 	= TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log.json";
 
-		$log_text = file_exists($filename) ? file_get_contents($filename) : '';
+		// $log_text = file_exists($filename) ? file_get_contents($filename) : '';
 		$log_json = file_exists($filename_json) ? json_decode(file_get_contents($filename_json), true) : [];
 
 		/** @todo: this still isn't working properly **/
@@ -282,8 +282,8 @@ class TwitchHelper
 
 
 		$date = new \DateTime();
-		$text_line = $date->format("Y-m-d H:i:s.v") . " | <{$level}> {$text}";
-		$log_text .= "\n{$text_line}";
+		$text_line = $date->format("Y-m-d H:i:s.v") . " | {$module} | <{$level}> {$text}";
+		// $log_text .= "\n{$text_line}";
 
 		$log_data = [
 			"module" => $module,
@@ -304,9 +304,20 @@ class TwitchHelper
 			error_log($text, 0);
 		}
 
+		// docker
+		if (getenv('TCD_DOCKER') == 1) {
+			// error_log($text_line, 0);
+			$fp = fopen('php://stdout', 'a');
+			fwrite($fp, $text_line . "\n");
+			fclose($fp);
+		}
+
 		$log_json[] = $log_data;
 
-		file_put_contents($filename, $log_text);
+		// file_put_contents($filename, $log_text);
+		$fp = fopen($filename, 'a');
+		fwrite($fp, $text_line . "\n");
+		fclose($fp);
 
 		file_put_contents($filename_json, json_encode($log_json));
 
