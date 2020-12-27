@@ -7,7 +7,9 @@ RUN apk --no-cache add gcc libc-dev git \
     util-linux busybox-initscripts procps gcompat
 
 # pip packages
-RUN pip install streamlink youtube-dl tcd
+# RUN pip install streamlink youtube-dl tcd
+COPY ./requirements.txt /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt
 
 # supercronic
 # ENV SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/v0.1.12/supercronic-linux-amd64 \
