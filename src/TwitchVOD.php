@@ -75,6 +75,7 @@ class TwitchVOD
 	public bool $is_chat_burned = false;
 	public bool $is_lossless_cut_generated = false;
 	public bool $is_chatdump_captured = false;
+	public bool $is_capture_paused = false;
 
 	public ?\DateTime $dt_saved_at = null;
 	public ?\DateTime $dt_started_at = null;
@@ -97,6 +98,7 @@ class TwitchVOD
 	public ?string $path_chatrender = null;
 	public ?string $path_chatburn = null;
 	public ?string $path_chatdump = null;
+	public ?string $path_adbreak = null;
 
 	private array $associatedFiles = [];
 
@@ -245,11 +247,13 @@ class TwitchVOD
 		$this->path_chatrender			= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
 		$this->path_chatburn			= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_burned.mp4';
 		$this->path_chatdump			= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chatdump';
+		$this->path_adbreak				= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.adbreak';
 
 		$this->is_chat_downloaded 			= file_exists($this->path_chat);
 		$this->is_vod_downloaded 			= file_exists($this->path_downloaded_vod);
 		$this->is_lossless_cut_generated 	= file_exists($this->path_losslesscut);
 		$this->is_chatdump_captured 		= file_exists($this->path_chatdump);
+		$this->is_capture_paused 			= file_exists($this->path_adbreak);
 
 		$this->is_chat_rendered 	= file_exists($this->path_chatrender);
 		$this->is_chat_burned 		= file_exists($this->path_chatburn);

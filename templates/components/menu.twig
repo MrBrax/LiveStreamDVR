@@ -65,14 +65,15 @@
                                 {% if vodclass.duration_live %}&middot; ({{ config.relative_time ? vodclass.duration_live|humanRealDuration : vodclass.duration_live|humanDuration }}+){% endif %} {# duration #}
                                 {% if vodclass.getRecordingSize %}&middot; {{ vodclass.getRecordingSize|formatBytes }}+{% endif %} {# filesize #}
                             {% else %}
-                                {% if vodclass.duration_seconds %}&middot; ({{ config.relative_time ? vodclass.duration_seconds|humanRealDuration : vodclass.duration_seconds|humanDuration }}){% endif %}
-                                {% if vodclass.total_size %}&middot; {{ vodclass.total_size|formatBytes }}{% endif %}
+                                {% if vodclass.duration_seconds %}&middot; ({{ config.relative_time ? vodclass.duration_seconds|humanRealDuration : vodclass.duration_seconds|humanDuration }}){% endif %}{# duration #}
+                                {% if vodclass.total_size %}&middot; {{ vodclass.total_size|formatBytes }}{% endif %}{# filesize #}
                             {% endif %}
                             {% if vodclass.is_finalized %}
                                 <span class="flags">
-                                    {% if vodclass.twitch_vod_exists is same as(false) %}<span class="icon is-error" title="Deleted"><i class="fa fa-trash"></i></span>{% endif %}
-                                    {% if vodclass.twitch_vod_exists is same as(null) %}<span class="icon is-error" title="Not checked"><i class="fa fa-question"></i></span>{% endif %}
-                                    {% if vodclass.twitch_vod_muted is same as(true) %}<span class="icon is-error" title="Muted"><i class="fa fa-volume-mute"></i></span>{% endif %}
+                                    {% if vodclass.twitch_vod_exists is same as(false) %}<span class="icon is-error" title="Deleted"><i class="fa fa-trash"></i></span>{% endif %}{# vod deleted #}
+                                    {% if vodclass.twitch_vod_exists is same as(null) %}<span class="icon is-error" title="Not checked"><i class="fa fa-question"></i></span>{% endif %}{# vod not checked #}
+                                    {% if vodclass.twitch_vod_muted is same as(true) %}<span class="icon is-error" title="Muted"><i class="fa fa-volume-mute"></i></span>{% endif %}{# vod muted #}
+                                    {% if vodclass.is_capture_paused %}<span class="icon is-error" title="Paused"><i class="fa fa-pause"></i></span>{% endif %}{# capturing paused #}
                                 </span>
                             {% endif %}
                             <div class="tooltip">

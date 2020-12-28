@@ -783,11 +783,14 @@ class TwitchAutomator
 					$stream_paused_ticks++;
 				}
 
+				// $adbreak_file = $this->vod->directory . DIRECTORY_SEPARATOR . $this->vod->basename . '.adbreak';
+
 				/** @todo: this gets stuck for some reason, get streamlink devs to fix this */
 				if (strpos($buffer, "Filtering out segments and pausing stream output") !== false) {
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Pausing capture for {$basename} due to ad segment!", ['download-capture' => $data_username]);
 					$current_ad_start = time();
 					$stream_is_paused = true;
+					// file_put_contents($adbreak_file, $current_ad_start);
 				}
 
 				if (strpos($buffer, "Resuming stream output") !== false) {
@@ -796,6 +799,9 @@ class TwitchAutomator
 					$stream_is_paused = false;
 					$stream_paused_ticks = 0;
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Resuming capture for {$basename} due to ad segment, {$ad_length}s @ {$time_offset}s!", ['download-capture' => $data_username]);
+					// if(file_exists($adbreak_file)){
+					// 	unlink($adbreak_file);
+					// }
 					/*
 					if( isset($current_ad_start) ){
 						$vod->addAdvertisement([
@@ -886,11 +892,14 @@ class TwitchAutomator
 					$stream_paused_ticks++;
 				}
 
+				// $adbreak_file = $this->vod->directory . DIRECTORY_SEPARATOR . $this->vod->basename . '.adbreak';
+
 				/** @todo: this gets stuck for some reason, get streamlink devs to fix this */
 				if (strpos($cmd_stdout_buffer, "Filtering out segments and pausing stream output") !== false) {
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Pausing capture for {$basename} due to ad segment!", ['download-capture' => $data_username]);
 					$current_ad_start = time();
 					$stream_is_paused = true;
+					file_put_contents($this->vod->path_adbreak, $current_ad_start);
 				}
 
 				if (strpos($cmd_stdout_buffer, "Resuming stream output") !== false) {
@@ -899,6 +908,9 @@ class TwitchAutomator
 					$stream_paused_ticks = 0;
 					$stream_is_paused = false;
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Resuming capture for {$basename} due to ad segment, {$ad_length}s @ {$time_offset}s!", ['download-capture' => $data_username]);
+					if(file_exists($this->vod->path_adbreak)){
+						unlink($this->vod->path_adbreak);
+					}
 					/*
 					if( isset($current_ad_start) ){
 						$vod->addAdvertisement([
@@ -932,7 +944,7 @@ class TwitchAutomator
 
 				
 				if ($cmd_stdout_buffer) TwitchHelper::appendLog("streamlink_" . $basename . "_stdout." . $int, $cmd_stdout_buffer);
-				if ($cmd_stdout_buffer) TwitchHelper::appendLog("streamlink_" . $basename . "_stderr." . $int, $cmd_stderr_buffer);
+				if ($cmd_stderr_buffer) TwitchHelper::appendLog("streamlink_" . $basename . "_stderr." . $int, $cmd_stderr_buffer);
 
 				sleep(10);
 			}
