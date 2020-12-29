@@ -361,6 +361,23 @@ class TwitchHelper
 	}
 
 	/**
+	 * Get Twitch channel username from ID
+	 *
+	 * @param string $id
+	 * @return string|false Username
+	 */
+	public static function getChannelUsername(string $id)
+	{
+		$channels = json_decode(file_get_contents(TwitchConfig::$streamerDbPath), true);
+		foreach ($channels as $username => $data) {
+			if ($data['id'] == $id) {
+				return $username;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Get Twitch channel data from username or id
 	 *
 	 * @param string $username
@@ -861,7 +878,7 @@ class TwitchHelper
 	/**
 	 * Returns the raw json data of your subscriptions
 	 *
-	 * @return string
+	 * @return array|false
 	 */
 	public static function getSubs()
 	{

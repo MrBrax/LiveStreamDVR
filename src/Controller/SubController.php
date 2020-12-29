@@ -53,7 +53,30 @@ class SubController
     public function subs(Request $request, Response $response, $args)
     {
 
-        var_dump(TwitchHelper::getSubs());
+        $subs = TwitchHelper::getSubs();
+
+        if ($subs['data']) {
+
+            $response->getBody()->write("Total: {$subs['total']}<br>");
+
+            foreach ($subs['data'] as $data) {
+
+                $user_id = explode("=", $data['topic'])[1];
+
+                $user_data = TwitchHelper::getChannelData(TwitchHelper::getChannelUsername($user_id));
+
+                $response->getBody()->write("<h1>{$user_data['display_name']}</h1>");
+                $response->getBody()->write("Topic: {$data['topic']}");
+                $response->getBody()->write("<br>Callback: {$data['callback']}");
+                if ($data['callback'] !== TwitchConfig::cfg('app_url') . '/hook') {
+                    $response->getBody()->write(" (does not match this instance app url)");
+                }
+                $response->getBody()->write("");
+                $response->getBody()->write("<br>Expires at: {$data['expires_at']}");
+            }
+        } else {
+            $response->getBody()->write("Data error. " . json_encode($subs));
+        }
 
         return $response;
     }

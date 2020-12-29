@@ -29,12 +29,14 @@ class HookController
             $challenge_token = $_GET['hub_challenge'];
 
             $user_id = null;
+            $username = null;
             if ($source == 'twitch') {  // twitch parse channel id
                 if (isset($_GET['hub_topic'])) {
                     $user_url = parse_url($_GET['hub_topic']);
                     parse_str($user_url['query'], $user_query);
                     if (isset($user_query['user_id'])) {
                         $user_id = $user_query['user_id'];
+                        $username = TwitchHelper::getChannelUsername($user_id);
                     }
                 }
             } elseif ($source == 'youtube') { // youtube parse channel id
@@ -48,9 +50,9 @@ class HookController
             $hub_reason = isset($_GET['hub_reason']) ? $_GET['hub_reason'] : null;
 
             if (isset($hub_reason)) {
-                TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "hook", "Received hub challenge ({$source}) with error for userid {$user_id}: {$hub_reason}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "hook", "Received hub challenge ({$source}) with error for userid {$user_id} ({$username}): {$hub_reason}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
             } else {
-                TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Received hub challenge ({$source}) for userid {$user_id}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Received hub challenge ({$source}) for userid {$user_id} ({$username})", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
             }
 
             // just write the response back without checking anything
