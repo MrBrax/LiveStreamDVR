@@ -928,6 +928,9 @@ class TwitchAutomator
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Fatal error with streamlink, please check logs", ['download-capture' => $data_username]);
 				}
 
+				// generate m3u8 file
+				$this->vod->generatePlaylistFile();
+
 				// check timeout of chat dump
 				if (TwitchConfig::cfg('chat_dump') && isset($chat_process)) {
 
@@ -941,13 +944,13 @@ class TwitchAutomator
 
 					$cmd_chatdump_stdout_buffer = $chat_process->getIncrementalOutput();
 					$cmd_chatdump_stderr_buffer = $chat_process->getIncrementalErrorOutput();
-					if ($cmd_chatdump_stdout_buffer) TwitchHelper::appendLog("chatdump_" . $basename . "_stdout." . $int, $cmd_chatdump_stdout_buffer);
-					if ($cmd_chatdump_stdout_buffer) TwitchHelper::appendLog("chatdump_" . $basename . "_stderr." . $int, $cmd_chatdump_stderr_buffer);
+					if ($cmd_chatdump_stdout_buffer) TwitchHelper::appendLog("chatdump_{$basename}_stdout.{$int}", $cmd_chatdump_stdout_buffer);
+					if ($cmd_chatdump_stderr_buffer) TwitchHelper::appendLog("chatdump_{$basename}_stderr.{$int}", $cmd_chatdump_stderr_buffer);
 				}
 
 				
-				if ($cmd_stdout_buffer) TwitchHelper::appendLog("streamlink_" . $basename . "_stdout." . $int, $cmd_stdout_buffer);
-				if ($cmd_stderr_buffer) TwitchHelper::appendLog("streamlink_" . $basename . "_stderr." . $int, $cmd_stderr_buffer);
+				if ($cmd_stdout_buffer) TwitchHelper::appendLog("streamlink_{$basename}_stdout.{$int}", $cmd_stdout_buffer);
+				if ($cmd_stderr_buffer) TwitchHelper::appendLog("streamlink_{$basename}_stderr.{$int}", $cmd_stderr_buffer);
 
 				sleep(10);
 			}

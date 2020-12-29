@@ -1325,6 +1325,7 @@ class TwitchVOD
 		$string = "";
 		$string .= "#EXTM3U\n";
 		$string .= "#EXTINF:" . $this->getDurationLive() . "\n";
+		$string .= "#EXT-X-TARGETDURATION: " . $this->getDurationLive() . "\n";
 		$string .= $this->basename . ".ts\n";
 		$string .= "#EXT-X-ENDLIST\n";
 
@@ -1737,6 +1738,7 @@ class TwitchVOD
 	 */
 	public function save()
 	{
+		set_time_limit(0);
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Save {$this->basename}");
 		/*
 		rename(TwitchHelper::vodFolder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '.mp4', TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . $this->basename . '.mp4');
