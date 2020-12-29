@@ -55,6 +55,13 @@ class HookController
                 TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Received hub challenge ({$source}) for userid {$user_id} ({$username})", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
             }
 
+            // todo: use some kind of memcache for this instead
+            $hc = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "hubchallenge_{$user_id}";
+            if (file_exists($hc) && time() < (int)file_get_contents($hc) + 30) {
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Successfully subscribed to userid {$user_id} ({$username}) on {$source}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
+                unlink($hc);
+            }
+
             // just write the response back without checking anything
             $response->getBody()->write($challenge_token);
 

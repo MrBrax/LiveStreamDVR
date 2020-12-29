@@ -860,7 +860,18 @@ class TwitchHelper
 
 		if ($http_code == 202) {
 
+			$hc = self::$cache_folder . DIRECTORY_SEPARATOR . "hubchallenge_{$streamer_id}";
+			file_put_contents($hc, time());
+
 			self::logAdvanced(self::LOG_SUCCESS, "helper", "Sent {$mode} request for {$streamer_name} ({$streamer_id})", ['hub' => $data]);
+
+			$response_timeout = 5;
+			sleep($response_timeout);
+			if (file_exists($hc)) {
+				self::logAdvanced(self::LOG_ERROR, "helper", "Did not receive a {$mode} confirmation for {$streamer_name} ({$streamer_id}) within {$response_timeout} seconds, please check your app_url and if it's reachable from outside.", ['hub' => $data]);
+				unlink($hc);
+				return false;
+			}
 
 			// $this->notify($server_output, '[' . $streamer_name . '] [subscribing]', self::NOTIFY_GENERIC);
 
@@ -912,11 +923,12 @@ class TwitchHelper
 		return $json;
 	}
 
-	public static function unsubAll(){
+	public static function unsubAll()
+	{
 
 		$subs = self::getSubs();
 
-		foreach($subs as $sub){
+		foreach ($subs as $sub) {
 
 			$data = [
 				'hub.callback' => $sub['callback'],
@@ -924,23 +936,20 @@ class TwitchHelper
 				'hub.topic' => $sub['topic'],
 				'hub.lease_seconds' => TwitchConfig::cfg('sub_lease')
 			];
-	
+
 			try {
-	
+
 				$response = self::$guzzler->request('POST', '/helix/webhooks/hub', [
 					'json' => $data
 				]);
-	
 			} catch (\Throwable $th) {
 				self::logAdvanced(self::LOG_FATAL, "helper", "Unsub all fatal error: " . $th->getMessage());
 				return false;
 			}
-	
+
 			$server_output = $response->getBody()->getContents();
 			$http_code = $response->getStatusCode();
-
 		}
-
 	}
 
 	/**
