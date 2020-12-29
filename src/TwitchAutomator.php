@@ -118,7 +118,7 @@ class TwitchAutomator
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "automator", "Handle called");
 
 		if (!$data['data']) {
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No data supplied for handle", ['get' => $_GET, 'post' => $_POST, 'data' => $data]);
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No data supplied for handle (probably stream end)", ['get' => $_GET, 'post' => $_POST, 'data' => $data]);
 			return false;
 		}
 
@@ -622,6 +622,9 @@ class TwitchAutomator
 		TwitchHelper::appendLog("streamlink_{$basename}_stdout.{$tries}", "$ " . implode(" ", $cmd));
 		TwitchHelper::appendLog("streamlink_{$basename}_stderr.{$tries}", "$ " . implode(" ", $cmd));
 
+		// generate m3u8 file
+		$this->vod->generatePlaylistFile();
+
 		// save pid to file
 		// $pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'capture_' . $data_username . '.pid';
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "automator", "Capture " . basename($capture_filename) . " has PID " . $process->getPid(), ['download-capture' => $data_username]);
@@ -829,7 +832,7 @@ class TwitchAutomator
 
 				// check if capture is running, and quit if it isn't
 				if (!$process->isRunning()) {
-					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Streamlink exited, breaking loop", ['download-capture' => $data_username]);
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Streamlink exited for {$data_username}, breaking loop", ['download-capture' => $data_username]);
 					break;
 				}
 

@@ -219,7 +219,7 @@ class SettingsController
         $quality        = explode(" ", $_POST['quality']);
         $match          = $_POST['match'];
         $download_chat  = isset($_POST['download_chat']);
-        $burn_chat  = isset($_POST['burn_chat']);
+        $burn_chat      = isset($_POST['burn_chat']);
 
         $current_username = $username;
 
@@ -231,10 +231,12 @@ class SettingsController
         $tmp = TwitchHelper::getChannelData($username);
 
         // fix capitalization
+        /*
         if ($tmp['display_name'] !== $username) {
             $response->getBody()->write("Username capitalization seems to be incorrect, fixing.<br>");
             $username = $tmp['display_name'];
         }
+        */
 
         // template
         $streamer = [
@@ -249,6 +251,7 @@ class SettingsController
         if ($download_chat) $streamer["download_chat"] = true;
         if ($burn_chat) $streamer["burn_chat"] = true;
 
+        // todo: find a better way to do this
         $key = null;
         foreach (TwitchConfig::$config['streamers'] as $k => $v) {
             if ($v['username'] == $current_username) $key = $k;

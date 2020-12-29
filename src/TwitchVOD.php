@@ -99,6 +99,7 @@ class TwitchVOD
 	public ?string $path_chatburn = null;
 	public ?string $path_chatdump = null;
 	public ?string $path_adbreak = null;
+	public ?string $path_playlist = null;
 
 	private array $associatedFiles = [];
 
@@ -248,6 +249,7 @@ class TwitchVOD
 		$this->path_chatburn			= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_burned.mp4';
 		$this->path_chatdump			= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chatdump';
 		$this->path_adbreak				= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.adbreak';
+		$this->path_playlist			= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.m3u8';
 
 		$this->is_chat_downloaded 			= file_exists($this->path_chat);
 		$this->is_vod_downloaded 			= file_exists($this->path_downloaded_vod);
@@ -267,6 +269,8 @@ class TwitchVOD
 			$this->basename . '_burned.mp4',
 			$this->basename . '.chatdump',
 			$this->basename . '.chatdump.txt',
+			$this->basename . '.m3u8',
+			$this->basename . '.adbreak',
 		];
 
 		if (isset($this->segments_raw)) {
@@ -1315,6 +1319,18 @@ class TwitchVOD
 		file_put_contents(TwitchHelper::vodFolder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', $data);
 	}
 
+	public function generatePlaylistFile()
+	{
+
+		$string = "";
+		$string .= "#EXTM3U\n";
+		$string .= "#EXTINF:" . $this->getDurationLive() . "\n";
+		$string .= $this->basename . ".ts\n";
+		$string .= "#EXT-X-ENDLIST\n";
+
+		file_put_contents($this->path_playlist, $string);
+	}
+
 	public function rebuildSegmentList()
 	{
 
@@ -1600,6 +1616,11 @@ class TwitchVOD
 	public function finalize()
 	{
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Finalize {$this->basename}");
+
+		if (file_exists($this->path_playlist)) {
+			unlink($this->path_playlist);
+		}
+
 		$this->getMediainfo();
 		$this->saveLosslessCut();
 		$this->matchTwitchVod();
@@ -1702,7 +1723,7 @@ class TwitchVOD
 		}
 		*/
 		foreach ($this->associatedFiles as $file) {
-			if (file_exists($this->directory . DIRECTORY_SEPARATOR . $file)){
+			if (file_exists($this->directory . DIRECTORY_SEPARATOR . $file)) {
 				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Delete {$file}");
 				unlink($this->directory . DIRECTORY_SEPARATOR . $file);
 			}
