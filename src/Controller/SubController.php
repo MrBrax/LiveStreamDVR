@@ -80,4 +80,11 @@ class SubController
 
         return $response;
     }
+
+    public function unsub_all(Request $request, Response $response, $args)
+    {
+        TwitchHelper::unsubAll();
+        $response->getBody()->write("Unsubbed from all.");
+        return $response;
+    }
 }

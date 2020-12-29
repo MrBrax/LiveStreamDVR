@@ -58,6 +58,7 @@ $app->post('/hook', HookController::class . ':hook')->setName('hook_post');
 
 $app->get('/sub', SubController::class . ':sub')->setName('sub');
 $app->get('/subs', SubController::class . ':subs')->setName('subs');
+$app->get('/unsub_all', SubController::class . ':unsub_all')->setName('unsub_all');
 
 // api v0
 $app->group('/api/v0', function (RouteCollectorProxy $group) {

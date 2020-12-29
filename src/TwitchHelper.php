@@ -912,6 +912,37 @@ class TwitchHelper
 		return $json;
 	}
 
+	public static function unsubAll(){
+
+		$subs = self::getSubs();
+
+		foreach($subs as $sub){
+
+			$data = [
+				'hub.callback' => $sub['callback'],
+				'hub.mode' => 'unsubscribe',
+				'hub.topic' => $sub['topic'],
+				'hub.lease_seconds' => TwitchConfig::cfg('sub_lease')
+			];
+	
+			try {
+	
+				$response = self::$guzzler->request('POST', '/helix/webhooks/hub', [
+					'json' => $data
+				]);
+	
+			} catch (\Throwable $th) {
+				self::logAdvanced(self::LOG_FATAL, "helper", "Unsub all fatal error: " . $th->getMessage());
+				return false;
+			}
+	
+			$server_output = $response->getBody()->getContents();
+			$http_code = $response->getStatusCode();
+
+		}
+
+	}
+
 	/**
 	 * Get pidfile by name, int if running, false if not
 	 *
