@@ -41,6 +41,7 @@ class TwitchHelper
 	public static $public_folder 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public";
 	public static $logs_folder 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs";
 	public static $cache_folder 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache";
+	public static $cron_folder 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "cron";
 	public static $pids_folder 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "pids";
 	// public static $saved_vods_folder = self::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods';
 	// public static $clips_folder = self::$public_folder . DIRECTORY_SEPARATOR . 'saved_clips';
@@ -48,6 +49,7 @@ class TwitchHelper
 	private static $required_directories = [
 		__DIR__ . "/../config",
 		__DIR__ . "/../cache",
+		__DIR__ . "/../cache/cron",
 		__DIR__ . "/../cache/pids",
 		__DIR__ . "/../cache/playlist",
 		__DIR__ . "/../logs",

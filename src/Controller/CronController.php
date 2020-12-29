@@ -105,6 +105,8 @@ class CronController
 
         TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "cron", "Cronjob deleted check end");
 
+        file_put_contents(TwitchHelper::$cron_folder . DIRECTORY_SEPARATOR . "check_deleted_vods", time());
+
         return $response;
     }
 
@@ -150,6 +152,8 @@ class CronController
 
         TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "cron", "Cronjob mute check end");
 
+        file_put_contents(TwitchHelper::$cron_folder . DIRECTORY_SEPARATOR . "check_muted_vods", time());
+
         return $response;
     }
 
@@ -180,6 +184,46 @@ class CronController
         }
 
         TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "cron", "Cronjob dump playlists end");
+
+        file_put_contents(TwitchHelper::$cron_folder . DIRECTORY_SEPARATOR . "dump_playlists", time());
+
+        return $response;
+    }
+
+    public function sub(Request $request, Response $response, $args)
+    {
+
+        $response->getBody()->write('<h1>Subbing...</h1>');
+
+        $streamers = TwitchConfig::getStreamers();
+
+        foreach ($streamers as $k => $v) {
+
+            $username = $v['username'];
+
+            $response->getBody()->write('<strong>Subbing to ' . $username . '...</strong>');
+
+            $response->getBody()->write('<pre>');
+
+            $ret = TwitchHelper::sub($username);
+
+            if ($ret === true) {
+                $response->getBody()->write('Subscription request sent, check logs for details');
+            } else {
+                $response->getBody()->write("Error: {$ret}");
+            }
+
+            $response->getBody()->write('</pre>');
+
+            $response->getBody()->write('<hr />');
+
+            // sleep(2);
+
+        }
+
+        if (count($streamers) == 0) $response->getBody()->write('No channels to subscribe to');
+
+        file_put_contents(TwitchHelper::$cron_folder . DIRECTORY_SEPARATOR . "sub", time());
 
         return $response;
     }

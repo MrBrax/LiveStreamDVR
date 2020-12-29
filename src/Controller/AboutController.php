@@ -173,8 +173,20 @@ class AboutController
         $bins['php']['uid'] = getmyuid();
         $bins['php']['gid'] = getmygid();
 
+        $cron_lastrun = [];
+        foreach( ['check_deleted_vods', 'check_muted_vods', 'dump_playlists', 'sub'] as $cron ){
+            $fp = TwitchHelper::$cron_folder . DIRECTORY_SEPARATOR . $cron;
+            if(file_exists($fp)){
+                $t = (int)file_get_contents($fp);
+                $cron_lastrun[$cron] = date("Y-m-d H:i:s", $t);
+            }else{
+                $cron_lastrun[$cron] = "Never run";
+            }
+        }
+
         return $this->twig->render($response, 'about.twig', [
             'bins' => $bins,
+            'cron_lastrun' => $cron_lastrun
             // 'envs' => TwitchConfig::cfg('debug') ? getenv() : null
         ]);
     }

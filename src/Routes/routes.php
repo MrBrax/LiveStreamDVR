@@ -56,7 +56,7 @@ $app->get('/troubleshoot/{vod}', VodController::class . ':troubleshoot')->setNam
 $app->get('/hook', HookController::class . ':hook')->setName('hook');
 $app->post('/hook', HookController::class . ':hook')->setName('hook_post');
 
-$app->get('/sub', SubController::class . ':sub')->setName('sub');
+$app->get('/sub', SubController::class . ':sub')->setName('sub'); /** @deprecated */
 $app->get('/subs', SubController::class . ':subs')->setName('subs');
 $app->get('/unsub_all', SubController::class . ':unsub_all')->setName('unsub_all');
 
@@ -106,9 +106,10 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
 
 // cronjobs
 $app->group('/cron', function (RouteCollectorProxy $group) {
-    $group->get('/check_deleted_vods', CronController::class . ':check_deleted_vods')->setName('check_deleted_vods');
-    $group->get('/check_muted_vods', CronController::class . ':check_muted_vods')->setName('check_muted_vods');
-    $group->get('/dump_playlists', CronController::class . ':dump_playlists')->setName('dump_playlists');
+    $group->get('/check_deleted_vods', CronController::class . ':check_deleted_vods')->setName('cron_check_deleted_vods');
+    $group->get('/check_muted_vods', CronController::class . ':check_muted_vods')->setName('cron_check_muted_vods');
+    $group->get('/dump_playlists', CronController::class . ':dump_playlists')->setName('cron_dump_playlists');
+    $group->get('/sub', CronController::class . ':sub')->setName('cron_sub');
 });
 
 // tools

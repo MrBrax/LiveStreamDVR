@@ -13,64 +13,54 @@
 
                 <h3>Installed utilities</h3>
                 <table class="table">
-
                     <tr>
                         <th>Name</th>
                         <th>Path</th>
                         <th>Status</th>
                     </tr>
-
                     <tr>
                         <td>FFmpeg</td>
                         <td>{{ bins.ffmpeg.path }}</td>
                         <td>{{ bins.ffmpeg.status }}</td>
                     </tr>
-
                     <tr>
                         <td>Mediainfo</td>
                         <td>{{ bins.mediainfo.path }}</td>
                         <td>{{ bins.mediainfo.status }}</td>
                     </tr>
-
                     <tr>
                         <td>Twitch chat downloader</td>
                         <td>{{ bins.tcd.path }}</td>
                         <td>{{ bins.tcd.status }}</td>
                         <td>{{ bins.tcd.update }}</td>
                     </tr>
-
                     <tr>
                         <td>Streamlink</td>
                         <td>{{ bins.streamlink.path }}</td>
                         <td>{{ bins.streamlink.status }}</td>
                         <td>{{ bins.streamlink.update }}</td>
                     </tr>
-
                     <tr>
                         <td>youtube-dl{{ config.youtube_dlc ? 'c' : '' }}</td>
                         <td>{{ bins.youtubedl.path }}</td>
                         <td>{{ bins.youtubedl.status }}</td>
                         <td>{{ bins.youtubedl.update }}</td>
                     </tr>
-
                     <tr>
                         <td>Pipenv</td>
                         <td>{{ bins.pipenv.path }}</td>
                         <td>{% autoescape %} {{ bins.pipenv.status|raw }} {% endautoescape %}</td>
                     </tr>
-
                     <tr>
                         <td>TwitchDownloaderCLI</td>
                         <td>{{ bins.twitchdownloader.path }}</td>
                         <td>{% autoescape %} {{ bins.twitchdownloader.status|raw }} {% endautoescape %}</td>
                     </tr>
-
                 </table>
-
                 <p>This app tries to find all the executables using system utilities. This may not work if they're on a custom PATH. Please visit <a href="{{ url_for('settings') }}">settings</a> to manually change them.</p>
-
                 <hr />
 
+                {# software #}
                 <h3>Software</h3>
                 <strong>Python version:</strong> {{ bins.python.version ?: '(no output)' }}
                 <br /><strong>Python3 version:</strong> {{ bins.python3.version ?: '(no output)' }}
@@ -87,6 +77,7 @@
                 {% endif %}
                 <hr />
 
+                {# env #}
                 {% if envs %}
                 <h3>Environment variables</h3>
                 <table class="table">
@@ -100,14 +91,26 @@
                 <hr />
                 {% endif %}
 
-                {% if not is_docker %}
+                {# cronjobs #}
+                <h3>Cronjobs</h3>
+                <table class="table">
+                    {% for cron, cron_status in cron_lastrun %}
+                        <tr>
+                            <td>{{ cron }}</td>
+                            <td>{{ cron_status }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+                <hr />
 
+                {# pip update #}
+                {% if not is_docker %}
                 <h3>Pip update</h3>
                 <code>pip install --user --upgrade youtube-dl streamlink tcd pipenv</code>
                 <br>You might want to install without the --user switch depending on environment.
-
                 <hr />
 
+                {# links #}
                 <h3>Links</h3>
                 <ul>
                     <li><a href="https://www.python.org/downloads/" target="_blank">Python</a></li>

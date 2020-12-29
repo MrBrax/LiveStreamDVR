@@ -199,7 +199,7 @@
                 <span class="input-help">The Slim framework doesn't have a good way to execute code from the command line, so you'll have to set up cron manually.</span>
                 {% if config.app_url %}
                     <code>
-                        0 5 * * 1 curl {{ config.app_url }}/sub<br>
+                        0 5 * * 1 curl {{ config.app_url }}/cron/sub<br>
                         0 */12 * * * curl {{ config.app_url }}/cron/check_muted_vods<br>
                         10 */12 * * * curl {{ config.app_url }}/cron/check_deleted_vods<br>
                         0 1 * * * curl {{ config.app_url }}/cron/playlist_dump

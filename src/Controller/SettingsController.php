@@ -65,7 +65,7 @@ class SettingsController
 
         $text = "";
 
-        $text .= "0 5 * * 1 curl " . TwitchConfig::cfg('app_url') . "/sub";
+        $text .= "0 5 * * 1 curl " . TwitchConfig::cfg('app_url') . "/cron/sub";
         $text .= "\n10 */12 * * * curl " . TwitchConfig::cfg('app_url') . "/cron/check_muted_vods";
         $text .= "\n0 */12 * * * curl " . TwitchConfig::cfg('app_url') . "/cron/check_deleted_vods";
         $text .= "\n";
