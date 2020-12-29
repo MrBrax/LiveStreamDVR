@@ -81,6 +81,11 @@ class SettingsController
     public function settings_save(Request $request, Response $response, array $args)
     {
 
+        $force_new_token = false;
+        if (TwitchConfig::cfg('api_client_id') !== $_POST['api_client_id']) {
+            $force_new_token = true;
+        }
+
         foreach (TwitchConfig::$settingsFields as $setting) {
 
             $key = $setting['key'];
@@ -120,6 +125,10 @@ class SettingsController
         }
 
         TwitchConfig::saveConfig("settings/save");
+
+        if ($force_new_token) {
+            TwitchHelper::getAccessToken(true);
+        }
 
         $this->generateCron();
 
