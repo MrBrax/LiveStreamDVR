@@ -223,6 +223,41 @@ class CronController
 
         if (count($streamers) == 0) $response->getBody()->write('No channels to subscribe to');
 
+        // store data to disk
+        $subs = TwitchHelper::getSubs();
+        $subfile = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "subs.json";
+        $subs_data = [];
+        // if (file_exists($subfile)) $subs_data = json_decode(file_get_contents($subfile), true);
+
+        $response->getBody()->write('<br>Checking subs status...');
+        if ($subs['data']) {
+
+            foreach ($subs['data'] as $data) {
+
+                $user_id = explode("=", $data['topic'])[1];
+
+                $user_data = TwitchHelper::getChannelData(TwitchHelper::getChannelUsername($user_id));
+                $username = $user_data['display_name'];
+                
+                $response->getBody()->write("<br>Inserting data for {$username}");
+
+                $subs_data[$username] = [
+                    'topic' => $data['topic'],
+                    'user_id' => $user_id,
+                    'username' => $username,
+                    'subbed_at' => date(TwitchHelper::DATE_FORMAT),
+                    'expires_at' => $data['expires_at']
+                ];
+            }
+        }else{
+            $response->getBody()->write('<br>No sub data.');
+        }
+
+        $response->getBody()->write("<br>Saving subs data...");
+
+        file_put_contents($subfile, json_encode($subs_data));
+
+        // save cron last
         file_put_contents(TwitchHelper::$cron_folder . DIRECTORY_SEPARATOR . "sub", time());
 
         return $response;

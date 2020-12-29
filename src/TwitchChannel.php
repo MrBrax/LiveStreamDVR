@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App;
 
+use DateTime;
+
 class TwitchChannel
 {
 
@@ -18,6 +20,8 @@ class TwitchChannel
     public ?array $current_game = null;
     public ?int $current_duration = null;
     public ?array $quality = [];
+    public ?\DateTime $subbed_at = null;
+    public ?\DateTime $expires_at = null;
 
     public array $vods_list = [];
     public array $vods_raw = [];
@@ -44,6 +48,18 @@ class TwitchChannel
         $this->profile_image_url    = $this->channel_data['profile_image_url'];
         $this->quality              = isset($config['quality']) ? $config['quality'] : "best";
         $this->match                = isset($config['match']) ? $config['match'] : [];
+
+        $subfile = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "subs.json";
+        if (file_exists($subfile)) {
+            $sub_data = json_decode(file_get_contents($subfile), true);
+            if (isset($sub_data[$this->display_name])) {
+                if (isset($sub_data[$this->display_name]['subbed_at']))
+                    $this->subbed_at = \DateTime::createFromFormat(TwitchHelper::DATE_FORMAT, $sub_data[$this->display_name]['subbed_at']);
+
+                if (isset($sub_data[$this->display_name]['expires_at']))
+                    $this->expires_at = \DateTime::createFromFormat(TwitchHelper::DATE_FORMAT, $sub_data[$this->display_name]['expires_at']);
+            }
+        }
 
         $this->parseVODs();
     }
