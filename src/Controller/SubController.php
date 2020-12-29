@@ -59,20 +59,28 @@ class SubController
 
             $response->getBody()->write("Total: {$subs['total']}<br>");
 
+            $all_usernames = [];
+
             foreach ($subs['data'] as $data) {
 
                 $user_id = explode("=", $data['topic'])[1];
 
                 $user_data = TwitchHelper::getChannelData(TwitchHelper::getChannelUsername($user_id));
+                $username = $user_data['display_name'];
 
-                $response->getBody()->write("<h1>{$user_data['display_name']}</h1>");
-                $response->getBody()->write("Topic: {$data['topic']}");
-                $response->getBody()->write("<br>Callback: {$data['callback']}");
+                $response->getBody()->write("<h1>{$username}</h1>");
+                $response->getBody()->write("<strong>Topic:</strong> {$data['topic']}");
+                $response->getBody()->write("<br><strong>Callback:</strong> {$data['callback']}");
                 if ($data['callback'] !== TwitchConfig::cfg('app_url') . '/hook') {
                     $response->getBody()->write(" (does not match this instance app url)");
                 }
-                $response->getBody()->write("");
-                $response->getBody()->write("<br>Expires at: {$data['expires_at']}");
+                $response->getBody()->write("<br><strong>Expires at:</strong> {$data['expires_at']}");
+
+                if (isset($all_usernames[mb_strtolower($username)])) {
+                    $response->getBody()->write("<br><strong style='color:#f00'>Warning! This username already exists for this client id!</strong>");
+                }
+
+                $all_usernames[mb_strtolower($username)] = true;
             }
         } else {
             $response->getBody()->write("Data error. " . json_encode($subs));
