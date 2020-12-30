@@ -55,7 +55,7 @@ class SubController
 
         $subs = TwitchHelper::getSubs();
 
-        if ($subs['data']) {
+        if (isset($subs['total']) && $subs['total'] > 0) {
 
             $response->getBody()->write("Total: {$subs['total']}<br>");
 
@@ -65,7 +65,14 @@ class SubController
 
                 $user_id = explode("=", $data['topic'])[1];
 
-                $user_data = TwitchHelper::getChannelData(TwitchHelper::getChannelUsername($user_id));
+                $u = TwitchHelper::getChannelUsername($user_id);
+
+                if (!$u) {
+                    $response->getBody()->write("<h1>{$user_id}</h1>Could not get username, did it not get cached?");
+                    continue;
+                }
+
+                $user_data = TwitchHelper::getChannelData($u);
                 $username = $user_data['display_name'];
 
                 $response->getBody()->write("<h1>{$username}</h1>");
@@ -82,6 +89,8 @@ class SubController
 
                 $all_usernames[mb_strtolower($username)] = true;
             }
+        } elseif (isset($subs['total']) && $subs['total'] == 0) {
+            $response->getBody()->write("No subscriptions. Let cron do its job or visit /sub");
         } else {
             $response->getBody()->write("Data error. " . json_encode($subs));
         }

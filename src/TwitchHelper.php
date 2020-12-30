@@ -370,6 +370,7 @@ class TwitchHelper
 	 */
 	public static function getChannelUsername(string $id)
 	{
+		if (!file_exists(TwitchConfig::$streamerDbPath)) return false;
 		$channels = json_decode(file_get_contents(TwitchConfig::$streamerDbPath), true);
 		foreach ($channels as $username => $data) {
 			if ($data['id'] == $id) {
@@ -930,7 +931,9 @@ class TwitchHelper
 
 		$subs = self::getSubs();
 
-		foreach ($subs as $sub) {
+		if(!$subs['data']) return false;
+
+		foreach ($subs['data'] as $sub) {
 
 			$data = [
 				'hub.callback' => $sub['callback'],
@@ -940,7 +943,6 @@ class TwitchHelper
 			];
 
 			try {
-
 				$response = self::$guzzler->request('POST', '/helix/webhooks/hub', [
 					'json' => $data
 				]);
@@ -952,6 +954,9 @@ class TwitchHelper
 			$server_output = $response->getBody()->getContents();
 			$http_code = $response->getStatusCode();
 		}
+
+		return true;
+
 	}
 
 	/**
