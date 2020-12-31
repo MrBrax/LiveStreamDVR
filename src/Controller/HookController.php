@@ -44,6 +44,7 @@ class HookController
                 parse_str($user_url['query'], $user_query);
                 if (isset($user_query['channel_id'])) {
                     $user_id = $user_query['channel_id'];
+                    $username = $user_query['channel_id'];
                 }
             }
 

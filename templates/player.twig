@@ -6,8 +6,12 @@
 
     <div class="videoplayer">
 
-        <video id="video" src="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}.mp4" controls width="1280"></video>
-
+        <video id="video" src="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}.mp4" width="1280"></video>
+		<div id="videoplayer-controls">
+			<button class="button" onclick="vp_play();">Play</button>
+			<button class="button" onclick="vp_pause();">Pause</button>
+		</div>
+		<div id="timeline"><div id="timeline-cut"></div><div id="timeline-playhead"></div></div>
 
         <div class="videoplayer-chapters">
 
@@ -46,12 +50,14 @@
 				</div>
 				
 			</form>
+			<!--
 			<form method="post" action="{{ url_for('api_vod_export', { 'vod': vodclass.basename }) }}">
 				<select name="destination">
 					<option>YouTube</option>
 				</select>
 				<button type="submit" class="button" onclick="submit_cut();">Upload</button>
 			</form>
+			-->
         </div>
 
     </div>
@@ -65,6 +71,11 @@
 	
 	let time_in = "";
 	let time_out = "";
+
+	let videoplayer = document.getElementById('video');
+	let timeline = document.getElementById("timeline");
+	let timeline_playhead = document.getElementById("timeline-playhead");
+	let timeline_cut = document.getElementById("timeline-cut");
 
 	if( start_offset > 0 ){
 		document.getElementById('video').currentTime = start_offset;
@@ -81,7 +92,20 @@
 		
 		document.getElementById('value_in').value = time_in;
 		document.getElementById('value_out').value = time_out;
+
+		timeline_cut.style.left = ( ( time_in / video.duration ) * 100 ) + "%";
 		
+		timeline_cut.style.right = ( 100 - ( time_out / video.duration ) * 100 ) + "%";
+		// timeline_cut.style.width = ( ( time_out / video.duration ) * 100 ) + "%";
+
+	}
+
+	function vp_play(){
+		videoplayer.play();
+	}
+
+	function vp_pause(){
+		videoplayer.pause();
 	}
 
 	/*
@@ -91,6 +115,21 @@
 		}
 	}
 	*/
+
+	timeline.addEventListener('click', (event) => {
+		// let perc = video.duration / event.clientX ;
+		let duration = video.duration;
+		let rect = timeline.getBoundingClientRect();
+		let percent = ( event.clientX - rect.left ) / timeline.clientWidth;
+		let seconds = Math.round(duration * percent);
+		video.currentTime = seconds;
+	});
+
+	setInterval(() => {
+		if(!video.currentTime) return;
+		let percent = ( video.currentTime / video.duration ) * 100;
+		timeline_playhead.style.left = percent + "%";
+	}, 250);
 
 	function scrub(s, d){
 		document.getElementById("video").currentTime = s;

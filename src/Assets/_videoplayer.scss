@@ -1,4 +1,31 @@
-.videoplayer { width: 1280px; }
+.videoplayer {	
+	width: 1280px;
+
+	#timeline {
+		background: #444;
+		height: 20px;
+		position: relative;
+	}
+	#timeline-cut {
+		background-color: #f00;
+		position: absolute;
+		top: 0;
+		bottom: 0;
+	}
+	#timeline-playhead {
+		background-color: #fff;
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		width: 1px;
+	}
+
+}
+
+#videoplayer-controls {
+	background-color: #222;
+	padding: 2px;
+}
 
 .videoplayer-chapters { display: flex; width: 100%; }
 
@@ -21,3 +48,4 @@
 
 .videoplayer-chapter-title { font-weight: 700; }
 .videoplayer-chapter-game { font-weight: 400; font-size: 90%; color: #444; }
+
