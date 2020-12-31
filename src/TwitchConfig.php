@@ -20,7 +20,8 @@ class TwitchConfig
 		['key' => 'mediainfo_path', 		'group' => 'Binaries',	'text' => 'Mediainfo path', 								'type' => 'string',		'required' => true],
 		['key' => 'twitchdownloader_path',	'group' => 'Binaries',	'text' => 'TwitchDownloaderCLI path', 						'type' => 'string'],
 
-		['key' => 'basepath', 				'group' => 'Advanced',	'text' => 'Base path', 										'type' => 'string',		'help' => 'No trailing slash', 'help' => 'For reverse proxy etc', 'stripslash' => true],
+		['key' => 'basepath', 				'group' => 'Advanced',	'text' => 'Base path', 										'type' => 'string',		'help' => 'No trailing slas. For reverse proxy etc', 'stripslash' => true],
+		['key' => 'instance_id', 			'group' => 'Basic',		'text' => 'Instance ID', 									'type' => 'string'],
 		['key' => 'app_url', 				'group' => 'Basic',		'text' => 'App URL', 										'type' => 'string',		'required' => true, 'help' => 'No trailing slash', 'stripslash' => true],
 		['key' => 'webhook_url', 			'group' => 'Basic',		'text' => 'Webhook URL', 									'type' => 'string',		'help' => 'For external scripting'],
 		['key' => 'password', 				'group' => 'Interface',	'text' => 'Password', 										'type' => 'string',		'help' => 'Keep blank for none. Username is admin'],

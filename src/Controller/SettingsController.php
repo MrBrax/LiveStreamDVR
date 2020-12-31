@@ -109,6 +109,10 @@ class SettingsController
 
             $full_url = TwitchConfig::cfg('app_url') . '/hook';
 
+            if (TwitchConfig::cfg('instance_id')) {
+                $full_url .= '?instance=' . TwitchConfig::cfg('instance_id');
+            }
+
             $client = new \GuzzleHttp\Client();
 
             try {

@@ -23,6 +23,14 @@ class HookController
 
         $source = isset($_GET['source']) ? $_GET['source'] : 'twitch';
 
+        if (TwitchConfig::cfg('instance_id')) {
+            if (!isset($_GET['instance']) || $_GET['instance'] != TwitchConfig::cfg('instance_id')) {
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "hook", "Hook called with the wrong instance (" . $_GET['instance'] . ")");
+                $response->getBody()->write("Invalid instance");
+                return $response;
+            }
+        }
+
         // handle hub challenge after subscribing
         if (isset($_GET['hub_challenge'])) {
 

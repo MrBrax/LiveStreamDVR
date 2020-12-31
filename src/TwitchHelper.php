@@ -814,6 +814,10 @@ class TwitchHelper
 
 		$hook_callback = TwitchConfig::cfg('app_url') . '/hook';
 
+		if (TwitchConfig::cfg('instance_id')) {
+			$hook_callback .= '?instance=' . TwitchConfig::cfg('instance_id');
+		}
+
 		$data = [
 			'hub.callback' => $hook_callback,
 			'hub.mode' => $mode,
@@ -931,7 +935,7 @@ class TwitchHelper
 
 		$subs = self::getSubs();
 
-		if(!$subs['data']) return false;
+		if (!$subs['data']) return false;
 
 		foreach ($subs['data'] as $sub) {
 
@@ -956,7 +960,6 @@ class TwitchHelper
 		}
 
 		return true;
-
 	}
 
 	/**
