@@ -395,10 +395,13 @@ class TwitchHelper
 
 			if ($json_streamers && isset($json_streamers[$username])) {
 				self::logAdvanced(self::LOG_DEBUG, "helper", "Fetched channel data from cache for {$username}");
-				return $json_streamers[$username];
+				if (!isset($json_streamers[$username]['_updated']) || time() > $json_streamers[$username]['_updated'] + 2592000) {
+					self::logAdvanced(self::LOG_INFO, "helper", "Channel data in cache for {$username} is too old, proceed to updating!");
+				} else {
+					return $json_streamers[$username];
+				}
 			}
 		} else {
-
 			$json_streamers = [];
 		}
 
@@ -428,6 +431,8 @@ class TwitchHelper
 		}
 
 		$data = $json["data"][0];
+
+		$data['_updated'] = time();
 
 		$json_streamers[$username] = $data;
 		file_put_contents(TwitchConfig::$streamerDbPath, json_encode($json_streamers));
