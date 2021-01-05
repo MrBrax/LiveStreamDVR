@@ -8,8 +8,10 @@ use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 
 use App\TwitchAutomator;
+use App\TwitchAutomatorYouTube;
 use App\TwitchConfig;
 use App\TwitchHelper;
+use App\YouTubeHelper;
 
 class HookController
 {
@@ -52,22 +54,24 @@ class HookController
                 parse_str($user_url['query'], $user_query);
                 if (isset($user_query['channel_id'])) {
                     $user_id = $user_query['channel_id'];
-                    $username = $user_query['channel_id'];
+                    $username = YouTubeHelper::getChannelUsername($user_query['channel_id']);
                 }
             }
 
             $hub_reason = isset($_GET['hub_reason']) ? $_GET['hub_reason'] : null;
 
+            $hub_mode = isset($_GET['hub_mode']) ? $_GET['hub_mode'] : null;
+
             if (isset($hub_reason)) {
-                TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "hook", "Received hub challenge ({$source}) with error for userid {$user_id} ({$username}): {$hub_reason}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "hook", "Received error on hub challenge from {$source} for {$username} ({$user_id}) when trying to {$hub_mode}: {$hub_reason}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
             } else {
-                TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Received hub challenge ({$source}) for userid {$user_id} ({$username})", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Received hub challenge from {$source} for userid {$username} ({$user_id}) when trying to {$hub_mode}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
             }
 
             // todo: use some kind of memcache for this instead
             $hc = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "hubchallenge_{$user_id}";
             if (file_exists($hc) && time() < (int)file_get_contents($hc) + 30) {
-                TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Successfully subscribed to userid {$user_id} ({$username}) on {$source}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Successfully {$hub_mode}d to userid {$user_id} ({$username}) on {$source}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
                 unlink($hc);
             }
 
@@ -101,8 +105,11 @@ class HookController
                 return $response;
             }
         } elseif ($source == 'youtube') {
-            $data_xml = simplexml_load_string(file_get_contents('php://input'), true);
-            TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Hook called YouTube data...", ['xml' => $data_xml, 'GET' => $_GET, 'POST' => $_POST]);
+            $data_xml = simplexml_load_string(file_get_contents('php://input'), "SimpleXMLElement", LIBXML_NOCDATA);
+            $data_json = json_decode(json_encode($data_xml), true);
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Hook called YouTube data...", ['xml' => $data_xml, 'json' => $data_json, 'GET' => $_GET, 'POST' => $_POST]);
+            $TwitchAutomator = new TwitchAutomatorYouTube();
+            $TwitchAutomator->handle($data_json);
             return $response;
         }
 

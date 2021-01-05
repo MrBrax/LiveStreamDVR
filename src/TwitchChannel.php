@@ -10,7 +10,7 @@ class TwitchChannel
 {
 
     public ?string $username = null;
-    public ?int $userid = null;
+    public ?string $userid = null;
     public ?string $login = null;
     public ?string $display_name = null;
     public ?string $description = null;
@@ -36,11 +36,18 @@ class TwitchChannel
     public function load(string $username)
     {
 
-        $this->channel_data = TwitchHelper::getChannelData($username);
+        $this->userid = TwitchHelper::getChannelId($username);
+
+        if(!$this->userid){
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "helper", "Could not get channel id in channel for {$username}");
+            return false;
+        }
+
+        $this->channel_data = TwitchHelper::getChannelData($this->userid);
 
         $config = TwitchConfig::getStreamer($username);
 
-        $this->userid               = (int)$this->channel_data['id'];
+        // $this->userid               = (int)$this->channel_data['id'];
         $this->username             = $this->channel_data['login'];
         $this->login                = $this->channel_data['login'];
         $this->display_name         = $this->channel_data['display_name'];
@@ -115,7 +122,7 @@ class TwitchChannel
     {
         foreach ($this->vods_list as $vod) {
             if (!$vod->is_finalized) continue;
-            if ($vod->matchTwitchVod()) {
+            if ($vod->matchProviderVod()) {
                 $vod->saveJSON('matched vod');
             }
         }

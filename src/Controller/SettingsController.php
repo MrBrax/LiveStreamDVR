@@ -173,13 +173,16 @@ class SettingsController
         $quality        = explode(" ", $_POST['quality']);
         $match          = $_POST['match'];
         $download_chat  = isset($_POST['download_chat']);
-        $burn_chat  = isset($_POST['burn_chat']);
+        $burn_chat      = isset($_POST['burn_chat']);
 
-        $tmp = TwitchHelper::getChannelData($username);
-        if (!$tmp) {
+        $user_id = TwitchHelper::getChannelId($username);
+        
+        if (!$user_id) {
             $response->getBody()->write("Streamer with that username doesn't seem to exist on Twitch");
             return $response;
         }
+
+        $tmp = TwitchHelper::getChannelData($user_id);
 
         // fix capitalization
         if ($tmp['display_name'] !== $username) {
@@ -232,7 +235,7 @@ class SettingsController
             return $response;
         }
 
-        $tmp = TwitchHelper::getChannelData($username);
+        // $tmp = TwitchHelper::getChannelData($username);
 
         // fix capitalization
         /*

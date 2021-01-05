@@ -236,7 +236,7 @@ class CronController
 
                 $user_id = explode("=", $data['topic'])[1];
 
-                $user_data = TwitchHelper::getChannelData(TwitchHelper::getChannelUsername($user_id));
+                $user_data = TwitchHelper::getChannelData($user_id);
                 $username = $user_data['display_name'];
                 
                 $response->getBody()->write("<br>Inserting data for {$username}");

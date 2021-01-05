@@ -72,13 +72,13 @@ class SubController
                     continue;
                 }
 
-                $user_data = TwitchHelper::getChannelData($u);
+                $user_data = TwitchHelper::getChannelData($user_id);
                 $username = $user_data['display_name'];
 
                 $response->getBody()->write("<h1>{$username}</h1>");
                 $response->getBody()->write("<strong>Topic:</strong> {$data['topic']}");
                 $response->getBody()->write("<br><strong>Callback:</strong> {$data['callback']}");
-                if ($data['callback'] !== TwitchConfig::cfg('app_url') . '/hook' . ( TwitchConfig::cfg('instance_id') ? '?instance=' . TwitchConfig::cfg('instance_id') : '' ) ) {
+                if ($data['callback'] !== TwitchConfig::cfg('app_url') . '/hook' . (TwitchConfig::cfg('instance_id') ? '?instance=' . TwitchConfig::cfg('instance_id') : '')) {
                     $response->getBody()->write(" (does not match this instance app url)");
                 }
                 $response->getBody()->write("<br><strong>Expires at:</strong> {$data['expires_at']}");

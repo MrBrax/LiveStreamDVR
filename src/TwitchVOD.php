@@ -19,7 +19,7 @@ class TwitchVOD
 	public array $meta = [];
 
 	public ?string $streamer_name = null;
-	public ?int $streamer_id = null;
+	public ?string $streamer_id = null;
 
 	public array $segments = [];
 	public array $segments_raw = [];
@@ -132,6 +132,26 @@ class TwitchVOD
 		$this->json = json_decode($data, true);
 		$this->json_hash = md5($data);
 
+		$this->filename = $filename;
+		$this->basename = basename($filename, '.json');
+		$this->directory = dirname($filename);
+
+		$this->meta = $this->json['meta'];
+
+		$this->setupDates();
+		$this->setupBasic();
+		$this->setupUserData();
+		$this->setupProvider();
+		$this->setupAssoc();
+		$this->setupFiles();
+
+		return true;
+
+	}
+
+	public function setupDates()
+	{
+
 		// started at
 		if (isset($this->json['dt_started_at']) && isset($this->json['dt_started_at']['date'])) {
 			$this->dt_started_at = new \DateTime($this->json['dt_started_at']['date']);
@@ -168,20 +188,18 @@ class TwitchVOD
 		if (isset($this->json['dt_conversion_started'])) {
 			$this->dt_conversion_started 	= new \DateTime($this->json['dt_conversion_started']['date']);
 		}
+	}
 
-		$this->filename = $filename;
-		$this->basename = basename($filename, '.json');
-		$this->directory = dirname($filename);
+	public function setupUserData()
+	{
+		// $this->streamer_name 	= isset($this->meta['user_name']) ? $this->meta['user_name'] : $this->meta['data'][0]['user_name'];
+		// $this->streamer_id 		= TwitchHelper::getChannelId($this->streamer_name);
+		$this->streamer_name 	= $this->json['streamer_name'];
+		$this->streamer_id 		= (string)$this->json['streamer_id'];
+	}
 
-		$this->is_recording = file_exists($this->directory . DIRECTORY_SEPARATOR . $this->basename . '.ts');
-		$this->is_converted = file_exists($this->directory . DIRECTORY_SEPARATOR . $this->basename . '.mp4');
-
-		$this->is_capturing 	= isset($this->json['is_capturing']) ? $this->json['is_capturing'] : false;
-		$this->is_converting 	= isset($this->json['is_converting']) ? $this->json['is_converting'] : false;
-		$this->is_finalized 	= isset($this->json['is_finalized']) ? $this->json['is_finalized'] : false;
-
-		$this->streamer_name 	= $this->json['meta']['data'][0]['user_name'];
-		$this->streamer_id 		= TwitchHelper::getChannelId($this->streamer_name);
+	public function setupProvider()
+	{
 
 		$this->twitch_vod_id 			= isset($this->json['twitch_vod_id']) ? (int)$this->json['twitch_vod_id'] : null;
 		$this->twitch_vod_url 			= isset($this->json['twitch_vod_url']) ? $this->json['twitch_vod_url'] : null;
@@ -193,26 +211,13 @@ class TwitchVOD
 		$this->twitch_vod_attempted 	= isset($this->json['twitch_vod_attempted']) ? $this->json['twitch_vod_attempted'] : null;
 		$this->twitch_vod_muted 		= isset($this->json['twitch_vod_muted']) ? $this->json['twitch_vod_muted'] : null;
 
-		$this->force_record				= isset($this->json['force_record']) ? $this->json['force_record'] : false;
-		$this->automator_fail			= isset($this->json['automator_fail']) ? $this->json['automator_fail'] : false;
-
-		$this->stream_resolution		= isset($this->json['stream_resolution']) && gettype($this->json['stream_resolution']) == 'string' ? $this->json['stream_resolution'] : '';
-
-		$this->meta = $this->json['meta'];
-
-		/*
-		if (isset($this->json['dt_ended'])) {
-			$this->dt_ended_at = new \DateTime($this->json['dt_ended']['date']);
-		}
-		*/
-
 		if ($this->meta && $this->meta['data'][0]['title']) {
 			$this->stream_title = $this->meta['data'][0]['title'];
 		}
+	}
 
-		// $this->duration 			= $this->json['duration'];
-		$this->duration_seconds 	= $this->json['duration_seconds'] ? (int)$this->json['duration_seconds'] : null;
-		$this->duration_live		= $this->getDurationLive();
+	public function setupAssoc()
+	{
 
 		$this->video_fail2 			= isset($this->json['video_fail2']) ? $this->json['video_fail2'] : false;
 		$this->video_metadata		= isset($this->json['video_metadata']) ? $this->json['video_metadata'] : null;
@@ -241,6 +246,10 @@ class TwitchVOD
 				$this->saveJSON('fix mediainfo');
 			}
 		}
+	}
+
+	public function setupFiles()
+	{
 
 		$this->path_chat 				= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
 		$this->path_downloaded_vod 		= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_vod.mp4';
@@ -250,15 +259,6 @@ class TwitchVOD
 		$this->path_chatdump			= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chatdump';
 		$this->path_adbreak				= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.adbreak';
 		$this->path_playlist			= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.m3u8';
-
-		$this->is_chat_downloaded 			= file_exists($this->path_chat);
-		$this->is_vod_downloaded 			= file_exists($this->path_downloaded_vod);
-		$this->is_lossless_cut_generated 	= file_exists($this->path_losslesscut);
-		$this->is_chatdump_captured 		= file_exists($this->path_chatdump);
-		$this->is_capture_paused 			= file_exists($this->path_adbreak);
-
-		$this->is_chat_rendered 	= file_exists($this->path_chatrender);
-		$this->is_chat_burned 		= file_exists($this->path_chatburn);
 
 		$this->associatedFiles = [
 			$this->basename . '.json',
@@ -279,7 +279,36 @@ class TwitchVOD
 			}
 		}
 
-		return true;
+		$this->is_chat_downloaded 			= file_exists($this->path_chat);
+		$this->is_vod_downloaded 			= file_exists($this->path_downloaded_vod);
+		$this->is_lossless_cut_generated 	= file_exists($this->path_losslesscut);
+		$this->is_chatdump_captured 		= file_exists($this->path_chatdump);
+		$this->is_capture_paused 			= file_exists($this->path_adbreak);
+		$this->is_chat_rendered 			= file_exists($this->path_chatrender);
+		$this->is_chat_burned 				= file_exists($this->path_chatburn);
+	}
+
+	public function setupBasic()
+	{
+
+		$this->is_recording = file_exists($this->directory . DIRECTORY_SEPARATOR . $this->basename . '.ts');
+		$this->is_converted = file_exists($this->directory . DIRECTORY_SEPARATOR . $this->basename . '.mp4');
+
+		$this->is_capturing 	= isset($this->json['is_capturing']) ? $this->json['is_capturing'] : false;
+		$this->is_converting 	= isset($this->json['is_converting']) ? $this->json['is_converting'] : false;
+		$this->is_finalized 	= isset($this->json['is_finalized']) ? $this->json['is_finalized'] : false;
+
+		$this->force_record				= isset($this->json['force_record']) ? $this->json['force_record'] : false;
+		$this->automator_fail			= isset($this->json['automator_fail']) ? $this->json['automator_fail'] : false;
+
+		$this->stream_resolution		= isset($this->json['stream_resolution']) && gettype($this->json['stream_resolution']) == 'string' ? $this->json['stream_resolution'] : '';
+
+		// $this->duration 			= $this->json['duration'];
+		$this->duration_seconds 	= $this->json['duration_seconds'] ? (int)$this->json['duration_seconds'] : null;
+		
+		$dur = $this->getDurationLive();
+		$this->duration_live = $dur === false ? -1 : $dur;
+
 	}
 
 	/**
@@ -842,7 +871,7 @@ class TwitchVOD
 	 *
 	 * @return string|boolean
 	 */
-	public function matchTwitchVod()
+	public function matchProviderVod()
 	{
 
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Try to match twitch vod for {$this->basename}");
@@ -1624,7 +1653,7 @@ class TwitchVOD
 
 		$this->getMediainfo();
 		$this->saveLosslessCut();
-		$this->matchTwitchVod();
+		$this->matchProviderVod();
 		// $this->checkMutedVod(); // initially not muted when vod is published
 		$this->is_finalized = true;
 	}
@@ -1655,7 +1684,7 @@ class TwitchVOD
 				}
 
 				if ($fix) {
-					if ($this->matchTwitchVod()) {
+					if ($this->matchProviderVod()) {
 						$this->saveJSON('troubleshoot vod match');
 						return ["fixed" => true, "text" => "twitch vod matched successfully"];
 					} else {

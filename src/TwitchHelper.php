@@ -23,6 +23,7 @@ class TwitchHelper
 
 	public static $game_db = null;
 
+	/** @var \GuzzleHttp\Client */
 	public static $guzzler;
 
 	public const LOG_ERROR = "ERROR";
@@ -353,13 +354,57 @@ class TwitchHelper
 	 * Get Twitch channel ID from username
 	 *
 	 * @param string $username
-	 * @return int|bool Channel ID
+	 * @return string|bool Channel ID
 	 */
 	public static function getChannelId(string $username)
 	{
-		$data = self::getChannelData($username);
-		if (!$data) return false;
-		return (int)$data["id"];
+		$json_streamers = file_exists(TwitchConfig::$streamerDbPath) ? json_decode(file_get_contents(TwitchConfig::$streamerDbPath), true) : [];
+
+		if ($json_streamers) {
+			foreach ($json_streamers as $user_id => $data) {
+				if ($data['display_name'] == $username && $user_id) {
+					return (string)$user_id;
+				}
+			}
+		}
+
+		$access_token = self::getAccessToken();
+
+		if (!$access_token) {
+			throw new \Exception('Fatal error, could not get access token for channel id request');
+			return false;
+		}
+
+		$query = [];
+		$query['login'] = $username;
+
+		try {
+			$response = self::$guzzler->request('GET', '/helix/users', [
+				'query' => $query
+			]);
+		} catch (\Throwable $th) {
+			self::logAdvanced(self::LOG_FATAL, "helper", "getChannelId for {$username} errored: " . $th->getMessage());
+			return false;
+		}
+
+		$server_output = $response->getBody()->getContents();
+		$json = json_decode($server_output, true);
+
+		if (!$json["data"]) {
+			self::logAdvanced(self::LOG_ERROR, "helper", "Failed to fetch channel id for {$username}: {$server_output}");
+			return false;
+		}
+
+		$data = $json["data"][0];
+
+		$data['_updated'] = time();
+
+		$json_streamers[(string)$data['id']] = $data;
+		file_put_contents(TwitchConfig::$streamerDbPath, json_encode($json_streamers));
+
+		self::logAdvanced(self::LOG_INFO, "helper", "Fetched channel id online for {$user_id}");
+
+		return (string)$data['id'];
 	}
 
 	/**
@@ -368,8 +413,9 @@ class TwitchHelper
 	 * @param string $id
 	 * @return string|false Username
 	 */
-	public static function getChannelUsername(string $id)
+	public static function getChannelUsername(string $user_id)
 	{
+		/*
 		if (!file_exists(TwitchConfig::$streamerDbPath)) return false;
 		$channels = json_decode(file_get_contents(TwitchConfig::$streamerDbPath), true);
 		foreach ($channels as $username => $data) {
@@ -377,28 +423,31 @@ class TwitchHelper
 				return $username;
 			}
 		}
-		return false;
+		*/
+		$data = self::getChannelData($user_id);
+		if (!$data) return false;
+		return $data["display_name"];
 	}
 
 	/**
-	 * Get Twitch channel data from username or id
+	 * Get Twitch channel data from id
 	 *
-	 * @param string $username
+	 * @param string $user_id
 	 * @return array
 	 */
-	public static function getChannelData(string $username)
+	public static function getChannelData(string $user_id)
 	{
 
 		if (file_exists(TwitchConfig::$streamerDbPath)) {
 
 			$json_streamers = json_decode(file_get_contents(TwitchConfig::$streamerDbPath), true);
 
-			if ($json_streamers && isset($json_streamers[$username])) {
-				self::logAdvanced(self::LOG_DEBUG, "helper", "Fetched channel data from cache for {$username}");
-				if (!isset($json_streamers[$username]['_updated']) || time() > $json_streamers[$username]['_updated'] + 2592000) {
-					self::logAdvanced(self::LOG_INFO, "helper", "Channel data in cache for {$username} is too old, proceed to updating!");
+			if ($json_streamers && isset($json_streamers[$user_id])) {
+				self::logAdvanced(self::LOG_DEBUG, "helper", "Fetched channel data from cache for {$user_id}");
+				if (!isset($json_streamers[$user_id]['_updated']) || time() > $json_streamers[$user_id]['_updated'] + 2592000) {
+					self::logAdvanced(self::LOG_INFO, "helper", "Channel data in cache for {$user_id} is too old, proceed to updating!");
 				} else {
-					return $json_streamers[$username];
+					return $json_streamers[$user_id];
 				}
 			}
 		} else {
@@ -413,20 +462,22 @@ class TwitchHelper
 		}
 
 		$query = [];
-		$query['login'] = $username;
+		$query['id'] = $user_id;
 
-		$response = self::$guzzler->request('GET', '/helix/users', [
-			'query' => $query
-		]);
+		try {
+			$response = self::$guzzler->request('GET', '/helix/users', [
+				'query' => $query
+			]);
+		} catch (\Throwable $th) {
+			self::logAdvanced(self::LOG_FATAL, "helper", "getChannelData for {$user_id} errored: " . $th->getMessage());
+			return false;
+		}
 
 		$server_output = $response->getBody()->getContents();
 		$json = json_decode($server_output, true);
 
 		if (!$json["data"]) {
-			self::logAdvanced(self::LOG_ERROR, "helper", "Failed to fetch channel data for {$username}: {$server_output}");
-			// var_dump($json);
-			// var_dump( $response->getStatusCode() );
-			// throw new Exception( "Failed to fetch channel id: " . $server_output );
+			self::logAdvanced(self::LOG_ERROR, "helper", "Failed to fetch channel data for {$user_id}: {$server_output}");
 			return false;
 		}
 
@@ -434,10 +485,10 @@ class TwitchHelper
 
 		$data['_updated'] = time();
 
-		$json_streamers[$username] = $data;
+		$json_streamers[$user_id] = $data;
 		file_put_contents(TwitchConfig::$streamerDbPath, json_encode($json_streamers));
 
-		self::logAdvanced(self::LOG_INFO, "helper", "Fetched channel data online for {$username}");
+		self::logAdvanced(self::LOG_INFO, "helper", "Fetched channel data online for {$user_id}");
 
 		return $data;
 	}
@@ -445,10 +496,10 @@ class TwitchHelper
 	/**
 	 * Return videos for a streamer id
 	 *
-	 * @param int $streamer_id
+	 * @param string $streamer_id
 	 * @return array|false
 	 */
-	public static function getVideos(int $streamer_id)
+	public static function getVideos(string $streamer_id)
 	{
 
 		if (!$streamer_id) {

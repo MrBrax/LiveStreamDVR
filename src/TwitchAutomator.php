@@ -14,6 +14,8 @@ class TwitchAutomator
 
 	public $json = [];
 
+	public $realm = 'twitch';
+
 	// public $errors = [];
 	// public $info = [];
 
@@ -25,6 +27,8 @@ class TwitchAutomator
 	 * @var TwitchVOD
 	 */
 	public $vod;
+
+	private $payload = [];
 
 	const NOTIFY_GENERIC = 1;
 	const NOTIFY_DOWNLOAD = 2;
@@ -39,24 +43,65 @@ class TwitchAutomator
 	 * @param array $data
 	 * @return string basename
 	 */
-	public function basename($data)
+	public function basename()
 	{
-
+		/*
 		$data_id = $data['data'][0]['id'];
 		$data_title = $data['data'][0]['title'];
 		$data_started = $data['data'][0]['started_at'];
 		$data_game_id = $data['data'][0]['game_id'];
 		$data_username = $data['data'][0]['user_name'];
+		*/
+		// $data_id = $this->payload['id'];
+		// $data_title = $this->payload['title'];
+		// $data_started = $this->payload['started_at'];
+		// $data_game_id = $this->payload['game_id'];
+		// $data_username = $this->payload['user_name'];
 
 		// return $data_username . '_' . $data_id . '_' . str_replace(':', '_', $data_started);
 
-		return $data_username . '_' . str_replace(':', '_', $data_started) . '_' . $data_id;
+		return $this->getUsername() . '_' . str_replace(':', '_', $this->getStartDate()) . '_' . $this->getVodID();
+	}
+
+	public function streamURL()
+	{
+		return 'twitch.tv/' . $this->payload['user_name'];
 	}
 
 	public function getDateTime()
 	{
 		date_default_timezone_set('UTC');
 		return date(TwitchHelper::DATE_FORMAT);
+	}
+
+	public function parsePayload()
+	{
+		return $this->payload;
+	}
+
+	public function getVodID()
+	{
+		return $this->payload['id'];
+	}
+
+	public function getUserID()
+	{
+		return TwitchHelper::getChannelId($this->payload['user_name']);
+	}
+
+	public function getUsername()
+	{
+		return $this->payload['user_name'];
+	}
+
+	public function getStartDate()
+	{
+		return $this->payload['started_at'];
+	}
+
+	public function getTitle()
+	{
+		return $this->payload['title'];
 	}
 
 	/**
@@ -135,7 +180,9 @@ class TwitchAutomator
 			$this->end($data);
 		} else {
 
-			$basename = $this->basename($data);
+			$this->payload = $data['data'][0];
+
+			$basename = $this->basename();
 
 			$folder_base = TwitchHelper::vodFolder($data_username);
 
@@ -147,7 +194,7 @@ class TwitchAutomator
 					if ($vodclass->is_finalized) {
 						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "VOD is finalized, but wanted more info on {$basename}");
 					} elseif ($vodclass->is_capturing) {
-						$this->updateGame($data);
+						$this->updateGame();
 					} else {
 						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "VOD exists but isn't capturing anymore on {$basename}");
 					}
@@ -168,7 +215,7 @@ class TwitchAutomator
 				*/
 			} else {
 
-				$this->download($data);
+				$this->download();
 			}
 		}
 	}
@@ -179,17 +226,17 @@ class TwitchAutomator
 	 * @param array $data
 	 * @return void
 	 */
-	public function updateGame($data)
+	public function updateGame()
 	{
 
-		$data_id 			= $data['data'][0]['id'];
-		$data_started 		= $data['data'][0]['started_at'];
-		$data_game_id 		= $data['data'][0]['game_id'];
-		$data_username 		= $data['data'][0]['user_name'];
-		$data_viewer_count 	= $data['data'][0]['viewer_count'];
-		$data_title 		= $data['data'][0]['title'];
+		$data_id 			= $this->getVodID();
+		$data_started 		= $this->getStartDate();
+		$data_game_id 		= $this->payload['game_id'];
+		$data_username 		= $this->getUsername();
+		$data_viewer_count 	= $this->payload['viewer_count'];
+		$data_title 		= $this->getTitle();
 
-		$basename = $this->basename($data);
+		$basename = $this->basename();
 
 		$folder_base = TwitchHelper::vodFolder($data_username);
 
@@ -209,8 +256,8 @@ class TwitchAutomator
 		// json format
 
 		// full json data
-		$this->vod->meta = $data;
-		$this->vod->json['meta'] = $data;
+		$this->vod->meta = $this->payload;
+		$this->vod->json['meta'] = $this->payload;
 
 		if ($this->force_record) $this->vod->force_record = true;
 
@@ -241,7 +288,7 @@ class TwitchAutomator
 			'vod' => $this->vod
 		]);
 
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "automator", "Game updated on {$data_username} to {$game_name} ({$data_title})");
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "automator", "Game updated on {$data_username} to {$game_name} ({$data_title})", ['instance' => $_GET['instance']]);
 	}
 
 	public function end()
@@ -258,14 +305,17 @@ class TwitchAutomator
 	 * @param integer $tries
 	 * @return void
 	 */
-	public function download($data, $tries = 0)
+	public function download($tries = 0)
 	{
 
-		$data_id = $data['data'][0]['id'];
-		$data_title = $data['data'][0]['title'];
-		$data_started = $data['data'][0]['started_at'];
-		$data_game_id = $data['data'][0]['game_id'];
-		$data_username = $data['data'][0]['user_name'];
+		// $data_id = $this->payload['id'];
+		$data_title = $this->getTitle();
+		$data_started = $this->getStartDate();
+		$data_game_id = $this->payload['game_id'];
+		// $data_username = $this->payload['user_name'];
+
+		$data_id = $this->getVodID();
+		$data_username = $this->getUsername();
 
 		if (!$data_id) {
 			// $this->errors[] = 'No data id for download';
@@ -275,11 +325,16 @@ class TwitchAutomator
 			return;
 		}
 
-		$stream_url = 'twitch.tv/' . $data_username;
+		// $stream_url = 'twitch.tv/' . $data_username;
 
-		$basename = $this->basename($data);
+		$basename = $this->basename();
 
 		$folder_base = TwitchHelper::vodFolder($data_username);
+
+		if (!file_exists($folder_base)) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "Making folder for {$data_username}, unusual.", ['download' => $data_username]);
+			mkdir($folder_base);
+		}
 
 		// if running
 		$job = new TwitchAutomatorJob("capture_{$basename}");
@@ -291,17 +346,16 @@ class TwitchAutomator
 		$this->vod = new TwitchVOD();
 		$this->vod->create($folder_base . DIRECTORY_SEPARATOR . $basename . '.json');
 
-		$this->vod->meta = $data;
-		$this->vod->json['meta'] = $data;
+		$this->vod->meta = $this->payload;
+		$this->vod->json['meta'] = $this->payload;
 		$this->vod->streamer_name = $data_username;
-		$this->vod->streamer_id = TwitchHelper::getChannelId($data_username);
+		$this->vod->streamer_id = $this->getUserID();
 		$this->vod->dt_started_at = \DateTime::createFromFormat(TwitchHelper::DATE_FORMAT, $data_started);
 
 		if ($this->force_record) $this->vod->force_record = true;
 
 		$this->vod->saveJSON('stream download');
 		$this->vod->refreshJSON();
-
 
 		$streamer = TwitchConfig::getStreamer($data_username);
 
@@ -336,8 +390,8 @@ class TwitchAutomator
 		]);
 
 		// in progress
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Update game for {$basename}", ['download' => $data_username]);
-		$this->updateGame($data);
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Update game for {$basename}", ['download' => $data_username, 'instance' => $_GET['instance']]);
+		$this->updateGame();
 
 		// download notification
 		// $this->notify($basename, '[' . $data_username . '] [download]', self::NOTIFY_DOWNLOAD);
@@ -368,12 +422,12 @@ class TwitchAutomator
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Exception handler for playlist dump for {$basename}, capture normally: " . $th->getMessage());
 
 				// fallback
-				$capture_filename = $this->capture($data, $tries);
+				$capture_filename = $this->capture($tries);
 			}
 		} else {
 
 			// capture with streamlink
-			$capture_filename = $this->capture($data, $tries);
+			$capture_filename = $this->capture($tries);
 		}
 
 		// error handling if nothing got downloaded
@@ -395,7 +449,7 @@ class TwitchAutomator
 
 			sleep(15);
 
-			$this->download($data, $tries + 1);
+			$this->download($tries + 1);
 
 			return;
 		}
@@ -497,14 +551,17 @@ class TwitchAutomator
 	 * @param array $data
 	 * @return string Captured filename
 	 */
-	public function capture($data, $tries = 0)
+	public function capture($tries = 0)
 	{
 
-		$data_id = $data['data'][0]['id'];
-		$data_title = $data['data'][0]['title'];
-		$data_started = $data['data'][0]['started_at'];
-		$data_game_id = $data['data'][0]['game_id'];
-		$data_username = $data['data'][0]['user_name'];
+		// $data_id = $this->payload['id'];
+		$data_title = $this->payload['title'];
+		$data_started = $this->payload['started_at'];
+		$data_game_id = $this->payload['game_id'];
+		// $data_username = $this->payload['user_name'];
+
+		$data_id = $this->getVodID();
+		$data_username = $this->getUsername();
 
 		if (!$data_id) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No ID supplied for capture");
@@ -512,15 +569,18 @@ class TwitchAutomator
 			return false;
 		}
 
-		$stream_url = 'twitch.tv/' . $data_username;
+		// $stream_url = 'twitch.tv/' . $data_username;
+		$stream_url = $this->streamURL();
 
-		$basename = $this->basename($data);
+		$basename = $this->basename();
 
 		$folder_base = TwitchHelper::vodFolder($data_username);
 
 		$capture_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '.ts';
 
 		$chat_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '.chatdump';
+
+		$streamer_config = TwitchConfig::getStreamer($data_username);
 
 		// failure
 		$int = 1;
@@ -602,7 +662,11 @@ class TwitchAutomator
 
 		// twitch quality
 		$cmd[] = '--default-stream';
-		$cmd[] = implode(",", TwitchConfig::getStreamer($data_username)['quality']); // quality
+		if (isset($streamer_config) && isset($streamer_config['quality'])) {
+			$cmd[] = implode(",", $streamer_config['quality']); // quality
+		} else {
+			$cmd[] = 'best';
+		}
 
 		// $this->info[] = 'Streamlink cmd: ' . implode(" ", $cmd);
 
@@ -610,7 +674,7 @@ class TwitchAutomator
 		$this->vod->dt_capture_started = new \DateTime();
 		$this->vod->saveJSON('dt_capture_started set');
 
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Starting capture with filename " . basename($capture_filename), ['download-capture' => $data_username, 'cmd' => implode(' ', $cmd)]);
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Starting capture with filename " . basename($capture_filename), ['download-capture' => $data_username, 'cmd' => implode(' ', $cmd), ['instance' => $_GET['instance']]]);
 
 		// start process in async mode
 		$process = new Process($cmd, dirname($capture_filename), null, null, null);
@@ -641,7 +705,7 @@ class TwitchAutomator
 		$captureJob->save();
 
 		// chat capture
-		if (TwitchConfig::cfg('chat_dump')) {
+		if (TwitchConfig::cfg('chat_dump') && $this->realm == 'twitch') {
 
 			$chat_cmd = [];
 
@@ -771,18 +835,18 @@ class TwitchAutomator
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Capturing of {$basename}, will try to remove ads!", ['download-capture' => $data_username]);
 					$current_ad_start = time();
 				}
-				
-				if($stream_paused_ticks >= 30){
-					if( $stream_paused_ticks % 5 == 0 ){
+
+				if ($stream_paused_ticks >= 30) {
+					if ($stream_paused_ticks % 5 == 0) {
 						TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "Stream is paused for {$stream_paused_ticks} ticks for {$basename}!", ['download-capture' => $data_username]);
 					}
-					if($stream_paused_ticks >= 300){
+					if ($stream_paused_ticks >= 300) {
 						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Stream reached {$stream_paused_ticks} ticks for {$basename}, aborting capture!", ['download-capture' => $data_username]);
 						$process->stop();
 					}
 				}
 
-				if($stream_is_paused){
+				if ($stream_is_paused) {
 					$stream_paused_ticks++;
 				}
 
@@ -881,17 +945,17 @@ class TwitchAutomator
 					$current_ad_start = time();
 				}
 
-				if($stream_paused_ticks >= 30){
-					if( $stream_paused_ticks % 5 == 0 ){
+				if ($stream_paused_ticks >= 30) {
+					if ($stream_paused_ticks % 5 == 0) {
 						TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "Stream is paused for {$stream_paused_ticks} ticks for {$basename}!", ['download-capture' => $data_username]);
 					}
-					if($stream_paused_ticks >= 300){
+					if ($stream_paused_ticks >= 300) {
 						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Stream reached {$stream_paused_ticks} ticks for {$basename}, aborting capture!", ['download-capture' => $data_username]);
 						$process->stop();
 					}
 				}
 
-				if($stream_is_paused){
+				if ($stream_is_paused) {
 					$stream_paused_ticks++;
 				}
 
@@ -911,7 +975,7 @@ class TwitchAutomator
 					$stream_paused_ticks = 0;
 					$stream_is_paused = false;
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Resuming capture for {$basename} due to ad segment, {$ad_length}s @ {$time_offset}s!", ['download-capture' => $data_username]);
-					if(file_exists($this->vod->path_adbreak)){
+					if (file_exists($this->vod->path_adbreak)) {
 						unlink($this->vod->path_adbreak);
 					}
 					/*
@@ -948,7 +1012,7 @@ class TwitchAutomator
 					if ($cmd_chatdump_stderr_buffer) TwitchHelper::appendLog("chatdump_{$basename}_stderr.{$int}", $cmd_chatdump_stderr_buffer);
 				}
 
-				
+
 				if ($cmd_stdout_buffer) TwitchHelper::appendLog("streamlink_{$basename}_stdout.{$int}", $cmd_stdout_buffer);
 				if ($cmd_stderr_buffer) TwitchHelper::appendLog("streamlink_{$basename}_stderr.{$int}", $cmd_stderr_buffer);
 
@@ -1080,7 +1144,9 @@ class TwitchAutomator
 
 		$converted_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '.' . $container_ext;
 
-		$data_username = $this->vod->streamer_name;
+		// $data_username = $this->vod->streamer_name;
+		$data_id = $this->getVodID();
+		$data_username = $this->getUsername();
 
 		$int = 1;
 

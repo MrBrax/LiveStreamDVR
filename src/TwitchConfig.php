@@ -33,13 +33,14 @@ class TwitchConfig
 		['key' => 'sub_lease', 				'group' => 'Advanced',	'text' => 'Subscription lease', 							'type' => 'number',		'default' => 604800],
 		['key' => 'api_client_id', 			'group' => 'Basic',		'text' => 'Twitch client ID', 								'type' => 'string',		'required' => true],
 		['key' => 'api_secret', 			'group' => 'Basic',		'text' => 'Twitch secret', 									'type' => 'string',		'secret' => true, 'required' => true, 'help' => 'Keep blank to not change'],
+		['key' => 'youtube_api_client_id', 	'group' => 'Basic',		'text' => 'YouTube API Client key', 						'type' => 'string'],
 		// [ 'key' => 'hook_callback', 		'text' => 'Hook callback', 									'type' => 'string', 'required' => true ],
 		['key' => 'timezone', 				'group' => 'Interface',	'text' => 'Timezone', 										'type' => 'array',		'choices' => 'timezones', 'default' => 'UTC', 'help' => 'This only affects the GUI, not the values stored'],
 
-		['key' => 'vod_container', 			'group' => 'Advanced',	'text' => 'VOD container (not tested)', 					'type' => 'array',		'choices' => ['mp4', 'mkv', 'mov'], 'default' => 'mp4'],
+		['key' => 'vod_container', 			'group' => 'Video',		'text' => 'VOD container (not tested)', 					'type' => 'array',		'choices' => ['mp4', 'mkv', 'mov'], 'default' => 'mp4'],
 
-		['key' => 'burn_preset', 			'group' => 'Advanced',	'text' => 'Burning h264 preset', 							'type' => 'array',		'choices' => ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower', 'veryslow', 'placebo'], 'default' => 'slow'],
-		['key' => 'burn_crf', 				'group' => 'Advanced',	'text' => 'Burning h264 crf', 								'type' => 'number',		'default' => 26, 'help' => 'Essentially a quality control. Lower is higher quality.'],
+		['key' => 'burn_preset', 			'group' => 'Video',		'text' => 'Burning h264 preset', 							'type' => 'array',		'choices' => ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower', 'veryslow', 'placebo'], 'default' => 'slow'],
+		['key' => 'burn_crf', 				'group' => 'Video',		'text' => 'Burning h264 crf', 								'type' => 'number',		'default' => 26, 'help' => 'Essentially a quality control. Lower is higher quality.'],
 
 		['key' => 'disable_ads', 			'group' => 'Basic',		'text' => 'Try to remove ads from captured file',			'type' => 'boolean',	'default' => true, 'help' => 'This removes the "Commercial break in progress", but stream is probably going to be cut off anyway'],
 		['key' => 'debug', 					'group' => 'Developer',	'text' => 'Debug', 											'type' => 'boolean',	'default' => false, 'help' => 'Verbose logging, extra file outputs, more information available. Not for general use.'],
@@ -51,9 +52,9 @@ class TwitchConfig
 		['key' => 'youtube_dlc', 			'group' => 'Advanced',	'text' => 'Use youtube-dlc instead of the regular one', 	'type' => 'boolean'],
 		['key' => 'pipenv_enabled', 		'group' => 'Advanced',	'text' => 'Use pipenv', 									'type' => 'boolean',	'default' => false],
 		['key' => 'chat_dump', 				'group' => 'Basic',		'text' => 'Dump chat during capture', 						'type' => 'boolean',	'default' => false, 'help' => "Dump chat from IRC with an external python script. This isn't all that stable."],
-		['key' => 'ts_sync', 				'group' => 'Advanced',	'text' => 'Try to force sync remuxing', 					'type' => 'boolean',	'default' => false],
-		['key' => 'encode_audio', 			'group' => 'Advanced',	'text' => 'Encode audio stream', 							'type' => 'boolean',	'default' => false, 'help' => 'This may help with audio syncing.'],
-		['key' => 'fix_corruption', 		'group' => 'Advanced',	'text' => 'Try to fix corruption in remuxing',				'type' => 'boolean',	'default' => false, 'help' => 'This may help with audio syncing.'],
+		['key' => 'ts_sync', 				'group' => 'Video',		'text' => 'Try to force sync remuxing (not recommended)', 			'type' => 'boolean',	'default' => false],
+		['key' => 'encode_audio', 			'group' => 'Video',		'text' => 'Encode audio stream', 									'type' => 'boolean',	'default' => false, 'help' => 'This may help with audio syncing.'],
+		['key' => 'fix_corruption', 		'group' => 'Video',		'text' => 'Try to fix corruption in remuxing (not recommended)',	'type' => 'boolean',	'default' => false, 'help' => 'This may help with audio syncing.'],
 		['key' => 'playlist_dump', 			'group' => 'Advanced',	'text' => 'Use playlist dumping (experimental)',			'type' => 'boolean',	'default' => false],
 		['key' => 'process_wait_method', 	'group' => 'Advanced',	'text' => 'Process wait method',							'type' => 'number',		'default' => 1],
 
