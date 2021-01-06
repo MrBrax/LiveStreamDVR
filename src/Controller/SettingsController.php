@@ -311,7 +311,7 @@ class SettingsController
         foreach (TwitchConfig::$config['streamers'] as $k => $v) {
             if ($v['username'] == $username) $key = $k;
         }
-        if (!$key) {
+        if ($key === null) {
             return $this->twig->render($response, 'dialog.twig', [
                 'text' => 'Streamer not found.',
                 'type' => 'error'
