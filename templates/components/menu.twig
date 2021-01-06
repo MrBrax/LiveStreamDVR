@@ -1,7 +1,7 @@
 <div class="side-menu">
     <div class="top-menu-item title">
         <a href="{{ url_for('dashboard') }}">
-            <img src="{{ base_path() }}/assets/favicon.png" class="favicon"><span class="title">{{ config.app_name }} {{ app_version }} {% if debug %}(debug)</span>{% endif %}
+            <img src="{{ base_path() }}/assets/favicon.png" class="favicon" width="24" height="24" alt="{{ config.app_name }}"><span class="title">{{ config.app_name }} {{ app_version }} {% if debug %}(debug)</span>{% endif %}
         </a>
     </div>
 
@@ -79,7 +79,7 @@
                             <div class="tooltip">
                                 <div class="boxart-carousel is-small">
                                     {% for game in vodclass.getUniqueGames %}
-                                        <div class="boxart-item">{% if game.image_url %}<img title="{{ game.name }}" src="{{ game.image_url }}" loading="lazy" />{% else %}{{ game.name }}{% endif %}</div>
+                                        <div class="boxart-item">{% if game.image_url %}<img title="{{ game.name }}" alt="{{ game.name }}" src="{{ game.image_url }}" loading="lazy" />{% else %}{{ game.name }}{% endif %}</div>
                                     {% endfor %}
                                 </div>
                                 <p>{{ vodclass.stream_title }}</p>

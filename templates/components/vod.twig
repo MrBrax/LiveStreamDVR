@@ -28,7 +28,7 @@
             {# box art #}
             <div class="boxart-carousel is-small">
                 {% for game in vodclass.getUniqueGames %}
-                    <div class="boxart-item">{% if game.image_url %}<img title="{{ game.name }}" src="{{ game.image_url }}" loading="lazy" />{% else %}{{ game.name }}{% endif %}</div>
+                    <div class="boxart-item">{% if game.image_url %}<img title="{{ game.name }}" alt="{{ game.name }}" src="{{ game.image_url }}" loading="lazy" />{% else %}{{ game.name }}{% endif %}</div>
                 {% endfor %}
             </div>
             
@@ -375,14 +375,14 @@
 
                             {# chapter name #}
                             <td>
-                                {% if chapter.box_art_url %}<img class="boxart" src="{{ chapter.box_art_url }}" loading="lazy" />{% endif %}
+                                {% if chapter.box_art_url %}<img class="boxart" src="{{ chapter.box_art_url }}" alt="{{ chapter.game_name }}" loading="lazy" />{% endif %}
 
                                 {% if vodclass.is_finalized %}
                                     <a href="{{ url_for('player', { 'vod': vodclass.basename }) }}?start={{ chapter.offset }}">
                                         {{ chapter.game_name ?: 'None' }}
                                     </a>
                                     {% if vodclass.twitch_vod_exists %}
-                                        <a href="{{ vodclass.twitch_vod_url }}?t={{ chapter.offset|twitchDuration }}" target="_blank"><span class="icon"><i class="fas fa-external-link-alt"></i></span></a>
+                                        <a href="{{ vodclass.twitch_vod_url }}?t={{ chapter.offset|twitchDuration }}" target="_blank" rel="noreferrer" aria-label="Open on Twitch"><span class="icon"><i class="fas fa-external-link-alt"></i></span></a>
                                     {% endif %}
                                 {% else %}
                                     {{ chapter.game_name ?: 'None' }}
