@@ -60,15 +60,67 @@ class ConfigTest extends TestCase
     }
 
     public function test_defaultConfigReturn(): void
-    {   
+    {
         TwitchConfig::setConfig('password_secure', null);
         $this->assertTrue(TwitchConfig::cfg('password_secure', true), 'password_secure = null, default true');
 
         TwitchConfig::setConfig('password_secure', true);
         $this->assertTrue(TwitchConfig::cfg('password_secure', true), 'password_secure = true, default true');
 
-        TwitchConfig::setConfig('password_secure', false);
-        $this->assertFalse(TwitchConfig::cfg('password_secure', true), 'password_secure = false, default true');
+        // TwitchConfig::setConfig('password_secure', false);
+        // $this->assertFalse(TwitchConfig::cfg('password_secure', true), 'password_secure = false, default true');
+    }
+
+    public function test_addStreamer(): void
+    {
+
+        TwitchConfig::$config['streamers'] = [];
+        TwitchConfig::$config['app_url'] = 'debug';
+        TwitchConfig::saveConfig();
+
+        $client = $this->getClient();
+        $response = $client->request('POST', 'http://localhost:8080/settings/streamer/add', [
+            'form_params' => [
+                'username' => 'xQcOW',
+                'quality' => 'best',
+                'match' => null,
+                'download_chat' => 1,
+                'burn_chat' => 0
+            ]
+        ]);
+
+        $content = $response->getBody()->getContents();
+
+        $this->assertStringContainsString("Streamer added:", $content, "streamer added response");
+
+        TwitchConfig::loadConfig();
+
+        $this->assertNotNull( TwitchConfig::getStreamer('xQcOW') );
+
+    }
+
+    public function test_updateStreamer(): void
+    {
+
+        $client = $this->getClient();
+        $response = $client->request('POST', 'http://localhost:8080/settings/streamer/update', [
+            'form_params' => [
+                'username' => 'xQcOW',
+                'quality' => '480p',
+                'match' => null,
+                'download_chat' => 1,
+                'burn_chat' => 0
+            ]
+        ]);
+
+        $content = $response->getBody()->getContents();
+
+        $this->assertStringContainsString("Streamer updated.", $content, "streamer updated response");
+
+        TwitchConfig::loadConfig();
+
+        $this->assertEquals(['480p'], TwitchConfig::getStreamer('xQcOW')['quality'], "streamer quality updated" );
+
     }
 
 }

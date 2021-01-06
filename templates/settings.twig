@@ -16,7 +16,7 @@
                         <div class="card-title"><h2>{{ streamer.username }}</h2></div>
                         <div class="card-content">
                             <form method="POST" action="{{ url_for('streamer_update') }}">
-                                <input type="hidden" name="key" value="{{ loop.index }}" />
+                            
                                 <input type="hidden" name="username" value="{{ streamer.username }}" />
                                 
                                 <div class="field">

@@ -169,14 +169,14 @@ class SettingsController
     public function streamer_add(Request $request, Response $response, array $args)
     {
 
-        $username       = $_POST['username'];
-        $quality        = explode(" ", $_POST['quality']);
-        $match          = $_POST['match'];
+        $username       = isset($_POST['username']) ? $_POST['username'] : null;
+        $quality        = isset($_POST['quality']) ? explode(" ", $_POST['quality']) : null;
+        $match          = isset($_POST['match']) ? $_POST['match'] : null;
         $download_chat  = isset($_POST['download_chat']);
         $burn_chat      = isset($_POST['burn_chat']);
 
         $user_id = TwitchHelper::getChannelId($username);
-        
+
         if (!$user_id) {
             $response->getBody()->write("Streamer with that username doesn't seem to exist on Twitch");
             return $response;
@@ -211,7 +211,14 @@ class SettingsController
         TwitchConfig::$config['streamers'][] = $streamer;
         TwitchConfig::saveConfig("streamer/add");
 
-        TwitchHelper::sub($username);
+        if (TwitchConfig::cfg('app_url') !== 'debug') {
+            try {
+                TwitchHelper::sub($username);
+            } catch (\Throwable $th) {
+                $response->getBody()->write("Subscription error: " . $th->getMessage());
+                return $response;
+            }
+        }
 
         return $this->twig->render($response, 'dialog.twig', [
             'text' => "Streamer added: {$username}.",
@@ -222,28 +229,16 @@ class SettingsController
     public function streamer_update(Request $request, Response $response, array $args)
     {
 
-        $username       = $_POST['username'];
-        $quality        = explode(" ", $_POST['quality']);
-        $match          = $_POST['match'];
+        $username       = isset($_POST['username']) ? $_POST['username'] : null;
+        $quality        = isset($_POST['quality']) ? explode(" ", $_POST['quality']) : null;
+        $match          = isset($_POST['match']) ? $_POST['match'] : null;
         $download_chat  = isset($_POST['download_chat']);
         $burn_chat      = isset($_POST['burn_chat']);
-
-        $current_username = $username;
 
         if (!TwitchConfig::getStreamer($username)) {
             $response->getBody()->write("Streamer with that username does not exist in config");
             return $response;
         }
-
-        // $tmp = TwitchHelper::getChannelData($username);
-
-        // fix capitalization
-        /*
-        if ($tmp['display_name'] !== $username) {
-            $response->getBody()->write("Username capitalization seems to be incorrect, fixing.<br>");
-            $username = $tmp['display_name'];
-        }
-        */
 
         // template
         $streamer = [
@@ -258,20 +253,32 @@ class SettingsController
         if ($download_chat) $streamer["download_chat"] = true;
         if ($burn_chat) $streamer["burn_chat"] = true;
 
+        if(!TwitchConfig::$config['streamers']){
+            $response->getBody()->write("No streamers have been added.");
+            return $response;
+        }
+
         // todo: find a better way to do this
         $key = null;
         foreach (TwitchConfig::$config['streamers'] as $k => $v) {
-            if ($v['username'] == $current_username) $key = $k;
+            if ($v['username'] == $username) $key = $k;
         }
-        if (!$key) {
-            $response->getBody()->write("Streamer not found.");
+        if ($key === null) {
+            $response->getBody()->write("Streamer {$username} not found.");
             return $response;
         }
 
         TwitchConfig::$config['streamers'][$key] = $streamer;
         TwitchConfig::saveConfig("streamer/update");
 
-        TwitchHelper::sub($username);
+        if (TwitchConfig::cfg('app_url') !== 'debug') {
+            try {
+                TwitchHelper::sub($username);
+            } catch (\Throwable $th) {
+                $response->getBody()->write("Subscription error: " . $th->getMessage());
+                return $response;
+            }
+        }
 
         return $this->twig->render($response, 'dialog.twig', [
             'text' => 'Streamer updated.',
