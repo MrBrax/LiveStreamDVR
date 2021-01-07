@@ -151,6 +151,9 @@
 .video-filename {
 	font-family: 'Roboto Condensed';
 	color: rgba(255, 255, 255, .5);
+	&:before {
+		content: '· ';
+	}
 }
 
 .video-description {

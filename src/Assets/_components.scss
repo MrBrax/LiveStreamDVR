@@ -45,11 +45,11 @@
 	width: max-content;
 
 	.boxart-item {
-		width: 140px;
-		height: 190px;
+		width: $boxart-width;
+		height: $boxart-height;
 		img {
-			width: 140px;
-			height: 190px;
+			width: $boxart-width;
+			height: $boxart-height;
 		}
 		font-size: 0.5em;
 		color: #fff;
@@ -57,10 +57,17 @@
 		overflow: hidden;
 	}
 
-	&.is-small .boxart-item {
-		width: 74px;
-		height: 100px;
-		img { width: 74px; height: 100px; }
+	&.is-small {
+		width: auto;
+		flex-wrap: wrap;
+		.boxart-item {
+			width: $boxart-width * 0.60;
+			height: $boxart-height * 0.60;
+			img {
+				width: $boxart-width * 0.60;
+				height: $boxart-height * 0.60;
+			}
+		}
 	}
 
 }

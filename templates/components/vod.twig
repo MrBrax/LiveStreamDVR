@@ -17,8 +17,8 @@
         <div class="video-title">
             <h3>
                 <span class="icon"><i class="fas fa-file-video"></i></span>
-                {% if vodclass.dt_started_at %}{{ vodclass.dt_started_at|date('Y-m-d H:i:s') }}{% endif %}
-                <span class="video-filename"> &middot; {{ vodclass.basename }}</span>
+                <span class="video-date">{% if vodclass.dt_started_at %}{{ vodclass.dt_started_at|date('Y-m-d H:i:s') }}{% endif %}</span>
+                <span class="video-filename">{{ vodclass.basename }}</span>
             </h3>
         </div>
 

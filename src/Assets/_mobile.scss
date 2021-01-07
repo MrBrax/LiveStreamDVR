@@ -39,6 +39,10 @@
 		display: none;
 	}
 
+	.streamer-title {
+		font-size: 0.9em;
+	}
+
 	.info-columns {
 		flex-direction: column;
 		flex-wrap: wrap;
@@ -51,8 +55,20 @@
 		}
 	}
 
+	/*
 	.boxart-big {
 		max-height: 70px;
+	}
+	*/
+	.boxart-carousel, .boxart-carousel.is-small {	
+		.boxart-item {
+			width: $boxart-width * 0.4;
+			height: $boxart-height * 0.4;
+			img {
+				width: $boxart-width * 0.4;
+				height: $boxart-height * 0.4;
+			}
+		}
 	}
 
 	.button-bar {
@@ -83,6 +99,24 @@
 				text-align: center;
 			}
 		}
+	}
+
+	.video-title {
+		.video-filename {
+			display: block;
+			font-size: 0.8em;
+			&:before {
+				content: none;
+			}
+		}
+	}
+
+	#js-status {
+		display: none;
+	}
+
+	.jobs_list {
+		display: none;
 	}
 
 }
