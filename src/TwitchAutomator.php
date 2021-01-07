@@ -163,7 +163,7 @@ class TwitchAutomator
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "automator", "Handle called");
 
 		if (!$data['data']) {
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No data supplied for handle (probably stream end)", ['get' => $_GET, 'post' => $_POST, 'data' => $data]);
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No data supplied for handle (probably stream end)", ['get' => $_GET, 'post' => $_POST, 'headers' => apache_request_headers(), 'data' => $data]);
 			return false;
 		}
 

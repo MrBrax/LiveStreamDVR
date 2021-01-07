@@ -878,7 +878,8 @@ class TwitchHelper
 			'hub.callback' => $hook_callback,
 			'hub.mode' => $mode,
 			'hub.topic' => 'https://api.twitch.tv/helix/streams?user_id=' . $streamer_id,
-			'hub.lease_seconds' => TwitchConfig::cfg('sub_lease')
+			'hub.lease_seconds' => TwitchConfig::cfg('sub_lease'),
+			// 'hub.secret' => TwitchConfig::cfg('sub_secret')
 		];
 
 		$data_string = json_encode($data);

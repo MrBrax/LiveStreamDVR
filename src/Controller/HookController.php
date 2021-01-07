@@ -19,11 +19,14 @@ class HookController
     public function hook(Request $request, Response $response, $args)
     {
 
-        TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Hook called");
 
         set_time_limit(0);
 
         $source = isset($_GET['source']) ? $_GET['source'] : 'twitch';
+
+        $headers = $request->getHeaders();
+
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Hook called", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers]);
 
         if (TwitchConfig::cfg('instance_id')) {
             if (!isset($_GET['instance']) || $_GET['instance'] != TwitchConfig::cfg('instance_id')) {
@@ -63,15 +66,15 @@ class HookController
             $hub_mode = isset($_GET['hub_mode']) ? $_GET['hub_mode'] : null;
 
             if (isset($hub_reason)) {
-                TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "hook", "Received error on hub challenge from {$source} for {$username} ({$user_id}) when trying to {$hub_mode}: {$hub_reason}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "hook", "Received error on hub challenge from {$source} for {$username} ({$user_id}) when trying to {$hub_mode}: {$hub_reason}", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers, 'user_id' => $user_id]);
             } else {
-                TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Received hub challenge from {$source} for userid {$username} ({$user_id}) when trying to {$hub_mode}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Received hub challenge from {$source} for userid {$username} ({$user_id}) when trying to {$hub_mode}", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers, 'user_id' => $user_id]);
             }
 
             // todo: use some kind of memcache for this instead
             $hc = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "hubchallenge_{$user_id}";
             if (file_exists($hc) && time() < (int)file_get_contents($hc) + 30) {
-                TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Successfully {$hub_mode}d to userid {$user_id} ({$username}) on {$source}", ['GET' => $_GET, 'POST' => $_POST, 'user_id' => $user_id]);
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Successfully {$hub_mode}d to userid {$user_id} ({$username}) on {$source}", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers, 'user_id' => $user_id]);
                 unlink($hc);
             }
 
@@ -81,12 +84,19 @@ class HookController
             return $response;
         }
 
+        /*
+        $hub_secret = isset($headers['X-Hub-Signature']) ? $headers['X-Hub-Signature'] : null;
+        if($hub_secret){
+            $is_secret = hash('sha256', TwitchConfig::cfg('sub_secret');
+        */
+
 
         // handle regular hook
 
         if ($source == 'twitch') {
             $data_json = json_decode(file_get_contents('php://input'), true);
             $post_json = isset($_POST['json']) ? $_POST['json'] : null;
+
             if ($post_json) {
                 TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Custom payload received...");
                 $data_json = json_decode($post_json, true);
@@ -107,7 +117,7 @@ class HookController
         } elseif ($source == 'youtube') {
             $data_xml = simplexml_load_string(file_get_contents('php://input'), "SimpleXMLElement", LIBXML_NOCDATA);
             $data_json = json_decode(json_encode($data_xml), true);
-            TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Hook called YouTube data...", ['xml' => $data_xml, 'json' => $data_json, 'GET' => $_GET, 'POST' => $_POST]);
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Hook called YouTube data...", ['xml' => $data_xml, 'json' => $data_json, 'GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers]);
             $TwitchAutomator = new TwitchAutomatorYouTube();
             $TwitchAutomator->handle($data_json);
             return $response;
