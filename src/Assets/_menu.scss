@@ -38,6 +38,11 @@
 		display: block;
 	}
 
+	.menu-middle {
+		overflow-y: scroll;
+		flex-grow: 1;
+	}
+
 	.menu-bottom {
 		display: flex;
 		text-align: center;
