@@ -1,5 +1,7 @@
 # TwitchAutomator
 
+⭐ **I have yet to start using a develop branch etc for this, so the code downloads might be completely broken at times** ⭐
+
 ![1603661434863-wc](https://user-images.githubusercontent.com/1517911/97119662-fe1b0a80-1711-11eb-8f40-20c1690a01c9.png)
 
 ## Features
@@ -19,10 +21,12 @@ Post issues/help on the issues tab above. I already run an up to date version, s
 
 ## Docker setup
 
+Reminder that i don't use docker myself on my capturing setup, so any specific errors to this are hard to test.
+
 Known issues:
 - TwitchDownloaderCLI doesn't work in alpine/docker: /bin/sh: ./TwitchDownloaderCLI: not found
 
-### Manual build
+### Manual build (recommended)
 Run `docker-compose up --build -d` in the app directory. The docker-compose.yml file is required.
 
 ### Docker hub
