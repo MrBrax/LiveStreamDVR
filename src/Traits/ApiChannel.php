@@ -82,4 +82,22 @@ trait ApiChannel
         return $response->withHeader('Content-Type', 'application/json');
     }
 
+    public function channel_subscription(Request $request, Response $response, $args)
+    {
+
+        $username = $args['username'];
+
+        $channel = new TwitchChannel();
+        $channel->load($username);
+
+        $sub = $channel->getSubscription();
+
+        $payload = json_encode([
+            'data' => $sub,
+            'status' => $sub ? 'OK' : 'ERROR'
+        ]);
+
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+    }
 }

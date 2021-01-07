@@ -736,6 +736,8 @@ class TwitchAutomator
 			$chat_process->setTimeout(null);
 			$chat_process->setIdleTimeout(null);
 
+			// these don't seem to work and i don't know what good they do so i'll just comment these out
+			/*
 			try {
 				$chat_process->setTty(true);
 			} catch (\Throwable $th) {
@@ -752,6 +754,8 @@ class TwitchAutomator
 			} else {
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "PTY not supported", ['download-capture' => $data_username]);
 			}
+			*/
+
 
 			$chat_process->start();
 
@@ -892,6 +896,7 @@ class TwitchAutomator
 			});
 		} else {
 
+			// yes this is a copypaste, not sure which one to go with yet
 			while (true) {
 
 				// check if capture is running, and quit if it isn't

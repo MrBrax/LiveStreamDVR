@@ -3,6 +3,8 @@
 ## `GET /api/v0/list`
 Return all streamers with all their vods
 
+---
+
 ## `GET /api/v0/vod/{basename}`
 Return the stored information about the vod `basename`
 
@@ -42,3 +44,19 @@ Delete the VOD and all its metadata.
 
 ## `GET /api/v0/vod/{basename}/save`
 Archive the VOD.
+
+---
+
+## `GET /api/v0/channel/{basename}`
+Get information on the channel itself
+
+## `GET /api/v0/channel/{basename}/force_record`
+Force record the current stream
+
+## `GET /api/v0/channel/{basename}/dump_playlist`
+Dump the stream from the playlist (vod)
+
+## `GET /api/v0/channel/{basename}/subscription`
+Show the (webhook) subscription for the channel
+
+---

@@ -83,6 +83,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     $group->get('/channel/{username}', ApiController::class . ':channel')->setName('api_channel');
     $group->get('/channel/{username}/force_record', ApiController::class . ':channel_force_record')->setName('api_channel_force_record');
     $group->get('/channel/{username}/dump_playlist', ApiController::class . ':channel_dump_playlist')->setName('api_channel_dump_playlist');
+    $group->get('/channel/{username}/subscription', ApiController::class . ':channel_subscription')->setName('api_channel_subscription');
 
     // html render, make this obsolete some day
     $group->get('/render/menu', ApiController::class . ':render_menu')->setName('api_render_menu');

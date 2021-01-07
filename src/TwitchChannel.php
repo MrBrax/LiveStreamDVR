@@ -38,14 +38,19 @@ class TwitchChannel
 
         $this->userid = TwitchHelper::getChannelId($username);
 
-        if(!$this->userid){
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "helper", "Could not get channel id in channel for {$username}");
+        if (!$this->userid) {
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "helper", "Could not get channel id in channel for {$username}");
             return false;
         }
 
         $this->channel_data = TwitchHelper::getChannelData($this->userid);
 
         $config = TwitchConfig::getStreamer($username);
+
+        if(!$config){
+            throw new \Exception("Streamer not found in config: {$username}");
+            return false;
+        }
 
         // $this->userid               = (int)$this->channel_data['id'];
         $this->username             = $this->channel_data['login'];
@@ -185,5 +190,21 @@ class TwitchChannel
         }
 
         return $data;
+    }
+
+    public function getSubscription()
+    {
+
+        $subs = TwitchHelper::getSubs();
+
+        if (!$subs['data']) return false;
+
+        foreach ($subs['data'] as $sub) {
+            if ($this->userid == explode("=", $sub['topic'])[1]) {
+                return $sub;
+            }
+        }
+
+        return false;
     }
 }

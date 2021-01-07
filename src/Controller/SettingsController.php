@@ -175,10 +175,20 @@ class SettingsController
         $download_chat  = isset($_POST['download_chat']);
         $burn_chat      = isset($_POST['burn_chat']);
 
+        if(!$username){
+            $response->getBody()->write("No username entered.");
+            return $response;
+        }
+
+        if(!$quality){
+            $response->getBody()->write("No quality entered. Use 'best' if you don't know better.");
+            return $response;
+        }
+
         $user_id = TwitchHelper::getChannelId($username);
 
         if (!$user_id) {
-            $response->getBody()->write("Streamer with that username doesn't seem to exist on Twitch");
+            $response->getBody()->write("Streamer with the username '{$username}' doesn't seem to exist on Twitch.");
             return $response;
         }
 
@@ -191,7 +201,7 @@ class SettingsController
         }
 
         if (TwitchConfig::getStreamer($username)) {
-            $response->getBody()->write("Streamer with that username already exists in config");
+            $response->getBody()->write("Streamer with the username '{$username}' already exists in config");
             return $response;
         }
 
@@ -293,8 +303,8 @@ class SettingsController
 
         if (!TwitchConfig::getStreamer($username)) {
             return $this->twig->render($response, 'dialog.twig', [
-                'text' => 'Streamer with that username does not exist in config',
-                'type' => 'error'
+                "text" => "Streamer with that username does not exist in config",
+                "type" => "error"
             ]);
         }
 
@@ -302,8 +312,8 @@ class SettingsController
         $streamer->load($username);
         if ($streamer->is_live) {
             return $this->twig->render($response, 'dialog.twig', [
-                'text' => 'Please wait until the streamer has stopped streaming before deleting.',
-                'type' => 'error'
+                "text" => "Please wait until the streamer has stopped streaming before deleting.",
+                "type" => "error"
             ]);
         }
 
@@ -313,19 +323,28 @@ class SettingsController
         }
         if ($key === null) {
             return $this->twig->render($response, 'dialog.twig', [
-                'text' => 'Streamer not found.',
-                'type' => 'error'
+                "text" => "Streamer {$username} not found.",
+                "type" => "error"
             ]);
         }
 
         TwitchHelper::unsub($username);
 
+        sleep(5);
+
+        if($streamer->getSubscription()){
+            return $this->twig->render($response, 'dialog.twig', [
+                "text" => "Unsubscribe failed, did not remove streamer {$username}.",
+                "type" => "error"
+            ]); 
+        }
+
         unset(TwitchConfig::$config['streamers'][$key]);
         TwitchConfig::saveConfig("streamer/deleted");
 
         return $this->twig->render($response, 'dialog.twig', [
-            'text' => "Streamer deleted.",
-            'type' => 'success'
+            "text" => "Streamer {$username} deleted.",
+            "type" => "success"
         ]);
     }
 }
