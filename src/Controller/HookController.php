@@ -16,9 +16,16 @@ use App\YouTubeHelper;
 class HookController
 {
 
+    /**
+     * This is the core of the entire project, this is what the Twitch webhook calls when a streamer goes online, or changes their game/title. 
+     *
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return void
+     */
     public function hook(Request $request, Response $response, $args)
     {
-
 
         set_time_limit(0);
 

@@ -152,7 +152,7 @@ class TwitchAutomator
 	}
 
 	/**
-	 * Entrypoint for stream capture
+	 * Entrypoint for stream capture, this is where all Twitch webhooks end up.
 	 *
 	 * @param array $data
 	 * @return void
@@ -223,7 +223,6 @@ class TwitchAutomator
 	/**
 	 * Add game/chapter to stream
 	 *
-	 * @param array $data
 	 * @return void
 	 */
 	public function updateGame()
@@ -291,6 +290,11 @@ class TwitchAutomator
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "automator", "Game updated on {$data_username} to {$game_name} ({$data_title})", ['instance' => $_GET['instance']]);
 	}
 
+	/**
+	 * This function gets called when a stream ends, but the username isn't provided by Twitch, weirdly.
+	 *
+	 * @return void
+	 */
 	public function end()
 	{
 
@@ -299,9 +303,8 @@ class TwitchAutomator
 	}
 
 	/**
-	 * Start the download/capture process of a live stream
+	 * Start the download/capture process of a live stream. This is the main process.
 	 *
-	 * @param array $data
 	 * @param integer $tries
 	 * @return void
 	 */
@@ -317,20 +320,18 @@ class TwitchAutomator
 		$data_id = $this->getVodID();
 		$data_username = $this->getUsername();
 
+		// this shouldn't happen, just a safeguard
 		if (!$data_id) {
-			// $this->errors[] = 'No data id for download';
-			// $this->notify($data, 'NO DATA SUPPLIED FOR DOWNLOAD, TRY #' . $tries, self::NOTIFY_ERROR);
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No data supplied for download, try #{$tries}");
 			throw new \Exception('No data supplied');
 			return;
 		}
 
-		// $stream_url = 'twitch.tv/' . $data_username;
-
 		$basename = $this->basename();
 
 		$folder_base = TwitchHelper::vodFolder($data_username);
 
+		// make a folder for the streamer if it for some reason doesn't exist, but it should get created in the config
 		if (!file_exists($folder_base)) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "Making folder for {$data_username}, unusual.", ['download' => $data_username]);
 			mkdir($folder_base);
@@ -343,6 +344,7 @@ class TwitchAutomator
 			return false;
 		}
 
+		// create the vod and put it inside this class
 		$this->vod = new TwitchVOD();
 		$this->vod->create($folder_base . DIRECTORY_SEPARATOR . $basename . '.json');
 
@@ -384,19 +386,18 @@ class TwitchAutomator
 		$this->vod->is_capturing = true;
 		$this->vod->saveJSON('is_capturing set');
 
+		// send internal webhook for capture start
 		TwitchHelper::webhook([
 			'action' => 'start_capture',
 			'vod' => $this->vod
 		]);
 
-		// in progress
+		// update the game + title if it wasn't updated already
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Update game for {$basename}", ['download' => $data_username, 'instance' => $_GET['instance']]);
 		$this->updateGame();
 
-		// download notification
-		// $this->notify($basename, '[' . $data_username . '] [download]', self::NOTIFY_DOWNLOAD);
-
 		/** @todo: non-blocking, how */
+		/*
 		if (TwitchConfig::cfg('playlist_dump')) {
 			try {
 				$client = new \GuzzleHttp\Client();
@@ -409,6 +410,7 @@ class TwitchAutomator
 			}
 			// $this->playlistDump($data);
 		}
+		*/
 
 		if (TwitchConfig::cfg('playlist_dump')) {
 
@@ -426,7 +428,7 @@ class TwitchAutomator
 			}
 		} else {
 
-			// capture with streamlink
+			// capture with streamlink, this is the crucial point in this entire program
 			$capture_filename = $this->capture($tries);
 		}
 
@@ -436,8 +438,6 @@ class TwitchAutomator
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "Panic handler for {$basename}, no captured file!");
 
 			if ($tries >= TwitchConfig::cfg('download_retries')) {
-				// $this->errors[] = 'Giving up on downloading, too many tries';
-				// $this->notify($basename, 'GIVING UP, TOO MANY TRIES', self::NOTIFY_ERROR);
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Giving up on downloading, too many tries for {$basename}", ['download' => $data_username]);
 				rename($folder_base . DIRECTORY_SEPARATOR . $basename . '.json', $folder_base . DIRECTORY_SEPARATOR . $basename . '.json.broken');
 				throw new \Exception('Too many tries');
@@ -454,7 +454,7 @@ class TwitchAutomator
 			return;
 		}
 
-		// timestamp
+		// end timestamp
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Add end timestamp for {$basename}", ['download' => $data_username]);
 
 		$this->vod->refreshJSON();
@@ -464,11 +464,8 @@ class TwitchAutomator
 		if ($this->stream_resolution) $this->vod->stream_resolution = $this->stream_resolution;
 		$this->vod->saveJSON('stream capture end');
 
+		// wait for one minute in case something didn't finish
 		sleep(60);
-
-
-		// convert notify
-		// $this->notify($basename, '[' . $data_username . '] [convert]', self::NOTIFY_DOWNLOAD);
 
 		$this->vod->refreshJSON();
 		$this->vod->is_converting = true;
@@ -491,6 +488,7 @@ class TwitchAutomator
 			// return @TODO: fatal error
 		}
 
+		// add the captured segment to the vod info
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Conversion done, add segments to {$basename}", ['download' => $data_username]);
 		$this->vod->refreshJSON();
 		$this->vod->is_converting = false;
@@ -498,6 +496,7 @@ class TwitchAutomator
 		$this->vod->addSegment($converted_filename);
 		$this->vod->saveJSON('add segment');
 
+		// remove old vods for the streamer
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Cleanup old VODs for {$data_username}", ['download' => $data_username]);
 		$this->cleanup($data_username, $basename);
 
@@ -515,6 +514,7 @@ class TwitchAutomator
 		$vodclass->finalize();
 		$vodclass->saveJSON('finalized');
 
+		// download chat and optionally burn it
 		if ($streamer['download_chat'] && $vodclass->twitch_vod_id) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Auto download chat on {$basename}", ['download' => $data_username]);
 			$vodclass->downloadChat();
@@ -538,6 +538,7 @@ class TwitchAutomator
 
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "automator", "All done for {$basename}", ['download' => $data_username]);
 
+		// finally send internal webhook for capture finish
 		TwitchHelper::webhook([
 			'action' => 'finish_capture',
 			'vod' => $vodclass
@@ -548,7 +549,7 @@ class TwitchAutomator
 	 * Actually capture the stream with streamlink or youtube-dl
 	 * Blocking function
 	 *
-	 * @param array $data
+	 * @param int $tries Current try after failing
 	 * @return string Captured filename
 	 */
 	public function capture($tries = 0)
@@ -1133,8 +1134,9 @@ class TwitchAutomator
 	}
 
 	/**
-	 * Mux .ts to .mp4, for better compatibility
-	 *
+	 * Mux .ts to .mp4, for better compatibility.
+	 * 
+	 * @todo The arguments for this function is stupid, rewrite
 	 * @param string $basename Basename of input file
 	 * @return string Converted filename
 	 */
