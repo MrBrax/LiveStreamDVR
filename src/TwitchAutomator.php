@@ -2,6 +2,7 @@
 
 namespace App;
 
+use DateTime;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
@@ -162,8 +163,10 @@ class TwitchAutomator
 
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "automator", "Handle called");
 
+		$headers = apache_request_headers();
+
 		if (!$data['data']) {
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No data supplied for handle (probably stream end)", ['get' => $_GET, 'post' => $_POST, 'headers' => apache_request_headers(), 'data' => $data]);
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No data supplied for handle (probably stream end)", ['get' => $_GET, 'post' => $_POST, 'headers' => $headers, 'data' => $data]);
 			return false;
 		}
 
@@ -424,12 +427,12 @@ class TwitchAutomator
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Exception handler for playlist dump for {$basename}, capture normally: " . $th->getMessage());
 
 				// fallback
-				$capture_filename = $this->capture($tries);
+				$capture_filename = $this->capture($basename, $tries);
 			}
 		} else {
 
 			// capture with streamlink, this is the crucial point in this entire program
-			$capture_filename = $this->capture($tries);
+			$capture_filename = $this->capture($basename, $tries);
 		}
 
 		// error handling if nothing got downloaded
@@ -463,6 +466,10 @@ class TwitchAutomator
 		$this->vod->is_capturing = false;
 		if ($this->stream_resolution) $this->vod->stream_resolution = $this->stream_resolution;
 		$this->vod->saveJSON('stream capture end');
+
+		if ($this->vod->getDurationLive() > (86400 - (60 * 10))) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "The stream {$basename} is 24 hours, this might cause issues.", ['download' => $data_username]);
+		}
 
 		// wait for one minute in case something didn't finish
 		sleep(60);
@@ -552,7 +559,7 @@ class TwitchAutomator
 	 * @param int $tries Current try after failing
 	 * @return string Captured filename
 	 */
-	public function capture($tries = 0)
+	public function capture($basename, $tries)
 	{
 
 		// $data_id = $this->payload['id'];
@@ -573,7 +580,7 @@ class TwitchAutomator
 		// $stream_url = 'twitch.tv/' . $data_username;
 		$stream_url = $this->streamURL();
 
-		$basename = $this->basename();
+		// $basename = $this->basename();
 
 		$folder_base = TwitchHelper::vodFolder($data_username);
 
@@ -584,6 +591,7 @@ class TwitchAutomator
 		$streamer_config = TwitchConfig::getStreamer($data_username);
 
 		// failure
+		/*
 		$int = 1;
 		while (file_exists($capture_filename)) {
 			// $this->errors[] = 'File exists while capturing, making a new name';
@@ -591,6 +599,7 @@ class TwitchAutomator
 			$capture_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '-' . $int . '.ts';
 			$int++;
 		}
+		*/
 
 		$cmd = [];
 
