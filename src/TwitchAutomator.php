@@ -803,7 +803,7 @@ class TwitchAutomator
 		if (TwitchConfig::cfg('process_wait_method', 1) == 1) {
 
 			// wait loop until it's done
-			$process->wait(function ($type, $buffer) use ($process, $basename, $int, $tries, $data_username, $chat_process, &$chunks_missing, &$current_ad_start, $capture_start, &$stream_is_paused, &$stream_paused_ticks) {
+			$process->wait(function ($type, $buffer) use ($process, $basename, $tries, $data_username, $chat_process, &$chunks_missing, &$current_ad_start, $capture_start, &$stream_is_paused, &$stream_paused_ticks) {
 
 				// check timeout of chat dump
 				if (TwitchConfig::cfg('chat_dump') && isset($chat_process)) {
@@ -1023,13 +1023,13 @@ class TwitchAutomator
 
 					$cmd_chatdump_stdout_buffer = $chat_process->getIncrementalOutput();
 					$cmd_chatdump_stderr_buffer = $chat_process->getIncrementalErrorOutput();
-					if ($cmd_chatdump_stdout_buffer) TwitchHelper::appendLog("chatdump_{$basename}_stdout.{$int}", $cmd_chatdump_stdout_buffer);
-					if ($cmd_chatdump_stderr_buffer) TwitchHelper::appendLog("chatdump_{$basename}_stderr.{$int}", $cmd_chatdump_stderr_buffer);
+					if ($cmd_chatdump_stdout_buffer) TwitchHelper::appendLog("chatdump_{$basename}_stdout.{$tries}", $cmd_chatdump_stdout_buffer);
+					if ($cmd_chatdump_stderr_buffer) TwitchHelper::appendLog("chatdump_{$basename}_stderr.{$tries}", $cmd_chatdump_stderr_buffer);
 				}
 
 
-				if ($cmd_stdout_buffer) TwitchHelper::appendLog("streamlink_{$basename}_stdout.{$int}", $cmd_stdout_buffer);
-				if ($cmd_stderr_buffer) TwitchHelper::appendLog("streamlink_{$basename}_stderr.{$int}", $cmd_stderr_buffer);
+				if ($cmd_stdout_buffer) TwitchHelper::appendLog("streamlink_{$basename}_stdout.{$tries}", $cmd_stdout_buffer);
+				if ($cmd_stderr_buffer) TwitchHelper::appendLog("streamlink_{$basename}_stderr.{$tries}", $cmd_stderr_buffer);
 
 				sleep(10);
 			}
