@@ -166,7 +166,11 @@ class TwitchAutomator
 		$headers = apache_request_headers();
 
 		if (!$data['data']) {
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No data supplied for handle (probably stream end)", ['get' => $_GET, 'post' => $_POST, 'headers' => $headers, 'data' => $data]);
+			$link = $headers['Link'];
+			preg_match("/user_id=([0-9]+)>/", $link, $link_match);
+			$userid = (string)$link_match[1];
+			$username = TwitchHelper::getChannelUsername($userid);
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No data supplied for handle (probably stream end, {$username}?)", ['get' => $_GET, 'post' => $_POST, 'headers' => $headers, 'data' => $data]);
 			return false;
 		}
 
