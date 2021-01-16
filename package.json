@@ -7,9 +7,9 @@
     "watch:style": "node-sass --source-map true --source-map-embed --watch ./src/Assets/style.scss --output ./public/assets/",
     "build:style": "node-sass --output-style compressed ./src/Assets/style.scss --output ./public/assets/",
     "build:script": "tsc",
-    "build:client": "vue-cli-service build src/Client/main.ts",
+    "build:client": "",
     "serve:server": "php -S localhost:8080 -t public",
-    "serve:client": "vue-cli-service serve src/Client/main.ts",
+    "serve:client": "",
     "test:server": "php vendor/phpunit/phpunit/phpunit tests"
   },
   "repository": {
@@ -26,27 +26,14 @@
     "node-sass": "^4.14.1"
   },
   "dependencies": {
-    "@typescript-eslint/eslint-plugin": "^3.9.0",
-    "@typescript-eslint/parser": "^3.9.0",
-    "@vue/cli-plugin-babel": "^4.5.3",
-    "@vue/cli-plugin-eslint": "^4.5.3",
-    "@vue/cli-plugin-router": "^4.5.3",
-    "@vue/cli-plugin-typescript": "^4.5.3",
-    "@vue/cli-plugin-vuex": "^4.5.3",
-    "@vue/cli-service": "^4.5.3",
-    "@vue/eslint-config-typescript": "^5.0.2",
-    "core-js": "^3.6.5",
-    "eslint": "^7.6.0",
+    "@typescript-eslint/eslint-plugin": "^3.10.1",
+    "@typescript-eslint/parser": "^3.10.1",
+    "core-js": "^3.8.2",
+    "eslint": "^7.18.0",
     "eslint-plugin-vue": "^6.2.2",
     "sass-loader": "^9.0.3",
-    "ts-loader": "^8.0.2",
+    "ts-loader": "^8.0.14",
     "typescript": "^3.9.7",
-    "vue": "^2.6.11",
-    "vue-class-component": "^7.2.5",
-    "vue-property-decorator": "^9.0.0",
-    "vue-router": "^3.4.3",
-    "vue-template-compiler": "^2.6.11",
-    "vuex": "^3.5.1",
-    "webpack": "^4.44.1"
+    "webpack": "^4.46.0"
   }
 }
