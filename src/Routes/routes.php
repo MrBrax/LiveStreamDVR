@@ -34,11 +34,11 @@ $app->get('/about', AboutController::class . ':about')->setName('about');
 
 $app->group('/settings', function (RouteCollectorProxy $group) {
     $group->get('', SettingsController::class . ':settings')->setName('settings');
-    $group->post('/save', SettingsController::class . ':settings_save')->setName('settings_save');
-    $group->post('/streamer/add', SettingsController::class . ':streamer_add')->setName('streamer_add');
-    $group->post('/streamer/delete', SettingsController::class . ':streamer_delete')->setName('streamer_delete');
-    $group->post('/streamer/update', SettingsController::class . ':streamer_update')->setName('streamer_update');
-    $group->post('/favourites/save', SettingsController::class . ':favourites_save')->setName('favourites_save');
+    // $group->post('/save', SettingsController::class . ':settings_save')->setName('settings_save');
+    // $group->post('/streamer/add', SettingsController::class . ':streamer_add')->setName('streamer_add');
+    // $group->post('/streamer/delete', SettingsController::class . ':streamer_delete')->setName('streamer_delete');
+    // $group->post('/streamer/update', SettingsController::class . ':streamer_update')->setName('streamer_update');
+    // $group->post('/favourites/save', SettingsController::class . ':favourites_save')->setName('favourites_save');
 });
 
 $app->get('/player/{vod}', PlayerController::class . ':player')->setName('player');
@@ -63,21 +63,30 @@ $app->get('/unsub_all', SubController::class . ':unsub_all')->setName('unsub_all
 // api v0
 $app->group('/api/v0', function (RouteCollectorProxy $group) {
 
-    $group->get('/list', ApiController::class . ':list')->setName('api_list');
+    // @deprecated 4.1.0
+    // $group->get('/list', ApiController::class . ':list')->setName('api_list');
 
     // $group->get('/help', ApiController::class . ':help')->setName('api_help');
 
     // vod manipulation
-    $group->get('/vod/{vod}', ApiController::class . ':vod')->setName('api_vod');
-    $group->get('/vod/{vod}/search_chatdump', ApiController::class . ':vod_search_chatdump')->setName('api_vod_search_chatdump');
-    $group->get('/vod/{vod}/download_chat', ApiController::class . ':vod_download_chat')->setName('api_vod_download_chat');
-    $group->get('/vod/{vod}/download', ApiController::class . ':vod_download')->setName('api_vod_download');
-    $group->get('/vod/{vod}/check_mute', ApiController::class . ':vod_check_mute')->setName('api_vod_check_mute');
-    $group->get('/vod/{vod}/full_burn', ApiController::class . ':vod_full_burn')->setName('api_vod_full_burn');
-    $group->get('/vod/{vod}/render_chat', ApiController::class . ':vod_render_chat')->setName('api_vod_render_chat');
-    $group->get('/vod/{vod}/delete', ApiController::class . ':vod_delete')->setName('api_vod_delete');
-    $group->get('/vod/{vod}/save', ApiController::class . ':vod_save')->setName('api_vod_save');
-    $group->any('/vod/{vod}/export', ApiController::class . ':vod_export')->setName('api_vod_export');
+    $group->group('/vod/{vod}', function (RouteCollectorProxy $group) {
+        $group->get('/', ApiController::class . ':vod')->setName('api_vod');
+        $group->get('/search_chatdump', ApiController::class . ':vod_search_chatdump')->setName('api_vod_search_chatdump');
+        $group->get('/download_chat', ApiController::class . ':vod_download_chat')->setName('api_vod_download_chat');
+        $group->get('/download', ApiController::class . ':vod_download')->setName('api_vod_download');
+        $group->get('/check_mute', ApiController::class . ':vod_check_mute')->setName('api_vod_check_mute');
+        $group->get('/full_burn', ApiController::class . ':vod_full_burn')->setName('api_vod_full_burn');
+        $group->get('/render_chat', ApiController::class . ':vod_render_chat')->setName('api_vod_render_chat');
+        $group->get('/delete', ApiController::class . ':vod_delete')->setName('api_vod_delete');
+        $group->get('/save', ApiController::class . ':vod_save')->setName('api_vod_save');
+        $group->any('/export', ApiController::class . ':vod_export')->setName('api_vod_export');
+    });
+
+    // channels
+    $group->get('/channels/list', ApiController::class . ':channels_list')->setName('api_channels_list');
+    $group->post('/channels/add', ApiController::class . ':channels_add')->setName('api_channels_add');
+    $group->post('/channels/update', ApiController::class . ':channels_update')->setName('api_channels_update');
+    $group->post('/channels/delete', ApiController::class . ':channels_delete')->setName('api_channels_delete');
 
     // channel
     $group->get('/channel/{username}', ApiController::class . ':channel')->setName('api_channel');
@@ -99,6 +108,13 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     // twitch api proxy
     $group->get('/twitchapi/videos/{username}', ApiController::class . ':twitchapi_videos')->setName('api_twitchapi_videos');
     $group->get('/twitchapi/video/{video_id}', ApiController::class . ':twitchapi_video')->setName('api_twitchapi_video');
+
+    // settings
+    $group->get('/settings/list', ApiController::class . ':settings_list')->setName('api_settings_list');
+    $group->post('/settings/save', ApiController::class . ':settings_save')->setName('api_settings_save');
+
+    $group->get('/favourites/list', ApiController::class . ':favourites_list')->setName('api_favourites_list');
+    $group->post('/favourites/save', ApiController::class . ':favourites_save')->setName('api_favourites_save');
 
     // $group->get('/playlist_dump/{username}', ApiController::class . ':playlist_dump')->setName('api_playlist_dump');
 });

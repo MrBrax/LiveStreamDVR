@@ -187,6 +187,11 @@ class TwitchAutomator
 			$this->end($data);
 		} else {
 
+			if(!TwitchConfig::getStreamer($data_username)){
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle triggered, but username '{$data_username}' is not in config.");
+				return false;
+			}
+
 			$this->payload = $data['data'][0];
 
 			$basename = $this->basename();

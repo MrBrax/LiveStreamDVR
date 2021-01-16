@@ -78,6 +78,7 @@ class SettingsController
         file_put_contents(TwitchHelper::$config_folder . DIRECTORY_SEPARATOR . 'cron.txt', $text);
     }
 
+    /*
     public function settings_save(Request $request, Response $response, array $args)
     {
 
@@ -144,7 +145,9 @@ class SettingsController
         // return $response->withHeader('Location', $this->router->pathFor('settings') )->withStatus(200);
 
     }
+    */
 
+    /*
     public function favourites_save(Request $request, Response $response, array $args)
     {
 
@@ -165,7 +168,9 @@ class SettingsController
 
         return $response;
     }
+    */
 
+    /*
     public function streamer_add(Request $request, Response $response, array $args)
     {
 
@@ -235,7 +240,9 @@ class SettingsController
             'type' => 'success'
         ]);
     }
+    */
 
+    /*
     public function streamer_update(Request $request, Response $response, array $args)
     {
 
@@ -295,7 +302,9 @@ class SettingsController
             'type' => 'success'
         ]);
     }
+    */
 
+    /*
     public function streamer_delete(Request $request, Response $response, array $args)
     {
 
@@ -347,4 +356,6 @@ class SettingsController
             "type" => "success"
         ]);
     }
+    */
+
 }

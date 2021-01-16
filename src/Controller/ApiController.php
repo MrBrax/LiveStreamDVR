@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Traits\ApiChannel;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 use Slim\Views\Twig;
@@ -15,14 +14,24 @@ use App\TwitchHelper;
 use App\TwitchVOD;
 use App\TwitchChannel;
 use App\TwitchPlaylistAutomator;
-use App\Traits\ApiVod;
 use App\TwitchAutomatorJob;
+
+use App\Traits\ApiVod;
+use App\Traits\ApiChannel;
+use App\Traits\ApiChannels;
+use App\Traits\ApiSettings;
+use App\Traits\ApiFavourites;
 
 class ApiController
 {
 
     use ApiVod;
+
+    use ApiChannels;
     use ApiChannel;
+
+    use ApiSettings;
+    use ApiFavourites;
 
     /**
      * @var Twig
@@ -58,27 +67,6 @@ class ApiController
             $streamerList[] = $data;
         }
         return [$streamerList, $total_size];
-    }
-
-    public function list(Request $request, Response $response, $args)
-    {
-
-        list($streamerList, $total_size) = $this->generateStreamerList();
-
-        $data = [
-            'streamerList' => $streamerList,
-            // 'clips' => glob(TwitchHelper::vodFolder() . DIRECTORY_SEPARATOR . "clips" . DIRECTORY_SEPARATOR . "*.mp4"),
-            'total_size' => $total_size,
-            'free_size' => disk_free_space(TwitchHelper::vodFolder())
-        ];
-
-        $payload = json_encode([
-            'data' => $data,
-            'status' => 'OK'
-        ]);
-        $response->getBody()->write($payload);
-
-        return $response->withHeader('Content-Type', 'application/json')->withHeader('Access-Control-Allow-Origin', '*');
     }
 
     public function jobs_list(Request $request, Response $response, $args)
@@ -157,7 +145,7 @@ class ApiController
                     if (!TwitchConfig::cfg("debug") && $line["level"] == 'DEBUG') continue;
 
                     // filter
-                    if( isset($filter) && isset($line['module']) && $filter != $line['module'] ){
+                    if (isset($filter) && isset($line['module']) && $filter != $line['module']) {
                         continue;
                     }
 

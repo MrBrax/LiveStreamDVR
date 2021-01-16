@@ -15,7 +15,7 @@
                     <div class="card">
                         <div class="card-title"><h2>{{ streamer.username }}</h2></div>
                         <div class="card-content">
-                            <form method="POST" action="{{ url_for('streamer_update') }}">
+                            <form method="POST" action="{{ url_for('api_channels_update') }}">
                             
                                 <input type="hidden" name="username" value="{{ streamer.username }}" />
                                 
@@ -57,7 +57,7 @@
 
                             </form>
                             <hr>
-                            <form method="POST" action="{{ url_for('streamer_delete') }}">
+                            <form method="POST" action="{{ url_for('api_channels_delete') }}">
                                 <input type="hidden" name="key" value="{{ loop.index }}" />
                                 <input type="hidden" name="username" value="{{ streamer.username }}" />
                                 <button class="button is-danger" type="submit"><span class="icon"><i class="fa fa-trash"></i></span> Delete</button> (no undo, no confirmation)
@@ -77,7 +77,7 @@
 
             <div class="section-content">
 
-                <form method="POST" action="{{ url_for('streamer_add') }}">
+                <form method="POST" action="{{ url_for('api_channels_add') }}">
                     <div class="field">
                         <label class="label">Username <span class="required">*</span></label>
                         <div class="control">
@@ -128,7 +128,7 @@
 
             <div class="section-content">
 
-                <form method="POST" action="{{ url_for('settings_save') }}">
+                <form method="POST" action="{{ url_for('api_settings_save') }}">
 
                     <!--
                     <div class="fieldset-tabs">
@@ -199,10 +199,10 @@
                 <span class="input-help">The Slim framework doesn't have a good way to execute code from the command line, so you'll have to set up cron manually.</span>
                 {% if config.app_url %}
                     <code>
-                        0 5 * * 1 curl {{ config.app_url }}/cron/sub<br>
-                        0 */12 * * * curl {{ config.app_url }}/cron/check_muted_vods<br>
+                        0  5    * * 1 curl {{ config.app_url }}/cron/sub<br>
+                        0  */12 * * * curl {{ config.app_url }}/cron/check_muted_vods<br>
                         10 */12 * * * curl {{ config.app_url }}/cron/check_deleted_vods<br>
-                        0 1 * * * curl {{ config.app_url }}/cron/playlist_dump
+                        0  1    * * * curl {{ config.app_url }}/cron/playlist_dump
                     </code>
                     <span class="input-help">This will subscribe to the webhook every 5 days, check muted &amp; deleted vods every 12 hours, and dump playlists once per day.</span>
                 {% else %}
@@ -221,7 +221,7 @@
 
             <div class="section-content">
 
-                <form method="POST" action="{{ url_for('favourites_save') }}">
+                <form method="POST" action="{{ url_for('api_favourites_save') }}">
                     
                     <div class="favourites_list">
                         {% for id, game in games|sort %}

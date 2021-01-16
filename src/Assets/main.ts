@@ -251,7 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         scrollTop = window.pageYOffset;
 
-        let list_response = await fetch( `${api_base}/list`);
+        let list_response = await fetch( `${api_base}/channels/list`);
         setStatus('Parsing...', true);
         let data = await list_response.json();
 
@@ -259,7 +259,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if( data.data ){
             
-            for( let streamer of data.data.streamerList ){
+            for( let streamer of data.data.streamer_list ){
 
                 let username = streamer.display_name;
 
