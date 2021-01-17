@@ -58,7 +58,7 @@ trait ApiChannels
         ]);
         $response->getBody()->write($payload);
 
-        return $response->withStatus(400)->withHeader('Content-Type', 'application/json')->withHeader('Access-Control-Allow-Origin', '*');
+        return $response->withStatus(200)->withHeader('Content-Type', 'application/json')->withHeader('Access-Control-Allow-Origin', '*');
     }
 
     public function channels_add(Request $request, Response $response, $args)
