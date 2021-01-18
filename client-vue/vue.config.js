@@ -1,4 +1,5 @@
 module.exports = {
+    // publicPath: '/test/',
     devServer: {
         port: 8081,
         proxy: {

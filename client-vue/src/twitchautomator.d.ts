@@ -68,6 +68,11 @@ export type ApiVod = {
     
 };
 
+
+export type ApiSettingsField = {
+    text: string;
+};
+
 export type ApiConfig = {
 
 };
@@ -83,5 +88,7 @@ export type ApiStreamer = {
   profile_image_url: string;
   subbed_at: PHPDateTimeJSON;
 };
+
+
 
 export const phpDateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000

@@ -39,19 +39,19 @@ export default defineComponent({
         };
     },
     created() {
-      this.fetchData();
+        this.fetchData();
     },
     methods: {
-      fetchData() {
-        this.config = [] as any;
-        fetch("/api/v0/settings/list")
-          .then((response) => response.json())
-          .then((json) => {
-            this.config = json.data.config;
-            this.version = json.data.version;
-            console.log("config", this.config);
-          });
-      },
+        fetchData() {
+            this.config = [] as any;
+            fetch("/api/v0/settings/list")
+            .then((response) => response.json())
+            .then((json) => {
+                this.config = json.data.config;
+                this.version = json.data.version;
+                console.log("config", this.config);
+            });
+        },
     },
     components: {
         SideMenu

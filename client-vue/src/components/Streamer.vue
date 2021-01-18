@@ -69,7 +69,7 @@
     <div v-if="streamer.vods_list.length == 0" class="notice">None</div>
 
     <div v-else>
-      <vod v-for="vod in streamer.vods_list" :key="vod" v-bind:vod="vod" />
+        <vod v-for="vod in streamer.vods_list" :key="vod.basename" v-bind:vod="vod" />
     </div>
   </div>
 </template>
@@ -82,26 +82,26 @@ import Vod from "@/components/Vod.vue";
 import type { ApiStreamer } from "@/twitchautomator.d";
 
 export default defineComponent({
-  name: "Streamer",
-  props: {
-    streamer: Object as () => ApiStreamer,
-  },
-  computed: {
-    quality(): string|undefined {
-      return this.streamer?.quality.join(", ");
+    name: "Streamer",
+    props: {
+        streamer: Object as () => ApiStreamer,
     },
-    vodAmount(): number|undefined {
-      return this.streamer?.vods_list.length;
+    computed: {
+        quality(): string|undefined {
+            return this.streamer?.quality.join(", ");
+        },
+        vodAmount(): number|undefined {
+            return this.streamer?.vods_list.length;
+        },
+        vodSize(): number|undefined {
+            return this.streamer?.vods_size;
+        },
+        subExpiresAt(): string|undefined {
+            return this.streamer?.expires_at.date;
+        },
     },
-    vodSize(): number|undefined {
-      return this.streamer?.vods_size;
-    },
-    subExpiresAt(): string|undefined {
-      return this.streamer?.expires_at.date;
-    },
-  },
-  components: {
-      Vod
-  }
+    components: {
+        Vod
+    }
 });
 </script>

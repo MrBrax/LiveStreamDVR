@@ -4,7 +4,7 @@
         <div class="menu-top">
             <div class="top-menu-item title">
                 <a href="#">
-                    <img src="#" class="favicon" width="24" height="24" :alt="$root.config.app_name">
+                    <img src="../assets/logo.png" class="favicon" width="24" height="24" :alt="$root.config.app_name">
                     <span class="title">
                         {{ $root.config.app_name }} {{ $root.version }}
                         <span v-if="$root.config.debug">(debug)</span>
@@ -109,8 +109,8 @@
         <div class="top-menu-item divider"></div>
 
         <div class="menu-bottom">
-            <div class="top-menu-item icon right{{ is_current_url('dashboard') ? ' active' : '' }}">
-                <a href="#" title="Dashboard"><i class="fa fa-tachometer-alt"></i></a>
+            <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'Dashboard' }">
+                <router-link to="/dashboard"><i class="fa fa-tachometer-alt"></i></router-link>
             </div>
             <div class="top-menu-item icon right">
                 <a href="javascript:window.forceRefresh();" title="Refresh"><i class="fa fa-sync"></i></a>
@@ -118,13 +118,13 @@
             <div class="top-menu-item icon right">
                 <a href="javascript:notifyMe();" title="Notify"><i class="fa fa-bell"></i></a>
             </div>
-            <div class="top-menu-item icon right{{ is_current_url('tools') ? ' active' : '' }}">
+            <div class="top-menu-item icon right">
                 <a href="#" title="Tools"><i class="fa fa-wrench"></i></a>
             </div>
-            <div class="top-menu-item icon right{{ is_current_url('settings') ? ' active' : '' }}">
-                <a href="#" title="Settings"><i class="fa fa-cog"></i></a>
+            <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'Settings' }">
+                <router-link to="/settings"><i class="fa fa-cog"></i></router-link>
             </div>
-            <div class="top-menu-item icon right{{ is_current_url('about') ? ' active' : '' }}">
+            <div class="top-menu-item icon right">
                 <a href="#" title="About"><i class="fa fa-info-circle"></i></a>
             </div>
             <div class="top-menu-item icon right">
