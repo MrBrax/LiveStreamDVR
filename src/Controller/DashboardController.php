@@ -46,7 +46,12 @@ class DashboardController
         foreach ($streamerListStatic as $streamer) {
 
             $data = new TwitchChannel();
-            $data->load($streamer['username']);
+            try {
+                $data->load($streamer['username']);
+            } catch (\Throwable $th) {
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "dashboard", "Channel failed loading: " . $th->getMessage());
+                continue;
+            }
 
             if ($match_vod) {
                 $data->matchVods();

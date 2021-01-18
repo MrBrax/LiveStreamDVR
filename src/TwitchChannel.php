@@ -38,8 +38,9 @@ class TwitchChannel
 
         $this->userid = TwitchHelper::getChannelId($username);
 
-        if (!$this->userid) {
-            TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "helper", "Could not get channel id in channel for {$username}");
+        if (!$this->userid || !is_numeric($this->userid)) {
+            // TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "helper", "Could not get channel id in channel for {$username}");
+            throw new \Exception("Could not get channel id in channel: {$username} => {$this->userid}");
             return false;
         }
 
@@ -49,6 +50,11 @@ class TwitchChannel
 
         if (!$config) {
             throw new \Exception("Streamer not found in config: {$username}");
+            return false;
+        }
+
+        if (!isset($this->channel_data['login'])) {
+            throw new \Exception("Streamer data could not be fetched: {$username}");
             return false;
         }
 

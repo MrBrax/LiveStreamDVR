@@ -362,7 +362,7 @@ class TwitchHelper
 
 		if ($json_streamers) {
 			foreach ($json_streamers as $user_id => $data) {
-				if ($data['display_name'] == $username && $user_id) {
+				if ($data['display_name'] == $username && is_numeric($user_id) && $user_id) {
 					return (string)$user_id;
 				}
 			}
@@ -437,6 +437,11 @@ class TwitchHelper
 	 */
 	public static function getChannelData(string $user_id)
 	{
+
+		if(!is_numeric($user_id)){
+			throw new \Exception("Non-numeric passed to getChannelData ({$user_id})");
+			return false;
+		}
 
 		if (file_exists(TwitchConfig::$streamerDbPath)) {
 
