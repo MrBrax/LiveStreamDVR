@@ -12,7 +12,6 @@ const helpers =  {
     methods: {
         formatDate( date : string, fmt: string ){
             if(!date) return "";
-            console.log(date, fmt);
             return format(parse(date, dateFormat, new Date()), fmt);
         },
         humanDuration( duration: number ){

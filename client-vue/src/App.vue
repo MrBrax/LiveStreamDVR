@@ -9,7 +9,7 @@
     -->
 
     <div class="splitter">
-        <side-menu />
+        <side-menu :streamerList="streamerList" />
         <div class="content">
             <div v-if="errors" class="big-error">
                 <div v-for="error in errors" :key="error" class="big-error-item">Error</div>
@@ -33,6 +33,7 @@ export default defineComponent({
     name: "App",
     data() {
         return {
+            streamerList: [],
             config: Array as () => ApiConfig[],
             version: null,
             errors: []
@@ -52,6 +53,12 @@ export default defineComponent({
                 console.log("config", this.config);
             });
         },
+        onUpdateStreamerList(){
+            console.log("UPDATE ME");
+        },
+        updateStreamerList(){
+            console.log("UPDATE ME");
+        }
     },
     components: {
         SideMenu

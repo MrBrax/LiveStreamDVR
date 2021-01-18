@@ -175,7 +175,8 @@ export default defineComponent({
             });
         },
         play(){
-            console.log("play", this.$refs, this.$refs.player);
+            console.log("play");
+            if(!this.$refs || !this.$refs.player) return;
             this.$refs.player.play();
         },
         pause(){

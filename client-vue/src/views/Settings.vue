@@ -1,42 +1,71 @@
 <template>
-    <div class="settings">
-        <h1>Settings page</h1>
-        <div
-            class="field"
-            v-for="(data, key) in settingsFields"
-            v-bind:key="key"
-        >
-            <label class="label" :for="'input_' + key">{{ data.text }}</label>
+    <div class="container">
+        
+        <section class="section">
 
-            <div v-if="data.type == 'string'" class="control">
-                <input
-                    class="input"
-                    type="text"
-                    :name="key"
-                    :id="'input_' + key"
-                    v-model="settingsData[key]"
-                />
-            </div>
+            <div class="section-title"><h1>Settings</h1></div>
 
-            <div v-if="data.type == 'number'" class="control">
-                <input
-                    class="input"
-                    type="number"
-                    :name="key"
-                    :id="'input_' + key"
-                    v-model="settingsData[key]"
-                />
-            </div>
+            <div class="section-content">
+                <div
+                    class="field"
+                    v-for="(data, key) in settingsFields"
+                    v-bind:key="key"
+                >
+                    <label v-if="data.type != 'boolean'" class="label" :for="'input_' + key">{{ data.text }}</label>
 
-            <div v-if="data.type == 'array'" class="control">
-                <!--<input class="input" :name="key" :id="key" :value="settings[key]" />-->
-                <select :name="key" :id="'input_' + key" v-model="settingsData[key]">
-                    <option v-for="item in data.choices" :key="item">
-                        {{ item }}
-                    </option>
-                </select>
+                    <!-- boolean -->
+                    <div v-if="data.type == 'boolean'" class="control">
+                        <label class="checkbox">
+                            <input
+                                type="checkbox"
+                                :name="key"
+                                :id="'input_' + key"
+                                v-model="settingsData[key]"
+                            />
+                            {{ data.text }}
+                        </label>
+                    </div>
+
+                    <!-- string -->
+                    <div v-if="data.type == 'string'" class="control">
+                        <input
+                            class="input"
+                            type="text"
+                            :name="key"
+                            :id="'input_' + key"
+                            v-model="settingsData[key]"
+                        />
+                    </div>
+
+                    <!-- number -->
+                    <div v-if="data.type == 'number'" class="control">
+                        <input
+                            class="input"
+                            type="number"
+                            :name="key"
+                            :id="'input_' + key"
+                            v-model="settingsData[key]"
+                        />
+                    </div>
+
+                    <!-- array -->
+                    <div v-if="data.type == 'array'" class="control">
+                        <!--<input class="input" :name="key" :id="key" :value="settings[key]" />-->
+                        <select :name="key" :id="'input_' + key" v-model="settingsData[key]">
+                            <option v-for="item in data.choices" :key="item">
+                                {{ item }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="control">
+                    <button class="button is-confirm" type="button" @click="saveSettings"><span class="icon"><i class="fa fa-save"></i></span> Save</button>
+                </div>
             </div>
-        </div>
+        
+        </section>
+
     </div>
 </template>
 
@@ -69,6 +98,9 @@ export default defineComponent({
                     this.settingsFields = json.data.fields;
                 });
         },
+        saveSettings(){
+            alert("save form");
+        }
     },
     components: {
         // HelloWorld
