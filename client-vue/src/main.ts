@@ -5,14 +5,16 @@ import store from "./store";
 
 import "./assets/style.scss";
 
-import { format, toDate, parse } from 'date-fns';
+import { format, toDate, parse, formatDistance } from 'date-fns';
 const dateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000
 
 const helpers =  {
     methods: {
-        formatDate( date : string, fmt: string ){
+        formatDate( date : string, fmt = "yyyy-MM-dd HH:mm:ss" ){
             if(!date) return "";
-            return format(parse(date, dateFormat, new Date()), fmt);
+            // console.log("formatDate", date, fmt);
+            const o = parse(date, dateFormat, new Date());
+            return format(o, fmt);
         },
         humanDuration( duration: number ){
             const hours = Math.floor(duration / 3600);
@@ -30,7 +32,6 @@ const helpers =  {
             // bytes /= (1 << (10 * pow));
             return `${Math.round(bytes)} ${units[pow]}`;
         },
-        
         niceDuration(durationInSeconds : number): string{
 
             let duration = '';
@@ -61,6 +62,16 @@ const helpers =  {
         },
         formatNumber( num: number, decimals = 0 ){
             return num.toLocaleString('us', {minimumFractionDigits: decimals, maximumFractionDigits: decimals})
+        },
+        humanDate(date : string){
+
+            const o = parse(date, dateFormat, new Date());
+            
+            return formatDistance(
+                o,
+                new Date()
+            );
+        
         }
     }
 };

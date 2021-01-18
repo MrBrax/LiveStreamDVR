@@ -4,10 +4,10 @@
         <div class="menu-top">
             <div class="top-menu-item title">
                 <a href="#">
-                    <img src="../assets/logo.png" class="favicon" width="24" height="24" :alt="$root.config.app_name">
+                    <img src="../assets/logo.png" class="favicon" width="24" height="24" :alt="$store.state.config.app_name">
                     <span class="title">
-                        {{ $root.config.app_name }} {{ $root.version }}
-                        <span v-if="$root.config.debug">(debug)</span>
+                        {{ $store.state.config.app_name }} {{ $store.state.version }}
+                        <span v-if="$store.state.config.debug">(debug)</span>
                     </span>
                 </a>
             </div>
@@ -15,91 +15,90 @@
 
         
         <div class="menu-middle" v-if="$route.name == 'Dashboard'">
-            Middle {{ streamerList }} {{ $store.streamerList }}
             
             <!--{% for streamer in streamerList|sort((a, b) => a.display_name > b.display_name) %}-->
-            <template v-for="streamer in streamerList" :key="streamer.username">
+            <template v-for="streamer in $store.state.streamerList" :key="streamer.username">
 
-                <div class="top-menu-item{{ streamer.is_live ? ' is-live' : '' }} streamer" data-streamer="{{ streamer.display_name }}">
+                <div :class="{ 'top-menu-item': true, 'is-live': streamer.is_live, 'streamer': true }" :data-streamer="streamer.display_name">
                     
-                    <a href="#streamer_{{ streamer.display_name }}">
+                    <a :href="'#streamer_' + streamer.display_name">
 
                         <span class="username">{{ streamer.display_name }}</span>
                         <span class="vodcount">{{ streamer.vods_list.length }}</span>
                         <span class="subtitle">
-                            {% if streamer.is_live %}
+                            <template v-if="streamer.is_live">
                                 
-                                {% if streamer.current_game.game_name == 'Just Chatting' or streamer.current_game.game_name == 'IRL' or streamer.current_game.game_name == 'Art' %}
+                                <template v-if="streamer.current_game && ( streamer.current_game.game_name == 'Just Chatting' || streamer.current_game.game_name == 'IRL' || streamer.current_game.game_name == 'Art' )">
                                     <strong>{{ streamer.current_game.game_name }}</strong>
-                                {% else %}
+                                </template>
+                                <template v-else>
                                     Playing <strong>{{ streamer.current_game.game_name }}</strong>
-                                {% endif %}
+                                </template>
 
                                 for <span id="duration_{{ streamer.display_name }}">{{ humanDuration(streamer.current_vod.duration_live) }}</span>
 
-                            {% elseif streamer.is_converting %}
+                            </template>
+                            <template v-else-if="streamer.is_converting">
                                 Converting...
-                            {% else %}
-                                {# Offline #}
-                            {% endif %}
+                            </template>
+                            <template v-else>
+                                <!-- Offline -->
+                            </template>
                         </span>
 
                     </a>
 
                 </div>
-
+                
                 <div class="top-menu-item streamer-jumpto">
                     <ul>
-                    {% for vodclass in streamer.vods_list %}
-                        <li>
-                            <a href="#vod_{{ vodclass.basename }}" data-basename="{{ vodclass.basename }}" class="{{ html_classes({
-                                    'is-favourite': vodclass.hasFavouriteGame,
-                                    'is-live': vodclass.is_capturing,
-                                    'is-converting': vodclass.is_converting,
-                                    'is-waiting': not vodclass.is_capturing and not vodclass.is_converting and not vodclass.is_finalized
-                                }) }}" title="{{ vodclass.dt_started_at|date('Y-m-d H:i:s') }}">
-                                {# <span class="icon is-active"><i class="fa fa-arrow-circle-right"></i></span> #}
-                                {% if vodclass.is_capturing %}
-                                    <span class="icon"><i class="fa fa-sync fa-spin"></i></span> {# capturing #}
-                                {% elseif vodclass.is_converting %}
-                                    <span class="icon"><i class="fa fa-cog fa-spin"></i></span> {# converting #}
-                                {% elseif vodclass.hasFavouriteGame %}
-                                    <span class="icon"><i class="fa fa-star"></i></span> {# favourite #}
-                                {% elseif not vodclass.is_capturing and not vodclass.is_converting and not vodclass.is_finalized %}
-                                    <span class="icon"><i class="far fa-hourglass"></i></span> {# waiting after capture #}
-                                {% elseif vodclass.is_finalized %}
-                                    <span class="icon"><i class="fa fa-film"></i></span> {# video #}
-                                {% endif %}
-                                {% if not config.relative_time and vodclass.dt_started_at %}{{ formatDate(vodclass.dt_started_at) }}{% endif %} {# absolute time #}
-                                {% if config.relative_time and vodclass.dt_started_at %}{{ humanDate(vodclass.dt_started_at.getTimestamp) }}{% endif %} {# relative time #}
-                                {% if vodclass.is_capturing %}
-                                    {% if vodclass.duration_live %}&middot; ({{ config.relative_time ? humanRealDuration(vodclass.duration_live) : humanDuration(vodclass.duration_live) }}+){% endif %} {# duration #}
-                                    {% if vodclass.getRecordingSize %}&middot; {{ formatBytes(vodclass.getRecordingSize) }}+{% endif %} {# filesize #}
-                                {% else %}
-                                    {% if vodclass.duration_seconds %}&middot; ({{ config.relative_time ? humanRealDuration(vodclass.duration_seconds) : humanDuration(vodclass.duration_seconds) }}){% endif %}{# duration #}
-                                    {% if vodclass.total_size %}&middot; {{ formatBytes(vodclass.total_size) }}{% endif %}{# filesize #}
-                                {% endif %}
-                                {% if vodclass.is_finalized %}
+                        <li v-for="vod in streamer.vods_list" :key="vod.basename">
+                            <a :href="'#vod_' + vod.basename" :data-basename="vod.basename" :class="{
+                                    'is-favourite': vod.hasFavouriteGame,
+                                    'is-live': vod.is_capturing,
+                                    'is-converting': vod.is_converting,
+                                    'is-waiting': !vod.is_capturing && !vod.is_converting && !vod.is_finalized
+                                }" :title="vod.dt_started_at.date">
+                                <!-- <span class="icon is-active"><i class="fa fa-arrow-circle-right"></i></span> -->
+                            
+                                <span v-if="vod.is_capturing" class="icon"><i class="fa fa-sync fa-spin"></i></span> <!-- capturing -->
+                                <span v-else-if="vod.is_converting" class="icon"><i class="fa fa-cog fa-spin"></i></span> <!-- converting -->
+                                <span v-else-if="vod.hasFavouriteGame" class="icon"><i class="fa fa-star"></i></span> <!-- favourite -->
+                                <span v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized" class="icon"><i class="far fa-hourglass"></i></span> <!-- waiting after capture -->
+                                <span v-else-if="vod.is_finalized" class="icon"><i class="fa fa-film"></i></span> <!-- video -->
+
+                                <span v-if="!$store.state.config.relative_time && vod.dt_started_at">{{ formatDate(vod.dt_started_at.date) }}</span><!-- absolute time -->
+                                <span v-if="$store.state.config.relative_time && vod.dt_started_at">{{ humanDate(vod.dt_started_at.date) }}</span><!-- relative time -->
+                                <template v-if="vod.is_capturing">
+                                    <span v-if="vod.duration_live">&middot; ({{ $store.state.config.relative_time ? niceDuration(vod.duration_live) : humanDuration(vod.duration_live) }}+)</span><!-- duration -->
+                                    <span v-if="vod.getRecordingSize">&middot; {{ formatBytes(vod.getRecordingSize) }}+</span><!-- filesize -->
+                                </template>
+                                <template v-else>
+                                    <span v-if="vod.duration_seconds">&middot; ({{ $store.state.config.relative_time ? niceDuration(vod.duration_seconds) : humanDuration(vod.duration_seconds) }})</span><!-- duration -->
+                                    <span v-if="vod.total_size">&middot; {{ formatBytes(vod.total_size) }}</span><!-- filesize -->
+                                </template>
+                                <template v-if="vod.is_finalized">
                                     <span class="flags">
-                                        {% if vodclass.twitch_vod_exists is same as(false) %}<span class="icon is-error" title="Deleted"><i class="fa fa-trash"></i></span>{% endif %}{# vod deleted #}
-                                        {% if vodclass.twitch_vod_exists is same as(null) %}<span class="icon is-error" title="Not checked"><i class="fa fa-question"></i></span>{% endif %}{# vod not checked #}
-                                        {% if vodclass.twitch_vod_muted is same as(true) %}<span class="icon is-error" title="Muted"><i class="fa fa-volume-mute"></i></span>{% endif %}{# vod muted #}
-                                        {% if vodclass.is_capture_paused %}<span class="icon is-error" title="Paused"><i class="fa fa-pause"></i></span>{% endif %}{# capturing paused #}
+                                        <span v-if="vod.twitch_vod_exists === false"><span class="icon is-error" title="Deleted"><i class="fa fa-trash"></i></span></span><!-- vod deleted -->
+                                        <span v-if="vod.twitch_vod_exists === null"><span class="icon is-error" title="Not checked"><i class="fa fa-question"></i></span></span><!-- vod not checked -->
+                                        <span v-if="vod.twitch_vod_muted === true"><span class="icon is-error" title="Muted"><i class="fa fa-volume-mute"></i></span></span><!-- vod muted -->
+                                        <span v-if="vod.is_capture_paused"><span class="icon is-error" title="Paused"><i class="fa fa-pause"></i></span></span><!-- capturing paused -->
                                     </span>
-                                {% endif %}
+                                </template>
                                 <div class="tooltip">
                                     <div class="boxart-carousel is-small">
-                                        {% for game in vodclass.getUniqueGames %}
-                                            <div class="boxart-item">{% if game.image_url %}<img title="{{ game.name }}" alt="{{ game.name }}" src="{{ game.image_url }}" loading="lazy" />{% else %}{{ game.name }}{% endif %}</div>
-                                        {% endfor %}
+                                        <div v-for="game in vod.getUniqueGames" :key="game.name" class="boxart-item">
+                                            <img v-if="game.image_url" :title="game.name" :alt="game.name" :src="game.image_url" loading="lazy" />
+                                            <span v-else>{{ game.name }}</span>
+                                        </div>
                                     </div>
-                                    <p>{{ vodclass.stream_title }}</p>
+                                    <p>{{ vod.stream_title }}</p>
                                 </div>
                             </a>
                         </li>
-                    {% endfor %}
                     </ul>
                 </div>
+                
 
             </template>
             
@@ -141,8 +140,8 @@ import { defineComponent } from "vue";
 export default defineComponent({
     name: "SideMenu",
     props: [
-        'streamerList'
-    ]
+        
+    ],
 });
 
 </script>

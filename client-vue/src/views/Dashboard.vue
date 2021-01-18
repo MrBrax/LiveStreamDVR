@@ -1,16 +1,12 @@
 <template>
-  <div class="home">
-
-    <!--
-    <div v-for="streamer in streamerList" v-bind:key="streamer.id">
-      <h1>{{ streamer.display_name }}</h1>
-      <div v-for="vod in streamer.vods_list" v-bind:key="vod.basename">
-        <h2>{{ vod.basename }}</h2>
-      </div>
+    <div class="container vertical">
+        <section class="section" data-section="vods">
+            <div class="section-title"><h1>Recorded VODs</h1></div>
+            <div class="section-content">
+                <streamer v-for="streamer in streamerList" v-bind:key="streamer.id" v-bind:streamer="streamer" />
+            </div>
+        </section>
     </div>
-    -->
-    <streamer v-for="streamer in streamerList" v-bind:key="streamer.id" v-bind:streamer="streamer" />
-  </div>
 </template>
 
 <script lang="ts">
@@ -41,7 +37,10 @@ export default defineComponent({
                 this.streamerList = json.data.streamer_list;
 
                 // this.$emit('streamer-list', json.data.streamer_list);
-                // this.$store.commit('updateStreamerList', json.data.streamer_list);
+                
+                console.log("do commit", json.data.streamer_list);
+                this.$store.commit('updateStreamerList', json.data.streamer_list);
+                
                 // this.$store.streamerList = json.data.streamer_list;
                     // console.log("root", this.$root.streamerList);
                     // if( this.$root && this.$root.$data.streamerList ){

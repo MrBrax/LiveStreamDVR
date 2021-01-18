@@ -382,7 +382,7 @@
                 
                 <br />
                 
-                <template v-if="!$root.config.playlist_dump">
+                <template v-if="!$store.state.playlist_dump">
                     <em>
                         <span v-if="vod.api_getCapturingStatus">
                             <span class="icon"><i class="fa fa-sync fa-spin"></i></span> Video capture running (pid {{ vod.api_getCapturingStatus }})
@@ -391,7 +391,7 @@
                             <strong class="is-error flashing"><span class="icon"><i class="fa fa-exclamation-triangle"></i></span> Video capture not running, did it crash?</strong>
                         </span>
                     </em>
-                    <template v-if="$root.config.chat_dump">
+                    <template v-if="$store.state.chat_dump">
                         <br /><em>
                             <span v-if="vod.api_getChatDumpStatus">
                                 <span class="icon"><i class="fa fa-sync fa-spin"></i></span> Chat dump running (pid {{ vod.api_getChatDumpStatus }})
@@ -448,7 +448,7 @@
 
                 <tbody>
 
-                    <tr v-for="chapter in vod.chapters" :key="chapter" :class="{ 'favourite': $root.config.favourites[chapter.game_id] }">
+                    <tr v-for="chapter in vod.chapters" :key="chapter" :class="{ 'favourite': $store.state.config.favourites[chapter.game_id] }">
                         
                         <!-- start timestamp -->
                         <td>

@@ -103,8 +103,6 @@ trait ApiSettings
             TwitchHelper::getAccessToken(true);
         }
 
-        $this->generateCron();
-
         return $this->twig->render($response, 'dialog.twig', [
             'text' => 'Settings saved.',
             'type' => 'success'

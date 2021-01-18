@@ -20,6 +20,7 @@ export type ApiVodChapter = {
     started_at: PHPDateTimeJSON;
     offset: number;
     viewer_count: number;
+    width: number; // why
 };
 
 export type ApiVod = {

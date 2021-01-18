@@ -93,7 +93,6 @@ export default defineComponent({
             fetch("/api/v0/settings/list")
                 .then((response) => response.json())
                 .then((json) => {
-                    console.log(json);
                     this.settingsData = json.data.config;
                     this.settingsFields = json.data.fields;
                 });

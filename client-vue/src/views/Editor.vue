@@ -57,88 +57,6 @@
 
     </div>
 
-
-<!--
-<script type="text/javascript">
-
-	let start_offset = {{ start_offset }};
-	let game_offset = {{ vodclass.game_offset }};
-	
-	let time_in = "";
-	let time_out = "";
-
-	let videoplayer = document.getElementById('video');
-	let timeline = document.getElementById("timeline");
-	let timeline_playhead = document.getElementById("timeline-playhead");
-	let timeline_cut = document.getElementById("timeline-cut");
-
-	if( start_offset > 0 ){
-		document.getElementById('video').currentTime = start_offset;
-	}
-
-	function cut_video( t ){
-
-		let cmd = document.getElementById('cut_video_cmd');
-
-		let current_time = document.getElementById('video').currentTime;
-
-		if(t == 'in') time_in = Math.round(current_time);
-		if(t == 'out') time_out = Math.round(current_time);
-		
-		document.getElementById('value_in').value = time_in;
-		document.getElementById('value_out').value = time_out;
-
-		timeline_cut.style.left = ( ( time_in / video.duration ) * 100 ) + "%";
-		
-		timeline_cut.style.right = ( 100 - ( time_out / video.duration ) * 100 ) + "%";
-		// timeline_cut.style.width = ( ( time_out / video.duration ) * 100 ) + "%";
-
-	}
-
-	function vp_play(){
-		videoplayer.play();
-	}
-
-	function vp_pause(){
-		videoplayer.pause();
-	}
-
-	/*
-	function submit_cut(){
-		if( time_in && time_out ){
-			location.href = '/cut?vod={{ vodclass.basename }}&start=' + time_in + '&end=' + time_out;
-		}
-	}
-	*/
-
-	timeline.addEventListener('click', (event) => {
-		// let perc = video.duration / event.clientX ;
-		let duration = video.duration;
-		let rect = timeline.getBoundingClientRect();
-		let percent = ( event.clientX - rect.left ) / timeline.clientWidth;
-		let seconds = Math.round(duration * percent);
-		video.currentTime = seconds;
-	});
-
-	setInterval(() => {
-		if(!video.currentTime) return;
-		let percent = ( video.currentTime / video.duration ) * 100;
-		timeline_playhead.style.left = percent + "%";
-	}, 250);
-
-	function scrub(s, d){
-		document.getElementById("video").currentTime = s;
-
-		time_in = Math.round(s-game_offset);
-		time_out = Math.round(s+d-game_offset);
-
-		document.getElementById('value_in').value = time_in;
-		document.getElementById('value_out').value = time_out;
-	}
-
-</script>
--->
-
 </template>
 
 <script lang="ts">
@@ -156,17 +74,6 @@ export default defineComponent({
             currentVideoTime: 0,
             cutName: ''
             // videoDuration: 0,
-        }
-    },
-    setup(){
-        const player = ref(null);
-
-        onMounted(() => {
-            console.log(player.value);
-        });
-
-        return {
-            player,
         }
     },
     created() {
@@ -187,11 +94,11 @@ export default defineComponent({
         },
         play(){
             console.log("play", this.$refs.player);
-            player.value.play();
+            (this.$refs.player as HTMLVideoElement).play();
         },
         pause(){
             console.log("pause", this.$refs.player);
-            this.$refs.player.pause();
+            (this.$refs.player as HTMLVideoElement).pause();
         },
         scrub(tIn : number, tOut : number){
             const gameOffset = this.vodData.game_offset;
@@ -199,19 +106,19 @@ export default defineComponent({
 		    this.timeOut = Math.round(tIn+tOut-gameOffset);
             // this.$forceUpdate();
         },
-        seek(event : Event){
+        seek(event : MouseEvent){
             console.log("seek", event);
-            const duration = this.$refs.player.duration;
-            const rect = this.$refs.timeline.getBoundingClientRect();
-            const percent = ( event.clientX - rect.left ) / this.$refs.timeline.clientWidth;
+            const duration = (this.$refs.player as HTMLVideoElement).duration;
+            const rect = (this.$refs.timeline as HTMLDivElement).getBoundingClientRect();
+            const percent = ( event.clientX - rect.left ) / (this.$refs.timeline as HTMLDivElement).clientWidth;
             const seconds = Math.round(duration * percent);
-            this.$refs.player.currentTime = seconds;
+            (this.$refs.player as HTMLVideoElement).currentTime = seconds;
 
             // this.$forceUpdate();
         },
-        updateVideoTime(v : Event){
+        updateVideoTime( event : MediaStreamEvent){
             // console.log(v);
-            this.currentVideoTime = v.target.currentTime;
+            this.currentVideoTime = (event.target as HTMLVideoElement).currentTime;
         },
         submit(){
             console.log("submit", this.timeIn, this.timeOut, this.cutName);
@@ -236,7 +143,7 @@ export default defineComponent({
     computed: {
         timelineCutStyle() : Record<string, any> {
             if(!this.currentVideoTime) return { left: '0%', right: '100%' };
-            const dur = this.$refs.player.duration;
+            const dur = (this.$refs.player as HTMLVideoElement).duration;
             return {
                 left: ( ( this.timeIn / dur ) * 100 ) + "%",
                 right: ( 100 - ( this.timeOut / dur ) * 100 ) + "%",
@@ -244,7 +151,7 @@ export default defineComponent({
         },
         timelinePlayheadStyle() : Record<string, any> {
             if(!this.currentVideoTime) return { left: '0%' };
-		    const percent = ( this.currentVideoTime / this.$refs.player.duration ) * 100;
+		    const percent = ( this.currentVideoTime / (this.$refs.player as HTMLVideoElement).duration ) * 100;
 		    return {
                 left: percent + "%"
             };
