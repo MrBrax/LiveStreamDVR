@@ -65,6 +65,8 @@ export type ApiVod = {
     video_metadata: array;
 
     chapters: ApiVodChapter[];
+
+    webpath: string;
     
 };
 

@@ -11,6 +11,7 @@ use Symfony\Component\Process\Process;
 use App\TwitchConfig;
 use App\TwitchHelper;
 use App\TwitchVOD;
+use App\TwitchAutomatorJob;
 use App\Exporters\YouTubeExporter;
 
 trait ApiVod
@@ -350,4 +351,142 @@ trait ApiVod
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
+
+    /**
+     * Cut up the vod
+     *
+     * @return void
+     */
+    public function vod_cut(Request $request, Response $response, $args)
+    {
+
+        set_time_limit(0);
+
+        $vod = $args['vod'];
+        // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
+        $username = explode("_", $vod)[0];
+
+        // $json = json_decode(file_get_contents(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json'), true);
+
+        $second_start   = (int)$_POST['time_in'];
+        $second_end     = (int)$_POST['time_out'];
+        $name           = $_POST['name'];
+
+        if (!$second_start || $second_start > $second_end) {
+            $response->getBody()->write(json_encode([
+                "data" => "Invalid start time ({$second_start})",
+                "status" => "ERROR"
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+
+        if (!$second_end || $second_end < $second_start) {
+            $response->getBody()->write(json_encode([
+                "data" => "Invalid end time ({$second_end})",
+                "status" => "ERROR"
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+
+        $filename_in = TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.mp4';
+        $filename_out = TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_clips" . DIRECTORY_SEPARATOR . $vod . '-cut-' . $second_start . '-' . $second_end . ($name ? '-' . $name : '') . '.mp4';
+
+        if (file_exists($filename_out)) {
+            $response->getBody()->write(json_encode([
+                "data" => "Output file already exists",
+                "status" => "ERROR"
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+
+        $cmd = [];
+
+        $cmd[] = TwitchConfig::cfg('ffmpeg_path');
+
+        $cmd[] = '-i';
+        $cmd[] = $filename_in; // input file
+
+        $cmd[] = '-ss';
+        $cmd[] = $second_start; // start timestamp
+
+        $cmd[] = '-t';
+        $cmd[] = $second_end - $second_start; // length
+
+        if (TwitchConfig::cfg('fix_corruption')) {
+            // $cmd[] = '-map';
+            // $cmd[] = '0';
+            // $cmd[] = '-ignore_unknown';
+            // $cmd[] = '-copy_unknown';
+        }
+
+        if (TwitchConfig::cfg('encode_audio')) {
+            $cmd[] = '-c:v';
+            $cmd[] = 'copy'; // use same video codec
+
+            $cmd[] = '-c:a';
+            $cmd[] = 'aac'; // re-encode audio
+
+            $cmd[] = '-b:a';
+            $cmd[] = '160k'; // use same audio bitrate
+        } else {
+            $cmd[] = '-codec';
+            $cmd[] = 'copy'; // remux
+        }
+
+        $cmd[] = $filename_out; // output file
+
+        $env = [
+            // 'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache",
+            'PATH' => dirname(TwitchHelper::path_ffmpeg()),
+            'TEMP' => TwitchHelper::$cache_folder
+        ];
+
+        $process = new Process($cmd, TwitchHelper::vodFolder($username), $env, null, null);
+        $process->start();
+
+        // $pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_cut_' . $vod . '.pid';
+        // file_put_contents($pidfile, $process->getPid());
+        $vod_cutJob = new TwitchAutomatorJob("vod_cut_{$vod}");
+        $vod_cutJob->setPid($process->getPid());
+        $vod_cutJob->setProcess($process);
+        $vod_cutJob->save();
+    
+        $process->wait();
+
+        // if (file_exists($pidfile)) unlink($pidfile);
+        $vod_cutJob->clear();
+
+        // $response->getBody()->write("$ " . implode(" ", $cmd));
+
+        TwitchHelper::appendLog("ffmpeg_{$vod}-cut-{$second_start}-{$second_end}_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+        TwitchHelper::appendLog("ffmpeg_{$vod}-cut-{$second_start}-{$second_end}_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+
+        // $response->getBody()->write("<pre>" . $process->getOutput() . "</pre>");
+        // $response->getBody()->write("<pre>" . $process->getErrorOutput() . "</pre>");
+
+        // $response->getBody()->write("Done");
+        
+        $success = file_exists($filename_out) && filesize($filename_out) > 0;
+
+        if(!$success){
+            $response->getBody()->write(json_encode([
+                "message" => "Cut failed, please check the logs",
+                "status" => "ERROR"
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+
+        $response->getBody()->write(json_encode([
+            "data" => [
+                "log_stdout" => $process->getOutput(),
+                "log_stderr" => $process->getErrorOutput(),
+                "file_output" => $filename_out
+            ],
+            "message" => "Done",
+            "status" => "OK"
+        ]));
+        return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
+
+    }
+
 }

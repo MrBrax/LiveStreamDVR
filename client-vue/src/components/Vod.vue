@@ -13,9 +13,7 @@
         <div class="video-title">
             <h3>
                 <span class="icon"><i class="fas fa-file-video"></i></span>
-                <span class="video-date" v-if="vod.dt_started_at">{{
-                    startedAt
-                }}</span>
+                <span class="video-date" v-if="vod.dt_started_at">{{ formatDate(vod.dt_started_at.date, "yyyy-MM-dd HH:mm:ss") }}</span>
                 <span class="video-filename">{{ vod.basename }}</span>
             </h3>
         </div>
@@ -296,7 +294,7 @@
             <strong>Segments</strong>
             <ul class="list-segments">
                 <li v-for="segment in vod.segments" :key="segment">
-                    <a href="">
+                    <a :href="vod.webpath + '/' + segment.basename">
                         <span class="text-overflow">{{
                             segment.basename
                         }}</span>
@@ -310,15 +308,15 @@
                 </li>
 
                 <li v-if="vod.is_vod_downloaded">
-                    <a href="">Downloaded VOD</a>
+                    <a :href="vod.webpath + '/' + vod.basename + '_vod.mp4'">Downloaded VOD</a>
                 </li>
 
                 <template v-if="vod.is_chat_rendered">
-                    <li><a href="#">Rendered chat</a></li>
-                    <li><a href="#">Rendered chat mask</a></li>
+                    <li><a :href="vod.webpath + '/' + vod.basename + '_chat.mp4'">Rendered chat</a></li>
+                    <li><a :href="vod.webpath + '/' + vod.basename + '_chat_mask.mp4'">Rendered chat mask</a></li>
                 </template>
 
-                <li v-if="vod.is_chat_burned"><a href="">Burned chat</a></li>
+                <li v-if="vod.is_chat_burned"><a :href="vod.webpath + '/' + vod.basename + '_burned.mp4'">Burned chat</a></li>
             </ul>
         </div>
 
@@ -327,9 +325,9 @@
 
             <template v-if="vod.is_finalized">
 
-                <a class="button is-blue" href="#">
+                <router-link class="button is-blue" :to="{ name: 'Editor', params: { vod: vod.basename } }">
                     <span class="icon"><i class="fa fa-cut"></i></span> Editor
-                </a>
+                </router-link>
 
                 <a v-if="vod.is_chat_downloaded" class="button is-blue" href="#">
                     <span class="icon"><i class="fa fa-play"></i></span> Player
@@ -339,7 +337,7 @@
                     <span class="icon"><i class="fa fa-play"></i></span> Player
                 </a>
 
-                <a class="button" href="#">
+                <a class="button" :href="vod.webpath + '/' + vod.basename + '.json'">
                     <span class="icon"><i class="fa fa-database"></i></span> JSON
                 </a>
 

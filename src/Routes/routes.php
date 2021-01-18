@@ -80,6 +80,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
         $group->get('/delete', ApiController::class . ':vod_delete')->setName('api_vod_delete');
         $group->get('/save', ApiController::class . ':vod_save')->setName('api_vod_save');
         $group->any('/export', ApiController::class . ':vod_export')->setName('api_vod_export');
+        $group->post('/cut', ApiController::class . ':vod_cut')->setName('api_vod_cut');
     });
 
     // channels
