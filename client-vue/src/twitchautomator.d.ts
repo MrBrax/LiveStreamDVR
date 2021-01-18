@@ -62,6 +62,8 @@ export type ApiVod = {
 
     duration_live: number;
 
+    game_offset: number;
+
     video_metadata: array;
 
     chapters: ApiVodChapter[];

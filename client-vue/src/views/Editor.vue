@@ -142,20 +142,31 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
 
+import { defineComponent, onMounted, ref } from "vue";
 import type { ApiVod } from "@/twitchautomator.d";
 
 export default defineComponent({
     name: "Editor",
     data(){
         return {
-            vodData: [],
-            timeIn: null,
-            timeOut: null,
+            vodData: {} as ApiVod,
+            timeIn: 0,
+            timeOut: 0,
             currentVideoTime: 0,
             cutName: ''
             // videoDuration: 0,
+        }
+    },
+    setup(){
+        const player = ref(null);
+
+        onMounted(() => {
+            console.log(player.value);
+        });
+
+        return {
+            player,
         }
     },
     created() {
@@ -166,7 +177,7 @@ export default defineComponent({
     },
     methods: {
         fetchData() {
-            this.vodData = [];
+            // this.vodData = [];
             fetch(`/api/v0/vod/${this.vod}/`)
             .then((response) => response.json())
             .then((json) => {
@@ -175,32 +186,30 @@ export default defineComponent({
             });
         },
         play(){
-            console.log("play");
-            if(!this.$refs || !this.$refs.player) return;
-            this.$refs.player.play();
+            console.log("play", this.$refs.player);
+            player.value.play();
         },
         pause(){
+            console.log("pause", this.$refs.player);
             this.$refs.player.pause();
         },
-        scrub(tIn, tOut){
-            // this.timeIn = tIn;
-            // this.timeOut = tOut;
+        scrub(tIn : number, tOut : number){
             const gameOffset = this.vodData.game_offset;
             this.timeIn = Math.round(tIn-gameOffset);
 		    this.timeOut = Math.round(tIn+tOut-gameOffset);
-
             // this.$forceUpdate();
         },
-        seek(event){
+        seek(event : Event){
             console.log("seek", event);
             const duration = this.$refs.player.duration;
             const rect = this.$refs.timeline.getBoundingClientRect();
             const percent = ( event.clientX - rect.left ) / this.$refs.timeline.clientWidth;
             const seconds = Math.round(duration * percent);
             this.$refs.player.currentTime = seconds;
+
             // this.$forceUpdate();
         },
-        updateVideoTime(v){
+        updateVideoTime(v : Event){
             // console.log(v);
             this.currentVideoTime = v.target.currentTime;
         },
@@ -208,8 +217,8 @@ export default defineComponent({
             console.log("submit", this.timeIn, this.timeOut, this.cutName);
 
             const data = new FormData();
-            data.append('time_in', this.timeIn);
-            data.append('time_out', this.timeOut);
+            data.append('time_in', this.timeIn.toString());
+            data.append('time_out', this.timeOut.toString());
             data.append('name', this.cutName);
 
             fetch(`/api/v0/vod/${this.vod}/cut`, {
@@ -225,7 +234,7 @@ export default defineComponent({
         }
     },
     computed: {
-        timelineCutStyle(){
+        timelineCutStyle() : Record<string, any> {
             if(!this.currentVideoTime) return { left: '0%', right: '100%' };
             const dur = this.$refs.player.duration;
             return {
@@ -233,7 +242,7 @@ export default defineComponent({
                 right: ( 100 - ( this.timeOut / dur ) * 100 ) + "%",
             };
         },
-        timelinePlayheadStyle(){
+        timelinePlayheadStyle() : Record<string, any> {
             if(!this.currentVideoTime) return { left: '0%' };
 		    const percent = ( this.currentVideoTime / this.$refs.player.duration ) * 100;
 		    return {

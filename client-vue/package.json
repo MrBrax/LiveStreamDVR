@@ -10,9 +10,9 @@
   "dependencies": {
     "core-js": "^3.6.5",
     "date-fns": "^2.16.1",
-    "vue": "^3.0.0",
+    "vue": "3.0.0",
     "vue-router": "^4.0.0-0",
-    "vuex": "^4.0.0-0"
+    "vuex": "4.0.0-rc.2"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^2.33.0",

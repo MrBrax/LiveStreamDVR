@@ -41,7 +41,7 @@ export default defineComponent({
                 this.streamerList = json.data.streamer_list;
 
                 // this.$emit('streamer-list', json.data.streamer_list);
-                this.$store.commit('updateStreamerList', json.data.streamer_list);
+                // this.$store.commit('updateStreamerList', json.data.streamer_list);
                 // this.$store.streamerList = json.data.streamer_list;
                     // console.log("root", this.$root.streamerList);
                     // if( this.$root && this.$root.$data.streamerList ){
