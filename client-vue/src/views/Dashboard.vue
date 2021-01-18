@@ -18,12 +18,14 @@ import { defineComponent } from "vue";
 // import HelloWorld from "@/components/HelloWorld.vue"; // @ is an alias to /src
 import Streamer from "@/components/Streamer.vue";
 
+import type { ApiStreamer } from "@/twitchautomator.d";
+
 export default defineComponent({
   name: "Dashboard",
   data() {
     return {
       loading: false,
-      streamerList: null,
+      streamerList: Array as () => ApiStreamer[],
     };
   },
   created() {
@@ -31,7 +33,7 @@ export default defineComponent({
   },
   methods: {
     fetchData() {
-      this.streamerList = null;
+      this.streamerList = [] as any;
       fetch("/api/v0/channels/list")
         .then((response) => response.json())
         .then((json) => {

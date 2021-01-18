@@ -42,7 +42,7 @@ class ApiController
     {
         $this->twig = $twig;
     }
-
+    
     private function generateStreamerList()
     {
 
@@ -60,7 +60,7 @@ class ApiController
         foreach ($streamerListStatic as $streamer) {
 
             $data = new TwitchChannel();
-            $data->load($streamer['username']);
+            $data->load($streamer['username'], true);
 
             $total_size += $data->vods_size;
 

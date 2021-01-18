@@ -41,19 +41,21 @@
             }}</span>
             <span v-else>Not subbed</span>
           </span>
-          <span v-if="streamer.is_live"> &middot;
-          <a
-            href="{{ url_for('api_jobs_kill', { 'job': 'capture_' ~ streamer.current_vod.basename }) }}"
-            title="Abort record"
-            ><span class="icon"><i class="fa fa-video-slash"></i></span></a
-          ><!-- abort recording -->
+          <span v-if="streamer.is_live">
+            &middot;
+            <a
+              href="{{ url_for('api_jobs_kill', { 'job': 'capture_' ~ streamer.current_vod.basename }) }}"
+              title="Abort record"
+              ><span class="icon"><i class="fa fa-video-slash"></i></span></a
+            ><!-- abort recording -->
           </span>
-          <span v-else> &middot;
-          <a
-            href="{{ url_for('api_channel_force_record', { 'username': streamer.display_name }) }}"
-            title="Force record"
-            ><span class="icon"><i class="fa fa-video"></i></span></a
-          ><!-- force recording -->
+          <span v-else>
+            &middot;
+            <a
+              href="{{ url_for('api_channel_force_record', { 'username': streamer.display_name }) }}"
+              title="Force record"
+              ><span class="icon"><i class="fa fa-video"></i></span></a
+            ><!-- force recording -->
           </span>
           <a
             href="{{ url_for('api_channel_dump_playlist', { 'username': streamer.display_name }) }}"
@@ -67,9 +69,8 @@
     <div v-if="streamer.vods_list.length == 0" class="notice">None</div>
 
     <div v-else>
-        <vod v-for="vod in streamer.vods_list" :key="vod" v-bind:vod="vod" />
+      <vod v-for="vod in streamer.vods_list" :key="vod" v-bind:vod="vod" />
     </div>
-
   </div>
 </template>
 

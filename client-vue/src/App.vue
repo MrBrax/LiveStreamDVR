@@ -1,31 +1,60 @@
 <template>
-  <div id="nav">
-    <router-link to="/dashboard">Dashboard</router-link>
-    <router-link to="/settings">Settings</router-link>
-    <router-link to="/info">Info</router-link>
-  </div>
-  <router-view />
+    <!--
+    <div id="nav">
+        <router-link to="/dashboard">Dashboard</router-link>
+        <router-link to="/settings">Settings</router-link>
+        <router-link to="/info">Info</router-link>
+    </div>
+    <router-view />
+    -->
+
+    <div class="splitter">
+        <side-menu />
+        <div class="content">
+            <div v-if="errors" class="big-error">
+                <div v-for="error in errors" :key="error" class="big-error-item">Error</div>
+            </div>
+            <router-view />
+        </div>
+    </div>
+
 </template>
 
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+<style lang="scss"></style>
 
-#nav {
-  padding: 30px;
+<script lang="ts">
+import { defineComponent } from "vue";
 
-  a {
-    font-weight: bold;
-    color: #2c3e50;
+import SideMenu from "@/components/SideMenu.vue";
 
-    &.router-link-exact-active {
-      color: #42b983;
-    }
-  }
-}
-</style>
+import type { ApiConfig } from "@/twitchautomator.d";
+
+export default defineComponent({
+    name: "App",
+    data() {
+        return {
+            config: Array as () => ApiConfig[],
+            version: null,
+            errors: []
+        };
+    },
+    created() {
+      this.fetchData();
+    },
+    methods: {
+      fetchData() {
+        this.config = [] as any;
+        fetch("/api/v0/settings/list")
+          .then((response) => response.json())
+          .then((json) => {
+            this.config = json.data.config;
+            this.version = json.data.version;
+            console.log("config", this.config);
+          });
+      },
+    },
+    components: {
+        SideMenu
+    },
+});
+</script>

@@ -1,0 +1,135 @@
+<template>
+    <div class="side-menu">
+
+        <div class="menu-top">
+            <div class="top-menu-item title">
+                <a href="#">
+                    <img src="#" class="favicon" width="24" height="24" :alt="$root.config.app_name">
+                    <span class="title">
+                        {{ $root.config.app_name }} {{ $root.version }}
+                        <span v-if="$root.config.debug">(debug)</span>
+                    </span>
+                </a>
+            </div>
+        </div>
+
+        <!--
+        <div class="menu-middle">
+            {% if streamerList %}
+
+                {% for streamer in streamerList|sort((a, b) => a.display_name > b.display_name) %}
+
+                    <div class="top-menu-item{{ streamer.is_live ? ' is-live' : '' }} streamer" data-streamer="{{ streamer.display_name }}">
+                        
+                        <a href="#streamer_{{ streamer.display_name }}">
+
+                            <span class="username">{{ streamer.display_name }}</span>
+                            <span class="vodcount">{{ streamer.vods_list.length }}</span>
+                            <span class="subtitle">
+                                {% if streamer.is_live %}
+                                    
+                                    {% if streamer.current_game.game_name == 'Just Chatting' or streamer.current_game.game_name == 'IRL' or streamer.current_game.game_name == 'Art' %}
+                                        <strong>{{ streamer.current_game.game_name }}</strong>
+                                    {% else %}
+                                        Playing <strong>{{ streamer.current_game.game_name }}</strong>
+                                    {% endif %}
+
+                                    for <span id="duration_{{ streamer.display_name }}">{{ humanDuration(streamer.current_vod.duration_live) }}</span>
+
+                                {% elseif streamer.is_converting %}
+                                    Converting...
+                                {% else %}
+                                    {# Offline #}
+                                {% endif %}
+                            </span>
+
+                        </a>
+
+                    </div>
+
+                    <div class="top-menu-item streamer-jumpto">
+                        <ul>
+                        {% for vodclass in streamer.vods_list %}
+                            <li>
+                                <a href="#vod_{{ vodclass.basename }}" data-basename="{{ vodclass.basename }}" class="{{ html_classes({
+                                        'is-favourite': vodclass.hasFavouriteGame,
+                                        'is-live': vodclass.is_capturing,
+                                        'is-converting': vodclass.is_converting,
+                                        'is-waiting': not vodclass.is_capturing and not vodclass.is_converting and not vodclass.is_finalized
+                                    }) }}" title="{{ vodclass.dt_started_at|date('Y-m-d H:i:s') }}">
+                                    {# <span class="icon is-active"><i class="fa fa-arrow-circle-right"></i></span> #}
+                                    {% if vodclass.is_capturing %}
+                                        <span class="icon"><i class="fa fa-sync fa-spin"></i></span> {# capturing #}
+                                    {% elseif vodclass.is_converting %}
+                                        <span class="icon"><i class="fa fa-cog fa-spin"></i></span> {# converting #}
+                                    {% elseif vodclass.hasFavouriteGame %}
+                                        <span class="icon"><i class="fa fa-star"></i></span> {# favourite #}
+                                    {% elseif not vodclass.is_capturing and not vodclass.is_converting and not vodclass.is_finalized %}
+                                        <span class="icon"><i class="far fa-hourglass"></i></span> {# waiting after capture #}
+                                    {% elseif vodclass.is_finalized %}
+                                        <span class="icon"><i class="fa fa-film"></i></span> {# video #}
+                                    {% endif %}
+                                    {% if not config.relative_time and vodclass.dt_started_at %}{{ formatDate(vodclass.dt_started_at) }}{% endif %} {# absolute time #}
+                                    {% if config.relative_time and vodclass.dt_started_at %}{{ humanDate(vodclass.dt_started_at.getTimestamp) }}{% endif %} {# relative time #}
+                                    {% if vodclass.is_capturing %}
+                                        {% if vodclass.duration_live %}&middot; ({{ config.relative_time ? humanRealDuration(vodclass.duration_live) : humanDuration(vodclass.duration_live) }}+){% endif %} {# duration #}
+                                        {% if vodclass.getRecordingSize %}&middot; {{ formatBytes(vodclass.getRecordingSize) }}+{% endif %} {# filesize #}
+                                    {% else %}
+                                        {% if vodclass.duration_seconds %}&middot; ({{ config.relative_time ? humanRealDuration(vodclass.duration_seconds) : humanDuration(vodclass.duration_seconds) }}){% endif %}{# duration #}
+                                        {% if vodclass.total_size %}&middot; {{ formatBytes(vodclass.total_size) }}{% endif %}{# filesize #}
+                                    {% endif %}
+                                    {% if vodclass.is_finalized %}
+                                        <span class="flags">
+                                            {% if vodclass.twitch_vod_exists is same as(false) %}<span class="icon is-error" title="Deleted"><i class="fa fa-trash"></i></span>{% endif %}{# vod deleted #}
+                                            {% if vodclass.twitch_vod_exists is same as(null) %}<span class="icon is-error" title="Not checked"><i class="fa fa-question"></i></span>{% endif %}{# vod not checked #}
+                                            {% if vodclass.twitch_vod_muted is same as(true) %}<span class="icon is-error" title="Muted"><i class="fa fa-volume-mute"></i></span>{% endif %}{# vod muted #}
+                                            {% if vodclass.is_capture_paused %}<span class="icon is-error" title="Paused"><i class="fa fa-pause"></i></span>{% endif %}{# capturing paused #}
+                                        </span>
+                                    {% endif %}
+                                    <div class="tooltip">
+                                        <div class="boxart-carousel is-small">
+                                            {% for game in vodclass.getUniqueGames %}
+                                                <div class="boxart-item">{% if game.image_url %}<img title="{{ game.name }}" alt="{{ game.name }}" src="{{ game.image_url }}" loading="lazy" />{% else %}{{ game.name }}{% endif %}</div>
+                                            {% endfor %}
+                                        </div>
+                                        <p>{{ vodclass.stream_title }}</p>
+                                    </div>
+                                </a>
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+
+                {% endfor %}
+
+            {% endif %}
+        </div>
+        -->
+
+        <div class="top-menu-item divider"></div>
+
+        <div class="menu-bottom">
+            <div class="top-menu-item icon right{{ is_current_url('dashboard') ? ' active' : '' }}">
+                <a href="#" title="Dashboard"><i class="fa fa-tachometer-alt"></i></a>
+            </div>
+            <div class="top-menu-item icon right">
+                <a href="javascript:window.forceRefresh();" title="Refresh"><i class="fa fa-sync"></i></a>
+            </div>
+            <div class="top-menu-item icon right">
+                <a href="javascript:notifyMe();" title="Notify"><i class="fa fa-bell"></i></a>
+            </div>
+            <div class="top-menu-item icon right{{ is_current_url('tools') ? ' active' : '' }}">
+                <a href="#" title="Tools"><i class="fa fa-wrench"></i></a>
+            </div>
+            <div class="top-menu-item icon right{{ is_current_url('settings') ? ' active' : '' }}">
+                <a href="#" title="Settings"><i class="fa fa-cog"></i></a>
+            </div>
+            <div class="top-menu-item icon right{{ is_current_url('about') ? ' active' : '' }}">
+                <a href="#" title="About"><i class="fa fa-info-circle"></i></a>
+            </div>
+            <div class="top-menu-item icon right">
+                <a class="linkback" href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer" title="GitHub"><i class="fab fa-github"></i></a>
+            </div>
+        </div>
+    </div>
+</template>

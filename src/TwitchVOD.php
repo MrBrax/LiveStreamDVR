@@ -103,15 +103,25 @@ class TwitchVOD
 
 	private array $associatedFiles = [];
 
+	public ?bool $api_hasFavouriteGame = null;
+	public ?array $api_getUniqueGames = null;
+	public ?string $api_getWebhookDuration = null;
+	public ?int $api_getDuration = null;
+	public $api_getCapturingStatus = null;
+	public ?int $api_getRecordingSize = null;
+	public ?int $api_getChatDumpStatus = null;
+	public ?int $api_getDurationLive = null;
+
 	private $pid_cache = [];
 
 	/**
 	 * Load a VOD with a JSON file
 	 *
 	 * @param string $filename
+	 * @param bool $api API call?
 	 * @return bool
 	 */
-	public function load(string $filename)
+	public function load(string $filename, $api = false)
 	{
 
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Loading VOD Class for {$filename}");
@@ -145,8 +155,11 @@ class TwitchVOD
 		$this->setupAssoc();
 		$this->setupFiles();
 
-		return true;
+		if ($api){
+			$this->setupApiHelper();
+		}
 
+		return true;
 	}
 
 	public function setupDates()
@@ -305,10 +318,21 @@ class TwitchVOD
 
 		// $this->duration 			= $this->json['duration'];
 		$this->duration_seconds 	= $this->json['duration_seconds'] ? (int)$this->json['duration_seconds'] : null;
-		
+
 		$dur = $this->getDurationLive();
 		$this->duration_live = $dur === false ? -1 : $dur;
+	}
 
+	public function setupApiHelper()
+	{
+		$this->api_hasFavouriteGame = $this->hasFavouriteGame();
+		$this->api_getUniqueGames = $this->getUniqueGames();
+		$this->api_getWebhookDuration = $this->getWebhookDuration();
+		$this->api_getDuration = $this->getDuration(true);
+		$this->api_getDurationLive = $this->getDurationLive();
+		$this->api_getCapturingStatus = $this->getCapturingStatus();
+		$this->api_getRecordingSize = $this->getRecordingSize() ?: null;
+		$this->api_getChatDumpStatus = $this->getChatDumpStatus() ?: null;
 	}
 
 	/**

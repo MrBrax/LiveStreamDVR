@@ -33,7 +33,7 @@ class TwitchChannel
      * @param string $username
      * @return void
      */
-    public function load(string $username)
+    public function load(string $username, $api = false)
     {
 
         $this->userid = TwitchHelper::getChannelId($username);
@@ -47,7 +47,7 @@ class TwitchChannel
 
         $config = TwitchConfig::getStreamer($username);
 
-        if(!$config){
+        if (!$config) {
             throw new \Exception("Streamer not found in config: {$username}");
             return false;
         }
@@ -73,7 +73,7 @@ class TwitchChannel
             }
         }
 
-        $this->parseVODs();
+        $this->parseVODs($api);
     }
 
     public function getFolder()
@@ -86,7 +86,7 @@ class TwitchChannel
      *
      * @return void
      */
-    private function parseVODs()
+    private function parseVODs($api = false)
     {
 
         $this->vods_raw = glob(TwitchHelper::vodFolder($this->display_name) . DIRECTORY_SEPARATOR . $this->display_name . "_*.json");
@@ -94,7 +94,9 @@ class TwitchChannel
         foreach ($this->vods_raw as $k => $v) {
 
             $vodclass = new TwitchVOD();
-            if (!$vodclass->load($v)) continue;
+            if (!$vodclass->load($v, $api)) {
+                continue;
+            }
 
             // if ($vodclass->is_recording && !$vodclass->is_converting) {
             if ($vodclass->is_capturing) {

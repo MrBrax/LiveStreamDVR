@@ -15,6 +15,7 @@ use App\TwitchChannel;
 trait ApiChannels
 {
 
+    /*
     private function generateStreamerList()
     {
 
@@ -27,12 +28,12 @@ trait ApiChannels
         usort( $streamerListStatic, function($a, $b){
             return $a->display_name <=> $b->display_name;
         });
-        */
+        *
 
         foreach ($streamerListStatic as $streamer) {
 
             $data = new TwitchChannel();
-            $data->load($streamer['username']);
+            $data->load($streamer['username'], true);
 
             $total_size += $data->vods_size;
 
@@ -40,6 +41,7 @@ trait ApiChannels
         }
         return [$streamerList, $total_size];
     }
+    */
 
     public function channels_list(Request $request, Response $response, $args)
     {

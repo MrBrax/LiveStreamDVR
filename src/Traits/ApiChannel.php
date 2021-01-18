@@ -23,7 +23,7 @@ trait ApiChannel
         $username = $args['username'];
 
         $channel = new TwitchChannel();
-        $channel->load($username);
+        $channel->load($username, true);
 
         $payload = json_encode([
             'data' => $channel,

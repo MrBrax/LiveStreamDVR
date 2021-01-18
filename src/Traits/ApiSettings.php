@@ -16,7 +16,7 @@ trait ApiSettings
 
         $config = [];
         foreach (TwitchConfig::$config as $key => $value) {
-            if (isset(TwitchConfig::getSettingField($key)['secret']) || $key == 'streamers' || $key == 'favourites') {
+            if (isset(TwitchConfig::getSettingField($key)['secret']) /* || $key == 'streamers' || $key == 'favourites'*/ ) {
                 continue;
             }
             $config[$key] = $value;
@@ -27,10 +27,18 @@ trait ApiSettings
             $fields[$value['key']] = $value;
         }
 
+        $package_path = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "package.json";
+        if (file_exists($package_path)) {
+            $version = json_decode(file_get_contents($package_path))->version;
+        }else{
+            $version = '?';
+        }
+
         $payload = json_encode([
             'data' => [
                 'config' => $config,
                 'fields' => $fields,
+                'version' => $version
             ],
             'status' => 'OK'
         ]);
