@@ -10,7 +10,10 @@ export default createStore({
         config: []
 
         // eslint-disable-next-line no-unused-labels
-        version: 0        
+        version: 0
+
+        // eslint-disable-next-line no-unused-labels
+        basePath: (window as any).BASE_URL
     },
     mutations: {
         updateStreamerList(state, data : ApiStreamer[] ){

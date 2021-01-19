@@ -144,7 +144,7 @@ export default defineComponent({
         fetchData() {
             this.aboutData = [];
 
-            fetch("/api/v0/about")
+            fetch(`api/v0/about`)
             .then((response) => response.json())
             .then((json) => {
                 const about = json.data;

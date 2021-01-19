@@ -11,13 +11,17 @@ use App\Controller\SubController;
 use App\Controller\ApiController;
 use App\Controller\CronController;
 
+use App\TwitchConfig;
+
 /** @var \Slim\App $app  */
 
 // Define named route
 
+/*
 $app->any("/*", function (Request $request, Response $response, array $args) use ($app) {
     die('yee');
 });
+*/
 
 /*
 $app->get('/', function (Request $request, Response $response, array $args) use ($app) {
@@ -25,6 +29,7 @@ $app->get('/', function (Request $request, Response $response, array $args) use 
     return $response->withStatus(302)->withHeader("Location", $url);
 })->setName('index');
 */
+
 
 /*
 $app->any('/', function (Request $request, Response $response, array $args) use ($app) {
@@ -100,7 +105,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
 
     // channel
     $group->group('/channel/{username}', function (RouteCollectorProxy $group) {
-        $group->get('/', ApiController::class . ':channel')->setName('api_channel');
+        $group->get('', ApiController::class . ':channel')->setName('api_channel');
         $group->get('/force_record', ApiController::class . ':channel_force_record')->setName('api_channel_force_record');
         $group->get('/dump_playlist', ApiController::class . ':channel_dump_playlist')->setName('api_channel_dump_playlist');
         $group->get('/subscription', ApiController::class . ':channel_subscription')->setName('api_channel_subscription');
@@ -132,6 +137,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
 
     $group->get('/about', ApiController::class . ':about')->setName('api_about');
 
+    /** @todo: rename */
     $group->group('/tools', function (RouteCollectorProxy $group) {
         $group->post('/fullvodburn', ApiController::class . ':tools_fullvodburn')->setName('api_tools_fullvodburn');
         $group->post('/voddownload', ApiController::class . ':tools_voddownload')->setName('api_tools_voddownload');
@@ -145,6 +151,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     });
 
     // cronjobs
+    /** @todo: rename */
     $group->group('/cron', function (RouteCollectorProxy $group) {
         $group->get('/check_deleted_vods', CronController::class . ':check_deleted_vods')->setName('cron_check_deleted_vods');
         $group->get('/check_muted_vods', CronController::class . ':check_muted_vods')->setName('cron_check_muted_vods');
@@ -157,6 +164,22 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
 
     // $group->get('/playlist_dump/{username}', ApiController::class . ':playlist_dump')->setName('api_playlist_dump');
 });
+
+
+$app->any('/', function (Request $request, Response $response, array $args) use ($app) {
+    $i = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . "index.html";
+    $contents = file_get_contents($i);
+    
+    $contents = str_replace('href="/js', 'href="' . TwitchConfig::cfg('basepath') . '/js', $contents);
+    $contents = str_replace('src="/js', 'src="' . TwitchConfig::cfg('basepath') . '/js', $contents);
+    $contents = str_replace('href="/css', 'href="' . TwitchConfig::cfg('basepath') . '/css', $contents);
+    $contents = str_replace('</head>', '<script>window.BASE_URL = "' . TwitchConfig::cfg('basepath') . '";</script></head>', $contents);
+
+    $response->getBody()->write($contents);
+    return $response;
+});
+
+
 
 // $app->get('/dialog/{type}/{text}', DebugController::class . ':dialog')->setName('dialog');
 

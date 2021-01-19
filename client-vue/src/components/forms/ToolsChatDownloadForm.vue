@@ -47,7 +47,7 @@ export default defineComponent({
             console.log( "form", form );
             console.log( "entries", inputs, inputs.entries(), inputs.values() );            
 
-            fetch(`/api/v0/tools/chatdownload`, {
+            fetch(`api/v0/tools/chatdownload`, {
                 method: 'POST',
                 body: inputs
             })

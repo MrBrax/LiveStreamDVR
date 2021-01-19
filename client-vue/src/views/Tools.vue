@@ -84,7 +84,7 @@ export default defineComponent({
             // this.settingsData = [];
             // this.settingsFields = [] as any;
 
-            fetch("/api/v0/jobs/list")
+            fetch(`api/v0/jobs/list`)
             .then((response) => response.json())
             .then((json) => {
                 const jobs = json.data;

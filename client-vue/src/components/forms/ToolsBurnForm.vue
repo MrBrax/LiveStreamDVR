@@ -52,7 +52,7 @@ export default defineComponent({
             console.log( "form", form );
             console.log( "entries", inputs, inputs.entries(), inputs.values() );            
 
-            fetch(`/api/v0/###`, {
+            fetch(`api/v0/###`, {
                 method: 'POST',
                 body: inputs
             })

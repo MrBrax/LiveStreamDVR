@@ -45,7 +45,7 @@ export default defineComponent({
         fetchData() {
             // this.config = [] as any;
             this.$store.commit('updateConfig', []);
-            fetch("/api/v0/settings/list")
+            fetch(`api/v0/settings/list`)
             .then((response) => response.json())
             .then((json) => {
                 this.$store.commit('updateConfig', json.data.config);

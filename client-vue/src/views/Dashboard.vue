@@ -50,7 +50,7 @@ export default defineComponent({
     },
     methods: {
         async fetchData() {
-            return fetch("/api/v0/channels/list")
+            return fetch(`api/v0/channels/list`)
             .then((response) => response.json())
             .then((json) => {
                 if(!json.data || !json.data.streamer_list){

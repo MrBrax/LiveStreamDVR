@@ -72,7 +72,7 @@ export default defineComponent({
             // this.settingsData = [];
             // this.settingsFields = [] as any;
 
-            fetch("/api/v0/settings/list")
+            fetch(`api/v0/settings/list`)
             .then((response) => response.json())
             .then((json) => {
 
@@ -90,7 +90,7 @@ export default defineComponent({
 
             });
 
-            fetch("/api/v0/games/list")
+            fetch(`api/v0/games/list`)
             .then((response) => response.json())
             .then((json) => {
                 const games = json.data;

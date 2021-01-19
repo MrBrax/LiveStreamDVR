@@ -45,7 +45,7 @@ export default defineComponent({
             console.log( "form", form );
             console.log( "entries", inputs, inputs.entries(), inputs.values() );            
 
-            fetch(`/api/v0/favourites/save`, {
+            fetch(`api/v0/favourites/save`, {
                 method: 'POST',
                 body: inputs
             })

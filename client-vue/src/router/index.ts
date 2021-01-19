@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
+import { createRouter, createWebHashHistory, createWebHistory, RouteRecordRaw } from "vue-router";
 import Dashboard from "../views/Dashboard.vue";
 
 const routes: Array<RouteRecordRaw> = [
@@ -47,7 +47,9 @@ const routes: Array<RouteRecordRaw> = [
 ];
 
 const router = createRouter({
-    history: createWebHistory(process.env.BASE_URL),
+    history: createWebHashHistory(),
+    // history: createWebHistory(process.env.BASE_URL),
+    // history: createWebHistory((window as any).BASE_URL),
     routes,
     scrollBehavior(to, from, savedPosition){
         if (savedPosition) {
@@ -55,7 +57,7 @@ const router = createRouter({
         } else {
             return { x: 0, y: 0 } as any;
         }
-    }
+    }, 
 });
 
 export default router;

@@ -76,7 +76,7 @@ export default defineComponent({
             console.log( "form", form );
             console.log( "entries", inputs, inputs.entries(), inputs.values() );
 
-            fetch(`/api/v0/channels/update`, {
+            fetch(`api/v0/channels/update`, {
                 method: 'POST',
                 body: inputs
             })

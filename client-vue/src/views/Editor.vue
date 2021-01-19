@@ -85,7 +85,7 @@ export default defineComponent({
     methods: {
         fetchData() {
             // this.vodData = [];
-            fetch(`/api/v0/vod/${this.vod}/`)
+            fetch(`api/v0/vod/${this.vod}/`)
             .then((response) => response.json())
             .then((json) => {
                 this.vodData = json.data;
@@ -128,7 +128,7 @@ export default defineComponent({
             data.append('time_out', this.timeOut.toString());
             data.append('name', this.cutName);
 
-            fetch(`/api/v0/vod/${this.vod}/cut`, {
+            fetch(`api/v0/vod/${this.vod}/cut`, {
                 method: 'POST',
                 body: data
             })
