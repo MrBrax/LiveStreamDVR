@@ -1,4 +1,5 @@
 vendor/
+build/
 .env
 config.json
 config/games.json

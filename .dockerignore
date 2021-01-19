@@ -1,5 +1,6 @@
 .vscode
 cache
+build
 config/config.json
 config/games_v2.json
 config/oauth.bin
@@ -15,3 +16,7 @@ docker/saved_vods
 public/vods
 public/saved_clips
 public/saved_vods
+client-vue/node_modules
+client-vue/dist
+client-vue/.env
+client-vue/.env.production

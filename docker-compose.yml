@@ -8,6 +8,7 @@ services:
     volumes:
       - ./config:/var/www/twitchautomator/config
       - ./cache:/var/www/twitchautomator/cache
+      - ./logs:/var/www/twitchautomator/logs
       - ./docker/vods:/var/www/twitchautomator/public/vods
       - ./docker/saved_clips:/var/www/twitchautomator/public/saved_clips
       - ./docker/saved_vods:/var/www/twitchautomator/public/saved_vods
