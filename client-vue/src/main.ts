@@ -5,7 +5,7 @@ import store from "./store";
 
 import "./assets/style.scss";
 
-import { format, toDate, parse, formatDistance } from 'date-fns';
+import { format, parse, formatDistance } from 'date-fns';
 const dateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000
 
 const helpers = {
@@ -35,7 +35,7 @@ const helpers = {
             bytes /= Math.pow(1024, pow);
             // bytes /= (1 << (10 * pow));
             // const finalAmount = Math.round(bytes)
-            const finalAmount = +(Math.round(bytes + "e+" + precision)  + "e-" + precision);
+            const finalAmount = bytes.toFixed(precision);
             return `${finalAmount} ${units[pow]}`;
         },
         niceDuration(durationInSeconds: number): string {
@@ -76,15 +76,15 @@ const helpers = {
                 new Date()
             );
         },
-        sortObject( game: Record<string, any>, value: string ){
-            return Object.entries(game).sort((a,b) => {
+        sortObject(game: Record<string, any>, value: string) {
+            return Object.entries(game).sort((a, b) => {
                 return (a as any)[value] - (b as any)[value];
             });
         }
     },
-    data(){
+    data() {
         return {
-            twitchQuality: ['best','1080p60','1080p','720p60','720p','480p','360p','160p','140p','worst']
+            twitchQuality: ['best', '1080p60', '1080p', '720p60', '720p', '480p', '360p', '160p', '140p', 'worst']
         };
     }
 };

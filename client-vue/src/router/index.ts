@@ -47,8 +47,8 @@ const routes: Array<RouteRecordRaw> = [
 ];
 
 const router = createRouter({
-    history: createWebHashHistory(),
-    // history: createWebHistory(process.env.BASE_URL),
+    // history: createWebHashHistory(),
+    history: createWebHistory(process.env.BASE_URL),
     // history: createWebHistory((window as any).BASE_URL),
     routes,
     scrollBehavior(to, from, savedPosition){

@@ -166,14 +166,16 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
 });
 
 
-$app->any('/', function (Request $request, Response $response, array $args) use ($app) {
+$app->any('/{any:.*}', function (Request $request, Response $response, array $args) use ($app) {
     $i = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . "index.html";
     $contents = file_get_contents($i);
     
-    $contents = str_replace('href="/js', 'href="' . TwitchConfig::cfg('basepath') . '/js', $contents);
-    $contents = str_replace('src="/js', 'src="' . TwitchConfig::cfg('basepath') . '/js', $contents);
-    $contents = str_replace('href="/css', 'href="' . TwitchConfig::cfg('basepath') . '/css', $contents);
-    $contents = str_replace('</head>', '<script>window.BASE_URL = "' . TwitchConfig::cfg('basepath') . '";</script></head>', $contents);
+    // $contents = str_replace('href="/js', 'href="' . TwitchConfig::cfg('basepath') . '/js', $contents);
+    // $contents = str_replace('src="/js', 'src="' . TwitchConfig::cfg('basepath') . '/js', $contents);
+    // $contents = str_replace('href="/css', 'href="' . TwitchConfig::cfg('basepath') . '/css', $contents);
+    
+    // $contents = str_replace('/assets/', TwitchConfig::cfg('basepath') . '/assets/', $contents);
+    // $contents = str_replace('</head>', '<script>window.BASE_URL = "' . TwitchConfig::cfg('basepath') . '";</script></head>', $contents);
 
     $response->getBody()->write($contents);
     return $response;

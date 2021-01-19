@@ -1,5 +1,8 @@
 module.exports = {
     // publicPath: '/test/',
+    publicPath: process.env.BASE_URL,
+    // publicPath: './',
+    assetsDir: 'assets',
     devServer: {
         port: 8081,
         proxy: {

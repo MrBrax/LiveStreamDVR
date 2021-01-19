@@ -1,12 +1,13 @@
 <template>
     <div class="container">
-
         <!-- streamers -->
         <section class="section">
             <div class="section-title"><h1>Streamers</h1></div>
             <div class="section-content">
                 <div class="card" v-for="streamer in formStreamers" :key="streamer.username">
-                    <div class="card-title"><h2>{{ streamer.username }}</h2></div>
+                    <div class="card-title">
+                        <h2>{{ streamer.username }}</h2>
+                    </div>
                     <div class="card-content">
                         <streamer-update-form :streamer="streamer" @formSuccess="fetchData" />
                     </div>
@@ -68,7 +69,7 @@ export default defineComponent({
     },
     methods: {
         fetchData() {
-            
+
             // this.settingsData = [];
             // this.settingsFields = [] as any;
 

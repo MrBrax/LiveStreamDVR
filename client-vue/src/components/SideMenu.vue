@@ -21,7 +21,7 @@
 
                 <div :class="{ 'top-menu-item': true, 'is-live': streamer.is_live, 'streamer': true }" :data-streamer="streamer.display_name">
                     
-                    <a :href="'#streamer_' + streamer.display_name">
+                    <router-link :to="'#streamer_' + streamer.display_name">
 
                         <span class="username">{{ streamer.display_name }}</span>
                         <span class="vodcount">{{ streamer.vods_list.length }}</span>
@@ -35,7 +35,7 @@
                                     Playing <strong>{{ streamer.current_game.game_name }}</strong>
                                 </template>
 
-                                for <span id="duration_{{ streamer.display_name }}">{{ humanDuration(streamer.current_vod.duration_live) }}</span>
+                                for {{ vodTimes[vod.basename] }}
 
                             </template>
                             <template v-else-if="streamer.is_converting">
@@ -46,7 +46,7 @@
                             </template>
                         </span>
 
-                    </a>
+                    </router-link>
 
                 </div>
                 
@@ -67,16 +67,23 @@
                                 <span v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized" class="icon"><i class="far fa-hourglass"></i></span> <!-- waiting after capture -->
                                 <span v-else-if="vod.is_finalized" class="icon"><i class="fa fa-film"></i></span> <!-- video -->
 
+                                <!-- started at -->
                                 <span v-if="!$store.state.config.relative_time && vod.dt_started_at">{{ formatDate(vod.dt_started_at.date) }}</span><!-- absolute time -->
                                 <span v-if="$store.state.config.relative_time && vod.dt_started_at">{{ humanDate(vod.dt_started_at.date) }}</span><!-- relative time -->
+
+                                <!-- when capturing -->
                                 <template v-if="vod.is_capturing">
-                                    <span v-if="vod.duration_live">&middot; ({{ $store.state.config.relative_time ? niceDuration(vod.duration_live) : humanDuration(vod.duration_live) }}+)</span><!-- duration -->
+                                    <!--<span v-if="vod.duration_live">&middot; ({{ $store.state.config.relative_time ? niceDuration(vod.duration_live) : humanDuration(vod.duration_live) }}+)</span>-->
+                                    <span>&middot; ({{ vodTimes[vod.basename] }})</span><!-- duration -->
                                     <span v-if="vod.getRecordingSize">&middot; {{ formatBytes(vod.getRecordingSize, 2) }}+</span><!-- filesize -->
                                 </template>
+
+                                <!-- when not capturing -->
                                 <template v-else>
                                     <span v-if="vod.duration_seconds">&middot; ({{ $store.state.config.relative_time ? niceDuration(vod.duration_seconds) : humanDuration(vod.duration_seconds) }})</span><!-- duration -->
                                     <span v-if="vod.total_size">&middot; {{ formatBytes(vod.total_size, 2) }}</span><!-- filesize -->
                                 </template>
+
                                 <template v-if="vod.is_finalized">
                                     <span class="flags">
                                         <span v-if="vod.twitch_vod_exists === false"><span class="icon is-error" title="Deleted"><i class="fa fa-trash"></i></span></span><!-- vod deleted -->
@@ -87,7 +94,7 @@
                                 </template>
                                 <div class="tooltip">
                                     <div class="boxart-carousel is-small">
-                                        <div v-for="game in vod.getUniqueGames" :key="game.name" class="boxart-item">
+                                        <div v-for="game in vod.api_getUniqueGames" :key="game.name" class="boxart-item">
                                             <img v-if="game.image_url" :title="game.name" :alt="game.name" :src="game.image_url" loading="lazy" />
                                             <span v-else>{{ game.name }}</span>
                                         </div>
@@ -137,13 +144,48 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 
-// import type { ApiConfig } from "@/twitchautomator.d";
+import type { ApiStreamer } from "@/twitchautomator.d";
+
+const fmt = "yyyy-MM-dd HH:mm:ss.SSSSSS";
+
+import { parse, intervalToDuration } from 'date-fns';
 
 export default defineComponent({
     name: "SideMenu",
-    props: [
+    data() {
+        return {
+            vodTimes: {} as Record<string, string>,
+            interval: 0
+        };
+    },
+    mounted(){
+        this.interval = setInterval(() => {
+            if(!this.$store.state.streamerList) return;
+
+            for(const streamer of this.$store.state.streamerList){
+                for(const vod of (streamer as ApiStreamer).vods_list){
+                    if( vod.dt_started_at ){
+                        
+                        const dt = vod.dt_started_at.date;
+                        const o = parse(dt, fmt, new Date());
+                        const dur = intervalToDuration({ start: o, end: new Date()});
+                        
+                        this.vodTimes[vod.basename] = dur.hours?.toString().padStart(2, "0") + ":" + dur.minutes?.toString().padStart(2, "0") + ":" + dur.seconds?.toString().padStart(2, "0");
+
+                    }
+                }
+            }
+            
+        }, 1000);
+    },
+    unmounted(){
+        if(this.interval){
+            clearTimeout(this.interval);
+        }
+    },
+    computed: {
         
-    ],
+    }
 });
 
 </script>

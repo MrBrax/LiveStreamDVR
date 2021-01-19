@@ -1,6 +1,5 @@
 <template>
     <div class="container">
-        
         <section class="section">
             <div class="section-title"><h1>Full VOD fetch and burn chat</h1></div>
             <div class="section-content">
@@ -44,24 +43,22 @@
         <section class="section">
             <div class="section-title"><h1>Current jobs</h1></div>
             <div class="section-content">
-
                 <table>
                     <tr v-for="job in jobsData" :key="job.name">
                         <td>{{ job.name }}</td>
                         <td>{{ job.pid }}</td>
-                        <td><!-- {{ job.status }}-->{{ job.status ? 'Running' : 'Unexpected exit' }}</td>
+                        <td><!-- {{ job.status }}-->{{ job.status ? "Running" : "Unexpected exit" }}</td>
                         <td><a v-if="job.status" @click="killJob(job.name)">Kill</a></td>
                     </tr>
                 </table>
+
                 <em v-if="jobsData.length == 0">None</em>
             </div>
         </section>
-
     </div>
 </template>
 
 <script lang="ts">
-
 import { defineComponent } from "vue";
 
 import ToolsBurnForm from "@/components/forms/ToolsBurnForm.vue";
@@ -80,21 +77,19 @@ export default defineComponent({
     },
     methods: {
         fetchData() {
-            
             // this.settingsData = [];
             // this.settingsFields = [] as any;
 
             fetch(`api/v0/jobs/list`)
-            .then((response) => response.json())
-            .then((json) => {
-                const jobs = json.data;
-                this.jobsData = jobs;
-            });
-
+                .then(response => response.json())
+                .then(json => {
+                    const jobs = json.data;
+                    this.jobsData = jobs;
+                });
         },
-        killJob( name:string ){
+        killJob(name: string) {
             alert("kill" + name);
-        },
+        }
     },
     components: {
         ToolsBurnForm,

@@ -1,13 +1,11 @@
 <template>
-    
     <div class="videoplayer">
-
         <video id="video" ref="player" :src="vodData.webpath + '/' + vodData.basename + '.mp4'" @timeupdate="updateVideoTime" width="1280"></video>
-		<div id="videoplayer-controls">
-			<button class="button" @click="play">Play</button>
-			<button class="button" @click="pause">Pause</button>
-		</div>
-		<div id="timeline" ref="timeline" @click="seek">
+        <div id="videoplayer-controls">
+            <button class="button" @click="play">Play</button>
+            <button class="button" @click="pause">Pause</button>
+        </div>
+        <div id="timeline" ref="timeline" @click="seek">
             <div id="timeline-cut" v-bind:style="timelineCutStyle"></div>
             <div id="timeline-playhead" v-bind:style="timelinePlayheadStyle"></div>
         </div>
@@ -15,37 +13,41 @@
         <!--{{ currentVideoTime }} / {{ $refs.player ? $refs.player.currentTime : 'init' }} / {{ $refs.player ? $refs.player.duration : 'init' }}-->
 
         <div class="videoplayer-chapters">
-
-            <div v-for="chapter in vodData.chapters" :key="chapter" :title="chapter.title + ' | \\n' + chapter.game_name" class="videoplayer-chapter" :style="{ width: chapter.width +'%' }" @click="scrub(chapter.offset, chapter.duration)">
+            <div
+                v-for="chapter in vodData.chapters"
+                :key="chapter"
+                :title="chapter.title + ' | \\n' + chapter.game_name"
+                class="videoplayer-chapter"
+                :style="{ width: chapter.width + '%' }"
+                @click="scrub(chapter.offset, chapter.duration)"
+            >
                 <div class="videoplayer-chapter-title">{{ chapter.title }}</div>
                 <div class="videoplayer-chapter-game">{{ chapter.game_name }}</div>
             </div>
-
         </div>
 
         <div class="videoplayer-cut">
-
             <input type="hidden" name="vod" value="{{ vodData.basename }}" />
 
             <div>
                 <button type="button" class="button" @click="timeIn = Math.round(currentVideoTime)">Mark in</button>
-                <input class="input" name="start" v-model="timeIn" placeholder="In timestamp">
+                <input class="input" name="start" v-model="timeIn" placeholder="In timestamp" />
             </div>
 
             <div>
                 <button type="button" class="button" @click="timeOut = Math.round(currentVideoTime)">Mark out</button>
-                <input class="input" name="end" v-model="timeOut" placeholder="Out timestamp">
+                <input class="input" name="end" v-model="timeOut" placeholder="Out timestamp" />
             </div>
 
             <div>
-                <input class="input" type="text" name="name" v-model="cutName" placeholder="Name (optional)">
+                <input class="input" type="text" name="name" v-model="cutName" placeholder="Name (optional)" />
             </div>
 
             <div>
                 <button type="button" class="button" @click="submit">Submit cut</button>
             </div>
-				
-			<!--
+
+            <!--
 			<form method="post" action="{{ url_for('api_vod_export', { 'vod': vodclass.basename }) }}">
 				<select name="destination">
 					<option>YouTube</option>
@@ -54,9 +56,7 @@
 			</form>
 			-->
         </div>
-
     </div>
-
 </template>
 
 <script lang="ts">
