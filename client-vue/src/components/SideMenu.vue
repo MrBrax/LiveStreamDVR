@@ -71,11 +71,11 @@
                                 <span v-if="$store.state.config.relative_time && vod.dt_started_at">{{ humanDate(vod.dt_started_at.date) }}</span><!-- relative time -->
                                 <template v-if="vod.is_capturing">
                                     <span v-if="vod.duration_live">&middot; ({{ $store.state.config.relative_time ? niceDuration(vod.duration_live) : humanDuration(vod.duration_live) }}+)</span><!-- duration -->
-                                    <span v-if="vod.getRecordingSize">&middot; {{ formatBytes(vod.getRecordingSize) }}+</span><!-- filesize -->
+                                    <span v-if="vod.getRecordingSize">&middot; {{ formatBytes(vod.getRecordingSize, 2) }}+</span><!-- filesize -->
                                 </template>
                                 <template v-else>
                                     <span v-if="vod.duration_seconds">&middot; ({{ $store.state.config.relative_time ? niceDuration(vod.duration_seconds) : humanDuration(vod.duration_seconds) }})</span><!-- duration -->
-                                    <span v-if="vod.total_size">&middot; {{ formatBytes(vod.total_size) }}</span><!-- filesize -->
+                                    <span v-if="vod.total_size">&middot; {{ formatBytes(vod.total_size, 2) }}</span><!-- filesize -->
                                 </template>
                                 <template v-if="vod.is_finalized">
                                     <span class="flags">

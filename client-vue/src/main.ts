@@ -34,7 +34,9 @@ const helpers = {
             // Uncomment one of the following alternatives
             bytes /= Math.pow(1024, pow);
             // bytes /= (1 << (10 * pow));
-            return `${Math.round(bytes)} ${units[pow]}`;
+            // const finalAmount = Math.round(bytes)
+            const finalAmount = +(Math.round(bytes + "e+" + precision)  + "e-" + precision);
+            return `${finalAmount} ${units[pow]}`;
         },
         niceDuration(durationInSeconds: number): string {
 
