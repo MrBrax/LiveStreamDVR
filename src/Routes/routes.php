@@ -6,32 +6,38 @@ use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 use Slim\Routing\RouteCollectorProxy;
 
-use App\TwitchHelper;
-use App\TwitchAutomator;
-use App\Controller\AboutController;
-use App\Controller\DashboardController;
 use App\Controller\HookController;
-use App\Controller\VodController;
-use App\Controller\PlayerController;
-use App\Controller\SettingsController;
 use App\Controller\SubController;
 use App\Controller\ApiController;
-use App\Controller\DebugController;
 use App\Controller\CronController;
-use App\Controller\ToolsController;
-use App\TwitchConfig;
 
 /** @var \Slim\App $app  */
 
 // Define named route
+
+$app->any("/*", function (Request $request, Response $response, array $args) use ($app) {
+    die('yee');
+});
+
+/*
 $app->get('/', function (Request $request, Response $response, array $args) use ($app) {
     $url = $app->getBasePath() . '/dashboard';
     return $response->withStatus(302)->withHeader("Location", $url);
 })->setName('index');
+*/
 
-$app->get('/dashboard', DashboardController::class . ':dashboard')->setName('dashboard');
-$app->get('/about', AboutController::class . ':about')->setName('about');
+/*
+$app->any('/', function (Request $request, Response $response, array $args) use ($app) {
+    $i = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "client-vue" . DIRECTORY_SEPARATOR . "dist" . DIRECTORY_SEPARATOR . "index.html";
+    $response->getBody()->write(file_get_contents($i));
+    return $response;
+});
+*/
 
+// $app->get('/dashboard', DashboardController::class . ':dashboard')->setName('dashboard');
+// $app->get('/about', AboutController::class . ':about')->setName('about');
+
+/*
 $app->group('/settings', function (RouteCollectorProxy $group) {
     $group->get('', SettingsController::class . ':settings')->setName('settings');
     // $group->post('/save', SettingsController::class . ':settings_save')->setName('settings_save');
@@ -40,25 +46,26 @@ $app->group('/settings', function (RouteCollectorProxy $group) {
     // $group->post('/streamer/update', SettingsController::class . ':streamer_update')->setName('streamer_update');
     // $group->post('/favourites/save', SettingsController::class . ':favourites_save')->setName('favourites_save');
 });
+*/
 
-$app->get('/player/{vod}', PlayerController::class . ':player')->setName('player');
-$app->post('/cut', VodController::class . ':cut')->setName('cut');
+// $app->get('/player/{vod}', PlayerController::class . ':player')->setName('player');
+// $app->post('/cut', VodController::class . ':cut')->setName('cut');
 // $app->get('/chat/{vod}', VodController::class . ':chat')->setName('chat');
 // $app->get('/save/{vod}', VodController::class . ':save')->setName('save');
 // $app->get('/delete/{vod}', VodController::class . ':delete')->setName('delete');
 // $app->get('/convert/{vod}', VodController::class . ':convert')->setName('convert');
 // $app->get('/download/{vod}', VodController::class . ':download')->setName('download');
-$app->get('/troubleshoot/{vod}', VodController::class . ':troubleshoot')->setName('troubleshoot');
+// $app->get('/troubleshoot/{vod}', VodController::class . ':troubleshoot')->setName('troubleshoot');
 // $app->get('/check_mute/{vod}', VodController::class . ':check_mute')->setName('check_mute');
 // $app->get('/render_chat/{vod}', VodController::class . ':render_chat')->setName('render_chat');
 // $app->get('/fullburn/{vod}', VodController::class . ':fullburn')->setName('fullburn');
 
-$app->get('/hook', HookController::class . ':hook')->setName('hook');
-$app->post('/hook', HookController::class . ':hook')->setName('hook_post');
+// $app->get('/hook', HookController::class . ':hook')->setName('hook');
+// $app->post('/hook', HookController::class . ':hook')->setName('hook_post');
 
-$app->get('/sub', SubController::class . ':sub')->setName('sub'); /** @deprecated */
-$app->get('/subs', SubController::class . ':subs')->setName('subs');
-$app->get('/unsub_all', SubController::class . ':unsub_all')->setName('unsub_all');
+// $app->get('/sub', SubController::class . ':sub')->setName('sub'); /** @deprecated */
+// $app->get('/subs', SubController::class . ':subs')->setName('subs');
+// $app->get('/unsub_all', SubController::class . ':unsub_all')->setName('unsub_all');
 
 // api v0
 $app->group('/api/v0', function (RouteCollectorProxy $group) {
@@ -84,21 +91,25 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     });
 
     // channels
-    $group->get('/channels/list', ApiController::class . ':channels_list')->setName('api_channels_list');
-    $group->post('/channels/add', ApiController::class . ':channels_add')->setName('api_channels_add');
-    $group->post('/channels/update', ApiController::class . ':channels_update')->setName('api_channels_update');
-    $group->post('/channels/delete', ApiController::class . ':channels_delete')->setName('api_channels_delete');
+    $group->group('/channels', function (RouteCollectorProxy $group) {
+        $group->get('/list', ApiController::class . ':channels_list')->setName('api_channels_list');
+        $group->post('/add', ApiController::class . ':channels_add')->setName('api_channels_add');
+        $group->post('/update', ApiController::class . ':channels_update')->setName('api_channels_update');
+        $group->post('/delete', ApiController::class . ':channels_delete')->setName('api_channels_delete');
+    });
 
     // channel
-    $group->get('/channel/{username}', ApiController::class . ':channel')->setName('api_channel');
-    $group->get('/channel/{username}/force_record', ApiController::class . ':channel_force_record')->setName('api_channel_force_record');
-    $group->get('/channel/{username}/dump_playlist', ApiController::class . ':channel_dump_playlist')->setName('api_channel_dump_playlist');
-    $group->get('/channel/{username}/subscription', ApiController::class . ':channel_subscription')->setName('api_channel_subscription');
+    $group->group('/channel/{username}', function (RouteCollectorProxy $group) {
+        $group->get('/', ApiController::class . ':channel')->setName('api_channel');
+        $group->get('/force_record', ApiController::class . ':channel_force_record')->setName('api_channel_force_record');
+        $group->get('/dump_playlist', ApiController::class . ':channel_dump_playlist')->setName('api_channel_dump_playlist');
+        $group->get('/subscription', ApiController::class . ':channel_subscription')->setName('api_channel_subscription');
+    });
 
     // html render, make this obsolete some day
-    $group->get('/render/menu', ApiController::class . ':render_menu')->setName('api_render_menu');
-    $group->get('/render/streamer/{username}', ApiController::class . ':render_streamer')->setName('api_render_streamer');
-    $group->get('/render/log/[{filename}]', ApiController::class . ':render_log')->setName('api_render_log');
+    // $group->get('/render/menu', ApiController::class . ':render_menu')->setName('api_render_menu');
+    // $group->get('/render/streamer/{username}', ApiController::class . ':render_streamer')->setName('api_render_streamer');
+    // $group->get('/render/log/[{filename}]', ApiController::class . ':render_log')->setName('api_render_log');
 
     $group->get('/check_vods', ApiController::class . ':check_vods')->setName('check_vods');
 
@@ -121,43 +132,40 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
 
     $group->get('/about', ApiController::class . ':about')->setName('api_about');
 
+    $group->group('/tools', function (RouteCollectorProxy $group) {
+        $group->post('/fullvodburn', ApiController::class . ':tools_fullvodburn')->setName('api_tools_fullvodburn');
+        $group->post('/voddownload', ApiController::class . ':tools_voddownload')->setName('api_tools_voddownload');
+        $group->post('/chatdownload', ApiController::class . ':tools_chatdownload')->setName('api_tools_chatdownload');
+    });
+
+    $group->group('/subscriptions', function (RouteCollectorProxy $group) {
+        $group->get('/sub', ApiController::class . ':subscriptions_sub')->setName('api_subscriptions_sub'); /** @deprecated */
+        $group->get('/list', ApiController::class . ':subscriptions_list')->setName('api_subscriptions_list');
+        $group->get('/unsub', ApiController::class . ':subscriptions_unsub')->setName('api_subscriptions_unsub');
+    });
+
+    // cronjobs
+    $group->group('/cron', function (RouteCollectorProxy $group) {
+        $group->get('/check_deleted_vods', CronController::class . ':check_deleted_vods')->setName('cron_check_deleted_vods');
+        $group->get('/check_muted_vods', CronController::class . ':check_muted_vods')->setName('cron_check_muted_vods');
+        $group->get('/dump_playlists', CronController::class . ':dump_playlists')->setName('cron_dump_playlists');
+        $group->get('/sub', CronController::class . ':sub')->setName('cron_sub');
+    });
+
+    $group->any('/hook', ApiController::class . ':hook')->setName('hook');
+    // $group->post('/hook', ApiController::class . ':hook')->setName('hook_post');
+
     // $group->get('/playlist_dump/{username}', ApiController::class . ':playlist_dump')->setName('api_playlist_dump');
 });
 
 // $app->get('/dialog/{type}/{text}', DebugController::class . ':dialog')->setName('dialog');
 
-// cronjobs
-$app->group('/cron', function (RouteCollectorProxy $group) {
-    $group->get('/check_deleted_vods', CronController::class . ':check_deleted_vods')->setName('cron_check_deleted_vods');
-    $group->get('/check_muted_vods', CronController::class . ':check_muted_vods')->setName('cron_check_muted_vods');
-    $group->get('/dump_playlists', CronController::class . ':dump_playlists')->setName('cron_dump_playlists');
-    $group->get('/sub', CronController::class . ':sub')->setName('cron_sub');
-});
-
 // tools
+/*
 $app->group('/tools', function (RouteCollectorProxy $group) {
     $group->get('', ToolsController::class . ':tools')->setName('tools');
     $group->post('/fullvodburn', ToolsController::class . ':page_fullvodburn')->setName('tools_fullvodburn');
     $group->post('/voddownload', ToolsController::class . ':page_voddownload')->setName('tools_voddownload');
     $group->post('/chatdownload', ToolsController::class . ':page_chatdownload')->setName('tools_chatdownload');
 });
-
-// force start recording of streamer
-/*
-$app->get('/force_record/{username}', function (Request $request, Response $response, array $args) {
-    $channel_id = TwitchHelper::getChannelId($args['username']);
-    $streams = TwitchHelper::getStreams($channel_id);
-    if ($streams) {
-        set_time_limit(0);
-        $data = [
-            'data' => $streams
-        ];
-        $TwitchAutomator = new TwitchAutomator();
-        $TwitchAutomator->force_record = true;
-        $TwitchAutomator->handle($data);
-    } else {
-        $response->getBody()->write("No streams found for " . $args['username']);
-    }
-    return $response;
-})->setName('force_record');
 */

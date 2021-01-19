@@ -874,7 +874,7 @@ class TwitchHelper
 		$url = 'https://api.twitch.tv/helix/webhooks/hub';
 		$method = 'POST';
 
-		$hook_callback = TwitchConfig::cfg('app_url') . '/hook';
+		$hook_callback = TwitchConfig::cfg('app_url') . '/api/v0/hook';
 
 		if (TwitchConfig::cfg('instance_id')) {
 			$hook_callback .= '?instance=' . TwitchConfig::cfg('instance_id');
