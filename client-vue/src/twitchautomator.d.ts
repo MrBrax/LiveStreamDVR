@@ -25,7 +25,9 @@ export type ApiVodChapter = {
 
 export type ApiGame = {
     name: string;
+    game_name: string;
     box_art_url: string;
+    favourite: boolean;
 };
 
 export type ApiVod = {
@@ -97,6 +99,11 @@ export type ApiStreamer = {
   is_live: boolean;
   profile_image_url: string;
   subbed_at: PHPDateTimeJSON;
+  current_game: ApiGame;
+  current_vod: ApiVod;
+  channel_data: {
+      profile_image_url: string;
+  }
 };
 
 

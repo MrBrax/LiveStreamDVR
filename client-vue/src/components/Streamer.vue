@@ -64,8 +64,31 @@ export default defineComponent({
         streamer: Object as () => ApiStreamer,
     },
     methods: {
-        abortCapture(){
+        async abortCapture(){
             // href="{{ url_for('api_jobs_kill', { 'job': 'capture_' ~ streamer.current_vod.basename }) }}"
+
+            if(!this.streamer || !this.streamer.current_vod) return;
+
+            let response;
+            
+            try {
+                response = await this.$http.get(`/api/v0/jobs/kill/${this.streamer.current_vod.basename}`);
+            } catch (error) {
+                console.error("abortCapture error", error.response);
+                if(error.response.data && error.response.data.message){
+                    alert(error.response.data.message);
+                }
+                return;
+            }
+            
+            const data = response.data;
+            
+            if(data.message){
+                alert(data.message);
+            }
+
+            console.log("Killed", data);
+
         },
         async forceRecord() {
 
@@ -90,8 +113,31 @@ export default defineComponent({
             console.log("Recorded", data);
             
         },
-        playlistRecord(){
+        async playlistRecord(){
             // href="{{ url_for('api_channel_dump_playlist', { 'username': streamer.display_name }) }}"
+
+            if(!this.streamer || !this.streamer.current_vod) return;
+
+            let response;
+            
+            try {
+                response = await this.$http.get(`/api/v0/channel/${this.streamer.display_name}/dump_playlist`);
+            } catch (error) {
+                console.error("abortCapture error", error.response);
+                if(error.response.data && error.response.data.message){
+                    alert(error.response.data.message);
+                }
+                return;
+            }
+            
+            const data = response.data;
+            
+            if(data.message){
+                alert(data.message);
+            }
+
+            console.log("Killed", data);
+
         }
     },
     computed: {

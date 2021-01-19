@@ -117,7 +117,7 @@
 
         <div class="menu-bottom">
             <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'Dashboard' }">
-                <router-link to="/dashboard"><i class="fa fa-tachometer-alt"></i></router-link>
+                <router-link to="/dashboard" title="Dashboard"><i class="fa fa-tachometer-alt"></i></router-link>
             </div>
             <!--
             <div class="top-menu-item icon right">
@@ -131,7 +131,7 @@
                 <router-link to="/tools" title="Tools"><i class="fa fa-wrench"></i></router-link>
             </div>
             <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'Settings' }">
-                <router-link to="/settings"><i class="fa fa-cog"></i></router-link>
+                <router-link to="/settings" title="Settings"><i class="fa fa-cog"></i></router-link>
             </div>
             <div class="top-menu-item icon right">
                 <router-link to="/about" title="About"><i class="fa fa-info-circle"></i></router-link>
