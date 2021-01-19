@@ -48,7 +48,7 @@
                         <td>{{ job.name }}</td>
                         <td>{{ job.pid }}</td>
                         <td><!-- {{ job.status }}-->{{ job.status ? "Running" : "Unexpected exit" }}</td>
-                        <td><a v-if="job.status" @click="killJob(job.name)">Kill</a></td>
+                        <td><a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name)">Kill</a></td>
                     </tr>
                 </table>
 
@@ -88,7 +88,21 @@ export default defineComponent({
                 });
         },
         killJob(name: string) {
-            alert("kill" + name);
+
+            if(!confirm(`Kill job "${name}?"`)) return;
+            
+            fetch(`/api/v0/jobs/kill/${name}`, {
+                // method: 'POST',
+            })
+            .then((response) => response.json())
+            .then((json) => {
+                setTimeout(() => {
+                    this.fetchData();
+                }, 2000);
+            }).catch((test) => {
+                console.error("Error", test);
+            });
+
         }
     },
     components: {

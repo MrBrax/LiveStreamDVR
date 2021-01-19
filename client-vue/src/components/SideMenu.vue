@@ -14,14 +14,14 @@
         </div>
 
         
-        <div class="menu-middle" v-if="$route.name == 'Dashboard'">
+        <div class="menu-middle" v-if="$route.name == 'Dashboard' && $store.state.streamerList && $store.state.streamerList.length > 0">
             
             <!--{% for streamer in streamerList|sort((a, b) => a.display_name > b.display_name) %}-->
             <template v-for="streamer in $store.state.streamerList" :key="streamer.username">
 
                 <div :class="{ 'top-menu-item': true, 'is-live': streamer.is_live, 'streamer': true }" :data-streamer="streamer.display_name">
                     
-                    <router-link :to="'#streamer_' + streamer.display_name">
+                    <a :href="'#streamer_' + streamer.display_name">
 
                         <span class="username">{{ streamer.display_name }}</span>
                         <span class="vodcount">{{ streamer.vods_list.length }}</span>
@@ -35,7 +35,7 @@
                                     Playing <strong>{{ streamer.current_game.game_name }}</strong>
                                 </template>
 
-                                for {{ vodTimes[vod.basename] }}
+                                for {{ vodTimes[streamer.current_vod.basename] }}
 
                             </template>
                             <template v-else-if="streamer.is_converting">
@@ -46,7 +46,7 @@
                             </template>
                         </span>
 
-                    </router-link>
+                    </a>
 
                 </div>
                 

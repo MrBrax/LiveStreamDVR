@@ -43,13 +43,14 @@ export default defineComponent({
     },
     methods: {
         fetchData() {
-            // this.config = [] as any;
+            
+            // clear config
             this.$store.commit('updateConfig', []);
-            fetch(`api/v0/settings/list`)
-            .then((response) => response.json())
-            .then((json) => {
-                this.$store.commit('updateConfig', json.data.config);
-                this.$store.commit('updateVersion', json.data.version);
+
+            return this.$http.get(`/api/v0/settings/list`)
+            .then((response) => {
+                this.$store.commit('updateConfig', response.data.data.config);
+                this.$store.commit('updateVersion', response.data.data.version);
                 // this.config = json.data.config;
                 // this.version = json.data.version;
                 // console.log("config", this.config);

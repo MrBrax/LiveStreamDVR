@@ -16,3 +16,4 @@ config/tcd_settings.json
 config/cron.txt
 .idea/
 config/config.json.bak
+client-vue/.env.production
