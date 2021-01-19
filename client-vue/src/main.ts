@@ -8,15 +8,19 @@ import "./assets/style.scss";
 import { format, toDate, parse, formatDistance } from 'date-fns';
 const dateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000
 
-const helpers =  {
+const helpers = {
     methods: {
-        formatDate( date : string, fmt = "yyyy-MM-dd HH:mm:ss" ){
-            if(!date) return "";
+        formatDate(date: string, fmt = "yyyy-MM-dd HH:mm:ss") {
+            if (!date) return "";
             // console.log("formatDate", date, fmt);
             const o = parse(date, dateFormat, new Date());
             return format(o, fmt);
         },
-        humanDuration( duration: number ){
+        formatTimestamp(timestamp: number, fmt = "yyyy-MM-dd HH:mm:ss") {
+            const o = new Date(timestamp * 1000);
+            return format(o, fmt);
+        },
+        humanDuration(duration: number) {
             const hours = Math.floor(duration / 3600);
             const minutes = Math.floor((duration / 60) % 60);
             const seconds = duration % 60;
@@ -32,7 +36,7 @@ const helpers =  {
             // bytes /= (1 << (10 * pow));
             return `${Math.round(bytes)} ${units[pow]}`;
         },
-        niceDuration(durationInSeconds : number): string{
+        niceDuration(durationInSeconds: number): string {
 
             let duration = '';
             const days = Math.floor(durationInSeconds / 86400);
@@ -56,22 +60,24 @@ const helpers =  {
             }
             return duration.trim();
         },
-        twitchDuration(seconds : number): string {
+        twitchDuration(seconds: number): string {
             return this.niceDuration(seconds).replaceAll(" ", "").trim();
             // return trim(str_replace(" ", "", self::getNiceDuration($seconds)));
         },
-        formatNumber( num: number, decimals = 0 ){
-            return num.toLocaleString('us', {minimumFractionDigits: decimals, maximumFractionDigits: decimals})
+        formatNumber(num: number, decimals = 0) {
+            return num.toLocaleString('us', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
         },
-        humanDate(date : string){
-
+        humanDate(date: string) {
             const o = parse(date, dateFormat, new Date());
-            
             return formatDistance(
                 o,
                 new Date()
             );
-        
+        },
+        sortObject( game: Record<string, any>, value: string ){
+            return Object.entries(game).sort((a,b) => {
+                return (a as any)[value] - (b as any)[value];
+            });
         }
     }
 };

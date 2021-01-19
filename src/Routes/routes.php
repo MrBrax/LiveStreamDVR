@@ -117,6 +117,8 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     $group->get('/favourites/list', ApiController::class . ':favourites_list')->setName('api_favourites_list');
     $group->post('/favourites/save', ApiController::class . ':favourites_save')->setName('api_favourites_save');
 
+    $group->get('/games/list', ApiController::class . ':games_list')->setName('api_games_list');
+
     // $group->get('/playlist_dump/{username}', ApiController::class . ':playlist_dump')->setName('api_playlist_dump');
 });
 

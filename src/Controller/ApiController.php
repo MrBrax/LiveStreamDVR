@@ -282,4 +282,19 @@ class ApiController
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
+
+    public function games_list(Request $request, Response $response, $args)
+    {
+
+        $games = TwitchConfig::getGames();
+
+        $payload = json_encode([
+            'data' => $games,
+            'status' => 'OK'
+        ]);
+
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
 }

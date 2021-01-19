@@ -23,6 +23,11 @@ export type ApiVodChapter = {
     width: number; // why
 };
 
+export type ApiGame = {
+    name: string;
+    box_art_url: string;
+};
+
 export type ApiVod = {
 
     basename: string;
