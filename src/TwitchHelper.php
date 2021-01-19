@@ -71,6 +71,7 @@ class TwitchHelper
 		'720p',
 		'480p',
 		'360p',
+		'160p',
 		'140p',
 		'worst'
 	];

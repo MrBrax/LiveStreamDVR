@@ -15,7 +15,16 @@ const routes: Array<RouteRecordRaw> = [
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () =>
-      import(/* webpackChunkName: "about" */ "../views/Editor.vue")
+      import(/* webpackChunkName: "editor" */ "../views/Editor.vue")
+  },
+  {
+    path: "/tools",
+    name: "Tools",
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () =>
+      import(/* webpackChunkName: "tools" */ "../views/Tools.vue")
   },
   {
     path: "/settings",
@@ -24,7 +33,7 @@ const routes: Array<RouteRecordRaw> = [
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () =>
-      import(/* webpackChunkName: "about" */ "../views/Settings.vue")
+      import(/* webpackChunkName: "settings" */ "../views/Settings.vue")
   },
   {
     path: "/about",

@@ -79,6 +79,11 @@ const helpers = {
                 return (a as any)[value] - (b as any)[value];
             });
         }
+    },
+    data(){
+        return {
+            twitchQuality: ['best','1080p60','1080p','720p60','720p','480p','360p','160p','140p','worst']
+        };
     }
 };
 
