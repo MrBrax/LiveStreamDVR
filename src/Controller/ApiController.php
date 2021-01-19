@@ -498,7 +498,7 @@ class ApiController
                 foreach ($json as $line) {
 
                     $line_num++;
-                    if($last_line && $line_num < $last_line) continue;
+                    if($last_line && $line_num <= $last_line) continue;
 
                     if (!TwitchConfig::cfg("debug") && $line["level"] == 'DEBUG') continue;
 
@@ -628,7 +628,7 @@ class ApiController
             }
         }
 
-        TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "hook", "Hook called with no data ({$source})...");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "hook", "Hook called with no data ({$source})...", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers]);
         $response->getBody()->write("No data supplied");
 
         return $response;

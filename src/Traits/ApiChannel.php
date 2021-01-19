@@ -46,8 +46,16 @@ trait ApiChannel
             $TwitchAutomator = new TwitchAutomator();
             $TwitchAutomator->force_record = true;
             $TwitchAutomator->handle($data);
+            $response->getBody()->write(json_encode([
+                "message" => "Finished recording",
+                "status" => "OK"
+            ]));
         } else {
-            $response->getBody()->write("No streams found for " . $args['username']);
+            $response->getBody()->write(json_encode([
+                "message" => "No streams found for {$args['username']}",
+                "status" => "ERROR"
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
         return $response;
     }
@@ -68,7 +76,7 @@ trait ApiChannel
             $data = $pa->downloadLatest();
         } catch (\Throwable $th) {
             $response->getBody()->write(json_encode([
-                'error' => $th->getMessage(),
+                'message' => $th->getMessage(),
                 'status' => 'ERROR'
             ]));
             return $response->withHeader('Content-Type', 'application/json');

@@ -145,7 +145,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     });
 
     $group->group('/subscriptions', function (RouteCollectorProxy $group) {
-        $group->get('/sub', ApiController::class . ':subscriptions_sub')->setName('api_subscriptions_sub'); /** @deprecated */
+        $group->get('/sub', ApiController::class . ':subscriptions_sub')->setName('api_subscriptions_sub');
         $group->get('/list', ApiController::class . ':subscriptions_list')->setName('api_subscriptions_list');
         $group->get('/unsub', ApiController::class . ':subscriptions_unsub')->setName('api_subscriptions_unsub');
     });

@@ -505,10 +505,12 @@ export default defineComponent({
         vod: Object as () => ApiVod,
     },
     computed: {
+        /*
         startedAt() : string {
             if(!this.vod) return "";
             return format(parse(this.vod.dt_started_at.date, dateFormat, new Date()), "yyyy-MM-dd");
         }
+        */
     },
     methods: {
 

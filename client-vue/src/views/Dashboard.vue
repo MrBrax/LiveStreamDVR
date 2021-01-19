@@ -4,7 +4,7 @@
         
         <section class="section" data-section="vods">
             <div class="section-title"><h1>Recorded VODs</h1></div>
-            <div class="section-content" v-if="$store.state.streamerList && $store.state.streamerList.length > 0">
+            <div class="section-content" v-if="$store.state.config && $store.state.streamerList && $store.state.streamerList.length > 0">
                 <streamer v-for="streamer in sortedStreamers" v-bind:key="streamer.id" v-bind:streamer="streamer" />
                 <hr />
                 <div>

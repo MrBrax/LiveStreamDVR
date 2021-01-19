@@ -14,7 +14,7 @@
             <div v-if="errors" class="big-error">
                 <div v-for="error in errors" :key="error" class="big-error-item">Error</div>
             </div>
-            <router-view v-if="$store.state.config" />
+            <router-view v-if="$store.state.config !== undefined && $store.state.config.favourites !== undefined" />
             <div v-else>
                 Loading config...
             </div>

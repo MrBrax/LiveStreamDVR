@@ -150,7 +150,7 @@ import type { ApiStreamer } from "@/twitchautomator.d";
 
 const fmt = "yyyy-MM-dd HH:mm:ss.SSSSSS";
 
-import { parse, intervalToDuration } from 'date-fns';
+import { parse, intervalToDuration, parseJSON } from 'date-fns';
 
 export default defineComponent({
     name: "SideMenu",
@@ -169,7 +169,8 @@ export default defineComponent({
                     if( vod.dt_started_at ){
                         
                         const dt = vod.dt_started_at.date;
-                        const o = parse(dt, fmt, new Date());
+                        // const o = parse(dt, fmt, new Date());
+                        const o = parseJSON(dt);
                         const dur = intervalToDuration({ start: o, end: new Date()});
                         
                         this.vodTimes[vod.basename] = dur.hours?.toString().padStart(2, "0") + ":" + dur.minutes?.toString().padStart(2, "0") + ":" + dur.seconds?.toString().padStart(2, "0");

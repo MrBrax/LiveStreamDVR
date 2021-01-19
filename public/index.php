@@ -124,7 +124,10 @@ $container->get('view')->getEnvironment()->addFilter(new TwigFilter('basename', 
 if (TwitchConfig::cfg('password')) {
     $app->add(new Tuupola\Middleware\HttpBasicAuthentication([
         "path" => ["/"],
-        "ignore" => ["/hook", "/sub"],
+        "ignore" => [
+            "/api/v0/hook",
+            "/api/v0/cron/sub"
+        ],
         "realm" => "Protected",
         "secure" => TwitchConfig::cfg('password_secure', true) == true,
         "users" => [

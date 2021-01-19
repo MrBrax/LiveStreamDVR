@@ -7,7 +7,7 @@ import VueAxios from "vue-axios";
 
 import "./assets/style.scss";
 
-import { format, parse, formatDistance } from 'date-fns';
+import { format, parse, formatDistance, parseJSON } from 'date-fns';
 const dateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000
 
 const helpers = {
@@ -15,7 +15,8 @@ const helpers = {
         formatDate(date: string, fmt = "yyyy-MM-dd HH:mm:ss") {
             if (!date) return "";
             // console.log("formatDate", date, fmt);
-            const o = parse(date, dateFormat, new Date());
+            // const o = parse(date, dateFormat, new Date());
+            const o = parseJSON(date);
             return format(o, fmt);
         },
         formatTimestamp(timestamp: number, fmt = "yyyy-MM-dd HH:mm:ss") {
@@ -72,7 +73,8 @@ const helpers = {
             return num.toLocaleString('us', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
         },
         humanDate(date: string) {
-            const o = parse(date, dateFormat, new Date());
+            // const o = parse(date, dateFormat, new Date());
+            const o = parseJSON(date);
             return formatDistance(
                 o,
                 new Date()
