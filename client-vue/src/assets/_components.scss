@@ -105,28 +105,33 @@
 		}
 		tr { padding: 0; margin: 0;}
 	}
+	
+	.log-line {
+		color: #333;
+	
+		&.log-line-success {
+			color: #3ea335;
+			font-weight: 700;
+		}
+		&.log-line-fatal {
+			color: #ff0000;
+			font-weight: 700;
+			animation: 0.5s live infinite ease-in-out;
+		}
+		&.log-line-warning {
+			color: #ff7300;
+			font-weight: 700;
+		}
+		&.log-line-error {
+			color: #f00;
+			font-weight: 700;
+		}
+		&.log-line-debug {
+			color: #9c9c9c;
+			font-weight: 200;
+		}
+	}
 
-	.log_success {
-		color: #3ea335;
-		font-weight: 700;
-	}
-	.log_fatal {
-		color: #ff0000;
-		font-weight: 700;
-		animation: 0.5s live infinite ease-in-out;
-	}
-	.log_warning {
-		color: #ff7300;
-		font-weight: 700;
-	}
-	.log_error {
-		color: #f00;
-		font-weight: 700;
-	}
-	.log_debug {
-		color: #9c9c9c;
-		font-weight: 200;
-	}
 	a {
 		color: inherit;
 		text-decoration: none;

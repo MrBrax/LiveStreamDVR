@@ -14,7 +14,10 @@
             <div v-if="errors" class="big-error">
                 <div v-for="error in errors" :key="error" class="big-error-item">Error</div>
             </div>
-            <router-view />
+            <router-view v-if="$store.state.config" />
+            <div v-else>
+                Loading config...
+            </div>
         </div>
     </div>
 

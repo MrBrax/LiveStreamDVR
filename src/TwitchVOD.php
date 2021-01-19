@@ -226,9 +226,15 @@ class TwitchVOD
 		$this->twitch_vod_attempted 	= isset($this->json['twitch_vod_attempted']) ? $this->json['twitch_vod_attempted'] : null;
 		$this->twitch_vod_muted 		= isset($this->json['twitch_vod_muted']) ? $this->json['twitch_vod_muted'] : null;
 
-		if ($this->meta && $this->meta['data'][0]['title']) {
+		// legacy
+		if (isset($this->meta) && isset($this->meta['data'][0]['title'])) {
 			$this->stream_title = $this->meta['data'][0]['title'];
 		}
+
+		if (isset($this->meta) && isset($this->meta['title'])) {
+			$this->stream_title = $this->meta['title'];
+		}
+
 	}
 
 	public function setupAssoc()

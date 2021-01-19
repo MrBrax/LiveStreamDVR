@@ -160,6 +160,9 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     });
 
     $group->any('/hook', ApiController::class . ':hook')->setName('hook');
+
+    $group->get('/log/{filename}[/{last_line}]', ApiController::class . ':display_log')->setName('api_display_log');
+
     // $group->post('/hook', ApiController::class . ':hook')->setName('hook_post');
 
     // $group->get('/playlist_dump/{username}', ApiController::class . ':playlist_dump')->setName('api_playlist_dump');

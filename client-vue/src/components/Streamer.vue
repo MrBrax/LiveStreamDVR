@@ -29,11 +29,11 @@
                     ><!-- quality -->
                     &middot;
                     <span class="streamer-vods-amount" title="Total vod amount"
-                        >{{ vodAmount }} vods</span
+                        >{{ streamer.vods_list.length }} vods</span
                     ><!-- vods -->
                     &middot;
                     <span class="streamer-vods-size" title="Total vod size">{{
-                        formatBytes(vodSize)
+                        formatBytes(this.streamer?.vods_size)
                     }}</span
                     ><!-- total size -->
                     &middot;
@@ -43,7 +43,7 @@
                     >
                         <span
                             v-if="streamer.subbed_at && streamer.expires_at"
-                            >{{ subExpiresAt }}</span
+                            >{{ formatDate(this.streamer?.expires_at.date) }}</span
                         >
                         <span v-else>Not subbed</span>
                     </span>
@@ -103,6 +103,7 @@ export default defineComponent({
         quality(): string|undefined {
             return this.streamer?.quality.join(", ");
         },
+        /*
         vodAmount(): number|undefined {
             return this.streamer?.vods_list.length;
         },
@@ -112,6 +113,7 @@ export default defineComponent({
         subExpiresAt(): string|undefined {
             return this.streamer?.expires_at.date;
         },
+        */
     },
     components: {
         Vod

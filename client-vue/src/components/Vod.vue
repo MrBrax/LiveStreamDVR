@@ -1,6 +1,7 @@
 <template>
     <div
         :class="{
+            'video': true,
             'is-recording': vod?.is_capturing,
             'is-converting': vod?.is_converting,
             'is-finalized': vod?.is_finalized,
@@ -202,7 +203,7 @@
             </div>
 
             <ul v-if="vod?.is_capturing" class="video-info">
-                <li><strong>Current duration:</strong> {{ vod?.duration_live }}</li>
+                <li><strong>Current duration:</strong> {{ niceDuration(vod?.duration_live) }}</li>
                 <li>
                     <strong>Watch live:</strong>
                     <a href="https://twitch.tv/{{ streamer.display_name }}" rel="noreferrer" target="_blank">Twitch</a>

@@ -54,7 +54,7 @@
                     <ul>
                         <li v-for="vod in streamer.vods_list" :key="vod.basename">
                             <a :href="'#vod_' + vod.basename" :data-basename="vod.basename" :class="{
-                                    'is-favourite': vod.hasFavouriteGame,
+                                    'is-favourite': vod.api_hasFavouriteGame,
                                     'is-live': vod.is_capturing,
                                     'is-converting': vod.is_converting,
                                     'is-waiting': !vod.is_capturing && !vod.is_converting && !vod.is_finalized
@@ -63,7 +63,7 @@
                             
                                 <span v-if="vod.is_capturing" class="icon"><i class="fa fa-sync fa-spin"></i></span> <!-- capturing -->
                                 <span v-else-if="vod.is_converting" class="icon"><i class="fa fa-cog fa-spin"></i></span> <!-- converting -->
-                                <span v-else-if="vod.hasFavouriteGame" class="icon"><i class="fa fa-star"></i></span> <!-- favourite -->
+                                <span v-else-if="vod.api_hasFavouriteGame" class="icon"><i class="fa fa-star"></i></span> <!-- favourite -->
                                 <span v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized" class="icon"><i class="far fa-hourglass"></i></span> <!-- waiting after capture -->
                                 <span v-else-if="vod.is_finalized" class="icon"><i class="fa fa-film"></i></span> <!-- video -->
 
@@ -92,6 +92,8 @@
                                         <span v-if="vod.is_capture_paused"><span class="icon is-error" title="Paused"><i class="fa fa-pause"></i></span></span><!-- capturing paused -->
                                     </span>
                                 </template>
+
+                                <!-- tooltip -->
                                 <div class="tooltip">
                                     <div class="boxart-carousel is-small">
                                         <div v-for="game in vod.api_getUniqueGames" :key="game.name" class="boxart-item">
