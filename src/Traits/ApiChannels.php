@@ -74,7 +74,7 @@ trait ApiChannels
 
         if (!$username) {
             $response->getBody()->write(json_encode([
-                "data" => "No username provided.",
+                "message" => "No username provided.",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -82,7 +82,7 @@ trait ApiChannels
 
         if (!$quality) {
             $response->getBody()->write(json_encode([
-                "data" => "No quality entered. Use 'best' if you don't know better.",
+                "message" => "No quality entered. Use 'best' if you don't know better.",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -92,7 +92,7 @@ trait ApiChannels
 
         if (!$user_id) {
             $response->getBody()->write(json_encode([
-                "data" => "Streamer with the username '{$username}' doesn't seem to exist on Twitch.",
+                "message" => "Streamer with the username '{$username}' doesn't seem to exist on Twitch.",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -108,7 +108,7 @@ trait ApiChannels
 
         if (TwitchConfig::getStreamer($username)) {
             $response->getBody()->write(json_encode([
-                "data" => "Streamer with the username '{$username}' already exists in config",
+                "message" => "Streamer with the username '{$username}' already exists in config",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -134,7 +134,7 @@ trait ApiChannels
                 TwitchHelper::sub($username);
             } catch (\Throwable $th) {
                 $response->getBody()->write(json_encode([
-                    "data" => "Subscription error: " . $th->getMessage(),
+                    "message" => "Subscription error: " . $th->getMessage(),
                     "status" => "ERROR"
                 ]));
                 return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -144,7 +144,7 @@ trait ApiChannels
         TwitchConfig::saveConfig("streamer/add");
 
         $payload = json_encode([
-            'data' => "Streamer added: {$username}.",
+            'message' => "Streamer added: {$username}.",
             'status' => 'OK'
         ]);
 
@@ -164,7 +164,7 @@ trait ApiChannels
 
         if (!TwitchConfig::getStreamer($username)) {
             $response->getBody()->write(json_encode([
-                "data" => "Streamer with that username does not exist in config",
+                "message" => "Streamer with that username does not exist in config",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -185,7 +185,7 @@ trait ApiChannels
 
         if (!TwitchConfig::$config['streamers']) {
             $response->getBody()->write(json_encode([
-                "data" => "No streamers have been added.",
+                "message" => "No streamers have been added.",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -198,29 +198,30 @@ trait ApiChannels
         }
         if ($key === null) {
             $response->getBody()->write(json_encode([
-                "data" => "Streamer {$username} not found.",
+                "message" => "Streamer {$username} not found.",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
         TwitchConfig::$config['streamers'][$key] = $streamer;
-        TwitchConfig::saveConfig("streamer/update");
 
         if (TwitchConfig::cfg('app_url') !== 'debug') {
             try {
                 TwitchHelper::sub($username);
             } catch (\Throwable $th) {
                 $response->getBody()->write(json_encode([
-                    "data" => "Subscription error: " . $th->getMessage(),
+                    "message" => "Subscription error: " . $th->getMessage(),
                     "status" => "ERROR"
                 ]));
                 return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
             }
         }
 
+        TwitchConfig::saveConfig("streamer/update");
+
         $response->getBody()->write(json_encode([
-            "data" => "Streamer '{$username}' updated",
+            "message" => "Streamer '{$username}' updated",
             "status" => "OK"
         ]));
         return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
@@ -233,7 +234,7 @@ trait ApiChannels
         
         if (!TwitchConfig::getStreamer($username)) {
             $response->getBody()->write(json_encode([
-                "data" => "Streamer with that username does not exist in config",
+                "message" => "Streamer with that username does not exist in config",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -243,7 +244,7 @@ trait ApiChannels
         $streamer->load($username);
         if ($streamer->is_live) {
             $response->getBody()->write(json_encode([
-                "data" => "Please wait until the streamer has stopped streaming before deleting.",
+                "message" => "Please wait until the streamer has stopped streaming before deleting.",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -255,7 +256,7 @@ trait ApiChannels
         }
         if ($key === null) {
             $response->getBody()->write(json_encode([
-                "data" => "Streamer {$username} not found.",
+                "message" => "Streamer {$username} not found.",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -267,7 +268,7 @@ trait ApiChannels
 
         if($streamer->getSubscription()){
             $response->getBody()->write(json_encode([
-                "data" => "Unsubscribe failed, did not remove streamer {$username}.",
+                "message" => "Unsubscribe failed, did not remove streamer {$username}.",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -277,7 +278,7 @@ trait ApiChannels
         TwitchConfig::saveConfig("streamer/deleted");
 
         $response->getBody()->write(json_encode([
-            "data" => "Streamer {$username} deleted.",
+            "message" => "Streamer {$username} deleted.",
             "status" => "OK"
         ]));
         return $response->withStatus(200)->withHeader('Content-Type', 'application/json');

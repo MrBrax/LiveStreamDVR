@@ -42,11 +42,11 @@ trait ApiFavourites
             $data[$id] = true;
         }
 
-        TwitchConfig::setConfig('favourites', $data);
+        TwitchConfig::$config['favourites'] = $data;
         TwitchConfig::saveConfig("favourites/save");
 
         $payload = json_encode([
-            'data' => "Favourites saved.",
+            'message' => "Favourites saved.",
             'status' => 'OK'
         ]);
 

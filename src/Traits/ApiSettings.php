@@ -27,6 +27,8 @@ trait ApiSettings
             $fields[$value['key']] = $value;
         }
 
+        $fields['timezone']['choices'] = \DateTimeZone::listIdentifiers(); // static
+
         $package_path = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "package.json";
         if (file_exists($package_path)) {
             $version = json_decode(file_get_contents($package_path))->version;
@@ -85,15 +87,21 @@ trait ApiSettings
             $client = new \GuzzleHttp\Client();
 
             try {
-                $response = $client->request('GET', $full_url, ['connect_timeout' => 10, 'timeout' => 10]);
+                $resp = $client->request('GET', $full_url, ['connect_timeout' => 10, 'timeout' => 10]);
             } catch (\Throwable $th) {
-                $response->getBody()->write("External app url could be contacted at all ({$full_url}).");
-                return $response;
+                $response->getBody()->write(json_encode([
+                    "message" => "External app url could be contacted at all ({$full_url}).",
+                    "status" => "ERROR"
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
             }
 
-            if ($response->getBody()->getContents() !== 'No data supplied') {
-                $response->getBody()->write("External app url could be contacted but didn't get the expected response ({$full_url}).");
-                return $response;
+            if ($resp->getBody()->getContents() !== 'No data supplied') {
+                $response->getBody()->write(json_encode([
+                    "message" => "External app url could be contacted but didn't get the expected response ({$full_url}).",
+                    "status" => "ERROR"
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
             }
         }
 
@@ -103,10 +111,11 @@ trait ApiSettings
             TwitchHelper::getAccessToken(true);
         }
 
-        return $this->twig->render($response, 'dialog.twig', [
-            'text' => 'Settings saved.',
-            'type' => 'success'
-        ]);
+        $response->getBody()->write(json_encode([
+            "message" => "Settings saved.",
+            "status" => "OK"
+        ]));
+        return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
 
         // return $response->withHeader('Location', $this->router->pathFor('settings') )->withStatus(200);
 

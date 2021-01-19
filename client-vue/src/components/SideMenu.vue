@@ -110,20 +110,22 @@
             <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'Dashboard' }">
                 <router-link to="/dashboard"><i class="fa fa-tachometer-alt"></i></router-link>
             </div>
+            <!--
             <div class="top-menu-item icon right">
                 <a href="javascript:window.forceRefresh();" title="Refresh"><i class="fa fa-sync"></i></a>
             </div>
             <div class="top-menu-item icon right">
                 <a href="javascript:notifyMe();" title="Notify"><i class="fa fa-bell"></i></a>
             </div>
+            -->
             <div class="top-menu-item icon right">
-                <a href="#" title="Tools"><i class="fa fa-wrench"></i></a>
+                <router-link to="/tools" title="Tools"><i class="fa fa-wrench"></i></router-link>
             </div>
             <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'Settings' }">
                 <router-link to="/settings"><i class="fa fa-cog"></i></router-link>
             </div>
             <div class="top-menu-item icon right">
-                <a href="#" title="About"><i class="fa fa-info-circle"></i></a>
+                <router-link to="/about" title="About"><i class="fa fa-info-circle"></i></router-link>
             </div>
             <div class="top-menu-item icon right">
                 <a class="linkback" href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer" title="GitHub"><i class="fab fa-github"></i></a>
