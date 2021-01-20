@@ -116,7 +116,6 @@ export default defineComponent({
                 return;
             }
 
-            // console.debug("data", response.data);
             if(!response.data.data){
                 console.error("fetchStreamers invalid data", response.data);
                 return;
@@ -251,10 +250,13 @@ export default defineComponent({
                 return;
             }
 
+            console.log("Notifications enabled");
+
             this.notificationSub = this.$store.subscribe((mutation : MutationPayload, state : any ) => {
 
                 // unsub if changed
                 if(!this.$store.state.clientConfig.enableNotifications){
+                    console.log("Notification setting disabled, stopping subscription.");
                     this.notificationSub();
                     return;
                 }
@@ -329,6 +331,8 @@ export default defineComponent({
                                 window.speechSynthesis.speak(utterance);
                             }
 
+                        }else{
+                            console.log(`No notification text for ${streamer.display_name}`);
                         }
 
                     }

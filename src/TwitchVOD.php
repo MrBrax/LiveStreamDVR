@@ -1607,7 +1607,8 @@ class TwitchVOD
 		// $stream_url = $output;
 
 		if (!$output) {
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "VOD {$this->basename} could not be checked for mute status!");
+			// TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "VOD {$this->basename} could not be checked for mute status!", ['output' => $output]);
+			throw new \Exception("VOD could not be checked for mute status, no output.");
 			return null;
 		}
 
@@ -1620,7 +1621,7 @@ class TwitchVOD
 			return true;
 		} elseif (mb_strpos($output, "Unable to find video") !== false) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "VOD {$this->basename} is deleted!");
-			// return null;
+			throw new \Exception("VOD is deleted!");
 		} else {
 			$this->twitch_vod_muted = false;
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "VOD {$this->basename} is not muted!");

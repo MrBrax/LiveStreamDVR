@@ -34,7 +34,7 @@ trait ApiVod
             $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
         } catch (\Throwable $th) {
             $response->getBody()->write(json_encode([
-                "data" => $th->getMessage(),
+                "message" => $th->getMessage(),
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json'); 
@@ -98,18 +98,18 @@ trait ApiVod
 
             if ($vodclass->downloadChat()) {
                 $payload = json_encode([
-                    'data' => 'Chat downloaded',
+                    'message' => 'Chat downloaded',
                     'status' => 'OK'
                 ]);
             } else {
                 $payload = json_encode([
-                    'data' => 'Chat download unsuccessful',
+                    'message' => 'Chat download unsuccessful',
                     'status' => 'ERROR'
                 ]);
             }
         } else {
             $payload = json_encode([
-                'error' => 'VOD has no ID',
+                'message' => 'VOD has no ID',
                 'status' => 'ERROR'
             ]);
         }
@@ -130,12 +130,12 @@ trait ApiVod
 
         if ($vodclass->downloadVod()) {
             $payload = json_encode([
-                'data' => 'VOD downloaded',
+                'message' => 'VOD downloaded',
                 'status' => 'OK'
             ]);
         } else {
             $payload = json_encode([
-                'error' => 'VOD could not be downloaded',
+                'message' => 'VOD could not be downloaded',
                 'status' => 'ERROR'
             ]);
         }
@@ -155,16 +155,22 @@ trait ApiVod
         $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
         if (!$vodclass->twitch_vod_id) {
-            $payload = json_encode([
-                'data' => 'VOD does not have an ID',
+            $response->getBody()->write(json_encode([
+                'message' => 'VOD does not have an ID',
                 'status' => 'ERROR'
-            ]);
-            // $response->getBody()->write("VOD does not have an ID");
-            // $response->getBody()->write($payload);
-            // return $response->withHeader('Content-Type', 'application/json');
+            ]));
+            return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
         } else {
 
-            $isMuted = $vodclass->checkMutedVod(true);
+            try {
+                $isMuted = $vodclass->checkMutedVod(true);
+            } catch (\Throwable $th) {
+                $response->getBody()->write(json_encode([
+                    "message" => "VOD mute check error: {$th->getMessage()}",
+                    "status" => "ERROR"
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
 
             $payload = json_encode([
                 'data' => [
@@ -233,7 +239,7 @@ trait ApiVod
 
         if (!$vodclass->is_chat_downloaded) {
             $payload = json_encode([
-                'error' => "Chat doesn't exist!",
+                'message' => "Chat doesn't exist!",
                 'status' => 'ERROR'
             ]);
             return $response->withHeader('Content-Type', 'application/json');
@@ -261,7 +267,7 @@ trait ApiVod
         }
 
         $payload = json_encode([
-            'data' => 'VOD burned',
+            'message' => 'VOD burned',
             'status' => 'OK'
         ]);
 
@@ -281,7 +287,7 @@ trait ApiVod
         $vodclass->delete();
 
         $payload = json_encode([
-            'data' => 'VOD deleted',
+            'message' => 'VOD deleted',
             'status' => 'OK'
         ]);
 
@@ -301,7 +307,7 @@ trait ApiVod
         $vodclass->save();
 
         $payload = json_encode([
-            'data' => 'VOD saved',
+            'message' => 'VOD saved',
             'status' => 'OK'
         ]);
 
@@ -344,7 +350,7 @@ trait ApiVod
         }
 
         $payload = json_encode([
-            'data' => "Exporter returned: " . implode(", ", $output),
+            'message' => "Exporter returned: " . implode(", ", $output),
             'status' => 'OK'
         ]);
 
@@ -374,7 +380,7 @@ trait ApiVod
 
         if (!$second_start || $second_start > $second_end) {
             $response->getBody()->write(json_encode([
-                "data" => "Invalid start time ({$second_start})",
+                "message" => "Invalid start time ({$second_start})",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -382,7 +388,7 @@ trait ApiVod
 
         if (!$second_end || $second_end < $second_start) {
             $response->getBody()->write(json_encode([
-                "data" => "Invalid end time ({$second_end})",
+                "message" => "Invalid end time ({$second_end})",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -393,7 +399,7 @@ trait ApiVod
 
         if (file_exists($filename_out)) {
             $response->getBody()->write(json_encode([
-                "data" => "Output file already exists",
+                "message" => "Output file already exists",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');

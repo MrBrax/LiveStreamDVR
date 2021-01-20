@@ -86,6 +86,7 @@ export default defineComponent({
     methods: {
         fetchData() {
             // this.vodData = [];
+            /** @todo: axios */
             fetch(`api/v0/vod/${this.vod}/`)
             .then((response) => response.json())
             .then((json) => {
@@ -129,6 +130,7 @@ export default defineComponent({
             data.append('time_out', this.timeOut.toString());
             data.append('name', this.cutName);
 
+            /** @todo: axios */
             fetch(`api/v0/vod/${this.vod}/cut`, {
                 method: 'POST',
                 body: data

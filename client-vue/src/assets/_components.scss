@@ -99,9 +99,7 @@
 			padding: 0 10px 0 0;
 			margin: 0;
 			vertical-align: top;
-			&:nth-child(1){
-				width: 150px;
-			}
+			&:nth-child(1){ width: 160px; } // date column
 		}
 		tr { padding: 0; margin: 0;}
 	}

@@ -135,9 +135,15 @@ class CronController
                 }
 
                 $old = $vod->twitch_vod_muted;
-
-                $check = $vod->checkMutedVod(true, $force);
-
+                
+                try {
+                    $check = $vod->checkMutedVod(true, $force);
+                } catch (\Throwable $th) {
+                    $response->getBody()->write("{$vod->basename} error: {$th->getMessage()}<br>\n");
+                    TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "cron", "Cronjob mute check: {$vod->basename} error: {$th->getMessage()}");
+                    continue;
+                }
+    
                 if ($check === true) {
                     // notify
                     $this->sendNotify("{$vod->basename} muted");

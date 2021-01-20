@@ -486,6 +486,7 @@ const dateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000
 
 export default defineComponent({
     name: "Vod",
+    emits: ['forceFetchData'],
     data(){
         return {
             config: []
@@ -504,25 +505,82 @@ export default defineComponent({
     },
     methods: {
         doArchive(){
-            alert('archive');
+            if(!confirm(`Do you want to archive "${this.vod?.basename}"?`)) return;
+            this.$http.post(`/api/v0/vod/${this.vod?.basename}/save`)
+            .then((response) => {
+                const json = response.data;
+                if(json.message) alert(json.message);
+                console.log(json);
+                // this.$emit("forceFetchData");
+            }).catch((err) => {
+                console.error("form error", err.response);
+            });
         },
         doDownloadChat(){
-            alert('download chat');
+            if(!confirm(`Do you want to download the chat for "${this.vod?.basename}"?`)) return;
+            this.$http.post(`/api/v0/vod/${this.vod?.basename}/download_chat`)
+            .then((response) => {
+                const json = response.data;
+                if(json.message) alert(json.message);
+                console.log(json);
+                // this.$emit("forceFetchData");
+            }).catch((err) => {
+                console.error("form error", err.response);
+            });
         },
         doRenderChat( useVod = false ){
             alert('RenderChat');
         },
         doDownloadVod(){
-            alert('DownloadVod');
+            if(!confirm(`Do you want to download the vod for "${this.vod?.basename}"?`)) return;
+            this.$http.post(`/api/v0/vod/${this.vod?.basename}/download`)
+            .then((response) => {
+                const json = response.data;
+                if(json.message) alert(json.message);
+                console.log(json);
+                // this.$emit("forceFetchData");
+            }).catch((err) => {
+                console.error("form error", err.response);
+            });
         },
         doCheckMute(){
-            alert('CheckMute');
+            this.$http.post(`/api/v0/vod/${this.vod?.basename}/check_mute`)
+            .then((response) => {
+                const json = response.data;
+                if(json.message) alert(json.message);
+                console.log(json);
+
+                if(json.data){
+                    if(json.data.muted === null){
+                        alert(`The vod "${this.vod?.basename}" could not be checked.`);
+                    }else{
+                        alert(`The vod "${this.vod?.basename}" is${json.data.muted ? "" : " not"} muted.`);
+                    }
+                }
+
+                // this.$emit("forceFetchData");
+            }).catch((err) => {
+                console.error("doCheckMute error", err.response);
+                if(err.response.data){
+                    const json = err.response.data;
+                    if(json.message) alert(json.message);
+                }
+            });
         },
         doFullBurn(){
             alert('FullBurn');
         },
         doDelete(){
-            alert('Delete');
+            if(!confirm(`Do you want to delete "${this.vod?.basename}"?`)) return;
+            this.$http.post(`/api/v0/vod/${this.vod?.basename}/delete`)
+            .then((response) => {
+                const json = response.data;
+                if(json.message) alert(json.message);
+                console.log(json);
+                // this.$emit("forceFetchData");
+            }).catch((err) => {
+                console.error("form error", err.response);
+            });
         },
     }
 });

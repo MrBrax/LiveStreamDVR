@@ -6,6 +6,11 @@ import axios from "axios";
 import VueAxios from "vue-axios";
 import titleMixin from "./mixins/titleMixin";
 
+// import { library } from '@fortawesome/fontawesome-svg-core'
+// import { faUserSecret } from '@fortawesome/free-solid-svg-icons'
+// import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+// library.add(faUserSecret)
+
 import "./assets/style.scss";
 
 import { format, parse, formatDistance, parseJSON } from 'date-fns';

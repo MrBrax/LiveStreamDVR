@@ -83,15 +83,15 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     // vod manipulation
     $group->group('/vod/{vod}', function (RouteCollectorProxy $group) {
         $group->get('/', ApiController::class . ':vod')->setName('api_vod');
-        $group->get('/search_chatdump', ApiController::class . ':vod_search_chatdump')->setName('api_vod_search_chatdump');
-        $group->get('/download_chat', ApiController::class . ':vod_download_chat')->setName('api_vod_download_chat');
-        $group->get('/download', ApiController::class . ':vod_download')->setName('api_vod_download');
-        $group->get('/check_mute', ApiController::class . ':vod_check_mute')->setName('api_vod_check_mute');
-        $group->get('/full_burn', ApiController::class . ':vod_full_burn')->setName('api_vod_full_burn');
-        $group->get('/render_chat', ApiController::class . ':vod_render_chat')->setName('api_vod_render_chat');
-        $group->get('/delete', ApiController::class . ':vod_delete')->setName('api_vod_delete');
-        $group->get('/save', ApiController::class . ':vod_save')->setName('api_vod_save');
-        $group->any('/export', ApiController::class . ':vod_export')->setName('api_vod_export');
+        $group->post('/search_chatdump', ApiController::class . ':vod_search_chatdump')->setName('api_vod_search_chatdump');
+        $group->post('/download_chat', ApiController::class . ':vod_download_chat')->setName('api_vod_download_chat');
+        $group->post('/download', ApiController::class . ':vod_download')->setName('api_vod_download');
+        $group->post('/check_mute', ApiController::class . ':vod_check_mute')->setName('api_vod_check_mute');
+        $group->post('/full_burn', ApiController::class . ':vod_full_burn')->setName('api_vod_full_burn');
+        $group->post('/render_chat', ApiController::class . ':vod_render_chat')->setName('api_vod_render_chat');
+        $group->post('/delete', ApiController::class . ':vod_delete')->setName('api_vod_delete');
+        $group->post('/save', ApiController::class . ':vod_save')->setName('api_vod_save');
+        // $group->post('/export', ApiController::class . ':vod_export')->setName('api_vod_export');
         $group->post('/cut', ApiController::class . ':vod_cut')->setName('api_vod_cut');
     });
 
@@ -168,6 +168,11 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     // $group->get('/playlist_dump/{username}', ApiController::class . ':playlist_dump')->setName('api_playlist_dump');
 });
 
+// api 404
+$app->any('/api/{any:.*}', function (Request $request, Response $response, array $args) use ($app) {
+    $response->getBody()->write(json_encode(['message' => 'Invalid API endpoint', 'status' => 'ERROR']));
+    return $response->withStatus(404)->withHeader('Content-Type', 'application/json');
+});
 
 $app->any('/{any:.*}', function (Request $request, Response $response, array $args) use ($app) {
     $i = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . "index.html";
