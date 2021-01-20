@@ -488,13 +488,14 @@ class ApiController
 
         $log_path = TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . $current_log . ".log.json";
 
+        $line_num = 0;
+
         if (file_exists($log_path)) {
 
             $json = json_decode(file_get_contents($log_path), true);
 
             if ($json) {
                 
-                $line_num = 0;
                 foreach ($json as $line) {
 
                     $line_num++;

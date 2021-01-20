@@ -114,6 +114,10 @@ export default defineComponent({
             }
 
             // console.debug("data", response.data);
+            if(!response.data.data){
+                console.error("fetchStreamers invalid data", response.data);
+                return;
+            }
 
             this.totalSize = response.data.data.total_size;
             this.freeSize = response.data.data.free_size;
@@ -137,6 +141,11 @@ export default defineComponent({
             }
 
             // console.debug("log data", response.data);
+
+            if(!response.data.data){
+                console.error("fetchLog invalid data", response.data);
+                return;
+            }
 
             if(!response.data.data.lines) return;
 
@@ -264,7 +273,7 @@ export default defineComponent({
                         ( !oldStreamer.current_game && streamer.current_game ) || // from no game to new game
                         ( oldStreamer.current_game && streamer.current_game && oldStreamer.current_game.game_name !== streamer.current_game.game_name ) // from old game to new game
                     ){
-                        alert( streamer.display_name + " is now playing " + streamer.current_game.game_name );
+                        // alert( streamer.display_name + " is now playing " + streamer.current_game.game_name );
                         
                         if( streamer.current_game.favourite ){
                             text = `${username} is now playing one of your favourite games: ${streamer.current_game.game_name}!`;

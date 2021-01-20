@@ -3,13 +3,13 @@
 
         <div class="menu-top">
             <div class="top-menu-item title">
-                <a href="#">
+                <router-link to="/dashboard">
                     <img src="../assets/logo.png" class="favicon" width="24" height="24" :alt="$store.state.config.app_name">
                     <span class="title">
                         {{ $store.state.config.app_name }} {{ $store.state.version }}
                         <span v-if="$store.state.config.debug">(debug)</span>
                     </span>
-                </a>
+                </router-link>
             </div>
         </div>
 

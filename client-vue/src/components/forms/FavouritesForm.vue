@@ -1,6 +1,7 @@
 <template>
-    <form method="POST" enctype="multipart/form-data" action="#" @submit="saveFavourites">
-        <div class="favourites_list">
+    <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
+        
+        <div class="favourites_list" v-if="gamesData">
             <div v-for="[id, game] in sortedGames" :key="id" class="checkbox">
                 <label>
                     <input type="checkbox" :name="'games[' + id + ']'" :checked="favouritesData[id]"  /> <!-- :checked="$store.state.config.favourites[id]" -->
@@ -30,11 +31,12 @@ export default defineComponent({
         return {
             formStatusText: 'Ready',
             formStatus: '',
-            formData: {}
+            formData: {},
+            sortedGames: [] as any
         }
     },
     methods: {
-        saveFavourites( event : Event ){
+        submitForm( event : Event ){
             
             const form = event.target as HTMLFormElement;
             const inputs = new FormData(form);
@@ -64,6 +66,13 @@ export default defineComponent({
             return false;
         }
     },
+    watch: {
+        gamesData(val){
+            this.sortedGames = Object.entries( (this as any).gamesData ).sort(([, a], [, b]) =>
+                (a as any).name.localeCompare((b as any).name)
+            );
+        }
+    },
     computed: {
         formStatusClass() : Record<string, any> {
             return {
@@ -71,11 +80,6 @@ export default defineComponent({
                 'is-error': this.formStatus == 'ERROR',
                 'is-success': this.formStatus == 'OK',
             }
-        },
-        sortedGames(){
-            return Object.entries( (this as any).gamesData ).sort(([, a], [, b]) =>
-                (a as any).name.localeCompare((b as any).name)
-            );
         }
     }
 });
