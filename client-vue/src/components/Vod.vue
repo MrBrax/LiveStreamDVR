@@ -253,50 +253,78 @@
         <div class="video-controls">
             <template v-if="vod?.is_finalized">
                 <router-link class="button is-blue" :to="{ name: 'Editor', params: { vod: vod?.basename } }">
-                    <span class="icon"><i class="fa fa-cut"></i></span> Editor
+                    <fa icon="cut" type="fa"></fa>
+                    Editor
                 </router-link>
 
                 <a v-if="vod?.is_chat_downloaded" class="button is-blue" href="#">
-                    <span class="icon"><i class="fa fa-play"></i></span> Player
+                    <fa icon="play" type="fa"></fa>
+                    Player
                 </a>
 
                 <a v-else-if="vod?.is_chatdump_captured" class="button is-blue" href="#">
-                    <span class="icon"><i class="fa fa-play"></i></span> Player
+                    <fa icon="play" type="fa"></fa>
+                    Player
                 </a>
 
                 <a class="button" :href="vod?.webpath + '/' + vod?.basename + '.json'" target="_blank">
-                    <span class="icon"><i class="fa fa-database"></i></span>
+                    <fa icon="database" type="fa"></fa>
                     JSON
                 </a>
 
                 <a class="button" @click="doArchive">
-                    <span class="icon"><i class="fa fa-archive"></i></span>
+                    <fa icon="archive" type="fa" v-if="!taskStatus.archive"></fa>
+                    <fa icon="sync" type="fa" spin="true" v-else></fa>
                     Archive
                 </a>
 
                 <a v-if="!vod?.twitch_vod_id && !vod?.is_chat_downloaded" class="button" @click="doDownloadChat">
-                    <span class="icon"><i class="fa fa-comments"></i></span>
+                    <fa icon="comments" type="fa" v-if="!taskStatus.downloadChat"></fa>
+                    <fa icon="sync" type="fa" spin="true" v-else></fa>
                     Download chat
                 </a>
 
                 <template v-if="vod?.is_chat_downloaded && !vod?.is_chat_burned">
-                    <a class="button" @click="doRenderChat"><span class="icon"><i class="fa fa-comment"></i></span> Render chat</a>
-                    <a v-if="vod?.is_vod_downloaded" class="button" @click="doRenderChat(true)"><span class="icon"><i class="fa fa-comment"></i></span> Render chat (vod)</a>
+                    <a class="button" @click="doRenderChat">
+                        <fa icon="comments" type="fa" v-if="!taskStatus.renderChat"></fa>
+                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                        Render chat
+                    </a>
+                    <a v-if="vod?.is_vod_downloaded" class="button" @click="doRenderChat(true)">
+                        <fa icon="comments" type="fa" v-if="!taskStatus.renderChat"></fa>
+                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                        Render chat (vod)
+                    </a>
                 </template>
 
                 <template v-if="vod?.twitch_vod_id">
                     <a v-if="!vod?.is_vod_downloaded" class="button" @click="doDownloadVod">
-                        <span class="icon"><i class="fa fa-download"></i></span>
+                        <fa icon="download" type="fa" v-if="!taskStatus.downloadVod"></fa>
+                        <fa icon="sync" type="fa" spin="true" v-else></fa>
                         Download{{ vod?.twitch_vod_muted ? " muted" : "" }} VOD
                     </a>
-                    <a class="button" @click="doCheckMute"><span class="icon"><i class="fa fa-volume-mute"></i></span> Check mute</a>
-                    <a v-if="!vod?.is_chat_burned" class="button" @click="doFullBurn"><span class="icon"><i class="fa fa-burn"></i></span> Render &amp; burn</a>
+                    <a class="button" @click="doCheckMute">
+                        <fa icon="volume-mute" type="fa" v-if="!taskStatus.vodMuteCheck"></fa>
+                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                        Check mute
+                    </a>
+                    <a v-if="!vod?.is_chat_burned" class="button" @click="doFullBurn">
+                        <fa icon="burn" type="fa" v-if="!taskStatus.fullBurn"></fa>
+                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                        Render &amp; burn
+                    </a>
                 </template>
 
-                <a class="button is-danger" @click="doDelete"><span class="icon"><i class="fa fa-trash"></i></span> Delete</a
-                >
+                <a class="button is-danger" @click="doDelete">
+                    <fa icon="trash" type="fa" v-if="!taskStatus.delete"></fa>
+                    <fa icon="sync" type="fa" spin="true" v-else></fa>
+                    Delete
+                </a>
             </template>
-            <template v-else-if="vod?.is_converting">
+        </div>
+
+        <div class="video-status" v-if="!vod.is_finalized">
+            <template v-if="vod?.is_converting">
                 <em
                     ><span class="icon"><i class="fa fa-file-signature"></i></span> Converting <strong>{{ vod?.basename }}.ts</strong> to
                     <strong>{{ vod?.basename }}.mp4</strong></em
@@ -315,9 +343,8 @@
             <template v-else-if="vod?.is_capturing">
                 <em>
                     <span class="icon"><i class="fa fa-video"></i></span>
-                    Capturing to
-                    <strong>{{ vod?.basename }}.ts</strong> (<strong>{{ formatBytes(vod?.api_getRecordingSize) }}</strong
-                    >)
+                    Capturing to <strong>{{ vod?.basename }}.ts</strong>
+                    (<strong>{{ formatBytes(vod?.api_getRecordingSize) }}</strong>)
                 </em>
 
                 <br />
@@ -330,10 +357,10 @@
                             {{ vod?.api_getCapturingStatus }})
                         </span>
                         <span v-else>
-                            <strong class="is-error flashing"
-                                ><span class="icon"><i class="fa fa-exclamation-triangle"></i></span> Video capture not running, did it
-                                crash?</strong
-                            >
+                            <strong class="is-error flashing">
+                                <span class="icon"><i class="fa fa-exclamation-triangle"></i></span>
+                                Video capture not running, did itcrash?
+                            </strong>
                         </span>
                     </em>
                     <template v-if="$store.state.config.chat_dump">
@@ -344,10 +371,10 @@
                                 {{ vod?.api_getChatDumpStatus }})
                             </span>
                             <span v-else>
-                                <strong class="is-error flashing"
-                                    ><span class="icon"><i class="fa fa-exclamation-triangle"></i></span> Chat dump not running, did it
-                                    crash?</strong
-                                >
+                                <strong class="is-error flashing">
+                                    <span class="icon"><i class="fa fa-exclamation-triangle"></i></span>
+                                    Chat dump not running, did it crash?
+                                </strong>
                             </span>
                         </em>
                     </template>
@@ -489,7 +516,16 @@ export default defineComponent({
     emits: ['forceFetchData'],
     data(){
         return {
-            config: []
+            config: [],
+            taskStatus: {
+                vodMuteCheck: false,
+                archive: false,
+                downloadChat: false,
+                renderChat: false,
+                downloadVod: false,
+                fullBurn: false,
+                delete: false
+            }
         }
     },
     props: {
@@ -506,26 +542,32 @@ export default defineComponent({
     methods: {
         doArchive(){
             if(!confirm(`Do you want to archive "${this.vod?.basename}"?`)) return;
+            this.taskStatus.archive = true;
             this.$http.post(`/api/v0/vod/${this.vod?.basename}/save`)
             .then((response) => {
                 const json = response.data;
                 if(json.message) alert(json.message);
                 console.log(json);
+                this.taskStatus.archive = false;
                 // this.$emit("forceFetchData");
             }).catch((err) => {
                 console.error("form error", err.response);
+                this.taskStatus.archive = false;
             });
         },
         doDownloadChat(){
             if(!confirm(`Do you want to download the chat for "${this.vod?.basename}"?`)) return;
+            this.taskStatus.downloadChat = true;
             this.$http.post(`/api/v0/vod/${this.vod?.basename}/download_chat`)
             .then((response) => {
                 const json = response.data;
                 if(json.message) alert(json.message);
                 console.log(json);
+                this.taskStatus.downloadChat = false;
                 // this.$emit("forceFetchData");
             }).catch((err) => {
                 console.error("form error", err.response);
+                this.taskStatus.downloadChat = false;
             });
         },
         doRenderChat( useVod = false ){
@@ -533,17 +575,21 @@ export default defineComponent({
         },
         doDownloadVod(){
             if(!confirm(`Do you want to download the vod for "${this.vod?.basename}"?`)) return;
+            this.taskStatus.downloadVod = true;
             this.$http.post(`/api/v0/vod/${this.vod?.basename}/download`)
             .then((response) => {
                 const json = response.data;
                 if(json.message) alert(json.message);
                 console.log(json);
+                this.taskStatus.downloadVod = false;
                 // this.$emit("forceFetchData");
             }).catch((err) => {
                 console.error("form error", err.response);
+                this.taskStatus.downloadVod = false;
             });
         },
         doCheckMute(){
+            this.taskStatus.vodMuteCheck = true;
             this.$http.post(`/api/v0/vod/${this.vod?.basename}/check_mute`)
             .then((response) => {
                 const json = response.data;
@@ -557,7 +603,7 @@ export default defineComponent({
                         alert(`The vod "${this.vod?.basename}" is${json.data.muted ? "" : " not"} muted.`);
                     }
                 }
-
+                this.taskStatus.vodMuteCheck = false;
                 // this.$emit("forceFetchData");
             }).catch((err) => {
                 console.error("doCheckMute error", err.response);
@@ -565,6 +611,7 @@ export default defineComponent({
                     const json = err.response.data;
                     if(json.message) alert(json.message);
                 }
+                this.taskStatus.vodMuteCheck = false;
             });
         },
         doFullBurn(){
@@ -572,14 +619,17 @@ export default defineComponent({
         },
         doDelete(){
             if(!confirm(`Do you want to delete "${this.vod?.basename}"?`)) return;
+            this.taskStatus.delete = true;
             this.$http.post(`/api/v0/vod/${this.vod?.basename}/delete`)
             .then((response) => {
                 const json = response.data;
                 if(json.message) alert(json.message);
                 console.log(json);
+                this.taskStatus.delete = false;
                 // this.$emit("forceFetchData");
             }).catch((err) => {
                 console.error("form error", err.response);
+                this.taskStatus.delete = false;
             });
         },
     }

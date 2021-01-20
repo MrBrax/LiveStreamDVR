@@ -6,10 +6,11 @@ import axios from "axios";
 import VueAxios from "vue-axios";
 import titleMixin from "./mixins/titleMixin";
 
-// import { library } from '@fortawesome/fontawesome-svg-core'
-// import { faUserSecret } from '@fortawesome/free-solid-svg-icons'
-// import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-// library.add(faUserSecret)
+// font-awesome
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { fas } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+library.add(fas);
 
 import "./assets/style.scss";
 
@@ -107,6 +108,7 @@ const app = createApp(App)
     .use(store)
     .use(router)
     .use(VueAxios, axios)
+    .component("fa", FontAwesomeIcon)
     .mixin(titleMixin)
     .mixin(helpers).mount("#app");
 

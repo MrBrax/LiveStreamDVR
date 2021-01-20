@@ -1,8 +1,10 @@
+/*
 $fa-font-path: "./fontawesome/webfonts";
 @import "./fontawesome/scss/fontawesome.scss";
 @import "./fontawesome/scss/solid.scss";
 @import "./fontawesome/scss/regular.scss";
 @import "./fontawesome/scss/brands.scss";
+*/
 
 @import "normalize";
 
@@ -81,7 +83,11 @@ a {
 	display: inline-flex;
 	width: $icon-dimensions;
 	height: $icon-dimensions;
+}
 
+svg[data-icon] {
+	vertical-align: -1px;
+	margin-right: 2px;
 }
 
 .text-error, .is-error {
