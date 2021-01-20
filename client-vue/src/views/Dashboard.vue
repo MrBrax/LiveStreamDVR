@@ -5,7 +5,7 @@
         <section class="section" data-section="vods">
             <div class="section-title"><h1>Recorded VODs</h1></div>
             <div class="section-content" v-if="$store.state.config && $store.state.streamerList && $store.state.streamerList.length > 0">
-                <streamer v-for="streamer in sortedStreamers" v-bind:key="streamer.id" v-bind:streamer="streamer" />
+                <streamer v-for="streamer in sortedStreamers" v-bind:key="streamer.userid" v-bind:streamer="streamer" />
                 <hr />
                 <div>
                     <strong>Total size: {{ formatBytes(totalSize) }}</strong><br>
@@ -62,10 +62,13 @@ type LogLine = {
 
 export default defineComponent({
     name: "Dashboard",
+    title() : string {
+        if(this.streamersOnline > 0) return `[${this.streamersOnline}] Dashboard`;
+        return "Dashboard";
+    },
     data() {
         return {
             loading: false,
-            // streamerList: Array as () => ApiStreamer[],
             timer: 120,
             timerMax: 120,
             interval: 0,
@@ -77,7 +80,7 @@ export default defineComponent({
             logVisible: false,
             logModule: '',
             oldData: Array as any,
-            notificationSub: Function
+            notificationSub: Function as any
         };
     },
     created() {
@@ -236,86 +239,86 @@ export default defineComponent({
 
                 previousData[ username ] = streamer;
             */
+            
+            this.notificationSub = this.$store.subscribe((mutation : MutationPayload, state : any ) => {
+                // console.log("subscribe", mutation.payload, this.$store.state.streamerList);
+                /*
+                if( mutation.payload[0].current_game !== state.streamerList[0].current_game ){
+                    alert( mutation.payload[0].display_name + ": " + mutation.payload[0].current_game );
+                }*/
+                // console.log( "values", Object.(mutation.payload[0]));
+                const streamerPronounciation: { [key: string]: string } = {
+                    'pokelawls': 'pookelawls',
+                    'xQcOW': 'eckscueseeow'
+                };
 
-           this.notificationSub = this.$store.subscribe((mutation : MutationPayload, state : any ) =>{
-            // console.log("subscribe", mutation.payload, this.$store.state.streamerList);
-            /*
-            if( mutation.payload[0].current_game !== state.streamerList[0].current_game ){
-                alert( mutation.payload[0].display_name + ": " + mutation.payload[0].current_game );
-            }*/
-            // console.log( "values", Object.(mutation.payload[0]));
-            const streamerPronounciation: { [key: string]: string } = {
-                'pokelawls': 'pookelawls',
-                'xQcOW': 'eckscueseeow'
-            };
+                for( const streamer of mutation.payload as ApiStreamer[] ){
 
-            for( const streamer of mutation.payload as ApiStreamer[] ){
+                    const username = streamer.display_name;
 
-                const username = streamer.display_name;
-
-                if( this.oldData[ streamer.display_name ] ){
-                    
-                    const oldStreamer = this.oldData[ streamer.display_name ];
-
-                    const opt = {
-                        icon: streamer.channel_data.profile_image_url,
-                        image: streamer.channel_data.profile_image_url,
-                        body: streamer.current_game ? streamer.current_game.game_name : "No game",
-                    };
-
-                    let text = "";
-
-                    if( !oldStreamer.is_live && streamer.is_live ){
-                        text = `${username} is live!`;
-                    }
-
-                    if(
-                        ( !oldStreamer.current_game && streamer.current_game ) || // from no game to new game
-                        ( oldStreamer.current_game && streamer.current_game && oldStreamer.current_game.game_name !== streamer.current_game.game_name ) // from old game to new game
-                    ){
-                        // alert( streamer.display_name + " is now playing " + streamer.current_game.game_name );
+                    if( this.oldData[ streamer.display_name ] ){
                         
-                        if( streamer.current_game.favourite ){
-                            text = `${username} is now playing one of your favourite games: ${streamer.current_game.game_name}!`;
-                        }else{
-                            text = `${username} is now playing ${streamer.current_game.game_name}!`;
+                        const oldStreamer = this.oldData[ streamer.display_name ];
+
+                        const opt = {
+                            icon: streamer.channel_data.profile_image_url,
+                            image: streamer.channel_data.profile_image_url,
+                            body: streamer.current_game ? streamer.current_game.game_name : "No game",
+                        };
+
+                        let text = "";
+
+                        if( !oldStreamer.is_live && streamer.is_live ){
+                            text = `${username} is live!`;
                         }
 
-                    }
-
-                    if( oldStreamer.is_live && !streamer.is_live ){
-                        text = `${username} has gone offline!`;
-                    }
-
-                    if(text !== ""){
-
-                        console.log( `Notify: ${text}` );
-
-                        if (Notification.permission === "granted") {
-                            const toast = new Notification( text, opt );
-                        }
-
-                        const useSpeech = true;
-                        if( useSpeech ){
+                        if(
+                            ( !oldStreamer.current_game && streamer.current_game ) || // from no game to new game
+                            ( oldStreamer.current_game && streamer.current_game && oldStreamer.current_game.game_name !== streamer.current_game.game_name ) // from old game to new game
+                        ){
+                            // alert( streamer.display_name + " is now playing " + streamer.current_game.game_name );
                             
-                            let speakText = text;
-                            
-                            if(streamerPronounciation[username]){
-                                console.debug(`Using pronounciation for ${username}`);
-                                speakText = speakText.replace(username, streamerPronounciation[username]);
+                            if( streamer.current_game.favourite ){
+                                text = `${username} is now playing one of your favourite games: ${streamer.current_game.game_name}!`;
+                            }else{
+                                text = `${username} is now playing ${streamer.current_game.game_name}!`;
                             }
-                            const utterance = new SpeechSynthesisUtterance( speakText );
-                            window.speechSynthesis.speak(utterance);
+
+                        }
+
+                        if( oldStreamer.is_live && !streamer.is_live ){
+                            text = `${username} has gone offline!`;
+                        }
+
+                        if(text !== ""){
+
+                            console.log( `Notify: ${text}` );
+
+                            if (Notification.permission === "granted") {
+                                const toast = new Notification( text, opt );
+                            }
+
+                            const useSpeech = true;
+                            if( useSpeech ){
+                                
+                                let speakText = text;
+                                
+                                if(streamerPronounciation[username]){
+                                    console.debug(`Using pronounciation for ${username}`);
+                                    speakText = speakText.replace(username, streamerPronounciation[username]);
+                                }
+                                const utterance = new SpeechSynthesisUtterance( speakText );
+                                window.speechSynthesis.speak(utterance);
+                            }
+
                         }
 
                     }
 
+                    this.oldData[ streamer.display_name ] = streamer;
                 }
 
-                this.oldData[ streamer.display_name ] = streamer;
-            }
-
-        });
+            });
 
         },
         logSetFilter( val: string ){
@@ -329,8 +332,8 @@ export default defineComponent({
     },
     computed: {
         sortedStreamers(){
-            const streamers = this.$store.state.streamerList;
-            return streamers.sort((a:ApiStreamer, b:ApiStreamer) => a.display_name > b.display_name);
+            const streamers : ApiStreamer[] = this.$store.state.streamerList;
+            return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
             /*
             return Object.entries( streamers ).sort(([, a], [, b]) =>
                 (a as any).display_name.localeCompare((b as any).display_name)
@@ -339,11 +342,20 @@ export default defineComponent({
         logFiltered() : Record<string, any> {
             if(!this.logModule) return this.logLines;
             return this.logLines.filter( val => (val as LogLine).module == this.logModule );
+        },
+        streamersOnline() : number {
+            if(!this.$store.state.streamerList) return 0;
+            return this.$store.state.streamerList.filter( a => a.is_live ).length;
         }
     },
     components: {
         Streamer
         // HelloWorld
     },
+    watch: {
+        streamersOnline(){
+            document.title = `[${this.streamersOnline}] Dashboard `;
+        }
+    }
 });
 </script>

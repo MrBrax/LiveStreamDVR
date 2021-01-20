@@ -65,11 +65,13 @@ import ToolsBurnForm from "@/components/forms/ToolsBurnForm.vue";
 import ToolsVodDownloadForm from "@/components/forms/ToolsVodDownloadForm.vue";
 import ToolsChatDownloadForm from "@/components/forms/ToolsChatDownloadForm.vue";
 
+import type { ApiJob } from "@/twitchautomator.d";
+
 export default defineComponent({
     name: "Tools",
     data() {
         return {
-            jobsData: {}
+            jobsData: [] as ApiJob[]
         };
     },
     created() {

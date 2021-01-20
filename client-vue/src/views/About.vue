@@ -66,12 +66,13 @@
                     <br /><strong>PHP SAPI:</strong> {{ aboutData.bins.php.sapi }}
                     <br /><strong>Platform:</strong> {{ aboutData.bins.php.platform ? aboutData.bins.php.platform : 'unknown' }}/{{ aboutData.bins.php.platform_family ? aboutData.bins.php.platform_family : 'unknown' }}
                     <br /><strong>Docker:</strong> {{ is_docker ? 'Yes' : 'No' }}
-                    <template v-if="envs">
-                    {% if envs.NODE %}<br /><strong>Node:</strong> {{ envs.npm_config_node_version }}{% endif %}
+                    <template v-if="envs && envs.NODE">
+                        <br /><strong>Node:</strong> {{ envs.npm_config_node_version }}{% endif %}
                     </template>
                     <hr />
 
                     <!-- env -->
+                    <!--
                     <template v-if="envs">
                         <h3>Environment variables</h3>
                         <table class="table">
@@ -84,11 +85,12 @@
 
                         <hr />
                     </template>
+                    -->
 
                     <!-- cronjobs -->
                     <h3>Cronjobs</h3>
                     <table class="table">
-                        <tr v-for="cron, cron_status in aboutData.cron_lastrun" :key="cron">
+                        <tr v-for="(cron, cron_status) in aboutData.cron_lastrun" :key="cron">
                             <td>{{ cron }}</td>
                             <td>{{ cron_status }}</td>
                         </tr>
@@ -130,11 +132,10 @@ export default defineComponent({
     name: "About",
     data() {
         return {
-            aboutData: {
-                // bins: {},
-                // eslint-disable-next-line @typescript-eslint/camelcase
-                // cron_lastrun: {}
-            },
+            aboutData: Object as any,
+            envs: {},
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            is_docker: false
         };
     },
     created() {

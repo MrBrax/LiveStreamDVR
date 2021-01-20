@@ -4,6 +4,7 @@ import router from "./router";
 import store from "./store";
 import axios from "axios";
 import VueAxios from "vue-axios";
+import titleMixin from "./mixins/titleMixin";
 
 import "./assets/style.scss";
 
@@ -101,6 +102,7 @@ const app = createApp(App)
     .use(store)
     .use(router)
     .use(VueAxios, axios)
+    .mixin(titleMixin)
     .mixin(helpers).mount("#app");
 
 /*

@@ -22,7 +22,7 @@
         <!-- description -->
         <div class="video-description">
             <!-- box art -->
-            <div class="boxart-carousel is-small">
+            <div class="boxart-carousel is-small" v-if="vod && vod.api_getUniqueGames">
                 <div v-for="game in vod.api_getUniqueGames" :key="game" class="boxart-item">
                     <img v-if="game.image_url" :title="game.name" :alt="game.name" :src="game.image_url" loading="lazy" />
                     <span v-else>{{ game.name }}</span>
@@ -218,8 +218,8 @@
         <!-- segment list -->
         <div v-if="vod?.is_finalized" class="video-segments">
             <strong>Segments</strong>
-            <ul class="list-segments">
-                <li v-for="segment in vod?.segments" :key="segment">
+            <ul class="list-segments" v-if="vod && vod.segments">
+                <li v-for="segment in vod.segments" :key="segment">
                     <a :href="vod?.webpath + '/' + segment.basename">
                         <span class="text-overflow">{{ segment.basename }}</span>
                         <span v-if="segment.deleted">
@@ -330,7 +330,7 @@
 
                 <br />
 
-                <template v-if="!$store.state.playlist_dump">
+                <template v-if="!$store.state.config.playlist_dump">
                     <em>
                         <span v-if="vod?.api_getCapturingStatus">
                             <span class="icon"><i class="fa fa-sync fa-spin"></i></span>
@@ -344,7 +344,7 @@
                             >
                         </span>
                     </em>
-                    <template v-if="$store.state.chat_dump">
+                    <template v-if="$store.state.config.chat_dump">
                         <br /><em>
                             <span v-if="vod?.api_getChatDumpStatus">
                                 <span class="icon"><i class="fa fa-sync fa-spin"></i></span>
@@ -391,7 +391,7 @@
 
         <!-- game list / chapters -->
         <div class="video-chapters">
-            <table class="table game-list">
+            <table class="table game-list" v-if="vod && vod.chapters">
                 <thead>
                     <tr>
                         <th>Offset</th>
