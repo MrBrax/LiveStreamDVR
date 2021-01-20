@@ -145,6 +145,17 @@ export default defineComponent({
         fetchData() {
             this.aboutData = [];
 
+            this.$http.get(`/api/v0/about`)
+            .then((response) => {
+                const json = response.data;
+                const about = json.data;
+                console.debug("aboutData", about);
+                this.aboutData = about;
+            }).catch((err) => {
+                console.error("about error", err.response);
+            });
+
+            /*
             fetch(`api/v0/about`)
             .then((response) => response.json())
             .then((json) => {
@@ -152,6 +163,7 @@ export default defineComponent({
                 console.log("aboutData", about);
                 this.aboutData = about;
             });
+            */
 
         },
         

@@ -54,9 +54,6 @@ export default defineComponent({
             .then((response) => {
                 this.$store.commit('updateConfig', response.data.data.config);
                 this.$store.commit('updateVersion', response.data.data.version);
-                // this.config = json.data.config;
-                // this.version = json.data.version;
-                // console.log("config", this.config);
             });
         }
     },

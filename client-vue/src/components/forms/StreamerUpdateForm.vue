@@ -56,7 +56,7 @@
 import { defineComponent } from "vue";
 
 export default defineComponent({
-    name: "Settings",
+    name: "StreamerUpdateForm",
     props: ['streamer'],
     emits: ['formSuccess'],
     data(){
@@ -76,6 +76,19 @@ export default defineComponent({
             console.log( "form", form );
             console.log( "entries", inputs, inputs.entries(), inputs.values() );
 
+            this.$http.post(`/api/v0/channels/update`, inputs)
+            .then((response) => {
+                const json = response.data;
+                this.formStatusText = json.message;
+                this.formStatus = json.status;
+                if(json.status == 'OK'){
+                    this.$emit('formSuccess', json);
+                }
+            }).catch((err) => {
+                console.error("form error", err.response);
+            });
+
+            /*
             fetch(`api/v0/channels/update`, {
                 method: 'POST',
                 body: inputs
@@ -90,6 +103,7 @@ export default defineComponent({
             }).catch((test) => {
                 console.error("Error", test);
             });
+            */
 
             event.preventDefault();
             return false;

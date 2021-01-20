@@ -1,5 +1,5 @@
 <template>
-    <form method="POST" enctype="multipart/form-data" action="#" @submit="saveSettings">
+    <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
         <div class="field" v-for="(data, key) in settingsFields" v-bind:key="key">
             <label v-if="data.type != 'boolean'" class="label" :for="'input_' + key">{{ data.text }}</label>
 
@@ -35,7 +35,7 @@
         </div>
 
         <div class="control">
-            <button class="button is-confirm" type="button" @click="saveSettings">
+            <button class="button is-confirm" type="submit">
                 <span class="icon"><i class="fa fa-save"></i></span> Save
             </button>
             <span :class="formStatusClass">{{ formStatusText }}</span>
@@ -47,7 +47,7 @@
 import { defineComponent } from "vue";
 
 export default defineComponent({
-    name: "Settings",
+    name: "SettingsForm",
     props: ['settingsData', 'settingsFields'],
     emits: ['formSuccess'],
     data(){
@@ -63,7 +63,7 @@ export default defineComponent({
     },
     */
     methods: {
-        saveSettings( event : Event ){
+        submitForm( event : Event ){
             
             const form = event.target as HTMLFormElement;
             const inputs = new FormData(form);
@@ -74,6 +74,19 @@ export default defineComponent({
             console.log( "form", form );
             console.log( "entries", inputs, inputs.entries(), inputs.values() );            
 
+            this.$http.post(`/api/v0/settings/save`, inputs)
+            .then((response) => {
+                const json = response.data;
+                this.formStatusText = json.message;
+                this.formStatus = json.status;
+                if(json.status == 'OK'){
+                    this.$emit('formSuccess', json);
+                }
+            }).catch((err) => {
+                console.error("form error", err.response);
+            });
+
+            /*
             fetch(`api/v0/settings/save`, {
                 method: 'POST',
                 body: inputs
@@ -88,6 +101,7 @@ export default defineComponent({
             }).catch((test) => {
                 console.error("Error", test);
             });
+            */
 
             event.preventDefault();
             return false;

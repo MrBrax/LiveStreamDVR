@@ -4,8 +4,7 @@
         <div class="favourites_list" v-if="gamesData">
             <div v-for="[id, game] in sortedGames" :key="id" class="checkbox">
                 <label>
-                    <input type="checkbox" :name="'games[' + id + ']'" :checked="favouritesData[id]"  /> <!-- :checked="$store.state.config.favourites[id]" -->
-                    {{ game.name }}
+                    <input type="checkbox" :name="'games[' + id + ']'" :checked="favouritesData[id]"  /> {{ game.name }}
                     <span class="is-gray">{{ formatTimestamp(game.added) }}</span>
                 </label>
             </div>
@@ -47,6 +46,19 @@ export default defineComponent({
             console.log( "form", form );
             console.log( "entries", inputs, inputs.entries(), inputs.values() );            
 
+            this.$http.post(`/api/v0/favourites/save`, inputs)
+            .then((response) => {
+                const json = response.data;
+                this.formStatusText = json.message;
+                this.formStatus = json.status;
+                if(json.status == 'OK'){
+                    this.$emit('formSuccess', json);
+                }
+            }).catch((err) => {
+                console.error("form error", err.response);
+            });
+
+            /*
             fetch(`api/v0/favourites/save`, {
                 method: 'POST',
                 body: inputs
@@ -61,6 +73,8 @@ export default defineComponent({
             }).catch((test) => {
                 console.error("Error", test);
             });
+            */
+
 
             event.preventDefault();
             return false;

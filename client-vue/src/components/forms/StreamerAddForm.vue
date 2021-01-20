@@ -1,5 +1,5 @@
 <template>
-    <form method="POST" enctype="multipart/form-data" action="#" ref="form" @submit="addStreamer">
+    <form method="POST" enctype="multipart/form-data" action="#" ref="form" @submit="submitForm">
         <div class="field">
             <label class="label">Username <span class="required">*</span></label>
             <div class="control">
@@ -49,7 +49,7 @@ import { defineComponent } from "vue";
 // import type { ApiSettingsField, ApiGame } from "@/twitchautomator.d";
 
 export default defineComponent({
-    name: "Settings",
+    name: "StreamerAddForm",
     emits: ['formSuccess'],
     data(){
         return {
@@ -58,7 +58,7 @@ export default defineComponent({
         }
     },
     methods: {
-        addStreamer( event : Event ){
+        submitForm( event : Event ){
             
             const form = event.target as HTMLFormElement;
             const inputs = new FormData(form);
@@ -69,6 +69,19 @@ export default defineComponent({
             console.log( "form", form );
             console.log( "entries", inputs, inputs.entries(), inputs.values() );            
 
+            this.$http.post(`/api/v0/channels/add`, inputs)
+            .then((response) => {
+                const json = response.data;
+                this.formStatusText = json.message;
+                this.formStatus = json.status;
+                if(json.status == 'OK'){
+                    this.$emit('formSuccess', json);
+                }
+            }).catch((err) => {
+                console.error("form error", err.response);
+            });
+
+            /*
             fetch(`api/v0/channels/add`, {
                 method: 'POST',
                 body: inputs
@@ -83,6 +96,7 @@ export default defineComponent({
             }).catch((test) => {
                 console.error("Error", test);
             });
+            */
 
             event.preventDefault();
             return false;

@@ -56,6 +56,24 @@ export default defineComponent({
             console.log( "form", form );
             console.log( "entries", inputs, inputs.entries(), inputs.values() );            
 
+            this.$http.post(`/api/v0/tools/voddownload`, inputs)
+            .then((response) => {
+                const json = response.data;
+                this.formStatusText = json.message;
+                this.formStatus = json.status;
+                if(json.status == 'OK'){
+                    this.$emit('formSuccess', json);
+                }
+                if(json.data && json.data.web_path){
+                    this.fileLink = json.data.web_path;
+                }
+            }).catch((err) => {
+                console.error("form error", err.response);
+                this.formStatusText = err;
+                this.formStatus = 'ERROR';
+            });
+
+            /*
             fetch(`api/v0/tools/voddownload`, {
                 method: 'POST',
                 body: inputs
@@ -75,6 +93,7 @@ export default defineComponent({
                 this.formStatusText = err;
                 this.formStatus = 'ERROR';
             });
+            */
 
             event.preventDefault();
             return false;

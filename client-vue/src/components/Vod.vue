@@ -263,45 +263,36 @@
                     <span class="icon"><i class="fa fa-play"></i></span> Player
                 </a>
 
-                <a class="button" :href="vod?.webpath + '/' + vod?.basename + '.json'">
+                <a class="button" :href="vod?.webpath + '/' + vod?.basename + '.json'" target="_blank">
                     <span class="icon"><i class="fa fa-database"></i></span>
                     JSON
                 </a>
 
-                <a class="button" href="#">
+                <a class="button" @click="doArchive">
                     <span class="icon"><i class="fa fa-archive"></i></span>
                     Archive
                 </a>
 
-                <a v-if="!vod?.twitch_vod_id && !vod?.is_chat_downloaded" class="button" href="#">
+                <a v-if="!vod?.twitch_vod_id && !vod?.is_chat_downloaded" class="button" @click="doDownloadChat">
                     <span class="icon"><i class="fa fa-comments"></i></span>
                     Download chat
                 </a>
 
                 <template v-if="vod?.is_chat_downloaded && !vod?.is_chat_burned">
-                    <a class="button" href="#"
-                        ><span class="icon"><i class="fa fa-comment"></i></span> Render chat</a
-                    >
-                    <a v-if="vod?.is_vod_downloaded" class="button" href="#"
-                        ><span class="icon"><i class="fa fa-comment"></i></span> Render chat (vod)</a
-                    >
+                    <a class="button" @click="doRenderChat"><span class="icon"><i class="fa fa-comment"></i></span> Render chat</a>
+                    <a v-if="vod?.is_vod_downloaded" class="button" @click="doRenderChat(true)"><span class="icon"><i class="fa fa-comment"></i></span> Render chat (vod)</a>
                 </template>
 
                 <template v-if="vod?.twitch_vod_id">
-                    <a v-if="!vod?.is_vod_downloaded" class="button" href="#">
+                    <a v-if="!vod?.is_vod_downloaded" class="button" @click="doDownloadVod">
                         <span class="icon"><i class="fa fa-download"></i></span>
                         Download{{ vod?.twitch_vod_muted ? " muted" : "" }} VOD
                     </a>
-                    <a class="button" href="#"
-                        ><span class="icon"><i class="fa fa-volume-mute"></i></span> Check mute</a
-                    >
-                    <a v-if="!vod?.is_chat_burned" class="button" href="#"
-                        ><span class="icon"><i class="fa fa-burn"></i></span> Render &amp; burn</a
-                    >
+                    <a class="button" @click="doCheckMute"><span class="icon"><i class="fa fa-volume-mute"></i></span> Check mute</a>
+                    <a v-if="!vod?.is_chat_burned" class="button" @click="doFullBurn"><span class="icon"><i class="fa fa-burn"></i></span> Render &amp; burn</a>
                 </template>
 
-                <a class="button is-danger" href="#"
-                    ><span class="icon"><i class="fa fa-trash"></i></span> Delete</a
+                <a class="button is-danger" @click="doDelete"><span class="icon"><i class="fa fa-trash"></i></span> Delete</a
                 >
             </template>
             <template v-else-if="vod?.is_converting">
@@ -513,7 +504,27 @@ export default defineComponent({
         */
     },
     methods: {
-
+        doArchive(){
+            alert('archive');
+        },
+        doDownloadChat(){
+            alert('download chat');
+        },
+        doRenderChat( useVod = false ){
+            alert('RenderChat');
+        },
+        doDownloadVod(){
+            alert('DownloadVod');
+        },
+        doCheckMute(){
+            alert('CheckMute');
+        },
+        doFullBurn(){
+            alert('FullBurn');
+        },
+        doDelete(){
+            alert('Delete');
+        },
     }
 });
 </script>
