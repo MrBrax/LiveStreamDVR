@@ -1,11 +1,12 @@
 <template>
     <div
+        v-if="vod"
         :class="{
             'video': true,
-            'is-recording': vod?.is_capturing,
-            'is-converting': vod?.is_converting,
-            'is-finalized': vod?.is_finalized,
-            'is-favourite': vod?.api_hasFavouriteGame
+            'is-recording': vod.is_capturing,
+            'is-converting': vod.is_converting,
+            'is-finalized': vod.is_finalized,
+            'is-favourite': vod.api_hasFavouriteGame
         }"
     >
         <div :id="'vod_' + vod?.basename" class="anchor"></div>
@@ -422,12 +423,10 @@
                                 :alt="chapter.game_name"
                                 loading="lazy"
                             />
-
                             <template v-if="vod?.is_finalized">
-                                <a href="#">
+                                <router-link :to="{ name: 'Editor', params: { vod: vod?.basename }, query: { start: chapter.offset } }">
                                     {{ chapter.game_name ? chapter.game_name : "None" }}
-                                </a>
-
+                                </router-link>
                                 <a
                                     v-if="vod?.twitch_vod_exists"
                                     :href="vod?.twitch_vod_url + '?t=' + twitchDuration(chapter.offset)"

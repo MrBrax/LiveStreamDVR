@@ -19,7 +19,12 @@
             <!--{% for streamer in streamerList|sort((a, b) => a.display_name > b.display_name) %}-->
             <template v-for="streamer in $store.state.streamerList" :key="streamer.username">
 
-                <div :class="{ 'top-menu-item': true, 'is-live': streamer.is_live, 'streamer': true }" :data-streamer="streamer.display_name">
+                <div :class="{
+                    'top-menu-item': true,
+                    'is-live': streamer.is_live,
+                    'is-animated': $store.state.clientConfig.animationsEnabled,
+                    'streamer': true
+                }" :data-streamer="streamer.display_name">
                     
                     <a :href="'#streamer_' + streamer.display_name">
 
@@ -56,9 +61,10 @@
                             <a :href="'#vod_' + vod.basename" :data-basename="vod.basename" :class="{
                                     'is-favourite': vod.api_hasFavouriteGame,
                                     'is-live': vod.is_capturing,
+                                    'is-animated': $store.state.clientConfig.animationsEnabled,
                                     'is-converting': vod.is_converting,
                                     'is-waiting': !vod.is_capturing && !vod.is_converting && !vod.is_finalized
-                                }" :title="vod.dt_started_at.date">
+                                }" :title="formatDate(vod.dt_started_at.date)">
                                 <!-- <span class="icon is-active"><i class="fa fa-arrow-circle-right"></i></span> -->
                             
                                 <span v-if="vod.is_capturing" class="icon"><i class="fa fa-sync fa-spin"></i></span> <!-- capturing -->

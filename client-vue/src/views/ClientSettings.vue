@@ -12,6 +12,9 @@
                 <div class="control">
                     <label class="checkbox"><input type="checkbox" v-model="updateConfig.singlePage" /> Single page</label>
                 </div>
+                <div class="control">
+                    <label class="checkbox"><input type="checkbox" v-model="updateConfig.animationsEnabled" /> Enable animations</label>
+                </div>
                 <br />
                 <div class="control">
                     <button class="button is-small" @click="requestNotifications">Request notification permissions</button>
@@ -32,11 +35,13 @@ export default defineComponent({
                 useSpeech: false,
                 singlePage: true,
                 enableNotifications: false,
+                animationsEnabled: true,
             },
             updateConfig: {
                 useSpeech: false,
                 singlePage: true,
                 enableNotifications: false,
+                animationsEnabled: true,
             },
         };
     },
@@ -45,6 +50,7 @@ export default defineComponent({
             useSpeech: false,
             singlePage: true,
             enableNotifications: false,
+            animationsEnabled: true,
         };
 
         const currentConfig = localStorage.getItem("twitchautomator_config")

@@ -13,6 +13,7 @@ declare module '@vue/runtime-core' {
             useSpeech: boolean;
             singlePage: boolean;
             enableNotifications: boolean;
+            animationsEnabled: boolean;
         }
     }
       

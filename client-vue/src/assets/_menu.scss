@@ -148,8 +148,10 @@
 		}
 		.username {
 			color: #f00;
-			animation: live ease-in-out 1s infinite;
 			font-weight: 700;
+		}
+		&.is-animated a {
+			animation: live ease-in-out 1s infinite;
 		}
 		.subtitle, .vodcount {
 			color: #b30000;
@@ -213,7 +215,9 @@ a.linkback {
 				}
 				&.is-live {
 					background-color: $recording-base;
-					animation: 1s ease-in-out infinite recording; // @todo: keep?
+					&.is-animated{
+						animation: 1s ease-in-out infinite recording; // @todo: keep?
+					}
 					&:hover {
 						background-color: lighten($recording-base, 5%);
 					}

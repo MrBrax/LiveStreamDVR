@@ -15,7 +15,7 @@
         </section>
 
         <section class="section">
-            <div class="section-title" @click="logVisible = !logVisible"><h1>Logs</h1></div>
+            <div class="section-title" @click="logToggle"><h1>Logs</h1></div>
             <div class="section-content" v-if="logVisible">
 
                 <!--
@@ -26,7 +26,7 @@
                 </select>
                 -->
 
-                <div class="log_viewer">
+                <div class="log_viewer" ref="logViewer">
                     <table>
                         <tr v-for="line in logFiltered" :key="line" :class="'log-line log-line-'+(line.level.toLowerCase())">
                             <td>{{ line.date_string }}</td>
@@ -155,6 +155,13 @@ export default defineComponent({
             this.logFromLine = response.data.data.last_line;
             
             this.logLines = this.logLines.concat(response.data.data.lines);
+
+            // scroll to bottom
+            setTimeout(() => {
+                const lv = (this.$refs.logViewer as HTMLDivElement);
+                if(!lv) return;
+                lv.scrollTop = lv.scrollHeight;
+            }, 100);
 
         },
         async fetchTicker(){
@@ -339,6 +346,14 @@ export default defineComponent({
                 this.logModule = val;
             }
             console.log(`Log filter set to ${this.logModule}`)
+        },
+        logToggle(){
+            this.logVisible = !this.logVisible;
+            setTimeout(() => {
+                const lv = (this.$refs.logViewer as HTMLDivElement);
+                if(!lv) return;
+                lv.scrollTop = lv.scrollHeight;
+            }, 100);
         }
     },
     computed: {
