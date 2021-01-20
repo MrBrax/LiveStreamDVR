@@ -75,7 +75,7 @@
                                 <template v-if="vod.is_capturing">
                                     <!--<span v-if="vod.duration_live">&middot; ({{ $store.state.config.relative_time ? niceDuration(vod.duration_live) : humanDuration(vod.duration_live) }}+)</span>-->
                                     <span>&middot; ({{ vodTimes[vod.basename] }})</span><!-- duration -->
-                                    <span v-if="vod.getRecordingSize">&middot; {{ formatBytes(vod.getRecordingSize, 2) }}+</span><!-- filesize -->
+                                    <span v-if="vod.api_getRecordingSize">&middot; {{ formatBytes(vod.api_getRecordingSize, 2) }}+</span><!-- filesize -->
                                 </template>
 
                                 <!-- when not capturing -->
