@@ -1,6 +1,6 @@
 <template>
     <div>
-        <form method="POST" enctype="multipart/form-data" action="#" @submit="updateStreamer">
+        <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
                             
             <input type="hidden" name="username" :value="streamer.username" />
             
@@ -37,18 +37,15 @@
             <div class="field">
                 <div class="control">
                     <button class="button is-confirm" type="submit">
-                        <span class="icon"><i class="fa fa-save"></i></span> Save
+                        <span class="icon"><fa icon="save"></fa></span> Save
                     </button>
                     <span :class="formStatusClass">{{ formStatusText }}</span>
                 </div>
             </div>
 
         </form>
-        <hr>
-        <form>
-            <input type="hidden" name="username" :value="streamer.username" />
-            <button class="button is-danger" type="submit"><span class="icon"><i class="fa fa-trash"></i></span> Delete</button> (no undo, no confirmation)
-        </form>
+        <hr />
+        <button class="button is-danger" type="submit" @click="deleteStreamer"><span class="icon"><fa icon="trash"></fa></span> Delete</button> (no undo)
     </div>
 </template>
 
@@ -66,7 +63,7 @@ export default defineComponent({
         }
     },
     methods: {
-        updateStreamer( event : Event ){
+        submitForm( event : Event ){
             const form = event.target as HTMLFormElement;
             const inputs = new FormData(form);
 
@@ -107,6 +104,21 @@ export default defineComponent({
 
             event.preventDefault();
             return false;
+        },
+        deleteStreamer(){
+            if(!confirm(`Do you want to delete "${this.streamer.display_name}"?`)) return;
+            this.$http.post(`/api/v0/channels/delete`, {username: this.streamer.display_name})
+            .then((response) => {
+                const json = response.data;
+                if(json.message) alert(json.message);
+                console.log(json);
+                this.$emit('formSuccess', json);
+            }).catch((err) => {
+                console.error("form error", err.response);
+                if(err.response.data && err.response.data.message){
+                    alert(err.response.data.message);
+                }
+            });
         }
     },
     computed: {

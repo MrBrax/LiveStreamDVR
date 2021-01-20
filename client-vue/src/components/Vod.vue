@@ -14,7 +14,7 @@
         <!-- title -->
         <div class="video-title">
             <h3>
-                <span class="icon"><i class="fas fa-file-video"></i></span>
+                <span class="icon"><fa icon="file-video"></fa></span>
                 <span class="video-date" v-if="vod?.dt_started_at">{{ formatDate(vod?.dt_started_at.date, "yyyy-MM-dd HH:mm:ss") }}</span>
                 <span class="video-filename">{{ vod?.basename }}</span>
             </h3>
@@ -325,24 +325,27 @@
 
         <div class="video-status" v-if="!vod.is_finalized">
             <template v-if="vod?.is_converting">
-                <em
-                    ><span class="icon"><i class="fa fa-file-signature"></i></span> Converting <strong>{{ vod?.basename }}.ts</strong> to
-                    <strong>{{ vod?.basename }}.mp4</strong></em
-                ><br />
                 <em>
-                    <span v-if="vod?.api_getConvertingStatus"
-                        ><span class="icon"><i class="fa fa-sync fa-spin"></i></span> Running (pid {{ vod?.api_getConvertingStatus }})</span
-                    >
-                    <span v-else
-                        ><strong class="is-error flashing"
-                            ><span class="icon"><i class="fa fa-exclamation-triangle"></i></span> Not running, did it crash?</strong
-                        ></span
-                    >
+                    <span class="icon"><fa icon="file-signature"></fa></span>
+                    Converting <strong>{{ vod?.basename }}.ts</strong> to <strong>{{ vod?.basename }}.mp4</strong>
+                </em>
+                <br />
+                <em>
+                    <span v-if="vod?.api_getConvertingStatus">
+                        <span class="icon"><fa icon="sync" spin></fa></span>
+                        Running (pid {{ vod?.api_getConvertingStatus }})
+                    </span>
+                    <span v-else>
+                        <strong class="is-error flashing">
+                            <span class="icon"><fa icon="exclamation-triangle"></fa></span>
+                            Not running, did it crash?
+                        </strong>
+                    </span>
                 </em>
             </template>
             <template v-else-if="vod?.is_capturing">
                 <em>
-                    <span class="icon"><i class="fa fa-video"></i></span>
+                    <span class="icon"><fa icon="video"></fa></span>
                     Capturing to <strong>{{ vod?.basename }}.ts</strong>
                     (<strong>{{ formatBytes(vod?.api_getRecordingSize) }}</strong>)
                 </em>
@@ -352,13 +355,13 @@
                 <template v-if="!$store.state.config.playlist_dump">
                     <em>
                         <span v-if="vod?.api_getCapturingStatus">
-                            <span class="icon"><i class="fa fa-sync fa-spin"></i></span>
+                            <span class="icon"><fa icon="sync" spin></fa></span>
                             Video capture running (pid
                             {{ vod?.api_getCapturingStatus }})
                         </span>
                         <span v-else>
                             <strong class="is-error flashing">
-                                <span class="icon"><i class="fa fa-exclamation-triangle"></i></span>
+                                <span class="icon"><fa icon="exclamation-triangle"></fa></span>
                                 Video capture not running, did itcrash?
                             </strong>
                         </span>
@@ -366,13 +369,13 @@
                     <template v-if="$store.state.config.chat_dump">
                         <br /><em>
                             <span v-if="vod?.api_getChatDumpStatus">
-                                <span class="icon"><i class="fa fa-sync fa-spin"></i></span>
+                                <span class="icon"><fa icon="sync" spin></fa></span>
                                 Chat dump running (pid
                                 {{ vod?.api_getChatDumpStatus }})
                             </span>
                             <span v-else>
                                 <strong class="is-error flashing">
-                                    <span class="icon"><i class="fa fa-exclamation-triangle"></i></span>
+                                    <span class="icon"><fa icon="exclamation-triangle"></fa></span>
                                     Chat dump not running, did it crash?
                                 </strong>
                             </span>
@@ -461,7 +464,7 @@
                                     rel="noreferrer"
                                     aria-label="Open on Twitch"
                                 >
-                                    <span class="icon"><i class="fas fa-external-link-alt"></i></span>
+                                    <span class="icon"><fa icon="external-link-alt"></fa></span>
                                 </a>
                             </template>
                             <template v-else>

@@ -83,12 +83,19 @@ a {
 	display: inline-flex;
 	width: $icon-dimensions;
 	height: $icon-dimensions;
+	/*
+	svg {
+		vertical-align: middle;
+	}
+	*/
 }
 
+/*
 svg[data-icon] {
 	vertical-align: -1px;
 	margin-right: 2px;
 }
+*/
 
 .text-error, .is-error {
 	color: #f00;

@@ -9,8 +9,9 @@ import titleMixin from "./mixins/titleMixin";
 // font-awesome
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { fas } from '@fortawesome/free-solid-svg-icons'
+import { faGithub } from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-library.add(fas);
+library.add(fas, faGithub);
 
 import "./assets/style.scss";
 

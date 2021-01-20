@@ -4,7 +4,7 @@
         <div class="field">
             <label class="label">VOD URL</label>
             <div class="control">
-                <input class="input input-required" type="text" name="url" value="" />
+                <input class="input input-required" type="text" name="url" value="" required />
             </div>
         </div>
 
@@ -19,7 +19,7 @@
 
         <div class="field">
             <div class="control">
-                <button class="button is-confirm" type="submit"><span class="icon"><i class="fa fa-burn"></i></span> Execute</button>
+                <button class="button is-confirm" type="submit"><span class="icon"><fa icon="burn"></fa></span> Execute</button>
                 <span :class="formStatusClass">{{ formStatusText }}</span>
             </div>
         </div>

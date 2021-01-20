@@ -12,7 +12,7 @@
 
         <div class="control">
             <button class="button is-confirm" type="submit">
-                <span class="icon"><i class="fa fa-save"></i></span> Save
+                <span class="icon"><fa icon="save"></fa></span> Save
             </button>
             <span :class="formStatusClass">{{ formStatusText }}</span>
         </div>

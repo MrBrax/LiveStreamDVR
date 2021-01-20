@@ -25,18 +25,14 @@
                     </span>
                     <span v-if="streamer.is_live">
                         &middot;
-                        <a @click="abortCapture" title="Abort record"
-                            ><span class="icon"><i class="fa fa-video-slash"></i></span></a
-                        ><!-- abort recording -->
+                        <a @click="abortCapture" title="Abort record"><span class="icon"><fa icon="video-slash"></fa></span></a><!-- abort recording -->
                     </span>
                     <span v-else>
                         &middot;
-                        <a @click="forceRecord" title="Force record"
-                            ><span class="icon"><i class="fa fa-video"></i></span></a
-                        ><!-- force recording -->
+                        <a @click="forceRecord" title="Force record"><span class="icon"><fa icon="video"></fa></span></a><!-- force recording -->
                     </span>
                     <a @click="playlistRecord" title="Playlist record"
-                        ><span class="icon"><i class="fa fa-play-circle"></i></span></a
+                        ><span class="icon"><fa icon="play-circle"></fa></span></a
                     ><!-- dump playlist -->
                 </span>
             </div>

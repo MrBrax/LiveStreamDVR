@@ -36,7 +36,7 @@
         <div class="field">
             <div class="control">
                 <button class="button is-confirm" type="submit">
-                    <span class="icon"><i class="fa fa-user-plus"></i></span> Add
+                    <span class="icon"><fa icon="user-plus"></fa></span> Add
                 </button>
                 <span :class="formStatusClass">{{ formStatusText }}</span>
             </div>

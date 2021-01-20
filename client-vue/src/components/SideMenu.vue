@@ -65,13 +65,13 @@
                                     'is-converting': vod.is_converting,
                                     'is-waiting': !vod.is_capturing && !vod.is_converting && !vod.is_finalized
                                 }" :title="formatDate(vod.dt_started_at.date)">
-                                <!-- <span class="icon is-active"><i class="fa fa-arrow-circle-right"></i></span> -->
-                            
-                                <span v-if="vod.is_capturing" class="icon"><i class="fa fa-sync fa-spin"></i></span> <!-- capturing -->
-                                <span v-else-if="vod.is_converting" class="icon"><i class="fa fa-cog fa-spin"></i></span> <!-- converting -->
-                                <span v-else-if="vod.api_hasFavouriteGame" class="icon"><i class="fa fa-star"></i></span> <!-- favourite -->
-                                <span v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized" class="icon"><i class="far fa-hourglass"></i></span> <!-- waiting after capture -->
-                                <span v-else-if="vod.is_finalized" class="icon"><i class="fa fa-film"></i></span> <!-- video -->
+                                
+                                <!-- main icon -->                            
+                                <span class="icon" v-if="vod.is_capturing"><fa icon="sync" spin></fa></span> <!-- capturing -->
+                                <span class="icon" v-else-if="vod.is_converting"><fa icon="cog" spin></fa></span> <!-- converting -->
+                                <span class="icon" v-else-if="vod.api_hasFavouriteGame"><fa icon="star"></fa></span> <!-- favourite -->
+                                <span class="icon" v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized"><fa :icon="['far', 'hourglass']"></fa></span> <!-- waiting after capture -->
+                                <span class="icon" v-else-if="vod.is_finalized"><fa icon="film"></fa></span> <!-- video -->
 
                                 <!-- started at -->
                                 <span v-if="!$store.state.config.relative_time && vod.dt_started_at">{{ formatDate(vod.dt_started_at.date) }}</span><!-- absolute time -->
@@ -92,10 +92,10 @@
 
                                 <template v-if="vod.is_finalized">
                                     <span class="flags">
-                                        <span v-if="vod.twitch_vod_exists === false"><span class="icon is-error" title="Deleted"><i class="fa fa-trash"></i></span></span><!-- vod deleted -->
-                                        <span v-if="vod.twitch_vod_exists === null"><span class="icon is-error" title="Not checked"><i class="fa fa-question"></i></span></span><!-- vod not checked -->
-                                        <span v-if="vod.twitch_vod_muted === true"><span class="icon is-error" title="Muted"><i class="fa fa-volume-mute"></i></span></span><!-- vod muted -->
-                                        <span v-if="vod.is_capture_paused"><span class="icon is-error" title="Paused"><i class="fa fa-pause"></i></span></span><!-- capturing paused -->
+                                        <span v-if="vod.twitch_vod_exists === false" class="icon is-error" title="Deleted"><fa icon="trash"></fa></span><!-- vod deleted -->
+                                        <span v-if="vod.twitch_vod_exists === null" class="icon is-error" title="Not checked"><fa icon="question"></fa></span><!-- vod not checked -->
+                                        <span v-if="vod.twitch_vod_muted === true" class="icon is-error" title="Muted"><fa icon="volume-mute"></fa></span><!-- vod muted -->
+                                        <span v-if="vod.is_capture_paused" class="icon is-error" title="Paused"><fa icon="pause"></fa></span><!-- capturing paused -->
                                     </span>
                                 </template>
 
@@ -123,30 +123,30 @@
 
         <div class="menu-bottom">
             <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'Dashboard' }">
-                <router-link to="/dashboard" title="Dashboard"><i class="fa fa-tachometer-alt"></i></router-link>
+                <router-link to="/dashboard" title="Dashboard"><fa icon="tachometer-alt"></fa></router-link>
             </div>
             <!--
             <div class="top-menu-item icon right">
-                <a href="javascript:window.forceRefresh();" title="Refresh"><i class="fa fa-sync"></i></a>
+                <a href="javascript:window.forceRefresh();" title="Refresh"><fa icon="sync"></fa></a>
             </div>
             <div class="top-menu-item icon right">
-                <a href="javascript:notifyMe();" title="Notify"><i class="fa fa-bell"></i></a>
+                <a href="javascript:notifyMe();" title="Notify"><fa icon="bell"></fa></a>
             </div>
             -->
             <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'Tools' }">
-                <router-link to="/tools" title="Tools"><i class="fa fa-wrench"></i></router-link>
+                <router-link to="/tools" title="Tools"><fa icon="wrench"></fa></router-link>
             </div>
             <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'Settings' }">
-                <router-link to="/settings" title="Settings"><i class="fa fa-cog"></i></router-link>
+                <router-link to="/settings" title="Settings"><fa icon="cog"></fa></router-link>
             </div>
             <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'ClientSettings' }">
-                <router-link to="/clientsettings" title="Client Settings"><i class="fa fa-user-cog"></i></router-link>
+                <router-link to="/clientsettings" title="Client Settings"><fa icon="user-cog"></fa></router-link>
             </div>
             <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'About' }">
-                <router-link to="/about" title="About"><i class="fa fa-info-circle"></i></router-link>
+                <router-link to="/about" title="About"><fa icon="info-circle"></fa></router-link>
             </div>
             <div class="top-menu-item icon right">
-                <a class="linkback" href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer" title="GitHub"><i class="fab fa-github"></i></a>
+                <a class="linkback" href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer" title="GitHub"><fa :icon="['fab', 'github']"></fa></a>
             </div>
         </div>
     </div>
