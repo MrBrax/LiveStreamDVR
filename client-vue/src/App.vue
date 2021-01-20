@@ -46,6 +46,10 @@ export default defineComponent({
     },
     methods: {
         fetchData() {
+
+            // client config
+            const currentClientConfig = localStorage.getItem("twitchautomator_config") ? JSON.parse(localStorage.getItem("twitchautomator_config") as string) : {};
+            this.$store.commit('updateClientConfig', currentClientConfig);
             
             // clear config
             this.$store.commit('updateConfig', []);
@@ -55,6 +59,7 @@ export default defineComponent({
                 this.$store.commit('updateConfig', response.data.data.config);
                 this.$store.commit('updateVersion', response.data.data.version);
             });
+
         }
     },
     components: {

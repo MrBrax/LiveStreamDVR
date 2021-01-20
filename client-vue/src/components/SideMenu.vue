@@ -127,13 +127,16 @@
                 <a href="javascript:notifyMe();" title="Notify"><i class="fa fa-bell"></i></a>
             </div>
             -->
-            <div class="top-menu-item icon right">
+            <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'Tools' }">
                 <router-link to="/tools" title="Tools"><i class="fa fa-wrench"></i></router-link>
             </div>
             <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'Settings' }">
                 <router-link to="/settings" title="Settings"><i class="fa fa-cog"></i></router-link>
             </div>
-            <div class="top-menu-item icon right">
+            <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'ClientSettings' }">
+                <router-link to="/clientsettings" title="Client Settings"><i class="fa fa-user-cog"></i></router-link>
+            </div>
+            <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'About' }">
                 <router-link to="/about" title="About"><i class="fa fa-info-circle"></i></router-link>
             </div>
             <div class="top-menu-item icon right">

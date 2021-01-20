@@ -240,7 +240,18 @@ export default defineComponent({
                 previousData[ username ] = streamer;
             */
             
+            if(!this.$store.state.clientConfig.enableNotifications){
+                return;
+            }
+
             this.notificationSub = this.$store.subscribe((mutation : MutationPayload, state : any ) => {
+
+                // unsub if changed
+                if(!this.$store.state.clientConfig.enableNotifications){
+                    this.notificationSub();
+                    return;
+                }
+
                 // console.log("subscribe", mutation.payload, this.$store.state.streamerList);
                 /*
                 if( mutation.payload[0].current_game !== state.streamerList[0].current_game ){

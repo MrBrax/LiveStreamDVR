@@ -9,6 +9,11 @@ declare module '@vue/runtime-core' {
         streamerList: ApiStreamer[];
         config: ApiConfig;
         version: string;
+        clientConfig: {
+            useSpeech: boolean;
+            singlePage: boolean;
+            enableNotifications: boolean;
+        }
     }
       
     interface ComponentCustomProperties {
