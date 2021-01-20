@@ -54,6 +54,7 @@ import type { ApiSettingsField, ApiGame } from "@/twitchautomator.d";
 
 export default defineComponent({
     name: "Settings",
+    title: "Settings",
     data() {
         return {
             settingsData: [],

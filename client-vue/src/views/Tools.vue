@@ -69,6 +69,7 @@ import type { ApiJob } from "@/twitchautomator.d";
 
 export default defineComponent({
     name: "Tools",
+    title: "Tools",
     data() {
         return {
             jobsData: [] as ApiJob[]

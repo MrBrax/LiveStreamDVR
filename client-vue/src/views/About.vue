@@ -130,6 +130,7 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
     name: "About",
+    title: "About",
     data() {
         return {
             aboutData: Object as any,

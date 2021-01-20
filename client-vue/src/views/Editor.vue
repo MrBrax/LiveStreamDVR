@@ -66,6 +66,7 @@ import type { ApiVod } from "@/twitchautomator.d";
 
 export default defineComponent({
     name: "Editor",
+    title: "Editor",
     data(){
         return {
             vodData: {} as ApiVod,

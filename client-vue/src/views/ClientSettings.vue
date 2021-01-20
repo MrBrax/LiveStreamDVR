@@ -25,12 +25,13 @@
 import { defineComponent } from "vue";
 
 export default defineComponent({
+    title: "Client settings",
     data() {
         return {
             currentConfig: {
                 useSpeech: false,
                 singlePage: true,
-                enableNotifications: false
+                enableNotifications: false,
             },
             updateConfig: {
                 useSpeech: false,
@@ -46,42 +47,43 @@ export default defineComponent({
             enableNotifications: false,
         };
 
-        const currentConfig = localStorage.getItem("twitchautomator_config") ? JSON.parse(localStorage.getItem("twitchautomator_config") as string) : defaultConfig;
+        const currentConfig = localStorage.getItem("twitchautomator_config")
+            ? JSON.parse(localStorage.getItem("twitchautomator_config") as string)
+            : defaultConfig;
 
         this.updateConfig = currentConfig;
         this.currentConfig = currentConfig;
-
     },
     methods: {
-        saveClientConfig(){
+        saveClientConfig() {
             localStorage.setItem("twitchautomator_config", JSON.stringify(this.updateConfig));
-            if( this.currentConfig.enableNotifications !== this.updateConfig.enableNotifications){
+            if (this.currentConfig.enableNotifications !== this.updateConfig.enableNotifications && this.updateConfig.enableNotifications) {
                 this.requestNotifications();
             }
-            this.$store.commit('updateClientConfig', this.updateConfig);
+            this.$store.commit("updateClientConfig", this.updateConfig);
         },
-        requestNotifications(){
+        requestNotifications() {
             if (!("Notification" in window)) {
                 alert("This browser does not support desktop notification");
-            }else if (Notification.permission === "granted") {
+            } else if (Notification.permission === "granted") {
                 // const notification = new Notification("Notifications already granted.");
-            }else if (Notification.permission !== "denied") {
+            } else if (Notification.permission !== "denied") {
                 Notification.requestPermission().then(function (permission) {
                     if (permission === "granted") {
                         const notification = new Notification("Notifications granted.");
                     }
                 });
             }
-        }
+        },
     },
     watch: {
         updateConfig: {
-            handler(val){
+            handler(val) {
                 this.saveClientConfig();
             },
-            deep: true
-        }
-    }
+            deep: true,
+        },
+    },
 });
 </script>
 
