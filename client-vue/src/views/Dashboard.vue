@@ -217,6 +217,11 @@ export default defineComponent({
                     return;
                 }
 
+                if(mutation.type !== "updateStreamerList"){
+                    console.error(`Streamer list notification check payload was ${mutation.type}, abort.`);
+                    return;
+                }
+
                 // console.log("subscribe", mutation.payload, this.$store.state.streamerList);
                 /*
                 if( mutation.payload[0].current_game !== state.streamerList[0].current_game ){
@@ -227,6 +232,8 @@ export default defineComponent({
                     'pokelawls': 'pookelawls',
                     'xQcOW': 'eckscueseeow'
                 };
+
+                console.log("notification payload", mutation);
 
                 for( const streamer of mutation.payload as ApiStreamer[] ){
 
