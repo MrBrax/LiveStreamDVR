@@ -120,7 +120,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
 
     // job manipulation
     $group->get('/jobs/list', ApiController::class . ':jobs_list')->setName('api_jobs_list');
-    $group->get('/jobs/kill/{job}', ApiController::class . ':jobs_kill')->setName('api_jobs_kill');
+    $group->post('/jobs/kill/{job}', ApiController::class . ':jobs_kill')->setName('api_jobs_kill');
 
     // twitch api proxy
     $group->get('/twitchapi/videos/{username}', ApiController::class . ':twitchapi_videos')->setName('api_twitchapi_videos');

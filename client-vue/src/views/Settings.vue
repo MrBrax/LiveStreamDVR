@@ -73,7 +73,29 @@ export default defineComponent({
 
             // this.settingsData = [];
             // this.settingsFields = [] as any;
+            
+            this.$http.get(`api/v0/settings/list`)
+            .then((response) => {
+                const json = response.data;
+                if(json.message) alert(json.message);
+                console.log(json);
 
+                const config = json.data.config;
+                const favourites = config.favourites;
+                const streamers = config.streamers;
+
+                this.favouritesData = favourites;
+                // this.gamesData = games;
+
+                this.formStreamers = streamers;
+
+                this.settingsData = config;
+                this.settingsFields = json.data.fields;
+
+            }).catch((err) => {
+                console.error("settings fetch error", err.response);
+            });
+            /*
             fetch(`api/v0/settings/list`)
             .then((response) => response.json())
             .then((json) => {
@@ -91,13 +113,27 @@ export default defineComponent({
                 this.settingsFields = json.data.fields;
 
             });
+            */           
 
+            this.$http.get(`api/v0/games/list`)
+            .then((response) => {
+                const json = response.data;
+                if(json.message) alert(json.message);
+                console.log(json);
+                const games = json.data;
+                this.gamesData = games;
+            }).catch((err) => {
+                console.error("settings fetch error", err.response);
+            });
+
+            /*
             fetch(`api/v0/games/list`)
             .then((response) => response.json())
             .then((json) => {
                 const games = json.data;
                 this.gamesData = games;
             });
+            */
 
         }
     },

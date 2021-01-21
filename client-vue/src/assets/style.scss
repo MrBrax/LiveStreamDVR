@@ -6,7 +6,7 @@ $fa-font-path: "./fontawesome/webfonts";
 @import "./fontawesome/scss/brands.scss";
 */
 
-@import "normalize";
+@import "node_modules/normalize.css/normalize";
 
 $favourite-base: #356e35;
 $converting-base: #bb15ca;
@@ -23,6 +23,12 @@ $boxart-height: 190px;
 * {
     box-sizing: border-box;
 }
+
+/*
+html {
+    // scroll-behavior: smooth; // not fully stable yet
+}
+*/
 
 body {
     background: #fdfdfd;

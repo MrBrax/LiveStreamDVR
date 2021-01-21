@@ -86,18 +86,28 @@ export default defineComponent({
         fetchData() {
             // this.settingsData = [];
             // this.settingsFields = [] as any;
-
-            fetch(`api/v0/jobs/list`)
-                .then(response => response.json())
-                .then(json => {
-                    const jobs = json.data;
-                    this.jobsData = jobs;
-                });
+            this.$http.get(`api/v0/jobs/list`)
+            .then((response) => {
+                const json = response.data;
+                this.jobsData = json.data;
+            }).catch((err) => {
+                console.error("about error", err.response);
+            });
         },
         killJob(name: string) {
 
             if(!confirm(`Kill job "${name}?"`)) return;
             
+            this.$http.post(`/api/v0/jobs/kill/${name}`)
+            .then((response) => {
+                const json = response.data;
+                if(json.message) alert(json.message);
+                console.log(json);
+            }).catch((err) => {
+                console.error("tools jobs fetch error", err.response);
+            });
+
+            /*
             fetch(`/api/v0/jobs/kill/${name}`, {
                 // method: 'POST',
             })
@@ -109,6 +119,7 @@ export default defineComponent({
             }).catch((test) => {
                 console.error("Error", test);
             });
+            */
 
         }
     },

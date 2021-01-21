@@ -1,5 +1,5 @@
 <template>
-    <div class="streamer-box" v-if="streamer">
+    <div class="streamer-box" v-if="streamer" :id="'streamer_' + streamer.display_name">
         <div :class="{ 'streamer-title': true, 'is-live': streamer.is_live }">
             <div class="streamer-title-avatar" :style="'background-image: url(' + streamer.profile_image_url + ')'"></div>
             <div class="streamer-title-text">
@@ -7,7 +7,7 @@
                     <a :href="'https://twitch.tv/' + streamer.display_name" rel="noreferrer" target="_blank">
                         {{ streamer.display_name }}
                     </a>
-                    <span v-if="streamer.is_live" class="live">live</span>
+                    <span v-if="streamer.is_live" class="streamer-live">live</span>
                 </h2>
                 <span class="small">
                     <span class="streamer-vods-quality help" title="Quality">{{ quality }}</span
@@ -54,8 +54,8 @@ import Vod from "@/components/Vod.vue";
 import { AxiosError } from "axios";
 
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faVideo, faPlayCircle } from '@fortawesome/free-solid-svg-icons';
-library.add(faVideo, faPlayCircle);
+import { faVideo, faPlayCircle, faVideoSlash } from '@fortawesome/free-solid-svg-icons';
+library.add(faVideo, faPlayCircle, faVideoSlash);
 
 export default defineComponent({
     name: "Streamer",

@@ -73,10 +73,12 @@
         }
     }
 
-    .live {
+    .streamer-live {
         color: #f00;
         animation: live ease-in-out 1s infinite;
         font-weight: 700;
+        display: inline-block;
+        margin-left: 5px;
     }
 }
 
