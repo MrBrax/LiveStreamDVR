@@ -52,6 +52,10 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faSave } from '@fortawesome/free-solid-svg-icons';
+library.add(faSave);
+
 export default defineComponent({
     name: "StreamerUpdateForm",
     props: ['streamer'],

@@ -34,6 +34,10 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faDownload } from '@fortawesome/free-solid-svg-icons';
+library.add(faDownload);
+
 export default defineComponent({
     name: "ToolsVodDownloadForm",
     emits: ['formSuccess'],

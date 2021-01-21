@@ -46,7 +46,10 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-// import type { ApiSettingsField, ApiGame } from "@/twitchautomator.d";
+
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faUserPlus } from '@fortawesome/free-solid-svg-icons';
+library.add(faUserPlus);
 
 export default defineComponent({
     name: "StreamerAddForm",

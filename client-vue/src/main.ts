@@ -7,11 +7,12 @@ import VueAxios from "vue-axios";
 import titleMixin from "./mixins/titleMixin";
 
 // font-awesome
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { fas } from '@fortawesome/free-solid-svg-icons'
-import { faGithub } from '@fortawesome/free-brands-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-library.add(fas, faGithub);
+// import { library } from '@fortawesome/fontawesome-svg-core';
+// import { fas } from '@fortawesome/free-solid-svg-icons';
+// import { faGithub } from '@fortawesome/free-brands-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+// import { faPlay } from '@fortawesome/free-solid-svg-icons'
+// library.add(faGithub, faPlay);
 
 import "./assets/style.scss";
 

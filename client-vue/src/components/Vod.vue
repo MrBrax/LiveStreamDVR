@@ -524,13 +524,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-
 import type { ApiVod } from "@/twitchautomator.d";
-
+import { defineComponent } from "vue";
 import { format, toDate, parse } from 'date-fns';
 
-const dateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faFileVideo, faCut, faPlay, faDatabase, faComments, faVolumeMute, faBurn, faTrash, faExternalLinkAlt, faArchive, faDownload } from '@fortawesome/free-solid-svg-icons';
+library.add(faFileVideo, faCut, faPlay, faDatabase, faComments, faVolumeMute, faBurn, faTrash, faExternalLinkAlt, faArchive, faDownload);
 
 export default defineComponent({
     name: "Vod",
@@ -551,14 +551,6 @@ export default defineComponent({
     },
     props: {
         vod: Object as () => ApiVod,
-    },
-    computed: {
-        /*
-        startedAt() : string {
-            if(!this.vod) return "";
-            return format(parse(this.vod.dt_started_at.date, dateFormat, new Date()), "yyyy-MM-dd");
-        }
-        */
     },
     methods: {
         doArchive(){

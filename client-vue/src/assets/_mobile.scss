@@ -9,11 +9,35 @@
 		height: auto;
 		position: static;
 		display: block;
+
+		.menu-middle {
+			position: sticky;
+			top: 0px;
+			display: flex;
+			flex-wrap: wrap;
+			padding: 0 5px 5px 5px;
+			overflow: unset;
+		}
+
+		.menu-bottom {
+			background-color: #000;
+			min-height: 50px;
+			position: fixed;
+			bottom: 0px;
+			left: 0px;
+			right: 0px;
+			.top-menu-item[data-menuitem="github"] {
+				display: none;
+			}
+		}
+
 	}
+
 	.top-menu-item {
 		display: block;
 		align-items: baseline;
 		justify-content: baseline;
+		
 		a {
 			display: block;
 		}
@@ -24,6 +48,13 @@
 
 			align-content: center;
 			justify-content: center;
+
+			&:hover {
+				.avatar {
+					border-width: 3px;
+					border-color: #ccc;
+				}
+			}
 
 			a {
 				width: 40px;
@@ -37,10 +68,15 @@
 				height: 40px;
 				margin: 0;
 				padding: 0;
+				border-width: 0px;
+				border-style: solid;
+				transition: 0.05s all ease-in-out;
 			}
+
 			.username {
 				display: none;
 			}
+
 			.vodcount {
 				// transform: translateX(-20px);
 				background: #333;
@@ -58,6 +94,7 @@
 				&:before { content: '· '; }
 				*/
 			}
+
 			.subtitle {
 				display: none;
 				/*
@@ -66,36 +103,20 @@
 				&:before { content: '·'; }
 				*/
 			}
+			
 			&.is-live {
 				a {
 					background-color: unset;
 					animation: none;
 				}
 				.avatar {
-					border: 3px solid #f00;
+					border-width: 3px;
+					border-color: #f00;
 				}
 			}
 		}
 
-	}
-
-	.menu-middle {
-		display: flex;
-		flex-wrap: wrap;
-		padding: 0 5px 5px 5px;
-	}
-
-	.menu-bottom {
-		background-color: #000;
-		min-height: 50px;
-		position: fixed;
-		bottom: 0px;
-		left: 0px;
-		right: 0px;
-		.top-menu-item[data-menuitem="github"] {
-			display: none;
-		}
-	}
+	}	
 
 	.streamer-jumpto {
 		display: none;

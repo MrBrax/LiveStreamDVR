@@ -1,3 +1,3 @@
-- [ ] Reimplement notifications
+- [x] Reimplement notifications
 - [ ] Reimplement that fancy scroll location thing
-- [ ] Reimplement vod controls
+- [x] Reimplement vod controls

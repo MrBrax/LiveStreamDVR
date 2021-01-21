@@ -105,7 +105,10 @@ export default defineComponent({
         }
 
         // unsub
-        if(this.notificationSub) this.notificationSub();
+        if(this.notificationSub){
+            console.log("unsubscribing from notifications, unmounted");
+            this.notificationSub();
+        }
     },
     methods: {
         async fetchStreamers() {
@@ -193,60 +196,6 @@ export default defineComponent({
             }
         },
         processNotifications(){
-
-            /*
-                let old_data = previousData[ username ];
-
-                if(old_data && Notification.permission === "granted"){
-
-                    let opt = {
-                        icon: streamer.channel_data.profile_image_url,
-                        image: streamer.channel_data.profile_image_url,
-                        body: streamer.current_game ? streamer.current_game.game_name : "No game",
-                    };
-
-                    let text: string = "";
-
-                    if( !old_data.is_live && streamer.is_live ){
-                        text = `${username} is live!`;
-                    }
-
-                    if( ( !old_data.current_game && streamer.current_game ) || ( old_data.current_game && streamer.current_game && old_data.current_game.game_name !== streamer.current_game.game_name ) ){
-                        if( streamer.current_game.favourite ){
-                            text = `${username} is now playing one of your favourite games: ${streamer.current_game.game_name}!`;
-                        }else{
-                            text = `${username} is now playing ${streamer.current_game.game_name}!`;
-                        }
-                    }
-
-                    if( old_data.is_live && !streamer.is_live ){
-                        text = `${username} has gone offline!`;
-                    }
-
-                    if(text !== ""){
-
-                        console.log( `Notify: ${text}` );
-
-                        if (Notification.permission === "granted") {
-                            let n = new Notification( text, opt );
-                        }
-
-                        if( config.useSpeech ){
-                            let speakText = text;
-                            if(streamerPronounciation[username]){
-                                console.debug(`Using pronounciation for ${username}`);
-                                speakText.replace(username, streamerPronounciation[username]);
-                            }
-                            let utterance = new SpeechSynthesisUtterance( speakText );
-                            window.speechSynthesis.speak(utterance);
-                        }
-
-                    }
-
-                }
-
-                previousData[ username ] = streamer;
-            */
             
             if(!this.$store.state.clientConfig.enableNotifications){
                 return;
@@ -260,6 +209,11 @@ export default defineComponent({
                 if(!this.$store.state.clientConfig.enableNotifications){
                     console.log("Notification setting disabled, stopping subscription.");
                     this.notificationSub();
+                    return;
+                }
+
+                if(!mutation.payload){
+                    console.error("No payload for notification sub");
                     return;
                 }
 
@@ -278,7 +232,7 @@ export default defineComponent({
 
                     const username = streamer.display_name;
 
-                    if( this.oldData[ streamer.display_name ] ){
+                    if( this.oldData && this.oldData[ streamer.display_name ] ){
                         
                         const oldStreamer = this.oldData[ streamer.display_name ];
 
@@ -296,7 +250,7 @@ export default defineComponent({
 
                         if( streamer.is_live ){
                                 
-                            console.log("notification compare games", streamer.display_name, oldStreamer.current_game, streamer.current_game );
+                            // console.log("notification compare games", streamer.display_name, oldStreamer.current_game, streamer.current_game );
 
                             if(
                                 ( !oldStreamer.current_game && streamer.current_game ) || // from no game to new game
@@ -340,7 +294,7 @@ export default defineComponent({
                             }
 
                         }else{
-                            console.debug(`No notification text for ${streamer.display_name}`);
+                            // console.debug(`No notification text for ${streamer.display_name}`);
                         }
 
                     }

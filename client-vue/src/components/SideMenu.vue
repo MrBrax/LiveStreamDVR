@@ -28,7 +28,7 @@
                     
                     <a :href="'#streamer_' + streamer.display_name">
                         
-                        <span class="avatar"><img :src="streamer.profile_image_url"></span>
+                        <span class="avatar"><img :src="streamer.profile_image_url" :alt="streamer.display_name"></span>
                         <span class="username">{{ streamer.display_name }}</span>
                         <span class="vodcount">{{ streamer.vods_list.length }}</span>
                         <span class="subtitle">
@@ -154,13 +154,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-
 import type { ApiStreamer } from "@/twitchautomator.d";
-
-const fmt = "yyyy-MM-dd HH:mm:ss.SSSSSS";
-
+import { defineComponent } from "vue";
 import { parse, intervalToDuration, parseJSON } from 'date-fns';
+
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faGithub } from '@fortawesome/free-brands-svg-icons';
+import { faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync } from '@fortawesome/free-solid-svg-icons';
+import { faHourglass } from '@fortawesome/free-regular-svg-icons';
+library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass);
 
 export default defineComponent({
     name: "SideMenu",
@@ -179,7 +181,6 @@ export default defineComponent({
                     if( vod.dt_started_at ){
                         
                         const dt = vod.dt_started_at.date;
-                        // const o = parse(dt, fmt, new Date());
                         const o = parseJSON(dt);
                         const dur = intervalToDuration({ start: o, end: new Date()});
                         

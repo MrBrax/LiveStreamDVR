@@ -48,12 +48,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-
-import Vod from "@/components/Vod.vue";
-
 import type { ApiStreamer } from "@/twitchautomator.d";
+import { defineComponent } from "vue";
+import Vod from "@/components/Vod.vue";
 import { AxiosError } from "axios";
+
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faVideo, faPlayCircle } from '@fortawesome/free-solid-svg-icons';
+library.add(faVideo, faPlayCircle);
 
 export default defineComponent({
     name: "Streamer",
