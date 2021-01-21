@@ -88,10 +88,13 @@
 
             .vodcount {
                 // transform: translateX(-20px);
+                
+                font-size: 0.7em;
+                                
                 background: #333;
                 padding: 1px 3px;
                 border-radius: 50%;
-                color: #ccc;
+                color: #ddd;
 
                 position: relative;
                 left: 20px;
@@ -121,6 +124,9 @@
                 .avatar {
                     border-width: 3px;
                     border-color: #f00;
+                }
+                .vodcount{
+                    color: #f00;
                 }
             }
         }
