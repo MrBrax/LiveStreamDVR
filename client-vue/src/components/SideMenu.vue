@@ -101,14 +101,16 @@
                                 </template>
 
                                 <!-- tooltip -->
-                                <div class="tooltip">
+                                <div :class="{ tooltip: true, 'is-static': $store.state.clientConfig.tooltipStatic }">
+                                    <div class="stream-channel">{{ streamer.display_name }}</div>
+                                    <div class="stream-name">{{ vod.basename }}</div>
                                     <div class="boxart-carousel is-small">
-                                        <div v-for="game in vod.api_getUniqueGames" :key="game.name" class="boxart-item">
+                                        <div v-for="game in vod.api_getUniqueGames" :key="game.name" :class="{ 'boxart-item': true, 'is-favourite': $store.state.config.favourites[game.id] }">
                                             <img v-if="game.image_url" :title="game.name" :alt="game.name" :src="game.image_url" loading="lazy" />
-                                            <span v-else>{{ game.name }}</span>
+                                            <span class="boxart-name">{{ game.name }}</span>
                                         </div>
                                     </div>
-                                    <p>{{ vod.stream_title }}</p>
+                                    <div class="stream-title">{{ vod.stream_title }}</div>
                                 </div>
                             </a>
                         </li>

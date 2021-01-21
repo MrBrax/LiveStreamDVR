@@ -15,6 +15,9 @@
                 <div class="control">
                     <label class="checkbox"><input type="checkbox" v-model="updateConfig.animationsEnabled" /> Enable animations</label>
                 </div>
+                <div class="control">
+                    <label class="checkbox"><input type="checkbox" v-model="updateConfig.tooltipStatic" /> Static side menu tooltip</label>
+                </div>
                 <br />
                 <div class="control">
                     <button class="button is-small" @click="requestNotifications">Request notification permissions</button>
@@ -27,35 +30,28 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 
+const defaultConfig = {
+    useSpeech: false,
+    singlePage: true,
+    enableNotifications: false,
+    animationsEnabled: true,
+    tooltipStatic: false
+};
+
 export default defineComponent({
     title: "Client settings",
     data() {
         return {
-            currentConfig: {
-                useSpeech: false,
-                singlePage: true,
-                enableNotifications: false,
-                animationsEnabled: true,
-            },
-            updateConfig: {
-                useSpeech: false,
-                singlePage: true,
-                enableNotifications: false,
-                animationsEnabled: true,
-            },
+            currentConfig: Object.assign({}, defaultConfig),
+            updateConfig: Object.assign({}, defaultConfig)
         };
     },
     created() {
-        const defaultConfig = {
-            useSpeech: false,
-            singlePage: true,
-            enableNotifications: false,
-            animationsEnabled: true,
-        };
+        const crConf = Object.assign({}, defaultConfig);
 
         const currentConfig = localStorage.getItem("twitchautomator_config")
             ? JSON.parse(localStorage.getItem("twitchautomator_config") as string)
-            : defaultConfig;
+            : crConf;
 
         this.updateConfig = currentConfig;
         this.currentConfig = currentConfig;

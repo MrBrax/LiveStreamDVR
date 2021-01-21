@@ -45,15 +45,28 @@
 
     .boxart-item {
         width: $boxart-width;
-        height: $boxart-height;
+        // height: $boxart-height;
         img {
             width: $boxart-width;
             height: $boxart-height;
+            border: 2px solid #000;
         }
         font-size: 0.5em;
         color: #fff;
-        word-break: break-all;
+        // word-break: break-all;
         overflow: hidden;
+        &:not(:last-child){
+            margin-right: 2px;
+        }
+        &.is-favourite {
+            img {
+                border-color: #25b338;
+            }
+        }
+        .boxart-name {
+            font-size: 9px;
+            color:rgba(255, 255, 255, 0.8);
+        }
     }
 
     &.is-small {
@@ -61,7 +74,7 @@
         flex-wrap: wrap;
         .boxart-item {
             width: $boxart-width * 0.6;
-            height: $boxart-height * 0.6;
+            // height: $boxart-height * 0.6;
             img {
                 width: $boxart-width * 0.6;
                 height: $boxart-height * 0.6;

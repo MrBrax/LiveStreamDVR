@@ -230,7 +230,7 @@ a.linkback {
                         background-color: lighten($favourite-base, 5%);
                     }
                     .tooltip {
-                        background-color: rgba($favourite-base, 0.95);
+                        background-color: rgba(darken($favourite-base, 15%), 0.98);
                     }
                 }
                 &.is-live {
@@ -284,18 +284,37 @@ a.linkback {
                     }
                 }
                 .tooltip {
+
                     position: absolute;
                     left: $sidemenu-width + 10px;
-                    background-color: rgba(0, 0, 0, 0.95);
+
+                    &.is-static {
+                        position: fixed;
+                        top: 10px;
+                    }
+
+                    background-color: rgba(0, 0, 0, 0.98);
                     border-radius: 3px;
                     padding: 8px;
                     display: none;
                     word-wrap: none;
                     width: max-content;
-                    p {
-                        margin: 0;
-                        padding: 0;
+                    .boxart-carousel {
+                        margin: 5px 0;
                     }
+                    .stream-channel {
+                        font-size: 1.1em;
+                        font-weight: 700;
+                    }
+                    .stream-name {
+                        font-size: 0.9em;
+                        color:rgba(255, 255, 255, 0.6);
+                    }
+                    /*
+                    .stream-title {
+                        
+                    }
+                    */
                 }
                 &:hover > .tooltip {
                     display: block;

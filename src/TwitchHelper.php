@@ -644,6 +644,7 @@ class TwitchHelper
 		if ($game_data) {
 
 			$game = [
+				"id" => $game_id,
 				"name" => $game_data["name"],
 				"box_art_url" => $game_data["box_art_url"],
 				"added" => time()

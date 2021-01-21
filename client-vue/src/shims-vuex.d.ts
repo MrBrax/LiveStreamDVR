@@ -14,6 +14,7 @@ declare module '@vue/runtime-core' {
             singlePage: boolean;
             enableNotifications: boolean;
             animationsEnabled: boolean;
+            tooltipStatic: boolean;
         }
     }
       

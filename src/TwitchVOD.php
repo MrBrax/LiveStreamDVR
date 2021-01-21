@@ -1324,6 +1324,7 @@ class TwitchVOD
 			$img_url = str_replace("{width}", 140, $img_url);
 			$img_url = str_replace("{height}", 190, $img_url);
 			$data[] = [
+				'id' => $id ?: $gd['id'],
 				'name' => $gd['name'],
 				'image_url' => $img_url
 			];
