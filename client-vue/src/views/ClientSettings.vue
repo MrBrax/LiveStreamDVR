@@ -35,7 +35,7 @@ const defaultConfig = {
     singlePage: true,
     enableNotifications: false,
     animationsEnabled: true,
-    tooltipStatic: false
+    tooltipStatic: false,
 };
 
 export default defineComponent({
@@ -43,15 +43,13 @@ export default defineComponent({
     data() {
         return {
             currentConfig: Object.assign({}, defaultConfig),
-            updateConfig: Object.assign({}, defaultConfig)
+            updateConfig: Object.assign({}, defaultConfig),
         };
     },
     created() {
         const crConf = Object.assign({}, defaultConfig);
 
-        const currentConfig = localStorage.getItem("twitchautomator_config")
-            ? JSON.parse(localStorage.getItem("twitchautomator_config") as string)
-            : crConf;
+        const currentConfig = localStorage.getItem("twitchautomator_config") ? JSON.parse(localStorage.getItem("twitchautomator_config") as string) : crConf;
 
         this.updateConfig = currentConfig;
         this.currentConfig = currentConfig;
@@ -72,7 +70,7 @@ export default defineComponent({
             } else if (Notification.permission !== "denied") {
                 Notification.requestPermission().then(function (permission) {
                     if (permission === "granted") {
-                        const notification = new Notification("Notifications granted.");
+                        new Notification("Notifications granted.");
                     }
                 });
             }
@@ -80,7 +78,7 @@ export default defineComponent({
     },
     watch: {
         updateConfig: {
-            handler(val) {
+            handler() {
                 this.saveClientConfig();
             },
             deep: true,
@@ -88,6 +86,3 @@ export default defineComponent({
     },
 });
 </script>
-
-<style>
-</style>

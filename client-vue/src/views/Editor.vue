@@ -60,22 +60,21 @@
 </template>
 
 <script lang="ts">
-
-import { defineComponent, onMounted, ref } from "vue";
+import { defineComponent } from "vue";
 import type { ApiVod } from "@/twitchautomator.d";
 
 export default defineComponent({
     name: "Editor",
     title: "Editor",
-    data(){
+    data() {
         return {
             vodData: {} as ApiVod,
             timeIn: 0,
             timeOut: 0,
             currentVideoTime: 0,
-            cutName: ''
+            cutName: "",
             // videoDuration: 0,
-        }
+        };
     },
     created() {
         this.fetchData();
@@ -88,77 +87,76 @@ export default defineComponent({
             // this.vodData = [];
             /** @todo: axios */
             fetch(`api/v0/vod/${this.vod}/`)
-            .then((response) => response.json())
-            .then((json) => {
-                this.vodData = json.data;
-                console.log(json);
-            });
+                .then((response) => response.json())
+                .then((json) => {
+                    this.vodData = json.data;
+                    console.log(json);
+                });
         },
-        play(){
+        play() {
             console.log("play", this.$refs.player);
             (this.$refs.player as HTMLVideoElement).play();
         },
-        pause(){
+        pause() {
             console.log("pause", this.$refs.player);
             (this.$refs.player as HTMLVideoElement).pause();
         },
-        scrub(tIn : number, tOut : number){
+        scrub(tIn: number, tOut: number) {
             const gameOffset = this.vodData.game_offset;
-            this.timeIn = Math.round(tIn-gameOffset);
-		    this.timeOut = Math.round(tIn+tOut-gameOffset);
+            this.timeIn = Math.round(tIn - gameOffset);
+            this.timeOut = Math.round(tIn + tOut - gameOffset);
             // this.$forceUpdate();
         },
-        seek(event : MouseEvent){
+        seek(event: MouseEvent) {
             console.log("seek", event);
             const duration = (this.$refs.player as HTMLVideoElement).duration;
             const rect = (this.$refs.timeline as HTMLDivElement).getBoundingClientRect();
-            const percent = ( event.clientX - rect.left ) / (this.$refs.timeline as HTMLDivElement).clientWidth;
+            const percent = (event.clientX - rect.left) / (this.$refs.timeline as HTMLDivElement).clientWidth;
             const seconds = Math.round(duration * percent);
             (this.$refs.player as HTMLVideoElement).currentTime = seconds;
 
             // this.$forceUpdate();
         },
-        updateVideoTime( event : MediaStreamEvent){
+        updateVideoTime(event: MediaStreamEvent) {
             // console.log(v);
             this.currentVideoTime = (event.target as HTMLVideoElement).currentTime;
         },
-        submit(){
+        submit() {
             console.log("submit", this.timeIn, this.timeOut, this.cutName);
 
             const data = new FormData();
-            data.append('time_in', this.timeIn.toString());
-            data.append('time_out', this.timeOut.toString());
-            data.append('name', this.cutName);
+            data.append("time_in", this.timeIn.toString());
+            data.append("time_out", this.timeOut.toString());
+            data.append("name", this.cutName);
 
             /** @todo: axios */
             fetch(`api/v0/vod/${this.vod}/cut`, {
-                method: 'POST',
-                body: data
+                method: "POST",
+                body: data,
             })
-            .then((response) => response.json())
-            .then((json) => {
-                if(json.message) alert(json.message);
-                console.log(json);
-            });
-
-        }
+                .then((response) => response.json())
+                .then((json) => {
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                });
+        },
     },
     computed: {
-        timelineCutStyle() : Record<string, any> {
-            if(!this.currentVideoTime) return { left: '0%', right: '100%' };
+        timelineCutStyle(): Record<string, any> {
+            if (!this.currentVideoTime) return { left: "0%", right: "100%" };
             const dur = (this.$refs.player as HTMLVideoElement).duration;
             return {
-                left: ( ( this.timeIn / dur ) * 100 ) + "%",
-                right: ( 100 - ( this.timeOut / dur ) * 100 ) + "%",
+                left: (this.timeIn / dur) * 100 + "%",
+                right: 100 - (this.timeOut / dur) * 100 + "%",
             };
         },
-        timelinePlayheadStyle() : Record<string, any> {
-            if(!this.currentVideoTime) return { left: '0%' };
-		    const percent = ( this.currentVideoTime / (this.$refs.player as HTMLVideoElement).duration ) * 100;
-		    return {
-                left: percent + "%"
+        timelinePlayheadStyle(): Record<string, any> {
+            if (!this.currentVideoTime) return { left: "0%" };
+            const percent = (this.currentVideoTime / (this.$refs.player as HTMLVideoElement).duration) * 100;
+            return {
+                left: percent + "%",
             };
-        }
-    }
+        },
+    },
 });
 </script>

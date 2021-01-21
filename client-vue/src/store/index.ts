@@ -45,8 +45,8 @@ export default createStore({
         },
         updateVersion(state, data: number) {
             (state as any).version = data;
-        }
+        },
     },
     actions: {},
-    modules: {}
+    modules: {},
 });

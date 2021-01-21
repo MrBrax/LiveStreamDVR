@@ -32,7 +32,6 @@ export type ApiGame = {
 };
 
 export type ApiVod = {
-
     basename: string;
 
     stream_title: string;
@@ -86,9 +85,7 @@ export type ApiVod = {
     chapters: ApiVodChapter[];
 
     webpath: string;
-
 };
-
 
 export type ApiSettingsField = {
     text: string;
@@ -155,13 +152,13 @@ export type ApiStreamer = {
     current_vod: ApiVod;
     channel_data: {
         profile_image_url: string;
-    }
+    };
 };
 
 export type ApiJob = {
     name: string;
     pid: number;
     status: number;
-}
+};
 
 export const phpDateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000

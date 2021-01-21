@@ -4,7 +4,7 @@ module.exports = {
     // publicPath: '/test/',
     publicPath: process.env.BASE_URL,
     // publicPath: './',
-    assetsDir: 'assets',
+    assetsDir: "assets",
     devServer: {
         port: 8081,
         proxy: {
@@ -15,7 +15,7 @@ module.exports = {
                 // pathRewrite: { '^/api': '/api' },
                 secure: false,
                 ws: false,
-                changeOrigin: true
+                changeOrigin: true,
             },
             "^/vods": {
                 target: "http://[::1]:8080",
@@ -24,8 +24,8 @@ module.exports = {
                 // pathRewrite: { '^/api': '/api' },
                 secure: false,
                 ws: false,
-                changeOrigin: true
-            }
-        }
-    }
-}
+                changeOrigin: true,
+            },
+        },
+    },
+};
