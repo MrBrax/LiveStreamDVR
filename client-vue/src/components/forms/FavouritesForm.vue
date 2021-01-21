@@ -9,7 +9,7 @@
                 </label>
             </div>
         </div>
-
+        <br />
         <div class="control">
             <button class="button is-confirm" type="submit">
                 <span class="icon"><fa icon="save"></fa></span> Save

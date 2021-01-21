@@ -24,7 +24,7 @@
             <!-- array -->
             <div v-if="data.type == 'array'" class="control">
                 <!--<input class="input" :name="key" :id="key" :value="settings[key]" />-->
-                <select :name="key" :id="'input_' + key">
+                <select class="input" :name="key" :id="'input_' + key">
                     <option v-for="item in data.choices" :key="item" :selected="( settingsData[key] !== undefined && settingsData[key] === item ) || ( settingsData[key] === undefined && item === data.default )">
                         {{ item }}
                     </option>

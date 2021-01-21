@@ -27,7 +27,8 @@
                 }" :data-streamer="streamer.display_name">
                     
                     <a :href="'#streamer_' + streamer.display_name">
-
+                        
+                        <span class="avatar"><img :src="streamer.profile_image_url"></span>
                         <span class="username">{{ streamer.display_name }}</span>
                         <span class="vodcount">{{ streamer.vods_list.length }}</span>
                         <span class="subtitle">

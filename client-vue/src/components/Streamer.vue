@@ -1,5 +1,5 @@
 <template>
-    <div class="streamer-box" v-if="streamer" :data-streamer="streamer.display_name" :id="'streamer_' + streamer.display_name">
+    <div class="streamer-box" v-if="streamer">
         <div :class="{ 'streamer-title': true, 'is-live': streamer.is_live }">
             <div class="streamer-title-avatar" :style="'background-image: url(' + streamer.profile_image_url + ')'"></div>
             <div class="streamer-title-text">

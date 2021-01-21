@@ -103,7 +103,9 @@ export default defineComponent({
         if(this.interval){
             clearTimeout(this.interval);
         }
-        this.notificationSub();
+
+        // unsub
+        if(this.notificationSub) this.notificationSub();
     },
     methods: {
         async fetchStreamers() {

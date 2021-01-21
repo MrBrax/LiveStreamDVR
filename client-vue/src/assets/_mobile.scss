@@ -17,18 +17,72 @@
 		a {
 			display: block;
 		}
+
 		&.streamer {
+
+			padding: 5px;
+
+			align-content: center;
+			justify-content: center;
+
+			a {
+				width: 40px;
+				height: 40px;
+				padding: 0;
+				margin: 0;
+				position: relative;
+			}
+
+			.avatar {
+				height: 40px;
+				margin: 0;
+				padding: 0;
+			}
+			.username {
+				display: none;
+			}
 			.vodcount {
+				// transform: translateX(-20px);
+				background: #333;
+				padding: 1px 3px;
+				border-radius: 50%;
+				color: #ccc;
+				
+				position: relative;
+				left: 20px;
+				top: -20px;
+
+				/*
 				font-size: 85%;
 				&:after { content: ' vods'; }
 				&:before { content: '· '; }
+				*/
 			}
 			.subtitle {
+				display: none;
+				/*
 				display: inline-block;
 				font-size: 80%;
 				&:before { content: '·'; }
+				*/
+			}
+			&.is-live {
+				a {
+					background-color: unset;
+					animation: none;
+				}
+				.avatar {
+					border: 3px solid #f00;
+				}
 			}
 		}
+
+	}
+
+	.menu-middle {
+		display: flex;
+		flex-wrap: wrap;
+		padding: 0 5px 5px 5px;
 	}
 
 	.menu-bottom {

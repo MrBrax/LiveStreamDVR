@@ -45,7 +45,7 @@
 
         </form>
         <hr />
-        <button class="button is-danger" type="submit" @click="deleteStreamer"><span class="icon"><fa icon="trash"></fa></span> Delete</button> (no undo)
+        <button class="button is-small is-danger" type="submit" @click="deleteStreamer"><span class="icon"><fa icon="trash"></fa></span> Delete</button> (no undo)
     </div>
 </template>
 

@@ -66,6 +66,9 @@
                     <br /><strong>PHP SAPI:</strong> {{ aboutData.bins.php.sapi }}
                     <br /><strong>Platform:</strong> {{ aboutData.bins.php.platform ? aboutData.bins.php.platform : 'unknown' }}/{{ aboutData.bins.php.platform_family ? aboutData.bins.php.platform_family : 'unknown' }}
                     <br /><strong>Docker:</strong> {{ is_docker ? 'Yes' : 'No' }}
+                    <br /><strong>Backend version:</strong> {{ $store.state.version }}
+                    <br /><strong>Frontend version:</strong> {{ clientVersion }}
+                    <br /><strong>Frontend build:</strong> {{ clientMode }}
                     <template v-if="envs && envs.NODE">
                         <br /><strong>Node:</strong> {{ envs.npm_config_node_version }}{% endif %}
                     </template>
@@ -141,6 +144,14 @@ export default defineComponent({
     },
     created() {
         this.fetchData();
+    },
+    computed: {
+        clientVersion(){
+            return process ? process.env.VUE_APP_VERSION : '?';
+        },
+        clientMode(){
+            return process.env.NODE_ENV;
+        }
     },
     methods: {
         fetchData() {
