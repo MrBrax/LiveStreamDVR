@@ -51,7 +51,11 @@ const router = createRouter({
     // history: createWebHistory((window as any).BASE_URL),
     routes,
     scrollBehavior(to, from, savedPosition) {
-        console.log("scroll", to, from, savedPosition);
+        if (to.hash) {
+            return {
+              el: to.hash,
+            };
+        }
         if (savedPosition) {
             return savedPosition;
         } else {

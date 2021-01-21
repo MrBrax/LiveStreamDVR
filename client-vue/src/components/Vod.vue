@@ -204,7 +204,7 @@
             </div>
 
             <ul v-if="vod?.is_capturing" class="video-info">
-                <li><strong>Current duration:</strong> {{ niceDuration(vod?.duration_live) }}</li>
+                <li><strong>Current duration:</strong> <duration-display :startDate="vod.dt_started_at.date" outputStyle="human"></duration-display></li>
                 <li>
                     <strong>Watch live:</strong>
                     <a href="https://twitch.tv/{{ streamer.display_name }}" rel="noreferrer" target="_blank">Twitch</a>
@@ -453,8 +453,11 @@
 
                         <!-- duration -->
                         <td data-contents="duration">
-                            <span class="grey">
-                                {{ chapter.duration ? chapter.strings.duration : "Active" }}
+                            <span class="grey" v-if="chapter.duration">
+                                {{ niceDuration(chapter.duration) }}
+                            </span>
+                            <span v-else>
+                                <duration-display :startDate="chapter.datetime.date" outputStyle="human"></duration-display>
                             </span>
                         </td>
 
@@ -509,7 +512,8 @@
 
                     <tr v-else>
                         <td v-if="vod?.dt_started_at">
-                            {{ humanDuration(vod?.api_getDurationLive) }}
+                            <!--{{ humanDuration(vod?.api_getDurationLive) }}-->
+                            <duration-display :startDate="vod.dt_started_at.date"></duration-display>
                         </td>
                         <td colspan="4">
                             <em><strong>ONGOING</strong></em>
@@ -524,6 +528,7 @@
 <script lang="ts">
 import type { ApiVod } from "@/twitchautomator.d";
 import { defineComponent } from "vue";
+import DurationDisplay from '@/components/DurationDisplay.vue';
 import { format, toDate, parse } from 'date-fns';
 
 import { library } from '@fortawesome/fontawesome-svg-core';
@@ -643,6 +648,9 @@ export default defineComponent({
                 this.taskStatus.delete = false;
             });
         },
+    },
+    components: {
+        DurationDisplay
     }
 });
 </script>

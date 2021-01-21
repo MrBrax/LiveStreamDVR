@@ -41,7 +41,7 @@
                                     Playing <strong>{{ streamer.current_game.game_name }}</strong>
                                 </template>
 
-                                for {{ vodTimes[streamer.current_vod.basename] }}
+                                for <duration-display :startDate="streamer.current_vod.dt_started_at.date"></duration-display> <!--{{ vodTimes[streamer.current_vod.basename] }}-->
 
                             </template>
                             <template v-else-if="streamer.is_converting">
@@ -81,7 +81,7 @@
                                 <!-- when capturing -->
                                 <template v-if="vod.is_capturing">
                                     <!--<span v-if="vod.duration_live">&middot; ({{ $store.state.config.relative_time ? niceDuration(vod.duration_live) : humanDuration(vod.duration_live) }}+)</span>-->
-                                    <span>&middot; ({{ vodTimes[vod.basename] }})</span><!-- duration -->
+                                    <span>&middot; (<duration-display :startDate="streamer.current_vod.dt_started_at.date"></duration-display><!--{{ vodTimes[vod.basename] }}-->)</span><!-- duration -->
                                     <span v-if="vod.api_getRecordingSize">&middot; {{ formatBytes(vod.api_getRecordingSize, 2) }}+</span><!-- filesize -->
                                 </template>
 
@@ -160,6 +160,8 @@ import type { ApiStreamer } from "@/twitchautomator.d";
 import { defineComponent } from "vue";
 import { parse, intervalToDuration, parseJSON } from 'date-fns';
 
+import DurationDisplay from '@/components/DurationDisplay.vue';
+
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faGithub } from '@fortawesome/free-brands-svg-icons';
 import { faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync } from '@fortawesome/free-solid-svg-icons';
@@ -174,6 +176,7 @@ export default defineComponent({
             interval: 0
         };
     },
+    /*
     mounted(){
         this.interval = setInterval(() => {
             if(!this.$store.state.streamerList) return;
@@ -199,8 +202,12 @@ export default defineComponent({
             clearTimeout(this.interval);
         }
     },
+    */
     computed: {
         
+    },
+    components: {
+        DurationDisplay
     }
 });
 

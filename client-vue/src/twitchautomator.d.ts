@@ -18,6 +18,7 @@ export type ApiVodChapter = {
     box_art_url: string;
     game_name: string;
     started_at: PHPDateTimeJSON;
+    datetime: PHPDateTimeJSON;
     offset: number;
     viewer_count: number;
     width: number; // why
