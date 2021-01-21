@@ -176,6 +176,12 @@ $app->any('/api/{any:.*}', function (Request $request, Response $response, array
 
 $app->any('/{any:.*}', function (Request $request, Response $response, array $args) use ($app) {
     $i = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . "index.html";
+    
+    if(!file_exists($i)){
+        $response->getBody()->write("The frontend client is not installed. Please build or download it and place it in the public/ directory.");
+        return $response->withStatus(500);
+    }
+
     $contents = file_get_contents($i);
     
     // $contents = str_replace('href="/js', 'href="' . TwitchConfig::cfg('basepath') . '/js', $contents);
