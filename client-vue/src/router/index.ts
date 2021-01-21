@@ -3,6 +3,11 @@ import Dashboard from "../views/Dashboard.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
+    path: "/",
+    name: "Index",
+    redirect: "/dashboard"
+  },
+  {
     path: "/dashboard",
     name: "Dashboard",
     component: Dashboard
