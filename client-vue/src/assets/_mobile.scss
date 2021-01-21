@@ -1,222 +1,232 @@
 @media screen and (orientation: portrait) {
-	body { font-size: 1rem; }
-	.container { display: block; width: 100%; }
-	.content { margin: 0; }
-	.section { margin: 5px 0; }
-	.splitter { flex-direction: column; }
-	.side-menu {
-		width: auto;
-		height: auto;
-		position: static;
-		display: block;
+    body {
+        font-size: 1rem;
+    }
+    .container {
+        display: block;
+        width: 100%;
+    }
+    .content {
+        margin: 0;
+    }
+    .section {
+        margin: 5px 0;
+    }
+    .splitter {
+        flex-direction: column;
+    }
+    .side-menu {
+        width: auto;
+        height: auto;
+        position: static;
+        display: block;
 
-		.menu-middle {
-			position: sticky;
-			top: 0px;
-			display: flex;
-			flex-wrap: wrap;
-			padding: 0 5px 5px 5px;
-			overflow: unset;
-		}
+        .menu-middle {
+            position: sticky;
+            top: 0px;
+            display: flex;
+            flex-wrap: wrap;
+            padding: 0 5px 5px 5px;
+            overflow: unset;
+        }
 
-		.menu-bottom {
-			background-color: #000;
-			min-height: 50px;
-			position: fixed;
-			bottom: 0px;
-			left: 0px;
-			right: 0px;
-			.top-menu-item[data-menuitem="github"] {
-				display: none;
-			}
-		}
+        .menu-bottom {
+            background-color: #000;
+            min-height: 50px;
+            position: fixed;
+            bottom: 0px;
+            left: 0px;
+            right: 0px;
+            .top-menu-item[data-menuitem="github"] {
+                display: none;
+            }
+        }
+    }
 
-	}
+    .top-menu-item {
+        display: block;
+        align-items: baseline;
+        justify-content: baseline;
 
-	.top-menu-item {
-		display: block;
-		align-items: baseline;
-		justify-content: baseline;
-		
-		a {
-			display: block;
-		}
+        a {
+            display: block;
+        }
 
-		&.streamer {
+        &.streamer {
+            padding: 5px;
 
-			padding: 5px;
+            align-content: center;
+            justify-content: center;
 
-			align-content: center;
-			justify-content: center;
+            &:hover {
+                .avatar {
+                    border-width: 3px;
+                    border-color: #ccc;
+                }
+            }
 
-			&:hover {
-				.avatar {
-					border-width: 3px;
-					border-color: #ccc;
-				}
-			}
+            a {
+                width: 40px;
+                height: 40px;
+                padding: 0;
+                margin: 0;
+                position: relative;
+            }
 
-			a {
-				width: 40px;
-				height: 40px;
-				padding: 0;
-				margin: 0;
-				position: relative;
-			}
+            .avatar {
+                height: 40px;
+                margin: 0;
+                padding: 0;
+                border-width: 0px;
+                border-style: solid;
+                transition: 0.05s all ease-in-out;
+            }
 
-			.avatar {
-				height: 40px;
-				margin: 0;
-				padding: 0;
-				border-width: 0px;
-				border-style: solid;
-				transition: 0.05s all ease-in-out;
-			}
+            .username {
+                display: none;
+            }
 
-			.username {
-				display: none;
-			}
+            .vodcount {
+                // transform: translateX(-20px);
+                background: #333;
+                padding: 1px 3px;
+                border-radius: 50%;
+                color: #ccc;
 
-			.vodcount {
-				// transform: translateX(-20px);
-				background: #333;
-				padding: 1px 3px;
-				border-radius: 50%;
-				color: #ccc;
-				
-				position: relative;
-				left: 20px;
-				top: -20px;
+                position: relative;
+                left: 20px;
+                top: -20px;
 
-				/*
+                /*
 				font-size: 85%;
 				&:after { content: ' vods'; }
 				&:before { content: '· '; }
 				*/
-			}
+            }
 
-			.subtitle {
-				display: none;
-				/*
+            .subtitle {
+                display: none;
+                /*
 				display: inline-block;
 				font-size: 80%;
 				&:before { content: '·'; }
 				*/
-			}
-			
-			&.is-live {
-				a {
-					background-color: unset;
-					animation: none;
-				}
-				.avatar {
-					border-width: 3px;
-					border-color: #f00;
-				}
-			}
-		}
+            }
 
-	}	
+            &.is-live {
+                a {
+                    background-color: unset;
+                    animation: none;
+                }
+                .avatar {
+                    border-width: 3px;
+                    border-color: #f00;
+                }
+            }
+        }
+    }
 
-	.streamer-jumpto {
-		display: none;
-	}
+    .streamer-jumpto {
+        display: none;
+    }
 
-	.streamer-title {
-		font-size: 0.9em;
-		.streamer-title-tools {
-			display: none;
-		}
-	}
+    .streamer-title {
+        font-size: 0.9em;
+        .streamer-title-tools {
+            display: none;
+        }
+    }
 
-	.info-columns {
-		flex-direction: column;
-		flex-wrap: wrap;
-		font-size: 0.9em;
-		.info-column {
-			padding-right: 0px;
-			padding-bottom: 10px;
-			&:last-child {
-				padding-bottom: 0px;
-			}
-		}
-	}
+    .info-columns {
+        flex-direction: column;
+        flex-wrap: wrap;
+        font-size: 0.9em;
+        .info-column {
+            padding-right: 0px;
+            padding-bottom: 10px;
+            &:last-child {
+                padding-bottom: 0px;
+            }
+        }
+    }
 
-	.game-list {
-		.game-name { display: none };
-		.boxart {
-			width: $boxart-width * 0.2;
-			height: $boxart-height * 0.2;
-		}
-		/*
+    .game-list {
+        .game-name {
+            display: none;
+        }
+        .boxart {
+            width: $boxart-width * 0.2;
+            height: $boxart-height * 0.2;
+        }
+        /*
 		td[data-contents="started_at"] {
 			display: none;
 		}
 		*/
-	}
+    }
 
-	/*
+    /*
 	.boxart-big {
 		max-height: 70px;
 	}
 	*/
-	.boxart-carousel, .boxart-carousel.is-small {	
-		.boxart-item {
-			width: $boxart-width * 0.4;
-			height: $boxart-height * 0.4;
-			img {
-				width: $boxart-width * 0.4;
-				height: $boxart-height * 0.4;
-			}
-		}
-	}
+    .boxart-carousel,
+    .boxart-carousel.is-small {
+        .boxart-item {
+            width: $boxart-width * 0.4;
+            height: $boxart-height * 0.4;
+            img {
+                width: $boxart-width * 0.4;
+                height: $boxart-height * 0.4;
+            }
+        }
+    }
 
-	.button-bar {
-		display: flex;
-		flex-wrap: wrap;
-		.button {
-			flex-grow: 1;
-			text-align: center;
-			.icon {
-				display: block;
-				font-size: 1.75em;
-				margin: 0 auto 0.25em auto;
-				text-align: center;
-			}
-		}
-	}
+    .button-bar {
+        display: flex;
+        flex-wrap: wrap;
+        .button {
+            flex-grow: 1;
+            text-align: center;
+            .icon {
+                display: block;
+                font-size: 1.75em;
+                margin: 0 auto 0.25em auto;
+                text-align: center;
+            }
+        }
+    }
 
-	.video-controls {
-		display: flex;
-		flex-wrap: wrap;
-		.button {
-			flex-grow: 1;
-			text-align: center;
-			.icon {
-				display: block;
-				font-size: 1.75em;
-				margin: 0 auto 0.25em auto;
-				text-align: center;
-			}
-		}
-	}
+    .video-controls {
+        display: flex;
+        flex-wrap: wrap;
+        .button {
+            flex-grow: 1;
+            text-align: center;
+            .icon {
+                display: block;
+                font-size: 1.75em;
+                margin: 0 auto 0.25em auto;
+                text-align: center;
+            }
+        }
+    }
 
-	.video-title {
-		.video-filename {
-			display: block;
-			font-size: 0.7em;
-			&:before {
-				content: none;
-			}
-		}
-	}
+    .video-title {
+        .video-filename {
+            display: block;
+            font-size: 0.7em;
+            &:before {
+                content: none;
+            }
+        }
+    }
 
-	#js-status {
-		display: none;
-	}
+    #js-status {
+        display: none;
+    }
 
-	.jobs_list {
-		display: none;
-	}
-
+    .jobs_list {
+        display: none;
+    }
 }
