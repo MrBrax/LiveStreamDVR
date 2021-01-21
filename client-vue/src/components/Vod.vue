@@ -250,93 +250,91 @@
         </div>
 
         <!-- controls -->
-        <div class="video-controls">
-            <template v-if="vod?.is_finalized">
-                <router-link class="button is-blue" :to="{ name: 'Editor', params: { vod: vod?.basename } }">
-                    <span class="icon"><fa icon="cut" type="fa"></fa></span>
-                    Editor
-                </router-link>
+        <div class="video-controls" v-if="vod?.is_finalized">
+            <router-link class="button is-blue" :to="{ name: 'Editor', params: { vod: vod?.basename } }">
+                <span class="icon"><fa icon="cut" type="fa"></fa></span>
+                Editor
+            </router-link>
 
-                <a v-if="vod?.is_chat_downloaded" class="button is-blue" href="#">
-                    <span class="icon"><fa icon="play" type="fa"></fa></span>
-                    Player
-                </a>
+            <a v-if="vod?.is_chat_downloaded" class="button is-blue" href="#">
+                <span class="icon"><fa icon="play" type="fa"></fa></span>
+                Player
+            </a>
 
-                <a v-else-if="vod?.is_chatdump_captured" class="button is-blue" href="#">
-                    <span class="icon"><fa icon="play" type="fa"></fa></span>
-                    Player
-                </a>
+            <a v-else-if="vod?.is_chatdump_captured" class="button is-blue" href="#">
+                <span class="icon"><fa icon="play" type="fa"></fa></span>
+                Player
+            </a>
 
-                <a class="button" :href="vod?.webpath + '/' + vod?.basename + '.json'" target="_blank">
-                    <span class="icon"><fa icon="database" type="fa"></fa></span>
-                    JSON
-                </a>
+            <a class="button" :href="vod?.webpath + '/' + vod?.basename + '.json'" target="_blank">
+                <span class="icon"><fa icon="database" type="fa"></fa></span>
+                JSON
+            </a>
 
-                <a class="button" @click="doArchive">
+            <a class="button" @click="doArchive">
+                <span class="icon">
+                    <fa icon="archive" type="fa" v-if="!taskStatus.archive"></fa>
+                    <fa icon="sync" type="fa" spin="true" v-else></fa>
+                </span>
+                Archive
+            </a>
+
+            <a v-if="!vod?.twitch_vod_id && !vod?.is_chat_downloaded" class="button" @click="doDownloadChat">
+                <span class="icon">
+                    <fa icon="comments" type="fa" v-if="!taskStatus.downloadChat"></fa>
+                    <fa icon="sync" type="fa" spin="true" v-else></fa>
+                </span>
+                Download chat
+            </a>
+
+            <template v-if="vod?.is_chat_downloaded && !vod?.is_chat_burned">
+                <a class="button" @click="doRenderChat">
                     <span class="icon">
-                        <fa icon="archive" type="fa" v-if="!taskStatus.archive"></fa>
+                        <fa icon="comments" type="fa" v-if="!taskStatus.renderChat"></fa>
                         <fa icon="sync" type="fa" spin="true" v-else></fa>
                     </span>
-                    Archive
+                    Render chat
                 </a>
-
-                <a v-if="!vod?.twitch_vod_id && !vod?.is_chat_downloaded" class="button" @click="doDownloadChat">
+                <a v-if="vod?.is_vod_downloaded" class="button" @click="doRenderChat(true)">
                     <span class="icon">
-                        <fa icon="comments" type="fa" v-if="!taskStatus.downloadChat"></fa>
+                        <fa icon="comments" type="fa" v-if="!taskStatus.renderChat"></fa>
                         <fa icon="sync" type="fa" spin="true" v-else></fa>
                     </span>
-                    Download chat
-                </a>
-
-                <template v-if="vod?.is_chat_downloaded && !vod?.is_chat_burned">
-                    <a class="button" @click="doRenderChat">
-                        <span class="icon">
-                            <fa icon="comments" type="fa" v-if="!taskStatus.renderChat"></fa>
-                            <fa icon="sync" type="fa" spin="true" v-else></fa>
-                        </span>
-                        Render chat
-                    </a>
-                    <a v-if="vod?.is_vod_downloaded" class="button" @click="doRenderChat(true)">
-                        <span class="icon">
-                            <fa icon="comments" type="fa" v-if="!taskStatus.renderChat"></fa>
-                            <fa icon="sync" type="fa" spin="true" v-else></fa>
-                        </span>
-                        Render chat (vod)
-                    </a>
-                </template>
-
-                <template v-if="vod?.twitch_vod_id">
-                    <a v-if="!vod?.is_vod_downloaded" class="button" @click="doDownloadVod">
-                        <span class="icon">
-                            <fa icon="download" type="fa" v-if="!taskStatus.downloadVod"></fa>
-                            <fa icon="sync" type="fa" spin="true" v-else></fa>
-                        </span>
-                        Download{{ vod?.twitch_vod_muted ? " muted" : "" }} VOD
-                    </a>
-                    <a class="button" @click="doCheckMute">
-                        <span class="icon">
-                            <fa icon="volume-mute" type="fa" v-if="!taskStatus.vodMuteCheck"></fa>
-                            <fa icon="sync" type="fa" spin="true" v-else></fa>
-                        </span>
-                        Check mute
-                    </a>
-                    <a v-if="!vod?.is_chat_burned" class="button" @click="doFullBurn">
-                        <span class="icon">
-                            <fa icon="burn" type="fa" v-if="!taskStatus.fullBurn"></fa>
-                            <fa icon="sync" type="fa" spin="true" v-else></fa>
-                        </span>
-                        Render &amp; burn
-                    </a>
-                </template>
-
-                <a class="button is-danger" @click="doDelete">
-                    <span class="icon">
-                        <fa icon="trash" type="fa" v-if="!taskStatus.delete"></fa>
-                        <fa icon="sync" type="fa" spin="true" v-else></fa>
-                    </span>
-                    Delete
+                    Render chat (vod)
                 </a>
             </template>
+
+            <template v-if="vod?.twitch_vod_id">
+                <a v-if="!vod?.is_vod_downloaded" class="button" @click="doDownloadVod">
+                    <span class="icon">
+                        <fa icon="download" type="fa" v-if="!taskStatus.downloadVod"></fa>
+                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                    </span>
+                    Download{{ vod?.twitch_vod_muted ? " muted" : "" }} VOD
+                </a>
+                <a class="button" @click="doCheckMute">
+                    <span class="icon">
+                        <fa icon="volume-mute" type="fa" v-if="!taskStatus.vodMuteCheck"></fa>
+                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                    </span>
+                    Check mute
+                </a>
+                <a v-if="!vod?.is_chat_burned" class="button" @click="doFullBurn">
+                    <span class="icon">
+                        <fa icon="burn" type="fa" v-if="!taskStatus.fullBurn"></fa>
+                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                    </span>
+                    Render &amp; burn
+                </a>
+            </template>
+
+            <a class="button is-danger" @click="doDelete">
+                <span class="icon">
+                    <fa icon="trash" type="fa" v-if="!taskStatus.delete"></fa>
+                    <fa icon="sync" type="fa" spin="true" v-else></fa>
+                </span>
+                Delete
+            </a>
         </div>
 
         <div class="video-status" v-if="!vod.is_finalized">
