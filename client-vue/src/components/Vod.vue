@@ -253,71 +253,87 @@
         <div class="video-controls">
             <template v-if="vod?.is_finalized">
                 <router-link class="button is-blue" :to="{ name: 'Editor', params: { vod: vod?.basename } }">
-                    <fa icon="cut" type="fa"></fa>
+                    <span class="icon"><fa icon="cut" type="fa"></fa></span>
                     Editor
                 </router-link>
 
                 <a v-if="vod?.is_chat_downloaded" class="button is-blue" href="#">
-                    <fa icon="play" type="fa"></fa>
+                    <span class="icon"><fa icon="play" type="fa"></fa></span>
                     Player
                 </a>
 
                 <a v-else-if="vod?.is_chatdump_captured" class="button is-blue" href="#">
-                    <fa icon="play" type="fa"></fa>
+                    <span class="icon"><fa icon="play" type="fa"></fa></span>
                     Player
                 </a>
 
                 <a class="button" :href="vod?.webpath + '/' + vod?.basename + '.json'" target="_blank">
-                    <fa icon="database" type="fa"></fa>
+                    <span class="icon"><fa icon="database" type="fa"></fa></span>
                     JSON
                 </a>
 
                 <a class="button" @click="doArchive">
-                    <fa icon="archive" type="fa" v-if="!taskStatus.archive"></fa>
-                    <fa icon="sync" type="fa" spin="true" v-else></fa>
+                    <span class="icon">
+                        <fa icon="archive" type="fa" v-if="!taskStatus.archive"></fa>
+                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                    </span>
                     Archive
                 </a>
 
                 <a v-if="!vod?.twitch_vod_id && !vod?.is_chat_downloaded" class="button" @click="doDownloadChat">
-                    <fa icon="comments" type="fa" v-if="!taskStatus.downloadChat"></fa>
-                    <fa icon="sync" type="fa" spin="true" v-else></fa>
+                    <span class="icon">
+                        <fa icon="comments" type="fa" v-if="!taskStatus.downloadChat"></fa>
+                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                    </span>
                     Download chat
                 </a>
 
                 <template v-if="vod?.is_chat_downloaded && !vod?.is_chat_burned">
                     <a class="button" @click="doRenderChat">
-                        <fa icon="comments" type="fa" v-if="!taskStatus.renderChat"></fa>
-                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                        <span class="icon">
+                            <fa icon="comments" type="fa" v-if="!taskStatus.renderChat"></fa>
+                            <fa icon="sync" type="fa" spin="true" v-else></fa>
+                        </span>
                         Render chat
                     </a>
                     <a v-if="vod?.is_vod_downloaded" class="button" @click="doRenderChat(true)">
-                        <fa icon="comments" type="fa" v-if="!taskStatus.renderChat"></fa>
-                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                        <span class="icon">
+                            <fa icon="comments" type="fa" v-if="!taskStatus.renderChat"></fa>
+                            <fa icon="sync" type="fa" spin="true" v-else></fa>
+                        </span>
                         Render chat (vod)
                     </a>
                 </template>
 
                 <template v-if="vod?.twitch_vod_id">
                     <a v-if="!vod?.is_vod_downloaded" class="button" @click="doDownloadVod">
-                        <fa icon="download" type="fa" v-if="!taskStatus.downloadVod"></fa>
-                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                        <span class="icon">
+                            <fa icon="download" type="fa" v-if="!taskStatus.downloadVod"></fa>
+                            <fa icon="sync" type="fa" spin="true" v-else></fa>
+                        </span>
                         Download{{ vod?.twitch_vod_muted ? " muted" : "" }} VOD
                     </a>
                     <a class="button" @click="doCheckMute">
-                        <fa icon="volume-mute" type="fa" v-if="!taskStatus.vodMuteCheck"></fa>
-                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                        <span class="icon">
+                            <fa icon="volume-mute" type="fa" v-if="!taskStatus.vodMuteCheck"></fa>
+                            <fa icon="sync" type="fa" spin="true" v-else></fa>
+                        </span>
                         Check mute
                     </a>
                     <a v-if="!vod?.is_chat_burned" class="button" @click="doFullBurn">
-                        <fa icon="burn" type="fa" v-if="!taskStatus.fullBurn"></fa>
-                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                        <span class="icon">
+                            <fa icon="burn" type="fa" v-if="!taskStatus.fullBurn"></fa>
+                            <fa icon="sync" type="fa" spin="true" v-else></fa>
+                        </span>
                         Render &amp; burn
                     </a>
                 </template>
 
                 <a class="button is-danger" @click="doDelete">
-                    <fa icon="trash" type="fa" v-if="!taskStatus.delete"></fa>
-                    <fa icon="sync" type="fa" spin="true" v-else></fa>
+                    <span class="icon">
+                        <fa icon="trash" type="fa" v-if="!taskStatus.delete"></fa>
+                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                    </span>
                     Delete
                 </a>
             </template>
@@ -362,7 +378,7 @@
                         <span v-else>
                             <strong class="is-error flashing">
                                 <span class="icon"><fa icon="exclamation-triangle"></fa></span>
-                                Video capture not running, did itcrash?
+                                Video capture not running, did it crash?
                             </strong>
                         </span>
                     </em>
@@ -433,19 +449,19 @@
                         }"
                     >
                         <!-- start timestamp -->
-                        <td>
+                        <td data-contents="started_at">
                             {{ chapter.strings.started_at }}
                         </td>
 
                         <!-- duration -->
-                        <td>
+                        <td data-contents="duration">
                             <span class="grey">
                                 {{ chapter.duration ? chapter.strings.duration : "Active" }}
                             </span>
                         </td>
 
                         <!-- chapter name -->
-                        <td>
+                        <td data-contents="name">
                             <img
                                 v-if="chapter.box_art_url"
                                 class="boxart"
@@ -454,18 +470,20 @@
                                 loading="lazy"
                             />
                             <template v-if="vod?.is_finalized">
-                                <router-link :to="{ name: 'Editor', params: { vod: vod?.basename }, query: { start: chapter.offset } }">
-                                    {{ chapter.game_name ? chapter.game_name : "None" }}
-                                </router-link>
-                                <a
-                                    v-if="vod?.twitch_vod_exists"
-                                    :href="vod?.twitch_vod_url + '?t=' + twitchDuration(chapter.offset)"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    aria-label="Open on Twitch"
-                                >
-                                    <span class="icon"><fa icon="external-link-alt"></fa></span>
-                                </a>
+                                <span class="game-name">
+                                    <router-link :to="{ name: 'Editor', params: { vod: vod?.basename }, query: { start: chapter.offset } }">
+                                        {{ chapter.game_name ? chapter.game_name : "None" }}
+                                    </router-link>
+                                    <a
+                                        v-if="vod?.twitch_vod_exists"
+                                        :href="vod?.twitch_vod_url + '?t=' + twitchDuration(chapter.offset)"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        aria-label="Open on Twitch"
+                                    >
+                                        <span class="icon"><fa icon="external-link-alt"></fa></span>
+                                    </a>
+                                </span>
                             </template>
                             <template v-else>
                                 {{ chapter.game_name ? chapter.game_name : "None" }}

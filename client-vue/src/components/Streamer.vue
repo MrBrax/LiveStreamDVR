@@ -23,17 +23,17 @@
                         <span v-if="streamer.subbed_at && streamer.expires_at">{{ formatDate(this.streamer?.expires_at.date) }}</span>
                         <span v-else>Not subbed</span>
                     </span>
-                    <span v-if="streamer.is_live">
-                        &middot;
-                        <a @click="abortCapture" title="Abort record"><span class="icon"><fa icon="video-slash"></fa></span></a><!-- abort recording -->
+                    <span class="streamer-title-tools">
+                        <span v-if="streamer.is_live">
+                            &middot;
+                            <a @click="abortCapture" title="Abort record"><span class="icon"><fa icon="video-slash"></fa></span></a><!-- abort recording -->
+                        </span>
+                        <span v-else>
+                            &middot;
+                            <a @click="forceRecord" title="Force record"><span class="icon"><fa icon="video"></fa></span></a><!-- force recording -->
+                        </span>
+                        <a @click="playlistRecord" title="Playlist record"><span class="icon"><fa icon="play-circle"></fa></span></a><!-- dump playlist -->
                     </span>
-                    <span v-else>
-                        &middot;
-                        <a @click="forceRecord" title="Force record"><span class="icon"><fa icon="video"></fa></span></a><!-- force recording -->
-                    </span>
-                    <a @click="playlistRecord" title="Playlist record"
-                        ><span class="icon"><fa icon="play-circle"></fa></span></a
-                    ><!-- dump playlist -->
                 </span>
             </div>
         </div>

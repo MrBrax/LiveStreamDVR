@@ -32,7 +32,15 @@
 	}
 
 	.menu-bottom {
+		background-color: #000;
 		min-height: 50px;
+		position: fixed;
+		bottom: 0px;
+		left: 0px;
+		right: 0px;
+		.top-menu-item[data-menuitem="github"] {
+			display: none;
+		}
 	}
 
 	.streamer-jumpto {
@@ -41,6 +49,9 @@
 
 	.streamer-title {
 		font-size: 0.9em;
+		.streamer-title-tools {
+			display: none;
+		}
 	}
 
 	.info-columns {
@@ -54,6 +65,19 @@
 				padding-bottom: 0px;
 			}
 		}
+	}
+
+	.game-list {
+		.game-name { display: none };
+		.boxart {
+			width: $boxart-width * 0.2;
+			height: $boxart-height * 0.2;
+		}
+		/*
+		td[data-contents="started_at"] {
+			display: none;
+		}
+		*/
 	}
 
 	/*
@@ -105,7 +129,7 @@
 	.video-title {
 		.video-filename {
 			display: block;
-			font-size: 0.8em;
+			font-size: 0.7em;
 			&:before {
 				content: none;
 			}

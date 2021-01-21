@@ -1177,9 +1177,12 @@ class TwitchVOD
 			// box art
 			if ($game_data && $game_data['box_art_url']) {
 
+				$box_art_width = round(140 * 0.5); // 14
+				$box_art_height = round(190 * 0.5); // 19
+
 				$img_url = $game_data['box_art_url'];
-				$img_url = str_replace("{width}", 14, $img_url);
-				$img_url = str_replace("{height}", 19, $img_url);
+				$img_url = str_replace("{width}", $box_art_width, $img_url);
+				$img_url = str_replace("{height}", $box_art_height, $img_url);
 				$entry['box_art_url'] = $img_url;
 			}
 

@@ -45,10 +45,14 @@
             <div class="section-content">
                 <table>
                     <tr v-for="job in jobsData" :key="job.name">
-                        <td>{{ job.name }}</td>
+                        <td><span class="text-overflow">{{ job.name }}</span></td>
                         <td>{{ job.pid }}</td>
                         <td><!-- {{ job.status }}-->{{ job.status ? "Running" : "Unexpected exit" }}</td>
-                        <td><a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name)">Kill</a></td>
+                        <td>
+                            <a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name)" title="Kill job">
+                                <span class="icon"><fa icon="trash"></fa></span>
+                            </a>
+                        </td>
                     </tr>
                 </table>
 

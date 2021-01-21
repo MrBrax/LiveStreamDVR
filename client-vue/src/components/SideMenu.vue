@@ -122,7 +122,7 @@
         <div class="top-menu-item divider"></div>
 
         <div class="menu-bottom">
-            <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'Dashboard' }">
+            <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'Dashboard' }" data-menuitem="dashboard">
                 <router-link to="/dashboard" title="Dashboard"><fa icon="tachometer-alt"></fa></router-link>
             </div>
             <!--
@@ -133,19 +133,19 @@
                 <a href="javascript:notifyMe();" title="Notify"><fa icon="bell"></fa></a>
             </div>
             -->
-            <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'Tools' }">
+            <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'Tools' }" data-menuitem="tools">
                 <router-link to="/tools" title="Tools"><fa icon="wrench"></fa></router-link>
             </div>
-            <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'Settings' }">
+            <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'Settings' }" data-menuitem="settings">
                 <router-link to="/settings" title="Settings"><fa icon="cog"></fa></router-link>
             </div>
-            <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'ClientSettings' }">
+            <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'ClientSettings' }" data-menuitem="clientsettings">
                 <router-link to="/clientsettings" title="Client Settings"><fa icon="user-cog"></fa></router-link>
             </div>
-            <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'About' }">
+            <div :class="{ 'top-menu-item': true, 'icon': true, 'right': true, 'active': $route.name == 'About' }" data-menuitem="github">
                 <router-link to="/about" title="About"><fa icon="info-circle"></fa></router-link>
             </div>
-            <div class="top-menu-item icon right">
+            <div class="top-menu-item icon right" data-menuitem="github">
                 <a class="linkback" href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer" title="GitHub"><fa :icon="['fab', 'github']"></fa></a>
             </div>
         </div>

@@ -292,16 +292,22 @@ export default defineComponent({
                             text = `${username} is live!`;
                         }
 
-                        if(
-                            ( !oldStreamer.current_game && streamer.current_game ) || // from no game to new game
-                            ( oldStreamer.current_game && streamer.current_game && oldStreamer.current_game.game_name !== streamer.current_game.game_name ) // from old game to new game
-                        ){
-                            // alert( streamer.display_name + " is now playing " + streamer.current_game.game_name );
-                            
-                            if( streamer.current_game.favourite ){
-                                text = `${username} is now playing one of your favourite games: ${streamer.current_game.game_name}!`;
-                            }else{
-                                text = `${username} is now playing ${streamer.current_game.game_name}!`;
+                        if( streamer.is_live ){
+                                
+                            console.log("notification compare games", streamer.display_name, oldStreamer.current_game, streamer.current_game );
+
+                            if(
+                                ( !oldStreamer.current_game && streamer.current_game ) || // from no game to new game
+                                ( oldStreamer.current_game && streamer.current_game && oldStreamer.current_game.game_name !== streamer.current_game.game_name ) // from old game to new game
+                            ){
+                                // alert( streamer.display_name + " is now playing " + streamer.current_game.game_name );
+                                
+                                if( streamer.current_game.favourite ){
+                                    text = `${username} is now playing one of your favourite games: ${streamer.current_game.game_name}!`;
+                                }else{
+                                    text = `${username} is now playing ${streamer.current_game.game_name}!`;
+                                }
+
                             }
 
                         }
@@ -332,7 +338,7 @@ export default defineComponent({
                             }
 
                         }else{
-                            console.log(`No notification text for ${streamer.display_name}`);
+                            console.debug(`No notification text for ${streamer.display_name}`);
                         }
 
                     }
