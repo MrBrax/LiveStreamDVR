@@ -93,31 +93,31 @@
                             <strong>Size:</strong>
                             {{ formatBytes(vod?.segments[0].filesize) }}
                         </li>
-                        <template v-if="vod?.video_metadata">
+                        <template v-if="vod?.video_metadata_public">
                             <li>
                                 <strong>Dimensions:</strong>
-                                {{ vod?.video_metadata.video.Width }}x{{ vod?.video_metadata.video.Height }}
+                                {{ vod?.video_metadata_public.video.Width }}x{{ vod?.video_metadata_public.video.Height }}
                             </li>
                             <li>
                                 <strong>Framerate:</strong>
-                                {{ vod?.video_metadata.video.FrameRate_Mode }}
+                                {{ vod?.video_metadata_public.video.FrameRate_Mode }}
                                 {{
-                                    vod?.video_metadata.video.FrameRate_Original
-                                        ? vod?.video_metadata.video.FrameRate_Original
-                                        : vod?.video_metadata.video.FrameRate
+                                    vod?.video_metadata_public.video.FrameRate_Original
+                                        ? vod?.video_metadata_public.video.FrameRate_Original
+                                        : vod?.video_metadata_public.video.FrameRate
                                 }}
                             </li>
                             <li>
                                 <strong>Video:</strong>
-                                {{ vod?.video_metadata.video.Format }}
-                                {{ vod?.video_metadata.video.BitRate_Mode }}
-                                {{ Math.round(vod?.video_metadata.video.BitRate / 1000) }}kbps
+                                {{ vod?.video_metadata_public.video.Format }}
+                                {{ vod?.video_metadata_public.video.BitRate_Mode }}
+                                {{ Math.round(vod?.video_metadata_public.video.BitRate / 1000) }}kbps
                             </li>
                             <li>
                                 <strong>Audio:</strong>
-                                {{ vod?.video_metadata.audio.Format }}
-                                {{ vod?.video_metadata.audio.BitRate_Mode }}
-                                {{ Math.round(vod?.video_metadata.audio.BitRate / 1000) }}kbps
+                                {{ vod?.video_metadata_public.audio.Format }}
+                                {{ vod?.video_metadata_public.audio.BitRate_Mode }}
+                                {{ Math.round(vod?.video_metadata_public.audio.BitRate / 1000) }}kbps
                             </li>
                         </template>
                     </ul>
@@ -156,13 +156,9 @@
                                 </span>
                             </li>
                             <li>
-                                <strong>Date:</strong>
-                                <span v-if="vod?.twitch_vod_date">
-                                    {{ vod?.twitch_vod_date }}
-                                </span>
-                                <span v-else>
-                                    <strong><em>No data</em></strong>
-                                </span>
+                                <strong>Date:</strong>&#32;
+                                <template v-if="vod?.twitch_vod_date">{{ formatDate(vod?.twitch_vod_date) }}</template>
+                                <strong v-else><em>No data</em></strong>
                             </li>
                             <li>
                                 <strong>Title:</strong>
@@ -232,7 +228,7 @@
                 </li>
 
                 <li v-if="vod?.is_vod_downloaded">
-                    <a :href="vod?.webpath + '/' + vod?.basename + '_vod?.mp4'">Downloaded VOD</a>
+                    <a :href="vod?.webpath + '/' + vod?.basename + '_vod.mp4'">Downloaded VOD</a>
                 </li>
 
                 <template v-if="vod?.is_chat_rendered">
@@ -359,7 +355,7 @@
                 </em>
             </template>
             <template v-else-if="vod?.is_capturing">
-                <em>
+                <em class="text-overflow">
                     <span class="icon"><fa icon="video"></fa></span>
                     Capturing to <strong>{{ vod?.basename }}.ts</strong> (<strong>{{ formatBytes(vod?.api_getRecordingSize) }}</strong>)
                 </em>
@@ -445,8 +441,8 @@
                         }"
                     >
                         <!-- start timestamp -->
-                        <td data-contents="started_at">
-                            {{ chapter.strings.started_at }}
+                        <td data-contents="started_at" :title="formatDate(chapter.datetime.date)">
+                            {{ humanDuration(chapter.offset) }}
                         </td>
 
                         <!-- duration -->
@@ -503,7 +499,7 @@
                     </tr>
 
                     <tr v-if="vod?.dt_ended_at">
-                        <td>
+                        <td :title="formatDate(vod.dt_ended_at.date)">
                             {{ vod?.api_getWebhookDuration }}
                         </td>
                         <td colspan="4">
@@ -545,8 +541,24 @@ import {
     faExternalLinkAlt,
     faArchive,
     faDownload,
+    faExclamationTriangle,
+    faFileSignature
 } from "@fortawesome/free-solid-svg-icons";
-library.add(faFileVideo, faCut, faPlay, faDatabase, faComments, faVolumeMute, faBurn, faTrash, faExternalLinkAlt, faArchive, faDownload);
+library.add(
+    faFileVideo,
+    faCut,
+    faPlay,
+    faDatabase,
+    faComments,
+    faVolumeMute,
+    faBurn,
+    faTrash,
+    faExternalLinkAlt,
+    faArchive,
+    faDownload,
+    faExclamationTriangle,
+    faFileSignature
+);
 
 export default defineComponent({
     name: "Vod",

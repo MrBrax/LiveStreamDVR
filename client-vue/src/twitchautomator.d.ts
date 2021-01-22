@@ -64,7 +64,7 @@ export type ApiVod = {
     is_capture_paused: boolean;
 
     api_hasFavouriteGame: boolean;
-    api_getUniqueGames: array;
+    api_getUniqueGames: ApiGame[];
     api_getWebhookDuration: string;
     api_getDuration: number;
     api_getCapturingStatus: number;
@@ -81,6 +81,7 @@ export type ApiVod = {
     game_offset: number;
 
     video_metadata: array;
+    video_metadata_public: array;
 
     chapters: ApiVodChapter[];
 
