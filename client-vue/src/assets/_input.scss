@@ -188,6 +188,18 @@ select.input {
     }
 }
 
+.icon-button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    margin: 0;
+    &:hover {
+        color: #2f6d68;
+    }
+}
+
 .input-help {
     font-size: 85%;
     color: #777;

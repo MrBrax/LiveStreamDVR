@@ -16,7 +16,9 @@
         <div class="video-title">
             <h3>
                 <span class="icon"><fa icon="file-video"></fa></span>
-                <span class="video-date" :title="formatDate(vod?.dt_started_at.date)" v-if="vod?.dt_started_at">{{ $store.state.clientConfig.useRelativeTime ? humanDate(vod?.dt_started_at.date, true) : formatDate(vod?.dt_started_at.date) }}</span>
+                <span class="video-date" :title="formatDate(vod?.dt_started_at.date)" v-if="vod?.dt_started_at">{{
+                    $store.state.clientConfig.useRelativeTime ? humanDate(vod?.dt_started_at.date, true) : formatDate(vod?.dt_started_at.date)
+                }}</span>
                 <span class="video-filename">{{ vod?.basename }}</span>
             </h3>
         </div>
@@ -465,6 +467,7 @@
                                     <router-link :to="{ name: 'Editor', params: { vod: vod?.basename }, query: { start: chapter.offset } }">
                                         {{ chapter.game_name ? chapter.game_name : "None" }}
                                     </router-link>
+                                    &#32;
                                     <a
                                         v-if="vod?.twitch_vod_exists"
                                         :href="vod?.twitch_vod_url + '?t=' + twitchDuration(chapter.offset)"
@@ -474,13 +477,14 @@
                                     >
                                         <span class="icon"><fa icon="external-link-alt"></fa></span>
                                     </a>
-                                    <a
+                                    <button
+                                        class="icon-button"
                                         v-if="!$store.state.config.favourites[chapter.game_id]"
                                         title="Add to favourites"
                                         @click="addFavouriteGame(chapter.game_id)"
                                     >
                                         <span class="icon"><fa icon="star"></fa></span>
-                                    </a>
+                                    </button>
                                 </span>
                             </template>
                             <template v-else>
@@ -669,8 +673,7 @@ export default defineComponent({
                     this.taskStatus.delete = false;
                 });
         },
-        addFavouriteGame(game_id: number){
-
+        addFavouriteGame(game_id: number) {
             const formData = new FormData();
             formData.set(`games[${game_id}]`, "1");
 
