@@ -1,10 +1,9 @@
 <template>
     <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
-        
         <div class="favourites_list" v-if="gamesData">
             <div v-for="[id, game] in sortedGames" :key="id" class="checkbox">
                 <label>
-                    <input type="checkbox" :name="'games[' + id + ']'" :checked="favouritesData[id]"  /> {{ game.name }}
+                    <input type="checkbox" :name="'games[' + id + ']'" :checked="favouritesData[id]" /> {{ game.name }}
                     <span class="is-gray">{{ formatTimestamp(game.added) }}</span>
                 </label>
             </div>
@@ -20,43 +19,45 @@
 </template>
 
 <script lang="ts">
+import { ApiGame } from "@/twitchautomator";
 import { defineComponent } from "vue";
 
 export default defineComponent({
     name: "FavouritesForm",
-    props: ['favouritesData', 'gamesData'],
-    emits: ['formSuccess'],
-    data(){
+    props: ["favouritesData", "gamesData"],
+    emits: ["formSuccess"],
+    data() {
         return {
-            formStatusText: 'Ready',
-            formStatus: '',
+            formStatusText: "Ready",
+            formStatus: "",
             formData: {},
-            sortedGames: [] as any
-        }
+            sortedGames: [] as any,
+        };
     },
     methods: {
-        submitForm( event : Event ){
-            
+        submitForm(event: Event) {
             const form = event.target as HTMLFormElement;
             const inputs = new FormData(form);
 
-            this.formStatusText = 'Loading...';
-            this.formStatus = '';
+            this.formStatusText = "Loading...";
+            this.formStatus = "";
 
-            console.log( "form", form );
-            console.log( "entries", inputs, inputs.entries(), inputs.values() );            
+            console.log("form", form);
+            console.log("entries", inputs, inputs.entries(), inputs.values());
 
-            this.$http.post(`/api/v0/favourites/save`, inputs)
-            .then((response) => {
-                const json = response.data;
-                this.formStatusText = json.message;
-                this.formStatus = json.status;
-                if(json.status == 'OK'){
-                    this.$emit('formSuccess', json);
-                }
-            }).catch((err) => {
-                console.error("form error", err.response);
-            });
+            this.$http
+                .post(`/api/v0/favourites/save`, inputs)
+                .then((response) => {
+                    const json = response.data;
+                    this.formStatusText = json.message;
+                    this.formStatus = json.status;
+                    if (json.status == "OK") {
+                        this.$emit("formSuccess", json);
+                    }
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                });
 
             /*
             fetch(`api/v0/favourites/save`, {
@@ -75,27 +76,23 @@ export default defineComponent({
             });
             */
 
-
             event.preventDefault();
             return false;
-        }
+        },
     },
     watch: {
-        gamesData(val){
-            this.sortedGames = Object.entries( (this as any).gamesData ).sort(([, a], [, b]) =>
-                (a as any).name.localeCompare((b as any).name)
-            );
-        }
+        gamesData() {
+            this.sortedGames = Object.entries(this.gamesData as Record<number, ApiGame>).sort(([, a], [, b]) => a.name.localeCompare(b.name));
+        },
     },
     computed: {
-        formStatusClass() : Record<string, any> {
+        formStatusClass(): Record<string, boolean> {
             return {
-                'form-status': true,
-                'is-error': this.formStatus == 'ERROR',
-                'is-success': this.formStatus == 'OK',
-            }
-        }
-    }
+                "form-status": true,
+                "is-error": this.formStatus == "ERROR",
+                "is-success": this.formStatus == "OK",
+            };
+        },
+    },
 });
-
 </script>

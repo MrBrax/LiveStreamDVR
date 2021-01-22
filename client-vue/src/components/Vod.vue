@@ -2,11 +2,11 @@
     <div
         v-if="vod"
         :class="{
-            'video': true,
+            video: true,
             'is-recording': vod.is_capturing,
             'is-converting': vod.is_converting,
             'is-finalized': vod.is_finalized,
-            'is-favourite': vod.api_hasFavouriteGame
+            'is-favourite': vod.api_hasFavouriteGame,
         }"
     >
         <div :id="'vod_' + vod?.basename" class="anchor"></div>
@@ -55,9 +55,7 @@
                         </template>
                         <li>
                             <strong>Missing from captured file:</strong>
-                            <span v-if="vod?.twitch_vod_duration">{{
-                                humanDuration(vod?.twitch_vod_duration - vod?.api_getDuration)
-                            }}</span>
+                            <span v-if="vod?.twitch_vod_duration">{{ humanDuration(vod?.twitch_vod_duration - vod?.api_getDuration) }}</span>
                             <span v-else
                                 ><strong><em>No data</em></strong></span
                             >
@@ -129,7 +127,9 @@
                             <li>
                                 <strong>Duration:</strong>
                                 <template v-if="vod?.twitch_vod_duration">{{ humanDuration(vod?.twitch_vod_duration) }}</template>
-                                <template v-else><strong><em>No data</em></strong></template>
+                                <template v-else>
+                                    <strong><em>No data</em></strong>
+                                </template>
                             </li>
                             <li>
                                 <strong>ID:</strong>
@@ -185,9 +185,7 @@
                                     <a :href="vod?.twitch_vod_url" rel="noreferrer" target="_blank">{{ vod?.twitch_vod_id }}</a
                                     >.
                                 </span>
-                                <span v-else>
-                                    The VOD probably never got saved.
-                                </span>
+                                <span v-else>The VOD probably never got saved.</span>
                             </li>
                         </template>
                         <template v-else>
@@ -360,8 +358,7 @@
             <template v-else-if="vod?.is_capturing">
                 <em>
                     <span class="icon"><fa icon="video"></fa></span>
-                    Capturing to <strong>{{ vod?.basename }}.ts</strong>
-                    (<strong>{{ formatBytes(vod?.api_getRecordingSize) }}</strong>)
+                    Capturing to <strong>{{ vod?.basename }}.ts</strong> (<strong>{{ formatBytes(vod?.api_getRecordingSize) }}</strong>)
                 </em>
 
                 <br />
@@ -411,9 +408,7 @@
         </div>
 
         <!-- no chapters error -->
-        <div v-if="!vod?.chapters" class="video-error">
-            No chapter data!?
-        </div>
+        <div v-if="!vod?.chapters" class="video-error">No chapter data!?</div>
 
         <!-- troubleshoot error -->
         <!--
@@ -443,7 +438,7 @@
                         v-for="chapter in vod.chapters"
                         :key="chapter"
                         :class="{
-                            favourite: $store.state.config.favourites[chapter.game_id]
+                            favourite: $store.state.config.favourites[chapter.game_id],
                         }"
                     >
                         <!-- start timestamp -->
@@ -463,13 +458,7 @@
 
                         <!-- chapter name -->
                         <td data-contents="name">
-                            <img
-                                v-if="chapter.box_art_url"
-                                class="boxart"
-                                :src="chapter.box_art_url"
-                                :alt="chapter.game_name"
-                                loading="lazy"
-                            />
+                            <img v-if="chapter.box_art_url" class="boxart" :src="chapter.box_art_url" :alt="chapter.game_name" loading="lazy" />
                             <template v-if="vod?.is_finalized">
                                 <span class="game-name">
                                     <router-link :to="{ name: 'Editor', params: { vod: vod?.basename }, query: { start: chapter.offset } }">
@@ -528,17 +517,29 @@
 <script lang="ts">
 import type { ApiVod } from "@/twitchautomator.d";
 import { defineComponent } from "vue";
-import DurationDisplay from '@/components/DurationDisplay.vue';
-import { format, toDate, parse } from 'date-fns';
+import DurationDisplay from "@/components/DurationDisplay.vue";
+// import { format, toDate, parse } from 'date-fns';
 
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { faFileVideo, faCut, faPlay, faDatabase, faComments, faVolumeMute, faBurn, faTrash, faExternalLinkAlt, faArchive, faDownload } from '@fortawesome/free-solid-svg-icons';
+import { library } from "@fortawesome/fontawesome-svg-core";
+import {
+    faFileVideo,
+    faCut,
+    faPlay,
+    faDatabase,
+    faComments,
+    faVolumeMute,
+    faBurn,
+    faTrash,
+    faExternalLinkAlt,
+    faArchive,
+    faDownload,
+} from "@fortawesome/free-solid-svg-icons";
 library.add(faFileVideo, faCut, faPlay, faDatabase, faComments, faVolumeMute, faBurn, faTrash, faExternalLinkAlt, faArchive, faDownload);
 
 export default defineComponent({
     name: "Vod",
-    emits: ['forceFetchData'],
-    data(){
+    emits: ["forceFetchData"],
+    data() {
         return {
             config: [],
             taskStatus: {
@@ -548,109 +549,121 @@ export default defineComponent({
                 renderChat: false,
                 downloadVod: false,
                 fullBurn: false,
-                delete: false
-            }
-        }
+                delete: false,
+            },
+        };
     },
     props: {
         vod: Object as () => ApiVod,
     },
     methods: {
-        doArchive(){
-            if(!confirm(`Do you want to archive "${this.vod?.basename}"?`)) return;
+        doArchive() {
+            if (!confirm(`Do you want to archive "${this.vod?.basename}"?`)) return;
             this.taskStatus.archive = true;
-            this.$http.post(`/api/v0/vod/${this.vod?.basename}/save`)
-            .then((response) => {
-                const json = response.data;
-                if(json.message) alert(json.message);
-                console.log(json);
-                this.taskStatus.archive = false;
-                // this.$emit("forceFetchData");
-            }).catch((err) => {
-                console.error("form error", err.response);
-                this.taskStatus.archive = false;
-            });
+            this.$http
+                .post(`/api/v0/vod/${this.vod?.basename}/save`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.taskStatus.archive = false;
+                    // this.$emit("forceFetchData");
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                    this.taskStatus.archive = false;
+                });
         },
-        doDownloadChat(){
-            if(!confirm(`Do you want to download the chat for "${this.vod?.basename}"?`)) return;
+        doDownloadChat() {
+            if (!confirm(`Do you want to download the chat for "${this.vod?.basename}"?`)) return;
             this.taskStatus.downloadChat = true;
-            this.$http.post(`/api/v0/vod/${this.vod?.basename}/download_chat`)
-            .then((response) => {
-                const json = response.data;
-                if(json.message) alert(json.message);
-                console.log(json);
-                this.taskStatus.downloadChat = false;
-                // this.$emit("forceFetchData");
-            }).catch((err) => {
-                console.error("form error", err.response);
-                this.taskStatus.downloadChat = false;
-            });
+            this.$http
+                .post(`/api/v0/vod/${this.vod?.basename}/download_chat`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.taskStatus.downloadChat = false;
+                    // this.$emit("forceFetchData");
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                    this.taskStatus.downloadChat = false;
+                });
         },
-        doRenderChat( useVod = false ){
-            alert('RenderChat');
+        doRenderChat(useVod = false) {
+            /** @todo: implement */
+            alert("RenderChat");
         },
-        doDownloadVod(){
-            if(!confirm(`Do you want to download the vod for "${this.vod?.basename}"?`)) return;
+        doDownloadVod() {
+            if (!confirm(`Do you want to download the vod for "${this.vod?.basename}"?`)) return;
             this.taskStatus.downloadVod = true;
-            this.$http.post(`/api/v0/vod/${this.vod?.basename}/download`)
-            .then((response) => {
-                const json = response.data;
-                if(json.message) alert(json.message);
-                console.log(json);
-                this.taskStatus.downloadVod = false;
-                // this.$emit("forceFetchData");
-            }).catch((err) => {
-                console.error("form error", err.response);
-                this.taskStatus.downloadVod = false;
-            });
+            this.$http
+                .post(`/api/v0/vod/${this.vod?.basename}/download`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.taskStatus.downloadVod = false;
+                    // this.$emit("forceFetchData");
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                    this.taskStatus.downloadVod = false;
+                });
         },
-        doCheckMute(){
+        doCheckMute() {
             this.taskStatus.vodMuteCheck = true;
-            this.$http.post(`/api/v0/vod/${this.vod?.basename}/check_mute`)
-            .then((response) => {
-                const json = response.data;
-                if(json.message) alert(json.message);
-                console.log(json);
+            this.$http
+                .post(`/api/v0/vod/${this.vod?.basename}/check_mute`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
 
-                if(json.data){
-                    if(json.data.muted === null){
-                        alert(`The vod "${this.vod?.basename}" could not be checked.`);
-                    }else{
-                        alert(`The vod "${this.vod?.basename}" is${json.data.muted ? "" : " not"} muted.`);
+                    if (json.data) {
+                        if (json.data.muted === null) {
+                            alert(`The vod "${this.vod?.basename}" could not be checked.`);
+                        } else {
+                            alert(`The vod "${this.vod?.basename}" is${json.data.muted ? "" : " not"} muted.`);
+                        }
                     }
-                }
-                this.taskStatus.vodMuteCheck = false;
-                // this.$emit("forceFetchData");
-            }).catch((err) => {
-                console.error("doCheckMute error", err.response);
-                if(err.response.data){
-                    const json = err.response.data;
-                    if(json.message) alert(json.message);
-                }
-                this.taskStatus.vodMuteCheck = false;
-            });
+                    this.taskStatus.vodMuteCheck = false;
+                    // this.$emit("forceFetchData");
+                })
+                .catch((err) => {
+                    console.error("doCheckMute error", err.response);
+                    if (err.response.data) {
+                        const json = err.response.data;
+                        if (json.message) alert(json.message);
+                    }
+                    this.taskStatus.vodMuteCheck = false;
+                });
         },
-        doFullBurn(){
-            alert('FullBurn');
+        doFullBurn() {
+            /** @todo: implement */
+            alert("FullBurn");
         },
-        doDelete(){
-            if(!confirm(`Do you want to delete "${this.vod?.basename}"?`)) return;
+        doDelete() {
+            if (!confirm(`Do you want to delete "${this.vod?.basename}"?`)) return;
             this.taskStatus.delete = true;
-            this.$http.post(`/api/v0/vod/${this.vod?.basename}/delete`)
-            .then((response) => {
-                const json = response.data;
-                if(json.message) alert(json.message);
-                console.log(json);
-                this.taskStatus.delete = false;
-                // this.$emit("forceFetchData");
-            }).catch((err) => {
-                console.error("form error", err.response);
-                this.taskStatus.delete = false;
-            });
+            this.$http
+                .post(`/api/v0/vod/${this.vod?.basename}/delete`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.taskStatus.delete = false;
+                    // this.$emit("forceFetchData");
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                    this.taskStatus.delete = false;
+                });
         },
     },
     components: {
-        DurationDisplay
-    }
+        DurationDisplay,
+    },
 });
 </script>

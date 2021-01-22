@@ -18,14 +18,26 @@
 
             <!-- number -->
             <div v-if="data.type == 'number'" class="control">
-                <input class="input" type="number" :name="key" :id="'input_' + key" :value="settingsData[key] !== undefined ? settingsData[key] : data.default" />
+                <input
+                    class="input"
+                    type="number"
+                    :name="key"
+                    :id="'input_' + key"
+                    :value="settingsData[key] !== undefined ? settingsData[key] : data.default"
+                />
             </div>
 
             <!-- array -->
             <div v-if="data.type == 'array'" class="control">
                 <!--<input class="input" :name="key" :id="key" :value="settings[key]" />-->
                 <select class="input" :name="key" :id="'input_' + key">
-                    <option v-for="item in data.choices" :key="item" :selected="( settingsData[key] !== undefined && settingsData[key] === item ) || ( settingsData[key] === undefined && item === data.default )">
+                    <option
+                        v-for="item in data.choices"
+                        :key="item"
+                        :selected="
+                            (settingsData[key] !== undefined && settingsData[key] === item) || (settingsData[key] === undefined && item === data.default)
+                        "
+                    >
                         {{ item }}
                     </option>
                 </select>
@@ -48,14 +60,14 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
     name: "SettingsForm",
-    props: ['settingsData', 'settingsFields'],
-    emits: ['formSuccess'],
-    data(){
+    props: ["settingsData", "settingsFields"],
+    emits: ["formSuccess"],
+    data() {
         return {
-            formStatusText: 'Ready',
-            formStatus: '',
-            formData: {}
-        }
+            formStatusText: "Ready",
+            formStatus: "",
+            formData: {},
+        };
     },
     /*
     created: {
@@ -63,28 +75,29 @@ export default defineComponent({
     },
     */
     methods: {
-        submitForm( event : Event ){
-            
+        submitForm(event: Event) {
             const form = event.target as HTMLFormElement;
             const inputs = new FormData(form);
 
-            this.formStatusText = 'Loading...';
-            this.formStatus = '';
+            this.formStatusText = "Loading...";
+            this.formStatus = "";
 
-            console.log( "form", form );
-            console.log( "entries", inputs, inputs.entries(), inputs.values() );            
+            console.log("form", form);
+            console.log("entries", inputs, inputs.entries(), inputs.values());
 
-            this.$http.post(`/api/v0/settings/save`, inputs)
-            .then((response) => {
-                const json = response.data;
-                this.formStatusText = json.message;
-                this.formStatus = json.status;
-                if(json.status == 'OK'){
-                    this.$emit('formSuccess', json);
-                }
-            }).catch((err) => {
-                console.error("form error", err.response);
-            });
+            this.$http
+                .post(`/api/v0/settings/save`, inputs)
+                .then((response) => {
+                    const json = response.data;
+                    this.formStatusText = json.message;
+                    this.formStatus = json.status;
+                    if (json.status == "OK") {
+                        this.$emit("formSuccess", json);
+                    }
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                });
 
             /*
             fetch(`api/v0/settings/save`, {
@@ -105,17 +118,16 @@ export default defineComponent({
 
             event.preventDefault();
             return false;
-        }
+        },
     },
     computed: {
-        formStatusClass() : Record<string, any> {
+        formStatusClass(): Record<string, boolean> {
             return {
-                'form-status': true,
-                'is-error': this.formStatus == 'ERROR',
-                'is-success': this.formStatus == 'OK',
-            }
-        }
-    }
+                "form-status": true,
+                "is-error": this.formStatus == "ERROR",
+                "is-success": this.formStatus == "OK",
+            };
+        },
+    },
 });
-
 </script>

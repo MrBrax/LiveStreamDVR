@@ -45,7 +45,9 @@
             <div class="section-content">
                 <table>
                     <tr v-for="job in jobsData" :key="job.name">
-                        <td><span class="text-overflow">{{ job.name }}</span></td>
+                        <td>
+                            <span class="text-overflow">{{ job.name }}</span>
+                        </td>
                         <td>{{ job.pid }}</td>
                         <td><!-- {{ job.status }}-->{{ job.status ? "Running" : "Unexpected exit" }}</td>
                         <td>
@@ -76,7 +78,7 @@ export default defineComponent({
     title: "Tools",
     data() {
         return {
-            jobsData: [] as ApiJob[]
+            jobsData: [] as ApiJob[],
         };
     },
     created() {
@@ -86,26 +88,29 @@ export default defineComponent({
         fetchData() {
             // this.settingsData = [];
             // this.settingsFields = [] as any;
-            this.$http.get(`api/v0/jobs/list`)
-            .then((response) => {
-                const json = response.data;
-                this.jobsData = json.data;
-            }).catch((err) => {
-                console.error("about error", err.response);
-            });
+            this.$http
+                .get(`api/v0/jobs/list`)
+                .then((response) => {
+                    const json = response.data;
+                    this.jobsData = json.data;
+                })
+                .catch((err) => {
+                    console.error("about error", err.response);
+                });
         },
         killJob(name: string) {
+            if (!confirm(`Kill job "${name}?"`)) return;
 
-            if(!confirm(`Kill job "${name}?"`)) return;
-            
-            this.$http.post(`/api/v0/jobs/kill/${name}`)
-            .then((response) => {
-                const json = response.data;
-                if(json.message) alert(json.message);
-                console.log(json);
-            }).catch((err) => {
-                console.error("tools jobs fetch error", err.response);
-            });
+            this.$http
+                .post(`/api/v0/jobs/kill/${name}`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                })
+                .catch((err) => {
+                    console.error("tools jobs fetch error", err.response);
+                });
 
             /*
             fetch(`/api/v0/jobs/kill/${name}`, {
@@ -120,13 +125,12 @@ export default defineComponent({
                 console.error("Error", test);
             });
             */
-
-        }
+        },
     },
     components: {
         ToolsBurnForm,
         ToolsVodDownloadForm,
-        ToolsChatDownloadForm
-    }
+        ToolsChatDownloadForm,
+    },
 });
 </script>

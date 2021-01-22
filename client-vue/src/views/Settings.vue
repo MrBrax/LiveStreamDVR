@@ -61,7 +61,7 @@ export default defineComponent({
             settingsFields: Array as () => ApiSettingsField[],
             gamesData: Array as () => ApiGame[],
             favouritesData: {},
-            formStreamers: {}
+            formStreamers: {},
             // games: Object as () => [key: string]: ApiGame
         };
     },
@@ -70,31 +70,31 @@ export default defineComponent({
     },
     methods: {
         fetchData() {
-
             // this.settingsData = [];
             // this.settingsFields = [] as any;
-            
-            this.$http.get(`api/v0/settings/list`)
-            .then((response) => {
-                const json = response.data;
-                if(json.message) alert(json.message);
-                console.log(json);
 
-                const config = json.data.config;
-                const favourites = config.favourites;
-                const streamers = config.streamers;
+            this.$http
+                .get(`api/v0/settings/list`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
 
-                this.favouritesData = favourites;
-                // this.gamesData = games;
+                    const config = json.data.config;
+                    const favourites = config.favourites;
+                    const streamers = config.streamers;
 
-                this.formStreamers = streamers;
+                    this.favouritesData = favourites;
+                    // this.gamesData = games;
 
-                this.settingsData = config;
-                this.settingsFields = json.data.fields;
+                    this.formStreamers = streamers;
 
-            }).catch((err) => {
-                console.error("settings fetch error", err.response);
-            });
+                    this.settingsData = config;
+                    this.settingsFields = json.data.fields;
+                })
+                .catch((err) => {
+                    console.error("settings fetch error", err.response);
+                });
             /*
             fetch(`api/v0/settings/list`)
             .then((response) => response.json())
@@ -113,18 +113,20 @@ export default defineComponent({
                 this.settingsFields = json.data.fields;
 
             });
-            */           
+            */
 
-            this.$http.get(`api/v0/games/list`)
-            .then((response) => {
-                const json = response.data;
-                if(json.message) alert(json.message);
-                console.log(json);
-                const games = json.data;
-                this.gamesData = games;
-            }).catch((err) => {
-                console.error("settings fetch error", err.response);
-            });
+            this.$http
+                .get(`api/v0/games/list`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    const games = json.data;
+                    this.gamesData = games;
+                })
+                .catch((err) => {
+                    console.error("settings fetch error", err.response);
+                });
 
             /*
             fetch(`api/v0/games/list`)
@@ -134,21 +136,18 @@ export default defineComponent({
                 this.gamesData = games;
             });
             */
-
-        }
+        },
     },
     computed: {
-        sortedGames(){
-            return Object.entries( (this as any).games ).sort(([, a], [, b]) =>
-                (a as any).name.localeCompare((b as any).name)
-            );
-        }
+        sortedGames() {
+            return Object.entries((this as any).games).sort(([, a], [, b]) => (a as any).name.localeCompare((b as any).name));
+        },
     },
     components: {
         StreamerAddForm,
         StreamerUpdateForm,
         SettingsForm,
-        FavouritesForm
+        FavouritesForm,
     },
 });
 </script>

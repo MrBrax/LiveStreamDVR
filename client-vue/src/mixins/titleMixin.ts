@@ -1,5 +1,4 @@
-import { Component, ComponentOptions, ComponentOptionsMixin } from "vue";
-import { Store } from "vuex";
+import { ComponentOptionsMixin } from "vue";
 
 function getTitle(vm: ComponentOptionsMixin) {
     const { title } = vm.$options;

@@ -47,42 +47,43 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { faUserPlus } from '@fortawesome/free-solid-svg-icons';
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
 library.add(faUserPlus);
 
 export default defineComponent({
     name: "StreamerAddForm",
-    emits: ['formSuccess'],
-    data(){
+    emits: ["formSuccess"],
+    data() {
         return {
-            formStatusText: 'Ready',
-            formStatus: ''
-        }
+            formStatusText: "Ready",
+            formStatus: "",
+        };
     },
     methods: {
-        submitForm( event : Event ){
-            
+        submitForm(event: Event) {
             const form = event.target as HTMLFormElement;
             const inputs = new FormData(form);
 
-            this.formStatusText = 'Loading...';
-            this.formStatus = '';
+            this.formStatusText = "Loading...";
+            this.formStatus = "";
 
-            console.log( "form", form );
-            console.log( "entries", inputs, inputs.entries(), inputs.values() );            
+            console.log("form", form);
+            console.log("entries", inputs, inputs.entries(), inputs.values());
 
-            this.$http.post(`/api/v0/channels/add`, inputs)
-            .then((response) => {
-                const json = response.data;
-                this.formStatusText = json.message;
-                this.formStatus = json.status;
-                if(json.status == 'OK'){
-                    this.$emit('formSuccess', json);
-                }
-            }).catch((err) => {
-                console.error("form error", err.response);
-            });
+            this.$http
+                .post(`/api/v0/channels/add`, inputs)
+                .then((response) => {
+                    const json = response.data;
+                    this.formStatusText = json.message;
+                    this.formStatus = json.status;
+                    if (json.status == "OK") {
+                        this.$emit("formSuccess", json);
+                    }
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                });
 
             /*
             fetch(`api/v0/channels/add`, {
@@ -103,17 +104,16 @@ export default defineComponent({
 
             event.preventDefault();
             return false;
-        }
+        },
     },
     computed: {
-        formStatusClass() : Record<string, any> {
+        formStatusClass(): Record<string, boolean> {
             return {
-                'form-status': true,
-                'is-error': this.formStatus == 'ERROR',
-                'is-success': this.formStatus == 'OK',
-            }
-        }
-    }
+                "form-status": true,
+                "is-error": this.formStatus == "ERROR",
+                "is-success": this.formStatus == "OK",
+            };
+        },
+    },
 });
-
 </script>
