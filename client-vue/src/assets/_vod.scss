@@ -85,11 +85,16 @@
 .video {
     margin-bottom: 10px;
     // border-bottom: 1px solid #eee;
-
+    
     &.is-recording {
+        &.is-animated {
+            .video-title {
+                animation: recording ease-in-out 1s infinite;
+            }
+        }
         .video-title {
             background-color: $recording-base;
-            animation: recording ease-in-out 1s infinite;
+            
             h3 {
                 // text-shadow: 0 2px 0 darken($recording-base, 10%);
             }
@@ -123,6 +128,7 @@
     // good idea?
     position: sticky;
     top: 50px;
+    z-index: 1;
 
     word-break: break-all;
 
@@ -134,7 +140,7 @@
         margin: 0;
         padding: 0;
         // text-shadow: 0 2px 0 #1e4599;
-        text-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+        // text-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
     }
 }
 
@@ -142,7 +148,7 @@
     font-family: "Roboto Condensed";
     color: rgba(255, 255, 255, 0.5);
     &:before {
-        content: "· ";
+        content: " · ";
     }
 }
 

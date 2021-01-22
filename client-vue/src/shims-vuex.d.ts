@@ -15,6 +15,7 @@ declare module '@vue/runtime-core' {
             enableNotifications: boolean;
             animationsEnabled: boolean;
             tooltipStatic: boolean;
+            useRelativeTime: boolean;
         }
     }
       

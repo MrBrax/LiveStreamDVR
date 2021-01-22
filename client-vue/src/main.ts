@@ -16,8 +16,8 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 import "./assets/style.scss";
 
-import { format, parse, formatDistance, parseJSON } from "date-fns";
-const dateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000
+import { format, formatDistance, parseJSON } from "date-fns";
+// const dateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000
 
 const helpers = {
     methods: {
@@ -80,10 +80,10 @@ const helpers = {
         formatNumber(num: number, decimals = 0) {
             return num.toLocaleString("us", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
         },
-        humanDate(date: string) {
+        humanDate(date: string, suffix = false) {
             // const o = parse(date, dateFormat, new Date());
             const o = parseJSON(date);
-            return formatDistance(o, new Date());
+            return formatDistance(o, new Date(), { addSuffix: suffix });
         },
         sortObject(game: Record<string, any>, value: string) {
             return Object.entries(game).sort((a, b) => {

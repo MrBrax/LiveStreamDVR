@@ -235,6 +235,8 @@ a.linkback {
                 }
                 &.is-live {
                     background-color: $recording-base;
+                    color: #eee;
+                    // text-shadow: 1px 1px 2px darken($recording-base, 10%);
                     &.is-animated {
                         animation: 1s ease-in-out infinite recording; // @todo: keep?
                     }

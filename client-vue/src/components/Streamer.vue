@@ -51,10 +51,10 @@
 import type { ApiStreamer } from "@/twitchautomator.d";
 import { defineComponent } from "vue";
 import Vod from "@/components/Vod.vue";
-import { AxiosError } from "axios";
+// import { AxiosError } from "axios";
 
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { faVideo, faPlayCircle, faVideoSlash } from '@fortawesome/free-solid-svg-icons';
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faVideo, faPlayCircle, faVideoSlash } from "@fortawesome/free-solid-svg-icons";
 library.add(faVideo, faPlayCircle, faVideoSlash);
 
 export default defineComponent({
@@ -63,89 +63,85 @@ export default defineComponent({
         streamer: Object as () => ApiStreamer,
     },
     methods: {
-        async abortCapture(){
+        async abortCapture() {
             // href="{{ url_for('api_jobs_kill', { 'job': 'capture_' ~ streamer.current_vod.basename }) }}"
 
-            if(!this.streamer || !this.streamer.current_vod) return;
+            if (!this.streamer || !this.streamer.current_vod) return;
 
             let response;
-            
+
             try {
                 response = await this.$http.get(`/api/v0/jobs/kill/${this.streamer.current_vod.basename}`);
             } catch (error) {
                 console.error("abortCapture error", error.response);
-                if(error.response.data && error.response.data.message){
+                if (error.response.data && error.response.data.message) {
                     alert(error.response.data.message);
                 }
                 return;
             }
-            
+
             const data = response.data;
-            
-            if(data.message){
+
+            if (data.message) {
                 alert(data.message);
             }
 
             console.log("Killed", data);
-
         },
         async forceRecord() {
-
             let response;
-            
+
             try {
                 response = await this.$http.get(`/api/v0/channel/${this.streamer?.display_name}/force_record`);
             } catch (error) {
                 console.error("forceRecord error", error.response);
-                if(error.response.data && error.response.data.message){
+                if (error.response.data && error.response.data.message) {
                     alert(error.response.data.message);
                 }
                 return;
             }
-            
+
             const data = response.data;
-            
-            if(data.message){
+
+            if (data.message) {
                 alert(data.message);
             }
 
             console.log("Recorded", data);
-            
         },
-        async playlistRecord(){
+        async playlistRecord() {
             // href="{{ url_for('api_channel_dump_playlist', { 'username': streamer.display_name }) }}"
 
-            if(!this.streamer || !this.streamer.current_vod) return;
+            if (!this.streamer || !this.streamer.current_vod) return;
 
             let response;
-            
+
             try {
                 response = await this.$http.get(`/api/v0/channel/${this.streamer.display_name}/dump_playlist`);
             } catch (error) {
                 console.error("abortCapture error", error.response);
-                if(error.response.data && error.response.data.message){
+                if (error.response.data && error.response.data.message) {
                     alert(error.response.data.message);
                 }
                 return;
             }
-            
+
             const data = response.data;
-            
-            if(data.message){
+
+            if (data.message) {
                 alert(data.message);
             }
 
             console.log("Killed", data);
-
-        }
+        },
     },
     computed: {
-        quality(): string|undefined {
+        quality(): string | undefined {
             return this.streamer?.quality.join(", ");
         },
     },
     components: {
-        Vod
-    }
+        Vod,
+    },
 });
 </script>
