@@ -67,7 +67,8 @@ class TwitchVOD
 	public bool $is_finalized = false;
 
 	public bool $video_fail2 = false;
-	public array $video_metadata = [];
+	private array $video_metadata = [];
+	public array $video_metadata_public = [];
 
 	public bool $is_chat_downloaded = false;
 	public bool $is_vod_downloaded = false;
@@ -242,6 +243,7 @@ class TwitchVOD
 
 		$this->video_fail2 			= isset($this->json['video_fail2']) ? $this->json['video_fail2'] : false;
 		$this->video_metadata		= isset($this->json['video_metadata']) ? $this->json['video_metadata'] : null;
+		$this->filterMediainfo();
 
 		$this->ads = isset($this->json['ads']) ? $this->json['ads'] : [];
 
@@ -485,6 +487,38 @@ class TwitchVOD
 
 		$this->video_fail2 = true;
 		return false;
+	}
+
+	public function filterMediainfo(){
+
+		if(!$this->video_metadata) return;
+
+		$this->video_metadata_public = [];
+
+		$filter = [
+			"video.BitRate",
+			"video.Width",
+			"video.Height",
+			"video.FrameRate_Mode",
+			"video.FrameRate_Original",
+			"video.FrameRate",
+			"video.Format",
+			"video.BitRate_Mode",
+			"video.BitRate",
+			
+			"audio.Format",
+			"audio.BitRate_Mode",
+			"audio.BitRate",
+		];
+
+		foreach( $this->video_metadata as $keyp => $value ){
+			$this->video_metadata_public[$keyp] = array_filter($value, function($value, $keyc) use($filter, $keyp) {
+				return in_array("{$keyp}.{$keyc}", $filter);
+			}, ARRAY_FILTER_USE_BOTH);
+		}
+
+		return $this->video_metadata_public;
+
 	}
 
 	/**

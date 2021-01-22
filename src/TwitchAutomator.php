@@ -281,7 +281,8 @@ class TwitchAutomator
 
 		$chapter = [
 			'time' 			=> $this->getDateTime(),
-			'datetime'		=> new \DateTime(),
+			'datetime'		=> new \DateTime(), /** @deprecated 5.0.0 */
+			'dt_started_at'	=> new \DateTime(),
 			'game_id' 		=> $data_game_id,
 			'game_name'		=> $game_name,
 			'viewer_count' 	=> $data_viewer_count,

@@ -16,7 +16,9 @@
         <div class="video-title">
             <h3>
                 <span class="icon"><fa icon="file-video"></fa></span>
-                <span class="video-date" :title="formatDate(vod?.dt_started_at.date)" v-if="vod?.dt_started_at">{{ $store.state.clientConfig.useRelativeTime ? humanDate(vod?.dt_started_at.date, true) : formatDate(vod?.dt_started_at.date) }}</span>
+                <span class="video-date" :title="formatDate(vod?.dt_started_at.date)" v-if="vod?.dt_started_at">{{
+                    $store.state.clientConfig.useRelativeTime ? humanDate(vod?.dt_started_at.date, true) : formatDate(vod?.dt_started_at.date)
+                }}</span>
                 <span class="video-filename">{{ vod?.basename }}</span>
             </h3>
         </div>
@@ -91,31 +93,31 @@
                             <strong>Size:</strong>
                             {{ formatBytes(vod?.segments[0].filesize) }}
                         </li>
-                        <template v-if="vod?.video_metadata">
+                        <template v-if="vod?.video_metadata_public">
                             <li>
                                 <strong>Dimensions:</strong>
-                                {{ vod?.video_metadata.video.Width }}x{{ vod?.video_metadata.video.Height }}
+                                {{ vod?.video_metadata_public.video.Width }}x{{ vod?.video_metadata_public.video.Height }}
                             </li>
                             <li>
                                 <strong>Framerate:</strong>
-                                {{ vod?.video_metadata.video.FrameRate_Mode }}
+                                {{ vod?.video_metadata_public.video.FrameRate_Mode }}
                                 {{
-                                    vod?.video_metadata.video.FrameRate_Original
-                                        ? vod?.video_metadata.video.FrameRate_Original
-                                        : vod?.video_metadata.video.FrameRate
+                                    vod?.video_metadata_public.video.FrameRate_Original
+                                        ? vod?.video_metadata_public.video.FrameRate_Original
+                                        : vod?.video_metadata_public.video.FrameRate
                                 }}
                             </li>
                             <li>
                                 <strong>Video:</strong>
-                                {{ vod?.video_metadata.video.Format }}
-                                {{ vod?.video_metadata.video.BitRate_Mode }}
-                                {{ Math.round(vod?.video_metadata.video.BitRate / 1000) }}kbps
+                                {{ vod?.video_metadata_public.video.Format }}
+                                {{ vod?.video_metadata_public.video.BitRate_Mode }}
+                                {{ Math.round(vod?.video_metadata_public.video.BitRate / 1000) }}kbps
                             </li>
                             <li>
                                 <strong>Audio:</strong>
-                                {{ vod?.video_metadata.audio.Format }}
-                                {{ vod?.video_metadata.audio.BitRate_Mode }}
-                                {{ Math.round(vod?.video_metadata.audio.BitRate / 1000) }}kbps
+                                {{ vod?.video_metadata_public.audio.Format }}
+                                {{ vod?.video_metadata_public.audio.BitRate_Mode }}
+                                {{ Math.round(vod?.video_metadata_public.audio.BitRate / 1000) }}kbps
                             </li>
                         </template>
                     </ul>
@@ -154,13 +156,9 @@
                                 </span>
                             </li>
                             <li>
-                                <strong>Date:</strong>
-                                <span v-if="vod?.twitch_vod_date">
-                                    {{ vod?.twitch_vod_date }}
-                                </span>
-                                <span v-else>
-                                    <strong><em>No data</em></strong>
-                                </span>
+                                <strong>Date:</strong>&#32;
+                                <template v-if="vod?.twitch_vod_date">{{ formatDate(vod?.twitch_vod_date) }}</template>
+                                <strong v-else><em>No data</em></strong>
                             </li>
                             <li>
                                 <strong>Title:</strong>
@@ -230,7 +228,7 @@
                 </li>
 
                 <li v-if="vod?.is_vod_downloaded">
-                    <a :href="vod?.webpath + '/' + vod?.basename + '_vod?.mp4'">Downloaded VOD</a>
+                    <a :href="vod?.webpath + '/' + vod?.basename + '_vod.mp4'">Downloaded VOD</a>
                 </li>
 
                 <template v-if="vod?.is_chat_rendered">
@@ -443,8 +441,8 @@
                         }"
                     >
                         <!-- start timestamp -->
-                        <td data-contents="started_at">
-                            {{ chapter.strings.started_at }}
+                        <td data-contents="started_at" :title="formatDate(chapter.datetime.date)">
+                            {{ humanDuration(chapter.offset) }}
                         </td>
 
                         <!-- duration -->
@@ -499,7 +497,7 @@
                     </tr>
 
                     <tr v-if="vod?.dt_ended_at">
-                        <td>
+                        <td :title="formatDate(vod.dt_ended_at.date)">
                             {{ vod?.api_getWebhookDuration }}
                         </td>
                         <td colspan="4">
@@ -541,8 +539,9 @@ import {
     faExternalLinkAlt,
     faArchive,
     faDownload,
+    faExclamationTriangle,
 } from "@fortawesome/free-solid-svg-icons";
-library.add(faFileVideo, faCut, faPlay, faDatabase, faComments, faVolumeMute, faBurn, faTrash, faExternalLinkAlt, faArchive, faDownload);
+library.add(faFileVideo, faCut, faPlay, faDatabase, faComments, faVolumeMute, faBurn, faTrash, faExternalLinkAlt, faArchive, faDownload, faExclamationTriangle);
 
 export default defineComponent({
     name: "Vod",
@@ -669,8 +668,7 @@ export default defineComponent({
                     this.taskStatus.delete = false;
                 });
         },
-        addFavouriteGame(game_id: number){
-
+        addFavouriteGame(game_id: number) {
             const formData = new FormData();
             formData.set(`games[${game_id}]`, "1");
 

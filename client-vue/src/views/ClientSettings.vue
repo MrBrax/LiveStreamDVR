@@ -21,6 +21,11 @@
                 <div class="control">
                     <label class="checkbox"><input type="checkbox" v-model="updateConfig.useRelativeTime" /> Use relative time</label>
                 </div>
+                <!--
+                <div class="control">
+                    <label class="checkbox"><input type="checkbox" v-model="updateConfig.showAdvancedInfo" /> Show advanced info</label>
+                </div>
+                -->
                 <br />
                 <div class="control">
                     <button class="button is-small" @click="requestNotifications">Request notification permissions</button>
@@ -40,6 +45,7 @@ const defaultConfig = {
     animationsEnabled: true,
     tooltipStatic: false,
     useRelativeTime: false,
+    showAdvancedInfo: false,
 };
 
 export default defineComponent({
