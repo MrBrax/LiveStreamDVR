@@ -31,6 +31,29 @@
             </div>
         </section>
 
+        <!-- settings -->
+        <section class="section">
+            <div class="section-title"><h1>Cron</h1></div>
+            <div class="section-content">
+                <span class="input-help">The Slim framework doesn't have a good way to execute code from the command line, so you'll have to set up cron manually.</span>
+                <template v-if="$store.state.config.app_url">
+                    <code>
+                        0  5    * * 1 curl {{ $store.state.config.app_url }}/api/v0/cron/sub<br>
+                        0  */12 * * * curl {{ $store.state.config.app_url }}/api/v0/cron/check_muted_vods<br>
+                        10 */12 * * * curl {{ $store.state.config.app_url }}/api/v0/cron/check_deleted_vods<br>
+                        0  1    * * * curl {{ $store.state.config.app_url }}/api/v0/cron/playlist_dump
+                    </code>
+                    <span class="input-help">
+                        This will subscribe to the webhook every 5 days, check muted &amp; deleted vods every 12 hours, and dump playlists once per day.
+                    </span>
+                </template>
+                <template v-else>
+                    <br /><br />
+                    <em class="is-error">Can't show example, <strong>app url</strong> has not been set</em>
+                </template>
+            </div>
+        </section>
+
         <!-- favourites -->
         <section class="section">
             <div class="section-title"><h1>Favourite games</h1></div>
