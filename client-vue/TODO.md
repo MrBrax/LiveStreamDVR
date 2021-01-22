@@ -1,3 +1,6 @@
 - [x] Reimplement notifications
 - [ ] Reimplement that fancy scroll location thing
 - [x] Reimplement vod controls
+- [ ] Categories for settings
+- [ ] Reimplement missing function on vods
+- [ ] Fix editor functions

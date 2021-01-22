@@ -474,6 +474,13 @@
                                     >
                                         <span class="icon"><fa icon="external-link-alt"></fa></span>
                                     </a>
+                                    <a
+                                        v-if="!$store.state.config.favourites[chapter.game_id]"
+                                        title="Add to favourites"
+                                        @click="addFavouriteGame(chapter.game_id)"
+                                    >
+                                        <span class="icon"><fa icon="star"></fa></span>
+                                    </a>
                                 </span>
                             </template>
                             <template v-else>
@@ -660,6 +667,30 @@ export default defineComponent({
                 .catch((err) => {
                     console.error("form error", err.response);
                     this.taskStatus.delete = false;
+                });
+        },
+        addFavouriteGame(game_id: number){
+
+            const formData = new FormData();
+            formData.set(`games[${game_id}]`, "1");
+
+            for (const fid in this.$store.state.config.favourites) {
+                formData.set(`games[${fid}]`, "1");
+            }
+
+            this.$http
+                .post(`/api/v0/favourites/save`, formData)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+
+                    this.$http.get(`/api/v0/settings/list`).then((response) => {
+                        this.$store.commit("updateConfig", response.data.data.config);
+                    });
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
                 });
         },
     },
