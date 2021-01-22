@@ -235,4 +235,18 @@
     .jobs_list {
         display: none;
     }
+
+    label {
+        &.checkbox {
+            display: block;
+            input {
+                // transform: scale(2);
+                height: 1.5em;
+                vertical-align: middle;
+                width: 1.5em;
+            }
+            margin-bottom: 0.4em;
+        }
+    }
+
 }

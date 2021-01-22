@@ -355,7 +355,7 @@
                 </em>
             </template>
             <template v-else-if="vod?.is_capturing">
-                <em>
+                <em class="text-overflow">
                     <span class="icon"><fa icon="video"></fa></span>
                     Capturing to <strong>{{ vod?.basename }}.ts</strong> (<strong>{{ formatBytes(vod?.api_getRecordingSize) }}</strong>)
                 </em>
@@ -540,8 +540,23 @@ import {
     faArchive,
     faDownload,
     faExclamationTriangle,
+    faFileSignature
 } from "@fortawesome/free-solid-svg-icons";
-library.add(faFileVideo, faCut, faPlay, faDatabase, faComments, faVolumeMute, faBurn, faTrash, faExternalLinkAlt, faArchive, faDownload, faExclamationTriangle);
+library.add(
+    faFileVideo,
+    faCut,
+    faPlay,
+    faDatabase,
+    faComments,
+    faVolumeMute,
+    faBurn,
+    faTrash,
+    faExternalLinkAlt,
+    faArchive,
+    faDownload,
+    faExclamationTriangle,
+    faFileSignature
+);
 
 export default defineComponent({
     name: "Vod",
