@@ -227,7 +227,7 @@ export default defineComponent({
                     "xQcOW": "eckscueseeow"
                 };
 
-                console.log("notification payload", mutation);
+                // console.debug("notification payload", mutation);
 
                 for (const streamer of mutation.payload as ApiStreamer[]) {
                     const username = streamer.display_name;

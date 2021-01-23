@@ -26,13 +26,24 @@
                     <span class="streamer-title-tools">
                         <span v-if="streamer.is_live">
                             &middot;
-                            <a @click="abortCapture" title="Abort record"><span class="icon"><fa icon="video-slash"></fa></span></a><!-- abort recording -->
+                            <!-- abort recording -->
+                            <button class="icon-button" @click="abortCapture" title="Abort record">
+                                <span class="icon"><fa icon="video-slash"></fa></span>
+                            </button>
                         </span>
+
                         <span v-else>
                             &middot;
-                            <a @click="forceRecord" title="Force record"><span class="icon"><fa icon="video"></fa></span></a><!-- force recording -->
+                            <!-- force recording -->
+                            <button class="icon-button" @click="forceRecord" title="Force record">
+                                <span class="icon"><fa icon="video"></fa></span>
+                            </button>
                         </span>
-                        <a @click="playlistRecord" title="Playlist record"><span class="icon"><fa icon="play-circle"></fa></span></a><!-- dump playlist -->
+
+                        <!-- dump playlist -->
+                        <button class="icon-button" @click="playlistRecord" title="Playlist record">
+                            <span class="icon"><fa icon="play-circle"></fa></span>
+                        </button>
                     </span>
                 </span>
             </div>

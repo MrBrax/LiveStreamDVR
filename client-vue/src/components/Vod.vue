@@ -58,10 +58,10 @@
                         </template>
                         <li>
                             <strong>Missing from captured file:</strong>
-                            <span v-if="vod?.twitch_vod_duration">{{ humanDuration(vod?.twitch_vod_duration - vod?.api_getDuration) }}</span>
-                            <span v-else
-                                ><strong><em>No data</em></strong></span
-                            >
+                            <span class="px-1" v-if="vod?.twitch_vod_duration">{{ humanDuration(vod?.twitch_vod_duration - vod?.api_getDuration) }}</span>
+                            <span class="px-1" v-else>
+                                <strong><em>No data</em></strong>
+                            </span>
                         </li>
                         <li>
                             <strong>Chat downloaded:</strong>
@@ -123,55 +123,48 @@
                     </ul>
                 </div>
 
+                <!-- Twitch VOD -->
                 <div class="info-column">
                     <h4>Twitch VOD</h4>
                     <ul class="video-info">
                         <template v-if="vod?.twitch_vod_exists === true">
                             <li>
                                 <strong>Duration:</strong>
-                                <template v-if="vod?.twitch_vod_duration">{{ humanDuration(vod?.twitch_vod_duration) }}</template>
-                                <template v-else>
+                                <span class="px-1" v-if="vod?.twitch_vod_duration">{{ humanDuration(vod?.twitch_vod_duration) }}</span>
+                                <span class="px-1" v-else>
                                     <strong><em>No data</em></strong>
-                                </template>
+                                </span>
                             </li>
                             <li>
                                 <strong>ID:</strong>
-                                <span v-if="vod?.twitch_vod_url">
+                                <span class="px-1" v-if="vod?.twitch_vod_url">
                                     <a :href="vod?.twitch_vod_url" rel="noreferrer" target="_blank">{{ vod?.twitch_vod_id }}</a>
-
-                                    <!--
-                                {% if checkvod %}
-                                    
-                                    {% if vodclass.twitch_vod_exists %}
-                                        (exists)
-                                    {% else %}
-                                        <strong class="is-error">(deleted)</strong>
-                                    {% endif %}
-
-                                {% endif %}
-                                -->
                                 </span>
-                                <span v-else>
+                                <span class="px-1" v-else>
                                     <strong><em>Not matched or VOD deleted</em></strong>
                                 </span>
                             </li>
                             <li>
                                 <strong>Date:</strong>&#32;
-                                <template v-if="vod?.twitch_vod_date">{{ formatDate(vod?.twitch_vod_date) }}</template>
-                                <strong v-else><em>No data</em></strong>
+                                <span class="px-1" v-if="vod?.twitch_vod_date">{{ formatDate(vod?.twitch_vod_date) }}</span>
+                                <span class="px-1" v-else>
+                                    <strong><em>No data</em></strong>
+                                </span>
                             </li>
                             <li>
                                 <strong>Title:</strong>
-                                <span v-if="vod?.twitch_vod_title" class="text-overflow">
+                                <span class="px-1 text-overflow" v-if="vod?.twitch_vod_title">
                                     {{ vod?.twitch_vod_title }}
                                 </span>
-                                <strong v-else><em>No data</em></strong>
+                                <span class="px-1" v-else>
+                                    <strong><em>No data</em></strong>
+                                </span>
                             </li>
                             <li>
                                 <strong>Is muted:</strong>
-                                <strong v-if="vod?.twitch_vod_muted === true" class="is-error">Yes</strong>
-                                <span v-else-if="vod?.twitch_vod_muted === false">No</span>
-                                <em v-else>No data</em>
+                                <span class="px-1" v-if="vod?.twitch_vod_muted === true"><strong class="is-error">Yes</strong></span>
+                                <span class="px-1" v-else-if="vod?.twitch_vod_muted === false">No</span>
+                                <span class="px-1" v-else><em>No data</em></span>
                             </li>
                         </template>
                         <template v-else-if="vod?.twitch_vod_exists === false">
@@ -180,9 +173,7 @@
                             </li>
                             <li>
                                 <span v-if="vod?.twitch_vod_id">
-                                    The ID was
-                                    <a :href="vod?.twitch_vod_url" rel="noreferrer" target="_blank">{{ vod?.twitch_vod_id }}</a
-                                    >.
+                                    The ID was <a :href="vod?.twitch_vod_url" rel="noreferrer" target="_blank">{{ vod?.twitch_vod_id }}</a>.
                                 </span>
                                 <span v-else>The VOD probably never got saved.</span>
                             </li>
@@ -203,8 +194,7 @@
             <ul v-if="vod?.is_capturing" class="video-info">
                 <li><strong>Current duration:</strong> <duration-display :startDate="vod.dt_started_at.date" outputStyle="human"></duration-display></li>
                 <li>
-                    <strong>Watch live:</strong>
-                    <a href="https://twitch.tv/{{ streamer.display_name }}" rel="noreferrer" target="_blank">Twitch</a>
+                    <strong>Watch live:</strong> <a href="https://twitch.tv/{{ streamer.display_name }}" rel="noreferrer" target="_blank">Twitch</a>
                 </li>
                 <!--<li><strong>Watch capture:</strong>
                     <a href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}.ts" rel="noreferrer" target="_blank">TS file</a>
@@ -460,11 +450,9 @@
                             <img v-if="chapter.box_art_url" class="boxart" :src="chapter.box_art_url" :alt="chapter.game_name" loading="lazy" />
                             <template v-if="vod?.is_finalized">
                                 <span class="game-name">
-                                    &#32;
-                                    <router-link :to="{ name: 'Editor', params: { vod: vod?.basename }, query: { start: chapter.offset } }">
+                                    <router-link class="px-1" :to="{ name: 'Editor', params: { vod: vod?.basename }, query: { start: chapter.offset } }">
                                         {{ chapter.game_name ? chapter.game_name : "None" }}
                                     </router-link>
-                                    &#32;
                                     <a
                                         v-if="vod?.twitch_vod_exists"
                                         :href="vod?.twitch_vod_url + '?t=' + twitchDuration(chapter.offset)"
@@ -475,7 +463,7 @@
                                         <span class="icon"><fa icon="external-link-alt"></fa></span>
                                     </a>
                                     <button
-                                        class="icon-button"
+                                        class="icon-button favourite-button"
                                         v-if="!$store.state.config.favourites[chapter.game_id]"
                                         title="Add to favourites"
                                         @click="addFavouriteGame(chapter.game_id)"
