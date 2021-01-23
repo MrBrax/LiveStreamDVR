@@ -1,63 +1,68 @@
 <template>
-    <div class="videoplayer">
-        <video id="video" ref="player" :src="vodData.webpath + '/' + vodData.basename + '.mp4'" @timeupdate="updateVideoTime" width="1280"></video>
-        <div id="videoplayer-controls">
-            <button class="button" @click="play">Play</button>
-            <button class="button" @click="pause">Pause</button>
-        </div>
-        <div id="timeline" ref="timeline" @click="seek">
-            <div id="timeline-cut" v-bind:style="timelineCutStyle"></div>
-            <div id="timeline-playhead" v-bind:style="timelinePlayheadStyle"></div>
-        </div>
+    <div class="container">
+        <div class="videoplayer" v-if="vodData && vodData.basename">
+            <video id="video" ref="player" :src="vodData.webpath + '/' + vodData.basename + '.mp4'" @timeupdate="updateVideoTime" width="1280"></video>
+            <div id="videoplayer-controls">
+                <button class="button" @click="play">Play</button>
+                <button class="button" @click="pause">Pause</button>
+            </div>
+            <div id="timeline" ref="timeline" @click="seek">
+                <div id="timeline-cut" v-bind:style="timelineCutStyle"></div>
+                <div id="timeline-playhead" v-bind:style="timelinePlayheadStyle"></div>
+            </div>
 
-        <!--{{ currentVideoTime }} / {{ $refs.player ? $refs.player.currentTime : 'init' }} / {{ $refs.player ? $refs.player.duration : 'init' }}-->
+            <!--{{ currentVideoTime }} / {{ $refs.player ? $refs.player.currentTime : 'init' }} / {{ $refs.player ? $refs.player.duration : 'init' }}-->
 
-        <div class="videoplayer-chapters">
-            <div
-                v-for="chapter in vodData.chapters"
-                :key="chapter"
-                :title="chapter.title + ' | \\n' + chapter.game_name"
-                class="videoplayer-chapter"
-                :style="{ width: chapter.width + '%' }"
-                @click="scrub(chapter.offset, chapter.duration)"
-            >
-                <div class="videoplayer-chapter-title">{{ chapter.title }}</div>
-                <div class="videoplayer-chapter-game">{{ chapter.game_name }}</div>
+            <div class="videoplayer-chapters">
+                <div
+                    v-for="chapter in vodData.chapters"
+                    :key="chapter"
+                    :title="chapter.title + ' | \\n' + chapter.game_name"
+                    class="videoplayer-chapter"
+                    :style="{ width: chapter.width + '%' }"
+                    @click="scrub(chapter.offset, chapter.duration)"
+                >
+                    <div class="videoplayer-chapter-title">{{ chapter.title }}</div>
+                    <div class="videoplayer-chapter-game">{{ chapter.game_name }}</div>
+                </div>
+            </div>
+
+            <div class="videoplayer-cut">
+                <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
+                    <input type="hidden" name="vod" value="{{ vodData.basename }}" />
+
+                    <div>
+                        <button type="button" class="button" @click="timeIn = Math.round(currentVideoTime)">Mark in</button>
+                        <input class="input" name="time_in" v-model="timeIn" placeholder="In timestamp" />
+                    </div>
+
+                    <div>
+                        <button type="button" class="button" @click="timeOut = Math.round(currentVideoTime)">Mark out</button>
+                        <input class="input" name="time_out" v-model="timeOut" placeholder="Out timestamp" />
+                    </div>
+
+                    <div>
+                        <input class="input" type="text" name="name" v-model="cutName" placeholder="Name (optional)" />
+                    </div>
+
+                    <div>
+                        <button type="submit" class="button">Submit cut</button>
+                        <span :class="formStatusClass">{{ formStatusText }}</span>
+                    </div>
+                </form>
+
+                <!--
+                <form method="post" action="{{ url_for('api_vod_export', { 'vod': vodclass.basename }) }}">
+                    <select name="destination">
+                        <option>YouTube</option>
+                    </select>
+                    <button type="submit" class="button" onclick="submit_cut();">Upload</button>
+                </form>
+                -->
             </div>
         </div>
-
-        <div class="videoplayer-cut">
-            <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
-                <input type="hidden" name="vod" value="{{ vodData.basename }}" />
-
-                <div>
-                    <button type="button" class="button" @click="timeIn = Math.round(currentVideoTime)">Mark in</button>
-                    <input class="input" name="time_in" v-model="timeIn" placeholder="In timestamp" />
-                </div>
-
-                <div>
-                    <button type="button" class="button" @click="timeOut = Math.round(currentVideoTime)">Mark out</button>
-                    <input class="input" name="time_out" v-model="timeOut" placeholder="Out timestamp" />
-                </div>
-
-                <div>
-                    <input class="input" type="text" name="name" v-model="cutName" placeholder="Name (optional)" />
-                </div>
-
-                <div>
-                    <button type="submit" class="button">Submit cut</button>
-                    <span :class="formStatusClass">{{ formStatusText }}</span>
-                </div>
-            </form>
-
-            <!--
-			<form method="post" action="{{ url_for('api_vod_export', { 'vod': vodclass.basename }) }}">
-				<select name="destination">
-					<option>YouTube</option>
-				</select>
-				<button type="submit" class="button" onclick="submit_cut();">Upload</button>
-			</form>
-			-->
+        <div v-else>
+            <span class="icon"><fa icon="sync" spin></fa></span> Loading...
         </div>
     </div>
 </template>
@@ -96,10 +101,18 @@ export default defineComponent({
                 .then((response) => {
                     const json = response.data;
                     this.vodData = json.data;
+                    setTimeout(() => {
+                        this.setupPlayer();
+                    }, 500);
                 })
                 .catch((err) => {
                     console.error("about error", err.response);
                 });
+        },
+        setupPlayer(){
+            if (this.$route.query.start !== undefined) {
+                (this.$refs.player as HTMLVideoElement).currentTime = parseInt(this.$route.query.start as string);
+            }
         },
         play() {
             console.log("play", this.$refs.player);
@@ -132,12 +145,6 @@ export default defineComponent({
         submitForm(event: Event) {
             console.log("submit", this.timeIn, this.timeOut, this.cutName);
 
-            /*
-            const data = new FormData();
-            data.append("time_in", this.timeIn.toString());
-            data.append("time_out", this.timeOut.toString());
-            data.append("name", this.cutName);
-            */
             const form = event.target as HTMLFormElement;
             const inputs = new FormData(form);
 
@@ -161,17 +168,6 @@ export default defineComponent({
                     console.error("form error", err.response);
                 });
 
-            /*
-            fetch(`api/v0/vod/${this.vod}/cut`, {
-                method: "POST",
-                body: data,
-            })
-                .then((response) => response.json())
-                .then((json) => {
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                });
-            */
             event.preventDefault();
             return false;
         },

@@ -105,7 +105,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
 
     // channel
     $group->group('/channel/{username}', function (RouteCollectorProxy $group) {
-        $group->get('', ApiController::class . ':channel')->setName('api_channel');
+        $group->get('/', ApiController::class . ':channel')->setName('api_channel');
         $group->get('/force_record', ApiController::class . ':channel_force_record')->setName('api_channel_force_record');
         $group->get('/dump_playlist', ApiController::class . ':channel_dump_playlist')->setName('api_channel_dump_playlist');
         $group->get('/subscription', ApiController::class . ':channel_subscription')->setName('api_channel_subscription');

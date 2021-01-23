@@ -476,8 +476,9 @@ trait ApiVod
         }
 
         // shift all comments
-        if($vodclass->is_chat_downloaded){
-            $old_chatcontents = json_decode(file_get_contents($vodclass->path_chat), true);
+        if($vodclass->is_chat_downloaded || $vodclass->is_chatdump_captured){
+            $path_chat = $vodclass->is_chat_downloaded ? $vodclass->path_chat : $vodclass->path_chatdump;
+            $old_chatcontents = json_decode(file_get_contents($path_chat), true);
             $new_chatcontents = [
                 'comments' => [],
                 'video' => $old_chatcontents['video']
