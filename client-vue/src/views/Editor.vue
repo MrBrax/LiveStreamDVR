@@ -27,25 +27,28 @@
         </div>
 
         <div class="videoplayer-cut">
-            <input type="hidden" name="vod" value="{{ vodData.basename }}" />
+            <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
+                <input type="hidden" name="vod" value="{{ vodData.basename }}" />
 
-            <div>
-                <button type="button" class="button" @click="timeIn = Math.round(currentVideoTime)">Mark in</button>
-                <input class="input" name="start" v-model="timeIn" placeholder="In timestamp" />
-            </div>
+                <div>
+                    <button type="button" class="button" @click="timeIn = Math.round(currentVideoTime)">Mark in</button>
+                    <input class="input" name="time_in" v-model="timeIn" placeholder="In timestamp" />
+                </div>
 
-            <div>
-                <button type="button" class="button" @click="timeOut = Math.round(currentVideoTime)">Mark out</button>
-                <input class="input" name="end" v-model="timeOut" placeholder="Out timestamp" />
-            </div>
+                <div>
+                    <button type="button" class="button" @click="timeOut = Math.round(currentVideoTime)">Mark out</button>
+                    <input class="input" name="time_out" v-model="timeOut" placeholder="Out timestamp" />
+                </div>
 
-            <div>
-                <input class="input" type="text" name="name" v-model="cutName" placeholder="Name (optional)" />
-            </div>
+                <div>
+                    <input class="input" type="text" name="name" v-model="cutName" placeholder="Name (optional)" />
+                </div>
 
-            <div>
-                <button type="button" class="button" @click="submit">Submit cut</button>
-            </div>
+                <div>
+                    <button type="submit" class="button">Submit cut</button>
+                    <span :class="formStatusClass">{{ formStatusText }}</span>
+                </div>
+            </form>
 
             <!--
 			<form method="post" action="{{ url_for('api_vod_export', { 'vod': vodclass.basename }) }}">
@@ -73,6 +76,8 @@ export default defineComponent({
             timeOut: 0,
             currentVideoTime: 0,
             cutName: "",
+            formStatusText: "Ready",
+            formStatus: "",
             // videoDuration: 0,
         };
     },
@@ -86,11 +91,14 @@ export default defineComponent({
         fetchData() {
             // this.vodData = [];
             /** @todo: axios */
-            fetch(`api/v0/vod/${this.vod}/`)
-                .then((response) => response.json())
-                .then((json) => {
+            this.$http
+                .get(`/api/v0/vod/${this.vod}/`)
+                .then((response) => {
+                    const json = response.data;
                     this.vodData = json.data;
-                    console.log(json);
+                })
+                .catch((err) => {
+                    console.error("about error", err.response);
                 });
         },
         play() {
@@ -121,15 +129,39 @@ export default defineComponent({
             // console.log(v);
             this.currentVideoTime = (event.target as HTMLVideoElement).currentTime;
         },
-        submit() {
+        submitForm(event: Event) {
             console.log("submit", this.timeIn, this.timeOut, this.cutName);
 
+            /*
             const data = new FormData();
             data.append("time_in", this.timeIn.toString());
             data.append("time_out", this.timeOut.toString());
             data.append("name", this.cutName);
+            */
+            const form = event.target as HTMLFormElement;
+            const inputs = new FormData(form);
 
-            /** @todo: axios */
+            this.formStatusText = "Loading...";
+            this.formStatus = "";
+
+            console.log("form", form);
+            console.log("entries", inputs, inputs.entries(), inputs.values());
+
+            this.$http
+                .post(`/api/v0/vod/${this.vod}/cut`, inputs)
+                .then((response) => {
+                    const json = response.data;
+                    this.formStatusText = json.message;
+                    this.formStatus = json.status;
+                    if (json.status == "OK") {
+                        // this.$emit("formSuccess", json);
+                    }
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                });
+
+            /*
             fetch(`api/v0/vod/${this.vod}/cut`, {
                 method: "POST",
                 body: data,
@@ -139,6 +171,9 @@ export default defineComponent({
                     if (json.message) alert(json.message);
                     console.log(json);
                 });
+            */
+            event.preventDefault();
+            return false;
         },
     },
     computed: {
@@ -155,6 +190,13 @@ export default defineComponent({
             const percent = (this.currentVideoTime / (this.$refs.player as HTMLVideoElement).duration) * 100;
             return {
                 left: percent + "%",
+            };
+        },
+        formStatusClass(): Record<string, boolean> {
+            return {
+                "form-status": true,
+                "is-error": this.formStatus == "ERROR",
+                "is-success": this.formStatus == "OK",
             };
         },
     },

@@ -324,7 +324,6 @@ trait ApiVod
 
         $vodclass = new TwitchVOD();
         $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
-
         
         $destination = isset($_POST['destination']) ? $_POST['destination'] : null;
 
@@ -369,10 +368,10 @@ trait ApiVod
         set_time_limit(0);
 
         $vod = $args['vod'];
-        // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
         $username = explode("_", $vod)[0];
 
-        // $json = json_decode(file_get_contents(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json'), true);
+        $vodclass = new TwitchVOD();
+        $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
         $second_start   = (int)$_POST['time_in'];
         $second_end     = (int)$_POST['time_out'];
@@ -395,7 +394,9 @@ trait ApiVod
         }
 
         $filename_in = TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.mp4';
-        $filename_out = TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_clips" . DIRECTORY_SEPARATOR . $vod . '-cut-' . $second_start . '-' . $second_end . ($name ? '-' . $name : '') . '.mp4';
+
+        $out_basename = $vod . '-cut-' . $second_start . '-' . $second_end . ($name ? '-' . $name : '');
+        $filename_out = TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_clips" . DIRECTORY_SEPARATOR . $out_basename . '.mp4';
 
         if (file_exists($filename_out)) {
             $response->getBody()->write(json_encode([
@@ -459,18 +460,10 @@ trait ApiVod
     
         $process->wait();
 
-        // if (file_exists($pidfile)) unlink($pidfile);
         $vod_cutJob->clear();
-
-        // $response->getBody()->write("$ " . implode(" ", $cmd));
 
         TwitchHelper::appendLog("ffmpeg_{$vod}-cut-{$second_start}-{$second_end}_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
         TwitchHelper::appendLog("ffmpeg_{$vod}-cut-{$second_start}-{$second_end}_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
-
-        // $response->getBody()->write("<pre>" . $process->getOutput() . "</pre>");
-        // $response->getBody()->write("<pre>" . $process->getErrorOutput() . "</pre>");
-
-        // $response->getBody()->write("Done");
         
         $success = file_exists($filename_out) && filesize($filename_out) > 0;
 
@@ -480,6 +473,24 @@ trait ApiVod
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+
+        // shift all comments
+        if($vodclass->is_chat_downloaded){
+            $old_chatcontents = json_decode(file_get_contents($vodclass->path_chat), true);
+            $new_chatcontents = [
+                'comments' => [],
+                'video' => $old_chatcontents['video']
+            ];
+            foreach($old_chatcontents['comments'] as $comment){
+                if($comment['content_offset_seconds'] < $second_start) continue;
+                if($comment['content_offset_seconds'] > $second_end) continue;
+                // $comment['created_at'] = null;
+                // $comment['updated_at'] = null;
+                $comment['content_offset_seconds'] = round( $comment['content_offset_seconds'] - $second_start, 3 );
+                $new_chatcontents['comments'][] = $comment;
+            }
+            file_put_contents(TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_clips" . DIRECTORY_SEPARATOR . $out_basename . '.trimmed.chat', json_encode($new_chatcontents));
         }
 
         $response->getBody()->write(json_encode([
