@@ -460,6 +460,7 @@
                             <img v-if="chapter.box_art_url" class="boxart" :src="chapter.box_art_url" :alt="chapter.game_name" loading="lazy" />
                             <template v-if="vod?.is_finalized">
                                 <span class="game-name">
+                                    &#32;
                                     <router-link :to="{ name: 'Editor', params: { vod: vod?.basename }, query: { start: chapter.offset } }">
                                         {{ chapter.game_name ? chapter.game_name : "None" }}
                                     </router-link>
