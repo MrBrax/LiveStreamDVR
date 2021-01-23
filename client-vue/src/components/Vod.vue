@@ -484,7 +484,7 @@
                                 </span>
                             </template>
                             <template v-else>
-                                {{ chapter.game_name ? chapter.game_name : "None" }}
+                                <span class="game-name">{{ chapter.game_name ? chapter.game_name : "None" }}</span>
                             </template>
                         </td>
 

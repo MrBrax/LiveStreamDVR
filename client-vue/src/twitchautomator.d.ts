@@ -25,6 +25,7 @@ export type ApiVodChapter = {
 };
 
 export type ApiGame = {
+    id: string;
     name: string;
     game_name: string;
     box_art_url: string;
