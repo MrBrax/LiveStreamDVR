@@ -9,7 +9,7 @@
                     </a>
                     <span v-if="streamer.is_live" class="streamer-live">live</span>
                 </h2>
-                <span class="small">
+                <span class="streamer-title-subtitle">
                     <span class="streamer-vods-quality help" title="Quality">{{ quality }}</span
                     ><!-- quality -->
                     &middot;

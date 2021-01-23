@@ -1,6 +1,7 @@
 @media screen and (orientation: portrait) {
     body {
         font-size: 1rem;
+        padding-bottom: 60px;
     }
     .container {
         display: block;
@@ -22,8 +23,12 @@
         display: block;
 
         .menu-middle {
+            /*
             position: sticky;
             top: 0px;
+            left: 0px;
+            right: 0px;
+            */
             display: flex;
             flex-wrap: wrap;
             padding: 0 5px 5px 5px;
@@ -37,10 +42,29 @@
             bottom: 0px;
             left: 0px;
             right: 0px;
+
             .top-menu-item[data-menuitem="github"] {
                 display: none;
             }
+
+            .top-menu-item {
+
+                .icon {
+                    transition: all 0.1s ease-in-out;
+                }
+
+                &.active {
+                    a {
+                        .icon {
+                            transform: scale(120%);
+                        }
+                    }
+                }
+
+            }
+
         }
+
     }
 
     .top-menu-item {
@@ -141,6 +165,9 @@
         .streamer-title-tools {
             display: none;
         }
+        .streamer-title-subtitle {
+            font-family: 'Roboto Condensed';
+        }
     }
 
     .info-columns {
@@ -211,7 +238,7 @@
             text-align: center;
             .icon {
                 display: block;
-                font-size: 1.75em;
+                font-size: 1.5em;
                 margin: 0 auto 0.25em auto;
                 text-align: center;
             }
@@ -247,6 +274,11 @@
             }
             margin-bottom: 0.4em;
         }
+    }
+
+    .dashboard-stats {
+        font-size: 0.8em;
+        padding-bottom: 10px;
     }
 
 }

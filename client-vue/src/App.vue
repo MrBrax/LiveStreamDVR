@@ -6,7 +6,15 @@
                 <div v-for="error in errors" :key="error" class="big-error-item">Error</div>
             </div>
             <router-view v-if="$store.state.config !== undefined && $store.state.config.favourites !== undefined" />
-            <div v-else>Loading config...</div>
+            <div v-else>
+                <div class="container">
+                    <section class="section">
+                        <div class="section-content">
+                            <span class="icon"><fa icon="sync" spin></fa></span> Loading...
+                        </div>
+                    </section>
+                </div>
+            </div>
         </div>
     </div>
 </template>

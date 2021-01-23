@@ -542,7 +542,7 @@ import {
     faArchive,
     faDownload,
     faExclamationTriangle,
-    faFileSignature
+    faFileSignature,
 } from "@fortawesome/free-solid-svg-icons";
 library.add(
     faFileVideo,

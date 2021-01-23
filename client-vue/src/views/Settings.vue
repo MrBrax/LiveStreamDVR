@@ -26,8 +26,11 @@
         <!-- settings -->
         <section class="section">
             <div class="section-title"><h1>Settings</h1></div>
-            <div class="section-content">
+            <div class="section-content" v-if="!loading">
                 <settings-form :settingsData="settingsData" :settingsFields="settingsFields" @formSuccess="fetchData" />
+            </div>
+            <div class="section-content" v-else>
+                <span class="icon"><fa icon="sync" spin></fa></span> Loading...
             </div>
         </section>
 
@@ -59,8 +62,11 @@
         <!-- favourites -->
         <section class="section">
             <div class="section-title"><h1>Favourite games</h1></div>
-            <div class="section-content">
+            <div class="section-content" v-if="!loading">
                 <favourites-form :favouritesData="favouritesData" :gamesData="gamesData" @formSuccess="fetchData" />
+            </div>
+            <div class="section-content" v-else>
+                <span class="icon"><fa icon="sync" spin></fa></span> Loading...
             </div>
         </section>
     </div>
@@ -82,6 +88,7 @@ export default defineComponent({
     title: "Settings",
     data() {
         return {
+            loading: false,
             settingsData: [],
             settingsFields: Array as () => ApiSettingsField[],
             gamesData: Array as () => ApiGame[],
@@ -97,70 +104,48 @@ export default defineComponent({
         fetchData() {
             // this.settingsData = [];
             // this.settingsFields = [] as any;
+            this.loading = true;
+            
+            this.$http.all([
+                this.$http
+                    .get(`api/v0/settings/list`)
+                    .then((response) => {
+                        const json = response.data;
+                        if (json.message) alert(json.message);
+                        console.log(json);
 
-            this.$http
-                .get(`api/v0/settings/list`)
-                .then((response) => {
-                    const json = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
+                        const config = json.data.config;
+                        const favourites = config.favourites;
+                        const streamers = config.streamers;
 
-                    const config = json.data.config;
-                    const favourites = config.favourites;
-                    const streamers = config.streamers;
+                        this.favouritesData = favourites;
+                        // this.gamesData = games;
 
-                    this.favouritesData = favourites;
-                    // this.gamesData = games;
+                        this.formStreamers = streamers;
 
-                    this.formStreamers = streamers;
+                        this.settingsData = config;
+                        this.settingsFields = json.data.fields;
+                    })
+                    .catch((err) => {
+                        console.error("settings fetch error", err.response);
+                    }),
 
-                    this.settingsData = config;
-                    this.settingsFields = json.data.fields;
-                })
-                .catch((err) => {
-                    console.error("settings fetch error", err.response);
-                });
-            /*
-            fetch(`api/v0/settings/list`)
-            .then((response) => response.json())
-            .then((json) => {
-
-                const config = json.data.config;
-                const favourites = config.favourites;
-                const streamers = config.streamers;
-
-                this.favouritesData = favourites;
-                // this.gamesData = games;
-
-                this.formStreamers = streamers;
-
-                this.settingsData = config;
-                this.settingsFields = json.data.fields;
-
+                this.$http
+                    .get(`api/v0/games/list`)
+                    .then((response) => {
+                        const json = response.data;
+                        if (json.message) alert(json.message);
+                        console.log(json);
+                        const games = json.data;
+                        this.gamesData = games;
+                    })
+                    .catch((err) => {
+                        console.error("settings fetch error", err.response);
+                    })
+            ]).then(() => {
+                this.loading = false;
             });
-            */
 
-            this.$http
-                .get(`api/v0/games/list`)
-                .then((response) => {
-                    const json = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                    const games = json.data;
-                    this.gamesData = games;
-                })
-                .catch((err) => {
-                    console.error("settings fetch error", err.response);
-                });
-
-            /*
-            fetch(`api/v0/games/list`)
-            .then((response) => response.json())
-            .then((json) => {
-                const games = json.data;
-                this.gamesData = games;
-            });
-            */
         },
     },
     computed: {

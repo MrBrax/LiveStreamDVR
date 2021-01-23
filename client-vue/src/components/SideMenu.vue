@@ -129,7 +129,9 @@
 
         <div class="menu-bottom">
             <div :class="{ 'top-menu-item': true, icon: true, right: true, active: $route.name == 'Dashboard' }" data-menuitem="dashboard">
-                <router-link to="/dashboard" title="Dashboard"><fa icon="tachometer-alt"></fa></router-link>
+                <router-link to="/dashboard" title="Dashboard">
+                    <span class="icon"><fa icon="tachometer-alt"></fa></span>
+                </router-link>
             </div>
             <!--
             <div class="top-menu-item icon right">
@@ -140,19 +142,29 @@
             </div>
             -->
             <div :class="{ 'top-menu-item': true, icon: true, right: true, active: $route.name == 'Tools' }" data-menuitem="tools">
-                <router-link to="/tools" title="Tools"><fa icon="wrench"></fa></router-link>
+                <router-link to="/tools" title="Tools">
+                    <span class="icon"><fa icon="wrench"></fa></span>
+                </router-link>
             </div>
             <div :class="{ 'top-menu-item': true, icon: true, right: true, active: $route.name == 'Settings' }" data-menuitem="settings">
-                <router-link to="/settings" title="Settings"><fa icon="cog"></fa></router-link>
+                <router-link to="/settings" title="Settings">
+                    <span class="icon"><fa icon="cog"></fa></span>
+                </router-link>
             </div>
             <div :class="{ 'top-menu-item': true, icon: true, right: true, active: $route.name == 'ClientSettings' }" data-menuitem="clientsettings">
-                <router-link to="/clientsettings" title="Client Settings"><fa icon="user-cog"></fa></router-link>
+                <router-link to="/clientsettings" title="Client Settings">
+                    <span class="icon"><fa icon="user-cog"></fa></span>
+                </router-link>
             </div>
             <div :class="{ 'top-menu-item': true, icon: true, right: true, active: $route.name == 'About' }" data-menuitem="github">
-                <router-link to="/about" title="About"><fa icon="info-circle"></fa></router-link>
+                <router-link to="/about" title="About">
+                    <span class="icon"><fa icon="info-circle"></fa></span>
+                </router-link>
             </div>
             <div class="top-menu-item icon right" data-menuitem="github">
-                <a class="linkback" href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer" title="GitHub"><fa :icon="['fab', 'github']"></fa></a>
+                <a class="linkback" href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer" title="GitHub">
+                    <span class="icon"><fa :icon="['fab', 'github']"></fa></span>
+                </a>
             </div>
         </div>
     </div>

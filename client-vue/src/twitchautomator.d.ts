@@ -29,6 +29,7 @@ export type ApiGame = {
     game_name: string;
     box_art_url: string;
     favourite: boolean;
+    image_url: string;
 };
 
 export type ApiVod = {

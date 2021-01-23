@@ -5,11 +5,14 @@
             <div class="section-content" v-if="$store.state.config && $store.state.streamerList && $store.state.streamerList.length > 0">
                 <streamer v-for="streamer in sortedStreamers" v-bind:key="streamer.userid" v-bind:streamer="streamer" />
                 <hr />
-                <div>
+                <div class="dashboard-stats">
                     <strong>Total size: {{ formatBytes(totalSize) }}</strong>
                     <br />
                     <strong>Free space: {{ formatBytes(freeSize) }}</strong>
                 </div>
+            </div>
+            <div class="section-content" v-else>
+                <span class="icon"><fa icon="sync" spin></fa></span> Loading...
             </div>
         </section>
 
