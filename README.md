@@ -38,7 +38,8 @@ Docker hub doesn't seem to fully support docker-compose apps, so the cron stuff 
 ## Standalone setup
 
 1. Place the downloaded files in a separate folder from your www directory.
-2. Download the newest client from the releases page and place in the `public` directory, so you have a `public/index.html` file.
+2. Download the newest client from the releases page and place in the `public` directory, so you have a `public/index.html` file. 
+    - *There's no support for custom basepaths with this option, you'll have to build it yourself. Check the client-vue directory readme.*
 3. Install dependencies with composer.
 4. Install utilities with pip, see below.
 5. Point your webserver virtualhost to the `public` directory of this app, not the root.
