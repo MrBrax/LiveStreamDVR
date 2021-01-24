@@ -1098,6 +1098,29 @@ class TwitchHelper
 		}
 	}
 
+	/*
+	public static function websocket(array $data)
+	{
+
+		if (!TwitchConfig::cfg('websocket_url')) {
+			return;
+			// throw new \Exception("No webhook URL set");
+		}
+
+		$client = new \GuzzleHttp\Client();
+
+		try {
+			$client->request("POST", TwitchConfig::cfg('webhook_url'), [
+				'form_params' => $data,
+				'connect_timeout' => 5,
+				'timeout' => 10
+			]);
+		} catch (\Throwable $th) {
+			self::logAdvanced(self::LOG_ERROR, "helper", "Webhook POST error: " . $th->getMessage());
+		}
+	}
+	*/
+
 	public static function vodFolder(string $username = null)
 	{
 		return __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . "vods" . (TwitchConfig::cfg("channel_folders") && $username ? DIRECTORY_SEPARATOR . $username : '');

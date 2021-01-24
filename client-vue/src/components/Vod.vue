@@ -192,9 +192,10 @@
             </div>
 
             <ul v-if="vod?.is_capturing" class="video-info">
-                <li><strong>Current duration:</strong> <duration-display :startDate="vod.dt_started_at.date" outputStyle="human"></duration-display></li>
+                <li><strong>Current duration:</strong><duration-display :startDate="vod.dt_started_at.date" outputStyle="human"></duration-display></li>
                 <li>
-                    <strong>Watch live:</strong> <a href="https://twitch.tv/{{ streamer.display_name }}" rel="noreferrer" target="_blank">Twitch</a>
+                    <strong>Watch live:</strong>
+                    <a href="https://twitch.tv/{{ streamer.display_name }}" rel="noreferrer" target="_blank">Twitch</a>
                 </li>
                 <!--<li><strong>Watch capture:</strong>
                     <a href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}.ts" rel="noreferrer" target="_blank">TS file</a>
