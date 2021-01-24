@@ -321,10 +321,6 @@ export default defineComponent({
         sortedStreamers() {
             const streamers: ApiStreamer[] = this.$store.state.streamerList;
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
-            /*
-            return Object.entries( streamers ).sort(([, a], [, b]) =>
-                (a as any).display_name.localeCompare((b as any).display_name)
-            );*/
         },
         logFiltered(): Record<string, any> {
             if (!this.logModule) return this.logLines;

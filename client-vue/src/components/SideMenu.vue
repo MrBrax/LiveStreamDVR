@@ -14,7 +14,7 @@
 
         <div class="menu-middle" v-if="$route.name == 'Dashboard' && $store.state.streamerList && $store.state.streamerList.length > 0">
             <!--{% for streamer in streamerList|sort((a, b) => a.display_name > b.display_name) %}-->
-            <side-menu-streamer v-for="streamer in $store.state.streamerList" :key="streamer.username" v-bind:streamer="streamer"></side-menu-streamer>
+            <side-menu-streamer v-for="streamer in sortedStreamers" :key="streamer.username" v-bind:streamer="streamer"></side-menu-streamer>
         </div>
 
         <div class="top-menu-item divider"></div>
@@ -70,10 +70,17 @@ import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync } from "@fortawesome/free-solid-svg-icons";
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import SideMenuStreamer from "./SideMenuStreamer.vue";
+import { ApiStreamer } from "@/twitchautomator";
 library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass);
 
 export default defineComponent({
     components: { SideMenuStreamer },
     name: "SideMenu",
+    computed: {
+        sortedStreamers() {
+            const streamers: ApiStreamer[] = this.$store.state.streamerList;
+            return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
+        },
+    }
 });
 </script>
