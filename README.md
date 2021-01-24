@@ -38,15 +38,15 @@ Docker hub doesn't seem to fully support docker-compose apps, so the cron stuff 
 ## Standalone setup
 
 1. Place the downloaded files in a separate folder from your www directory.
-2. Install dependencies with composer.
-3. Install yarn, build `client-vue`, copy files to `public` directory.
+2. Download the newest client from the releases page and place in the `public` directory, so you have a `public/index.html` file.
+3. Install dependencies with composer.
 4. Install utilities with pip, see below.
 5. Point your webserver virtualhost to the `public` directory of this app, not the root.
 6. Go to the settings page and set up basic stuff, get api key from twitch dev site.
-7. Visit `/sub` in your web browser to check that subscribing to the webhooks work.
+7. Visit `/api/v0/subscriptions/sub` in your web browser to check that subscribing to the webhooks work.
 8. Add cronjobs shown on the settings page.
 
-Check `/subs` for subscription status.
+Check `/api/v0/subscriptions/list` for subscription status.
 
 Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in-subdirectory
 
