@@ -644,6 +644,7 @@ class TwitchHelper
 		if ($game_data) {
 
 			$game = [
+				"id" => $game_id,
 				"name" => $game_data["name"],
 				"box_art_url" => $game_data["box_art_url"],
 				"added" => time()
@@ -874,7 +875,7 @@ class TwitchHelper
 		$url = 'https://api.twitch.tv/helix/webhooks/hub';
 		$method = 'POST';
 
-		$hook_callback = TwitchConfig::cfg('app_url') . '/hook';
+		$hook_callback = TwitchConfig::cfg('app_url') . '/api/v0/hook';
 
 		if (TwitchConfig::cfg('instance_id')) {
 			$hook_callback .= '?instance=' . TwitchConfig::cfg('instance_id');
@@ -1096,6 +1097,29 @@ class TwitchHelper
 			self::logAdvanced(self::LOG_ERROR, "helper", "Webhook POST error: " . $th->getMessage());
 		}
 	}
+
+	/*
+	public static function websocket(array $data)
+	{
+
+		if (!TwitchConfig::cfg('websocket_url')) {
+			return;
+			// throw new \Exception("No webhook URL set");
+		}
+
+		$client = new \GuzzleHttp\Client();
+
+		try {
+			$client->request("POST", TwitchConfig::cfg('webhook_url'), [
+				'form_params' => $data,
+				'connect_timeout' => 5,
+				'timeout' => 10
+			]);
+		} catch (\Throwable $th) {
+			self::logAdvanced(self::LOG_ERROR, "helper", "Webhook POST error: " . $th->getMessage());
+		}
+	}
+	*/
 
 	public static function vodFolder(string $username = null)
 	{

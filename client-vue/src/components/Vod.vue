@@ -1,10 +1,13 @@
 <template>
     <div
+        v-if="vod"
         :class="{
-            'is-recording': vod?.is_capturing,
-            'is-converting': vod?.is_converting,
-            'is-finalized': vod?.is_finalized,
-            'is-favourite': vod?.api_hasFavouriteGame
+            video: true,
+            'is-animated': $store.state.clientConfig.animationsEnabled,
+            'is-recording': vod.is_capturing,
+            'is-converting': vod.is_converting,
+            'is-finalized': vod.is_finalized,
+            'is-favourite': vod.api_hasFavouriteGame,
         }"
     >
         <div :id="'vod_' + vod?.basename" class="anchor"></div>
@@ -12,8 +15,10 @@
         <!-- title -->
         <div class="video-title">
             <h3>
-                <span class="icon"><i class="fas fa-file-video"></i></span>
-                <span class="video-date" v-if="vod?.dt_started_at">{{ formatDate(vod?.dt_started_at.date, "yyyy-MM-dd HH:mm:ss") }}</span>
+                <span class="icon"><fa icon="file-video"></fa></span>
+                <span class="video-date" :title="formatDate(vod?.dt_started_at.date)" v-if="vod?.dt_started_at">{{
+                    $store.state.clientConfig.useRelativeTime ? humanDate(vod?.dt_started_at.date, true) : formatDate(vod?.dt_started_at.date)
+                }}</span>
                 <span class="video-filename">{{ vod?.basename }}</span>
             </h3>
         </div>
@@ -21,7 +26,7 @@
         <!-- description -->
         <div class="video-description">
             <!-- box art -->
-            <div class="boxart-carousel is-small">
+            <div class="boxart-carousel is-small" v-if="vod && vod.api_getUniqueGames">
                 <div v-for="game in vod.api_getUniqueGames" :key="game" class="boxart-item">
                     <img v-if="game.image_url" :title="game.name" :alt="game.name" :src="game.image_url" loading="lazy" />
                     <span v-else>{{ game.name }}</span>
@@ -53,12 +58,10 @@
                         </template>
                         <li>
                             <strong>Missing from captured file:</strong>
-                            <span v-if="vod?.twitch_vod_duration">{{
-                                humanDuration(vod?.twitch_vod_duration - vod?.api_getDuration)
-                            }}</span>
-                            <span v-else
-                                ><strong><em>No data</em></strong></span
-                            >
+                            <span class="px-1" v-if="vod?.twitch_vod_duration">{{ humanDuration(vod?.twitch_vod_duration - vod?.api_getDuration) }}</span>
+                            <span class="px-1" v-else>
+                                <strong><em>No data</em></strong>
+                            </span>
                         </li>
                         <li>
                             <strong>Chat downloaded:</strong>
@@ -90,87 +93,78 @@
                             <strong>Size:</strong>
                             {{ formatBytes(vod?.segments[0].filesize) }}
                         </li>
-                        <template v-if="vod?.video_metadata">
+                        <template v-if="vod?.video_metadata_public">
                             <li>
                                 <strong>Dimensions:</strong>
-                                {{ vod?.video_metadata.video.Width }}x{{ vod?.video_metadata.video.Height }}
+                                {{ vod?.video_metadata_public.video.Width }}x{{ vod?.video_metadata_public.video.Height }}
                             </li>
                             <li>
                                 <strong>Framerate:</strong>
-                                {{ vod?.video_metadata.video.FrameRate_Mode }}
+                                {{ vod?.video_metadata_public.video.FrameRate_Mode }}
                                 {{
-                                    vod?.video_metadata.video.FrameRate_Original
-                                        ? vod?.video_metadata.video.FrameRate_Original
-                                        : vod?.video_metadata.video.FrameRate
+                                    vod?.video_metadata_public.video.FrameRate_Original
+                                        ? vod?.video_metadata_public.video.FrameRate_Original
+                                        : vod?.video_metadata_public.video.FrameRate
                                 }}
                             </li>
                             <li>
                                 <strong>Video:</strong>
-                                {{ vod?.video_metadata.video.Format }}
-                                {{ vod?.video_metadata.video.BitRate_Mode }}
-                                {{ Math.round(vod?.video_metadata.video.BitRate / 1000) }}kbps
+                                {{ vod?.video_metadata_public.video.Format }}
+                                {{ vod?.video_metadata_public.video.BitRate_Mode }}
+                                {{ Math.round(vod?.video_metadata_public.video.BitRate / 1000) }}kbps
                             </li>
                             <li>
                                 <strong>Audio:</strong>
-                                {{ vod?.video_metadata.audio.Format }}
-                                {{ vod?.video_metadata.audio.BitRate_Mode }}
-                                {{ Math.round(vod?.video_metadata.audio.BitRate / 1000) }}kbps
+                                {{ vod?.video_metadata_public.audio.Format }}
+                                {{ vod?.video_metadata_public.audio.BitRate_Mode }}
+                                {{ Math.round(vod?.video_metadata_public.audio.BitRate / 1000) }}kbps
                             </li>
                         </template>
                     </ul>
                 </div>
 
+                <!-- Twitch VOD -->
                 <div class="info-column">
                     <h4>Twitch VOD</h4>
                     <ul class="video-info">
                         <template v-if="vod?.twitch_vod_exists === true">
                             <li>
                                 <strong>Duration:</strong>
-                                <template v-if="vod?.twitch_vod_duration">{{ humanDuration(vod?.twitch_vod_duration) }}</template>
-                                <template v-else><strong><em>No data</em></strong></template>
+                                <span class="px-1" v-if="vod?.twitch_vod_duration">{{ humanDuration(vod?.twitch_vod_duration) }}</span>
+                                <span class="px-1" v-else>
+                                    <strong><em>No data</em></strong>
+                                </span>
                             </li>
                             <li>
                                 <strong>ID:</strong>
-                                <span v-if="vod?.twitch_vod_url">
+                                <span class="px-1" v-if="vod?.twitch_vod_url">
                                     <a :href="vod?.twitch_vod_url" rel="noreferrer" target="_blank">{{ vod?.twitch_vod_id }}</a>
-
-                                    <!--
-                                {% if checkvod %}
-                                    
-                                    {% if vodclass.twitch_vod_exists %}
-                                        (exists)
-                                    {% else %}
-                                        <strong class="is-error">(deleted)</strong>
-                                    {% endif %}
-
-                                {% endif %}
-                                -->
                                 </span>
-                                <span v-else>
+                                <span class="px-1" v-else>
                                     <strong><em>Not matched or VOD deleted</em></strong>
                                 </span>
                             </li>
                             <li>
-                                <strong>Date:</strong>
-                                <span v-if="vod?.twitch_vod_date">
-                                    {{ vod?.twitch_vod_date }}
-                                </span>
-                                <span v-else>
+                                <strong>Date:</strong>&#32;
+                                <span class="px-1" v-if="vod?.twitch_vod_date">{{ formatDate(vod?.twitch_vod_date) }}</span>
+                                <span class="px-1" v-else>
                                     <strong><em>No data</em></strong>
                                 </span>
                             </li>
                             <li>
                                 <strong>Title:</strong>
-                                <span v-if="vod?.twitch_vod_title" class="text-overflow">
+                                <span class="px-1 text-overflow" v-if="vod?.twitch_vod_title">
                                     {{ vod?.twitch_vod_title }}
                                 </span>
-                                <strong v-else><em>No data</em></strong>
+                                <span class="px-1" v-else>
+                                    <strong><em>No data</em></strong>
+                                </span>
                             </li>
                             <li>
                                 <strong>Is muted:</strong>
-                                <strong v-if="vod?.twitch_vod_muted === true" class="is-error">Yes</strong>
-                                <span v-else-if="vod?.twitch_vod_muted === false">No</span>
-                                <em v-else>No data</em>
+                                <span class="px-1" v-if="vod?.twitch_vod_muted === true"><strong class="is-error">Yes</strong></span>
+                                <span class="px-1" v-else-if="vod?.twitch_vod_muted === false">No</span>
+                                <span class="px-1" v-else><em>No data</em></span>
                             </li>
                         </template>
                         <template v-else-if="vod?.twitch_vod_exists === false">
@@ -179,13 +173,9 @@
                             </li>
                             <li>
                                 <span v-if="vod?.twitch_vod_id">
-                                    The ID was
-                                    <a :href="vod?.twitch_vod_url" rel="noreferrer" target="_blank">{{ vod?.twitch_vod_id }}</a
-                                    >.
+                                    The ID was <a :href="vod?.twitch_vod_url" rel="noreferrer" target="_blank">{{ vod?.twitch_vod_id }}</a>.
                                 </span>
-                                <span v-else>
-                                    The VOD probably never got saved.
-                                </span>
+                                <span v-else>The VOD probably never got saved.</span>
                             </li>
                         </template>
                         <template v-else>
@@ -202,7 +192,7 @@
             </div>
 
             <ul v-if="vod?.is_capturing" class="video-info">
-                <li><strong>Current duration:</strong> {{ vod?.duration_live }}</li>
+                <li><strong>Current duration:</strong><duration-display :startDate="vod.dt_started_at.date" outputStyle="human"></duration-display></li>
                 <li>
                     <strong>Watch live:</strong>
                     <a href="https://twitch.tv/{{ streamer.display_name }}" rel="noreferrer" target="_blank">Twitch</a>
@@ -217,8 +207,8 @@
         <!-- segment list -->
         <div v-if="vod?.is_finalized" class="video-segments">
             <strong>Segments</strong>
-            <ul class="list-segments">
-                <li v-for="segment in vod?.segments" :key="segment">
+            <ul class="list-segments" v-if="vod && vod.segments">
+                <li v-for="segment in vod.segments" :key="segment">
                     <a :href="vod?.webpath + '/' + segment.basename">
                         <span class="text-overflow">{{ segment.basename }}</span>
                         <span v-if="segment.deleted">
@@ -229,7 +219,7 @@
                 </li>
 
                 <li v-if="vod?.is_vod_downloaded">
-                    <a :href="vod?.webpath + '/' + vod?.basename + '_vod?.mp4'">Downloaded VOD</a>
+                    <a :href="vod?.webpath + '/' + vod?.basename + '_vod.mp4'">Downloaded VOD</a>
                 </li>
 
                 <template v-if="vod?.is_chat_rendered">
@@ -248,113 +238,147 @@
         </div>
 
         <!-- controls -->
-        <div class="video-controls">
-            <template v-if="vod?.is_finalized">
-                <router-link class="button is-blue" :to="{ name: 'Editor', params: { vod: vod?.basename } }">
-                    <span class="icon"><i class="fa fa-cut"></i></span> Editor
-                </router-link>
+        <div class="video-controls" v-if="vod?.is_finalized">
+            <router-link class="button is-blue" :to="{ name: 'Editor', params: { vod: vod?.basename } }">
+                <span class="icon"><fa icon="cut" type="fa"></fa></span>
+                Editor
+            </router-link>
 
-                <a v-if="vod?.is_chat_downloaded" class="button is-blue" href="#">
-                    <span class="icon"><i class="fa fa-play"></i></span> Player
+            <a v-if="vod?.is_chat_downloaded" class="button is-blue" href="#">
+                <span class="icon"><fa icon="play" type="fa"></fa></span>
+                Player
+            </a>
+
+            <a v-else-if="vod?.is_chatdump_captured" class="button is-blue" href="#">
+                <span class="icon"><fa icon="play" type="fa"></fa></span>
+                Player
+            </a>
+
+            <a class="button" :href="vod?.webpath + '/' + vod?.basename + '.json'" target="_blank">
+                <span class="icon"><fa icon="database" type="fa"></fa></span>
+                JSON
+            </a>
+
+            <a class="button" @click="doArchive">
+                <span class="icon">
+                    <fa icon="archive" type="fa" v-if="!taskStatus.archive"></fa>
+                    <fa icon="sync" type="fa" spin="true" v-else></fa>
+                </span>
+                Archive
+            </a>
+
+            <a v-if="!vod?.twitch_vod_id && !vod?.is_chat_downloaded" class="button" @click="doDownloadChat">
+                <span class="icon">
+                    <fa icon="comments" type="fa" v-if="!taskStatus.downloadChat"></fa>
+                    <fa icon="sync" type="fa" spin="true" v-else></fa>
+                </span>
+                Download chat
+            </a>
+
+            <template v-if="vod?.is_chat_downloaded && !vod?.is_chat_burned">
+                <a class="button" @click="doRenderChat">
+                    <span class="icon">
+                        <fa icon="comments" type="fa" v-if="!taskStatus.renderChat"></fa>
+                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                    </span>
+                    Render chat
                 </a>
-
-                <a v-else-if="vod?.is_chatdump_captured" class="button is-blue" href="#">
-                    <span class="icon"><i class="fa fa-play"></i></span> Player
+                <a v-if="vod?.is_vod_downloaded" class="button" @click="doRenderChat(true)">
+                    <span class="icon">
+                        <fa icon="comments" type="fa" v-if="!taskStatus.renderChat"></fa>
+                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                    </span>
+                    Render chat (vod)
                 </a>
-
-                <a class="button" :href="vod?.webpath + '/' + vod?.basename + '.json'">
-                    <span class="icon"><i class="fa fa-database"></i></span>
-                    JSON
-                </a>
-
-                <a class="button" href="#">
-                    <span class="icon"><i class="fa fa-archive"></i></span>
-                    Archive
-                </a>
-
-                <a v-if="!vod?.twitch_vod_id && !vod?.is_chat_downloaded" class="button" href="#">
-                    <span class="icon"><i class="fa fa-comments"></i></span>
-                    Download chat
-                </a>
-
-                <template v-if="vod?.is_chat_downloaded && !vod?.is_chat_burned">
-                    <a class="button" href="#"
-                        ><span class="icon"><i class="fa fa-comment"></i></span> Render chat</a
-                    >
-                    <a v-if="vod?.is_vod_downloaded" class="button" href="#"
-                        ><span class="icon"><i class="fa fa-comment"></i></span> Render chat (vod)</a
-                    >
-                </template>
-
-                <template v-if="vod?.twitch_vod_id">
-                    <a v-if="!vod?.is_vod_downloaded" class="button" href="#">
-                        <span class="icon"><i class="fa fa-download"></i></span>
-                        Download{{ vod?.twitch_vod_muted ? " muted" : "" }} VOD
-                    </a>
-                    <a class="button" href="#"
-                        ><span class="icon"><i class="fa fa-volume-mute"></i></span> Check mute</a
-                    >
-                    <a v-if="!vod?.is_chat_burned" class="button" href="#"
-                        ><span class="icon"><i class="fa fa-burn"></i></span> Render &amp; burn</a
-                    >
-                </template>
-
-                <a class="button is-danger" href="#"
-                    ><span class="icon"><i class="fa fa-trash"></i></span> Delete</a
-                >
             </template>
-            <template v-else-if="vod?.is_converting">
-                <em
-                    ><span class="icon"><i class="fa fa-file-signature"></i></span> Converting <strong>{{ vod?.basename }}.ts</strong> to
-                    <strong>{{ vod?.basename }}.mp4</strong></em
-                ><br />
+
+            <template v-if="vod?.twitch_vod_id">
+                <a v-if="!vod?.is_vod_downloaded" class="button" @click="doDownloadVod">
+                    <span class="icon">
+                        <fa icon="download" type="fa" v-if="!taskStatus.downloadVod"></fa>
+                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                    </span>
+                    Download{{ vod?.twitch_vod_muted ? " muted" : "" }} VOD
+                </a>
+                <a class="button" @click="doCheckMute">
+                    <span class="icon">
+                        <fa icon="volume-mute" type="fa" v-if="!taskStatus.vodMuteCheck"></fa>
+                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                    </span>
+                    Check mute
+                </a>
+                <a v-if="!vod?.is_chat_burned" class="button" @click="doFullBurn">
+                    <span class="icon">
+                        <fa icon="burn" type="fa" v-if="!taskStatus.fullBurn"></fa>
+                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                    </span>
+                    Render &amp; burn
+                </a>
+            </template>
+
+            <a class="button is-danger" @click="doDelete">
+                <span class="icon">
+                    <fa icon="trash" type="fa" v-if="!taskStatus.delete"></fa>
+                    <fa icon="sync" type="fa" spin="true" v-else></fa>
+                </span>
+                Delete
+            </a>
+        </div>
+
+        <div class="video-status" v-if="!vod.is_finalized">
+            <template v-if="vod?.is_converting">
                 <em>
-                    <span v-if="vod?.api_getConvertingStatus"
-                        ><span class="icon"><i class="fa fa-sync fa-spin"></i></span> Running (pid {{ vod?.api_getConvertingStatus }})</span
-                    >
-                    <span v-else
-                        ><strong class="is-error flashing"
-                            ><span class="icon"><i class="fa fa-exclamation-triangle"></i></span> Not running, did it crash?</strong
-                        ></span
-                    >
+                    <span class="icon"><fa icon="file-signature"></fa></span>
+                    Converting <strong>{{ vod?.basename }}.ts</strong> to <strong>{{ vod?.basename }}.mp4</strong>
+                </em>
+                <br />
+                <em>
+                    <span v-if="vod?.api_getConvertingStatus">
+                        <span class="icon"><fa icon="sync" spin></fa></span>
+                        Running (pid {{ vod?.api_getConvertingStatus }})
+                    </span>
+                    <span v-else>
+                        <strong class="is-error flashing">
+                            <span class="icon"><fa icon="exclamation-triangle"></fa></span>
+                            Not running, did it crash?
+                        </strong>
+                    </span>
                 </em>
             </template>
             <template v-else-if="vod?.is_capturing">
-                <em>
-                    <span class="icon"><i class="fa fa-video"></i></span>
-                    Capturing to
-                    <strong>{{ vod?.basename }}.ts</strong> (<strong>{{ formatBytes(vod?.api_getRecordingSize) }}</strong
-                    >)
+                <em class="text-overflow">
+                    <span class="icon"><fa icon="video"></fa></span>
+                    Capturing to <strong>{{ vod?.basename }}.ts</strong> (<strong>{{ formatBytes(vod?.api_getRecordingSize) }}</strong>)
                 </em>
 
                 <br />
 
-                <template v-if="!$store.state.playlist_dump">
+                <template v-if="!$store.state.config.playlist_dump">
                     <em>
                         <span v-if="vod?.api_getCapturingStatus">
-                            <span class="icon"><i class="fa fa-sync fa-spin"></i></span>
+                            <span class="icon"><fa icon="sync" spin></fa></span>
                             Video capture running (pid
                             {{ vod?.api_getCapturingStatus }})
                         </span>
                         <span v-else>
-                            <strong class="is-error flashing"
-                                ><span class="icon"><i class="fa fa-exclamation-triangle"></i></span> Video capture not running, did it
-                                crash?</strong
-                            >
+                            <strong class="is-error flashing">
+                                <span class="icon"><fa icon="exclamation-triangle"></fa></span>
+                                Video capture not running, did it crash?
+                            </strong>
                         </span>
                     </em>
-                    <template v-if="$store.state.chat_dump">
+                    <template v-if="$store.state.config.chat_dump">
                         <br /><em>
                             <span v-if="vod?.api_getChatDumpStatus">
-                                <span class="icon"><i class="fa fa-sync fa-spin"></i></span>
+                                <span class="icon"><fa icon="sync" spin></fa></span>
                                 Chat dump running (pid
                                 {{ vod?.api_getChatDumpStatus }})
                             </span>
                             <span v-else>
-                                <strong class="is-error flashing"
-                                    ><span class="icon"><i class="fa fa-exclamation-triangle"></i></span> Chat dump not running, did it
-                                    crash?</strong
-                                >
+                                <strong class="is-error flashing">
+                                    <span class="icon"><fa icon="exclamation-triangle"></fa></span>
+                                    Chat dump not running, did it crash?
+                                </strong>
                             </span>
                         </em>
                     </template>
@@ -374,9 +398,7 @@
         </div>
 
         <!-- no chapters error -->
-        <div v-if="!vod?.chapters" class="video-error">
-            No chapter data!?
-        </div>
+        <div v-if="!vod?.chapters" class="video-error">No chapter data!?</div>
 
         <!-- troubleshoot error -->
         <!--
@@ -390,7 +412,7 @@
 
         <!-- game list / chapters -->
         <div class="video-chapters">
-            <table class="table game-list">
+            <table class="table game-list" v-if="vod && vod.chapters">
                 <thead>
                     <tr>
                         <th>Offset</th>
@@ -406,48 +428,53 @@
                         v-for="chapter in vod.chapters"
                         :key="chapter"
                         :class="{
-                            favourite: $store.state.config.favourites[chapter.game_id]
+                            favourite: $store.state.config.favourites[chapter.game_id],
                         }"
                     >
                         <!-- start timestamp -->
-                        <td>
-                            {{ chapter.strings.started_at }}
+                        <td data-contents="started_at" :title="formatDate(chapter.datetime.date)">
+                            {{ humanDuration(chapter.offset) }}
                         </td>
 
                         <!-- duration -->
-                        <td>
-                            <span class="grey">
-                                {{ chapter.duration ? chapter.strings.duration : "Active" }}
+                        <td data-contents="duration">
+                            <span class="grey" v-if="chapter.duration">
+                                {{ niceDuration(chapter.duration) }}
+                            </span>
+                            <span v-else>
+                                <duration-display :startDate="chapter.datetime.date" outputStyle="human"></duration-display>
                             </span>
                         </td>
 
                         <!-- chapter name -->
-                        <td>
-                            <img
-                                v-if="chapter.box_art_url"
-                                class="boxart"
-                                :src="chapter.box_art_url"
-                                :alt="chapter.game_name"
-                                loading="lazy"
-                            />
-
+                        <td data-contents="name">
+                            <img v-if="chapter.box_art_url" class="boxart" :src="chapter.box_art_url" :alt="chapter.game_name" loading="lazy" />
                             <template v-if="vod?.is_finalized">
-                                <a href="#">
-                                    {{ chapter.game_name ? chapter.game_name : "None" }}
-                                </a>
-
-                                <a
-                                    v-if="vod?.twitch_vod_exists"
-                                    :href="vod?.twitch_vod_url + '?t=' + twitchDuration(chapter.offset)"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    aria-label="Open on Twitch"
-                                >
-                                    <span class="icon"><i class="fas fa-external-link-alt"></i></span>
-                                </a>
+                                <span class="game-name">
+                                    <router-link class="px-1" :to="{ name: 'Editor', params: { vod: vod?.basename }, query: { start: chapter.offset } }">
+                                        {{ chapter.game_name ? chapter.game_name : "None" }}
+                                    </router-link>
+                                    <a
+                                        v-if="vod?.twitch_vod_exists"
+                                        :href="vod?.twitch_vod_url + '?t=' + twitchDuration(chapter.offset)"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        aria-label="Open on Twitch"
+                                    >
+                                        <span class="icon"><fa icon="external-link-alt"></fa></span>
+                                    </a>
+                                    <button
+                                        class="icon-button favourite-button"
+                                        v-if="!$store.state.config.favourites[chapter.game_id]"
+                                        title="Add to favourites"
+                                        @click="addFavouriteGame(chapter.game_id)"
+                                    >
+                                        <span class="icon"><fa icon="star"></fa></span>
+                                    </button>
+                                </span>
                             </template>
                             <template v-else>
-                                {{ chapter.game_name ? chapter.game_name : "None" }}
+                                <span class="game-name">{{ chapter.game_name ? chapter.game_name : "None" }}</span>
                             </template>
                         </td>
 
@@ -462,7 +489,7 @@
                     </tr>
 
                     <tr v-if="vod?.dt_ended_at">
-                        <td>
+                        <td :title="formatDate(vod.dt_ended_at.date)">
                             {{ vod?.api_getWebhookDuration }}
                         </td>
                         <td colspan="4">
@@ -472,7 +499,8 @@
 
                     <tr v-else>
                         <td v-if="vod?.dt_started_at">
-                            {{ humanDuration(vod?.api_getDurationLive) }}
+                            <!--{{ humanDuration(vod?.api_getDurationLive) }}-->
+                            <duration-display :startDate="vod.dt_started_at.date"></duration-display>
                         </td>
                         <td colspan="4">
                             <em><strong>ONGOING</strong></em>
@@ -485,32 +513,194 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-
 import type { ApiVod } from "@/twitchautomator.d";
+import { defineComponent } from "vue";
+import DurationDisplay from "@/components/DurationDisplay.vue";
+// import { format, toDate, parse } from 'date-fns';
 
-import { format, toDate, parse } from 'date-fns';
-
-const dateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000
+import { library } from "@fortawesome/fontawesome-svg-core";
+import {
+    faFileVideo,
+    faCut,
+    faPlay,
+    faDatabase,
+    faComments,
+    faVolumeMute,
+    faBurn,
+    faTrash,
+    faExternalLinkAlt,
+    faArchive,
+    faDownload,
+    faExclamationTriangle,
+    faFileSignature,
+} from "@fortawesome/free-solid-svg-icons";
+library.add(
+    faFileVideo,
+    faCut,
+    faPlay,
+    faDatabase,
+    faComments,
+    faVolumeMute,
+    faBurn,
+    faTrash,
+    faExternalLinkAlt,
+    faArchive,
+    faDownload,
+    faExclamationTriangle,
+    faFileSignature
+);
 
 export default defineComponent({
     name: "Vod",
-    data(){
+    emits: ["forceFetchData"],
+    data() {
         return {
-            config: []
-        }
+            config: [],
+            taskStatus: {
+                vodMuteCheck: false,
+                archive: false,
+                downloadChat: false,
+                renderChat: false,
+                downloadVod: false,
+                fullBurn: false,
+                delete: false,
+            },
+        };
     },
     props: {
         vod: Object as () => ApiVod,
     },
-    computed: {
-        startedAt() : string {
-            if(!this.vod) return "";
-            return format(parse(this.vod.dt_started_at.date, dateFormat, new Date()), "yyyy-MM-dd");
-        }
-    },
     methods: {
+        doArchive() {
+            if (!confirm(`Do you want to archive "${this.vod?.basename}"?`)) return;
+            this.taskStatus.archive = true;
+            this.$http
+                .post(`/api/v0/vod/${this.vod?.basename}/save`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.taskStatus.archive = false;
+                    // this.$emit("forceFetchData");
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                    this.taskStatus.archive = false;
+                });
+        },
+        doDownloadChat() {
+            if (!confirm(`Do you want to download the chat for "${this.vod?.basename}"?`)) return;
+            this.taskStatus.downloadChat = true;
+            this.$http
+                .post(`/api/v0/vod/${this.vod?.basename}/download_chat`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.taskStatus.downloadChat = false;
+                    // this.$emit("forceFetchData");
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                    this.taskStatus.downloadChat = false;
+                });
+        },
+        doRenderChat(useVod = false) {
+            /** @todo: implement */
+            alert("RenderChat");
+        },
+        doDownloadVod() {
+            if (!confirm(`Do you want to download the vod for "${this.vod?.basename}"?`)) return;
+            this.taskStatus.downloadVod = true;
+            this.$http
+                .post(`/api/v0/vod/${this.vod?.basename}/download`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.taskStatus.downloadVod = false;
+                    // this.$emit("forceFetchData");
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                    this.taskStatus.downloadVod = false;
+                });
+        },
+        doCheckMute() {
+            this.taskStatus.vodMuteCheck = true;
+            this.$http
+                .post(`/api/v0/vod/${this.vod?.basename}/check_mute`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
 
-    }
+                    if (json.data) {
+                        if (json.data.muted === null) {
+                            alert(`The vod "${this.vod?.basename}" could not be checked.`);
+                        } else {
+                            alert(`The vod "${this.vod?.basename}" is${json.data.muted ? "" : " not"} muted.`);
+                        }
+                    }
+                    this.taskStatus.vodMuteCheck = false;
+                    // this.$emit("forceFetchData");
+                })
+                .catch((err) => {
+                    console.error("doCheckMute error", err.response);
+                    if (err.response.data) {
+                        const json = err.response.data;
+                        if (json.message) alert(json.message);
+                    }
+                    this.taskStatus.vodMuteCheck = false;
+                });
+        },
+        doFullBurn() {
+            /** @todo: implement */
+            alert("FullBurn");
+        },
+        doDelete() {
+            if (!confirm(`Do you want to delete "${this.vod?.basename}"?`)) return;
+            this.taskStatus.delete = true;
+            this.$http
+                .post(`/api/v0/vod/${this.vod?.basename}/delete`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.taskStatus.delete = false;
+                    // this.$emit("forceFetchData");
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                    this.taskStatus.delete = false;
+                });
+        },
+        addFavouriteGame(game_id: number) {
+            const formData = new FormData();
+            formData.set(`games[${game_id}]`, "1");
+
+            for (const fid in this.$store.state.config.favourites) {
+                formData.set(`games[${fid}]`, "1");
+            }
+
+            this.$http
+                .post(`/api/v0/favourites/save`, formData)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+
+                    this.$http.get(`/api/v0/settings/list`).then((response) => {
+                        this.$store.commit("updateConfig", response.data.data.config);
+                    });
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                });
+        },
+    },
+    components: {
+        DurationDisplay,
+    },
 });
 </script>

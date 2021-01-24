@@ -16,6 +16,7 @@ class TwitchChannel
     public ?string $description = null;
     public ?string $profile_image_url = null;
     public ?bool $is_live = false;
+    public ?bool $is_converting = false;
     public ?TwitchVOD $current_vod = null;
     public ?array $current_game = null;
     public ?int $current_duration = null;

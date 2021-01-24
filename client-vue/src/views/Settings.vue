@@ -1,12 +1,13 @@
 <template>
     <div class="container">
-
         <!-- streamers -->
         <section class="section">
             <div class="section-title"><h1>Streamers</h1></div>
             <div class="section-content">
                 <div class="card" v-for="streamer in formStreamers" :key="streamer.username">
-                    <div class="card-title"><h2>{{ streamer.username }}</h2></div>
+                    <div class="card-title">
+                        <h2>{{ streamer.username }}</h2>
+                    </div>
                     <div class="card-content">
                         <streamer-update-form :streamer="streamer" @formSuccess="fetchData" />
                     </div>
@@ -25,16 +26,47 @@
         <!-- settings -->
         <section class="section">
             <div class="section-title"><h1>Settings</h1></div>
-            <div class="section-content">
+            <div class="section-content" v-if="!loading">
                 <settings-form :settingsData="settingsData" :settingsFields="settingsFields" @formSuccess="fetchData" />
+            </div>
+            <div class="section-content" v-else>
+                <span class="icon"><fa icon="sync" spin></fa></span> Loading...
+            </div>
+        </section>
+
+        <!-- settings -->
+        <section class="section">
+            <div class="section-title"><h1>Cron</h1></div>
+            <div class="section-content">
+                <span class="input-help"
+                    >The Slim framework doesn't have a good way to execute code from the command line, so you'll have to set up cron manually.
+                </span>
+                <template v-if="$store.state.config.app_url">
+                    <code>
+                        0  5    * * 1 curl {{ $store.state.config.app_url }}/api/v0/cron/sub<br />
+                        0  */12 * * * curl {{ $store.state.config.app_url }}/api/v0/cron/check_muted_vods<br />
+                        10 */12 * * * curl {{ $store.state.config.app_url }}/api/v0/cron/check_deleted_vods<br />
+                        0  1    * * * curl {{ $store.state.config.app_url }}/api/v0/cron/playlist_dump
+                    </code>
+                    <span class="input-help">
+                        This will subscribe to the webhook every 5 days, check muted &amp; deleted vods every 12 hours, and dump playlists once per day.
+                    </span>
+                </template>
+                <template v-else>
+                    <br /><br />
+                    <em class="is-error">Can't show example, <strong>app url</strong> has not been set</em>
+                </template>
             </div>
         </section>
 
         <!-- favourites -->
         <section class="section">
             <div class="section-title"><h1>Favourite games</h1></div>
-            <div class="section-content">
+            <div class="section-content" v-if="!loading">
                 <favourites-form :favouritesData="favouritesData" :gamesData="gamesData" @formSuccess="fetchData" />
+            </div>
+            <div class="section-content" v-else>
+                <span class="icon"><fa icon="sync" spin></fa></span> Loading...
             </div>
         </section>
     </div>
@@ -53,13 +85,15 @@ import type { ApiSettingsField, ApiGame } from "@/twitchautomator.d";
 
 export default defineComponent({
     name: "Settings",
+    title: "Settings",
     data() {
         return {
+            loading: false,
             settingsData: [],
             settingsFields: Array as () => ApiSettingsField[],
             gamesData: Array as () => ApiGame[],
             favouritesData: {},
-            formStreamers: {}
+            formStreamers: {},
             // games: Object as () => [key: string]: ApiGame
         };
     },
@@ -68,49 +102,62 @@ export default defineComponent({
     },
     methods: {
         fetchData() {
-            
             // this.settingsData = [];
             // this.settingsFields = [] as any;
+            this.loading = true;
+            
+            this.$http.all([
+                this.$http
+                    .get(`api/v0/settings/list`)
+                    .then((response) => {
+                        const json = response.data;
+                        if (json.message) alert(json.message);
+                        console.log(json);
 
-            fetch("/api/v0/settings/list")
-            .then((response) => response.json())
-            .then((json) => {
+                        const config = json.data.config;
+                        const favourites = config.favourites;
+                        const streamers = config.streamers;
 
-                const config = json.data.config;
-                const favourites = config.favourites;
-                const streamers = config.streamers;
+                        this.favouritesData = favourites;
+                        // this.gamesData = games;
 
-                this.favouritesData = favourites;
-                // this.gamesData = games;
+                        this.formStreamers = streamers;
 
-                this.formStreamers = streamers;
+                        this.settingsData = config;
+                        this.settingsFields = json.data.fields;
+                    })
+                    .catch((err) => {
+                        console.error("settings fetch error", err.response);
+                    }),
 
-                this.settingsData = config;
-                this.settingsFields = json.data.fields;
-
+                this.$http
+                    .get(`api/v0/games/list`)
+                    .then((response) => {
+                        const json = response.data;
+                        if (json.message) alert(json.message);
+                        console.log(json);
+                        const games = json.data;
+                        this.gamesData = games;
+                    })
+                    .catch((err) => {
+                        console.error("settings fetch error", err.response);
+                    })
+            ]).then(() => {
+                this.loading = false;
             });
 
-            fetch("/api/v0/games/list")
-            .then((response) => response.json())
-            .then((json) => {
-                const games = json.data;
-                this.gamesData = games;
-            });
-
-        }
+        },
     },
     computed: {
-        sortedGames(){
-            return Object.entries( (this as any).games ).sort(([, a], [, b]) =>
-                (a as any).name.localeCompare((b as any).name)
-            );
-        }
+        sortedGames() {
+            return Object.entries((this as any).games).sort(([, a], [, b]) => (a as any).name.localeCompare((b as any).name));
+        },
     },
     components: {
         StreamerAddForm,
         StreamerUpdateForm,
         SettingsForm,
-        FavouritesForm
+        FavouritesForm,
     },
 });
 </script>

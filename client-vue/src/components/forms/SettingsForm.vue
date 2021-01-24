@@ -1,5 +1,5 @@
 <template>
-    <form method="POST" enctype="multipart/form-data" action="#" @submit="saveSettings">
+    <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
         <div class="field" v-for="(data, key) in settingsFields" v-bind:key="key">
             <label v-if="data.type != 'boolean'" class="label" :for="'input_' + key">{{ data.text }}</label>
 
@@ -18,14 +18,26 @@
 
             <!-- number -->
             <div v-if="data.type == 'number'" class="control">
-                <input class="input" type="number" :name="key" :id="'input_' + key" :value="settingsData[key] !== undefined ? settingsData[key] : data.default" />
+                <input
+                    class="input"
+                    type="number"
+                    :name="key"
+                    :id="'input_' + key"
+                    :value="settingsData[key] !== undefined ? settingsData[key] : data.default"
+                />
             </div>
 
             <!-- array -->
             <div v-if="data.type == 'array'" class="control">
                 <!--<input class="input" :name="key" :id="key" :value="settings[key]" />-->
-                <select :name="key" :id="'input_' + key">
-                    <option v-for="item in data.choices" :key="item" :selected="( settingsData[key] !== undefined && settingsData[key] === item ) || ( settingsData[key] === undefined && item === data.default )">
+                <select class="input" :name="key" :id="'input_' + key">
+                    <option
+                        v-for="item in data.choices"
+                        :key="item"
+                        :selected="
+                            (settingsData[key] !== undefined && settingsData[key] === item) || (settingsData[key] === undefined && item === data.default)
+                        "
+                    >
                         {{ item }}
                     </option>
                 </select>
@@ -35,8 +47,8 @@
         </div>
 
         <div class="control">
-            <button class="button is-confirm" type="button" @click="saveSettings">
-                <span class="icon"><i class="fa fa-save"></i></span> Save
+            <button class="button is-confirm" type="submit">
+                <span class="icon"><fa icon="save"></fa></span> Save
             </button>
             <span :class="formStatusClass">{{ formStatusText }}</span>
         </div>
@@ -47,15 +59,15 @@
 import { defineComponent } from "vue";
 
 export default defineComponent({
-    name: "Settings",
-    props: ['settingsData', 'settingsFields'],
-    emits: ['formSuccess'],
-    data(){
+    name: "SettingsForm",
+    props: ["settingsData", "settingsFields"],
+    emits: ["formSuccess"],
+    data() {
         return {
-            formStatusText: 'Ready',
-            formStatus: '',
-            formData: {}
-        }
+            formStatusText: "Ready",
+            formStatus: "",
+            formData: {},
+        };
     },
     /*
     created: {
@@ -63,18 +75,32 @@ export default defineComponent({
     },
     */
     methods: {
-        saveSettings( event : Event ){
-            
+        submitForm(event: Event) {
             const form = event.target as HTMLFormElement;
             const inputs = new FormData(form);
 
-            this.formStatusText = 'Loading...';
-            this.formStatus = '';
+            this.formStatusText = "Loading...";
+            this.formStatus = "";
 
-            console.log( "form", form );
-            console.log( "entries", inputs, inputs.entries(), inputs.values() );            
+            console.log("form", form);
+            console.log("entries", inputs, inputs.entries(), inputs.values());
 
-            fetch(`/api/v0/settings/save`, {
+            this.$http
+                .post(`/api/v0/settings/save`, inputs)
+                .then((response) => {
+                    const json = response.data;
+                    this.formStatusText = json.message;
+                    this.formStatus = json.status;
+                    if (json.status == "OK") {
+                        this.$emit("formSuccess", json);
+                    }
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                });
+
+            /*
+            fetch(`api/v0/settings/save`, {
                 method: 'POST',
                 body: inputs
             })
@@ -88,20 +114,20 @@ export default defineComponent({
             }).catch((test) => {
                 console.error("Error", test);
             });
+            */
 
             event.preventDefault();
             return false;
-        }
+        },
     },
     computed: {
-        formStatusClass() : Record<string, any> {
+        formStatusClass(): Record<string, boolean> {
             return {
-                'form-status': true,
-                'is-error': this.formStatus == 'ERROR',
-                'is-success': this.formStatus == 'OK',
-            }
-        }
-    }
+                "form-status": true,
+                "is-error": this.formStatus == "ERROR",
+                "is-success": this.formStatus == "OK",
+            };
+        },
+    },
 });
-
 </script>

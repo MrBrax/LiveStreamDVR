@@ -4,7 +4,6 @@
             <div class="section-content">
                 <div class="section-title"><h1>About</h1></div>
                 <div class="section-content" v-if="aboutData && aboutData.bins">
-
                     <h3>Installed utilities</h3>
                     <table class="table">
                         <tr>
@@ -35,7 +34,7 @@
                             <td>{{ aboutData.bins.streamlink.update }}</td>
                         </tr>
                         <tr>
-                            <td>youtube-dl{{ $store.state.config.youtube_dlc ? 'c' : '' }}</td>
+                            <td>youtube-dl{{ $store.state.config.youtube_dlc ? "c" : "" }}</td>
                             <td>{{ aboutData.bins.youtubedl.path }}</td>
                             <td>{{ aboutData.bins.youtubedl.status }}</td>
                             <td>{{ aboutData.bins.youtubedl.update }}</td>
@@ -51,27 +50,38 @@
                             <td v-html="aboutData.bins.twitchdownloader.status"></td>
                         </tr>
                     </table>
-                    <p>This app tries to find all the executables using system utilities. This may not work if they're on a custom PATH. Please visit <a href="{{ url_for('settings') }}">settings</a> to manually change them.</p>
+                    <p>
+                        This app tries to find all the executables using system utilities. This may not work if they're on a custom PATH. Please visit
+                        <a href="{{ url_for('settings') }}">settings</a> to manually change them.
+                    </p>
                     <hr />
 
                     <!-- software -->
                     <h3>Software</h3>
-                    <strong>Python version:</strong> {{ aboutData.bins.python.version ? aboutData.bins.python.version : '(no output)' }}
-                    <br /><strong>Python3 version:</strong> {{ aboutData.bins.python3.version ? aboutData.bins.python3.version : '(no output)' }}
-                    <br /><strong>PHP version:</strong> {{ aboutData.bins.php.version ? aboutData.bins.php.version : '(no output)' }}
-                    <br /><strong>PHP User:</strong> {{ aboutData.bins.php.user }}
-                    <br /><strong>PHP PID:</strong> {{ aboutData.bins.php.pid }}
-                    <br /><strong>PHP UID:</strong> {{ aboutData.bins.php.uid }}
-                    <br /><strong>PHP GID:</strong> {{ aboutData.bins.php.gid }}
-                    <br /><strong>PHP SAPI:</strong> {{ aboutData.bins.php.sapi }}
-                    <br /><strong>Platform:</strong> {{ aboutData.bins.php.platform ? aboutData.bins.php.platform : 'unknown' }}/{{ aboutData.bins.php.platform_family ? aboutData.bins.php.platform_family : 'unknown' }}
-                    <br /><strong>Docker:</strong> {{ is_docker ? 'Yes' : 'No' }}
-                    <template v-if="envs">
-                    {% if envs.NODE %}<br /><strong>Node:</strong> {{ envs.npm_config_node_version }}{% endif %}
-                    </template>
+                    <ul>
+                        <li><strong>Python version:</strong> {{ aboutData.bins.python.version ? aboutData.bins.python.version : "(no output)" }}</li>
+                        <li><strong>Python3 version:</strong> {{ aboutData.bins.python3.version ? aboutData.bins.python3.version : "(no output)" }}</li>
+                        <li><strong>PHP version:</strong> {{ aboutData.bins.php.version ? aboutData.bins.php.version : "(no output)" }}</li>
+                        <li><strong>PHP User:</strong> {{ aboutData.bins.php.user }}</li>
+                        <li><strong>PHP PID:</strong> {{ aboutData.bins.php.pid }}</li>
+                        <li><strong>PHP UID:</strong> {{ aboutData.bins.php.uid }}</li>
+                        <li><strong>PHP GID:</strong> {{ aboutData.bins.php.gid }}</li>
+                        <li><strong>PHP SAPI:</strong> {{ aboutData.bins.php.sapi }}</li>
+                        <li>
+                            <strong>Platform:</strong> {{ aboutData.bins.php.platform ? aboutData.bins.php.platform : "unknown" }}/{{
+                                aboutData.bins.php.platform_family ? aboutData.bins.php.platform_family : "unknown"
+                            }}
+                        </li>
+                        <li><strong>Docker:</strong> {{ is_docker ? "Yes" : "No" }}</li>
+                        <li><strong>Backend version:</strong> {{ $store.state.version }}</li>
+                        <li><strong>Frontend version:</strong> {{ clientVersion }}</li>
+                        <li><strong>Frontend build:</strong> {{ clientMode }}</li>
+                        <li v-if="envs && envs.NODE"><strong>Node:</strong> {{ envs.npm_config_node_version }}{% endif %}</li>
+                    </ul>
                     <hr />
 
                     <!-- env -->
+                    <!--
                     <template v-if="envs">
                         <h3>Environment variables</h3>
                         <table class="table">
@@ -84,11 +94,12 @@
 
                         <hr />
                     </template>
+                    -->
 
                     <!-- cronjobs -->
                     <h3>Cronjobs</h3>
                     <table class="table">
-                        <tr v-for="cron, cron_status in aboutData.cron_lastrun" :key="cron">
+                        <tr v-for="(cron, cron_status) in aboutData.cron_lastrun" :key="cron">
                             <td>{{ cron }}</td>
                             <td>{{ cron_status }}</td>
                         </tr>
@@ -99,7 +110,7 @@
                     <template v-if="!aboutData.is_docker">
                         <h3>Pip update</h3>
                         <code>pip install --user --upgrade youtube-dl streamlink tcd pipenv</code>
-                        <br>You might want to install without the --user switch depending on environment.
+                        <br />You might want to install without the --user switch depending on environment.
                         <hr />
 
                         <!-- links -->
@@ -111,10 +122,9 @@
                             <li><a href="https://github.com/lay295/TwitchDownloader" target="_blank">TwitchDownloader</a></li>
                         </ul>
                     </template>
-
                 </div>
                 <div class="section-content" v-else>
-                    Loading...
+                    <span class="icon"><fa icon="sync" spin></fa></span> Loading...
                 </div>
             </div>
         </section>
@@ -123,37 +133,54 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-// import HelloWorld from "@/components/HelloWorld.vue"; // @ is an alias to /src
-// import type { ApiSettingsField, ApiGame } from "@/twitchautomator.d";
 
 export default defineComponent({
     name: "About",
+    title: "About",
     data() {
         return {
-            aboutData: {
-                // bins: {},
-                // eslint-disable-next-line @typescript-eslint/camelcase
-                // cron_lastrun: {}
-            },
+            aboutData: Object as any,
+            envs: {},
+            is_docker: false,
         };
     },
     created() {
         this.fetchData();
     },
+    computed: {
+        clientVersion() {
+            return process ? process.env.VUE_APP_VERSION : "?";
+        },
+        clientMode() {
+            return process.env.NODE_ENV;
+        },
+    },
     methods: {
         fetchData() {
             this.aboutData = [];
 
-            fetch("/api/v0/about")
+            this.$http
+                .get(`/api/v0/about`)
+                .then((response) => {
+                    const json = response.data;
+                    const about = json.data;
+                    console.debug("aboutData", about);
+                    this.aboutData = about;
+                })
+                .catch((err) => {
+                    console.error("about error", err.response);
+                });
+
+            /*
+            fetch(`api/v0/about`)
             .then((response) => response.json())
             .then((json) => {
                 const about = json.data;
                 console.log("aboutData", about);
                 this.aboutData = about;
             });
-
+            */
         },
-        
-    }
+    },
 });
 </script>

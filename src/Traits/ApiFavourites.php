@@ -35,19 +35,21 @@ trait ApiFavourites
     public function favourites_save(Request $request, Response $response, array $args)
     {
 
-        $games = $_POST['games'];
+        $games = isset($_POST['games']) ? $_POST['games'] : null;
 
         $data = [];
-        foreach ($games as $id => $value) {
-            $data[$id] = true;
+        if($games){
+            foreach ($games as $id => $value) {
+                $data[$id] = true;
+            }
         }
 
         TwitchConfig::$config['favourites'] = $data;
         TwitchConfig::saveConfig("favourites/save");
 
         $payload = json_encode([
-            'message' => "Favourites saved.",
-            'status' => 'OK'
+            "message" => $games ? "Favourites saved." : "Favourites cleared.",
+            "status" => "OK"
         ]);
 
         $response->getBody()->write($payload);

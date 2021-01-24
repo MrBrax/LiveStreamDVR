@@ -1,7 +1,5 @@
 # TwitchAutomator
 
-⭐ **I have yet to start using a develop branch etc for this, so the code downloads might be completely broken at times** ⭐
-
 ![1603661434863-wc](https://user-images.githubusercontent.com/1517911/97119662-fe1b0a80-1711-11eb-8f40-20c1690a01c9.png)
 
 ## Features
@@ -29,29 +27,29 @@ Known issues:
 ### Manual build (recommended)
 Run `docker-compose up --build -d` in the app directory. The docker-compose.yml file is required.
 
+If you want the public webapp to have a custom base folder, you must provide `BASE_URL` and `VUE_APP_BASE_URL` in the environment variable settings.
+
 ### Docker hub
 
 Pull the image from https://hub.docker.com/r/mrbrax/twitchautomator
 
 Docker hub doesn't seem to fully support docker-compose apps, so the cron stuff won't work.
 
-**When upgrading, delete the `twig` folder in the `cache` folder.**
-
 ## Standalone setup
 
 1. Place the downloaded files in a separate folder from your www directory.
-2. Install dependencies with composer.
-3. Install utilities with pip, see below
-4. Point your webserver virtualhost to the `public` directory of this app, not the root.
-5. Go to the settings page and set up basic stuff, get api key from twitch dev site
-6. Visit `/sub` in your web browser to check that subscribing to the webhooks work.
-7. Add cronjobs shown on the settings page.
+2. Download the newest client from the releases page and place in the `public` directory, so you have a `public/index.html` file. 
+    - *There's no support for custom basepaths with this option, you'll have to build it yourself. Check the client-vue directory readme.*
+3. Install dependencies with composer.
+4. Install utilities with pip, see below.
+5. Point your webserver virtualhost to the `public` directory of this app, not the root.
+6. Go to the settings page and set up basic stuff, get api key from twitch dev site.
+7. Visit `/api/v0/subscriptions/sub` in your web browser to check that subscribing to the webhooks work.
+8. Add cronjobs shown on the settings page.
 
-Check `/subs` for subscription status.
+Check `/api/v0/subscriptions/list` for subscription status.
 
 Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in-subdirectory
-
-**When upgrading, delete the `twig` folder in the `cache` folder.**
 
 ### Main requirements
 - Public facing webserver (nginx, apache, etc)

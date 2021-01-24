@@ -1,10 +1,9 @@
 <template>
     <form method="POST" @submit="submitForm">
-
         <div class="field">
             <label class="label">VOD URL</label>
             <div class="control">
-                <input class="input input-required" type="text" name="url" value="" />
+                <input class="input input-required" type="text" name="url" value="" required />
             </div>
         </div>
 
@@ -19,11 +18,12 @@
 
         <div class="field">
             <div class="control">
-                <button class="button is-confirm" type="submit"><span class="icon"><i class="fa fa-burn"></i></span> Execute</button>
+                <button class="button is-confirm" type="submit">
+                    <span class="icon"><fa icon="burn"></fa></span> Execute
+                </button>
                 <span :class="formStatusClass">{{ formStatusText }}</span>
             </div>
         </div>
-
     </form>
 </template>
 
@@ -32,56 +32,56 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
     name: "ToolsBurnForm",
-    emits: ['formSuccess'],
-    data(){
+    emits: ["formSuccess"],
+    data() {
         return {
-            formStatusText: 'Ready',
-            formStatus: '',
-            formData: {}
-        }
+            formStatusText: "Ready",
+            formStatus: "",
+            formData: {},
+        };
     },
     methods: {
-        submitForm( event : Event ){
-            
+        submitForm(event: Event) {
             const form = event.target as HTMLFormElement;
             const inputs = new FormData(form);
 
-            this.formStatusText = 'Loading...';
-            this.formStatus = '';
+            this.formStatusText = "Loading...";
+            this.formStatus = "";
 
-            console.log( "form", form );
-            console.log( "entries", inputs, inputs.entries(), inputs.values() );            
+            console.log("form", form);
+            console.log("entries", inputs, inputs.entries(), inputs.values());
 
-            fetch(`/api/v0/###`, {
-                method: 'POST',
-                body: inputs
+            /** @todo: axios */
+            fetch(`api/v0/###`, {
+                method: "POST",
+                body: inputs,
             })
-            .then((response) => response.json())
-            .then((json) => {
-                this.formStatusText = json.message;
-                this.formStatus = json.status;
-                if(json.status == 'OK'){
-                    this.$emit('formSuccess', json);
-                }
-            }).catch((err) => {
-                console.error("Error burn form", err);
-                this.formStatusText = err;
-                this.formStatus = 'ERROR';
-            });
+                .then((response) => response.json())
+                .then((json) => {
+                    this.formStatusText = json.message;
+                    this.formStatus = json.status;
+                    if (json.status == "OK") {
+                        this.$emit("formSuccess", json);
+                    }
+                })
+                .catch((err) => {
+                    console.error("Error burn form", err);
+                    this.formStatusText = err;
+                    this.formStatus = "ERROR";
+                });
 
             event.preventDefault();
             return false;
-        }
+        },
     },
     computed: {
-        formStatusClass() : Record<string, any> {
+        formStatusClass(): Record<string, boolean> {
             return {
-                'form-status': true,
-                'is-error': this.formStatus == 'ERROR',
-                'is-success': this.formStatus == 'OK',
-            }
-        }
-    }
+                "form-status": true,
+                "is-error": this.formStatus == "ERROR",
+                "is-success": this.formStatus == "OK",
+            };
+        },
+    },
 });
-
 </script>

@@ -21,6 +21,8 @@ use App\Traits\ApiChannel;
 use App\Traits\ApiChannels;
 use App\Traits\ApiSettings;
 use App\Traits\ApiFavourites;
+use App\Traits\ApiSubs;
+use App\Traits\ApiTools;
 
 class ApiController
 {
@@ -32,6 +34,8 @@ class ApiController
 
     use ApiSettings;
     use ApiFavourites;
+    use ApiTools;
+    use ApiSubs;
 
     /**
      * @var Twig
@@ -112,6 +116,7 @@ class ApiController
         return $response->withHeader('Content-Type', 'application/json');
     }
 
+    /*
     public function render_menu(Request $request, Response $response, $args)
     {
 
@@ -184,6 +189,7 @@ class ApiController
             'streamer' => $data
         ]);
     }
+    */
 
     public function check_vods(Request $request, Response $response, $args)
     {
@@ -468,6 +474,165 @@ class ApiController
 
         return $response->withHeader('Content-Type', 'application/json');
 
+    }
+
+    public function display_log(Request $request, Response $response, $args)
+    {
+
+        $log_lines = [];
+
+        $current_log    = $args['filename'];
+        $last_line      = isset($args['last_line']) ? $args['last_line'] : null;
+
+        $filter = isset($_GET['filter']) ? $_GET['filter'] : null;
+
+        $log_path = TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . $current_log . ".log.json";
+
+        $line_num = 0;
+
+        if (file_exists($log_path)) {
+
+            $json = json_decode(file_get_contents($log_path), true);
+
+            if ($json) {
+                
+                foreach ($json as $line) {
+
+                    $line_num++;
+                    if($last_line && $line_num <= $last_line) continue;
+
+                    if (!TwitchConfig::cfg("debug") && $line["level"] == 'DEBUG') continue;
+
+                    // filter
+                    if (isset($filter) && isset($line['module']) && $filter != $line['module']) {
+                        continue;
+                    }
+
+                    if ($line["date"]) {
+                        $dt = \DateTime::createFromFormat("U.u", (string)$line["date"]);
+                        if (!$dt) $dt = \DateTime::createFromFormat("U", (string)$line["date"]);
+                        if ($dt) {
+                            $dt->setTimezone(TwitchConfig::$timezone);
+                            $line['date_string'] = $dt->format("Y-m-d H:i:s.v");
+                        } else {
+                            $line['date_string'] = "ERROR:" . $line["date"];
+                        }
+                    } else {
+                        $line['date_string'] = '???';
+                    }
+
+                    $log_lines[] = $line;
+                }
+            }
+        }
+
+        $payload = json_encode([
+            'data' => [
+                'lines' => $log_lines,
+                'last_line' => $line_num,
+            ],
+            'status' => 'OK'
+        ]);
+
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+        
+    }
+
+    public function hook(Request $request, Response $response, $args)
+    {
+
+        set_time_limit(0);
+
+        $source = isset($_GET['source']) ? $_GET['source'] : 'twitch';
+
+        $headers = $request->getHeaders();
+
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Hook called", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers]);
+
+        if (TwitchConfig::cfg('instance_id')) {
+            if (!isset($_GET['instance']) || $_GET['instance'] != TwitchConfig::cfg('instance_id')) {
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "hook", "Hook called with the wrong instance (" . $_GET['instance'] . ")");
+                $response->getBody()->write("Invalid instance");
+                return $response;
+            }
+        }
+
+        // handle hub challenge after subscribing
+        if (isset($_GET['hub_challenge'])) {
+
+            $challenge_token = $_GET['hub_challenge'];
+
+            $user_id = null;
+            $username = null;
+            if ($source == 'twitch') {  // twitch parse channel id
+                if (isset($_GET['hub_topic'])) {
+                    $user_url = parse_url($_GET['hub_topic']);
+                    parse_str($user_url['query'], $user_query);
+                    if (isset($user_query['user_id'])) {
+                        $user_id = $user_query['user_id'];
+                        $username = TwitchHelper::getChannelUsername($user_id);
+                    }
+                }
+            }
+
+            $hub_reason = isset($_GET['hub_reason']) ? $_GET['hub_reason'] : null;
+
+            $hub_mode = isset($_GET['hub_mode']) ? $_GET['hub_mode'] : null;
+
+            if (isset($hub_reason)) {
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "hook", "Received error on hub challenge from {$source} for {$username} ({$user_id}) when trying to {$hub_mode}: {$hub_reason}", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers, 'user_id' => $user_id]);
+            } else {
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Received hub challenge from {$source} for userid {$username} ({$user_id}) when trying to {$hub_mode}", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers, 'user_id' => $user_id]);
+            }
+
+            // todo: use some kind of memcache for this instead
+            $hc = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "hubchallenge_{$user_id}";
+            if (file_exists($hc) && time() < (int)file_get_contents($hc) + 30) {
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Successfully {$hub_mode}d to userid {$user_id} ({$username}) on {$source}", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers, 'user_id' => $user_id]);
+                unlink($hc);
+            }
+
+            // just write the response back without checking anything
+            $response->getBody()->write($challenge_token);
+
+            return $response;
+        }
+
+        /*
+        $hub_secret = isset($headers['X-Hub-Signature']) ? $headers['X-Hub-Signature'] : null;
+        if($hub_secret){
+            $is_secret = hash('sha256', TwitchConfig::cfg('sub_secret');
+        */
+
+        // handle regular hook
+        if ($source == 'twitch') {
+            $data_json = json_decode(file_get_contents('php://input'), true);
+            $post_json = isset($_POST['json']) ? $_POST['json'] : null;
+
+            if ($post_json) {
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Custom payload received...");
+                $data_json = json_decode($post_json, true);
+            }
+
+            if ($data_json) {
+
+                if (TwitchConfig::cfg('debug')) {
+                    TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Dumping payload...");
+                    file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . 'payloads' . DIRECTORY_SEPARATOR . date("Y-m-d.h_i_s") . '.json', json_encode($data_json));
+                }
+
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Run handle...");
+                $TwitchAutomator = new TwitchAutomator();
+                $TwitchAutomator->handle($data_json);
+                return $response;
+            }
+        }
+
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "hook", "Hook called with no data ({$source})...", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers]);
+        $response->getBody()->write("No data supplied");
+
+        return $response;
     }
 
 }

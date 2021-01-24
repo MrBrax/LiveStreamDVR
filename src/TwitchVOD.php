@@ -67,7 +67,8 @@ class TwitchVOD
 	public bool $is_finalized = false;
 
 	public bool $video_fail2 = false;
-	public array $video_metadata = [];
+	private array $video_metadata = [];
+	public array $video_metadata_public = [];
 
 	public bool $is_chat_downloaded = false;
 	public bool $is_vod_downloaded = false;
@@ -226,9 +227,15 @@ class TwitchVOD
 		$this->twitch_vod_attempted 	= isset($this->json['twitch_vod_attempted']) ? $this->json['twitch_vod_attempted'] : null;
 		$this->twitch_vod_muted 		= isset($this->json['twitch_vod_muted']) ? $this->json['twitch_vod_muted'] : null;
 
-		if ($this->meta && $this->meta['data'][0]['title']) {
+		// legacy
+		if (isset($this->meta) && isset($this->meta['data'][0]['title'])) {
 			$this->stream_title = $this->meta['data'][0]['title'];
 		}
+
+		if (isset($this->meta) && isset($this->meta['title'])) {
+			$this->stream_title = $this->meta['title'];
+		}
+
 	}
 
 	public function setupAssoc()
@@ -236,6 +243,7 @@ class TwitchVOD
 
 		$this->video_fail2 			= isset($this->json['video_fail2']) ? $this->json['video_fail2'] : false;
 		$this->video_metadata		= isset($this->json['video_metadata']) ? $this->json['video_metadata'] : null;
+		$this->filterMediainfo();
 
 		$this->ads = isset($this->json['ads']) ? $this->json['ads'] : [];
 
@@ -479,6 +487,38 @@ class TwitchVOD
 
 		$this->video_fail2 = true;
 		return false;
+	}
+
+	public function filterMediainfo(){
+
+		if(!$this->video_metadata) return;
+
+		$this->video_metadata_public = [];
+
+		$filter = [
+			"video.BitRate",
+			"video.Width",
+			"video.Height",
+			"video.FrameRate_Mode",
+			"video.FrameRate_Original",
+			"video.FrameRate",
+			"video.Format",
+			"video.BitRate_Mode",
+			"video.BitRate",
+			
+			"audio.Format",
+			"audio.BitRate_Mode",
+			"audio.BitRate",
+		];
+
+		foreach( $this->video_metadata as $keyp => $value ){
+			$this->video_metadata_public[$keyp] = array_filter($value, function($value, $keyc) use($filter, $keyp) {
+				return in_array("{$keyp}.{$keyc}", $filter);
+			}, ARRAY_FILTER_USE_BOTH);
+		}
+
+		return $this->video_metadata_public;
+
 	}
 
 	/**
@@ -1171,9 +1211,12 @@ class TwitchVOD
 			// box art
 			if ($game_data && $game_data['box_art_url']) {
 
+				$box_art_width = round(140 * 0.5); // 14
+				$box_art_height = round(190 * 0.5); // 19
+
 				$img_url = $game_data['box_art_url'];
-				$img_url = str_replace("{width}", 14, $img_url);
-				$img_url = str_replace("{height}", 19, $img_url);
+				$img_url = str_replace("{width}", $box_art_width, $img_url);
+				$img_url = str_replace("{height}", $box_art_height, $img_url);
 				$entry['box_art_url'] = $img_url;
 			}
 
@@ -1315,6 +1358,7 @@ class TwitchVOD
 			$img_url = str_replace("{width}", 140, $img_url);
 			$img_url = str_replace("{height}", 190, $img_url);
 			$data[] = [
+				'id' => $id ?: $gd['id'],
 				'name' => $gd['name'],
 				'image_url' => $img_url
 			];
@@ -1601,7 +1645,8 @@ class TwitchVOD
 		// $stream_url = $output;
 
 		if (!$output) {
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "VOD {$this->basename} could not be checked for mute status!");
+			// TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "VOD {$this->basename} could not be checked for mute status!", ['output' => $output]);
+			throw new \Exception("VOD could not be checked for mute status, no output.");
 			return null;
 		}
 
@@ -1614,7 +1659,7 @@ class TwitchVOD
 			return true;
 		} elseif (mb_strpos($output, "Unable to find video") !== false) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "VOD {$this->basename} is deleted!");
-			// return null;
+			throw new \Exception("VOD is deleted!");
 		} else {
 			$this->twitch_vod_muted = false;
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "VOD {$this->basename} is not muted!");
