@@ -3,7 +3,12 @@
         <section class="section" data-section="vods">
             <div class="section-title"><h1>Recorded VODs</h1></div>
             <div class="section-content" v-if="$store.state.config && $store.state.streamerList && $store.state.streamerList.length > 0">
-                <streamer v-for="streamer in sortedStreamers" v-bind:key="streamer.userid" v-bind:streamer="streamer" />
+                <template v-if="!$store.state.clientConfig.singlePage">
+                    <streamer v-for="streamer in sortedStreamers" v-bind:key="streamer.userid" v-bind:streamer="streamer" />
+                </template>
+                <template v-else>
+                    <streamer v-bind:streamer="singleStreamer" />
+                </template>
                 <hr />
                 <div class="dashboard-stats">
                     <strong>Total size: {{ formatBytes(totalSize) }}</strong>
@@ -328,6 +333,17 @@ export default defineComponent({
         streamersOnline(): number {
             if (!this.$store.state.streamerList) return 0;
             return this.$store.state.streamerList.filter((a) => a.is_live).length;
+        },
+        singleStreamer(): ApiStreamer | undefined {
+            if (!this.$store.state.streamerList) return undefined;
+
+            const current = this.$route.query.channel as string;
+            if (current !== undefined) {
+                return this.$store.state.streamerList.find((u) => u.display_name === current);
+            } else {
+                // this.$route.query.channel = this.$store.state.streamerList[0].display_name;
+                return this.$store.state.streamerList[0];
+            }
         },
     },
     components: {

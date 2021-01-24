@@ -40,7 +40,7 @@ import { defineComponent } from "vue";
 
 const defaultConfig = {
     useSpeech: false,
-    singlePage: true,
+    singlePage: false,
     enableNotifications: false,
     animationsEnabled: true,
     tooltipStatic: false,
