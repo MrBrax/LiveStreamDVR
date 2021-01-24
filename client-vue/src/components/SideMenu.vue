@@ -13,7 +13,6 @@
         </div>
 
         <div class="menu-middle" v-if="$route.name == 'Dashboard' && $store.state.streamerList && $store.state.streamerList.length > 0">
-            <!--{% for streamer in streamerList|sort((a, b) => a.display_name > b.display_name) %}-->
             <side-menu-streamer v-for="streamer in sortedStreamers" :key="streamer.username" v-bind:streamer="streamer"></side-menu-streamer>
         </div>
 
@@ -25,14 +24,6 @@
                     <span class="icon"><fa icon="tachometer-alt"></fa></span>
                 </router-link>
             </div>
-            <!--
-            <div class="top-menu-item icon right">
-                <a href="javascript:window.forceRefresh();" title="Refresh"><fa icon="sync"></fa></a>
-            </div>
-            <div class="top-menu-item icon right">
-                <a href="javascript:notifyMe();" title="Notify"><fa icon="bell"></fa></a>
-            </div>
-            -->
             <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Tools' }" data-menuitem="tools">
                 <router-link to="/tools" title="Tools">
                     <span class="icon"><fa icon="wrench"></fa></span>
@@ -81,6 +72,6 @@ export default defineComponent({
             const streamers: ApiStreamer[] = this.$store.state.streamerList;
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
         },
-    }
+    },
 });
 </script>
