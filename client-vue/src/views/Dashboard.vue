@@ -56,14 +56,9 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import Streamer from "@/components/Streamer.vue";
-import type { ApiStreamer } from "@/twitchautomator.d";
+import type { ApiLogLine, ApiStreamer } from "@/twitchautomator.d";
 import { format } from "date-fns";
 import { MutationPayload } from "vuex";
-
-type LogLine = {
-    level: number;
-    module: string;
-};
 
 export default defineComponent({
     name: "Dashboard",
@@ -80,11 +75,11 @@ export default defineComponent({
             totalSize: 0,
             freeSize: 0,
             logFilename: "",
-            logLines: [],
+            logLines: [] as ApiLogLine[],
             logFromLine: 0,
             logVisible: false,
             logModule: "",
-            oldData: Array as any,
+            oldData: {} as Record<string, ApiStreamer>,
             notificationSub: Function as any,
         };
     },
@@ -322,9 +317,9 @@ export default defineComponent({
             const streamers: ApiStreamer[] = this.$store.state.streamerList;
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
         },
-        logFiltered(): Record<string, any> {
+        logFiltered(): ApiLogLine[] {
             if (!this.logModule) return this.logLines;
-            return this.logLines.filter((val) => (val as LogLine).module == this.logModule);
+            return this.logLines.filter((val) => val.module == this.logModule);
         },
         streamersOnline(): number {
             if (!this.$store.state.streamerList) return 0;

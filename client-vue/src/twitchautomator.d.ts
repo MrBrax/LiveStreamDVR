@@ -164,4 +164,12 @@ export type ApiJob = {
     status: number;
 };
 
+export type ApiLogLine = {
+    level: string;
+    module: string;
+    date_string: string;
+    text: string;
+};
+
+
 export const phpDateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000
