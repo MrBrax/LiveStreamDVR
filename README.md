@@ -3,15 +3,17 @@
 ![1603661434863-wc](https://user-images.githubusercontent.com/1517911/97119662-fe1b0a80-1711-11eb-8f40-20c1690a01c9.png)
 
 ## Features
-- Automatic VOD recording pretty much the second the stream goes live, instead of checking it every minute like many other scripts do
+- Automatic VOD recording pretty much the second the stream goes live, instead of checking it every minute like many other scripts do.
+- Cyclic recording, as in when a specified amount or storage per streamer is reached, the oldest stream gets deleted.
 - Tons of metadata, maybe too much. Stores info about games played, stream titles, duration, if the stream got muted from copyrighted music, etc.
-- Basic video cutter with chapter display for easy exporting
+- Video cutter with chapter display for easy exporting, also cuts the downloaded chat for synced rendering.
+- Notifications with optional speech when the website is open, get stream live notifications far earlier than the mobile app does.
 - Writes a [losslesscut](https://github.com/mifi/lossless-cut/) compatible csv file for the full VOD so you don't have to find all the games.
-- Uses `ts` instead of `mp4` so if the stream or program crashes, the file won't be corrupted
+- Uses `ts` instead of `mp4` so if the stream or program crashes, the file won't be corrupted.
 - Optionally either dumps chat while capturing (unstable) or downloads the chat file after it's done.
 - Basic tools for downloading any VOD or chat.
 - Can be set to automatically download the whole stream chat to a JSON file, to be used in my [twitch-vod-chat](https://github.com/MrBrax/twitch-vod-chat) webapp or automatically burned in with [TwitchDownloader](https://github.com/lay295/TwitchDownloader).
-- Webhook support for external scripting
+- Basic webhook support for external scripting.
 
 *One high-profile streamer VOD of 10 hours is about 30-50GB.*
 
