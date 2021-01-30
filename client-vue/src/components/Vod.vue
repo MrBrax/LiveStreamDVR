@@ -267,7 +267,7 @@
                 Archive
             </a>
 
-            <a v-if="!vod?.twitch_vod_id && !vod?.is_chat_downloaded" class="button" @click="doDownloadChat">
+            <a v-if="vod?.twitch_vod_id && !vod?.is_chat_downloaded" class="button" @click="doDownloadChat">
                 <span class="icon">
                     <fa icon="comments" type="fa" v-if="!taskStatus.downloadChat"></fa>
                     <fa icon="sync" type="fa" spin="true" v-else></fa>
