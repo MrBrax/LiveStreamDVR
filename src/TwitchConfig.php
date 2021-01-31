@@ -29,6 +29,7 @@ class TwitchConfig
 		['key' => 'storage_per_streamer', 	'group' => 'Basic',		'text' => 'Gigabytes of storage per streamer', 				'type' => 'number',		'default' => 100],
 		['key' => 'hls_timeout', 			'group' => 'Advanced',	'text' => 'HLS Timeout in seconds (ads)', 					'type' => 'number',		'default' => 200],
 		['key' => 'vods_to_keep', 			'group' => 'Basic',		'text' => 'VODs to keep per streamer', 						'type' => 'number',		'default' => 5],
+		['key' => 'keep_deleted_vods', 		'group' => 'Basic',		'text' => 'Keep Twitch deleted VODs', 						'type' => 'boolean',	'default' => false],
 		['key' => 'download_retries', 		'group' => 'Advanced',	'text' => 'Download/capture retries', 						'type' => 'number',		'default' => 5],
 		['key' => 'sub_lease', 				'group' => 'Advanced',	'text' => 'Subscription lease', 							'type' => 'number',		'default' => 604800],
 		['key' => 'sub_secret', 			'group' => 'Advanced',	'text' => 'Subscription secret', 							'type' => 'string'],

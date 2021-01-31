@@ -122,6 +122,11 @@ class TwitchAutomator
 			$vodclass = new TwitchVOD();
 			$vodclass->load($v);
 
+			if( TwitchConfig::cfg('keep_deleted_vods') && $vodclass->twitch_vod_exists === false ){
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "automator", "Keeping {$vodclass->basename} due to it being deleted on Twitch.");
+				continue;
+			}
+
 			$vod_list[] = $vodclass;
 
 			foreach ($vodclass->segments_raw as $s) {
