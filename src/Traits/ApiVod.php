@@ -477,29 +477,66 @@ trait ApiVod
                 ]));
                 return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
             }
-
         }
 
         // shift all comments
         if ($vodclass->is_chat_downloaded || $vodclass->is_chatdump_captured) {
+            // ini_set('memory_limit', '1024M');  
             $path_chat = $vodclass->is_chat_downloaded ? $vodclass->path_chat : $vodclass->path_chatdump;
-            $old_chatcontents = json_decode(file_get_contents($path_chat));
+
+            try {
+                $json_contents = file_get_contents($path_chat);
+            } catch (\Throwable $th) {
+                $response->getBody()->write(json_encode([
+                    "message" => $th->getMessage(),
+                    "status" => "ERROR"
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+
+            try {
+                $chatcontents = json_decode($json_contents, false, 512, JSON_THROW_ON_ERROR);
+            } catch (\Throwable $th) {
+                $response->getBody()->write(json_encode([
+                    "message" => $th->getMessage(),
+                    "status" => "ERROR"
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+
+            unset($json_contents);
+            /*
             $new_chatcontents = [
                 'comments' => [],
                 'video' => $old_chatcontents->video
             ];
-            foreach ($old_chatcontents->comments as $comment) {
-                if ($comment->content_offset_seconds < $second_start) continue;
-                if ($comment->content_offset_seconds > $second_end) continue;
+            */
+
+            // update end time
+            $chatcontents->video->duration = TwitchHelper::getTwitchDuration(abs($second_start - $second_end));
+
+            foreach ($chatcontents->comments as $i => $comment) {
+                if ($comment->content_offset_seconds < $second_start) {
+                    unset($chatcontents->comments[$i]);
+                    continue; // cut off start
+                }
+                if ($comment->content_offset_seconds > $second_end) {
+                    unset($chatcontents->comments[$i]);
+                    continue; // cut off end
+                }
                 // $comment['created_at'] = null;
                 // $comment['updated_at'] = null;
                 $comment->content_offset_seconds = round($comment->content_offset_seconds - $second_start, 3);
-                $new_chatcontents['comments'][] = $comment;
+                // $new_chatcontents['comments'][] = $comment;
             }
+            // $old_chatcontents = null;
+            $json_out = json_encode($chatcontents, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            unset($chatcontents);
             file_put_contents(
                 TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_clips" . DIRECTORY_SEPARATOR . $out_basename . '.trimmed.chat',
-                json_encode($new_chatcontents, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+                $json_out,
             );
+            unset($json_out);
         }
 
         $response->getBody()->write(json_encode([
