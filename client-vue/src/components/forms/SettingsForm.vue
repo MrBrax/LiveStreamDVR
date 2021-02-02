@@ -1,50 +1,64 @@
 <template>
-    <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
-        <div class="field" v-for="(data, key) in settingsFields" v-bind:key="key">
-            <label v-if="data.type != 'boolean'" class="label" :for="'input_' + key">{{ data.text }}</label>
+    <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm" v-if="settingsFields && settingsData">
+        <details class="settings-details" v-for="(groupData, groupName) in settingsGroups" v-bind:key="groupName">
+            <summary>{{ groupName }}</summary>
+            <div class="field" v-for="(data, key) in groupData" v-bind:key="key">
+                <label v-if="data.type != 'boolean'" class="label" :for="'input_' + key">{{ data.text }}</label>
 
-            <!-- boolean -->
-            <div v-if="data.type == 'boolean'" class="control">
-                <label class="checkbox">
-                    <input type="checkbox" :name="key" :id="'input_' + key" :checked="settingsData[key] !== undefined ? settingsData[key] : data.default" />
-                    {{ data.text }}
-                </label>
-            </div>
+                <!-- boolean -->
+                <div v-if="data.type == 'boolean'" class="control">
+                    <label class="checkbox">
+                        <input
+                            type="checkbox"
+                            :name="key"
+                            :id="'input_' + key"
+                            :checked="settingsData[data.key] !== undefined ? settingsData[data.key] : data.default"
+                        />
+                        {{ data.text }}
+                    </label>
+                </div>
 
-            <!-- string -->
-            <div v-if="data.type == 'string'" class="control">
-                <input class="input" type="text" :name="key" :id="'input_' + key" :value="settingsData[key] !== undefined ? settingsData[key] : data.default" />
-            </div>
+                <!-- string -->
+                <div v-if="data.type == 'string'" class="control">
+                    <input
+                        class="input"
+                        type="text"
+                        :name="key"
+                        :id="'input_' + key"
+                        :value="settingsData[data.key] !== undefined ? settingsData[data.key] : data.default"
+                    />
+                </div>
 
-            <!-- number -->
-            <div v-if="data.type == 'number'" class="control">
-                <input
-                    class="input"
-                    type="number"
-                    :name="key"
-                    :id="'input_' + key"
-                    :value="settingsData[key] !== undefined ? settingsData[key] : data.default"
-                />
-            </div>
+                <!-- number -->
+                <div v-if="data.type == 'number'" class="control">
+                    <input
+                        class="input"
+                        type="number"
+                        :name="key"
+                        :id="'input_' + key"
+                        :value="settingsData[data.key] !== undefined ? settingsData[data.key] : data.default"
+                    />
+                </div>
 
-            <!-- array -->
-            <div v-if="data.type == 'array'" class="control">
-                <!--<input class="input" :name="key" :id="key" :value="settings[key]" />-->
-                <select class="input" :name="key" :id="'input_' + key">
-                    <option
-                        v-for="item in data.choices"
-                        :key="item"
-                        :selected="
-                            (settingsData[key] !== undefined && settingsData[key] === item) || (settingsData[key] === undefined && item === data.default)
-                        "
-                    >
-                        {{ item }}
-                    </option>
-                </select>
+                <!-- array -->
+                <div v-if="data.type == 'array'" class="control">
+                    <!--<input class="input" :name="key" :id="key" :value="settings[key]" />-->
+                    <select class="input" :name="key" :id="'input_' + key" v-if="data.choices">
+                        <option
+                            v-for="item in data.choices"
+                            :key="item"
+                            :selected="
+                                (settingsData[data.key] !== undefined && settingsData[data.key] === item) || (settingsData[data.key] === undefined && item === data.default)
+                            "
+                        >
+                            {{ item }}
+                        </option>
+                    </select>
+                </div>
+                <p v-if="data.help" class="input-help">{{ data.help }}</p>
+                <p v-if="data.default" class="input-help">Default: {{ data.default }}</p>
             </div>
-            <p v-if="data.help" class="input-help">{{ data.help }}</p>
-            <p v-if="data.default" class="input-help">Default: {{ data.default }}</p>
-        </div>
+        </details>
 
         <div class="control">
             <button class="button is-confirm" type="submit">
@@ -56,11 +70,15 @@
 </template>
 
 <script lang="ts">
+import { ApiConfig, ApiSettingsField } from "@/twitchautomator";
 import { defineComponent } from "vue";
 
 export default defineComponent({
     name: "SettingsForm",
-    props: ["settingsData", "settingsFields"],
+    props: {
+        settingsData: Object as () => ApiConfig[],
+        settingsFields: Object as () => ApiSettingsField[],
+    },
     emits: ["formSuccess"],
     data() {
         return {
@@ -121,6 +139,18 @@ export default defineComponent({
         },
     },
     computed: {
+        settingsGroups(): Record<string, ApiSettingsField[]> {
+            if (!this.settingsFields) return {};
+            let data: Record<string, ApiSettingsField[]> = {};
+
+            for (const key in this.settingsFields) {
+                const field = this.settingsFields[key];
+                if (!data[field.group]) data[field.group] = [];
+                data[field.group].push(field);
+            }
+            console.log("settingsGroups", data);
+            return data;
+        },
         formStatusClass(): Record<string, boolean> {
             return {
                 "form-status": true,

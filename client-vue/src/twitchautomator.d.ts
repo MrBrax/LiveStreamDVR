@@ -91,7 +91,14 @@ export type ApiVod = {
 };
 
 export type ApiSettingsField = {
+    key: string;
+    group: string;
     text: string;
+    type: string;
+    default: mixed;
+    required: boolean;
+    help: string;
+    choices?: string[];
 };
 
 export type ApiConfig = {
