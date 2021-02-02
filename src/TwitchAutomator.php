@@ -123,7 +123,17 @@ class TwitchAutomator
 			$vodclass->load($v);
 
 			if( TwitchConfig::cfg('keep_deleted_vods') && $vodclass->twitch_vod_exists === false ){
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "automator", "Keeping {$vodclass->basename} due to it being deleted on Twitch.");
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Keeping {$vodclass->basename} due to it being deleted on Twitch.");
+				continue;
+			}
+
+			if( TwitchConfig::cfg('keep_favourite_vods') && $vodclass->hasFavouriteGame() ){
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Keeping {$vodclass->basename} due to it having a favourite game.");
+				continue;
+			}
+
+			if( TwitchConfig::cfg('keep_muted_vods') && $vodclass->twitch_vod_muted === true ){
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Keeping {$vodclass->basename} due to it being muted on Twitch.");
 				continue;
 			}
 
