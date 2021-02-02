@@ -126,7 +126,10 @@ if (TwitchConfig::cfg('password')) {
         "path" => ["/"],
         "ignore" => [
             "/api/v0/hook",
-            "/api/v0/cron/sub"
+            "/api/v0/cron/sub",
+            "/api/v0/cron/check_muted_vods",
+            "/api/v0/cron/check_deleted_vods",
+            "/api/v0/cron/playlist_dump"
         ],
         "realm" => "Protected",
         "secure" => TwitchConfig::cfg('password_secure', true) == true,

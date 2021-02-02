@@ -78,7 +78,7 @@ trait ApiSettings
 
         if (TwitchConfig::cfg('app_url')) {
 
-            $full_url = TwitchConfig::cfg('app_url') . '/hook';
+            $full_url = TwitchConfig::cfg('app_url') . '/api/v0/hook';
 
             if (TwitchConfig::cfg('instance_id')) {
                 $full_url .= '?instance=' . TwitchConfig::cfg('instance_id');

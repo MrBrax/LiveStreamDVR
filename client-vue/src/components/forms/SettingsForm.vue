@@ -2,16 +2,16 @@
     <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm" v-if="settingsFields && settingsData">
         <details class="settings-details" v-for="(groupData, groupName) in settingsGroups" v-bind:key="groupName">
             <summary>{{ groupName }}</summary>
-            <div class="field" v-for="(data, key) in groupData" v-bind:key="key">
-                <label v-if="data.type != 'boolean'" class="label" :for="'input_' + key">{{ data.text }}</label>
+            <div class="field" v-for="(data, index) in groupData" v-bind:key="index">
+                <label v-if="data.type != 'boolean'" class="label" :for="'input_' + data.key">{{ data.text }}</label>
 
                 <!-- boolean -->
                 <div v-if="data.type == 'boolean'" class="control">
                     <label class="checkbox">
                         <input
                             type="checkbox"
-                            :name="key"
-                            :id="'input_' + key"
+                            :name="data.key"
+                            :id="'input_' + data.key"
                             :checked="settingsData[data.key] !== undefined ? settingsData[data.key] : data.default"
                         />
                         {{ data.text }}
@@ -23,8 +23,8 @@
                     <input
                         class="input"
                         type="text"
-                        :name="key"
-                        :id="'input_' + key"
+                        :name="data.key"
+                        :id="'input_' + data.key"
                         :value="settingsData[data.key] !== undefined ? settingsData[data.key] : data.default"
                     />
                 </div>
@@ -34,8 +34,8 @@
                     <input
                         class="input"
                         type="number"
-                        :name="key"
-                        :id="'input_' + key"
+                        :name="data.key"
+                        :id="'input_' + data.key"
                         :value="settingsData[data.key] !== undefined ? settingsData[data.key] : data.default"
                     />
                 </div>
@@ -43,7 +43,7 @@
                 <!-- array -->
                 <div v-if="data.type == 'array'" class="control">
                     <!--<input class="input" :name="key" :id="key" :value="settings[key]" />-->
-                    <select class="input" :name="key" :id="'input_' + key" v-if="data.choices">
+                    <select class="input" :name="data.key" :id="'input_' + data.key" v-if="data.choices">
                         <option
                             v-for="item in data.choices"
                             :key="item"
