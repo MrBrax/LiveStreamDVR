@@ -267,9 +267,9 @@
                 Archive
             </a>
 
-            <a v-if="!vod?.twitch_vod_id && !vod?.is_chat_downloaded" class="button" @click="doDownloadChat">
+            <a v-if="vod?.twitch_vod_id && !vod?.is_chat_downloaded" class="button" @click="doDownloadChat">
                 <span class="icon">
-                    <fa icon="comments" type="fa" v-if="!taskStatus.downloadChat"></fa>
+                    <fa icon="comments" type="fa" v-if="!taskStatus.downloadChat && !compDownloadChat"></fa>
                     <fa icon="sync" type="fa" spin="true" v-else></fa>
                 </span>
                 Download chat
@@ -697,6 +697,17 @@ export default defineComponent({
                 .catch((err) => {
                     console.error("form error", err.response);
                 });
+        },
+    },
+    computed: {
+        compDownloadChat() {
+            if (!this.$store.state.jobList) return false;
+            for (let job of this.$store.state.jobList) {
+                if (job.name == `tcd_${this.vod?.basename}`) {
+                    return true;
+                }
+            }
+            return false;
         },
     },
     components: {

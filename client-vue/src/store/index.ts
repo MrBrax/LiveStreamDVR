@@ -1,10 +1,13 @@
-import { ApiStreamer, ApiConfig } from "@/twitchautomator";
+import { ApiStreamer, ApiConfig, ApiJob } from "@/twitchautomator";
 import { createStore } from "vuex";
 
 export default createStore({
     state() {
         // eslint-disable-next-line no-unused-labels
         streamerList: [];
+
+        // eslint-disable-next-line no-unused-labels
+        jobList: [];
 
         // eslint-disable-next-line no-unused-labels
         config: [];
@@ -36,6 +39,9 @@ export default createStore({
         */
         updateStreamerList(state, data: ApiStreamer[]) {
             (state as any).streamerList = data;
+        },
+        updateJobList(state, data: ApiJob[]) {
+            (state as any).jobList = data;
         },
         updateConfig(state, data: ApiConfig[]) {
             (state as any).config = data;

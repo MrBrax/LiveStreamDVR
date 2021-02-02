@@ -5,8 +5,8 @@
                 <router-link to="/dashboard">
                     <img src="../assets/logo.png" class="favicon" width="24" height="24" :alt="$store.state.config.app_name" />
                     <span class="title">
-                        {{ $store.state.config.app_name }} {{ $store.state.version }}
-                        <span v-if="$store.state.config.debug">(debug)</span>
+                        {{ $store.state.config.app_name }} {{ $store.state.version }}/{{ clientVersion }}
+                        <span class="debug-mode" v-if="$store.state.config.debug" title="Debug">👽</span>
                     </span>
                 </router-link>
             </div>
@@ -71,6 +71,9 @@ export default defineComponent({
         sortedStreamers() {
             const streamers: ApiStreamer[] = this.$store.state.streamerList;
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
+        },
+        clientVersion() {
+            return process ? process.env.VUE_APP_VERSION : "?";
         },
     },
 });

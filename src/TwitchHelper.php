@@ -53,6 +53,9 @@ class TwitchHelper
 		__DIR__ . "/../cache/cron",
 		__DIR__ . "/../cache/pids",
 		__DIR__ . "/../cache/playlist",
+		__DIR__ . "/../cache/channel",
+		__DIR__ . "/../cache/channel/avatar",
+		__DIR__ . "/../cache/channel/background",
 		__DIR__ . "/../logs",
 		__DIR__ . "/../logs/html",
 		__DIR__ . "/../logs/software",
@@ -449,7 +452,7 @@ class TwitchHelper
 			$json_streamers = json_decode(file_get_contents(TwitchConfig::$streamerDbPath), true);
 
 			if ($json_streamers && isset($json_streamers[$user_id])) {
-				self::logAdvanced(self::LOG_DEBUG, "helper", "Fetched channel data from cache for {$user_id}");
+				self::logAdvanced(self::LOG_DEBUG, "helper", "Fetched channel data from cache for {$user_id} ({$json_streamers[$user_id]['display_name']})");
 				if (!isset($json_streamers[$user_id]['_updated']) || time() > $json_streamers[$user_id]['_updated'] + 2592000) {
 					self::logAdvanced(self::LOG_INFO, "helper", "Channel data in cache for {$user_id} is too old, proceed to updating!");
 				} else {
@@ -489,7 +492,29 @@ class TwitchHelper
 
 		$data = $json["data"][0];
 
-		$data['_updated'] = time();
+		$data["_updated"] = time();
+
+		if( isset($data["profile_image_url"]) && $data["profile_image_url"] ){
+			$client = new \GuzzleHttp\Client;
+			$avatar_ext = pathinfo($data["profile_image_url"], PATHINFO_EXTENSION);
+			$avatar_output = self::$cache_folder . DIRECTORY_SEPARATOR . "channel" . DIRECTORY_SEPARATOR . "avatar" . DIRECTORY_SEPARATOR . $data["display_name"] . "." . $avatar_ext;
+			$avatar_final = self::$cache_folder . DIRECTORY_SEPARATOR . "channel" . DIRECTORY_SEPARATOR . "avatar" . DIRECTORY_SEPARATOR . $data["display_name"] . ".webp";
+			try {
+				$response = $client->request("GET", $data["profile_image_url"], [
+					"query" => $query,
+					"sink" => $avatar_output
+				]);
+			} catch (\Throwable $th) {
+				self::logAdvanced(self::LOG_ERROR, "helper", "Avatar fetching for {$user_id} errored: " . $th->getMessage());
+			}
+			if(file_exists($avatar_output)){
+				$data["cache_avatar"] = $data["display_name"] . "." . $avatar_ext;
+				if(self::path_ffmpeg()){
+					self::exec([ self::path_ffmpeg(), "-i", $avatar_output, "-y", $avatar_final ]);
+					$data["cache_avatar"] = $data["display_name"] . ".webp";
+				}
+			}
+		}
 
 		$json_streamers[$user_id] = $data;
 		file_put_contents(TwitchConfig::$streamerDbPath, json_encode($json_streamers));

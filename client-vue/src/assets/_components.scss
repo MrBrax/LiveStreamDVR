@@ -175,7 +175,7 @@
     }
 }
 
-.jobs_list {
+#jobs-status {
     position: fixed;
     bottom: 0px;
     right: 250px;
@@ -274,4 +274,16 @@ details.settings-details {
         color: #009f00;
         font-style: italic;
     }
+}
+
+.debug-mode {
+    // border:5px solid #0f0;
+    // background-color: #f00;
+    // font-size: 70px;
+    display: inline-block;
+    animation: 3s ayylien linear infinite;
+    perspective: 100px;
+    // transform: perspective(100px) rotateY(80deg);
+    // perspective-origin: center;
+    transform-style: preserve-3d;
 }

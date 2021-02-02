@@ -29,7 +29,7 @@ trait ApiVod
         $username = explode("_", $vod)[0];
 
         $vodclass = new TwitchVOD();
-        
+
         try {
             $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
         } catch (\Throwable $th) {
@@ -37,8 +37,8 @@ trait ApiVod
                 "message" => $th->getMessage(),
                 "status" => "ERROR"
             ]));
-            return $response->withStatus(400)->withHeader('Content-Type', 'application/json'); 
-        } 
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
 
         $data = $vodclass;
 
@@ -324,7 +324,7 @@ trait ApiVod
 
         $vodclass = new TwitchVOD();
         $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
-        
+
         $destination = isset($_POST['destination']) ? $_POST['destination'] : null;
 
         $exporter = null;
@@ -398,6 +398,7 @@ trait ApiVod
         $out_basename = $vod . '-cut-' . $second_start . '-' . $second_end . ($name ? '-' . $name : '');
         $filename_out = TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_clips" . DIRECTORY_SEPARATOR . $out_basename . '.mp4';
 
+        /*
         if (file_exists($filename_out)) {
             $response->getBody()->write(json_encode([
                 "message" => "Output file already exists",
@@ -405,106 +406,148 @@ trait ApiVod
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
+        */
+        if (!file_exists($filename_out)) {
 
-        $cmd = [];
+            $cmd = [];
 
-        $cmd[] = TwitchConfig::cfg('ffmpeg_path');
+            $cmd[] = TwitchConfig::cfg('ffmpeg_path');
 
-        $cmd[] = '-i';
-        $cmd[] = $filename_in; // input file
+            $cmd[] = '-i';
+            $cmd[] = $filename_in; // input file
 
-        $cmd[] = '-ss';
-        $cmd[] = $second_start; // start timestamp
+            $cmd[] = '-ss';
+            $cmd[] = $second_start; // start timestamp
 
-        $cmd[] = '-t';
-        $cmd[] = $second_end - $second_start; // length
+            $cmd[] = '-t';
+            $cmd[] = $second_end - $second_start; // length
 
-        if (TwitchConfig::cfg('fix_corruption')) {
-            // $cmd[] = '-map';
-            // $cmd[] = '0';
-            // $cmd[] = '-ignore_unknown';
-            // $cmd[] = '-copy_unknown';
-        }
+            if (TwitchConfig::cfg('fix_corruption')) {
+                // $cmd[] = '-map';
+                // $cmd[] = '0';
+                // $cmd[] = '-ignore_unknown';
+                // $cmd[] = '-copy_unknown';
+            }
 
-        if (TwitchConfig::cfg('encode_audio')) {
-            $cmd[] = '-c:v';
-            $cmd[] = 'copy'; // use same video codec
+            if (TwitchConfig::cfg('encode_audio')) {
+                $cmd[] = '-c:v';
+                $cmd[] = 'copy'; // use same video codec
 
-            $cmd[] = '-c:a';
-            $cmd[] = 'aac'; // re-encode audio
+                $cmd[] = '-c:a';
+                $cmd[] = 'aac'; // re-encode audio
 
-            $cmd[] = '-b:a';
-            $cmd[] = '160k'; // use same audio bitrate
-        } else {
-            $cmd[] = '-codec';
-            $cmd[] = 'copy'; // remux
-        }
+                $cmd[] = '-b:a';
+                $cmd[] = '160k'; // use same audio bitrate
+            } else {
+                $cmd[] = '-codec';
+                $cmd[] = 'copy'; // remux
+            }
 
-        $cmd[] = $filename_out; // output file
+            $cmd[] = $filename_out; // output file
 
-        $env = [
-            // 'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache",
-            'PATH' => dirname(TwitchHelper::path_ffmpeg()),
-            'TEMP' => TwitchHelper::$cache_folder
-        ];
+            $env = [
+                // 'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache",
+                'PATH' => dirname(TwitchHelper::path_ffmpeg()),
+                'TEMP' => TwitchHelper::$cache_folder
+            ];
 
-        $process = new Process($cmd, TwitchHelper::vodFolder($username), $env, null, null);
-        $process->start();
+            $process = new Process($cmd, TwitchHelper::vodFolder($username), $env, null, null);
+            $process->start();
 
-        // $pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_cut_' . $vod . '.pid';
-        // file_put_contents($pidfile, $process->getPid());
-        $vod_cutJob = new TwitchAutomatorJob("vod_cut_{$vod}");
-        $vod_cutJob->setPid($process->getPid());
-        $vod_cutJob->setProcess($process);
-        $vod_cutJob->save();
-    
-        $process->wait();
+            // $pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_cut_' . $vod . '.pid';
+            // file_put_contents($pidfile, $process->getPid());
+            $vod_cutJob = new TwitchAutomatorJob("vod_cut_{$vod}");
+            $vod_cutJob->setPid($process->getPid());
+            $vod_cutJob->setProcess($process);
+            $vod_cutJob->save();
 
-        $vod_cutJob->clear();
+            $process->wait();
 
-        TwitchHelper::appendLog("ffmpeg_{$vod}-cut-{$second_start}-{$second_end}_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
-        TwitchHelper::appendLog("ffmpeg_{$vod}-cut-{$second_start}-{$second_end}_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
-        
-        $success = file_exists($filename_out) && filesize($filename_out) > 0;
+            $vod_cutJob->clear();
 
-        if(!$success){
-            $response->getBody()->write(json_encode([
-                "message" => "Cut failed, please check the logs",
-                "status" => "ERROR"
-            ]));
-            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            TwitchHelper::appendLog("ffmpeg_{$vod}-cut-{$second_start}-{$second_end}_" . time() . "_stdout.log", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+            TwitchHelper::appendLog("ffmpeg_{$vod}-cut-{$second_start}-{$second_end}_" . time() . "_stderr.log", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+
+            $success = file_exists($filename_out) && filesize($filename_out) > 0;
+
+            if (!$success) {
+                $response->getBody()->write(json_encode([
+                    "message" => "Cut failed, please check the logs",
+                    "status" => "ERROR"
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
         }
 
         // shift all comments
-        if($vodclass->is_chat_downloaded || $vodclass->is_chatdump_captured){
+        if ($vodclass->is_chat_downloaded || $vodclass->is_chatdump_captured) {
+            // ini_set('memory_limit', '1024M');  
             $path_chat = $vodclass->is_chat_downloaded ? $vodclass->path_chat : $vodclass->path_chatdump;
-            $old_chatcontents = json_decode(file_get_contents($path_chat), true);
+
+            try {
+                $json_contents = file_get_contents($path_chat);
+            } catch (\Throwable $th) {
+                $response->getBody()->write(json_encode([
+                    "message" => $th->getMessage(),
+                    "status" => "ERROR"
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+
+            try {
+                $chatcontents = json_decode($json_contents, false, 512, JSON_THROW_ON_ERROR);
+            } catch (\Throwable $th) {
+                $response->getBody()->write(json_encode([
+                    "message" => $th->getMessage(),
+                    "status" => "ERROR"
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+
+            unset($json_contents);
+            /*
             $new_chatcontents = [
                 'comments' => [],
-                'video' => $old_chatcontents['video']
+                'video' => $old_chatcontents->video
             ];
-            foreach($old_chatcontents['comments'] as $comment){
-                if($comment['content_offset_seconds'] < $second_start) continue;
-                if($comment['content_offset_seconds'] > $second_end) continue;
+            */
+
+            // update end time
+            $chatcontents->video->duration = TwitchHelper::getTwitchDuration(abs($second_start - $second_end));
+
+            foreach ($chatcontents->comments as $i => $comment) {
+                if ($comment->content_offset_seconds < $second_start) {
+                    unset($chatcontents->comments[$i]);
+                    continue; // cut off start
+                }
+                if ($comment->content_offset_seconds > $second_end) {
+                    unset($chatcontents->comments[$i]);
+                    continue; // cut off end
+                }
                 // $comment['created_at'] = null;
                 // $comment['updated_at'] = null;
-                $comment['content_offset_seconds'] = round( $comment['content_offset_seconds'] - $second_start, 3 );
-                $new_chatcontents['comments'][] = $comment;
+                $comment->content_offset_seconds = round($comment->content_offset_seconds - $second_start, 3);
+                // $new_chatcontents['comments'][] = $comment;
             }
-            file_put_contents(TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_clips" . DIRECTORY_SEPARATOR . $out_basename . '.trimmed.chat', json_encode($new_chatcontents));
+            // $old_chatcontents = null;
+            $json_out = json_encode($chatcontents, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            unset($chatcontents);
+            file_put_contents(
+                TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_clips" . DIRECTORY_SEPARATOR . $out_basename . '.trimmed.chat',
+                $json_out,
+            );
+            unset($json_out);
         }
 
         $response->getBody()->write(json_encode([
             "data" => [
-                "log_stdout" => $process->getOutput(),
-                "log_stderr" => $process->getErrorOutput(),
+                // "log_stdout" => $process->getOutput(),
+                // "log_stderr" => $process->getErrorOutput(),
                 "file_output" => $filename_out
             ],
             "message" => "Done",
             "status" => "OK"
         ]));
         return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
-
     }
-
 }

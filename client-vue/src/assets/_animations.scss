@@ -31,6 +31,22 @@
     }
 }
 
+
+@keyframes ayylien {
+    0% {
+        transform: perspective(500px) rotateY(0deg);
+        text-shadow: 0 0 0 #000;
+    }
+    50% {
+        transform: perspective(500px) rotateY(180deg);
+        text-shadow: 0 0 5px #0f0, 0 0 5px #0f0, 0 0 5px #0f0;
+    }
+    100% {
+        transform: perspective(500px) rotateY(360deg);
+        text-shadow: 0 0 0 #000;
+    }
+}
+
 @keyframes zoom {
     0% {
         background-size: 100%;

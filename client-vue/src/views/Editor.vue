@@ -109,7 +109,7 @@ export default defineComponent({
                     console.error("about error", err.response);
                 });
         },
-        setupPlayer(){
+        setupPlayer() {
             if (this.$route.query.start !== undefined) {
                 (this.$refs.player as HTMLVideoElement).currentTime = parseInt(this.$route.query.start as string);
             }
@@ -173,7 +173,7 @@ export default defineComponent({
         },
     },
     computed: {
-        timelineCutStyle(): Record<string, any> {
+        timelineCutStyle(): Record<string, string> {
             if (!this.currentVideoTime) return { left: "0%", right: "100%" };
             const dur = (this.$refs.player as HTMLVideoElement).duration;
             return {
@@ -181,7 +181,7 @@ export default defineComponent({
                 right: 100 - (this.timeOut / dur) * 100 + "%",
             };
         },
-        timelinePlayheadStyle(): Record<string, any> {
+        timelinePlayheadStyle(): Record<string, string> {
             if (!this.currentVideoTime) return { left: "0%" };
             const percent = (this.currentVideoTime / (this.$refs.player as HTMLVideoElement).duration) * 100;
             return {

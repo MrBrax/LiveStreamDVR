@@ -51,19 +51,27 @@
     <div id="js-status" ref="js-status" @click="timer = 0">
         {{ loading ? "Loading..." : `Refreshing in ${timer} seconds.` }}
     </div>
+    <div id="jobs-status" v-if="$store.state.jobList !== undefined">
+        <table>
+            <tr v-for="job in $store.state.jobList" :key="job.name">
+                <td>
+                    <span class="text-overflow">{{ job.name }}</span>
+                </td>
+                <td>{{ job.pid }}</td>
+                <td><!-- {{ job.status }}-->{{ job.status ? "Running" : "Unexpected exit" }}</td>
+            </tr>
+        </table>
+
+        <em v-if="$store.state.jobList.length == 0">None</em>
+    </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
 import Streamer from "@/components/Streamer.vue";
-import type { ApiStreamer } from "@/twitchautomator.d";
+import type { ApiLogLine, ApiStreamer } from "@/twitchautomator.d";
 import { format } from "date-fns";
 import { MutationPayload } from "vuex";
-
-type LogLine = {
-    level: number;
-    module: string;
-};
 
 export default defineComponent({
     name: "Dashboard",
@@ -80,11 +88,11 @@ export default defineComponent({
             totalSize: 0,
             freeSize: 0,
             logFilename: "",
-            logLines: [],
+            logLines: [] as ApiLogLine[],
             logFromLine: 0,
             logVisible: false,
             logModule: "",
-            oldData: Array as any,
+            oldData: {} as Record<string, ApiStreamer>,
             notificationSub: Function as any,
         };
     },
@@ -97,6 +105,9 @@ export default defineComponent({
             })
             .then(() => {
                 this.fetchLog();
+            })
+            .then(() => {
+                this.fetchJobs();
             });
     },
     mounted() {
@@ -137,6 +148,20 @@ export default defineComponent({
 
             return response.data.data.streamer_list;
         },
+        async fetchJobs() {
+            let response;
+
+            try {
+                response = await this.$http.get(`/api/v0/jobs/list`);
+            } catch (error) {
+                console.error(error);
+                return;
+            }
+
+            const json = response.data;
+            console.debug("Update jobs list", json.data);
+            this.$store.commit("updateJobList", json.data);
+        },
         async fetchLog() {
             // today's log file
             if (this.logFilename == "") {
@@ -174,10 +199,9 @@ export default defineComponent({
         async fetchTicker() {
             if (this.timer <= 0 && !this.loading) {
                 this.loading = true;
-                const result: ApiStreamer[] = await this.fetchStreamers();
-                this.loading = false;
+                const streamerResult: ApiStreamer[] = await this.fetchStreamers();
 
-                const isAnyoneLive = result.find((el) => el.is_live == true) !== undefined;
+                const isAnyoneLive = streamerResult.find((el) => el.is_live == true) !== undefined;
 
                 if (!isAnyoneLive) {
                     if (this.timerMax < 1800 /* 30 minutes */) {
@@ -187,9 +211,13 @@ export default defineComponent({
                     this.timerMax = 120;
                 }
 
-                this.$store.commit("updateStreamerList", result);
+                this.$store.commit("updateStreamerList", streamerResult);
 
                 this.fetchLog();
+
+                this.fetchJobs();
+
+                this.loading = false;
 
                 this.timer = this.timerMax;
             } else {
@@ -322,9 +350,9 @@ export default defineComponent({
             const streamers: ApiStreamer[] = this.$store.state.streamerList;
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
         },
-        logFiltered(): Record<string, any> {
+        logFiltered(): ApiLogLine[] {
             if (!this.logModule) return this.logLines;
-            return this.logLines.filter((val) => (val as LogLine).module == this.logModule);
+            return this.logLines.filter((val) => val.module == this.logModule);
         },
         streamersOnline(): number {
             if (!this.$store.state.streamerList) return 0;
