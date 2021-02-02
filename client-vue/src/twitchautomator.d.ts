@@ -99,6 +99,7 @@ export type ApiSettingsField = {
     required: boolean;
     help: string;
     choices?: string[];
+    deprecated?: boolean;
 };
 
 export type ApiConfig = {

@@ -287,3 +287,31 @@ details.settings-details {
     // perspective-origin: center;
     transform-style: preserve-3d;
 }
+
+.top-tabs {
+    background: #111;
+    font-size: 1.1em;
+    /*
+    position: fixed;
+    width: 100%;
+    margin-bottom: 40px;
+    */
+    a {
+        padding: 7px 14px;
+        display: inline-block;
+        color: #ccc;
+        text-decoration: none;
+        &.router-link-active {
+            background: #598a1d;
+            color: #fff;
+            font-weight: 700;
+        }
+        &:hover {
+            color: #fff;
+        }
+        .icon {
+            padding-right: 0.3em;
+            font-size: 0.9em;
+        }
+    }
+}

@@ -3,7 +3,10 @@
         <details class="settings-details" v-for="(groupData, groupName) in settingsGroups" v-bind:key="groupName">
             <summary>{{ groupName }}</summary>
             <div class="field" v-for="(data, index) in groupData" v-bind:key="index">
-                <label v-if="data.type != 'boolean'" class="label" :for="'input_' + data.key">{{ data.text }}</label>
+                <label v-if="data.type != 'boolean'" class="label" :for="'input_' + data.key">
+                    {{ data.text }}
+                    <span v-if="data.deprecated" class="is-small is-error">Deprecated</span>
+                </label>
 
                 <!-- boolean -->
                 <div v-if="data.type == 'boolean'" class="control">
@@ -61,6 +64,7 @@
         </details>
 
         <div class="control">
+            <hr />
             <button class="button is-confirm" type="submit">
                 <span class="icon"><fa icon="save"></fa></span> Save
             </button>
@@ -115,24 +119,9 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
+                    this.formStatusText = err.response.message ? err.response.message : "Fatal error";
+                    this.formStatus = "ERROR";
                 });
-
-            /*
-            fetch(`api/v0/settings/save`, {
-                method: 'POST',
-                body: inputs
-            })
-            .then((response) => response.json())
-            .then((json) => {
-                this.formStatusText = json.message;
-                this.formStatus = json.status;
-                if(json.status == 'OK'){
-                    this.$emit('formSuccess', json);
-                }
-            }).catch((test) => {
-                console.error("Error", test);
-            });
-            */
 
             event.preventDefault();
             return false;
@@ -149,6 +138,15 @@ export default defineComponent({
                 data[field.group].push(field);
             }
             console.log("settingsGroups", data);
+
+            data = Object.keys(data)
+                .sort()
+                .reduce((obj: any, key) => {
+                    obj[key] = data[key];
+                    return obj;
+                }, {});
+
+            console.log("settingsGroups sort", data);
             return data;
         },
         formStatusClass(): Record<string, boolean> {

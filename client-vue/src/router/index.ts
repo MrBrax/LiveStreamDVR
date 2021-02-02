@@ -26,7 +26,7 @@ const routes: Array<RouteRecordRaw> = [
             import(/* webpackChunkName: "tools" */ "../views/Tools.vue")
     },
     {
-        path: "/settings",
+        path: "/settings/:tab?",
         name: "Settings",
         component: () =>
             import(/* webpackChunkName: "settings" */ "../views/Settings.vue")

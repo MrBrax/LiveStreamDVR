@@ -1,7 +1,23 @@
 <template>
+    <div class="top-tabs">
+        <router-link :to="{ name: 'Settings', params: { tab: 'streamers' } }">
+            <span class="icon"><fa icon="user"></fa></span> Streamers
+        </router-link>
+        <router-link :to="{ name: 'Settings', params: { tab: 'newstreamer' } }">
+            <span class="icon"><fa icon="user-plus"></fa></span> New streamer
+        </router-link>
+        <router-link :to="{ name: 'Settings', params: { tab: 'config' } }">
+            <span class="icon"><fa icon="cog"></fa></span> Config
+        </router-link>
+        <router-link :to="{ name: 'Settings', params: { tab: 'cron' } }">
+            <span class="icon"><fa icon="calendar-check"></fa></span> Cron
+        </router-link>
+    </div>
+
     <div class="container">
         <!-- streamers -->
-        <section class="section">
+
+        <section class="section" v-if="!$route.params.tab || $route.params.tab == 'streamers'">
             <div class="section-title"><h1>Streamers</h1></div>
             <div class="section-content">
                 <div class="card" v-for="streamer in formStreamers" :key="streamer.username">
@@ -16,7 +32,7 @@
         </section>
 
         <!-- new streamer -->
-        <section class="section">
+        <section class="section" v-if="$route.params.tab == 'newstreamer'">
             <div class="section-title"><h1>New streamer</h1></div>
             <div class="section-content">
                 <streamer-add-form @formSuccess="fetchData" />
@@ -24,8 +40,8 @@
         </section>
 
         <!-- settings -->
-        <section class="section">
-            <div class="section-title"><h1>Settings</h1></div>
+        <section class="section" v-if="$route.params.tab == 'config'">
+            <div class="section-title"><h1>Config</h1></div>
             <div class="section-content" v-if="!loading">
                 <settings-form :settingsData="settingsData" :settingsFields="settingsFields" @formSuccess="fetchData" />
             </div>
@@ -34,8 +50,8 @@
             </div>
         </section>
 
-        <!-- settings -->
-        <section class="section">
+        <!-- cron -->
+        <section class="section" v-if="$route.params.tab == 'cron'">
             <div class="section-title"><h1>Cron</h1></div>
             <div class="section-content">
                 <span class="input-help"
@@ -60,7 +76,7 @@
         </section>
 
         <!-- favourites -->
-        <section class="section">
+        <section class="section" v-if="$route.params.tab == 'favourites'">
             <div class="section-title"><h1>Favourite games</h1></div>
             <div class="section-content" v-if="!loading">
                 <favourites-form :favouritesData="favouritesData" :gamesData="gamesData" @formSuccess="fetchData" />
@@ -74,7 +90,6 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-// import HelloWorld from "@/components/HelloWorld.vue"; // @ is an alias to /src
 
 import StreamerAddForm from "@/components/forms/StreamerAddForm.vue";
 import StreamerUpdateForm from "@/components/forms/StreamerUpdateForm.vue";
@@ -83,9 +98,15 @@ import FavouritesForm from "@/components/forms/FavouritesForm.vue";
 
 import type { ApiSettingsField, ApiGame } from "@/twitchautomator.d";
 
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faUser, faCalendarCheck } from "@fortawesome/free-solid-svg-icons";
+library.add(faUser, faCalendarCheck);
+
 export default defineComponent({
     name: "Settings",
-    title: "Settings",
+    title() {
+        return `Settings`;
+    },
     data() {
         return {
             loading: false,
