@@ -275,3 +275,15 @@ details.settings-details {
         font-style: italic;
     }
 }
+
+.debug-mode {
+    // border:5px solid #0f0;
+    // background-color: #f00;
+    // font-size: 70px;
+    display: inline-block;
+    animation: 3s ayylien linear infinite;
+    perspective: 100px;
+    // transform: perspective(100px) rotateY(80deg);
+    // perspective-origin: center;
+    transform-style: preserve-3d;
+}
