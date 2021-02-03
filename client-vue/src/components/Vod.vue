@@ -585,6 +585,7 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
                     this.taskStatus.archive = false;
                 });
         },
@@ -602,6 +603,7 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
                     this.taskStatus.downloadChat = false;
                 });
         },
@@ -623,6 +625,7 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
                     this.taskStatus.downloadVod = false;
                 });
         },
@@ -672,6 +675,7 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
                     this.taskStatus.delete = false;
                 });
         },
@@ -696,6 +700,7 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
                 });
         },
     },
