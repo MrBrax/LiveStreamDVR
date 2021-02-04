@@ -663,6 +663,7 @@ export default defineComponent({
         },
         doDelete() {
             if (!confirm(`Do you want to delete "${this.vod?.basename}"?`)) return;
+            if (this.vod?.twitch_vod_exists === false && !confirm(`The VOD "${this.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
             this.taskStatus.delete = true;
             this.$http
                 .post(`/api/v0/vod/${this.vod?.basename}/delete`)
