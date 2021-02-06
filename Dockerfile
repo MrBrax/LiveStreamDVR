@@ -1,4 +1,4 @@
-FROM erseco/alpine-php7-webserver:edge
+FROM trafex/alpine-nginx-php7
 USER root
 
 # system packages

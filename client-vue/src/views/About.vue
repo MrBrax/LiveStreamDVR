@@ -72,7 +72,7 @@
                                 aboutData.bins.php.platform_family ? aboutData.bins.php.platform_family : "unknown"
                             }}
                         </li>
-                        <li><strong>Docker:</strong> {{ is_docker ? "Yes" : "No" }}</li>
+                        <li><strong>Docker:</strong> {{ aboutData.is_docker ? "Yes" : "No" }}</li>
                         <li><strong>Backend version:</strong> {{ $store.state.version }}</li>
                         <li><strong>Frontend version:</strong> {{ clientVersion }}</li>
                         <li><strong>Frontend build:</strong> {{ clientMode }}</li>
@@ -141,7 +141,6 @@ export default defineComponent({
         return {
             aboutData: Object as any,
             envs: {},
-            is_docker: false,
         };
     },
     created() {
