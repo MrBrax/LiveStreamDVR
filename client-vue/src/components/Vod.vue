@@ -585,6 +585,7 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
                     this.taskStatus.archive = false;
                 });
         },
@@ -602,6 +603,7 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
                     this.taskStatus.downloadChat = false;
                 });
         },
@@ -623,6 +625,7 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
                     this.taskStatus.downloadVod = false;
                 });
         },
@@ -660,6 +663,7 @@ export default defineComponent({
         },
         doDelete() {
             if (!confirm(`Do you want to delete "${this.vod?.basename}"?`)) return;
+            if (this.vod?.twitch_vod_exists === false && !confirm(`The VOD "${this.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
             this.taskStatus.delete = true;
             this.$http
                 .post(`/api/v0/vod/${this.vod?.basename}/delete`)
@@ -672,6 +676,7 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
                     this.taskStatus.delete = false;
                 });
         },
@@ -696,6 +701,7 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
                 });
         },
     },

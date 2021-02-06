@@ -37,9 +37,11 @@ class TwitchConfig
 		['key' => 'sub_secret', 			'group' => 'Advanced',	'text' => 'Subscription secret', 							'type' => 'string'],
 		['key' => 'api_client_id', 			'group' => 'Basic',		'text' => 'Twitch client ID', 								'type' => 'string',		'required' => true],
 		['key' => 'api_secret', 			'group' => 'Basic',		'text' => 'Twitch secret', 									'type' => 'string',		'secret' => true, 'required' => true, 'help' => 'Keep blank to not change'],
-		['key' => 'youtube_api_client_id', 	'group' => 'Basic',		'text' => 'YouTube API Client key', 						'type' => 'string'],
+		['key' => 'youtube_api_client_id', 	'group' => 'Basic',		'text' => 'YouTube API Client key', 						'type' => 'string', 	'deprecated' => true],
+		['key' => 'youtube_api_key', 		'group' => 'Exporters',	'text' => 'YouTube API Key',								'type' => 'string', 	'deprecated' => true],
+
 		// [ 'key' => 'hook_callback', 		'text' => 'Hook callback', 									'type' => 'string', 'required' => true ],
-		['key' => 'timezone', 				'group' => 'Interface',	'text' => 'Timezone', 										'type' => 'array',		'choices' => 'timezones', 'default' => 'UTC', 'help' => 'This only affects the GUI, not the values stored'],
+		['key' => 'timezone', 				'group' => 'Interface',	'text' => 'Timezone', 										'type' => 'array',		'choices' => 'timezones', 'default' => 'UTC', 'help' => 'This only affects the GUI, not the values stored', 'deprecated' => true],
 
 		['key' => 'vod_container', 			'group' => 'Video',		'text' => 'VOD container (not tested)', 					'type' => 'array',		'choices' => ['mp4', 'mkv', 'mov'], 'default' => 'mp4'],
 
@@ -62,7 +64,7 @@ class TwitchConfig
 		['key' => 'playlist_dump', 			'group' => 'Advanced',	'text' => 'Use playlist dumping (experimental)',			'type' => 'boolean',	'default' => false],
 		['key' => 'process_wait_method', 	'group' => 'Advanced',	'text' => 'Process wait method',							'type' => 'number',		'default' => 1],
 
-		['key' => 'youtube_api_key', 		'group' => 'Exporters',	'text' => 'YouTube API Key',								'type' => 'string'],
+		
 
 	];
 

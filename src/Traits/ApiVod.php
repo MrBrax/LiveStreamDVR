@@ -96,7 +96,17 @@ trait ApiVod
 
         if ($vodclass->twitch_vod_id) {
 
-            if ($vodclass->downloadChat()) {
+            try {
+                $chat_downloaded = $vodclass->downloadChat();
+            } catch (\Throwable $th) {
+                $response->getBody()->write(json_encode([
+                    "message" => "Chat download fatal error: {$th->getMessage()}",
+                    "status" => "ERROR"
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+
+            if ($chat_downloaded) {
                 $payload = json_encode([
                     'message' => 'Chat downloaded',
                     'status' => 'OK'
