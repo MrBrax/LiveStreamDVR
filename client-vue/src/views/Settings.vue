@@ -62,7 +62,7 @@
                         0  5    * * 1 curl {{ $store.state.config.app_url }}/api/v0/cron/sub<br />
                         0  */12 * * * curl {{ $store.state.config.app_url }}/api/v0/cron/check_muted_vods<br />
                         10 */12 * * * curl {{ $store.state.config.app_url }}/api/v0/cron/check_deleted_vods<br />
-                        0  1    * * * curl {{ $store.state.config.app_url }}/api/v0/cron/playlist_dump
+                        0  1    * * * curl {{ $store.state.config.app_url }}/api/v0/cron/dump_playlists
                     </code>
                     <span class="input-help">
                         This will subscribe to the webhook every 5 days, check muted &amp; deleted vods every 12 hours, and dump playlists once per day.
