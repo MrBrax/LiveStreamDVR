@@ -51,7 +51,8 @@
                             v-for="item in data.choices"
                             :key="item"
                             :selected="
-                                (settingsData[data.key] !== undefined && settingsData[data.key] === item) || (settingsData[data.key] === undefined && item === data.default)
+                                (settingsData[data.key] !== undefined && settingsData[data.key] === item) ||
+                                (settingsData[data.key] === undefined && item === data.default)
                             "
                         >
                             {{ item }}

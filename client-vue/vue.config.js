@@ -5,6 +5,9 @@ module.exports = {
     publicPath: process.env.BASE_URL,
     // publicPath: './',
     assetsDir: "assets",
+    pwa: {
+        manifestPath: "manifest/manifest.json",
+    },
     devServer: {
         port: 8081,
         proxy: {

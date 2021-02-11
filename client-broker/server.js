@@ -7,7 +7,8 @@ class ClientBroker {
         this.wss = null;
     }
     start () {
-        const serverPort = process.argv[2] ? process.argv[2] : 8765;
+        const a = process.argv.slice(2);
+        const serverPort = a[0] ? parseInt(a[0]) : 8765;
         
         console.log(`Starting on port ${serverPort}...`);
         try {
@@ -36,12 +37,19 @@ class ClientBroker {
             console.log(`Pong from ${clientIP}`);
         });
         ws.on("error", (err) => {
-            console.error('Client error', err)
+            console.error("Client error", err)
         });
     }
 
     onMessage(ws, message){
         // console.log("message", ws, message);
+
+        if(message == "ping"){
+            console.log(`Pong to ${ws.clientIP}`);
+            ws.send("pong");
+            return;
+        }
+
         let data;
 
         try {
@@ -60,7 +68,7 @@ class ClientBroker {
             });
         }
 
-        console.log("json", data);
+        console.log(`json from ${ws.clientIP}:`, data);
         console.debug(`Clients: ${this.wss.clients.size}`);
     }
 }

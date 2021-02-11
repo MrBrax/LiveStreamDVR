@@ -49,7 +49,12 @@
     </div>
 
     <div id="js-status" ref="js-status" @click="timer = 0">
-        {{ loading ? "Loading..." : `Refreshing in ${timer} seconds.` }}
+        <template v-if="ws">
+            {{ wsConnected ? "Connected" : "Disconnected" }}
+        </template>
+        <template v-else>
+            {{ loading ? "Loading..." : `Refreshing in ${timer} seconds.` }}
+        </template>
     </div>
     <div id="jobs-status" v-if="$store.state.jobList !== undefined">
         <table>
@@ -95,6 +100,8 @@ export default defineComponent({
             oldData: {} as Record<string, ApiStreamer>,
             notificationSub: Function as any,
             ws: {} as WebSocket,
+            wsConnected: false,
+            wsKeepalive: 0,
         };
     },
     created() {
@@ -112,9 +119,6 @@ export default defineComponent({
             });
     },
     mounted() {
-        this.interval = setInterval(() => {
-            this.fetchTicker();
-        }, 1000);
 
         this.processNotifications();
 
@@ -122,6 +126,9 @@ export default defineComponent({
             this.connectWebsocket();
         } else {
             console.debug("No websocket url");
+            this.interval = setInterval(() => {
+                this.fetchTicker();
+            }, 1000);
         }
     },
     unmounted() {
@@ -135,12 +142,13 @@ export default defineComponent({
             this.notificationSub();
         }
 
-        if (this.ws){
+        if (this.ws) {
             this.disconnectWebsocket();
         }
     },
     methods: {
         connectWebsocket() {
+            if (this.ws) this.disconnectWebsocket();
             const proto = window.location.protocol === "https:" ? "wss://" : "ws://";
             const websocket_url_public = proto + window.location.host + this.$store.state.config.basepath + "/socket/";
             const websocket_url = process.env.NODE_ENV === "development" ? "ws://localhost:8765/socket/" : websocket_url_public;
@@ -149,10 +157,21 @@ export default defineComponent({
             this.ws.onopen = (ev: Event) => {
                 console.log(`Connected to websocket!`);
                 this.ws.send(JSON.stringify({ action: "helloworld" }));
+                this.wsConnected = true;
+                this.wsKeepalive = setInterval(() => {
+                    console.debug("send ping");
+                    this.ws.send("ping");
+                }, 10000);
             };
             this.ws.onmessage = (ev: MessageEvent) => {
                 // console.log("ws message", ev);
                 let text = ev.data;
+
+                if (text == "pong") {
+                    console.log("pong recieved");
+                    return;
+                }
+
                 let json: any = {};
                 try {
                     json = JSON.parse(text);
@@ -174,17 +193,26 @@ export default defineComponent({
             };
             this.ws.onerror = (ev: Event) => {
                 console.error("Websocket error", ev);
+                this.wsConnected = false;
+                clearInterval(this.wsKeepalive);
             };
             this.ws.onclose = (ev: CloseEvent) => {
-                // console.log("ws close", ev);
-                console.log(`Disconnected from websocket!`);
+                console.log(`Disconnected from websocket!`, ev);
+                setTimeout(() => {
+                    if (!ev.wasClean) {
+                        this.connectWebsocket();
+                    }
+                }, 10000);
+                this.wsConnected = false;
+                clearInterval(this.wsKeepalive);
             };
             return this.ws;
         },
         disconnectWebsocket() {
             if (this.ws) {
                 console.log("Closing websocket...");
-                this.ws.close();
+                this.ws.close(undefined, "pageleave");
+                if (this.wsKeepalive) clearInterval(this.wsKeepalive);
             }
         },
         async fetchStreamers() {
@@ -314,8 +342,8 @@ export default defineComponent({
                 }*/
                 // console.log( "values", Object.(mutation.payload[0]));
                 const streamerPronounciation: { [key: string]: string } = {
-                    "pokelawls": "pookelawls",
-                    "xQcOW": "eckscueseeow"
+                    pokelawls: "pookelawls",
+                    xQcOW: "eckscueseeow",
                 };
 
                 // console.debug("notification payload", mutation);

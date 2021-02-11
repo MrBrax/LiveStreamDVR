@@ -62,36 +62,64 @@
                     }"
                     :title="formatDate(vod.dt_started_at.date)"
                 >
-                    <!-- main icon -->
-                    <span class="icon" v-if="vod.is_capturing"><fa icon="sync" spin></fa></span><!-- capturing -->
-                    <span class="icon" v-else-if="vod.is_converting"><fa icon="cog" spin></fa></span><!-- converting -->
-                    <span class="icon" v-else-if="vod.api_hasFavouriteGame"><fa icon="star"></fa></span><!-- favourite -->
-                    <span class="icon" v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized"><fa :icon="['far', 'hourglass']"></fa></span> <!-- waiting after capture -->
-                    <span class="icon" v-else-if="vod.is_finalized"><fa icon="film"></fa></span><!-- video -->
+                    <!-- capturing -->
+                    <span class="icon" v-if="vod.is_capturing"><fa icon="sync" spin></fa></span>
+
+                    <!-- converting -->
+                    <span class="icon" v-else-if="vod.is_converting"><fa icon="cog" spin></fa></span>
+
+                    <!-- favourite -->
+                    <span class="icon" v-else-if="vod.api_hasFavouriteGame"><fa icon="star"></fa></span>
+
+                    <!-- waiting after capture -->
+                    <span class="icon" v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized"><fa :icon="['far', 'hourglass']"></fa></span>
+
+                    <!-- video -->
+                    <span class="icon" v-else-if="vod.is_finalized"><fa icon="film"></fa></span>
 
                     <!-- started at -->
-                    <span v-if="!$store.state.clientConfig.useRelativeTime && vod.dt_started_at">{{ formatDate(vod.dt_started_at.date) }}</span><!-- absolute time -->
-                    <span v-if="$store.state.clientConfig.useRelativeTime && vod.dt_started_at">{{ humanDate(vod.dt_started_at.date, true) }}</span><!-- relative time -->
+
+                    <!-- absolute time -->
+                    <span v-if="!$store.state.clientConfig.useRelativeTime && vod.dt_started_at">{{ formatDate(vod.dt_started_at.date) }}</span>
+
+                    <!-- relative time -->
+                    <span v-if="$store.state.clientConfig.useRelativeTime && vod.dt_started_at">{{ humanDate(vod.dt_started_at.date, true) }}</span>
 
                     <!-- when capturing -->
                     <template v-if="vod.is_capturing">
-                        <span> &middot; (<duration-display :startDate="streamer.current_vod.dt_started_at.date" :outputStyle="$store.state.clientConfig.useRelativeTime ? 'human' : 'numbers'"></duration-display>)</span><!-- duration -->
-                        <span v-if="vod.api_getRecordingSize"> &middot; {{ formatBytes(vod.api_getRecordingSize, 2) }}+</span><!-- filesize -->
+                        <span>
+                            &middot; (<duration-display
+                                :startDate="streamer.current_vod.dt_started_at.date"
+                                :outputStyle="$store.state.clientConfig.useRelativeTime ? 'human' : 'numbers'"
+                            ></duration-display
+                            >)</span
+                        ><!-- duration -->
+                        <span v-if="vod.api_getRecordingSize"> &middot; {{ formatBytes(vod.api_getRecordingSize, 2) }}+</span
+                        ><!-- filesize -->
                     </template>
 
                     <!-- when not capturing -->
                     <template v-else>
-                        <span v-if="vod.duration_seconds"> &middot; ({{ $store.state.clientConfig.useRelativeTime ? niceDuration(vod.duration_seconds) : humanDuration(vod.duration_seconds) }})</span><!-- duration -->
-                        <span v-if="vod.total_size"> &middot; {{ formatBytes(vod.total_size, 2) }}</span><!-- filesize -->
+                        <span v-if="vod.duration_seconds">
+                            &middot; ({{
+                                $store.state.clientConfig.useRelativeTime ? niceDuration(vod.duration_seconds) : humanDuration(vod.duration_seconds)
+                            }})</span
+                        ><!-- duration -->
+                        <span v-if="vod.total_size"> &middot; {{ formatBytes(vod.total_size, 2) }}</span
+                        ><!-- filesize -->
                     </template>
 
                     <!-- flags -->
                     <template v-if="vod.is_finalized">
                         <span class="flags">
-                            <span v-if="vod.twitch_vod_exists === false" class="icon is-error" title="Deleted"><fa icon="trash"></fa></span><!-- vod deleted -->
-                            <span v-if="vod.twitch_vod_exists === null" class="icon is-error" title="Not checked"><fa icon="question"></fa></span><!-- vod not checked -->
-                            <span v-if="vod.twitch_vod_muted === true" class="icon is-error" title="Muted"><fa icon="volume-mute"></fa></span><!-- vod muted -->
-                            <span v-if="vod.is_capture_paused" class="icon is-error" title="Paused"><fa icon="pause"></fa></span><!-- capturing paused -->
+                            <span v-if="vod.twitch_vod_exists === false" class="icon is-error" title="Deleted"><fa icon="trash"></fa></span
+                            ><!-- vod deleted -->
+                            <span v-if="vod.twitch_vod_exists === null" class="icon is-error" title="Not checked"><fa icon="question"></fa></span
+                            ><!-- vod not checked -->
+                            <span v-if="vod.twitch_vod_muted === true" class="icon is-error" title="Muted"><fa icon="volume-mute"></fa></span
+                            ><!-- vod muted -->
+                            <span v-if="vod.is_capture_paused" class="icon is-error" title="Paused"><fa icon="pause"></fa></span
+                            ><!-- capturing paused -->
                         </span>
                     </template>
 

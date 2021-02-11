@@ -173,7 +173,8 @@
                             </li>
                             <li>
                                 <span v-if="vod?.twitch_vod_id">
-                                    The ID was <a :href="vod?.twitch_vod_url" rel="noreferrer" target="_blank">{{ vod?.twitch_vod_id }}</a>.
+                                    The ID was <a :href="vod?.twitch_vod_url" rel="noreferrer" target="_blank">{{ vod?.twitch_vod_id }}</a
+                                    >.
                                 </span>
                                 <span v-else>The VOD probably never got saved.</span>
                             </li>
@@ -348,7 +349,8 @@
             <template v-else-if="vod?.is_capturing">
                 <em class="text-overflow">
                     <span class="icon"><fa icon="video"></fa></span>
-                    Capturing to <strong>{{ vod?.basename }}.ts</strong> (<strong>{{ formatBytes(vod?.api_getRecordingSize) }}</strong>)
+                    Capturing to <strong>{{ vod?.basename }}.ts</strong> (<strong>{{ formatBytes(vod?.api_getRecordingSize) }}</strong
+                    >)
                 </em>
 
                 <br />

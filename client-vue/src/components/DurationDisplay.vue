@@ -37,7 +37,8 @@ export default defineComponent({
                 if ((dur.seconds && dur.seconds > 0) || (dur.minutes && dur.minutes > 0)) str += `${dur.seconds}s `;
                 this.timeString = str.trim();
             } else {
-                this.timeString = dur.hours?.toString().padStart(2, "0") + ":" + dur.minutes?.toString().padStart(2, "0") + ":" + dur.seconds?.toString().padStart(2, "0");
+                this.timeString =
+                    dur.hours?.toString().padStart(2, "0") + ":" + dur.minutes?.toString().padStart(2, "0") + ":" + dur.seconds?.toString().padStart(2, "0");
             }
         },
     },
