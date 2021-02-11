@@ -1109,11 +1109,24 @@ class TwitchHelper
 		if(TwitchConfig::cfg('websocket_enabled') || getenv('TCD_DOCKER') == 1 ){
 			$websocket_url = getenv('TCD_DOCKER') == 1 ? "ws://broker:8765/socket/" : preg_replace("/https?/", "ws", TwitchConfig::cfg('app_url')) . "/socket/";
 			$client = new Websocket\Client($websocket_url);
-			$client->text(json_encode([
-				'server' => true,
-				'data' => $data
-			]));
-			$client->close();
+			
+			try {
+				$client->text(json_encode([
+					'server' => true,
+					'data' => $data
+				]));
+			} catch (\Throwable $th) {
+				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Websocket send error: " . $th->getMessage());
+			}
+			
+			if($client && $client->isConnected()){
+				try {
+					$client->close();
+				} catch (\Throwable $th) {
+					TwitchHelper::log(TwitchHelper::LOG_ERROR, "Websocket close error: " . $th->getMessage());
+				}
+				
+			}
 		}
 
 		if (!TwitchConfig::cfg('webhook_url')) {

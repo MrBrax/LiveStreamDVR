@@ -10,7 +10,16 @@ class ClientBroker {
         const serverPort = process.argv[2] ? process.argv[2] : 8765;
         
         console.log(`Starting on port ${serverPort}...`);
-        this.wss = new WebSocket.Server({ port: serverPort });
+        try {
+            this.wss = new WebSocket.Server({ port: serverPort });
+        } catch (error) {
+            console.error("Fatal error when starting broker server", error);
+            return false;
+        }
+
+        this.wss.on('error', (error) => {
+            console.log("Websocket server error", error);
+        });
 
         this.wss.on('connection', this.onConnect.bind(this));
     }
