@@ -28,7 +28,7 @@
                         <strong>{{ streamer.current_game.game_name }}</strong>
                     </template>
                     <template v-else>
-                        Playing <strong>{{ streamer.current_game.game_name }}</strong>
+                        Playing <strong>{{ streamer.current_game ? streamer.current_game.game_name : "(none)" }}</strong>
                     </template>
                     for
                     <duration-display

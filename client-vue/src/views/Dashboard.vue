@@ -134,6 +134,10 @@ export default defineComponent({
             console.log("unsubscribing from notifications, unmounted");
             this.notificationSub();
         }
+
+        if (this.ws){
+            this.disconnectWebsocket();
+        }
     },
     methods: {
         connectWebsocket() {
@@ -143,7 +147,7 @@ export default defineComponent({
             console.log(`Connecting to ${websocket_url}`);
             this.ws = new WebSocket(websocket_url);
             this.ws.onopen = (ev: Event) => {
-                console.log("ws open", ev);
+                console.log(`Connected to websocket!`);
                 this.ws.send(JSON.stringify({ action: "helloworld" }));
             };
             this.ws.onmessage = (ev: MessageEvent) => {
@@ -169,12 +173,19 @@ export default defineComponent({
                 }
             };
             this.ws.onerror = (ev: Event) => {
-                console.log("ws error", ev);
+                console.error("Websocket error", ev);
             };
             this.ws.onclose = (ev: CloseEvent) => {
-                console.log("ws close", ev);
+                // console.log("ws close", ev);
+                console.log(`Disconnected from websocket!`);
             };
             return this.ws;
+        },
+        disconnectWebsocket() {
+            if (this.ws) {
+                console.log("Closing websocket...");
+                this.ws.close();
+            }
         },
         async fetchStreamers() {
             let response;

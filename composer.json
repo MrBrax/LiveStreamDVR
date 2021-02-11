@@ -1,6 +1,5 @@
 {
   "require": {
-    "james-heinrich/getid3": "^1.9",
     "twig/twig": "3.0",
     "slim/twig-view": "^3.1",
     "slim/slim": "4.*",
