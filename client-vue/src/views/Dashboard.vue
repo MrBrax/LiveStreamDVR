@@ -137,8 +137,9 @@ export default defineComponent({
     },
     methods: {
         connectWebsocket() {
-            const websocket_url =
-                process.env.NODE_ENV === "development" ? "ws://localhost:8765/socket/" : this.$store.state.config.app_url.replace(/https?/, "ws") + "/socket/";
+            const proto = window.location.protocol === "https:" ? "wss://" : "ws://";
+            const websocket_url_public = proto + window.location.host + this.$store.state.config.basepath + "/socket/";
+            const websocket_url = process.env.NODE_ENV === "development" ? "ws://localhost:8765/socket/" : websocket_url_public;
             console.log(`Connecting to ${websocket_url}`);
             this.ws = new WebSocket(websocket_url);
             this.ws.onopen = (ev: Event) => {

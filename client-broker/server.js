@@ -7,8 +7,10 @@ class ClientBroker {
         this.wss = null;
     }
     start () {
-        console.log('Starting...');
-        this.wss = new WebSocket.Server({ port: 8765 });
+        const serverPort = process.argv[2] ? process.argv[2] : 8765;
+        
+        console.log(`Starting on port ${serverPort}...`);
+        this.wss = new WebSocket.Server({ port: serverPort });
 
         this.wss.on('connection', this.onConnect.bind(this));
     }
