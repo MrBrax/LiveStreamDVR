@@ -12,6 +12,7 @@ use App\Controller\ApiController;
 use App\Controller\CronController;
 
 use App\TwitchConfig;
+use App\TwitchHelper;
 
 /** @var \Slim\App $app  */
 
@@ -162,6 +163,14 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     $group->any('/hook', ApiController::class . ':hook')->setName('hook');
 
     $group->get('/log/{filename}[/{last_line}]', ApiController::class . ':display_log')->setName('api_display_log');
+
+    $group->any('/test_webhook', function (Request $request, Response $response, array $args) {
+        TwitchHelper::webhook([
+			'action' => 'test'
+		]);
+        $response->getBody()->write("Tested");
+        return $response;
+    });
 
     // $group->post('/hook', ApiController::class . ':hook')->setName('hook_post');
 

@@ -12,7 +12,8 @@
     "guzzlehttp/guzzle": "7.0",
     "tuupola/slim-basic-auth": "^3.2",
     "symfony/process": "^5.1",
-    "twig/html-extra": "^3.0"
+    "twig/html-extra": "^3.0",
+    "textalk/websocket": "^1.5"
   },
   "autoload": {
     "psr-4": {

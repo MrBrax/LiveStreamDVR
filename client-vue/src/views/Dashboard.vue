@@ -94,6 +94,7 @@ export default defineComponent({
             logModule: "",
             oldData: {} as Record<string, ApiStreamer>,
             notificationSub: Function as any,
+            ws: {} as WebSocket,
         };
     },
     created() {
@@ -116,6 +117,12 @@ export default defineComponent({
         }, 1000);
 
         this.processNotifications();
+
+        if (this.$store.state.config.websocket_enabled) {
+            this.connectWebsocket();
+        } else {
+            console.debug("No websocket url");
+        }
     },
     unmounted() {
         if (this.interval) {
@@ -129,6 +136,45 @@ export default defineComponent({
         }
     },
     methods: {
+        connectWebsocket() {
+            const websocket_url =
+                process.env.NODE_ENV === "development" ? "ws://localhost:8765/socket/" : this.$store.state.config.app_url.replace(/https?/, "ws") + "/socket/";
+            console.log(`Connecting to ${websocket_url}`);
+            this.ws = new WebSocket(websocket_url);
+            this.ws.onopen = (ev: Event) => {
+                console.log("ws open", ev);
+                this.ws.send(JSON.stringify({ action: "helloworld" }));
+            };
+            this.ws.onmessage = (ev: MessageEvent) => {
+                // console.log("ws message", ev);
+                let text = ev.data;
+                let json: any = {};
+                try {
+                    json = JSON.parse(text);
+                } catch (error) {
+                    console.error("Couldn't parse json", text);
+                    return;
+                }
+                // console.log("json return", json);
+                // this.$emit("websocketData", json);
+                if (json.data.action && ["start_capture", "finish_capture", "chapter_update"].indexOf(json.data.action) !== -1) {
+                    console.log("Websocket update");
+                    this.fetchStreamers().then((sl) => {
+                        this.$store.commit("updateStreamerList", sl);
+                        this.loading = false;
+                    });
+                } else {
+                    console.log(`Websocket wrong action (${json.data.action})`);
+                }
+            };
+            this.ws.onerror = (ev: Event) => {
+                console.log("ws error", ev);
+            };
+            this.ws.onclose = (ev: CloseEvent) => {
+                console.log("ws close", ev);
+            };
+            return this.ws;
+        },
         async fetchStreamers() {
             let response;
             try {

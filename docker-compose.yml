@@ -4,7 +4,7 @@ services:
     build: .
     image: mrbrax/twitchautomator
     ports:
-      - "8081:8080"
+      - "8082:8080"
     volumes:
       - ./config:/var/www/twitchautomator/config
       - ./cache:/var/www/twitchautomator/cache
@@ -14,3 +14,5 @@ services:
       - ./docker/saved_vods:/var/www/twitchautomator/public/saved_vods
   cron:
     build: ./docker/cron-container/
+  broker:
+    build: ./client-broker/

@@ -145,6 +145,7 @@ export type ApiConfig = {
     process_wait_method: number;
     youtube_api_key: string;
     favourites: Record<string, string>;
+    websocket_enabled: boolean;
 };
 
 export type ApiStreamer = {
