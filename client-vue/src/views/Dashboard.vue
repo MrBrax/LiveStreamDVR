@@ -209,7 +209,7 @@ export default defineComponent({
             return this.ws;
         },
         disconnectWebsocket() {
-            if (this.ws) {
+            if (this.ws && this.ws.close) {
                 console.log("Closing websocket...");
                 this.ws.close(undefined, "pageleave");
                 if (this.wsKeepalive) clearInterval(this.wsKeepalive);
