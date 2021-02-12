@@ -85,6 +85,13 @@ class TwitchAutomatorJob
 	function save()
 	{
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "job", "Save job {$this->name} with PID {$this->pid}", $this->metadata);
+
+		TwitchHelper::webhook([
+			'action' => 'job_save',
+			'job_name' => $this->name,
+			'job' => $this
+		]);
+
 		return file_put_contents($this->pidfile, json_encode($this)) != false;
 	}
 
@@ -101,6 +108,13 @@ class TwitchAutomatorJob
 
 		if (file_exists($this->pidfile)) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "job", "Clear job {$this->name} with PID {$this->pid}", $this->metadata);
+			
+			TwitchHelper::webhook([
+				'action' => 'job_clear',
+				'job_name' => $this->name,
+				'job' => $this
+			]);
+
 			return unlink($this->pidfile);
 		}
 		return false;

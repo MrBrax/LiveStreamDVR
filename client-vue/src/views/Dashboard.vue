@@ -180,14 +180,18 @@ export default defineComponent({
                     console.error("Couldn't parse json", text);
                     return;
                 }
-                // console.log("json return", json);
-                // this.$emit("websocketData", json);
-                if (json.data.action && ["start_capture", "finish_capture", "chapter_update"].indexOf(json.data.action) !== -1) {
+
+                const listen_actions = ["start_download", "end_download", "start_capture", "end_capture", "chapter_update"];
+                if (json.data.action && listen_actions.indexOf(json.data.action) !== -1) {
                     console.log("Websocket update");
                     this.fetchStreamers().then((sl) => {
                         this.$store.commit("updateStreamerList", sl);
                         this.loading = false;
                     });
+                } else if (json.data.action && json.data.action == "notify") {
+                    // alert(json.data.text);
+                    const toast = new Notification(json.data.text);
+                    console.log(`Notify: ${json.data.text}`);
                 } else {
                     console.log(`Websocket wrong action (${json.data.action})`);
                 }
