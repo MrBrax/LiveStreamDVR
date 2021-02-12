@@ -1,4 +1,4 @@
-import { ApiStreamer, ApiConfig, ApiJob } from "@/twitchautomator";
+import { ApiStreamer, ApiConfig, ApiJob, ApiVod } from "@/twitchautomator";
 import { createStore } from "vuex";
 
 export default createStore({
@@ -39,6 +39,22 @@ export default createStore({
         */
         updateStreamerList(state, data: ApiStreamer[]) {
             (state as any).streamerList = data;
+        },
+        updateVod(state, vod: ApiVod){
+            const streamer_name = vod.streamer_name;
+            const vod_basename = vod.basename;
+            console.log("updateVod", (state as any).streamerList);
+            for (const streamer of (state as any).streamerList as ApiStreamer[]){
+                if (streamer.username === streamer_name) {
+                    for (let streamer_vod of streamer.vods_list){
+                        if(streamer_vod.basename === vod_basename){
+                            streamer_vod = vod;
+                            console.log("replaced");
+                        }
+                    }
+                    break;
+                }
+            }
         },
         updateJobList(state, data: ApiJob[]) {
             (state as any).jobList = data;

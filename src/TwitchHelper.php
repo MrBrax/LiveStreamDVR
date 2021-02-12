@@ -1107,7 +1107,17 @@ class TwitchHelper
 	{
 
 		if(TwitchConfig::cfg('websocket_enabled') || getenv('TCD_DOCKER') == 1 ){
-			$websocket_url = getenv('TCD_DOCKER') == 1 ? "ws://broker:8765/socket/" : preg_replace("/https?/", "ws", TwitchConfig::cfg('app_url')) . "/socket/";
+			$public_websocket_url = preg_replace("/https?/", "ws", TwitchConfig::cfg('app_url')) . "/socket/";
+			$docker_websocket_url = "ws://broker:8765/socket/";
+			$local_websocket_url = "ws://localhost:8765/socket/";
+			$websocket_url = getenv('TCD_DOCKER') == 1 ? $docker_websocket_url : $public_websocket_url;
+
+			/** @todo: developement instead of debug */
+			if(TwitchConfig::cfg('debug')){
+				$websocket_url = $local_websocket_url;
+			}
+
+			if(getenv())
 			$client = new Websocket\Client($websocket_url);
 			
 			try {

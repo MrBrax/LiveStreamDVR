@@ -193,6 +193,13 @@ export default defineComponent({
                     const job_actions = ["job_save", "job_clear"];
                     if (downloader_actions.indexOf(action) !== -1) {
                         console.log("Websocket update");
+                        const vod = json.data.vod;
+                       /*
+                       if (vod) {
+                            console.log("Websocket update vod", vod);
+                            this.$store.commit("updateVod", vod);
+                        }
+                        */
                         this.fetchStreamers().then((sl) => {
                             this.$store.commit("updateStreamerList", sl);
                             this.loading = false;
