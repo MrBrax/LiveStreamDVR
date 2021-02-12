@@ -102,6 +102,7 @@ export default defineComponent({
             ws: {} as WebSocket,
             wsConnected: false,
             wsKeepalive: 0,
+            wsLastPing: 0,
         };
     },
     created() {
@@ -119,7 +120,6 @@ export default defineComponent({
             });
     },
     mounted() {
-
         this.processNotifications();
 
         if (this.$store.state.config.websocket_enabled) {
@@ -159,7 +159,7 @@ export default defineComponent({
                 this.ws.send(JSON.stringify({ action: "helloworld" }));
                 this.wsConnected = true;
                 this.wsKeepalive = setInterval(() => {
-                    console.debug("send ping");
+                    // console.debug("send ping");
                     this.ws.send("ping");
                 }, 10000);
             };
@@ -168,7 +168,8 @@ export default defineComponent({
                 let text = ev.data;
 
                 if (text == "pong") {
-                    console.log("pong recieved");
+                    // console.log("pong recieved");
+                    this.wsLastPing = Date.now();
                     return;
                 }
 
