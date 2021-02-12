@@ -41,6 +41,13 @@
             </div>
 
             <div class="field">
+                <label class="checkbox">
+                    <input class="input" type="checkbox" name="no_capture" value="1" :checked="streamer.no_capture" />
+                    Burn chat after downloading
+                </label>
+            </div>
+
+            <div class="field">
                 <div class="control">
                     <button class="button is-confirm" type="submit">
                         <span class="icon"><fa icon="save"></fa></span> Save

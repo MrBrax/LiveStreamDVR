@@ -107,6 +107,7 @@ export default defineComponent({
             wsConnected: false,
             wsKeepalive: 0,
             wsLastPing: 0,
+            wsKeepaliveTime: 20000,
         };
     },
     created() {
@@ -165,7 +166,7 @@ export default defineComponent({
                 this.wsKeepalive = setInterval(() => {
                     // console.debug("send ping");
                     this.ws.send("ping");
-                }, 10000);
+                }, this.wsKeepaliveTime);
             };
             this.ws.onmessage = (ev: MessageEvent) => {
                 // console.log("ws message", ev);
@@ -185,19 +186,29 @@ export default defineComponent({
                     return;
                 }
 
-                const listen_actions = ["start_download", "end_download", "start_capture", "end_capture", "chapter_update"];
-                if (json.data.action && listen_actions.indexOf(json.data.action) !== -1) {
-                    console.log("Websocket update");
-                    this.fetchStreamers().then((sl) => {
-                        this.$store.commit("updateStreamerList", sl);
-                        this.loading = false;
-                    });
-                } else if (json.data.action && json.data.action == "notify") {
-                    // alert(json.data.text);
-                    const toast = new Notification(json.data.text);
-                    console.log(`Notify: ${json.data.text}`);
+                const action = json.data.action;
+
+                if (action) {
+                    const downloader_actions = ["start_download", "end_download", "start_capture", "end_capture", "chapter_update"];
+                    const job_actions = ["job_save", "job_clear"];
+                    if (downloader_actions.indexOf(action) !== -1) {
+                        console.log("Websocket update");
+                        this.fetchStreamers().then((sl) => {
+                            this.$store.commit("updateStreamerList", sl);
+                            this.loading = false;
+                        });
+                    } else if (job_actions.indexOf(action) !== -1) {
+                        console.log(`Websocket jobs update: ${action}`, json.data.job_name, json.data.job);
+                        this.fetchJobs();
+                    } else if (action == "notify") {
+                        // alert(json.data.text);
+                        const toast = new Notification(json.data.text);
+                        console.log(`Notify: ${json.data.text}`);
+                    } else {
+                        console.log(`Websocket wrong action (${action})`);
+                    }
                 } else {
-                    console.log(`Websocket wrong action (${json.data.action})`);
+                    console.log(`Websocket unknown data`, json.data);
                 }
             };
             this.ws.onerror = (ev: Event) => {

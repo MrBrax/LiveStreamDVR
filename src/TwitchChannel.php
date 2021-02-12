@@ -28,6 +28,9 @@ class TwitchChannel
     public array $vods_raw = [];
     public int $vods_size = 0;
 
+    public array $channel_data = [];
+    public array $config = [];
+
     /**
      * Load
      *
@@ -45,7 +48,7 @@ class TwitchChannel
             return false;
         }
 
-        $this->channel_data = TwitchHelper::getChannelData($this->userid);
+        $channel_data = TwitchHelper::getChannelData($this->userid);
 
         $config = TwitchConfig::getStreamer($username);
 
@@ -54,10 +57,13 @@ class TwitchChannel
             return false;
         }
 
-        if (!isset($this->channel_data['login'])) {
+        if (!isset($channel_data['login'])) {
             throw new \Exception("Streamer data could not be fetched: {$username}");
             return false;
         }
+
+        $this->channel_data = $channel_data;
+        $this->config       = $config;
 
         // $this->userid               = (int)$this->channel_data['id'];
         $this->username             = $this->channel_data['login'];
@@ -67,6 +73,7 @@ class TwitchChannel
         $this->profile_image_url    = $this->channel_data['profile_image_url'];
         $this->quality              = isset($config['quality']) ? $config['quality'] : "best";
         $this->match                = isset($config['match']) ? $config['match'] : [];
+        $this->no_capture           = isset($config['no_capture']) ? $config['no_capture'] : [];
 
         $subfile = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "subs.json";
         if (file_exists($subfile)) {

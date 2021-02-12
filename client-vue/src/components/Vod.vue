@@ -387,7 +387,7 @@
                 </template>
             </template>
             <template v-else-if="!vod?.is_capturing && !vod?.is_converting && !vod?.is_finalized">
-                <em>Waiting to finalize video (since {{ formatDate(vod?.dt_ended_at.date, "yyyy-MM-dd HH:mm:ss") }})</em>
+                <em>Waiting to finalize video (since {{ vod?.dt_ended_at ? formatDate(vod?.dt_ended_at.date, "yyyy-MM-dd HH:mm:ss") : "(unknown)" }})</em>
             </template>
             <template v-else>
                 <em>No video file or error</em>
