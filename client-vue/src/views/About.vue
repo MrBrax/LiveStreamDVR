@@ -99,9 +99,10 @@
                     <!-- cronjobs -->
                     <h3>Cronjobs</h3>
                     <table class="table">
-                        <tr v-for="(cron, cron_status) in aboutData.cron_lastrun" :key="cron">
-                            <td>{{ cron }}</td>
+                        <tr v-for="(cron_status, cron_name) in aboutData.cron_lastrun" :key="cron_name">
+                            <td>{{ cron_name }}</td>
                             <td>{{ cron_status }}</td>
+                            <td><button class="button is-confirm is-small" @click="runCron(cron_name)">Run now</button></td>
                         </tr>
                     </table>
                     <hr />
@@ -179,6 +180,19 @@ export default defineComponent({
                 this.aboutData = about;
             });
             */
+        },
+        runCron(type: string) {
+            this.$http
+                .get(`/api/v0/cron/${type}`)
+                .then((response) => {
+                    const json = response.data;
+                    console.debug("cronData", json);
+                    if (json.message) alert(json.message);
+                    this.fetchData();
+                })
+                .catch((err) => {
+                    console.error("about error", err.response);
+                });
         },
     },
 });

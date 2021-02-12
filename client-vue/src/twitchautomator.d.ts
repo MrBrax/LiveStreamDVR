@@ -145,6 +145,7 @@ export type ApiConfig = {
     process_wait_method: number;
     youtube_api_key: string;
     favourites: Record<string, string>;
+    websocket_enabled: boolean;
 };
 
 export type ApiStreamer = {
@@ -178,6 +179,5 @@ export type ApiLogLine = {
     date_string: string;
     text: string;
 };
-
 
 export const phpDateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000

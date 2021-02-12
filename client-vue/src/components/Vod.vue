@@ -173,7 +173,8 @@
                             </li>
                             <li>
                                 <span v-if="vod?.twitch_vod_id">
-                                    The ID was <a :href="vod?.twitch_vod_url" rel="noreferrer" target="_blank">{{ vod?.twitch_vod_id }}</a>.
+                                    The ID was <a :href="vod?.twitch_vod_url" rel="noreferrer" target="_blank">{{ vod?.twitch_vod_id }}</a
+                                    >.
                                 </span>
                                 <span v-else>The VOD probably never got saved.</span>
                             </li>
@@ -195,7 +196,7 @@
                 <li><strong>Current duration:</strong><duration-display :startDate="vod.dt_started_at.date" outputStyle="human"></duration-display></li>
                 <li>
                     <strong>Watch live:</strong>
-                    <a href="https://twitch.tv/{{ streamer.display_name }}" rel="noreferrer" target="_blank">Twitch</a>
+                    <a :href="'https://twitch.tv/' + vod.streamer_name" rel="noreferrer" target="_blank">Twitch</a>
                 </li>
                 <!--<li><strong>Watch capture:</strong>
                     <a href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}.ts" rel="noreferrer" target="_blank">TS file</a>
@@ -348,7 +349,8 @@
             <template v-else-if="vod?.is_capturing">
                 <em class="text-overflow">
                     <span class="icon"><fa icon="video"></fa></span>
-                    Capturing to <strong>{{ vod?.basename }}.ts</strong> (<strong>{{ formatBytes(vod?.api_getRecordingSize) }}</strong>)
+                    Capturing to <strong>{{ vod?.basename }}.ts</strong> (<strong>{{ formatBytes(vod?.api_getRecordingSize) }}</strong
+                    >)
                 </em>
 
                 <br />

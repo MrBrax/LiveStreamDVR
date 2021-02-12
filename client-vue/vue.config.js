@@ -5,6 +5,18 @@ module.exports = {
     publicPath: process.env.BASE_URL,
     // publicPath: './',
     assetsDir: "assets",
+    pwa: {
+        manifestPath: "manifest.json",
+        themeColor: "#ffffff",
+        msTileColor: "#000000",
+        iconPaths: {
+            favicon32: "manifest/favicon-32x32.png",
+            favicon16: "manifest/favicon-16x16.png",
+            appleTouchIcon: "manifest/apple-touch-icon.png",
+            maskIcon: "manifest/safari-pinned-tab.svg",
+            msTileImage: "manifest/mstile-150x150.png",
+        },
+    },
     devServer: {
         port: 8081,
         proxy: {

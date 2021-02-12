@@ -20,3 +20,4 @@ client-vue/node_modules
 client-vue/dist
 client-vue/.env
 client-vue/.env.production
+client-broker

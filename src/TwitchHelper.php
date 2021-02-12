@@ -7,6 +7,7 @@ namespace App;
 use GuzzleHttp\Client;
 use Symfony\Component\Process\Process;
 use App\TwitchAutomatorJob;
+use WebSocket;
 
 class TwitchHelper
 {
@@ -1105,6 +1106,29 @@ class TwitchHelper
 	public static function webhook(array $data)
 	{
 
+		if(TwitchConfig::cfg('websocket_enabled') || getenv('TCD_DOCKER') == 1 ){
+			$websocket_url = getenv('TCD_DOCKER') == 1 ? "ws://broker:8765/socket/" : preg_replace("/https?/", "ws", TwitchConfig::cfg('app_url')) . "/socket/";
+			$client = new Websocket\Client($websocket_url);
+			
+			try {
+				$client->text(json_encode([
+					'server' => true,
+					'data' => $data
+				]));
+			} catch (\Throwable $th) {
+				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Websocket send error: " . $th->getMessage());
+			}
+			
+			if($client && $client->isConnected()){
+				try {
+					$client->close();
+				} catch (\Throwable $th) {
+					TwitchHelper::log(TwitchHelper::LOG_ERROR, "Websocket close error: " . $th->getMessage());
+				}
+				
+			}
+		}
+
 		if (!TwitchConfig::cfg('webhook_url')) {
 			return;
 			// throw new \Exception("No webhook URL set");
@@ -1122,29 +1146,6 @@ class TwitchHelper
 			self::logAdvanced(self::LOG_ERROR, "helper", "Webhook POST error: " . $th->getMessage());
 		}
 	}
-
-	/*
-	public static function websocket(array $data)
-	{
-
-		if (!TwitchConfig::cfg('websocket_url')) {
-			return;
-			// throw new \Exception("No webhook URL set");
-		}
-
-		$client = new \GuzzleHttp\Client();
-
-		try {
-			$client->request("POST", TwitchConfig::cfg('webhook_url'), [
-				'form_params' => $data,
-				'connect_timeout' => 5,
-				'timeout' => 10
-			]);
-		} catch (\Throwable $th) {
-			self::logAdvanced(self::LOG_ERROR, "helper", "Webhook POST error: " . $th->getMessage());
-		}
-	}
-	*/
 
 	public static function vodFolder(string $username = null)
 	{

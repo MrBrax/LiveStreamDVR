@@ -5,6 +5,7 @@ import store from "./store";
 import axios from "axios";
 import VueAxios from "vue-axios";
 import titleMixin from "./mixins/titleMixin";
+import "./registerServiceWorker";
 
 // font-awesome
 // import { library } from '@fortawesome/fontawesome-svg-core';

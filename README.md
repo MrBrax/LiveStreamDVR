@@ -26,16 +26,20 @@ Reminder that i don't use docker myself on my capturing setup, so any specific e
 Known issues:
 - TwitchDownloaderCLI doesn't work in alpine/docker: /bin/sh: ./TwitchDownloaderCLI: not found
 
-### Manual build (recommended)
-Run `docker-compose up --build -d` in the app directory. The docker-compose.yml file is required.
-
-If you want the public webapp to have a custom base folder, you must provide `BASE_URL` and `VUE_APP_BASE_URL` in the environment variable settings.
-
 ### Docker hub
 
-Pull the image from https://hub.docker.com/r/mrbrax/twitchautomator
+1. Download the [docker-compose.yml](https://raw.githubusercontent.com/MrBrax/TwitchAutomator/master/docker-compose.yml) file and place it in a directory.
+2. Run `docker-compose pull` and `docker-compose up -d` to start it.
+3. Visit the webapp at `localhost:8082`
 
-Docker hub doesn't seem to fully support docker-compose apps, so the cron stuff won't work.
+Hub: https://hub.docker.com/r/mrbrax/twitchautomator
+
+*The dockerhub build is preconfigured to be hosted at the root (`/`) and such, does not work when placed in a subdirectory.*
+
+### Manual build
+Run `docker-compose up --build -d` in the app directory. The `docker-compose.yml` file is required.
+
+If you want the public webapp to have a custom base folder, you must provide `BASE_URL` and `VUE_APP_BASE_URL` in the environment variable settings.
 
 ## Standalone setup
 

@@ -53,6 +53,7 @@ ENV TCD_BIN_DIR=/usr/bin
 ENV TCD_FFMPEG_PATH=/usr/bin/ffmpeg
 ENV TCD_MEDIAINFO_PATH=/usr/bin/mediainfo
 ENV TCD_DOCKER=1
+ENV TCD_WEBSOCKET_ENABLED=1
 
 USER nobody
 WORKDIR /var/www/twitchautomator

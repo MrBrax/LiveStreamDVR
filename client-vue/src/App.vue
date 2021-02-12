@@ -37,7 +37,7 @@ export default defineComponent({
         this.fetchData();
     },
     methods: {
-        fetchData() {
+        async fetchData() {
             // client config
             const currentClientConfig = localStorage.getItem("twitchautomator_config")
                 ? JSON.parse(localStorage.getItem("twitchautomator_config") as string)
@@ -47,10 +47,9 @@ export default defineComponent({
             // clear config
             this.$store.commit("updateConfig", []);
 
-            return this.$http.get(`/api/v0/settings/list`).then((response) => {
-                this.$store.commit("updateConfig", response.data.data.config);
-                this.$store.commit("updateVersion", response.data.data.version);
-            });
+            const response = await this.$http.get(`/api/v0/settings/list`);
+            this.$store.commit("updateConfig", response.data.data.config);
+            this.$store.commit("updateVersion", response.data.data.version);
         },
     },
     components: {

@@ -5,44 +5,39 @@ const routes: Array<RouteRecordRaw> = [
     {
         path: "/",
         name: "Index",
-        redirect: "/dashboard"
+        redirect: "/dashboard",
     },
     {
         path: "/dashboard",
         name: "Dashboard",
-        component: Dashboard
+        component: Dashboard,
     },
     {
         path: "/vod/:vod/editor",
         name: "Editor",
         props: true,
-        component: () =>
-            import(/* webpackChunkName: "editor" */ "../views/Editor.vue")
+        component: () => import(/* webpackChunkName: "editor" */ "../views/Editor.vue"),
     },
     {
         path: "/tools",
         name: "Tools",
-        component: () =>
-            import(/* webpackChunkName: "tools" */ "../views/Tools.vue")
+        component: () => import(/* webpackChunkName: "tools" */ "../views/Tools.vue"),
     },
     {
         path: "/settings/:tab?",
         name: "Settings",
-        component: () =>
-            import(/* webpackChunkName: "settings" */ "../views/Settings.vue")
+        component: () => import(/* webpackChunkName: "settings" */ "../views/Settings.vue"),
     },
     {
         path: "/clientsettings",
         name: "ClientSettings",
-        component: () =>
-            import(/* webpackChunkName: "clientsettings" */ "../views/ClientSettings.vue")
+        component: () => import(/* webpackChunkName: "clientsettings" */ "../views/ClientSettings.vue"),
     },
     {
         path: "/about",
         name: "About",
-        component: () =>
-            import(/* webpackChunkName: "about" */ "../views/About.vue")
-    }
+        component: () => import(/* webpackChunkName: "about" */ "../views/About.vue"),
+    },
 ];
 
 const router = createRouter({
@@ -53,7 +48,7 @@ const router = createRouter({
     scrollBehavior(to, from, savedPosition) {
         if (to.hash) {
             return {
-              el: to.hash,
+                el: to.hash,
             };
         }
         if (savedPosition) {
