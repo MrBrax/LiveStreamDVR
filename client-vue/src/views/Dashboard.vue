@@ -193,12 +193,12 @@ export default defineComponent({
                 }
             };
             this.ws.onerror = (ev: Event) => {
-                console.error("Websocket error", ev);
+                console.error(`Websocket error!`, ev);
                 this.wsConnected = false;
                 clearInterval(this.wsKeepalive);
             };
             this.ws.onclose = (ev: CloseEvent) => {
-                console.log(`Disconnected from websocket!`, ev);
+                console.log(`Disconnected from websocket! (${ev.code}/${ev.reason})`);
                 setTimeout(() => {
                     if (!ev.wasClean) {
                         this.connectWebsocket();

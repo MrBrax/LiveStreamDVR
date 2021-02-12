@@ -18,6 +18,10 @@ class ClientBroker {
             return false;
         }
 
+        this.wss.on("listening", () => {
+            console.log("Websocket server now listening for connections.");
+        });
+
         this.wss.on('error', (error) => {
             console.log("Websocket server error", error);
         });
@@ -45,7 +49,7 @@ class ClientBroker {
         // console.log("message", ws, message);
 
         if(message == "ping"){
-            console.log(`Pong to ${ws.clientIP}`);
+            console.debug(`Pong to ${ws.clientIP}`);
             ws.send("pong");
             return;
         }
@@ -68,7 +72,7 @@ class ClientBroker {
             });
         }
 
-        console.log(`json from ${ws.clientIP}:`, data);
+        console.log(`JSON from ${ws.clientIP}:`, data);
         console.debug(`Clients: ${this.wss.clients.size}`);
     }
 }
