@@ -60,7 +60,11 @@
         <table>
             <tr v-for="job in $store.state.jobList" :key="job.name">
                 <td>
-                    <span class="text-overflow">{{ job.name }}</span>
+                    <span class="icon">
+                        <fa icon="sync" spin v-if="job.status"></fa>
+                        <fa icon="exclamation-triangle" v-else></fa>
+                    </span>
+                    <span class="text-overflow px-1">{{ job.name }}</span>
                 </td>
                 <td>{{ job.pid }}</td>
                 <td><!-- {{ job.status }}-->{{ job.status ? "Running" : "Unexpected exit" }}</td>
