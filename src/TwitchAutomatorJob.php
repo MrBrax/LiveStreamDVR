@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App;
 
+use DateTime;
 use GuzzleHttp\Client;
 use Symfony\Component\Process\Process;
 
@@ -21,13 +22,19 @@ class TwitchAutomatorJob
 	public $status;
 	public int $error;
 	public Process $process;
+	public ?\DateTime $dt_started_at;
 	// private $tried_loading;
+
+	private function realpath($str){
+		return realpath($str) ?: $str;
+	}
 
 	function __construct(string $name)
 	{
 		$this->name = $name;
-		$this->pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . '.json';
-		$this->pidfile_simple = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . '.pid';
+		$this->pidfile = $this->realpath(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . ".json");
+		$this->pidfile_simple = $this->realpath(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . ".pid");
+		$this->dt_started_at = new DateTime();
 		return $this;
 	}
 
@@ -53,6 +60,7 @@ class TwitchAutomatorJob
 		}
 		$data = json_decode($raw);
 		$this->pid = $data->pid;
+		$this->dt_started_at = isset($data->dt_started_at) ? new DateTime($data->dt_started_at->date) : null;
 
 		$this->getStatus();
 		return true;
