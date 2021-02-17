@@ -235,8 +235,18 @@ trait ApiChannels
     {
 
         $username = $_POST['username'];
+
+        try {
+            $streamer_data = TwitchConfig::getStreamer($username);
+        } catch (\Throwable $th) {
+            $response->getBody()->write(json_encode([
+                "message" => "Server error: " . $th->getMessage(),
+                "status" => "ERROR"
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
         
-        if (!TwitchConfig::getStreamer($username)) {
+        if (!$streamer_data) {
             $response->getBody()->write(json_encode([
                 "message" => "Streamer with that username does not exist in config",
                 "status" => "ERROR"
