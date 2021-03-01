@@ -10,7 +10,7 @@ use App\Controller\HookController;
 use App\Controller\SubController;
 use App\Controller\ApiController;
 use App\Controller\CronController;
-
+use App\TwitchChannel;
 use App\TwitchConfig;
 use App\TwitchHelper;
 
@@ -167,6 +167,18 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     $group->any('/test_webhook', function (Request $request, Response $response, array $args) {
         TwitchHelper::webhook([
 			'action' => 'test'
+		]);
+        $response->getBody()->write("Tested");
+        return $response;
+    });
+
+    $group->any('/test_webhook_vod', function (Request $request, Response $response, array $args) {
+        $c = new TwitchChannel();
+        $c->load("sodapoppin");
+        $v = $c->vods_list[0];
+        TwitchHelper::webhook([
+			'action' => 'end_download',
+            'vod' => $v
 		]);
         $response->getBody()->write("Tested");
         return $response;

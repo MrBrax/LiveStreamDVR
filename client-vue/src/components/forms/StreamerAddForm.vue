@@ -34,6 +34,12 @@
             </label>
         </div>
         <div class="field">
+            <label class="checkbox">
+                <input type="checkbox" name="no_capture" value="1" />
+                Do not capture video
+            </label>
+        </div>
+        <div class="field">
             <div class="control">
                 <button class="button is-confirm" type="submit">
                     <span class="icon"><fa icon="user-plus"></fa></span> Add

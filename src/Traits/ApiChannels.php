@@ -71,6 +71,7 @@ trait ApiChannels
         $match          = isset($_POST['match']) ? $_POST['match'] : null;
         $download_chat  = isset($_POST['download_chat']);
         $burn_chat      = isset($_POST['burn_chat']);
+        $no_capture     = isset($_POST['no_capture']);
 
         if (!$username) {
             $response->getBody()->write(json_encode([
@@ -126,6 +127,7 @@ trait ApiChannels
 
         if ($download_chat) $streamer["download_chat"] = true;
         if ($burn_chat) $streamer["burn_chat"] = true;
+        if ($no_capture) $streamer["no_capture"] = true;
 
         TwitchConfig::$config['streamers'][] = $streamer;
 
@@ -161,6 +163,7 @@ trait ApiChannels
         $match          = isset($_POST['match']) ? $_POST['match'] : null;
         $download_chat  = isset($_POST['download_chat']);
         $burn_chat      = isset($_POST['burn_chat']);
+        $no_capture     = isset($_POST['no_capture']);
 
         if (!TwitchConfig::getStreamer($username)) {
             $response->getBody()->write(json_encode([
@@ -182,6 +185,7 @@ trait ApiChannels
 
         if ($download_chat) $streamer["download_chat"] = true;
         if ($burn_chat) $streamer["burn_chat"] = true;
+        if ($no_capture) $streamer["no_capture"] = true;
 
         if (!TwitchConfig::$config['streamers']) {
             $response->getBody()->write(json_encode([
@@ -231,8 +235,18 @@ trait ApiChannels
     {
 
         $username = $_POST['username'];
+
+        try {
+            $streamer_data = TwitchConfig::getStreamer($username);
+        } catch (\Throwable $th) {
+            $response->getBody()->write(json_encode([
+                "message" => "Server error: " . $th->getMessage(),
+                "status" => "ERROR"
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
         
-        if (!TwitchConfig::getStreamer($username)) {
+        if (!$streamer_data) {
             $response->getBody()->write(json_encode([
                 "message" => "Streamer with that username does not exist in config",
                 "status" => "ERROR"

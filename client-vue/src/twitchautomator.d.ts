@@ -42,6 +42,9 @@ export type ApiVod = {
     segments: ApiVodSegment[];
     segments_raw: string[];
 
+    streamer_name: string;
+    streamer_id: string;
+
     twitch_vod_duration: number;
     twitch_vod_muted: boolean;
     twitch_vod_exists: boolean;

@@ -41,6 +41,13 @@
             </div>
 
             <div class="field">
+                <label class="checkbox">
+                    <input class="input" type="checkbox" name="no_capture" value="1" :checked="streamer.no_capture" />
+                    Burn chat after downloading
+                </label>
+            </div>
+
+            <div class="field">
                 <div class="control">
                     <button class="button is-confirm" type="submit">
                         <span class="icon"><fa icon="save"></fa></span> Save
@@ -120,9 +127,11 @@ export default defineComponent({
             return false;
         },
         deleteStreamer() {
-            if (!confirm(`Do you want to delete "${this.streamer.display_name}"?`)) return;
+            if (!confirm(`Do you want to delete "${this.streamer.username}"?`)) return;
+            const fd = new FormData();
+            fd.append("username", this.streamer.username);
             this.$http
-                .post(`/api/v0/channels/delete`, { username: this.streamer.display_name })
+                .post(`/api/v0/channels/delete`, fd)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);

@@ -48,9 +48,9 @@
         </section>
     </div>
 
-    <div id="js-status" ref="js-status" @click="timer = 0">
+    <div id="js-status" :class="{ disconnected: ws && !wsConnected }" ref="js-status" @click="timer = 0">
         <template v-if="ws">
-            {{ wsConnected ? "Connected" : "Disconnected" }}
+            {{ wsConnected ? "Connected" : wsConnecting ? "Connecting..." : "Disconnected" }}
         </template>
         <template v-else>
             {{ loading ? "Loading..." : `Refreshing in ${timer} seconds.` }}
@@ -60,7 +60,11 @@
         <table>
             <tr v-for="job in $store.state.jobList" :key="job.name">
                 <td>
-                    <span class="text-overflow">{{ job.name }}</span>
+                    <span class="icon">
+                        <fa icon="sync" spin v-if="job.status"></fa>
+                        <fa icon="exclamation-triangle" v-else></fa>
+                    </span>
+                    <span class="text-overflow px-1">{{ job.name }}</span>
                 </td>
                 <td>{{ job.pid }}</td>
                 <td><!-- {{ job.status }}-->{{ job.status ? "Running" : "Unexpected exit" }}</td>
@@ -101,7 +105,10 @@ export default defineComponent({
             notificationSub: Function as any,
             ws: {} as WebSocket,
             wsConnected: false,
+            wsConnecting: false,
             wsKeepalive: 0,
+            wsLastPing: 0,
+            wsKeepaliveTime: 20000,
         };
     },
     created() {
@@ -119,7 +126,6 @@ export default defineComponent({
             });
     },
     mounted() {
-
         this.processNotifications();
 
         if (this.$store.state.config.websocket_enabled) {
@@ -153,22 +159,25 @@ export default defineComponent({
             const websocket_url_public = proto + window.location.host + this.$store.state.config.basepath + "/socket/";
             const websocket_url = process.env.NODE_ENV === "development" ? "ws://localhost:8765/socket/" : websocket_url_public;
             console.log(`Connecting to ${websocket_url}`);
+            this.wsConnecting = true;
             this.ws = new WebSocket(websocket_url);
             this.ws.onopen = (ev: Event) => {
                 console.log(`Connected to websocket!`);
                 this.ws.send(JSON.stringify({ action: "helloworld" }));
                 this.wsConnected = true;
+                this.wsConnecting = false;
                 this.wsKeepalive = setInterval(() => {
-                    console.debug("send ping");
+                    // console.debug("send ping");
                     this.ws.send("ping");
-                }, 10000);
+                }, this.wsKeepaliveTime);
             };
             this.ws.onmessage = (ev: MessageEvent) => {
                 // console.log("ws message", ev);
                 let text = ev.data;
 
                 if (text == "pong") {
-                    console.log("pong recieved");
+                    // console.log("pong recieved");
+                    this.wsLastPing = Date.now();
                     return;
                 }
 
@@ -179,25 +188,56 @@ export default defineComponent({
                     console.error("Couldn't parse json", text);
                     return;
                 }
-                // console.log("json return", json);
-                // this.$emit("websocketData", json);
-                if (json.data.action && ["start_capture", "finish_capture", "chapter_update"].indexOf(json.data.action) !== -1) {
-                    console.log("Websocket update");
-                    this.fetchStreamers().then((sl) => {
-                        this.$store.commit("updateStreamerList", sl);
-                        this.loading = false;
-                    });
+
+                const action = json.data.action;
+
+                if (action) {
+                    const downloader_actions = [
+                        "start_download",
+                        "end_download",
+                        "start_capture",
+                        "end_capture",
+                        "start_convert",
+                        "end_convert",
+                        "chapter_update",
+                    ];
+                    const job_actions = ["job_save", "job_clear"];
+                    if (downloader_actions.indexOf(action) !== -1) {
+                        console.log("Websocket update");
+                        const vod = json.data.vod;
+                       /*
+                       if (vod) {
+                            console.log("Websocket update vod", vod);
+                            this.$store.commit("updateVod", vod);
+                        }
+                        */
+                        this.fetchStreamers().then((sl) => {
+                            this.$store.commit("updateStreamerList", sl);
+                            this.loading = false;
+                        });
+                    } else if (job_actions.indexOf(action) !== -1) {
+                        console.log(`Websocket jobs update: ${action}`, json.data.job_name, json.data.job);
+                        this.fetchJobs();
+                    } else if (action == "notify") {
+                        // alert(json.data.text);
+                        const toast = new Notification(json.data.text);
+                        console.log(`Notify: ${json.data.text}`);
+                    } else {
+                        console.log(`Websocket wrong action (${action})`);
+                    }
                 } else {
-                    console.log(`Websocket wrong action (${json.data.action})`);
+                    console.log(`Websocket unknown data`, json.data);
                 }
             };
             this.ws.onerror = (ev: Event) => {
-                console.error("Websocket error", ev);
+                console.error(`Websocket error!`, ev);
                 this.wsConnected = false;
+                this.wsConnecting = false;
                 clearInterval(this.wsKeepalive);
             };
             this.ws.onclose = (ev: CloseEvent) => {
-                console.log(`Disconnected from websocket!`, ev);
+                console.log(`Disconnected from websocket! (${ev.code}/${ev.reason})`);
+                this.wsConnecting = false;
                 setTimeout(() => {
                     if (!ev.wasClean) {
                         this.connectWebsocket();
@@ -211,6 +251,7 @@ export default defineComponent({
         disconnectWebsocket() {
             if (this.ws && this.ws.close) {
                 console.log("Closing websocket...");
+                this.wsConnecting = false;
                 this.ws.close(undefined, "pageleave");
                 if (this.wsKeepalive) clearInterval(this.wsKeepalive);
             }

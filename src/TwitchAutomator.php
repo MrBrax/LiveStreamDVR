@@ -325,8 +325,6 @@ class TwitchAutomator
 	 */
 	public function end()
 	{
-
-		// $this->notify('', '[stream end]', self::NOTIFY_DOWNLOAD);
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Stream end");
 	}
 
@@ -387,6 +385,11 @@ class TwitchAutomator
 		$this->vod->saveJSON('stream download');
 		$this->vod->refreshJSON();
 
+		TwitchHelper::webhook([
+			'action' => 'start_download',
+			'vod' => $this->vod
+		]);
+
 		$streamer = TwitchConfig::getStreamer($data_username);
 
 		// check matched title, broken?
@@ -413,12 +416,6 @@ class TwitchAutomator
 
 		$this->vod->is_capturing = true;
 		$this->vod->saveJSON('is_capturing set');
-
-		// send internal webhook for capture start
-		TwitchHelper::webhook([
-			'action' => 'start_capture',
-			'vod' => $this->vod
-		]);
 
 		// update the game + title if it wasn't updated already
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Update game for {$basename}", ['download' => $data_username, 'instance' => $_GET['instance']]);
@@ -460,8 +457,17 @@ class TwitchAutomator
 			$capture_filename = $this->capture($basename, $tries);
 		}
 
+		$capture_failed = !$capture_filename || (isset($capture_filename) && !file_exists($capture_filename));
+
+		// send internal webhook for capture start
+		TwitchHelper::webhook([
+			'action' => 'end_capture',
+			'vod' => $this->vod,
+			'success' => !$capture_failed
+		]);
+
 		// error handling if nothing got downloaded
-		if (!$capture_filename || (isset($capture_filename) && !file_exists($capture_filename))) {
+		if ($capture_failed) {
 
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "Panic handler for {$basename}, no captured file!");
 
@@ -508,8 +514,16 @@ class TwitchAutomator
 
 		sleep(10);
 
+		$convert_success = file_exists($capture_filename) && $converted_filename && file_exists($converted_filename);
+
+		TwitchHelper::webhook([
+			'action' => 'end_convert',
+			'vod' => $this->vod,
+			'success' => $convert_success
+		]);
+
 		// remove ts if both files exist
-		if (file_exists($capture_filename) && $converted_filename && file_exists($converted_filename)) {
+		if ($convert_success) {
 			unlink($capture_filename);
 		} else {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "automator", "Missing conversion files for {$basename}");
@@ -572,7 +586,7 @@ class TwitchAutomator
 
 		// finally send internal webhook for capture finish
 		TwitchHelper::webhook([
-			'action' => 'finish_capture',
+			'action' => 'end_download',
 			'vod' => $vodclass
 		]);
 	}
@@ -738,6 +752,12 @@ class TwitchAutomator
 			'stream_id' => $data_id
 		]);
 		$captureJob->save();
+
+		// send internal webhook for capture start
+		TwitchHelper::webhook([
+			'action' => 'start_capture',
+			'vod' => $this->vod
+		]);
 
 		// chat capture
 		if (TwitchConfig::cfg('chat_dump') && $this->realm == 'twitch') {
@@ -1296,8 +1316,11 @@ class TwitchAutomator
 			'converted_filename' => $converted_filename,
 		]);
 		$convertJob->save();
-		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'convert_' . $data_username . '.pid';
-		//file_put_contents($pidfile, $process->getPid());
+		
+		TwitchHelper::webhook([
+			'action' => 'start_convert',
+			'vod' => $this->vod,
+		]);
 
 		// wait until process is done
 		$process->wait();

@@ -48,6 +48,11 @@ class TwitchHelper
 	// public static $saved_vods_folder = self::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods';
 	// public static $clips_folder = self::$public_folder . DIRECTORY_SEPARATOR . 'saved_clips';
 
+	/**
+	 * These directories will be created on page load.
+	 *
+	 * @var array
+	 */
 	private static $required_directories = [
 		__DIR__ . "/../config",
 		__DIR__ . "/../cache",
@@ -67,17 +72,23 @@ class TwitchHelper
 		__DIR__ . "/../public/saved_clips"
 	];
 
+	/**
+	 * The quality levels used on twitch. Maybe do this dynamically?
+	 *
+	 * @var array
+	 */
 	public static $twitchQuality = [
-		'best',
-		'1080p60',
-		'1080p',
-		'720p60',
-		'720p',
-		'480p',
-		'360p',
-		'160p',
-		'140p',
-		'worst'
+		"best", // recommended
+		"1080p60",
+		"1080p",
+		"720p60",
+		"720p",
+		"480p",
+		"360p",
+		"160p",
+		"140p",
+		"worst",
+		"audio_only"
 	];
 
 	private static $last_log_line;
@@ -182,6 +193,7 @@ class TwitchHelper
 	 * @param const $level
 	 * @param string $text
 	 * @param array $metadata
+	 * @deprecated 3.5.0 use logAdvanced instead
 	 * @return void
 	 */
 	public static function log(string $level, string $text, array $metadata = null)
@@ -730,6 +742,12 @@ class TwitchHelper
 		return $total_seconds;
 	}
 
+	/**
+	 * Format duration: 99d 99h 59m 59s
+	 *
+	 * @param integer $durationInSeconds
+	 * @return string
+	 */
 	public static function getNiceDuration(int $durationInSeconds): string
 	{
 
@@ -915,18 +933,7 @@ class TwitchHelper
 			// 'hub.secret' => TwitchConfig::cfg('sub_secret')
 		];
 
-		$data_string = json_encode($data);
-
-		/*
-		$client = new \GuzzleHttp\Client([
-			'base_uri' => 'https://api.twitch.tv',
-			'headers' => [
-				'Client-ID' => TwitchConfig::cfg('api_client_id'),
-				'Content-Type' => 'application/json',
-				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
-			]
-		]);
-		*/
+		// $data_string = json_encode($data);
 
 		try {
 
@@ -992,17 +999,6 @@ class TwitchHelper
 	{
 
 		self::logAdvanced(self::LOG_INFO, "helper", "Requesting subscriptions list");
-
-		/*
-		$client = new \GuzzleHttp\Client([
-			'base_uri' => 'https://api.twitch.tv',
-			'headers' => [
-				'Client-ID' => TwitchConfig::cfg('api_client_id'),
-				'Content-Type' => 'application/json',
-				'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
-			]
-		]);
-		*/
 
 		try {
 			$response = self::$guzzler->request('GET', '/helix/webhooks/subscriptions', [
@@ -1103,11 +1099,28 @@ class TwitchHelper
 		return null;
 	}
 
+	/**
+	 * Send a webhook POST request to the configured address.
+	 * Also sends a websocket request if that's enabled.
+	 *
+	 * @param array $data
+	 * @return void
+	 */
 	public static function webhook(array $data)
 	{
 
 		if(TwitchConfig::cfg('websocket_enabled') || getenv('TCD_DOCKER') == 1 ){
-			$websocket_url = getenv('TCD_DOCKER') == 1 ? "ws://broker:8765/socket/" : preg_replace("/https?/", "ws", TwitchConfig::cfg('app_url')) . "/socket/";
+			$public_websocket_url = preg_replace("/https?/", "ws", TwitchConfig::cfg('app_url')) . "/socket/";
+			$docker_websocket_url = "ws://broker:8765/socket/";
+			$local_websocket_url = "ws://localhost:8765/socket/";
+			$websocket_url = getenv('TCD_DOCKER') == 1 ? $docker_websocket_url : $public_websocket_url;
+
+			/** @todo: developement instead of debug */
+			if(TwitchConfig::cfg('debug')){
+				$websocket_url = $local_websocket_url;
+			}
+
+			if(getenv())
 			$client = new Websocket\Client($websocket_url);
 			
 			try {

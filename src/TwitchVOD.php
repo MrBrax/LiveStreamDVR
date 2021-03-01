@@ -14,7 +14,7 @@ class TwitchVOD
 
 	public string $filename = '';
 	public string $basename = '';
-	public string $directory = '';
+	public string $directory = ''; /** Base directory */
 	public array $json = [];
 	public array $meta = [];
 
@@ -115,6 +115,10 @@ class TwitchVOD
 
 	private $pid_cache = [];
 
+	private function realpath($str){
+		return realpath($str) ?: $str;
+	}
+
 	/**
 	 * Load a VOD with a JSON file
 	 *
@@ -143,7 +147,7 @@ class TwitchVOD
 		$this->json = json_decode($data, true);
 		$this->json_hash = md5($data);
 
-		$this->filename = $filename;
+		$this->filename = $this->realpath($filename);
 		$this->basename = basename($filename, '.json');
 		$this->directory = dirname($filename);
 
@@ -274,26 +278,26 @@ class TwitchVOD
 	public function setupFiles()
 	{
 
-		$this->path_chat 				= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
-		$this->path_downloaded_vod 		= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_vod.mp4';
-		$this->path_losslesscut 		= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv';
-		$this->path_chatrender			= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
-		$this->path_chatburn			= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_burned.mp4';
-		$this->path_chatdump			= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chatdump';
-		$this->path_adbreak				= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.adbreak';
-		$this->path_playlist			= $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.m3u8';
+		$this->path_chat 				= $this->realpath( $this->directory . DIRECTORY_SEPARATOR . $this->basename . ".chat" );
+		$this->path_downloaded_vod 		= $this->realpath( $this->directory . DIRECTORY_SEPARATOR . $this->basename . "_vod.mp4" );
+		$this->path_losslesscut 		= $this->realpath( $this->directory . DIRECTORY_SEPARATOR . $this->basename . "-llc-edl.csv" );
+		$this->path_chatrender			= $this->realpath( $this->directory . DIRECTORY_SEPARATOR . $this->basename . "_chat.mp4" );
+		$this->path_chatburn			= $this->realpath( $this->directory . DIRECTORY_SEPARATOR . $this->basename . "_burned.mp4" );
+		$this->path_chatdump			= $this->realpath( $this->directory . DIRECTORY_SEPARATOR . $this->basename . ".chatdump" );
+		$this->path_adbreak				= $this->realpath( $this->directory . DIRECTORY_SEPARATOR . $this->basename . ".adbreak" );
+		$this->path_playlist			= $this->realpath( $this->directory . DIRECTORY_SEPARATOR . $this->basename . ".m3u8" );
 
 		$this->associatedFiles = [
-			$this->basename . '.json',
-			$this->basename . '.chat',
-			$this->basename . '_vod.mp4',
-			$this->basename . '-llc-edl.csv',
-			$this->basename . '_chat.mp4',
-			$this->basename . '_burned.mp4',
-			$this->basename . '.chatdump',
-			$this->basename . '.chatdump.txt',
-			$this->basename . '.m3u8',
-			$this->basename . '.adbreak',
+			$this->basename . ".json",
+			$this->basename . ".chat",
+			$this->basename . "_vod.mp4",
+			$this->basename . "-llc-edl.csv",
+			$this->basename . "_chat.mp4",
+			$this->basename . "_burned.mp4",
+			$this->basename . ".chatdump",
+			$this->basename . ".chatdump.txt",
+			$this->basename . ".m3u8",
+			$this->basename . ".adbreak",
 		];
 
 		if (isset($this->segments_raw)) {
@@ -1415,7 +1419,7 @@ class TwitchVOD
 			$data .= "\n";
 		}
 
-		file_put_contents(TwitchHelper::vodFolder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', $data);
+		file_put_contents($this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', $data);
 	}
 
 	public function generatePlaylistFile()
@@ -1860,7 +1864,7 @@ class TwitchVOD
 
 		set_time_limit(0);
 
-		$captured_filename = TwitchHelper::vodFolder($this->streamer_name) . DIRECTORY_SEPARATOR . $this->basename . '.ts';
+		$captured_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.ts';
 
 		if (!file_exists($captured_filename)) {
 			throw new \Exception("No TS file found");
