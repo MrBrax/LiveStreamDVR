@@ -48,9 +48,9 @@
         </section>
     </div>
 
-    <div id="js-status" ref="js-status" @click="timer = 0">
+    <div id="js-status" :class="{ disconnected: ws && !wsConnected }" ref="js-status" @click="timer = 0">
         <template v-if="ws">
-            {{ wsConnected ? "Connected" : "Disconnected" }}
+            {{ wsConnected ? "Connected" : wsConnecting ? "Connecting..." : "Disconnected" }}
         </template>
         <template v-else>
             {{ loading ? "Loading..." : `Refreshing in ${timer} seconds.` }}
@@ -105,6 +105,7 @@ export default defineComponent({
             notificationSub: Function as any,
             ws: {} as WebSocket,
             wsConnected: false,
+            wsConnecting: false,
             wsKeepalive: 0,
             wsLastPing: 0,
             wsKeepaliveTime: 20000,
@@ -158,11 +159,13 @@ export default defineComponent({
             const websocket_url_public = proto + window.location.host + this.$store.state.config.basepath + "/socket/";
             const websocket_url = process.env.NODE_ENV === "development" ? "ws://localhost:8765/socket/" : websocket_url_public;
             console.log(`Connecting to ${websocket_url}`);
+            this.wsConnecting = true;
             this.ws = new WebSocket(websocket_url);
             this.ws.onopen = (ev: Event) => {
                 console.log(`Connected to websocket!`);
                 this.ws.send(JSON.stringify({ action: "helloworld" }));
                 this.wsConnected = true;
+                this.wsConnecting = false;
                 this.wsKeepalive = setInterval(() => {
                     // console.debug("send ping");
                     this.ws.send("ping");
@@ -229,10 +232,12 @@ export default defineComponent({
             this.ws.onerror = (ev: Event) => {
                 console.error(`Websocket error!`, ev);
                 this.wsConnected = false;
+                this.wsConnecting = false;
                 clearInterval(this.wsKeepalive);
             };
             this.ws.onclose = (ev: CloseEvent) => {
                 console.log(`Disconnected from websocket! (${ev.code}/${ev.reason})`);
+                this.wsConnecting = false;
                 setTimeout(() => {
                     if (!ev.wasClean) {
                         this.connectWebsocket();
@@ -246,6 +251,7 @@ export default defineComponent({
         disconnectWebsocket() {
             if (this.ws && this.ws.close) {
                 console.log("Closing websocket...");
+                this.wsConnecting = false;
                 this.ws.close(undefined, "pageleave");
                 if (this.wsKeepalive) clearInterval(this.wsKeepalive);
             }

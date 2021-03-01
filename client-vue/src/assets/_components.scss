@@ -173,6 +173,11 @@
         animation: 1s ease-in-out infinite recording;
         border-color: #222;
     }
+    &.disconnected {
+        color: #fff;
+        border-color: #222;
+        background-color: #9e1313;
+    }
 }
 
 #jobs-status {
