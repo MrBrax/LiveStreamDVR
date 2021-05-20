@@ -1511,6 +1511,15 @@ class TwitchVOD
 			$cmd[] = '--default-stream';
 			$cmd[] = 'best'; // twitch url and quality
 
+			// logging level
+			if (TwitchConfig::cfg('debug', false)) {
+				$cmd[] = '--loglevel';
+				$cmd[] = 'debug';
+			} elseif (TwitchConfig::cfg('app_verbose', false)) {
+				$cmd[] = '--loglevel';
+				$cmd[] = 'info';
+			}
+
 			$process = new Process($cmd, $this->directory, null, null, null);
 			$process->start();
 
@@ -1526,6 +1535,7 @@ class TwitchVOD
 			//if (file_exists($pidfile)) unlink($pidfile);
 			$vod_downloadJob->clear();
 
+			// output logs
 			TwitchHelper::appendLog("streamlink_vod_{$this->basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
 			TwitchHelper::appendLog("streamlink_vod_{$this->basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
 
