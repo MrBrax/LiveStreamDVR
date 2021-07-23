@@ -62,6 +62,7 @@ class TwitchHelper
 		__DIR__ . "/../cache/channel",
 		__DIR__ . "/../cache/channel/avatar",
 		__DIR__ . "/../cache/channel/background",
+		__DIR__ . "/../cache/kv",
 		__DIR__ . "/../logs",
 		__DIR__ . "/../logs/html",
 		__DIR__ . "/../logs/software",

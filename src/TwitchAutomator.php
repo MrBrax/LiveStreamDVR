@@ -8,6 +8,26 @@ use Symfony\Component\Process\Process;
 
 // declare(ticks=1); // test
 
+
+/*	
+	## new twitch eventsub ##
+
+	how to structure basename?
+	how to make new flow with game updates, keep session?
+
+	# this is complicated
+	channel.update -> online  -> write data to json
+					  offline -> write data to cache
+
+	# this should be fine, game update is weird
+	stream.online -> download() -> set online 1 -> start capture -> end capture
+												-> if channel data, write to json
+
+	# this is fine
+	stream.offline -> end() -> set online 0
+
+*/
+
 class TwitchAutomator
 {
 
@@ -303,21 +323,23 @@ class TwitchAutomator
 	
 		$this->data_cache = $data;
 
+		$event = $data['event'];
+		$broadcaster_user_id = $data['broadcaster_user_id'];
+		$broadcaster_user_login = $data['broadcaster_user_login'];
+		$broadcaster_user_name = $data['broadcaster_user_name'];
+
 		if($subscription_type == "channel.update"){
 
 			$this->updateGame();
 
 		}elseif($subscription_type == "stream.online"){
 
-			$event = $data['event'];
-			$broadcaster_user_id = $data['broadcaster_user_id'];
-			$broadcaster_user_login = $data['broadcaster_user_login'];
-			$broadcaster_user_name = $data['broadcaster_user_name'];
-
 			if(!TwitchConfig::getStreamer($broadcaster_user_login)){
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle triggered, but username '{$broadcaster_user_login}' is not in config.");
 				return false;
 			}
+
+			TwitchConfig::setCache("${broadcaster_user_login}.online", "1");
 
 			// $this->payload = $data['data'][0];
 
@@ -358,6 +380,7 @@ class TwitchAutomator
 			}
 
 		}elseif($subscription_type == "stream.offline"){
+			TwitchConfig::setCache("${broadcaster_user_login}.online", "0");
 			$this->end();
 		}
 
@@ -371,13 +394,31 @@ class TwitchAutomator
 	public function updateGame()
 	{
 
+		/*
 		$data_id 			= $this->getVodID();
 		$data_started 		= $this->getStartDate();
 		$data_game_id 		= $this->payload['game_id'];
 		$data_username 		= $this->getUsername();
 		$data_viewer_count 	= $this->payload['viewer_count'];
 		$data_title 		= $this->getTitle();
+		*/
 
+		$broadcaster_user_id = $this->payload_eventsub['broadcaster_user_id'];
+		$broadcaster_user_login = $this->payload_eventsub['broadcaster_user_login'];
+		$broadcaster_user_name = $this->payload_eventsub['broadcaster_user_name'];
+
+		// if online
+		if( TwitchConfig::getCache("${broadcaster_user_login}.online") === "1" ){
+
+			// $this->vod = new TwitchVOD();
+			// $this->vod->load($folder_base . DIRECTORY_SEPARATOR . $basename . '.json');
+
+		}else{
+			TwitchConfig::setCache("${broadcaster_user_login}.channeldata", json_encode($this->payload_eventsub['event']));
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Channel {$broadcaster_user_login} not online, saving channel data to cache.");
+		}
+
+		/*
 		$basename = $this->basename();
 
 		$folder_base = TwitchHelper::vodFolder($data_username);
@@ -412,7 +453,7 @@ class TwitchAutomator
 
 		$chapter = [
 			'time' 			=> $this->getDateTime(),
-			'datetime'		=> new \DateTime(), /** @deprecated 5.0.0 */
+			'datetime'		=> new \DateTime(), /** @deprecated 5.0.0 *
 			'dt_started_at'	=> new \DateTime(),
 			'game_id' 		=> $data_game_id,
 			'game_name'		=> $game_name,
@@ -432,6 +473,8 @@ class TwitchAutomator
 		]);
 
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "automator", "Game updated on {$data_username} to {$game_name} ({$data_title})", ['instance' => $_GET['instance']]);
+		*/
+
 	}
 
 	/**

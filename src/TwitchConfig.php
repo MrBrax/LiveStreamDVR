@@ -270,6 +270,19 @@ class TwitchConfig
 		if (!file_exists(self::$gameDbPath)) return [];
 		return json_decode(file_get_contents(self::$gameDbPath), true);
 	}
+
+	// todo: redis or something
+	public static function getCache($key){
+		$key = str_replace(".", "-", $key);
+		if(!file_exists(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key )) return false;
+		return file_get_contents(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key);
+	}
+
+	public static function setCache($key, $value){
+		$key = str_replace(".", "-", $key);
+		file_put_contents(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key, $value);
+	}
+
 }
 
 TwitchConfig::loadConfig();
