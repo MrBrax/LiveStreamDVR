@@ -35,6 +35,7 @@ class HookController
 
         TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Hook called", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers]);
 
+        // for use with multiple instances, not very common i think
         if (TwitchConfig::cfg('instance_id')) {
             if (!isset($_GET['instance']) || $_GET['instance'] != TwitchConfig::cfg('instance_id')) {
                 TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "hook", "Hook called with the wrong instance (" . $_GET['instance'] . ")");
@@ -43,6 +44,45 @@ class HookController
             }
         }
 
+        $data_json = json_decode(file_get_contents('php://input'), true);
+
+        if($data_json["challenge"]){
+            $challenge = $data_json["challenge"];
+            $subscription = $data_json["subscription"];
+            $username = TwitchHelper::getChannelUsername($subscription["condition"]["broadcaster_user_id"]);
+            // $signature = $response->getHeader("Twitch-Eventsub-Message-Signature");
+            
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Challenge received: ${challenge}", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers]);
+
+            // calculate signature
+            /*
+                hmac_message = headers['Twitch-Eventsub-Message-Id'] + headers['Twitch-Eventsub-Message-Timestamp'] + request.body
+                signature = hmac_sha256(webhook_secret, hmac_message)
+                expected_signature_header = 'sha256=' + signature.hex()
+
+                if headers['Twitch-Eventsub-Message-Signature'] != expected_signature_header:
+                    return 403
+            */
+            $hmac_message = $response->getHeader("Twitch-Eventsub-Message-Id") . $response->getHeader("Twitch-Eventsub-Message-Timestamp") . $response->getBody();
+            $signature = hash_hmac("sha256", $hmac_message, TwitchConfig::cfg("eventsub_secret"));
+            $expected_signature_header = "sha256=${signature}";
+                
+            // check signature
+            if ($response->getHeader("Twitch-Eventsub-Message-Signature") !== $expected_signature_header){
+                $response->getBody()->write("Invalid signature check");
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "hook", "Invalid signature check.", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers]);
+                return $response;
+            }
+
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Challenge completed, subscription active for ${username}.", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers]);
+
+            // return the challenge string to twitch if signature matches
+            $response->getBody()->write($challenge);
+            return $response;
+
+        }
+
+        /*
         // handle hub challenge after subscribing
         if (isset($_GET['hub_challenge'])) {
 
@@ -90,6 +130,8 @@ class HookController
 
             return $response;
         }
+
+        */
 
         /*
         $hub_secret = isset($headers['X-Hub-Signature']) ? $headers['X-Hub-Signature'] : null;

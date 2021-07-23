@@ -955,12 +955,14 @@ class TwitchHelper
 				'json' => $data
 			]);
 
+			// i don't even remember what error this was, shit
 			if ($response->getStatusCode() == 429) {
 				self::logAdvanced(self::LOG_FATAL, "helper", "429 response");
 				sleep(10);
 				// throw new \Exception("429 error");
 				return false;
 			}
+
 		} catch (\Throwable $th) {
 			self::logAdvanced(self::LOG_FATAL, "helper", "Sub return, sleep: " . $th->getMessage());
 			sleep(10);
@@ -969,15 +971,17 @@ class TwitchHelper
 
 		$server_output = $response->getBody()->getContents();
 		$http_code = $response->getStatusCode();
+		// $http_headers = $response->getHeaders();
 
 		$json = json_decode($server_output, true);
 
-		if ($json['status']) $http_code = $json['status'];
+		// if ($json['status']) $http_code = $json['status'];
 
 		// TwitchHelper::log(TwitchHelper::LOG_INFO, "Sub response code: " . $http_code);
 
 		if ($http_code == 202) {
 
+			/*
 			$hc = self::$cache_folder . DIRECTORY_SEPARATOR . "hubchallenge_{$streamer_id}";
 			file_put_contents($hc, time());
 
@@ -990,10 +994,17 @@ class TwitchHelper
 				unlink($hc);
 				return false;
 			}
+			*/
 
 			// $this->notify($server_output, '[' . $streamer_name . '] [subscribing]', self::NOTIFY_GENERIC);
 
+			if( $json['data'][0]['status'] !== "webhook_callback_verification_pending" ){
+				self::logAdvanced(self::LOG_ERROR, "helper", "Failed to send {$mode} request for {$streamer_name} ({$streamer_id}) ({$server_output}, HTTP {$http_code}) - Did not get callback verification.", ['hub' => $data]);
+				return false;
+			}
+
 			return true;
+
 		} else {
 
 			// throw new \Exception("Failed to send {$mode} request for {$streamer_name} ({$streamer_id}): {$server_output}");
