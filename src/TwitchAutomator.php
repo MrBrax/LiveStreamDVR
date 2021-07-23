@@ -171,14 +171,15 @@ class TwitchAutomator
 	 * Entrypoint for stream capture, this is where all Twitch EventSub (webhooks) end up.
 	 *
 	 * @param array $data
+	 * @param array $headers
 	 * @return void
 	 */
-	public function handle($data)
+	public function handle($data, $headers)
 	{
 
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "automator", "Handle called");
 
-		$headers = apache_request_headers();
+		// $headers = apache_request_headers();
 
 		if (!$data['data']) {
 			$link = $headers['Link'];

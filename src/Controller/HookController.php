@@ -29,8 +29,6 @@ class HookController
 
         set_time_limit(0);
 
-        $source = isset($_GET['source']) ? $_GET['source'] : 'twitch';
-
         $headers = $request->getHeaders();
 
         TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Hook called", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers]);
@@ -45,6 +43,7 @@ class HookController
         }
 
         $data_json = json_decode(file_get_contents('php://input'), true);
+        $data_headers = $request->getHeaders();
 
         if($data_json["challenge"]){
             $challenge = $data_json["challenge"];
@@ -83,7 +82,7 @@ class HookController
         }
 
         /*
-        // handle hub challenge after subscribing
+        // handle hub challenge after subscribing !!!! DEPRECATED !!!!
         if (isset($_GET['hub_challenge'])) {
 
             $challenge_token = $_GET['hub_challenge'];
@@ -142,37 +141,28 @@ class HookController
 
         // handle regular hook
 
-        if ($source == 'twitch') {
-            $data_json = json_decode(file_get_contents('php://input'), true);
-            $post_json = isset($_POST['json']) ? $_POST['json'] : null;
+        $post_json = isset($_POST['json']) ? $_POST['json'] : null;
 
-            if ($post_json) {
-                TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Custom payload received...");
-                $data_json = json_decode($post_json, true);
-            }
-
-            if ($data_json) {
-
-                if (TwitchConfig::cfg('debug')) {
-                    TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Dumping payload...");
-                    file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . 'payloads' . DIRECTORY_SEPARATOR . date("Y-m-d.h_i_s") . '.json', json_encode($data_json));
-                }
-
-                TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Run handle...");
-                $TwitchAutomator = new TwitchAutomator();
-                $TwitchAutomator->handle($data_json);
-                return $response;
-            }
-        } elseif ($source == 'youtube') {
-            $data_xml = simplexml_load_string(file_get_contents('php://input'), "SimpleXMLElement", LIBXML_NOCDATA);
-            $data_json = json_decode(json_encode($data_xml), true);
-            TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Hook called YouTube data...", ['xml' => $data_xml, 'json' => $data_json, 'GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers]);
-            $TwitchAutomator = new TwitchAutomatorYouTube();
-            $TwitchAutomator->handle($data_json);
-            return $response;
+        if ($post_json) {
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Custom payload received...");
+            $data_json = json_decode($post_json, true);
         }
 
-        TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "hook", "Hook called with no data ({$source})...");
+        if ($data_json) {
+
+            if (TwitchConfig::cfg('debug')) {
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Dumping payload...");
+                file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . 'payloads' . DIRECTORY_SEPARATOR . date("Y-m-d.h_i_s") . '.json', json_encode($data_json));
+            }
+
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Run handle...");
+            $TwitchAutomator = new TwitchAutomator();
+            $TwitchAutomator->handle($data_json, $data_headers);
+            return $response->withStatus(200);
+        }
+        
+
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "hook", "Hook called with no data...");
         $response->getBody()->write("No data supplied");
 
         return $response;
