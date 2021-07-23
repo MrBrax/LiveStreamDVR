@@ -29,7 +29,16 @@ class TwitchAutomator
 	 */
 	public $vod;
 
+	/**
+	 * old
+	 *
+	 * @var array
+	 * @deprecated 6.0.0
+	 */
 	private $payload = [];
+
+	private $payload_eventsub = [];
+	private $payload_headers = [];
 
 	const NOTIFY_GENERIC = 1;
 	const NOTIFY_DOWNLOAD = 2;
@@ -181,6 +190,7 @@ class TwitchAutomator
 
 		// $headers = apache_request_headers();
 
+		/*
 		if (!$data['data']) {
 			$link = $headers['Link'];
 			preg_match("/user_id=([0-9]+)>/", $link, $link_match);
@@ -195,24 +205,125 @@ class TwitchAutomator
 		// $data_started = $data['data'][0]['started_at'];
 		// $data_game_id = $data['data'][0]['game_id'];
 		$data_username = $data['data'][0]['user_name'];
+		*/
 
+		/* stream.online
+			{
+				"subscription": {
+					"id": "f1c2a387-161a-49f9-a165-0f21d7a4e1c4",
+					"type": "stream.online",
+					"version": "1",
+					"status": "enabled",
+					"cost": 0,
+					"condition": {
+						"broadcaster_user_id": "1337"
+					},
+					"transport": {
+						"method": "webhook",
+						"callback": "https://example.com/webhooks/callback"
+					},
+					"created_at": "2019-11-16T10:11:12.123Z"
+				},
+				"event": {
+					"id": "9001",
+					"broadcaster_user_id": "1337",
+					"broadcaster_user_login": "cool_user",
+					"broadcaster_user_name": "Cool_User",
+					"type": "live",
+					"started_at": "2020-10-11T10:11:12.123Z"
+				}
+			}
+		*/
+
+		/* stream.offline
+			{
+				"subscription": {
+					"id": "f1c2a387-161a-49f9-a165-0f21d7a4e1c4",
+					"type": "stream.offline",
+					"version": "1",
+					"status": "enabled",
+					"cost": 0,
+					"condition": {
+						"broadcaster_user_id": "1337"
+					},
+					"created_at": "2019-11-16T10:11:12.123Z",
+					"transport": {
+						"method": "webhook",
+						"callback": "https://example.com/webhooks/callback"
+					}
+				},
+				"event": {
+					"broadcaster_user_id": "1337",
+					"broadcaster_user_login": "cool_user",
+					"broadcaster_user_name": "Cool_User"
+				}
+			}
+		*/
+
+		/* channel.update
+			{
+				"subscription": {
+					"id": "f1c2a387-161a-49f9-a165-0f21d7a4e1c4",
+					"type": "channel.update",
+					"version": "1",
+					"status": "enabled",
+					"cost": 0,
+					"condition": {
+					"broadcaster_user_id": "1337"
+					},
+					"transport": {
+						"method": "webhook",
+						"callback": "https://example.com/webhooks/callback"
+					},
+					"created_at": "2019-11-16T10:11:12.123Z"
+				},
+				"event": {
+					"broadcaster_user_id": "1337",
+					"broadcaster_user_login": "cool_user",
+					"broadcaster_user_name": "Cool_User",
+					"title": "Best Stream Ever",
+					"language": "en",
+					"category_id": "21779",
+					"category_name": "Fortnite",
+					"is_mature": false
+				}
+			}
+		*/
+
+		if(!$headers['Twitch-Eventsub-Message-Id']){
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No twitch message id supplied to handle", ['headers' => $headers, 'data' => $data]);
+			return false;
+		}
+
+		$this->payload_eventsub = $data;
+		$this->payload_headers = $headers;
+
+		$subscription = $data['subscription'];
+		$subscription_type = $subscription['type'];
+	
 		$this->data_cache = $data;
 
-		if (!$data_id) {
+		if($subscription_type == "channel.update"){
 
-			$this->end($data);
-		} else {
+			$this->updateGame();
 
-			if(!TwitchConfig::getStreamer($data_username)){
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle triggered, but username '{$data_username}' is not in config.");
+		}elseif($subscription_type == "stream.online"){
+
+			$event = $data['event'];
+			$broadcaster_user_id = $data['broadcaster_user_id'];
+			$broadcaster_user_login = $data['broadcaster_user_login'];
+			$broadcaster_user_name = $data['broadcaster_user_name'];
+
+			if(!TwitchConfig::getStreamer($broadcaster_user_login)){
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle triggered, but username '{$broadcaster_user_login}' is not in config.");
 				return false;
 			}
 
-			$this->payload = $data['data'][0];
+			// $this->payload = $data['data'][0];
 
 			$basename = $this->basename();
 
-			$folder_base = TwitchHelper::vodFolder($data_username);
+			$folder_base = TwitchHelper::vodFolder($broadcaster_user_name);
 
 			if (file_exists($folder_base . DIRECTORY_SEPARATOR . $basename . '.json')) {
 
@@ -222,7 +333,7 @@ class TwitchAutomator
 					if ($vodclass->is_finalized) {
 						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "VOD is finalized, but wanted more info on {$basename}");
 					} elseif ($vodclass->is_capturing) {
-						$this->updateGame();
+						// $this->updateGame();
 					} else {
 						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "VOD exists but isn't capturing anymore on {$basename}");
 					}
@@ -245,7 +356,11 @@ class TwitchAutomator
 
 				$this->download();
 			}
+
+		}elseif($subscription_type == "stream.offline"){
+			$this->end();
 		}
+
 	}
 
 	/**
