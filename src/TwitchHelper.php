@@ -916,8 +916,8 @@ class TwitchHelper
 			return false;
 		}
 
-		$url = 'https://api.twitch.tv/helix/webhooks/hub';
-		$method = 'POST';
+		// $url = 'https://api.twitch.tv/helix/webhooks/hub';
+		// $method = 'POST';
 
 		$hook_callback = TwitchConfig::cfg('app_url') . '/api/v0/hook';
 
@@ -925,6 +925,7 @@ class TwitchHelper
 			$hook_callback .= '?instance=' . TwitchConfig::cfg('instance_id');
 		}
 
+		/*
 		$data = [
 			'hub.callback' => $hook_callback,
 			'hub.mode' => $mode,
@@ -932,12 +933,25 @@ class TwitchHelper
 			'hub.lease_seconds' => TwitchConfig::cfg('sub_lease'),
 			// 'hub.secret' => TwitchConfig::cfg('sub_secret')
 		];
+		*/
+		$data = [
+			"type" => "stream.online",
+			"version" => "1",
+			"condition" => [
+				"broadcaster_user_id" => $streamer_id
+			],
+			"transport" => [
+				"method" => "webhook",
+				"callback" => $hook_callback,
+				"secret" => TwitchConfig::cfg('eventsub_secret'),
+			]
+		];
 
 		// $data_string = json_encode($data);
 
 		try {
 
-			$response = self::$guzzler->request('POST', '/helix/webhooks/hub', [
+			$response = self::$guzzler->request('POST', '/helix/eventsub/subscriptions', [
 				'json' => $data
 			]);
 

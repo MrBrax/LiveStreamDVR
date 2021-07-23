@@ -50,7 +50,7 @@ If you want the public webapp to have a custom base folder, you must provide `BA
 4. Install utilities with pip, see below.
 5. Point your webserver virtualhost to the `public` directory of this app, not the root.
 6. Go to the settings page and set up basic stuff, get api key from twitch dev site.
-7. Visit `/api/v0/subscriptions/sub` in your web browser to check that subscribing to the webhooks work.
+7. Visit `/api/v0/subscriptions/sub` in your web browser to check that subscribing to EventSub work.
 8. Add cronjobs shown on the settings page.
 
 Check `/api/v0/subscriptions/list` for subscription status.

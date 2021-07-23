@@ -75,7 +75,7 @@ class TwitchConfig
 		['key' => 'playlist_dump', 			'group' => 'Advanced',	'text' => 'Use playlist dumping (experimental)',			'type' => 'boolean',	'default' => false],
 		['key' => 'process_wait_method', 	'group' => 'Advanced',	'text' => 'Process wait method',							'type' => 'number',		'default' => 1],
 
-		
+		['key' => 'eventsub_secret', 		'group' => 'Advanced',	'text' => 'EventSub secret', 								'type' => 'string',		'required' => true],
 
 	];
 

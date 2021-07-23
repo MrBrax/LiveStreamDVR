@@ -168,7 +168,7 @@ class TwitchAutomator
 	}
 
 	/**
-	 * Entrypoint for stream capture, this is where all Twitch webhooks end up.
+	 * Entrypoint for stream capture, this is where all Twitch EventSub (webhooks) end up.
 	 *
 	 * @param array $data
 	 * @return void
