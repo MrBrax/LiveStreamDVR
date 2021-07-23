@@ -1170,6 +1170,10 @@ class TwitchAutomator
 			$this->stream_resolution = $matches[1];
 		}
 
+		if (!$process->getOutput()) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No streamlink output from job " . basename($capture_filename) . ".", ['download-capture' => $data_username]);
+		}
+
 		// delete pid file
 		// if (file_exists($pidfile)) unlink($pidfile);
 		if ($captureJob) $captureJob->clear();

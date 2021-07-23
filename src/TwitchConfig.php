@@ -22,7 +22,17 @@ class TwitchConfig
 
 		['key' => 'basepath', 				'group' => 'Advanced',	'text' => 'Base path', 										'type' => 'string',		'help' => 'No trailing slas. For reverse proxy etc', 'stripslash' => true],
 		['key' => 'instance_id', 			'group' => 'Basic',		'text' => 'Instance ID', 									'type' => 'string'],
-		['key' => 'app_url', 				'group' => 'Basic',		'text' => 'App URL', 										'type' => 'string',		'required' => true, 'help' => 'No trailing slash', 'stripslash' => true],
+		
+		[
+			'key' => 'app_url',
+			'group' => 'Basic',
+			'text' => 'App URL',
+			'type' => 'string',
+			'required' => true,
+			'help' => 'Must use port 443 and HTTPS. No trailing slash. E.g. https://twitchautomator.example.com',
+			'stripslash' => true
+		],
+		
 		['key' => 'webhook_url', 			'group' => 'Basic',		'text' => 'Webhook URL', 									'type' => 'string',		'help' => 'For external scripting'],
 		['key' => 'password', 				'group' => 'Interface',	'text' => 'Password', 										'type' => 'string',		'help' => 'Keep blank for none. Username is admin'],
 		['key' => 'password_secure', 		'group' => 'Interface',	'text' => 'Force HTTPS for password', 						'type' => 'boolean',	'default' => true],
