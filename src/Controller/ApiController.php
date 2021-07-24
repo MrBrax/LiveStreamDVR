@@ -554,7 +554,7 @@ class ApiController
         $data_headers = $request->getHeaders();
         $post_json = isset($_POST['json']) ? $_POST['json'] : null;
 
-        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Hook called", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Hook called", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers, 'DATA' => $data_json]);
 
         if (TwitchConfig::cfg('instance_id')) {
             if (!isset($_GET['instance']) || $_GET['instance'] != TwitchConfig::cfg('instance_id')) {

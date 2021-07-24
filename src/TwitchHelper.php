@@ -286,9 +286,11 @@ class TwitchHelper
 		$filename_json 	= TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log.json";
 
 		// $log_text = file_exists($filename) ? file_get_contents($filename) : '';
-		$log_json = file_exists($filename_json) ? json_decode(file_get_contents($filename_json), true) : [];
+		$log_json = (file_exists($filename_json) && filesize($filename_json) > 0) ? json_decode(file_get_contents($filename_json), true) : [];
+		if(!$log_json) $log_json = [];
 
 		/** @todo: this still isn't working properly **/
+		/*
 		if ($level . $text === self::$last_log_line && $log_json) {
 			$last = count($log_json) - 1;
 			if (isset($log_json[$last])) {
@@ -300,7 +302,7 @@ class TwitchHelper
 				// return;
 			}
 		}
-
+		*/
 
 		$date = new \DateTime();
 		$text_line = $date->format("Y-m-d H:i:s.v") . " | {$module} | <{$level}> {$text}";
@@ -333,7 +335,7 @@ class TwitchHelper
 			fclose($fp);
 		}
 
-		$log_json[] = $log_data;
+		array_push($log_json, $log_data);
 
 		// file_put_contents($filename, $log_text);
 		$fp = fopen($filename, 'a');
