@@ -9,7 +9,12 @@ use DateTime;
 class TwitchChannel
 {
 
+    /**
+     * Username. Different from $login
+     * @deprecated 6.0.0
+     */
     public ?string $username = null;
+
     public ?string $userid = null;
     public ?string $login = null;
     public ?string $display_name = null;

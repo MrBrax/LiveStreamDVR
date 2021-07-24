@@ -96,7 +96,7 @@ class TwitchAutomator
 
 		// return $data_username . '_' . $data_id . '_' . str_replace(':', '_', $data_started);
 
-		return $this->getUsername() . '_' . str_replace(':', '_', $this->getStartDate()) . '_' . $this->getVodID();
+		return $this->getLogin() . '_' . str_replace(':', '_', $this->getStartDate()) . '_' . $this->getVodID();
 	}
 
 	public function streamURL()
@@ -130,6 +130,12 @@ class TwitchAutomator
 	public function getUsername()
 	{
 		return $this->broadcaster_user_name;
+		// return $this->payload['user_name'];
+	}
+
+	public function getLogin()
+	{
+		return $this->broadcaster_user_login;
 		// return $this->payload['user_name'];
 	}
 
@@ -331,8 +337,14 @@ class TwitchAutomator
 			}
 		*/
 
+		/*
 		if (!$headers['Twitch-Eventsub-Message-Id'][0]) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No twitch message id supplied to handle", ['headers' => $headers, 'data' => $data]);
+			return false;
+		}*/
+
+		if (!$headers['Twitch-Notification-Id'][0]) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No twitch notification id supplied to handle", ['headers' => $headers, 'payload' => $data]);
 			return false;
 		}
 
@@ -408,6 +420,9 @@ class TwitchAutomator
 
 			$this->end();
 		}
+
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No supported subscription type ({$subscription_type}).", ['headers' => $headers, 'payload' => $data]);
+
 	}
 
 	/**

@@ -283,11 +283,34 @@ class TwitchHelper
 		}
 
 		$filename 		= TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log";
-		$filename_json 	= TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log.json";
+		// $filename_json 	= TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log.json";
+		$filename_jsonline 	= TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log.jsonline";
+
+		// if (file_exists($filename_json) && filesize($filename_json) == 0) {
+		// 	return false;
+		// }
 
 		// $log_text = file_exists($filename) ? file_get_contents($filename) : '';
-		$log_json = (file_exists($filename_json) && filesize($filename_json) > 0) ? json_decode(file_get_contents($filename_json), true) : [];
-		if(!$log_json) $log_json = [];
+		// $log_json = file_exists($filename_json) ? json_decode(file_get_contents($filename_json), true) : [];
+		// if ($log_json === false){
+		// 	$log_json = [
+		// 		[
+		// 			"module" => "SYSTEM",
+		// 			"date" => (string)microtime(true),
+		// 			"level" => "FATAL",
+		// 			"text" => "JSON Corrupted false"
+		// 		]
+		// 	];
+		// }elseif(!$log_json){
+		// 	$log_json = [
+		// 		[
+		// 			"module" => "SYSTEM",
+		// 			"date" => (string)microtime(true),
+		// 			"level" => "FATAL",
+		// 			"text" => "JSON Corrupted unset"
+		// 		]
+		// 	];
+		// }
 
 		/** @todo: this still isn't working properly **/
 		/*
@@ -335,14 +358,18 @@ class TwitchHelper
 			fclose($fp);
 		}
 
-		array_push($log_json, $log_data);
+		// array_push($log_json, $log_data);
 
 		// file_put_contents($filename, $log_text);
 		$fp = fopen($filename, 'a');
 		fwrite($fp, $text_line . "\n");
 		fclose($fp);
 
-		file_put_contents($filename_json, json_encode($log_json));
+		$fp = fopen($filename_jsonline, 'a');
+		fwrite($fp, json_encode($log_data) . "\n");
+		fclose($fp);
+
+		// file_put_contents($filename_json, json_encode($log_json), LOCK_EX);
 
 		self::$last_log_line = $level . $text;
 	}
