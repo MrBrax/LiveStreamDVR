@@ -433,18 +433,22 @@ class TwitchHelper
 	 */
 	public static function getChannelUsername(string $user_id)
 	{
-		/*
-		if (!file_exists(TwitchConfig::$streamerDbPath)) return false;
-		$channels = json_decode(file_get_contents(TwitchConfig::$streamerDbPath), true);
-		foreach ($channels as $username => $data) {
-			if ($data['id'] == $id) {
-				return $username;
-			}
-		}
-		*/
 		$data = self::getChannelData($user_id);
 		if (!$data) return false;
 		return $data["display_name"];
+	}
+
+	/**
+	 * Get Twitch channel login from ID
+	 *
+	 * @param string $id
+	 * @return string|false Login
+	 */
+	public static function getChannelLogin(string $user_id)
+	{
+		$data = self::getChannelData($user_id);
+		if (!$data) return false;
+		return $data["login"];
 	}
 
 	/**
@@ -456,7 +460,7 @@ class TwitchHelper
 	public static function getChannelData(string $user_id)
 	{
 
-		if(!is_numeric($user_id)){
+		if (!is_numeric($user_id)) {
 			throw new \Exception("Non-numeric passed to getChannelData ({$user_id})");
 			return false;
 		}
@@ -508,7 +512,7 @@ class TwitchHelper
 
 		$data["_updated"] = time();
 
-		if( isset($data["profile_image_url"]) && $data["profile_image_url"] ){
+		if (isset($data["profile_image_url"]) && $data["profile_image_url"]) {
 			$client = new \GuzzleHttp\Client;
 			$avatar_ext = pathinfo($data["profile_image_url"], PATHINFO_EXTENSION);
 			$avatar_output = self::$cache_folder . DIRECTORY_SEPARATOR . "channel" . DIRECTORY_SEPARATOR . "avatar" . DIRECTORY_SEPARATOR . $data["display_name"] . "." . $avatar_ext;
@@ -521,10 +525,10 @@ class TwitchHelper
 			} catch (\Throwable $th) {
 				self::logAdvanced(self::LOG_ERROR, "helper", "Avatar fetching for {$user_id} errored: " . $th->getMessage());
 			}
-			if(file_exists($avatar_output)){
+			if (file_exists($avatar_output)) {
 				$data["cache_avatar"] = $data["display_name"] . "." . $avatar_ext;
-				if(self::path_ffmpeg()){
-					self::exec([ self::path_ffmpeg(), "-i", $avatar_output, "-y", $avatar_final ]);
+				if (self::path_ffmpeg()) {
+					self::exec([self::path_ffmpeg(), "-i", $avatar_output, "-y", $avatar_final]);
 					$data["cache_avatar"] = $data["display_name"] . ".webp";
 				}
 			}
@@ -878,10 +882,12 @@ class TwitchHelper
 	}
 
 	private static $channel_subscription_types = ['stream.online', 'stream.offline', 'channel.update'];
-	
-	public static function channelSubscribe($streamer_id) {
 
-		self::logAdvanced(self::LOG_INFO, "helper", "Subscribing to {$streamer_id}...");
+	public static function channelSubscribe($streamer_id)
+	{
+
+		$streamer_username = self::getChannelUsername($streamer_id);
+		self::logAdvanced(self::LOG_INFO, "helper", "Subscribing to {$streamer_id} ($streamer_username)...");
 
 		if (!TwitchConfig::cfg('app_url')) {
 			throw new \Exception('Neither app_url or hook_callback is set in config');
@@ -894,9 +900,9 @@ class TwitchHelper
 			$hook_callback .= '?instance=' . TwitchConfig::cfg('instance_id');
 		}
 
-		foreach(self::$channel_subscription_types as $type){
-			
-			if(TwitchConfig::getCache("{$streamer_id}.sub.${type}")){
+		foreach (self::$channel_subscription_types as $type) {
+
+			if (TwitchConfig::getCache("{$streamer_id}.sub.${type}")) {
 				self::logAdvanced(self::LOG_INFO, "helper", "Skip subscription to {$streamer_id}:{$type}, in cache.");
 				continue; // todo: alert
 			}
@@ -921,20 +927,19 @@ class TwitchHelper
 				$response = self::$guzzler->request('POST', '/helix/eventsub/subscriptions', [
 					'json' => $data
 				]);
-
 			} catch (\GuzzleHttp\Exception\BadResponseException $th) {
-				
+
 				self::logAdvanced(self::LOG_FATAL, "helper", "Subscribe for {$streamer_id}:{$type} failed: " . $th->getMessage());
 
 				$json = json_decode($th->getResponse()->getBody()->getContents(), true);
-				if($json){
-					if($json['status'] == 409){ // duplicate
+				if ($json) {
+					if ($json['status'] == 409) { // duplicate
 						$id = self::channelGetSubscriptionId($streamer_id, $type);
 						TwitchConfig::setCache("{$streamer_id}.sub.${type}", $id);
 						continue;
 					}
 				}
-				
+
 				return false;
 				// continue;
 			}
@@ -946,51 +951,48 @@ class TwitchHelper
 
 			if ($http_code == 202) {
 
-				if( $json['data'][0]['status'] !== "webhook_callback_verification_pending" ){
-					self::logAdvanced(self::LOG_ERROR, "helper", "Failed to send subscription request for {$streamer_id}:{$type} - Did not get callback verification.", ['hub' => $data, 'json' => $json]);
+				if ($json['data'][0]['status'] !== "webhook_callback_verification_pending") {
+					self::logAdvanced(self::LOG_ERROR, "helper", "Got 202 return for subscription request for {$streamer_id}:{$type} but did not get callback verification.", ['hub' => $data, 'json' => $json]);
 					return false;
 					// continue;
 				}
 
-				TwitchConfig::setCache("{$streamer_id}.sub.${type}", $json['data'][0]['id']); 
-			
-			} if ($http_code == 409) {
+				TwitchConfig::setCache("{$streamer_id}.sub.${type}", $json['data'][0]['id']);
+			} elseif ($http_code == 409) {
 				self::logAdvanced(self::LOG_ERROR, "helper", "Duplicate sub for {$streamer_id}:{$type} detected.", ['hub' => $data]);
 			} else {
 				self::logAdvanced(self::LOG_ERROR, "helper", "Failed to send subscription request for {$streamer_id}:{$type}: {$server_output}, HTTP {$http_code})", ['hub' => $data]);
 				return false;
 				// continue;
 			}
-
 		}
 
 		return true;
-
 	}
 
-	public static function channelUnsubscribe ($streamer_id){
+	public static function channelUnsubscribe($streamer_id)
+	{
 
 		self::logAdvanced(self::LOG_INFO, "helper", "Unsubscribing to {$streamer_id}");
 
-		foreach(self::$channel_subscription_types as $type){
-			
+		foreach (self::$channel_subscription_types as $type) {
+
 			$id = TwitchConfig::getCache("{$streamer_id}.sub.${type}");
-			
-			if(!$id){
+
+			if (!$id) {
 				self::logAdvanced(self::LOG_INFO, "helper", "No sub id from cache for {$streamer_id}:{$type}, fetch from endpoint");
 				$id = self::channelGetSubscriptionId($streamer_id, $type);
-				if(!$id){
+				if (!$id) {
 					self::logAdvanced(self::LOG_INFO, "helper", "No sub id from endpoint for {$streamer_id}:{$type}, abort.");
 					continue;
 				}
 			}
 
 			try {
-			
-				$response = self::$guzzler->request("DELETE", "/helix/eventsub/subscriptions?id={$id}");
 
+				$response = self::$guzzler->request("DELETE", "/helix/eventsub/subscriptions?id={$id}");
 			} catch (\GuzzleHttp\Exception\BadResponseException $th) {
-				
+
 				self::logAdvanced(self::LOG_FATAL, "helper", "Unsubscribe from {$streamer_id}:{$type} error: " . $th->getMessage());
 
 				/*
@@ -1001,43 +1003,40 @@ class TwitchHelper
 					}
 				}
 				*/
-				
+
 				return false;
 			}
 
 			self::logAdvanced(self::LOG_SUCCESS, "helper", "Unsubscribed from {$streamer_id}:{$type}");
 
 			TwitchConfig::setCache("{$streamer_id}.sub.${type}", null);
-
 		}
 
 		return true;
-
 	}
 
-	public static function channelGetSubscriptionId($streamer_id, $type){
+	public static function channelGetSubscriptionId($streamer_id, $type)
+	{
 
 		$subs = self::getSubs();
 
 		self::logAdvanced(self::LOG_INFO, "helper", "Get subscription id from endpoint for {$streamer_id}:{$type}", ['data' => $subs]);
 
-		foreach($subs['data'] as $sub){
-			
-			if(
+		foreach ($subs['data'] as $sub) {
+
+			if (
 				(string)$sub['condition']['broadcaster_user_id'] == (string)$streamer_id &&
 				$sub['type'] == $type
-			){
+			) {
 				self::logAdvanced(self::LOG_SUCCESS, "helper", "Found subscription id from endpoint for {$streamer_id}:{$type} : {$sub['id']}");
 				TwitchConfig::setCache("{$streamer_id}.sub.${type}", $sub['id']);
 				return $sub['id'];
 			}
-
 		}
 
 		self::logAdvanced(self::LOG_ERROR, "helper", "Did not find subscription id from endpoint for {$streamer_id}:{$type}");
 
 		return false;
-
 	}
 
 	/*
@@ -1304,24 +1303,24 @@ class TwitchHelper
 	public static function webhook(array $data)
 	{
 
-		if(TwitchConfig::cfg('websocket_enabled') || getenv('TCD_DOCKER') == 1 ){
-			
-			$public_websocket_url = TwitchConfig::cfg("websocket_endpoint") ?: ( preg_replace("/https?/", "ws", TwitchConfig::cfg('app_url')) . "/socket/" );
-			
+		if (TwitchConfig::cfg('websocket_enabled') || getenv('TCD_DOCKER') == 1) {
+
+			$public_websocket_url = TwitchConfig::cfg("websocket_endpoint") ?: (preg_replace("/https?/", "ws", TwitchConfig::cfg('app_url')) . "/socket/");
+
 			$docker_websocket_url = "ws://broker:8765/socket/";
-			
+
 			$local_websocket_url = "ws://localhost:8765/socket/";
-			
+
 			$websocket_url = getenv('TCD_DOCKER') == 1 ? $docker_websocket_url : $public_websocket_url;
 
 			/** @todo: developement instead of debug */
-			if(TwitchConfig::cfg('debug')){
+			if (TwitchConfig::cfg('debug')) {
 				$websocket_url = $local_websocket_url;
 			}
 
-			if(getenv())
-			$client = new Websocket\Client($websocket_url);
-			
+			if (getenv())
+				$client = new Websocket\Client($websocket_url);
+
 			try {
 				$client->text(json_encode([
 					'server' => true,
@@ -1330,14 +1329,13 @@ class TwitchHelper
 			} catch (\Throwable $th) {
 				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Websocket send error: " . $th->getMessage());
 			}
-			
-			if($client && $client->isConnected()){
+
+			if ($client && $client->isConnected()) {
 				try {
 					$client->close();
 				} catch (\Throwable $th) {
 					TwitchHelper::log(TwitchHelper::LOG_ERROR, "Websocket close error: " . $th->getMessage());
 				}
-				
 			}
 		}
 

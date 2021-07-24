@@ -143,9 +143,9 @@ class TwitchAutomator
 	{
 
 		$channeldata = TwitchConfig::getCache("{$this->broadcaster_user_login}.channeldata");
-		if($channeldata){
+		if ($channeldata) {
 			$channeldata_json = json_decode($channeldata, true);
-			if($channeldata_json){
+			if ($channeldata_json) {
 				return $channeldata_json["title"];
 			}
 		}
@@ -172,17 +172,17 @@ class TwitchAutomator
 			$vodclass = new TwitchVOD();
 			$vodclass->load($v);
 
-			if( TwitchConfig::cfg('keep_deleted_vods') && $vodclass->twitch_vod_exists === false ){
+			if (TwitchConfig::cfg('keep_deleted_vods') && $vodclass->twitch_vod_exists === false) {
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Keeping {$vodclass->basename} due to it being deleted on Twitch.");
 				continue;
 			}
 
-			if( TwitchConfig::cfg('keep_favourite_vods') && $vodclass->hasFavouriteGame() ){
+			if (TwitchConfig::cfg('keep_favourite_vods') && $vodclass->hasFavouriteGame()) {
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Keeping {$vodclass->basename} due to it having a favourite game.");
 				continue;
 			}
 
-			if( TwitchConfig::cfg('keep_muted_vods') && $vodclass->twitch_vod_muted === true ){
+			if (TwitchConfig::cfg('keep_muted_vods') && $vodclass->twitch_vod_muted === true) {
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Keeping {$vodclass->basename} due to it being muted on Twitch.");
 				continue;
 			}
@@ -331,7 +331,7 @@ class TwitchAutomator
 			}
 		*/
 
-		if(!$headers['Twitch-Eventsub-Message-Id']){
+		if (!$headers['Twitch-Eventsub-Message-Id']) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No twitch message id supplied to handle", ['headers' => $headers, 'data' => $data]);
 			return false;
 		}
@@ -341,7 +341,7 @@ class TwitchAutomator
 
 		$subscription = $data['subscription'];
 		$subscription_type = $subscription['type'];
-	
+
 		$this->data_cache = $data;
 
 		$event = $data['event'];
@@ -349,13 +349,12 @@ class TwitchAutomator
 		$this->broadcaster_user_login = $data['broadcaster_user_login'];
 		$this->broadcaster_user_name = $data['broadcaster_user_name'];
 
-		if($subscription_type == "channel.update"){
+		if ($subscription_type == "channel.update") {
 
 			$this->updateGame();
+		} elseif ($subscription_type == "stream.online") {
 
-		}elseif($subscription_type == "stream.online"){
-
-			if(!TwitchConfig::getStreamer($this->broadcaster_user_login)){
+			if (!TwitchConfig::getStreamer($this->broadcaster_user_login)) {
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle triggered, but username '{$this->broadcaster_user_login}' is not in config.");
 				return false;
 			}
@@ -401,12 +400,10 @@ class TwitchAutomator
 
 				$this->download();
 			}
-
-		}elseif($subscription_type == "stream.offline"){
+		} elseif ($subscription_type == "stream.offline") {
 			TwitchConfig::setCache("{$this->broadcaster_user_login}.online", "0");
 			$this->end();
 		}
-
 	}
 
 	/**
@@ -414,7 +411,7 @@ class TwitchAutomator
 	 *
 	 * @return void
 	 */
-	public function updateGame( $from_cache = false )
+	public function updateGame($from_cache = false)
 	{
 
 		/*
@@ -431,25 +428,25 @@ class TwitchAutomator
 		$broadcaster_user_name = $this->payload_eventsub['broadcaster_user_name'];
 
 		// if online
-		if( TwitchConfig::getCache("${broadcaster_user_login}.online") === "1" ){
+		if (TwitchConfig::getCache("${broadcaster_user_login}.online") === "1") {
 
 			$basename = $this->basename();
 			$folder_base = TwitchHelper::vodFolder($this->broadcaster_user_name);
 
-			if(!$this->vod){
+			if (!$this->vod) {
 				$this->vod = new TwitchVOD();
 				$this->vod->load($folder_base . DIRECTORY_SEPARATOR . $basename . '.json');
 			}
 
 			$event = [];
 
-			if( $from_cache ){
+			if ($from_cache) {
 				$cd = TwitchConfig::getCache("${broadcaster_user_login}.channeldata");
-				if(!$cd) return false;
+				if (!$cd) return false;
 				$cdj = json_decode($cd, true);
-				if(!$cdj) return false;
+				if (!$cdj) return false;
 				$event = $cdj;
-			}else{
+			} else {
 				$event = $this->payload_eventsub["event"];
 			}
 
@@ -479,8 +476,7 @@ class TwitchAutomator
 			]);
 
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "automator", "Game updated on {$this->broadcaster_user_login} to {$event["category_name"]} ({$event["title"]})");
-
-		}else{
+		} else {
 			TwitchConfig::setCache("${broadcaster_user_login}.channeldata", json_encode($this->payload_eventsub['event']));
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Channel {$broadcaster_user_login} not online, saving channel data to cache.");
 		}
@@ -541,7 +537,6 @@ class TwitchAutomator
 
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "automator", "Game updated on {$data_username} to {$game_name} ({$data_title})", ['instance' => $_GET['instance']]);
 		*/
-
 	}
 
 	/**
@@ -831,7 +826,7 @@ class TwitchAutomator
 
 		// $data_id = $this->payload['id'];
 		// $data_title = $this->payload['title'];
-		
+
 		// $data_started = $this->payload['started_at'];
 		$data_started = $this->getStartDate();
 
@@ -1551,7 +1546,7 @@ class TwitchAutomator
 			'converted_filename' => $converted_filename,
 		]);
 		$convertJob->save();
-		
+
 		TwitchHelper::webhook([
 			'action' => 'start_convert',
 			'vod' => $this->vod,
