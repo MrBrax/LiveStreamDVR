@@ -302,3 +302,8 @@ try {
 if (!TwitchConfig::cfg('bin_dir')) {
 	TwitchHelper::find_bin_dir();
 }
+
+if(!TwitchConfig::cfg("eventsub_secret")){
+	TwitchConfig::setConfig("eventsub_secret", bin2hex(random_bytes(16)));
+	TwitchConfig::saveConfig("eventsub_secret not set");
+}

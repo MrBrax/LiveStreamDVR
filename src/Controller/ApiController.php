@@ -546,9 +546,11 @@ class ApiController
 
         $source = isset($_GET['source']) ? $_GET['source'] : 'twitch';
 
-        $headers = $request->getHeaders();
+        $data_json = json_decode(file_get_contents('php://input'), true);
+        $data_headers = $request->getHeaders();
+        $post_json = isset($_POST['json']) ? $_POST['json'] : null;
 
-        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Hook called", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers]);
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Hook called", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
 
         if (TwitchConfig::cfg('instance_id')) {
             if (!isset($_GET['instance']) || $_GET['instance'] != TwitchConfig::cfg('instance_id')) {
@@ -558,64 +560,76 @@ class ApiController
             }
         }
 
-        // handle hub challenge after subscribing
-        if (isset($_GET['hub_challenge'])) {
-
-            $challenge_token = $_GET['hub_challenge'];
-
-            $user_id = null;
-            $username = null;
-            if ($source == 'twitch') {  // twitch parse channel id
-                if (isset($_GET['hub_topic'])) {
-                    $user_url = parse_url($_GET['hub_topic']);
-                    parse_str($user_url['query'], $user_query);
-                    if (isset($user_query['user_id'])) {
-                        $user_id = $user_query['user_id'];
-                        $username = TwitchHelper::getChannelUsername($user_id);
-                    }
-                }
-            }
-
-            $hub_reason = isset($_GET['hub_reason']) ? $_GET['hub_reason'] : null;
-
-            $hub_mode = isset($_GET['hub_mode']) ? $_GET['hub_mode'] : null;
-
-            if (isset($hub_reason)) {
-                TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "hook", "Received error on hub challenge from {$source} for {$username} ({$user_id}) when trying to {$hub_mode}: {$hub_reason}", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers, 'user_id' => $user_id]);
-            } else {
-                TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Received hub challenge from {$source} for userid {$username} ({$user_id}) when trying to {$hub_mode}", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers, 'user_id' => $user_id]);
-            }
-
-            // todo: use some kind of memcache for this instead
-            $hc = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "hubchallenge_{$user_id}";
-            if (file_exists($hc) && time() < (int)file_get_contents($hc) + 30) {
-                TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Successfully {$hub_mode}d to userid {$user_id} ({$username}) on {$source}", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers, 'user_id' => $user_id]);
-                unlink($hc);
-            }
-
-            // just write the response back without checking anything
-            $response->getBody()->write($challenge_token);
-
-            return $response;
-        }
-
-        /*
-        $hub_secret = isset($headers['X-Hub-Signature']) ? $headers['X-Hub-Signature'] : null;
-        if($hub_secret){
-            $is_secret = hash('sha256', TwitchConfig::cfg('sub_secret');
-        */
-
         // handle regular hook
         if ($source == 'twitch') {
-            $data_json = json_decode(file_get_contents('php://input'), true);
-            $post_json = isset($_POST['json']) ? $_POST['json'] : null;
-
+            
             if ($post_json) {
                 TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Custom payload received...");
                 $data_json = json_decode($post_json, true);
             }
 
             if ($data_json) {
+
+                if($data_json["challenge"]){
+                    
+                    $challenge = $data_json["challenge"];
+                    $subscription = $data_json["subscription"];
+                    $username = TwitchHelper::getChannelUsername($subscription["condition"]["broadcaster_user_id"]);
+                    // $signature = $response->getHeader("Twitch-Eventsub-Message-Signature");
+                    
+                    TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Challenge received: ${challenge}", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
+        
+                    // calculate signature
+                    /*
+                        hmac_message = headers['Twitch-Eventsub-Message-Id'] + headers['Twitch-Eventsub-Message-Timestamp'] + request.body
+                        signature = hmac_sha256(webhook_secret, hmac_message)
+                        expected_signature_header = 'sha256=' + signature.hex()
+        
+                        if headers['Twitch-Eventsub-Message-Signature'] != expected_signature_header:
+                            return 403
+                    */
+
+                    $twitch_message_id = $request->getHeader("Twitch-Eventsub-Message-Id")[0];
+                    $twitch_message_timestamp = $request->getHeader("Twitch-Eventsub-Message-Timestamp")[0];
+                    $twitch_message_signature = $request->getHeader("Twitch-Eventsub-Message-Signature")[0];
+
+                    $hmac_message = 
+                        $twitch_message_id .
+                        $twitch_message_timestamp .
+                        $request->getBody()->getContents();
+                    
+                    $signature = hash_hmac("sha256", $hmac_message, TwitchConfig::cfg("eventsub_secret"));
+
+                    // $signature = hash_hmac("sha256", TwitchConfig::cfg("eventsub_secret"), $hmac_message);
+                    $expected_signature_header = "sha256=${signature}";
+                        
+                    // check signature
+                    if ($twitch_message_signature !== $expected_signature_header){
+                        $response->getBody()->write("Invalid signature check");
+                        TwitchHelper::logAdvanced(
+                            TwitchHelper::LOG_ERROR,
+                            "hook",
+                            "Invalid signature check: {$twitch_message_signature} !== {$expected_signature_header}",
+                            [
+                                'GET' => $_GET,
+                                'POST' => $_POST,
+                                'HEADERS' => $data_headers,
+                                'secret' => TwitchConfig::cfg("eventsub_secret"),
+                                'hmac_message' => $hmac_message,
+                                'calculated_signature' => $signature,
+                                'expected_signature_header' => $expected_signature_header,
+                                'twitch_signature' => $twitch_message_signature,
+                        ]);
+                        return $response->withStatus(400);
+                    }
+        
+                    TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Challenge completed, subscription active for ${username}.", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
+        
+                    // return the challenge string to twitch if signature matches
+                    $response->getBody()->write($challenge);
+                    return $response->withStatus(200);
+        
+                }
 
                 if (TwitchConfig::cfg('debug')) {
                     TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Dumping payload...");
@@ -624,12 +638,12 @@ class ApiController
 
                 TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Run handle...");
                 $TwitchAutomator = new TwitchAutomator();
-                $TwitchAutomator->handle($data_json);
+                $TwitchAutomator->handle($data_json, $data_headers);
                 return $response;
             }
         }
 
-        TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "hook", "Hook called with no data ({$source})...", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $headers]);
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "hook", "Hook called with no data ({$source})...", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
         $response->getBody()->write("No data supplied");
 
         return $response;

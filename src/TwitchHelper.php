@@ -964,8 +964,17 @@ class TwitchHelper
 				return false;
 			}
 
-		} catch (\Throwable $th) {
+		} catch (\GuzzleHttp\Exception\BadResponseException $th) {
+			
 			self::logAdvanced(self::LOG_FATAL, "helper", "Sub return, sleep: " . $th->getMessage());
+
+			$json = json_decode($th->getResponse()->getBody()->getContents(), true);
+			if($json){
+				if($json['message']){
+					return $json['message'];
+				}
+			}
+			
 			sleep(10);
 			return false;
 		}
@@ -1027,7 +1036,7 @@ class TwitchHelper
 		self::logAdvanced(self::LOG_INFO, "helper", "Requesting subscriptions list");
 
 		try {
-			$response = self::$guzzler->request('GET', '/helix/webhooks/subscriptions', [
+			$response = self::$guzzler->request('GET', '/helix/eventsub/subscriptions', [
 				// 'headers' => $headers
 			]);
 		} catch (\Throwable $th) {

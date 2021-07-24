@@ -36,6 +36,8 @@ trait ApiSubs
                 $entry['status'] = 'Subscription request sent, check logs for details';
             } else {
                 $entry['status'] = "Error: {$ret}";
+                // $payload_data['channels'][] = $entry;
+                // break;
             }
 
             $payload_data['channels'][] = $entry;
@@ -61,6 +63,9 @@ trait ApiSubs
 
         $subs = TwitchHelper::getSubs();
 
+        // $response->getBody()->write(json_encode($subs));
+        // return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+
         if (isset($subs['total']) && $subs['total'] > 0) {
 
             // $response->getBody()->write("Total: {$subs['total']}<br>");
@@ -76,6 +81,7 @@ trait ApiSubs
 
                 $entry = [];
 
+                /*
                 $user_id = explode("=", $data['topic'])[1];
 
                 $u = TwitchHelper::getChannelUsername($user_id);
@@ -99,6 +105,16 @@ trait ApiSubs
                 $entry['already_exists']    = isset($all_usernames[mb_strtolower($username)]);
 
                 $all_usernames[mb_strtolower($username)] = true;
+                */
+
+                $entry['type']              = $data['type'];
+                $entry['id']                = $data['id'];
+                $entry['username']          = TwitchHelper::getChannelUsername( $data['condition']['broadcaster_user_id'] );
+                $entry['user_id']           = $data['condition']['broadcaster_user_id'];
+                $entry['callback']          = $data['transport']['callback'];
+                $entry['instance_match']    = $data['transport']['callback'] == TwitchConfig::cfg('app_url') . '/hook' . (TwitchConfig::cfg('instance_id') ? '?instance=' . TwitchConfig::cfg('instance_id') : '');
+                $entry['status']            = $data['status'];
+                // $entry['expires_at']        = $data['expires_at'];
 
                 $payload_data['channels'][] = $entry;
             }
@@ -110,6 +126,7 @@ trait ApiSubs
                 "status" => "OK"
             ]));
             return $response->withHeader('Content-Type', 'application/json');
+
         } elseif (isset($subs['total']) && $subs['total'] == 0) {
             $response->getBody()->write(json_encode([
                 "message" => "No subscriptions. Let cron do its job or visit the sub page.",

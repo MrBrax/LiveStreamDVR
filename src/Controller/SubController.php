@@ -11,6 +11,10 @@ use App\TwitchAutomator;
 use App\TwitchConfig;
 use App\TwitchHelper;
 
+/**
+ * @deprecated 5.0.0
+ */
+
 class SubController
 {
 
