@@ -162,16 +162,16 @@ trait ApiChannels
     public function channels_update(Request $request, Response $response, array $args)
     {
 
-        $username       = isset($_POST['username']) ? $_POST['username'] : null;
+        $login       = isset($_POST['login']) ? $_POST['login'] : null;
         $quality        = isset($_POST['quality']) ? explode(" ", $_POST['quality']) : null;
         $match          = isset($_POST['match']) ? $_POST['match'] : null;
         $download_chat  = isset($_POST['download_chat']);
         $burn_chat      = isset($_POST['burn_chat']);
         $no_capture     = isset($_POST['no_capture']);
 
-        if (!TwitchConfig::getStreamer($username)) {
+        if (!TwitchConfig::getChannelByLogin($login)) {
             $response->getBody()->write(json_encode([
-                "message" => "Streamer with that username does not exist in config",
+                "message" => "Streamer with that login does not exist in config",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -179,7 +179,7 @@ trait ApiChannels
 
         // template
         $streamer = [
-            "username" => $username,
+            "login" => $login,
             "quality" => $quality
         ];
 
@@ -191,6 +191,7 @@ trait ApiChannels
         if ($burn_chat) $streamer["burn_chat"] = true;
         if ($no_capture) $streamer["no_capture"] = true;
 
+        /*
         if (!TwitchConfig::$config['streamers']) {
             $response->getBody()->write(json_encode([
                 "message" => "No streamers have been added.",
@@ -198,25 +199,26 @@ trait ApiChannels
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
+        */
 
         // todo: find a better way to do this
         $key = null;
-        foreach (TwitchConfig::$config['streamers'] as $k => $v) {
-            if ($v['username'] == $username) $key = $k;
+        foreach (TwitchConfig::$channels_config as $k => $v) {
+            if ($v['login'] == $login) $key = $k;
         }
         if ($key === null) {
             $response->getBody()->write(json_encode([
-                "message" => "Streamer {$username} not found.",
+                "message" => "Streamer {$login} not found.",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
-        TwitchConfig::$config['streamers'][$key] = $streamer;
+        TwitchConfig::$channels_config[$key] = $streamer;
 
         if (TwitchConfig::cfg('app_url') !== 'debug') {
             try {
-                TwitchHelper::channelSubscribe(TwitchHelper::getChannelId($username));
+                TwitchHelper::channelSubscribe(TwitchChannel::channelIdFromLogin($login));
             } catch (\Throwable $th) {
                 $response->getBody()->write(json_encode([
                     "message" => "Subscription error: " . $th->getMessage(),
@@ -226,10 +228,10 @@ trait ApiChannels
             }
         }
 
-        TwitchConfig::saveConfig("streamer/update");
+        TwitchConfig::saveChannels();
 
         $response->getBody()->write(json_encode([
-            "message" => "Streamer '{$username}' updated",
+            "message" => "Channel '{$login}' updated",
             "status" => "OK"
         ]));
         return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
@@ -238,50 +240,43 @@ trait ApiChannels
     public function channels_delete(Request $request, Response $response, array $args)
     {
 
-        $username = $_POST['username'];
+        $login = $_POST['login'];
 
-        try {
-            $streamer_data = TwitchConfig::getStreamer($username);
-        } catch (\Throwable $th) {
-            $response->getBody()->write(json_encode([
-                "message" => "Server error: " . $th->getMessage(),
-                "status" => "ERROR"
-            ]));
-            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
-        }
+        $streamer_data = TwitchConfig::getChannelByLogin($login);
         
         if (!$streamer_data) {
             $response->getBody()->write(json_encode([
-                "message" => "Streamer with that username does not exist in config",
+                "message" => "Streamer with that login does not exist in config",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
-        $streamer = new TwitchChannel();
-        $streamer->load($username);
+        $streamer = TwitchChannel::loadFromLogin($login);
+
         if ($streamer->is_live) {
             $response->getBody()->write(json_encode([
-                "message" => "Please wait until the streamer has stopped streaming before deleting.",
+                "message" => "Please wait until the channel has stopped streaming before deleting.",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
         $key = null;
-        foreach (TwitchConfig::$config['streamers'] as $k => $v) {
-            if ($v['username'] == $username) $key = $k;
+        foreach (TwitchConfig::$channels_config as $k => $v) {
+            if ($v['login'] == $login) $key = $k;
         }
         if ($key === null) {
             $response->getBody()->write(json_encode([
-                "message" => "Streamer {$username} not found.",
+                "message" => "Channel {$login} not found.",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
-        TwitchHelper::channelUnsubscribe(TwitchHelper::getChannelId($username));
+        TwitchHelper::channelUnsubscribe(TwitchChannel::channelIdFromLogin($login));
 
+        /*
         sleep(5);
 
         if($streamer->getSubscription()){
@@ -291,14 +286,19 @@ trait ApiChannels
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
+        */
 
-        unset(TwitchConfig::$config['streamers'][$key]);
-        TwitchConfig::saveConfig("streamer/deleted");
+        array_splice(TwitchConfig::$channels_config, $key, 1);
+
+        // unset(TwitchConfig::$config['streamers'][$key]);
+        // TwitchConfig::saveConfig("streamer/deleted");
+        TwitchConfig::saveChannels();
 
         $response->getBody()->write(json_encode([
-            "message" => "Streamer {$username} deleted.",
+            "message" => "Streamer {$login} deleted.",
             "status" => "OK"
         ]));
+
         return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
         
     }

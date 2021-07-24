@@ -158,10 +158,10 @@ class TwitchAutomator
 	/**
 	 * Remove old VODs by streamer name, this has to be properly rewritten
 	 */
-	public function cleanup($streamer_name, $source_basename = null)
+	public function cleanup($login, $source_basename = null)
 	{
 
-		$vods = glob(TwitchHelper::vodFolder($streamer_name) . DIRECTORY_SEPARATOR . $streamer_name . "_*.json");
+		$vods = glob(TwitchHelper::vodFolder($login) . DIRECTORY_SEPARATOR . $login . "_*.json");
 
 		$total_size = 0;
 
@@ -190,21 +190,21 @@ class TwitchAutomator
 			$vod_list[] = $vodclass;
 
 			foreach ($vodclass->segments_raw as $s) {
-				$total_size += filesize(TwitchHelper::vodFolder($streamer_name) . DIRECTORY_SEPARATOR . basename($s));
+				$total_size += filesize(TwitchHelper::vodFolder($login) . DIRECTORY_SEPARATOR . basename($s));
 			}
 		}
 
 		$gb = $total_size / 1024 / 1024 / 1024;
 
-		// $this->info[] = 'Total filesize for ' . $streamer_name . ': ' . $gb;
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Total filesize for {$streamer_name}: " . TwitchHelper::formatBytes($total_size));
+		// $this->info[] = 'Total filesize for ' . $login . ': ' . $gb;
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Total filesize for {$login}: " . TwitchHelper::formatBytes($total_size));
 
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Amount for {$streamer_name}: " . sizeof($vod_list) . "/" . (TwitchConfig::cfg("vods_to_keep") + 1));
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Amount for {$login}: " . sizeof($vod_list) . "/" . (TwitchConfig::cfg("vods_to_keep") + 1));
 
 		// don't include the current vod
 		if (sizeof($vod_list) > (TwitchConfig::cfg('vods_to_keep') + 1) || $gb > TwitchConfig::cfg('storage_per_streamer')) {
 
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Total filesize for {$streamer_name} exceeds either vod amount or storage per streamer");
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Total filesize for {$login} exceeds either vod amount or storage per streamer");
 
 			// don't delete the newest vod, hopefully
 			if ($source_basename != null && $vod_list[0]->basename == $source_basename) {
@@ -354,7 +354,7 @@ class TwitchAutomator
 			$this->updateGame();
 		} elseif ($subscription_type == "stream.online") {
 
-			if (!TwitchConfig::getStreamer($this->broadcaster_user_login)) {
+			if (!TwitchConfig::getChannelByLogin($this->broadcaster_user_login)) {
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle triggered, but username '{$this->broadcaster_user_login}' is not in config.");
 				return false;
 			}
@@ -367,7 +367,7 @@ class TwitchAutomator
 
 			$basename = $this->basename();
 
-			$folder_base = TwitchHelper::vodFolder($this->broadcaster_user_name);
+			$folder_base = TwitchHelper::vodFolder($this->broadcaster_user_login);
 
 			if (file_exists($folder_base . DIRECTORY_SEPARATOR . $basename . '.json')) {
 
@@ -431,7 +431,7 @@ class TwitchAutomator
 		if (TwitchConfig::getCache("${broadcaster_user_login}.online") === "1") {
 
 			$basename = $this->basename();
-			$folder_base = TwitchHelper::vodFolder($this->broadcaster_user_name);
+			$folder_base = TwitchHelper::vodFolder($this->broadcaster_user_login);
 
 			if (!$this->vod) {
 				$this->vod = new TwitchVOD();
@@ -576,7 +576,7 @@ class TwitchAutomator
 
 		$basename = $this->basename();
 
-		$folder_base = TwitchHelper::vodFolder($data_username);
+		$folder_base = TwitchHelper::vodFolder($this->broadcaster_user_login);
 
 		// make a folder for the streamer if it for some reason doesn't exist, but it should get created in the config
 		if (!file_exists($folder_base)) {
@@ -613,17 +613,17 @@ class TwitchAutomator
 
 		$this->updateGame();
 
-		$streamer = TwitchConfig::getStreamer($data_username);
+		$streamer = TwitchConfig::getChannelByLogin($this->broadcaster_user_login);
 
 		// check matched title, broken?
-		if ($streamer && isset($streamer['match'])) {
+		if ($streamer && isset($streamer->match)) {
 
 			$match = false;
 
 			// $this->notify($basename, 'Check keyword matches for user ' . json_encode($streamer), self::NOTIFY_GENERIC);
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Check keyword matches for {$basename}", ['download' => $data_username]);
 
-			foreach ($streamer['match'] as $m) {
+			foreach ($streamer->match as $m) {
 				if (mb_strpos(strtolower($data_title), $m) !== false) {
 					$match = true;
 					break;
@@ -663,7 +663,7 @@ class TwitchAutomator
 		if (TwitchConfig::cfg('playlist_dump')) {
 
 			$psa = new TwitchPlaylistAutomator();
-			$psa->setup($data_username, TwitchConfig::getStreamer($data_username)['quality'][0]);
+			$psa->setup($data_username, TwitchConfig::getChannelByLogin($this->broadcaster_user_login)->quality[0]);
 			$psa->output_file = $folder_base . DIRECTORY_SEPARATOR . $basename . '.ts';
 
 			try {
@@ -767,7 +767,7 @@ class TwitchAutomator
 
 		// remove old vods for the streamer
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Cleanup old VODs for {$data_username}", ['download' => $data_username]);
-		$this->cleanup($data_username, $basename);
+		$this->cleanup($this->broadcaster_user_login, $basename);
 
 		// finalize
 
@@ -847,13 +847,13 @@ class TwitchAutomator
 
 		// $basename = $this->basename();
 
-		$folder_base = TwitchHelper::vodFolder($data_username);
+		$folder_base = TwitchHelper::vodFolder($this->broadcaster_user_login);
 
 		$capture_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '.ts';
 
 		$chat_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '.chatdump';
 
-		$streamer_config = TwitchConfig::getStreamer($data_username);
+		$streamer_config = TwitchConfig::getChannelByLogin($this->broadcaster_user_login);
 
 		// failure
 		/*
@@ -1369,7 +1369,7 @@ class TwitchAutomator
 
 			// format, does this work?
 			$yt_cmd[] = '-f';
-			$yt_cmd[] = implode('/', TwitchConfig::getStreamer($data_username)['quality']);
+			$yt_cmd[] = implode('/', TwitchConfig::getChannelByLogin($this->broadcaster_user_login)->quality ?: []);
 
 			// verbose
 			if (TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false)) {
@@ -1429,7 +1429,7 @@ class TwitchAutomator
 
 		$container_ext = TwitchConfig::cfg('vod_container', 'mp4');
 
-		$folder_base = TwitchHelper::vodFolder($this->vod->streamer_name);
+		$folder_base = TwitchHelper::vodFolder($this->broadcaster_user_login);
 
 		$capture_filename 	= $folder_base . DIRECTORY_SEPARATOR . $basename . '.ts';
 

@@ -21,6 +21,7 @@ class TwitchChannel
     public ?array $current_game = null;
     public ?int $current_duration = null;
     public ?array $quality = [];
+    public ?array $match = [];
     public ?\DateTime $subbed_at = null;
     public ?\DateTime $expires_at = null;
 
@@ -53,8 +54,8 @@ class TwitchChannel
         $channel_login = $channel_data['login'];
 
         $config = [];
-        foreach(TwitchConfig::$channels_config as $channel_config){
-            if($channel_config['login'] == $channel_data['login']) $config = $channel_config;
+        foreach (TwitchConfig::$channels_config as $channel_config) {
+            if ($channel_config['login'] == $channel_data['login']) $config = $channel_config;
         }
 
         if (!$config) {
@@ -92,144 +93,147 @@ class TwitchChannel
             }
         }
 
+        if (TwitchConfig::cfg('channel_folders') && !file_exists($channel->getFolder())) {
+            // mkdir(TwitchHelper::vodFolder($streamer['username']));
+            mkdir($channel->getFolder());
+        }
+
         $channel->parseVODs($api);
 
         return $channel;
-
     }
 
-    public static function loadFromId( $streamer_id ){
-        return self::loadAbstract( $streamer_id ); // $channel;
+    public static function loadFromId($streamer_id)
+    {
+        return self::loadAbstract($streamer_id); // $channel;
     }
 
-    public static function loadFromLogin( string $login ){
-        return self::loadAbstract( self::channelIdFromLogin($login) ); // $channel;
+    public static function loadFromLogin(string $login)
+    {
+        return self::loadAbstract(self::channelIdFromLogin($login)); // $channel;
     }
 
-    public static function channelIdFromLogin($login){
-        
+    public static function channelIdFromLogin($login)
+    {
+
         $cache_json = file_exists(TwitchConfig::$streamerCachePath) ? json_decode(file_get_contents(TwitchConfig::$streamerCachePath), true) : [];
-        
+
         if ($cache_json) {
-			foreach ($cache_json as $user_id => $data) {
-				if ($data['login'] == $login) {
-					return (string)$user_id;
-				}
-			}
-		}
+            foreach ($cache_json as $user_id => $data) {
+                if ($data['login'] == $login) {
+                    return (string)$user_id;
+                }
+            }
+        }
 
         return false;
-
     }
 
-    public static function channelLoginFromId($streamer_id){
-        
+    public static function channelLoginFromId($streamer_id)
+    {
+
         $cache_json = file_exists(TwitchConfig::$streamerCachePath) ? json_decode(file_get_contents(TwitchConfig::$streamerCachePath), true) : [];
-        
+
         if ($cache_json) {
-			foreach ($cache_json as $user_id => $data) {
-				if ($data['id'] == $streamer_id) {
-					return (string)$data["login"];
-				}
-			}
-		}
+            foreach ($cache_json as $user_id => $data) {
+                if ($data['id'] == $streamer_id) {
+                    return (string)$data["login"];
+                }
+            }
+        }
 
         return false;
-
     }
 
     private static function getChannelData($streamer_id)
-	{
+    {
 
-		if (!is_numeric($streamer_id)) {
-			throw new \Exception("Non-numeric passed to getChannelData ({$streamer_id})");
-			return false;
-		}
+        if (!is_numeric($streamer_id)) {
+            throw new \Exception("Non-numeric passed to getChannelData ({$streamer_id})");
+            return false;
+        }
 
         // first, check cache
-		if (file_exists(TwitchConfig::$streamerCachePath)) {
+        if (file_exists(TwitchConfig::$streamerCachePath)) {
 
-			$json_streamers = json_decode(file_get_contents(TwitchConfig::$streamerCachePath), true);
+            $json_streamers = json_decode(file_get_contents(TwitchConfig::$streamerCachePath), true);
 
-			if ($json_streamers && isset($json_streamers[$streamer_id])) {
-				
+            if ($json_streamers && isset($json_streamers[$streamer_id])) {
+
                 TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "helper", "Fetched channel data from cache for {$streamer_id} ({$json_streamers[$streamer_id]['display_name']})");
-				
+
                 // check if too old, continue if true
                 if (!isset($json_streamers[$streamer_id]['_updated']) || time() > $json_streamers[$streamer_id]['_updated'] + 2592000) {
-					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "helper", "Channel data in cache for {$streamer_id} is too old, proceed to updating!");
-				} else {
-					return $json_streamers[$streamer_id];
-				}
+                    TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "helper", "Channel data in cache for {$streamer_id} is too old, proceed to updating!");
+                } else {
+                    return $json_streamers[$streamer_id];
+                }
+            }
+        } else {
 
-			}
+            $json_streamers = [];
+        }
 
-		} else {
+        $access_token = TwitchHelper::getAccessToken();
 
-			$json_streamers = [];
+        if (!$access_token) {
+            throw new \Exception('Fatal error, could not get access token for channel id request');
+            return false;
+        }
 
-		}
+        $query = [];
+        $query['id'] = $streamer_id;
 
-		$access_token = TwitchHelper::getAccessToken();
+        try {
+            $response = TwitchHelper::$guzzler->request('GET', '/helix/users', [
+                'query' => $query
+            ]);
+        } catch (\Throwable $th) {
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "helper", "getChannelData for {$streamer_id} errored: " . $th->getMessage());
+            return false;
+        }
 
-		if (!$access_token) {
-			throw new \Exception('Fatal error, could not get access token for channel id request');
-			return false;
-		}
+        $server_output = $response->getBody()->getContents();
+        $json = json_decode($server_output, true);
 
-		$query = [];
-		$query['id'] = $streamer_id;
+        if (!$json["data"]) {
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "helper", "Failed to fetch channel data for {$streamer_id}: {$server_output}");
+            return false;
+        }
 
-		try {
-			$response = TwitchHelper::$guzzler->request('GET', '/helix/users', [
-				'query' => $query
-			]);
-		} catch (\Throwable $th) {
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "helper", "getChannelData for {$streamer_id} errored: " . $th->getMessage());
-			return false;
-		}
+        $data = $json["data"][0];
 
-		$server_output = $response->getBody()->getContents();
-		$json = json_decode($server_output, true);
+        $data["_updated"] = time();
 
-		if (!$json["data"]) {
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "helper", "Failed to fetch channel data for {$streamer_id}: {$server_output}");
-			return false;
-		}
+        if (isset($data["profile_image_url"]) && $data["profile_image_url"]) {
+            $client = new \GuzzleHttp\Client;
+            $avatar_ext = pathinfo($data["profile_image_url"], PATHINFO_EXTENSION);
+            $avatar_output = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "channel" . DIRECTORY_SEPARATOR . "avatar" . DIRECTORY_SEPARATOR . $data["display_name"] . "." . $avatar_ext;
+            $avatar_final = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "channel" . DIRECTORY_SEPARATOR . "avatar" . DIRECTORY_SEPARATOR . $data["display_name"] . ".webp";
+            try {
+                $response = $client->request("GET", $data["profile_image_url"], [
+                    "query" => $query,
+                    "sink" => $avatar_output
+                ]);
+            } catch (\Throwable $th) {
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "helper", "Avatar fetching for {$streamer_id} errored: " . $th->getMessage());
+            }
+            if (file_exists($avatar_output)) {
+                $data["cache_avatar"] = $data["display_name"] . "." . $avatar_ext;
+                if (TwitchHelper::path_ffmpeg()) {
+                    TwitchHelper::exec([TwitchHelper::path_ffmpeg(), "-i", $avatar_output, "-y", $avatar_final]);
+                    $data["cache_avatar"] = $data["display_name"] . ".webp";
+                }
+            }
+        }
 
-		$data = $json["data"][0];
+        $json_streamers[$streamer_id] = $data;
+        file_put_contents(TwitchConfig::$streamerCachePath, json_encode($json_streamers));
 
-		$data["_updated"] = time();
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "helper", "Fetched channel data online for {$streamer_id}");
 
-		if (isset($data["profile_image_url"]) && $data["profile_image_url"]) {
-			$client = new \GuzzleHttp\Client;
-			$avatar_ext = pathinfo($data["profile_image_url"], PATHINFO_EXTENSION);
-			$avatar_output = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "channel" . DIRECTORY_SEPARATOR . "avatar" . DIRECTORY_SEPARATOR . $data["display_name"] . "." . $avatar_ext;
-			$avatar_final = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "channel" . DIRECTORY_SEPARATOR . "avatar" . DIRECTORY_SEPARATOR . $data["display_name"] . ".webp";
-			try {
-				$response = $client->request("GET", $data["profile_image_url"], [
-					"query" => $query,
-					"sink" => $avatar_output
-				]);
-			} catch (\Throwable $th) {
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "helper", "Avatar fetching for {$streamer_id} errored: " . $th->getMessage());
-			}
-			if (file_exists($avatar_output)) {
-				$data["cache_avatar"] = $data["display_name"] . "." . $avatar_ext;
-				if (TwitchHelper::path_ffmpeg()) {
-					TwitchHelper::exec([TwitchHelper::path_ffmpeg(), "-i", $avatar_output, "-y", $avatar_final]);
-					$data["cache_avatar"] = $data["display_name"] . ".webp";
-				}
-			}
-		}
-
-		$json_streamers[$streamer_id] = $data;
-		file_put_contents(TwitchConfig::$streamerCachePath, json_encode($json_streamers));
-
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "helper", "Fetched channel data online for {$streamer_id}");
-
-		return $data;
-	}
+        return $data;
+    }
 
     /**
      * Load
@@ -292,9 +296,14 @@ class TwitchChannel
     }
     */
 
+    /**
+     * Get base folder for channel
+     *
+     * @return string
+     */
     public function getFolder()
     {
-        return TwitchHelper::vodFolder($this->username);
+        return TwitchHelper::vodFolder($this->login);
     }
 
     /**
@@ -305,7 +314,7 @@ class TwitchChannel
     private function parseVODs($api = false)
     {
 
-        $this->vods_raw = glob(TwitchHelper::vodFolder($this->display_name) . DIRECTORY_SEPARATOR . $this->display_name . "_*.json");
+        $this->vods_raw = glob($this->getFolder() . DIRECTORY_SEPARATOR . $this->login . "_*.json");
 
         foreach ($this->vods_raw as $k => $v) {
 
