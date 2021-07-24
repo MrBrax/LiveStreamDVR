@@ -6,11 +6,15 @@ use DateTime;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
+use function GuzzleHttp\json_decode;
+
 // declare(ticks=1); // test
 
 
 /*	
 	## new twitch eventsub ##
+	https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#stream-subscriptions
+	https://dev.twitch.tv/docs/eventsub/eventsub-reference/#events
 
 	how to structure basename?
 	how to make new flow with game updates, keep session?
@@ -60,6 +64,10 @@ class TwitchAutomator
 	private $payload_eventsub = [];
 	private $payload_headers = [];
 
+	private $broadcaster_user_id = "";
+	private $broadcaster_user_login = "";
+	private $broadcaster_user_name  = "";
+
 	const NOTIFY_GENERIC = 1;
 	const NOTIFY_DOWNLOAD = 2;
 	const NOTIFY_ERROR = 4;
@@ -95,7 +103,7 @@ class TwitchAutomator
 
 	public function streamURL()
 	{
-		return 'twitch.tv/' . $this->payload['user_name'];
+		return 'twitch.tv/' . $this->broadcaster_user_name;
 	}
 
 	public function getDateTime()
@@ -104,34 +112,49 @@ class TwitchAutomator
 		return date(TwitchHelper::DATE_FORMAT);
 	}
 
-	public function parsePayload()
-	{
-		return $this->payload;
-	}
+	// public function parsePayload()
+	// {
+	// 	return $this->payload;
+	// }
 
 	public function getVodID()
 	{
-		return $this->payload['id'];
+		return TwitchConfig::getCache("{$this->broadcaster_user_login}.vod.id");
+		// return $this->payload['id'];
 	}
 
 	public function getUserID()
 	{
-		return TwitchHelper::getChannelId($this->payload['user_name']);
+		return $this->broadcaster_user_id;
+		// return TwitchHelper::getChannelId($this->payload['user_name']);
 	}
 
 	public function getUsername()
 	{
-		return $this->payload['user_name'];
+		return $this->broadcaster_user_name;
+		// return $this->payload['user_name'];
 	}
 
 	public function getStartDate()
 	{
-		return $this->payload['started_at'];
+		return TwitchConfig::getCache("{$this->broadcaster_user_login}.vod.started_at");
+		// return $this->payload['started_at'];
 	}
 
 	public function getTitle()
 	{
-		return $this->payload['title'];
+
+		$channeldata = TwitchConfig::getCache("{$this->broadcaster_user_login}.channeldata");
+		if($channeldata){
+			$channeldata_json = json_decode($channeldata, true);
+			if($channeldata_json){
+				return $channeldata_json["title"];
+			}
+		}
+
+		return false;
+
+		// return $this->payload['title'];
 	}
 
 	/**
@@ -324,9 +347,9 @@ class TwitchAutomator
 		$this->data_cache = $data;
 
 		$event = $data['event'];
-		$broadcaster_user_id = $data['broadcaster_user_id'];
-		$broadcaster_user_login = $data['broadcaster_user_login'];
-		$broadcaster_user_name = $data['broadcaster_user_name'];
+		$this->broadcaster_user_id = $data['broadcaster_user_id'];
+		$this->broadcaster_user_login = $data['broadcaster_user_login'];
+		$this->broadcaster_user_name = $data['broadcaster_user_name'];
 
 		if($subscription_type == "channel.update"){
 
@@ -334,18 +357,20 @@ class TwitchAutomator
 
 		}elseif($subscription_type == "stream.online"){
 
-			if(!TwitchConfig::getStreamer($broadcaster_user_login)){
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle triggered, but username '{$broadcaster_user_login}' is not in config.");
+			if(!TwitchConfig::getStreamer($this->broadcaster_user_login)){
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle triggered, but username '{$this->broadcaster_user_login}' is not in config.");
 				return false;
 			}
 
-			TwitchConfig::setCache("${broadcaster_user_login}.online", "1");
+			TwitchConfig::setCache("{$this->broadcaster_user_login}.online", "1");
+			TwitchConfig::setCache("{$this->broadcaster_user_login}.vod.id", $event["id"]);
+			TwitchConfig::setCache("{$this->broadcaster_user_login}.vod.started_at", $event["started_at"]);
 
 			// $this->payload = $data['data'][0];
 
 			$basename = $this->basename();
 
-			$folder_base = TwitchHelper::vodFolder($broadcaster_user_name);
+			$folder_base = TwitchHelper::vodFolder($this->broadcaster_user_name);
 
 			if (file_exists($folder_base . DIRECTORY_SEPARATOR . $basename . '.json')) {
 
@@ -380,7 +405,7 @@ class TwitchAutomator
 			}
 
 		}elseif($subscription_type == "stream.offline"){
-			TwitchConfig::setCache("${broadcaster_user_login}.online", "0");
+			TwitchConfig::setCache("{$this->broadcaster_user_login}.online", "0");
 			$this->end();
 		}
 
@@ -391,7 +416,7 @@ class TwitchAutomator
 	 *
 	 * @return void
 	 */
-	public function updateGame()
+	public function updateGame( $from_cache = false )
 	{
 
 		/*
@@ -410,8 +435,52 @@ class TwitchAutomator
 		// if online
 		if( TwitchConfig::getCache("${broadcaster_user_login}.online") === "1" ){
 
-			// $this->vod = new TwitchVOD();
-			// $this->vod->load($folder_base . DIRECTORY_SEPARATOR . $basename . '.json');
+			$basename = $this->basename();
+			$folder_base = TwitchHelper::vodFolder($this->broadcaster_user_name);
+
+			if(!$this->vod){
+				$this->vod = new TwitchVOD();
+				$this->vod->load($folder_base . DIRECTORY_SEPARATOR . $basename . '.json');
+			}
+
+			$event = [];
+
+			if( $from_cache ){
+				$cd = TwitchConfig::getCache("${broadcaster_user_login}.channeldata");
+				if(!$cd) return false;
+				$cdj = json_decode($cd, true);
+				if(!$cdj) return false;
+				$event = $cdj;
+			}else{
+				$event = $this->payload_eventsub["event"];
+			}
+
+			// fetch game name from either cache or twitch
+			// $game_name = TwitchHelper::getGameName((int)$data_game_id);
+
+			$chapter = [
+				'time' 			=> $this->getDateTime(),
+				// 'datetime'		=> new \DateTime(), /** @deprecated 5.0.0 */
+				'dt_started_at'	=> new \DateTime(),
+				'game_id' 		=> $event["category_id"],
+				'game_name'		=> $event["category_name"],
+				// 'viewer_count' 	=> $data_viewer_count,
+				'title'			=> $event["title"],
+				'is_mature'		=> $event["is_mature"],
+			];
+
+			$this->vod->addChapter($chapter);
+			$this->vod->saveJSON('game update');
+
+			// $this->notify('', '[' . $data_username . '] [game update: ' . $game_name . ']', self::NOTIFY_GAMECHANGE);
+
+			TwitchHelper::webhook([
+				'action' => 'chapter_update',
+				'chapter' => $chapter,
+				'vod' => $this->vod
+			]);
+
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "automator", "Game updated on {$this->broadcaster_user_login} to {$event["category_name"]} ({$event["title"]})");
 
 		}else{
 			TwitchConfig::setCache("${broadcaster_user_login}.channeldata", json_encode($this->payload_eventsub['event']));
@@ -499,7 +568,7 @@ class TwitchAutomator
 		// $data_id = $this->payload['id'];
 		$data_title = $this->getTitle();
 		$data_started = $this->getStartDate();
-		$data_game_id = $this->payload['game_id'];
+		// $data_game_id = $this->payload['game_id'];
 		// $data_username = $this->payload['user_name'];
 
 		$data_id = $this->getVodID();
@@ -533,8 +602,8 @@ class TwitchAutomator
 		$this->vod = new TwitchVOD();
 		$this->vod->create($folder_base . DIRECTORY_SEPARATOR . $basename . '.json');
 
-		$this->vod->meta = $this->payload;
-		$this->vod->json['meta'] = $this->payload;
+		$this->vod->meta = $this->payload_eventsub;
+		$this->vod->json['meta'] = $this->payload_eventsub;
 		$this->vod->streamer_name = $data_username;
 		$this->vod->streamer_id = $this->getUserID();
 		$this->vod->dt_started_at = \DateTime::createFromFormat(TwitchHelper::DATE_FORMAT, $data_started);
@@ -548,6 +617,8 @@ class TwitchAutomator
 			'action' => 'start_download',
 			'vod' => $this->vod
 		]);
+
+		$this->updateGame();
 
 		$streamer = TwitchConfig::getStreamer($data_username);
 
@@ -761,9 +832,12 @@ class TwitchAutomator
 	{
 
 		// $data_id = $this->payload['id'];
-		$data_title = $this->payload['title'];
-		$data_started = $this->payload['started_at'];
-		$data_game_id = $this->payload['game_id'];
+		// $data_title = $this->payload['title'];
+		
+		// $data_started = $this->payload['started_at'];
+		$data_started = $this->getStartDate();
+
+		// $data_game_id = $this->payload['game_id'];
 		// $data_username = $this->payload['user_name'];
 
 		$data_id = $this->getVodID();

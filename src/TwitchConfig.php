@@ -280,6 +280,11 @@ class TwitchConfig
 
 	public static function setCache($key, $value){
 		$key = str_replace(".", "-", $key);
+		if($value === null){
+			if(file_exists(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key)){
+				unlink(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key);
+			}
+		}
 		file_put_contents(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key, $value);
 	}
 
