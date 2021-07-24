@@ -4,15 +4,26 @@ declare(strict_types=1);
 
 namespace App;
 
+use function GuzzleHttp\json_decode;
+
 class TwitchConfig
 {
 
 	public static $config = [];
 
-	public static $configPath 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "config.json";
-	public static $gameDbPath 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "games_v2.json";
-	public static $historyPath 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "history.json";
-	public static $streamerDbPath 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "streamers_v2.json";
+	/**
+	 * Channels
+	 *
+	 * @var TwitchChannel[]
+	 */
+	public static $channels = [];
+	public static $channels_config = [];
+
+	public static $configPath 			= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "config.json";
+	public static $channelPath 			= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "channels.json";
+	public static $gameDbPath 			= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "games_v2.json";
+	public static $historyPath 			= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "history.json";
+	public static $streamerCachePath 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "streamers_v2.json";
 
 	public static $settingsFields = [
 		['key' => 'bin_dir', 				'group' => 'Binaries',	'text' => 'Python binary directory', 						'type' => 'string',		'required' => true, 'help' => 'No trailing slash', 'stripslash' => true],
@@ -22,7 +33,7 @@ class TwitchConfig
 
 		['key' => 'basepath', 				'group' => 'Advanced',	'text' => 'Base path', 										'type' => 'string',		'help' => 'No trailing slas. For reverse proxy etc', 'stripslash' => true],
 		['key' => 'instance_id', 			'group' => 'Basic',		'text' => 'Instance ID', 									'type' => 'string'],
-		
+
 		[
 			'key' => 'app_url',
 			'group' => 'Basic',
@@ -32,7 +43,7 @@ class TwitchConfig
 			'help' => 'Must use port 443 and HTTPS. No trailing slash. E.g. https://twitchautomator.example.com',
 			'stripslash' => true
 		],
-		
+
 		['key' => 'webhook_url', 			'group' => 'Basic',		'text' => 'Webhook URL', 									'type' => 'string',		'help' => 'For external scripting'],
 		['key' => 'password', 				'group' => 'Interface',	'text' => 'Password', 										'type' => 'string',		'help' => 'Keep blank for none. Username is admin'],
 		['key' => 'password_secure', 		'group' => 'Interface',	'text' => 'Force HTTPS for password', 						'type' => 'boolean',	'default' => true],
@@ -184,6 +195,7 @@ class TwitchConfig
 
 		self::$config = $config;
 
+		/*
 		$streamerList = self::getStreamers();
 		$save = false;
 		foreach ($streamerList as $i => $streamer) {
@@ -203,6 +215,7 @@ class TwitchConfig
 		if ($save) {
 			self::saveConfig("streamer quality fix");
 		}
+		*/
 	}
 
 	public static function saveConfig($source = "unknown")
@@ -243,23 +256,66 @@ class TwitchConfig
 		self::saveConfig();
 	}
 
+	public static function loadChannels()
+	{
+		if (!file_exists(self::$channelPath)) return;
+		self::$channels_config = json_decode(file_get_contents(self::$channelPath), true) ?: [];
+		if(count(self::$channels_config) > 0){
+			foreach (self::$channels_config as $s) {
+				// $ch = new TwitchChannel();
+				// $ch->load($s["login"]);
+				$ch = TwitchChannel::loadFromLogin($s["login"]);
+				array_push(self::$channels, $ch);
+			}
+		}
+	}
+
+	public static function saveChannels()
+	{
+		file_put_contents(self::$channelPath, json_encode(self::$channels_config, JSON_PRETTY_PRINT));
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "config", "Saved channels config");		
+	}
+
+	/*
 	public static function getStreamers()
 	{
 		return self::$config['streamers'];
 	}
+	*/
 
 	/**
 	 * Get streamer info from local config
 	 *
 	 * @param string $username
-	 * @return array|false
+	 * @return TwitchChannel|false
 	 */
-	public static function getStreamer(string $username, $lowercase = false)
+	public static function getChannelById($channel_id)
 	{
-		$streamers = self::getStreamers();
-		foreach ($streamers as $s) {
-			if ($lowercase && strtolower($s['username']) == strtolower($username)) return $s;
-			if ($s['username'] == $username) return $s;
+		foreach (self::$channels as $c) {
+			if ($c->userid == $channel_id) return $c;
+		}
+		return false;
+	}
+
+	public static function getChannelByLogin($login)
+	{
+		foreach (self::$channels as $c) {
+			if ($c->login == $login) return $c;
+		}
+		return false;
+	}
+
+	/**
+	 * Undocumented function
+	 *
+	 * @deprecated 6.0.0
+	 * @param [type] $username
+	 * @return TwitchChannel|false
+	 */
+	public static function getChannelByUsername($username)
+	{
+		foreach (self::$channels as $c) {
+			if ($c->userid == $username) return $c;
 		}
 		return false;
 	}
@@ -271,26 +327,28 @@ class TwitchConfig
 	}
 
 	// todo: redis or something
-	public static function getCache($key){
+	public static function getCache($key)
+	{
 		$key = str_replace(".", "-", $key);
-		if(!file_exists(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key )) return false;
+		if (!file_exists(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key)) return false;
 		return file_get_contents(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key);
 	}
 
-	public static function setCache($key, $value){
+	public static function setCache($key, $value)
+	{
 		$key = str_replace(".", "-", $key);
-		if($value === null){
-			if(file_exists(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key)){
+		if ($value === null) {
+			if (file_exists(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key)) {
 				unlink(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key);
 			}
 			return;
 		}
 		file_put_contents(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key, $value);
 	}
-
 }
 
 TwitchConfig::loadConfig();
+TwitchConfig::loadChannels();
 
 try {
 	TwitchConfig::$timezone = new \DateTimeZone(TwitchConfig::cfg('timezone', 'UTC'));
@@ -303,7 +361,7 @@ if (!TwitchConfig::cfg('bin_dir')) {
 	TwitchHelper::find_bin_dir();
 }
 
-if(!TwitchConfig::cfg("eventsub_secret")){
+if (!TwitchConfig::cfg("eventsub_secret")) {
 	TwitchConfig::setConfig("eventsub_secret", bin2hex(random_bytes(16)));
 	TwitchConfig::saveConfig("eventsub_secret not set");
 }

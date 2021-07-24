@@ -14,6 +14,7 @@ trait ApiSettings
     public function settings_list(Request $request, Response $response, array $args)
     {
 
+        // main config
         $config = [];
         foreach (TwitchConfig::$config as $key => $value) {
             if (isset(TwitchConfig::getSettingField($key)['secret']) /* || $key == 'streamers' || $key == 'favourites'*/) {
@@ -22,6 +23,7 @@ trait ApiSettings
             $config[$key] = $value;
         }
 
+        // field for config
         $fields = [];
         foreach (TwitchConfig::$settingsFields as $key => $value) {
             $fields[$value['key']] = $value;
@@ -29,6 +31,7 @@ trait ApiSettings
 
         $fields['timezone']['choices'] = \DateTimeZone::listIdentifiers(); // static
 
+        // version
         $package_path = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "package.json";
         if (file_exists($package_path)) {
             $version = json_decode(file_get_contents($package_path))->version;
@@ -39,6 +42,7 @@ trait ApiSettings
         $payload = json_encode([
             'data' => [
                 'config' => $config,
+                'channels' => TwitchConfig::$channels_config,
                 'fields' => $fields,
                 'version' => $version
             ],

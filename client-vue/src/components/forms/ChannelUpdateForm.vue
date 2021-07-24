@@ -1,17 +1,17 @@
 <template>
     <div>
         <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
-            <input type="hidden" name="username" :value="streamer.username" />
+            <input type="hidden" name="login" :value="channel.login" />
 
             <div class="field">
-                <label class="label" :for="'input_' + streamer.username + '_quality'">Quality</label>
+                <label class="label" :for="'input_' + channel.login + '_quality'">Quality</label>
                 <div class="control">
                     <input
                         class="input input-required"
                         type="text"
                         name="quality"
-                        :id="'input_' + streamer.username + '_quality'"
-                        :value="streamer.quality.join(' ')"
+                        :id="'input_' + channel.login + '_quality'"
+                        :value="channel.quality.join(' ')"
                         required
                     />
                     <p class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</p>
@@ -19,30 +19,30 @@
             </div>
 
             <div class="field">
-                <label class="label" :for="'input_' + streamer.username + '_match'">Match keywords</label>
+                <label class="label" :for="'input_' + channel.login + '_match'">Match keywords</label>
                 <div class="control">
-                    <input class="input" type="text" name="match" :id="'input_' + streamer.username + '_match'" :value="streamer.match?.join(', ')" />
+                    <input class="input" type="text" name="match" :id="'input_' + channel.login + '_match'" :value="channel.match?.join(', ')" />
                     <p class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</p>
                 </div>
             </div>
 
             <div class="field">
                 <label class="checkbox">
-                    <input class="input" type="checkbox" name="download_chat" value="1" :checked="streamer.download_chat" />
+                    <input class="input" type="checkbox" name="download_chat" value="1" :checked="channel.download_chat" />
                     Download chat after video capture is complete
                 </label>
             </div>
 
             <div class="field">
                 <label class="checkbox">
-                    <input class="input" type="checkbox" name="burn_chat" value="1" :checked="streamer.burn_chat" />
+                    <input class="input" type="checkbox" name="burn_chat" value="1" :checked="channel.burn_chat" />
                     Burn chat after downloading
                 </label>
             </div>
 
             <div class="field">
                 <label class="checkbox">
-                    <input class="input" type="checkbox" name="no_capture" value="1" :checked="streamer.no_capture" />
+                    <input class="input" type="checkbox" name="no_capture" value="1" :checked="channel.no_capture" />
                     No capture
                 </label>
             </div>
@@ -57,7 +57,7 @@
             </div>
         </form>
         <hr />
-        <button class="button is-small is-danger" type="submit" @click="deleteStreamer">
+        <button class="button is-small is-danger" type="submit" @click="deleteChannel">
             <span class="icon"><fa icon="trash"></fa></span> Delete
         </button>
         (no undo)
@@ -72,8 +72,8 @@ import { faSave } from "@fortawesome/free-solid-svg-icons";
 library.add(faSave);
 
 export default defineComponent({
-    name: "StreamerUpdateForm",
-    props: ["streamer"],
+    name: "ChannelUpdateForm",
+    props: ["channel"],
     emits: ["formSuccess"],
     data() {
         return {
@@ -126,10 +126,10 @@ export default defineComponent({
             event.preventDefault();
             return false;
         },
-        deleteStreamer() {
-            if (!confirm(`Do you want to delete "${this.streamer.username}"?`)) return;
+        deleteChannel() {
+            if (!confirm(`Do you want to delete "${this.channel.login}"?`)) return;
             const fd = new FormData();
-            fd.append("username", this.streamer.username);
+            fd.append("login", this.channel.login);
             this.$http
                 .post(`/api/v0/channels/delete`, fd)
                 .then((response) => {

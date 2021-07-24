@@ -170,6 +170,11 @@ export type ApiStreamer = {
     };
 };
 
+export type ApiChannelConfig = {
+    login: string;
+    match: string[];
+};
+
 export type ApiJob = {
     name: string;
     pid: number;

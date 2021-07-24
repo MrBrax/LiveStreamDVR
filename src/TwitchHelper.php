@@ -368,12 +368,13 @@ class TwitchHelper
 		// file_put_contents($filepath, $filetext);
 	}
 
+	/*
 	/**
 	 * Get Twitch channel ID from username
 	 *
 	 * @param string $username
 	 * @return string|bool Channel ID
-	 */
+	 *
 	public static function getChannelId(string $username)
 	{
 		$json_streamers = file_exists(TwitchConfig::$streamerDbPath) ? json_decode(file_get_contents(TwitchConfig::$streamerDbPath), true) : [];
@@ -430,7 +431,7 @@ class TwitchHelper
 	 *
 	 * @param string $id
 	 * @return string|false Username
-	 */
+	 *
 	public static function getChannelUsername(string $user_id)
 	{
 		$data = self::getChannelData($user_id);
@@ -443,7 +444,7 @@ class TwitchHelper
 	 *
 	 * @param string $id
 	 * @return string|false Login
-	 */
+	 *
 	public static function getChannelLogin(string $user_id)
 	{
 		$data = self::getChannelData($user_id);
@@ -456,7 +457,7 @@ class TwitchHelper
 	 *
 	 * @param string $user_id
 	 * @return array
-	 */
+	 *
 	public static function getChannelData(string $user_id)
 	{
 
@@ -541,6 +542,7 @@ class TwitchHelper
 
 		return $data;
 	}
+	*/
 
 	/**
 	 * Return videos for a streamer id
@@ -886,7 +888,7 @@ class TwitchHelper
 	public static function channelSubscribe($streamer_id)
 	{
 
-		$streamer_username = self::getChannelUsername($streamer_id);
+		$streamer_username = TwitchChannel::channelLoginFromId($streamer_id);
 		self::logAdvanced(self::LOG_INFO, "helper", "Subscribing to {$streamer_id} ($streamer_username)...");
 
 		if (!TwitchConfig::cfg('app_url')) {

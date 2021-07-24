@@ -20,10 +20,9 @@ trait ApiChannel
 
     public function channel(Request $request, Response $response, $args)
     {
-        $username = $args['username'];
+        $login = $args['login'];
 
-        $channel = new TwitchChannel();
-        $channel->load($username, true);
+        $channel = TwitchChannel::loadFromLogin($login);
 
         $payload = json_encode([
             'data' => $channel,

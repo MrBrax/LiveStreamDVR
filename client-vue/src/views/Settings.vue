@@ -1,10 +1,10 @@
 <template>
     <div class="top-tabs">
-        <router-link :to="{ name: 'Settings', params: { tab: 'streamers' } }">
-            <span class="icon"><fa icon="user"></fa></span> Streamers
+        <router-link :to="{ name: 'Settings', params: { tab: 'channels' } }">
+            <span class="icon"><fa icon="user"></fa></span> Channels
         </router-link>
-        <router-link :to="{ name: 'Settings', params: { tab: 'newstreamer' } }">
-            <span class="icon"><fa icon="user-plus"></fa></span> New streamer
+        <router-link :to="{ name: 'Settings', params: { tab: 'newchannel' } }">
+            <span class="icon"><fa icon="user-plus"></fa></span> New channel
         </router-link>
         <router-link :to="{ name: 'Settings', params: { tab: 'config' } }">
             <span class="icon"><fa icon="cog"></fa></span> Config
@@ -15,27 +15,28 @@
     </div>
 
     <div class="container">
-        <!-- streamers -->
+        <!-- channels -->
 
-        <section class="section" v-if="!$route.params.tab || $route.params.tab == 'streamers'">
-            <div class="section-title"><h1>Streamers</h1></div>
+        <section class="section" v-if="!$route.params.tab || $route.params.tab == 'channels'">
+            <div class="section-title"><h1>Channels</h1></div>
             <div class="section-content">
-                <div class="card" v-for="streamer in formStreamers" :key="streamer.username">
+                <div class="card" v-for="channel in formChannels" :key="channel.login">
                     <div class="card-title">
-                        <h2>{{ streamer.username }}</h2>
+                        <h2>{{ channel.login }}</h2>
                     </div>
                     <div class="card-content">
-                        <streamer-update-form :streamer="streamer" @formSuccess="fetchData" />
+                        <channel-update-form :channel="channel" @formSuccess="fetchData" />
                     </div>
                 </div>
+                <div class="card" v-if="!formChannels">No channels added. Use the tab above.</div>
             </div>
         </section>
 
-        <!-- new streamer -->
-        <section class="section" v-if="$route.params.tab == 'newstreamer'">
-            <div class="section-title"><h1>New streamer</h1></div>
+        <!-- new channel -->
+        <section class="section" v-if="$route.params.tab == 'newchannel'">
+            <div class="section-title"><h1>New channel</h1></div>
             <div class="section-content">
-                <streamer-add-form @formSuccess="fetchData" />
+                <channel-add-form @formSuccess="fetchData" />
             </div>
         </section>
 
@@ -91,12 +92,12 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 
-import StreamerAddForm from "@/components/forms/StreamerAddForm.vue";
-import StreamerUpdateForm from "@/components/forms/StreamerUpdateForm.vue";
+import ChannelAddForm from "@/components/forms/ChannelAddForm.vue";
+import ChannelUpdateForm from "@/components/forms/ChannelUpdateForm.vue";
 import SettingsForm from "@/components/forms/SettingsForm.vue";
 import FavouritesForm from "@/components/forms/FavouritesForm.vue";
 
-import type { ApiSettingsField, ApiGame } from "@/twitchautomator.d";
+import type { ApiSettingsField, ApiGame, ApiChannelConfig } from "@/twitchautomator.d";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUser, faCalendarCheck } from "@fortawesome/free-solid-svg-icons";
@@ -114,7 +115,7 @@ export default defineComponent({
             settingsFields: Array as () => ApiSettingsField[],
             gamesData: Array as () => ApiGame[],
             favouritesData: {},
-            formStreamers: {},
+            formChannels: Array as () => ApiChannelConfig[],
             // games: Object as () => [key: string]: ApiGame
         };
     },
@@ -134,16 +135,17 @@ export default defineComponent({
                         .then((response) => {
                             const json = response.data;
                             if (json.message) alert(json.message);
-                            console.log(json);
+                            console.log("settings list", json);
 
                             const config = json.data.config;
+                            const channels = json.data.channels;
                             const favourites = config.favourites;
-                            const streamers = config.streamers;
 
                             this.favouritesData = favourites;
                             // this.gamesData = games;
 
-                            this.formStreamers = streamers;
+                            this.formChannels = channels;
+                            console.log("formChannels", this.formChannels);
 
                             this.settingsData = config;
                             this.settingsFields = json.data.fields;
@@ -157,7 +159,7 @@ export default defineComponent({
                         .then((response) => {
                             const json = response.data;
                             if (json.message) alert(json.message);
-                            console.log(json);
+                            console.log("games list", json);
                             const games = json.data;
                             this.gamesData = games;
                         })
@@ -176,8 +178,8 @@ export default defineComponent({
         },
     },
     components: {
-        StreamerAddForm,
-        StreamerUpdateForm,
+        ChannelAddForm,
+        ChannelUpdateForm,
         SettingsForm,
         FavouritesForm,
     },

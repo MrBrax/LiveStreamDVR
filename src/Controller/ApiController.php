@@ -52,8 +52,8 @@ class ApiController
 
         $total_size = 0;
 
-        $streamerListStatic = TwitchConfig::getStreamers();
-        $streamerList = [];
+        // $streamerListStatic = TwitchConfig::getStreamers();
+        // $streamerList = [];
 
         /*
         usort( $streamerListStatic, function($a, $b){
@@ -61,16 +61,16 @@ class ApiController
         });
         */
 
-        foreach ($streamerListStatic as $streamer) {
+        foreach (TwitchConfig::$channels as $channel) {
 
-            $data = new TwitchChannel();
-            $data->load($streamer['username'], true);
+            // $data = new TwitchChannel();
+            // $data->load($streamer['username'], true);
 
-            $total_size += $data->vods_size;
+            $total_size += $channel->vods_size;
 
-            $streamerList[] = $data;
+            // $streamerList[] = $data;
         }
-        return [$streamerList, $total_size];
+        return [TwitchConfig::$channels, $total_size];
     }
 
     public function jobs_list(Request $request, Response $response, $args)
@@ -227,6 +227,7 @@ class ApiController
         return $response->withHeader('Content-Type', 'application/json');
     }
 
+    /*
     public function twitchapi_videos(Request $request, Response $response, $args)
     {
 
@@ -243,7 +244,9 @@ class ApiController
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
+    */
 
+    /*
     public function twitchapi_video(Request $request, Response $response, $args)
     {
 
@@ -258,6 +261,7 @@ class ApiController
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
+    */
 
     public function playlist_dump(Request $request, Response $response, $args)
     {
@@ -574,7 +578,9 @@ class ApiController
                     
                     $challenge = $data_json["challenge"];
                     $subscription = $data_json["subscription"];
-                    $username = TwitchHelper::getChannelUsername($subscription["condition"]["broadcaster_user_id"]);
+                    
+                    // $username = TwitchHelper::getChannelUsername($subscription["condition"]["broadcaster_user_id"]);
+                    
                     // $signature = $response->getHeader("Twitch-Eventsub-Message-Signature");
                     
                     TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Challenge received for {$subscription["condition"]["broadcaster_user_id"]}:{$subscription["type"]} ({$subscription["id"]})", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);

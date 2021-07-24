@@ -66,16 +66,16 @@ trait ApiChannels
     public function channels_add(Request $request, Response $response, $args)
     {
 
-        $username       = isset($_POST['username']) ? $_POST['username'] : null;
+        $login          = isset($_POST['login']) ? $_POST['login'] : null;
         $quality        = isset($_POST['quality']) ? explode(" ", $_POST['quality']) : null;
         $match          = isset($_POST['match']) ? $_POST['match'] : null;
         $download_chat  = isset($_POST['download_chat']);
         $burn_chat      = isset($_POST['burn_chat']);
         $no_capture     = isset($_POST['no_capture']);
 
-        if (!$username) {
+        if (!$login) {
             $response->getBody()->write(json_encode([
-                "message" => "No username provided.",
+                "message" => "No login provided.",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -89,27 +89,27 @@ trait ApiChannels
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
-        $user_id = TwitchHelper::getChannelId($username);
+        $channel_id = TwitchChannel::channelIdFromLogin($login);
 
-        if (!$user_id) {
+        if (!$channel_id) {
             $response->getBody()->write(json_encode([
-                "message" => "Streamer with the username '{$username}' doesn't seem to exist on Twitch.",
+                "message" => "Streamer with the login '{$login}' doesn't seem to exist on Twitch.",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
-        $tmp = TwitchHelper::getChannelData($user_id);
+        // $tmp = TwitchHelper::getChannelData($channel_id);
+        // 
+        // // fix capitalization
+        // if ($tmp['display_name'] !== $username) {
+        //     // $response->getBody()->write("Username capitalization seems to be incorrect, fixing.<br>");
+        //     $username = $tmp['display_name'];
+        // }
 
-        // fix capitalization
-        if ($tmp['display_name'] !== $username) {
-            // $response->getBody()->write("Username capitalization seems to be incorrect, fixing.<br>");
-            $username = $tmp['display_name'];
-        }
-
-        if (TwitchConfig::getStreamer($username)) {
+        if (TwitchConfig::getChannelByLogin($login)) {
             $response->getBody()->write(json_encode([
-                "message" => "Streamer with the username '{$username}' already exists in config",
+                "message" => "Streamer with the username '{$login}' already exists in config",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -117,7 +117,7 @@ trait ApiChannels
 
         // template
         $streamer = [
-            "username" => $username,
+            "login" => $login,
             "quality" => $quality
         ];
 
@@ -129,11 +129,13 @@ trait ApiChannels
         if ($burn_chat) $streamer["burn_chat"] = true;
         if ($no_capture) $streamer["no_capture"] = true;
 
-        TwitchConfig::$config['streamers'][] = $streamer;
+        // TwitchConfig::$config['streamers'][] = $streamer;
+
+        TwitchConfig::$channels_config[] = $streamer;
 
         if (TwitchConfig::cfg('app_url') !== 'debug') {
             try {
-                TwitchHelper::channelSubscribe(TwitchHelper::getChannelId($username));
+                TwitchHelper::channelSubscribe($channel_id);
             } catch (\Throwable $th) {
                 $response->getBody()->write(json_encode([
                     "message" => "Subscription error: " . $th->getMessage(),
@@ -143,10 +145,12 @@ trait ApiChannels
             }
         }
 
-        TwitchConfig::saveConfig("streamer/add");
+        // TwitchConfig::saveConfig("streamer/add");
+        TwitchConfig::saveChannels();
+        TwitchConfig::loadChannels(); // reload from disk
 
         $payload = json_encode([
-            'message' => "Streamer added: {$username}.",
+            'message' => "Channel added: {$login}.",
             'status' => 'OK'
         ]);
 

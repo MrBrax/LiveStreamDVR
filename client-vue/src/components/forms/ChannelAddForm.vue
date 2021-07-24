@@ -1,10 +1,10 @@
 <template>
     <form method="POST" enctype="multipart/form-data" action="#" ref="form" @submit="submitForm">
         <div class="field">
-            <label class="label">Username <span class="required">*</span></label>
+            <label class="label">Login <span class="required">*</span></label>
             <div class="control">
-                <input class="input input-required" type="text" name="username" value="" required />
-                <p class="input-help">Streamer username, case sensitive</p>
+                <input class="input input-required" type="text" name="login" value="" required />
+                <p class="input-help">Channel login, lowercase</p>
             </div>
         </div>
         <div class="field">
@@ -58,7 +58,7 @@ import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
 library.add(faUserPlus);
 
 export default defineComponent({
-    name: "StreamerAddForm",
+    name: "ChannelAddForm",
     emits: ["formSuccess"],
     data() {
         return {
