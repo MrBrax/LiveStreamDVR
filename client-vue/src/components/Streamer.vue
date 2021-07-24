@@ -19,10 +19,10 @@
                     <span class="streamer-vods-size" title="Total vod size">{{ formatBytes(this.streamer?.vods_size) }}</span
                     ><!-- total size -->
                     &middot;
-                    <span class="streamer-subbed-status" title="Subscription expiration">
+                    <!--<span class="streamer-subbed-status" title="Subscription expiration">
                         <span v-if="streamer.subbed_at && streamer.expires_at">{{ formatDate(this.streamer?.expires_at.date) }}</span>
                         <span v-else>Not subbed</span>
-                    </span>
+                    </span>-->
                     <span class="streamer-title-tools">
                         <span v-if="streamer.is_live">
                             &middot;

@@ -43,7 +43,7 @@
             <div class="field">
                 <label class="checkbox">
                     <input class="input" type="checkbox" name="no_capture" value="1" :checked="streamer.no_capture" />
-                    Burn chat after downloading
+                    No capture
                 </label>
             </div>
 

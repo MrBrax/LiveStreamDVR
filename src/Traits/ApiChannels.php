@@ -133,7 +133,7 @@ trait ApiChannels
 
         if (TwitchConfig::cfg('app_url') !== 'debug') {
             try {
-                TwitchHelper::sub($username);
+                TwitchHelper::channelSubscribe(TwitchHelper::getChannelId($username));
             } catch (\Throwable $th) {
                 $response->getBody()->write(json_encode([
                     "message" => "Subscription error: " . $th->getMessage(),
@@ -212,7 +212,7 @@ trait ApiChannels
 
         if (TwitchConfig::cfg('app_url') !== 'debug') {
             try {
-                TwitchHelper::sub($username);
+                TwitchHelper::channelSubscribe(TwitchHelper::getChannelId($username));
             } catch (\Throwable $th) {
                 $response->getBody()->write(json_encode([
                     "message" => "Subscription error: " . $th->getMessage(),
@@ -276,7 +276,7 @@ trait ApiChannels
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
-        TwitchHelper::unsub($username);
+        TwitchHelper::channelUnsubscribe(TwitchHelper::getChannelId($username));
 
         sleep(5);
 

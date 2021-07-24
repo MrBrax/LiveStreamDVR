@@ -216,7 +216,7 @@ class TwitchChannel
         if (!$subs['data']) return false;
 
         foreach ($subs['data'] as $sub) {
-            if ($this->userid == explode("=", $sub['topic'])[1]) {
+            if ($this->userid == $sub['condition']['broadcaster_user_id']) {
                 return $sub;
             }
         }

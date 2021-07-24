@@ -577,7 +577,7 @@ class ApiController
                     $username = TwitchHelper::getChannelUsername($subscription["condition"]["broadcaster_user_id"]);
                     // $signature = $response->getHeader("Twitch-Eventsub-Message-Signature");
                     
-                    TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Challenge received: ${challenge}", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
+                    TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Challenge received for {$subscription["condition"]["broadcaster_user_id"]}:{$subscription["type"]} ({$subscription["id"]})", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
         
                     // calculate signature
                     /*
@@ -623,11 +623,11 @@ class ApiController
                         return $response->withStatus(400);
                     }
         
-                    TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Challenge completed, subscription active for ${username}.", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
+                    TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Challenge completed, subscription active for {$subscription["condition"]["broadcaster_user_id"]}:{$subscription["type"]} ({$subscription["id"]}).", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
         
                     // return the challenge string to twitch if signature matches
                     $response->getBody()->write($challenge);
-                    return $response->withStatus(200);
+                    return $response->withStatus(202);
         
                 }
 

@@ -196,6 +196,7 @@ class CronController
         return $response;
     }
 
+    /*
     public function sub(Request $request, Response $response, $args)
     {
 
@@ -211,7 +212,7 @@ class CronController
 
             $response->getBody()->write('<pre>');
 
-            $ret = TwitchHelper::sub($username);
+            $ret = TwitchHelper::channelSubscribe(TwitchHelper::getChannelId($username));
 
             if ($ret === true) {
                 $response->getBody()->write('Subscription request sent, check logs for details');
@@ -268,4 +269,6 @@ class CronController
 
         return $response;
     }
+    */
+    
 }

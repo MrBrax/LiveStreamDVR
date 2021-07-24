@@ -30,7 +30,7 @@ trait ApiSubs
             $entry = [];
             $username = $v['username'];
             $entry['username'] = $username;
-            $ret = TwitchHelper::sub($username);
+            $ret = TwitchHelper::channelSubscribe(TwitchHelper::getChannelId($username));
 
             if ($ret === true) {
                 $entry['status'] = 'Subscription request sent, check logs for details';
@@ -109,7 +109,7 @@ trait ApiSubs
 
                 $entry['type']              = $data['type'];
                 $entry['id']                = $data['id'];
-                $entry['username']          = TwitchHelper::getChannelUsername( $data['condition']['broadcaster_user_id'] );
+                $entry['username']          = TwitchHelper::getChannelUsername($data['condition']['broadcaster_user_id']);
                 $entry['user_id']           = $data['condition']['broadcaster_user_id'];
                 $entry['callback']          = $data['transport']['callback'];
                 $entry['instance_match']    = $data['transport']['callback'] == TwitchConfig::cfg('app_url') . '/hook' . (TwitchConfig::cfg('instance_id') ? '?instance=' . TwitchConfig::cfg('instance_id') : '');
@@ -126,7 +126,6 @@ trait ApiSubs
                 "status" => "OK"
             ]));
             return $response->withHeader('Content-Type', 'application/json');
-
         } elseif (isset($subs['total']) && $subs['total'] == 0) {
             $response->getBody()->write(json_encode([
                 "message" => "No subscriptions. Let cron do its job or visit the sub page.",
@@ -141,5 +140,20 @@ trait ApiSubs
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
+    }
+
+    public function subscriptions_unsub(Request $request, Response $response, $args)
+    {
+
+        $streamers = TwitchConfig::getStreamers();
+
+        foreach ($streamers as $k => $v) {
+            TwitchHelper::channelUnsubscribe(TwitchHelper::getChannelId($v['username']));
+        }
+
+        $response->getBody()->write(json_encode([
+            "message" => "Unsubscribed.",
+        ]));
+        return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
     }
 }

@@ -37,6 +37,7 @@ class TwitchConfig
 		['key' => 'password', 				'group' => 'Interface',	'text' => 'Password', 										'type' => 'string',		'help' => 'Keep blank for none. Username is admin'],
 		['key' => 'password_secure', 		'group' => 'Interface',	'text' => 'Force HTTPS for password', 						'type' => 'boolean',	'default' => true],
 		['key' => 'websocket_enabled', 		'group' => 'Interface',	'text' => 'Websockets enabled', 							'type' => 'boolean'],
+		['key' => 'websocket_endpoint', 	'group' => 'Interface',	'text' => 'Websockets endpoint override', 					'type' => 'string'],
 		['key' => 'storage_per_streamer', 	'group' => 'Basic',		'text' => 'Gigabytes of storage per streamer', 				'type' => 'number',		'default' => 100],
 		['key' => 'hls_timeout', 			'group' => 'Advanced',	'text' => 'HLS Timeout in seconds (ads)', 					'type' => 'number',		'default' => 200],
 		['key' => 'vods_to_keep', 			'group' => 'Basic',		'text' => 'VODs to keep per streamer', 						'type' => 'number',		'default' => 5],
@@ -48,8 +49,6 @@ class TwitchConfig
 		['key' => 'sub_secret', 			'group' => 'Advanced',	'text' => 'Subscription secret', 							'type' => 'string'],
 		['key' => 'api_client_id', 			'group' => 'Basic',		'text' => 'Twitch client ID', 								'type' => 'string',		'required' => true],
 		['key' => 'api_secret', 			'group' => 'Basic',		'text' => 'Twitch secret', 									'type' => 'string',		'secret' => true, 'required' => true, 'help' => 'Keep blank to not change'],
-		['key' => 'youtube_api_client_id', 	'group' => 'Basic',		'text' => 'YouTube API Client key', 						'type' => 'string', 	'deprecated' => true],
-		['key' => 'youtube_api_key', 		'group' => 'Exporters',	'text' => 'YouTube API Key',								'type' => 'string', 	'deprecated' => true],
 
 		// [ 'key' => 'hook_callback', 		'text' => 'Hook callback', 									'type' => 'string', 'required' => true ],
 		['key' => 'timezone', 				'group' => 'Interface',	'text' => 'Timezone', 										'type' => 'array',		'choices' => 'timezones', 'default' => 'UTC', 'help' => 'This only affects the GUI, not the values stored', 'deprecated' => true],
@@ -284,6 +283,7 @@ class TwitchConfig
 			if(file_exists(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key)){
 				unlink(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key);
 			}
+			return;
 		}
 		file_put_contents(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key, $value);
 	}
