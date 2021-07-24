@@ -89,6 +89,8 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
+                    this.formStatusText = err.response.data;
+                    this.formStatus = "ERROR";
                 });
 
             /*

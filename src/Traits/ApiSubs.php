@@ -10,7 +10,7 @@ use Slim\Psr7\Response;
 use App\TwitchConfig;
 use App\TwitchHelper;
 use App\TwitchAutomatorJob;
-
+use App\TwitchChannel;
 use Symfony\Component\Process\Process;
 
 trait ApiSubs
@@ -109,7 +109,7 @@ trait ApiSubs
 
                 $entry['type']              = $data['type'];
                 $entry['id']                = $data['id'];
-                $entry['username']          = TwitchHelper::getChannelUsername($data['condition']['broadcaster_user_id']);
+                $entry['username']          = TwitchChannel::channelLoginFromId($data['condition']['broadcaster_user_id']);
                 $entry['user_id']           = $data['condition']['broadcaster_user_id'];
                 $entry['callback']          = $data['transport']['callback'];
                 $entry['instance_match']    = $data['transport']['callback'] == TwitchConfig::cfg('app_url') . '/hook' . (TwitchConfig::cfg('instance_id') ? '?instance=' . TwitchConfig::cfg('instance_id') : '');
@@ -145,10 +145,8 @@ trait ApiSubs
     public function subscriptions_unsub(Request $request, Response $response, $args)
     {
 
-        $streamers = TwitchConfig::getStreamers();
-
-        foreach ($streamers as $k => $v) {
-            TwitchHelper::channelUnsubscribe(TwitchHelper::getChannelId($v['username']));
+        foreach (TwitchConfig::$channels_config as $k => $v) {
+            TwitchHelper::channelUnsubscribe(TwitchChannel::channelIdFromLogin($v['login']));
         }
 
         $response->getBody()->write(json_encode([
