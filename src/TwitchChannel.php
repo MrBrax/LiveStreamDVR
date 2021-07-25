@@ -47,6 +47,7 @@ class TwitchChannel
     public ?array $match = [];
     public ?\DateTime $subbed_at = null;
     public ?\DateTime $expires_at = null;
+    public ?\DateTime $last_online = null;
 
     public array $vods_list = [];
     public array $vods_raw = [];
@@ -101,6 +102,7 @@ class TwitchChannel
         $channel->quality              = isset($config['quality']) ? $config['quality'] : "best";
         $channel->match                = isset($config['match']) ? $config['match'] : [];
         $channel->no_capture           = isset($config['no_capture']) ? $config['no_capture'] : [];
+        // $channel->last_online          = TwitchConfig::getCache("{$channel->login}.last.offline") ? new DateTime(TwitchConfig::getCache("{$channel->login}.last.offline")) : null;
 
         $subfile = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "subs.json";
         if (file_exists($subfile)) {

@@ -168,7 +168,7 @@ class TwitchVOD
 			$this->setupApiHelper();
 		}
 
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "VOD Class for {$this->basename} with api " . ($api ? 'enabled' : 'disabled') . " loaded, hopefully withour errors!");
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "VOD Class for {$this->basename} with api " . ($api ? 'enabled' : 'disabled') . " loaded, hopefully without errors!");
 
 		return true;
 	}

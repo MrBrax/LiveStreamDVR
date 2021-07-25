@@ -364,11 +364,13 @@ class TwitchAutomator
 
 		if ($subscription_type == "channel.update") {
 
+			TwitchConfig::setCache("{$this->broadcaster_user_login}.last.update", (new DateTime())->format(DateTime::ATOM));
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Channel update for {$this->broadcaster_user_login}", ['headers' => $headers, 'payload' => $data]);
 
 			$this->updateGame();
 		} elseif ($subscription_type == "stream.online") {
 
+			TwitchConfig::setCache("{$this->broadcaster_user_login}.last.online", (new DateTime())->format(DateTime::ATOM));
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Stream online for {$this->broadcaster_user_login}", ['headers' => $headers, 'payload' => $data]);
 
 			if (!TwitchConfig::getChannelByLogin($this->broadcaster_user_login)) {
@@ -420,6 +422,7 @@ class TwitchAutomator
 			}
 		} elseif ($subscription_type == "stream.offline") {
 
+			TwitchConfig::setCache("{$this->broadcaster_user_login}.last.offline", (new DateTime())->format(DateTime::ATOM));
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Stream offline for {$this->broadcaster_user_login}", ['headers' => $headers, 'payload' => $data]);
 
 			// TwitchConfig::setCache("{$this->broadcaster_user_login}.online", "0");

@@ -331,14 +331,14 @@ class TwitchConfig
 	// todo: redis or something
 	public static function getCache($key)
 	{
-		$key = str_replace(".", "-", $key);
+		$key = str_replace("/", "", $key);
 		if (!file_exists(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key)) return false;
 		return file_get_contents(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key);
 	}
 
 	public static function setCache($key, $value)
 	{
-		$key = str_replace(".", "-", $key);
+		$key = str_replace("/", "", $key);
 		if ($value === null) {
 			if (file_exists(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key)) {
 				unlink(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key);
