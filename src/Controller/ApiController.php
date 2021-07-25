@@ -493,6 +493,9 @@ class ApiController
         $filter = isset($_GET['filter']) ? $_GET['filter'] : null;
 
         $log_path = TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . $current_log . ".log.jsonline";
+        $logs = array_map(function($value){
+            return substr(basename($value), 0, 10);
+        }, glob(TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . "*.jsonline"));
 
         $line_num = 0;
 
@@ -576,6 +579,7 @@ class ApiController
             'data' => [
                 'lines' => $log_lines,
                 'last_line' => $line_num,
+                'logs' => $logs,
             ],
             'status' => 'OK'
         ]);
@@ -583,6 +587,35 @@ class ApiController
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
         
+    }
+
+    private function verifySignature($request){
+        // calculate signature
+        /*
+            hmac_message = headers['Twitch-Eventsub-Message-Id'] + headers['Twitch-Eventsub-Message-Timestamp'] + request.body
+            signature = hmac_sha256(webhook_secret, hmac_message)
+            expected_signature_header = 'sha256=' + signature.hex()
+
+            if headers['Twitch-Eventsub-Message-Signature'] != expected_signature_header:
+                return 403
+        */
+
+        $twitch_message_id = $request->getHeader("Twitch-Eventsub-Message-Id")[0];
+        $twitch_message_timestamp = $request->getHeader("Twitch-Eventsub-Message-Timestamp")[0];
+        $twitch_message_signature = $request->getHeader("Twitch-Eventsub-Message-Signature")[0];
+
+        $hmac_message = 
+            $twitch_message_id .
+            $twitch_message_timestamp .
+            $request->getBody()->getContents();
+        
+        $signature = hash_hmac("sha256", $hmac_message, TwitchConfig::cfg("eventsub_secret"));
+
+        // $signature = hash_hmac("sha256", TwitchConfig::cfg("eventsub_secret"), $hmac_message);
+        $expected_signature_header = "sha256=${signature}";
+            
+        // check signature
+        return $twitch_message_signature === $expected_signature_header;
     }
 
     public function hook(Request $request, Response $response, $args)
@@ -616,6 +649,15 @@ class ApiController
 
             if ($data_json) {
 
+                if($request->getHeader("Twitch-Notification-Id")){
+                    $response->getBody()->write("Outdated format");
+                        TwitchHelper::logAdvanced(
+                            TwitchHelper::LOG_ERROR,
+                            "hook",
+                            "Hook got data with old webhook format.");
+                    return $response->withStatus(200);
+                }
+
                 if($data_json["challenge"]){
                     
                     $challenge = $data_json["challenge"];
@@ -627,50 +669,15 @@ class ApiController
                     
                     TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Challenge received for {$subscription["condition"]["broadcaster_user_id"]}:{$subscription["type"]} ({$subscription["id"]})", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
         
-                    // calculate signature
-                    /*
-                        hmac_message = headers['Twitch-Eventsub-Message-Id'] + headers['Twitch-Eventsub-Message-Timestamp'] + request.body
-                        signature = hmac_sha256(webhook_secret, hmac_message)
-                        expected_signature_header = 'sha256=' + signature.hex()
-        
-                        if headers['Twitch-Eventsub-Message-Signature'] != expected_signature_header:
-                            return 403
-                    */
-
-                    $twitch_message_id = $request->getHeader("Twitch-Eventsub-Message-Id")[0];
-                    $twitch_message_timestamp = $request->getHeader("Twitch-Eventsub-Message-Timestamp")[0];
-                    $twitch_message_signature = $request->getHeader("Twitch-Eventsub-Message-Signature")[0];
-
-                    $hmac_message = 
-                        $twitch_message_id .
-                        $twitch_message_timestamp .
-                        $request->getBody()->getContents();
-                    
-                    $signature = hash_hmac("sha256", $hmac_message, TwitchConfig::cfg("eventsub_secret"));
-
-                    // $signature = hash_hmac("sha256", TwitchConfig::cfg("eventsub_secret"), $hmac_message);
-                    $expected_signature_header = "sha256=${signature}";
-                        
-                    // check signature
-                    if ($twitch_message_signature !== $expected_signature_header){
+                    if (!$this->verifySignature($request)){
                         $response->getBody()->write("Invalid signature check");
                         TwitchHelper::logAdvanced(
-                            TwitchHelper::LOG_ERROR,
+                            TwitchHelper::LOG_FATAL,
                             "hook",
-                            "Invalid signature check: {$twitch_message_signature} !== {$expected_signature_header}",
-                            [
-                                'GET' => $_GET,
-                                'POST' => $_POST,
-                                'HEADERS' => $data_headers,
-                                'secret' => TwitchConfig::cfg("eventsub_secret"),
-                                'hmac_message' => $hmac_message,
-                                'calculated_signature' => $signature,
-                                'expected_signature_header' => $expected_signature_header,
-                                'twitch_signature' => $twitch_message_signature,
-                        ]);
+                            "Invalid signature check for challenge!");
                         return $response->withStatus(400);
                     }
-        
+
                     TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Challenge completed, subscription active for {$subscription["condition"]["broadcaster_user_id"]}:{$subscription["type"]} ({$subscription["id"]}).", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
         
                     // return the challenge string to twitch if signature matches
@@ -682,6 +689,16 @@ class ApiController
                 if (TwitchConfig::cfg('debug')) {
                     TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Dumping payload...");
                     file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . 'payloads' . DIRECTORY_SEPARATOR . date("Y-m-d.h_i_s") . '.json', json_encode($data_json));
+                }
+
+                // verify message
+                if (!$this->verifySignature($request)){
+                    $response->getBody()->write("Invalid signature check");
+                    TwitchHelper::logAdvanced(
+                        TwitchHelper::LOG_FATAL,
+                        "hook",
+                        "Invalid signature check for message!");
+                    return $response->withStatus(400);
                 }
 
                 TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Run handle...");

@@ -24,13 +24,12 @@
         <section class="section">
             <div class="section-title" @click="logToggle"><h1>Logs</h1></div>
             <div class="section-content" v-if="logVisible">
-                <!--
-                <select id="log_select">
-                    {% for f in log_files %}
-                        <option>{{ f }}</button>
-                    {% endfor %}
-                </select>
-                -->
+                <div>
+                    <select v-model="logFilename">
+                        <option v-for="fn in logFilenames" :key="fn">{{ fn }}</option>
+                    </select>
+                    <button type="button" @click="fetchLog">Fetch</button>
+                </div>
 
                 <div class="log_viewer" ref="logViewer">
                     <table>
@@ -97,6 +96,7 @@ export default defineComponent({
             totalSize: 0,
             freeSize: 0,
             logFilename: "",
+            logFilenames: [] as string[],
             logLines: [] as ApiLogLine[],
             logFromLine: 0,
             logVisible: false,
@@ -313,6 +313,8 @@ export default defineComponent({
             if (!response.data.data.lines) return;
 
             this.logFromLine = response.data.data.last_line;
+
+            this.logFilenames = response.data.data.logs;
 
             this.logLines = this.logLines.concat(response.data.data.lines);
 

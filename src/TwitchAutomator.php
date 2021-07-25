@@ -337,16 +337,17 @@ class TwitchAutomator
 			}
 		*/
 
-		/*
 		if (!$headers['Twitch-Eventsub-Message-Id'][0]) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No twitch message id supplied to handle", ['headers' => $headers, 'data' => $data]);
 			return false;
-		}*/
+		}
 
+		/*
 		if (!$headers['Twitch-Notification-Id'][0]) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No twitch notification id supplied to handle", ['headers' => $headers, 'payload' => $data]);
 			return false;
 		}
+		*/
 
 		$this->payload_eventsub = $data;
 		$this->payload_headers = $headers;
@@ -365,6 +366,8 @@ class TwitchAutomator
 
 			$this->updateGame();
 		} elseif ($subscription_type == "stream.online") {
+
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Stream online for {$this->broadcaster_user_login}", ['headers' => $headers, 'payload' => $data]);
 
 			if (!TwitchConfig::getChannelByLogin($this->broadcaster_user_login)) {
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle triggered, but username '{$this->broadcaster_user_login}' is not in config.");
@@ -418,10 +421,14 @@ class TwitchAutomator
 			// TwitchConfig::setCache("{$this->broadcaster_user_login}.vod.id", null);
 			// TwitchConfig::setCache("{$this->broadcaster_user_login}.vod.started_at", null);
 
-			$this->end();
-		}
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Stream offline for {$this->broadcaster_user_login}", ['headers' => $headers, 'payload' => $data]);
 
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No supported subscription type ({$subscription_type}).", ['headers' => $headers, 'payload' => $data]);
+			$this->end();
+		}else{
+
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No supported subscription type ({$subscription_type}).", ['headers' => $headers, 'payload' => $data]);
+
+		}
 
 	}
 
@@ -496,8 +503,9 @@ class TwitchAutomator
 
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "automator", "Game updated on {$this->broadcaster_user_login} to {$event["category_name"]} ({$event["title"]})");
 		} else {
+			$event = $this->payload_eventsub["event"];
 			TwitchConfig::setCache("{$this->broadcaster_user_login}.channeldata", json_encode($this->payload_eventsub['event']));
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Channel {$this->broadcaster_user_login} not online, saving channel data to cache.");
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Channel {$this->broadcaster_user_login} not online, saving channel data to cache: {$event["category_name"]} ({$event["title"]})", ['payload' => $this->payload_eventsub]);
 		}
 
 		/*
