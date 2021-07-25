@@ -662,12 +662,15 @@ class ApiController
                     
                     $challenge = $data_json["challenge"];
                     $subscription = $data_json["subscription"];
+
+                    $channel_id = $subscription["condition"]["broadcaster_user_id"];
+                    $channel_login = TwitchChannel::channelLoginFromId($subscription["condition"]["broadcaster_user_id"]);
                     
                     // $username = TwitchHelper::getChannelUsername($subscription["condition"]["broadcaster_user_id"]);
                     
                     // $signature = $response->getHeader("Twitch-Eventsub-Message-Signature");
                     
-                    TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Challenge received for {$subscription["condition"]["broadcaster_user_id"]}:{$subscription["type"]} ({$subscription["id"]})", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
+                    TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Challenge received for {$channel_id}:{$subscription["type"]} ({$channel_login}) ({$subscription["id"]})", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
         
                     if (!$this->verifySignature($request)){
                         $response->getBody()->write("Invalid signature check");
@@ -678,7 +681,7 @@ class ApiController
                         return $response->withStatus(400);
                     }
 
-                    TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Challenge completed, subscription active for {$subscription["condition"]["broadcaster_user_id"]}:{$subscription["type"]} ({$subscription["id"]}).", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
+                    TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Challenge completed, subscription active for {$channel_id}:{$subscription["type"]} ({$channel_login}) ({$subscription["id"]}).", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
         
                     // return the challenge string to twitch if signature matches
                     $response->getBody()->write($challenge);
@@ -687,8 +690,9 @@ class ApiController
                 }
 
                 if (TwitchConfig::cfg('debug')) {
-                    TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Dumping payload...");
-                    file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . 'payloads' . DIRECTORY_SEPARATOR . date("Y-m-d.h_i_s") . '.json', json_encode($data_json));
+                    $payload_file = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . 'payloads' . DIRECTORY_SEPARATOR . date("Y-m-d.h_i_s") . '.json';
+                    TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Dumping debug hook payload to {$payload_file}");
+                    file_put_contents($payload_file, json_encode($data_json));
                 }
 
                 // verify message
@@ -701,7 +705,7 @@ class ApiController
                     return $response->withStatus(400);
                 }
 
-                TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Run handle...");
+                TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Signature checked, no challenge. Run handle...");
                 $TwitchAutomator = new TwitchAutomator();
                 $TwitchAutomator->handle($data_json, $data_headers);
                 return $response;

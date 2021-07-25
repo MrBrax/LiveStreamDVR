@@ -11,13 +11,25 @@ class TwitchChannel
 
     /**
      * Username. Different from $login
-     * @deprecated 6.0.0
+     * deprecated 6.0.0
      */
-    public ?string $username = null;
+    // public ?string $username = null;
 
+    /**
+     * User ID
+     */
     public ?string $userid = null;
+
+    /**
+     * Login name, used in URLs
+     */
     public ?string $login = null;
+
+    /**
+     * Display name, used in texts
+     */
     public ?string $display_name = null;
+
     public ?string $description = null;
     public ?string $profile_image_url = null;
     public ?bool $is_live = false;
@@ -77,7 +89,7 @@ class TwitchChannel
         $channel->config       = $config;
 
         // $channel->userid               = (int)$channel->channel_data['id'];
-        $channel->username             = $channel->channel_data['login'];
+        // $channel->username             = $channel->channel_data['login'];
         $channel->login                = $channel->channel_data['login'];
         $channel->display_name         = $channel->channel_data['display_name'];
         $channel->description          = $channel->channel_data['description'];
@@ -121,6 +133,7 @@ class TwitchChannel
     public static function channelIdFromLogin($login)
     {
 
+        /*
         $cache_json = file_exists(TwitchConfig::$streamerCachePath) ? json_decode(file_get_contents(TwitchConfig::$streamerCachePath), true) : [];
 
         if ($cache_json) {
@@ -130,6 +143,7 @@ class TwitchChannel
                 }
             }
         }
+        */
 
         $cd = self::getChannelDataByLogin($login);
         if($cd) return $cd['id'];
@@ -137,9 +151,11 @@ class TwitchChannel
         return false;
     }
 
+    // DRY
     public static function channelLoginFromId($streamer_id)
     {
 
+        /*
         $cache_json = file_exists(TwitchConfig::$streamerCachePath) ? json_decode(file_get_contents(TwitchConfig::$streamerCachePath), true) : [];
 
         if ($cache_json) {
@@ -149,6 +165,7 @@ class TwitchChannel
                 }
             }
         }
+        */
 
         $cd = self::getChannelDataById($streamer_id);
         if($cd) return $cd['login'];
@@ -156,7 +173,29 @@ class TwitchChannel
         return false;
     }
 
-    private static function getChannelDataById($streamer_id)
+    // DRY
+    public static function channelUsernameFromId($streamer_id)
+    {
+
+        /*
+        $cache_json = file_exists(TwitchConfig::$streamerCachePath) ? json_decode(file_get_contents(TwitchConfig::$streamerCachePath), true) : [];
+
+        if ($cache_json) {
+            foreach ($cache_json as $user_id => $data) {
+                if ($data['id'] == $streamer_id) {
+                    return (string)$data["display_name"];
+                }
+            }
+        }
+        */
+
+        $cd = self::getChannelDataById($streamer_id);
+        if($cd) return $cd['display_name'];
+
+        return false;
+    }
+
+    public static function getChannelDataById($streamer_id)
     {
 
         if (!is_numeric($streamer_id)) {
@@ -254,7 +293,7 @@ class TwitchChannel
      * @param string $streamer_id
      * @return array
      */
-    private static function getChannelDataByLogin($streamer_login)
+    public static function getChannelDataByLogin($streamer_login)
     {
 
         if (!$streamer_login) {

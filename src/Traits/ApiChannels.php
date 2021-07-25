@@ -90,7 +90,7 @@ trait ApiChannels
         }
 
         $channel_id = TwitchChannel::channelIdFromLogin($login);
-
+        
         if (!$channel_id) {
             $response->getBody()->write(json_encode([
                 "message" => "Streamer with the login '{$login}' doesn't seem to exist on Twitch.",
@@ -98,6 +98,8 @@ trait ApiChannels
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
+
+        $username = TwitchChannel::channelUsernameFromId($channel_id);
 
         // $tmp = TwitchHelper::getChannelData($channel_id);
         // 
@@ -109,7 +111,7 @@ trait ApiChannels
 
         if (TwitchConfig::getChannelByLogin($login)) {
             $response->getBody()->write(json_encode([
-                "message" => "Streamer with the username '{$login}' already exists in config",
+                "message" => "Streamer with the login '{$login}' already exists in config",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -150,7 +152,7 @@ trait ApiChannels
         TwitchConfig::loadChannels(); // reload from disk
 
         $payload = json_encode([
-            'message' => "Channel added: {$login}.",
+            'message' => "Channel added: {$login} ({$username}).",
             'status' => 'OK'
         ]);
 

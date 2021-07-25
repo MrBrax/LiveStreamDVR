@@ -28,7 +28,7 @@
                     <select v-model="logFilename">
                         <option v-for="fn in logFilenames" :key="fn">{{ fn }}</option>
                     </select>
-                    <button type="button" @click="fetchLog">Fetch</button>
+                    <button type="button" @click="fetchLog(true)">Fetch</button>
                 </div>
 
                 <div class="log_viewer" ref="logViewer">
@@ -289,10 +289,15 @@ export default defineComponent({
             console.debug("Update jobs list", json.data);
             this.$store.commit("updateJobList", json.data);
         },
-        async fetchLog() {
+        async fetchLog(clear = false) {
             // today's log file
             if (this.logFilename == "") {
                 this.logFilename = format(new Date(), "yyyy-MM-dd");
+            }
+
+            if (clear) {
+                this.logFromLine = 0;
+                this.logLines = [];
             }
 
             let response;

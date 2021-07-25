@@ -233,7 +233,7 @@ class TwitchAutomator
 	public function handle($data, $headers)
 	{
 
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "automator", "Handle called");
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "automator", "Handle called, proceed to parsing.");
 
 		// $headers = apache_request_headers();
 
@@ -364,6 +364,8 @@ class TwitchAutomator
 
 		if ($subscription_type == "channel.update") {
 
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Channel update for {$this->broadcaster_user_login}", ['headers' => $headers, 'payload' => $data]);
+
 			$this->updateGame();
 		} elseif ($subscription_type == "stream.online") {
 
@@ -417,19 +419,18 @@ class TwitchAutomator
 			}
 		} elseif ($subscription_type == "stream.offline") {
 
-			TwitchConfig::setCache("{$this->broadcaster_user_login}.online", "0");
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Stream offline for {$this->broadcaster_user_login}", ['headers' => $headers, 'payload' => $data]);
+
+			// TwitchConfig::setCache("{$this->broadcaster_user_login}.online", "0");
+			TwitchConfig::setCache("{$this->broadcaster_user_login}.online", null);
 			// TwitchConfig::setCache("{$this->broadcaster_user_login}.vod.id", null);
 			// TwitchConfig::setCache("{$this->broadcaster_user_login}.vod.started_at", null);
 
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Stream offline for {$this->broadcaster_user_login}", ['headers' => $headers, 'payload' => $data]);
-
 			$this->end();
-		}else{
+		} else {
 
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No supported subscription type ({$subscription_type}).", ['headers' => $headers, 'payload' => $data]);
-
 		}
-
 	}
 
 	/**
@@ -643,7 +644,7 @@ class TwitchAutomator
 		$streamer = TwitchConfig::getChannelByLogin($this->broadcaster_user_login);
 
 		// check matched title, broken?
-		if ($streamer && isset($streamer->match)) {
+		if ($streamer && count($streamer->match) > 0) {
 
 			$match = false;
 
@@ -660,6 +661,7 @@ class TwitchAutomator
 			if (!$match) {
 				// $this->notify($basename, 'Cancel download because stream title does not contain keywords', self::NOTIFY_GENERIC);
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "automator", "Cancel download of {$basename} due to missing keywords", ['download' => $data_username]);
+				$this->vod->delete();
 				return;
 			}
 		}

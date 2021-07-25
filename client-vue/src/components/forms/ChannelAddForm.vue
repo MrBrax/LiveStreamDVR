@@ -4,7 +4,7 @@
             <label class="label">Login <span class="required">*</span></label>
             <div class="control">
                 <input class="input input-required" type="text" name="login" value="" required />
-                <p class="input-help">Channel login, lowercase</p>
+                <p class="input-help">Channel login, lowercase. This is the part that comes after the domain name, not the display name.</p>
             </div>
         </div>
         <div class="field">

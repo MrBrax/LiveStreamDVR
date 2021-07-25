@@ -917,8 +917,8 @@ class TwitchHelper
 	public static function channelSubscribe($streamer_id)
 	{
 
-		$streamer_username = TwitchChannel::channelLoginFromId($streamer_id);
-		self::logAdvanced(self::LOG_INFO, "helper", "Subscribing to {$streamer_id} ($streamer_username)...");
+		$streamer_login = TwitchChannel::channelLoginFromId($streamer_id);
+		self::logAdvanced(self::LOG_INFO, "helper", "Subscribing to {$streamer_id} ($streamer_login)...");
 
 		if (!TwitchConfig::cfg('app_url')) {
 			throw new \Exception('Neither app_url or hook_callback is set in config');
@@ -934,11 +934,11 @@ class TwitchHelper
 		foreach (self::$channel_subscription_types as $type) {
 
 			if (TwitchConfig::getCache("{$streamer_id}.sub.${type}")) {
-				self::logAdvanced(self::LOG_INFO, "helper", "Skip subscription to {$streamer_id}:{$type}, in cache.");
+				self::logAdvanced(self::LOG_INFO, "helper", "Skip subscription to {$streamer_id}:{$type} ({$streamer_login}), in cache.");
 				continue; // todo: alert
 			}
 
-			self::logAdvanced(self::LOG_INFO, "helper", "Subscribe to {$streamer_id}:{$type}");
+			self::logAdvanced(self::LOG_INFO, "helper", "Subscribe to {$streamer_id}:{$type} ({$streamer_login})");
 
 			$data = [
 				"type" => $type,
@@ -960,7 +960,7 @@ class TwitchHelper
 				]);
 			} catch (\GuzzleHttp\Exception\BadResponseException $th) {
 
-				self::logAdvanced(self::LOG_FATAL, "helper", "Subscribe for {$streamer_id}:{$type} failed: " . $th->getMessage());
+				self::logAdvanced(self::LOG_FATAL, "helper", "Subscribe for {$streamer_id}:{$type} ({$streamer_login}) failed: " . $th->getMessage());
 
 				$json = json_decode($th->getResponse()->getBody()->getContents(), true);
 				if ($json) {
@@ -989,6 +989,9 @@ class TwitchHelper
 				}
 
 				TwitchConfig::setCache("{$streamer_id}.sub.${type}", $json['data'][0]['id']);
+
+				self::logAdvanced(self::LOG_SUCCESS, "helper", "Subscribe for {$streamer_id}:{$type} ({$streamer_login}) seemingly succeeded. Check callback for details.");
+
 			} elseif ($http_code == 409) {
 				self::logAdvanced(self::LOG_ERROR, "helper", "Duplicate sub for {$streamer_id}:{$type} detected.", ['hub' => $data]);
 			} else {
