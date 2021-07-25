@@ -44,6 +44,7 @@ export type ApiVod = {
 
     streamer_name: string;
     streamer_id: string;
+    streamer_login: string;
 
     twitch_vod_duration: number;
     twitch_vod_muted: boolean;
@@ -154,8 +155,12 @@ export type ApiConfig = {
 
 export type ApiStreamer = {
     userid: string;
+
+    /** @deprecated */
     username: string;
+
     display_name: string;
+    login: string;
     quality: string[];
     vods_list: ApiVod[];
     vods_size: number;

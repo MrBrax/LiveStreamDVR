@@ -4,16 +4,17 @@
             'top-menu-item': true,
             'is-live': streamer.is_live,
             'is-animated': $store.state.clientConfig.animationsEnabled,
-            'is-active': $route.query.channel == streamer.display_name,
+            'is-active': $route.query.channel == streamer.login,
             streamer: true,
         }"
-        :data-streamer="streamer.display_name"
+        :data-streamer="streamer.login"
     >
-        <router-link
-            :to="$store.state.clientConfig.singlePage ? { path: 'dashboard', query: { channel: streamer.display_name } } : '#streamer_' + streamer.display_name"
-        >
-            <span class="avatar"><img :src="streamer.profile_image_url" :alt="streamer.display_name" /></span>
-            <span class="username">{{ streamer.display_name }}</span>
+        <router-link :to="$store.state.clientConfig.singlePage ? { path: 'dashboard', query: { channel: streamer.login } } : '#streamer_' + streamer.login">
+            <span class="avatar"><img :src="streamer.profile_image_url" :alt="streamer.login" /></span>
+            <span class="username">
+                {{ streamer.display_name }}
+                <template v-if="streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }})</template>
+            </span>
             <span class="vodcount">{{ streamer.vods_list.length }}</span>
             <span class="subtitle">
                 <template v-if="streamer.is_live">
@@ -50,7 +51,7 @@
                 <router-link
                     :to="
                         $store.state.clientConfig.singlePage
-                            ? { path: 'dashboard', query: { channel: streamer.display_name }, hash: '#vod_' + vod.basename }
+                            ? { path: 'dashboard', query: { channel: streamer.login }, hash: '#vod_' + vod.basename }
                             : '#vod_' + vod.basename
                     "
                     :class="{
@@ -127,7 +128,10 @@
 
                     <!-- tooltip -->
                     <div :class="{ tooltip: true, 'is-static': $store.state.clientConfig.tooltipStatic }">
-                        <div class="stream-channel">{{ streamer.display_name }}</div>
+                        <div class="stream-channel">
+                            {{ streamer.display_name }}
+                            <template v-if="streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }})</template>
+                        </div>
                         <div class="stream-name">{{ vod.basename }}</div>
                         <div class="boxart-carousel is-small">
                             <div

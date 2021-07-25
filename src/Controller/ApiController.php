@@ -63,7 +63,13 @@ class ApiController
         });
         */
 
-        foreach (TwitchConfig::getChannels() as $channel) {
+        $channels = TwitchConfig::getChannels();
+
+        if(count($channels) == 0){
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "api", "No channels in channel list");
+        }
+
+        foreach ($channels as $channel) {
 
             // $data = new TwitchChannel();
             // $data->load($streamer['username'], true);
@@ -72,7 +78,7 @@ class ApiController
 
             // $streamerList[] = $data;
         }
-        return [TwitchConfig::getChannels(), $total_size];
+        return [$channels, $total_size];
     }
 
     public function jobs_list(Request $request, Response $response, $args)

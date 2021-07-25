@@ -21,6 +21,7 @@ class TwitchVOD
 
 	public ?string $streamer_name = null;
 	public ?string $streamer_id = null;
+	public ?string $streamer_login = null;
 
 	public array $segments = [];
 	public array $segments_raw = [];
@@ -266,8 +267,10 @@ class TwitchVOD
 	{
 		// $this->streamer_name 	= isset($this->meta['user_name']) ? $this->meta['user_name'] : $this->meta['data'][0]['user_name'];
 		// $this->streamer_id 		= TwitchHelper::getChannelId($this->streamer_name);
-		$this->streamer_name 	= $this->json['streamer_name'];
-		$this->streamer_id 		= (string)$this->json['streamer_id'];
+		// $this->streamer_name 	= $this->json['streamer_name'];
+		$this->streamer_id = (string)$this->json['streamer_id'];
+		$this->streamer_login = TwitchChannel::channelLoginFromId($this->json['streamer_id']);
+		$this->streamer_name = TwitchChannel::channelUsernameFromId($this->json['streamer_id']);
 	}
 
 	public function setupProvider()

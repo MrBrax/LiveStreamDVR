@@ -653,7 +653,8 @@ class TwitchAutomator
 
 		$this->vod->meta = $this->payload_eventsub;
 		$this->vod->json['meta'] = $this->payload_eventsub;
-		$this->vod->streamer_name = $data_username;
+		$this->vod->streamer_name = $this->getUsername();
+		$this->vod->streamer_login = $this->getLogin();
 		$this->vod->streamer_id = $this->getUserID();
 		$this->vod->dt_started_at = \DateTime::createFromFormat(TwitchHelper::DATE_FORMAT, $data_started);
 
@@ -843,7 +844,7 @@ class TwitchAutomator
 		$vodclass->saveJSON('finalized');
 
 		// download chat and optionally burn it
-		if ($streamer['download_chat'] && $vodclass->twitch_vod_id) {
+		if ($streamer->download_chat && $vodclass->twitch_vod_id) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Auto download chat on {$basename}", ['download' => $data_username]);
 			$vodclass->downloadChat();
 

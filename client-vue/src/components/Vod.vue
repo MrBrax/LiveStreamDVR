@@ -196,7 +196,7 @@
                 <li><strong>Current duration:</strong><duration-display :startDate="vod.dt_started_at.date" outputStyle="human"></duration-display></li>
                 <li>
                     <strong>Watch live:</strong>
-                    <a :href="'https://twitch.tv/' + vod.streamer_name" rel="noreferrer" target="_blank">Twitch</a>
+                    <a :href="'https://twitch.tv/' + vod.streamer_login" rel="noreferrer" target="_blank">Twitch</a>
                 </li>
                 <!--<li><strong>Watch capture:</strong>
                     <a href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}.ts" rel="noreferrer" target="_blank">TS file</a>

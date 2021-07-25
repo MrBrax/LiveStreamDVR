@@ -397,10 +397,10 @@ export default defineComponent({
                 // console.debug("notification payload", mutation);
 
                 for (const streamer of mutation.payload as ApiStreamer[]) {
-                    const username = streamer.display_name;
+                    const login = streamer.login;
 
-                    if (this.oldData && this.oldData[streamer.display_name]) {
-                        const oldStreamer = this.oldData[streamer.display_name];
+                    if (this.oldData && this.oldData[streamer.login]) {
+                        const oldStreamer = this.oldData[streamer.login];
 
                         const opt = {
                             icon: streamer.channel_data.profile_image_url,
@@ -411,28 +411,28 @@ export default defineComponent({
                         let text = "";
 
                         if (!oldStreamer.is_live && streamer.is_live) {
-                            text = `${username} is live!`;
+                            text = `${login} is live!`;
                         }
 
                         if (streamer.is_live) {
-                            // console.log("notification compare games", streamer.display_name, oldStreamer.current_game, streamer.current_game );
+                            // console.log("notification compare games", streamer.login, oldStreamer.current_game, streamer.current_game );
 
                             if (
                                 (!oldStreamer.current_game && streamer.current_game) || // from no game to new game
                                 (oldStreamer.current_game && streamer.current_game && oldStreamer.current_game.game_name !== streamer.current_game.game_name) // from old game to new game
                             ) {
-                                // alert( streamer.display_name + " is now playing " + streamer.current_game.game_name );
+                                // alert( streamer.login + " is now playing " + streamer.current_game.game_name );
 
                                 if (streamer.current_game.favourite) {
-                                    text = `${username} is now playing one of your favourite games: ${streamer.current_game.game_name}!`;
+                                    text = `${login} is now playing one of your favourite games: ${streamer.current_game.game_name}!`;
                                 } else {
-                                    text = `${username} is now playing ${streamer.current_game.game_name}!`;
+                                    text = `${login} is now playing ${streamer.current_game.game_name}!`;
                                 }
                             }
                         }
 
                         if (oldStreamer.is_live && !streamer.is_live) {
-                            text = `${username} has gone offline!`;
+                            text = `${login} has gone offline!`;
                         }
 
                         if (text !== "") {
@@ -446,19 +446,19 @@ export default defineComponent({
                             if (useSpeech) {
                                 let speakText = text;
 
-                                if (streamerPronounciation[username]) {
-                                    console.debug(`Using pronounciation for ${username}`);
-                                    speakText = speakText.replace(username, streamerPronounciation[username]);
+                                if (streamerPronounciation[login]) {
+                                    console.debug(`Using pronounciation for ${login}`);
+                                    speakText = speakText.replace(login, streamerPronounciation[login]);
                                 }
                                 const utterance = new SpeechSynthesisUtterance(speakText);
                                 window.speechSynthesis.speak(utterance);
                             }
                         } else {
-                            // console.debug(`No notification text for ${streamer.display_name}`);
+                            // console.debug(`No notification text for ${streamer.login}`);
                         }
                     }
 
-                    this.oldData[streamer.display_name] = streamer;
+                    this.oldData[streamer.login] = streamer;
                 }
             });
         },
@@ -497,7 +497,7 @@ export default defineComponent({
 
             const current = this.$route.query.channel as string;
             if (current !== undefined) {
-                return this.$store.state.streamerList.find((u) => u.display_name === current);
+                return this.$store.state.streamerList.find((u) => u.login === current);
             } else {
                 // this.$route.query.channel = this.$store.state.streamerList[0].display_name;
                 return this.$store.state.streamerList[0];

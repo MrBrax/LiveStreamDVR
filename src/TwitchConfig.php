@@ -258,10 +258,13 @@ class TwitchConfig
 		self::saveConfig();
 	}
 
-	public static function loadChannels()
-	{
+	public static function loadChannelsConfig(){
 		if (!file_exists(self::$channelPath)) return;
 		self::$channels_config = json_decode(file_get_contents(self::$channelPath), true) ?: [];
+	}
+
+	public static function loadChannels()
+	{
 		if (count(self::$channels_config) > 0) {
 			foreach (self::$channels_config as $s) {
 				$ch = TwitchChannel::loadFromLogin($s["login"], true);
@@ -357,6 +360,7 @@ class TwitchConfig
 
 TwitchConfig::loadConfig();
 // TwitchConfig::loadChannels();
+TwitchConfig::loadChannelsConfig();
 
 try {
 	TwitchConfig::$timezone = new \DateTimeZone(TwitchConfig::cfg('timezone', 'UTC'));

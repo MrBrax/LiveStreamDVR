@@ -1,11 +1,12 @@
 <template>
-    <div class="streamer-box" v-if="streamer" :id="'streamer_' + streamer.display_name">
+    <div class="streamer-box" v-if="streamer" :id="'streamer_' + streamer.login">
         <div :class="{ 'streamer-title': true, 'is-live': streamer.is_live }">
             <div class="streamer-title-avatar" :style="'background-image: url(' + streamer.profile_image_url + ')'"></div>
             <div class="streamer-title-text">
                 <h2>
-                    <a :href="'https://twitch.tv/' + streamer.display_name" rel="noreferrer" target="_blank">
+                    <a :href="'https://twitch.tv/' + streamer.login" rel="noreferrer" target="_blank">
                         {{ streamer.display_name }}
+                        <template v-if="streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }})</template>
                     </a>
                     <span v-if="streamer.is_live" class="streamer-live">live</span>
                 </h2>
@@ -103,7 +104,7 @@ export default defineComponent({
             let response;
 
             try {
-                response = await this.$http.get(`/api/v0/channel/${this.streamer?.display_name}/force_record`);
+                response = await this.$http.get(`/api/v0/channel/${this.streamer?.login}/force_record`);
             } catch (error) {
                 console.error("forceRecord error", error.response);
                 if (error.response.data && error.response.data.message) {
@@ -128,7 +129,7 @@ export default defineComponent({
             let response;
 
             try {
-                response = await this.$http.get(`/api/v0/channel/${this.streamer.display_name}/dump_playlist`);
+                response = await this.$http.get(`/api/v0/channel/${this.streamer.login}/dump_playlist`);
             } catch (error) {
                 console.error("abortCapture error", error.response);
                 if (error.response.data && error.response.data.message) {
