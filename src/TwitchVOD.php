@@ -126,8 +126,55 @@ class TwitchVOD
 	 *
 	 * @param string $filename
 	 * @param bool $api API call?
-	 * @return bool
+	 * @return bool|TwitchVOD
 	 */
+	public static function load(string $filename, $api = false)
+	{
+
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Loading VOD Class for {$filename} with api " . ($api ? 'enabled' : 'disabled'));
+
+		if (!file_exists($filename)) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "vodclass", "VOD Class for {$filename} not found");
+			throw new \Exception('VOD not found');
+			return false;
+		}
+
+		$data = file_get_contents($filename);
+
+		if (!$data || strlen($data) == 0 || filesize($filename) == 0) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "vodclass", "Tried to load {$filename} but no data was returned");
+			return false;
+		}
+
+		$vod = new self();
+
+		$vod->json = json_decode($data, true);
+		$vod->json_hash = md5($data);
+
+		$vod->filename = $vod->realpath($filename);
+		$vod->basename = basename($filename, '.json');
+		$vod->directory = dirname($filename);
+
+		$vod->meta = $vod->json['meta'];
+
+		$vod->setupDates();
+		$vod->setupBasic();
+		$vod->setupUserData();
+		$vod->setupProvider();
+		$vod->setupAssoc();
+		$vod->setupFiles();
+
+		$vod->webpath = TwitchConfig::cfg('basepath') . '/vods/' . (TwitchConfig::cfg("channel_folders") && $vod->streamer_name ? $vod->streamer_name : '');
+
+		if ($api) {
+			$vod->setupApiHelper();
+		}
+
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "VOD Class for {$vod->basename} with api " . ($api ? 'enabled' : 'disabled') . " loaded, hopefully without errors!");
+
+		return $vod;
+	}
+	/*
 	public function load(string $filename, $api = false)
 	{
 
@@ -172,6 +219,7 @@ class TwitchVOD
 
 		return true;
 	}
+	*/
 
 	public function setupDates()
 	{
@@ -374,17 +422,20 @@ class TwitchVOD
 
 	/**
 	 * Reload JSON to make sure you don't overwrite anything.
-	 *
-	 * @return bool
+	 * Now just returns a new copy.
+	 * @todo make this replace itself, how?
+	 * @deprecated 6.0.0
+	 * @return TwitchVOD
 	 */
-	public function refreshJSON()
+	public function refreshJSON($api = false)
 	{
 		if (!$this->filename) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Can't refresh vod, not found!");
 			return false;
 		}
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Refreshing JSON on {$this->basename}!");
-		$this->load($this->filename);
+		// $this->load($this->filename);
+		return static::load($this->filename, $api);
 	}
 
 	/**

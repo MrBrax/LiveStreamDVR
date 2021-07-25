@@ -175,8 +175,7 @@ class TwitchAutomator
 
 		foreach ($vods as $v) {
 
-			$vodclass = new TwitchVOD();
-			$vodclass->load($v);
+			$vodclass = TwitchVOD::load($v);
 
 			if (TwitchConfig::cfg('keep_deleted_vods') && $vodclass->twitch_vod_exists === false) {
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Keeping {$vodclass->basename} due to it being deleted on Twitch.");
@@ -392,8 +391,7 @@ class TwitchAutomator
 
 			if (file_exists($folder_base . DIRECTORY_SEPARATOR . $basename . '.json')) {
 
-				$vodclass = new TwitchVOD();
-				if ($vodclass->load($folder_base . DIRECTORY_SEPARATOR . $basename . '.json')) {
+				if ($vodclass = TwitchVOD::load(($folder_base . DIRECTORY_SEPARATOR . $basename . '.json'))) {
 
 					if ($vodclass->is_finalized) {
 						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "VOD is finalized, but wanted more info on {$basename} (retry {$message_retry})");
@@ -467,8 +465,7 @@ class TwitchAutomator
 			$folder_base = TwitchHelper::vodFolder($this->getLogin());
 
 			if (!$this->vod) {
-				$this->vod = new TwitchVOD();
-				$this->vod->load($folder_base . DIRECTORY_SEPARATOR . $basename . '.json');
+				$this->vod = TwitchVOD::load($folder_base . DIRECTORY_SEPARATOR . $basename . '.json');
 			}
 
 			$event = [];
@@ -663,7 +660,7 @@ class TwitchAutomator
 		if ($this->force_record) $this->vod->force_record = true;
 
 		$this->vod->saveJSON('stream download');
-		$this->vod->refreshJSON();
+		$this->vod = $this->vod->refreshJSON();
 
 		TwitchHelper::webhook([
 			'action' => 'start_download',
@@ -777,7 +774,7 @@ class TwitchAutomator
 		// end timestamp
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Add end timestamp for {$basename}", ['download' => $data_username]);
 
-		$this->vod->refreshJSON();
+		$this->vod = $this->vod->refreshJSON();
 		// $this->vod->ended_at = $this->getDateTime();
 		$this->vod->dt_ended_at = new \DateTime();
 		$this->vod->is_capturing = false;
@@ -791,7 +788,7 @@ class TwitchAutomator
 		// wait for one minute in case something didn't finish
 		sleep(60);
 
-		$this->vod->refreshJSON();
+		$this->vod = $this->vod->refreshJSON();
 		$this->vod->is_converting = true;
 		$this->vod->saveJSON('is_converting set');
 
@@ -822,7 +819,7 @@ class TwitchAutomator
 
 		// add the captured segment to the vod info
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Conversion done, add segments to {$basename}", ['download' => $data_username]);
-		$this->vod->refreshJSON();
+		$this->vod = $this->vod->refreshJSON();
 		$this->vod->is_converting = false;
 		// if(!$this->json['segments_raw']) $this->json['segments_raw'] = [];
 		$this->vod->addSegment($converted_filename);
@@ -840,8 +837,7 @@ class TwitchAutomator
 
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Do metadata on {$basename}", ['download' => $data_username]);
 
-		$vodclass = new TwitchVOD();
-		$vodclass->load($folder_base . DIRECTORY_SEPARATOR . $basename . '.json');
+		$vodclass = TwitchVOD::load($folder_base . DIRECTORY_SEPARATOR . $basename . '.json');
 
 		$vodclass->finalize();
 		$vodclass->saveJSON('finalized');
@@ -1008,7 +1004,7 @@ class TwitchAutomator
 
 		// $this->info[] = 'Streamlink cmd: ' . implode(" ", $cmd);
 
-		$this->vod->refreshJSON();
+		$this->vod = $this->vod->refreshJSON();
 		$this->vod->dt_capture_started = new \DateTime();
 		$this->vod->saveJSON('dt_capture_started set');
 
@@ -1591,7 +1587,7 @@ class TwitchAutomator
 
 		$cmd[] = $converted_filename; // output filename
 
-		$this->vod->refreshJSON();
+		$this->vod = $this->vod->refreshJSON();
 		$this->vod->dt_conversion_started = new \DateTime();
 		$this->vod->saveJSON('dt_conversion_started set');
 

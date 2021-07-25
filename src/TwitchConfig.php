@@ -264,8 +264,6 @@ class TwitchConfig
 		self::$channels_config = json_decode(file_get_contents(self::$channelPath), true) ?: [];
 		if (count(self::$channels_config) > 0) {
 			foreach (self::$channels_config as $s) {
-				// $ch = new TwitchChannel();
-				// $ch->load($s["login"]);
 				$ch = TwitchChannel::loadFromLogin($s["login"], true);
 				array_push(self::$channels, $ch);
 			}

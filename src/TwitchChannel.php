@@ -485,8 +485,7 @@ class TwitchChannel
 
         foreach ($this->vods_raw as $k => $v) {
 
-            $vodclass = new TwitchVOD();
-            if (!$vodclass->load($v, $api)) {
+            if (!$vodclass = TwitchVOD::load($v, $api)) {
                 continue;
             }
 

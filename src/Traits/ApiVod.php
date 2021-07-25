@@ -28,10 +28,8 @@ trait ApiVod
 
         $username = explode("_", $vod)[0];
 
-        $vodclass = new TwitchVOD();
-
         try {
-            $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+            $vodclass = TwitchVOD::load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
         } catch (\Throwable $th) {
             $response->getBody()->write(json_encode([
                 "message" => $th->getMessage(),
@@ -57,8 +55,7 @@ trait ApiVod
 
         $username = explode("_", $vod)[0];
 
-        $vodclass = new TwitchVOD();
-        $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+        $vodclass = TwitchVOD::load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
         if (!isset($_GET['words'])) {
 
@@ -91,8 +88,7 @@ trait ApiVod
         // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
         $username = explode("_", $vod)[0];
 
-        $vodclass = new TwitchVOD();
-        $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+        $vodclass = TwitchVOD::load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
         if ($vodclass->twitch_vod_id) {
 
@@ -135,8 +131,7 @@ trait ApiVod
         // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
         $username = explode("_", $vod)[0];
 
-        $vodclass = new TwitchVOD();
-        $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+        $vodclass = TwitchVOD::load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
         if ($vodclass->downloadVod()) {
             $payload = json_encode([
@@ -161,8 +156,7 @@ trait ApiVod
         // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
         $username = explode("_", $vod)[0];
 
-        $vodclass = new TwitchVOD();
-        $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+        $vodclass = TwitchVOD::load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
         if (!$vodclass->twitch_vod_id) {
             $response->getBody()->write(json_encode([
@@ -205,8 +199,7 @@ trait ApiVod
         // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
         $username = explode("_", $vod)[0];
 
-        $vodclass = new TwitchVOD();
-        $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+        $vodclass = TwitchVOD::load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
         $use_vod = isset($_GET['use_vod']);
 
@@ -231,8 +224,7 @@ trait ApiVod
         // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
         $username = explode("_", $vod)[0];
 
-        $vodclass = new TwitchVOD();
-        $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+        $vodclass = TwitchVOD::load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
         if ($vodclass->is_chat_burned) {
             $response->getBody()->write("Chat already burned!");
@@ -292,8 +284,7 @@ trait ApiVod
         // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
         $username = explode("_", $vod)[0];
 
-        $vodclass = new TwitchVOD();
-        $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+        $vodclass = TwitchVOD::load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
         $vodclass->delete();
 
         $payload = json_encode([
@@ -312,8 +303,7 @@ trait ApiVod
         // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
         $username = explode("_", $vod)[0];
 
-        $vodclass = new TwitchVOD();
-        $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+        $vodclass = TwitchVOD::load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
         $vodclass->save();
 
         $payload = json_encode([
@@ -332,8 +322,7 @@ trait ApiVod
         // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
         $username = explode("_", $vod)[0];
 
-        $vodclass = new TwitchVOD();
-        $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+        $vodclass = TwitchVOD::load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
         $destination = isset($_POST['destination']) ? $_POST['destination'] : null;
 
@@ -380,8 +369,7 @@ trait ApiVod
         $vod = $args['vod'];
         $username = explode("_", $vod)[0];
 
-        $vodclass = new TwitchVOD();
-        $vodclass->load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+        $vodclass = TwitchVOD::load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
 
         $second_start   = (int)$_POST['time_in'];
         $second_end     = (int)$_POST['time_out'];
