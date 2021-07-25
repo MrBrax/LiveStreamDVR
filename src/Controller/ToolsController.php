@@ -61,6 +61,7 @@ class ToolsController
         foreach ($current_jobs_raw as $v) {
             // $pid = file_get_contents($v);
 			$job = TwitchAutomatorJob::load(basename($v, ".json"));
+			$job->getStatus();
             $current_jobs[] = $job;
 		}
 		
