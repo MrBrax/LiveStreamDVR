@@ -100,13 +100,15 @@
 
                     <!-- when not capturing -->
                     <template v-else>
+                        <!-- duration -->
                         <span v-if="vod.duration_seconds">
                             &middot; ({{
                                 $store.state.clientConfig.useRelativeTime ? niceDuration(vod.duration_seconds) : humanDuration(vod.duration_seconds)
-                            }})</span
-                        ><!-- duration -->
-                        <span v-if="vod.total_size"> &middot; {{ formatBytes(vod.total_size, 2) }}</span
-                        ><!-- filesize -->
+                            }})
+                        </span>
+
+                        <!-- filesize -->
+                        <span v-if="vod.total_size"> &middot; {{ formatBytes(vod.total_size, 2) }}</span>
                     </template>
 
                     <!-- flags -->

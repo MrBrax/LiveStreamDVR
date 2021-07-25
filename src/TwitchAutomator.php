@@ -117,7 +117,7 @@ class TwitchAutomator
 
 	public function getVodID()
 	{
-		return TwitchConfig::getCache("{$this->broadcaster_user_login}.vod.id");
+		return TwitchConfig::getCache("{$this->getLogin()}.vod.id");
 		// return $this->payload['id'];
 	}
 
@@ -141,14 +141,14 @@ class TwitchAutomator
 
 	public function getStartDate()
 	{
-		return TwitchConfig::getCache("{$this->broadcaster_user_login}.vod.started_at");
+		return TwitchConfig::getCache("{$this->getLogin()}.vod.started_at");
 		// return $this->payload['started_at'];
 	}
 
 	public function getTitle()
 	{
 
-		$channeldata = TwitchConfig::getCache("{$this->broadcaster_user_login}.channeldata");
+		$channeldata = TwitchConfig::getCache("{$this->getLogin()}.channeldata");
 		if ($channeldata) {
 			$channeldata_json = json_decode($channeldata, true);
 			if ($channeldata_json) {
@@ -395,6 +395,7 @@ class TwitchAutomator
 						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "VOD is finalized, but wanted more info on {$basename}");
 					} elseif ($vodclass->is_capturing) {
 						// $this->updateGame();
+						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "VOD exists and is still capturing on {$basename}");
 					} else {
 						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "VOD exists but isn't capturing anymore on {$basename}");
 					}
@@ -455,10 +456,10 @@ class TwitchAutomator
 		// $broadcaster_user_name = $this->payload_eventsub['broadcaster_user_name'];
 
 		// if online
-		if (TwitchConfig::getCache("{$this->broadcaster_user_login}.online") === "1") {
+		if (TwitchConfig::getCache("{$this->getLogin()}.online") === "1") {
 
 			$basename = $this->basename();
-			$folder_base = TwitchHelper::vodFolder($this->broadcaster_user_login);
+			$folder_base = TwitchHelper::vodFolder($this->getLogin());
 
 			if (!$this->vod) {
 				$this->vod = new TwitchVOD();
@@ -467,34 +468,38 @@ class TwitchAutomator
 
 			$event = [];
 
+			// fetch from cache
 			if ($from_cache) {
-				$cd = TwitchConfig::getCache("{$this->broadcaster_user_login}.channeldata");
-				if (!$cd) return false;
+				$cd = TwitchConfig::getCache("{$this->getLogin()}.channeldata");
+				if (!$cd) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Tried to get channel cache for {$this->broadcaster_user_login} but it was not available.");
+					return false;
+				}
 				$cdj = json_decode($cd, true);
-				if (!$cdj) return false;
+				if (!$cdj) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Tried to parse channel cache json for {$this->broadcaster_user_login} but it errored.");
+					return false;
+				}
 				$event = $cdj;
 			} else {
 				$event = $this->payload_eventsub["event"];
 			}
 
-			// fetch game name from either cache or twitch
-			// $game_name = TwitchHelper::getGameName((int)$data_game_id);
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "automator", "Channel data for {$this->broadcaster_user_login} fetched from " . ($from_cache ? 'cache' : 'notification') . ".", ['event' => $event]);
 
 			$chapter = [
 				'time' 			=> $this->getDateTime(),
-				// 'datetime'		=> new \DateTime(), /** @deprecated 5.0.0 */
 				'dt_started_at'	=> new \DateTime(),
 				'game_id' 		=> $event["category_id"],
 				'game_name'		=> $event["category_name"],
 				// 'viewer_count' 	=> $data_viewer_count,
 				'title'			=> $event["title"],
 				'is_mature'		=> $event["is_mature"],
+				'online'		=> true,
 			];
 
 			$this->vod->addChapter($chapter);
 			$this->vod->saveJSON('game update');
-
-			// $this->notify('', '[' . $data_username . '] [game update: ' . $game_name . ']', self::NOTIFY_GAMECHANGE);
 
 			TwitchHelper::webhook([
 				'action' => 'chapter_update',
@@ -502,11 +507,32 @@ class TwitchAutomator
 				'vod' => $this->vod
 			]);
 
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "automator", "Game updated on {$this->broadcaster_user_login} to {$event["category_name"]} ({$event["title"]})");
+			// append chapter to history
+			$fp = fopen(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "history" . DIRECTORY_SEPARATOR . $this->broadcaster_user_login . ".jsonline", 'a');
+			fwrite($fp, json_encode($chapter) . "\n");
+			fclose($fp);
+
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "automator", "Game updated on '{$this->broadcaster_user_login}' to '{$event["category_name"]}' ({$event["title"]}) using " . ($from_cache ? 'cache' : 'notification') . ".");
 		} else {
 			$event = $this->payload_eventsub["event"];
 			TwitchConfig::setCache("{$this->broadcaster_user_login}.channeldata", json_encode($this->payload_eventsub['event']));
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Channel {$this->broadcaster_user_login} not online, saving channel data to cache: {$event["category_name"]} ({$event["title"]})", ['payload' => $this->payload_eventsub]);
+
+			// DRY
+			$chapter = [
+				'time' 			=> $this->getDateTime(),
+				'dt_started_at'	=> new \DateTime(),
+				'game_id' 		=> $event["category_id"],
+				'game_name'		=> $event["category_name"],
+				// 'viewer_count' 	=> $data_viewer_count,
+				'title'			=> $event["title"],
+				'is_mature'		=> $event["is_mature"],
+				'online'		=> false,
+			];
+
+			$fp = fopen(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "history" . DIRECTORY_SEPARATOR . $this->broadcaster_user_login . ".jsonline", 'a');
+			fwrite($fp, json_encode($chapter) . "\n");
+			fclose($fp);
 		}
 
 		/*
@@ -604,7 +630,7 @@ class TwitchAutomator
 
 		$basename = $this->basename();
 
-		$folder_base = TwitchHelper::vodFolder($this->broadcaster_user_login);
+		$folder_base = TwitchHelper::vodFolder($this->getLogin());
 
 		// make a folder for the streamer if it for some reason doesn't exist, but it should get created in the config
 		if (!file_exists($folder_base)) {
@@ -639,7 +665,7 @@ class TwitchAutomator
 			'vod' => $this->vod
 		]);
 
-		$this->updateGame();
+		// $this->updateGame();
 
 		$streamer = TwitchConfig::getChannelByLogin($this->broadcaster_user_login);
 
@@ -671,7 +697,10 @@ class TwitchAutomator
 
 		// update the game + title if it wasn't updated already
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Update game for {$basename}", ['download' => $data_username, 'instance' => $_GET['instance']]);
-		$this->updateGame();
+		if (TwitchConfig::getCache("{$this->getLogin()}.channeldata")) {
+			$this->updateGame(true);
+			TwitchConfig::setCache("{$this->getLogin()}.channeldata", null);
+		}
 
 		/** @todo: non-blocking, how */
 		/*
@@ -692,7 +721,7 @@ class TwitchAutomator
 		if (TwitchConfig::cfg('playlist_dump')) {
 
 			$psa = new TwitchPlaylistAutomator();
-			$psa->setup($data_username, TwitchConfig::getChannelByLogin($this->broadcaster_user_login)->quality[0]);
+			$psa->setup($data_username, TwitchConfig::getChannelByLogin($this->getLogin())->quality[0]);
 			$psa->output_file = $folder_base . DIRECTORY_SEPARATOR . $basename . '.ts';
 
 			try {
@@ -796,7 +825,7 @@ class TwitchAutomator
 
 		// remove old vods for the streamer
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Cleanup old VODs for {$data_username}", ['download' => $data_username]);
-		$this->cleanup($this->broadcaster_user_login, $basename);
+		$this->cleanup($this->getLogin(), $basename);
 
 		// finalize
 
@@ -876,13 +905,13 @@ class TwitchAutomator
 
 		// $basename = $this->basename();
 
-		$folder_base = TwitchHelper::vodFolder($this->broadcaster_user_login);
+		$folder_base = TwitchHelper::vodFolder($this->getLogin());
 
 		$capture_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '.ts';
 
 		$chat_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '.chatdump';
 
-		$streamer_config = TwitchConfig::getChannelByLogin($this->broadcaster_user_login);
+		$streamer_config = TwitchConfig::getChannelByLogin($this->getLogin());
 
 		// failure
 		/*
@@ -966,8 +995,8 @@ class TwitchAutomator
 
 		// twitch quality
 		$cmd[] = '--default-stream';
-		if (isset($streamer_config) && isset($streamer_config['quality'])) {
-			$cmd[] = implode(",", $streamer_config['quality']); // quality
+		if (isset($streamer_config) && isset($streamer_config->quality)) {
+			$cmd[] = implode(",", $streamer_config->quality); // quality
 		} else {
 			$cmd[] = 'best';
 		}
@@ -1398,7 +1427,7 @@ class TwitchAutomator
 
 			// format, does this work?
 			$yt_cmd[] = '-f';
-			$yt_cmd[] = implode('/', TwitchConfig::getChannelByLogin($this->broadcaster_user_login)->quality ?: []);
+			$yt_cmd[] = implode('/', TwitchConfig::getChannelByLogin($this->getLogin())->quality ?: []);
 
 			// verbose
 			if (TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false)) {
@@ -1458,7 +1487,7 @@ class TwitchAutomator
 
 		$container_ext = TwitchConfig::cfg('vod_container', 'mp4');
 
-		$folder_base = TwitchHelper::vodFolder($this->broadcaster_user_login);
+		$folder_base = TwitchHelper::vodFolder($this->getLogin());
 
 		$capture_filename 	= $folder_base . DIRECTORY_SEPARATOR . $basename . '.ts';
 

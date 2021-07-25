@@ -486,7 +486,7 @@
                         </td>
 
                         <td>
-                            <span class="grey">{{ formatNumber(chapter.viewer_count) }}</span>
+                            <span class="grey" v-if="chapter.viewer_count">{{ formatNumber(chapter.viewer_count) }}</span>
                         </td>
                     </tr>
 

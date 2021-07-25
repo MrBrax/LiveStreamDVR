@@ -63,6 +63,7 @@ class TwitchHelper
 		__DIR__ . "/../cache/channel/avatar",
 		__DIR__ . "/../cache/channel/background",
 		__DIR__ . "/../cache/kv",
+		__DIR__ . "/../cache/history",
 		__DIR__ . "/../logs",
 		__DIR__ . "/../logs/html",
 		__DIR__ . "/../logs/software",
@@ -991,7 +992,6 @@ class TwitchHelper
 				TwitchConfig::setCache("{$streamer_id}.sub.${type}", $json['data'][0]['id']);
 
 				self::logAdvanced(self::LOG_SUCCESS, "helper", "Subscribe for {$streamer_id}:{$type} ({$streamer_login}) seemingly succeeded. Check callback for details.");
-
 			} elseif ($http_code == 409) {
 				self::logAdvanced(self::LOG_ERROR, "helper", "Duplicate sub for {$streamer_id}:{$type} detected.", ['hub' => $data]);
 			} else {
@@ -1009,15 +1009,17 @@ class TwitchHelper
 
 		self::logAdvanced(self::LOG_INFO, "helper", "Unsubscribing to {$streamer_id}");
 
+		$streamer_login = TwitchChannel::channelLoginFromId($streamer_id);
+
 		foreach (self::$channel_subscription_types as $type) {
 
 			$id = TwitchConfig::getCache("{$streamer_id}.sub.${type}");
 
 			if (!$id) {
-				self::logAdvanced(self::LOG_INFO, "helper", "No sub id from cache for {$streamer_id}:{$type}, fetch from endpoint");
+				self::logAdvanced(self::LOG_ERROR, "helper", "No sub id from cache for {$streamer_id}:{$type} ({$streamer_login}), fetch from endpoint");
 				$id = self::channelGetSubscriptionId($streamer_id, $type);
 				if (!$id) {
-					self::logAdvanced(self::LOG_INFO, "helper", "No sub id from endpoint for {$streamer_id}:{$type}, abort.");
+					self::logAdvanced(self::LOG_ERROR, "helper", "No sub id from endpoint for {$streamer_id}:{$type} ({$streamer_login}), abort.");
 					continue;
 				}
 			}
@@ -1027,7 +1029,7 @@ class TwitchHelper
 				$response = self::$guzzler->request("DELETE", "/helix/eventsub/subscriptions?id={$id}");
 			} catch (\GuzzleHttp\Exception\BadResponseException $th) {
 
-				self::logAdvanced(self::LOG_FATAL, "helper", "Unsubscribe from {$streamer_id}:{$type} error: " . $th->getMessage());
+				self::logAdvanced(self::LOG_FATAL, "helper", "Unsubscribe from {$streamer_id}:{$type} ({$streamer_login}) error: " . $th->getMessage());
 
 				/*
 				$json = json_decode($th->getResponse()->getBody()->getContents(), true);
@@ -1041,7 +1043,7 @@ class TwitchHelper
 				return false;
 			}
 
-			self::logAdvanced(self::LOG_SUCCESS, "helper", "Unsubscribed from {$streamer_id}:{$type}");
+			self::logAdvanced(self::LOG_SUCCESS, "helper", "Unsubscribed from {$streamer_id}:{$type} ({$streamer_login})");
 
 			TwitchConfig::setCache("{$streamer_id}.sub.${type}", null);
 		}
@@ -1361,14 +1363,14 @@ class TwitchHelper
 					'data' => $data
 				]));
 			} catch (\Throwable $th) {
-				TwitchHelper::log(TwitchHelper::LOG_ERROR, "Websocket send error: " . $th->getMessage());
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "websocket", "Websocket send error: " . $th->getMessage());
 			}
 
 			if ($client && $client->isConnected()) {
 				try {
 					$client->close();
 				} catch (\Throwable $th) {
-					TwitchHelper::log(TwitchHelper::LOG_ERROR, "Websocket close error: " . $th->getMessage());
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "websocket", "Websocket close error: " . $th->getMessage());
 				}
 			}
 		}

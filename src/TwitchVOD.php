@@ -14,7 +14,8 @@ class TwitchVOD
 
 	public string $filename = '';
 	public string $basename = '';
-	public string $directory = ''; /** Base directory */
+	public string $directory = '';
+	/** Base directory */
 	public array $json = [];
 	public array $meta = [];
 
@@ -115,7 +116,8 @@ class TwitchVOD
 
 	private $pid_cache = [];
 
-	private function realpath($str){
+	private function realpath($str)
+	{
 		return realpath($str) ?: $str;
 	}
 
@@ -129,7 +131,7 @@ class TwitchVOD
 	public function load(string $filename, $api = false)
 	{
 
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Loading VOD Class for {$filename}");
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Loading VOD Class for {$filename} with api " . ($api ? 'enabled' : 'disabled'));
 
 		if (!file_exists($filename)) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "vodclass", "VOD Class for {$filename} not found");
@@ -162,9 +164,11 @@ class TwitchVOD
 
 		$this->webpath = TwitchConfig::cfg('basepath') . '/vods/' . (TwitchConfig::cfg("channel_folders") && $this->streamer_name ? $this->streamer_name : '');
 
-		if ($api){
+		if ($api) {
 			$this->setupApiHelper();
 		}
+
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "VOD Class for {$this->basename} with api " . ($api ? 'enabled' : 'disabled') . " loaded, hopefully withour errors!");
 
 		return true;
 	}
@@ -239,7 +243,6 @@ class TwitchVOD
 		if (isset($this->meta) && isset($this->meta['title'])) {
 			$this->stream_title = $this->meta['title'];
 		}
-
 	}
 
 	public function setupAssoc()
@@ -278,14 +281,14 @@ class TwitchVOD
 	public function setupFiles()
 	{
 
-		$this->path_chat 				= $this->realpath( $this->directory . DIRECTORY_SEPARATOR . $this->basename . ".chat" );
-		$this->path_downloaded_vod 		= $this->realpath( $this->directory . DIRECTORY_SEPARATOR . $this->basename . "_vod.mp4" );
-		$this->path_losslesscut 		= $this->realpath( $this->directory . DIRECTORY_SEPARATOR . $this->basename . "-llc-edl.csv" );
-		$this->path_chatrender			= $this->realpath( $this->directory . DIRECTORY_SEPARATOR . $this->basename . "_chat.mp4" );
-		$this->path_chatburn			= $this->realpath( $this->directory . DIRECTORY_SEPARATOR . $this->basename . "_burned.mp4" );
-		$this->path_chatdump			= $this->realpath( $this->directory . DIRECTORY_SEPARATOR . $this->basename . ".chatdump" );
-		$this->path_adbreak				= $this->realpath( $this->directory . DIRECTORY_SEPARATOR . $this->basename . ".adbreak" );
-		$this->path_playlist			= $this->realpath( $this->directory . DIRECTORY_SEPARATOR . $this->basename . ".m3u8" );
+		$this->path_chat 				= $this->realpath($this->directory . DIRECTORY_SEPARATOR . $this->basename . ".chat");
+		$this->path_downloaded_vod 		= $this->realpath($this->directory . DIRECTORY_SEPARATOR . $this->basename . "_vod.mp4");
+		$this->path_losslesscut 		= $this->realpath($this->directory . DIRECTORY_SEPARATOR . $this->basename . "-llc-edl.csv");
+		$this->path_chatrender			= $this->realpath($this->directory . DIRECTORY_SEPARATOR . $this->basename . "_chat.mp4");
+		$this->path_chatburn			= $this->realpath($this->directory . DIRECTORY_SEPARATOR . $this->basename . "_burned.mp4");
+		$this->path_chatdump			= $this->realpath($this->directory . DIRECTORY_SEPARATOR . $this->basename . ".chatdump");
+		$this->path_adbreak				= $this->realpath($this->directory . DIRECTORY_SEPARATOR . $this->basename . ".adbreak");
+		$this->path_playlist			= $this->realpath($this->directory . DIRECTORY_SEPARATOR . $this->basename . ".m3u8");
 
 		$this->associatedFiles = [
 			$this->basename . ".json",
@@ -339,6 +342,7 @@ class TwitchVOD
 
 	public function setupApiHelper()
 	{
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Run api helper for {$this->basename}");
 		$this->api_hasFavouriteGame = $this->hasFavouriteGame();
 		$this->api_getUniqueGames = $this->getUniqueGames();
 		$this->api_getWebhookDuration = $this->getWebhookDuration();
@@ -493,9 +497,10 @@ class TwitchVOD
 		return false;
 	}
 
-	public function filterMediainfo(){
+	public function filterMediainfo()
+	{
 
-		if(!$this->video_metadata) return;
+		if (!$this->video_metadata) return;
 
 		$this->video_metadata_public = [];
 
@@ -509,20 +514,19 @@ class TwitchVOD
 			"video.Format",
 			"video.BitRate_Mode",
 			"video.BitRate",
-			
+
 			"audio.Format",
 			"audio.BitRate_Mode",
 			"audio.BitRate",
 		];
 
-		foreach( $this->video_metadata as $keyp => $value ){
-			$this->video_metadata_public[$keyp] = array_filter($value, function($value, $keyc) use($filter, $keyp) {
+		foreach ($this->video_metadata as $keyp => $value) {
+			$this->video_metadata_public[$keyp] = array_filter($value, function ($value, $keyc) use ($filter, $keyp) {
 				return in_array("{$keyp}.{$keyc}", $filter);
 			}, ARRAY_FILTER_USE_BOTH);
 		}
 
 		return $this->video_metadata_public;
-
 	}
 
 	/**
@@ -1854,7 +1858,7 @@ class TwitchVOD
 	{
 		set_time_limit(0);
 		TwitchHelper::log(TwitchHelper::LOG_INFO, "Save {$this->basename}");
-		
+
 		foreach ($this->associatedFiles as $file) {
 			if (file_exists($this->directory . DIRECTORY_SEPARATOR . $file)) {
 				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Save {$file}");

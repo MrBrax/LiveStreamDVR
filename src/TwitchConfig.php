@@ -26,12 +26,13 @@ class TwitchConfig
 	public static $streamerCachePath 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "streamers_v2.json";
 
 	public static $settingsFields = [
+
 		['key' => 'bin_dir', 				'group' => 'Binaries',	'text' => 'Python binary directory', 						'type' => 'string',		'required' => true, 'help' => 'No trailing slash', 'stripslash' => true],
 		['key' => 'ffmpeg_path', 			'group' => 'Binaries',	'text' => 'FFmpeg path', 									'type' => 'string',		'required' => true],
 		['key' => 'mediainfo_path', 		'group' => 'Binaries',	'text' => 'Mediainfo path', 								'type' => 'string',		'required' => true],
 		['key' => 'twitchdownloader_path',	'group' => 'Binaries',	'text' => 'TwitchDownloaderCLI path', 						'type' => 'string'],
 
-		['key' => 'basepath', 				'group' => 'Advanced',	'text' => 'Base path', 										'type' => 'string',		'help' => 'No trailing slas. For reverse proxy etc', 'stripslash' => true],
+		['key' => 'basepath', 				'group' => 'Advanced',	'text' => 'Base path', 										'type' => 'string',		'help' => 'No trailing slash. For reverse proxy etc', 'stripslash' => true],
 		['key' => 'instance_id', 			'group' => 'Basic',		'text' => 'Instance ID', 									'type' => 'string'],
 
 		[
@@ -40,7 +41,8 @@ class TwitchConfig
 			'text' => 'App URL',
 			'type' => 'string',
 			'required' => true,
-			'help' => 'Must use port 443 and HTTPS. No trailing slash. E.g. https://twitchautomator.example.com',
+			'help' => 'Must use HTTPS on port 443 (aka no port visible). No trailing slash. E.g. https://twitchautomator.example.com',
+			'pattern' => '^https:\/\/',
 			'stripslash' => true
 		],
 
@@ -260,11 +262,11 @@ class TwitchConfig
 	{
 		if (!file_exists(self::$channelPath)) return;
 		self::$channels_config = json_decode(file_get_contents(self::$channelPath), true) ?: [];
-		if(count(self::$channels_config) > 0){
+		if (count(self::$channels_config) > 0) {
 			foreach (self::$channels_config as $s) {
 				// $ch = new TwitchChannel();
 				// $ch->load($s["login"]);
-				$ch = TwitchChannel::loadFromLogin($s["login"]);
+				$ch = TwitchChannel::loadFromLogin($s["login"], true);
 				array_push(self::$channels, $ch);
 			}
 		}
@@ -273,7 +275,7 @@ class TwitchConfig
 	public static function saveChannels()
 	{
 		file_put_contents(self::$channelPath, json_encode(self::$channels_config, JSON_PRETTY_PRINT));
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "config", "Saved channels config");		
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "config", "Saved channels config");
 	}
 
 	/*

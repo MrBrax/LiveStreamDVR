@@ -37,7 +37,13 @@ class TwitchChannel
     public ?TwitchVOD $current_vod = null;
     public ?array $current_game = null;
     public ?int $current_duration = null;
+
+    /**
+     * Quality selected from download.
+     * audio_only, 160p (worst), 360p, 480p, 720p, 720p60, 1080p60 (best)
+     */
     public ?array $quality = [];
+
     public ?array $match = [];
     public ?\DateTime $subbed_at = null;
     public ?\DateTime $expires_at = null;
@@ -49,10 +55,8 @@ class TwitchChannel
     public array $channel_data = [];
     public array $config = [];
 
-    private static function loadAbstract($streamer_id)
+    private static function loadAbstract($streamer_id, $api = false)
     {
-
-        $api = true; // todo: fix
 
         $channel = new self();
 
@@ -120,14 +124,14 @@ class TwitchChannel
         return $channel;
     }
 
-    public static function loadFromId($streamer_id)
+    public static function loadFromId($streamer_id, $api = false)
     {
-        return self::loadAbstract($streamer_id); // $channel;
+        return self::loadAbstract($streamer_id, $api); // $channel;
     }
 
-    public static function loadFromLogin(string $login)
+    public static function loadFromLogin(string $login, $api = false)
     {
-        return self::loadAbstract(self::channelIdFromLogin($login)); // $channel;
+        return self::loadAbstract(self::channelIdFromLogin($login), $api); // $channel;
     }
 
     public static function channelIdFromLogin($login)

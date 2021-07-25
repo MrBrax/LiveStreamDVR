@@ -29,6 +29,8 @@
                         :name="data.key"
                         :id="'input_' + data.key"
                         :value="settingsData[data.key] !== undefined ? settingsData[data.key] : data.default"
+                        :title="data.help"
+                        :pattern="data.pattern"
                     />
                 </div>
 
