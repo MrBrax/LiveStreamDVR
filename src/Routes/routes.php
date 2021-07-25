@@ -172,6 +172,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
         return $response;
     });
 
+    /*
     $group->any('/test_webhook_vod', function (Request $request, Response $response, array $args) {
         $c = new TwitchChannel();
         $c->load("sodapoppin");
@@ -183,6 +184,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
         $response->getBody()->write("Tested");
         return $response;
     });
+    */
 
     // $group->post('/hook', ApiController::class . ':hook')->setName('hook_post');
 

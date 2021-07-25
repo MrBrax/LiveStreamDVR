@@ -12,11 +12,11 @@ class TwitchConfig
 	public static $config = [];
 
 	/**
-	 * Channels
+	 * Channels. Load only when needed with `TwitchConfig::loadChannels()`
 	 *
 	 * @var TwitchChannel[]
 	 */
-	public static $channels = [];
+	private static $channels = [];
 	public static $channels_config = [];
 
 	public static $configPath 			= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "config.json";
@@ -42,7 +42,7 @@ class TwitchConfig
 			'type' => 'string',
 			'required' => true,
 			'help' => 'Must use HTTPS on port 443 (aka no port visible). No trailing slash. E.g. https://twitchautomator.example.com',
-			'pattern' => '^https:\/\/',
+			// 'pattern' => '^https:\/\/',
 			'stripslash' => true
 		],
 
@@ -278,6 +278,14 @@ class TwitchConfig
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "config", "Saved channels config");
 	}
 
+	public static function getChannels(){
+		if(count(self::$channels) == 0){
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "Channels list empty when getting, load from config.");
+			self::loadChannels();
+		}
+		return self::$channels;
+	}
+
 	/*
 	public static function getStreamers()
 	{
@@ -293,7 +301,7 @@ class TwitchConfig
 	 */
 	public static function getChannelById($channel_id)
 	{
-		foreach (self::$channels as $c) {
+		foreach (self::getChannels() as $c) {
 			if ($c->userid == $channel_id) return $c;
 		}
 		return false;
@@ -301,7 +309,7 @@ class TwitchConfig
 
 	public static function getChannelByLogin($login)
 	{
-		foreach (self::$channels as $c) {
+		foreach (self::getChannels() as $c) {
 			if ($c->login == $login) return $c;
 		}
 		return false;
@@ -316,7 +324,7 @@ class TwitchConfig
 	 */
 	public static function getChannelByUsername($username)
 	{
-		foreach (self::$channels as $c) {
+		foreach (self::getChannels() as $c) {
 			if ($c->userid == $username) return $c;
 		}
 		return false;
@@ -350,7 +358,7 @@ class TwitchConfig
 }
 
 TwitchConfig::loadConfig();
-TwitchConfig::loadChannels();
+// TwitchConfig::loadChannels();
 
 try {
 	TwitchConfig::$timezone = new \DateTimeZone(TwitchConfig::cfg('timezone', 'UTC'));

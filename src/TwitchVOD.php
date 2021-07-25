@@ -348,9 +348,12 @@ class TwitchVOD
 		$this->api_getWebhookDuration = $this->getWebhookDuration();
 		$this->api_getDuration = $this->getDuration(true);
 		$this->api_getDurationLive = $this->getDurationLive();
-		$this->api_getCapturingStatus = $this->getCapturingStatus();
 		$this->api_getRecordingSize = $this->getRecordingSize() ?: null;
-		$this->api_getChatDumpStatus = $this->getChatDumpStatus() ?: null;
+
+		if(!$this->is_finalized){
+			$this->api_getCapturingStatus = $this->getCapturingStatus();
+			$this->api_getChatDumpStatus = $this->getChatDumpStatus() ?: null;
+		}
 	}
 
 	/**
@@ -659,7 +662,7 @@ class TwitchVOD
 		$process = new Process($cmd, $this->directory, null, null, null);
 		$process->start();
 
-		$tcdJob = new TwitchAutomatorJob("tcd_{$this->basename}");
+		$tcdJob = TwitchAutomatorJob::load("tcd_{$this->basename}");
 		$tcdJob->setPid($process->getPid());
 		$tcdJob->setProcess($process);
 		$tcdJob->save();
@@ -794,7 +797,7 @@ class TwitchVOD
 
 		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tdrender_' . $this->streamer_name . '.pid';
 		//file_put_contents($pidfile, $process->getPid());
-		$tdrenderJob = new TwitchAutomatorJob("tdrender_{$this->streamer_name}");
+		$tdrenderJob = TwitchAutomatorJob::load("tdrender_{$this->streamer_name}");
 		$tdrenderJob->setPid($process->getPid());
 		$tdrenderJob->setProcess($process);
 		$tdrenderJob->save();
@@ -913,7 +916,7 @@ class TwitchVOD
 		// create pidfile
 		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'burnchat_' . $this->streamer_name . '.pid';
 		//file_put_contents($pidfile, $process->getPid());
-		$burnchatJob = new TwitchAutomatorJob("burnchat_{$this->streamer_name}");
+		$burnchatJob = TwitchAutomatorJob::load("burnchat_{$this->streamer_name}");
 		$burnchatJob->setPid($process->getPid());
 		$burnchatJob->setProcess($process);
 		$burnchatJob->save();
@@ -1529,7 +1532,7 @@ class TwitchVOD
 
 			//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_download_' . $this->basename . '.pid';
 			//file_put_contents($pidfile, $process->getPid());
-			$vod_downloadJob = new TwitchAutomatorJob("vod_download_{$this->basename}");
+			$vod_downloadJob = TwitchAutomatorJob::load("vod_download_{$this->basename}");
 			$vod_downloadJob->setPid($process->getPid());
 			$vod_downloadJob->setProcess($process);
 			$vod_downloadJob->save();
@@ -1599,7 +1602,7 @@ class TwitchVOD
 
 		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_convert_' . $this->basename . '.pid';
 		//file_put_contents($pidfile, $process->getPid());
-		$vod_convertJob = new TwitchAutomatorJob("vod_convert_{$this->basename}");
+		$vod_convertJob = TwitchAutomatorJob::load("vod_convert_{$this->basename}");
 		$vod_convertJob->setPid($process->getPid());
 		$vod_convertJob->setProcess($process);
 		$vod_convertJob->save();
@@ -1708,26 +1711,29 @@ class TwitchVOD
 		if (TwitchConfig::cfg('playlist_dump')) {
 			// check if running, whatever
 		}
-
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "Get capturing status for {$this->basename}");
 		$job = TwitchHelper::findJob("capture_{$this->streamer_name}_");
 		return $job ? $job->getStatus() : false;
 	}
 
 	public function getConvertingStatus()
 	{
-		//return (new TwitchAutomatorJob("convert_{$this->streamer_name}"))->getStatus();
+		//return (TwitchAutomatorJob::load("convert_{$this->streamer_name}"))->getStatus();
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "Get converting status for {$this->basename}");
 		$job = TwitchHelper::findJob("convert_{$this->streamer_name}");
 		return $job ? $job->getStatus() : false;
 	}
 
 	public function getChatDownloadStatus()
 	{
-		return (new TwitchAutomatorJob("tcd_{$this->basename}"))->getStatus();
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "Get chat download status for {$this->basename}");
+		return (TwitchAutomatorJob::load("tcd_{$this->basename}"))->getStatus();
 	}
 
 	public function getChatDumpStatus()
 	{
-		// return (new TwitchAutomatorJob("chatdump_{$this->streamer_name}"))->getStatus();
+		// return (TwitchAutomatorJob::load("chatdump_{$this->streamer_name}"))->getStatus();
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "Get chat dump status for {$this->basename}");
 		$job = TwitchHelper::findJob("chatdump_{$this->streamer_name}");
 		return $job ? $job->getStatus() : false;
 	}

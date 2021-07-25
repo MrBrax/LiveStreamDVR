@@ -21,7 +21,8 @@ use Slim\Views\TwigMiddleware;
 use Twig\Extension\DebugExtension;
 use Twig\TwigFilter;
 use Twig\Extra\Html\HtmlExtension;
-use App\MyErrorHandler;
+// use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 
 // Create Container
 $container = new Container();
@@ -144,6 +145,15 @@ if (TwitchConfig::cfg('debug', false)) {
     // TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Enabling debugging settings for slim..." );
     $container->get('view')->getEnvironment()->addExtension(new DebugExtension());
     $errorMiddleware = $app->addErrorMiddleware(true, true, true);
+
+    $debugMiddleware = function (Request $request, RequestHandler $handler) {
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "automator", ">>> {$request->getUri()} <<< accessed.");
+        $response = $handler->handle($request);    
+        return $response;
+    };
+
+    $app->add($debugMiddleware);
+
 } else {
     // $myErrorHandler = new MyErrorHandler($app->getCallableResolver(), $app->getResponseFactory());
     // $errorMiddleware = $app->addErrorMiddleware(true, true, true);

@@ -70,7 +70,7 @@ class CronController
             $streamerList[] = $data;
         }
         return $streamerList;*/
-        return TwitchConfig::$channels;
+        return TwitchConfig::getChannels();
     }
 
     public function check_deleted_vods(Request $request, Response $response, $args)

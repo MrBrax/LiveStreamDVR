@@ -63,7 +63,7 @@ class ApiController
         });
         */
 
-        foreach (TwitchConfig::$channels as $channel) {
+        foreach (TwitchConfig::getChannels() as $channel) {
 
             // $data = new TwitchChannel();
             // $data->load($streamer['username'], true);
@@ -72,7 +72,7 @@ class ApiController
 
             // $streamerList[] = $data;
         }
-        return [TwitchConfig::$channels, $total_size];
+        return [TwitchConfig::getChannels(), $total_size];
     }
 
     public function jobs_list(Request $request, Response $response, $args)
@@ -82,8 +82,7 @@ class ApiController
         $current_jobs = [];
         foreach ($current_jobs_raw as $v) {
             // $pid = file_get_contents($v);
-            $job = new TwitchAutomatorJob(basename($v, ".json"));
-            $job->load();
+            $job = TwitchAutomatorJob::load(basename($v, ".json"));
             $current_jobs[] = $job;
         }
 
@@ -99,8 +98,8 @@ class ApiController
     public function jobs_kill(Request $request, Response $response, $args)
     {
 
-        $job = new TwitchAutomatorJob($args['job']);
-        if ($job->load()) {
+        $job = TwitchAutomatorJob::load($args['job']);
+        if ($job) {
             $out = $job->kill();
             $payload = json_encode([
                 'data' => $out == '' ? true : $out,
@@ -625,7 +624,14 @@ class ApiController
 
         $source = isset($_GET['source']) ? $_GET['source'] : 'twitch';
 
-        $data_json = json_decode(file_get_contents('php://input'), true);
+        try {
+            $data_json = json_decode(file_get_contents('php://input'), true);
+        } catch (\Throwable $th) {
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "hook", "Hook called with invalid JSON.", ['GET' => $_GET, 'POST' => $_POST]);
+            $response->getBody()->write("No data supplied");
+            return $response;
+        }
+
         $data_headers = $request->getHeaders();
         $post_json = isset($_POST['json']) ? $_POST['json'] : null;
 

@@ -60,8 +60,7 @@ class ToolsController
         $current_jobs = [];
         foreach ($current_jobs_raw as $v) {
             // $pid = file_get_contents($v);
-			$job = new TwitchAutomatorJob(basename($v, ".json"));
-			$job->load();
+			$job = TwitchAutomatorJob::load(basename($v, ".json"));
             $current_jobs[] = $job;
 		}
 		
@@ -118,7 +117,7 @@ class ToolsController
 
 		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_download_' . $video_id . '.pid';
 		//file_put_contents($pidfile, $process->getPid());
-		$tools_chat_downloadJob = new TwitchAutomatorJob("tools_chat_download_{$video_id}");
+		$tools_chat_downloadJob = TwitchAutomatorJob::load("tools_chat_download_{$video_id}");
 		$tools_chat_downloadJob->setPid($process->getPid());
 		$tools_chat_downloadJob->setProcess($process);
 		$tools_chat_downloadJob->save();
@@ -174,7 +173,7 @@ class ToolsController
 
 		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_vod_download_' . $video_id . '.pid';
 		//file_put_contents($pidfile, $process->getPid());
-		$tools_vod_downloadJob = new TwitchAutomatorJob("tools_vod_download_{$video_id}");
+		$tools_vod_downloadJob = TwitchAutomatorJob::load("tools_vod_download_{$video_id}");
 		$tools_vod_downloadJob->setPid($process->getPid());
 		$tools_vod_downloadJob->setProcess($process);
 		$tools_vod_downloadJob->save();
@@ -251,7 +250,7 @@ class ToolsController
 
 		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_vod_convert_' . $video_id . '.pid';
 		//file_put_contents($pidfile, $process->getPid());
-		$tools_vod_convertJob = new TwitchAutomatorJob("tools_vod_convert_{$video_id}");
+		$tools_vod_convertJob = TwitchAutomatorJob::load("tools_vod_convert_{$video_id}");
 		$tools_vod_convertJob->setPid($process->getPid());
 		$tools_vod_convertJob->setProcess($process);
 		$tools_vod_convertJob->save();
@@ -346,7 +345,7 @@ class ToolsController
 
 		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_render_' . $video_id . '.pid';
 		//file_put_contents($pidfile, $process->getPid());
-		$tools_chat_renderJob = new TwitchAutomatorJob("tools_chat_render_{$video_id}");
+		$tools_chat_renderJob = TwitchAutomatorJob::load("tools_chat_render_{$video_id}");
 		$tools_chat_renderJob->setPid($process->getPid());
 		$tools_chat_renderJob->setProcess($process);
 		$tools_chat_renderJob->save();
@@ -426,7 +425,7 @@ class ToolsController
 
 		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_burn_' . $video_id . '.pid';
 		//file_put_contents($pidfile, $process->getPid());
-		$tools_chat_burnJob = new TwitchAutomatorJob("tools_chat_burn_{$video_id}");
+		$tools_chat_burnJob = TwitchAutomatorJob::load("tools_chat_burn_{$video_id}");
 		$tools_chat_burnJob->setPid($process->getPid());
 		$tools_chat_burnJob->setProcess($process);
 		$tools_chat_burnJob->save();

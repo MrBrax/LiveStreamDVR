@@ -92,9 +92,9 @@ trait ApiSettings
 
             try {
                 $resp = $client->request('GET', $full_url, ['connect_timeout' => 10, 'timeout' => 10]);
-            } catch (\Throwable $th) {
+            } catch (\GuzzleHttp\Exception\BadResponseException $th) {
                 $response->getBody()->write(json_encode([
-                    "message" => "External app url could be contacted at all ({$full_url}).",
+                    "message" => "External app url could not be contacted at all on '{$full_url}': {$th->getMessage()}",
                     "status" => "ERROR"
                 ]));
                 return $response->withStatus(400)->withHeader('Content-Type', 'application/json');

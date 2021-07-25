@@ -342,6 +342,8 @@ class TwitchAutomator
 			return false;
 		}
 
+		$message_retry = $headers['Twitch-Eventsub-Message-Retry'] ? $headers['Twitch-Eventsub-Message-Retry'][0] : null;
+
 		/*
 		if (!$headers['Twitch-Notification-Id'][0]) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No twitch notification id supplied to handle", ['headers' => $headers, 'payload' => $data]);
@@ -371,7 +373,7 @@ class TwitchAutomator
 		} elseif ($subscription_type == "stream.online") {
 
 			TwitchConfig::setCache("{$this->broadcaster_user_login}.last.online", (new DateTime())->format(DateTime::ATOM));
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Stream online for {$this->broadcaster_user_login}", ['headers' => $headers, 'payload' => $data]);
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Stream online for {$this->broadcaster_user_login} (retry {$message_retry})", ['headers' => $headers, 'payload' => $data]);
 
 			if (!TwitchConfig::getChannelByLogin($this->broadcaster_user_login)) {
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle triggered, but username '{$this->broadcaster_user_login}' is not in config.");
@@ -394,15 +396,15 @@ class TwitchAutomator
 				if ($vodclass->load($folder_base . DIRECTORY_SEPARATOR . $basename . '.json')) {
 
 					if ($vodclass->is_finalized) {
-						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "VOD is finalized, but wanted more info on {$basename}");
+						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "VOD is finalized, but wanted more info on {$basename} (retry {$message_retry})");
 					} elseif ($vodclass->is_capturing) {
 						// $this->updateGame();
-						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "VOD exists and is still capturing on {$basename}");
+						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "VOD exists and is still capturing on {$basename} (retry {$message_retry})");
 					} else {
-						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "VOD exists but isn't capturing anymore on {$basename}");
+						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "VOD exists but isn't capturing anymore on {$basename} (retry {$message_retry})");
 					}
 				} else {
-					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Could not load VOD in handle for {$basename}");
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Could not load VOD in handle for {$basename} (retry {$message_retry})");
 				}
 				/*
 				if (!file_exists($folder_base . DIRECTORY_SEPARATOR . $basename . '.ts')) {
@@ -642,7 +644,7 @@ class TwitchAutomator
 		}
 
 		// if running
-		$job = new TwitchAutomatorJob("capture_{$basename}");
+		$job = TwitchAutomatorJob::load("capture_{$basename}");
 		if ($job->getStatus()) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "automator", "Stream already capturing to {$job->metadata['basename']} from {$data_username}, but reached download function regardless!", ['download' => $data_username]);
 			return false;
@@ -1029,7 +1031,7 @@ class TwitchAutomator
 		// $pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'capture_' . $data_username . '.pid';
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "automator", "Capture " . basename($capture_filename) . " has PID " . $process->getPid(), ['download-capture' => $data_username]);
 		// file_put_contents($pidfile, $process->getPid());
-		$captureJob = new TwitchAutomatorJob("capture_{$basename}");
+		$captureJob = TwitchAutomatorJob::load("capture_{$basename}");
 		$captureJob->setPid($process->getPid());
 		$captureJob->setProcess($process);
 		$captureJob->setMetadata([
@@ -1103,7 +1105,7 @@ class TwitchAutomator
 
 			// $chat_pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'chatdump_' . $data_username . '.pid';
 			// file_put_contents($chat_pidfile, $chat_process->getPid());
-			$chatJob = new TwitchAutomatorJob("chatdump_{$basename}");
+			$chatJob = TwitchAutomatorJob::load("chatdump_{$basename}");
 			$chatJob->setPid($chat_process->getPid());
 			$chatJob->setProcess($chat_process);
 			$chatJob->setMetadata([
@@ -1599,7 +1601,7 @@ class TwitchAutomator
 		$process->start();
 
 		// create pidfile
-		$convertJob = new TwitchAutomatorJob("convert_{$basename}");
+		$convertJob = TwitchAutomatorJob::load("convert_{$basename}");
 		$convertJob->setPid($process->getPid());
 		$convertJob->setProcess($process);
 		$convertJob->setMetadata([
