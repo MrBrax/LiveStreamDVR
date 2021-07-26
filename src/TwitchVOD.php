@@ -165,7 +165,7 @@ class TwitchVOD
 		$vod->setupAssoc();
 		$vod->setupFiles();
 
-		$vod->webpath = TwitchConfig::cfg('basepath') . '/vods/' . (TwitchConfig::cfg("channel_folders") && $vod->streamer_name ? $vod->streamer_name : '');
+		$vod->webpath = TwitchConfig::cfg('basepath') . '/vods/' . (TwitchConfig::cfg("channel_folders") && $vod->streamer_login ? $vod->streamer_login : '');
 
 		if ($api) {
 			$vod->setupApiHelper();

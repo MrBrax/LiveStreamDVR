@@ -60,7 +60,7 @@
 </template>
 
 <script lang="ts">
-import type { ApiStreamer } from "@/twitchautomator.d";
+import type { ApiChannel } from "@/twitchautomator.d";
 import { defineComponent } from "vue";
 import Vod from "@/components/Vod.vue";
 // import { AxiosError } from "axios";
@@ -72,7 +72,7 @@ library.add(faVideo, faPlayCircle, faVideoSlash);
 export default defineComponent({
     name: "Streamer",
     props: {
-        streamer: Object as () => ApiStreamer,
+        streamer: Object as () => ApiChannel,
     },
     methods: {
         async abortCapture() {

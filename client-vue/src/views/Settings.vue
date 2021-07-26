@@ -112,10 +112,10 @@ export default defineComponent({
         return {
             loading: false,
             settingsData: [],
-            settingsFields: Array as () => ApiSettingsField[],
-            gamesData: Array as () => ApiGame[],
+            settingsFields: [] as ApiSettingsField[],
+            gamesData: [] as ApiGame[],
             favouritesData: {},
-            formChannels: Array as () => ApiChannelConfig[],
+            formChannels: [] as ApiChannelConfig[],
             // games: Object as () => [key: string]: ApiGame
         };
     },
@@ -138,13 +138,13 @@ export default defineComponent({
                             console.log("settings list", json);
 
                             const config = json.data.config;
-                            const channels = json.data.channels;
+                            const channels: ApiChannelConfig[] = json.data.channels;
                             const favourites = config.favourites;
 
                             this.favouritesData = favourites;
                             // this.gamesData = games;
 
-                            this.formChannels = channels;
+                            this.formChannels = channels.sort((a, b) => a.login.localeCompare(b.login));
                             console.log("formChannels", this.formChannels);
 
                             this.settingsData = config;

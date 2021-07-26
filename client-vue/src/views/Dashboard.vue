@@ -77,7 +77,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import Streamer from "@/components/Streamer.vue";
-import type { ApiLogLine, ApiStreamer } from "@/twitchautomator.d";
+import type { ApiLogLine, ApiChannel } from "@/twitchautomator.d";
 import { format } from "date-fns";
 import { MutationPayload } from "vuex";
 
@@ -101,7 +101,7 @@ export default defineComponent({
             logFromLine: 0,
             logVisible: false,
             logModule: "",
-            oldData: {} as Record<string, ApiStreamer>,
+            oldData: {} as Record<string, ApiChannel>,
             notificationSub: Function as any,
             ws: {} as WebSocket,
             wsConnected: false,
@@ -208,9 +208,9 @@ export default defineComponent({
                     const job_actions = ["job_save", "job_clear"];
                     if (downloader_actions.indexOf(action) !== -1) {
                         console.log("Websocket update");
-                        const vod = json.data.vod;
-                       /*
-                       if (vod) {
+                        // const vod = json.data.vod;
+                        /*
+                        if (vod) {
                             console.log("Websocket update vod", vod);
                             this.$store.commit("updateVod", vod);
                         }
@@ -219,6 +219,8 @@ export default defineComponent({
                             this.$store.commit("updateStreamerList", sl);
                             this.loading = false;
                         });
+
+                        // this.fetchLog();
                     } else if (job_actions.indexOf(action) !== -1) {
                         console.log(`Websocket jobs update: ${action}`, json.data.job_name, json.data.job);
                         this.fetchJobs();
@@ -337,7 +339,7 @@ export default defineComponent({
         async fetchTicker() {
             if (this.timer <= 0 && !this.loading) {
                 this.loading = true;
-                const streamerResult: ApiStreamer[] = await this.fetchStreamers();
+                const streamerResult: ApiChannel[] = await this.fetchStreamers();
 
                 const isAnyoneLive = streamerResult.find((el) => el.is_live == true) !== undefined;
 
@@ -400,7 +402,7 @@ export default defineComponent({
 
                 // console.debug("notification payload", mutation);
 
-                for (const streamer of mutation.payload as ApiStreamer[]) {
+                for (const streamer of mutation.payload as ApiChannel[]) {
                     const login = streamer.login;
 
                     if (this.oldData && this.oldData[streamer.login]) {
@@ -485,7 +487,7 @@ export default defineComponent({
     },
     computed: {
         sortedStreamers() {
-            const streamers: ApiStreamer[] = this.$store.state.streamerList;
+            const streamers: ApiChannel[] = this.$store.state.streamerList;
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
         },
         logFiltered(): ApiLogLine[] {
@@ -496,7 +498,7 @@ export default defineComponent({
             if (!this.$store.state.streamerList) return 0;
             return this.$store.state.streamerList.filter((a) => a.is_live).length;
         },
-        singleStreamer(): ApiStreamer | undefined {
+        singleStreamer(): ApiChannel | undefined {
             if (!this.$store.state.streamerList) return undefined;
 
             const current = this.$route.query.channel as string;

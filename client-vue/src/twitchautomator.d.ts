@@ -22,6 +22,7 @@ export type ApiVodChapter = {
     offset: number;
     viewer_count: number;
     width: number; // why
+    is_mature: boolean;
 };
 
 export type ApiGame = {
@@ -108,54 +109,52 @@ export type ApiSettingsField = {
 };
 
 export type ApiConfig = {
-    app_name: string;
-    bin_dir: string;
-    ffmpeg_path: string;
-    mediainfo_path: string;
-    twitchdownloader_path: string;
-    basepath: string;
-    instance_id: string;
-    app_url: string;
-    webhook_url: string;
-    password: string;
-    password_secure: boolean;
-    storage_per_streamer: number;
-    hls_timeout: number;
-    vods_to_keep: number;
-    download_retries: number;
-    sub_lease: number;
-    sub_secret: string;
     api_client_id: string;
     api_secret: string;
-    youtube_api_client_id: string;
-    hook_callback: string;
-    timezone: string[];
-    vod_container: string[];
-    burn_preset: string[];
-    burn_crf: number;
-    disable_ads: boolean;
-    debug: boolean;
+    app_name: string;
+    app_url: string;
     app_verbose: boolean;
+    basepath: string;
+    bin_dir: string;
+    burn_crf: number;
+    burn_preset: string[];
     channel_folders: boolean;
     chat_compress: boolean;
-    relative_time: boolean;
-    low_latency: boolean;
-    youtube_dlc: boolean;
-    pipenv_enabled: boolean;
     chat_dump: boolean;
-    ts_sync: boolean;
+    debug: boolean;
+    disable_ads: boolean;
+    download_retries: number;
     encode_audio: boolean;
+    favourites: Record<string, string>;
+    ffmpeg_path: string;
     fix_corruption: boolean;
+    hls_timeout: number;
+    hook_callback: string;
+    instance_id: string;
+    low_latency: boolean;
+    mediainfo_path: string;
+    password_secure: boolean;
+    password: string;
+    pipenv_enabled: boolean;
     playlist_dump: boolean;
     process_wait_method: number;
-    youtube_api_key: string;
-    favourites: Record<string, string>;
-    websocket_enabled: boolean;
+    relative_time: boolean;
+    storage_per_streamer: number;
+    sub_lease: number;
+    timezone: string[];
+    ts_sync: boolean;
+    twitchdownloader_path: string;
+    vod_container: string[];
+    vods_to_keep: number;
+    webhook_url: string;
     websocket_client_address: string;
+    websocket_enabled: boolean;
     websocket_server_address: string;
+    youtube_api_client_id: string;
+    youtube_dlc: boolean;
 };
 
-export type ApiStreamer = {
+export type ApiChannel = {
     userid: string;
 
     /** @deprecated */

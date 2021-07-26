@@ -1350,7 +1350,7 @@ class TwitchHelper
 			$websocket_url = getenv('TCD_DOCKER') == 1 ? $docker_websocket_url : $public_websocket_url;
 
 			/** @todo: developement instead of debug */
-			if (TwitchConfig::cfg('debug') && !TwitchConfig::cfg("websocket_endpoint")) {
+			if (TwitchConfig::cfg('debug') && !TwitchConfig::cfg("websocket_server_address")) {
 				$websocket_url = $local_websocket_url;
 			}
 

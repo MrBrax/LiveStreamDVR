@@ -485,8 +485,14 @@
                             <span class="text-overflow">{{ chapter.title }}</span>
                         </td>
 
+                        <!-- viewer count -->
                         <td>
                             <span class="grey" v-if="chapter.viewer_count">{{ formatNumber(chapter.viewer_count) }}</span>
+                        </td>
+
+                        <!-- mature -->
+                        <td>
+                            <span v-if="chapter.is_mature">🔞</span>
                         </td>
                     </tr>
 
