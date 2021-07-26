@@ -40,6 +40,22 @@ class TwitchAutomatorJob
 	}
 	*/
 
+	public static function create(string $name)
+	{
+
+		if(file_exists(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . ".json")){
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "job", "Creating job {$name} overwrites existing!");
+		}
+
+		$job = new self();
+		$job->name = $name;
+		$job->pidfile = $job->realpath(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . ".json");
+		$job->pidfile_simple = $job->realpath(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . ".pid");
+		$job->dt_started_at = new DateTime();
+		
+		return $job;
+	}
+
 	public static function load(string $name)
 	{
 

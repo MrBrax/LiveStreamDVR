@@ -62,7 +62,7 @@ trait ApiTools
 
 		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_download_' . $video_id . '.pid';
 		//file_put_contents($pidfile, $process->getPid());
-		$tools_chat_downloadJob = TwitchAutomatorJob::load("tools_chat_download_{$video_id}");
+		$tools_chat_downloadJob = TwitchAutomatorJob::create("tools_chat_download_{$video_id}");
 		$tools_chat_downloadJob->setPid($process->getPid());
 		$tools_chat_downloadJob->setProcess($process);
 		$tools_chat_downloadJob->save();
@@ -118,7 +118,7 @@ trait ApiTools
 
 		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_vod_download_' . $video_id . '.pid';
 		//file_put_contents($pidfile, $process->getPid());
-		$tools_vod_downloadJob = TwitchAutomatorJob::load("tools_vod_download_{$video_id}");
+		$tools_vod_downloadJob = TwitchAutomatorJob::create("tools_vod_download_{$video_id}");
 		$tools_vod_downloadJob->setPid($process->getPid());
 		$tools_vod_downloadJob->setProcess($process);
 		$tools_vod_downloadJob->save();
@@ -195,7 +195,7 @@ trait ApiTools
 
 		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_vod_convert_' . $video_id . '.pid';
 		//file_put_contents($pidfile, $process->getPid());
-		$tools_vod_convertJob = TwitchAutomatorJob::load("tools_vod_convert_{$video_id}");
+		$tools_vod_convertJob = TwitchAutomatorJob::create("tools_vod_convert_{$video_id}");
 		$tools_vod_convertJob->setPid($process->getPid());
 		$tools_vod_convertJob->setProcess($process);
 		$tools_vod_convertJob->save();
@@ -290,7 +290,7 @@ trait ApiTools
 
 		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_render_' . $video_id . '.pid';
 		//file_put_contents($pidfile, $process->getPid());
-		$tools_chat_renderJob = TwitchAutomatorJob::load("tools_chat_render_{$video_id}");
+		$tools_chat_renderJob = TwitchAutomatorJob::create("tools_chat_render_{$video_id}");
 		$tools_chat_renderJob->setPid($process->getPid());
 		$tools_chat_renderJob->setProcess($process);
 		$tools_chat_renderJob->save();
@@ -370,7 +370,7 @@ trait ApiTools
 
 		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_burn_' . $video_id . '.pid';
 		//file_put_contents($pidfile, $process->getPid());
-		$tools_chat_burnJob = TwitchAutomatorJob::load("tools_chat_burn_{$video_id}");
+		$tools_chat_burnJob = TwitchAutomatorJob::create("tools_chat_burn_{$video_id}");
 		$tools_chat_burnJob->setPid($process->getPid());
 		$tools_chat_burnJob->setProcess($process);
 		$tools_chat_burnJob->save();

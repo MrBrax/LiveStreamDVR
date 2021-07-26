@@ -151,6 +151,8 @@ export type ApiConfig = {
     youtube_api_key: string;
     favourites: Record<string, string>;
     websocket_enabled: boolean;
+    websocket_client_address: string;
+    websocket_server_address: string;
 };
 
 export type ApiStreamer = {

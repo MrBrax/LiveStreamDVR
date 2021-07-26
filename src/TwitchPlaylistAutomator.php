@@ -191,7 +191,7 @@ class TwitchPlaylistAutomator
         $this->setRunning(true);
 
         // set job
-        $this->captureJob = TwitchAutomatorJob::load("playlist_dump_{$this->unique_id}");
+        $this->captureJob = TwitchAutomatorJob::create("playlist_dump_{$this->unique_id}");
         $this->captureJob->setPid(getmypid());
         $this->captureJob->setMetadata([
             'username' => $this->username,

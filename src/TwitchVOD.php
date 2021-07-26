@@ -716,7 +716,7 @@ class TwitchVOD
 		$process = new Process($cmd, $this->directory, null, null, null);
 		$process->start();
 
-		$tcdJob = TwitchAutomatorJob::load("tcd_{$this->basename}");
+		$tcdJob = TwitchAutomatorJob::create("tcd_{$this->basename}");
 		$tcdJob->setPid($process->getPid());
 		$tcdJob->setProcess($process);
 		$tcdJob->save();
@@ -851,7 +851,7 @@ class TwitchVOD
 
 		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tdrender_' . $this->streamer_name . '.pid';
 		//file_put_contents($pidfile, $process->getPid());
-		$tdrenderJob = TwitchAutomatorJob::load("tdrender_{$this->streamer_name}");
+		$tdrenderJob = TwitchAutomatorJob::create("tdrender_{$this->streamer_name}");
 		$tdrenderJob->setPid($process->getPid());
 		$tdrenderJob->setProcess($process);
 		$tdrenderJob->save();
@@ -970,7 +970,7 @@ class TwitchVOD
 		// create pidfile
 		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'burnchat_' . $this->streamer_name . '.pid';
 		//file_put_contents($pidfile, $process->getPid());
-		$burnchatJob = TwitchAutomatorJob::load("burnchat_{$this->streamer_name}");
+		$burnchatJob = TwitchAutomatorJob::create("burnchat_{$this->streamer_name}");
 		$burnchatJob->setPid($process->getPid());
 		$burnchatJob->setProcess($process);
 		$burnchatJob->save();
@@ -1586,7 +1586,7 @@ class TwitchVOD
 
 			//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_download_' . $this->basename . '.pid';
 			//file_put_contents($pidfile, $process->getPid());
-			$vod_downloadJob = TwitchAutomatorJob::load("vod_download_{$this->basename}");
+			$vod_downloadJob = TwitchAutomatorJob::create("vod_download_{$this->basename}");
 			$vod_downloadJob->setPid($process->getPid());
 			$vod_downloadJob->setProcess($process);
 			$vod_downloadJob->save();
@@ -1656,7 +1656,7 @@ class TwitchVOD
 
 		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_convert_' . $this->basename . '.pid';
 		//file_put_contents($pidfile, $process->getPid());
-		$vod_convertJob = TwitchAutomatorJob::load("vod_convert_{$this->basename}");
+		$vod_convertJob = TwitchAutomatorJob::create("vod_convert_{$this->basename}");
 		$vod_convertJob->setPid($process->getPid());
 		$vod_convertJob->setProcess($process);
 		$vod_convertJob->save();

@@ -212,11 +212,11 @@
                 <li v-for="segment in vod.segments" :key="segment">
                     <a :href="vod?.webpath + '/' + segment.basename">
                         <span class="text-overflow">{{ segment.basename }}</span>
-                        <span v-if="segment.deleted">
-                            <strong class="is-error">(deleted)</strong>
-                        </span>
-                        <span v-else> ({{ formatBytes(segment.filesize) }}) </span>
+                        <span v-if="!segment.deleted"> ({{ formatBytes(segment.filesize) }}) </span>
                     </a>
+                    <span v-if="segment.deleted">
+                        <strong class="is-error">&nbsp;(deleted)</strong>
+                    </span>
                 </li>
 
                 <li v-if="vod?.is_vod_downloaded">

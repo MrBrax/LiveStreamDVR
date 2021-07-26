@@ -166,7 +166,7 @@ trait SoftwareWrappers
 
 		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_convert_' . $this->basename . '.pid';
 		//file_put_contents($pidfile, $process->getPid());
-		$remuxVideoJob = TwitchAutomatorJob::load("remux_video_{$basename}");
+		$remuxVideoJob = TwitchAutomatorJob::create("remux_video_{$basename}");
 		$remuxVideoJob->setPid($process->getPid());
 		$remuxVideoJob->setProcess($process);
 		$remuxVideoJob->save();

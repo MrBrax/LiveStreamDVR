@@ -642,7 +642,7 @@ class TwitchAutomator
 
 		// if running
 		$job = TwitchAutomatorJob::load("capture_{$basename}");
-		if ($job->getStatus()) {
+		if ($job && $job->getStatus()) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "automator", "Stream already capturing to {$job->metadata['basename']} from {$data_username}, but reached download function regardless!", ['download' => $data_username]);
 			return false;
 		}
@@ -1028,7 +1028,7 @@ class TwitchAutomator
 		// $pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'capture_' . $data_username . '.pid';
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "automator", "Capture " . basename($capture_filename) . " has PID " . $process->getPid(), ['download-capture' => $data_username]);
 		// file_put_contents($pidfile, $process->getPid());
-		$captureJob = TwitchAutomatorJob::load("capture_{$basename}");
+		$captureJob = TwitchAutomatorJob::create("capture_{$basename}");
 		$captureJob->setPid($process->getPid());
 		$captureJob->setProcess($process);
 		$captureJob->setMetadata([
@@ -1102,7 +1102,7 @@ class TwitchAutomator
 
 			// $chat_pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'chatdump_' . $data_username . '.pid';
 			// file_put_contents($chat_pidfile, $chat_process->getPid());
-			$chatJob = TwitchAutomatorJob::load("chatdump_{$basename}");
+			$chatJob = TwitchAutomatorJob::create("chatdump_{$basename}");
 			$chatJob->setPid($chat_process->getPid());
 			$chatJob->setProcess($chat_process);
 			$chatJob->setMetadata([
@@ -1598,7 +1598,7 @@ class TwitchAutomator
 		$process->start();
 
 		// create pidfile
-		$convertJob = TwitchAutomatorJob::load("convert_{$basename}");
+		$convertJob = TwitchAutomatorJob::create("convert_{$basename}");
 		$convertJob->setPid($process->getPid());
 		$convertJob->setProcess($process);
 		$convertJob->setMetadata([
