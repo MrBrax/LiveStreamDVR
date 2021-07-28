@@ -19,18 +19,17 @@ trait ApiSubs
     public function subscriptions_sub(Request $request, Response $response, $args)
     {
 
-        $streamers = TwitchConfig::getStreamers();
+        $channels = TwitchConfig::getChannels();
 
         $payload_data = [
             'channels' => []
         ];
 
-        foreach ($streamers as $k => $v) {
+        foreach ($channels as $channel) {
 
             $entry = [];
-            $username = $v['username'];
-            $entry['username'] = $username;
-            $ret = TwitchHelper::channelSubscribe(TwitchHelper::getChannelId($username));
+            $entry['login'] = $channel->login;
+            $ret = TwitchHelper::channelSubscribe($channel->userid);
 
             if ($ret === true) {
                 $entry['status'] = 'Subscription request sent, check logs for details';
@@ -43,7 +42,7 @@ trait ApiSubs
             $payload_data['channels'][] = $entry;
         }
 
-        if (count($streamers) == 0) {
+        if (count($channels) == 0) {
             $response->getBody()->write(json_encode([
                 "message" => "No channels to subscribe to.",
                 "status" => "ERROR"
@@ -145,8 +144,14 @@ trait ApiSubs
     public function subscriptions_unsub(Request $request, Response $response, $args)
     {
 
-        foreach (TwitchConfig::$channels_config as $k => $v) {
-            TwitchHelper::channelUnsubscribe(TwitchChannel::channelIdFromLogin($v['login']));
+        $override = $_GET['override'];
+
+        if($override){
+            TwitchHelper::channelUnsubscribe(TwitchChannel::channelIdFromLogin($override));
+        }else{
+            foreach (TwitchConfig::$channels_config as $k => $v) {
+                TwitchHelper::channelUnsubscribe(TwitchChannel::channelIdFromLogin($v['login']));
+            }
         }
 
         $response->getBody()->write(json_encode([
