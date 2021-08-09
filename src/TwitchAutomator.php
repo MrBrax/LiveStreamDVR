@@ -101,7 +101,7 @@ class TwitchAutomator
 
 	public function streamURL()
 	{
-		return 'twitch.tv/' . $this->broadcaster_user_name;
+		return 'twitch.tv/' . $this->broadcaster_user_login;
 	}
 
 	public function getDateTime()
