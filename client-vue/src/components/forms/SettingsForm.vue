@@ -29,6 +29,8 @@
                         :name="data.key"
                         :id="'input_' + data.key"
                         :value="settingsData[data.key] !== undefined ? settingsData[data.key] : data.default"
+                        :title="data.help"
+                        :pattern="data.pattern"
                     />
                 </div>
 
@@ -76,6 +78,7 @@
 
 <script lang="ts">
 import { ApiConfig, ApiSettingsField } from "@/twitchautomator";
+import { AxiosError } from "axios";
 import { defineComponent } from "vue";
 
 export default defineComponent({
@@ -118,9 +121,10 @@ export default defineComponent({
                         this.$emit("formSuccess", json);
                     }
                 })
-                .catch((err) => {
+                .catch((err: AxiosError) => {
                     console.error("form error", err.response);
-                    this.formStatusText = err.response.message ? err.response.message : "Fatal error";
+                    this.formStatusText = err.response?.data ? err.response.data.message : "Fatal error";
+                    // this.formStatusText = err.response.message ? err.response.message : "Fatal error";
                     this.formStatus = "ERROR";
                 });
 

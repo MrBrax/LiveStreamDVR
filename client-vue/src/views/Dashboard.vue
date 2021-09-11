@@ -24,13 +24,12 @@
         <section class="section">
             <div class="section-title" @click="logToggle"><h1>Logs</h1></div>
             <div class="section-content" v-if="logVisible">
-                <!--
-                <select id="log_select">
-                    {% for f in log_files %}
-                        <option>{{ f }}</button>
-                    {% endfor %}
-                </select>
-                -->
+                <div>
+                    <select v-model="logFilename">
+                        <option v-for="fn in logFilenames" :key="fn">{{ fn }}</option>
+                    </select>
+                    <button type="button" @click="fetchLog(true)">Fetch</button>
+                </div>
 
                 <div class="log_viewer" ref="logViewer">
                     <table>
@@ -78,7 +77,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import Streamer from "@/components/Streamer.vue";
-import type { ApiLogLine, ApiStreamer } from "@/twitchautomator.d";
+import type { ApiLogLine, ApiChannel } from "@/twitchautomator.d";
 import { format } from "date-fns";
 import { MutationPayload } from "vuex";
 
@@ -97,11 +96,12 @@ export default defineComponent({
             totalSize: 0,
             freeSize: 0,
             logFilename: "",
+            logFilenames: [] as string[],
             logLines: [] as ApiLogLine[],
             logFromLine: 0,
             logVisible: false,
             logModule: "",
-            oldData: {} as Record<string, ApiStreamer>,
+            oldData: {} as Record<string, ApiChannel>,
             notificationSub: Function as any,
             ws: {} as WebSocket,
             wsConnected: false,
@@ -157,7 +157,11 @@ export default defineComponent({
             if (this.ws) this.disconnectWebsocket();
             const proto = window.location.protocol === "https:" ? "wss://" : "ws://";
             const websocket_url_public = proto + window.location.host + this.$store.state.config.basepath + "/socket/";
-            const websocket_url = process.env.NODE_ENV === "development" ? "ws://localhost:8765/socket/" : websocket_url_public;
+            let websocket_url = process.env.NODE_ENV === "development" ? "ws://localhost:8765/socket/" : websocket_url_public;
+            if (this.$store.state.config.websocket_client_address) {
+                websocket_url = this.$store.state.config.websocket_client_address;
+            }
+
             console.log(`Connecting to ${websocket_url}`);
             this.wsConnecting = true;
             this.ws = new WebSocket(websocket_url);
@@ -204,9 +208,9 @@ export default defineComponent({
                     const job_actions = ["job_save", "job_clear"];
                     if (downloader_actions.indexOf(action) !== -1) {
                         console.log("Websocket update");
-                        const vod = json.data.vod;
-                       /*
-                       if (vod) {
+                        // const vod = json.data.vod;
+                        /*
+                        if (vod) {
                             console.log("Websocket update vod", vod);
                             this.$store.commit("updateVod", vod);
                         }
@@ -215,6 +219,8 @@ export default defineComponent({
                             this.$store.commit("updateStreamerList", sl);
                             this.loading = false;
                         });
+
+                        // this.fetchLog();
                     } else if (job_actions.indexOf(action) !== -1) {
                         console.log(`Websocket jobs update: ${action}`, json.data.job_name, json.data.job);
                         this.fetchJobs();
@@ -289,10 +295,15 @@ export default defineComponent({
             console.debug("Update jobs list", json.data);
             this.$store.commit("updateJobList", json.data);
         },
-        async fetchLog() {
+        async fetchLog(clear = false) {
             // today's log file
             if (this.logFilename == "") {
                 this.logFilename = format(new Date(), "yyyy-MM-dd");
+            }
+
+            if (clear) {
+                this.logFromLine = 0;
+                this.logLines = [];
             }
 
             let response;
@@ -314,6 +325,8 @@ export default defineComponent({
 
             this.logFromLine = response.data.data.last_line;
 
+            this.logFilenames = response.data.data.logs;
+
             this.logLines = this.logLines.concat(response.data.data.lines);
 
             // scroll to bottom
@@ -326,7 +339,7 @@ export default defineComponent({
         async fetchTicker() {
             if (this.timer <= 0 && !this.loading) {
                 this.loading = true;
-                const streamerResult: ApiStreamer[] = await this.fetchStreamers();
+                const streamerResult: ApiChannel[] = await this.fetchStreamers();
 
                 const isAnyoneLive = streamerResult.find((el) => el.is_live == true) !== undefined;
 
@@ -389,11 +402,11 @@ export default defineComponent({
 
                 // console.debug("notification payload", mutation);
 
-                for (const streamer of mutation.payload as ApiStreamer[]) {
-                    const username = streamer.display_name;
+                for (const streamer of mutation.payload as ApiChannel[]) {
+                    const login = streamer.login;
 
-                    if (this.oldData && this.oldData[streamer.display_name]) {
-                        const oldStreamer = this.oldData[streamer.display_name];
+                    if (this.oldData && this.oldData[streamer.login]) {
+                        const oldStreamer = this.oldData[streamer.login];
 
                         const opt = {
                             icon: streamer.channel_data.profile_image_url,
@@ -404,28 +417,28 @@ export default defineComponent({
                         let text = "";
 
                         if (!oldStreamer.is_live && streamer.is_live) {
-                            text = `${username} is live!`;
+                            text = `${login} is live!`;
                         }
 
                         if (streamer.is_live) {
-                            // console.log("notification compare games", streamer.display_name, oldStreamer.current_game, streamer.current_game );
+                            // console.log("notification compare games", streamer.login, oldStreamer.current_game, streamer.current_game );
 
                             if (
                                 (!oldStreamer.current_game && streamer.current_game) || // from no game to new game
                                 (oldStreamer.current_game && streamer.current_game && oldStreamer.current_game.game_name !== streamer.current_game.game_name) // from old game to new game
                             ) {
-                                // alert( streamer.display_name + " is now playing " + streamer.current_game.game_name );
+                                // alert( streamer.login + " is now playing " + streamer.current_game.game_name );
 
                                 if (streamer.current_game.favourite) {
-                                    text = `${username} is now playing one of your favourite games: ${streamer.current_game.game_name}!`;
+                                    text = `${login} is now playing one of your favourite games: ${streamer.current_game.game_name}!`;
                                 } else {
-                                    text = `${username} is now playing ${streamer.current_game.game_name}!`;
+                                    text = `${login} is now playing ${streamer.current_game.game_name}!`;
                                 }
                             }
                         }
 
                         if (oldStreamer.is_live && !streamer.is_live) {
-                            text = `${username} has gone offline!`;
+                            text = `${login} has gone offline!`;
                         }
 
                         if (text !== "") {
@@ -439,19 +452,19 @@ export default defineComponent({
                             if (useSpeech) {
                                 let speakText = text;
 
-                                if (streamerPronounciation[username]) {
-                                    console.debug(`Using pronounciation for ${username}`);
-                                    speakText = speakText.replace(username, streamerPronounciation[username]);
+                                if (streamerPronounciation[login]) {
+                                    console.debug(`Using pronounciation for ${login}`);
+                                    speakText = speakText.replace(login, streamerPronounciation[login]);
                                 }
                                 const utterance = new SpeechSynthesisUtterance(speakText);
                                 window.speechSynthesis.speak(utterance);
                             }
                         } else {
-                            // console.debug(`No notification text for ${streamer.display_name}`);
+                            // console.debug(`No notification text for ${streamer.login}`);
                         }
                     }
 
-                    this.oldData[streamer.display_name] = streamer;
+                    this.oldData[streamer.login] = streamer;
                 }
             });
         },
@@ -474,7 +487,7 @@ export default defineComponent({
     },
     computed: {
         sortedStreamers() {
-            const streamers: ApiStreamer[] = this.$store.state.streamerList;
+            const streamers: ApiChannel[] = this.$store.state.streamerList;
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
         },
         logFiltered(): ApiLogLine[] {
@@ -485,12 +498,12 @@ export default defineComponent({
             if (!this.$store.state.streamerList) return 0;
             return this.$store.state.streamerList.filter((a) => a.is_live).length;
         },
-        singleStreamer(): ApiStreamer | undefined {
+        singleStreamer(): ApiChannel | undefined {
             if (!this.$store.state.streamerList) return undefined;
 
             const current = this.$route.query.channel as string;
             if (current !== undefined) {
-                return this.$store.state.streamerList.find((u) => u.display_name === current);
+                return this.$store.state.streamerList.find((u) => u.login === current);
             } else {
                 // this.$route.query.channel = this.$store.state.streamerList[0].display_name;
                 return this.$store.state.streamerList[0];

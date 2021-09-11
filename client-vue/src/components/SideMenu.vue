@@ -61,7 +61,7 @@ import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync } from "@fortawesome/free-solid-svg-icons";
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import SideMenuStreamer from "./SideMenuStreamer.vue";
-import { ApiStreamer } from "@/twitchautomator";
+import { ApiChannel } from "@/twitchautomator";
 library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass);
 
 export default defineComponent({
@@ -69,7 +69,7 @@ export default defineComponent({
     name: "SideMenu",
     computed: {
         sortedStreamers() {
-            const streamers: ApiStreamer[] = this.$store.state.streamerList;
+            const streamers: ApiChannel[] = this.$store.state.streamerList;
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
         },
         clientVersion() {

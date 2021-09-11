@@ -196,7 +196,7 @@
                 <li><strong>Current duration:</strong><duration-display :startDate="vod.dt_started_at.date" outputStyle="human"></duration-display></li>
                 <li>
                     <strong>Watch live:</strong>
-                    <a :href="'https://twitch.tv/' + vod.streamer_name" rel="noreferrer" target="_blank">Twitch</a>
+                    <a :href="'https://twitch.tv/' + vod.streamer_login" rel="noreferrer" target="_blank">Twitch</a>
                 </li>
                 <!--<li><strong>Watch capture:</strong>
                     <a href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}.ts" rel="noreferrer" target="_blank">TS file</a>
@@ -212,11 +212,11 @@
                 <li v-for="segment in vod.segments" :key="segment">
                     <a :href="vod?.webpath + '/' + segment.basename">
                         <span class="text-overflow">{{ segment.basename }}</span>
-                        <span v-if="segment.deleted">
-                            <strong class="is-error">(deleted)</strong>
-                        </span>
-                        <span v-else> ({{ formatBytes(segment.filesize) }}) </span>
+                        <span v-if="!segment.deleted"> ({{ formatBytes(segment.filesize) }}) </span>
                     </a>
+                    <span v-if="segment.deleted">
+                        <strong class="is-error">&nbsp;(deleted)</strong>
+                    </span>
                 </li>
 
                 <li v-if="vod?.is_vod_downloaded">
@@ -485,8 +485,14 @@
                             <span class="text-overflow">{{ chapter.title }}</span>
                         </td>
 
+                        <!-- viewer count -->
                         <td>
-                            <span class="grey">{{ formatNumber(chapter.viewer_count) }}</span>
+                            <span class="grey" v-if="chapter.viewer_count">{{ formatNumber(chapter.viewer_count) }}</span>
+                        </td>
+
+                        <!-- mature -->
+                        <td>
+                            <span v-if="chapter.is_mature">🔞</span>
                         </td>
                     </tr>
 

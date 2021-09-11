@@ -29,6 +29,7 @@ class TwitchAutomatorJob
 		return realpath($str) ?: $str;
 	}
 
+	/*
 	function __construct(string $name)
 	{
 		$this->name = $name;
@@ -37,12 +38,68 @@ class TwitchAutomatorJob
 		$this->dt_started_at = new DateTime();
 		return $this;
 	}
+	*/
 
+	public static function create(string $name)
+	{
+
+		if(file_exists(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . ".json")){
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "job", "Creating job {$name} overwrites existing!");
+		}
+
+		$job = new self();
+		$job->name = $name;
+		$job->pidfile = $job->realpath(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . ".json");
+		$job->pidfile_simple = $job->realpath(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . ".pid");
+		$job->dt_started_at = new DateTime();
+		
+		return $job;
+	}
+
+	public static function load(string $name)
+	{
+
+		$job = new self();
+		$job->name = $name;
+		$job->pidfile = $job->realpath(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . ".json");
+		$job->pidfile_simple = $job->realpath(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . ".pid");
+		$job->dt_started_at = new DateTime();
+
+		// if no pid file
+		if (!file_exists($job->pidfile)) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "job", "Loading job {$job->name} failed, no json file", $job->metadata);
+			// return $job->loadSimple();
+			$job->error = self::NO_FILE;
+			return false;
+		}
+
+		// read pid file
+		$raw = file_get_contents($job->pidfile);
+		if (!$raw) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "job", "Loading job {$job->name} failed, no data in json file", $job->metadata);
+			$job->error = self::NO_DATA;
+			return false;
+		}
+
+		$data = json_decode($raw);
+
+		$job->pid = $data->pid;
+
+		$job->dt_started_at = isset($data->dt_started_at) ? new DateTime($data->dt_started_at->date) : null;
+
+		// TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "Job {$this->name} loaded, proceed to get status.", $this->metadata);
+
+		// $this->getStatus();
+		return $job;
+		
+	}
+
+	/*
 	/**
 	 * Load data from disk
 	 *
 	 * @return bool successful
-	 */
+	 *
 	function load()
 	{
 		$tried_loading = true;
@@ -62,9 +119,12 @@ class TwitchAutomatorJob
 		$this->pid = $data->pid;
 		$this->dt_started_at = isset($data->dt_started_at) ? new DateTime($data->dt_started_at->date) : null;
 
-		$this->getStatus();
+		// TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "Job {$this->name} loaded, proceed to get status.", $this->metadata);
+
+		// $this->getStatus();
 		return true;
 	}
+	*/
 
 	/*
 	function loadSimple()
@@ -146,9 +206,9 @@ class TwitchAutomatorJob
 	 */
 	function getPid()
 	{
-		if (!$this->pid) {
-			$this->load();
-		}
+		// if (!$this->pid) {
+		// 	$this->load();
+		// }
 		return $this->pid;
 	}
 
@@ -181,13 +241,20 @@ class TwitchAutomatorJob
 	 */
 	function getStatus()
 	{
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "Check status for job {$this->name}", $this->metadata);
+
+		if(!$this->pid){
+			throw new \Exception("No pid set on job");
+		}
+		/*
 		$pid = $this->getPid();
 
 		if (!$pid) {
 			return false;
 		}
+		*/
 
-		$output = TwitchHelper::exec(["ps", "-p", $pid]);
+		$output = TwitchHelper::exec(["ps", "-p", $this->pid]);
 
 		//if (!$this->pid && !$this->tried_loading) {
 		//	$this->load();
@@ -197,12 +264,12 @@ class TwitchAutomatorJob
 		//	return false;
 		//}
 
-		if (mb_strpos($output, (string)$pid) !== false) {
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "PID file check, process is running");
-			$this->status = $pid;
-			return $pid;
+		if (mb_strpos($output, (string)$this->pid) !== false) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "PID file check for '{$this->name}', process is running");
+			$this->status = $this->pid;
+			return $this->pid;
 		} else {
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "PID file check, process does not exist");
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "PID file check for '{$this->name}', process does not exist");
 			$this->status = false;
 			return false;
 		}

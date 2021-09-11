@@ -58,6 +58,7 @@ class CronController
     private function generateStreamerList()
     {
 
+        /*
         $streamerListStatic = TwitchConfig::getStreamers();
         $streamerList = [];
 
@@ -68,7 +69,8 @@ class CronController
 
             $streamerList[] = $data;
         }
-        return $streamerList;
+        return $streamerList;*/
+        return TwitchConfig::getChannels();
     }
 
     public function check_deleted_vods(Request $request, Response $response, $args)
@@ -135,7 +137,7 @@ class CronController
                 }
 
                 $old = $vod->twitch_vod_muted;
-                
+
                 try {
                     $check = $vod->checkMutedVod(true, $force);
                 } catch (\Throwable $th) {
@@ -143,7 +145,7 @@ class CronController
                     TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "cron", "Cronjob mute check: {$vod->basename} error: {$th->getMessage()}");
                     continue;
                 }
-    
+
                 if ($check === true) {
                     // notify
                     $this->sendNotify("{$vod->basename} muted");
@@ -176,7 +178,7 @@ class CronController
 
             $playlists = $streamer->getPlaylists();
 
-            $stored_data_file = $streamer->getFolder() . DIRECTORY_SEPARATOR . "playlists_{$streamer->username}.json";
+            $stored_data_file = $streamer->getFolder() . DIRECTORY_SEPARATOR . "playlists_{$streamer->login}.json";
             $stored_data = [];
             if (file_exists($stored_data_file)) {
                 $stored_data = json_decode(file_get_contents($stored_data_file), true);
@@ -196,6 +198,7 @@ class CronController
         return $response;
     }
 
+    /*
     public function sub(Request $request, Response $response, $args)
     {
 
@@ -211,7 +214,7 @@ class CronController
 
             $response->getBody()->write('<pre>');
 
-            $ret = TwitchHelper::sub($username);
+            $ret = TwitchHelper::channelSubscribe(TwitchHelper::getChannelId($username));
 
             if ($ret === true) {
                 $response->getBody()->write('Subscription request sent, check logs for details');
@@ -268,4 +271,5 @@ class CronController
 
         return $response;
     }
+    */
 }

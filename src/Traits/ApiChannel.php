@@ -20,10 +20,9 @@ trait ApiChannel
 
     public function channel(Request $request, Response $response, $args)
     {
-        $username = $args['username'];
+        $login = $args['login'];
 
-        $channel = new TwitchChannel();
-        $channel->load($username, true);
+        $channel = TwitchChannel::loadFromLogin($login);
 
         $payload = json_encode([
             'data' => $channel,
@@ -36,16 +35,43 @@ trait ApiChannel
 
     public function channel_force_record(Request $request, Response $response, $args)
     {
-        $channel_id = TwitchHelper::getChannelId($args['username']);
+        
+        $channel_id = TwitchChannel::channelIdFromLogin($args['login']);
         $streams = TwitchHelper::getStreams($channel_id);
         if ($streams) {
             set_time_limit(0);
-            $data = [
-                'data' => $streams
+
+            $stream = $streams[0];
+            
+            $fake_data = [
+                'subscription' => [
+                    'type' => 'stream.online',
+                    'condition' => [
+                        'broadcaster_user_id' => $channel_id,
+                    ],
+                ],
+                'event' => [
+                    'type' => 'live',
+                    'id' => $stream['id'],
+                    'broadcaster_user_id' => $stream['user_id'],
+                    'broadcaster_user_login' => $stream['user_login'],
+                    'broadcaster_user_name' => $stream['user_name'],
+                    'title' => $stream['title'],
+                    'category_id' => $stream['game_id'],
+                    'category_name' => $stream['game_name'],
+                    'is_mature' => $stream['is_mature'],
+                    'started_at' => $stream['started_at'],
+                ],
             ];
+
+            $fake_headers = [
+                'Twitch-Eventsub-Message-Id' => ['fake'],
+                'Twitch-Eventsub-Message-Retry' => ['0'],
+            ];
+
             $TwitchAutomator = new TwitchAutomator();
             $TwitchAutomator->force_record = true;
-            $TwitchAutomator->handle($data);
+            $TwitchAutomator->handle($fake_data, $fake_headers);
             $response->getBody()->write(json_encode([
                 "message" => "Finished recording",
                 "status" => "OK"
@@ -58,15 +84,16 @@ trait ApiChannel
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
         return $response;
+        
     }
 
     public function channel_dump_playlist(Request $request, Response $response, $args)
     {
 
-        $username = $args['username'];
+        $login = $args['login'];
 
         $pa = new TwitchPlaylistAutomator();
-        $pa->setup($username, isset($_GET['quality']) ? $_GET['quality'] : 'best');
+        $pa->setup($login, isset($_GET['quality']) ? $_GET['quality'] : 'best');
 
         // $output = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'playlist' . DIRECTORY_SEPARATOR . $username . 'vod.ts';
 
@@ -93,10 +120,9 @@ trait ApiChannel
     public function channel_subscription(Request $request, Response $response, $args)
     {
 
-        $username = $args['username'];
+        $login = $args['login'];
 
-        $channel = new TwitchChannel();
-        $channel->load($username);
+        $channel = TwitchChannel::loadFromLogin($login);
 
         $sub = $channel->getSubscription();
 

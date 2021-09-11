@@ -105,7 +105,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     });
 
     // channel
-    $group->group('/channel/{username}', function (RouteCollectorProxy $group) {
+    $group->group('/channel/{login}', function (RouteCollectorProxy $group) {
         $group->get('/', ApiController::class . ':channel')->setName('api_channel');
         $group->get('/force_record', ApiController::class . ':channel_force_record')->setName('api_channel_force_record');
         $group->get('/dump_playlist', ApiController::class . ':channel_dump_playlist')->setName('api_channel_dump_playlist');
@@ -124,7 +124,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     $group->post('/jobs/kill/{job}', ApiController::class . ':jobs_kill')->setName('api_jobs_kill');
 
     // twitch api proxy
-    $group->get('/twitchapi/videos/{username}', ApiController::class . ':twitchapi_videos')->setName('api_twitchapi_videos');
+    $group->get('/twitchapi/videos/{login}', ApiController::class . ':twitchapi_videos')->setName('api_twitchapi_videos');
     $group->get('/twitchapi/video/{video_id}', ApiController::class . ':twitchapi_video')->setName('api_twitchapi_video');
 
     // settings
@@ -172,6 +172,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
         return $response;
     });
 
+    /*
     $group->any('/test_webhook_vod', function (Request $request, Response $response, array $args) {
         $c = new TwitchChannel();
         $c->load("sodapoppin");
@@ -183,6 +184,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
         $response->getBody()->write("Tested");
         return $response;
     });
+    */
 
     // $group->post('/hook', ApiController::class . ':hook')->setName('hook_post');
 

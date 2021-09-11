@@ -10,7 +10,7 @@ use Slim\Psr7\Response;
 use App\TwitchConfig;
 use App\TwitchHelper;
 use App\TwitchAutomatorJob;
-
+use App\TwitchChannel;
 use Symfony\Component\Process\Process;
 
 trait ApiSubs
@@ -19,29 +19,30 @@ trait ApiSubs
     public function subscriptions_sub(Request $request, Response $response, $args)
     {
 
-        $streamers = TwitchConfig::getStreamers();
+        $channels = TwitchConfig::getChannels();
 
         $payload_data = [
             'channels' => []
         ];
 
-        foreach ($streamers as $k => $v) {
+        foreach ($channels as $channel) {
 
             $entry = [];
-            $username = $v['username'];
-            $entry['username'] = $username;
-            $ret = TwitchHelper::sub($username);
+            $entry['login'] = $channel->login;
+            $ret = TwitchHelper::channelSubscribe($channel->userid);
 
             if ($ret === true) {
                 $entry['status'] = 'Subscription request sent, check logs for details';
             } else {
                 $entry['status'] = "Error: {$ret}";
+                // $payload_data['channels'][] = $entry;
+                // break;
             }
 
             $payload_data['channels'][] = $entry;
         }
 
-        if (count($streamers) == 0) {
+        if (count($channels) == 0) {
             $response->getBody()->write(json_encode([
                 "message" => "No channels to subscribe to.",
                 "status" => "ERROR"
@@ -61,6 +62,9 @@ trait ApiSubs
 
         $subs = TwitchHelper::getSubs();
 
+        // $response->getBody()->write(json_encode($subs));
+        // return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+
         if (isset($subs['total']) && $subs['total'] > 0) {
 
             // $response->getBody()->write("Total: {$subs['total']}<br>");
@@ -76,6 +80,7 @@ trait ApiSubs
 
                 $entry = [];
 
+                /*
                 $user_id = explode("=", $data['topic'])[1];
 
                 $u = TwitchHelper::getChannelUsername($user_id);
@@ -99,6 +104,16 @@ trait ApiSubs
                 $entry['already_exists']    = isset($all_usernames[mb_strtolower($username)]);
 
                 $all_usernames[mb_strtolower($username)] = true;
+                */
+
+                $entry['type']              = $data['type'];
+                $entry['id']                = $data['id'];
+                $entry['username']          = TwitchChannel::channelLoginFromId($data['condition']['broadcaster_user_id']);
+                $entry['user_id']           = $data['condition']['broadcaster_user_id'];
+                $entry['callback']          = $data['transport']['callback'];
+                $entry['instance_match']    = $data['transport']['callback'] == TwitchConfig::cfg('app_url') . '/hook' . (TwitchConfig::cfg('instance_id') ? '?instance=' . TwitchConfig::cfg('instance_id') : '');
+                $entry['status']            = $data['status'];
+                // $entry['expires_at']        = $data['expires_at'];
 
                 $payload_data['channels'][] = $entry;
             }
@@ -124,5 +139,24 @@ trait ApiSubs
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
+    }
+
+    public function subscriptions_unsub(Request $request, Response $response, $args)
+    {
+
+        $override = $_GET['override'];
+
+        if($override){
+            TwitchHelper::channelUnsubscribe(TwitchChannel::channelIdFromLogin($override));
+        }else{
+            foreach (TwitchConfig::$channels_config as $k => $v) {
+                TwitchHelper::channelUnsubscribe(TwitchChannel::channelIdFromLogin($v['login']));
+            }
+        }
+
+        $response->getBody()->write(json_encode([
+            "message" => "Unsubscribed.",
+        ]));
+        return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
     }
 }
