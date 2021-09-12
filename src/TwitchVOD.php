@@ -1280,8 +1280,8 @@ class TwitchVOD
 				$box_art_height = round(190 * 0.5); // 19
 
 				$img_url = $game_data['box_art_url'];
-				$img_url = str_replace("{width}", $box_art_width, $img_url);
-				$img_url = str_replace("{height}", $box_art_height, $img_url);
+				$img_url = str_replace("{width}", (string)$box_art_width, $img_url);
+				$img_url = str_replace("{height}", (string)$box_art_height, $img_url);
 				$entry['box_art_url'] = $img_url;
 			}
 
@@ -1420,8 +1420,8 @@ class TwitchVOD
 			$gd = TwitchHelper::getGameData((int)$id);
 			if (!$gd) continue;
 			$img_url = $gd['box_art_url'];
-			$img_url = str_replace("{width}", 140, $img_url);
-			$img_url = str_replace("{height}", 190, $img_url);
+			$img_url = str_replace("{width}", "140", $img_url);
+			$img_url = str_replace("{height}", "190", $img_url);
 			$data[] = [
 				'id' => $id ?: $gd['id'],
 				'name' => $gd['name'],
@@ -1812,7 +1812,7 @@ class TwitchVOD
 	{
 
 		$username = explode("_", $this->basename)[0];
-		$user_id = TwitchHelper::getChannelId($username);
+		// $user_id = TwitchHelper::getChannelId($username);
 	}
 
 	public function troubleshoot($fix = false)
