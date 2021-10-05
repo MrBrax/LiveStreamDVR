@@ -374,8 +374,12 @@ class TwitchAutomator
 			TwitchConfig::setCache("{$this->broadcaster_user_login}.last.online", (new DateTime())->format(DateTime::ATOM));
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Stream online for {$this->broadcaster_user_login} (retry {$message_retry})", ['headers' => $headers, 'payload' => $data]);
 
+			// check if channel is in config, hmm
 			if (!TwitchConfig::getChannelByLogin($this->broadcaster_user_login)) {
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle triggered, but username '{$this->broadcaster_user_login}' is not in config.");
+				
+				// 5head solution
+				TwitchHelper::channelUnsubscribe($this->broadcaster_user_id);
 				return false;
 			}
 
@@ -465,7 +469,16 @@ class TwitchAutomator
 			$folder_base = TwitchHelper::vodFolder($this->getLogin());
 
 			if (!$this->vod) {
-				$this->vod = TwitchVOD::load($folder_base . DIRECTORY_SEPARATOR . $basename . '.json');
+				try {
+					$this->vod = TwitchVOD::load($folder_base . DIRECTORY_SEPARATOR . $basename . '.json');
+				} catch (\Throwable $th) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "automator", "Tried to load VOD {$basename} but errored: {$th->getMessage()}");
+
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Resetting online status on {$this->getLogin()} due to file error.");
+					TwitchConfig::setCache("{$this->broadcaster_user_login}.online", null);
+					return false;
+				}
+				
 			}
 
 			$event = [];
