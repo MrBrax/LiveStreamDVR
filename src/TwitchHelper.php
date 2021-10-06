@@ -1319,13 +1319,16 @@ class TwitchHelper
 	public static function findJob(string $search)
 	{
 		$current_jobs_raw = glob(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . "*.json");
+		$jobs_amount = count($current_jobs_raw);
 		// $current_jobs = [];
 		foreach ($current_jobs_raw as $v) {
 			$name = basename($v, ".json");
 			if (strpos($name, $search) !== false) {
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "automator", "Found job matching {$search}: {$name}, out of {$jobs_amount} jobs.");
 				return TwitchAutomatorJob::load($name);
 			}
 		}
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "automator", "Found no job matching {$search} out of {$jobs_amount} jobs.");
 		return null;
 	}
 
