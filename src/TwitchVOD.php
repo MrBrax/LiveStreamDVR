@@ -851,7 +851,7 @@ class TwitchVOD
 
 		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tdrender_' . $this->streamer_name . '.pid';
 		//file_put_contents($pidfile, $process->getPid());
-		$tdrenderJob = TwitchAutomatorJob::create("tdrender_{$this->streamer_name}");
+		$tdrenderJob = TwitchAutomatorJob::create("tdrender_{$this->streamer_login}");
 		$tdrenderJob->setPid($process->getPid());
 		$tdrenderJob->setProcess($process);
 		$tdrenderJob->save();
@@ -970,7 +970,7 @@ class TwitchVOD
 		// create pidfile
 		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'burnchat_' . $this->streamer_name . '.pid';
 		//file_put_contents($pidfile, $process->getPid());
-		$burnchatJob = TwitchAutomatorJob::create("burnchat_{$this->streamer_name}");
+		$burnchatJob = TwitchAutomatorJob::create("burnchat_{$this->streamer_login}");
 		$burnchatJob->setPid($process->getPid());
 		$burnchatJob->setProcess($process);
 		$burnchatJob->save();
@@ -1153,6 +1153,7 @@ class TwitchVOD
 
 		$generated['streamer_name'] 	= $this->streamer_name;
 		$generated['streamer_id'] 		= $this->streamer_id;
+		$generated['streamer_login'] 	= $this->streamer_login;
 
 		// $generated['started_at'] 		= $this->started_at;
 		// $generated['ended_at'] 			= $this->ended_at;
@@ -1745,6 +1746,9 @@ class TwitchVOD
 		}
 	}
 
+	/**
+	 * @deprecated version
+	 */
 	public function getPublicBasename()
 	{
 		return 'vods/' . (TwitchConfig::cfg("channel_folders") ? $this->streamer_name . '/' : '') . $this->basename;
@@ -1766,7 +1770,10 @@ class TwitchVOD
 			// check if running, whatever
 		}
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "Get capturing status for {$this->basename}");
-		$job = TwitchHelper::findJob("capture_{$this->streamer_name}_");
+		$job = TwitchHelper::findJob("capture_{$this->streamer_login}_");
+		if($job === null){
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "job", "Capturing status for {$this->basename} is null");
+		}
 		return $job ? $job->getStatus() : false;
 	}
 
@@ -1774,7 +1781,7 @@ class TwitchVOD
 	{
 		//return (TwitchAutomatorJob::load("convert_{$this->streamer_name}"))->getStatus();
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "Get converting status for {$this->basename}");
-		$job = TwitchHelper::findJob("convert_{$this->streamer_name}");
+		$job = TwitchHelper::findJob("convert_{$this->streamer_login}");
 		return $job ? $job->getStatus() : false;
 	}
 
@@ -1788,7 +1795,7 @@ class TwitchVOD
 	{
 		// return (TwitchAutomatorJob::load("chatdump_{$this->streamer_name}"))->getStatus();
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "Get chat dump status for {$this->basename}");
-		$job = TwitchHelper::findJob("chatdump_{$this->streamer_name}");
+		$job = TwitchHelper::findJob("chatdump_{$this->streamer_login}");
 		return $job ? $job->getStatus() : false;
 	}
 

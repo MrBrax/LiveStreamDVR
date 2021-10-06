@@ -34,7 +34,7 @@
                             <td>{{ aboutData.bins.streamlink.update }}</td>
                         </tr>
                         <tr>
-                            <td>youtube-dl{{ $store.state.config.youtube_dlc ? "c" : "" }}</td>
+                            <td>youtube-dl ({{ $store.state.config.youtube_dl_alternative }})</td>
                             <td>{{ aboutData.bins.youtubedl.path }}</td>
                             <td>{{ aboutData.bins.youtubedl.status }}</td>
                             <td>{{ aboutData.bins.youtubedl.update }}</td>
