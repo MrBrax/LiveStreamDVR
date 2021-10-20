@@ -158,7 +158,9 @@ export default defineComponent({
             const proto = window.location.protocol === "https:" ? "wss://" : "ws://";
             const websocket_url_public = proto + window.location.host + this.$store.state.config.basepath + "/socket/";
             let websocket_url = process.env.NODE_ENV === "development" ? "ws://localhost:8765/socket/" : websocket_url_public;
+
             if (this.$store.state.config.websocket_client_address) {
+                console.log(`Overriding generated websocket URL '${websocket_url}' with config '${this.$store.state.config.websocket_client_address}'`);
                 websocket_url = this.$store.state.config.websocket_client_address;
             }
 
