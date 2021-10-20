@@ -309,6 +309,12 @@ class TwitchConfig
 		return false;
 	}
 
+	/**
+	 * Get channels from config (not from online database)
+	 *
+	 * @param string $login
+	 * @return App\TwitchChannel
+	 */
 	public static function getChannelByLogin($login)
 	{
 		foreach (self::getChannels() as $c) {

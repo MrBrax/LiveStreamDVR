@@ -355,6 +355,7 @@ class TwitchAutomator
 
 		$subscription = $data['subscription'];
 		$subscription_type = $subscription['type'];
+		$subscription_id = $subscription['id'];
 
 		$this->data_cache = $data;
 
@@ -364,6 +365,15 @@ class TwitchAutomator
 		$this->broadcaster_user_name = $event['broadcaster_user_name'];
 
 		if ($subscription_type == "channel.update") {
+
+			// check if channel is in config, copypaste
+			if (!TwitchConfig::getChannelByLogin($this->broadcaster_user_login)) {
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle (update) triggered with sub id {$subscription_id}, but username '{$this->broadcaster_user_login}' is not in config.");
+				
+				// 5head solution
+				TwitchHelper::channelUnsubscribe($this->broadcaster_user_id);
+				return false;
+			}
 
 			TwitchConfig::setCache("{$this->broadcaster_user_login}.last.update", (new DateTime())->format(DateTime::ATOM));
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Channel update for {$this->broadcaster_user_login}", ['headers' => $headers, 'payload' => $data]);
@@ -376,7 +386,7 @@ class TwitchAutomator
 
 			// check if channel is in config, hmm
 			if (!TwitchConfig::getChannelByLogin($this->broadcaster_user_login)) {
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle triggered, but username '{$this->broadcaster_user_login}' is not in config.");
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle (online) triggered with sub id {$subscription_id}, but username '{$this->broadcaster_user_login}' is not in config.");
 				
 				// 5head solution
 				TwitchHelper::channelUnsubscribe($this->broadcaster_user_id);
