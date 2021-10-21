@@ -371,7 +371,8 @@ class TwitchAutomator
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle (update) triggered with sub id {$subscription_id}, but username '{$this->broadcaster_user_login}' is not in config.");
 				
 				// 5head solution
-				TwitchHelper::channelUnsubscribe($this->broadcaster_user_id);
+				// TwitchHelper::channelUnsubscribe($this->broadcaster_user_id);
+				TwitchHelper::eventSubUnsubscribe($subscription_id);
 				return false;
 			}
 
@@ -389,7 +390,8 @@ class TwitchAutomator
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle (online) triggered with sub id {$subscription_id}, but username '{$this->broadcaster_user_login}' is not in config.");
 				
 				// 5head solution
-				TwitchHelper::channelUnsubscribe($this->broadcaster_user_id);
+				// TwitchHelper::channelUnsubscribe($this->broadcaster_user_id);
+				TwitchHelper::eventSubUnsubscribe($subscription_id);
 				return false;
 			}
 
