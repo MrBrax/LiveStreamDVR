@@ -449,6 +449,10 @@ class ApiController
         $out = TwitchHelper::exec(["python3", "--version"]);
         $bins['python3']['version'] = trim($out);
 
+        $bins['node'] = [];
+        $out = TwitchHelper::exec(["node", "--version"]);
+        $bins['node']['version'] = trim($out);
+
         $bins['php'] = [];
         $bins['php']['version'] = phpversion();
         $bins['php']['platform'] = PHP_OS;
