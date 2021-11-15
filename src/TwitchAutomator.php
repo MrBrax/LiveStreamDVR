@@ -1080,8 +1080,10 @@ class TwitchAutomator
 			// $chat_cmd[] = '-S';
 			// $chat_cmd[] = $basename;
 
-			$chat_cmd[] = 'python';
-			$chat_cmd[] = __DIR__ . '/Utilities/twitch-chat.py';
+			// $chat_cmd[] = 'python';
+			// $chat_cmd[] = __DIR__ . '/Utilities/twitch-chat.py';
+			$chat_cmd[] = 'node';
+			$chat_cmd[] = __DIR__ . '/Utilities/twitch-chat-dumper/index.js';
 
 			$chat_cmd[] = '--channel';
 			$chat_cmd[] = $this->vod->streamer_name;

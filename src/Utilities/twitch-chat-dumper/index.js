@@ -1,19 +1,18 @@
-// const ChatClient = require("dank-twitch-irc").ChatClient;
 import { ChatClient } from 'dank-twitch-irc';
-// const fs = require('fs');
 import fs from 'fs';
-// const { format } = require('date-fns').format;
 import { format, parse } from 'date-fns';
-// import readline from 'readline';
+// const argv = require('minimist')(process.argv.slice(2));
+import minimist from 'minimist';
+const argv = minimist(process.argv.slice(2));
 
 const date_format = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
 let client = new ChatClient();
 
-let input_username = "pokelawls";
+let input_username = argv.channel;
 // let input_userid = "12943173";
 
-let chatStream = fs.createWriteStream(`${input_username}.jsonline`, { flags: 'a' });
+let chatStream = fs.createWriteStream(`${argv.output}.line`, { flags: 'a' });
 
 let comments = [];
 
@@ -59,7 +58,7 @@ function saveJSON() {
         }
     }
 
-    fs.writeFileSync(`${input_username}.json`, JSON.stringify(jsondata));
+    fs.writeFileSync(`${argv.output}`, JSON.stringify(jsondata));
 
     /*
     // let file = fs.readFileSync(`${input_username}.jsonline`);
