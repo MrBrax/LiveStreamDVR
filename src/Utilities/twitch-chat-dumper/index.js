@@ -1,7 +1,6 @@
 import { ChatClient } from 'dank-twitch-irc';
 import fs from 'fs';
 import { format, parse } from 'date-fns';
-// const argv = require('minimist')(process.argv.slice(2));
 import minimist from 'minimist';
 const argv = minimist(process.argv.slice(2));
 
@@ -12,15 +11,34 @@ let client = new ChatClient();
 let input_username = argv.channel;
 // let input_userid = "12943173";
 
+if(!input_username){
+    console.error("No channel supplied with --channel");
+    process.exit();
+}
+
+if(!argv.output){
+    console.error("No output file supplied with --output");
+    process.exit();
+}
+
+if( !argv.overwrite && ( fs.existsSync(argv.output) || fs.existsSync(`${argv.output}.line`) || fs.existsSync(`${argv.output}.text`) ) ){
+    console.error("Chat file already exists, force with --overwrite");
+    process.exit();
+}
+
 let chatStream = fs.createWriteStream(`${argv.output}.line`, { flags: 'a' });
+let textStream = fs.createWriteStream(`${argv.output}.text`, { flags: 'a' });
 
 let comments = [];
 
 function saveJSON() {
 
-    console.log("program end");
+    if(comments.length <= 0) return;
+
+    console.log("Save JSON...");
 
     chatStream.end('\n');
+    textStream.end('\n');
 
     let date_start = comments[0]['created_at'];
 
@@ -85,11 +103,11 @@ function saveJSON() {
     console.log("save json");
     */
 
-    console.log("finished");
+    console.log("JSON saved, hopefully.");
 }
 
 process.on('exit', function () {
-    console.log('exit fired');
+    console.log('Exit fired, save JSON before shutting down');
     saveJSON();
 })
 
@@ -137,8 +155,8 @@ client.on("close", (error) => {
     if (error != null) {
         console.error("Client closed due to error", error);
     }
-    console.log("chat end!!");
-    chatStream.end('\n');
+    console.error("Chat ended abruptly");
+    saveJSON();
 });
 
 client.on("PRIVMSG", (msg) => {
@@ -148,12 +166,14 @@ client.on("PRIVMSG", (msg) => {
 
     let fmt_offset = 0;
 
+    // calculate offset from first comment
     if(comments.length > 0){
         let first_comment_date = parse(comments[0]['created_at'], date_format, msg.serverTimestamp);
         let diff = ( msg.serverTimestamp.getTime() - first_comment_date.getTime() ) / 1000;
         fmt_offset = diff;
     }
 
+    // parse emotes
     let fmt_emotes = [];
     msg.emotes.forEach(element => {
         fmt_emotes.push({
@@ -164,12 +184,10 @@ client.on("PRIVMSG", (msg) => {
         // console.debug(`Emote added (${element.id}): ${element.startIndex} to ${element.endIndex}`);
     });
 
-    // console.log(msg.badges);
-    // console.log(msg.badgeInfo);
-
     let fmt_fragments = [];
     let text_buffer = "";
 
+    // parse message and emotes, creating fragments
     if (fmt_emotes.length > 0) {
         let chars = msg.messageText.split("");
         for (let i = 0; i < chars.length; i++) {
@@ -215,6 +233,7 @@ client.on("PRIVMSG", (msg) => {
         // console.debug(`No emotes, push text: '${msg.messageText}'`);
     }
 
+    // parse badges
     let fmt_badges = [];
     msg.badges.forEach(element => {
         fmt_badges.push({
@@ -261,6 +280,8 @@ client.on("PRIVMSG", (msg) => {
     let delay = ( ( new Date().getTime() - msg.serverTimestamp.getTime() ) / 1000 ).toFixed(2);
 
     console.debug(`[#${msg.channelName}] <${thetime} (${delay}d)> ${msg.displayName}: ${msg.messageText}`);
+
+    textStream.write(`<${thetime} (${delay}d)> ${msg.displayName}: ${msg.messageText}\n`);
     // console.debug(`\t ${JSON.stringify(msg.emotes)}`);
 });
 
