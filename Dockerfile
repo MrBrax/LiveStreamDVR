@@ -5,7 +5,7 @@ USER root
 RUN apk --no-cache add gcc libc-dev git \
     python3 py3-pip composer ffmpeg mediainfo \
     util-linux busybox-initscripts procps gcompat \
-    yarn
+    yarn node
 
 # pip packages
 # RUN pip install streamlink youtube-dl tcd
@@ -28,6 +28,9 @@ RUN cd /var/www/twitchautomator/ && composer install --optimize-autoloader --no-
 
 # client
 RUN cd /var/www/twitchautomator/client-vue && yarn install && yarn build && cp -r dist/* ../public/ && cd .. && rm -r -f client-vue
+
+# install chat dumper dependencies, test
+RUN cd /var/www/twitchautomator/src/Utilities/twitch-chat-dumper && yarn install
 
 # install dotnet for twitchdownloader
 # ADD https://dot.net/v1/dotnet-install.sh /tmp/dotnet-install.sh
