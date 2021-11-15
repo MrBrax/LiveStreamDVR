@@ -23,16 +23,25 @@ function saveJSON() {
 
     chatStream.end('\n');
 
-    let date_start = "test1";
+    let date_start = comments[0]['created_at'];
 
     let input_userid = comments[0]['channel_id'];
+
+    let duration_seconds = comments[ comments.length - 1 ].content_offset_seconds;
+
+
+    var sec_num = parseInt(duration_seconds, 10)
+    var hours   = Math.floor(sec_num / 3600)
+    var minutes = Math.floor(sec_num / 60) % 60
+    var seconds = sec_num % 60;
+    let duration = `${hours}h${minutes}m${seconds}s`;
 
     let jsondata = {
         "comments": comments,
         "video": {
             "created_at": date_start, // fake
             "description": "",
-            "duration": "1h0s", // fake
+            "duration": duration, // fake
             "id": 0, // fake
             "language": "en",
             "published_at": date_start, // fake
@@ -43,7 +52,10 @@ function saveJSON() {
             "user_id": input_userid,
             "user_name": input_username,
             "view_count": 1000,
-            "viewable": "public"
+            "viewable": "public",
+
+            "start": 0,
+            "end": duration_seconds, // not standard?
         }
     }
 
@@ -247,7 +259,9 @@ client.on("PRIVMSG", (msg) => {
     chatStream.write(JSON.stringify(message) + "\n");
     comments.push(message);
 
-    console.debug(`[#${msg.channelName}] <${thetime}> ${msg.displayName}: ${msg.messageText}`);
+    let delay = ( ( new Date().getTime() - msg.serverTimestamp.getTime() ) / 1000 ).toFixed(2);
+
+    console.debug(`[#${msg.channelName}] <${thetime} (${delay}d)> ${msg.displayName}: ${msg.messageText}`);
     // console.debug(`\t ${JSON.stringify(msg.emotes)}`);
 });
 
