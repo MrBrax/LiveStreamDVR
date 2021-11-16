@@ -1086,7 +1086,7 @@ class TwitchAutomator
 			$chat_cmd[] = __DIR__ . '/Utilities/twitch-chat-dumper/index.js';
 
 			$chat_cmd[] = '--channel';
-			$chat_cmd[] = $this->vod->streamer_name;
+			$chat_cmd[] = $this->vod->streamer_login;
 
 			$chat_cmd[] = '--userid';
 			$chat_cmd[] = $this->vod->streamer_id;
