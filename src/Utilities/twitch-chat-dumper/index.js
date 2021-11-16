@@ -11,29 +11,29 @@ let client = new ChatClient();
 let input_username = argv.channel;
 // let input_userid = "12943173";
 
-if(!input_username){
+if (!input_username) {
     console.error("No channel supplied with --channel");
     process.exit();
 }
 
-if(!argv.output){
+if (!argv.output) {
     console.error("No output file supplied with --output");
     process.exit();
 }
 
-if( !argv.overwrite && ( fs.existsSync(argv.output) || fs.existsSync(`${argv.output}.line`) || fs.existsSync(`${argv.output}.text`) ) ){
+if (!argv.overwrite && (fs.existsSync(argv.output) || fs.existsSync(`${argv.output}.line`) || fs.existsSync(`${argv.output}.txt`))) {
     console.error("Chat file already exists, force with --overwrite");
     process.exit();
 }
 
 let chatStream = fs.createWriteStream(`${argv.output}.line`, { flags: 'a' });
-let textStream = fs.createWriteStream(`${argv.output}.text`, { flags: 'a' });
+let textStream = fs.createWriteStream(`${argv.output}.txt`, { flags: 'a' });
 
 let comments = [];
 
 function saveJSON() {
 
-    if(comments.length <= 0) return;
+    if (comments.length <= 0) return;
 
     console.log("Save JSON...");
 
@@ -44,11 +44,11 @@ function saveJSON() {
 
     let input_userid = comments[0]['channel_id'];
 
-    let duration_seconds = comments[ comments.length - 1 ].content_offset_seconds;
+    let duration_seconds = comments[comments.length - 1].content_offset_seconds;
 
 
     var sec_num = parseInt(duration_seconds, 10)
-    var hours   = Math.floor(sec_num / 3600)
+    var hours = Math.floor(sec_num / 3600)
     var minutes = Math.floor(sec_num / 60) % 60
     var seconds = sec_num % 60;
     let duration = `${hours}h${minutes}m${seconds}s`;
@@ -112,45 +112,46 @@ process.on('exit', function () {
 })
 
 process.on('beforeExit', function () {
-console.log('beforeExit fired')
+    console.log('beforeExit fired')
 })
 process.on('exit', function () {
-console.log('exit fired')
+    console.log('exit fired')
 })
 
 // signals
 process.on('SIGUSR1', function () {
-console.log('SIGUSR1 fired')
-process.exit(1)
+    console.log('SIGUSR1 fired')
+    process.exit(1)
 })
 process.on('SIGTERM', function () {
-console.log('SIGTERM fired')
-process.exit(1)
+    console.log('SIGTERM fired')
+    process.exit(1)
 })
 process.on('SIGPIPE', function () {
-console.log('SIGPIPE fired')
+    console.log('SIGPIPE fired')
 })
 process.on('SIGHUP', function () {
-console.log('SIGHUP fired')
-process.exit(1)
+    console.log('SIGHUP fired')
+    process.exit(1)
 })
 process.on('SIGTERM', function () {
-console.log('SIGTERM fired')
-process.exit(1)
+    console.log('SIGTERM fired')
+    process.exit(1)
 })
 process.on('SIGINT', function () {
-console.log('SIGINT fired')
-process.exit(1)
+    console.log('SIGINT fired')
+    process.exit(1)
 })
 process.on('SIGBREAK', function () {
-console.log('SIGBREAK fired')
+    console.log('SIGBREAK fired')
 })
 process.on('SIGWINCH', function () {
-console.log('SIGWINCH fired')
+    console.log('SIGWINCH fired')
 })
 
 
 client.on("ready", () => console.debug("Successfully connected to chat"));
+
 client.on("close", (error) => {
     if (error != null) {
         console.error("Client closed due to error", error);
@@ -167,9 +168,9 @@ client.on("PRIVMSG", (msg) => {
     let fmt_offset = 0;
 
     // calculate offset from first comment
-    if(comments.length > 0){
+    if (comments.length > 0) {
         let first_comment_date = parse(comments[0]['created_at'], date_format, msg.serverTimestamp);
-        let diff = ( msg.serverTimestamp.getTime() - first_comment_date.getTime() ) / 1000;
+        let diff = (msg.serverTimestamp.getTime() - first_comment_date.getTime()) / 1000;
         fmt_offset = diff;
     }
 
@@ -277,12 +278,24 @@ client.on("PRIVMSG", (msg) => {
     chatStream.write(JSON.stringify(message) + "\n");
     comments.push(message);
 
-    let delay = ( ( new Date().getTime() - msg.serverTimestamp.getTime() ) / 1000 ).toFixed(2);
+    let delay = ((new Date().getTime() - msg.serverTimestamp.getTime()) / 1000).toFixed(2);
 
     console.debug(`[#${msg.channelName}] <${thetime} (${delay}d)> ${msg.displayName}: ${msg.messageText}`);
 
-    textStream.write(`<${thetime} (${delay}d)> ${msg.displayName}: ${msg.messageText}\n`);
+    textStream.write(`<${thetime}> ${msg.displayName}: ${msg.messageText}\n`);
     // console.debug(`\t ${JSON.stringify(msg.emotes)}`);
+});
+
+client.on("connecting", () => {
+    console.log("Connecting...");
+});
+
+client.on("JOIN", (joinMessage) => {
+    console.log(`Joined chat room: ${joinMessage.channelName}`);
+});
+
+client.on("PART", (partMessage) => {
+    console.log(`Left chat room: ${partMessage.channelName}`);
 });
 
 // See below for more events
