@@ -245,12 +245,12 @@
                 Editor
             </router-link>
 
-            <a v-if="vod?.is_chat_downloaded" class="button is-blue" href="#">
+            <a v-if="vod?.is_chat_downloaded" class="button is-blue" :href="playerLink" target="_blank">
                 <span class="icon"><fa icon="play" type="fa"></fa></span>
                 Player
             </a>
 
-            <a v-else-if="vod?.is_chatdump_captured" class="button is-blue" href="#">
+            <a v-else-if="vod?.is_chatdump_captured" class="button is-blue" :href="playerLink" target="_blank">
                 <span class="icon"><fa icon="play" type="fa"></fa></span>
                 Player
             </a>
@@ -714,7 +714,7 @@ export default defineComponent({
         },
     },
     computed: {
-        compDownloadChat() {
+        compDownloadChat(): boolean {
             if (!this.$store.state.jobList) return false;
             for (let job of this.$store.state.jobList) {
                 if (job.name == `tcd_${this.vod?.basename}`) {
@@ -722,6 +722,11 @@ export default defineComponent({
                 }
             }
             return false;
+        },
+        playerLink(): string {
+            let video_path = `${this.vod?.webpath}/${this.vod?.basename}.mp4`;
+            let chat_path = `${this.vod?.webpath}/${this.vod?.basename}.chatdump`;
+            return `${this.$store.state.config.basepath}/vodplayer/index.html#source=file&video_path=${video_path}&chatfile=${chat_path}`;
         },
     },
     components: {
