@@ -206,6 +206,7 @@ class TwitchAutomator
 
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Amount for {$login}: " . sizeof($vod_list) . "/" . (TwitchConfig::cfg("vods_to_keep") + 1));
 
+
 		// don't include the current vod
 		if (sizeof($vod_list) > (TwitchConfig::cfg('vods_to_keep') + 1) || $gb > TwitchConfig::cfg('storage_per_streamer')) {
 
@@ -217,9 +218,11 @@ class TwitchAutomator
 				return false;
 			}
 
+			// only delete first vod, too scared of having it do all
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Cleanup {$vod_list[0]->basename}");
 			$vod_list[0]->delete();
 		}
+
 	}
 
 	/**
