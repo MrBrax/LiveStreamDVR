@@ -5,7 +5,7 @@ USER root
 RUN apk --no-cache add gcc libc-dev git \
     python3 py3-pip composer ffmpeg mediainfo \
     util-linux busybox-initscripts procps gcompat \
-    yarn node
+    yarn nodejs
 
 # pip packages
 # RUN pip install streamlink youtube-dl tcd
