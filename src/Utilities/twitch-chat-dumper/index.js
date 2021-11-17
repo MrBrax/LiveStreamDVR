@@ -301,14 +301,12 @@ client.on("PART", (partMessage) => {
 });
 
 // See below for more events
+client.connect().catch(reason => {
+    console.log("connect error", reason);
+});
 
-client.connect();
-
-try {
-    client.join(input_username);
-} catch (error) {
-    console.error("FAILED TO JOIN");
-}
-
+client.join(input_username).catch( reason => {
+    console.log("join error", reason);
+});
 
 // console.log("ended?");
