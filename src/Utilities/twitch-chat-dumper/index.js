@@ -174,6 +174,8 @@ client.on("PRIVMSG", (msg) => {
         fmt_offset = diff;
     }
 
+    if(fmt_offset == 0) console.error("Comment offset at 0");
+
     // parse emotes
     let fmt_emotes = [];
     msg.emotes.forEach(element => {
@@ -280,9 +282,9 @@ client.on("PRIVMSG", (msg) => {
 
     let delay = ((new Date().getTime() - msg.serverTimestamp.getTime()) / 1000).toFixed(2);
 
-    console.debug(`[#${msg.channelName}] <${thetime} (${delay}d)> ${msg.displayName}: ${msg.messageText}`);
+    console.debug(`[#${msg.channelName}] <${thetime} (${delay}d, ${fmt_offset}s)> ${msg.displayName}: ${msg.messageText}`);
 
-    textStream.write(`<${thetime}> ${msg.displayName}: ${msg.messageText}\n`);
+    textStream.write(`<${thetime},${fmt_offset}> ${msg.displayName}: ${msg.messageText}\n`);
     // console.debug(`\t ${JSON.stringify(msg.emotes)}`);
 });
 
@@ -301,6 +303,12 @@ client.on("PART", (partMessage) => {
 // See below for more events
 
 client.connect();
-client.join(input_username);
+
+try {
+    client.join(input_username);
+} catch (error) {
+    console.error("FAILED TO JOIN");
+}
+
 
 // console.log("ended?");
