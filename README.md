@@ -8,6 +8,7 @@
 - Automatic VOD recording pretty much the second the stream goes live, instead of checking it every minute like many other scripts do.
 - Cyclic recording, as in when a specified amount or storage per streamer is reached, the oldest stream gets deleted.
 - Tons of metadata, maybe too much. Stores info about games played, stream titles, duration, if the stream got muted from copyrighted music, etc.
+- [Video player](https://github.com/MrBrax/twitch-vod-chat) with chat playback.
 - Video cutter with chapter display for easy exporting, also cuts the downloaded chat for synced rendering.
 - Notifications with optional speech when the website is open, get stream live notifications far earlier than the mobile app does.
 - Writes a [losslesscut](https://github.com/mifi/lossless-cut/) compatible csv file for the full VOD so you don't have to find all the games.
@@ -61,6 +62,7 @@ Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in
 
 ### Main requirements
 - Public facing webserver (nginx, apache, etc)
+- HTTPS enabled with a valid certificate on the default port 443
 - PHP 7.4+
 - Python 3.7+
 - [pip](https://pypi.org/project/pip/)
@@ -68,6 +70,7 @@ Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in
 - [FFmpeg](https://ffmpeg.org/download.html)
 - [MediaInfo](https://mediaarea.net/en/MediaInfo)
 - [TwitchDownloader](https://github.com/lay295/TwitchDownloader) (optional for chat burning)
+- [node.js](https://nodejs.org/) (optional, for live chat dumping)
 
 ### pip packages
 - [streamlink](https://github.com/streamlink/streamlink) (required)
