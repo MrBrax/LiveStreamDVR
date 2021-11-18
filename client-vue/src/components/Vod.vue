@@ -453,9 +453,21 @@
                             <img v-if="chapter.box_art_url" class="boxart" :src="chapter.box_art_url" :alt="chapter.game_name" loading="lazy" />
                             <template v-if="vod?.is_finalized">
                                 <span class="game-name">
-                                    <router-link class="px-1" :to="{ name: 'Editor', params: { vod: vod?.basename }, query: { start: chapter.offset } }">
+                                    <!-- title with video player link -->
+                                    <a class="px-1" target="_blank" :href="playerLink(chapter.offset)">
                                         {{ chapter.game_name ? chapter.game_name : "None" }}
+                                    </a>
+
+                                    <!-- video editor -->
+                                    <router-link
+                                        rel="noreferrer"
+                                        aria-label="Open on Twitch"
+                                        :to="{ name: 'Editor', params: { vod: vod?.basename }, query: { start: chapter.offset } }"
+                                    >
+                                        <span class="icon"><fa icon="hand-scissors"></fa></span>
                                     </router-link>
+
+                                    <!-- open on twitch link -->
                                     <a
                                         v-if="vod?.twitch_vod_exists"
                                         :href="vod?.twitch_vod_url + '?t=' + twitchDuration(chapter.offset)"
@@ -465,6 +477,8 @@
                                     >
                                         <span class="icon"><fa icon="external-link-alt"></fa></span>
                                     </a>
+
+                                    <!-- favourite button -->
                                     <button
                                         class="icon-button favourite-button"
                                         v-if="!$store.state.config.favourites[chapter.game_id]"
@@ -541,6 +555,7 @@ import {
     faDownload,
     faExclamationTriangle,
     faFileSignature,
+    faHandScissors,
 } from "@fortawesome/free-solid-svg-icons";
 library.add(
     faFileVideo,
@@ -555,7 +570,8 @@ library.add(
     faArchive,
     faDownload,
     faExclamationTriangle,
-    faFileSignature
+    faFileSignature,
+    faHandScissors
 );
 
 export default defineComponent({
@@ -712,6 +728,11 @@ export default defineComponent({
                     if (err.response.data && err.response.data.message) alert(err.response.data.message);
                 });
         },
+        playerLink(offset = 0): string {
+            let video_path = `${this.vod?.webpath}/${this.vod?.basename}.mp4`;
+            let chat_path = `${this.vod?.webpath}/${this.vod?.basename}.chatdump`;
+            return `${this.$store.state.config.basepath}/vodplayer/index.html#source=file&video_path=${video_path}&chatfile=${chat_path}&offset=${offset}`;
+        },
     },
     computed: {
         compDownloadChat(): boolean {
@@ -722,11 +743,6 @@ export default defineComponent({
                 }
             }
             return false;
-        },
-        playerLink(): string {
-            let video_path = `${this.vod?.webpath}/${this.vod?.basename}.mp4`;
-            let chat_path = `${this.vod?.webpath}/${this.vod?.basename}.chatdump`;
-            return `${this.$store.state.config.basepath}/vodplayer/index.html#source=file&video_path=${video_path}&chatfile=${chat_path}`;
         },
     },
     components: {
