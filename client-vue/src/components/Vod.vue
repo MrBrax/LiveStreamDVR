@@ -464,7 +464,7 @@
                                         aria-label="Open on Twitch"
                                         :to="{ name: 'Editor', params: { vod: vod?.basename }, query: { start: chapter.offset } }"
                                     >
-                                        <span class="icon"><fa icon="hand-scissors"></fa></span>
+                                        <span class="icon"><fa icon="cut"></fa></span>
                                     </router-link>
 
                                     <!-- open on twitch link -->
@@ -555,7 +555,6 @@ import {
     faDownload,
     faExclamationTriangle,
     faFileSignature,
-    faHandScissors,
 } from "@fortawesome/free-solid-svg-icons";
 library.add(
     faFileVideo,
@@ -571,7 +570,6 @@ library.add(
     faDownload,
     faExclamationTriangle,
     faFileSignature,
-    faHandScissors
 );
 
 export default defineComponent({
