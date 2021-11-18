@@ -35,5 +35,8 @@
     "ts-loader": "^8.0.14",
     "typescript": "^3.9.7",
     "webpack": "^4.46.0"
+  },
+  "require": {
+    "php": ">=7.4"
   }
 }
