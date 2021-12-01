@@ -73,7 +73,7 @@ export default defineComponent({
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
         },
         clientVersion() {
-            return process ? process.env.VUE_APP_VERSION : "?";
+            return process.env.VUE_APP_VERSION; // injected
         },
     },
 });

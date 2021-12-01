@@ -183,10 +183,10 @@ export default defineComponent({
     },
     computed: {
         clientVersion() {
-            return process ? process.env.VUE_APP_VERSION : "?";
+            return process.env.VUE_APP_VERSION; // injected
         },
         clientMode() {
-            return process.env.NODE_ENV;
+            return process.env.NODE_ENV; // injected
         },
     },
     methods: {
