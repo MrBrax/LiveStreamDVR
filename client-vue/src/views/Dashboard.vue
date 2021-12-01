@@ -168,7 +168,7 @@ export default defineComponent({
             this.wsConnecting = true;
             this.ws = new WebSocket(websocket_url);
             this.ws.onopen = (ev: Event) => {
-                console.log(`Connected to websocket!`);
+                console.log(`Connected to websocket!`, ev);
                 this.ws.send(JSON.stringify({ action: "helloworld" }));
                 this.wsConnected = true;
                 this.wsConnecting = false;
@@ -187,7 +187,8 @@ export default defineComponent({
                     return;
                 }
 
-                let json: any = {};
+                let json;
+
                 try {
                     json = JSON.parse(text);
                 } catch (error) {
@@ -229,7 +230,7 @@ export default defineComponent({
                     } else if (action == "notify") {
                         // alert(json.data.text);
                         const toast = new Notification(json.data.text);
-                        console.log(`Notify: ${json.data.text}`);
+                        console.log(`Notify: ${json.data.text}`, toast);
                     } else {
                         console.log(`Websocket wrong action (${action})`);
                     }
@@ -448,6 +449,7 @@ export default defineComponent({
 
                             if (Notification.permission === "granted") {
                                 const toast = new Notification(text, opt);
+                                console.log(`Granted notification`, toast);
                             }
 
                             const useSpeech = true;

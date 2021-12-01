@@ -40,14 +40,14 @@ export default createStore({
         updateStreamerList(state, data: ApiChannel[]) {
             (state as any).streamerList = data;
         },
-        updateVod(state, vod: ApiVod){
+        updateVod(state, vod: ApiVod) {
             const streamer_login = vod.streamer_login;
             const vod_basename = vod.basename;
             console.log("updateVod", (state as any).streamerList);
-            for (const streamer of (state as any).streamerList as ApiChannel[]){
+            for (const streamer of (state as any).streamerList as ApiChannel[]) {
                 if (streamer.login === streamer_login) {
-                    for (let streamer_vod of streamer.vods_list){
-                        if(streamer_vod.basename === vod_basename){
+                    for (let streamer_vod of streamer.vods_list) {
+                        if (streamer_vod.basename === vod_basename) {
                             streamer_vod = vod;
                             console.log("replaced");
                         }

@@ -173,9 +173,11 @@ export default defineComponent({
         },
     },
     computed: {
+        /*
         sortedGames() {
             return Object.entries((this as any).games).sort(([, a], [, b]) => (a as any).name.localeCompare((b as any).name));
         },
+        */
     },
     components: {
         ChannelAddForm,

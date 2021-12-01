@@ -569,7 +569,7 @@ library.add(
     faArchive,
     faDownload,
     faExclamationTriangle,
-    faFileSignature,
+    faFileSignature
 );
 
 export default defineComponent({
@@ -631,7 +631,7 @@ export default defineComponent({
         },
         doRenderChat(useVod = false) {
             /** @todo: implement */
-            alert("RenderChat");
+            alert(`RenderChat not implemented: ${useVod}`);
         },
         doDownloadVod() {
             if (!confirm(`Do you want to download the vod for "${this.vod?.basename}"?`)) return;
