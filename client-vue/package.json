@@ -20,7 +20,7 @@
     "date-fns": "^2.27.0",
     "normalize.css": "^8.0.1",
     "register-service-worker": "^1.7.1",
-    "vue": "3.0.5",
+    "vue": "^3.0.5",
     "vue-axios": "^3.4.0",
     "vue-router": "4.0.3",
     "vuex": "4.0.0-rc.2"
