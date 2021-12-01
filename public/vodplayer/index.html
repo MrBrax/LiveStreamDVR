@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
-
 	<head>
 		<meta name="referrer" content="no-referrer">
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 		<title>braxen's vod replay</title>
 		<link href="https://cdn.betterttv.net/betterttv.css" type="text/css" rel="stylesheet" />
 		<link href="./player.css" type="text/css" rel="stylesheet" />
@@ -14,131 +14,7 @@
 	<body>
 
 		<div id="app">
-
-			<div id="player">
-
-				<div id="video_container"></div>
-
-				<div id="comments" class="left has-gradient has-stroke">
-					<div class="comment">
-						<span class="time">[00:00:00]</span>
-						<span class="name">Username:</span>
-						<span class="body">Body text</span>
-					</div>
-				</div>
-
-				<div id="osd">SYNC NOT STARTED</div>
-
-			</div>
-
-			<div id="timeline">
-				00:00:00
-			</div>
-
-			<div id="controls">
-
-				<div class="option-row">
-					
-					<div class="option-group" id="option-group-video">
-						<h2>Video</h2>
-						<input type="file" id="inputVideo" accept="video/*" onchange="vodplayer.load(event, 'video'); return false;" />
-						<p class="help-text">
-							These files will not be uploaded to anywhere, they're played on your device locally.
-						</p>
-					</div>
-
-					<div class="option-group" id="option-group-chat">
-						<h2>Chat</h2>
-						<input type="file" id="inputChat" accept="application/json" onchange="vodplayer.load(event, 'chat'); return false;" />
-						<p class="help-text">
-							Chat logs may take a while to parse, don't worry.
-						</p>
-					</div>
-
-					<div class="option-group">
-						<strong>Video:</strong> <span id="status-text-video">Waiting</span><br>
-						<strong>Comments:</strong> <span id="status-text-comments">Waiting</span><br>
-						<strong>FFZ:</strong> <span id="status-text-ffz">Waiting</span><br>
-						<strong>BTTV Channel:</strong> <span id="status-text-bttv_channel">Waiting</span><br>
-						<strong>BTTV Global:</strong> <span id="status-text-bttv_global">Waiting</span>
-					</div>
-
-				</div>
-
-				<div class="option-row">
-
-					<div class="option-group">
-						<h2>Chat offset in seconds</h2>
-						<p class="help-text">
-							Offset from the video, if recording started too late.
-							It will be set automatically based on how long the chat dump is
-							and the video length, remember to set it to 0 if you want it that way.
-						</p>
-						<input id="optionOffset" value="0">
-					</div>
-
-					<div class="option-group">
-						<h2>Chat timescale</h2>
-						<p class="help-text">
-							1 is standard, 2 is twice as fast etc.
-							Slow the captured video down with this amount to reduce live recording time
-						</p>
-						<input id="optionTimescale" value="1">
-					</div>
-
-					<div class="option-group">
-						<h2>Update frequency in ms</h2>
-						<p class="help-text">
-							The lower the smoother. 16.67 - 60fps, 33.33 - 30fps.
-							Missed ticks shouldn't matter, as the parser is dependent on system time.
-						</p>
-						<input id="optionTickDelay" value="300">
-					</div>
-
-					<div class="option-group">
-						<h2>Chat location</h2>
-						<div class="button-group">
-							<button class="button is-small" onclick="vodplayer.alignChat('left')">Left side</button>
-							<button class="button is-small" onclick="vodplayer.alignChat('right')">Right side</button>
-						</div>
-						<div class="button-group">
-							<button class="button is-small" onclick="vodplayer.alignText('left')">Left text</button>
-							<button class="button is-small" onclick="vodplayer.alignText('right')">Right text</button>
-						</div>
-						<label><input class="input-range" type="range" min="0" max="100" value="0" id="optionChatTop"> Top</label>
-						<label><input class="input-range" type="range" min="0" max="100" value="0" id="optionChatBottom"> Bottom</label>
-						<label><input class="input-range" type="range" min="0" max="100" value="0" id="optionChatWidth"> Width</label>
-					</div>
-
-					<div class="option-group">
-						<h2>Chat style</h2>
-						<select id="optionChatStyle">
-							<option value="has-gradient">Gradient</option>
-							<option value="has-fill">Fill</option>
-							<option value="">None</option>
-						</select><br>
-
-						<label><input type="checkbox" checked="checked" id="optionChatStroke"> Stroke</label>
-						<label><input type="checkbox" checked="checked" id="optionChatEmotes"> Emotes</label><br>
-						<label><input type="checkbox" checked="checked" id="optionChatTimestamps"> Timestamps</label>
-						<label><input type="checkbox" checked="checked" id="optionChatBadges"> Badges</label>
-
-						<p class="help-text">
-							These will only apply to newly displayed messages.
-						</p>
-
-					</div>
-
-				</div>
-
-				<div class="option-group">
-					<button class="button color-green" onclick="vodplayer.play()" id="buttonStart">Start</button>
-					<button class="button" onclick="vodplayer.apply()" id="buttonApply">Apply</button>
-					<button class="button" onclick="vodplayer.fullscreen()" id="buttonFullscreen">Fullscreen</button>
-				</div>
-
-			</div>
-
+			JavaScript needs to be enabled :(
 		</div>
 
 		<script src="./vodplayer.js"></script>

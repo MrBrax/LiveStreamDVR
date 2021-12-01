@@ -206,6 +206,7 @@ class TwitchAutomator
 
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Amount for {$login}: " . sizeof($vod_list) . "/" . (TwitchConfig::cfg("vods_to_keep") + 1));
 
+
 		// don't include the current vod
 		if (sizeof($vod_list) > (TwitchConfig::cfg('vods_to_keep') + 1) || $gb > TwitchConfig::cfg('storage_per_streamer')) {
 
@@ -217,9 +218,11 @@ class TwitchAutomator
 				return false;
 			}
 
+			// only delete first vod, too scared of having it do all
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Cleanup {$vod_list[0]->basename}");
 			$vod_list[0]->delete();
 		}
+
 	}
 
 	/**
@@ -355,6 +358,7 @@ class TwitchAutomator
 
 		$subscription = $data['subscription'];
 		$subscription_type = $subscription['type'];
+		$subscription_id = $subscription['id'];
 
 		$this->data_cache = $data;
 
@@ -364,6 +368,16 @@ class TwitchAutomator
 		$this->broadcaster_user_name = $event['broadcaster_user_name'];
 
 		if ($subscription_type == "channel.update") {
+
+			// check if channel is in config, copypaste
+			if (!TwitchConfig::getChannelByLogin($this->broadcaster_user_login)) {
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle (update) triggered with sub id {$subscription_id}, but username '{$this->broadcaster_user_login}' is not in config.");
+				
+				// 5head solution
+				// TwitchHelper::channelUnsubscribe($this->broadcaster_user_id);
+				TwitchHelper::eventSubUnsubscribe($subscription_id);
+				return false;
+			}
 
 			TwitchConfig::setCache("{$this->broadcaster_user_login}.last.update", (new DateTime())->format(DateTime::ATOM));
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Channel update for {$this->broadcaster_user_login}", ['headers' => $headers, 'payload' => $data]);
@@ -376,10 +390,11 @@ class TwitchAutomator
 
 			// check if channel is in config, hmm
 			if (!TwitchConfig::getChannelByLogin($this->broadcaster_user_login)) {
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle triggered, but username '{$this->broadcaster_user_login}' is not in config.");
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle (online) triggered with sub id {$subscription_id}, but username '{$this->broadcaster_user_login}' is not in config.");
 				
 				// 5head solution
-				TwitchHelper::channelUnsubscribe($this->broadcaster_user_id);
+				// TwitchHelper::channelUnsubscribe($this->broadcaster_user_id);
+				TwitchHelper::eventSubUnsubscribe($subscription_id);
 				return false;
 			}
 
@@ -1068,11 +1083,13 @@ class TwitchAutomator
 			// $chat_cmd[] = '-S';
 			// $chat_cmd[] = $basename;
 
-			$chat_cmd[] = 'python';
-			$chat_cmd[] = __DIR__ . '/Utilities/twitch-chat.py';
+			// $chat_cmd[] = 'python';
+			// $chat_cmd[] = __DIR__ . '/Utilities/twitch-chat.py';
+			$chat_cmd[] = 'node';
+			$chat_cmd[] = __DIR__ . '/Utilities/twitch-chat-dumper/index.js';
 
 			$chat_cmd[] = '--channel';
-			$chat_cmd[] = $this->vod->streamer_name;
+			$chat_cmd[] = $this->vod->streamer_login;
 
 			$chat_cmd[] = '--userid';
 			$chat_cmd[] = $this->vod->streamer_id;

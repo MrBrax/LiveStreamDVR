@@ -61,6 +61,7 @@
                     <ul>
                         <li><strong>Python version:</strong> {{ aboutData.bins.python.version ? aboutData.bins.python.version : "(no output)" }}</li>
                         <li><strong>Python3 version:</strong> {{ aboutData.bins.python3.version ? aboutData.bins.python3.version : "(no output)" }}</li>
+                        <li><strong>Node.js version:</strong> {{ aboutData.bins.node.version ? aboutData.bins.node.version : "(no output)" }}</li>
                         <li><strong>PHP version:</strong> {{ aboutData.bins.php.version ? aboutData.bins.php.version : "(no output)" }}</li>
                         <li><strong>PHP User:</strong> {{ aboutData.bins.php.user }}</li>
                         <li><strong>PHP PID:</strong> {{ aboutData.bins.php.pid }}</li>

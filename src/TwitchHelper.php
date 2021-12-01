@@ -1051,6 +1051,35 @@ class TwitchHelper
 		return true;
 	}
 
+	public static function eventSubUnsubscribe($subscription_id)
+	{
+
+		self::logAdvanced(self::LOG_INFO, "helper", "Unsubscribing from eventsub id {$subscription_id}");
+
+		try {
+
+			$response = self::$guzzler->request("DELETE", "/helix/eventsub/subscriptions?id={$subscription_id}");
+		} catch (\GuzzleHttp\Exception\BadResponseException $th) {
+
+			self::logAdvanced(self::LOG_FATAL, "helper", "Unsubscribe from eventsub {$subscription_id} error: " . $th->getMessage());
+
+			/*
+			$json = json_decode($th->getResponse()->getBody()->getContents(), true);
+			if($json){
+				if($json['message']){
+					return $json['message'];
+				}
+			}
+			*/
+
+			return false;
+		}
+
+		self::logAdvanced(self::LOG_SUCCESS, "helper", "Unsubscribed from eventsub {$subscription_id} successfully");
+
+		return true;
+	}
+
 	public static function channelGetSubscriptionId($streamer_id, $type)
 	{
 
