@@ -14,6 +14,7 @@ module.exports = {
         iconPaths: {
             favicon32: "manifest/favicon-32x32.png",
             favicon16: "manifest/favicon-16x16.png",
+            faviconSVG: "manifest/favicon.svg",
             appleTouchIcon: "manifest/apple-touch-icon.png",
             maskIcon: "manifest/safari-pinned-tab.svg",
             msTileImage: "manifest/mstile-150x150.png",
