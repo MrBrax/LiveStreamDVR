@@ -1,6 +1,6 @@
 {
   "name": "twitchautomator-client",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -15,7 +15,7 @@
     "@fortawesome/free-regular-svg-icons": "^5.15.4",
     "@fortawesome/free-solid-svg-icons": "^5.15.4",
     "@fortawesome/vue-fontawesome": "^3.0.0-3",
-    "axios": "^0.21.1",
+    "axios": "^0.24.0",
     "core-js": "^3.19.2",
     "date-fns": "^2.27.0",
     "normalize.css": "^8.0.1",
