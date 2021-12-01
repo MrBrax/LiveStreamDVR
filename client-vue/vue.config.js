@@ -3,8 +3,10 @@ process.env.VUE_APP_VERSION = process.env.npm_package_version;
 module.exports = {
     // publicPath: '/test/',
     publicPath: process.env.BASE_URL,
+
     // publicPath: './',
     assetsDir: "assets",
+
     pwa: {
         manifestPath: "manifest.json",
         themeColor: "#ffffff",
@@ -17,6 +19,7 @@ module.exports = {
             msTileImage: "manifest/mstile-150x150.png",
         },
     },
+
     devServer: {
         port: 8081,
         proxy: {
@@ -40,4 +43,6 @@ module.exports = {
             },
         },
     },
+
+    lintOnSave: false,
 };
