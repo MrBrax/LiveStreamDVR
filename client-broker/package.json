@@ -4,6 +4,6 @@
   "main": "server.js",
   "license": "MIT",
   "dependencies": {
-    "ws": "^7.4.3"
+    "ws": "^8.3.0"
   }
 }

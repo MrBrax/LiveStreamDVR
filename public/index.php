@@ -16,11 +16,11 @@ use App\TwitchConfig;
 use App\TwitchHelper;
 use DI\Container;
 use Slim\Factory\AppFactory;
-use Slim\Views\Twig;
-use Slim\Views\TwigMiddleware;
-use Twig\Extension\DebugExtension;
-use Twig\TwigFilter;
-use Twig\Extra\Html\HtmlExtension;
+// use Slim\Views\Twig;
+// use Slim\Views\TwigMiddleware;
+// use Twig\Extension\DebugExtension;
+// use Twig\TwigFilter;
+// use Twig\Extra\Html\HtmlExtension;
 // use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 
@@ -29,6 +29,7 @@ $container = new Container();
 AppFactory::setContainer($container);
 
 // Create Twig
+/*
 $twigConfig = Twig::create(__DIR__ . '/../templates', [
     'cache' => TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'twig',
     'debug' => TwitchConfig::cfg('debug', false)
@@ -40,6 +41,7 @@ $container->set('view', function () use ($twigConfig) {
 });
 // what
 $container->set(Twig::class, $twigConfig);
+*/
 
 // Create App
 $app = AppFactory::create();
@@ -52,13 +54,13 @@ if (TwitchConfig::cfg('basepath')) {
 }
 
 // what
-$twig = TwigMiddleware::createFromContainer($app);
+// $twig = TwigMiddleware::createFromContainer($app);
 
 // Add Twig-View Middleware
-$app->add($twig);
+// $app->add($twig);
 
 // html extension
-$container->get('view')->getEnvironment()->addExtension(new HtmlExtension());
+// $container->get('view')->getEnvironment()->addExtension(new HtmlExtension());
 
 // this seems cool, but i have no idea how to access it later :(
 $container->set('guzzle', function () {
@@ -73,6 +75,7 @@ $container->set('guzzle', function () {
 });
 
 // timezone
+/*
 if (TwitchConfig::cfg('timezone', 'UTC') != 'UTC') {
     $container->get('view')->getEnvironment()->getExtension(\Twig\Extension\CoreExtension::class)->setTimezone(TwitchConfig::cfg('timezone', 'UTC'));
 }
@@ -120,6 +123,7 @@ $container->get('view')->getEnvironment()->addFilter(new TwigFilter('humanDate',
 $container->get('view')->getEnvironment()->addFilter(new TwigFilter('basename', function ($string) {
     return basename($string);
 }));
+*/
 
 // authentication
 if (TwitchConfig::cfg('password')) {
@@ -143,9 +147,10 @@ if (TwitchConfig::cfg('password')) {
 // debug settings
 if (TwitchConfig::cfg('debug', false)) {
     // TwitchHelper::log( TwitchHelper::LOG_DEBUG, "Enabling debugging settings for slim..." );
-    $container->get('view')->getEnvironment()->addExtension(new DebugExtension());
+    //$container->get('view')->getEnvironment()->addExtension(new DebugExtension());
     $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
+    /*
     $debugMiddleware = function (Request $request, RequestHandler $handler) {
         TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "automator", ">>> {$request->getUri()} <<< accessed.");
         $response = $handler->handle($request);    
@@ -153,6 +158,7 @@ if (TwitchConfig::cfg('debug', false)) {
     };
 
     $app->add($debugMiddleware);
+    */
 
 } else {
     // $myErrorHandler = new MyErrorHandler($app->getCallableResolver(), $app->getResponseFactory());

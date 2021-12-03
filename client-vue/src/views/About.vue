@@ -136,12 +136,45 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 
+interface SoftwareCallback {
+    path: string;
+    status: string;
+    update: string;
+    version: string;
+
+    user?: string;
+    pid?: number;
+    uid?: number;
+    gid?: number;
+    sapi: string;
+    platform?: string;
+    platform_family?: string;
+}
+
+interface AboutData {
+    is_docker: boolean;
+    bins: {
+        ffmpeg: SoftwareCallback;
+        mediainfo: SoftwareCallback;
+        tcd: SoftwareCallback;
+        streamlink: SoftwareCallback;
+        youtubedl: SoftwareCallback;
+        pipenv: SoftwareCallback;
+        python: SoftwareCallback;
+        python3: SoftwareCallback;
+        twitchdownloader: SoftwareCallback;
+        php: SoftwareCallback;
+        node: SoftwareCallback;
+    };
+    cron_lastrun: any;
+}
+
 export default defineComponent({
     name: "About",
     title: "About",
     data() {
         return {
-            aboutData: Object as any,
+            aboutData: {} as AboutData | null,
             envs: {},
         };
     },
@@ -150,15 +183,15 @@ export default defineComponent({
     },
     computed: {
         clientVersion() {
-            return process ? process.env.VUE_APP_VERSION : "?";
+            return process.env.VUE_APP_VERSION; // injected
         },
         clientMode() {
-            return process.env.NODE_ENV;
+            return process.env.NODE_ENV; // injected
         },
     },
     methods: {
         fetchData() {
-            this.aboutData = [];
+            this.aboutData = null;
 
             this.$http
                 .get(`/api/v0/about`)

@@ -48,6 +48,12 @@ export default defineComponent({
             this.$store.commit("updateConfig", []);
 
             const response = await this.$http.get(`/api/v0/settings/list`);
+
+            if (!response.data || !response.data.data) {
+                alert("No data received");
+                return;
+            }
+
             this.$store.commit("updateConfig", response.data.data.config);
             this.$store.commit("updateVersion", response.data.data.version);
         },

@@ -138,7 +138,7 @@ export default defineComponent({
 
             // this.$forceUpdate();
         },
-        updateVideoTime(event: MediaStreamEvent) {
+        updateVideoTime(event: Event) {
             // console.log(v);
             this.currentVideoTime = (event.target as HTMLVideoElement).currentTime;
         },
