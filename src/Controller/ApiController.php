@@ -6,7 +6,7 @@ namespace App\Controller;
 
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
-use Slim\Views\Twig;
+// use Slim\Views\Twig;
 
 use App\TwitchAutomator;
 use App\TwitchConfig;
@@ -44,10 +44,12 @@ class ApiController
      */
     private $twig;
 
+    /*
     public function __construct(Twig $twig)
     {
         $this->twig = $twig;
     }
+    */
     
     private function generateStreamerList()
     {
