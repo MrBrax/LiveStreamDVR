@@ -1,8 +1,7 @@
 {
   "name": "twitchautomator",
-  "version": "6.0.4",
+  "version": "6.0.5",
   "description": "Twitch VOD automator fluff",
-  "main": "src/Client/main.ts",
   "scripts": {
     "serve:server": "php -S localhost:8080 -t public",
     "test:server": "php vendor/phpunit/phpunit/phpunit tests"

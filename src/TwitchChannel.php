@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App;
 
-use DateTime;
-
 class TwitchChannel
 {
 
@@ -46,6 +44,7 @@ class TwitchChannel
 
     public ?array $match = [];
     public ?bool $download_chat = null;
+    public ?bool $no_capture = null;
 
     public ?\DateTime $subbed_at = null;
     public ?\DateTime $expires_at = null;
@@ -204,6 +203,13 @@ class TwitchChannel
         return false;
     }
 
+    /**
+     * Get channel data from remote endpoint
+     *
+     * @param int $streamer_id
+     * @return array|boolean
+     * @throws Exception
+     */
     public static function getChannelDataById($streamer_id)
     {
 
@@ -250,6 +256,7 @@ class TwitchChannel
             ]);
         } catch (\Throwable $th) {
             TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "helper", "getChannelDataById for {$streamer_id} errored: " . $th->getMessage());
+            // throw new \Exception("HTTP error when fetching channel data for {$streamer_id}: {$th->getMessage()}");
             return false;
         }
 
@@ -258,6 +265,7 @@ class TwitchChannel
 
         if (!$json["data"]) {
             TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "helper", "Failed to fetch channel data for {$streamer_id}: {$server_output}");
+            // throw new \Exception("No channel data for id {$streamer_id}");
             return false;
         }
 
