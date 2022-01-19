@@ -17,6 +17,21 @@ class TwitchConfig
 	 * @var TwitchChannel[]
 	 */
 	private static $channels = [];
+
+	/**
+	 * Raw channel storage
+	 * 
+	 * {
+	 * 		"login": "name",
+	 * 		"quality": ["best"],
+	 * 		"match": ["match"],
+	 * 		"download_chat": true,
+	 * 		"burn_chat": true,
+	 * 		"no_capture": true,
+	 * }
+	 *
+	 * @var array
+	 */
 	public static $channels_config = [];
 
 	public static $configPath 			= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "config.json";
@@ -313,7 +328,7 @@ class TwitchConfig
 	 * Get channels from config (not from online database)
 	 *
 	 * @param string $login
-	 * @return App\TwitchChannel
+	 * @return TwitchChannel
 	 */
 	public static function getChannelByLogin($login)
 	{

@@ -72,7 +72,7 @@ import { defineComponent } from "vue";
 import type { ApiVod } from "@/twitchautomator.d";
 
 export default defineComponent({
-    name: "Editor",
+    name: "EditorView",
     title: "Editor",
     data() {
         return {

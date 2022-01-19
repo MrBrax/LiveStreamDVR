@@ -144,6 +144,7 @@ trait ApiSubs
     public function subscriptions_unsub(Request $request, Response $response, $args)
     {
 
+        /*
         $override = $_GET['override'];
 
         if($override){
@@ -153,10 +154,16 @@ trait ApiSubs
                 TwitchHelper::channelUnsubscribe(TwitchChannel::channelIdFromLogin($v['login']));
             }
         }
+        */
+
+        $id = $_GET['id'];
+
+        TwitchHelper::eventSubUnsubscribe($id);
 
         $response->getBody()->write(json_encode([
-            "message" => "Unsubscribed.",
+            "message" => "Unsubscribed from ${id}.",
         ]));
         return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
     }
+
 }

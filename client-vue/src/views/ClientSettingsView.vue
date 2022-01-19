@@ -49,6 +49,7 @@ const defaultConfig = {
 };
 
 export default defineComponent({
+    name: "ClientSettingsView",
     title: "Client settings",
     data() {
         return {

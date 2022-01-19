@@ -101,6 +101,13 @@ trait ApiChannels
 
         $username = TwitchChannel::channelUsernameFromId($channel_id);
 
+        if ($login !== $username) {
+            $response->getBody()->write(json_encode([
+                "message" => "Login '{$login}' doesn't match the one provided by Twitch: '{$username}'. Check that it's the LOGIN name and not the DISPLAY name.",
+                "status" => "ERROR"
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
         // $tmp = TwitchHelper::getChannelData($channel_id);
         // 
         // // fix capitalization

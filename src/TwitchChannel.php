@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App;
 
-use DateTime;
-
 class TwitchChannel
 {
 
@@ -46,6 +44,7 @@ class TwitchChannel
 
     public ?array $match = [];
     public ?bool $download_chat = null;
+    public ?bool $no_capture = null;
 
     public ?\DateTime $subbed_at = null;
     public ?\DateTime $expires_at = null;
@@ -142,18 +141,6 @@ class TwitchChannel
     public static function channelIdFromLogin($login)
     {
 
-        /*
-        $cache_json = file_exists(TwitchConfig::$streamerCachePath) ? json_decode(file_get_contents(TwitchConfig::$streamerCachePath), true) : [];
-
-        if ($cache_json) {
-            foreach ($cache_json as $user_id => $data) {
-                if ($data['login'] == $login) {
-                    return (string)$user_id;
-                }
-            }
-        }
-        */
-
         $cd = self::getChannelDataByLogin($login);
         if($cd) return $cd['id'];
 
@@ -163,18 +150,6 @@ class TwitchChannel
     // DRY
     public static function channelLoginFromId($streamer_id)
     {
-
-        /*
-        $cache_json = file_exists(TwitchConfig::$streamerCachePath) ? json_decode(file_get_contents(TwitchConfig::$streamerCachePath), true) : [];
-
-        if ($cache_json) {
-            foreach ($cache_json as $user_id => $data) {
-                if ($data['id'] == $streamer_id) {
-                    return (string)$data["login"];
-                }
-            }
-        }
-        */
 
         $cd = self::getChannelDataById($streamer_id);
         if($cd) return $cd['login'];
@@ -186,24 +161,19 @@ class TwitchChannel
     public static function channelUsernameFromId($streamer_id)
     {
 
-        /*
-        $cache_json = file_exists(TwitchConfig::$streamerCachePath) ? json_decode(file_get_contents(TwitchConfig::$streamerCachePath), true) : [];
-
-        if ($cache_json) {
-            foreach ($cache_json as $user_id => $data) {
-                if ($data['id'] == $streamer_id) {
-                    return (string)$data["display_name"];
-                }
-            }
-        }
-        */
-
         $cd = self::getChannelDataById($streamer_id);
         if($cd) return $cd['display_name'];
 
         return false;
     }
 
+    /**
+     * Get channel data from remote endpoint
+     *
+     * @param int $streamer_id
+     * @return array|boolean
+     * @throws Exception
+     */
     public static function getChannelDataById($streamer_id)
     {
 
@@ -250,6 +220,7 @@ class TwitchChannel
             ]);
         } catch (\Throwable $th) {
             TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "helper", "getChannelDataById for {$streamer_id} errored: " . $th->getMessage());
+            // throw new \Exception("HTTP error when fetching channel data for {$streamer_id}: {$th->getMessage()}");
             return false;
         }
 
@@ -258,6 +229,7 @@ class TwitchChannel
 
         if (!$json["data"]) {
             TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "helper", "Failed to fetch channel data for {$streamer_id}: {$server_output}");
+            // throw new \Exception("No channel data for id {$streamer_id}");
             return false;
         }
 

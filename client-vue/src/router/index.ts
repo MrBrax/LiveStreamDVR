@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
-import Dashboard from "../views/Dashboard.vue";
+import Dashboard from "../views/DashboardView.vue";
 
 const routes: Array<RouteRecordRaw> = [
     {
@@ -16,27 +16,27 @@ const routes: Array<RouteRecordRaw> = [
         path: "/vod/:vod/editor",
         name: "Editor",
         props: true,
-        component: () => import(/* webpackChunkName: "editor" */ "../views/Editor.vue"),
+        component: () => import(/* webpackChunkName: "editor" */ "../views/EditorView.vue"),
     },
     {
         path: "/tools",
         name: "Tools",
-        component: () => import(/* webpackChunkName: "tools" */ "../views/Tools.vue"),
+        component: () => import(/* webpackChunkName: "tools" */ "../views/ToolsView.vue"),
     },
     {
         path: "/settings/:tab?",
         name: "Settings",
-        component: () => import(/* webpackChunkName: "settings" */ "../views/Settings.vue"),
+        component: () => import(/* webpackChunkName: "settings" */ "../views/SettingsView.vue"),
     },
     {
         path: "/clientsettings",
         name: "ClientSettings",
-        component: () => import(/* webpackChunkName: "clientsettings" */ "../views/ClientSettings.vue"),
+        component: () => import(/* webpackChunkName: "clientsettings" */ "../views/ClientSettingsView.vue"),
     },
     {
         path: "/about",
         name: "About",
-        component: () => import(/* webpackChunkName: "about" */ "../views/About.vue"),
+        component: () => import(/* webpackChunkName: "about" */ "../views/AboutView.vue"),
     },
 ];
 

@@ -47,7 +47,19 @@ export default defineComponent({
             // clear config
             this.$store.commit("updateConfig", []);
 
-            const response = await this.$http.get(`/api/v0/settings/list`);
+            let response;
+
+            try {
+                response = await this.$http.get(`/api/v0/settings/list`);
+            } catch (error) {
+                alert(error);
+                return;
+            }
+
+            if (response.status !== 200) {
+                alert("Non-200 response from server");
+                return;
+            }
 
             if (!response.data || !response.data.data) {
                 alert("No data received");

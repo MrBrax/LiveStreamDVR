@@ -693,7 +693,11 @@ class TwitchHelper
 		}
 
 		if (self::$game_db && isset(self::$game_db[$game_id])) {
-			return self::$game_db[$game_id];
+			if(isset(self::$game_db[$game_id]['added']) && time() > self::$game_db[$game_id]['added'] + (60*60*24*60) ){ // two months?
+				self::logAdvanced(self::LOG_INFO, "helper", "Game id {$game_id} needs refreshing.");
+			}else{
+				return self::$game_db[$game_id];
+			}
 		}
 
 		if (!self::$game_db) {

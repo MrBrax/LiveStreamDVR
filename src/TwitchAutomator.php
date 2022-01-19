@@ -222,7 +222,6 @@ class TwitchAutomator
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Cleanup {$vod_list[0]->basename}");
 			$vod_list[0]->delete();
 		}
-
 	}
 
 	/**
@@ -372,7 +371,7 @@ class TwitchAutomator
 			// check if channel is in config, copypaste
 			if (!TwitchConfig::getChannelByLogin($this->broadcaster_user_login)) {
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle (update) triggered with sub id {$subscription_id}, but username '{$this->broadcaster_user_login}' is not in config.");
-				
+
 				// 5head solution
 				// TwitchHelper::channelUnsubscribe($this->broadcaster_user_id);
 				TwitchHelper::eventSubUnsubscribe($subscription_id);
@@ -388,13 +387,20 @@ class TwitchAutomator
 			TwitchConfig::setCache("{$this->broadcaster_user_login}.last.online", (new DateTime())->format(DateTime::ATOM));
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Stream online for {$this->broadcaster_user_login} (retry {$message_retry})", ['headers' => $headers, 'payload' => $data]);
 
+			$channel_obj = TwitchConfig::getChannelByLogin($this->broadcaster_user_login);
+
 			// check if channel is in config, hmm
-			if (!TwitchConfig::getChannelByLogin($this->broadcaster_user_login)) {
+			if (!$channel_obj) {
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Handle (online) triggered with sub id {$subscription_id}, but username '{$this->broadcaster_user_login}' is not in config.");
-				
+
 				// 5head solution
 				// TwitchHelper::channelUnsubscribe($this->broadcaster_user_id);
 				TwitchHelper::eventSubUnsubscribe($subscription_id);
+				return false;
+			}
+
+			if ($channel_obj->no_capture) {
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Skip capture for {$this->broadcaster_user_login} because no-capture is set", ['headers' => $headers, 'payload' => $data]);
 				return false;
 			}
 
@@ -493,7 +499,6 @@ class TwitchAutomator
 					TwitchConfig::setCache("{$this->broadcaster_user_login}.online", null);
 					return false;
 				}
-				
 			}
 
 			$event = [];
