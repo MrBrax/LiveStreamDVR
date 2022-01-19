@@ -141,18 +141,6 @@ class TwitchChannel
     public static function channelIdFromLogin($login)
     {
 
-        /*
-        $cache_json = file_exists(TwitchConfig::$streamerCachePath) ? json_decode(file_get_contents(TwitchConfig::$streamerCachePath), true) : [];
-
-        if ($cache_json) {
-            foreach ($cache_json as $user_id => $data) {
-                if ($data['login'] == $login) {
-                    return (string)$user_id;
-                }
-            }
-        }
-        */
-
         $cd = self::getChannelDataByLogin($login);
         if($cd) return $cd['id'];
 
@@ -163,18 +151,6 @@ class TwitchChannel
     public static function channelLoginFromId($streamer_id)
     {
 
-        /*
-        $cache_json = file_exists(TwitchConfig::$streamerCachePath) ? json_decode(file_get_contents(TwitchConfig::$streamerCachePath), true) : [];
-
-        if ($cache_json) {
-            foreach ($cache_json as $user_id => $data) {
-                if ($data['id'] == $streamer_id) {
-                    return (string)$data["login"];
-                }
-            }
-        }
-        */
-
         $cd = self::getChannelDataById($streamer_id);
         if($cd) return $cd['login'];
 
@@ -184,18 +160,6 @@ class TwitchChannel
     // DRY
     public static function channelUsernameFromId($streamer_id)
     {
-
-        /*
-        $cache_json = file_exists(TwitchConfig::$streamerCachePath) ? json_decode(file_get_contents(TwitchConfig::$streamerCachePath), true) : [];
-
-        if ($cache_json) {
-            foreach ($cache_json as $user_id => $data) {
-                if ($data['id'] == $streamer_id) {
-                    return (string)$data["display_name"];
-                }
-            }
-        }
-        */
 
         $cd = self::getChannelDataById($streamer_id);
         if($cd) return $cd['display_name'];
