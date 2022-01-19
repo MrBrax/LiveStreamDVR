@@ -79,7 +79,7 @@
                             <li><strong>Backend version:</strong> {{ $store.state.version }}</li>
                             <li><strong>Frontend version:</strong> {{ clientVersion }}</li>
                             <li><strong>Frontend build:</strong> {{ clientMode }}</li>
-                            <li v-if="envs && envs.NODE"><strong>Node:</strong> {{ envs.npm_config_node_version }}{% endif %}</li>
+                            <!--<li v-if="envs && envs.NODE"><strong>Node:</strong> {{ envs.npm_config_node_version }}{% endif %}</li>-->
                         </ul>
                     </div>
 
@@ -114,7 +114,16 @@
                     <div class="block">
                         <h3>Subscriptions</h3>
                         <button class="button is-confirm is-small" @click="fetchSubscriptions">Fetch</button>
-                        <div></div>
+                        <table>
+                            <tr v-for="subscription in subscriptions" :key="subscription.id">
+                                <td>{{ subscription.id }}</td>
+                                <td>{{ subscription.username }}</td>
+                                <td>{{ subscription.type }}</td>
+                                <td>
+                                    <button class="button is-confirm is-small" @click="unsubscribe(subscription.id)">Unsubscribe</button>
+                                </td>
+                            </tr>
+                        </table>
                     </div>
 
                     <!-- pip update -->
@@ -143,6 +152,7 @@
 </template>
 
 <script lang="ts">
+import { ApiSubscription } from "@/twitchautomator";
 import { defineComponent } from "vue";
 
 interface SoftwareCallback {
@@ -181,10 +191,15 @@ interface AboutData {
 export default defineComponent({
     name: "About",
     title: "About",
-    data() {
+    data(): {
+        aboutData: AboutData | null;
+        // envs: any;
+        subscriptions: ApiSubscription[];
+    } {
         return {
-            aboutData: {} as AboutData | null,
-            envs: {},
+            aboutData: null,
+            // envs: {},
+            subscriptions: [],
         };
     },
     created() {
@@ -238,7 +253,27 @@ export default defineComponent({
                 });
         },
         fetchSubscriptions() {
-            console.debug("implement");
+            this.$http
+                .get(`/api/v0/subscriptions/list`)
+                .then((response) => {
+                    const json = response.data;
+                    this.subscriptions = json.channels as ApiSubscription[];
+                })
+                .catch((err) => {
+                    console.error("about error", err.response);
+                });
+        },
+        unsubscribe(id: string) {
+            this.$http
+                .get(`/api/v0/subscriptions/unsub?id=${id}`)
+                .then((response) => {
+                    const json = response.data;
+                    console.debug("unsubscribe", json);
+                    this.fetchSubscriptions();
+                })
+                .catch((err) => {
+                    console.error("about error", err.response);
+                });
         },
     },
 });

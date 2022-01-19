@@ -177,6 +177,16 @@ export type ApiChannel = {
     };
 };
 
+export type ApiSubscription = {
+    type: string;
+    id: string;
+    username: string;
+    user_id: string;
+    callback: string;
+    instance_match: boolean;
+    status: string;
+};
+
 export type ApiChannelConfig = {
     login: string;
     match: string[];
