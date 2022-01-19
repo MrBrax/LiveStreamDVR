@@ -114,6 +114,7 @@
                     <div class="block">
                         <h3>Subscriptions</h3>
                         <button class="button is-confirm is-small" @click="fetchSubscriptions">Fetch</button>
+                        (only click buttons once)
                         <table>
                             <tr v-for="subscription in subscriptions" :key="subscription.id">
                                 <td>{{ subscription.id }}</td>
