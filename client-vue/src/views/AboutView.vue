@@ -189,7 +189,7 @@ interface AboutData {
 }
 
 export default defineComponent({
-    name: "About",
+    name: "AboutView",
     title: "About",
     data(): {
         aboutData: AboutData | null;

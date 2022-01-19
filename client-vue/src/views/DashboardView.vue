@@ -82,7 +82,7 @@ import { format } from "date-fns";
 import { MutationPayload } from "vuex";
 
 export default defineComponent({
-    name: "Dashboard",
+    name: "DashboardView",
     title(): string {
         if (this.streamersOnline > 0) return `[${this.streamersOnline}] Dashboard`;
         return "Dashboard";

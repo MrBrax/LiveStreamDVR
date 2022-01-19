@@ -74,7 +74,7 @@ import ToolsChatDownloadForm from "@/components/forms/ToolsChatDownloadForm.vue"
 import type { ApiJob } from "@/twitchautomator.d";
 
 export default defineComponent({
-    name: "Tools",
+    name: "ToolsView",
     title: "Tools",
     data() {
         return {

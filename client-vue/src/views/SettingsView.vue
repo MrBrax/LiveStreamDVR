@@ -104,7 +104,7 @@ import { faUser, faCalendarCheck } from "@fortawesome/free-solid-svg-icons";
 library.add(faUser, faCalendarCheck);
 
 export default defineComponent({
-    name: "Settings",
+    name: "SettingsView",
     title() {
         return `Settings`;
     },
