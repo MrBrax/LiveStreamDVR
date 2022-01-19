@@ -257,10 +257,11 @@ export default defineComponent({
                 .get(`/api/v0/subscriptions/list`)
                 .then((response) => {
                     const json = response.data;
-                    this.subscriptions = json.channels as ApiSubscription[];
+                    console.log("subscriptions", json);
+                    this.subscriptions = json.data.channels as ApiSubscription[];
                 })
                 .catch((err) => {
-                    console.error("about error", err.response);
+                    console.error("fetchSubscriptions error", err.response);
                 });
         },
         unsubscribe(id: string) {
