@@ -94,7 +94,7 @@ class TwitchConfig
 		['key' => 'relative_time', 			'group' => 'Interface',	'text' => 'Relative time', 									'type' => 'boolean',	'help' => '"1 hour ago" instead of 2020-01-01'],
 		['key' => 'low_latency', 			'group' => 'Advanced',	'text' => 'Low latency (untested)', 						'type' => 'boolean'],
 		// ['key' => 'youtube_dlc', 			'group' => 'Advanced',	'text' => 'Use youtube-dlc instead of the regular one', 	'type' => 'boolean'],
-		['key' => 'youtube_dl_alternative', 'group' => 'Advanced',	'text' => 'The alternative to youtube-dl to use', 			'type' => 'string'],
+		// ['key' => 'youtube_dl_alternative', 'group' => 'Advanced',	'text' => 'The alternative to youtube-dl to use', 			'type' => 'string'],
 		['key' => 'pipenv_enabled', 		'group' => 'Advanced',	'text' => 'Use pipenv', 									'type' => 'boolean',	'default' => false],
 		['key' => 'chat_dump', 				'group' => 'Basic',		'text' => 'Dump chat during capture', 						'type' => 'boolean',	'default' => false, 'help' => "Dump chat from IRC with an external python script. This isn't all that stable."],
 		['key' => 'ts_sync', 				'group' => 'Video',		'text' => 'Try to force sync remuxing (not recommended)', 			'type' => 'boolean',	'default' => false],

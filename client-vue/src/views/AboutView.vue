@@ -35,7 +35,7 @@
                                 <td>{{ aboutData.bins.streamlink.update }}</td>
                             </tr>
                             <tr>
-                                <td>youtube-dl ({{ $store.state.config.youtube_dl_alternative }})</td>
+                                <td>yt-dlp</td>
                                 <td>{{ aboutData.bins.youtubedl.path }}</td>
                                 <td>{{ aboutData.bins.youtubedl.status }}</td>
                                 <td>{{ aboutData.bins.youtubedl.update }}</td>
@@ -130,7 +130,7 @@
                     <!-- pip update -->
                     <div class="block" v-if="!aboutData.is_docker">
                         <h3>Pip update</h3>
-                        <code>pip install --user --upgrade youtube-dl streamlink tcd pipenv</code>
+                        <code>pip install --user --upgrade yt-dlp streamlink tcd pipenv</code>
                         <br />You might want to install without the --user switch depending on environment.
                     </div>
                     <div class="block">

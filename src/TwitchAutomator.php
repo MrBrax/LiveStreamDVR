@@ -1448,7 +1448,7 @@ class TwitchAutomator
 			if (TwitchConfig::cfg('pipenv_enabled')) {
 				$yt_cmd[] = 'pipenv';
 				$yt_cmd[] = 'run';
-				$yt_cmd[] = 'youtube-dl';
+				$yt_cmd[] = 'yt-dlp';
 			} else {
 				$yt_cmd[] = TwitchHelper::path_youtubedl();
 			}

@@ -6,7 +6,7 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-youtube-dl = "*"
+yt-dlp = "*"
 tcd = "*"
 streamlink = "*"
 
