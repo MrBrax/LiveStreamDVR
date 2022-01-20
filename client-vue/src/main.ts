@@ -18,7 +18,6 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 import "./assets/style.scss";
 
-
 if (process.env.BASE_URL !== undefined) {
     axios.defaults.baseURL = process.env.BASE_URL;
 }
