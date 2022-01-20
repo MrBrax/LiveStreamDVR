@@ -1,6 +1,7 @@
+const { defineConfig } = require("@vue/cli-service");
 process.env.VUE_APP_VERSION = process.env.npm_package_version;
 
-module.exports = {
+module.exports = defineConfig({
     // publicPath: '/test/',
     publicPath: process.env.BASE_URL,
 
@@ -46,4 +47,4 @@ module.exports = {
     },
 
     lintOnSave: false,
-};
+});
