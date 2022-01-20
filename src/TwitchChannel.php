@@ -158,7 +158,20 @@ class TwitchChannel
     }
 
     // DRY
+    /**
+     * Get username but actually it's display name
+     * @deprecated
+     */
     public static function channelUsernameFromId($streamer_id)
+    {
+
+        $cd = self::getChannelDataById($streamer_id);
+        if($cd) return $cd['display_name'];
+
+        return false;
+    }
+
+    public static function channelDisplayNameFromId($streamer_id)
     {
 
         $cd = self::getChannelDataById($streamer_id);

@@ -99,11 +99,12 @@ trait ApiChannels
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
-        $username = TwitchChannel::channelUsernameFromId($channel_id);
+        $display_name = TwitchChannel::channelDisplayNameFromId($channel_id);
+        $cache_login = TwitchChannel::channelLoginFromId($channel_id);
 
-        if ($login !== $username) {
+        if ($login !== $cache_login) {
             $response->getBody()->write(json_encode([
-                "message" => "Login '{$login}' doesn't match the one provided by Twitch: '{$username}'. Check that it's the LOGIN name and not the DISPLAY name.",
+                "message" => "Login '{$login}' doesn't match the one provided by Twitch: '{$cache_login}'. Check that it's the LOGIN name and not the DISPLAY name.",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -111,9 +112,9 @@ trait ApiChannels
         // $tmp = TwitchHelper::getChannelData($channel_id);
         // 
         // // fix capitalization
-        // if ($tmp['display_name'] !== $username) {
+        // if ($tmp['display_name'] !== $display_name) {
         //     // $response->getBody()->write("Username capitalization seems to be incorrect, fixing.<br>");
-        //     $username = $tmp['display_name'];
+        //     $display_name = $tmp['display_name'];
         // }
 
         if (TwitchConfig::getChannelByLogin($login)) {
@@ -159,7 +160,7 @@ trait ApiChannels
         TwitchConfig::loadChannels(); // reload from disk
 
         $payload = json_encode([
-            'message' => "Channel added: {$login} ({$username}).",
+            'message' => "Channel added: {$login} ({$display_name}).",
             'status' => 'OK'
         ]);
 
