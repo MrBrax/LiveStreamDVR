@@ -81,13 +81,36 @@ import type { ApiLogLine, ApiChannel } from "@/twitchautomator.d";
 import { format } from "date-fns";
 import { MutationPayload } from "vuex";
 
+interface DashboardData {
+    loading: boolean;
+    timer: number;
+    timerMax: number;
+    interval: number; // interval?
+    totalSize: number;
+    freeSize: number;
+    logFilename: string;
+    logFilenames: string[];
+    logLines: ApiLogLine[];
+    logVisible: boolean;
+    logModule: string;
+    logFromLine: number;
+    ws: WebSocket | null;
+    wsConnected: boolean;
+    wsConnecting: boolean;
+    wsKeepalive: number;
+    wsKeepaliveTime: number;
+    wsLastPing: number;
+    oldData: Record<string, ApiChannel>;
+    notificationSub: () => void;
+}
+
 export default defineComponent({
     name: "DashboardView",
     title(): string {
         if (this.streamersOnline > 0) return `[${this.streamersOnline}] Dashboard`;
         return "Dashboard";
     },
-    data() {
+    data(): DashboardData {
         return {
             loading: false,
             timer: 120,
@@ -96,14 +119,16 @@ export default defineComponent({
             totalSize: 0,
             freeSize: 0,
             logFilename: "",
-            logFilenames: [] as string[],
-            logLines: [] as ApiLogLine[],
+            logFilenames: [],
+            logLines: [],
             logFromLine: 0,
             logVisible: false,
             logModule: "",
-            oldData: {} as Record<string, ApiChannel>,
-            notificationSub: Function as any,
-            ws: {} as WebSocket,
+            oldData: {},
+            notificationSub: () => {
+                console.log("notificationSub");
+            },
+            ws: null,
             wsConnected: false,
             wsConnecting: false,
             wsKeepalive: 0,
@@ -169,11 +194,12 @@ export default defineComponent({
             this.ws = new WebSocket(websocket_url);
             this.ws.onopen = (ev: Event) => {
                 console.log(`Connected to websocket!`, ev);
+                if (!this.ws) return;
                 this.ws.send(JSON.stringify({ action: "helloworld" }));
                 this.wsConnected = true;
                 this.wsConnecting = false;
                 this.wsKeepalive = setInterval(() => {
-                    // console.debug("send ping");
+                    if (!this.ws) return;
                     this.ws.send("ping");
                 }, this.wsKeepaliveTime);
             };

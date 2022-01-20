@@ -85,9 +85,11 @@ export default defineComponent({
             try {
                 response = await this.$http.get(`/api/v0/jobs/kill/${this.streamer.current_vod.basename}`);
             } catch (error) {
-                console.error("abortCapture error", error.response);
-                if (error.response.data && error.response.data.message) {
-                    alert(error.response.data.message);
+                if (this.$http.isAxiosError(error)) {
+                    console.error("abortCapture error", error.response);
+                    if (error.response && error.response.data && error.response.data.message) {
+                        alert(error.response.data.message);
+                    }
                 }
                 return;
             }
@@ -106,9 +108,11 @@ export default defineComponent({
             try {
                 response = await this.$http.get(`/api/v0/channel/${this.streamer?.login}/force_record`);
             } catch (error) {
-                console.error("forceRecord error", error.response);
-                if (error.response.data && error.response.data.message) {
-                    alert(error.response.data.message);
+                if (this.$http.isAxiosError(error)) {
+                    console.error("forceRecord error", error.response);
+                    if (error.response && error.response.data && error.response.data.message) {
+                        alert(error.response.data.message);
+                    }
                 }
                 return;
             }
@@ -131,9 +135,11 @@ export default defineComponent({
             try {
                 response = await this.$http.get(`/api/v0/channel/${this.streamer.login}/dump_playlist`);
             } catch (error) {
-                console.error("abortCapture error", error.response);
-                if (error.response.data && error.response.data.message) {
-                    alert(error.response.data.message);
+                if (this.$http.isAxiosError(error)) {
+                    console.error("abortCapture error", error.response);
+                    if (error.response && error.response.data && error.response.data.message) {
+                        alert(error.response.data.message);
+                    }
                 }
                 return;
             }
