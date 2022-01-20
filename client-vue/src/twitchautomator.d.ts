@@ -185,6 +185,7 @@ export type ApiSubscription = {
     callback: string;
     instance_match: boolean;
     status: string;
+    created_at: string;
 };
 
 export type ApiChannelConfig = {

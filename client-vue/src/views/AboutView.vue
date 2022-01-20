@@ -118,6 +118,7 @@
                         <table>
                             <tr v-for="subscription in subscriptions" :key="subscription.id">
                                 <td>{{ subscription.id }}</td>
+                                <td>{{ subscription.created_at }}</td>
                                 <td>{{ subscription.username }}</td>
                                 <td>{{ subscription.type }}</td>
                                 <td>

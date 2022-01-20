@@ -113,6 +113,7 @@ trait ApiSubs
                 $entry['callback']          = $data['transport']['callback'];
                 $entry['instance_match']    = $data['transport']['callback'] == TwitchConfig::cfg('app_url') . '/hook' . (TwitchConfig::cfg('instance_id') ? '?instance=' . TwitchConfig::cfg('instance_id') : '');
                 $entry['status']            = $data['status'];
+                $entry['created_at']        = $data['created_at'];
                 // $entry['expires_at']        = $data['expires_at'];
 
                 $payload_data['channels'][] = $entry;
