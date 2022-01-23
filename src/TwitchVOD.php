@@ -1703,6 +1703,30 @@ class TwitchVOD
 
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Check muted VOD for {$this->basename}");
 
+		$data = TwitchHelper::getVideo($this->twitch_vod_id);
+
+		if (!$data) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "VOD {$this->basename} is deleted!");
+			throw new \Exception("VOD is deleted!");
+			return false;
+		} else {
+			if (sizeof($data['muted_segments']) > 0) {
+				$this->twitch_vod_muted = true;
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "vodclass", "VOD {$this->basename} is muted!");
+				if ($previous !== $this->twitch_vod_muted && $save) {
+					$this->saveJSON("vod mute true");
+				}
+				return true;
+			} else {
+				$this->twitch_vod_muted = false;
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "VOD {$this->basename} is not muted!");
+				if ($previous !== $this->twitch_vod_muted && $save) {
+					$this->saveJSON("vod mute false");
+				}
+				return false;
+			}
+		}
+		/*
 		$cmd = [];
 
 		if (TwitchConfig::cfg('pipenv_enabled')) {
@@ -1744,6 +1768,7 @@ class TwitchVOD
 			}
 			return false;
 		}
+		*/
 	}
 
 	/**
