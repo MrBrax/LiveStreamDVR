@@ -2,9 +2,13 @@ FROM trafex/php-nginx
 USER root
 
 # system packages
-RUN apk --no-cache add gcc libc-dev git \
-    python3 py3-pip composer ffmpeg mediainfo \
+RUN apk --no-cache add \
+    gcc libc-dev git \
+    composer \
+    python3 py3-pip \
+    ffmpeg mediainfo \
     util-linux busybox-initscripts procps gcompat \
+    libxml2-dev libxslt-dev python3-dev \
     yarn nodejs
 
 # pip packages
