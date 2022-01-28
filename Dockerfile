@@ -1,4 +1,4 @@
-FROM trafex/alpine-nginx-php7
+FROM trafex/php-nginx
 USER root
 
 # system packages
