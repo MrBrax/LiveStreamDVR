@@ -105,6 +105,8 @@ class TwitchConfig
 
 		['key' => 'eventsub_secret', 		'group' => 'Advanced',	'text' => 'EventSub secret', 								'type' => 'string',		'required' => true],
 
+		['key' => 'ca_path', 				'group' => 'Advanced',	'text' => 'Path to certificate PEM file', 					'type' => 'string'],
+
 	];
 
 	public static $timezone;

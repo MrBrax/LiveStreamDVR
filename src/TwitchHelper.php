@@ -1441,7 +1441,8 @@ TwitchHelper::$guzzler = new \GuzzleHttp\Client([
 		'Client-ID' => TwitchConfig::cfg('api_client_id'),
 		'Content-Type' => 'application/json',
 		'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
-	]
+	],
+	"verify" => TwitchConfig::cfg('ca_path') ?: true,
 ]);
 
 TwitchHelper::setupDirectories();

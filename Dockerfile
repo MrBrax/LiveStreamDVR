@@ -51,12 +51,16 @@ COPY ./docker/nginx.conf /etc/nginx/nginx.conf
 RUN mkdir -p /home/nobody && chown -R nobody:nobody /home/nobody
 ENV HOME /home/nobody
 
+# get certs
+RUN wget https://curl.haxx.se/ca/cacert.pem -O /tmp/cacert.pem
+
 # twitchautomator docker specific configs
 ENV TCD_BIN_DIR=/usr/bin
 ENV TCD_FFMPEG_PATH=/usr/bin/ffmpeg
 ENV TCD_MEDIAINFO_PATH=/usr/bin/mediainfo
 ENV TCD_DOCKER=1
 ENV TCD_WEBSOCKET_ENABLED=1
+ENV TCD_CA_PATH=/tmp/cacert.pem
 
 USER nobody
 WORKDIR /var/www/twitchautomator

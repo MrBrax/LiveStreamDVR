@@ -88,18 +88,33 @@ trait ApiSettings
                 $full_url .= '?instance=' . TwitchConfig::cfg('instance_id');
             }
 
-            $client = new \GuzzleHttp\Client();
+            $client = new \GuzzleHttp\Client([
+                "verify" => TwitchConfig::cfg('ca_path') ?: true,
+            ]);
 
             try {
                 $resp = $client->request('GET', $full_url, ['connect_timeout' => 10, 'timeout' => 10]);
             } catch (\GuzzleHttp\Exception\BadResponseException $th) {
                 $response->getBody()->write(json_encode([
-                    "message" => "External app url could not be contacted at all on '{$full_url}': {$th->getMessage()}",
+                    "message" => "External app url could not be contacted on '{$full_url}' due to a bad response: {$th->getMessage()}",
+                    "status" => "ERROR"
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            } catch (\GuzzleHttp\Exception\ConnectException $th) {
+                $response->getBody()->write(json_encode([
+                    "message" => "External app url could not be contacted on '{$full_url}' due to a connection error: {$th->getMessage()}",
+                    "status" => "ERROR"
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            } catch (\GuzzleHttp\Exception\GuzzleException $th) {
+                $response->getBody()->write(json_encode([
+                    "message" => "External app url could not be contacted on '{$full_url}' due to a Guzzle error: {$th->getMessage()}",
                     "status" => "ERROR"
                 ]));
                 return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
             }
 
+            // response returned by the hook when no arguments are supplied
             if ($resp->getBody()->getContents() !== 'No data supplied') {
                 $response->getBody()->write(json_encode([
                     "message" => "External app url could be contacted but didn't get the expected response ({$full_url}).",
@@ -120,8 +135,6 @@ trait ApiSettings
             "status" => "OK"
         ]));
         return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
-
-        // return $response->withHeader('Location', $this->router->pathFor('settings') )->withStatus(200);
 
     }
 }
