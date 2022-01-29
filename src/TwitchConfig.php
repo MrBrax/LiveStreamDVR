@@ -125,7 +125,10 @@ class TwitchConfig
 
 		if (getenv('TCD_' . strtoupper($var)) !== false) return getenv('TCD_' . strtoupper($var)); // environment variable
 
-		if (!isset(self::$config[$var])) return $def; // if not defined
+		if (!isset(self::$config[$var])) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "config", "No config for '{$var}', returning default '{$def}'.");
+			return $def; // if not defined
+		}
 
 		// if (self::$config[$var] == null) return null;
 
@@ -390,7 +393,7 @@ try {
 	TwitchConfig::$timezone = new \DateTimeZone(TwitchConfig::cfg('timezone', 'UTC'));
 } catch (\Throwable $th) {
 	TwitchConfig::$timezone = new \DateTimeZone('UTC');
-	TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "config", "Config has invalid timezone set");
+	TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "config", "Config has invalid timezone set: " . TwitchConfig::cfg('timezone', 'UTC'));
 }
 
 if (!TwitchConfig::cfg('bin_dir')) {

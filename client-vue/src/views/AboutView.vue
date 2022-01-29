@@ -114,7 +114,9 @@
                     <div class="block">
                         <h3>Subscriptions</h3>
                         <button class="button is-confirm is-small" @click="fetchSubscriptions">Fetch</button>
+                        <button class="button is-confirm is-small" @click="subscribeAll">Subscribe</button>
                         (only click buttons once)
+                        <span v-if="subscriptionsLoading">Loading...</span>
                         <table>
                             <tr v-for="subscription in subscriptions" :key="subscription.id">
                                 <td>{{ subscription.id }}</td>
@@ -197,11 +199,13 @@ export default defineComponent({
         aboutData: AboutData | null;
         // envs: any;
         subscriptions: ApiSubscription[];
+        subscriptionsLoading: boolean;
     } {
         return {
             aboutData: null,
             // envs: {},
             subscriptions: [],
+            subscriptionsLoading: false,
         };
     },
     created() {
@@ -255,23 +259,42 @@ export default defineComponent({
                 });
         },
         fetchSubscriptions() {
+            this.subscriptionsLoading = true;
             this.$http
                 .get(`/api/v0/subscriptions/list`)
                 .then((response) => {
                     const json = response.data;
                     console.log("subscriptions", json);
                     this.subscriptions = json.data.channels as ApiSubscription[];
+                    this.subscriptionsLoading = false;
                 })
                 .catch((err) => {
                     console.error("fetchSubscriptions error", err.response);
+                    this.subscriptionsLoading = false;
                 });
         },
         unsubscribe(id: string) {
+            this.subscriptionsLoading = true;
             this.$http
                 .get(`/api/v0/subscriptions/unsub?id=${id}`)
                 .then((response) => {
                     const json = response.data;
                     console.debug("unsubscribe", json);
+                    this.subscriptionsLoading = false;
+                    this.fetchSubscriptions();
+                })
+                .catch((err) => {
+                    console.error("about error", err.response);
+                });
+        },
+        subscribeAll() {
+            this.subscriptionsLoading = true;
+            this.$http
+                .get(`/api/v0/subscriptions/sub`)
+                .then((response) => {
+                    const json = response.data;
+                    console.debug("subscribeAll", json);
+                    this.subscriptionsLoading = false;
                     this.fetchSubscriptions();
                 })
                 .catch((err) => {

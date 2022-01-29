@@ -612,6 +612,11 @@ class ApiController
                 return 403
         */
 
+        if (!TwitchConfig::cfg("eventsub_secret")) {
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "hook", "No eventsub secret in config.", ['GET' => $_GET, 'POST' => $_POST]);
+            return false;
+        }
+
         $twitch_message_id = $request->getHeader("Twitch-Eventsub-Message-Id")[0];
         $twitch_message_timestamp = $request->getHeader("Twitch-Eventsub-Message-Timestamp")[0];
         $twitch_message_signature = $request->getHeader("Twitch-Eventsub-Message-Signature")[0];
