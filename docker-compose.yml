@@ -3,6 +3,8 @@ services:
   web:
     build: .
     image: mrbrax/twitchautomator
+    depends_on:
+      - "broker"
     ports:
       - "8082:8080"
     volumes:

@@ -4,8 +4,9 @@ USER root
 # system packages
 RUN apk --no-cache add \
     gcc libc-dev git \
+    ca-certificates \
     composer \
-    python3 py3-pip \
+    python3 py3-pip py3-wheel \
     ffmpeg mediainfo \
     util-linux busybox-initscripts procps gcompat \
     libxml2-dev libxslt-dev python3-dev \
