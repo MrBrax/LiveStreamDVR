@@ -137,7 +137,7 @@ class TwitchConfig
 		}
 		*/
 
-		return self::$config[$var] ?: $def;
+		return self::$config[$var];
 	}
 
 	/**
