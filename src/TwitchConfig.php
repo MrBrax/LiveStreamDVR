@@ -123,7 +123,7 @@ class TwitchConfig
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "config", "No such config variable '{$var}'.");
 		}
 
-		if (getenv('TCD_' . strtoupper($var))) return getenv('TCD_' . strtoupper($var)); // environment variable
+		if (getenv('TCD_' . strtoupper($var)) !== false) return getenv('TCD_' . strtoupper($var)); // environment variable
 
 		if (!isset(self::$config[$var])) return $def; // if not defined
 
