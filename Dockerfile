@@ -51,6 +51,9 @@ RUN chown -R nobody:nobody /var/www/twitchautomator && chmod -R 775 /var/www/twi
 # nginx config
 COPY ./docker/nginx.conf /etc/nginx/nginx.conf
 
+# php config
+COPY ./docker/cacert.ini /etc/php8/conf.d/cacert.ini
+
 # make home folder
 RUN mkdir -p /home/nobody && chown -R nobody:nobody /home/nobody
 ENV HOME /home/nobody
