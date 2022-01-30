@@ -533,6 +533,16 @@ class TwitchAutomator
 				'online'		=> true,
 			];
 
+			// extra metadata with a separate api request
+			if (TwitchConfig::cfg("api_metadata")) {
+				$streams = TwitchHelper::getStreams($this->getLogin());
+				if ($streams) {
+					$stream = $streams[0];
+					$chapter['viewer_count'] = $stream['viewer_count'];
+				}
+				//$chapter['viewer_count'];
+			}
+
 			$this->vod->addChapter($chapter);
 			$this->vod->saveJSON('game update');
 

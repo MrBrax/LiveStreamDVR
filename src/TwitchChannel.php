@@ -588,4 +588,10 @@ class TwitchChannel
 
         return false;
     }
+
+    public function getStreamInfo() {
+        $streams = TwitchHelper::getStreams((int)$this->userid);
+        if (!$streams) return false;
+        return $streams[0];
+    }
 }

@@ -649,7 +649,29 @@ class TwitchHelper
 	}
 
 	/**
-	 * Return videos for a streamer id
+	 * Return streams for a streamer id
+	 * 
+	 * "data": [
+	 *		{
+	 *		"id": "1234",
+	 *		"user_id": "5678",
+	 *		"user_login": "asdf",
+	 *		"user_name": "asdf",
+	 *		"game_id": "494131",
+	 *		"game_name": "Little Nightmares",
+	 *		"type": "live",
+	 *		"title": "hablamos y le damos a Little Nightmares 1",
+	 *		"viewer_count": 78365,
+	 *		"started_at": "2021-03-10T15:04:21Z",
+	 *		"language": "es",
+	 *		"thumbnail_url": "https://example.com/thumbnail.jpg",
+	 *		"tag_ids": [
+	 *			"d4bb9c58-2141-4881-bcdc-3fe0505457d1"
+	 *		],
+	 *		"is_mature": false
+	 *		},
+	 *		...
+	 *	],
 	 *
 	 * @param int $streamer_id
 	 * @return array|false

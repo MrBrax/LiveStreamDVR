@@ -107,6 +107,8 @@ class TwitchConfig
 
 		['key' => 'ca_path', 				'group' => 'Advanced',	'text' => 'Path to certificate PEM file', 					'type' => 'string'],
 
+		['key' => 'api_metadata', 			'group' => 'Basic',		'text' => 'Get extra metadata when updating chapter.', 		'type' => 'boolean', 'help' => 'Makes extra API requests.'],
+
 	];
 
 	public static $timezone;
@@ -116,18 +118,28 @@ class TwitchConfig
 		$this->loadConfig();
 	}
 
+	/**
+	 * Returns the config value for the given key
+	 *
+	 * @param string $var The key to get
+	 * @param any $def The default value to return if the key doesn't exist
+	 * @return any The value of the key
+	 */
 	public static function cfg(string $var, $def = null)
 	{
 
+		// make sure the setting exists
 		if (!self::settingExists($var)) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "config", "No such config variable '{$var}'.");
 		}
 
+		// return from env if set
 		if (getenv('TCD_' . strtoupper($var)) !== false) return getenv('TCD_' . strtoupper($var)); // environment variable
 
+		// if value is not set, return default
 		if (!isset(self::$config[$var])) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "config", "No config for '{$var}', returning default '{$def}'.");
-			return $def; // if not defined
+			return $def;
 		}
 
 		// if (self::$config[$var] == null) return null;
