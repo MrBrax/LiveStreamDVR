@@ -36,10 +36,10 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
 
     // channels
     $group->group('/channels', function (RouteCollectorProxy $group) {
-        
+
         $group->get('', ApiController::class . ':channels_list')->setName('api_channels_list');
         $group->post('', ApiController::class . ':channels_add')->setName('api_channels_add');
-        
+
         // channel
         $group->group('/{login}', function (RouteCollectorProxy $group) {
             $group->get('', ApiController::class . ':channel')->setName('api_channel');
@@ -50,15 +50,16 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
             $group->get('/dump_playlist', ApiController::class . ':channel_dump_playlist')->setName('api_channel_dump_playlist');
             $group->get('/subscription', ApiController::class . ':channel_subscription')->setName('api_channel_subscription');
         });
-
-    });    
+    });
 
     $group->get('/check_vods', ApiController::class . ':check_vods')->setName('check_vods');
 
     // job manipulation
     $group->group('/jobs', function (RouteCollectorProxy $group) {
-        $group->get('/list', ApiController::class . ':jobs_list')->setName('api_jobs_list');
-        $group->post('/kill/{job}', ApiController::class . ':jobs_kill')->setName('api_jobs_kill');
+        $group->get('', ApiController::class . ':jobs_list')->setName('api_jobs_list');
+        $group->group('/{job}', function (RouteCollectorProxy $group) {
+            $group->delete('', ApiController::class . ':jobs_kill')->setName('api_jobs_kill');
+        });
     });
 
     // twitch api proxy

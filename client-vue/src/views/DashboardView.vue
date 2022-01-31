@@ -314,7 +314,7 @@ export default defineComponent({
             let response;
 
             try {
-                response = await this.$http.get(`/api/v0/jobs/list`);
+                response = await this.$http.get(`/api/v0/jobs`);
             } catch (error) {
                 console.error(error);
                 return;
