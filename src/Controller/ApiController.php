@@ -115,10 +115,11 @@ class ApiController
                 'status' => 'OK'
             ]);
         } else {
-            $payload = json_encode([
+            $response->getBody()->write(json_encode([
                 'error' => 'Failed loading job',
                 'status' => 'ERROR'
-            ]);
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
         $response->getBody()->write($payload);
