@@ -78,7 +78,7 @@ export default defineComponent({
             console.log("entries", inputs, inputs.entries(), inputs.values());
 
             this.$http
-                .post(`/api/v0/channels/add`, inputs)
+                .post(`/api/v0/channels`, inputs)
                 .then((response) => {
                     const json = response.data;
                     this.formStatusText = json.message;
@@ -97,23 +97,6 @@ export default defineComponent({
                         this.formStatus = "ERROR";
                     }
                 });
-
-            /*
-            fetch(`api/v0/channels/add`, {
-                method: 'POST',
-                body: inputs
-            })
-            .then((response) => response.json())
-            .then((json) => {
-                this.formStatusText = json.message;
-                this.formStatus = json.status;
-                if(json.status == 'OK'){
-                    this.$emit('formSuccess', json);
-                }
-            }).catch((test) => {
-                console.error("Error", test);
-            });
-            */
 
             event.preventDefault();
             return false;

@@ -294,7 +294,7 @@ export default defineComponent({
         async fetchStreamers() {
             let response;
             try {
-                response = await this.$http.get(`/api/v0/channels/list`);
+                response = await this.$http.get(`/api/v0/channels`);
             } catch (error) {
                 console.error(error);
                 return;

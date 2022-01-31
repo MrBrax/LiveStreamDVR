@@ -106,7 +106,7 @@ export default defineComponent({
             let response;
 
             try {
-                response = await this.$http.get(`/api/v0/channel/${this.streamer?.login}/force_record`);
+                response = await this.$http.get(`/api/v0/channels/${this.streamer?.login}/force_record`);
             } catch (error) {
                 if (this.$http.isAxiosError(error)) {
                     console.error("forceRecord error", error.response);
@@ -133,7 +133,7 @@ export default defineComponent({
             let response;
 
             try {
-                response = await this.$http.get(`/api/v0/channel/${this.streamer.login}/dump_playlist`);
+                response = await this.$http.get(`/api/v0/channels/${this.streamer.login}/dump_playlist`);
             } catch (error) {
                 if (this.$http.isAxiosError(error)) {
                     console.error("abortCapture error", error.response);

@@ -93,7 +93,7 @@ export default defineComponent({
             console.log("entries", inputs, inputs.entries(), inputs.values());
 
             this.$http
-                .post(`/api/v0/channels/update`, inputs)
+                .put(`/api/v0/channels/${this.channel.login}`, inputs)
                 .then((response) => {
                     const json = response.data;
                     this.formStatusText = json.message;
@@ -106,32 +106,13 @@ export default defineComponent({
                     console.error("form error", err.response);
                 });
 
-            /*
-            fetch(`api/v0/channels/update`, {
-                method: 'POST',
-                body: inputs
-            })
-            .then((response) => response.json())
-            .then((json) => {
-                this.formStatusText = json.message;
-                this.formStatus = json.status;
-                if(json.status == 'OK'){
-                    this.$emit('formSuccess', json);
-                }
-            }).catch((test) => {
-                console.error("Error", test);
-            });
-            */
-
             event.preventDefault();
             return false;
         },
         deleteChannel() {
             if (!confirm(`Do you want to delete "${this.channel.login}"?`)) return;
-            const fd = new FormData();
-            fd.append("login", this.channel.login);
             this.$http
-                .post(`/api/v0/channels/delete`, fd)
+                .delete(`/api/v0/channels/${this.channel.login}`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);

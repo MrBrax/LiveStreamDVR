@@ -19,24 +19,6 @@ export default createStore({
         clientConfig: [];
     },
     mutations: {
-        /*
-        fetchStreamerList(state) {
-
-            this.$http.get(`/api/v0/channels/list`)
-            .then((response) => {
-                if(!response.data.data){
-                    console.error("fetchStreamers invalid data", response.data);
-                    return;
-                }
-                this.totalSize = response.data.data.total_size;
-                this.freeSize = response.data.data.free_size;
-                (state as any).streamerList = response.data.data.streamer_list;
-            }).catch((err) => {
-                console.error("fetchStreamerList error", err.response);
-            });
-
-        },
-        */
         updateStreamerList(state, data: ApiChannel[]) {
             (state as any).streamerList = data;
         },

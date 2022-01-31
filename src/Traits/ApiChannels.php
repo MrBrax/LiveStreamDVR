@@ -15,34 +15,6 @@ use App\TwitchChannel;
 trait ApiChannels
 {
 
-    /*
-    private function generateStreamerList()
-    {
-
-        $total_size = 0;
-
-        $streamerListStatic = TwitchConfig::getStreamers();
-        $streamerList = [];
-
-        /*
-        usort( $streamerListStatic, function($a, $b){
-            return $a->display_name <=> $b->display_name;
-        });
-        *
-
-        foreach ($streamerListStatic as $streamer) {
-
-            $data = new TwitchChannel();
-            $data->load($streamer['username'], true);
-
-            $total_size += $data->vods_size;
-
-            $streamerList[] = $data;
-        }
-        return [$streamerList, $total_size];
-    }
-    */
-
     public function channels_list(Request $request, Response $response, $args)
     {
 
@@ -169,10 +141,19 @@ trait ApiChannels
         return $response->withHeader('Content-Type', 'application/json')->withHeader('Access-Control-Allow-Origin', '*');
     }
 
+    /**
+     * PUT /api/v0/channels/{login}
+     *
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return void
+     */
     public function channels_update(Request $request, Response $response, array $args)
     {
 
-        $login       = isset($_POST['login']) ? $_POST['login'] : null;
+        // $login          = isset($_POST['login']) ? $_POST['login'] : null;
+        $login          = isset($args['login']) ? $args['login'] : null;
         $quality        = isset($_POST['quality']) ? explode(" ", $_POST['quality']) : null;
         $match          = isset($_POST['match']) ? $_POST['match'] : null;
         $download_chat  = isset($_POST['download_chat']);
@@ -247,10 +228,18 @@ trait ApiChannels
         return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
     }
 
+    /**
+     * DELETE /api/v0/channels/{login}
+     *
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return void
+     */
     public function channels_delete(Request $request, Response $response, array $args)
     {
 
-        $login = $_POST['login'];
+        $login = isset($args['login']) ? $args['login'] : null;
 
         $streamer_data = TwitchConfig::getChannelByLogin($login);
         
