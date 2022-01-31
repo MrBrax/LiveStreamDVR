@@ -50,7 +50,7 @@ export default defineComponent({
             let response;
 
             try {
-                response = await this.$http.get(`/api/v0/settings/list`);
+                response = await this.$http.get(`/api/v0/settings`);
             } catch (error) {
                 alert(error);
                 return;

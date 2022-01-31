@@ -120,19 +120,27 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     $group->get('/check_vods', ApiController::class . ':check_vods')->setName('check_vods');
 
     // job manipulation
-    $group->get('/jobs/list', ApiController::class . ':jobs_list')->setName('api_jobs_list');
-    $group->post('/jobs/kill/{job}', ApiController::class . ':jobs_kill')->setName('api_jobs_kill');
+    $group->group('/jobs', function (RouteCollectorProxy $group) {
+        $group->get('/list', ApiController::class . ':jobs_list')->setName('api_jobs_list');
+        $group->post('/kill/{job}', ApiController::class . ':jobs_kill')->setName('api_jobs_kill');
+    });
 
     // twitch api proxy
-    $group->get('/twitchapi/videos/{login}', ApiController::class . ':twitchapi_videos')->setName('api_twitchapi_videos');
-    $group->get('/twitchapi/video/{video_id}', ApiController::class . ':twitchapi_video')->setName('api_twitchapi_video');
+    $group->group('/twitchapi', function (RouteCollectorProxy $group) {
+        $group->get('/videos/{login}', ApiController::class . ':twitchapi_videos')->setName('api_twitchapi_videos');
+        $group->get('/video/{video_id}', ApiController::class . ':twitchapi_video')->setName('api_twitchapi_video');
+    });
 
     // settings
-    $group->get('/settings/list', ApiController::class . ':settings_list')->setName('api_settings_list');
-    $group->post('/settings/save', ApiController::class . ':settings_save')->setName('api_settings_save');
+    $group->group('/settings', function (RouteCollectorProxy $group) {
+        $group->get('', ApiController::class . ':settings_list')->setName('api_settings_list');
+        $group->put('', ApiController::class . ':settings_save')->setName('api_settings_save');
+    });
 
-    $group->get('/favourites/list', ApiController::class . ':favourites_list')->setName('api_favourites_list');
-    $group->post('/favourites/save', ApiController::class . ':favourites_save')->setName('api_favourites_save');
+    $group->group('/favourites', function (RouteCollectorProxy $group) {
+        $group->get('', ApiController::class . ':favourites_list')->setName('api_favourites_list');
+        $group->put('', ApiController::class . ':favourites_save')->setName('api_favourites_save');
+    });
 
     $group->get('/games/list', ApiController::class . ':games_list')->setName('api_games_list');
 
@@ -166,8 +174,8 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
 
     $group->any('/test_webhook', function (Request $request, Response $response, array $args) {
         TwitchHelper::webhook([
-			'action' => 'test'
-		]);
+            'action' => 'test'
+        ]);
         $response->getBody()->write("Tested");
         return $response;
     });
@@ -199,18 +207,18 @@ $app->any('/api/{any:.*}', function (Request $request, Response $response, array
 
 $app->any('/{any:.*}', function (Request $request, Response $response, array $args) use ($app) {
     $i = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . "index.html";
-    
-    if(!file_exists($i)){
+
+    if (!file_exists($i)) {
         $response->getBody()->write("The frontend client is not installed. Please build or download it and place it in the public/ directory.");
         return $response->withStatus(500);
     }
 
     $contents = file_get_contents($i);
-    
+
     // $contents = str_replace('href="/js', 'href="' . TwitchConfig::cfg('basepath') . '/js', $contents);
     // $contents = str_replace('src="/js', 'src="' . TwitchConfig::cfg('basepath') . '/js', $contents);
     // $contents = str_replace('href="/css', 'href="' . TwitchConfig::cfg('basepath') . '/css', $contents);
-    
+
     // $contents = str_replace('/assets/', TwitchConfig::cfg('basepath') . '/assets/', $contents);
     // $contents = str_replace('</head>', '<script>window.BASE_URL = "' . TwitchConfig::cfg('basepath') . '";</script></head>', $contents);
 

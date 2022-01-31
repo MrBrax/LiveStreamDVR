@@ -112,7 +112,7 @@ export default defineComponent({
             console.log("entries", inputs, inputs.entries(), inputs.values());
 
             this.$http
-                .post(`/api/v0/settings/save`, inputs)
+                .put(`/api/v0/settings`, inputs)
                 .then((response) => {
                     const json = response.data;
                     this.formStatusText = json.message;

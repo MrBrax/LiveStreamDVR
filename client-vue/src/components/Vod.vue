@@ -711,13 +711,13 @@ export default defineComponent({
             }
 
             this.$http
-                .post(`/api/v0/favourites/save`, formData)
+                .put(`/api/v0/favourites`, formData)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);
                     console.log(json);
 
-                    this.$http.get(`/api/v0/settings/list`).then((response) => {
+                    this.$http.get(`/api/v0/settings`).then((response) => {
                         this.$store.commit("updateConfig", response.data.data.config);
                     });
                 })

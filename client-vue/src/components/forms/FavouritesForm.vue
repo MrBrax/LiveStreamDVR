@@ -46,7 +46,7 @@ export default defineComponent({
             console.log("entries", inputs, inputs.entries(), inputs.values());
 
             this.$http
-                .post(`/api/v0/favourites/save`, inputs)
+                .put(`/api/v0/favourites`, inputs)
                 .then((response) => {
                     const json = response.data;
                     this.formStatusText = json.message;
