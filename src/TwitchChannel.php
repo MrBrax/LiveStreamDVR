@@ -45,6 +45,7 @@ class TwitchChannel
     public ?array $match = [];
     public ?bool $download_chat = null;
     public ?bool $no_capture = null;
+    public ?bool $burn_chat = null;
 
     public ?\DateTime $subbed_at = null;
     public ?\DateTime $expires_at = null;
@@ -104,6 +105,7 @@ class TwitchChannel
         $channel->match                = isset($config['match']) ? $config['match'] : [];
         $channel->download_chat        = isset($config['download_chat']) ? $config['download_chat'] : false;
         $channel->no_capture           = isset($config['no_capture']) ? $config['no_capture'] : false;
+        $channel->burn_chat           = isset($config['burn_chat']) ? $config['burn_chat'] : false;
         // $channel->last_online          = TwitchConfig::getCache("{$channel->login}.last.offline") ? new DateTime(TwitchConfig::getCache("{$channel->login}.last.offline")) : null;
 
         $subfile = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "subs.json";

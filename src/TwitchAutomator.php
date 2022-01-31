@@ -891,7 +891,7 @@ class TwitchAutomator
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Auto download chat on {$basename}", ['download' => $data_username]);
 			$vodclass->downloadChat();
 
-			if ($streamer['burn_chat']) {
+			if ($streamer->burn_chat) {
 				if ($vodclass->renderChat()) {
 					$vodclass->burnChat();
 				}
