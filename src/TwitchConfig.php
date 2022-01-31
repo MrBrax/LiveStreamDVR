@@ -123,7 +123,7 @@ class TwitchConfig
 	 *
 	 * @param string $var The key to get
 	 * @param any $def The default value to return if the key doesn't exist
-	 * @return any The value of the key
+	 * @return mixed The value of the key
 	 */
 	public static function cfg(string $var, $def = null)
 	{

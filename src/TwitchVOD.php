@@ -1710,7 +1710,7 @@ class TwitchVOD
 			throw new \Exception("VOD is deleted!");
 			return false;
 		} else {
-			if (sizeof($data['muted_segments']) > 0) {
+			if (isset($data['muted_segments']) && sizeof($data['muted_segments']) > 0) {
 				$this->twitch_vod_muted = true;
 				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "vodclass", "VOD {$this->basename} is muted!");
 				if ($previous !== $this->twitch_vod_muted && $save) {
