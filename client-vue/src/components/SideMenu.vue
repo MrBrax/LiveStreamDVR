@@ -1,18 +1,18 @@
 <template>
     <div class="side-menu">
         <div class="menu-top">
-            <div class="top-menu-item title">
+            <div class="top-menu-item title" v-if="store.config">
                 <router-link to="/dashboard">
-                    <img src="../assets/logo.png" class="favicon" width="24" height="24" :alt="$store.state.config.app_name" />
+                    <img src="../assets/logo.png" class="favicon" width="24" height="24" :alt="store.config.app_name" />
                     <span class="title">
-                        {{ $store.state.config.app_name }} {{ $store.state.version }}/{{ clientVersion }}
-                        <span class="debug-mode" v-if="$store.state.config.debug" title="Debug">👽</span>
+                        {{ store.config.app_name }} {{ store.version }}/{{ clientVersion }}
+                        <span class="debug-mode" v-if="store.config.debug" title="Debug">👽</span>
                     </span>
                 </router-link>
             </div>
         </div>
 
-        <div class="menu-middle" v-if="$route.name == 'Dashboard' && $store.state.streamerList && $store.state.streamerList.length > 0">
+        <div class="menu-middle" v-if="$route.name == 'Dashboard' && store.streamerList && store.streamerList.length > 0">
             <side-menu-streamer v-for="streamer in sortedStreamers" :key="streamer.username" v-bind:streamer="streamer"></side-menu-streamer>
         </div>
 
@@ -62,14 +62,19 @@ import { faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faSt
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import SideMenuStreamer from "./SideMenuStreamer.vue";
 import { ApiChannel } from "@/twitchautomator";
+import { useStore } from "@/store";
 library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass);
 
 export default defineComponent({
     components: { SideMenuStreamer },
     name: "SideMenu",
+    setup() {
+        const store = useStore();
+        return { store };
+    },
     computed: {
         sortedStreamers() {
-            const streamers: ApiChannel[] = this.$store.state.streamerList;
+            const streamers: ApiChannel[] = this.store.streamerList;
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
         },
         clientVersion() {

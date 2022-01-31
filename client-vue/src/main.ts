@@ -1,11 +1,11 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
-import store from "./store";
 import axios from "axios";
 import VueAxios from "vue-axios";
 import titleMixin from "./mixins/titleMixin";
 import helpers from "./mixins/helpers";
+import { createPinia } from "pinia";
 import "./registerServiceWorker";
 
 // font-awesome
@@ -22,7 +22,7 @@ if (process.env.BASE_URL !== undefined) {
     axios.defaults.baseURL = process.env.BASE_URL;
 }
 
-const app = createApp(App).use(store).use(router).use(VueAxios, axios).component("fa", FontAwesomeIcon).mixin(titleMixin).mixin(helpers).mount("#app");
+const app = createApp(App).use(router).use(createPinia()).use(VueAxios, axios).component("fa", FontAwesomeIcon).mixin(titleMixin).mixin(helpers).mount("#app");
 
 /*
 createApp(App)

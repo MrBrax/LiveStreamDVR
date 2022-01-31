@@ -1,32 +1,25 @@
-import { ApiChannel, ApiConfig, ApiJob, ApiVod } from "@/twitchautomator";
-import { createStore } from "vuex";
+import { ApiChannel, ApiConfig, ApiJob, ApiVod, ClientSettings } from "@/twitchautomator";
+import { defineStore } from "pinia";
 
-export default createStore({
-    state() {
-        // eslint-disable-next-line no-unused-labels
-        streamerList: [];
-
-        // eslint-disable-next-line no-unused-labels
-        jobList: [];
-
-        // eslint-disable-next-line no-unused-labels
-        config: [];
-
-        // eslint-disable-next-line no-unused-labels
-        version: "";
-
-        // eslint-disable-next-line no-unused-labels
-        clientConfig: [];
+export const useStore = defineStore("twitchAutomator", {
+    state: () => {
+        return {
+            streamerList: [] as ApiChannel[],
+            jobList: [] as ApiJob[],
+            config: {} as ApiConfig | null,
+            version: "",
+            clientConfig: {} as ClientSettings,
+        };
     },
-    mutations: {
-        updateStreamerList(state, data: ApiChannel[]) {
-            (state as any).streamerList = data;
+    actions: {
+        updateStreamerList(data: ApiChannel[]) {
+            this.streamerList = data;
         },
-        updateVod(state, vod: ApiVod) {
+        updateVod(vod: ApiVod) {
             const streamer_login = vod.streamer_login;
             const vod_basename = vod.basename;
-            console.log("updateVod", (state as any).streamerList);
-            for (const streamer of (state as any).streamerList as ApiChannel[]) {
+            console.log("updateVod", this.streamerList);
+            for (const streamer of this.streamerList as ApiChannel[]) {
                 if (streamer.login === streamer_login) {
                     for (let streamer_vod of streamer.vods_list) {
                         if (streamer_vod.basename === vod_basename) {
@@ -38,19 +31,17 @@ export default createStore({
                 }
             }
         },
-        updateJobList(state, data: ApiJob[]) {
-            (state as any).jobList = data;
+        updateJobList(data: ApiJob[]) {
+            this.jobList = data;
         },
-        updateConfig(state, data: ApiConfig[]) {
-            (state as any).config = data;
+        updateConfig(data: ApiConfig | null) {
+            this.config = data;
         },
-        updateClientConfig(state, data: Record<string, any>) {
-            (state as any).clientConfig = data;
+        updateClientConfig(data: ClientSettings) {
+            this.clientConfig = data;
         },
-        updateVersion(state, data: number) {
-            (state as any).version = data;
+        updateVersion(data: string) {
+            this.version = data;
         },
     },
-    actions: {},
-    modules: {},
 });
