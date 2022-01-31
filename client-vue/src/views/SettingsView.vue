@@ -131,7 +131,7 @@ export default defineComponent({
             this.$http
                 .all([
                     this.$http
-                        .get(`api/v0/settings/list`)
+                        .get(`api/v0/settings`)
                         .then((response) => {
                             const json = response.data;
                             if (json.message) alert(json.message);

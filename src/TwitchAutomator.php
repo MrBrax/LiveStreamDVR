@@ -536,9 +536,15 @@ class TwitchAutomator
 			// extra metadata with a separate api request
 			if (TwitchConfig::cfg("api_metadata")) {
 				$streams = TwitchHelper::getStreams($this->getLogin());
-				if ($streams) {
+				if ($streams && count($streams) > 0) {
 					$stream = $streams[0];
-					$chapter['viewer_count'] = $stream['viewer_count'];
+					if (isset($stream["viewer_count"])) {
+						$chapter['viewer_count'] = $stream['viewer_count'];
+					} else {
+						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No viewer count in metadata request.", ['event' => $event]);
+					}
+				} else {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No streams in metadata request.", ['event' => $event]);
 				}
 				//$chapter['viewer_count'];
 			}

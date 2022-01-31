@@ -56,28 +56,42 @@ trait ApiSettings
     public function settings_save(Request $request, Response $response, array $args)
     {
 
+        $formdata = (array)$request->getParsedBody();
+
         $force_new_token = false;
-        if (TwitchConfig::cfg('api_client_id') !== $_POST['api_client_id']) {
+        if (TwitchConfig::cfg('api_client_id') !== $formdata['api_client_id']) {
             $force_new_token = true;
         }
 
+        $fields = 0;
         foreach (TwitchConfig::$settingsFields as $setting) {
 
             $key = $setting['key'];
 
             if ($setting['type'] == "boolean") {
 
-                TwitchConfig::setConfig($key, isset($_POST[$key]));
+                TwitchConfig::setConfig($key, isset($formdata[$key]));
+                $fields += isset($formdata[$key]) ? 1 : 0;
             } else {
 
                 if (isset($setting['secret'])) {
-                    if ($_POST[$key]) {
-                        TwitchConfig::setConfig($key, $_POST[$key]);
+                    if ($formdata[$key]) {
+                        TwitchConfig::setConfig($key, $formdata[$key]);
+                        $fields += 1;
                     }
                 } else {
-                    TwitchConfig::setConfig($key, $_POST[$key]);
+                    TwitchConfig::setConfig($key, $formdata[$key]);
+                    $fields += 1;
                 }
             }
+        }
+
+        if ($fields == 0 || count($formdata) == 0) {
+            $response->getBody()->write(json_encode([
+                "message" => "No settings updated.",
+                "status" => "ERROR"
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
         if (TwitchConfig::cfg('app_url')) {
@@ -135,6 +149,5 @@ trait ApiSettings
             "status" => "OK"
         ]));
         return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
-
     }
 }

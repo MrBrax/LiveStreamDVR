@@ -190,8 +190,12 @@ class TwitchConfig
 			throw new \Exception("Setting does not exist: {$key}");
 		}
 
+		if ($value === null) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "config", "Setting '{$key}' was set to null.");
+		}
+
 		$field = self::getSettingField($key);
-		if (isset($field['stripslash'])) {
+		if (isset($field['stripslash']) && $value !== null) {
 			$value = rtrim($value, "\\/"); // strip ending slashes
 		}
 

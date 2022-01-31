@@ -120,6 +120,7 @@ export default defineComponent({
                     if (json.status == "OK") {
                         this.$emit("formSuccess", json);
                     }
+                    console.debug("settings save response", response);
                 })
                 .catch((err: AxiosError) => {
                     console.error("form error", err.response);
