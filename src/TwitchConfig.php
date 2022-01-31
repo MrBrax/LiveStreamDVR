@@ -109,6 +109,8 @@ class TwitchConfig
 
 		['key' => 'api_metadata', 			'group' => 'Basic',		'text' => 'Get extra metadata when updating chapter.', 		'type' => 'boolean', 'help' => 'Makes extra API requests.'],
 
+		['key' => 'error_handler', 			'group' => 'Advanced',	'text' => 'Use app logging to catch PHP errors', 			'type' => 'boolean'],
+
 	];
 
 	public static $timezone;
@@ -291,7 +293,8 @@ class TwitchConfig
 		self::saveConfig();
 	}
 
-	public static function loadChannelsConfig(){
+	public static function loadChannelsConfig()
+	{
 		if (!file_exists(self::$channelPath)) return;
 		self::$channels_config = json_decode(file_get_contents(self::$channelPath), true) ?: [];
 	}
@@ -312,8 +315,9 @@ class TwitchConfig
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "config", "Saved channels config");
 	}
 
-	public static function getChannels(){
-		if(count(self::$channels) == 0){
+	public static function getChannels()
+	{
+		if (count(self::$channels) == 0) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "Channels list empty when getting, load from config.");
 			self::loadChannels();
 		}
@@ -415,4 +419,57 @@ if (!TwitchConfig::cfg('bin_dir')) {
 if (!TwitchConfig::cfg("eventsub_secret")) {
 	TwitchConfig::setConfig("eventsub_secret", bin2hex(random_bytes(16)));
 	TwitchConfig::saveConfig("eventsub_secret not set");
+}
+
+if (TwitchConfig::cfg("error_handler")) {
+	function TAErrorHandler($errno, $errstr, $errfile, $errline)
+	{
+		if (!(error_reporting() & $errno)) {
+			// This error code is not included in error_reporting, so let it fall
+			// through to the standard PHP error handler
+			return false;
+		}
+
+		switch ($errno) {
+		case E_USER_ERROR:
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "PHP", "Fatal error caught, check log for details", [
+				"errno" => $errno,
+				"errstr" => $errstr,
+				"errfile" => $errfile,
+				"errline" => $errline,
+			]);
+			exit(1);
+
+		case E_USER_WARNING:
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Warning caught, check log for details", [
+				"errno" => $errno,
+				"errstr" => $errstr,
+				"errfile" => $errfile,
+				"errline" => $errline,
+			]);
+			break;
+
+		case E_USER_NOTICE:
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Notice caught, check log for details", [
+				"errno" => $errno,
+				"errstr" => $errstr,
+				"errfile" => $errfile,
+				"errline" => $errline,
+			]);
+			break;
+
+		default:
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Unknown error caught, check log for details", [
+				"errno" => $errno,
+				"errstr" => $errstr,
+				"errfile" => $errfile,
+				"errline" => $errline,
+			]);
+			break;
+		}
+
+		/* Don't execute PHP internal error handler */
+		return true;
+	}
+	$old_error_handler = set_error_handler("App\TAErrorHandler");
 }
