@@ -58,7 +58,7 @@ class TwitchChannel
     public array $channel_data = [];
     public array $config = [];
 
-    private static function loadAbstract($streamer_id, $api = false)
+    private static function loadAbstract(string $streamer_id, $api = false)
     {
 
         $channel = new self();
@@ -140,7 +140,7 @@ class TwitchChannel
         return self::loadAbstract(self::channelIdFromLogin($login), $api); // $channel;
     }
 
-    public static function channelIdFromLogin($login)
+    public static function channelIdFromLogin(string $login)
     {
 
         $cd = self::getChannelDataByLogin($login);
@@ -150,7 +150,7 @@ class TwitchChannel
     }
 
     // DRY
-    public static function channelLoginFromId($streamer_id)
+    public static function channelLoginFromId(string $streamer_id)
     {
 
         $cd = self::getChannelDataById($streamer_id);
@@ -164,7 +164,7 @@ class TwitchChannel
      * Get username but actually it's display name
      * @deprecated
      */
-    public static function channelUsernameFromId($streamer_id)
+    public static function channelUsernameFromId(string $streamer_id)
     {
 
         $cd = self::getChannelDataById($streamer_id);
@@ -173,7 +173,7 @@ class TwitchChannel
         return false;
     }
 
-    public static function channelDisplayNameFromId($streamer_id)
+    public static function channelDisplayNameFromId(string $streamer_id)
     {
 
         $cd = self::getChannelDataById($streamer_id);
@@ -185,11 +185,11 @@ class TwitchChannel
     /**
      * Get channel data from remote endpoint
      *
-     * @param int $streamer_id
+     * @param string $streamer_id
      * @return array|boolean
      * @throws Exception
      */
-    public static function getChannelDataById($streamer_id)
+    public static function getChannelDataById(string $streamer_id)
     {
 
         if (!is_numeric($streamer_id)) {
@@ -592,7 +592,7 @@ class TwitchChannel
     }
 
     public function getStreamInfo() {
-        $streams = TwitchHelper::getStreams((int)$this->userid);
+        $streams = TwitchHelper::getStreams($this->userid);
         if (!$streams) return false;
         return $streams[0];
     }

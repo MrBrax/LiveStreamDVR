@@ -673,10 +673,10 @@ class TwitchHelper
 	 *		...
 	 *	],
 	 *
-	 * @param int $streamer_id
+	 * @param string $streamer_id
 	 * @return array|false
 	 */
-	public static function getStreams(int $streamer_id)
+	public static function getStreams(string $streamer_id)
 	{
 
 		$response = self::$guzzler->request('GET', '/helix/streams', [
@@ -941,7 +941,7 @@ class TwitchHelper
 
 	private static $channel_subscription_types = ['stream.online', 'stream.offline', 'channel.update'];
 
-	public static function channelSubscribe($streamer_id)
+	public static function channelSubscribe(string $streamer_id)
 	{
 
 		$streamer_login = TwitchChannel::channelLoginFromId($streamer_id);
@@ -1030,7 +1030,7 @@ class TwitchHelper
 		return true;
 	}
 
-	public static function channelUnsubscribe($streamer_id)
+	public static function channelUnsubscribe(string $streamer_id)
 	{
 
 		self::logAdvanced(self::LOG_INFO, "helper", "Unsubscribing to {$streamer_id}");

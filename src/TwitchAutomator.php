@@ -62,9 +62,9 @@ class TwitchAutomator
 	private $payload_eventsub = [];
 	private $payload_headers = [];
 
-	private $broadcaster_user_id = "";
-	private $broadcaster_user_login = "";
-	private $broadcaster_user_name  = "";
+	private string $broadcaster_user_id = "";
+	private string $broadcaster_user_login = "";
+	private string $broadcaster_user_name  = "";
 
 	const NOTIFY_GENERIC = 1;
 	const NOTIFY_DOWNLOAD = 2;
@@ -362,7 +362,7 @@ class TwitchAutomator
 		$this->data_cache = $data;
 
 		$event = $data['event'];
-		$this->broadcaster_user_id = $event['broadcaster_user_id'];
+		$this->broadcaster_user_id = (string)$event['broadcaster_user_id'];
 		$this->broadcaster_user_login = $event['broadcaster_user_login'];
 		$this->broadcaster_user_name = $event['broadcaster_user_name'];
 
@@ -535,7 +535,7 @@ class TwitchAutomator
 
 			// extra metadata with a separate api request
 			if (TwitchConfig::cfg("api_metadata")) {
-				$streams = TwitchHelper::getStreams($this->getLogin());
+				$streams = TwitchHelper::getStreams($this->getUserID());
 				if ($streams && count($streams) > 0) {
 					$stream = $streams[0];
 					if (isset($stream["viewer_count"])) {

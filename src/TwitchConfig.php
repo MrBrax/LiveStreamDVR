@@ -341,7 +341,7 @@ class TwitchConfig
 	 * @param string $username
 	 * @return TwitchChannel|false
 	 */
-	public static function getChannelById($channel_id)
+	public static function getChannelById(string $channel_id)
 	{
 		foreach (self::getChannels() as $c) {
 			if ($c->userid == $channel_id) return $c;
@@ -355,7 +355,7 @@ class TwitchConfig
 	 * @param string $login
 	 * @return TwitchChannel
 	 */
-	public static function getChannelByLogin($login)
+	public static function getChannelByLogin(string $login)
 	{
 		foreach (self::getChannels() as $c) {
 			if ($c->login == $login) return $c;
@@ -370,10 +370,10 @@ class TwitchConfig
 	 * @param [type] $username
 	 * @return TwitchChannel|false
 	 */
-	public static function getChannelByUsername($username)
+	public static function getChannelByUsername(string $username)
 	{
 		foreach (self::getChannels() as $c) {
-			if ($c->userid == $username) return $c;
+			if ($c->login == $username) return $c;
 		}
 		return false;
 	}
