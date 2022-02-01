@@ -372,7 +372,7 @@ class ApiController
             $bins['tcd']['installed'] = true;
 
             $version = trim(substr($bins['tcd']['status'], 23));
-            if (version_compare($version, $pip_requirements['tcd']['version'], $pip_requirements['tcd']['comparator'])) {
+            if (isset($pip_requirements) && isset($pip_requirements['tcd']) && version_compare($version, $pip_requirements['tcd']['version'], $pip_requirements['tcd']['comparator'])) {
                 $bins['tcd']['update'] = 'Version OK';
             } else {
                 $bins['tcd']['update'] = 'Please update to at least ' . $pip_requirements['tcd']['version'];
@@ -391,7 +391,7 @@ class ApiController
             $bins['streamlink']['installed'] = true;
 
             $version = trim(substr($bins['streamlink']['status'], 11));
-            if (version_compare($version, $pip_requirements['streamlink']['version'], $pip_requirements['streamlink']['comparator'])) {
+            if (isset($pip_requirements) && isset($pip_requirements['streamlink']) && version_compare($version, $pip_requirements['streamlink']['version'], $pip_requirements['streamlink']['comparator'])) {
                 $bins['streamlink']['update'] = 'Version OK';
             } else {
                 $bins['streamlink']['update'] = 'Please update to at least ' . $pip_requirements['streamlink']['version'];
@@ -408,7 +408,7 @@ class ApiController
             $bins['youtubedl']['status'] = trim($out);
             $bins['youtubedl']['installed'] = true;
 
-            if (version_compare(trim($out), $pip_requirements['youtube-dl']['version'], $pip_requirements['youtube-dl']['comparator'])) {
+            if (isset($pip_requirements) && isset($pip_requirements['youtube-dl']) && version_compare(trim($out), $pip_requirements['youtube-dl']['version'], $pip_requirements['youtube-dl']['comparator'])) {
                 $bins['youtubedl']['update'] = 'Version OK';
             } else {
                 $bins['youtubedl']['update'] = 'Please update to at least ' . $pip_requirements['youtube-dl']['version'];

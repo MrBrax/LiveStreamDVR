@@ -39,6 +39,7 @@
                 Do not capture video
             </label>
         </div>
+        <p><em>Live channels will not be recorded until they are live the next time.</em></p>
         <div class="field">
             <div class="control">
                 <button class="button is-confirm" type="submit">
