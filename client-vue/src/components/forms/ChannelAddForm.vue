@@ -77,7 +77,7 @@ export default defineComponent({
             // console.log("form", form);
             // console.log("entries", inputs, inputs.entries(), inputs.values());
 
-            let data: any = {};
+            let data: Record<string, unknown> = {};
             inputs.forEach((value, key) => (data[key] = value));
 
             this.$http

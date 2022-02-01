@@ -42,11 +42,13 @@ export default defineComponent({
             this.formStatusText = "Loading...";
             this.formStatus = "";
 
-            console.log("form", form);
-            console.log("entries", inputs, inputs.entries(), inputs.values());
+            // console.log("form", form);
+            // console.log("entries", inputs, inputs.entries(), inputs.values());
+            let data: Record<string, unknown> = {};
+            inputs.forEach((value, key) => (data[key] = value));
 
             this.$http
-                .put(`/api/v0/favourites`, inputs)
+                .put(`/api/v0/favourites`, data)
                 .then((response) => {
                     const json = response.data;
                     this.formStatusText = json.message;

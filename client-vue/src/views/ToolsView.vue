@@ -111,7 +111,6 @@ export default defineComponent({
                 .catch((err) => {
                     console.error("tools jobs fetch error", err.response);
                 });
-
         },
     },
     components: {
