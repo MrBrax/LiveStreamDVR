@@ -241,25 +241,6 @@ class TwitchAutomator
 
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "automator", "Handle called, proceed to parsing.");
 
-		// $headers = apache_request_headers();
-
-		/*
-		if (!$data['data']) {
-			$link = $headers['Link'];
-			preg_match("/user_id=([0-9]+)>/", $link, $link_match);
-			$userid = (string)$link_match[1];
-			$username = TwitchHelper::getChannelUsername($userid);
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No data supplied for handle (probably stream end, {$username}?)", ['get' => $_GET, 'post' => $_POST, 'headers' => $headers, 'data' => $data]);
-			return false;
-		}
-
-		$data_id = $data['data'][0]['id'];
-		// $data_title = $data['data'][0]['title'];
-		// $data_started = $data['data'][0]['started_at'];
-		// $data_game_id = $data['data'][0]['game_id'];
-		$data_username = $data['data'][0]['user_name'];
-		*/
-
 		/* stream.online
 			{
 				"subscription": {

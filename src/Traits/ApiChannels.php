@@ -38,12 +38,14 @@ trait ApiChannels
     public function channels_add(Request $request, Response $response, $args)
     {
 
-        $login          = isset($_POST['login']) ? $_POST['login'] : null;
-        $quality        = isset($_POST['quality']) ? explode(" ", $_POST['quality']) : null;
-        $match          = isset($_POST['match']) ? $_POST['match'] : null;
-        $download_chat  = isset($_POST['download_chat']);
-        $burn_chat      = isset($_POST['burn_chat']);
-        $no_capture     = isset($_POST['no_capture']);
+        $formdata = $request->getParsedBody();
+
+        $login          = isset($formdata['login']) ? $formdata['login'] : null;
+        $quality        = isset($formdata['quality']) ? explode(" ", $formdata['quality']) : null;
+        $match          = isset($formdata['match']) ? $formdata['match'] : null;
+        $download_chat  = isset($formdata['download_chat']);
+        $burn_chat      = isset($formdata['burn_chat']);
+        $no_capture     = isset($formdata['no_capture']);
 
         if (!$login) {
             $response->getBody()->write(json_encode([
@@ -152,13 +154,8 @@ trait ApiChannels
     public function channels_update(Request $request, Response $response, array $args)
     {
 
-        // $login          = isset($_POST['login']) ? $_POST['login'] : null;
         $login          = isset($args['login']) ? $args['login'] : null;
-        $quality        = isset($_POST['quality']) ? explode(" ", $_POST['quality']) : null;
-        $match          = isset($_POST['match']) ? $_POST['match'] : null;
-        $download_chat  = isset($_POST['download_chat']);
-        $burn_chat      = isset($_POST['burn_chat']);
-        $no_capture     = isset($_POST['no_capture']);
+        $formdata = $request->getParsedBody();
 
         if (!TwitchConfig::getChannelByLogin($login)) {
             $response->getBody()->write(json_encode([
@@ -167,6 +164,12 @@ trait ApiChannels
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
+
+        $quality        = isset($formdata['quality']) ? explode(" ", $formdata['quality']) : null;
+        $match          = isset($formdata['match']) ? $formdata['match'] : null;
+        $download_chat  = isset($formdata['download_chat']);
+        $burn_chat      = isset($formdata['burn_chat']);
+        $no_capture     = isset($formdata['no_capture']);
 
         // template
         $streamer = [
