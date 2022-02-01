@@ -91,9 +91,10 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     });
 
     $group->group('/subscriptions', function (RouteCollectorProxy $group) {
-        $group->get('/sub', ApiController::class . ':subscriptions_sub')->setName('api_subscriptions_sub');
-        $group->get('/list', ApiController::class . ':subscriptions_list')->setName('api_subscriptions_list');
-        $group->get('/unsub', ApiController::class . ':subscriptions_unsub')->setName('api_subscriptions_unsub');
+        $group->get('', ApiController::class . ':subscriptions_list')->setName('api_subscriptions_list');
+        $group->post('', ApiController::class . ':subscriptions_suball')->setName('api_subscriptions_suball');
+        $group->post('/{id}', ApiController::class . ':subscriptions_sub')->setName('api_subscriptions_sub');
+        $group->delete('/{id}', ApiController::class . ':subscriptions_unsub')->setName('api_subscriptions_unsub');
     });
 
     // cronjobs

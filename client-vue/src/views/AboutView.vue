@@ -271,7 +271,7 @@ export default defineComponent({
         fetchSubscriptions() {
             this.subscriptionsLoading = true;
             this.$http
-                .get(`/api/v0/subscriptions/list`)
+                .get(`/api/v0/subscriptions`)
                 .then((response) => {
                     const json = response.data;
                     console.log("subscriptions", json);
@@ -286,7 +286,7 @@ export default defineComponent({
         unsubscribe(id: string) {
             this.subscriptionsLoading = true;
             this.$http
-                .get(`/api/v0/subscriptions/unsub?id=${id}`)
+                .delete(`/api/v0/subscriptions/${id}`)
                 .then((response) => {
                     const json = response.data;
                     console.debug("unsubscribe", json);
@@ -300,7 +300,7 @@ export default defineComponent({
         subscribeAll() {
             this.subscriptionsLoading = true;
             this.$http
-                .get(`/api/v0/subscriptions/sub`)
+                .post(`/api/v0/subscriptions`)
                 .then((response) => {
                     const json = response.data;
                     console.debug("subscribeAll", json);
