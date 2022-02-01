@@ -465,6 +465,8 @@ class ApiController
         $bins['php']['pid'] = getmypid();
         $bins['php']['uid'] = getmyuid();
         $bins['php']['gid'] = getmygid();
+        $bins['php']['display_errors'] = ini_get('display_errors');
+        $bins['php']['error_reporting'] = ini_get('error_reporting');
 
         $cron_lastrun = [];
         foreach (['check_deleted_vods', 'check_muted_vods', 'dump_playlists', 'sub'] as $cron) {

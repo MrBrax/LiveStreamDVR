@@ -70,6 +70,8 @@
                             <li><strong>PHP UID:</strong> {{ aboutData.bins.php.uid }}</li>
                             <li><strong>PHP GID:</strong> {{ aboutData.bins.php.gid }}</li>
                             <li><strong>PHP SAPI:</strong> {{ aboutData.bins.php.sapi }}</li>
+                            <li><strong>PHP Display errors:</strong> {{ aboutData.bins.php.display_errors }}</li>
+                            <li><strong>PHP Error reporting:</strong> {{ aboutData.bins.php.error_reporting }}</li>
                             <li>
                                 <strong>Platform:</strong> {{ aboutData.bins.php.platform ? aboutData.bins.php.platform : "unknown" }}/{{
                                     aboutData.bins.php.platform_family ? aboutData.bins.php.platform_family : "unknown"
@@ -173,6 +175,8 @@ interface SoftwareCallback {
     sapi: string;
     platform?: string;
     platform_family?: string;
+    display_errors?: string;
+    error_reporting?: string;
 }
 
 interface AboutData {
