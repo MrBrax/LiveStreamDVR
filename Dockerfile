@@ -35,7 +35,7 @@ RUN cd /var/www/twitchautomator/ && composer install --optimize-autoloader --no-
 RUN cd /var/www/twitchautomator/client-vue && yarn install && yarn build && cp -r dist/* ../public/ && cd .. && rm -r -f client-vue
 
 # install chat dumper dependencies, test
-RUN cd /var/www/twitchautomator/src/Utilities/twitch-chat-dumper && yarn install
+RUN cd /var/www/twitchautomator/twitch-chat-dumper && yarn install
 
 # install dotnet for twitchdownloader
 # ADD https://dot.net/v1/dotnet-install.sh /tmp/dotnet-install.sh
