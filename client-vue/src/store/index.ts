@@ -12,6 +12,13 @@ export const useStore = defineStore("twitchAutomator", {
         };
     },
     actions: {
+        cfg<T>(key: string, def: T | null = null): T | null {
+            const k: keyof ApiConfig = key as keyof ApiConfig;
+            if (!this.config) return null;
+            // if (!key in this.config) return def;
+            if (this.config[k] === undefined || this.config[k] === null) return def;
+            return this.config[k] as unknown as T;
+        },
         updateStreamerList(data: ApiChannel[]) {
             this.streamerList = data;
         },

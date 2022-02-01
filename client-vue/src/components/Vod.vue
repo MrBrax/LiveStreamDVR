@@ -355,7 +355,7 @@
 
                 <br />
 
-                <template v-if="store.config && !store.config.playlist_dump">
+                <template v-if="store.cfg('playlist_dump')">
                     <em>
                         <span v-if="vod?.api_getCapturingStatus">
                             <span class="icon"><fa icon="sync" spin></fa></span>
@@ -369,7 +369,7 @@
                             </strong>
                         </span>
                     </em>
-                    <template v-if="store.config.chat_dump">
+                    <template v-if="store.cfg('chat_dump')">
                         <br /><em>
                             <span v-if="vod?.api_getChatDumpStatus">
                                 <span class="icon"><fa icon="sync" spin></fa></span>
@@ -736,7 +736,7 @@ export default defineComponent({
             if (!this.store.config) return "";
             let video_path = `${this.vod?.webpath}/${this.vod?.basename}.mp4`;
             let chat_path = `${this.vod?.webpath}/${this.vod?.basename}.chatdump`;
-            return `${this.store.config.basepath}/vodplayer/index.html#source=file&video_path=${video_path}&chatfile=${chat_path}&offset=${offset}`;
+            return `${this.store.cfg("basepath")}/vodplayer/index.html#source=file&video_path=${video_path}&chatfile=${chat_path}&offset=${offset}`;
         },
     },
     computed: {

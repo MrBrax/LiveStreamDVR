@@ -2,7 +2,7 @@
     <div class="container vertical">
         <section class="section" data-section="vods">
             <div class="section-title"><h1>Recorded VODs</h1></div>
-            <div class="section-content" v-if="store.config && store.streamerList && store.streamerList.length > 0">
+            <div class="section-content" v-if="store.streamerList && store.streamerList.length > 0">
                 <template v-if="!store.clientConfig.singlePage">
                     <streamer v-for="streamer in sortedStreamers" v-bind:key="streamer.userid" v-bind:streamer="streamer" />
                 </template>
@@ -157,7 +157,7 @@ export default defineComponent({
     mounted() {
         this.processNotifications();
 
-        if (this.store.config && this.store.config.websocket_enabled) {
+        if (this.store.cfg("websocket_enabled")) {
             this.connectWebsocket();
         } else {
             console.debug("No websocket url");
@@ -186,12 +186,12 @@ export default defineComponent({
             if (this.ws) this.disconnectWebsocket();
             if (!this.store.config) return;
             const proto = window.location.protocol === "https:" ? "wss://" : "ws://";
-            const websocket_url_public = proto + window.location.host + this.store.config.basepath + "/socket/";
+            const websocket_url_public = proto + window.location.host + this.store.cfg("basepath") + "/socket/";
             let websocket_url = process.env.NODE_ENV === "development" ? "ws://localhost:8765/socket/" : websocket_url_public;
 
-            if (this.store.config.websocket_client_address) {
-                console.log(`Overriding generated websocket URL '${websocket_url}' with config '${this.store.config.websocket_client_address}'`);
-                websocket_url = this.store.config.websocket_client_address;
+            if (this.store.cfg("websocket_client_address")) {
+                console.log(`Overriding generated websocket URL '${websocket_url}' with config '${this.store.cfg("websocket_client_address")}'`);
+                websocket_url = this.store.cfg("websocket_client_address") ?? "";
             }
 
             console.log(`Connecting to ${websocket_url}`);

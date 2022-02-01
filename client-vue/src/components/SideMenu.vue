@@ -3,10 +3,10 @@
         <div class="menu-top">
             <div class="top-menu-item title" v-if="store.config">
                 <router-link to="/dashboard">
-                    <img src="../assets/logo.png" class="favicon" width="24" height="24" :alt="store.config.app_name" />
+                    <img src="../assets/logo.png" class="favicon" width="24" height="24" :alt="store.cfg('app_name')" />
                     <span class="title">
-                        {{ store.config.app_name }} {{ store.version }}/{{ clientVersion }}
-                        <span class="debug-mode" v-if="store.config.debug" title="Debug">👽</span>
+                        {{ store.cfg("app_name") }} {{ store.version }}/{{ clientVersion }}
+                        <span class="debug-mode" v-if="store.cfg('debug')" title="Debug">👽</span>
                     </span>
                 </router-link>
             </div>

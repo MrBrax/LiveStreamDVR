@@ -58,12 +58,12 @@
                 <span class="input-help"
                     >The Slim framework doesn't have a good way to execute code from the command line, so you'll have to set up cron manually.
                 </span>
-                <template v-if="store.config && store.config.app_url">
+                <template v-if="store.cfg('app_url')">
                     <code>
-                        <!--0 5 * * 1 curl {{ store.config.app_url }}/api/v0/cron/sub<br />-->
-                        0 */12 * * * curl {{ store.config.app_url }}/api/v0/cron/check_muted_vods<br />
-                        10 */12 * * * curl {{ store.config.app_url }}/api/v0/cron/check_deleted_vods<br />
-                        0 1 * * * curl {{ store.config.app_url }}/api/v0/cron/dump_playlists
+                        <!--0 5 * * 1 curl {{ store.cfg('app_url') }}/api/v0/cron/sub<br />-->
+                        0 */12 * * * curl {{ store.cfg("app_url") }}/api/v0/cron/check_muted_vods<br />
+                        10 */12 * * * curl {{ store.cfg("app_url") }}/api/v0/cron/check_deleted_vods<br />
+                        0 1 * * * curl {{ store.cfg("app_url") }}/api/v0/cron/dump_playlists
                     </code>
                     <span class="input-help">
                         This will subscribe to the webhook every 5 days, check muted &amp; deleted vods every 12 hours, and dump playlists once per day.
