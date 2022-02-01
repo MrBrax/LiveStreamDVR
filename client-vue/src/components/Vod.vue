@@ -709,15 +709,18 @@ export default defineComponent({
         },
         addFavouriteGame(game_id: number) {
             if (!this.store.config) return;
-            const formData = new FormData();
-            formData.set(`games[${game_id}]`, "1");
 
+            let data: { games: Record<number, boolean> } = {
+                games: {},
+            };
+
+            data.games[game_id] = true;
             for (const fid in this.store.config.favourites) {
-                formData.set(`games[${fid}]`, "1");
+                data.games[parseInt(fid)] = true;
             }
 
             this.$http
-                .put(`/api/v0/favourites`, formData)
+                .put(`/api/v0/favourites`, data)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);
