@@ -1436,10 +1436,13 @@ class TwitchVOD
 	/**
 	 * Return the current game/chapter in an array
 	 *
-	 * @return array
+	 * @return array|null
 	 */
 	public function getCurrentGame()
 	{
+		if (sizeof($this->chapters) == 0) {
+			return null;
+		}
 		return $this->chapters[count($this->chapters) - 1];
 	}
 

@@ -104,6 +104,11 @@ class TwitchAutomator
 		return 'twitch.tv/' . $this->broadcaster_user_login;
 	}
 
+	public function getInstance()
+	{
+		return isset($_GET['instance']) ? $_GET['instance'] : null;
+	}
+
 	public function getDateTime()
 	{
 		date_default_timezone_set('UTC');
@@ -748,7 +753,7 @@ class TwitchAutomator
 		$this->vod->saveJSON('is_capturing set');
 
 		// update the game + title if it wasn't updated already
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Update game for {$basename}", ['download' => $data_username, 'instance' => $_GET['instance']]);
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Update game for {$basename}", ['download' => $data_username, 'instance' => $this->getInstance()]);
 		if (TwitchConfig::getCache("{$this->getLogin()}.channeldata")) {
 			$this->updateGame(true);
 			TwitchConfig::setCache("{$this->getLogin()}.channeldata", null);
@@ -1058,7 +1063,7 @@ class TwitchAutomator
 		$this->vod->dt_capture_started = new \DateTime();
 		$this->vod->saveJSON('dt_capture_started set');
 
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Starting capture with filename " . basename($capture_filename), ['download-capture' => $data_username, 'cmd' => implode(' ', $cmd), ['instance' => $_GET['instance']]]);
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Starting capture with filename " . basename($capture_filename), ['download-capture' => $data_username, 'cmd' => implode(' ', $cmd), ['instance' => $this->getInstance()]]);
 
 		// start process in async mode
 		$process = new Process($cmd, dirname($capture_filename), null, null, null);
