@@ -2,8 +2,8 @@
     <div class="container vertical">
         <section class="section" data-section="vods">
             <div class="section-title"><h1>Recorded VODs</h1></div>
-            <div class="section-content" v-if="$store.state.config && $store.state.streamerList && $store.state.streamerList.length > 0">
-                <template v-if="!$store.state.clientConfig.singlePage">
+            <div class="section-content" v-if="store.config && store.streamerList && store.streamerList.length > 0">
+                <template v-if="!store.clientConfig.singlePage">
                     <streamer v-for="streamer in sortedStreamers" v-bind:key="streamer.userid" v-bind:streamer="streamer" />
                 </template>
                 <template v-else>
@@ -55,9 +55,9 @@
             {{ loading ? "Loading..." : `Refreshing in ${timer} seconds.` }}
         </template>
     </div>
-    <div id="jobs-status" v-if="$store.state.jobList !== undefined">
+    <div id="jobs-status" v-if="store.jobList !== undefined">
         <table>
-            <tr v-for="job in $store.state.jobList" :key="job.name">
+            <tr v-for="job in store.jobList" :key="job.name">
                 <td>
                     <span class="icon">
                         <fa icon="sync" spin v-if="job.status"></fa>
@@ -70,7 +70,7 @@
             </tr>
         </table>
 
-        <em v-if="$store.state.jobList.length == 0">None</em>
+        <em v-if="store.jobList.length == 0">None</em>
     </div>
 </template>
 
@@ -79,7 +79,7 @@ import { defineComponent } from "vue";
 import Streamer from "@/components/Streamer.vue";
 import type { ApiLogLine, ApiChannel } from "@/twitchautomator.d";
 import { format } from "date-fns";
-import { MutationPayload } from "vuex";
+import { useStore } from "@/store";
 
 interface DashboardData {
     loading: boolean;
@@ -106,6 +106,10 @@ interface DashboardData {
 
 export default defineComponent({
     name: "DashboardView",
+    setup() {
+        const store = useStore();
+        return { store };
+    },
     title(): string {
         if (this.streamersOnline > 0) return `[${this.streamersOnline}] Dashboard`;
         return "Dashboard";
@@ -140,7 +144,7 @@ export default defineComponent({
         this.loading = true;
         this.fetchStreamers()
             .then((sl) => {
-                this.$store.commit("updateStreamerList", sl);
+                this.store.updateStreamerList(sl);
                 this.loading = false;
             })
             .then(() => {
@@ -153,7 +157,7 @@ export default defineComponent({
     mounted() {
         this.processNotifications();
 
-        if (this.$store.state.config.websocket_enabled) {
+        if (this.store.config && this.store.config.websocket_enabled) {
             this.connectWebsocket();
         } else {
             console.debug("No websocket url");
@@ -180,13 +184,14 @@ export default defineComponent({
     methods: {
         connectWebsocket() {
             if (this.ws) this.disconnectWebsocket();
+            if (!this.store.config) return;
             const proto = window.location.protocol === "https:" ? "wss://" : "ws://";
-            const websocket_url_public = proto + window.location.host + this.$store.state.config.basepath + "/socket/";
+            const websocket_url_public = proto + window.location.host + this.store.config.basepath + "/socket/";
             let websocket_url = process.env.NODE_ENV === "development" ? "ws://localhost:8765/socket/" : websocket_url_public;
 
-            if (this.$store.state.config.websocket_client_address) {
-                console.log(`Overriding generated websocket URL '${websocket_url}' with config '${this.$store.state.config.websocket_client_address}'`);
-                websocket_url = this.$store.state.config.websocket_client_address;
+            if (this.store.config.websocket_client_address) {
+                console.log(`Overriding generated websocket URL '${websocket_url}' with config '${this.store.config.websocket_client_address}'`);
+                websocket_url = this.store.config.websocket_client_address;
             }
 
             console.log(`Connecting to ${websocket_url}`);
@@ -238,14 +243,8 @@ export default defineComponent({
                     if (downloader_actions.indexOf(action) !== -1) {
                         console.log("Websocket update");
                         // const vod = json.data.vod;
-                        /*
-                        if (vod) {
-                            console.log("Websocket update vod", vod);
-                            this.$store.commit("updateVod", vod);
-                        }
-                        */
                         this.fetchStreamers().then((sl) => {
-                            this.$store.commit("updateStreamerList", sl);
+                            this.store.updateStreamerList(sl);
                             this.loading = false;
                         });
 
@@ -322,7 +321,7 @@ export default defineComponent({
 
             const json = response.data;
             console.debug("Update jobs list", json.data);
-            this.$store.commit("updateJobList", json.data);
+            this.store.updateJobList(json.data);
         },
         async fetchLog(clear = false) {
             // today's log file
@@ -380,7 +379,7 @@ export default defineComponent({
                     this.timerMax = 120;
                 }
 
-                this.$store.commit("updateStreamerList", streamerResult);
+                this.store.updateStreamerList(streamerResult);
 
                 this.fetchLog();
 
@@ -394,31 +393,31 @@ export default defineComponent({
             }
         },
         processNotifications() {
-            if (!this.$store.state.clientConfig.enableNotifications) {
+            if (!this.store.clientConfig.enableNotifications) {
                 return;
             }
 
             console.log("Notifications enabled");
 
-            this.notificationSub = this.$store.subscribe((mutation: MutationPayload) => {
+            this.notificationSub = this.store.$onAction(({ name, store, args, after, onError }) => {
                 // unsub if changed
-                if (!this.$store.state.clientConfig.enableNotifications) {
+                if (!this.store.clientConfig.enableNotifications) {
                     console.log("Notification setting disabled, stopping subscription.");
                     this.notificationSub();
                     return;
                 }
 
-                if (!mutation.payload) {
+                if (!args) {
                     console.error("No payload for notification sub");
                     return;
                 }
 
-                if (mutation.type !== "updateStreamerList") {
-                    console.error(`Streamer list notification check payload was ${mutation.type}, abort.`);
+                if (name !== "updateStreamerList") {
+                    console.error(`Streamer list notification check payload was ${name}, abort.`);
                     return;
                 }
 
-                // console.log("subscribe", mutation.payload, this.$store.state.streamerList);
+                // console.log("subscribe", mutation.payload, this.store.streamerList);
                 /*
                 if( mutation.payload[0].current_game !== state.streamerList[0].current_game ){
                     alert( mutation.payload[0].display_name + ": " + mutation.payload[0].current_game );
@@ -431,7 +430,9 @@ export default defineComponent({
 
                 // console.debug("notification payload", mutation);
 
-                for (const streamer of mutation.payload as ApiChannel[]) {
+                let payload = args as unknown as ApiChannel[];
+
+                for (const streamer of payload) {
                     const login = streamer.login;
 
                     if (this.oldData && this.oldData[streamer.login]) {
@@ -517,7 +518,7 @@ export default defineComponent({
     },
     computed: {
         sortedStreamers() {
-            const streamers: ApiChannel[] = this.$store.state.streamerList;
+            const streamers: ApiChannel[] = this.store.streamerList;
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
         },
         logFiltered(): ApiLogLine[] {
@@ -525,18 +526,18 @@ export default defineComponent({
             return this.logLines.filter((val) => val.module == this.logModule);
         },
         streamersOnline(): number {
-            if (!this.$store.state.streamerList) return 0;
-            return this.$store.state.streamerList.filter((a) => a.is_live).length;
+            if (!this.store.streamerList) return 0;
+            return this.store.streamerList.filter((a) => a.is_live).length;
         },
         singleStreamer(): ApiChannel | undefined {
-            if (!this.$store.state.streamerList) return undefined;
+            if (!this.store.streamerList) return undefined;
 
             const current = this.$route.query.channel as string;
             if (current !== undefined) {
-                return this.$store.state.streamerList.find((u) => u.login === current);
+                return this.store.streamerList.find((u) => u.login === current);
             } else {
-                // this.$route.query.channel = this.$store.state.streamerList[0].display_name;
-                return this.$store.state.streamerList[0];
+                // this.$route.query.channel = this.store.streamerList[0].display_name;
+                return this.store.streamerList[0];
             }
         },
     },

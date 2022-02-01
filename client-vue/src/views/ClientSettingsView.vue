@@ -36,6 +36,7 @@
 </template>
 
 <script lang="ts">
+import { useStore } from "@/store";
 import { defineComponent } from "vue";
 
 const defaultConfig = {
@@ -51,6 +52,10 @@ const defaultConfig = {
 export default defineComponent({
     name: "ClientSettingsView",
     title: "Client settings",
+    setup() {
+        const store = useStore();
+        return { store };
+    },
     data() {
         return {
             currentConfig: Object.assign({}, defaultConfig),
@@ -71,7 +76,7 @@ export default defineComponent({
             if (this.currentConfig.enableNotifications !== this.updateConfig.enableNotifications && this.updateConfig.enableNotifications) {
                 this.requestNotifications();
             }
-            this.$store.commit("updateClientConfig", this.updateConfig);
+            this.store.updateClientConfig(this.updateConfig);
         },
         requestNotifications() {
             if (!("Notification" in window)) {

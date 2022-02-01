@@ -3,7 +3,7 @@
         v-if="vod"
         :class="{
             video: true,
-            'is-animated': $store.state.clientConfig.animationsEnabled,
+            'is-animated': store.clientConfig.animationsEnabled,
             'is-recording': vod.is_capturing,
             'is-converting': vod.is_converting,
             'is-finalized': vod.is_finalized,
@@ -17,7 +17,7 @@
             <h3>
                 <span class="icon"><fa icon="file-video"></fa></span>
                 <span class="video-date" :title="formatDate(vod?.dt_started_at.date)" v-if="vod?.dt_started_at">{{
-                    $store.state.clientConfig.useRelativeTime ? humanDate(vod?.dt_started_at.date, true) : formatDate(vod?.dt_started_at.date)
+                    store.clientConfig.useRelativeTime ? humanDate(vod?.dt_started_at.date, true) : formatDate(vod?.dt_started_at.date)
                 }}</span>
                 <span class="video-filename">{{ vod?.basename }}</span>
             </h3>
@@ -355,7 +355,7 @@
 
                 <br />
 
-                <template v-if="!$store.state.config.playlist_dump">
+                <template v-if="store.config && !store.config.playlist_dump">
                     <em>
                         <span v-if="vod?.api_getCapturingStatus">
                             <span class="icon"><fa icon="sync" spin></fa></span>
@@ -369,7 +369,7 @@
                             </strong>
                         </span>
                     </em>
-                    <template v-if="$store.state.config.chat_dump">
+                    <template v-if="store.config.chat_dump">
                         <br /><em>
                             <span v-if="vod?.api_getChatDumpStatus">
                                 <span class="icon"><fa icon="sync" spin></fa></span>
@@ -430,7 +430,7 @@
                         v-for="chapter in vod.chapters"
                         :key="chapter"
                         :class="{
-                            favourite: $store.state.config.favourites[chapter.game_id],
+                            favourite: store.config && store.config.favourites[chapter.game_id],
                         }"
                     >
                         <!-- start timestamp -->
@@ -481,7 +481,7 @@
                                     <!-- favourite button -->
                                     <button
                                         class="icon-button favourite-button"
-                                        v-if="!$store.state.config.favourites[chapter.game_id]"
+                                        v-if="store.config && !store.config.favourites[chapter.game_id]"
                                         title="Add to favourites"
                                         @click="addFavouriteGame(chapter.game_id)"
                                     >
@@ -556,6 +556,7 @@ import {
     faExclamationTriangle,
     faFileSignature,
 } from "@fortawesome/free-solid-svg-icons";
+import { useStore } from "@/store";
 library.add(
     faFileVideo,
     faCut,
@@ -575,6 +576,10 @@ library.add(
 export default defineComponent({
     name: "Vod",
     emits: ["forceFetchData"],
+    setup() {
+        const store = useStore();
+        return { store };
+    },
     data() {
         return {
             config: [],
@@ -703,10 +708,11 @@ export default defineComponent({
                 });
         },
         addFavouriteGame(game_id: number) {
+            if (!this.store.config) return;
             const formData = new FormData();
             formData.set(`games[${game_id}]`, "1");
 
-            for (const fid in this.$store.state.config.favourites) {
+            for (const fid in this.store.config.favourites) {
                 formData.set(`games[${fid}]`, "1");
             }
 
@@ -718,7 +724,7 @@ export default defineComponent({
                     console.log(json);
 
                     this.$http.get(`/api/v0/settings`).then((response) => {
-                        this.$store.commit("updateConfig", response.data.data.config);
+                        this.store.updateConfig(response.data.data.config);
                     });
                 })
                 .catch((err) => {
@@ -727,15 +733,16 @@ export default defineComponent({
                 });
         },
         playerLink(offset = 0): string {
+            if (!this.store.config) return "";
             let video_path = `${this.vod?.webpath}/${this.vod?.basename}.mp4`;
             let chat_path = `${this.vod?.webpath}/${this.vod?.basename}.chatdump`;
-            return `${this.$store.state.config.basepath}/vodplayer/index.html#source=file&video_path=${video_path}&chatfile=${chat_path}&offset=${offset}`;
+            return `${this.store.config.basepath}/vodplayer/index.html#source=file&video_path=${video_path}&chatfile=${chat_path}&offset=${offset}`;
         },
     },
     computed: {
         compDownloadChat(): boolean {
-            if (!this.$store.state.jobList) return false;
-            for (let job of this.$store.state.jobList) {
+            if (!this.store.jobList) return false;
+            for (let job of this.store.jobList) {
                 if (job.name == `tcd_${this.vod?.basename}`) {
                     return true;
                 }

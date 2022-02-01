@@ -76,7 +76,7 @@
                                 }}
                             </li>
                             <li><strong>Docker:</strong> {{ aboutData.is_docker ? "Yes" : "No" }}</li>
-                            <li><strong>Backend version:</strong> {{ $store.state.version }}</li>
+                            <li><strong>Backend version:</strong> {{ store.version }}</li>
                             <li><strong>Frontend version:</strong> {{ clientVersion }}</li>
                             <li><strong>Frontend build:</strong> {{ clientMode }}</li>
                             <!--<li v-if="envs && envs.NODE"><strong>Node:</strong> {{ envs.npm_config_node_version }}{% endif %}</li>-->
@@ -156,6 +156,7 @@
 </template>
 
 <script lang="ts">
+import { useStore } from "@/store";
 import { ApiSubscription } from "@/twitchautomator";
 import { defineComponent } from "vue";
 
@@ -195,6 +196,10 @@ interface AboutData {
 export default defineComponent({
     name: "AboutView",
     title: "About",
+    setup() {
+        const store = useStore();
+        return { store };
+    },
     data(): {
         aboutData: AboutData | null;
         // envs: any;
