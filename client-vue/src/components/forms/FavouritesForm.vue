@@ -1,9 +1,9 @@
 <template>
     <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
-        <div class="favourites_list" v-if="gamesData">
-            <div v-for="[id, game] in sortedGames" :key="id" class="checkbox">
-                <label>
-                    <input type="checkbox" :name="'games[' + id + ']'" :checked="favouritesData[id]" /> {{ game.name }}
+        <div class="favourites_list" v-if="gamesData && favouritesData">
+            <div v-for="game in sortedGames" :key="game.id" class="checkbox">
+                <label v-if="favouritesData">
+                    <input type="checkbox" :name="game.id" :checked="favouritesData[game.id]" value="1" /> {{ game.name }}
                     <span class="is-gray">{{ formatTimestamp(game.added) }}</span>
                 </label>
             </div>
@@ -24,14 +24,20 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
     name: "FavouritesForm",
-    props: ["favouritesData", "gamesData"],
+    props: {
+        favouritesData: {
+            type: Object as () => { [key: string]: boolean },
+        },
+        gamesData: {
+            type: Object as () => Record<number, ApiGame>,
+        },
+    },
     emits: ["formSuccess"],
     data() {
         return {
             formStatusText: "Ready",
             formStatus: "",
             formData: {},
-            sortedGames: [] as any,
         };
     },
     methods: {
@@ -44,8 +50,10 @@ export default defineComponent({
 
             // console.log("form", form);
             // console.log("entries", inputs, inputs.entries(), inputs.values());
-            let data: Record<string, unknown> = {};
-            inputs.forEach((value, key) => (data[key] = value));
+            let data: { games: Record<number, boolean> } = {
+                games: {},
+            };
+            inputs.forEach((value, key) => (data.games[parseInt(key)] = value == "1"));
 
             this.$http
                 .put(`/api/v0/favourites`, data)
@@ -61,32 +69,11 @@ export default defineComponent({
                     console.error("form error", err.response);
                 });
 
-            /*
-            fetch(`api/v0/favourites/save`, {
-                method: 'POST',
-                body: inputs
-            })
-            .then((response) => response.json())
-            .then((json) => {
-                this.formStatusText = json.message;
-                this.formStatus = json.status;
-                if(json.status == 'OK'){
-                    this.$emit('formSuccess', json);
-                }
-            }).catch((test) => {
-                console.error("Error", test);
-            });
-            */
-
             event.preventDefault();
             return false;
         },
     },
-    watch: {
-        gamesData() {
-            this.sortedGames = Object.entries(this.gamesData as Record<number, ApiGame>).sort(([, a], [, b]) => a.name.localeCompare(b.name));
-        },
-    },
+
     computed: {
         formStatusClass(): Record<string, boolean> {
             return {
@@ -94,6 +81,10 @@ export default defineComponent({
                 "is-error": this.formStatus == "ERROR",
                 "is-success": this.formStatus == "OK",
             };
+        },
+        sortedGames(): ApiGame[] {
+            if (!this.gamesData) return [];
+            return Object.values(this.gamesData).sort((a, b) => a.name.localeCompare(b.name));
         },
     },
 });

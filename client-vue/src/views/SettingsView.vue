@@ -9,6 +9,9 @@
         <router-link :to="{ name: 'Settings', params: { tab: 'config' } }">
             <span class="icon"><fa icon="cog"></fa></span> Config
         </router-link>
+        <router-link :to="{ name: 'Settings', params: { tab: 'favourites' } }">
+            <span class="icon"><fa icon="star"></fa></span> Favourites
+        </router-link>
         <router-link :to="{ name: 'Settings', params: { tab: 'cron' } }">
             <span class="icon"><fa icon="calendar-check"></fa></span> Cron
         </router-link>
@@ -100,9 +103,9 @@ import FavouritesForm from "@/components/forms/FavouritesForm.vue";
 import type { ApiSettingsField, ApiGame, ApiChannelConfig } from "@/twitchautomator.d";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faUser, faCalendarCheck } from "@fortawesome/free-solid-svg-icons";
+import { faUser, faCalendarCheck, faStar } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
-library.add(faUser, faCalendarCheck);
+library.add(faUser, faCalendarCheck, faStar);
 
 export default defineComponent({
     name: "SettingsView",
@@ -118,7 +121,7 @@ export default defineComponent({
             loading: false,
             settingsData: [],
             settingsFields: [] as ApiSettingsField[],
-            gamesData: [] as ApiGame[],
+            gamesData: {} as Record<number, ApiGame>,
             favouritesData: {},
             formChannels: [] as ApiChannelConfig[],
             // games: Object as () => [key: string]: ApiGame
@@ -160,7 +163,7 @@ export default defineComponent({
                         }),
 
                     this.$http
-                        .get(`api/v0/games/list`)
+                        .get(`api/v0/games`)
                         .then((response) => {
                             const json = response.data;
                             if (json.message) alert(json.message);

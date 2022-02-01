@@ -79,7 +79,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
         $group->put('', ApiController::class . ':favourites_save')->setName('api_favourites_save');
     });
 
-    $group->get('/games/list', ApiController::class . ':games_list')->setName('api_games_list');
+    $group->get('/games', ApiController::class . ':games_list')->setName('api_games_list');
 
     $group->get('/about', ApiController::class . ':about')->setName('api_about');
 

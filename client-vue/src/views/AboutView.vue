@@ -190,7 +190,12 @@ interface AboutData {
         php: SoftwareCallback;
         node: SoftwareCallback;
     };
-    cron_lastrun: any;
+    cron_lastrun: {
+        check_deleted_vods: string;
+        check_muted_vods: string;
+        dump_playlists: string;
+        sub: string;
+    };
 }
 
 export default defineComponent({
