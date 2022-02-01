@@ -56,7 +56,7 @@ trait ApiSettings
     public function settings_save(Request $request, Response $response, array $args)
     {
 
-        $formdata = (array)$request->getParsedBody();
+        $formdata = $request->getParsedBody();
 
         $force_new_token = false;
         if (TwitchConfig::cfg('api_client_id') !== $formdata['api_client_id']) {

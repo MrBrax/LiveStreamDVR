@@ -408,12 +408,12 @@ export default defineComponent({
                 }
 
                 if (!args) {
-                    console.error("No payload for notification sub");
+                    // console.error("No payload for notification sub");
                     return;
                 }
 
                 if (name !== "updateStreamerList") {
-                    console.error(`Streamer list notification check payload was ${name}, abort.`);
+                    // console.error(`Streamer list notification check payload was ${name}, abort.`);
                     return;
                 }
 

@@ -108,7 +108,7 @@ export type ApiSettingsField = {
     pattern?: string;
 };
 
-export type ApiConfig = {
+export interface ApiConfig {
     api_client_id: string;
     api_secret: string;
     app_name: string;
@@ -151,8 +151,7 @@ export type ApiConfig = {
     websocket_enabled: boolean;
     websocket_server_address: string;
     youtube_api_client_id: string;
-    youtube_dlc: boolean;
-};
+}
 
 export type ApiChannel = {
     userid: string;

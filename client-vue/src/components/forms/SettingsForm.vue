@@ -9,13 +9,13 @@
                 </label>
 
                 <!-- boolean -->
-                <div v-if="data.type == 'boolean'" class="control">
+                <div v-if="data.type == 'boolean' && settingsData" class="control">
                     <label class="checkbox">
                         <input
                             type="checkbox"
                             :name="data.key"
                             :id="'input_' + data.key"
-                            :checked="settingsData[data.key] !== undefined ? settingsData[data.key] : data.default"
+                            :checked="configValue(data.key) !== undefined ? configValue(data.key) : data.default"
                         />
                         {{ data.text }}
                     </label>
@@ -28,7 +28,7 @@
                         type="text"
                         :name="data.key"
                         :id="'input_' + data.key"
-                        :value="settingsData[data.key] !== undefined ? settingsData[data.key] : data.default"
+                        :value="configValue(data.key) !== undefined ? configValue(data.key) : data.default"
                         :title="data.help"
                         :pattern="data.pattern"
                     />
@@ -41,7 +41,7 @@
                         type="number"
                         :name="data.key"
                         :id="'input_' + data.key"
-                        :value="settingsData[data.key] !== undefined ? settingsData[data.key] : data.default"
+                        :value="configValue(data.key) !== undefined ? configValue(data.key) : data.default"
                     />
                 </div>
 
@@ -53,8 +53,8 @@
                             v-for="item in data.choices"
                             :key="item"
                             :selected="
-                                (settingsData[data.key] !== undefined && settingsData[data.key] === item) ||
-                                (settingsData[data.key] === undefined && item === data.default)
+                                (configValue(data.key) !== undefined && configValue(data.key) === item) ||
+                                (configValue(data.key) === undefined && item === data.default)
                             "
                         >
                             {{ item }}
@@ -77,6 +77,7 @@
 </template>
 
 <script lang="ts">
+import { useStore } from "@/store";
 import { ApiConfig, ApiSettingsField } from "@/twitchautomator";
 import { AxiosError } from "axios";
 import { defineComponent } from "vue";
@@ -84,8 +85,16 @@ import { defineComponent } from "vue";
 export default defineComponent({
     name: "SettingsForm",
     props: {
-        settingsData: Object as () => ApiConfig[],
-        settingsFields: Object as () => ApiSettingsField[],
+        settingsData: {
+            type: Object as () => ApiConfig,
+        },
+        settingsFields: {
+            type: Array as () => ApiSettingsField[],
+        },
+    },
+    setup() {
+        const store = useStore();
+        return { store };
     },
     emits: ["formSuccess"],
     data() {
@@ -94,6 +103,9 @@ export default defineComponent({
             formStatus: "",
             formData: {},
         };
+    },
+    mounted(): void {
+        // this.settingsCopy = JSON.parse(JSON.stringify(this.store.config));
     },
     /*
     created: {
@@ -108,11 +120,13 @@ export default defineComponent({
             this.formStatusText = "Loading...";
             this.formStatus = "";
 
-            console.log("form", form);
-            console.log("entries", inputs, inputs.entries(), inputs.values());
+            // console.log("form", form);
+            // console.log("entries", inputs, inputs.entries(), inputs.values());
+            let data: any = {};
+            inputs.forEach((value, key) => (data[key] = value));
 
             this.$http
-                .put(`/api/v0/settings`, inputs)
+                .put(`/api/v0/settings`, data)
                 .then((response) => {
                     const json = response.data;
                     this.formStatusText = json.message;
@@ -131,6 +145,11 @@ export default defineComponent({
 
             event.preventDefault();
             return false;
+        },
+        configValue(key: string): any {
+            if (!this.settingsData) return undefined;
+            const k: keyof ApiConfig = key as keyof ApiConfig;
+            return this.settingsData[k];
         },
     },
     computed: {
