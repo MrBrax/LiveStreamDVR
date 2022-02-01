@@ -146,10 +146,10 @@ export default defineComponent({
             event.preventDefault();
             return false;
         },
-        configValue(key: string): any {
-            if (!this.settingsData) return undefined;
+        configValue<T>(key: string): T | null {
+            if (!this.settingsData) return null;
             const k: keyof ApiConfig = key as keyof ApiConfig;
-            return this.settingsData[k];
+            return this.settingsData[k] as unknown as T;
         },
     },
     computed: {

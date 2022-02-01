@@ -76,7 +76,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import Streamer from "@/components/Streamer.vue";
+import Streamer from "@/components/StreamerItem.vue";
 import type { ApiLogLine, ApiChannel } from "@/twitchautomator.d";
 import { format } from "date-fns";
 import { useStore } from "@/store";

@@ -574,7 +574,7 @@ library.add(
 );
 
 export default defineComponent({
-    name: "Vod",
+    name: "VodItem",
     emits: ["forceFetchData"],
     setup() {
         const store = useStore();

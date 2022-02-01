@@ -62,7 +62,7 @@
 <script lang="ts">
 import type { ApiChannel } from "@/twitchautomator.d";
 import { defineComponent } from "vue";
-import Vod from "@/components/Vod.vue";
+import Vod from "@/components/VodItem.vue";
 // import { AxiosError } from "axios";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -70,7 +70,7 @@ import { faVideo, faPlayCircle, faVideoSlash } from "@fortawesome/free-solid-svg
 library.add(faVideo, faPlayCircle, faVideoSlash);
 
 export default defineComponent({
-    name: "Streamer",
+    name: "StreamerItem",
     props: {
         streamer: Object as () => ApiChannel,
     },

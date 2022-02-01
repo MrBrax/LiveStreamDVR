@@ -67,11 +67,11 @@ export default {
             const o = parseJSON(date);
             return formatDistance(o, new Date(), { addSuffix: suffix });
         },
-        sortObject(game: Record<string, any>, value: string) {
-            return Object.entries(game).sort((a, b) => {
-                return (a as any)[value] - (b as any)[value];
-            });
-        },
+        // sortObject(game: Record<string, any>, value: string) {
+        //     return Object.entries(game).sort((a, b) => {
+        //         return (a as any)[value] - (b as any)[value];
+        //     });
+        // },
     },
     data() {
         return {
@@ -90,6 +90,6 @@ declare module "@vue/runtime-core" {
         twitchDuration: (seconds: number) => string;
         formatNumber: (num: number, decimals?: number) => string;
         humanDate: (date: string, suffix?: boolean) => string;
-        sortObject: (game: Record<string, any>, value: string) => any;
+        // sortObject: (game: Record<string, any>, value: string) => any;
     }
 }
