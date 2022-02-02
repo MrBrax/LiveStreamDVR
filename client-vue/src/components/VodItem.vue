@@ -421,7 +421,7 @@
                         <th>Duration</th>
                         <th>Game</th>
                         <th>Title</th>
-                        <th>Viewers</th>
+                        <th v-if="hasViewerCount">Viewers</th>
                     </tr>
                 </thead>
 
@@ -500,7 +500,7 @@
                         </td>
 
                         <!-- viewer count -->
-                        <td>
+                        <td v-if="hasViewerCount">
                             <span class="grey" v-if="chapter.viewer_count">{{ formatNumber(chapter.viewer_count) }}</span>
                         </td>
 
@@ -751,6 +751,13 @@ export default defineComponent({
                 }
             }
             return false;
+        },
+        hasViewerCount(): boolean {
+            if (!this.vod) return false;
+            if (!this.vod.chapters) return false;
+            return this.vod.chapters.some((chapter) => {
+                return chapter.viewer_count > 0;
+            });
         },
     },
     components: {
