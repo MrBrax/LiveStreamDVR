@@ -29,7 +29,7 @@ trait ApiVod
         $username = explode("_", $vod)[0];
 
         try {
-            $vodclass = TwitchVOD::load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+            $vodclass = TwitchVOD::load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json', true);
         } catch (\Throwable $th) {
             $response->getBody()->write(json_encode([
                 "message" => $th->getMessage(),
