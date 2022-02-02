@@ -45,6 +45,7 @@ trait ApiChannel
             
             $fake_data = [
                 'subscription' => [
+                    'id' => 'fake',
                     'type' => 'stream.online',
                     'condition' => [
                         'broadcaster_user_id' => $channel_id,

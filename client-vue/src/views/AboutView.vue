@@ -115,9 +115,8 @@
 
                     <div class="block">
                         <h3>Subscriptions</h3>
-                        <button class="button is-confirm is-small" @click="fetchSubscriptions">Fetch</button>
-                        <button class="button is-confirm is-small" @click="subscribeAll">Subscribe</button>
-                        (only click buttons once)
+                        <button class="button is-confirm is-small" @click="fetchSubscriptions" :disabled="subscriptionsLoading">Fetch</button>
+                        <button class="button is-confirm is-small" @click="subscribeAll" :disabled="subscriptionsLoading">Subscribe</button>
                         <span v-if="subscriptionsLoading">Loading...</span>
                         <table>
                             <tr v-for="subscription in subscriptions" :key="subscription.id">
@@ -126,7 +125,9 @@
                                 <td>{{ subscription.username }}</td>
                                 <td>{{ subscription.type }}</td>
                                 <td>
-                                    <button class="button is-confirm is-small" @click="unsubscribe(subscription.id)">Unsubscribe</button>
+                                    <button class="button is-confirm is-small" @click="unsubscribe(subscription.id)" :disabled="subscriptionsLoading">
+                                        Unsubscribe
+                                    </button>
                                 </td>
                             </tr>
                         </table>
@@ -281,6 +282,7 @@ export default defineComponent({
                     console.log("subscriptions", json);
                     this.subscriptions = json.data.channels as ApiSubscription[];
                     this.subscriptionsLoading = false;
+                    // TODO: handle when there are 0 subscriptions
                 })
                 .catch((err) => {
                     console.error("fetchSubscriptions error", err.response);

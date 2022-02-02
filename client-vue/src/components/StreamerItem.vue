@@ -84,6 +84,8 @@ export default defineComponent({
 
             if (!this.streamer || !this.streamer.current_vod) return;
 
+            if (!confirm("Abort record is unstable. Continue?")) return;
+
             let response;
 
             try {
@@ -107,6 +109,8 @@ export default defineComponent({
             console.log("Killed", data);
         },
         async forceRecord() {
+            if (!confirm("Force record is unstable. Continue?")) return;
+
             let response;
 
             try {
