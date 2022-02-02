@@ -85,7 +85,8 @@ interface DashboardData {
     loading: boolean;
     timer: number;
     timerMax: number;
-    interval: number; // interval?
+    tickerInterval: number; // interval?
+    vodUpdateInterval: number;
     totalSize: number;
     freeSize: number;
     logFilename: string;
@@ -119,7 +120,8 @@ export default defineComponent({
             loading: false,
             timer: 120,
             timerMax: 120,
-            interval: 0,
+            tickerInterval: 0,
+            vodUpdateInterval: 0,
             totalSize: 0,
             freeSize: 0,
             logFilename: "",
@@ -157,19 +159,28 @@ export default defineComponent({
     mounted() {
         this.processNotifications();
 
-        if (this.store.cfg("websocket_enabled")) {
+        if (this.store.cfg("websocket_enabled") && this.store.clientConfig.useWebsockets) {
+            console.debug("Websockets enabled");
             this.connectWebsocket();
         } else {
-            console.debug("No websocket url");
-            this.interval = setInterval(() => {
-                this.fetchTicker();
-            }, 1000);
+            if (this.store.clientConfig.useBackgroundTicker) {
+                console.debug("Websockets disabled");
+                this.tickerInterval = setInterval(() => {
+                    this.fetchTicker();
+                }, 1000);
+            }
+        }
+
+        // update vods every 5 minutes
+        if (this.store.clientConfig.useBackgroundRefresh) {
+            this.vodUpdateInterval = setInterval(() => {
+                this.store.updateCapturingVods();
+            }, 1000 * 60 * 5);
         }
     },
     unmounted() {
-        if (this.interval) {
-            clearTimeout(this.interval);
-        }
+        if (this.tickerInterval) clearTimeout(this.tickerInterval);
+        if (this.vodUpdateInterval) clearTimeout(this.vodUpdateInterval);
 
         // unsub
         if (this.notificationSub) {
@@ -296,6 +307,8 @@ export default defineComponent({
                 this.totalSize = rest.total_size;
                 this.freeSize = rest.free_size;
                 return rest;
+            } else {
+                console.warn("No data returned from fetchStreamerList");
             }
             return [];
         },
@@ -404,8 +417,8 @@ export default defineComponent({
                     return;
                 }
 
-                if (name !== "updateStreamerList") {
-                    // console.error(`Streamer list notification check payload was ${name}, abort.`);
+                if (name !== "updateStreamerList" || !("streamer_list" in args)) {
+                    console.debug(`Streamer list notification check payload was ${name}, abort.`);
                     return;
                 }
 
@@ -420,7 +433,7 @@ export default defineComponent({
                     xQcOW: "eckscueseeow",
                 };
 
-                // console.debug("notification payload", mutation);
+                console.debug("notification payload", name, args);
 
                 let payload = args as unknown as ApiChannel[];
 
@@ -429,6 +442,10 @@ export default defineComponent({
 
                     if (this.oldData && this.oldData[streamer.login]) {
                         const oldStreamer = this.oldData[streamer.login];
+
+                        if (!streamer.channel_data) {
+                            console.warn(`No channel data for ${login}`);
+                        }
 
                         const opt = {
                             icon: streamer.channel_data.profile_image_url,

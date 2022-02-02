@@ -71,6 +71,16 @@ export const useStore = defineStore("twitchAutomator", {
             }
             return true;
         },
+        async updateCapturingVods() {
+            this.streamerList.forEach((streamer) => {
+                streamer.vods_list.forEach((vod) => {
+                    if (vod.is_capturing) {
+                        console.debug("updateCapturingVods", vod.basename);
+                        this.updateVod(vod.basename);
+                    }
+                });
+            });
+        },
         async fetchStreamer(login: string) {
             let response;
             try {
@@ -127,6 +137,14 @@ export const useStore = defineStore("twitchAutomator", {
         },
         updateVersion(data: string) {
             this.version = data;
+        },
+        fetchClientConfig() {
+            // client config
+            console.debug("fetchClientConfig");
+            const currentClientConfig = localStorage.getItem("twitchautomator_config")
+                ? JSON.parse(localStorage.getItem("twitchautomator_config") as string)
+                : {};
+            this.updateClientConfig(currentClientConfig);
         },
     },
 });

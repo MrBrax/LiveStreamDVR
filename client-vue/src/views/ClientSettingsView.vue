@@ -21,6 +21,15 @@
                 <div class="control">
                     <label class="checkbox"><input type="checkbox" v-model="updateConfig.useRelativeTime" /> Use relative time</label>
                 </div>
+                <div class="control">
+                    <label class="checkbox"><input type="checkbox" v-model="updateConfig.useWebsockets" /> Use websockets</label>
+                </div>
+                <div class="control">
+                    <label class="checkbox"><input type="checkbox" v-model="updateConfig.useBackgroundRefresh" /> Background capturing vod refresh</label>
+                </div>
+                <div class="control">
+                    <label class="checkbox"><input type="checkbox" v-model="updateConfig.useBackgroundTicker" /> Background ticker</label>
+                </div>
                 <!--
                 <div class="control">
                     <label class="checkbox"><input type="checkbox" v-model="updateConfig.showAdvancedInfo" /> Show advanced info</label>
@@ -38,16 +47,7 @@
 <script lang="ts">
 import { useStore } from "@/store";
 import { defineComponent } from "vue";
-
-const defaultConfig = {
-    useSpeech: false,
-    singlePage: false,
-    enableNotifications: false,
-    animationsEnabled: true,
-    tooltipStatic: false,
-    useRelativeTime: false,
-    showAdvancedInfo: false,
-};
+import { defaultConfig } from "@/defs";
 
 export default defineComponent({
     name: "ClientSettingsView",

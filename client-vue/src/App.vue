@@ -39,16 +39,11 @@ export default defineComponent({
         };
     },
     created() {
+        this.store.fetchClientConfig();
         this.fetchData();
     },
     methods: {
         async fetchData() {
-            // client config
-            const currentClientConfig = localStorage.getItem("twitchautomator_config")
-                ? JSON.parse(localStorage.getItem("twitchautomator_config") as string)
-                : {};
-            this.store.updateClientConfig(currentClientConfig);
-
             // clear config
             this.store.updateConfig(null);
 
