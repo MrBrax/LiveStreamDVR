@@ -575,7 +575,7 @@ library.add(
 
 export default defineComponent({
     name: "VodItem",
-    emits: ["forceFetchData"],
+    emits: ["forceFetchData", "refresh"],
     setup() {
         const store = useStore();
         return { store };
@@ -608,7 +608,7 @@ export default defineComponent({
                     if (json.message) alert(json.message);
                     console.log(json);
                     this.taskStatus.archive = false;
-                    // this.$emit("forceFetchData");
+                    this.$emit("refresh");
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
@@ -626,7 +626,7 @@ export default defineComponent({
                     if (json.message) alert(json.message);
                     console.log(json);
                     this.taskStatus.downloadChat = false;
-                    // this.$emit("forceFetchData");
+                    this.$emit("refresh");
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
@@ -648,7 +648,7 @@ export default defineComponent({
                     if (json.message) alert(json.message);
                     console.log(json);
                     this.taskStatus.downloadVod = false;
-                    // this.$emit("forceFetchData");
+                    this.$emit("refresh");
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
@@ -673,7 +673,7 @@ export default defineComponent({
                         }
                     }
                     this.taskStatus.vodMuteCheck = false;
-                    // this.$emit("forceFetchData");
+                    this.$emit("refresh");
                 })
                 .catch((err) => {
                     console.error("doCheckMute error", err.response);
@@ -699,7 +699,7 @@ export default defineComponent({
                     if (json.message) alert(json.message);
                     console.log(json);
                     this.taskStatus.delete = false;
-                    // this.$emit("forceFetchData");
+                    this.$emit("refresh");
                 })
                 .catch((err) => {
                     console.error("form error", err.response);

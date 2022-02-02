@@ -7,7 +7,7 @@
                     <streamer v-for="streamer in sortedStreamers" v-bind:key="streamer.userid" v-bind:streamer="streamer" />
                 </template>
                 <template v-else>
-                    <streamer v-bind:streamer="singleStreamer" />
+                    <streamer v-bind:streamer="singleStreamer" @refresh="fetchStreamers" />
                 </template>
                 <hr />
                 <div class="dashboard-stats">
