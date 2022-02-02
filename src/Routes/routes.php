@@ -21,7 +21,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
 
     // vod manipulation
     $group->group('/vod/{vod}', function (RouteCollectorProxy $group) {
-        $group->get('/', ApiController::class . ':vod')->setName('api_vod');
+        $group->get('', ApiController::class . ':vod')->setName('api_vod');
         $group->post('/search_chatdump', ApiController::class . ':vod_search_chatdump')->setName('api_vod_search_chatdump');
         $group->post('/download_chat', ApiController::class . ':vod_download_chat')->setName('api_vod_download_chat');
         $group->post('/download', ApiController::class . ':vod_download')->setName('api_vod_download');

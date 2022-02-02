@@ -11,7 +11,9 @@
         v-if="streamer"
     >
         <router-link :to="store.clientConfig.singlePage ? { path: 'dashboard', query: { channel: streamer.login } } : '#streamer_' + streamer.login">
-            <span class="avatar"><img :src="streamer.profile_image_url" :alt="streamer.login" /></span>
+            <span class="avatar" @click.prevent="store.updateStreamer(streamer ? streamer.login : '')">
+                <img :src="streamer.profile_image_url" :alt="streamer.login" />
+            </span>
             <span class="username">
                 {{ streamer.display_name }}
                 <template v-if="streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }})</template>

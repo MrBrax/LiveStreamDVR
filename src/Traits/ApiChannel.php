@@ -22,11 +22,11 @@ trait ApiChannel
     {
         $login = $args['login'];
 
-        $channel = TwitchChannel::loadFromLogin($login);
+        $channel = TwitchConfig::getChannelByLogin($login);
 
         $payload = json_encode([
             'data' => $channel,
-            'status' => 'OK'
+            'status' => 'OK',
         ]);
         $response->getBody()->write($payload);
 

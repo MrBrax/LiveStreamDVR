@@ -130,11 +130,19 @@ class TwitchChannel
         return $channel;
     }
 
+    /**
+     * Load channel from login
+     * Don't use this, access from TwitchConfig::getChannel() instead
+     */
     public static function loadFromId($streamer_id, $api = false)
     {
         return self::loadAbstract($streamer_id, $api); // $channel;
     }
 
+    /**
+     * Load channel from login
+     * Don't use this, access from TwitchConfig::getChannel() instead
+     */
     public static function loadFromLogin(string $login, $api = false)
     {
         return self::loadAbstract(self::channelIdFromLogin($login), $api); // $channel;
