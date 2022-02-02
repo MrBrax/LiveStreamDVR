@@ -144,7 +144,7 @@ export default defineComponent({
         this.loading = true;
         this.fetchStreamers()
             .then((sl) => {
-                this.store.updateStreamerList(sl);
+                if ("streamer_list" in sl) this.store.updateStreamerList(sl.streamer_list);
                 this.loading = false;
             })
             .then(() => {
@@ -244,7 +244,7 @@ export default defineComponent({
                         console.log("Websocket update");
                         // const vod = json.data.vod;
                         this.fetchStreamers().then((sl) => {
-                            this.store.updateStreamerList(sl);
+                            if ("streamer_list" in sl) this.store.updateStreamerList(sl.streamer_list);
                             this.loading = false;
                         });
 
@@ -291,23 +291,13 @@ export default defineComponent({
             }
         },
         async fetchStreamers() {
-            let response;
-            try {
-                response = await this.$http.get(`/api/v0/channels`);
-            } catch (error) {
-                console.error(error);
-                return;
+            const rest = await this.store.fetchStreamerList();
+            if (rest) {
+                this.totalSize = rest.total_size;
+                this.freeSize = rest.free_size;
+                return rest;
             }
-
-            if (!response.data.data) {
-                console.error("fetchStreamers invalid data", response.data);
-                return;
-            }
-
-            this.totalSize = response.data.data.total_size;
-            this.freeSize = response.data.data.free_size;
-
-            return response.data.data.streamer_list;
+            return [];
         },
         async fetchJobs() {
             let response;
@@ -367,23 +357,25 @@ export default defineComponent({
         async fetchTicker() {
             if (this.timer <= 0 && !this.loading) {
                 this.loading = true;
-                const streamerResult: ApiChannel[] = await this.fetchStreamers();
+                const streamerResult = await this.fetchStreamers();
 
-                const isAnyoneLive = streamerResult.find((el) => el.is_live == true) !== undefined;
+                if (streamerResult && "streamer_list" in streamerResult) {
+                    const isAnyoneLive = streamerResult.streamer_list.find((el) => el.is_live == true) !== undefined;
 
-                if (!isAnyoneLive) {
-                    if (this.timerMax < 1800 /* 30 minutes */) {
-                        this.timerMax += 10;
+                    if (!isAnyoneLive) {
+                        if (this.timerMax < 1800 /* 30 minutes */) {
+                            this.timerMax += 10;
+                        }
+                    } else {
+                        this.timerMax = 120;
                     }
-                } else {
-                    this.timerMax = 120;
+
+                    this.store.updateStreamerList(streamerResult.streamer_list);
+
+                    this.fetchLog();
+
+                    this.fetchJobs();
                 }
-
-                this.store.updateStreamerList(streamerResult);
-
-                this.fetchLog();
-
-                this.fetchJobs();
 
                 this.loading = false;
 
@@ -500,11 +492,7 @@ export default defineComponent({
             });
         },
         logSetFilter(val: string) {
-            if (this.logModule) {
-                this.logModule = "";
-            } else {
-                this.logModule = val;
-            }
+            this.logModule = this.logModule ? "" : val;
             console.log(`Log filter set to ${this.logModule}`);
         },
         logToggle() {

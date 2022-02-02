@@ -1,4 +1,5 @@
 import { ApiChannel, ApiConfig, ApiJob, ApiVod, ClientSettings } from "@/twitchautomator";
+import axios from "axios";
 import { defineStore } from "pinia";
 
 export const useStore = defineStore("twitchAutomator", {
@@ -18,6 +19,25 @@ export const useStore = defineStore("twitchAutomator", {
             // if (!key in this.config) return def;
             if (this.config[k] === undefined || this.config[k] === null) return def;
             return this.config[k] as unknown as T;
+        },
+        async fetchStreamerList() {
+            let response;
+            try {
+                response = await axios.get(`/api/v0/channels`);
+            } catch (error) {
+                console.error(error);
+                return false;
+            }
+
+            if (!response.data.data) {
+                console.error("fetchStreamers invalid data", response.data);
+                return false;
+            }
+
+            const data: { streamer_list: ApiChannel[]; total_size: number; free_size: number } = response.data.data;
+
+            // this.streamerList = data.streamer_list;
+            return data;
         },
         updateStreamerList(data: ApiChannel[]) {
             this.streamerList = data;
