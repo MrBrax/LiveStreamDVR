@@ -51,9 +51,10 @@
         <template v-if="ws">
             {{ wsConnected ? "Connected" : wsConnecting ? "Connecting..." : "Disconnected" }}
         </template>
-        <template v-else>
+        <template v-else-if="tickerInterval">
             {{ loading ? "Loading..." : `Refreshing in ${timer} seconds.` }}
         </template>
+        <template v-else>Disabled</template>
     </div>
     <div id="jobs-status" v-if="store.jobList !== undefined">
         <table>

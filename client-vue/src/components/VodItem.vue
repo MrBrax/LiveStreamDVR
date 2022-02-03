@@ -192,17 +192,17 @@
                 </div>
             </div>
 
-            <ul v-if="vod?.is_capturing" class="video-info">
-                <li><strong>Current duration:</strong><duration-display :startDate="vod.dt_started_at.date" outputStyle="human"></duration-display></li>
-                <li>
-                    <strong>Watch live:</strong>
-                    <a :href="'https://twitch.tv/' + vod.streamer_login" rel="noreferrer" target="_blank">Twitch</a>
-                </li>
-                <!--<li><strong>Watch capture:</strong>
-                    <a href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}.ts" rel="noreferrer" target="_blank">TS file</a>
-                    <a href="{{ base_path() }}/vods/{{ config.channel_folders ? vodclass.streamer_name ~ "/" : "" }}{{ vodclass.basename }}.m3u8" rel="noreferrer" target="_blank">Playlist file</a>
-                <li><a href="{{ url_for('api_jobs_kill', { 'job': 'capture_' ~ vodclass.basename }) }}">Kill job</a></li>-->
-            </ul>
+            <div v-if="vod?.is_capturing" class="info-columns">
+                <div class="info-column">
+                    <h4>Recording</h4>
+                    <ul class="video-info">
+                        <li>
+                            <strong>Current duration:</strong> <duration-display :startDate="vod.dt_started_at.date" outputStyle="human"></duration-display>
+                        </li>
+                        <li><strong>Watch live:</strong> <a :href="'https://twitch.tv/' + vod.streamer_login" rel="noreferrer" target="_blank">Twitch</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
 
         <!-- segment list -->
