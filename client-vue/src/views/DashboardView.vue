@@ -33,7 +33,7 @@
 
                 <div class="log_viewer" ref="logViewer">
                     <table>
-                        <tr v-for="line in logFiltered" :key="line" :class="'log-line log-line-' + line.level.toLowerCase()">
+                        <tr v-for="(line, lineIndex) in logFiltered" :key="lineIndex" :class="'log-line log-line-' + line.level.toLowerCase()">
                             <td>{{ line.date_string }}</td>
                             <td>
                                 <a @click="logSetFilter(line.module)">{{ line.module }}</a>

@@ -17,7 +17,7 @@
                     <span class="streamer-vods-amount" title="Total vod amount">{{ streamer.vods_list.length }} vods</span
                     ><!-- vods -->
                     &middot;
-                    <span class="streamer-vods-size" title="Total vod size">{{ formatBytes(this.streamer?.vods_size) }}</span
+                    <span class="streamer-vods-size" title="Total vod size">{{ formatBytes(streamer?.vods_size) }}</span
                     ><!-- total size -->
                     &middot;
                     <!--<span class="streamer-subbed-status" title="Subscription expiration">

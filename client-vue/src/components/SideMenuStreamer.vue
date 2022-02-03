@@ -11,7 +11,7 @@
         v-if="streamer"
     >
         <router-link :to="store.clientConfig.singlePage ? { path: 'dashboard', query: { channel: streamer.login } } : '#streamer_' + streamer.login">
-            <span class="avatar" @click.prevent="store.updateStreamer(streamer ? streamer.login : '')">
+            <span class="avatar" @click.prevent="streamer && store.updateStreamer(streamer.login)">
                 <img :src="streamer.profile_image_url" :alt="streamer.login" />
             </span>
             <span class="username">

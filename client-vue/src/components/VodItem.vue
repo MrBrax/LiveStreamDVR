@@ -27,7 +27,7 @@
         <div class="video-description">
             <!-- box art -->
             <div class="boxart-carousel is-small" v-if="vod && vod.api_getUniqueGames">
-                <div v-for="game in vod.api_getUniqueGames" :key="game" class="boxart-item">
+                <div v-for="game in vod.api_getUniqueGames" :key="game.id" class="boxart-item">
                     <img v-if="game.image_url" :title="game.name" :alt="game.name" :src="game.image_url" loading="lazy" />
                     <span v-else>{{ game.name }}</span>
                 </div>
@@ -209,7 +209,7 @@
         <div v-if="vod?.is_finalized" class="video-segments">
             <strong>Segments</strong>
             <ul class="list-segments" v-if="vod && vod.segments">
-                <li v-for="segment in vod.segments" :key="segment">
+                <li v-for="segment in vod.segments" :key="segment.basename">
                     <a :href="vod?.webpath + '/' + segment.basename">
                         <span class="text-overflow">{{ segment.basename }}</span>
                         <span v-if="!segment.deleted"> ({{ formatBytes(segment.filesize) }}) </span>
@@ -240,26 +240,30 @@
 
         <!-- controls -->
         <div class="video-controls" v-if="vod?.is_finalized">
+            <!-- Editor -->
             <router-link class="button is-blue" :to="{ name: 'Editor', params: { vod: vod?.basename } }">
                 <span class="icon"><fa icon="cut" type="fa"></fa></span>
                 Editor
             </router-link>
 
-            <a v-if="vod?.is_chat_downloaded" class="button is-blue" :href="playerLink" target="_blank">
+            <!-- Player -->
+            <a v-if="vod?.is_chat_downloaded" class="button is-blue" :href="playerLink()" target="_blank">
                 <span class="icon"><fa icon="play" type="fa"></fa></span>
                 Player
             </a>
 
-            <a v-else-if="vod?.is_chatdump_captured" class="button is-blue" :href="playerLink" target="_blank">
+            <a v-else-if="vod?.is_chatdump_captured" class="button is-blue" :href="playerLink()" target="_blank">
                 <span class="icon"><fa icon="play" type="fa"></fa></span>
                 Player
             </a>
 
+            <!-- JSON -->
             <a class="button" :href="vod?.webpath + '/' + vod?.basename + '.json'" target="_blank">
                 <span class="icon"><fa icon="database" type="fa"></fa></span>
                 JSON
             </a>
 
+            <!-- Archive -->
             <a class="button" @click="doArchive">
                 <span class="icon">
                     <fa icon="archive" type="fa" v-if="!taskStatus.archive"></fa>
@@ -268,6 +272,7 @@
                 Archive
             </a>
 
+            <!-- Download chat-->
             <a v-if="vod?.twitch_vod_id && !vod?.is_chat_downloaded" class="button" @click="doDownloadChat">
                 <span class="icon">
                     <fa icon="comments" type="fa" v-if="!taskStatus.downloadChat && !compDownloadChat"></fa>
@@ -277,7 +282,7 @@
             </a>
 
             <template v-if="vod?.is_chat_downloaded && !vod?.is_chat_burned">
-                <a class="button" @click="doRenderChat">
+                <a class="button" @click="doRenderChat()">
                     <span class="icon">
                         <fa icon="comments" type="fa" v-if="!taskStatus.renderChat"></fa>
                         <fa icon="sync" type="fa" spin="true" v-else></fa>
@@ -346,11 +351,12 @@
                     </span>
                 </em>
             </template>
-            <template v-else-if="vod?.is_capturing">
+            <template v-else-if="vod && vod.is_capturing">
                 <em class="text-overflow">
                     <span class="icon"><fa icon="video"></fa></span>
                     Capturing to <strong>{{ vod?.basename }}.ts</strong> (<strong>{{ formatBytes(vod?.api_getRecordingSize) }}</strong
                     >)
+                    <span class="icon" title="Refresh" @click="vod && store.updateVod(vod.basename)"><fa icon="sync"></fa></span>
                 </em>
 
                 <br />
@@ -427,8 +433,8 @@
 
                 <tbody>
                     <tr
-                        v-for="chapter in vod.chapters"
-                        :key="chapter"
+                        v-for="(chapter, chapterIndex) in vod.chapters"
+                        :key="chapterIndex"
                         :class="{
                             favourite: store.config && store.config.favourites[chapter.game_id],
                         }"
@@ -736,7 +742,7 @@ export default defineComponent({
                 });
         },
         playerLink(offset = 0): string {
-            if (!this.store.config) return "";
+            if (!this.store.config) return "#";
             let video_path = `${this.vod?.webpath}/${this.vod?.basename}.mp4`;
             let chat_path = `${this.vod?.webpath}/${this.vod?.basename}.chatdump`;
             return `${this.store.cfg("basepath")}/vodplayer/index.html#source=file&video_path=${video_path}&chatfile=${chat_path}&offset=${offset}`;

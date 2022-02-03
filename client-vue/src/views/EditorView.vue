@@ -15,8 +15,8 @@
 
             <div class="videoplayer-chapters">
                 <div
-                    v-for="chapter in vodData.chapters"
-                    :key="chapter"
+                    v-for="(chapter, chapterIndex) in vodData.chapters"
+                    :key="chapterIndex"
                     :title="chapter.title + ' | \\n' + chapter.game_name"
                     class="videoplayer-chapter"
                     :style="{ width: chapter.width + '%' }"
@@ -97,7 +97,7 @@ export default defineComponent({
             // this.vodData = [];
             /** @todo: axios */
             this.$http
-                .get(`/api/v0/vod/${this.vod}/`)
+                .get(`/api/v0/vod/${this.vod}`)
                 .then((response) => {
                     const json = response.data;
                     this.vodData = json.data;

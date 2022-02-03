@@ -3,7 +3,7 @@
         <div class="menu-top">
             <div class="top-menu-item title" v-if="store.config">
                 <router-link to="/dashboard">
-                    <img src="../assets/logo.png" class="favicon" width="24" height="24" :alt="store.cfg('app_name')" />
+                    <img src="../assets/logo.png" class="favicon" width="24" height="24" :alt="store.cfg('app_name', 'TA') ?? 'TA'" />
                     <span class="title">
                         {{ store.cfg("app_name") }} {{ store.version }}/{{ clientVersion }}
                         <span class="debug-mode" v-if="store.cfg('debug')" title="Debug">👽</span>
