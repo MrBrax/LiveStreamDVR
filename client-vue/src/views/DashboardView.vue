@@ -171,11 +171,11 @@ export default defineComponent({
             }
         }
 
-        // update vods every 5 minutes
+        // update vods every 15 minutes
         if (this.store.clientConfig.useBackgroundRefresh) {
             this.vodUpdateInterval = setInterval(() => {
                 this.store.updateCapturingVods();
-            }, 1000 * 60 * 5);
+            }, 1000 * 60 * 15);
         }
     },
     unmounted() {
