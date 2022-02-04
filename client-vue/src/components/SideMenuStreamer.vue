@@ -21,19 +21,14 @@
             <span class="vodcount">{{ streamer.vods_list.length }}</span>
             <span class="subtitle">
                 <template v-if="streamer.is_live">
-                    <template
-                        v-if="
-                            streamer.current_game &&
-                            (streamer.current_game.game_name == 'Just Chatting' ||
-                                streamer.current_game.game_name == 'IRL' ||
-                                streamer.current_game.game_name == 'Art')
-                        "
-                    >
+                    <template v-if="streamer.current_game && nonGameCategories.includes(streamer.current_game.game_name)">
+                        <strong>Streaming {{ streamer.current_game.game_name }}</strong>
+                    </template>
+                    <template v-else-if="streamer.current_game && streamer.current_game.game_name != ''">
+                        Playing
                         <strong>{{ streamer.current_game.game_name }}</strong>
                     </template>
-                    <template v-else>
-                        Playing <strong>{{ streamer.current_game ? streamer.current_game.game_name : "(none)" }}</strong>
-                    </template>
+                    <template v-else>Streaming</template>
                     for
                     <duration-display
                         :startDate="streamer.current_vod.dt_started_at.date"
@@ -166,6 +161,8 @@ import { useStore } from "@/store";
 import { ApiChannel } from "@/twitchautomator";
 library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass);
 
+import { nonGameCategories } from "@/defs";
+
 export default defineComponent({
     name: "SideMenuStreamer",
     props: {
@@ -175,7 +172,7 @@ export default defineComponent({
     },
     setup() {
         const store = useStore();
-        return { store };
+        return { store, nonGameCategories };
     },
     components: {
         DurationDisplay,

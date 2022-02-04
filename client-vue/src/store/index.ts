@@ -105,7 +105,7 @@ export const useStore = defineStore("twitchAutomator", {
             return true;
         },
         updateStreamerList(data: ApiChannel[]) {
-            console.debug("updateStreamerList");
+            console.debug("updateStreamerList", data);
             this.streamerList = data;
         },
         /*

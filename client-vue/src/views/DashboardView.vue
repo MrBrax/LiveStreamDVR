@@ -81,6 +81,7 @@ import Streamer from "@/components/StreamerItem.vue";
 import type { ApiLogLine, ApiChannel } from "@/twitchautomator.d";
 import { format } from "date-fns";
 import { useStore } from "@/store";
+import { nonGameCategories } from "@/defs";
 
 interface DashboardData {
     loading: boolean;
@@ -418,10 +419,22 @@ export default defineComponent({
                     return;
                 }
 
-                if (name !== "updateStreamerList" || !("streamer_list" in args)) {
-                    console.debug(`Streamer list notification check payload was ${name}, abort.`);
+                if (name !== "updateStreamerList") {
+                    // console.debug(`Streamer list notification check payload was ${name}, abort.`);
                     return;
                 }
+
+                const payload = args[0] as ApiChannel[];
+
+                if (payload.length === 0) {
+                    console.debug("Streamer list notification check payload was empty, abort.");
+                    return;
+                }
+
+                // if (!("streamer_list" in args)) {
+                //     console.error("Streamer list notification payload is invalid", name, args);
+                //     return;
+                // }
 
                 // console.log("subscribe", mutation.payload, this.store.streamerList);
                 /*
@@ -435,8 +448,6 @@ export default defineComponent({
                 };
 
                 console.debug("notification payload", name, args);
-
-                let payload = args as unknown as ApiChannel[];
 
                 for (const streamer of payload) {
                     const login = streamer.login;
@@ -467,12 +478,23 @@ export default defineComponent({
                                 (!oldStreamer.current_game && streamer.current_game) || // from no game to new game
                                 (oldStreamer.current_game && streamer.current_game && oldStreamer.current_game.game_name !== streamer.current_game.game_name) // from old game to new game
                             ) {
-                                // alert( streamer.login + " is now playing " + streamer.current_game.game_name );
 
-                                if (streamer.current_game.favourite) {
-                                    text = `${login} is now playing one of your favourite games: ${streamer.current_game.game_name}!`;
+                                if (nonGameCategories.includes(streamer.current_game.game_name)) {
+                                    if (streamer.current_game.favourite) {
+                                        text = `${login} is online with one of your favourite categories: ${streamer.current_game.game_name}!`;
+                                    } else if (streamer.current_game.game_name) {
+                                        text = `${login} is now streaming ${streamer.current_game.game_name}!`;
+                                    } else {
+                                        text = `${login} is now streaming without a category!`;
+                                    }
                                 } else {
-                                    text = `${login} is now playing ${streamer.current_game.game_name}!`;
+                                    if (streamer.current_game.favourite) {
+                                        text = `${login} is now playing one of your favourite games: ${streamer.current_game.game_name}!`;
+                                    } else if (streamer.current_game.game_name) {
+                                        text = `${login} is now playing ${streamer.current_game.game_name}!`;
+                                    } else {
+                                        text = `${login} is now streaming without a category!`;
+                                    }
                                 }
                             }
                         }
