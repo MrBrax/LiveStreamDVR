@@ -425,7 +425,7 @@
                     <tr>
                         <th>Offset</th>
                         <th>Duration</th>
-                        <th>Game</th>
+                        <th>Category</th>
                         <th>Title</th>
                         <th v-if="hasViewerCount">Viewers</th>
                     </tr>
@@ -483,21 +483,20 @@
                                     >
                                         <span class="icon"><fa icon="external-link-alt"></fa></span>
                                     </a>
-
-                                    <!-- favourite button -->
-                                    <button
-                                        class="icon-button favourite-button"
-                                        v-if="store.config && !store.config.favourites[chapter.game_id]"
-                                        title="Add to favourites"
-                                        @click="addFavouriteGame(chapter.game_id)"
-                                    >
-                                        <span class="icon"><fa icon="star"></fa></span>
-                                    </button>
                                 </span>
                             </template>
                             <template v-else>
                                 <span class="game-name px-1">{{ chapter.game_name ? chapter.game_name : "None" }}</span>
                             </template>
+                            <!-- favourite button -->
+                            <button
+                                class="icon-button favourite-button"
+                                v-if="store.config && !store.config.favourites[chapter.game_id]"
+                                title="Add to favourites"
+                                @click="addFavouriteGame(chapter.game_id)"
+                            >
+                                <span class="icon"><fa icon="star"></fa></span>
+                            </button>
                         </td>
 
                         <!-- title -->
