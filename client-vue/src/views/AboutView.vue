@@ -81,6 +81,7 @@
                             <li><strong>Backend version:</strong> {{ store.version }}</li>
                             <li><strong>Frontend version:</strong> {{ clientVersion }}</li>
                             <li><strong>Frontend build:</strong> {{ clientMode }}</li>
+                            <li><strong>Frontend verbose:</strong> {{ verboseClientVersion }}</li>
                             <!--<li v-if="envs && envs.NODE"><strong>Node:</strong> {{ envs.npm_config_node_version }}{% endif %}</li>-->
                         </ul>
                     </div>
@@ -232,6 +233,9 @@ export default defineComponent({
         },
         clientMode() {
             return process.env.NODE_ENV; // injected
+        },
+        verboseClientVersion() {
+            return `${process.env.VUE_APP_VERSION} (${process.env.VUE_APP_BUILDDATE} / ${process.env.VUE_APP_GIT_HASH})`; // injected
         },
     },
     methods: {

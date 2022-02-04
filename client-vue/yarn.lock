@@ -1128,6 +1128,11 @@
   version "0.12.1"
   resolved "https://registry.yarnpkg.com/@types/retry/-/retry-0.12.1.tgz#d8f1c0d0dc23afad6dc16a9e993a0865774b4065"
 
+"@types/semver@^7.3.8":
+  version "7.3.9"
+  resolved "https://registry.yarnpkg.com/@types/semver/-/semver-7.3.9.tgz#152c6c20a7688c30b967ec1841d31ace569863fc"
+  integrity sha512-L/TMpyURfBkf+o/526Zb6kd/tchUP3iBDEPjqjb+U2MAJhVRxxrmr2fwpe08E7QsV7YLcpq0tUaQ9O9x97ZIxQ==
+
 "@types/serve-index@^1.9.1":
   version "1.9.1"
   resolved "https://registry.yarnpkg.com/@types/serve-index/-/serve-index-1.9.1.tgz#1b5e85370a192c01ec6cec4735cf2917337a6278"
@@ -3271,6 +3276,16 @@ get-symbol-description@^1.0.0:
     call-bind "^1.0.2"
     get-intrinsic "^1.1.1"
 
+git-describe@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/git-describe/-/git-describe-4.1.0.tgz#0c50fa1ec5ead55932b6e875b2299b17ce5e07d3"
+  integrity sha512-NM7JSseVK4Z0r505+2TIrgPQKPvqbOowHP73IY5y69v/t/PmoMleJdij1vTO3qVm1qSvqb6342p1MYSxsnV8QA==
+  dependencies:
+    "@types/semver" "^7.3.8"
+    lodash "^4.17.21"
+  optionalDependencies:
+    semver "^5.6.0"
+
 glob-parent@^5.1.2, glob-parent@~5.1.2:
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/glob-parent/-/glob-parent-5.1.2.tgz#869832c58034fe68a4093c17dc15e8340d8401c4"
@@ -5064,7 +5079,7 @@ selfsigned@^2.0.0:
   dependencies:
     node-forge "^1.2.0"
 
-"semver@2 || 3 || 4 || 5", semver@^5.5.0:
+"semver@2 || 3 || 4 || 5", semver@^5.5.0, semver@^5.6.0:
   version "5.7.1"
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.7.1.tgz#a954f931aeba508d307bbf069eff0c01c96116f7"
 

@@ -1,5 +1,8 @@
 const { defineConfig } = require("@vue/cli-service");
+const { gitDescribeSync } = require("git-describe");
 process.env.VUE_APP_VERSION = process.env.npm_package_version;
+process.env.VUE_APP_BUILDDATE = new Date().toISOString();
+process.env.VUE_APP_GIT_HASH = gitDescribeSync().hash;
 
 module.exports = defineConfig({
     // publicPath: '/test/',

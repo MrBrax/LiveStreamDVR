@@ -4,7 +4,7 @@
             <div class="top-menu-item title" v-if="store.config">
                 <router-link to="/dashboard">
                     <img src="../assets/logo.png" class="favicon" width="24" height="24" :alt="store.cfg('app_name', 'TA') ?? 'TA'" />
-                    <span class="title">
+                    <span class="title" :title="verboseClientVersion">
                         {{ store.cfg("app_name") }} {{ store.version }}/{{ clientVersion }}
                         <span class="debug-mode" v-if="store.cfg('debug')" title="Debug">👽</span>
                     </span>
@@ -79,6 +79,9 @@ export default defineComponent({
         },
         clientVersion() {
             return process.env.VUE_APP_VERSION; // injected
+        },
+        verboseClientVersion() {
+            return `${process.env.VUE_APP_VERSION} (${process.env.VUE_APP_BUILDDATE} / ${process.env.VUE_APP_GIT_HASH})`; // injected
         },
     },
 });
