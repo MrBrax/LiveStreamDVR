@@ -12,15 +12,26 @@ class TwitchVOD
 
 	public $vod_path = 'vods';
 
+	public string $capture_id = '';
 	public string $filename = '';
 	public string $basename = '';
+	
+	/** Base directory of all related files */
 	public string $directory = '';
-	/** Base directory */
+	
 	public array $json = [];
 	public array $meta = [];
 
+	/** 
+	 * Streamer display name.
+	 * Do NOT use display name for file naming
+	 */
 	public ?string $streamer_name = null;
+
+	/** Streamer user id */
 	public ?string $streamer_id = null;
+
+	/** Streamer login */
 	public ?string $streamer_login = null;
 
 	public array $segments = [];
@@ -152,6 +163,7 @@ class TwitchVOD
 		$vod->json = json_decode($data, true);
 		$vod->json_hash = md5($data);
 
+		$vod->capture_id = isset($vod->json['capture_id']) ? $vod->json['capture_id'] : '';
 		$vod->filename = $vod->realpath($filename);
 		$vod->basename = basename($filename, '.json');
 		$vod->directory = dirname($filename);
@@ -175,52 +187,6 @@ class TwitchVOD
 
 		return $vod;
 	}
-	/*
-	public function load(string $filename, $api = false)
-	{
-
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Loading VOD Class for {$filename} with api " . ($api ? 'enabled' : 'disabled'));
-
-		if (!file_exists($filename)) {
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "vodclass", "VOD Class for {$filename} not found");
-			throw new \Exception('VOD not found');
-			return false;
-		}
-
-		$data = file_get_contents($filename);
-
-		if (!$data || strlen($data) == 0 || filesize($filename) == 0) {
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "vodclass", "Tried to load {$filename} but no data was returned");
-			return false;
-		}
-
-		$this->json = json_decode($data, true);
-		$this->json_hash = md5($data);
-
-		$this->filename = $this->realpath($filename);
-		$this->basename = basename($filename, '.json');
-		$this->directory = dirname($filename);
-
-		$this->meta = $this->json['meta'];
-
-		$this->setupDates();
-		$this->setupBasic();
-		$this->setupUserData();
-		$this->setupProvider();
-		$this->setupAssoc();
-		$this->setupFiles();
-
-		$this->webpath = TwitchConfig::cfg('basepath') . '/vods/' . (TwitchConfig::cfg("channel_folders") && $this->streamer_name ? $this->streamer_name : '');
-
-		if ($api) {
-			$this->setupApiHelper();
-		}
-
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "VOD Class for {$this->basename} with api " . ($api ? 'enabled' : 'disabled') . " loaded, hopefully without errors!");
-
-		return true;
-	}
-	*/
 
 	public function setupDates()
 	{
@@ -265,12 +231,9 @@ class TwitchVOD
 
 	public function setupUserData()
 	{
-		// $this->streamer_name 	= isset($this->meta['user_name']) ? $this->meta['user_name'] : $this->meta['data'][0]['user_name'];
-		// $this->streamer_id 		= TwitchHelper::getChannelId($this->streamer_name);
-		// $this->streamer_name 	= $this->json['streamer_name'];
 		$this->streamer_id = (string)$this->json['streamer_id'];
 		$this->streamer_login = TwitchChannel::channelLoginFromId($this->json['streamer_id']);
-		$this->streamer_name = TwitchChannel::channelUsernameFromId($this->json['streamer_id']);
+		$this->streamer_name = TwitchChannel::channelDisplayNameFromId($this->json['streamer_id']);
 	}
 
 	public function setupProvider()
@@ -849,8 +812,6 @@ class TwitchVOD
 		$process = new Process($cmd, $this->directory, $env, null, null);
 		$process->start();
 
-		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tdrender_' . $this->streamer_name . '.pid';
-		//file_put_contents($pidfile, $process->getPid());
 		$tdrenderJob = TwitchAutomatorJob::create("tdrender_{$this->streamer_login}");
 		$tdrenderJob->setPid($process->getPid());
 		$tdrenderJob->setProcess($process);
@@ -968,8 +929,6 @@ class TwitchVOD
 		$process->start();
 
 		// create pidfile
-		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'burnchat_' . $this->streamer_name . '.pid';
-		//file_put_contents($pidfile, $process->getPid());
 		$burnchatJob = TwitchAutomatorJob::create("burnchat_{$this->streamer_login}");
 		$burnchatJob->setPid($process->getPid());
 		$burnchatJob->setProcess($process);
@@ -1185,6 +1144,8 @@ class TwitchVOD
 		$generated['dt_conversion_started'] 	= $this->dt_conversion_started;
 		$generated['dt_started_at'] 			= $this->dt_started_at;
 		$generated['dt_ended_at'] 				= $this->dt_ended_at;
+
+		$generated['capture_id']				= $this->capture_id;
 
 		if (!is_writable($this->filename)) { // this is not the function i want
 			// TwitchHelper::log(TwitchHelper::LOG_FATAL, "Saving JSON of " . $this->basename . " failed, permissions issue?");
@@ -1774,14 +1735,6 @@ class TwitchVOD
 		*/
 	}
 
-	/**
-	 * @deprecated version
-	 */
-	public function getPublicBasename()
-	{
-		return 'vods/' . (TwitchConfig::cfg("channel_folders") ? $this->streamer_name . '/' : '') . $this->basename;
-	}
-
 	public function hasFavouriteGame()
 	{
 		if (!$this->chapters) return false;
@@ -1821,7 +1774,6 @@ class TwitchVOD
 
 	public function getChatDumpStatus()
 	{
-		// return (TwitchAutomatorJob::load("chatdump_{$this->streamer_name}"))->getStatus();
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "Get chat dump status for {$this->basename}");
 		$job = TwitchHelper::findJob("chatdump_{$this->streamer_login}");
 		return $job ? $job->getStatus() : false;
@@ -1850,6 +1802,9 @@ class TwitchVOD
 		// $user_id = TwitchHelper::getChannelId($username);
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public function troubleshoot($fix = false)
 	{
 
@@ -1922,23 +1877,9 @@ class TwitchVOD
 
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Delete {$this->basename}");
 
-		// segments
-		/*
-		foreach ($this->segments_raw as $s) {
-			unlink($this->directory . DIRECTORY_SEPARATOR . basename($s));
-		}
-
-		unlink($this->directory . DIRECTORY_SEPARATOR . $this->basename . '.json'); // data file
-		if ($this->is_lossless_cut_generated) unlink($this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv'); // losslesscut
-		if ($this->is_chat_downloaded) unlink($this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat'); // chat download
-		if ($this->is_chatdump_captured) {
-			unlink($this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chatdump');
-			unlink($this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chatdump.txt');
-		}
-		*/
 		foreach ($this->associatedFiles as $file) {
 			if (file_exists($this->directory . DIRECTORY_SEPARATOR . $file)) {
-				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Delete {$file}");
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Delete {$file}");
 				unlink($this->directory . DIRECTORY_SEPARATOR . $file);
 			}
 		}
@@ -1952,14 +1893,42 @@ class TwitchVOD
 	public function save()
 	{
 		set_time_limit(0);
-		TwitchHelper::log(TwitchHelper::LOG_INFO, "Save {$this->basename}");
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Save {$this->basename}");
 
+		/*
 		foreach ($this->associatedFiles as $file) {
 			if (file_exists($this->directory . DIRECTORY_SEPARATOR . $file)) {
 				TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Save {$file}");
 				rename($this->directory . DIRECTORY_SEPARATOR . $file, TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods" . DIRECTORY_SEPARATOR . $file);
 			}
 		}
+		*/
+		$this->move(TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . "saved_vods");
+	}
+
+	/**
+	 * Move vod and all related files to another folder
+	 * @param string $dest_dir Destination directory
+	 * @return boolean True if successful
+	 * @throws Exception If unsuccessful
+	 */
+	public function move(string $dest_dir)
+	{
+		set_time_limit(0);
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Move {$this->basename} to ${dest_dir}");
+
+		foreach ($this->associatedFiles as $file) {
+			$file_from = $this->directory . DIRECTORY_SEPARATOR . $file;
+			$file_to = $dest_dir . DIRECTORY_SEPARATOR . $file;
+			if (file_exists($file_from)) {
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Move {$file_from} to ${file_to}");
+				if (!rename($file_from, $file_to)) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Failed to move {$file_from} to ${file_to}");
+					throw new \Exception("Failed to move {$file} to ${dest_dir}");
+				}
+			}
+		}
+		return true;
 	}
 
 	/** @deprecated 3.4.0 this function sucks */

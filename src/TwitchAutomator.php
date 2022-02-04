@@ -688,6 +688,7 @@ class TwitchAutomator
 
 		$this->vod->meta = $this->payload_eventsub;
 		$this->vod->json['meta'] = $this->payload_eventsub;
+		$this->vod->capture_id = $this->getVodID();
 		$this->vod->streamer_name = $this->getUsername();
 		$this->vod->streamer_login = $this->getLogin();
 		$this->vod->streamer_id = $this->getUserID();
