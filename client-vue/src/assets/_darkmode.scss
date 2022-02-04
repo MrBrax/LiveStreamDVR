@@ -65,6 +65,15 @@
     }
 
     .game-list {
+        tr.favourite {
+            background-color: #278242;
+            td {
+                background-color: #278242;
+            }
+            .grey {
+                color: #b0b0b0;
+            }
+        }
         td:nth-child(4) {
             color: #aaa;
         }
@@ -107,6 +116,25 @@
     .card {
         .card-content {
             background-color: #3e3e3e;
+        }
+    }
+
+    .log_viewer {
+        color: #888;
+        &.log-line-success {
+            color: #5bd250;
+        }
+        &.log-line-fatal {
+            color: #ff0000;
+        }
+        &.log-line-warning {
+            color: #ff7300;
+        }
+        &.log-line-error {
+            color: #db4d4d;
+        }
+        &.log-line-debug {
+            color: #9c9c9c;
         }
     }
 }

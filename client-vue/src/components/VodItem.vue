@@ -356,7 +356,7 @@
                     <span class="icon"><fa icon="video"></fa></span>
                     Capturing to <strong>{{ vod?.basename }}.ts</strong> (<strong>{{ formatBytes(vod?.api_getRecordingSize) }}</strong
                     >)
-                    <span class="icon" title="Refresh" @click="vod && store.updateVod(vod.basename)"><fa icon="sync"></fa></span>
+                    <span class="icon clickable" title="Refresh" @click="vod && store.updateVod(vod.basename)"><fa icon="sync"></fa></span>
                 </em>
 
                 <br />
