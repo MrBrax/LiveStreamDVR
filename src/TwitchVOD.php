@@ -305,16 +305,17 @@ class TwitchVOD
 		$this->path_playlist			= $this->realpath($this->directory . DIRECTORY_SEPARATOR . $this->basename . ".m3u8");
 
 		$this->associatedFiles = [
-			$this->basename . ".json",
-			$this->basename . ".chat",
-			$this->basename . "_vod.mp4",
-			$this->basename . "-llc-edl.csv",
-			$this->basename . "_chat.mp4",
-			$this->basename . "_burned.mp4",
-			$this->basename . ".chatdump",
-			$this->basename . ".chatdump.txt",
-			$this->basename . ".m3u8",
-			$this->basename . ".adbreak",
+			"{$this->basename}.json",
+			"{$this->basename}.chat",
+			"{$this->basename}_vod.mp4",
+			"{$this->basename}-llc-edl.csv",
+			"{$this->basename}_chat.mp4",
+			"{$this->basename}_burned.mp4",
+			"{$this->basename}.chatdump",
+			"{$this->basename}.chatdump.txt",
+			"{$this->basename}.chatdump.line",
+			"{$this->basename}.m3u8",
+			"{$this->basename}.adbreak",
 		];
 
 		if (isset($this->segments_raw)) {

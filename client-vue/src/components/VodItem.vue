@@ -705,6 +705,7 @@ export default defineComponent({
                     console.log(json);
                     this.taskStatus.delete = false;
                     this.$emit("refresh");
+                    if (this.vod) this.store.updateStreamer(this.vod.streamer_login);
                 })
                 .catch((err) => {
                     console.error("form error", err.response);

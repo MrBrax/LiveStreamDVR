@@ -22,7 +22,7 @@
             <span class="subtitle">
                 <template v-if="streamer.is_live">
                     <template v-if="streamer.current_game && nonGameCategories.includes(streamer.current_game.game_name)">
-                        <strong>Streaming {{ streamer.current_game.game_name }}</strong>
+                        Streaming <strong>{{ streamer.current_game.game_name }}</strong>
                     </template>
                     <template v-else-if="streamer.current_game && streamer.current_game.game_name != ''">
                         Playing
