@@ -247,14 +247,14 @@
             </router-link>
 
             <!-- Player -->
-            <a v-if="vod?.is_chat_downloaded" class="button is-blue" :href="playerLink()" target="_blank">
+            <a v-if="vod?.is_chat_downloaded" class="button is-blue" :href="playerLink(0, true)" target="_blank">
                 <span class="icon"><fa icon="play" type="fa"></fa></span>
-                Player
+                Player (chat dl)
             </a>
 
-            <a v-else-if="vod?.is_chatdump_captured" class="button is-blue" :href="playerLink()" target="_blank">
+            <a v-if="vod?.is_chatdump_captured" class="button is-blue" :href="playerLink()" target="_blank">
                 <span class="icon"><fa icon="play" type="fa"></fa></span>
-                Player
+                Player (chat dump)
             </a>
 
             <!-- JSON -->
@@ -632,6 +632,7 @@ export default defineComponent({
                     console.log(json);
                     this.taskStatus.downloadChat = false;
                     this.$emit("refresh");
+                    if (this.vod) this.store.updateVod(this.vod.basename);
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
@@ -741,11 +742,11 @@ export default defineComponent({
                     if (err.response.data && err.response.data.message) alert(err.response.data.message);
                 });
         },
-        playerLink(offset = 0): string {
+        playerLink(offset = 0, chatdownload = false): string {
             if (!this.store.config) return "#";
             let video_path = `${this.vod?.webpath}/${this.vod?.basename}.mp4`;
-            let chat_path = `${this.vod?.webpath}/${this.vod?.basename}.chatdump`;
-            return `${this.store.cfg("basepath")}/vodplayer/index.html#source=file&video_path=${video_path}&chatfile=${chat_path}&offset=${offset}`;
+            let chat_path = `${this.vod?.webpath}/${this.vod?.basename}.${chatdownload ? "chat" : "chatdump"}`;
+            return `${this.store.cfg("basepath")}/vodplayer/index.html#source=file_http&video_path=${video_path}&chatfile=${chat_path}&offset=${offset}`;
         },
     },
     computed: {
