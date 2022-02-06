@@ -10,7 +10,10 @@ RUN apk --no-cache add \
     ffmpeg mediainfo \
     util-linux busybox-initscripts procps gcompat \
     libxml2-dev libxslt-dev python3-dev \
-    yarn nodejs
+    yarn nodejs \
+    bash icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib fontconfig
+    
+# libfontconfig1 can't be found
 
 # pip packages
 # RUN pip install streamlink youtube-dl tcd
@@ -43,8 +46,10 @@ RUN cd /var/www/twitchautomator/twitch-chat-dumper && yarn install
 # --runtime dotnet
 
 # download twitchdownloader, is this legal? lmao
-# RUN sh /var/www/twitchautomator/src/Utilities/fetch-tdl.sh
-# ENV TCD_TWITCHDOWNLOADER_PATH=/usr/local/bin/TwitchDownloaderCLI
+COPY ./docker/fetch-tdl.sh /tmp/fetch-tdl.sh
+RUN sh /tmp/fetch-tdl.sh
+ENV TCD_TWITCHDOWNLOADER_PATH=/usr/local/bin/TwitchDownloaderCLI
+
 
 # src perms
 RUN chown -R nobody:nobody /var/www/twitchautomator && chmod -R 775 /var/www/twitchautomator
@@ -58,6 +63,10 @@ COPY ./docker/cacert.ini /etc/php8/conf.d/cacert.ini
 # make home folder
 RUN mkdir -p /home/nobody && chown -R nobody:nobody /home/nobody
 ENV HOME /home/nobody
+
+# fonts
+RUN mkdir /home/nobody/.fonts && chown nobody:nobody /home/nobody/.fonts
+COPY ./docker/fonts /home/nobody/.fonts
 
 # get certs
 RUN wget https://curl.haxx.se/ca/cacert.pem -O /tmp/cacert.pem

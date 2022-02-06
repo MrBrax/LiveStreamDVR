@@ -83,8 +83,8 @@ class TwitchConfig
 
 		['key' => 'vod_container', 			'group' => 'Video',		'text' => 'VOD container (not tested)', 					'type' => 'array',		'choices' => ['mp4', 'mkv', 'mov'], 'default' => 'mp4'],
 
-		['key' => 'burn_preset', 			'group' => 'Video',		'text' => 'Burning h264 preset', 							'type' => 'array',		'choices' => ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower', 'veryslow', 'placebo'], 'default' => 'slow'],
-		['key' => 'burn_crf', 				'group' => 'Video',		'text' => 'Burning h264 crf', 								'type' => 'number',		'default' => 26, 'help' => 'Essentially a quality control. Lower is higher quality.'],
+		// ['key' => 'burn_preset', 			'group' => 'Video',		'text' => 'Burning h264 preset', 							'type' => 'array',		'choices' => ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower', 'veryslow', 'placebo'], 'default' => 'slow'],
+		// ['key' => 'burn_crf', 				'group' => 'Video',		'text' => 'Burning h264 crf', 								'type' => 'number',		'default' => 26, 'help' => 'Essentially a quality control. Lower is higher quality.'],
 
 		['key' => 'disable_ads', 			'group' => 'Basic',		'text' => 'Try to remove ads from captured file',			'type' => 'boolean',	'default' => true, 'help' => 'This removes the "Commercial break in progress", but stream is probably going to be cut off anyway'],
 		['key' => 'debug', 					'group' => 'Developer',	'text' => 'Debug', 											'type' => 'boolean',	'default' => false, 'help' => 'Verbose logging, extra file outputs, more information available. Not for general use.'],

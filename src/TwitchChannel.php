@@ -217,6 +217,8 @@ class TwitchChannel
                 // check if too old, continue if true
                 if (!isset($json_streamers[$streamer_id]['_updated']) || time() > $json_streamers[$streamer_id]['_updated'] + 2592000) {
                     TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "helper", "Channel data in cache for {$streamer_id} is too old, proceed to updating!");
+                    if (isset($streamer['_updated']))
+                        TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "helper", "{$streamer_id} age: " . (time() - $streamer['_updated']) . " seconds");
                 } else {
                     return $json_streamers[$streamer_id];
                 }
@@ -259,6 +261,7 @@ class TwitchChannel
         $data = $json["data"][0];
 
         $data["_updated"] = time();
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "helper", "Set _updated for ${streamer_id} to " . $data["_updated"]);
 
         // convert/download avatar
         if (isset($data["profile_image_url"]) && $data["profile_image_url"]) {
@@ -284,7 +287,12 @@ class TwitchChannel
         }
 
         $json_streamers[$streamer_id] = $data;
-        file_put_contents(TwitchConfig::$streamerCachePath, json_encode($json_streamers));
+        
+        $success = file_put_contents(TwitchConfig::$streamerCachePath, json_encode($json_streamers)) !== false;
+
+        if (!$success) {
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "helper", "Failed to write channel data to cache for {$streamer_id}");
+        }
 
         TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "helper", "Fetched channel data online for {$streamer_id}");
 
@@ -317,6 +325,8 @@ class TwitchChannel
                         // check if too old, continue if true
                         if (!isset($streamer['_updated']) || time() > $streamer['_updated'] + 2592000) {
                             TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "helper", "Channel data in cache for {$streamer_login} is too old, proceed to updating!");
+                            if (isset($streamer['_updated']))
+                                TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "helper", "{$streamer_login} age: " . (time() - $streamer['_updated']) . " seconds");
                         } else {
                             return $streamer;
                         }
@@ -360,6 +370,7 @@ class TwitchChannel
         $data = $json["data"][0];
 
         $data["_updated"] = time();
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "helper", "Set _updated for ${streamer_login} to " . $data["_updated"]);
 
         $streamer_id = $data['id'];
 
@@ -387,7 +398,11 @@ class TwitchChannel
         }
 
         $json_streamers[$streamer_id] = $data;
-        file_put_contents(TwitchConfig::$streamerCachePath, json_encode($json_streamers));
+        $success = file_put_contents(TwitchConfig::$streamerCachePath, json_encode($json_streamers));
+
+        if (!$success) {
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "helper", "Failed to write channel data to cache for {$streamer_id}");
+        }
 
         TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "helper", "Fetched channel data online for {$streamer_login}");
 

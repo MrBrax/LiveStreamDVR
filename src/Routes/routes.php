@@ -26,12 +26,13 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
         $group->post('/download_chat', ApiController::class . ':vod_download_chat')->setName('api_vod_download_chat');
         $group->post('/download', ApiController::class . ':vod_download')->setName('api_vod_download');
         $group->post('/check_mute', ApiController::class . ':vod_check_mute')->setName('api_vod_check_mute');
-        $group->post('/full_burn', ApiController::class . ':vod_full_burn')->setName('api_vod_full_burn');
-        $group->post('/render_chat', ApiController::class . ':vod_render_chat')->setName('api_vod_render_chat');
+        // $group->post('/full_burn', ApiController::class . ':vod_full_burn')->setName('api_vod_full_burn');
+        // $group->post('/render_chat', ApiController::class . ':vod_render_chat')->setName('api_vod_render_chat');
         $group->post('/delete', ApiController::class . ':vod_delete')->setName('api_vod_delete');
         $group->post('/save', ApiController::class . ':vod_save')->setName('api_vod_save');
         // $group->post('/export', ApiController::class . ':vod_export')->setName('api_vod_export');
         $group->post('/cut', ApiController::class . ':vod_cut')->setName('api_vod_cut');
+        $group->post('/renderwizard', ApiController::class . ':vod_renderwizard')->setName('api_vod_renderwizard');
     });
 
     // channels

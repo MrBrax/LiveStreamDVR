@@ -478,7 +478,6 @@ export default defineComponent({
                                 (!oldStreamer.current_game && streamer.current_game) || // from no game to new game
                                 (oldStreamer.current_game && streamer.current_game && oldStreamer.current_game.game_name !== streamer.current_game.game_name) // from old game to new game
                             ) {
-
                                 if (nonGameCategories.includes(streamer.current_game.game_name)) {
                                     if (streamer.current_game.favourite) {
                                         text = `${login} is online with one of your favourite categories: ${streamer.current_game.game_name}!`;

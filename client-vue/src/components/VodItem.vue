@@ -281,23 +281,6 @@
                 Download chat
             </a>
 
-            <template v-if="vod?.is_chat_downloaded && !vod?.is_chat_burned">
-                <a class="button" @click="doRenderChat()">
-                    <span class="icon">
-                        <fa icon="comments" type="fa" v-if="!taskStatus.renderChat"></fa>
-                        <fa icon="sync" type="fa" spin="true" v-else></fa>
-                    </span>
-                    Render chat
-                </a>
-                <a v-if="vod?.is_vod_downloaded" class="button" @click="doRenderChat(true)">
-                    <span class="icon">
-                        <fa icon="comments" type="fa" v-if="!taskStatus.renderChat"></fa>
-                        <fa icon="sync" type="fa" spin="true" v-else></fa>
-                    </span>
-                    Render chat (vod)
-                </a>
-            </template>
-
             <template v-if="vod?.twitch_vod_id">
                 <a v-if="!vod?.is_vod_downloaded" class="button" @click="doDownloadVod">
                     <span class="icon">
@@ -313,14 +296,14 @@
                     </span>
                     Check mute
                 </a>
-                <a v-if="!vod?.is_chat_burned" class="button" @click="doFullBurn">
-                    <span class="icon">
-                        <fa icon="burn" type="fa" v-if="!taskStatus.fullBurn"></fa>
-                        <fa icon="sync" type="fa" spin="true" v-else></fa>
-                    </span>
-                    Render &amp; burn
-                </a>
             </template>
+
+            <a class="button" @click="burnMenu ? (burnMenu.show = true) : ''">
+                <span class="icon">
+                    <fa icon="burn" type="fa"></fa>
+                </span>
+                Render menu
+            </a>
 
             <a class="button is-danger" @click="doDelete">
                 <span class="icon">
@@ -537,11 +520,124 @@
             </table>
         </div>
     </div>
+    <modal-box ref="burnMenu" title="Render Menu" v-if="vod?.is_finalized">
+        <div>
+            <pre>{{ vod?.basename }}</pre>
+        </div>
+        <div class="field-group">
+            <div class="field">
+                <label><input type="checkbox" v-model="burnSettings.renderChat" /> Render chat <strong v-if="vod.is_chat_rendered">Exists</strong></label>
+            </div>
+            <template v-if="burnSettings.renderChat">
+                <div class="field">
+                    <label>
+                        <p>Chat width</p>
+                        <input class="input" type="text" v-model="burnSettings.chatWidth" />
+                    </label>
+                </div>
+                <div class="field">
+                    <label>
+                        <p>Video source</p>
+                        <select class="input" v-model="burnSettings.vodSource">
+                            <option value="captured">Captured</option>
+                            <option value="downloaded" :disabled="!vod?.is_vod_downloaded">Downloaded</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="field">
+                    <label>
+                        <p>Chat source</p>
+                        <select class="input" v-model="burnSettings.chatSource">
+                            <option value="captured">Captured</option>
+                            <option value="downloaded" :disabled="!vod?.is_chat_downloaded">Downloaded</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="field">
+                    <label>
+                        <p>Font</p>
+                        <select class="input" v-model="burnSettings.chatFont">
+                            <option value="Inter">Inter</option>
+                            <option value="Arial">Arial</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="field">
+                    <label>
+                        <p>Font size</p>
+                        <input class="input" type="text" v-model="burnSettings.chatFontSize" />
+                    </label>
+                </div>
+            </template>
+        </div>
+        <div class="field-group">
+            <div class="field">
+                <label>
+                    <input type="checkbox" v-model="burnSettings.burnChat" :disabled="!burnSettings.renderChat && !vod?.is_chat_rendered" />
+                    Burn chat <strong v-if="vod.is_chat_burned">Exists</strong>
+                </label>
+            </div>
+            <template v-if="burnSettings.burnChat">
+                <div class="field">
+                    <label>
+                        <p>Chat side</p>
+                        <select class="input" v-model="burnSettings.burnSide">
+                            <option value="left">Left</option>
+                            <option value="right">Right</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="field">
+                    <label>
+                        <p>ffmpeg preset</p>
+                        <select class="input" v-model="burnSettings.ffmpegPreset">
+                            <option value="ultrafast">Ultrafast</option>
+                            <option value="superfast">Superfast</option>
+                            <option value="veryfast">Veryfast</option>
+                            <option value="faster">Faster</option>
+                            <option value="fast">Fast</option>
+                            <option value="medium">Medium</option>
+                            <option value="slow">Slow</option>
+                            <option value="slower">Slower</option>
+                            <option value="veryslow">Veryslow</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="field">
+                    <label>
+                        <p>ffmpeg crf</p>
+                        <input class="input" type="range" min="0" max="51" v-model="burnSettings.ffmpegCrf" /> {{ burnSettings.ffmpegCrf }}
+                    </label>
+                </div>
+            </template>
+        </div>
+        <div class="field">
+            <button class="button" @click="doRenderWizard">Execute</button>
+            <span v-if="burnLoading">Running...</span>
+        </div>
+        <div class="job-status">
+            <table>
+                <tr v-for="job in burnJobs" :key="job.pid">
+                    <td>
+                        <span v-if="job.status">
+                            <span class="fa fa-spinner fa-spin"></span>
+                        </span>
+                        <span v-else>
+                            <span class="fa fa-times"></span>
+                        </span>
+                    </td>
+                    <td>
+                        {{ job.name }}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </modal-box>
 </template>
 
 <script lang="ts">
-import type { ApiVod } from "@/twitchautomator.d";
-import { defineComponent } from "vue";
+import type { ApiJob, ApiVod } from "@/twitchautomator.d";
+import { defineComponent, ref } from "vue";
 import DurationDisplay from "@/components/DurationDisplay.vue";
 // import { format, toDate, parse } from 'date-fns';
 
@@ -562,6 +658,7 @@ import {
     faFileSignature,
 } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
+import ModalBox from "./ModalBox.vue";
 library.add(
     faFileVideo,
     faCut,
@@ -583,7 +680,8 @@ export default defineComponent({
     emits: ["forceFetchData", "refresh"],
     setup() {
         const store = useStore();
-        return { store };
+        const burnMenu = ref<InstanceType<typeof ModalBox>>();
+        return { store, burnMenu };
     },
     data() {
         return {
@@ -596,6 +694,19 @@ export default defineComponent({
                 downloadVod: false,
                 fullBurn: false,
                 delete: false,
+            },
+            burnLoading: false,
+            burnSettings: {
+                renderChat: false,
+                burnChat: false,
+                chatWidth: 300,
+                vodSource: "captured",
+                chatSource: "captured",
+                chatFont: "Inter",
+                chatFontSize: 12,
+                burnSide: "left",
+                ffmpegPreset: "slow",
+                ffmpegCrf: 26,
             },
         };
     },
@@ -640,10 +751,10 @@ export default defineComponent({
                     this.taskStatus.downloadChat = false;
                 });
         },
-        doRenderChat(useVod = false) {
-            /** @todo: implement */
-            alert(`RenderChat not implemented: ${useVod}`);
-        },
+        // doRenderChat(useVod = false) {
+        //     /** @todo: implement */
+        //     alert(`RenderChat not implemented: ${useVod}`);
+        // },
         doDownloadVod() {
             if (!confirm(`Do you want to download the vod for "${this.vod?.basename}"?`)) return;
             this.taskStatus.downloadVod = true;
@@ -690,10 +801,10 @@ export default defineComponent({
                     this.taskStatus.vodMuteCheck = false;
                 });
         },
-        doFullBurn() {
-            /** @todo: implement */
-            alert("FullBurn");
-        },
+        // doFullBurn() {
+        //     /** @todo: implement */
+        //     alert("FullBurn");
+        // },
         doDelete() {
             if (!confirm(`Do you want to delete "${this.vod?.basename}"?`)) return;
             if (this.vod?.twitch_vod_exists === false && !confirm(`The VOD "${this.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
@@ -712,6 +823,24 @@ export default defineComponent({
                     console.error("form error", err.response);
                     if (err.response.data && err.response.data.message) alert(err.response.data.message);
                     this.taskStatus.delete = false;
+                });
+        },
+        doRenderWizard() {
+            this.burnLoading = true;
+            this.$http
+                .post(`/api/v0/vod/${this.vod?.basename}/renderwizard`, this.burnSettings)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.$emit("refresh");
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
+                })
+                .finally(() => {
+                    this.burnLoading = false;
                 });
         },
         addFavouriteGame(game_id: number) {
@@ -766,9 +895,20 @@ export default defineComponent({
                 return chapter.viewer_count > 0;
             });
         },
+        burnJobs(): ApiJob[] {
+            if (!this.store.jobList) return [];
+            let jobs: ApiJob[] = [];
+            for (let job of this.store.jobList) {
+                if (job.name == `tdrender_${this.vod?.basename}` || job.name == `burnchat_${this.vod?.basename}`) {
+                    jobs.push(job);
+                }
+            }
+            return jobs;
+        },
     },
     components: {
         DurationDisplay,
+        ModalBox,
     },
 });
 </script>

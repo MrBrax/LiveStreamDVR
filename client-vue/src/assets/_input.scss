@@ -52,7 +52,25 @@ select.input {
 }
 */
 
+.field-group {
+    &:not(:last-child) {
+        margin-bottom: 5px;
+    }
+    padding: 10px;
+    background-color: #f5f5f5;
+}
+
 .field {
+    &:not(:last-child) {
+        margin-bottom: 1rem;
+    }
+    label {
+        p {
+            margin: 0;
+            padding: 0 0 5px 0;
+            font-weight: 700;
+        }
+    }
     &.is-horizontal {
         display: flex;
         .label {
@@ -69,10 +87,6 @@ select.input {
             flex-shrink: 1;
         }
     }
-}
-
-.field:not(:last-child) {
-    margin-bottom: 0.8rem;
 }
 
 .label {

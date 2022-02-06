@@ -112,6 +112,7 @@ class TwitchVOD
 	public ?string $path_chatrender = null;
 	public ?string $path_chatburn = null;
 	public ?string $path_chatdump = null;
+	public ?string $path_chatmask = null;
 	public ?string $path_adbreak = null;
 	public ?string $path_playlist = null;
 
@@ -299,6 +300,7 @@ class TwitchVOD
 		$this->path_downloaded_vod 		= $this->realpath($this->directory . DIRECTORY_SEPARATOR . $this->basename . "_vod.mp4");
 		$this->path_losslesscut 		= $this->realpath($this->directory . DIRECTORY_SEPARATOR . $this->basename . "-llc-edl.csv");
 		$this->path_chatrender			= $this->realpath($this->directory . DIRECTORY_SEPARATOR . $this->basename . "_chat.mp4");
+		$this->path_chatmask			= $this->realpath($this->directory . DIRECTORY_SEPARATOR . $this->basename . "_chat_mask.mp4");
 		$this->path_chatburn			= $this->realpath($this->directory . DIRECTORY_SEPARATOR . $this->basename . "_burned.mp4");
 		$this->path_chatdump			= $this->realpath($this->directory . DIRECTORY_SEPARATOR . $this->basename . ".chatdump");
 		$this->path_adbreak				= $this->realpath($this->directory . DIRECTORY_SEPARATOR . $this->basename . ".adbreak");
@@ -742,12 +744,16 @@ class TwitchVOD
 	 * Render chat to mp4
 	 *
 	 * @return bool
+	 * @throws Exception
 	 */
-	public function renderChat()
+	public function renderChat($chat_width = 300, $font = 'Inter', $font_size = 12, $use_downloaded = false)
 	{
 
-		if (!$this->is_chat_downloaded) {
-			throw new \Exception('no chat downloaded');
+		if ($use_downloaded && !$this->is_chat_downloaded) {
+			throw new \Exception('No chat downloaded');
+			return false;
+		} else if (!$use_downloaded && !$this->is_chatdump_captured) {
+			throw new \Exception('No chat dumped');
 			return false;
 		}
 
@@ -760,7 +766,7 @@ class TwitchVOD
 
 		// $chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
 		// $video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
-		$chat_width = 300;
+		// $chat_width = 300;
 
 		if (file_exists($this->path_chat) && file_exists($this->path_chatrender)) {
 			return true;
@@ -775,8 +781,14 @@ class TwitchVOD
 		$cmd[] = '--mode';
 		$cmd[] = 'ChatRender';
 
+		$cmd[] = '--temp-path';
+		$cmd[] = TwitchHelper::$cache_folder;
+
+		$cmd[] = '--ffmpeg-path';
+		$cmd[] = TwitchHelper::path_ffmpeg();
+
 		$cmd[] = '--input';
-		$cmd[] = realpath($this->path_chat);
+		$cmd[] = realpath($use_downloaded ? $this->path_chat : $this->path_chatdump);
 
 		$cmd[] = '--chat-height';
 		$cmd[] = $this->video_metadata['video']['Height'];
@@ -790,8 +802,11 @@ class TwitchVOD
 		$cmd[] = '--update-rate';
 		$cmd[] = '0';
 
+		$cmd[] = '--font';
+		$cmd[] = $font;
+
 		$cmd[] = '--font-size';
-		$cmd[] = '12';
+		$cmd[] = $font_size;
 
 		$cmd[] = '--outline';
 
@@ -810,6 +825,8 @@ class TwitchVOD
 			'TEMP' => TwitchHelper::$cache_folder
 		];
 
+		set_time_limit(0);
+
 		$process = new Process($cmd, $this->directory, $env, null, null);
 		$process->start();
 
@@ -820,13 +837,10 @@ class TwitchVOD
 
 		$process->wait();
 
-		// if (file_exists($pidfile)) unlink($pidfile);
 		$tdrenderJob->clear();
 
 		TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
 		TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
-
-		// $this->burnChat( $chat_width );
 
 		if (mb_strpos($process->getErrorOutput(), "Unhandled exception") !== false) {
 			throw new \Exception('Error when running TwitchDownloaderCLI. Please check logs.');
@@ -854,10 +868,15 @@ class TwitchVOD
 	 * @param boolean $use_vod Use downloaded VOD instead of captured one?
 	 * @return boolean success
 	 */
-	public function burnChat($chat_width = 300, $use_vod = false)
+	public function burnChat($chat_width = 300, $side = "left", $ffmpeg_preset = "slow", $ffmpeg_crf = 26, $use_vod = false, $overwrite = false)
 	{
 
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Burn chat for {$this->basename}");
+
+		if ($this->path_chatburn && file_exists($this->path_chatburn) && !$overwrite) {
+			throw new \Exception('Chat already burned');
+			return false;
+		}
 
 		if ($use_vod) {
 
@@ -875,6 +894,21 @@ class TwitchVOD
 		// $mask_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat_mask.mp4';
 		// $final_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_burned.mp4';
 
+		if (!file_exists($video_filename)) {
+			throw new \Exception('No video file');
+			return false;
+		}
+
+		if (!$this->path_chatrender || !file_exists($this->path_chatrender)) {
+			throw new \Exception('No chat render file');
+			return false;
+		}
+
+		if (!$this->path_chatmask || !file_exists($this->path_chatmask)) {
+			throw new \Exception('No chat mask file');
+			return false;
+		}
+
 		$chat_x = $this->video_metadata['video']['Width'] - $chat_width;
 
 		$cmd = [];
@@ -889,7 +923,7 @@ class TwitchVOD
 
 		// chat render
 		$cmd[] = '-i';
-		$cmd[] = $this->path_chatrender;
+		$cmd[] = realpath($this->path_chatrender);
 
 		// chat mask offset
 		if ($this->getStartOffset() && !$use_vod) {
@@ -899,7 +933,7 @@ class TwitchVOD
 
 		// chat mask
 		$cmd[] = '-i';
-		$cmd[] = $this->path_chatmask;
+		$cmd[] = realpath($this->path_chatmask);
 
 		// vod
 		$cmd[] = '-i';
@@ -909,22 +943,36 @@ class TwitchVOD
 		// https://ffmpeg.org/ffmpeg-filters.html#overlay-1
 		// https://stackoverflow.com/questions/50338129/use-ffmpeg-to-overlay-a-video-on-top-of-another-using-an-alpha-channel
 		$cmd[] = '-filter_complex';
-		$cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=main_w-overlay_w:0';
+		if ($side == "left") {
+			$cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=0:0';
+		} else {
+			$cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=main_w-overlay_w:0';
+		}
+		
 		// $cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=' . $chat_x . ':0';
 
 		// copy audio stream
 		$cmd[] = '-c:a';
 		$cmd[] = 'copy';
 
-		// h264 slow crf 26
+		// h264 codec
 		$cmd[] = '-c:v';
 		$cmd[] = 'libx264';
+
+		// preset
 		$cmd[] = '-preset';
-		$cmd[] = TwitchConfig::cfg('burn_preset', 'slow');
+		$cmd[] = $ffmpeg_preset;
+
+		// crf
 		$cmd[] = '-crf';
-		$cmd[] = TwitchConfig::cfg('burn_crf', '26');
+		$cmd[] = $ffmpeg_crf;
+
+		// overwrite
+		$cmd[] = '-y';
 
 		$cmd[] = $this->path_chatburn;
+
+		set_time_limit(0);
 
 		$process = new Process($cmd, $this->directory, null, null, null);
 		$process->start();
