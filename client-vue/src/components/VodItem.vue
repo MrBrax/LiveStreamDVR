@@ -111,13 +111,13 @@
                                 <strong>Video:</strong>
                                 {{ vod?.video_metadata_public.video.Format }}
                                 {{ vod?.video_metadata_public.video.BitRate_Mode }}
-                                {{ Math.round(vod?.video_metadata_public.video.BitRate / 1000) }}kbps
+                                {{ Math.round(parseInt(vod?.video_metadata_public.video.BitRate) / 1000) }}kbps
                             </li>
                             <li>
                                 <strong>Audio:</strong>
                                 {{ vod?.video_metadata_public.audio.Format }}
                                 {{ vod?.video_metadata_public.audio.BitRate_Mode }}
-                                {{ Math.round(vod?.video_metadata_public.audio.BitRate / 1000) }}kbps
+                                {{ Math.round(parseInt(vod?.video_metadata_public.audio.BitRate) / 1000) }}kbps
                             </li>
                         </template>
                     </ul>
@@ -522,17 +522,97 @@
     </div>
     <modal-box ref="burnMenu" title="Render Menu" v-if="vod?.is_finalized">
         <div>
-            <pre>{{ vod?.basename }}</pre>
+            <pre>{{ vod.basename }}</pre>
+            <ul class="list" v-if="vod.video_metadata_public && vod.video_metadata_public.video && vod.video_metadata_public.audio">
+                <li>
+                    <strong>Format</strong>
+                    {{ vod.video_metadata_public.video.Width }}x{{ vod.video_metadata_public.video.Height }}@
+                    {{ vod.video_metadata_public.video.FrameRate_Original }}
+                </li>
+
+                <li>
+                    <strong>Video</strong>
+                    {{ vod?.video_metadata_public.video.Format }}
+                    {{ vod?.video_metadata_public.video.BitRate_Mode }}
+                    {{ Math.round(parseInt(vod?.video_metadata_public.video.BitRate) / 1000) }}kbps
+                </li>
+
+                <li>
+                    <strong>Audio</strong>
+                    {{ vod?.video_metadata_public.audio.Format }}
+                    {{ vod?.video_metadata_public.audio.BitRate_Mode }}
+                    {{ Math.round(parseInt(vod?.video_metadata_public.audio.BitRate) / 1000) }}kbps
+                </li>
+
+                <li>
+                    <strong>General</strong>
+                    {{ formatBytes(parseInt(vod.video_metadata_public.general.FileSize)) }} / {{ vod.video_metadata_public.general.Duration_String }}
+                </li>
+            </ul>
+            <p>Burning chat seems to work pretty good, but dumped chat+video has a pretty large offset, I have yet to find the offset anywhere.</p>
+        </div>
+        <div class="burn-preview">
+            <div class="burn-preview-chat" :style="burnPreviewChat">
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+                Anon: Hello World<br />
+            </div>
         </div>
         <div class="field-group">
             <div class="field">
-                <label><input type="checkbox" v-model="burnSettings.renderChat" /> Render chat <strong v-if="vod.is_chat_rendered">Exists</strong></label>
+                <label><input type="checkbox" v-model="burnSettings.renderChat" /> Render chat <strong v-if="vod.is_chat_rendered">(Exists)</strong></label>
             </div>
             <template v-if="burnSettings.renderChat">
+                <!--<div class="field">
+                    <label><input type="checkbox" v-model="burnSettings.renderTest" /> Test duration</label>
+                </div>-->
                 <div class="field">
                     <label>
                         <p>Chat width</p>
-                        <input class="input" type="text" v-model="burnSettings.chatWidth" />
+                        <input class="input" type="range" min="1" :max="vod.video_metadata_public.video.Width" v-model="burnSettings.chatWidth" />
+                        <br /><input class="input" type="number" v-model="burnSettings.chatWidth" />
+                        <span :class="{ 'input-help': true, error: burnSettings.chatWidth % 2 }">Chat width must be an even number.</span>
+                    </label>
+                </div>
+                <div class="field">
+                    <label>
+                        <p>Chat height</p>
+                        <input class="input" type="range" min="1" :max="vod.video_metadata_public.video.Height" v-model="burnSettings.chatHeight" />
+                        <br /><input class="input" type="number" v-model="burnSettings.chatHeight" />
+                        <span :class="{ 'input-help': true, error: burnSettings.chatHeight % 2 }">Chat height must be an even number.</span>
                     </label>
                 </div>
                 <div class="field">
@@ -565,7 +645,8 @@
                 <div class="field">
                     <label>
                         <p>Font size</p>
-                        <input class="input" type="text" v-model="burnSettings.chatFontSize" />
+                        <input class="input" type="range" min="1" max="72" v-model="burnSettings.chatFontSize" />
+                        <br /><input class="input" type="number" v-model="burnSettings.chatFontSize" />
                     </label>
                 </div>
             </template>
@@ -574,16 +655,28 @@
             <div class="field">
                 <label>
                     <input type="checkbox" v-model="burnSettings.burnChat" :disabled="!burnSettings.renderChat && !vod?.is_chat_rendered" />
-                    Burn chat <strong v-if="vod.is_chat_burned">Exists</strong>
+                    Burn chat <strong v-if="vod.is_chat_burned">(Exists)</strong>
                 </label>
             </div>
             <template v-if="burnSettings.burnChat">
+                <!--<div class="field">
+                    <label><input type="checkbox" v-model="burnSettings.burnTest" /> Test duration</label>
+                </div>-->
                 <div class="field">
                     <label>
-                        <p>Chat side</p>
-                        <select class="input" v-model="burnSettings.burnSide">
+                        <p>Chat horizontal</p>
+                        <select class="input" v-model="burnSettings.burnHorizontal">
                             <option value="left">Left</option>
                             <option value="right">Right</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="field">
+                    <label>
+                        <p>Chat vertical</p>
+                        <select class="input" v-model="burnSettings.burnVertical">
+                            <option value="top">Top</option>
+                            <option value="bottom">Bottom</option>
                         </select>
                     </label>
                 </div>
@@ -606,7 +699,8 @@
                 <div class="field">
                     <label>
                         <p>ffmpeg crf</p>
-                        <input class="input" type="range" min="0" max="51" v-model="burnSettings.ffmpegCrf" /> {{ burnSettings.ffmpegCrf }}
+                        <input class="input" type="range" min="0" max="51" v-model="burnSettings.ffmpegCrf" />
+                        <br />{{ burnSettings.ffmpegCrf }}
                     </label>
                 </div>
             </template>
@@ -699,16 +793,23 @@ export default defineComponent({
             burnSettings: {
                 renderChat: false,
                 burnChat: false,
+                renderTest: false,
+                burnTest: false,
                 chatWidth: 300,
+                chatHeight: 300,
                 vodSource: "captured",
                 chatSource: "captured",
                 chatFont: "Inter",
                 chatFontSize: 12,
-                burnSide: "left",
+                burnHorizontal: "left",
+                burnVertical: "top",
                 ffmpegPreset: "slow",
                 ffmpegCrf: 26,
             },
         };
+    },
+    mounted() {
+        if (this.vod) this.burnSettings.chatHeight = parseInt(this.vod.video_metadata_public.video.Height);
     },
     props: {
         vod: Object as () => ApiVod,
@@ -827,6 +928,7 @@ export default defineComponent({
         },
         doRenderWizard() {
             this.burnLoading = true;
+            console.debug("doRenderWizard", this.burnSettings);
             this.$http
                 .post(`/api/v0/vod/${this.vod?.basename}/renderwizard`, this.burnSettings)
                 .then((response) => {
@@ -905,6 +1007,19 @@ export default defineComponent({
             }
             return jobs;
         },
+        burnPreviewChat(): Record<string, string> {
+            if (!this.vod) return {};
+            return {
+                width: `${(this.burnSettings.chatWidth / parseInt(this.vod.video_metadata_public.video.Width)) * 100}%`,
+                height: `${(this.burnSettings.chatHeight / parseInt(this.vod.video_metadata_public.video.Height)) * 100}%`,
+                left: this.burnSettings.burnHorizontal == "left" ? "0" : "",
+                right: this.burnSettings.burnHorizontal == "right" ? "0" : "",
+                top: this.burnSettings.burnVertical == "top" ? "0" : "",
+                bottom: this.burnSettings.burnVertical == "bottom" ? "0" : "",
+                fontSize: `${this.burnSettings.chatFontSize * 0.35}px`,
+                fontFamily: this.burnSettings.chatFont,
+            };
+        },
     },
     components: {
         DurationDisplay,
@@ -912,3 +1027,27 @@ export default defineComponent({
     },
 });
 </script>
+
+<style lang="scss" scoped>
+.burn-preview {
+    position: relative;
+    width: 320px;
+    aspect-ratio: 16/9;
+    background-color: #eee;
+    margin-bottom: 1rem;
+    border: 1px solid #333;
+    .burn-preview-chat {
+        position: absolute;
+        // top: 0;
+        // left: 0;
+        height: 100%;
+        width: 50px;
+        background-color: #000;
+        opacity: 0.5;
+        color: #fff;
+        // font-size: 2px;
+        overflow: hidden;
+        padding: 1px;
+    }
+}
+</style>

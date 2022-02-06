@@ -528,6 +528,10 @@ class TwitchVOD
 		$this->video_metadata_public = [];
 
 		$filter = [
+			"general.Duration",
+			"general.Duration_String",
+			"general.FileSize",
+
 			"video.BitRate",
 			"video.Width",
 			"video.Height",
@@ -746,7 +750,7 @@ class TwitchVOD
 	 * @return bool
 	 * @throws Exception
 	 */
-	public function renderChat($chat_width = 300, $font = 'Inter', $font_size = 12, $use_downloaded = false)
+	public function renderChat($chat_width = 300, $chat_height = null, $font = 'Inter', $font_size = 12, $use_downloaded = false, $overwrite = false)
 	{
 
 		if ($use_downloaded && !$this->is_chat_downloaded) {
@@ -768,10 +772,9 @@ class TwitchVOD
 		// $video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
 		// $chat_width = 300;
 
-		if (file_exists($this->path_chat) && file_exists($this->path_chatrender)) {
-			return true;
-			// $this->burnChat($chat_width);
-			// return;
+		if (file_exists($this->path_chat) && file_exists($this->path_chatrender) && !$overwrite) {
+			throw new \Exception('Chat already rendered');
+			return false;
 		}
 
 		$cmd = [];
@@ -791,13 +794,14 @@ class TwitchVOD
 		$cmd[] = realpath($use_downloaded ? $this->path_chat : $this->path_chatdump);
 
 		$cmd[] = '--chat-height';
-		$cmd[] = $this->video_metadata['video']['Height'];
+		$cmd[] = $chat_height ?: $this->video_metadata['video']['Height'];
 
 		$cmd[] = '--chat-width';
 		$cmd[] = $chat_width;
 
 		$cmd[] = '--framerate';
-		$cmd[] = '60';
+		// $cmd[] = round((int)explode(".", $this->video_metadata['video']['FrameRate_Original'])[0]);
+		$cmd[] = round($this->video_metadata['video']['FrameRate_Original'] ?? $this->video_metadata['video']['FrameRate']);
 
 		$cmd[] = '--update-rate';
 		$cmd[] = '0';
@@ -827,6 +831,9 @@ class TwitchVOD
 
 		set_time_limit(0);
 
+		TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n");
+		TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n");
+
 		$process = new Process($cmd, $this->directory, $env, null, null);
 		$process->start();
 
@@ -839,8 +846,8 @@ class TwitchVOD
 
 		$tdrenderJob->clear();
 
-		TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
-		TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+		TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stdout", $process->getOutput());
+		TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stderr", $process->getErrorOutput());
 
 		if (mb_strpos($process->getErrorOutput(), "Unhandled exception") !== false) {
 			throw new \Exception('Error when running TwitchDownloaderCLI. Please check logs.');
@@ -864,11 +871,17 @@ class TwitchVOD
 	/**
 	 * Burn chat to vod in a new file
 	 *
-	 * @param integer $chat_width
-	 * @param boolean $use_vod Use downloaded VOD instead of captured one?
 	 * @return boolean success
 	 */
-	public function burnChat($chat_width = 300, $side = "left", $ffmpeg_preset = "slow", $ffmpeg_crf = 26, $use_vod = false, $overwrite = false)
+	public function burnChat(
+		$burn_horizontal = "left",
+		$burn_vertical = "top",
+		$ffmpeg_preset = "slow",
+		$ffmpeg_crf = 26,
+		$use_vod = false,
+		$overwrite = false,
+		$test_duration = false
+	)
 	{
 
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Burn chat for {$this->basename}");
@@ -909,7 +922,7 @@ class TwitchVOD
 			return false;
 		}
 
-		$chat_x = $this->video_metadata['video']['Width'] - $chat_width;
+		// $chat_x = $this->video_metadata['video']['Width'] - $chat_width;
 
 		$cmd = [];
 
@@ -919,6 +932,7 @@ class TwitchVOD
 		if ($this->getStartOffset() && !$use_vod) {
 			$cmd[] = '-ss';
 			$cmd[] = round($this->getStartOffset());
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Using start offset for chat: {$this->getStartOffset()}");
 		}
 
 		// chat render
@@ -943,11 +957,15 @@ class TwitchVOD
 		// https://ffmpeg.org/ffmpeg-filters.html#overlay-1
 		// https://stackoverflow.com/questions/50338129/use-ffmpeg-to-overlay-a-video-on-top-of-another-using-an-alpha-channel
 		$cmd[] = '-filter_complex';
-		if ($side == "left") {
-			$cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=0:0';
-		} else {
-			$cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=main_w-overlay_w:0';
-		}
+		
+		// if ($burn_horizontal == "left") {
+		// 	$cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=0:0';
+		// } else {
+		// 	$cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=main_w-overlay_w:0';
+		// }
+		$pos_x = $burn_horizontal == "left" ? 0 : "main_w-overlay_w";
+		$pos_y = $burn_vertical == "top" ? 0 : "main_h-overlay_h";
+		$cmd[] = "[0][1]alphamerge[ia];[2][ia]overlay=${pos_x}:${pos_y}";
 		
 		// $cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=' . $chat_x . ':0';
 

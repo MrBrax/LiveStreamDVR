@@ -1,3 +1,5 @@
+import { MediaInfo } from "./mediainfo";
+
 export type PHPDateTimeJSON = {
     date: string;
     timezone_type: number;
@@ -88,8 +90,8 @@ export type ApiVod = {
 
     game_offset: number;
 
-    video_metadata: array;
-    video_metadata_public: array;
+    // video_metadata: MediaInfo;
+    video_metadata_public: MediaInfo;
 
     chapters: ApiVodChapter[];
 

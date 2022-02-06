@@ -472,22 +472,32 @@ trait ApiVod
 
         $data = $request->getParsedBody();
         $chat_width = isset($data['chatWidth']) ? (int)$data['chatWidth'] : 300;
+        $chat_height = isset($data['chatHeight']) ? (int)$data['chatHeight'] : 1080;
         $render_chat = isset($data['renderChat']) && $data['renderChat'];
         $burn_chat = isset($data['burnChat']) && $data['burnChat'];
-        $video_source = isset($data['videoSource']) ? $data['videoSource'] : 'captured';
+        $vod_source = isset($data['vodSource']) ? $data['vodSource'] : 'captured';
         $chat_source = isset($data['chatSource']) ? $data['chatSource'] : 'captured';
         $chat_font = isset($data['chatFont']) ? $data['chatFont'] : 'Inter';
         $chat_font_size = isset($data['chatFontSize']) ? (int)$data['chatFontSize'] : 12;
-        $burn_side = isset($data['burnSide']) ? $data['burnSide'] : 'left';
+        $burn_horizontal = isset($data['burnHorizontal']) ? $data['burnHorizontal'] : 'left';
+        $burn_vertical = isset($data['burnVertical']) ? $data['burnVertical'] : 'top';
         $ffmpeg_preset = isset($data['ffmpegPreset']) ? $data['ffmpegPreset'] : 'slow';
         $ffmpeg_crf = isset($data['ffmpegCrf']) ? (int)$data['ffmpegCrf'] : 26;
 
         $status_renderchat = false;
         $status_burnchat = false;
 
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Start render wizard for vod {$vod}");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "chat_width: {$chat_width}");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "chat_height: {$chat_height}");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "render_chat: {$render_chat}");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "burn_chat: {$burn_chat}");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "vod_source: {$vod_source}");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "chat_source: {$chat_source}");
+
         if ($render_chat) {
             try {
-                $status_renderchat = $vodclass->renderChat($chat_width, $chat_font, $chat_font_size, $chat_source == "downloaded");
+                $status_renderchat = $vodclass->renderChat($chat_width, $chat_height, $chat_font, $chat_font_size, $chat_source == "downloaded", true);
             } catch (\Throwable $th) {
                 $response->getBody()->write(json_encode([
                     "message" => $th->getMessage(),
@@ -500,7 +510,7 @@ trait ApiVod
 
         if ($burn_chat) {
             try {
-                $status_burnchat = $vodclass->burnChat($chat_width, $burn_side, $ffmpeg_preset, $ffmpeg_crf, $video_source == "downloaded", true);
+                $status_burnchat = $vodclass->burnChat($burn_horizontal, $burn_vertical, $ffmpeg_preset, $ffmpeg_crf, $vod_source == "downloaded", true);
             } catch (\Throwable $th) {
                 $response->getBody()->write(json_encode([
                     "message" => $th->getMessage(),
