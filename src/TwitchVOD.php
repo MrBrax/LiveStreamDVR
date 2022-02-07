@@ -413,11 +413,14 @@ class TwitchVOD
 		foreach ($this->associatedFiles as $file) {
 			$path = $this->directory . DIRECTORY_SEPARATOR . $file;
 			if (file_exists($path)) {
-				if (!chmod($path, TwitchConfig::cfg('file_chmod', 0775))) {
+				if (!chmod($path, octdec(TwitchConfig::cfg('file_chmod', 775)))) {
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Failed to chmod {$path}");
 				}
-				if (!chown($path, TwitchConfig::cfg('file_chown_user', 'www-data') . ':' . TwitchConfig::cfg('file_chown_group', 'www-data'))) {
+				if (!chown($path, TwitchConfig::cfg('file_chown_user', 'www-data'))) {
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Failed to chown {$path}");
+				}
+				if (!chgrp($path, TwitchConfig::cfg('file_chown_group', 'www-data'))) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Failed to chgrp {$path}");
 				}
 			}
 		}
