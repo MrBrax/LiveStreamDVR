@@ -111,6 +111,10 @@ class TwitchConfig
 
 		['key' => 'error_handler', 			'group' => 'Advanced',	'text' => 'Use app logging to catch PHP errors', 			'type' => 'boolean'],
 
+		['key' => 'file_permissions',		'group' => 'Advanced', 'text' => 'Set file permissions', 	'type' => 'boolean', 'help' => 'Warning, can mess up permissions real bad.'],
+		['key' => 'file_chmod',				'group' => 'Advanced', 'text' => 'File chmod', 				'type' => 'number', 'default' => 0775],
+		['key' => 'file_chown_user',		'group' => 'Advanced', 'text' => 'File chown user', 		'type' => 'string', 'default' => 'nobody'],
+		['key' => 'file_chown_group',		'group' => 'Advanced', 'text' => 'File chown group', 		'type' => 'string', 'default' => 'nobody'],
 	];
 
 	public static $timezone;

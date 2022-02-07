@@ -105,12 +105,10 @@ class TwitchHelper
 	public static function setupDirectories()
 	{
 		foreach (self::$required_directories as $dir) {
-			// self::log(self::LOG_DEBUG, "Checking directory " . $dir);
 			if (!file_exists($dir)) {
 				if (!mkdir($dir)) {
 					throw new \Exception("Couldn't make directory: {$dir}");
 				}
-				// self::log(self::LOG_INFO, "Made directory " . $dir);
 			}
 		}
 	}
@@ -300,9 +298,6 @@ class TwitchHelper
 			fclose($fp);
 		}
 
-		// array_push($log_json, $log_data);
-
-		// file_put_contents($filename, $log_text);
 		$fp = fopen($filename, 'a');
 		fwrite($fp, $text_line . "\n");
 		fclose($fp);
@@ -310,8 +305,6 @@ class TwitchHelper
 		$fp = fopen($filename_jsonline, 'a');
 		fwrite($fp, json_encode($log_data) . "\n");
 		fclose($fp);
-
-		// file_put_contents($filename_json, json_encode($log_json), LOCK_EX);
 
 		self::$last_log_line = $level . $text;
 	}
@@ -334,9 +327,6 @@ class TwitchHelper
 		fwrite($fp, ($newline ? "\n" : "") . trim($text));
 		fclose($fp);
 
-		// $filetext = file_exists($filepath) ? file_get_contents($filepath) . ($newline ? "\n" : "") : "";
-		// $filetext .= trim($text);
-		// file_put_contents($filepath, $filetext);
 	}
 
 	/**

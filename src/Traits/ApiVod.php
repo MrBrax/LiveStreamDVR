@@ -364,8 +364,6 @@ trait ApiVod
             $process = new Process($cmd, TwitchHelper::vodFolder($username), $env, null, null);
             $process->start();
 
-            // $pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_cut_' . $vod . '.pid';
-            // file_put_contents($pidfile, $process->getPid());
             $vod_cutJob = TwitchAutomatorJob::create("vod_cut_{$vod}");
             $vod_cutJob->setPid($process->getPid());
             $vod_cutJob->setProcess($process);

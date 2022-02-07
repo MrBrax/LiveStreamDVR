@@ -60,8 +60,6 @@ trait ApiTools
 		$process = new Process($cmd, TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools', null, null, null);
 		$process->start();
 
-		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_download_' . $video_id . '.pid';
-		//file_put_contents($pidfile, $process->getPid());
 		$tools_chat_downloadJob = TwitchAutomatorJob::create("tools_chat_download_{$video_id}");
 		$tools_chat_downloadJob->setPid($process->getPid());
 		$tools_chat_downloadJob->setProcess($process);
@@ -116,8 +114,6 @@ trait ApiTools
 		$process = new Process($cmd, dirname($destination), null, null, null);
 		$process->start();
 
-		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_vod_download_' . $video_id . '.pid';
-		//file_put_contents($pidfile, $process->getPid());
 		$tools_vod_downloadJob = TwitchAutomatorJob::create("tools_vod_download_{$video_id}");
 		$tools_vod_downloadJob->setPid($process->getPid());
 		$tools_vod_downloadJob->setProcess($process);
@@ -193,8 +189,6 @@ trait ApiTools
 		$process = new Process($cmd, dirname($source), null, null, null);
 		$process->start();
 
-		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_vod_convert_' . $video_id . '.pid';
-		//file_put_contents($pidfile, $process->getPid());
 		$tools_vod_convertJob = TwitchAutomatorJob::create("tools_vod_convert_{$video_id}");
 		$tools_vod_convertJob->setPid($process->getPid());
 		$tools_vod_convertJob->setProcess($process);
@@ -202,7 +196,6 @@ trait ApiTools
 
 		$process->wait();
 
-		//if (file_exists($pidfile)) unlink($pidfile);
 		$tools_vod_convertJob->clear();
 
 		$this->logs['ffmpeg']['stdout'] = $process->getOutput();
@@ -288,8 +281,6 @@ trait ApiTools
 		$process = new Process($cmd, TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'tools', $env, null, null);
 		$process->start();
 
-		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_render_' . $video_id . '.pid';
-		//file_put_contents($pidfile, $process->getPid());
 		$tools_chat_renderJob = TwitchAutomatorJob::create("tools_chat_render_{$video_id}");
 		$tools_chat_renderJob->setPid($process->getPid());
 		$tools_chat_renderJob->setProcess($process);
@@ -297,7 +288,6 @@ trait ApiTools
 
 		$process->wait();
 
-		//if (file_exists($pidfile)) unlink($pidfile);
 		$tools_chat_renderJob->clear();
 
 		$this->logs['td_chat']['stdout'] = $process->getOutput();
@@ -368,8 +358,6 @@ trait ApiTools
 		$process = new Process($cmd, dirname($video_filename), null, null, null);
 		$process->start();
 
-		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tools_chat_burn_' . $video_id . '.pid';
-		//file_put_contents($pidfile, $process->getPid());
 		$tools_chat_burnJob = TwitchAutomatorJob::create("tools_chat_burn_{$video_id}");
 		$tools_chat_burnJob->setPid($process->getPid());
 		$tools_chat_burnJob->setProcess($process);
@@ -377,7 +365,6 @@ trait ApiTools
 
 		$process->wait();
 
-		//if (file_exists($pidfile)) unlink($pidfile);
 		$tools_chat_burnJob->clear();
 
 		$this->logs['td_burn']['stdout'] = $process->getOutput();

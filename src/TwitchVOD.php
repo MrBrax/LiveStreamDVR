@@ -407,6 +407,22 @@ class TwitchVOD
 		return static::load($this->filename, $api);
 	}
 
+	public function setPermissions()
+	{
+		if (!TwitchConfig::cfg('file_permissions')) return;
+		foreach ($this->associatedFiles as $file) {
+			$path = $this->directory . DIRECTORY_SEPARATOR . $file;
+			if (file_exists($path)) {
+				if (!chmod($path, TwitchConfig::cfg('file_chmod', 0775))) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Failed to chmod {$path}");
+				}
+				if (!chown($path, TwitchConfig::cfg('file_chown_user', 'www-data') . ':' . TwitchConfig::cfg('file_chown_group', 'www-data'))) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Failed to chown {$path}");
+				}
+			}
+		}
+	}
+
 	/**
 	 * Get duration of the mp4 file.
 	 *
@@ -690,12 +706,9 @@ class TwitchVOD
 		$tcdJob->setPid($process->getPid());
 		$tcdJob->setProcess($process);
 		$tcdJob->save();
-		// $pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'tcd_' . $this->basename . '.pid';
-		// file_put_contents($pidfile, $process->getPid());
 
 		$process->wait();
 
-		//if (file_exists($pidfile)) unlink($pidfile);
 		$tcdJob->clear();
 
 		TwitchHelper::appendLog("tcd_{$this->basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
@@ -1222,6 +1235,7 @@ class TwitchVOD
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "vodclass", "Saving JSON of {$this->basename}" . ($reason ? ' (' . $reason . ')' : ''));
 
 		file_put_contents($this->filename, json_encode($generated));
+		$this->setPermissions();
 
 		return $generated;
 	}
@@ -1240,7 +1254,7 @@ class TwitchVOD
 
 	public function addAdvertisement($data)
 	{
-		TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Adding advertisement to {$this->basename}: " . basename($data));
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Adding advertisement to {$this->basename}: " . basename($data));
 		$this->ads[] = $data;
 	}
 
@@ -1513,6 +1527,7 @@ class TwitchVOD
 		}
 
 		file_put_contents($this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', $data);
+		$this->setPermissions();
 	}
 
 	public function generatePlaylistFile()
@@ -1526,6 +1541,7 @@ class TwitchVOD
 		$string .= "#EXT-X-ENDLIST\n";
 
 		file_put_contents($this->path_playlist, $string);
+		$this->setPermissions();
 	}
 
 	public function rebuildSegmentList()
@@ -1616,8 +1632,6 @@ class TwitchVOD
 			$process = new Process($cmd, $this->directory, null, null, null);
 			$process->start();
 
-			//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_download_' . $this->basename . '.pid';
-			//file_put_contents($pidfile, $process->getPid());
 			$vod_downloadJob = TwitchAutomatorJob::create("vod_download_{$this->basename}");
 			$vod_downloadJob->setPid($process->getPid());
 			$vod_downloadJob->setProcess($process);
@@ -1686,8 +1700,6 @@ class TwitchVOD
 		$process = new Process($cmd, $this->directory, null, null, null);
 		$process->start();
 
-		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_convert_' . $this->basename . '.pid';
-		//file_put_contents($pidfile, $process->getPid());
 		$vod_convertJob = TwitchAutomatorJob::create("vod_convert_{$this->basename}");
 		$vod_convertJob->setPid($process->getPid());
 		$vod_convertJob->setProcess($process);

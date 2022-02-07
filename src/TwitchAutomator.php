@@ -885,11 +885,14 @@ class TwitchAutomator
 			$vodclass->downloadChat();
 
 			if ($streamer->burn_chat) {
-				if ($vodclass->renderChat()) {
-					$vodclass->burnChat();
-				}
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Automatic chat burning has been disabled until settings have been implemented.");
+				// if ($vodclass->renderChat()) {
+				// 	$vodclass->burnChat();
+				// }
 			}
 		}
+
+		$vodclass->setPermissions();
 
 		// add to history, testing
 		$history = file_exists(TwitchConfig::$historyPath) ? json_decode(file_get_contents(TwitchConfig::$historyPath), true) : [];
@@ -1138,8 +1141,6 @@ class TwitchAutomator
 
 			$chat_process->start();
 
-			// $chat_pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'chatdump_' . $data_username . '.pid';
-			// file_put_contents($chat_pidfile, $chat_process->getPid());
 			$chatJob = TwitchAutomatorJob::create("chatdump_{$basename}");
 			$chatJob->setPid($chat_process->getPid());
 			$chatJob->setProcess($chat_process);
