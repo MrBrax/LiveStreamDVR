@@ -409,18 +409,26 @@ class TwitchVOD
 
 	public function setPermissions()
 	{
-		if (!TwitchConfig::cfg('file_permissions')) return;
+		if (
+			!TwitchConfig::cfg('file_permissions') ||
+			!TwitchConfig::cfg('file_chown_user') ||
+			!TwitchConfig::cfg('file_chown_group') ||
+			!TwitchConfig::cfg('file_chmod')
+		) return;
+
 		foreach ($this->associatedFiles as $file) {
 			$path = $this->directory . DIRECTORY_SEPARATOR . $file;
 			if (file_exists($path)) {
-				if (!chmod($path, octdec((string)TwitchConfig::cfg('file_chmod', 775)))) {
+				if (!chmod($path, octdec((string)TwitchConfig::cfg('file_chmod')))) {
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Failed to chmod {$path}");
 				}
-				if (!chown($path, TwitchConfig::cfg('file_chown_user', 'www-data'))) {
-					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Failed to chown {$path}");
+				$chown_user = is_numeric(TwitchConfig::cfg('file_chown_user')) ? intval(TwitchConfig::cfg('file_chown_user')) : TwitchConfig::cfg('file_chown_user');
+				$chown_group = is_numeric(TwitchConfig::cfg('file_chown_group')) ? intval(TwitchConfig::cfg('file_chown_group')) : TwitchConfig::cfg('file_chown_group');
+				if (!chown($path, $chown_user)) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Failed to chown {$path} to ${chown_user}");
 				}
-				if (!chgrp($path, TwitchConfig::cfg('file_chown_group', 'www-data'))) {
-					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Failed to chgrp {$path}");
+				if (!chgrp($path, $chown_group)) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Failed to chgrp {$path} to ${chown_group}");
 				}
 			}
 		}
