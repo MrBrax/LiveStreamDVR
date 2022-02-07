@@ -413,7 +413,7 @@ class TwitchVOD
 		foreach ($this->associatedFiles as $file) {
 			$path = $this->directory . DIRECTORY_SEPARATOR . $file;
 			if (file_exists($path)) {
-				if (!chmod($path, octdec(TwitchConfig::cfg('file_chmod', 775)))) {
+				if (!chmod($path, octdec((string)TwitchConfig::cfg('file_chmod', 775)))) {
 					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Failed to chmod {$path}");
 				}
 				if (!chown($path, TwitchConfig::cfg('file_chown_user', 'www-data'))) {
