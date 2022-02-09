@@ -127,6 +127,9 @@ class TwitchVOD
 	public ?int $api_getChatDumpStatus = null;
 	public ?int $api_getDurationLive = null;
 
+	/** /basepath/vod/username */
+	public ?string $webpath = null;
+
 	private $pid_cache = [];
 
 	private function realpath($str)
@@ -1546,9 +1549,10 @@ class TwitchVOD
 
 		$string = "";
 		$string .= "#EXTM3U\n";
-		$string .= "#EXT-X-TARGETDURATION:" . $this->getDurationLive() . "\n";
+		$string .= "#EXT-X-TARGETDURATION:${$this->getDurationLive()}\n";
 		$string .= "#EXTINF:" . $this->getDurationLive() . "\n";
-		$string .= "{$this->basename}.ts\n";
+		// $string .= "{$this->basename}.ts\n";
+		$string .= "{$this->webpath}/{$this->basename}.ts\n";
 		$string .= "#EXT-X-ENDLIST\n";
 
 		file_put_contents($this->path_playlist, $string);

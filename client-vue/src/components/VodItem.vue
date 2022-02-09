@@ -199,7 +199,10 @@
                         <li>
                             <strong>Current duration:</strong> <duration-display :startDate="vod.dt_started_at.date" outputStyle="human"></duration-display>
                         </li>
-                        <li><strong>Watch live:</strong> <a :href="'https://twitch.tv/' + vod.streamer_login" rel="noreferrer" target="_blank">Twitch</a></li>
+                        <li>
+                            <strong>Watch live:</strong> <a :href="'https://twitch.tv/' + vod.streamer_login" rel="noreferrer" target="_blank">Twitch</a>
+                            <a :href="vod?.webpath + '/' + vod?.basename + '.m3u8'" rel="noreferrer" target="_blank">Recap</a>
+                        </li>
                     </ul>
                 </div>
             </div>
