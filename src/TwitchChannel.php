@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App;
 
+use GuzzleHttp\Exception\GuzzleException;
+
 class TwitchChannel
 {
 
@@ -58,6 +60,8 @@ class TwitchChannel
     public array $channel_data = [];
     public array $config = [];
 
+    public bool $deactivated = false;
+
     private static function loadAbstract(string $streamer_id, $api = false)
     {
 
@@ -73,7 +77,14 @@ class TwitchChannel
         }
         */
 
-        $channel_data = self::getChannelDataById($channel->userid);
+        try {
+            $channel_data = self::getChannelDataById($channel->userid);
+        } catch (\Throwable $th) {
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "channel", "Could not get channel data for {$channel->userid} in loadAbstract: {$th->getMessage()}");
+            throw new \Exception("Could not get channel data for {$channel->userid} in loadAbstract: {$th->getMessage()}", TwitchConfig::ERROR_CHANNEL_NOT_FOUND);
+            return false;
+        }
+
 
         $channel_login = $channel_data['login'];
 
@@ -136,6 +147,7 @@ class TwitchChannel
      */
     public static function loadFromId($streamer_id, $api = false)
     {
+        if (!$streamer_id) throw new \ValueError("Streamer id is empty");
         return self::loadAbstract($streamer_id, $api); // $channel;
     }
 
@@ -145,14 +157,18 @@ class TwitchChannel
      */
     public static function loadFromLogin(string $login, $api = false)
     {
-        return self::loadAbstract(self::channelIdFromLogin($login), $api); // $channel;
+        if (!$login) throw new \ValueError("Streamer login is empty");
+        if (!is_string($login)) throw new \TypeError("Streamer login is not a string");
+        $channel_id = self::channelIdFromLogin($login);
+        if (!$channel_id) throw new \Exception("Could not get channel id from login: {$login}");
+        return self::loadAbstract($channel_id, $api); // $channel;
     }
 
     public static function channelIdFromLogin(string $login)
     {
 
         $cd = self::getChannelDataByLogin($login);
-        if($cd) return $cd['id'];
+        if ($cd) return $cd['id'];
 
         return false;
     }
@@ -162,7 +178,7 @@ class TwitchChannel
     {
 
         $cd = self::getChannelDataById($streamer_id);
-        if($cd) return $cd['login'];
+        if ($cd) return $cd['login'];
 
         return false;
     }
@@ -176,7 +192,7 @@ class TwitchChannel
     {
 
         $cd = self::getChannelDataById($streamer_id);
-        if($cd) return $cd['display_name'];
+        if ($cd) return $cd['display_name'];
 
         return false;
     }
@@ -185,7 +201,7 @@ class TwitchChannel
     {
 
         $cd = self::getChannelDataById($streamer_id);
-        if($cd) return $cd['display_name'];
+        if ($cd) return $cd['display_name'];
 
         return false;
     }
@@ -197,11 +213,11 @@ class TwitchChannel
      * @return array|boolean
      * @throws Exception
      */
-    public static function getChannelDataById(string $streamer_id)
+    public static function getChannelDataById(string $streamer_id, $force = false)
     {
 
         if (!is_numeric($streamer_id)) {
-            throw new \Exception("Non-numeric passed to getChannelDataById with id ({$streamer_id})");
+            throw new \TypeError("Non-numeric passed to getChannelDataById with id ({$streamer_id})");
             return false;
         }
 
@@ -228,6 +244,11 @@ class TwitchChannel
             $json_streamers = [];
         }
 
+        if ( TwitchConfig::getCache("{$streamer_id}.deleted") == "1" && !$force) {
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "helper", "Channel {$streamer_id} is deleted, ignore. Delete kv file to force update.");
+            return false;
+        }
+
         $access_token = TwitchHelper::getAccessToken();
 
         if (!$access_token) {
@@ -243,18 +264,20 @@ class TwitchChannel
             $response = TwitchHelper::$guzzler->request('GET', '/helix/users', [
                 'query' => $query
             ]);
-        } catch (\Throwable $th) {
+        } catch (GuzzleException $th) {
             TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "helper", "getChannelDataById for {$streamer_id} errored: " . $th->getMessage());
-            // throw new \Exception("HTTP error when fetching channel data for {$streamer_id}: {$th->getMessage()}");
+            // throw new \Exception("Guzzle error when fetching channel data for {$streamer_id}: {$th->getMessage()}");
+            throw $th;
             return false;
         }
 
         $server_output = $response->getBody()->getContents();
         $json = json_decode($server_output, true);
 
-        if (!$json["data"]) {
-            TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "helper", "Failed to fetch channel data for {$streamer_id}: {$server_output}");
-            // throw new \Exception("No channel data for id {$streamer_id}");
+        if (!$json["data"] || $response->getStatusCode() != 200) {
+            TwitchConfig::setCache("{$streamer_id}.deleted", "1");
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "helper", "Failed to fetch channel data for {$streamer_id}: {$server_output} ({$response->getStatusCode()}");
+            throw new \Exception("Failed to fetch channel data for {$streamer_id}: {$server_output} ({$response->getStatusCode()})", TwitchConfig::ERROR_CHANNEL_NOT_FOUND);
             return false;
         }
 
@@ -287,7 +310,7 @@ class TwitchChannel
         }
 
         $json_streamers[$streamer_id] = $data;
-        
+
         $success = file_put_contents(TwitchConfig::$streamerCachePath, json_encode($json_streamers)) !== false;
 
         if (!$success) {
@@ -305,11 +328,11 @@ class TwitchChannel
      * @param string $streamer_id
      * @return array
      */
-    public static function getChannelDataByLogin($streamer_login)
+    public static function getChannelDataByLogin($streamer_login, $force = false)
     {
 
         if (!$streamer_login) {
-            throw new \Exception("Invalid passed to getChannelDataByLogin ({$streamer_login})");
+            throw new \ValueError("Invalid passed to getChannelDataByLogin ({$streamer_login})");
             return false;
         }
 
@@ -320,8 +343,8 @@ class TwitchChannel
 
             if ($json_streamers) {
 
-                foreach($json_streamers as $streamer){
-                    if($streamer['login'] == $streamer_login){
+                foreach ($json_streamers as $streamer) {
+                    if ($streamer['login'] == $streamer_login) {
                         // check if too old, continue if true
                         if (!isset($streamer['_updated']) || time() > $streamer['_updated'] + 2592000) {
                             TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "helper", "Channel data in cache for {$streamer_login} is too old, proceed to updating!");
@@ -337,6 +360,11 @@ class TwitchChannel
         } else {
 
             $json_streamers = [];
+        }
+
+        if ( TwitchConfig::getCache("{$streamer_login}.deleted") == "1" && !$force) {
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "helper", "Channel {$streamer_login} is deleted, ignore. Delete kv file to force update.");
+            return false;
         }
 
         $access_token = TwitchHelper::getAccessToken();
@@ -363,7 +391,9 @@ class TwitchChannel
         $json = json_decode($server_output, true);
 
         if (!$json["data"]) {
+            TwitchConfig::setCache("{$streamer_login}.deleted", "1");
             TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "helper", "Failed to fetch channel data for {$streamer_login}: {$server_output}");
+            throw new \Exception("Failed to fetch channel data for {$streamer_login}: {$server_output} ({$response->getStatusCode()})", TwitchConfig::ERROR_CHANNEL_NOT_FOUND);
             return false;
         }
 
@@ -408,73 +438,6 @@ class TwitchChannel
 
         return $data;
     }
-
-    /*
-    private static function handleChannelData(){
-
-    }
-    */
-
-    /**
-     * Load
-     *
-     * @param string $username
-     * @return void
-     */
-    /*
-    public function load(string $username, $api = false)
-    {
-
-        $this->userid = TwitchHelper::getChannelId($username);
-
-        if (!$this->userid || !is_numeric($this->userid)) {
-            // TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "helper", "Could not get channel id in channel for {$username}");
-            throw new \Exception("Could not get channel id in channel: {$username} => {$this->userid}");
-            return false;
-        }
-
-        $channel_data = TwitchHelper::getChannelData($this->userid);
-
-        $config = TwitchConfig::getStreamer($username);
-
-        if (!$config) {
-            throw new \Exception("Streamer not found in config: {$username}");
-            return false;
-        }
-
-        if (!isset($channel_data['login'])) {
-            throw new \Exception("Streamer data could not be fetched: {$username}");
-            return false;
-        }
-
-        $this->channel_data = $channel_data;
-        $this->config       = $config;
-
-        // $this->userid               = (int)$this->channel_data['id'];
-        $this->username             = $this->channel_data['login'];
-        $this->login                = $this->channel_data['login'];
-        $this->display_name         = $this->channel_data['display_name'];
-        $this->description          = $this->channel_data['description'];
-        $this->profile_image_url    = $this->channel_data['profile_image_url'];
-        $this->quality              = isset($config['quality']) ? $config['quality'] : "best";
-        $this->match                = isset($config['match']) ? $config['match'] : [];
-        $this->no_capture           = isset($config['no_capture']) ? $config['no_capture'] : [];
-
-        $subfile = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "subs.json";
-        if (file_exists($subfile)) {
-            $sub_data = json_decode(file_get_contents($subfile), true);
-            if (isset($sub_data[$this->display_name])) {
-                if (isset($sub_data[$this->display_name]['subbed_at']))
-                    $this->subbed_at = \DateTime::createFromFormat(TwitchHelper::DATE_FORMAT, $sub_data[$this->display_name]['subbed_at']);
-
-                if (isset($sub_data[$this->display_name]['expires_at']))
-                    $this->expires_at = \DateTime::createFromFormat(TwitchHelper::DATE_FORMAT, $sub_data[$this->display_name]['expires_at']);
-            }
-        }
-
-        $this->parseVODs($api);
-    }
-    */
 
     /**
      * Get base folder for channel
@@ -614,7 +577,8 @@ class TwitchChannel
         return false;
     }
 
-    public function getStreamInfo() {
+    public function getStreamInfo()
+    {
         $streams = TwitchHelper::getStreams($this->userid);
         if (!$streams) return false;
         return $streams[0];

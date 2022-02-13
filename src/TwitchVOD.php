@@ -187,7 +187,7 @@ class TwitchVOD
 			$vod->setupApiHelper();
 		}
 
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "VOD Class for {$vod->basename} with api " . ($api ? 'enabled' : 'disabled') . " loaded, hopefully without errors!");
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "VOD Class for {$vod->basename} with api " . ($api ? 'enabled' : 'disabled') . "!");
 
 		return $vod;
 	}
@@ -1549,7 +1549,7 @@ class TwitchVOD
 
 		$string = "";
 		$string .= "#EXTM3U\n";
-		$string .= "#EXT-X-TARGETDURATION:${$this->getDurationLive()}\n";
+		$string .= "#EXT-X-TARGETDURATION:{$this->getDurationLive()}\n";
 		$string .= "#EXTINF:" . $this->getDurationLive() . "\n";
 		// $string .= "{$this->basename}.ts\n";
 		$string .= "{$this->webpath}/{$this->basename}.ts\n";

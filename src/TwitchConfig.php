@@ -119,6 +119,8 @@ class TwitchConfig
 
 	public static $timezone;
 
+	public const ERROR_CHANNEL_NOT_FOUND = 100;
+
 	function __constructor()
 	{
 		$this->loadConfig();
@@ -191,7 +193,7 @@ class TwitchConfig
 	{
 
 		if (!self::settingExists($key)) {
-			throw new \Exception("Setting does not exist: {$key}");
+			throw new \ValueError("Setting does not exist: {$key}");
 		}
 
 		if ($value === null) {
@@ -214,7 +216,7 @@ class TwitchConfig
 	{
 
 		if (!self::settingExists($key)) {
-			throw new \Exception("Setting does not exist: {$key}");
+			throw new \ValueError("Setting does not exist: {$key}");
 		}
 
 		array_push(self::$config[$key], $value);
@@ -311,8 +313,20 @@ class TwitchConfig
 	{
 		if (count(self::$channels_config) > 0) {
 			foreach (self::$channels_config as $s) {
-				$ch = TwitchChannel::loadFromLogin($s["login"], true);
-				array_push(self::$channels, $ch);
+				$ch = null;
+				
+				try {
+					$ch = TwitchChannel::loadFromLogin($s["login"], true);
+				} catch (\Throwable $th) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "config", "Channel {$s['login']} could not be loaded due to an exception, please check logs.");
+					continue;
+				}
+				
+				if ($ch) {
+					array_push(self::$channels, $ch);
+				} else {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "config", "Channel {$s['login']} could not be loaded, please check logs.");
+				}
 			}
 		}
 	}
@@ -439,41 +453,41 @@ if (TwitchConfig::cfg("error_handler")) {
 		}
 
 		switch ($errno) {
-		case E_USER_ERROR:
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "PHP", "Fatal error caught, check log for details", [
-				"errno" => $errno,
-				"errstr" => $errstr,
-				"errfile" => $errfile,
-				"errline" => $errline,
-			]);
-			exit(1);
+			case E_USER_ERROR:
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "PHP", "Fatal error caught in {$errfile}, check log for details", [
+					"errno" => $errno,
+					"errstr" => $errstr,
+					"errfile" => $errfile,
+					"errline" => $errline,
+				]);
+				exit(1);
 
-		case E_USER_WARNING:
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Warning caught, check log for details", [
-				"errno" => $errno,
-				"errstr" => $errstr,
-				"errfile" => $errfile,
-				"errline" => $errline,
-			]);
-			break;
+			case E_USER_WARNING:
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Warning caught in {$errfile}, check log for details", [
+					"errno" => $errno,
+					"errstr" => $errstr,
+					"errfile" => $errfile,
+					"errline" => $errline,
+				]);
+				break;
 
-		case E_USER_NOTICE:
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Notice caught, check log for details", [
-				"errno" => $errno,
-				"errstr" => $errstr,
-				"errfile" => $errfile,
-				"errline" => $errline,
-			]);
-			break;
+			case E_USER_NOTICE:
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Notice caught in {$errfile}, check log for details", [
+					"errno" => $errno,
+					"errstr" => $errstr,
+					"errfile" => $errfile,
+					"errline" => $errline,
+				]);
+				break;
 
-		default:
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Unknown error caught, check log for details", [
-				"errno" => $errno,
-				"errstr" => $errstr,
-				"errfile" => $errfile,
-				"errline" => $errline,
-			]);
-			break;
+			default:
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Unknown error caught in {$errfile}, check log for details", [
+					"errno" => $errno,
+					"errstr" => $errstr,
+					"errfile" => $errfile,
+					"errline" => $errline,
+				]);
+				break;
 		}
 
 		/* Don't execute PHP internal error handler */

@@ -340,7 +340,7 @@ class TwitchHelper
 
 		if (!$streamer_id) {
 			self::logAdvanced(self::LOG_ERROR, "helper", "No streamer id supplied for videos fetching");
-			throw new \Exception("No streamer id supplied for videos fetching");
+			throw new \ValueError("No streamer id supplied for videos fetching");
 			return false;
 		}
 
@@ -377,7 +377,7 @@ class TwitchHelper
 
 		if (!$video_id) {
 			self::logAdvanced(self::LOG_ERROR, "helper", "No video id supplied for videos fetching");
-			throw new \Exception("No video id supplied for videos fetching");
+			throw new \ValueError("No video id supplied for videos fetching");
 			return false;
 		}
 
