@@ -50,7 +50,7 @@ class ApiController
         $this->twig = $twig;
     }
     */
-    
+
     private function generateStreamerList()
     {
 
@@ -67,7 +67,7 @@ class ApiController
 
         $channels = TwitchConfig::getChannels();
 
-        if(count($channels) == 0){
+        if (count($channels) == 0) {
             TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "api", "No channels in channel list");
         }
 
@@ -115,10 +115,11 @@ class ApiController
                 'status' => 'OK'
             ]);
         } else {
-            $payload = json_encode([
+            $response->getBody()->write(json_encode([
                 'error' => 'Failed loading job',
                 'status' => 'ERROR'
-            ]);
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
         $response->getBody()->write($payload);
@@ -371,7 +372,7 @@ class ApiController
             $bins['tcd']['installed'] = true;
 
             $version = trim(substr($bins['tcd']['status'], 23));
-            if (version_compare($version, $pip_requirements['tcd']['version'], $pip_requirements['tcd']['comparator'])) {
+            if (isset($pip_requirements) && isset($pip_requirements['tcd']) && version_compare($version, $pip_requirements['tcd']['version'], $pip_requirements['tcd']['comparator'])) {
                 $bins['tcd']['update'] = 'Version OK';
             } else {
                 $bins['tcd']['update'] = 'Please update to at least ' . $pip_requirements['tcd']['version'];
@@ -390,7 +391,7 @@ class ApiController
             $bins['streamlink']['installed'] = true;
 
             $version = trim(substr($bins['streamlink']['status'], 11));
-            if (version_compare($version, $pip_requirements['streamlink']['version'], $pip_requirements['streamlink']['comparator'])) {
+            if (isset($pip_requirements) && isset($pip_requirements['streamlink']) && version_compare($version, $pip_requirements['streamlink']['version'], $pip_requirements['streamlink']['comparator'])) {
                 $bins['streamlink']['update'] = 'Version OK';
             } else {
                 $bins['streamlink']['update'] = 'Please update to at least ' . $pip_requirements['streamlink']['version'];
@@ -407,7 +408,7 @@ class ApiController
             $bins['youtubedl']['status'] = trim($out);
             $bins['youtubedl']['installed'] = true;
 
-            if (version_compare(trim($out), $pip_requirements['youtube-dl']['version'], $pip_requirements['youtube-dl']['comparator'])) {
+            if (isset($pip_requirements) && isset($pip_requirements['youtube-dl']) && version_compare(trim($out), $pip_requirements['youtube-dl']['version'], $pip_requirements['youtube-dl']['comparator'])) {
                 $bins['youtubedl']['update'] = 'Version OK';
             } else {
                 $bins['youtubedl']['update'] = 'Please update to at least ' . $pip_requirements['youtube-dl']['version'];
@@ -464,14 +465,16 @@ class ApiController
         $bins['php']['pid'] = getmypid();
         $bins['php']['uid'] = getmyuid();
         $bins['php']['gid'] = getmygid();
+        $bins['php']['display_errors'] = ini_get('display_errors');
+        $bins['php']['error_reporting'] = ini_get('error_reporting');
 
         $cron_lastrun = [];
-        foreach( ['check_deleted_vods', 'check_muted_vods', 'dump_playlists', 'sub'] as $cron ){
+        foreach (['check_deleted_vods', 'check_muted_vods', 'dump_playlists', 'sub'] as $cron) {
             $fp = TwitchHelper::$cron_folder . DIRECTORY_SEPARATOR . $cron;
-            if(file_exists($fp)){
+            if (file_exists($fp)) {
                 $t = (int)file_get_contents($fp);
                 $cron_lastrun[$cron] = date("Y-m-d H:i:s", $t);
-            }else{
+            } else {
                 $cron_lastrun[$cron] = "Never run";
             }
         }
@@ -491,7 +494,6 @@ class ApiController
         $response->getBody()->write($payload);
 
         return $response->withHeader('Content-Type', 'application/json');
-
     }
 
     public function display_log(Request $request, Response $response, $args)
@@ -505,7 +507,7 @@ class ApiController
         $filter = isset($_GET['filter']) ? $_GET['filter'] : null;
 
         $log_path = TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . $current_log . ".log.jsonline";
-        $logs = array_map(function($value){
+        $logs = array_map(function ($value) {
             return substr(basename($value), 0, 10);
         }, glob(TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . "*.jsonline"));
 
@@ -514,14 +516,14 @@ class ApiController
         if (file_exists($log_path)) {
 
             $handle = fopen($log_path, "r");
-            if($handle){
+            if ($handle) {
 
-                while( ($raw_line = fgets($handle)) !== false ){
-                    
+                while (($raw_line = fgets($handle)) !== false) {
+
                     $line = json_decode($raw_line, true);
 
                     $line_num++;
-                    if($last_line && $line_num <= $last_line) continue;
+                    if ($last_line && $line_num <= $last_line) continue;
 
                     if (!TwitchConfig::cfg("debug") && $line["level"] == 'DEBUG') continue;
 
@@ -544,11 +546,9 @@ class ApiController
                     }
 
                     $log_lines[] = $line;
-
                 }
 
                 fclose($handle);
-
             }
 
             /*
@@ -598,10 +598,10 @@ class ApiController
 
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
-        
     }
 
-    private function verifySignature($request){
+    private function verifySignature($request)
+    {
         // calculate signature
         /*
             hmac_message = headers['Twitch-Eventsub-Message-Id'] + headers['Twitch-Eventsub-Message-Timestamp'] + request.body
@@ -612,20 +612,25 @@ class ApiController
                 return 403
         */
 
+        if (!TwitchConfig::cfg("eventsub_secret")) {
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "hook", "No eventsub secret in config.", ['GET' => $_GET, 'POST' => $_POST]);
+            return false;
+        }
+
         $twitch_message_id = $request->getHeader("Twitch-Eventsub-Message-Id")[0];
         $twitch_message_timestamp = $request->getHeader("Twitch-Eventsub-Message-Timestamp")[0];
         $twitch_message_signature = $request->getHeader("Twitch-Eventsub-Message-Signature")[0];
 
-        $hmac_message = 
+        $hmac_message =
             $twitch_message_id .
             $twitch_message_timestamp .
             $request->getBody()->getContents();
-        
+
         $signature = hash_hmac("sha256", $hmac_message, TwitchConfig::cfg("eventsub_secret"));
 
         // $signature = hash_hmac("sha256", TwitchConfig::cfg("eventsub_secret"), $hmac_message);
         $expected_signature_header = "sha256=${signature}";
-            
+
         // check signature
         return $twitch_message_signature === $expected_signature_header;
     }
@@ -660,7 +665,7 @@ class ApiController
 
         // handle regular hook
         if ($source == 'twitch') {
-            
+
             if ($post_json) {
                 TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "hook", "Custom payload received...");
                 $data_json = json_decode($post_json, true);
@@ -668,44 +673,45 @@ class ApiController
 
             if ($data_json) {
 
-                if($request->getHeader("Twitch-Notification-Id")){
+                if ($request->getHeader("Twitch-Notification-Id")) {
                     $response->getBody()->write("Outdated format");
-                        TwitchHelper::logAdvanced(
-                            TwitchHelper::LOG_ERROR,
-                            "hook",
-                            "Hook got data with old webhook format.");
+                    TwitchHelper::logAdvanced(
+                        TwitchHelper::LOG_ERROR,
+                        "hook",
+                        "Hook got data with old webhook format."
+                    );
                     return $response->withStatus(200);
                 }
 
-                if($data_json["challenge"]){
-                    
+                if (isset($data_json["challenge"]) && $data_json["challenge"] !== null) {
+
                     $challenge = $data_json["challenge"];
                     $subscription = $data_json["subscription"];
 
                     $channel_id = $subscription["condition"]["broadcaster_user_id"];
                     $channel_login = TwitchChannel::channelLoginFromId($subscription["condition"]["broadcaster_user_id"]);
-                    
+
                     // $username = TwitchHelper::getChannelUsername($subscription["condition"]["broadcaster_user_id"]);
-                    
+
                     // $signature = $response->getHeader("Twitch-Eventsub-Message-Signature");
-                    
+
                     TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Challenge received for {$channel_id}:{$subscription["type"]} ({$channel_login}) ({$subscription["id"]})", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
-        
-                    if (!$this->verifySignature($request)){
+
+                    if (!$this->verifySignature($request)) {
                         $response->getBody()->write("Invalid signature check");
                         TwitchHelper::logAdvanced(
                             TwitchHelper::LOG_FATAL,
                             "hook",
-                            "Invalid signature check for challenge!");
+                            "Invalid signature check for challenge!"
+                        );
                         return $response->withStatus(400);
                     }
 
                     TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Challenge completed, subscription active for {$channel_id}:{$subscription["type"]} ({$channel_login}) ({$subscription["id"]}).", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
-        
+
                     // return the challenge string to twitch if signature matches
                     $response->getBody()->write($challenge);
                     return $response->withStatus(202);
-        
                 }
 
                 if (TwitchConfig::cfg('debug')) {
@@ -715,12 +721,13 @@ class ApiController
                 }
 
                 // verify message
-                if (!$this->verifySignature($request)){
+                if (!$this->verifySignature($request)) {
                     $response->getBody()->write("Invalid signature check");
                     TwitchHelper::logAdvanced(
                         TwitchHelper::LOG_FATAL,
                         "hook",
-                        "Invalid signature check for message!");
+                        "Invalid signature check for message!"
+                    );
                     return $response->withStatus(400);
                 }
 
@@ -736,5 +743,4 @@ class ApiController
 
         return $response;
     }
-
 }

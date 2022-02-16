@@ -94,57 +94,6 @@ class TwitchAutomatorJob
 		
 	}
 
-	/*
-	/**
-	 * Load data from disk
-	 *
-	 * @return bool successful
-	 *
-	function load()
-	{
-		$tried_loading = true;
-		if (!file_exists($this->pidfile)) {
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "job", "Loading job {$this->name} failed, no json file", $this->metadata);
-			// return $this->loadSimple();
-			$this->error = TwitchAutomatorJob::NO_FILE;
-			return false;
-		}
-		$raw = file_get_contents($this->pidfile);
-		if (!$raw) {
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "job", "Loading job {$this->name} failed, no data in json file", $this->metadata);
-			$this->error = TwitchAutomatorJob::NO_DATA;
-			return false;
-		}
-		$data = json_decode($raw);
-		$this->pid = $data->pid;
-		$this->dt_started_at = isset($data->dt_started_at) ? new DateTime($data->dt_started_at->date) : null;
-
-		// TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "Job {$this->name} loaded, proceed to get status.", $this->metadata);
-
-		// $this->getStatus();
-		return true;
-	}
-	*/
-
-	/*
-	function loadSimple()
-	{
-		$tried_loading = true;
-		if (!file_exists($this->pidfile_simple)) {
-            TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Loading job {$this->name} failed, no pid file", $this->metadata);
-			$this->error = TwitchAutomatorJob::NO_FILE;
-			return false;
-		}
-		$raw = file_get_contents($this->pidfile_simple);
-		if (!$raw) {
-			$this->error = TwitchAutomatorJob::NO_DATA;
-			return false;
-		}
-		$this->pid = $raw;
-		$this->getStatus();
-    }
-    */
-
 	/**
 	 * Save to disk, like when the process starts
 	 *

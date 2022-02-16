@@ -1,3 +1,5 @@
+import { MediaInfo } from "./mediainfo";
+
 export type PHPDateTimeJSON = {
     date: string;
     timezone_type: number;
@@ -32,6 +34,7 @@ export type ApiGame = {
     box_art_url: string;
     favourite: boolean;
     image_url: string;
+    added: number;
 };
 
 export type ApiVod = {
@@ -87,8 +90,8 @@ export type ApiVod = {
 
     game_offset: number;
 
-    video_metadata: array;
-    video_metadata_public: array;
+    // video_metadata: MediaInfo;
+    video_metadata_public: MediaInfo;
 
     chapters: ApiVodChapter[];
 
@@ -108,7 +111,7 @@ export type ApiSettingsField = {
     pattern?: string;
 };
 
-export type ApiConfig = {
+export interface ApiConfig {
     api_client_id: string;
     api_secret: string;
     app_name: string;
@@ -151,8 +154,7 @@ export type ApiConfig = {
     websocket_enabled: boolean;
     websocket_server_address: string;
     youtube_api_client_id: string;
-    youtube_dlc: boolean;
-};
+}
 
 export type ApiChannel = {
     userid: string;
@@ -185,6 +187,7 @@ export type ApiSubscription = {
     callback: string;
     instance_match: boolean;
     status: string;
+    created_at: string;
 };
 
 export type ApiChannelConfig = {
@@ -203,6 +206,19 @@ export type ApiLogLine = {
     module: string;
     date_string: string;
     text: string;
+};
+
+export type ClientSettings = {
+    useSpeech: boolean;
+    singlePage: boolean;
+    enableNotifications: boolean;
+    animationsEnabled: boolean;
+    tooltipStatic: boolean;
+    useRelativeTime: boolean;
+    showAdvancedInfo: boolean;
+    useWebsockets: boolean;
+    useBackgroundRefresh: boolean;
+    useBackgroundTicker: boolean;
 };
 
 export const phpDateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000

@@ -15,34 +15,6 @@ use App\TwitchChannel;
 trait ApiChannels
 {
 
-    /*
-    private function generateStreamerList()
-    {
-
-        $total_size = 0;
-
-        $streamerListStatic = TwitchConfig::getStreamers();
-        $streamerList = [];
-
-        /*
-        usort( $streamerListStatic, function($a, $b){
-            return $a->display_name <=> $b->display_name;
-        });
-        *
-
-        foreach ($streamerListStatic as $streamer) {
-
-            $data = new TwitchChannel();
-            $data->load($streamer['username'], true);
-
-            $total_size += $data->vods_size;
-
-            $streamerList[] = $data;
-        }
-        return [$streamerList, $total_size];
-    }
-    */
-
     public function channels_list(Request $request, Response $response, $args)
     {
 
@@ -66,12 +38,14 @@ trait ApiChannels
     public function channels_add(Request $request, Response $response, $args)
     {
 
-        $login          = isset($_POST['login']) ? $_POST['login'] : null;
-        $quality        = isset($_POST['quality']) ? explode(" ", $_POST['quality']) : null;
-        $match          = isset($_POST['match']) ? $_POST['match'] : null;
-        $download_chat  = isset($_POST['download_chat']);
-        $burn_chat      = isset($_POST['burn_chat']);
-        $no_capture     = isset($_POST['no_capture']);
+        $formdata = $request->getParsedBody();
+
+        $login          = isset($formdata['login']) ? $formdata['login'] : null;
+        $quality        = isset($formdata['quality']) ? explode(" ", $formdata['quality']) : null;
+        $match          = isset($formdata['match']) ? $formdata['match'] : null;
+        $download_chat  = isset($formdata['download_chat']);
+        $burn_chat      = isset($formdata['burn_chat']);
+        $no_capture     = isset($formdata['no_capture']);
 
         if (!$login) {
             $response->getBody()->write(json_encode([
@@ -99,11 +73,12 @@ trait ApiChannels
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
-        $username = TwitchChannel::channelUsernameFromId($channel_id);
+        $display_name = TwitchChannel::channelDisplayNameFromId($channel_id);
+        $cache_login = TwitchChannel::channelLoginFromId($channel_id);
 
-        if ($login !== $username) {
+        if ($login !== $cache_login) {
             $response->getBody()->write(json_encode([
-                "message" => "Login '{$login}' doesn't match the one provided by Twitch: '{$username}'. Check that it's the LOGIN name and not the DISPLAY name.",
+                "message" => "Login '{$login}' doesn't match the one provided by Twitch: '{$cache_login}'. Check that it's the LOGIN name and not the DISPLAY name.",
                 "status" => "ERROR"
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -111,9 +86,9 @@ trait ApiChannels
         // $tmp = TwitchHelper::getChannelData($channel_id);
         // 
         // // fix capitalization
-        // if ($tmp['display_name'] !== $username) {
+        // if ($tmp['display_name'] !== $display_name) {
         //     // $response->getBody()->write("Username capitalization seems to be incorrect, fixing.<br>");
-        //     $username = $tmp['display_name'];
+        //     $display_name = $tmp['display_name'];
         // }
 
         if (TwitchConfig::getChannelByLogin($login)) {
@@ -159,7 +134,7 @@ trait ApiChannels
         TwitchConfig::loadChannels(); // reload from disk
 
         $payload = json_encode([
-            'message' => "Channel added: {$login} ({$username}).",
+            'message' => "Channel added: {$login} ({$display_name}).",
             'status' => 'OK'
         ]);
 
@@ -168,15 +143,19 @@ trait ApiChannels
         return $response->withHeader('Content-Type', 'application/json')->withHeader('Access-Control-Allow-Origin', '*');
     }
 
+    /**
+     * PUT /api/v0/channels/{login}
+     *
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return void
+     */
     public function channels_update(Request $request, Response $response, array $args)
     {
 
-        $login       = isset($_POST['login']) ? $_POST['login'] : null;
-        $quality        = isset($_POST['quality']) ? explode(" ", $_POST['quality']) : null;
-        $match          = isset($_POST['match']) ? $_POST['match'] : null;
-        $download_chat  = isset($_POST['download_chat']);
-        $burn_chat      = isset($_POST['burn_chat']);
-        $no_capture     = isset($_POST['no_capture']);
+        $login          = isset($args['login']) ? $args['login'] : null;
+        $formdata = $request->getParsedBody();
 
         if (!TwitchConfig::getChannelByLogin($login)) {
             $response->getBody()->write(json_encode([
@@ -185,6 +164,12 @@ trait ApiChannels
             ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
+
+        $quality        = isset($formdata['quality']) ? explode(" ", $formdata['quality']) : null;
+        $match          = isset($formdata['match']) ? $formdata['match'] : null;
+        $download_chat  = isset($formdata['download_chat']);
+        $burn_chat      = isset($formdata['burn_chat']);
+        $no_capture     = isset($formdata['no_capture']);
 
         // template
         $streamer = [
@@ -246,10 +231,18 @@ trait ApiChannels
         return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
     }
 
+    /**
+     * DELETE /api/v0/channels/{login}
+     *
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return void
+     */
     public function channels_delete(Request $request, Response $response, array $args)
     {
 
-        $login = $_POST['login'];
+        $login = isset($args['login']) ? $args['login'] : null;
 
         $streamer_data = TwitchConfig::getChannelByLogin($login);
         

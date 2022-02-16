@@ -17,7 +17,7 @@
                     <span class="streamer-vods-amount" title="Total vod amount">{{ streamer.vods_list.length }} vods</span
                     ><!-- vods -->
                     &middot;
-                    <span class="streamer-vods-size" title="Total vod size">{{ formatBytes(this.streamer?.vods_size) }}</span
+                    <span class="streamer-vods-size" title="Total vod size">{{ formatBytes(streamer?.vods_size) }}</span
                     ><!-- total size -->
                     &middot;
                     <!--<span class="streamer-subbed-status" title="Subscription expiration">
@@ -53,7 +53,7 @@
         <div v-if="streamer.vods_list.length == 0" class="notice">None</div>
 
         <div v-else>
-            <vod v-for="vod in streamer.vods_list" :key="vod.basename" v-bind:vod="vod" />
+            <vod-item v-for="vod in streamer.vods_list" :key="vod.basename" v-bind:vod="vod" @refresh="refresh" />
         </div>
     </div>
     <div v-else>Invalid streamer</div>
@@ -62,7 +62,7 @@
 <script lang="ts">
 import type { ApiChannel } from "@/twitchautomator.d";
 import { defineComponent } from "vue";
-import Vod from "@/components/Vod.vue";
+import VodItem from "@/components/VodItem.vue";
 // import { AxiosError } from "axios";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -70,24 +70,32 @@ import { faVideo, faPlayCircle, faVideoSlash } from "@fortawesome/free-solid-svg
 library.add(faVideo, faPlayCircle, faVideoSlash);
 
 export default defineComponent({
-    name: "Streamer",
+    name: "StreamerItem",
+    emits: ["refresh"],
     props: {
         streamer: Object as () => ApiChannel,
     },
     methods: {
+        refresh() {
+            this.$emit("refresh");
+        },
         async abortCapture() {
             // href="{{ url_for('api_jobs_kill', { 'job': 'capture_' ~ streamer.current_vod.basename }) }}"
 
             if (!this.streamer || !this.streamer.current_vod) return;
 
+            if (!confirm("Abort record is unstable. Continue?")) return;
+
             let response;
 
             try {
-                response = await this.$http.get(`/api/v0/jobs/kill/${this.streamer.current_vod.basename}`);
+                response = await this.$http.delete(`/api/v0/jobs/capture_${this.streamer.current_vod.basename}`);
             } catch (error) {
-                console.error("abortCapture error", error.response);
-                if (error.response.data && error.response.data.message) {
-                    alert(error.response.data.message);
+                if (this.$http.isAxiosError(error)) {
+                    console.error("abortCapture error", error.response);
+                    if (error.response && error.response.data && error.response.data.message) {
+                        alert(error.response.data.message);
+                    }
                 }
                 return;
             }
@@ -101,14 +109,18 @@ export default defineComponent({
             console.log("Killed", data);
         },
         async forceRecord() {
+            if (!confirm("Force record is unstable. Continue?")) return;
+
             let response;
 
             try {
-                response = await this.$http.get(`/api/v0/channel/${this.streamer?.login}/force_record`);
+                response = await this.$http.get(`/api/v0/channels/${this.streamer?.login}/force_record`);
             } catch (error) {
-                console.error("forceRecord error", error.response);
-                if (error.response.data && error.response.data.message) {
-                    alert(error.response.data.message);
+                if (this.$http.isAxiosError(error)) {
+                    console.error("forceRecord error", error.response);
+                    if (error.response && error.response.data && error.response.data.message) {
+                        alert(error.response.data.message);
+                    }
                 }
                 return;
             }
@@ -129,11 +141,13 @@ export default defineComponent({
             let response;
 
             try {
-                response = await this.$http.get(`/api/v0/channel/${this.streamer.login}/dump_playlist`);
+                response = await this.$http.get(`/api/v0/channels/${this.streamer.login}/dump_playlist`);
             } catch (error) {
-                console.error("abortCapture error", error.response);
-                if (error.response.data && error.response.data.message) {
-                    alert(error.response.data.message);
+                if (this.$http.isAxiosError(error)) {
+                    console.error("abortCapture error", error.response);
+                    if (error.response && error.response.data && error.response.data.message) {
+                        alert(error.response.data.message);
+                    }
                 }
                 return;
             }
@@ -153,7 +167,7 @@ export default defineComponent({
         },
     },
     components: {
-        Vod,
+        VodItem,
     },
 });
 </script>

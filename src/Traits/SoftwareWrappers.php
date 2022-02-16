@@ -22,7 +22,7 @@ trait SoftwareWrappers
 	 */
 	public static function exec(array $cmd, $stderr = false): string
 	{
-		TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Executing command: " . implode(" ", $cmd));
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "exec", "Executing command: " . implode(" ", $cmd));
 		$process = new Process($cmd);
 		$process->run();
 		return $process->getOutput() . ($stderr ? $process->getErrorOutput() : '');
@@ -71,7 +71,7 @@ trait SoftwareWrappers
 	public static function mediainfo(string $filename)
 	{
 
-		TwitchHelper::log(TwitchHelper::LOG_DEBUG, "Run mediainfo on {$filename}");
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "mediainfo", "Run mediainfo on {$filename}");
 
 		if (!$filename) {
 			throw new \Exception('No filename supplied for mediainfo');
@@ -164,8 +164,6 @@ trait SoftwareWrappers
 		$process = new Process($cmd, dirname($input), null, null, null);
 		$process->start();
 
-		//$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_convert_' . $this->basename . '.pid';
-		//file_put_contents($pidfile, $process->getPid());
 		$remuxVideoJob = TwitchAutomatorJob::create("remux_video_{$basename}");
 		$remuxVideoJob->setPid($process->getPid());
 		$remuxVideoJob->setProcess($process);
@@ -173,7 +171,6 @@ trait SoftwareWrappers
 
 		$process->wait();
 
-		//if (file_exists($pidfile)) unlink($pidfile);
 		$remuxVideoJob->clear();
 
 		TwitchHelper::appendLog("ffmpeg_remux_{$basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());

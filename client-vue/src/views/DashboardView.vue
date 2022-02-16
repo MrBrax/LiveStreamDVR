@@ -2,12 +2,12 @@
     <div class="container vertical">
         <section class="section" data-section="vods">
             <div class="section-title"><h1>Recorded VODs</h1></div>
-            <div class="section-content" v-if="$store.state.config && $store.state.streamerList && $store.state.streamerList.length > 0">
-                <template v-if="!$store.state.clientConfig.singlePage">
+            <div class="section-content" v-if="store.streamerList && store.streamerList.length > 0">
+                <template v-if="!store.clientConfig.singlePage">
                     <streamer v-for="streamer in sortedStreamers" v-bind:key="streamer.userid" v-bind:streamer="streamer" />
                 </template>
                 <template v-else>
-                    <streamer v-bind:streamer="singleStreamer" />
+                    <streamer v-bind:streamer="singleStreamer" @refresh="fetchStreamers" />
                 </template>
                 <hr />
                 <div class="dashboard-stats">
@@ -33,7 +33,7 @@
 
                 <div class="log_viewer" ref="logViewer">
                     <table>
-                        <tr v-for="line in logFiltered" :key="line" :class="'log-line log-line-' + line.level.toLowerCase()">
+                        <tr v-for="(line, lineIndex) in logFiltered" :key="lineIndex" :class="'log-line log-line-' + line.level.toLowerCase()">
                             <td>{{ line.date_string }}</td>
                             <td>
                                 <a @click="logSetFilter(line.module)">{{ line.module }}</a>
@@ -51,13 +51,14 @@
         <template v-if="ws">
             {{ wsConnected ? "Connected" : wsConnecting ? "Connecting..." : "Disconnected" }}
         </template>
-        <template v-else>
+        <template v-else-if="tickerInterval">
             {{ loading ? "Loading..." : `Refreshing in ${timer} seconds.` }}
         </template>
+        <template v-else>Disabled</template>
     </div>
-    <div id="jobs-status" v-if="$store.state.jobList !== undefined">
+    <div id="jobs-status" v-if="store.jobList !== undefined">
         <table>
-            <tr v-for="job in $store.state.jobList" :key="job.name">
+            <tr v-for="job in store.jobList" :key="job.name">
                 <td>
                     <span class="icon">
                         <fa icon="sync" spin v-if="job.status"></fa>
@@ -70,40 +71,72 @@
             </tr>
         </table>
 
-        <em v-if="$store.state.jobList.length == 0">None</em>
+        <em v-if="store.jobList.length == 0">None</em>
     </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import Streamer from "@/components/Streamer.vue";
+import Streamer from "@/components/StreamerItem.vue";
 import type { ApiLogLine, ApiChannel } from "@/twitchautomator.d";
 import { format } from "date-fns";
-import { MutationPayload } from "vuex";
+import { useStore } from "@/store";
+import { nonGameCategories } from "@/defs";
+
+interface DashboardData {
+    loading: boolean;
+    timer: number;
+    timerMax: number;
+    tickerInterval: number; // interval?
+    vodUpdateInterval: number;
+    totalSize: number;
+    freeSize: number;
+    logFilename: string;
+    logFilenames: string[];
+    logLines: ApiLogLine[];
+    logVisible: boolean;
+    logModule: string;
+    logFromLine: number;
+    ws: WebSocket | null;
+    wsConnected: boolean;
+    wsConnecting: boolean;
+    wsKeepalive: number;
+    wsKeepaliveTime: number;
+    wsLastPing: number;
+    oldData: Record<string, ApiChannel>;
+    notificationSub: () => void;
+}
 
 export default defineComponent({
     name: "DashboardView",
+    setup() {
+        const store = useStore();
+        return { store };
+    },
     title(): string {
         if (this.streamersOnline > 0) return `[${this.streamersOnline}] Dashboard`;
         return "Dashboard";
     },
-    data() {
+    data(): DashboardData {
         return {
             loading: false,
             timer: 120,
             timerMax: 120,
-            interval: 0,
+            tickerInterval: 0,
+            vodUpdateInterval: 0,
             totalSize: 0,
             freeSize: 0,
             logFilename: "",
-            logFilenames: [] as string[],
-            logLines: [] as ApiLogLine[],
+            logFilenames: [],
+            logLines: [],
             logFromLine: 0,
             logVisible: false,
             logModule: "",
-            oldData: {} as Record<string, ApiChannel>,
-            notificationSub: Function as any,
-            ws: {} as WebSocket,
+            oldData: {},
+            notificationSub: () => {
+                console.log("notificationSub");
+            },
+            ws: null,
             wsConnected: false,
             wsConnecting: false,
             wsKeepalive: 0,
@@ -115,7 +148,7 @@ export default defineComponent({
         this.loading = true;
         this.fetchStreamers()
             .then((sl) => {
-                this.$store.commit("updateStreamerList", sl);
+                if ("streamer_list" in sl) this.store.updateStreamerList(sl.streamer_list);
                 this.loading = false;
             })
             .then(() => {
@@ -128,19 +161,28 @@ export default defineComponent({
     mounted() {
         this.processNotifications();
 
-        if (this.$store.state.config.websocket_enabled) {
+        if (this.store.cfg("websocket_enabled") && this.store.clientConfig.useWebsockets) {
+            console.debug("Websockets enabled");
             this.connectWebsocket();
         } else {
-            console.debug("No websocket url");
-            this.interval = setInterval(() => {
-                this.fetchTicker();
-            }, 1000);
+            if (this.store.clientConfig.useBackgroundTicker) {
+                console.debug("Websockets disabled");
+                this.tickerInterval = setInterval(() => {
+                    this.fetchTicker();
+                }, 1000);
+            }
+        }
+
+        // update vods every 15 minutes
+        if (this.store.clientConfig.useBackgroundRefresh) {
+            this.vodUpdateInterval = setInterval(() => {
+                this.store.updateCapturingVods();
+            }, 1000 * 60 * 15);
         }
     },
     unmounted() {
-        if (this.interval) {
-            clearTimeout(this.interval);
-        }
+        if (this.tickerInterval) clearTimeout(this.tickerInterval);
+        if (this.vodUpdateInterval) clearTimeout(this.vodUpdateInterval);
 
         // unsub
         if (this.notificationSub) {
@@ -155,13 +197,14 @@ export default defineComponent({
     methods: {
         connectWebsocket() {
             if (this.ws) this.disconnectWebsocket();
+            if (!this.store.config) return;
             const proto = window.location.protocol === "https:" ? "wss://" : "ws://";
-            const websocket_url_public = proto + window.location.host + this.$store.state.config.basepath + "/socket/";
+            const websocket_url_public = proto + window.location.host + this.store.cfg("basepath") + "/socket/";
             let websocket_url = process.env.NODE_ENV === "development" ? "ws://localhost:8765/socket/" : websocket_url_public;
 
-            if (this.$store.state.config.websocket_client_address) {
-                console.log(`Overriding generated websocket URL '${websocket_url}' with config '${this.$store.state.config.websocket_client_address}'`);
-                websocket_url = this.$store.state.config.websocket_client_address;
+            if (this.store.cfg("websocket_client_address")) {
+                console.log(`Overriding generated websocket URL '${websocket_url}' with config '${this.store.cfg("websocket_client_address")}'`);
+                websocket_url = this.store.cfg("websocket_client_address") ?? "";
             }
 
             console.log(`Connecting to ${websocket_url}`);
@@ -169,11 +212,12 @@ export default defineComponent({
             this.ws = new WebSocket(websocket_url);
             this.ws.onopen = (ev: Event) => {
                 console.log(`Connected to websocket!`, ev);
+                if (!this.ws) return;
                 this.ws.send(JSON.stringify({ action: "helloworld" }));
                 this.wsConnected = true;
                 this.wsConnecting = false;
                 this.wsKeepalive = setInterval(() => {
-                    // console.debug("send ping");
+                    if (!this.ws) return;
                     this.ws.send("ping");
                 }, this.wsKeepaliveTime);
             };
@@ -212,14 +256,8 @@ export default defineComponent({
                     if (downloader_actions.indexOf(action) !== -1) {
                         console.log("Websocket update");
                         // const vod = json.data.vod;
-                        /*
-                        if (vod) {
-                            console.log("Websocket update vod", vod);
-                            this.$store.commit("updateVod", vod);
-                        }
-                        */
                         this.fetchStreamers().then((sl) => {
-                            this.$store.commit("updateStreamerList", sl);
+                            if ("streamer_list" in sl) this.store.updateStreamerList(sl.streamer_list);
                             this.loading = false;
                         });
 
@@ -266,29 +304,21 @@ export default defineComponent({
             }
         },
         async fetchStreamers() {
-            let response;
-            try {
-                response = await this.$http.get(`/api/v0/channels/list`);
-            } catch (error) {
-                console.error(error);
-                return;
+            const rest = await this.store.fetchStreamerList();
+            if (rest) {
+                this.totalSize = rest.total_size;
+                this.freeSize = rest.free_size;
+                return rest;
+            } else {
+                console.warn("No data returned from fetchStreamerList");
             }
-
-            if (!response.data.data) {
-                console.error("fetchStreamers invalid data", response.data);
-                return;
-            }
-
-            this.totalSize = response.data.data.total_size;
-            this.freeSize = response.data.data.free_size;
-
-            return response.data.data.streamer_list;
+            return [];
         },
         async fetchJobs() {
             let response;
 
             try {
-                response = await this.$http.get(`/api/v0/jobs/list`);
+                response = await this.$http.get(`/api/v0/jobs`);
             } catch (error) {
                 console.error(error);
                 return;
@@ -296,7 +326,7 @@ export default defineComponent({
 
             const json = response.data;
             console.debug("Update jobs list", json.data);
-            this.$store.commit("updateJobList", json.data);
+            this.store.updateJobList(json.data);
         },
         async fetchLog(clear = false) {
             // today's log file
@@ -342,23 +372,25 @@ export default defineComponent({
         async fetchTicker() {
             if (this.timer <= 0 && !this.loading) {
                 this.loading = true;
-                const streamerResult: ApiChannel[] = await this.fetchStreamers();
+                const streamerResult = await this.fetchStreamers();
 
-                const isAnyoneLive = streamerResult.find((el) => el.is_live == true) !== undefined;
+                if (streamerResult && "streamer_list" in streamerResult) {
+                    const isAnyoneLive = streamerResult.streamer_list.find((el) => el.is_live == true) !== undefined;
 
-                if (!isAnyoneLive) {
-                    if (this.timerMax < 1800 /* 30 minutes */) {
-                        this.timerMax += 10;
+                    if (!isAnyoneLive) {
+                        if (this.timerMax < 1800 /* 30 minutes */) {
+                            this.timerMax += 10;
+                        }
+                    } else {
+                        this.timerMax = 120;
                     }
-                } else {
-                    this.timerMax = 120;
+
+                    this.store.updateStreamerList(streamerResult.streamer_list);
+
+                    this.fetchLog();
+
+                    this.fetchJobs();
                 }
-
-                this.$store.commit("updateStreamerList", streamerResult);
-
-                this.fetchLog();
-
-                this.fetchJobs();
 
                 this.loading = false;
 
@@ -368,31 +400,43 @@ export default defineComponent({
             }
         },
         processNotifications() {
-            if (!this.$store.state.clientConfig.enableNotifications) {
+            if (!this.store.clientConfig.enableNotifications) {
                 return;
             }
 
             console.log("Notifications enabled");
 
-            this.notificationSub = this.$store.subscribe((mutation: MutationPayload) => {
+            this.notificationSub = this.store.$onAction(({ name, store, args, after, onError }) => {
                 // unsub if changed
-                if (!this.$store.state.clientConfig.enableNotifications) {
+                if (!this.store.clientConfig.enableNotifications) {
                     console.log("Notification setting disabled, stopping subscription.");
                     this.notificationSub();
                     return;
                 }
 
-                if (!mutation.payload) {
-                    console.error("No payload for notification sub");
+                if (!args) {
+                    // console.error("No payload for notification sub");
                     return;
                 }
 
-                if (mutation.type !== "updateStreamerList") {
-                    console.error(`Streamer list notification check payload was ${mutation.type}, abort.`);
+                if (name !== "updateStreamerList") {
+                    // console.debug(`Streamer list notification check payload was ${name}, abort.`);
                     return;
                 }
 
-                // console.log("subscribe", mutation.payload, this.$store.state.streamerList);
+                const payload = args[0] as ApiChannel[];
+
+                if (payload.length === 0) {
+                    console.debug("Streamer list notification check payload was empty, abort.");
+                    return;
+                }
+
+                // if (!("streamer_list" in args)) {
+                //     console.error("Streamer list notification payload is invalid", name, args);
+                //     return;
+                // }
+
+                // console.log("subscribe", mutation.payload, this.store.streamerList);
                 /*
                 if( mutation.payload[0].current_game !== state.streamerList[0].current_game ){
                     alert( mutation.payload[0].display_name + ": " + mutation.payload[0].current_game );
@@ -403,13 +447,17 @@ export default defineComponent({
                     xQcOW: "eckscueseeow",
                 };
 
-                // console.debug("notification payload", mutation);
+                console.debug("notification payload", name, args);
 
-                for (const streamer of mutation.payload as ApiChannel[]) {
+                for (const streamer of payload) {
                     const login = streamer.login;
 
                     if (this.oldData && this.oldData[streamer.login]) {
                         const oldStreamer = this.oldData[streamer.login];
+
+                        if (!streamer.channel_data) {
+                            console.warn(`No channel data for ${login}`);
+                        }
 
                         const opt = {
                             icon: streamer.channel_data.profile_image_url,
@@ -430,12 +478,22 @@ export default defineComponent({
                                 (!oldStreamer.current_game && streamer.current_game) || // from no game to new game
                                 (oldStreamer.current_game && streamer.current_game && oldStreamer.current_game.game_name !== streamer.current_game.game_name) // from old game to new game
                             ) {
-                                // alert( streamer.login + " is now playing " + streamer.current_game.game_name );
-
-                                if (streamer.current_game.favourite) {
-                                    text = `${login} is now playing one of your favourite games: ${streamer.current_game.game_name}!`;
+                                if (nonGameCategories.includes(streamer.current_game.game_name)) {
+                                    if (streamer.current_game.favourite) {
+                                        text = `${login} is online with one of your favourite categories: ${streamer.current_game.game_name}!`;
+                                    } else if (streamer.current_game.game_name) {
+                                        text = `${login} is now streaming ${streamer.current_game.game_name}!`;
+                                    } else {
+                                        text = `${login} is now streaming without a category!`;
+                                    }
                                 } else {
-                                    text = `${login} is now playing ${streamer.current_game.game_name}!`;
+                                    if (streamer.current_game.favourite) {
+                                        text = `${login} is now playing one of your favourite games: ${streamer.current_game.game_name}!`;
+                                    } else if (streamer.current_game.game_name) {
+                                        text = `${login} is now playing ${streamer.current_game.game_name}!`;
+                                    } else {
+                                        text = `${login} is now streaming without a category!`;
+                                    }
                                 }
                             }
                         }
@@ -473,11 +531,7 @@ export default defineComponent({
             });
         },
         logSetFilter(val: string) {
-            if (this.logModule) {
-                this.logModule = "";
-            } else {
-                this.logModule = val;
-            }
+            this.logModule = this.logModule ? "" : val;
             console.log(`Log filter set to ${this.logModule}`);
         },
         logToggle() {
@@ -491,7 +545,7 @@ export default defineComponent({
     },
     computed: {
         sortedStreamers() {
-            const streamers: ApiChannel[] = this.$store.state.streamerList;
+            const streamers: ApiChannel[] = this.store.streamerList;
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
         },
         logFiltered(): ApiLogLine[] {
@@ -499,18 +553,18 @@ export default defineComponent({
             return this.logLines.filter((val) => val.module == this.logModule);
         },
         streamersOnline(): number {
-            if (!this.$store.state.streamerList) return 0;
-            return this.$store.state.streamerList.filter((a) => a.is_live).length;
+            if (!this.store.streamerList) return 0;
+            return this.store.streamerList.filter((a) => a.is_live).length;
         },
         singleStreamer(): ApiChannel | undefined {
-            if (!this.$store.state.streamerList) return undefined;
+            if (!this.store.streamerList) return undefined;
 
             const current = this.$route.query.channel as string;
             if (current !== undefined) {
-                return this.$store.state.streamerList.find((u) => u.login === current);
+                return this.store.streamerList.find((u) => u.login === current);
             } else {
-                // this.$route.query.channel = this.$store.state.streamerList[0].display_name;
-                return this.$store.state.streamerList[0];
+                // this.$route.query.channel = this.store.streamerList[0].display_name;
+                return this.store.streamerList[0];
             }
         },
     },

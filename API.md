@@ -43,21 +43,29 @@ Archive the VOD.
 
 ---
 
-## Channel
+## Channels
+### `GET /api/v0/channels`
+List all channels and their vods
 
-### `GET /api/v0/channel/{basename}`
+### `POST /api/v0/channels`
+Add channel
+
+### `GET /api/v0/channels/{login}`
 Get information on the channel itself
 
-### `GET /api/v0/channel/{basename}/force_record`
+### `PUT /api/v0/channels/{login}`
+Modify channel
+
+### `DELETE /api/v0/channels/{login}`
+Delete channel
+
+### `GET /api/v0/channels/{login}/force_record`
 Force record the current stream
 
-### `GET /api/v0/channel/{basename}/dump_playlist`
+### `GET /api/v0/channels/{login}/dump_playlist`
 Dump the stream from the playlist (vod)
 
-### `GET /api/v0/channel/{basename}/subscription`
+### `GET /api/v0/channels/{login}/subscription`
 Show the (webhook) subscription for the channel
 
 ---
-## Channels
-### `GET /api/v0/channels/list`
-List all channels and their vods

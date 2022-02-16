@@ -29,7 +29,7 @@ trait ApiVod
         $username = explode("_", $vod)[0];
 
         try {
-            $vodclass = TwitchVOD::load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+            $vodclass = TwitchVOD::load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json', true);
         } catch (\Throwable $th) {
             $response->getBody()->write(json_encode([
                 "message" => $th->getMessage(),
@@ -184,94 +184,6 @@ trait ApiVod
                 'status' => 'OK'
             ]);
         }
-
-        $response->getBody()->write($payload);
-        return $response->withHeader('Content-Type', 'application/json');
-    }
-
-
-    public function vod_render_chat(Request $request, Response $response, $args)
-    {
-
-        set_time_limit(0);
-
-        $vod = $args['vod'];
-        // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
-        $username = explode("_", $vod)[0];
-
-        $vodclass = TwitchVOD::load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
-
-        $use_vod = isset($_GET['use_vod']);
-
-        if ($vodclass->is_chat_downloaded) {
-            $response->getBody()->write("Rendering");
-            if ($vodclass->renderChat()) {
-                $vodclass->burnChat(300, $use_vod);
-            }
-        } else {
-            $response->getBody()->write("VOD has no chat downloaded");
-        }
-
-        return $response;
-    }
-
-    public function vod_full_burn(Request $request, Response $response, $args)
-    {
-
-        set_time_limit(0);
-
-        $vod = $args['vod'];
-        // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
-        $username = explode("_", $vod)[0];
-
-        $vodclass = TwitchVOD::load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
-
-        if ($vodclass->is_chat_burned) {
-            $response->getBody()->write("Chat already burned!");
-            return $response;
-        }
-
-        $is_muted = $vodclass->checkMutedVod(true);
-
-        // download chat if not downloaded
-        if (!$vodclass->is_chat_downloaded) {
-            $vodclass->downloadChat();
-            // $response->getBody()->write("Chat downloaded<br>");
-        }
-
-        if (!$vodclass->is_chat_downloaded) {
-            $payload = json_encode([
-                'message' => "Chat doesn't exist!",
-                'status' => 'ERROR'
-            ]);
-            return $response->withHeader('Content-Type', 'application/json');
-        }
-
-        if ($is_muted) { // if vod is muted, use captured one
-
-            if ($vodclass->renderChat()) {
-                $vodclass->burnChat();
-                // $response->getBody()->write("Chat rendered and burned<br>");
-            }
-        } else { // if vod is not muted, use it
-
-            // download vod if not downloaded already
-            if (!$vodclass->is_vod_downloaded) {
-                $vodclass->downloadVod();
-                // $response->getBody()->write("VOD downloaded<br>");
-            }
-
-            // render and burn
-            if ($vodclass->renderChat()) {
-                $vodclass->burnChat(300, true);
-                // $response->getBody()->write("Chat rendered and burned<br>");
-            }
-        }
-
-        $payload = json_encode([
-            'message' => 'VOD burned',
-            'status' => 'OK'
-        ]);
 
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
@@ -452,8 +364,6 @@ trait ApiVod
             $process = new Process($cmd, TwitchHelper::vodFolder($username), $env, null, null);
             $process->start();
 
-            // $pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'vod_cut_' . $vod . '.pid';
-            // file_put_contents($pidfile, $process->getPid());
             $vod_cutJob = TwitchAutomatorJob::create("vod_cut_{$vod}");
             $vod_cutJob->setPid($process->getPid());
             $vod_cutJob->setProcess($process);
@@ -547,5 +457,76 @@ trait ApiVod
             "status" => "OK"
         ]));
         return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
+    }
+
+
+
+    public function vod_renderwizard(Request $request, Response $response, $args)
+    {
+
+        $vod = $args['vod'];
+        $username = explode("_", $vod)[0];
+        $vodclass = TwitchVOD::load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+
+        $data = $request->getParsedBody();
+        $chat_width = isset($data['chatWidth']) ? (int)$data['chatWidth'] : 300;
+        $chat_height = isset($data['chatHeight']) ? (int)$data['chatHeight'] : 1080;
+        $render_chat = isset($data['renderChat']) && $data['renderChat'];
+        $burn_chat = isset($data['burnChat']) && $data['burnChat'];
+        $vod_source = isset($data['vodSource']) ? $data['vodSource'] : 'captured';
+        $chat_source = isset($data['chatSource']) ? $data['chatSource'] : 'captured';
+        $chat_font = isset($data['chatFont']) ? $data['chatFont'] : 'Inter';
+        $chat_font_size = isset($data['chatFontSize']) ? (int)$data['chatFontSize'] : 12;
+        $burn_horizontal = isset($data['burnHorizontal']) ? $data['burnHorizontal'] : 'left';
+        $burn_vertical = isset($data['burnVertical']) ? $data['burnVertical'] : 'top';
+        $ffmpeg_preset = isset($data['ffmpegPreset']) ? $data['ffmpegPreset'] : 'slow';
+        $ffmpeg_crf = isset($data['ffmpegCrf']) ? (int)$data['ffmpegCrf'] : 26;
+
+        $status_renderchat = false;
+        $status_burnchat = false;
+
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Start render wizard for vod {$vod}");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "chat_width: {$chat_width}");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "chat_height: {$chat_height}");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "render_chat: {$render_chat}");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "burn_chat: {$burn_chat}");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "vod_source: {$vod_source}");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "chat_source: {$chat_source}");
+
+        if ($render_chat) {
+            try {
+                $status_renderchat = $vodclass->renderChat($chat_width, $chat_height, $chat_font, $chat_font_size, $chat_source == "downloaded", true);
+            } catch (\Throwable $th) {
+                $response->getBody()->write(json_encode([
+                    "message" => $th->getMessage(),
+                    "status" => "ERROR"
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+            
+        }
+
+        if ($burn_chat) {
+            try {
+                $status_burnchat = $vodclass->burnChat($burn_horizontal, $burn_vertical, $ffmpeg_preset, $ffmpeg_crf, $vod_source == "downloaded", true);
+            } catch (\Throwable $th) {
+                $response->getBody()->write(json_encode([
+                    "message" => $th->getMessage(),
+                    "status" => "ERROR"
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+            
+        }
+
+        $response->getBody()->write(json_encode([
+            "data" => [
+                "status_renderchat" => $status_renderchat,
+                "status_burnchat" => $status_burnchat,
+            ],
+            "status" => "OK"
+        ]));
+        return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
+
     }
 }

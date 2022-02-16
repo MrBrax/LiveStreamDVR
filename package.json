@@ -1,6 +1,6 @@
 {
   "name": "twitchautomator",
-  "version": "6.0.5",
+  "version": "6.1.0",
   "description": "Twitch VOD automator fluff",
   "scripts": {
     "serve:server": "php -S localhost:8080 -t public",

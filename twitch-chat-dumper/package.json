@@ -1,0 +1,12 @@
+{
+  "type": "module",
+  "name": "twitch-chat-dumper",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "dank-twitch-irc": "^4.3.0",
+    "date-fns": "^2.25.0",
+    "minimist": "^1.2.5"
+  }
+}

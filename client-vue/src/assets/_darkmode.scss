@@ -65,6 +65,15 @@
     }
 
     .game-list {
+        tr.favourite {
+            background-color: #278242;
+            td {
+                background-color: #278242;
+            }
+            .grey {
+                color: #b0b0b0;
+            }
+        }
         td:nth-child(4) {
             color: #aaa;
         }
@@ -83,7 +92,7 @@
     }
 
     #js-status,
-    .jobs_list {
+    #jobs-status {
         color: #eee;
         background-color: #333;
         border-color: #111;
@@ -102,6 +111,9 @@
             border-color: #777;
             background-color: #353535;
         }
+        &[type=range] {
+            background-color: #444;
+        }
     }
 
     .card {
@@ -109,4 +121,39 @@
             background-color: #3e3e3e;
         }
     }
+
+    .log_viewer {
+        color: #888;
+        &.log-line-success {
+            color: #5bd250;
+        }
+        &.log-line-fatal {
+            color: #ff0000;
+        }
+        &.log-line-warning {
+            color: #ff7300;
+        }
+        &.log-line-error {
+            color: #db4d4d;
+        }
+        &.log-line-debug {
+            color: #9c9c9c;
+        }
+    }
+
+    .modal-box {
+        .modal-box__container {
+            background-color: #444;
+        }
+    }
+
+    .field-group {
+        background-color: #525252;
+    }
+
+    .input-help {
+        color: #bbb;
+    }
+    
+
 }

@@ -1,6 +1,6 @@
 {
   "name": "twitchautomator-client",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -19,11 +19,11 @@
     "core-js": "^3.19.2",
     "date-fns": "^2.27.0",
     "normalize.css": "^8.0.1",
+    "pinia": "^2.0.11",
     "register-service-worker": "^1.7.1",
-    "vue": "^3.0.5",
+    "vue": "^3.2.13",
     "vue-axios": "^3.4.0",
-    "vue-router": "4.0.3",
-    "vuex": "4.0.0-rc.2"
+    "vue-router": "4.0.3"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.4.0",
@@ -33,18 +33,17 @@
     "@vue/cli-plugin-pwa": "~5.0.0-rc.1",
     "@vue/cli-plugin-router": "~5.0.0-rc.1",
     "@vue/cli-plugin-typescript": "~5.0.0-rc.1",
-    "@vue/cli-plugin-vuex": "~5.0.0-rc.1",
     "@vue/cli-service": "~5.0.0-rc.1",
-    "@vue/compiler-sfc": "^3.2.23",
     "@vue/eslint-config-prettier": "^6.0.0",
     "@vue/eslint-config-typescript": "^9.1.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-vue": "^8.0.3",
+    "git-describe": "^4.1.0",
     "prettier": "^2.5.0",
-    "sass": "^1.44.0",
-    "sass-loader": "^10.1.1",
-    "typescript": "~4.5.2"
+    "sass": "^1.32.7",
+    "sass-loader": "^12.0.0",
+    "typescript": "~4.1.5"
   }
 }

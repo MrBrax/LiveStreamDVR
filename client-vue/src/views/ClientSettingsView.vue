@@ -21,6 +21,15 @@
                 <div class="control">
                     <label class="checkbox"><input type="checkbox" v-model="updateConfig.useRelativeTime" /> Use relative time</label>
                 </div>
+                <div class="control">
+                    <label class="checkbox"><input type="checkbox" v-model="updateConfig.useWebsockets" /> Use websockets</label>
+                </div>
+                <div class="control">
+                    <label class="checkbox"><input type="checkbox" v-model="updateConfig.useBackgroundRefresh" /> Background capturing vod refresh</label>
+                </div>
+                <div class="control">
+                    <label class="checkbox"><input type="checkbox" v-model="updateConfig.useBackgroundTicker" /> Background ticker</label>
+                </div>
                 <!--
                 <div class="control">
                     <label class="checkbox"><input type="checkbox" v-model="updateConfig.showAdvancedInfo" /> Show advanced info</label>
@@ -36,21 +45,17 @@
 </template>
 
 <script lang="ts">
+import { useStore } from "@/store";
 import { defineComponent } from "vue";
-
-const defaultConfig = {
-    useSpeech: false,
-    singlePage: false,
-    enableNotifications: false,
-    animationsEnabled: true,
-    tooltipStatic: false,
-    useRelativeTime: false,
-    showAdvancedInfo: false,
-};
+import { defaultConfig } from "@/defs";
 
 export default defineComponent({
     name: "ClientSettingsView",
     title: "Client settings",
+    setup() {
+        const store = useStore();
+        return { store };
+    },
     data() {
         return {
             currentConfig: Object.assign({}, defaultConfig),
@@ -71,7 +76,7 @@ export default defineComponent({
             if (this.currentConfig.enableNotifications !== this.updateConfig.enableNotifications && this.updateConfig.enableNotifications) {
                 this.requestNotifications();
             }
-            this.$store.commit("updateClientConfig", this.updateConfig);
+            this.store.updateClientConfig(this.updateConfig);
         },
         requestNotifications() {
             if (!("Notification" in window)) {

@@ -35,7 +35,7 @@
                                 <td>{{ aboutData.bins.streamlink.update }}</td>
                             </tr>
                             <tr>
-                                <td>youtube-dl ({{ $store.state.config.youtube_dl_alternative }})</td>
+                                <td>yt-dlp</td>
                                 <td>{{ aboutData.bins.youtubedl.path }}</td>
                                 <td>{{ aboutData.bins.youtubedl.status }}</td>
                                 <td>{{ aboutData.bins.youtubedl.update }}</td>
@@ -70,15 +70,18 @@
                             <li><strong>PHP UID:</strong> {{ aboutData.bins.php.uid }}</li>
                             <li><strong>PHP GID:</strong> {{ aboutData.bins.php.gid }}</li>
                             <li><strong>PHP SAPI:</strong> {{ aboutData.bins.php.sapi }}</li>
+                            <li><strong>PHP Display errors:</strong> {{ aboutData.bins.php.display_errors }}</li>
+                            <li><strong>PHP Error reporting:</strong> {{ aboutData.bins.php.error_reporting }}</li>
                             <li>
                                 <strong>Platform:</strong> {{ aboutData.bins.php.platform ? aboutData.bins.php.platform : "unknown" }}/{{
                                     aboutData.bins.php.platform_family ? aboutData.bins.php.platform_family : "unknown"
                                 }}
                             </li>
                             <li><strong>Docker:</strong> {{ aboutData.is_docker ? "Yes" : "No" }}</li>
-                            <li><strong>Backend version:</strong> {{ $store.state.version }}</li>
+                            <li><strong>Backend version:</strong> {{ store.version }}</li>
                             <li><strong>Frontend version:</strong> {{ clientVersion }}</li>
                             <li><strong>Frontend build:</strong> {{ clientMode }}</li>
+                            <li><strong>Frontend verbose:</strong> {{ verboseClientVersion }}</li>
                             <!--<li v-if="envs && envs.NODE"><strong>Node:</strong> {{ envs.npm_config_node_version }}{% endif %}</li>-->
                         </ul>
                     </div>
@@ -113,15 +116,19 @@
 
                     <div class="block">
                         <h3>Subscriptions</h3>
-                        <button class="button is-confirm is-small" @click="fetchSubscriptions">Fetch</button>
-                        (only click buttons once)
+                        <button class="button is-confirm is-small" @click="fetchSubscriptions" :disabled="subscriptionsLoading">Fetch</button>
+                        <button class="button is-confirm is-small" @click="subscribeAll" :disabled="subscriptionsLoading">Subscribe</button>
+                        <span v-if="subscriptionsLoading">Loading...</span>
                         <table>
                             <tr v-for="subscription in subscriptions" :key="subscription.id">
                                 <td>{{ subscription.id }}</td>
+                                <td>{{ subscription.created_at }}</td>
                                 <td>{{ subscription.username }}</td>
                                 <td>{{ subscription.type }}</td>
                                 <td>
-                                    <button class="button is-confirm is-small" @click="unsubscribe(subscription.id)">Unsubscribe</button>
+                                    <button class="button is-confirm is-small" @click="unsubscribe(subscription.id)" :disabled="subscriptionsLoading">
+                                        Unsubscribe
+                                    </button>
                                 </td>
                             </tr>
                         </table>
@@ -130,7 +137,7 @@
                     <!-- pip update -->
                     <div class="block" v-if="!aboutData.is_docker">
                         <h3>Pip update</h3>
-                        <code>pip install --user --upgrade youtube-dl streamlink tcd pipenv</code>
+                        <code>pip install --user --upgrade yt-dlp streamlink tcd pipenv</code>
                         <br />You might want to install without the --user switch depending on environment.
                     </div>
                     <div class="block">
@@ -153,6 +160,7 @@
 </template>
 
 <script lang="ts">
+import { useStore } from "@/store";
 import { ApiSubscription } from "@/twitchautomator";
 import { defineComponent } from "vue";
 
@@ -169,6 +177,8 @@ interface SoftwareCallback {
     sapi: string;
     platform?: string;
     platform_family?: string;
+    display_errors?: string;
+    error_reporting?: string;
 }
 
 interface AboutData {
@@ -186,21 +196,32 @@ interface AboutData {
         php: SoftwareCallback;
         node: SoftwareCallback;
     };
-    cron_lastrun: any;
+    cron_lastrun: {
+        check_deleted_vods: string;
+        check_muted_vods: string;
+        dump_playlists: string;
+        sub: string;
+    };
 }
 
 export default defineComponent({
     name: "AboutView",
     title: "About",
+    setup() {
+        const store = useStore();
+        return { store };
+    },
     data(): {
         aboutData: AboutData | null;
         // envs: any;
         subscriptions: ApiSubscription[];
+        subscriptionsLoading: boolean;
     } {
         return {
             aboutData: null,
             // envs: {},
             subscriptions: [],
+            subscriptionsLoading: false,
         };
     },
     created() {
@@ -212,6 +233,9 @@ export default defineComponent({
         },
         clientMode() {
             return process.env.NODE_ENV; // injected
+        },
+        verboseClientVersion() {
+            return `${process.env.VUE_APP_VERSION} (${process.env.VUE_APP_BUILDDATE} / ${process.env.VUE_APP_GIT_HASH})`; // injected
         },
     },
     methods: {
@@ -254,23 +278,43 @@ export default defineComponent({
                 });
         },
         fetchSubscriptions() {
+            this.subscriptionsLoading = true;
             this.$http
-                .get(`/api/v0/subscriptions/list`)
+                .get(`/api/v0/subscriptions`)
                 .then((response) => {
                     const json = response.data;
                     console.log("subscriptions", json);
                     this.subscriptions = json.data.channels as ApiSubscription[];
+                    this.subscriptionsLoading = false;
+                    // TODO: handle when there are 0 subscriptions
                 })
                 .catch((err) => {
                     console.error("fetchSubscriptions error", err.response);
+                    this.subscriptionsLoading = false;
                 });
         },
         unsubscribe(id: string) {
+            this.subscriptionsLoading = true;
             this.$http
-                .get(`/api/v0/subscriptions/unsub?id=${id}`)
+                .delete(`/api/v0/subscriptions/${id}`)
                 .then((response) => {
                     const json = response.data;
                     console.debug("unsubscribe", json);
+                    this.subscriptionsLoading = false;
+                    this.fetchSubscriptions();
+                })
+                .catch((err) => {
+                    console.error("about error", err.response);
+                });
+        },
+        subscribeAll() {
+            this.subscriptionsLoading = true;
+            this.$http
+                .post(`/api/v0/subscriptions`)
+                .then((response) => {
+                    const json = response.data;
+                    console.debug("subscribeAll", json);
+                    this.subscriptionsLoading = false;
                     this.fetchSubscriptions();
                 })
                 .catch((err) => {

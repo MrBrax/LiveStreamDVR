@@ -39,6 +39,7 @@
                 Do not capture video
             </label>
         </div>
+        <p><em>Live channels will not be recorded until they are live the next time.</em></p>
         <div class="field">
             <div class="control">
                 <button class="button is-confirm" type="submit">
@@ -74,11 +75,14 @@ export default defineComponent({
             this.formStatusText = "Loading...";
             this.formStatus = "";
 
-            console.log("form", form);
-            console.log("entries", inputs, inputs.entries(), inputs.values());
+            // console.log("form", form);
+            // console.log("entries", inputs, inputs.entries(), inputs.values());
+
+            let data: Record<string, unknown> = {};
+            inputs.forEach((value, key) => (data[key] = value));
 
             this.$http
-                .post(`/api/v0/channels/add`, inputs)
+                .post(`/api/v0/channels`, data)
                 .then((response) => {
                     const json = response.data;
                     this.formStatusText = json.message;
@@ -89,26 +93,14 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
-                    this.formStatusText = err.response.data;
-                    this.formStatus = "ERROR";
+                    if (err.response.data.status == "ERROR") {
+                        this.formStatusText = err.response.data.message;
+                        this.formStatus = err.response.data.status;
+                    } else {
+                        this.formStatusText = err.response.data;
+                        this.formStatus = "ERROR";
+                    }
                 });
-
-            /*
-            fetch(`api/v0/channels/add`, {
-                method: 'POST',
-                body: inputs
-            })
-            .then((response) => response.json())
-            .then((json) => {
-                this.formStatusText = json.message;
-                this.formStatus = json.status;
-                if(json.status == 'OK'){
-                    this.$emit('formSuccess', json);
-                }
-            }).catch((test) => {
-                console.error("Error", test);
-            });
-            */
 
             event.preventDefault();
             return false;

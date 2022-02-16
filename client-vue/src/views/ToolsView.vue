@@ -89,7 +89,7 @@ export default defineComponent({
             // this.settingsData = [];
             // this.settingsFields = [] as any;
             this.$http
-                .get(`api/v0/jobs/list`)
+                .get(`api/v0/jobs`)
                 .then((response) => {
                     const json = response.data;
                     this.jobsData = json.data;
@@ -102,7 +102,7 @@ export default defineComponent({
             if (!confirm(`Kill job "${name}?"`)) return;
 
             this.$http
-                .post(`/api/v0/jobs/kill/${name}`)
+                .delete(`/api/v0/jobs/${name}`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);
@@ -111,20 +111,6 @@ export default defineComponent({
                 .catch((err) => {
                     console.error("tools jobs fetch error", err.response);
                 });
-
-            /*
-            fetch(`/api/v0/jobs/kill/${name}`, {
-                // method: 'POST',
-            })
-            .then((response) => response.json())
-            .then((json) => {
-                setTimeout(() => {
-                    this.fetchData();
-                }, 2000);
-            }).catch((test) => {
-                console.error("Error", test);
-            });
-            */
         },
     },
     components: {

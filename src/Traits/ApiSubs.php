@@ -16,7 +16,7 @@ use Symfony\Component\Process\Process;
 trait ApiSubs
 {
 
-    public function subscriptions_sub(Request $request, Response $response, $args)
+    public function subscriptions_suball(Request $request, Response $response, $args)
     {
 
         $channels = TwitchConfig::getChannels();
@@ -55,6 +55,16 @@ trait ApiSubs
             "status" => "OK"
         ]));
         return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    public function subscriptions_sub(Request $request, Response $response, $args)
+    {
+        // TODO: Implement this
+        $id = $args['id'];
+        $response->getBody()->write(json_encode([
+            "message" => "Not implemented. Use 'POST /subscriptions' for all channels.",
+        ]));
+        return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
     }
 
     public function subscriptions_list(Request $request, Response $response, $args)
@@ -113,6 +123,7 @@ trait ApiSubs
                 $entry['callback']          = $data['transport']['callback'];
                 $entry['instance_match']    = $data['transport']['callback'] == TwitchConfig::cfg('app_url') . '/hook' . (TwitchConfig::cfg('instance_id') ? '?instance=' . TwitchConfig::cfg('instance_id') : '');
                 $entry['status']            = $data['status'];
+                $entry['created_at']        = $data['created_at'];
                 // $entry['expires_at']        = $data['expires_at'];
 
                 $payload_data['channels'][] = $entry;
@@ -156,9 +167,16 @@ trait ApiSubs
         }
         */
 
-        $id = $_GET['id'];
+        // $id = $_GET['id'];
+        $id = $args['id'];
 
-        TwitchHelper::eventSubUnsubscribe($id);
+        if(!TwitchHelper::eventSubUnsubscribe($id)){
+            $response->getBody()->write(json_encode([
+                "message" => "Could not unsubscribe from ${id}.",
+                "status" => "ERROR"
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
 
         $response->getBody()->write(json_encode([
             "message" => "Unsubscribed from ${id}.",

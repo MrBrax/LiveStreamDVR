@@ -35,7 +35,8 @@ trait ApiFavourites
     public function favourites_save(Request $request, Response $response, array $args)
     {
 
-        $games = isset($_POST['games']) ? $_POST['games'] : null;
+        $formdata = $request->getParsedBody();
+        $games = isset($formdata['games']) ? $formdata['games'] : null;
 
         $data = [];
         if($games){

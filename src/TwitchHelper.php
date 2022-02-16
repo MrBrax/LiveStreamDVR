@@ -105,12 +105,10 @@ class TwitchHelper
 	public static function setupDirectories()
 	{
 		foreach (self::$required_directories as $dir) {
-			// self::log(self::LOG_DEBUG, "Checking directory " . $dir);
 			if (!file_exists($dir)) {
 				if (!mkdir($dir)) {
 					throw new \Exception("Couldn't make directory: {$dir}");
 				}
-				// self::log(self::LOG_INFO, "Made directory " . $dir);
 			}
 		}
 	}
@@ -192,7 +190,7 @@ class TwitchHelper
 	/**
 	 * Log a string to the current log file
 	 *
-	 * @param const $level
+	 * @param string $level
 	 * @param string $text
 	 * @param array $metadata
 	 * @deprecated 3.5.0 use logAdvanced instead
@@ -200,65 +198,6 @@ class TwitchHelper
 	 */
 	public static function log(string $level, string $text, array $metadata = null)
 	{
-
-		/*
-		if (!TwitchConfig::cfg("debug") && $level == self::LOG_DEBUG) return;
-
-		if (!file_exists(TwitchHelper::$logs_folder)) {
-			return false;
-		}
-
-		$filename 		= TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log";
-		$filename_json 	= TwitchHelper::$logs_folder . DIRECTORY_SEPARATOR . date("Y-m-d") . ".log.json";
-
-		$log_text = file_exists($filename) ? file_get_contents($filename) : '';
-		$log_json = file_exists($filename_json) ? json_decode(file_get_contents($filename_json), true) : [];
-
-		/** @todo: this still isn't working properly **
-		if ($level . $text === self::$last_log_line && $log_json) {
-			$last = count($log_json) - 1;
-			if (isset($log_json[$last])) {
-				if (!isset($log_json[$last]['count'])) {
-					$log_json[$last]['count'] = 0;
-				}
-				$log_json[$last]['count'] += 1;
-				// file_put_contents($filename_json, json_encode($log_json));
-				// return;
-			}
-		}
-
-
-		$date = new \DateTime();
-		$text_line = $date->format("Y-m-d H:i:s.v") . " | <{$level}> {$text}";
-		$log_text .= "\n{$text_line}";
-
-		$log_data = [
-			"date" => (string)microtime(true),
-			"level" => $level,
-			"text" => $text
-		];
-
-		if (isset($metadata)) $log_data['metadata'] = $metadata;
-
-		/* // too buggy
-		if( TwitchConfig::cfg("debug") ){
-			$log_data['source'] = debug_backtrace()[1]; // 1 or 0?
-		}
-		*
-
-		if ($level == self::LOG_FATAL) {
-			error_log($text, 0);
-		}
-
-		$log_json[] = $log_data;
-
-		file_put_contents($filename, $log_text);
-
-		file_put_contents($filename_json, json_encode($log_json));
-
-		self::$last_log_line = $level . $text;
-		*/
-
 		$dbg = debug_backtrace()[0];
 
 		$filename = basename($dbg['file']);
@@ -269,7 +208,7 @@ class TwitchHelper
 	/**
 	 * Log a string to the current log file
 	 *
-	 * @param const $level
+	 * @param string $level
 	 * @param string $text
 	 * @param array $metadata
 	 * @return void
@@ -359,9 +298,6 @@ class TwitchHelper
 			fclose($fp);
 		}
 
-		// array_push($log_json, $log_data);
-
-		// file_put_contents($filename, $log_text);
 		$fp = fopen($filename, 'a');
 		fwrite($fp, $text_line . "\n");
 		fclose($fp);
@@ -369,8 +305,6 @@ class TwitchHelper
 		$fp = fopen($filename_jsonline, 'a');
 		fwrite($fp, json_encode($log_data) . "\n");
 		fclose($fp);
-
-		// file_put_contents($filename_json, json_encode($log_json), LOCK_EX);
 
 		self::$last_log_line = $level . $text;
 	}
@@ -393,186 +327,7 @@ class TwitchHelper
 		fwrite($fp, ($newline ? "\n" : "") . trim($text));
 		fclose($fp);
 
-		// $filetext = file_exists($filepath) ? file_get_contents($filepath) . ($newline ? "\n" : "") : "";
-		// $filetext .= trim($text);
-		// file_put_contents($filepath, $filetext);
 	}
-
-	/*
-	/**
-	 * Get Twitch channel ID from username
-	 *
-	 * @param string $username
-	 * @return string|bool Channel ID
-	 *
-	public static function getChannelId(string $username)
-	{
-		$json_streamers = file_exists(TwitchConfig::$streamerDbPath) ? json_decode(file_get_contents(TwitchConfig::$streamerDbPath), true) : [];
-
-		if ($json_streamers) {
-			foreach ($json_streamers as $user_id => $data) {
-				if ($data['display_name'] == $username && is_numeric($user_id) && $user_id) {
-					return (string)$user_id;
-				}
-			}
-		}
-
-		$access_token = self::getAccessToken();
-
-		if (!$access_token) {
-			throw new \Exception('Fatal error, could not get access token for channel id request');
-			return false;
-		}
-
-		$query = [];
-		$query['login'] = $username;
-
-		try {
-			$response = self::$guzzler->request('GET', '/helix/users', [
-				'query' => $query
-			]);
-		} catch (\Throwable $th) {
-			self::logAdvanced(self::LOG_FATAL, "helper", "getChannelId for {$username} errored: " . $th->getMessage());
-			return false;
-		}
-
-		$server_output = $response->getBody()->getContents();
-		$json = json_decode($server_output, true);
-
-		if (!$json["data"]) {
-			self::logAdvanced(self::LOG_ERROR, "helper", "Failed to fetch channel id for {$username}: {$server_output}");
-			return false;
-		}
-
-		$data = $json["data"][0];
-
-		$data['_updated'] = time();
-
-		$json_streamers[(string)$data['id']] = $data;
-		file_put_contents(TwitchConfig::$streamerDbPath, json_encode($json_streamers));
-
-		self::logAdvanced(self::LOG_INFO, "helper", "Fetched channel id online for {$user_id}");
-
-		return (string)$data['id'];
-	}
-
-	/**
-	 * Get Twitch channel username from ID
-	 *
-	 * @param string $id
-	 * @return string|false Username
-	 *
-	public static function getChannelUsername(string $user_id)
-	{
-		$data = self::getChannelData($user_id);
-		if (!$data) return false;
-		return $data["display_name"];
-	}
-
-	/**
-	 * Get Twitch channel login from ID
-	 *
-	 * @param string $id
-	 * @return string|false Login
-	 *
-	public static function getChannelLogin(string $user_id)
-	{
-		$data = self::getChannelData($user_id);
-		if (!$data) return false;
-		return $data["login"];
-	}
-
-	/**
-	 * Get Twitch channel data from id
-	 *
-	 * @param string $user_id
-	 * @return array
-	 *
-	public static function getChannelData(string $user_id)
-	{
-
-		if (!is_numeric($user_id)) {
-			throw new \Exception("Non-numeric passed to getChannelData ({$user_id})");
-			return false;
-		}
-
-		if (file_exists(TwitchConfig::$streamerDbPath)) {
-
-			$json_streamers = json_decode(file_get_contents(TwitchConfig::$streamerDbPath), true);
-
-			if ($json_streamers && isset($json_streamers[$user_id])) {
-				self::logAdvanced(self::LOG_DEBUG, "helper", "Fetched channel data from cache for {$user_id} ({$json_streamers[$user_id]['display_name']})");
-				if (!isset($json_streamers[$user_id]['_updated']) || time() > $json_streamers[$user_id]['_updated'] + 2592000) {
-					self::logAdvanced(self::LOG_INFO, "helper", "Channel data in cache for {$user_id} is too old, proceed to updating!");
-				} else {
-					return $json_streamers[$user_id];
-				}
-			}
-		} else {
-			$json_streamers = [];
-		}
-
-		$access_token = self::getAccessToken();
-
-		if (!$access_token) {
-			throw new \Exception('Fatal error, could not get access token for channel id request');
-			return false;
-		}
-
-		$query = [];
-		$query['id'] = $user_id;
-
-		try {
-			$response = self::$guzzler->request('GET', '/helix/users', [
-				'query' => $query
-			]);
-		} catch (\Throwable $th) {
-			self::logAdvanced(self::LOG_FATAL, "helper", "getChannelData for {$user_id} errored: " . $th->getMessage());
-			return false;
-		}
-
-		$server_output = $response->getBody()->getContents();
-		$json = json_decode($server_output, true);
-
-		if (!$json["data"]) {
-			self::logAdvanced(self::LOG_ERROR, "helper", "Failed to fetch channel data for {$user_id}: {$server_output}");
-			return false;
-		}
-
-		$data = $json["data"][0];
-
-		$data["_updated"] = time();
-
-		if (isset($data["profile_image_url"]) && $data["profile_image_url"]) {
-			$client = new \GuzzleHttp\Client;
-			$avatar_ext = pathinfo($data["profile_image_url"], PATHINFO_EXTENSION);
-			$avatar_output = self::$cache_folder . DIRECTORY_SEPARATOR . "channel" . DIRECTORY_SEPARATOR . "avatar" . DIRECTORY_SEPARATOR . $data["display_name"] . "." . $avatar_ext;
-			$avatar_final = self::$cache_folder . DIRECTORY_SEPARATOR . "channel" . DIRECTORY_SEPARATOR . "avatar" . DIRECTORY_SEPARATOR . $data["display_name"] . ".webp";
-			try {
-				$response = $client->request("GET", $data["profile_image_url"], [
-					"query" => $query,
-					"sink" => $avatar_output
-				]);
-			} catch (\Throwable $th) {
-				self::logAdvanced(self::LOG_ERROR, "helper", "Avatar fetching for {$user_id} errored: " . $th->getMessage());
-			}
-			if (file_exists($avatar_output)) {
-				$data["cache_avatar"] = $data["display_name"] . "." . $avatar_ext;
-				if (self::path_ffmpeg()) {
-					self::exec([self::path_ffmpeg(), "-i", $avatar_output, "-y", $avatar_final]);
-					$data["cache_avatar"] = $data["display_name"] . ".webp";
-				}
-			}
-		}
-
-		$json_streamers[$user_id] = $data;
-		file_put_contents(TwitchConfig::$streamerDbPath, json_encode($json_streamers));
-
-		self::logAdvanced(self::LOG_INFO, "helper", "Fetched channel data online for {$user_id}");
-
-		return $data;
-	}
-	*/
 
 	/**
 	 * Return videos for a streamer id
@@ -585,7 +340,7 @@ class TwitchHelper
 
 		if (!$streamer_id) {
 			self::logAdvanced(self::LOG_ERROR, "helper", "No streamer id supplied for videos fetching");
-			throw new \Exception("No streamer id supplied for videos fetching");
+			throw new \ValueError("No streamer id supplied for videos fetching");
 			return false;
 		}
 
@@ -622,7 +377,7 @@ class TwitchHelper
 
 		if (!$video_id) {
 			self::logAdvanced(self::LOG_ERROR, "helper", "No video id supplied for videos fetching");
-			throw new \Exception("No video id supplied for videos fetching");
+			throw new \ValueError("No video id supplied for videos fetching");
 			return false;
 		}
 
@@ -649,12 +404,34 @@ class TwitchHelper
 	}
 
 	/**
-	 * Return videos for a streamer id
+	 * Return streams for a streamer id
+	 * 
+	 * "data": [
+	 *		{
+	 *		"id": "1234",
+	 *		"user_id": "5678",
+	 *		"user_login": "asdf",
+	 *		"user_name": "asdf",
+	 *		"game_id": "494131",
+	 *		"game_name": "Little Nightmares",
+	 *		"type": "live",
+	 *		"title": "hablamos y le damos a Little Nightmares 1",
+	 *		"viewer_count": 78365,
+	 *		"started_at": "2021-03-10T15:04:21Z",
+	 *		"language": "es",
+	 *		"thumbnail_url": "https://example.com/thumbnail.jpg",
+	 *		"tag_ids": [
+	 *			"d4bb9c58-2141-4881-bcdc-3fe0505457d1"
+	 *		],
+	 *		"is_mature": false
+	 *		},
+	 *		...
+	 *	],
 	 *
-	 * @param int $streamer_id
+	 * @param string $streamer_id
 	 * @return array|false
 	 */
-	public static function getStreams(int $streamer_id)
+	public static function getStreams(string $streamer_id)
 	{
 
 		$response = self::$guzzler->request('GET', '/helix/streams', [
@@ -919,7 +696,7 @@ class TwitchHelper
 
 	private static $channel_subscription_types = ['stream.online', 'stream.offline', 'channel.update'];
 
-	public static function channelSubscribe($streamer_id)
+	public static function channelSubscribe(string $streamer_id)
 	{
 
 		$streamer_login = TwitchChannel::channelLoginFromId($streamer_id);
@@ -1008,7 +785,7 @@ class TwitchHelper
 		return true;
 	}
 
-	public static function channelUnsubscribe($streamer_id)
+	public static function channelUnsubscribe(string $streamer_id)
 	{
 
 		self::logAdvanced(self::LOG_INFO, "helper", "Unsubscribing to {$streamer_id}");
@@ -1108,149 +885,6 @@ class TwitchHelper
 		return false;
 	}
 
-	/*
-	/**
-	 * Subscribe to a streamer
-	 *
-	 * @param string $streamer_name
-	 * @return string|bool
-	 *
-	public static function sub(string $streamer_name)
-	{
-		return self::sub_handler($streamer_name, 'subscribe');
-	}
-
-	/**
-	 * Unsubscribe to a streamer
-	 *
-	 * @param string $streamer_name
-	 * @return string|bool
-	 *
-	public static function unsub(string $streamer_name)
-	{
-		return self::sub_handler($streamer_name, 'unsubscribe');
-	}
-
-	private static function sub_handler(string $streamer_name, $mode = 'subscribe')
-	{
-
-		self::logAdvanced(self::LOG_INFO, "helper", "Calling {$mode} for {$streamer_name}");
-
-		if (!TwitchConfig::cfg('app_url')) {
-			throw new \Exception('Neither app_url or hook_callback is set in config');
-			return false;
-		}
-
-		$streamer_id = self::getChannelId($streamer_name);
-
-		if (!$streamer_id) {
-			self::logAdvanced(self::LOG_ERROR, "helper", "Streamer ID not found for: {$streamer_name}");
-			// throw new \Exception('Streamer ID not found for: ' . $streamer_name);
-			return false;
-		}
-
-		// $url = 'https://api.twitch.tv/helix/webhooks/hub';
-		// $method = 'POST';
-
-		$hook_callback = TwitchConfig::cfg('app_url') . '/api/v0/hook';
-
-		if (TwitchConfig::cfg('instance_id')) {
-			$hook_callback .= '?instance=' . TwitchConfig::cfg('instance_id');
-		}
-
-		// $to_sub = ['stream.online', 'stream.offline', 'channel.update'];
-
-		$data = [
-			"type" => "stream.online",
-			"version" => "1",
-			"condition" => [
-				"broadcaster_user_id" => $streamer_id
-			],
-			"transport" => [
-				"method" => "webhook",
-				"callback" => $hook_callback,
-				"secret" => TwitchConfig::cfg('eventsub_secret'),
-			]
-		];
-
-		// $data_string = json_encode($data);
-
-		try {
-
-			$response = self::$guzzler->request('POST', '/helix/eventsub/subscriptions', [
-				'json' => $data
-			]);
-
-			// i don't even remember what error this was, shit
-			if ($response->getStatusCode() == 429) {
-				self::logAdvanced(self::LOG_FATAL, "helper", "429 response");
-				sleep(10);
-				// throw new \Exception("429 error");
-				return false;
-			}
-
-		} catch (\GuzzleHttp\Exception\BadResponseException $th) {
-			
-			self::logAdvanced(self::LOG_FATAL, "helper", "Sub return, sleep: " . $th->getMessage());
-
-			$json = json_decode($th->getResponse()->getBody()->getContents(), true);
-			if($json){
-				if($json['message']){
-					return $json['message'];
-				}
-			}
-			
-			sleep(10);
-			return false;
-		}
-
-		$server_output = $response->getBody()->getContents();
-		$http_code = $response->getStatusCode();
-		// $http_headers = $response->getHeaders();
-
-		$json = json_decode($server_output, true);
-
-		// if ($json['status']) $http_code = $json['status'];
-
-		// TwitchHelper::log(TwitchHelper::LOG_INFO, "Sub response code: " . $http_code);
-
-		if ($http_code == 202) {
-
-			/*
-			$hc = self::$cache_folder . DIRECTORY_SEPARATOR . "hubchallenge_{$streamer_id}";
-			file_put_contents($hc, time());
-
-			self::logAdvanced(self::LOG_SUCCESS, "helper", "Sent {$mode} request for {$streamer_name} ({$streamer_id})", ['hub' => $data]);
-
-			$response_timeout = 5;
-			sleep($response_timeout);
-			if (file_exists($hc)) {
-				self::logAdvanced(self::LOG_ERROR, "helper", "Did not receive a {$mode} confirmation for {$streamer_name} ({$streamer_id}) within {$response_timeout} seconds, please check your app_url and if it's reachable from outside.", ['hub' => $data]);
-				unlink($hc);
-				return false;
-			}
-			*
-
-			// $this->notify($server_output, '[' . $streamer_name . '] [subscribing]', self::NOTIFY_GENERIC);
-
-			if( $json['data'][0]['status'] !== "webhook_callback_verification_pending" ){
-				self::logAdvanced(self::LOG_ERROR, "helper", "Failed to send {$mode} request for {$streamer_name} ({$streamer_id}) ({$server_output}, HTTP {$http_code}) - Did not get callback verification.", ['hub' => $data]);
-				return false;
-			}
-
-			return true;
-
-		} else {
-
-			// throw new \Exception("Failed to send {$mode} request for {$streamer_name} ({$streamer_id}): {$server_output}");
-
-			self::logAdvanced(self::LOG_ERROR, "helper", "Failed to send {$mode} request for {$streamer_name} ({$streamer_id}) ({$server_output}, HTTP {$http_code})", ['hub' => $data]);
-
-			return false;
-		}
-	}
-	*/
-
 	/**
 	 * Returns the raw json data of your subscriptions
 	 *
@@ -1275,78 +909,6 @@ class TwitchHelper
 		$json = json_decode($server_output, true);
 
 		return $json;
-	}
-
-	/*
-	public static function unsubAll()
-	{
-
-		$subs = self::getSubs();
-
-		if (!$subs['data']) return false;
-
-		foreach ($subs['data'] as $sub) {
-
-			$data = [
-				'hub.callback' => $sub['callback'],
-				'hub.mode' => 'unsubscribe',
-				'hub.topic' => $sub['topic'],
-				'hub.lease_seconds' => TwitchConfig::cfg('sub_lease')
-			];
-
-			try {
-				$response = self::$guzzler->request('POST', '/helix/webhooks/hub', [
-					'json' => $data
-				]);
-			} catch (\Throwable $th) {
-				self::logAdvanced(self::LOG_FATAL, "helper", "Unsub all fatal error: " . $th->getMessage());
-				return false;
-			}
-
-			$server_output = $response->getBody()->getContents();
-			$http_code = $response->getStatusCode();
-		}
-
-		return true;
-	}
-	*/
-
-	/**
-	 * Get pidfile by name, int if running, false if not
-	 *
-	 * @param string $name
-	 * @return int|false
-	 * @deprecated 3.5.0
-	 */
-	public static function getPidfileStatus(string $name)
-	{
-		/*
-		$pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . '.pid';
-
-		if (!file_exists($pidfile)) {
-			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, file does not exist (" . $name . ".pid)");
-			return false;
-		}
-
-		$pid = file_get_contents($pidfile);
-
-		if (!$pid) {
-			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, file does not contain any data (" . $name . ".pid)");
-			return false;
-		}
-
-		$output = TwitchHelper::exec(["ps", "-p", $pid]);
-
-		if (mb_strpos($output, $pid) !== false) {
-			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, process is running");
-			return $pid;
-		} else {
-			TwitchHelper::log(TwitchHelper::LOG_DEBUG, "PID file check, process does not exist");
-			return false;
-		}
-		*/
-		$data = self::getPidfileStatus($name);
-		return $data['status'] ? $data['pid'] : false;
 	}
 
 	public static function findJob(string $search)
@@ -1441,7 +1003,8 @@ TwitchHelper::$guzzler = new \GuzzleHttp\Client([
 		'Client-ID' => TwitchConfig::cfg('api_client_id'),
 		'Content-Type' => 'application/json',
 		'Authorization' => 'Bearer ' . TwitchHelper::getAccessToken(),
-	]
+	],
+	"verify" => TwitchConfig::cfg('ca_path') ?: true,
 ]);
 
 TwitchHelper::setupDirectories();

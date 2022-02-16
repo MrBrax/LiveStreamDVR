@@ -62,9 +62,9 @@ class TwitchAutomator
 	private $payload_eventsub = [];
 	private $payload_headers = [];
 
-	private $broadcaster_user_id = "";
-	private $broadcaster_user_login = "";
-	private $broadcaster_user_name  = "";
+	private string $broadcaster_user_id = "";
+	private string $broadcaster_user_login = "";
+	private string $broadcaster_user_name  = "";
 
 	const NOTIFY_GENERIC = 1;
 	const NOTIFY_DOWNLOAD = 2;
@@ -102,6 +102,11 @@ class TwitchAutomator
 	public function streamURL()
 	{
 		return 'twitch.tv/' . $this->broadcaster_user_login;
+	}
+
+	public function getInstance()
+	{
+		return isset($_GET['instance']) ? $_GET['instance'] : null;
 	}
 
 	public function getDateTime()
@@ -236,25 +241,6 @@ class TwitchAutomator
 
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "automator", "Handle called, proceed to parsing.");
 
-		// $headers = apache_request_headers();
-
-		/*
-		if (!$data['data']) {
-			$link = $headers['Link'];
-			preg_match("/user_id=([0-9]+)>/", $link, $link_match);
-			$userid = (string)$link_match[1];
-			$username = TwitchHelper::getChannelUsername($userid);
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No data supplied for handle (probably stream end, {$username}?)", ['get' => $_GET, 'post' => $_POST, 'headers' => $headers, 'data' => $data]);
-			return false;
-		}
-
-		$data_id = $data['data'][0]['id'];
-		// $data_title = $data['data'][0]['title'];
-		// $data_started = $data['data'][0]['started_at'];
-		// $data_game_id = $data['data'][0]['game_id'];
-		$data_username = $data['data'][0]['user_name'];
-		*/
-
 		/* stream.online
 			{
 				"subscription": {
@@ -362,7 +348,7 @@ class TwitchAutomator
 		$this->data_cache = $data;
 
 		$event = $data['event'];
-		$this->broadcaster_user_id = $event['broadcaster_user_id'];
+		$this->broadcaster_user_id = (string)$event['broadcaster_user_id'];
 		$this->broadcaster_user_login = $event['broadcaster_user_login'];
 		$this->broadcaster_user_name = $event['broadcaster_user_name'];
 
@@ -533,6 +519,22 @@ class TwitchAutomator
 				'online'		=> true,
 			];
 
+			// extra metadata with a separate api request
+			if (TwitchConfig::cfg("api_metadata")) {
+				$streams = TwitchHelper::getStreams($this->getUserID());
+				if ($streams && count($streams) > 0) {
+					$stream = $streams[0];
+					if (isset($stream["viewer_count"])) {
+						$chapter['viewer_count'] = $stream['viewer_count'];
+					} else {
+						TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No viewer count in metadata request.", ['event' => $event]);
+					}
+				} else {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "No streams in metadata request.", ['event' => $event]);
+				}
+				//$chapter['viewer_count'];
+			}
+
 			$this->vod->addChapter($chapter);
 			$this->vod->saveJSON('game update');
 
@@ -686,6 +688,7 @@ class TwitchAutomator
 
 		$this->vod->meta = $this->payload_eventsub;
 		$this->vod->json['meta'] = $this->payload_eventsub;
+		$this->vod->capture_id = $this->getVodID();
 		$this->vod->streamer_name = $this->getUsername();
 		$this->vod->streamer_login = $this->getLogin();
 		$this->vod->streamer_id = $this->getUserID();
@@ -732,7 +735,7 @@ class TwitchAutomator
 		$this->vod->saveJSON('is_capturing set');
 
 		// update the game + title if it wasn't updated already
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Update game for {$basename}", ['download' => $data_username, 'instance' => $_GET['instance']]);
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Update game for {$basename}", ['download' => $data_username, 'instance' => $this->getInstance()]);
 		if (TwitchConfig::getCache("{$this->getLogin()}.channeldata")) {
 			$this->updateGame(true);
 			TwitchConfig::setCache("{$this->getLogin()}.channeldata", null);
@@ -881,12 +884,15 @@ class TwitchAutomator
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Auto download chat on {$basename}", ['download' => $data_username]);
 			$vodclass->downloadChat();
 
-			if ($streamer['burn_chat']) {
-				if ($vodclass->renderChat()) {
-					$vodclass->burnChat();
-				}
+			if ($streamer->burn_chat) {
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Automatic chat burning has been disabled until settings have been implemented.");
+				// if ($vodclass->renderChat()) {
+				// 	$vodclass->burnChat();
+				// }
 			}
 		}
+
+		$vodclass->setPermissions();
 
 		// add to history, testing
 		$history = file_exists(TwitchConfig::$historyPath) ? json_decode(file_get_contents(TwitchConfig::$historyPath), true) : [];
@@ -1042,7 +1048,7 @@ class TwitchAutomator
 		$this->vod->dt_capture_started = new \DateTime();
 		$this->vod->saveJSON('dt_capture_started set');
 
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Starting capture with filename " . basename($capture_filename), ['download-capture' => $data_username, 'cmd' => implode(' ', $cmd), ['instance' => $_GET['instance']]]);
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "automator", "Starting capture with filename " . basename($capture_filename), ['download-capture' => $data_username, 'cmd' => implode(' ', $cmd), ['instance' => $this->getInstance()]]);
 
 		// start process in async mode
 		$process = new Process($cmd, dirname($capture_filename), null, null, null);
@@ -1091,7 +1097,7 @@ class TwitchAutomator
 			// $chat_cmd[] = 'python';
 			// $chat_cmd[] = __DIR__ . '/Utilities/twitch-chat.py';
 			$chat_cmd[] = 'node';
-			$chat_cmd[] = __DIR__ . '/Utilities/twitch-chat-dumper/index.js';
+			$chat_cmd[] = __DIR__ . '/../twitch-chat-dumper/index.js';
 
 			$chat_cmd[] = '--channel';
 			$chat_cmd[] = $this->vod->streamer_login;
@@ -1135,8 +1141,6 @@ class TwitchAutomator
 
 			$chat_process->start();
 
-			// $chat_pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'chatdump_' . $data_username . '.pid';
-			// file_put_contents($chat_pidfile, $chat_process->getPid());
 			$chatJob = TwitchAutomatorJob::create("chatdump_{$basename}");
 			$chatJob->setPid($chat_process->getPid());
 			$chatJob->setProcess($chat_process);
@@ -1448,7 +1452,7 @@ class TwitchAutomator
 			if (TwitchConfig::cfg('pipenv_enabled')) {
 				$yt_cmd[] = 'pipenv';
 				$yt_cmd[] = 'run';
-				$yt_cmd[] = 'youtube-dl';
+				$yt_cmd[] = 'yt-dlp';
 			} else {
 				$yt_cmd[] = TwitchHelper::path_youtubedl();
 			}

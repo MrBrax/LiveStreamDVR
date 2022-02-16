@@ -1,1 +1,1 @@
-pip install --user --upgrade streamlink youtube-dl tcd
+pip install --user --upgrade streamlink yt-dlp tcd

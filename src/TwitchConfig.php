@@ -83,8 +83,8 @@ class TwitchConfig
 
 		['key' => 'vod_container', 			'group' => 'Video',		'text' => 'VOD container (not tested)', 					'type' => 'array',		'choices' => ['mp4', 'mkv', 'mov'], 'default' => 'mp4'],
 
-		['key' => 'burn_preset', 			'group' => 'Video',		'text' => 'Burning h264 preset', 							'type' => 'array',		'choices' => ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower', 'veryslow', 'placebo'], 'default' => 'slow'],
-		['key' => 'burn_crf', 				'group' => 'Video',		'text' => 'Burning h264 crf', 								'type' => 'number',		'default' => 26, 'help' => 'Essentially a quality control. Lower is higher quality.'],
+		// ['key' => 'burn_preset', 			'group' => 'Video',		'text' => 'Burning h264 preset', 							'type' => 'array',		'choices' => ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower', 'veryslow', 'placebo'], 'default' => 'slow'],
+		// ['key' => 'burn_crf', 				'group' => 'Video',		'text' => 'Burning h264 crf', 								'type' => 'number',		'default' => 26, 'help' => 'Essentially a quality control. Lower is higher quality.'],
 
 		['key' => 'disable_ads', 			'group' => 'Basic',		'text' => 'Try to remove ads from captured file',			'type' => 'boolean',	'default' => true, 'help' => 'This removes the "Commercial break in progress", but stream is probably going to be cut off anyway'],
 		['key' => 'debug', 					'group' => 'Developer',	'text' => 'Debug', 											'type' => 'boolean',	'default' => false, 'help' => 'Verbose logging, extra file outputs, more information available. Not for general use.'],
@@ -94,7 +94,7 @@ class TwitchConfig
 		['key' => 'relative_time', 			'group' => 'Interface',	'text' => 'Relative time', 									'type' => 'boolean',	'help' => '"1 hour ago" instead of 2020-01-01'],
 		['key' => 'low_latency', 			'group' => 'Advanced',	'text' => 'Low latency (untested)', 						'type' => 'boolean'],
 		// ['key' => 'youtube_dlc', 			'group' => 'Advanced',	'text' => 'Use youtube-dlc instead of the regular one', 	'type' => 'boolean'],
-		['key' => 'youtube_dl_alternative', 'group' => 'Advanced',	'text' => 'The alternative to youtube-dl to use', 			'type' => 'string'],
+		// ['key' => 'youtube_dl_alternative', 'group' => 'Advanced',	'text' => 'The alternative to youtube-dl to use', 			'type' => 'string'],
 		['key' => 'pipenv_enabled', 		'group' => 'Advanced',	'text' => 'Use pipenv', 									'type' => 'boolean',	'default' => false],
 		['key' => 'chat_dump', 				'group' => 'Basic',		'text' => 'Dump chat during capture', 						'type' => 'boolean',	'default' => false, 'help' => "Dump chat from IRC with an external python script. This isn't all that stable."],
 		['key' => 'ts_sync', 				'group' => 'Video',		'text' => 'Try to force sync remuxing (not recommended)', 			'type' => 'boolean',	'default' => false],
@@ -105,25 +105,50 @@ class TwitchConfig
 
 		['key' => 'eventsub_secret', 		'group' => 'Advanced',	'text' => 'EventSub secret', 								'type' => 'string',		'required' => true],
 
+		['key' => 'ca_path', 				'group' => 'Advanced',	'text' => 'Path to certificate PEM file', 					'type' => 'string'],
+
+		['key' => 'api_metadata', 			'group' => 'Basic',		'text' => 'Get extra metadata when updating chapter.', 		'type' => 'boolean', 'help' => 'Makes extra API requests.'],
+
+		['key' => 'error_handler', 			'group' => 'Advanced',	'text' => 'Use app logging to catch PHP errors', 			'type' => 'boolean'],
+
+		['key' => 'file_permissions',		'group' => 'Advanced', 'text' => 'Set file permissions', 	'type' => 'boolean', 'help' => 'Warning, can mess up permissions real bad.'],
+		['key' => 'file_chmod',				'group' => 'Advanced', 'text' => 'File chmod', 				'type' => 'number', 'default' => 775],
+		['key' => 'file_chown_user',		'group' => 'Advanced', 'text' => 'File chown user', 		'type' => 'string', 'default' => 'nobody'],
+		['key' => 'file_chown_group',		'group' => 'Advanced', 'text' => 'File chown group', 		'type' => 'string', 'default' => 'nobody'],
 	];
 
 	public static $timezone;
+
+	public const ERROR_CHANNEL_NOT_FOUND = 100;
 
 	function __constructor()
 	{
 		$this->loadConfig();
 	}
 
+	/**
+	 * Returns the config value for the given key
+	 *
+	 * @param string $var The key to get
+	 * @param any $def The default value to return if the key doesn't exist
+	 * @return mixed The value of the key
+	 */
 	public static function cfg(string $var, $def = null)
 	{
 
+		// make sure the setting exists
 		if (!self::settingExists($var)) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "config", "No such config variable '{$var}'.");
 		}
 
-		if (getenv('TCD_' . strtoupper($var))) return getenv('TCD_' . strtoupper($var)); // environment variable
+		// return from env if set
+		if (getenv('TCD_' . strtoupper($var)) !== false) return getenv('TCD_' . strtoupper($var)); // environment variable
 
-		if (!isset(self::$config[$var])) return $def; // if not defined
+		// if value is not set, return default
+		if (!isset(self::$config[$var])) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "config", "No config for '{$var}', returning default '{$def}'.");
+			return $def;
+		}
 
 		// if (self::$config[$var] == null) return null;
 
@@ -135,7 +160,7 @@ class TwitchConfig
 		}
 		*/
 
-		return self::$config[$var] ?: $def;
+		return self::$config[$var];
 	}
 
 	/**
@@ -168,11 +193,15 @@ class TwitchConfig
 	{
 
 		if (!self::settingExists($key)) {
-			throw new \Exception("Setting does not exist: {$key}");
+			throw new \ValueError("Setting does not exist: {$key}");
+		}
+
+		if ($value === null) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "config", "Setting '{$key}' was set to null.");
 		}
 
 		$field = self::getSettingField($key);
-		if (isset($field['stripslash'])) {
+		if (isset($field['stripslash']) && $value !== null) {
 			$value = rtrim($value, "\\/"); // strip ending slashes
 		}
 
@@ -187,7 +216,7 @@ class TwitchConfig
 	{
 
 		if (!self::settingExists($key)) {
-			throw new \Exception("Setting does not exist: {$key}");
+			throw new \ValueError("Setting does not exist: {$key}");
 		}
 
 		array_push(self::$config[$key], $value);
@@ -274,7 +303,8 @@ class TwitchConfig
 		self::saveConfig();
 	}
 
-	public static function loadChannelsConfig(){
+	public static function loadChannelsConfig()
+	{
 		if (!file_exists(self::$channelPath)) return;
 		self::$channels_config = json_decode(file_get_contents(self::$channelPath), true) ?: [];
 	}
@@ -283,8 +313,20 @@ class TwitchConfig
 	{
 		if (count(self::$channels_config) > 0) {
 			foreach (self::$channels_config as $s) {
-				$ch = TwitchChannel::loadFromLogin($s["login"], true);
-				array_push(self::$channels, $ch);
+				$ch = null;
+				
+				try {
+					$ch = TwitchChannel::loadFromLogin($s["login"], true);
+				} catch (\Throwable $th) {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "config", "Channel {$s['login']} could not be loaded due to an exception, please check logs.");
+					continue;
+				}
+				
+				if ($ch) {
+					array_push(self::$channels, $ch);
+				} else {
+					TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "config", "Channel {$s['login']} could not be loaded, please check logs.");
+				}
 			}
 		}
 	}
@@ -295,8 +337,9 @@ class TwitchConfig
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "config", "Saved channels config");
 	}
 
-	public static function getChannels(){
-		if(count(self::$channels) == 0){
+	public static function getChannels()
+	{
+		if (count(self::$channels) == 0) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "Channels list empty when getting, load from config.");
 			self::loadChannels();
 		}
@@ -316,7 +359,7 @@ class TwitchConfig
 	 * @param string $username
 	 * @return TwitchChannel|false
 	 */
-	public static function getChannelById($channel_id)
+	public static function getChannelById(string $channel_id)
 	{
 		foreach (self::getChannels() as $c) {
 			if ($c->userid == $channel_id) return $c;
@@ -330,7 +373,7 @@ class TwitchConfig
 	 * @param string $login
 	 * @return TwitchChannel
 	 */
-	public static function getChannelByLogin($login)
+	public static function getChannelByLogin(string $login)
 	{
 		foreach (self::getChannels() as $c) {
 			if ($c->login == $login) return $c;
@@ -345,10 +388,10 @@ class TwitchConfig
 	 * @param [type] $username
 	 * @return TwitchChannel|false
 	 */
-	public static function getChannelByUsername($username)
+	public static function getChannelByUsername(string $username)
 	{
 		foreach (self::getChannels() as $c) {
-			if ($c->userid == $username) return $c;
+			if ($c->login == $username) return $c;
 		}
 		return false;
 	}
@@ -388,7 +431,7 @@ try {
 	TwitchConfig::$timezone = new \DateTimeZone(TwitchConfig::cfg('timezone', 'UTC'));
 } catch (\Throwable $th) {
 	TwitchConfig::$timezone = new \DateTimeZone('UTC');
-	TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "config", "Config has invalid timezone set");
+	TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "config", "Config has invalid timezone set: " . TwitchConfig::cfg('timezone', 'UTC'));
 }
 
 if (!TwitchConfig::cfg('bin_dir')) {
@@ -398,4 +441,57 @@ if (!TwitchConfig::cfg('bin_dir')) {
 if (!TwitchConfig::cfg("eventsub_secret")) {
 	TwitchConfig::setConfig("eventsub_secret", bin2hex(random_bytes(16)));
 	TwitchConfig::saveConfig("eventsub_secret not set");
+}
+
+if (TwitchConfig::cfg("error_handler")) {
+	function TAErrorHandler($errno, $errstr, $errfile, $errline)
+	{
+		if (!(error_reporting() & $errno)) {
+			// This error code is not included in error_reporting, so let it fall
+			// through to the standard PHP error handler
+			return false;
+		}
+
+		switch ($errno) {
+			case E_USER_ERROR:
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "PHP", "Fatal error caught in {$errfile}, check log for details", [
+					"errno" => $errno,
+					"errstr" => $errstr,
+					"errfile" => $errfile,
+					"errline" => $errline,
+				]);
+				exit(1);
+
+			case E_USER_WARNING:
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Warning caught in {$errfile}, check log for details", [
+					"errno" => $errno,
+					"errstr" => $errstr,
+					"errfile" => $errfile,
+					"errline" => $errline,
+				]);
+				break;
+
+			case E_USER_NOTICE:
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Notice caught in {$errfile}, check log for details", [
+					"errno" => $errno,
+					"errstr" => $errstr,
+					"errfile" => $errfile,
+					"errline" => $errline,
+				]);
+				break;
+
+			default:
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Unknown error caught in {$errfile}, check log for details", [
+					"errno" => $errno,
+					"errstr" => $errstr,
+					"errfile" => $errfile,
+					"errline" => $errline,
+				]);
+				break;
+		}
+
+		/* Don't execute PHP internal error handler */
+		return true;
+	}
+	$old_error_handler = set_error_handler("App\TAErrorHandler");
 }

@@ -56,7 +56,7 @@ If you want the public webapp to have a custom base folder, you must provide `BA
 7. Visit `/api/v0/subscriptions/sub` in your web browser to check that subscribing to EventSub work.
 8. Add cronjobs shown on the settings page.
 
-Check `/api/v0/subscriptions/list` for subscription status.
+Check `/api/v0/subscriptions` or the About page for subscription status.
 
 Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in-subdirectory
 
@@ -74,6 +74,6 @@ Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in
 
 ### pip packages
 - [streamlink](https://github.com/streamlink/streamlink) (required)
-- [youtube-dl](https://youtube-dl.org/) (recommended)
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) (recommended)
 - [tcd](https://pypi.org/project/tcd/) (optional for chat downloading)
 - [pipenv](https://github.com/pypa/pipenv) (optional, experimental)

@@ -9,6 +9,9 @@
         <router-link :to="{ name: 'Settings', params: { tab: 'config' } }">
             <span class="icon"><fa icon="cog"></fa></span> Config
         </router-link>
+        <router-link :to="{ name: 'Settings', params: { tab: 'favourites' } }">
+            <span class="icon"><fa icon="star"></fa></span> Favourites
+        </router-link>
         <router-link :to="{ name: 'Settings', params: { tab: 'cron' } }">
             <span class="icon"><fa icon="calendar-check"></fa></span> Cron
         </router-link>
@@ -58,12 +61,12 @@
                 <span class="input-help"
                     >The Slim framework doesn't have a good way to execute code from the command line, so you'll have to set up cron manually.
                 </span>
-                <template v-if="$store.state.config.app_url">
+                <template v-if="store.cfg('app_url')">
                     <code>
-                        0 5 * * 1 curl {{ $store.state.config.app_url }}/api/v0/cron/sub<br />
-                        0 */12 * * * curl {{ $store.state.config.app_url }}/api/v0/cron/check_muted_vods<br />
-                        10 */12 * * * curl {{ $store.state.config.app_url }}/api/v0/cron/check_deleted_vods<br />
-                        0 1 * * * curl {{ $store.state.config.app_url }}/api/v0/cron/dump_playlists
+                        <!--0 5 * * 1 curl {{ store.cfg('app_url') }}/api/v0/cron/sub<br />-->
+                        0 */12 * * * curl {{ store.cfg("app_url") }}/api/v0/cron/check_muted_vods<br />
+                        10 */12 * * * curl {{ store.cfg("app_url") }}/api/v0/cron/check_deleted_vods<br />
+                        0 1 * * * curl {{ store.cfg("app_url") }}/api/v0/cron/dump_playlists
                     </code>
                     <span class="input-help">
                         This will subscribe to the webhook every 5 days, check muted &amp; deleted vods every 12 hours, and dump playlists once per day.
@@ -100,11 +103,16 @@ import FavouritesForm from "@/components/forms/FavouritesForm.vue";
 import type { ApiSettingsField, ApiGame, ApiChannelConfig } from "@/twitchautomator.d";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faUser, faCalendarCheck } from "@fortawesome/free-solid-svg-icons";
-library.add(faUser, faCalendarCheck);
+import { faUser, faCalendarCheck, faStar } from "@fortawesome/free-solid-svg-icons";
+import { useStore } from "@/store";
+library.add(faUser, faCalendarCheck, faStar);
 
 export default defineComponent({
     name: "SettingsView",
+    setup() {
+        const store = useStore();
+        return { store };
+    },
     title() {
         return `Settings`;
     },
@@ -113,7 +121,7 @@ export default defineComponent({
             loading: false,
             settingsData: [],
             settingsFields: [] as ApiSettingsField[],
-            gamesData: [] as ApiGame[],
+            gamesData: {} as Record<number, ApiGame>,
             favouritesData: {},
             formChannels: [] as ApiChannelConfig[],
             // games: Object as () => [key: string]: ApiGame
@@ -131,7 +139,7 @@ export default defineComponent({
             this.$http
                 .all([
                     this.$http
-                        .get(`api/v0/settings/list`)
+                        .get(`api/v0/settings`)
                         .then((response) => {
                             const json = response.data;
                             if (json.message) alert(json.message);
@@ -155,7 +163,7 @@ export default defineComponent({
                         }),
 
                     this.$http
-                        .get(`api/v0/games/list`)
+                        .get(`api/v0/games`)
                         .then((response) => {
                             const json = response.data;
                             if (json.message) alert(json.message);
