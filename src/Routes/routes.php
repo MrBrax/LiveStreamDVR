@@ -104,7 +104,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
         $group->get('/check_deleted_vods', CronController::class . ':check_deleted_vods')->setName('cron_check_deleted_vods');
         $group->get('/check_muted_vods', CronController::class . ':check_muted_vods')->setName('cron_check_muted_vods');
         $group->get('/dump_playlists', CronController::class . ':dump_playlists')->setName('cron_dump_playlists');
-        $group->get('/sub', CronController::class . ':sub')->setName('cron_sub');
+        // $group->get('/sub', CronController::class . ':sub')->setName('cron_sub');
     });
 
     $group->any('/hook', ApiController::class . ':hook')->setName('hook');
