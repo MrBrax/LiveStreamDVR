@@ -91,7 +91,10 @@ class CronController
              */
             foreach ($streamer->vods_list as $vod) {
 
-                if (!$force && $this->isInNotifyCache("deleted_{$vod->basename}")) continue;
+                if (!$force && $this->isInNotifyCache("deleted_{$vod->basename}")) {
+                    TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "cron", "Cronjob deleted check for {$vod->basename} skipped, already notified");
+                    continue;
+                }
 
                 $check = $vod->checkValidVod(true, $force);
 
@@ -129,7 +132,10 @@ class CronController
 
                 /** @var TwitchVOD $vod */
 
-                if (!$force && $this->isInNotifyCache("mute_{$vod->basename}")) continue;
+                if (!$force && $this->isInNotifyCache("mute_{$vod->basename}")) {
+                    TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "cron", "Cronjob mute check for {$vod->basename} skipped, already notified");
+                    continue;
+                }
 
                 if ($vod->twitch_vod_muted === true) {
                     // muted forever

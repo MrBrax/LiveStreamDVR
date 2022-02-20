@@ -1110,8 +1110,9 @@ class TwitchVOD
 
 	/**
 	 * Check if VOD has been deleted from Twitch
-	 *
-	 * @return boolean
+	 * @param bool $save Save to JSON
+	 * @param bool $force Force check (unused?)
+	 * @return boolean False if VOD has been deleted, true if exists.
 	 */
 	public function checkValidVod($save = false, $force = false)
 	{
