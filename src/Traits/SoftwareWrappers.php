@@ -23,7 +23,12 @@ trait SoftwareWrappers
 	public static function exec(array $cmd, $stderr = false): string
 	{
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "exec", "Executing command: " . implode(" ", $cmd));
-		$process = new Process($cmd);
+
+		$env = [
+			'TEMP' => TwitchHelper::$cache_folder
+		];
+
+		$process = new Process($cmd, null, $env);
 		$process->run();
 		return $process->getOutput() . ($stderr ? $process->getErrorOutput() : '');
 	}

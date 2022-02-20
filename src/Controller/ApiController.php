@@ -238,13 +238,13 @@ class ApiController
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    /*
+    
     public function twitchapi_videos(Request $request, Response $response, $args)
     {
 
-        $username = $args['username'];
+        $login = $args['login'];
 
-        $userid = TwitchHelper::getChannelId($username);
+        $userid = TwitchChannel::channelIdFromLogin($login);
 
         $data = TwitchHelper::getVideos($userid);
 
@@ -255,15 +255,20 @@ class ApiController
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
-    */
-
-    /*
+    
     public function twitchapi_video(Request $request, Response $response, $args)
     {
 
-        $video_id = $args['video_id'];
+        $video_id = isset($args['video_id']) ? (int)$args['video_id'] : null;
+        if (!$video_id) {
+            $response->getBody()->write(json_encode([
+                'error' => 'Missing video id',
+                'status' => 'ERROR'
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
 
-        $data = TwitchHelper::getVideo((int)$video_id);
+        $data = TwitchHelper::getVideo($video_id);
 
         $payload = json_encode([
             'data' => $data,
@@ -272,7 +277,6 @@ class ApiController
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
-    */
 
     public function playlist_dump(Request $request, Response $response, $args)
     {
@@ -402,16 +406,21 @@ class ApiController
 
         // youtube-dl
         $bins['youtubedl'] = [];
-        $bins['youtubedl']['path'] = TwitchHelper::path_youtubedl();
+        $bins['youtubedl']['path'] = TwitchHelper::path_youtubedl() ?: null;
+        $pip_youtubedl_package = "yt-dlp";
         if (TwitchHelper::path_youtubedl() && file_exists(TwitchHelper::path_youtubedl())) {
             $out = TwitchHelper::exec([TwitchHelper::path_youtubedl(), "--version"]);
             $bins['youtubedl']['status'] = trim($out);
             $bins['youtubedl']['installed'] = true;
 
-            if (isset($pip_requirements) && isset($pip_requirements['youtube-dl']) && version_compare(trim($out), $pip_requirements['youtube-dl']['version'], $pip_requirements['youtube-dl']['comparator'])) {
-                $bins['youtubedl']['update'] = 'Version OK';
+            if (isset($pip_requirements) && isset($pip_requirements[$pip_youtubedl_package])) {
+                if (version_compare(trim($out), $pip_requirements[$pip_youtubedl_package]['version'], $pip_requirements[$pip_youtubedl_package]['comparator'])) {
+                    $bins['youtubedl']['update'] = 'Version OK';
+                } else {
+                    $bins['youtubedl']['update'] = 'Please update to at least ' . $pip_requirements[$pip_youtubedl_package]['version'];
+                }
             } else {
-                $bins['youtubedl']['update'] = 'Please update to at least ' . $pip_requirements['youtube-dl']['version'];
+                $bins['youtubedl']['update'] = 'No version from requirements.txt';
             }
         } else {
             $bins['youtubedl']['status'] = 'Not installed.';
@@ -469,7 +478,7 @@ class ApiController
         $bins['php']['error_reporting'] = ini_get('error_reporting');
 
         $cron_lastrun = [];
-        foreach (['check_deleted_vods', 'check_muted_vods', 'dump_playlists', 'sub'] as $cron) {
+        foreach (['check_deleted_vods', 'check_muted_vods', 'dump_playlists'] as $cron) {
             $fp = TwitchHelper::$cron_folder . DIRECTORY_SEPARATOR . $cron;
             if (file_exists($fp)) {
                 $t = (int)file_get_contents($fp);
