@@ -1751,41 +1751,59 @@ class TwitchVOD
 		return $converted_filename;
 	}
 
+	/**
+	 * Check if vod is muted
+	 *
+	 * @param boolean $save Save to database
+	 * @param boolean $force Force check, unused
+	 * @return bool true if muted, false if not, null if not found
+	 */
 	public function checkMutedVod($save = false, $force = false)
 	{
 
 		if (!$this->twitch_vod_id) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "VOD mute check for {$this->basename} canceled, no vod id!");
 			return null;
 		}
 
-		$previous = $this->twitch_vod_muted;
-
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Check muted VOD for {$this->basename}");
+
+		return TwitchConfig::cfg("checkmute_method", "api") == "api" ? $this->checkMutedVodAPI($save, $force) : $this->checkMutedVodStreamlink($save, $force);
+	}
+
+	private function checkMutedVodAPI($save, $force) {
+		
+		$previous = $this->twitch_vod_muted;
 
 		$data = TwitchHelper::getVideo($this->twitch_vod_id);
 
 		if (!$data) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "VOD {$this->basename} is deleted!");
 			throw new \Exception("VOD is deleted!");
-			return false;
+			return null;
 		} else {
 			if (isset($data['muted_segments']) && sizeof($data['muted_segments']) > 0) {
 				$this->twitch_vod_muted = true;
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "vodclass", "VOD {$this->basename} is muted!");
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "vodclass", "VOD {$this->basename} is muted!", $data);
 				if ($previous !== $this->twitch_vod_muted && $save) {
 					$this->saveJSON("vod mute true");
 				}
 				return true;
 			} else {
 				$this->twitch_vod_muted = false;
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "VOD {$this->basename} is not muted!");
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "VOD {$this->basename} is not muted!", $data);
 				if ($previous !== $this->twitch_vod_muted && $save) {
 					$this->saveJSON("vod mute false");
 				}
 				return false;
 			}
 		}
-		/*
+	}
+
+	private function checkMutedVodStreamlink($save, $force) {
+
+		$previous = $this->twitch_vod_muted;
+
 		$cmd = [];
 
 		if (TwitchConfig::cfg('pipenv_enabled')) {
@@ -1827,7 +1845,6 @@ class TwitchVOD
 			}
 			return false;
 		}
-		*/
 	}
 
 	public function hasFavouriteGame()

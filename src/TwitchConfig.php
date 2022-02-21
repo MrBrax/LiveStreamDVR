@@ -115,6 +115,8 @@ class TwitchConfig
 		['key' => 'file_chmod',				'group' => 'Advanced', 'text' => 'File chmod', 				'type' => 'number', 'default' => 775],
 		['key' => 'file_chown_user',		'group' => 'Advanced', 'text' => 'File chown user', 		'type' => 'string', 'default' => 'nobody'],
 		['key' => 'file_chown_group',		'group' => 'Advanced', 'text' => 'File chown group', 		'type' => 'string', 'default' => 'nobody'],
+
+		['key' => 'checkmute_method',	'group' => 'Basic',	'text' => 'Method to use when checking for muted vods',	'type' => 'array', 'default' => 'api', 'choices' => ['api', 'streamlink'],	'help' => 'Streamlink is more accurate but is kind of a weird solution.'],
 	];
 
 	public static $timezone;

@@ -132,13 +132,20 @@ class CronController
 
                 /** @var TwitchVOD $vod */
 
+                if (!$vod->is_finalized) {
+                    $response->getBody()->write("Skip checking {$vod->basename}, not finalized<br />\n");
+                    continue;
+                }
+
                 if (!$force && $this->isInNotifyCache("mute_{$vod->basename}")) {
                     TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "cron", "Cronjob mute check for {$vod->basename} skipped, already notified");
+                    $response->getBody()->write("Skip checking {$vod->basename}, previously muted<br />\n");
                     continue;
                 }
 
                 if ($vod->twitch_vod_muted === true) {
                     // muted forever
+                    $response->getBody()->write("{$vod->basename} is muted<br />\n");
                     continue;
                 }
 
@@ -155,11 +162,13 @@ class CronController
                 if ($check === true) {
                     // notify
                     $this->sendNotify("{$vod->basename} muted");
-                    $response->getBody()->write("{$vod->basename} muted<br>\n");
+                    $response->getBody()->write("{$vod->basename} muted<br />\n");
                     $this->addToNotifyCache("mute_{$vod->basename}");
                     TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "cron", "Cronjob mute check: {$vod->basename} muted");
                 } elseif ($check === false) {
-                    // $response->getBody()->write( $vod->basename . " not muted<br>\n" );
+                    $response->getBody()->write( $vod->basename . " not muted<br />\n" );
+                } else {
+                    $response->getBody()->write( $vod->basename . " null response<br />\n" );
                 }
             }
         }
