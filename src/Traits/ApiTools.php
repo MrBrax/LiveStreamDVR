@@ -272,7 +272,7 @@ trait ApiTools
 		$cmd[] = $destination;
 
 		$env = [
-			// 'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache",
+			'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "dotnet",
 			'PATH' => dirname(TwitchHelper::path_ffmpeg()),
 			'TEMP' => TwitchHelper::$cache_folder,
 			'TMP' => TwitchHelper::$cache_folder,

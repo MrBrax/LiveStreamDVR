@@ -25,7 +25,8 @@ trait SoftwareWrappers
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "exec", "Executing command: " . implode(" ", $cmd));
 
 		$env = [
-			'TEMP' => TwitchHelper::$cache_folder
+			'TEMP' => TwitchHelper::$cache_folder,
+			'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "dotnet",
 		];
 
 		$process = new Process($cmd, null, $env);

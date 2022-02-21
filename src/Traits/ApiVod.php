@@ -356,7 +356,6 @@ trait ApiVod
             $cmd[] = $filename_out; // output file
 
             $env = [
-                // 'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache",
                 'PATH' => dirname(TwitchHelper::path_ffmpeg()),
                 'TEMP' => TwitchHelper::$cache_folder
             ];

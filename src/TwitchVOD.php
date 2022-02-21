@@ -851,7 +851,7 @@ class TwitchVOD
 		// $cmd[] = ' 2>&1'; // console output
 
 		$env = [
-			// 'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache",
+			'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "dotnet",
 			'PATH' => dirname(TwitchHelper::path_ffmpeg()),
 			'TEMP' => TwitchHelper::$cache_folder
 		];
