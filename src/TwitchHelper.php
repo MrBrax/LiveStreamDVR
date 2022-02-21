@@ -341,7 +341,7 @@ class TwitchHelper
 
 		if (!$streamer_id) {
 			self::logAdvanced(self::LOG_ERROR, "helper", "No streamer id supplied for videos fetching");
-			throw new \Exception("No streamer id supplied for videos fetching");
+			throw new \ValueError("No streamer id supplied for videos fetching");
 			return false;
 		}
 
@@ -369,8 +369,33 @@ class TwitchHelper
 
 	/**
 	 * Get Twitch video by video ID
+	 * 
+	 * {
+	 *		"id": number;
+	 *		"stream_id": string;
+	 *		"user_id": string;
+	 *		"user_login": string;
+	 *		"user_name": string;
+	 *		"title": string;
+	 *		"description": string;
+	 *		"created_at": string;
+	 *		"published_at": string;
+	 *		"url": string;
+	 *		"thumbnail_url": string
+	 *		"viewable": string;
+	 *		"view_count": number;
+	 *		"language": string;
+	 *		"type": string;
+	 *		"duration": string;
+	 *		"muted_segments": [
+	 *			{
+	 *				"duration": number;
+	 *				"offset": number;
+	 *			}
+	 *		]
+	 *	}
 	 *
-	 * @param string $video_id
+	 * @param int $video_id
 	 * @return array
 	 */
 	public static function getVideo(int $video_id)
@@ -378,7 +403,7 @@ class TwitchHelper
 
 		if (!$video_id) {
 			self::logAdvanced(self::LOG_ERROR, "helper", "No video id supplied for videos fetching");
-			throw new \Exception("No video id supplied for videos fetching");
+			throw new \ValueError("No video id supplied for videos fetching");
 			return false;
 		}
 
