@@ -114,6 +114,9 @@
                         <span class="flags">
                             <span v-if="vod.twitch_vod_exists === false" class="icon is-error" title="Deleted"><fa icon="trash"></fa></span
                             ><!-- vod deleted -->
+                            <span v-if="vod.twitch_vod_exists === true && isRiskOfBeingDeleted(vod)" class="icon is-warning" title="Is risking deletion">
+                                <fa icon="trash-arrow-up"></fa></span
+                            ><!-- vod deleted -->
                             <span v-if="vod.twitch_vod_exists === null" class="icon is-error" title="Not checked"><fa icon="question"></fa></span
                             ><!-- vod not checked -->
                             <span v-if="vod.twitch_vod_muted === true" class="icon is-error" title="Muted"><fa icon="volume-mute"></fa></span
@@ -155,11 +158,11 @@ import DurationDisplay from "@/components/DurationDisplay.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
-import { faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync } from "@fortawesome/free-solid-svg-icons";
+import { faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faTrashArrowUp } from "@fortawesome/free-solid-svg-icons";
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import { useStore } from "@/store";
-import { ApiChannel } from "@/twitchautomator";
-library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass);
+import { ApiChannel, ApiVod } from "@/twitchautomator";
+library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp);
 
 import { nonGameCategories } from "@/defs";
 
@@ -176,6 +179,16 @@ export default defineComponent({
     },
     components: {
         DurationDisplay,
+    },
+    methods: {
+        isRiskOfBeingDeleted(vod: ApiVod) {
+            // 12 days
+            const maxVodAge = 12 * 24 * 60 * 60 * 1000;
+
+            // if the vod is older than 12 days, it is considered risky
+            const vod_date = new Date(vod.dt_started_at.date);
+            return Date.now() - vod_date.getTime() >= maxVodAge;
+        },
     },
 });
 </script>
