@@ -45,6 +45,7 @@ class TwitchHelper
 	public static $cache_folder 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache";
 	public static $cron_folder 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "cron";
 	public static $pids_folder 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "pids";
+	public static $vod_folder 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . "vods";
 	// public static $saved_vods_folder = self::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods';
 	// public static $clips_folder = self::$public_folder . DIRECTORY_SEPARATOR . 'saved_clips';
 
@@ -993,7 +994,7 @@ class TwitchHelper
 
 	public static function vodFolder(string $username = null)
 	{
-		return __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . "vods" . (TwitchConfig::cfg("channel_folders") && $username ? DIRECTORY_SEPARATOR . $username : '');
+		return self::$vod_folder . (TwitchConfig::cfg("channel_folders") && $username ? DIRECTORY_SEPARATOR . $username : '');
 	}
 }
 
