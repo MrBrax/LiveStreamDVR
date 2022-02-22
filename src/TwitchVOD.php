@@ -828,9 +828,10 @@ class TwitchVOD
 		$cmd[] = '--id';
 		$cmd[] = $this->twitch_vod_id;
 
-		$cmd[] = $this->path_chat;
+		// $cmd[] = '--embed-emotes';
 
-		// $capture_output = shell_exec( $cmd );
+		$cmd[] = '-o';
+		$cmd[] = $this->path_chat;
 
 		$process = new Process($cmd, $this->directory, null, null, null);
 		$process->start();
