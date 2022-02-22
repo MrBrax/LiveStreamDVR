@@ -628,9 +628,9 @@ class TwitchVOD
 	 * Download chat with tcd
 	 * @return bool success
 	 */
-	public function downloadChat()
+	public function downloadChat($method = 'tcd')
 	{
-		return $this->downloadChatTCD(); // default
+		return $method == 'tcd' ? $this->downloadChatTCD() : $this->downloadChatTD(); // default
 	}
 
 	private function downloadChatTCD()

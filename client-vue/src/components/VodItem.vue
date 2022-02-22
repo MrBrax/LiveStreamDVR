@@ -276,7 +276,7 @@
             </a>
 
             <!-- Download chat-->
-            <a v-if="vod?.twitch_vod_id && !vod?.is_chat_downloaded" class="button" @click="doDownloadChat">
+            <a v-if="vod?.twitch_vod_id && !vod?.is_chat_downloaded" class="button" @click="chatDownloadMenu ? (chatDownloadMenu.show = true) : ''">
                 <span class="icon">
                     <fa icon="comments" type="fa" v-if="!taskStatus.downloadChat && !compDownloadChat"></fa>
                     <fa icon="sync" type="fa" spin="true" v-else></fa>
@@ -730,6 +730,10 @@
             </table>
         </div>
     </modal-box>
+    <modal-box ref="chatDownloadMenu" title="Chat download">
+        <button class="button" @click="doDownloadChat('tcd')">Download with TCD</button>
+        <button class="button" @click="doDownloadChat('td')">Download with TwitchDownloader</button>
+    </modal-box>
 </template>
 
 <script lang="ts">
@@ -778,7 +782,8 @@ export default defineComponent({
     setup() {
         const store = useStore();
         const burnMenu = ref<InstanceType<typeof ModalBox>>();
-        return { store, burnMenu };
+        const chatDownloadMenu = ref<InstanceType<typeof ModalBox>>();
+        return { store, burnMenu, chatDownloadMenu };
     },
     data() {
         return {
@@ -809,6 +814,7 @@ export default defineComponent({
                 ffmpegPreset: "slow",
                 ffmpegCrf: 26,
             },
+            chatDownloadMethod: "tcd",
         };
     },
     mounted() {
@@ -836,11 +842,11 @@ export default defineComponent({
                     this.taskStatus.archive = false;
                 });
         },
-        doDownloadChat() {
-            if (!confirm(`Do you want to download the chat for "${this.vod?.basename}"?`)) return;
+        doDownloadChat(method = "tcd") {
+            if (!confirm(`Do you want to download the chat for "${this.vod?.basename}" with ${method}?`)) return;
             this.taskStatus.downloadChat = true;
             this.$http
-                .post(`/api/v0/vod/${this.vod?.basename}/download_chat`)
+                .post(`/api/v0/vod/${this.vod?.basename}/download_chat?method=${method}`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);

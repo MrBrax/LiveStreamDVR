@@ -85,6 +85,9 @@ trait ApiVod
         set_time_limit(0);
 
         $vod = $args['vod'];
+
+        $method = isset($_GET['method']) ? $_GET['method'] : 'tcd';
+
         // $vod = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $_GET['vod']);
         $username = explode("_", $vod)[0];
 
@@ -93,7 +96,7 @@ trait ApiVod
         if ($vodclass->twitch_vod_id) {
 
             try {
-                $chat_downloaded = $vodclass->downloadChat();
+                $chat_downloaded = $vodclass->downloadChat($method);
             } catch (\Throwable $th) {
                 $response->getBody()->write(json_encode([
                     "message" => "Chat download fatal error: {$th->getMessage()}",
