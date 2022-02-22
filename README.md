@@ -75,5 +75,4 @@ Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in
 ### pip packages
 - [streamlink](https://github.com/streamlink/streamlink) (required)
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) (recommended)
-- [tcd](https://pypi.org/project/tcd/) (optional for chat downloading)
 - [pipenv](https://github.com/pypa/pipenv) (optional, experimental)
