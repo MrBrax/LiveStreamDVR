@@ -44,6 +44,8 @@ class TwitchHelper
 	public const SUBSTATUS_SUBSCRIBED = "2";
 	public const SUBSTATUS_FAILED = "3";
 
+	public const CHANNEL_SUB_TYPES = ['stream.online', 'stream.offline', 'channel.update'];
+
 	public static $config_folder 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config";
 	public static $public_folder 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public";
 	public static $logs_folder 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs";
@@ -725,13 +727,6 @@ class TwitchHelper
 		}
 	}
 
-	/**
-	 * @deprecated
-	 */
-	private static $channel_subscription_types = ['stream.online', 'stream.offline', 'channel.update'];
-
-	public const CHANNEL_SUB_TYPES = ['stream.online', 'stream.offline', 'channel.update'];
-
 	public static function channelSubscribe(string $streamer_id)
 	{
 
@@ -749,7 +744,7 @@ class TwitchHelper
 			$hook_callback .= '?instance=' . TwitchConfig::cfg('instance_id');
 		}
 
-		foreach (self::$channel_subscription_types as $type) {
+		foreach (self::CHANNEL_SUB_TYPES as $type) {
 
 			if (TwitchConfig::getCache("{$streamer_id}.sub.${type}")) {
 				self::logAdvanced(self::LOG_INFO, "helper", "Skip subscription to {$streamer_id}:{$type} ({$streamer_login}), in cache.");
@@ -829,7 +824,7 @@ class TwitchHelper
 
 		$streamer_login = TwitchChannel::channelLoginFromId($streamer_id);
 
-		foreach (self::$channel_subscription_types as $type) {
+		foreach (self::CHANNEL_SUB_TYPES as $type) {
 
 			$id = TwitchConfig::getCache("{$streamer_id}.sub.${type}");
 
