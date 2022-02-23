@@ -53,7 +53,7 @@
                         </table>
                         <p>
                             This app tries to find all the executables using system utilities. This may not work if they're on a custom PATH. Please visit
-                            <a href="{{ url_for('settings') }}">settings</a> to manually change them.
+                            <router-link :to="{ name: 'Settings' }">settings</router-link> to manually change them.
                         </p>
                     </div>
 

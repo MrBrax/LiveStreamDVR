@@ -39,6 +39,11 @@ class TwitchHelper
 
 	public const DATE_FORMAT = "Y-m-d\TH:i:s\Z";
 
+	public const SUBSTATUS_NONE = "0";
+	public const SUBSTATUS_WAITING = "1";
+	public const SUBSTATUS_SUBSCRIBED = "2";
+	public const SUBSTATUS_FAILED = "3";
+
 	public static $config_folder 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config";
 	public static $public_folder 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public";
 	public static $logs_folder 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs";
@@ -328,7 +333,6 @@ class TwitchHelper
 		$fp = fopen($filepath, 'a');
 		fwrite($fp, ($newline ? "\n" : "") . trim($text));
 		fclose($fp);
-
 	}
 
 	/**
@@ -497,9 +501,9 @@ class TwitchHelper
 		}
 
 		if (self::$game_db && isset(self::$game_db[$game_id])) {
-			if(isset(self::$game_db[$game_id]['added']) && time() > self::$game_db[$game_id]['added'] + (60*60*24*60) ){ // two months?
+			if (isset(self::$game_db[$game_id]['added']) && time() > self::$game_db[$game_id]['added'] + (60 * 60 * 24 * 60)) { // two months?
 				self::logAdvanced(self::LOG_INFO, "helper", "Game id {$game_id} needs refreshing.");
-			}else{
+			} else {
 				return self::$game_db[$game_id];
 			}
 		}
@@ -721,7 +725,12 @@ class TwitchHelper
 		}
 	}
 
+	/**
+	 * @deprecated
+	 */
 	private static $channel_subscription_types = ['stream.online', 'stream.offline', 'channel.update'];
+
+	public const CHANNEL_SUB_TYPES = ['stream.online', 'stream.offline', 'channel.update'];
 
 	public static function channelSubscribe(string $streamer_id)
 	{
@@ -798,8 +807,9 @@ class TwitchHelper
 				}
 
 				TwitchConfig::setCache("{$streamer_id}.sub.${type}", $json['data'][0]['id']);
+				TwitchConfig::setCache("{$streamer_id}.substatus.${type}", self::SUBSTATUS_WAITING);
 
-				self::logAdvanced(self::LOG_SUCCESS, "helper", "Subscribe for {$streamer_id}:{$type} ({$streamer_login}) seemingly succeeded. Check callback for details.");
+				self::logAdvanced(self::LOG_SUCCESS, "helper", "Subscribe for {$streamer_id}:{$type} ({$streamer_login}) sent. Check logs for a 'subscription active' message.");
 			} elseif ($http_code == 409) {
 				self::logAdvanced(self::LOG_ERROR, "helper", "Duplicate sub for {$streamer_id}:{$type} detected.", ['hub' => $data]);
 			} else {

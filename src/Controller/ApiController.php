@@ -238,7 +238,7 @@ class ApiController
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    
+
     public function twitchapi_videos(Request $request, Response $response, $args)
     {
 
@@ -255,7 +255,7 @@ class ApiController
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
-    
+
     public function twitchapi_video(Request $request, Response $response, $args)
     {
 
@@ -697,6 +697,8 @@ class ApiController
                     $challenge = $data_json["challenge"];
                     $subscription = $data_json["subscription"];
 
+                    $sub_type = $subscription["type"];
+
                     $channel_id = $subscription["condition"]["broadcaster_user_id"];
                     $channel_login = TwitchChannel::channelLoginFromId($subscription["condition"]["broadcaster_user_id"]);
 
@@ -704,7 +706,7 @@ class ApiController
 
                     // $signature = $response->getHeader("Twitch-Eventsub-Message-Signature");
 
-                    TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Challenge received for {$channel_id}:{$subscription["type"]} ({$channel_login}) ({$subscription["id"]})", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
+                    TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "hook", "Challenge received for {$channel_id}:{$sub_type} ({$channel_login}) ({$subscription["id"]})", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
 
                     if (!$this->verifySignature($request)) {
                         $response->getBody()->write("Invalid signature check");
@@ -713,10 +715,13 @@ class ApiController
                             "hook",
                             "Invalid signature check for challenge!"
                         );
+                        TwitchConfig::setCache("{$channel_id}.substatus.${sub_type}", TwitchHelper::SUBSTATUS_FAILED);
                         return $response->withStatus(400);
                     }
 
-                    TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Challenge completed, subscription active for {$channel_id}:{$subscription["type"]} ({$channel_login}) ({$subscription["id"]}).", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
+                    TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "hook", "Challenge completed, subscription active for {$channel_id}:{$sub_type} ({$channel_login}) ({$subscription["id"]}).", ['GET' => $_GET, 'POST' => $_POST, 'HEADERS' => $data_headers]);
+
+                    TwitchConfig::setCache("{$channel_id}.substatus.${sub_type}", TwitchHelper::SUBSTATUS_SUBSCRIBED);
 
                     // return the challenge string to twitch if signature matches
                     $response->getBody()->write($challenge);

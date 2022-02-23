@@ -1,5 +1,12 @@
 import { MediaInfo } from "./mediainfo";
 
+enum SubStatus {
+    NONE = "0",
+    WAITING = "1",
+    SUBSCRIBED = "2",
+    FAILED = "3",
+}
+
 export type PHPDateTimeJSON = {
     date: string;
     timezone_type: number;
@@ -177,6 +184,7 @@ export type ApiChannel = {
     channel_data: {
         profile_image_url: string;
     };
+    api_getSubscriptionStatus: SubStatus;
 };
 
 export type ApiSubscription = {

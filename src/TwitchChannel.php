@@ -62,6 +62,8 @@ class TwitchChannel
 
     public bool $deactivated = false;
 
+    public ?bool $api_getSubscriptionStatus = null;
+
     private static function loadAbstract(string $streamer_id, $api = false)
     {
 
@@ -130,6 +132,8 @@ class TwitchChannel
                     $channel->expires_at = \DateTime::createFromFormat(TwitchHelper::DATE_FORMAT, $sub_data[$channel->display_name]['expires_at']);
             }
         }
+
+        $channel->api_getSubscriptionStatus = $channel->getSubscriptionStatus();
 
         if (TwitchConfig::cfg('channel_folders') && !file_exists($channel->getFolder())) {
             // mkdir(TwitchHelper::vodFolder($streamer['username']));
@@ -244,7 +248,7 @@ class TwitchChannel
             $json_streamers = [];
         }
 
-        if ( TwitchConfig::getCache("{$streamer_id}.deleted") == "1" && !$force) {
+        if (TwitchConfig::getCache("{$streamer_id}.deleted") == "1" && !$force) {
             TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "helper", "Channel {$streamer_id} is deleted, ignore. Delete kv file to force update.");
             return false;
         }
@@ -362,7 +366,7 @@ class TwitchChannel
             $json_streamers = [];
         }
 
-        if ( TwitchConfig::getCache("{$streamer_login}.deleted") == "1" && !$force) {
+        if (TwitchConfig::getCache("{$streamer_login}.deleted") == "1" && !$force) {
             TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "helper", "Channel {$streamer_login} is deleted, ignore. Delete kv file to force update.");
             return false;
         }
@@ -582,5 +586,15 @@ class TwitchChannel
         $streams = TwitchHelper::getStreams($this->userid);
         if (!$streams) return false;
         return $streams[0];
+    }
+
+    public function getSubscriptionStatus()
+    {
+        foreach(TwitchHelper::CHANNEL_SUB_TYPES as $type) {
+            if (TwitchConfig::getCache("{$this->userid}.substatus.${type}") != TwitchHelper::SUBSTATUS_SUBSCRIBED) {
+                return false;
+            }
+        }
+        return true;
     }
 }
