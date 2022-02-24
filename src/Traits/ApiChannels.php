@@ -15,6 +15,14 @@ use App\TwitchChannel;
 trait ApiChannels
 {
 
+    /**
+     * GET /api/v0/channels
+     *
+     * @param Request $request PSR-7 request
+     * @param Response $response PSR-7 response
+     * @param array $args Router arguments
+     * @return Response PSR-7 response
+     */
     public function channels_list(Request $request, Response $response, $args)
     {
 
@@ -35,6 +43,16 @@ trait ApiChannels
         return $response->withStatus(200)->withHeader('Content-Type', 'application/json')->withHeader('Access-Control-Allow-Origin', '*');
     }
 
+    /**
+     * POST /api/v0/channels
+     * Add a channel
+     * 
+     * @json ['login', 'quality', 'match', 'download_chat', 'burn_chat', 'no_capture']
+     * @param Request $request PSR-7 request
+     * @param Response $response PSR-7 response
+     * @param array $args Router arguments
+     * @return Response PSR-7 response
+     */
     public function channels_add(Request $request, Response $response, $args)
     {
 
@@ -145,11 +163,13 @@ trait ApiChannels
 
     /**
      * PUT /api/v0/channels/{login}
+     * Update a channel
      *
-     * @param Request $request
-     * @param Response $response
-     * @param array $args
-     * @return void
+     * @json ['login', 'quality', 'match', 'download_chat', 'burn_chat', 'no_capture']
+     * @param Request $request PSR-7 request
+     * @param Response $response PSR-7 response
+     * @param array $args Router arguments
+     * @return Response PSR-7 response
      */
     public function channels_update(Request $request, Response $response, array $args)
     {
@@ -233,11 +253,12 @@ trait ApiChannels
 
     /**
      * DELETE /api/v0/channels/{login}
+     * Delete a channel from the config
      *
-     * @param Request $request
-     * @param Response $response
-     * @param array $args
-     * @return void
+     * @param Request $request PSR-7 request
+     * @param Response $response PSR-7 response
+     * @param array $args Router arguments
+     * @return Response PSR-7 response
      */
     public function channels_delete(Request $request, Response $response, array $args)
     {
