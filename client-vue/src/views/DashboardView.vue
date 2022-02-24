@@ -545,7 +545,7 @@ export default defineComponent({
         expandLog(lineNumber: number) {
             if (!this.logLines[lineNumber]) return;
             if (this.logLines[lineNumber].metadata) {
-                alert(JSON.stringify(this.logLines[lineNumber].metadata.toString(), null, 2));
+                alert(JSON.stringify(this.logLines[lineNumber].metadata, undefined, 2));
                 console.log(this.logLines[lineNumber].metadata);
             }
         },
