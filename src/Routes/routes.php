@@ -5,10 +5,16 @@ declare(strict_types=1);
 use App\Controller\Api\About;
 use App\Controller\Api\Channel;
 use App\Controller\Api\Channels;
+use App\Controller\Api\Favourites;
+use App\Controller\Api\Games;
 use App\Controller\Api\Hook;
 use App\Controller\Api\Jobs;
 use App\Controller\Api\Log;
+use App\Controller\Api\Settings;
+use App\Controller\Api\Subscriptions;
 use App\Controller\Api\Vod;
+use App\Controller\Api\Tools;
+use App\Controller\Api\Twitch;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 use Slim\Routing\RouteCollectorProxy;
@@ -68,37 +74,37 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
 
     // twitch api proxy
     $group->group('/twitchapi', function (RouteCollectorProxy $group) {
-        $group->get('/videos/{login}', ApiController::class . ':twitchapi_videos')->setName('api_twitchapi_videos');
-        $group->get('/video/{video_id}', ApiController::class . ':twitchapi_video')->setName('api_twitchapi_video');
+        $group->get('/videos/{login}', Twitch::class . ':twitchapi_videos')->setName('api_twitchapi_videos');
+        $group->get('/video/{video_id}', Twitch::class . ':twitchapi_video')->setName('api_twitchapi_video');
     });
 
     // settings
     $group->group('/settings', function (RouteCollectorProxy $group) {
-        $group->get('', ApiController::class . ':settings_list')->setName('api_settings_list');
-        $group->put('', ApiController::class . ':settings_save')->setName('api_settings_save');
+        $group->get('', Settings::class . ':settings_list')->setName('api_settings_list');
+        $group->put('', Settings::class . ':settings_save')->setName('api_settings_save');
     });
 
     $group->group('/favourites', function (RouteCollectorProxy $group) {
-        $group->get('', ApiController::class . ':favourites_list')->setName('api_favourites_list');
-        $group->put('', ApiController::class . ':favourites_save')->setName('api_favourites_save');
+        $group->get('', Favourites::class . ':favourites_list')->setName('api_favourites_list');
+        $group->put('', Favourites::class . ':favourites_save')->setName('api_favourites_save');
     });
 
-    $group->get('/games', ApiController::class . ':games_list')->setName('api_games_list');
+    $group->get('/games', Games::class . ':games_list')->setName('api_games_list');
 
     $group->get('/about', About::class . ':about')->setName('api_about');
 
     /** @todo: rename */
     $group->group('/tools', function (RouteCollectorProxy $group) {
-        $group->post('/fullvodburn', ApiController::class . ':tools_fullvodburn')->setName('api_tools_fullvodburn');
-        $group->post('/voddownload', ApiController::class . ':tools_voddownload')->setName('api_tools_voddownload');
-        $group->post('/chatdownload', ApiController::class . ':tools_chatdownload')->setName('api_tools_chatdownload');
+        $group->post('/fullvodburn', Tools::class . ':tools_fullvodburn')->setName('api_tools_fullvodburn');
+        $group->post('/voddownload', Tools::class . ':tools_voddownload')->setName('api_tools_voddownload');
+        $group->post('/chatdownload', Tools::class . ':tools_chatdownload')->setName('api_tools_chatdownload');
     });
 
     $group->group('/subscriptions', function (RouteCollectorProxy $group) {
-        $group->get('', ApiController::class . ':subscriptions_list')->setName('api_subscriptions_list');
-        $group->post('', ApiController::class . ':subscriptions_suball')->setName('api_subscriptions_suball');
-        $group->post('/{id}', ApiController::class . ':subscriptions_sub')->setName('api_subscriptions_sub');
-        $group->delete('/{id}', ApiController::class . ':subscriptions_unsub')->setName('api_subscriptions_unsub');
+        $group->get('', Subscriptions::class . ':subscriptions_list')->setName('api_subscriptions_list');
+        $group->post('', Subscriptions::class . ':subscriptions_suball')->setName('api_subscriptions_suball');
+        $group->post('/{id}', Subscriptions::class . ':subscriptions_sub')->setName('api_subscriptions_sub');
+        $group->delete('/{id}', Subscriptions::class . ':subscriptions_unsub')->setName('api_subscriptions_unsub');
     });
 
     // cronjobs

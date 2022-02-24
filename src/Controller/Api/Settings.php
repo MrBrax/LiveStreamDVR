@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Traits;
+namespace App\Controller\Api;
 
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
@@ -8,7 +8,7 @@ use Slim\Psr7\Response;
 use App\TwitchConfig;
 use App\TwitchHelper;
 
-trait ApiSettings
+class Settings
 {
 
     public function settings_list(Request $request, Response $response, array $args)

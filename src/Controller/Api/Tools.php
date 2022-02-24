@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Traits;
+namespace App\Controller\Api;
 
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
@@ -13,7 +13,7 @@ use App\TwitchAutomatorJob;
 
 use Symfony\Component\Process\Process;
 
-trait ApiTools
+class Tools
 {
 
 	private $logs = [];
@@ -507,11 +507,11 @@ trait ApiTools
 		preg_match("/\/videos\/([0-9]+)/", $url, $matches);
 
 		if (!$matches) {
-            $response->getBody()->write(json_encode([
-                "message" => "No video found: {$url}",
-                "status" => "ERROR"
-            ]));
-            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+			$response->getBody()->write(json_encode([
+				"message" => "No video found: {$url}",
+				"status" => "ERROR"
+			]));
+			return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
 		}
 
 		$video_id = (int)$matches[1];
@@ -526,11 +526,11 @@ trait ApiTools
 		$metadata = TwitchHelper::getVideo($video_id);
 
 		if (!$metadata) {
-            $response->getBody()->write(json_encode([
-                "message" => "VOD not found.",
-                "status" => "ERROR"
-            ]));
-            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+			$response->getBody()->write(json_encode([
+				"message" => "VOD not found.",
+				"status" => "ERROR"
+			]));
+			return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
 		}
 
 		$basename = $metadata['user_name'] . '_' . $video_id;
@@ -538,7 +538,7 @@ trait ApiTools
 		$srcfile        	= $basedir . DIRECTORY_SEPARATOR . $basename . "_" . $quality . ".ts";
 		$dstfile        	= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $basename . "_" . $quality . ".mp4";
 		$metafile        	= TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $basename . ".info.json";
-        $webfile            = "saved_vods/{$basename}_{$quality}.mp4";
+		$webfile            = "saved_vods/{$basename}_{$quality}.mp4";
 
 		if (!file_exists($dstfile)) {
 
@@ -546,12 +546,12 @@ trait ApiTools
 				if ($this->downloadVod($video_id, $srcfile, $quality)) {
 					// $response->getBody()->write("<br>VOD download successful");
 				} else {
-                    $response->getBody()->write(json_encode([
-                        "message" => "VOD download error",
-                        "error" => $this->logs,
-                        "status" => "ERROR"
-                    ]));
-                    return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+					$response->getBody()->write(json_encode([
+						"message" => "VOD download error",
+						"error" => $this->logs,
+						"status" => "ERROR"
+					]));
+					return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
 				}
 			}
 
@@ -560,11 +560,11 @@ trait ApiTools
 					// $response->getBody()->write("<br>Remux successful");
 				} else {
 					$response->getBody()->write(json_encode([
-                        "message" => "Remux error",
-                        "error" => $this->logs,
-                        "status" => "ERROR"
-                    ]));
-                    return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+						"message" => "Remux error",
+						"error" => $this->logs,
+						"status" => "ERROR"
+					]));
+					return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
 				}
 			}
 
@@ -576,16 +576,15 @@ trait ApiTools
 		}
 
 		$response->getBody()->write(json_encode([
-            "data" => [
-                "file_path" => $dstfile,
-                "web_path" => $webfile
-            ],
-            "message" => "Download completed",
-            "error" => $this->logs,
-            "status" => "OK"
-        ]));
-        return $response->withHeader('Content-Type', 'application/json');
-
+			"data" => [
+				"file_path" => $dstfile,
+				"web_path" => $webfile
+			],
+			"message" => "Download completed",
+			"error" => $this->logs,
+			"status" => "OK"
+		]));
+		return $response->withHeader('Content-Type', 'application/json');
 	}
 
 	public function tools_chatdownload(Request $request, Response $response, array $args)
@@ -619,38 +618,38 @@ trait ApiTools
 
 		if (!$metadata) {
 			$response->getBody()->write(json_encode([
-                "message" => "VOD not found.",
-                "status" => "ERROR"
-            ]));
-            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+				"message" => "VOD not found.",
+				"status" => "ERROR"
+			]));
+			return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
 		}
 
 		$basename = $metadata['user_name'] . '_' . $video_id;
 
 		$chatfile = TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $basename . "_chat.json";
-        $metafile = TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $basename . ".info.json";
-        $webfile  = "saved_vods/{$basename}_chat.json";
+		$metafile = TwitchHelper::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods' . DIRECTORY_SEPARATOR . $basename . ".info.json";
+		$webfile  = "saved_vods/{$basename}_chat.json";
 
 		if (!file_exists($chatfile)) {
 			if ($this->downloadChat($video_id, $chatfile)) {
 				// $response->getBody()->write("<br>Chat download successful");
 			} else {
-                $response->getBody()->write(json_encode([
-                    "message" => "Chat download error",
-                    "error" => $this->logs,
-                    "status" => "ERROR"
-                ]));
-                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+				$response->getBody()->write(json_encode([
+					"message" => "Chat download error",
+					"error" => $this->logs,
+					"status" => "ERROR"
+				]));
+				return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
 			}
 		}
 
 		if (!file_exists($chatfile)) {
 			$response->getBody()->write(json_encode([
-                "message" => "Error while downloading chat",
-                "error" => $this->logs,
-                "status" => "ERROR"
-            ]));
-            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+				"message" => "Error while downloading chat",
+				"error" => $this->logs,
+				"status" => "ERROR"
+			]));
+			return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
 		}
 
 		if (!file_exists($metafile)) {
@@ -658,15 +657,14 @@ trait ApiTools
 		}
 
 		$response->getBody()->write(json_encode([
-            "data" => [
-                "file_path" => $chatfile,
-                "web_path" => $webfile
-            ],
-            "message" => "Download completed",
-            "error" => $this->logs,
-            "status" => "OK"
-        ]));
-        return $response->withHeader('Content-Type', 'application/json');
-
+			"data" => [
+				"file_path" => $chatfile,
+				"web_path" => $webfile
+			],
+			"message" => "Download completed",
+			"error" => $this->logs,
+			"status" => "OK"
+		]));
+		return $response->withHeader('Content-Type', 'application/json');
 	}
 }
