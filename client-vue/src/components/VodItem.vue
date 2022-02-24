@@ -200,10 +200,12 @@
                             <strong>Current duration:</strong> <duration-display :startDate="vod.dt_started_at.date" outputStyle="human"></duration-display>
                         </li>
                         <li>
-                            <strong>Watch live:</strong> <a :href="'https://twitch.tv/' + vod.streamer_login" rel="noreferrer" target="_blank">Twitch</a>
-                            <a :href="vod?.webpath + '/' + vod?.basename + '.m3u8'" rel="noreferrer" target="_blank">Recap</a>
+                            <strong>Watch live:</strong>
+                            <a :href="'https://twitch.tv/' + vod.streamer_login" rel="noreferrer" target="_blank">Twitch</a>
+                            / <a :href="vod?.webpath + '/' + vod?.basename + '.m3u8'" rel="noreferrer" target="_blank">Recap</a>
                         </li>
                     </ul>
+                    <button class="button is-small is-danger" @click="unbreak">Unbreak</button>
                 </div>
             </div>
         </div>
@@ -819,7 +821,8 @@ export default defineComponent({
         };
     },
     mounted() {
-        if (this.vod) this.burnSettings.chatHeight = parseInt(this.vod.video_metadata_public.video.Height);
+        if (this.vod && this.vod.video_metadata_public && this.vod.video_metadata_public.video)
+            this.burnSettings.chatHeight = parseInt(this.vod.video_metadata_public.video.Height);
     },
     props: {
         vod: Object as () => ApiVod,
@@ -953,6 +956,25 @@ export default defineComponent({
                 })
                 .finally(() => {
                     this.burnLoading = false;
+                });
+        },
+        unbreak() {
+            // this.burnLoading = true;
+            console.debug("doUnbreak", this.vod);
+            this.$http
+                .post(`/api/v0/vod/${this.vod?.basename}/unbreak`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.$emit("refresh");
+                })
+                .catch((err) => {
+                    console.error("unbreak response error", err.response);
+                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
+                })
+                .finally(() => {
+                    // this.burnLoading = false;
                 });
         },
         addFavouriteGame(game_id: number) {

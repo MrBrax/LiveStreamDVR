@@ -806,7 +806,7 @@ class TwitchVOD
 		$cmd = [];
 
 		$cmd[] = TwitchHelper::path_twitchdownloader();
-		
+
 		$cmd[] = '--mode';
 		$cmd[] = 'ChatDownload';
 
@@ -2135,4 +2135,144 @@ class TwitchVOD
 		return true;
 	}
 
+
+	public function remux()
+	{
+		$container_ext = TwitchConfig::cfg('vod_container', 'mp4');
+
+		$capture_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.ts';
+		$converted_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . "." . $container_ext;
+
+		if (!file_exists($capture_filename)) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Remux failed, capture file does not exist: ${capture_filename}");
+			throw new \Exception("Remux failed, capture file does not exist: ${capture_filename}");
+			return false;
+		}
+
+		$cmd = [];
+
+		$cmd[] = TwitchHelper::path_ffmpeg();
+
+		$cmd[] = '-i';
+		$cmd[] = $capture_filename;
+
+		// https://github.com/stoyanovgeorge/ffmpeg/wiki/How-to-Find-and-Fix-Corruptions-in-FFMPEG
+		if (TwitchConfig::cfg('fix_corruption')) {
+
+			// @todo: these error out
+			// $cmd[] = '-map';
+			// $cmd[] = '0';
+			// $cmd[] = '-ignore_unknown';
+			// $cmd[] = '-copy_unknown';
+
+			// @todo: test these
+			// $cmd[] = '-fflags';
+			// $cmd[] = '+genpts+igndts';
+
+			$cmd[] = '-use_wallclock_as_timestamps';
+			$cmd[] = '1';
+
+			// @todo: needs encoding
+			// $cmd[] = '-filter:a';
+			// $cmd[] = 'async=1';
+
+		}
+
+		// use same video codec
+		$cmd[] = '-c:v';
+		$cmd[] = 'copy';
+
+		if (TwitchConfig::cfg('encode_audio')) {
+			// re-encode audio
+			$cmd[] = '-c:a';
+			$cmd[] = 'aac';
+
+			// use same audio bitrate
+			$cmd[] = '-b:a';
+			$cmd[] = '160k';
+		} else {
+			// use same audio codec
+			$cmd[] = '-c:a';
+			$cmd[] = 'copy';
+		}
+
+		// fix audio sync in ts
+		$cmd[] = '-bsf:a';
+		$cmd[] = 'aac_adtstoasc';
+
+		if (TwitchConfig::cfg('ts_sync')) {
+
+			$cmd[] = '-async';
+			$cmd[] = '1';
+
+			// $cmd[] = '-use_wallclock_as_timestamps';
+			// $cmd[] = '1';
+
+			// $cmd[] = '-filter_complex';
+			// $cmd[] = 'aresample';
+
+			// $cmd[] = '-af';
+			// $cmd[] = 'aresample=async=1:first_pts=0';
+			// $cmd[] = 'aresample=async=1';
+
+			// $cmd[] = '-fflags';
+			// $cmd[] = '+genpts';
+			// $cmd[] = '+igndts';
+
+		}
+
+		// logging level
+		if (TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false)) {
+			$cmd[] = '-loglevel';
+			$cmd[] = 'repeat+level+verbose';
+		}
+
+		$cmd[] = $converted_filename;
+
+		$this->dt_conversion_started = new \DateTime();
+		$this->saveJSON('dt_conversion_started set');
+
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Starting manual conversion of {$this->basename}.");
+
+		$process = new Process($cmd, dirname($this->directory), null, null, null);
+		$process->start();
+
+		// create pidfile
+		$convertJob = TwitchAutomatorJob::create("convert_{$this->basename}");
+		$convertJob->setPid($process->getPid());
+		$convertJob->setProcess($process);
+		$convertJob->setMetadata([
+			'capture_filename' => $capture_filename,
+			'converted_filename' => $converted_filename,
+		]);
+		$convertJob->save();
+
+		TwitchHelper::webhook([
+			'action' => 'start_convert',
+			'vod' => $this,
+		]);
+
+		// wait until process is done
+		$process->wait();
+
+		// remove pidfile
+		$convertJob->clear();
+		//if (file_exists($pidfile)) unlink($pidfile);
+
+		TwitchHelper::appendLog("ffmpeg_convert_{$this->basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+		TwitchHelper::appendLog("ffmpeg_convert_{$this->basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+
+		if (strpos($process->getErrorOutput(), "Packet corrupt") !== false || strpos($process->getErrorOutput(), "Non-monotonous DTS in output stream") !== false) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Found corrupt packets when converting " . basename($capture_filename) . " to " . basename($converted_filename));
+		}
+
+		if (file_exists($converted_filename) && filesize($converted_filename) > 0) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "automator", "Finished conversion of " . basename($capture_filename) . " to " . basename($converted_filename));
+		} else {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Failed conversion of " . basename($capture_filename) . " to " . basename($converted_filename));
+			return false;
+		}
+
+		return $converted_filename;
+	}
 }

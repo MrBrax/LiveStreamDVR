@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace App\Controller\Api;
 
 use Slim\Psr7\Request;
@@ -524,5 +526,65 @@ class Vod
             "status" => "OK"
         ]));
         return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
+    }
+
+    public function vod_unbreak(Request $request, Response $response, $args)
+    {
+        $vod = $args['vod'];
+        $username = explode("_", $vod)[0];
+        $vodclass = TwitchVOD::load(TwitchHelper::vodFolder($username) . DIRECTORY_SEPARATOR . $vod . '.json');
+
+        if ($vodclass->is_capturing) {
+            $capture_job = TwitchHelper::findJob("capture_{$vodclass->basename}");
+            if ($capture_job !== false && $capture_job !== null) {
+                $capture_job->clear();
+            }
+            $chat_job = TwitchHelper::findJob("chatdump_{$vodclass->basename}");
+            if ($chat_job !== false && $chat_job !== null) {
+                $chat_job->clear();
+            }
+            $vodclass->is_capturing = false;
+            $vodclass->dt_ended_at = new \DateTime();
+
+            $vodclass->is_converting = true;
+            $vodclass->saveJSON("is converting manual on");
+            $convert_success = $vodclass->remux();
+            $vodclass->is_converting = false;
+            $vodclass->saveJSON("is converting manual off");
+
+            TwitchHelper::webhook([
+                'action' => 'end_convert',
+                'vod' => $vodclass,
+                'success' => $convert_success
+            ]);
+
+            // remove ts if both files exist
+            if ($convert_success !== false) {
+                unlink($vodclass->directory . DIRECTORY_SEPARATOR . $vodclass->basename . '.ts');
+            } else {
+                $response->getBody()->write(json_encode([
+                    "message" => "Conversion failed",
+                    "status" => "ERROR"
+                ]));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+
+            $vodclass->addSegment($convert_success);
+            // $vodclass->saveJSON('add segment');
+            $vodclass->finalize();
+            $vodclass->saveJSON('finalized');
+
+            $response->getBody()->write(json_encode([
+                "message" => "VOD unbreak successful",
+                "status" => "OK"
+            ]));
+            return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
+        }
+
+        $response->getBody()->write(json_encode([
+            "message" => "Unknown error.",
+            "status" => "ERROR"
+        ]));
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
     }
 }

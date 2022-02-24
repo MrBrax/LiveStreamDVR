@@ -42,6 +42,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
         // $group->post('/export', Vod::class . ':vod_export')->setName('api_vod_export');
         $group->post('/cut', Vod::class . ':vod_cut')->setName('api_vod_cut');
         $group->post('/renderwizard', Vod::class . ':vod_renderwizard')->setName('api_vod_renderwizard');
+        $group->post('/unbreak', Vod::class . ':vod_unbreak')->setName('api_vod_unbreak');
     });
 
     // channels
