@@ -596,9 +596,6 @@ class TwitchVOD
 		if (!$this->dt_started_at) return false;
 		$now = new \DateTime();
 		return abs($this->dt_started_at->getTimestamp() - $now->getTimestamp());
-		// $diff = $this->started_at->diff( new \DateTime() );
-		// $diff->format("%s");
-		//return $diff->format('%H:%I:%S');
 	}
 
 	/**
@@ -610,18 +607,6 @@ class TwitchVOD
 	{
 		if (!$this->twitch_vod_id) return false;
 		return $this->twitch_vod_duration - $this->getDuration();
-	}
-
-	public function getChapterString()
-	{
-		$str = '';
-		if ($this->chapters) {
-			foreach ($this->chapters as $chapter) {
-				if (!$chapter['offset'] || !$chapter['game_name']) continue;
-				$str .= $chapter['offset'] . ':' . str_replace(" ", "_", $chapter['game_name']) . ';';
-			}
-		}
-		return trim($str, ";");
 	}
 
 	/**
@@ -2021,14 +2006,6 @@ class TwitchVOD
 		$this->is_finalized = true;
 	}
 
-	/** @todo Something */
-	public function repair()
-	{
-
-		$username = explode("_", $this->basename)[0];
-		// $user_id = TwitchHelper::getChannelId($username);
-	}
-
 	/**
 	 * @deprecated
 	 */
@@ -2158,28 +2135,4 @@ class TwitchVOD
 		return true;
 	}
 
-	/** @deprecated 3.4.0 this function sucks */
-	public function convert()
-	{
-
-		set_time_limit(0);
-
-		$captured_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.ts';
-
-		if (!file_exists($captured_filename)) {
-			throw new \Exception("No TS file found");
-			return false;
-		}
-
-		$TwitchAutomator = new TwitchAutomator();
-
-		$converted_filename = $TwitchAutomator->convert($this->basename);
-
-		// delete captured file
-		if (file_exists($converted_filename) && file_exists($captured_filename)) {
-			unlink($captured_filename);
-		}
-
-		return true;
-	}
 }

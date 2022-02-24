@@ -423,6 +423,7 @@
                         :key="chapterIndex"
                         :class="{
                             favourite: store.config && store.config.favourites[chapter.game_id],
+                            current: chapterIndex === vod.chapters.length - 1,
                         }"
                     >
                         <!-- start timestamp -->
@@ -505,7 +506,7 @@
                         <td :title="formatDate(vod.dt_ended_at.date)">
                             {{ vod?.api_getWebhookDuration }}
                         </td>
-                        <td colspan="4">
+                        <td colspan="10">
                             <em>END</em>
                         </td>
                     </tr>
@@ -515,7 +516,7 @@
                             <!--{{ humanDuration(vod?.api_getDurationLive) }}-->
                             <duration-display :startDate="vod.dt_started_at.date"></duration-display>
                         </td>
-                        <td colspan="4">
+                        <td colspan="10">
                             <em><strong>ONGOING</strong></em>
                         </td>
                     </tr>

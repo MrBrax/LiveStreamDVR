@@ -481,9 +481,9 @@ if (TwitchConfig::cfg("error_handler")) {
 					"errline" => $errline,
 				]);
 				break;
-
+			
 			default:
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Unknown error caught in {$errfile}:{$errline}, check log for details", [
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Unknown error ({$errno}) caught in {$errfile}:{$errline}, check log for details", [
 					"errno" => $errno,
 					"errstr" => $errstr,
 					"errfile" => $errfile,

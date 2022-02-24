@@ -19,10 +19,13 @@
                     &middot;
                     <span class="streamer-vods-size" title="Total vod size">{{ formatBytes(streamer?.vods_size) }}</span
                     ><!-- total size -->
-                    &middot;<span class="streamer-subbed-status">
+                    &middot;
+                    <span class="streamer-subbed-status">
                         <span v-if="streamer.api_getSubscriptionStatus">Subscribed</span>
-                        <span class="is-error" v-else>One or more subscriptions missing</span>
-                    </span>
+                        <span class="is-error" title="Could just be that subscriptions were made before this feature was implemented." v-else>
+                            One or more subscriptions missing
+                        </span></span
+                    ><!-- sub status -->
                     <span class="streamer-title-tools">
                         <span v-if="streamer.is_live">
                             &middot;

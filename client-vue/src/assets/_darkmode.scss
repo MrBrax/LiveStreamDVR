@@ -74,6 +74,9 @@
                 color: #b0b0b0;
             }
         }
+        tr.current {
+            background-color: #732828;
+        }
         td:nth-child(4) {
             color: #aaa;
         }
