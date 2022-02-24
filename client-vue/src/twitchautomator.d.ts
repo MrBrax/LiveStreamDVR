@@ -214,6 +214,7 @@ export type ApiLogLine = {
     module: string;
     date_string: string;
     text: string;
+    metadata?: any;
 };
 
 export type ClientSettings = {

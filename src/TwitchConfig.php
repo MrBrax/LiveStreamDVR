@@ -456,7 +456,7 @@ if (TwitchConfig::cfg("error_handler")) {
 
 		switch ($errno) {
 			case E_USER_ERROR:
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "PHP", "Fatal error caught in {$errfile}, check log for details", [
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "PHP", "Fatal error caught in {$errfile}:{$errline}, check log for details", [
 					"errno" => $errno,
 					"errstr" => $errstr,
 					"errfile" => $errfile,
@@ -465,7 +465,7 @@ if (TwitchConfig::cfg("error_handler")) {
 				exit(1);
 
 			case E_USER_WARNING:
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Warning caught in {$errfile}, check log for details", [
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Warning caught in {$errfile}:{$errline}, check log for details", [
 					"errno" => $errno,
 					"errstr" => $errstr,
 					"errfile" => $errfile,
@@ -474,7 +474,7 @@ if (TwitchConfig::cfg("error_handler")) {
 				break;
 
 			case E_USER_NOTICE:
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Notice caught in {$errfile}, check log for details", [
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Notice caught in {$errfile}:{$errline}, check log for details", [
 					"errno" => $errno,
 					"errstr" => $errstr,
 					"errfile" => $errfile,
@@ -483,7 +483,7 @@ if (TwitchConfig::cfg("error_handler")) {
 				break;
 
 			default:
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Unknown error caught in {$errfile}, check log for details", [
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Unknown error caught in {$errfile}:{$errline}, check log for details", [
 					"errno" => $errno,
 					"errstr" => $errstr,
 					"errfile" => $errfile,

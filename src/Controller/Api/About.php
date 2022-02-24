@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace App\Controller\Api;
 
 use App\TwitchConfig;
@@ -7,14 +9,15 @@ use App\TwitchHelper;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 
-class About {
+class About
+{
     public function about(Request $request, Response $response, array $args)
     {
 
         $bins = [];
 
         $pip_requirements = [];
-        $requirements_file = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'requirements.txt';
+        $requirements_file = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "requirements.txt";
         if (file_exists($requirements_file)) {
             $requirements_data = file_get_contents($requirements_file);
             $lines = explode("\n", $requirements_data);
@@ -62,10 +65,14 @@ class About {
             $bins['tcd']['installed'] = true;
 
             $version = trim(substr($bins['tcd']['status'], 23));
-            if (isset($pip_requirements) && isset($pip_requirements['tcd']) && version_compare($version, $pip_requirements['tcd']['version'], $pip_requirements['tcd']['comparator'])) {
-                $bins['tcd']['update'] = 'Version OK';
+            if (isset($pip_requirements) && isset($pip_requirements['tcd'])) {
+                if (version_compare($version, $pip_requirements['tcd']['version'], $pip_requirements['tcd']['comparator'])) {
+                    $bins['tcd']['update'] = 'Version OK';
+                } else {
+                    $bins['tcd']['update'] = 'Please update to at least ' . $pip_requirements['tcd']['version'];
+                }
             } else {
-                $bins['tcd']['update'] = 'Please update to at least ' . $pip_requirements['tcd']['version'];
+                $bins['tcd']['update'] = 'No version from requirements.txt';
             }
         } else {
             $bins['tcd']['status'] = 'Not installed.';
@@ -81,10 +88,14 @@ class About {
             $bins['streamlink']['installed'] = true;
 
             $version = trim(substr($bins['streamlink']['status'], 11));
-            if (isset($pip_requirements) && isset($pip_requirements['streamlink']) && version_compare($version, $pip_requirements['streamlink']['version'], $pip_requirements['streamlink']['comparator'])) {
-                $bins['streamlink']['update'] = 'Version OK';
+            if (isset($pip_requirements) && isset($pip_requirements['streamlink'])) {
+                if (version_compare($version, $pip_requirements['streamlink']['version'], $pip_requirements['streamlink']['comparator'])) {
+                    $bins['streamlink']['update'] = 'Version OK';
+                } else {
+                    $bins['streamlink']['update'] = 'Please update to at least ' . $pip_requirements['streamlink']['version'];
+                }
             } else {
-                $bins['streamlink']['update'] = 'Please update to at least ' . $pip_requirements['streamlink']['version'];
+                $bins['streamlink']['update'] = 'No version from requirements.txt';
             }
         } else {
             $bins['streamlink']['status'] = 'Not installed.';
@@ -176,6 +187,7 @@ class About {
 
         $data = [
             'bins' => $bins,
+            'pip' => $pip_requirements,
             'cron_lastrun' => $cron_lastrun,
             'is_docker' => getenv('TCD_DOCKER') == 1
             // 'envs' => TwitchConfig::cfg('debug') ? getenv() : null

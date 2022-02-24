@@ -39,7 +39,7 @@
                                 <a @click="logSetFilter(line.module)">{{ line.module }}</a>
                             </td>
                             <td>{{ line.level }}</td>
-                            <td>{{ line.text }}</td>
+                            <td @click="expandLog(lineIndex)">{{ line.text }}</td>
                         </tr>
                     </table>
                 </div>
@@ -541,6 +541,13 @@ export default defineComponent({
                 if (!lv) return;
                 lv.scrollTop = lv.scrollHeight;
             }, 100);
+        },
+        expandLog(lineNumber: number) {
+            if (!this.logLines[lineNumber]) return;
+            if (this.logLines[lineNumber].metadata) {
+                alert(JSON.stringify(this.logLines[lineNumber].metadata.toString(), null, 2));
+                console.log(this.logLines[lineNumber].metadata);
+            }
         },
     },
     computed: {

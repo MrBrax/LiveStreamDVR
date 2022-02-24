@@ -93,7 +93,7 @@
                             <strong>Size:</strong>
                             {{ formatBytes(vod?.segments[0].filesize) }}
                         </li>
-                        <template v-if="vod?.video_metadata_public">
+                        <template v-if="vod?.video_metadata_public && vod?.video_metadata_public.video && vod?.video_metadata_public.audio">
                             <li>
                                 <strong>Dimensions:</strong>
                                 {{ vod?.video_metadata_public.video.Width }}x{{ vod?.video_metadata_public.video.Height }}
