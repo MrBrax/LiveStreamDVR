@@ -1,5 +1,5 @@
 <?php
-
+declare(strict_types=1);
 namespace App\Controller\Api;
 
 use Slim\Psr7\Request;
@@ -82,7 +82,7 @@ class Channels
         }
 
         $channel_id = TwitchChannel::channelIdFromLogin($login);
-        
+
         if (!$channel_id) {
             $response->getBody()->write(json_encode([
                 "message" => "Streamer with the login '{$login}' doesn't seem to exist on Twitch.",
@@ -266,7 +266,7 @@ class Channels
         $login = isset($args['login']) ? $args['login'] : null;
 
         $streamer_data = TwitchConfig::getChannelByLogin($login);
-        
+
         if (!$streamer_data) {
             $response->getBody()->write(json_encode([
                 "message" => "Streamer with that login does not exist in config",
@@ -323,7 +323,5 @@ class Channels
         ]));
 
         return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
-        
     }
-
 }

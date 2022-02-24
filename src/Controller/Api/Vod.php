@@ -1,12 +1,10 @@
 <?php
-
-
-namespace App\Traits;
+declare(strict_types=1);
+namespace App\Controller\Api;
 
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 
-use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use App\TwitchConfig;
 use App\TwitchHelper;
@@ -14,7 +12,7 @@ use App\TwitchVOD;
 use App\TwitchAutomatorJob;
 use App\Exporters\YouTubeExporter;
 
-trait ApiVod
+class Vod
 {
 
     /**
@@ -186,10 +184,9 @@ trait ApiVod
                 ],
                 'status' => 'OK'
             ]);
+            $response->getBody()->write($payload);
+            return $response->withHeader('Content-Type', 'application/json');
         }
-
-        $response->getBody()->write($payload);
-        return $response->withHeader('Content-Type', 'application/json');
     }
 
     public function vod_delete(Request $request, Response $response, $args)
@@ -505,7 +502,6 @@ trait ApiVod
                 ]));
                 return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
             }
-            
         }
 
         if ($burn_chat) {
@@ -518,7 +514,6 @@ trait ApiVod
                 ]));
                 return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
             }
-            
         }
 
         $response->getBody()->write(json_encode([
@@ -529,6 +524,5 @@ trait ApiVod
             "status" => "OK"
         ]));
         return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
-
     }
 }

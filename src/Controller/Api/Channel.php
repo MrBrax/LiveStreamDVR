@@ -35,14 +35,14 @@ class Channel
 
     public function channel_force_record(Request $request, Response $response, $args)
     {
-        
+
         $channel_id = TwitchChannel::channelIdFromLogin($args['login']);
         $streams = TwitchHelper::getStreams($channel_id);
         if ($streams) {
             set_time_limit(0);
 
             $stream = $streams[0];
-            
+
             $fake_data = [
                 'subscription' => [
                     'id' => 'fake',
@@ -85,7 +85,6 @@ class Channel
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
         return $response;
-        
     }
 
     public function channel_dump_playlist(Request $request, Response $response, $args)

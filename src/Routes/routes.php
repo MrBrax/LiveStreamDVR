@@ -2,8 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Controller\Api\About;
 use App\Controller\Api\Channel;
 use App\Controller\Api\Channels;
+use App\Controller\Api\Hook;
+use App\Controller\Api\Jobs;
+use App\Controller\Api\Log;
+use App\Controller\Api\Vod;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 use Slim\Routing\RouteCollectorProxy;
@@ -19,18 +24,18 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
 
     // vod manipulation
     $group->group('/vod/{vod}', function (RouteCollectorProxy $group) {
-        $group->get('', ApiController::class . ':vod')->setName('api_vod');
-        $group->post('/search_chatdump', ApiController::class . ':vod_search_chatdump')->setName('api_vod_search_chatdump');
-        $group->post('/download_chat', ApiController::class . ':vod_download_chat')->setName('api_vod_download_chat');
-        $group->post('/download', ApiController::class . ':vod_download')->setName('api_vod_download');
-        $group->post('/check_mute', ApiController::class . ':vod_check_mute')->setName('api_vod_check_mute');
-        // $group->post('/full_burn', ApiController::class . ':vod_full_burn')->setName('api_vod_full_burn');
-        // $group->post('/render_chat', ApiController::class . ':vod_render_chat')->setName('api_vod_render_chat');
-        $group->post('/delete', ApiController::class . ':vod_delete')->setName('api_vod_delete');
-        $group->post('/save', ApiController::class . ':vod_save')->setName('api_vod_save');
-        // $group->post('/export', ApiController::class . ':vod_export')->setName('api_vod_export');
-        $group->post('/cut', ApiController::class . ':vod_cut')->setName('api_vod_cut');
-        $group->post('/renderwizard', ApiController::class . ':vod_renderwizard')->setName('api_vod_renderwizard');
+        $group->get('', Vod::class . ':vod')->setName('api_vod');
+        $group->post('/search_chatdump', Vod::class . ':vod_search_chatdump')->setName('api_vod_search_chatdump');
+        $group->post('/download_chat', Vod::class . ':vod_download_chat')->setName('api_vod_download_chat');
+        $group->post('/download', Vod::class . ':vod_download')->setName('api_vod_download');
+        $group->post('/check_mute', Vod::class . ':vod_check_mute')->setName('api_vod_check_mute');
+        // $group->post('/full_burn', Vod::class . ':vod_full_burn')->setName('api_vod_full_burn');
+        // $group->post('/render_chat', Vod::class . ':vod_render_chat')->setName('api_vod_render_chat');
+        $group->post('/delete', Vod::class . ':vod_delete')->setName('api_vod_delete');
+        $group->post('/save', Vod::class . ':vod_save')->setName('api_vod_save');
+        // $group->post('/export', Vod::class . ':vod_export')->setName('api_vod_export');
+        $group->post('/cut', Vod::class . ':vod_cut')->setName('api_vod_cut');
+        $group->post('/renderwizard', Vod::class . ':vod_renderwizard')->setName('api_vod_renderwizard');
     });
 
     // channels
@@ -55,9 +60,9 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
 
     // job manipulation
     $group->group('/jobs', function (RouteCollectorProxy $group) {
-        $group->get('', ApiController::class . ':jobs_list')->setName('api_jobs_list');
+        $group->get('', Jobs::class . ':jobs_list')->setName('api_jobs_list');
         $group->group('/{job}', function (RouteCollectorProxy $group) {
-            $group->delete('', ApiController::class . ':jobs_kill')->setName('api_jobs_kill');
+            $group->delete('', Jobs::class . ':jobs_kill')->setName('api_jobs_kill');
         });
     });
 
@@ -80,7 +85,7 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
 
     $group->get('/games', ApiController::class . ':games_list')->setName('api_games_list');
 
-    $group->get('/about', ApiController::class . ':about')->setName('api_about');
+    $group->get('/about', About::class . ':about')->setName('api_about');
 
     /** @todo: rename */
     $group->group('/tools', function (RouteCollectorProxy $group) {
@@ -105,9 +110,9 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
         // $group->get('/sub', CronController::class . ':sub')->setName('cron_sub');
     });
 
-    $group->any('/hook', ApiController::class . ':hook')->setName('hook');
+    $group->any('/hook', Hook::class . ':hook')->setName('hook');
 
-    $group->get('/log/{filename}[/{last_line}]', ApiController::class . ':display_log')->setName('api_display_log');
+    $group->get('/log/{filename}[/{last_line}]', Log::class . ':display_log')->setName('api_display_log');
 
     $group->any('/test_webhook', function (Request $request, Response $response, array $args) {
         TwitchHelper::webhook([
