@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace App\Controller\Api;
 
+use App\Controller\Helpers\StreamerList;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 
 use App\TwitchConfig;
 use App\TwitchHelper;
 use App\TwitchAutomatorJob;
-
+use App\TwitchPlaylistAutomator;
 use Symfony\Component\Process\Process;
 
 class Tools
 {
+
+	use StreamerList;
 
 	private $logs = [];
 
@@ -667,4 +670,70 @@ class Tools
 		]));
 		return $response->withHeader('Content-Type', 'application/json');
 	}
+
+	public function playlist_dump(Request $request, Response $response, $args)
+	{
+
+		$username = $args['username'];
+
+		$pa = new TwitchPlaylistAutomator();
+		$pa->setup($username, isset($_GET['quality']) ? $_GET['quality'] : 'best');
+
+		// $output = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . 'playlist' . DIRECTORY_SEPARATOR . $username . 'vod.ts';
+
+		$pa->output_file = $pa->getCacheFolder() . DIRECTORY_SEPARATOR . $pa->username . '-' . $pa->video_id . '.ts';
+
+		try {
+			$data = $pa->downloadLatest();
+		} catch (\Throwable $th) {
+			$response->getBody()->write(json_encode([
+				'error' => $th->getMessage(),
+				'status' => 'ERROR'
+			]));
+			return $response->withHeader('Content-Type', 'application/json');
+		}
+
+		$payload = json_encode([
+			'data' => $data,
+			'status' => 'OK'
+		]);
+		$response->getBody()->write($payload);
+		return $response->withHeader('Content-Type', 'application/json');
+	}
+
+	public function check_vods(Request $request, Response $response, $args)
+    {
+
+        list($streamerList, $total_size) = $this->generateStreamerList();
+
+        $data = [];
+
+        foreach ($streamerList as $streamer) {
+
+            foreach ($streamer->vods_list as $vod) {
+
+                $check = $vod->checkValidVod(true);
+
+                if ($vod->twitch_vod_id && !$check) {
+                    // notify
+                }
+
+                $data[] = [
+                    'basename' => $vod->basename,
+                    'finalized' => $vod->is_finalized,
+                    'vod_id' => $vod->twitch_vod_id,
+                    'exists' => $check,
+                    'deleted' => $vod->twitch_vod_id && !$check,
+                    'never_saved' => $vod->twitch_vod_neversaved
+                ];
+            }
+        }
+
+        $payload = json_encode([
+            'data' => $data,
+            'status' => 'OK'
+        ]);
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+    }
 }

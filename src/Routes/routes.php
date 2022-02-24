@@ -62,8 +62,6 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
         });
     });
 
-    $group->get('/check_vods', ApiController::class . ':check_vods')->setName('check_vods');
-
     // job manipulation
     $group->group('/jobs', function (RouteCollectorProxy $group) {
         $group->get('', Jobs::class . ':jobs_list')->setName('api_jobs_list');
@@ -98,6 +96,8 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
         $group->post('/fullvodburn', Tools::class . ':tools_fullvodburn')->setName('api_tools_fullvodburn');
         $group->post('/voddownload', Tools::class . ':tools_voddownload')->setName('api_tools_voddownload');
         $group->post('/chatdownload', Tools::class . ':tools_chatdownload')->setName('api_tools_chatdownload');
+        $group->get('/playlist_dump/{username}', Tools::class . ':playlist_dump')->setName('api_tools_playlist_dump');
+        $group->get('/check_vods', Tools::class . ':check_vods')->setName('api_tools_check_vods');
     });
 
     $group->group('/subscriptions', function (RouteCollectorProxy $group) {
