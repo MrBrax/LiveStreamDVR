@@ -1,19 +1,19 @@
 <?php
 
-namespace App\Traits;
+namespace App\Controller\Api;
 
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 
-use Symfony\Component\Process\Exception\ProcessFailedException;
-use Symfony\Component\Process\Process;
 use App\TwitchConfig;
 use App\TwitchHelper;
-use App\TwitchVOD;
 use App\TwitchChannel;
+use App\Controller\Helpers\StreamerList;
 
-trait ApiChannels
+class Channels
 {
+
+    use StreamerList;
 
     /**
      * GET /api/v0/channels

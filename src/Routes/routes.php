@@ -2,16 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Controller\Api\Channel;
+use App\Controller\Api\Channels;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 use Slim\Routing\RouteCollectorProxy;
 
-use App\Controller\HookController;
-use App\Controller\SubController;
 use App\Controller\ApiController;
 use App\Controller\CronController;
-use App\TwitchChannel;
-use App\TwitchConfig;
 use App\TwitchHelper;
 
 /** @var \Slim\App $app  */
@@ -38,18 +36,18 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
     // channels
     $group->group('/channels', function (RouteCollectorProxy $group) {
 
-        $group->get('', ApiController::class . ':channels_list')->setName('api_channels_list');
-        $group->post('', ApiController::class . ':channels_add')->setName('api_channels_add');
+        $group->get('', Channels::class . ':channels_list')->setName('api_channels_list');
+        $group->post('', Channels::class . ':channels_add')->setName('api_channels_add');
 
         // channel
         $group->group('/{login}', function (RouteCollectorProxy $group) {
-            $group->get('', ApiController::class . ':channel')->setName('api_channel');
-            $group->put('', ApiController::class . ':channels_update')->setName('api_channels_update');
-            $group->delete('', ApiController::class . ':channels_delete')->setName('api_channels_delete');
+            $group->get('', Channel::class . ':channel')->setName('api_channel');
+            $group->put('', Channel::class . ':channels_update')->setName('api_channels_update');
+            $group->delete('', Channel::class . ':channels_delete')->setName('api_channels_delete');
 
-            $group->get('/force_record', ApiController::class . ':channel_force_record')->setName('api_channel_force_record');
-            $group->get('/dump_playlist', ApiController::class . ':channel_dump_playlist')->setName('api_channel_dump_playlist');
-            $group->get('/subscription', ApiController::class . ':channel_subscription')->setName('api_channel_subscription');
+            $group->get('/force_record', Channel::class . ':channel_force_record')->setName('api_channel_force_record');
+            $group->get('/dump_playlist', Channel::class . ':channel_dump_playlist')->setName('api_channel_dump_playlist');
+            $group->get('/subscription', Channel::class . ':channel_subscription')->setName('api_channel_subscription');
         });
     });
 

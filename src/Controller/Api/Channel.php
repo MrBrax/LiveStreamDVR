@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Traits;
+namespace App\Controller\Api;
 
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
@@ -15,7 +15,7 @@ use App\TwitchChannel;
 use App\TwitchAutomator;
 use App\TwitchPlaylistAutomator;
 
-trait ApiChannel
+class Channel
 {
 
     public function channel(Request $request, Response $response, $args)

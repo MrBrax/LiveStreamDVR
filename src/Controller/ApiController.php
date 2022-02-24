@@ -31,13 +31,12 @@ class ApiController
 
     use ApiVod;
 
-    use ApiChannels;
-    use ApiChannel;
-
     use ApiSettings;
     use ApiFavourites;
     use ApiTools;
     use ApiSubs;
+
+    use Helpers\StreamerList;
 
     /**
      * @var Twig
@@ -50,38 +49,6 @@ class ApiController
         $this->twig = $twig;
     }
     */
-
-    private function generateStreamerList()
-    {
-
-        $total_size = 0;
-
-        // $streamerListStatic = TwitchConfig::getStreamers();
-        // $streamerList = [];
-
-        /*
-        usort( $streamerListStatic, function($a, $b){
-            return $a->display_name <=> $b->display_name;
-        });
-        */
-
-        $channels = TwitchConfig::getChannels();
-
-        if (count($channels) == 0) {
-            TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "api", "No channels in channel list");
-        }
-
-        foreach ($channels as $channel) {
-
-            // $data = new TwitchChannel();
-            // $data->load($streamer['username'], true);
-
-            $total_size += $channel->vods_size;
-
-            // $streamerList[] = $data;
-        }
-        return [$channels, $total_size];
-    }
 
     public function jobs_list(Request $request, Response $response, $args)
     {
