@@ -169,6 +169,11 @@ select.input {
 
     // text-shadow: 0 1px 2px rgba(0,0,0,.2);
 
+    .icon {
+        margin-right: 0.2em;
+        margin-left: -0.5em;
+    }
+
     &:hover {
         cursor: pointer;
         color: #111;
@@ -186,6 +191,10 @@ select.input {
         min-width: 70px;
         font-size: 0.9em;
         padding: 3px 6px;
+        .icon {
+            margin-right: 0.2em;
+            margin-left: 0em;
+        }
     }
 
     &.is-blue {
@@ -225,10 +234,6 @@ select.input {
         }
     }
 
-    .icon {
-        margin-right: 0.2em;
-        margin-left: -0.5em;
-    }
 }
 
 .icon-button {

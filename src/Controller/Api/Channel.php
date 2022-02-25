@@ -134,4 +134,56 @@ class Channel
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
+
+    public function channel_download_video(Request $request, Response $response, $args)
+    {
+        $login = (string)$args['login'];
+        $video_id = (int)$args['video_id'];
+        $channel = TwitchChannel::loadFromLogin($login);
+
+        if ($channel->hasVod($video_id)) {
+            $response->getBody()->write(json_encode([
+                "message" => "VOD {$video_id} already downloaded.",
+                "status" => "ERROR"
+            ]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+
+        $video = TwitchHelper::getVideo($video_id);
+        $basename = $channel->login . "_" . str_replace(':', '_', $video['created_at']) . "_" . $video['stream_id'];
+
+        $status = $channel->downloadVod($video_id);
+
+        if ($status) {
+            $vodclass = new TwitchVOD();
+            $vodclass->create(TwitchHelper::vodFolder($channel->login) . DIRECTORY_SEPARATOR . $basename . ".json");
+            $vodclass->meta = $video;
+            $vodclass->streamer_name = $channel->display_name;
+		    $vodclass->streamer_login = $channel->login;
+		    $vodclass->streamer_id = $channel->userid;
+		    $vodclass->dt_started_at = \DateTime::createFromFormat(TwitchHelper::DATE_FORMAT, $video['created_at']);
+
+            $duration = TwitchHelper::parseTwitchDuration($video['duration']);
+            $vodclass->dt_ended_at = \DateTime::createFromFormat(TwitchHelper::DATE_FORMAT, $video['created_at'])->add(new \DateInterval("PT{$duration}S"));
+            $vodclass->saveJSON("manual creation");
+            $vodclass = $vodclass->refreshJSON(true);
+
+            $vodclass->addSegment($status);
+            $vodclass->finalize();
+            $vodclass->saveJSON("manual finalize");
+
+            TwitchHelper::webhook([
+                'action' => 'end_download',
+                'vod' => $vodclass
+            ]);
+        }
+
+        $payload = json_encode([
+            'data' => $status,
+            'status' => $status ? 'OK' : 'ERROR'
+        ]);
+
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+    }
 }

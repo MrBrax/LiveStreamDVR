@@ -114,7 +114,7 @@ trait SoftwareWrappers
 
 			return $data;
 		} else {
-
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "mediainfo", "No output from mediainfo for {$filename}");
 			return false;
 		}
 	}

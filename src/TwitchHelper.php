@@ -579,16 +579,21 @@ class TwitchHelper
 	 */
 	public static function parseTwitchDuration(string $text)
 	{
-
+		
 		preg_match('/([0-9]+)h/', $text, $hours_match);
 		preg_match('/([0-9]+)m/', $text, $minutes_match);
 		preg_match('/([0-9]+)s/', $text, $seconds_match);
 
+		if (!$hours_match && !$minutes_match && !$seconds_match) {
+			throw new \ValueError("Invalid duration format: {$text}");
+			return;
+		}
+
 		$total_seconds = 0;
 
-		if ($seconds_match[1]) $total_seconds += $seconds_match[1];
-		if ($minutes_match[1]) $total_seconds += $minutes_match[1] * 60;
-		if ($hours_match[1]) $total_seconds += $hours_match[1] * 60 * 60;
+		if (count($seconds_match) > 0 && $seconds_match[1]) $total_seconds += $seconds_match[1];
+		if (count($minutes_match) > 0 && $minutes_match[1]) $total_seconds += $minutes_match[1] * 60;
+		if (count($hours_match) > 0 && $hours_match[1]) $total_seconds += $hours_match[1] * 60 * 60;
 
 		return $total_seconds;
 	}

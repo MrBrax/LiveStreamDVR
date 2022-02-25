@@ -60,6 +60,8 @@ $app->group('/api/v0', function (RouteCollectorProxy $group) {
             $group->get('/force_record', Channel::class . ':channel_force_record')->setName('api_channel_force_record');
             $group->get('/dump_playlist', Channel::class . ':channel_dump_playlist')->setName('api_channel_dump_playlist');
             $group->get('/subscription', Channel::class . ':channel_subscription')->setName('api_channel_subscription');
+
+            $group->get('/download/{video_id}', Channel::class . ':channel_download_video')->setName('api_channel_download_video');
         });
     });
 

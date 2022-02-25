@@ -35,6 +35,11 @@ class TwitchVOD
 	public ?string $streamer_login = null;
 
 	public array $segments = [];
+
+	/**
+	 * An array of strings containing the file paths of the segments.
+	 * @var string[]
+	 * */
 	public array $segments_raw = [];
 
 	/**
@@ -171,6 +176,7 @@ class TwitchVOD
 		$vod->filename = $vod->realpath($filename);
 		$vod->basename = basename($filename, '.json');
 		$vod->directory = dirname($filename);
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Calculated directory {$vod->directory}");
 
 		$vod->meta = $vod->json['meta'];
 
@@ -384,7 +390,7 @@ class TwitchVOD
 	 */
 	public function create(string $filename)
 	{
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Create VOD JSON: " . basename($filename));
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Create VOD JSON: " . basename($filename) . " @ " . dirname($filename));
 		$this->created = true;
 		$this->filename = $filename;
 		$this->basename = basename($filename, '.json');
@@ -405,7 +411,7 @@ class TwitchVOD
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Can't refresh vod, not found!");
 			return false;
 		}
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Refreshing JSON on {$this->basename}!");
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Refreshing JSON on {$this->basename} ({$this->filename}) @ {$this->directory}!");
 		// $this->load($this->filename);
 		return static::load($this->filename, $api);
 	}
@@ -520,7 +526,7 @@ class TwitchVOD
 	public function getMediainfo($segment_num = 0)
 	{
 
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Fetching mediainfo of {$this->basename}");
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Fetching mediainfo of {$this->basename}, segment #{$segment_num}");
 
 		if (!isset($this->segments_raw) || count($this->segments_raw) == 0) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "No segments available for mediainfo of {$this->basename}");
@@ -530,7 +536,7 @@ class TwitchVOD
 		$filename = $this->directory . DIRECTORY_SEPARATOR . basename($this->segments_raw[$segment_num]);
 
 		if (!file_exists($filename)) {
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "No file available for mediainfo of {$this->basename}");
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "File does not exist for mediainfo of {$this->basename} ({$filename} @ {$this->directory})");
 			return false;
 		}
 
@@ -1355,7 +1361,7 @@ class TwitchVOD
 
 	public function addSegment($data)
 	{
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Adding segment to {$this->basename}: " . basename($data));
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Adding segment to {$this->basename}: " . $data);
 		$this->segments_raw[] = basename($data);
 	}
 
@@ -1367,7 +1373,7 @@ class TwitchVOD
 
 	public function addAdvertisement($data)
 	{
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Adding advertisement to {$this->basename}: " . basename($data));
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Adding advertisement to {$this->basename}: " . $data);
 		$this->ads[] = $data;
 	}
 
@@ -1617,7 +1623,9 @@ class TwitchVOD
 	public function saveLosslessCut()
 	{
 
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Saving lossless cut csv for {$this->basename}");
+		$csv_path = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv';
+
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Saving lossless cut csv for {$this->basename} to {$csv_path}");
 
 		$data = "";
 
@@ -1639,7 +1647,7 @@ class TwitchVOD
 			$data .= "\n";
 		}
 
-		file_put_contents($this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', $data);
+		file_put_contents($csv_path, $data);
 		$this->setPermissions();
 	}
 
@@ -1993,9 +2001,9 @@ class TwitchVOD
 
 	public function finalize()
 	{
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Finalize {$this->basename}");
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Finalize {$this->basename} @ {$this->directory}");
 
-		if (file_exists($this->path_playlist)) {
+		if ($this->path_playlist && file_exists($this->path_playlist)) {
 			unlink($this->path_playlist);
 		}
 

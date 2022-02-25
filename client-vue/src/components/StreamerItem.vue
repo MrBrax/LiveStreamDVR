@@ -47,6 +47,10 @@
                         <button class="icon-button" @click="playlistRecord" title="Playlist record">
                             <span class="icon"><fa icon="play-circle"></fa></span>
                         </button>
+
+                        <button class="icon-button" @click="videoDownloadMenu ? (videoDownloadMenu.show = true) : ''" title="Video download">
+                            <span class="icon"><fa icon="download"></fa></span>
+                        </button>
                     </span>
                 </span>
             </div>
@@ -57,25 +61,53 @@
         <div v-else>
             <vod-item v-for="vod in streamer.vods_list" :key="vod.basename" v-bind:vod="vod" @refresh="refresh" />
         </div>
+        <modal-box ref="videoDownloadMenu" title="Video download">
+            <div class="video-download-menu">
+                <button class="button is-confirm" @click="fetchTwitchVods">
+                    <span class="icon"><fa icon="download"></fa></span> Fetch vod list
+                </button>
+                <hr />
+                <div class="video-download-menu-item" v-for="vod in twitchVods" :key="vod.id">
+                    <h2>
+                        <a :href="vod.url" rel="nofollow" target="_blank">{{ vod.created_at }}</a>
+                    </h2>
+                    <img :src="imageUrl(vod.thumbnail_url, 320, 240)" /><br />
+                    <p>{{ vod.title }}</p>
+                    {{ vod.duration }}, {{ formatNumber(vod.view_count, 0) }} views<br /><br />
+                    <button class="button is-small is-confirm" @click="downloadVideo(vod.id.toString())">
+                        <span class="icon"><fa icon="download"></fa></span> Download
+                    </button>
+                </div>
+            </div>
+        </modal-box>
     </div>
     <div v-else>Invalid streamer</div>
 </template>
 
 <script lang="ts">
 import type { ApiChannel } from "@/twitchautomator.d";
-import { defineComponent } from "vue";
+// import { TwitchAPI.Video } from "@/twitchapi.d";
+import { defineComponent, ref } from "vue";
 import VodItem from "@/components/VodItem.vue";
-// import { AxiosError } from "axios";
+import ModalBox from "@/components/ModalBox.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faVideo, faPlayCircle, faVideoSlash } from "@fortawesome/free-solid-svg-icons";
-library.add(faVideo, faPlayCircle, faVideoSlash);
+import { faVideo, faPlayCircle, faVideoSlash, faDownload } from "@fortawesome/free-solid-svg-icons";
+import { TwitchAPI } from "@/twitchapi";
+library.add(faVideo, faPlayCircle, faVideoSlash, faDownload);
 
 export default defineComponent({
     name: "StreamerItem",
     emits: ["refresh"],
     props: {
         streamer: Object as () => ApiChannel,
+    },
+    data: () => ({
+        twitchVods: [] as TwitchAPI.Video[],
+    }),
+    setup() {
+        const videoDownloadMenu = ref<InstanceType<typeof ModalBox>>();
+        return { videoDownloadMenu };
     },
     methods: {
         refresh() {
@@ -162,6 +194,59 @@ export default defineComponent({
 
             console.log("Killed", data);
         },
+        async fetchTwitchVods() {
+            if (!this.streamer) return;
+            let response;
+
+            try {
+                response = await this.$http.get(`/api/v0/twitchapi/videos/${this.streamer.login}`);
+            } catch (error) {
+                if (this.$http.isAxiosError(error)) {
+                    console.error("fetchTwitchVods error", error.response);
+                    if (error.response && error.response.data && error.response.data.message) {
+                        alert(error.response.data.message);
+                    }
+                }
+                return;
+            }
+
+            const data = response.data;
+
+            if (data.message) {
+                alert(data.message);
+            }
+
+            console.log("Fetched", data);
+            this.twitchVods = data.data;
+        },
+        async downloadVideo(id: string) {
+            if (!this.streamer) return;
+
+            let response;
+
+            try {
+                response = await this.$http.get(`/api/v0/channels/${this.streamer.login}/download/${id}`);
+            } catch (error) {
+                if (this.$http.isAxiosError(error)) {
+                    console.error("downloadVideo error", error.response);
+                    if (error.response && error.response.data && error.response.data.message) {
+                        alert(error.response.data.message);
+                    }
+                }
+                return;
+            }
+
+            const data = response.data;
+
+            if (data.message) {
+                alert(data.message);
+            }
+
+            console.log("Downloaded", data);
+        },
+        imageUrl(url: string, width: number, height: number) {
+            return url.replace(/%\{width\}/g, width.toString()).replace(/%\{height\}/g, height.toString());
+        },
     },
     computed: {
         quality(): string | undefined {
@@ -170,6 +255,17 @@ export default defineComponent({
     },
     components: {
         VodItem,
+        ModalBox,
     },
 });
 </script>
+
+<style lang="scss" scoped>
+.video-download-menu-item {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 1em;
+    &:not(:last-child) {
+        margin-bottom: 1em;
+    }
+}
+</style>
