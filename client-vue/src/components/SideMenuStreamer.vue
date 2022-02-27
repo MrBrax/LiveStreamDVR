@@ -5,6 +5,7 @@
             'is-live': streamer.is_live,
             'is-animated': store.clientConfig.animationsEnabled,
             'is-active': $route.query.channel == streamer.login,
+            'is-converting': streamer.is_converting,
             streamer: true,
         }"
         :data-streamer="streamer.login"

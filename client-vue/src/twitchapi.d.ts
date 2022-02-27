@@ -16,7 +16,7 @@ export declare namespace TwitchAPI {
         language: string;
         type: string;
         duration: string;
-        muted_segments: [
+        muted_segments?: [
             {
                 duration: number;
                 offset: number;

@@ -1659,7 +1659,7 @@ class TwitchVOD
 		$string .= "#EXT-X-TARGETDURATION:{$this->getDurationLive()}\n";
 		$string .= "#EXTINF:" . $this->getDurationLive() . "\n";
 		// $string .= "{$this->basename}.ts\n";
-		$string .= "{$this->webpath}/{$this->basename}.ts\n";
+		$string .= TwitchConfig::cfg("app_url") . "/{$this->webpath}/{$this->basename}.ts\n";
 		$string .= "#EXT-X-ENDLIST\n";
 
 		file_put_contents($this->path_playlist, $string);

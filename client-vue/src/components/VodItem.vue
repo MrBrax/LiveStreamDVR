@@ -425,7 +425,7 @@
                         :key="chapterIndex"
                         :class="{
                             favourite: store.config && store.config.favourites[chapter.game_id],
-                            current: chapterIndex === vod.chapters.length - 1,
+                            current: chapterIndex === vod.chapters.length - 1 && vod.is_capturing,
                         }"
                     >
                         <!-- start timestamp -->

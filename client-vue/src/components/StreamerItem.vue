@@ -69,11 +69,18 @@
                 <hr />
                 <div class="video-download-menu-item" v-for="vod in twitchVods" :key="vod.id">
                     <h2>
-                        <a :href="vod.url" rel="nofollow" target="_blank">{{ vod.created_at }}</a>
+                        <a :href="vod.url" rel="nofollow" target="_blank">{{ vod.created_at }}</a> ({{ vod.type }})
                     </h2>
                     <img :src="imageUrl(vod.thumbnail_url, 320, 240)" /><br />
                     <p>{{ vod.title }}</p>
-                    {{ vod.duration }}, {{ formatNumber(vod.view_count, 0) }} views<br /><br />
+                    <ul>
+                        <li>{{ vod.duration }}</li>
+                        <li>{{ formatNumber(vod.view_count, 0) }} views</li>
+                        <li v-if="vod.muted_segments && vod.muted_segments.length > 0">
+                            <span class="is-error">Muted segments: {{ vod.muted_segments.length }}</span>
+                        </li>
+                    </ul>
+                    <br />
                     <button class="button is-small is-confirm" @click="downloadVideo(vod.id.toString())">
                         <span class="icon"><fa icon="download"></fa></span> Download
                     </button>
