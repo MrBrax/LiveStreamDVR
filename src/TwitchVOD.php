@@ -1654,12 +1654,15 @@ class TwitchVOD
 	public function generatePlaylistFile()
 	{
 
+		$url = parse_url(TwitchConfig::cfg("app_url"));
+		$base = $url['scheme'] . '://' . $url['host'];
+
 		$string = "";
 		$string .= "#EXTM3U\n";
 		$string .= "#EXT-X-TARGETDURATION:{$this->getDurationLive()}\n";
 		$string .= "#EXTINF:" . $this->getDurationLive() . "\n";
 		// $string .= "{$this->basename}.ts\n";
-		$string .= TwitchConfig::cfg("app_url") . "/{$this->webpath}/{$this->basename}.ts\n";
+		$string .= "{$base}{$this->webpath}/{$this->basename}.ts\n";
 		$string .= "#EXT-X-ENDLIST\n";
 
 		file_put_contents($this->path_playlist, $string);
