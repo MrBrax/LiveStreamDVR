@@ -567,6 +567,7 @@ class TwitchVOD
 			"general.Duration",
 			"general.Duration_String",
 			"general.FileSize",
+			"general.OverallBitRate",
 
 			"video.BitRate",
 			"video.Width",

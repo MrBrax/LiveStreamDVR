@@ -63,6 +63,11 @@
         </div>
         <modal-box ref="videoDownloadMenu" title="Video download">
             <div class="video-download-menu">
+                <p>
+                    Videos downloaded with this tool will be cleaned up the same way as captured vods do when a stream is finished.<br />
+                    They are treated the same way as captured vods in its entirety.<br />
+                    Average bitrate: {{ averageVodBitrate / 1000 }} kbps<br />
+                </p>
                 <button class="button is-confirm" @click="fetchTwitchVods">
                     <span class="icon"><fa icon="download"></fa></span> Fetch vod list
                 </button>
@@ -74,11 +79,12 @@
                     <img :src="imageUrl(vod.thumbnail_url, 320, 240)" /><br />
                     <p>{{ vod.title }}</p>
                     <ul>
-                        <li>{{ vod.duration }}</li>
+                        <li>{{ vod.duration }} ({{ parseTwitchDuration(vod.duration) }})</li>
                         <li>{{ formatNumber(vod.view_count, 0) }} views</li>
                         <li v-if="vod.muted_segments && vod.muted_segments.length > 0">
                             <span class="is-error">Muted segments: {{ vod.muted_segments.length }}</span>
                         </li>
+                        <li>Estimated size: {{ formatBytes(((averageVodBitrate || 6000000) / 10) * parseTwitchDuration(vod.duration)) }}</li>
                     </ul>
                     <br />
                     <button class="button is-small is-confirm" @click="downloadVideo(vod.id.toString())">
@@ -258,6 +264,12 @@ export default defineComponent({
     computed: {
         quality(): string | undefined {
             return this.streamer?.quality.join(", ");
+        },
+        averageVodBitrate(): number | undefined {
+            if (!this.streamer) return;
+            const vods = this.streamer.vods_list;
+            const total = vods.reduce((acc, vod) => acc + parseInt(vod.video_metadata_public.general.OverallBitRate), 0);
+            return total / vods.length;
         },
     },
     components: {

@@ -108,6 +108,10 @@
                                 }}
                             </li>
                             <li>
+                                <strong>Total:</strong>
+                                {{ Math.round(parseInt(vod?.video_metadata_public.general.OverallBitRate) / 1000) }}kbps
+                            </li>
+                            <li>
                                 <strong>Video:</strong>
                                 {{ vod?.video_metadata_public.video.Format }}
                                 {{ vod?.video_metadata_public.video.BitRate_Mode }}

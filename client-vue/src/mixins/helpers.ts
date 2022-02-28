@@ -60,12 +60,36 @@ export default {
             // return trim(str_replace(" ", "", self::getNiceDuration($seconds)));
         },
         formatNumber(num: number, decimals = 0) {
-            return num.toLocaleString("us", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+            return num.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
         },
         humanDate(date: string, suffix = false) {
             // const o = parse(date, dateFormat, new Date());
             const o = parseJSON(date);
             return formatDistance(o, new Date(), { addSuffix: suffix });
+        },
+        parseTwitchDuration(duration: string) {
+            const regex = /(\d+)([hdms])/g;
+            let match;
+            let total = 0;
+            while ((match = regex.exec(duration)) !== null) {
+                const amount = parseInt(match[1]);
+                const unit = match[2];
+                switch (unit) {
+                    case "h":
+                        total += amount * 3600;
+                        break;
+                    case "d":
+                        total += amount * 86400;
+                        break;
+                    case "m":
+                        total += amount * 60;
+                        break;
+                    case "s":
+                        total += amount;
+                        break;
+                }
+            }
+            return total;
         },
         // sortObject(game: Record<string, any>, value: string) {
         //     return Object.entries(game).sort((a, b) => {
@@ -90,6 +114,7 @@ declare module "@vue/runtime-core" {
         twitchDuration: (seconds: number) => string;
         formatNumber: (num: number, decimals?: number) => string;
         humanDate: (date: string, suffix?: boolean) => string;
+        parseTwitchDuration: (duration: string) => number;
         // sortObject: (game: Record<string, any>, value: string) => any;
     }
 }
