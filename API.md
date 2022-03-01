@@ -49,12 +49,28 @@ List all channels and their vods
 
 ### `POST /api/v0/channels`
 Add channel
+| Key           | Type    | Description   |
+|---------------|---------|---------------|
+| login         | string  | Channel login |
+| quality       | string  | Quality       |
+| match         | string  | Keyword match |
+| download_chat | boolean | Download chat |
+| burn_chat     | boolean | Burn chat     |
+| no_capture    | boolean | Don't capture |
 
 ### `GET /api/v0/channels/{login}`
 Get information on the channel itself
 
 ### `PUT /api/v0/channels/{login}`
 Modify channel
+| Key           | Type    | Description   |
+|---------------|---------|---------------|
+| login         | string  | Channel login |
+| quality       | string  | Quality       |
+| match         | string  | Keyword match |
+| download_chat | boolean | Download chat |
+| burn_chat     | boolean | Burn chat     |
+| no_capture    | boolean | Don't capture |
 
 ### `DELETE /api/v0/channels/{login}`
 Delete channel

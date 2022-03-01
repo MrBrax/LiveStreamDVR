@@ -66,7 +66,7 @@
                 <p>
                     Videos downloaded with this tool will be cleaned up the same way as captured vods do when a stream is finished.<br />
                     They are treated the same way as captured vods in its entirety.<br />
-                    Average bitrate: {{ averageVodBitrate / 1000 }} kbps<br />
+                    <span v-if="averageVodBitrate">Average bitrate: {{ averageVodBitrate / 1000 }} kbps</span>
                 </p>
                 <button class="button is-confirm" @click="fetchTwitchVods">
                     <span class="icon"><fa icon="download"></fa></span> Fetch vod list
