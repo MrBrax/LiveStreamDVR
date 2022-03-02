@@ -1,0 +1,20 @@
+import { SettingField, TwitchConfig } from "../TwitchConfig";
+import express from 'express';
+
+export function GetSettings(req: express.Request, res: express.Response): void {
+
+    // flatten settings fields to key value pairs
+    const fields = TwitchConfig.settingsFields.reduce((acc: Record<string, SettingField>, cur) => {
+        acc[cur.key] = cur;
+        return acc;
+    }, {});
+
+    res.send({
+        data: {
+            config: TwitchConfig.config,
+            channels: TwitchConfig.channels_config,
+            fields: fields
+        },
+        status: "OK",
+    });
+};

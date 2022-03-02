@@ -1,13 +1,49 @@
+import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
+import { TwitchChannel } from './TwitchChannel';
+import { LOGLEVEL, TwitchHelper } from './TwitchHelper';
+
+export interface SettingField {
+	key: string;
+	group: string;
+	text: string;
+	type: string;
+	default?: any;
+	choices?: any[];
+	help?: string;
+	required?: boolean;
+	stripslash?: boolean;
+	secret?: boolean;
+}
+
+export type VideoQuality = "best" | "1080p60" | "1080p" | "720p60" | "720p" | "480p" | "360p" | "160p" | "140p" | "worst";
+
+export interface ChannelConfig {
+	login: string;
+	quality: VideoQuality[];
+	match: string[];
+	download_chat: boolean;
+	burn_chat: boolean;
+	no_capture: boolean;
+}
 
 export class TwitchConfig {
     
     static config: Record<string, any>;
+	static channels_config: ChannelConfig[] = [];
 
-    static configFile = path.join(__dirname, '..', '..', 'config', 'config.json');
+	static channels: TwitchChannel[] = [];
 
-    static settingsFields = [
+    static configPath 			= path.join(__dirname, '..', '..', 'config', 'config.json');
+	static channelPath 			= path.join(__dirname, '..', '..', 'config', 'channels.json');
+	static gameDbPath 			= path.join(__dirname, "..", '..', "cache" , "games_v2.json");
+	static historyPath 			= path.join(__dirname, "..", '..', "cache" , "history.json");
+	static streamerCachePath 	= path.join(__dirname, "..", '..', "cache" , "streamers_v2.json");
+
+	static streamerCacheTime 	= 2592000; // 30 days
+
+    static settingsFields: SettingField[] = [
 		{'key': 'bin_dir', 				'group': 'Binaries',	'text': 'Python binary directory', 						'type': 'string',		'required': true, 'help': 'No trailing slash', 'stripslash': true},
 		{'key': 'ffmpeg_path', 			'group': 'Binaries',	'text': 'FFmpeg path', 									'type': 'string',		'required': true},
 		{'key': 'mediainfo_path', 		'group': 'Binaries',	'text': 'Mediainfo path', 								'type': 'string',		'required': true},
@@ -45,7 +81,7 @@ export class TwitchConfig {
 		{'key': 'api_secret', 			    'group': 'Basic',		'text': 'Twitch secret', 									'type': 'string',		'secret': true, 'required': true, 'help': 'Keep blank to not change'},
 
 		// { 'key': 'hook_callback', 		'text': 'Hook callback', 									'type': 'string', 'required': true },
-		{'key': 'timezone', 				'group': 'Interface',	'text': 'Timezone', 										'type': 'array',		'choices': 'timezones', 'default': 'UTC', 'help': 'This only affects the GUI, not the values stored', 'deprecated': true},
+		// {'key': 'timezone', 				'group': 'Interface',	'text': 'Timezone', 										'type': 'array',		'default': 'UTC', 'help': 'This only affects the GUI, not the values stored', 'deprecated': true},
 
 		{'key': 'vod_container', 			'group': 'Video',		'text': 'VOD container (not tested)', 					    'type': 'array',		'choices': ['mp4', 'mkv', 'mov'], 'default': 'mp4'},
 
@@ -90,17 +126,38 @@ export class TwitchConfig {
         // this.loadConfig();
     }
 
+	static cfg<T>(key: string, defaultValue?: T): T {
+
+		// return from env if set
+		if (process.env[key]) {
+			return process.env[key] as unknown as T;
+		}
+
+		// return default value if not set
+		if(this.config[key] === undefined) {
+			if (defaultValue !== undefined) {
+				return defaultValue;
+			} else {
+				return undefined as unknown as T;
+			}
+		}
+
+		return this.config[key];
+	}
+
     static loadConfig() {
+
         console.log('Loading config');
-        if (!fs.existsSync(TwitchConfig.configFile)) {
+
+        if (!fs.existsSync(this.configPath)) {
             console.log('Config file not found, creating new one');
-            // throw new Error("Config file does not exist: " + TwitchConfig.configFile);
+            // throw new Error("Config file does not exist: " + this.configFile);
             this.generateConfig();
         }
 
-        const data = fs.readFileSync(TwitchConfig.configFile, 'utf8');
+        const data = fs.readFileSync(this.configPath, 'utf8');
 
-        TwitchConfig.config = JSON.parse(data);        
+        this.config = JSON.parse(data);        
 
     }
 
@@ -109,20 +166,149 @@ export class TwitchConfig {
         console.log('Generating config');
 
         let example: Record<string, any> = {};
-		for (let field of TwitchConfig.settingsFields) {
+		for (let field of this.settingsFields) {
 			example[field['key']] = field['default'] ? field['default'] : null;
 		}
 		example['favourites'] = [];
 		example['streamers'] = [];
 
-		TwitchConfig.config = example;
-		TwitchConfig.saveConfig();
+		this.config = example;
+		this.saveConfig();
 
     }
 
-    static saveConfig() {
-        fs.writeFileSync(TwitchConfig.configFile, JSON.stringify(TwitchConfig.config, null, 4));
+	static settingExists(key: string): boolean {
+		return this.getSettingField(key) !== undefined;
+	}
+
+	static getSettingField(key: string): any {
+		return this.settingsFields.find(field => field['key'] === key);
+	}
+
+	static setConfig(key: string, value: any) {
+		
+		if (!this.settingExists(key)) {
+			throw new Error("Setting does not exist: " + key);
+		}
+
+		const setting = this.getSettingField(key);
+
+		// remove ending slash
+		if (setting.stripslash) {
+			value = value.replace(/\/$/, '');
+		}
+
+		// check type
+		if (setting.type === 'number') {
+			value = parseInt(value);
+		} else if (setting.type === 'boolean') {
+			value = value === true;
+		}
+
+		this.config[key] = value;
+		// TwitchConfig.saveConfig();
+	}
+
+	static saveConfig(source = 'unknown') {
+
+		// back up config
+		fs.copyFileSync(this.configPath, this.configPath + '.bak');
+		
+		// save
+		fs.writeFileSync(this.configPath, JSON.stringify(this.config, null, 4));
+
+		console.log(`Saved config from ${source}`);
     }
+
+	static loadChannelsConfig()
+	{
+		if (!fs.existsSync(this.channelPath)) {
+			return false;
+		}
+
+		const data = fs.readFileSync(this.channelPath, 'utf8');
+		this.channels_config = JSON.parse(data);
+	}
+
+	static async loadChannels()
+	{
+		if (this.channels_config.length > 0) {
+			for(let channel of this.channels_config) {
+				
+				let ch: TwitchChannel;
+				
+				try {
+					ch = await TwitchChannel.loadFromLogin(channel.login, true);
+				} catch (th) {
+					TwitchHelper.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be loaded due to an exception, please check logs.`);
+					continue;
+				}
+				
+				if (ch) {
+					this.channels.push(ch);
+				} else {
+					TwitchHelper.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be loaded, please check logs.`);
+				}
+			}
+		}
+	}
+
+	// todo: redis or something
+	static getCache(key: string)
+	{
+		/*
+		$key = str_replace("/", "", $key);
+		if (!file_exists(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key)) return false;
+		return file_get_contents(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key);
+		*/
+
+		key = key.replace(/\//g, '');
+
+		const keyPath = path.join(TwitchHelper.cache_folder, 'kv', key);
+
+		if (!fs.existsSync(keyPath)) {
+			return false;
+		}
+
+		return fs.readFileSync(keyPath, 'utf8');
+
+	}
+
+	static setCache(key: string, value: string)
+	{
+		/*
+		$key = str_replace("/", "", $key);
+		if ($value === null) {
+			if (file_exists(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key)) {
+				unlink(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key);
+			}
+			return;
+		}
+		file_put_contents(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key, $value);
+		*/
+
+		key = key.replace(/\//g, '');
+
+		const keyPath = path.join(TwitchHelper.cache_folder, 'kv', key);
+
+		if (value === null) {
+			if (fs.existsSync(keyPath)) {
+				fs.unlinkSync(keyPath);
+			}
+			return;
+		}
+
+		fs.writeFileSync(keyPath, value);
+	}
+
+	static async setupAxios() {
+		axios.defaults.headers.common['Client-ID'] = TwitchConfig.cfg('api_client_id');
+		axios.defaults.headers.common['Authorization'] = "Bearer " + await TwitchHelper.getAccessToken();
+		axios.defaults.baseURL = "https://api.twitch.tv";
+	}
+
 }
 
 TwitchConfig.loadConfig();
+TwitchConfig.loadChannelsConfig();
+TwitchConfig.setupAxios();
