@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import { TwitchConfig } from "./TwitchConfig";
 import { format } from "date-fns";
-import axios from "axios";
+import axios, { Axios } from "axios";
 
 export enum LOGLEVEL {
     ERROR = "ERROR",
@@ -22,6 +22,8 @@ interface LogLine {
 }
 
 export class TwitchHelper {
+
+	static axios: Axios;
 
     static config_folder 	= path.join(__dirname, "..", "..", "config");
 	static public_folder 	= path.join(__dirname, "..", "..", "public");
@@ -161,5 +163,10 @@ export class TwitchHelper {
 
 		return access_token;
     }
+
+    public static vodFolder(username: string = "")
+	{
+		return this.vod_folder + (TwitchConfig.cfg("channel_folders") && username !== "" ? path.sep + username : '');
+	}
 
 }

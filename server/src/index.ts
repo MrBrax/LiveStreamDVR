@@ -1,5 +1,6 @@
 import express from 'express';
 import * as Settings from './Controllers/Settings';
+import * as Channels from './Controllers/Channels';
 import { TwitchConfig } from './TwitchConfig';
 
 const app = express();
@@ -13,6 +14,8 @@ app.use(express.json());
 // });
 
 app.get("/api/v0/settings", Settings.GetSettings);
+
+app.get("/api/v0/channels", Channels.ListChannels);
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)

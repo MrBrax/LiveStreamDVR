@@ -15,11 +15,11 @@ export class TwitchVOD {
         this.directory = "";
     }
 
-    static load(filename: string): TwitchVOD {
+    static load(filename: string, api = false): TwitchVOD {
         
         // check if file exists
         if (!fs.existsSync(filename)) {
-            throw new Error("File does not exist: " + filename);
+            throw new Error("VOD JSON does not exist: " + filename);
         }
 
         // load file
