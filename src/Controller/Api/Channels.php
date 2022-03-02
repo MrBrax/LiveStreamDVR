@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace App\Controller\Api;
 
 use Slim\Psr7\Request;
@@ -17,13 +19,14 @@ class Channels
 
     /**
      * GET /api/v0/channels
+     * Show all channels and their info, including VODs
      *
-     * @param Request $request PSR-7 request
-     * @param Response $response PSR-7 response
-     * @param array $args Router arguments
-     * @return Response PSR-7 response
+     * @param   Request     $request    PSR-7 request
+     * @param   Response    $response   PSR-7 response
+     * @param   array       $args       Router arguments
+     * @return  Response                PSR-7 response
      */
-    public function channels_list(Request $request, Response $response, $args)
+    public function channels_list(Request $request, Response $response, array $args)
     {
 
         list($streamerList, $total_size) = $this->generateStreamerList();
@@ -48,12 +51,12 @@ class Channels
      * Add a channel
      * 
      * @json ['login', 'quality', 'match', 'download_chat', 'burn_chat', 'no_capture']
-     * @param Request $request PSR-7 request
-     * @param Response $response PSR-7 response
-     * @param array $args Router arguments
-     * @return Response PSR-7 response
+     * @param   Request     $request    PSR-7 request
+     * @param   Response    $response   PSR-7 response
+     * @param   array       $args       Router arguments
+     * @return  Response                PSR-7 response
      */
-    public function channels_add(Request $request, Response $response, $args)
+    public function channels_add(Request $request, Response $response, array $args)
     {
 
         $formdata = $request->getParsedBody();
@@ -165,11 +168,12 @@ class Channels
      * PUT /api/v0/channels/{login}
      * Update a channel
      *
+     * @Route("api/v0/channels/{login}", methods={"PUT"})
      * @json ['login', 'quality', 'match', 'download_chat', 'burn_chat', 'no_capture']
-     * @param Request $request PSR-7 request
-     * @param Response $response PSR-7 response
-     * @param array $args Router arguments
-     * @return Response PSR-7 response
+     * @param   Request     $request    PSR-7 request
+     * @param   Response    $response   PSR-7 response
+     * @param   array       $args       Router arguments
+     * @return  Response                PSR-7 response
      */
     public function channels_update(Request $request, Response $response, array $args)
     {

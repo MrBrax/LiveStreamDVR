@@ -11,6 +11,15 @@ use App\TwitchHelper;
 class Favourites
 {
 
+    /**
+     * GET /api/v0/favourites
+     * List favourite games
+     *
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return Response
+     */
     public function favourites_list(Request $request, Response $response, array $args)
     {
 
@@ -32,6 +41,15 @@ class Favourites
         return $response->withHeader('Content-Type', 'application/json')->withHeader('Access-Control-Allow-Origin', '*');
     }
 
+    /**
+     * PUT /api/v0/favourites
+     * Save favourite games
+     *
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return Response
+     */
     public function favourites_save(Request $request, Response $response, array $args)
     {
 
@@ -39,7 +57,7 @@ class Favourites
         $games = isset($formdata['games']) ? $formdata['games'] : null;
 
         $data = [];
-        if($games){
+        if ($games) {
             foreach ($games as $id => $value) {
                 $data[$id] = true;
             }

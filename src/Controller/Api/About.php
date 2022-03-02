@@ -11,6 +11,15 @@ use Slim\Psr7\Response;
 
 class About
 {
+    /**
+     * About page with binary versions and other info
+     * 
+     * @Route("/api/v0/about", methods={"GET"})
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return Response
+     */
     public function about(Request $request, Response $response, array $args)
     {
 

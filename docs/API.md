@@ -24,16 +24,27 @@ This file will be muted if twitch muted it too.
 Check if the published VOD is muted.
 
 ### `POST /api/v0/vod/{basename}/full_burn`
-
 Download the VOD if the captured one is muted, download the chat if it isn't downloaded, render the chat to video, then burn it to the VOD on new copy on disk.
 
-### `POST /api/v0/vod/{basename}/render_chat`
-#### POST parameters
-|Name   |Description                                 |
-|-------|--------------------------------------------|
-|use_vod|Use downloaded VOD instead of captured video|
+### `POST /api/v0/vod/{basename}/renderwizard`
+Burn the chat to the VOD on new copy on disk.
+#### JSON parameters
+| Name           | Type    | Description                                   |
+|----------------|---------|-----------------------------------------------|
+| chatWidth      | number  | Width of the chat in pixels                   |
+| chatHeight     | number  | Height of the chat in pixels                  |
+| renderChat     | boolean | Whether to render the chat                    |
+| burnChat       | boolean | Whether to burn the chat                      |
+| vodSource      | string  | The source of the VOD (downloaded, captured)  |
+| chatSource     | string  | The source of the chat (downloaded, captured) |
+| chatFont       | string  | The font to use for the chat                  |
+| chatFontSize   | number  | The font size to use for the chat             |
+| burnHorizontal | string  | Horizontal burn mode (left, right)            |
+| burnVertical   | string  | Vertical burn mode (top, bottom)              |
+| ffmpegPreset   | string  | The ffmpeg preset to use (slow, fast, etc)    |
+| ffmpegCrf      | number  | The ffmpeg crf to use (e.g. 20)               |
 
-Render the downloaded chat to video.
+Render chat to video.
 
 ### `POST /api/v0/vod/{basename}/delete`
 Delete the VOD and all its metadata.
@@ -49,6 +60,7 @@ List all channels and their vods
 
 ### `POST /api/v0/channels`
 Add channel
+#### JSON parameters
 | Key           | Type    | Description   |
 |---------------|---------|---------------|
 | login         | string  | Channel login |
@@ -63,6 +75,7 @@ Get information on the channel itself
 
 ### `PUT /api/v0/channels/{login}`
 Modify channel
+#### JSON parameters
 | Key           | Type    | Description   |
 |---------------|---------|---------------|
 | login         | string  | Channel login |

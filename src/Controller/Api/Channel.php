@@ -18,7 +18,17 @@ use App\TwitchPlaylistAutomator;
 class Channel
 {
 
-    public function channel(Request $request, Response $response, $args)
+    /**
+     * GET /api/v0/channels/{login}
+     * Show channel info and VODs
+     *
+     * @Route("/api/v0/channels/{login}", methods={"GET"})
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return Response
+     */
+    public function channel(Request $request, Response $response, array $args)
     {
         $login = $args['login'];
 
@@ -33,7 +43,17 @@ class Channel
         return $response->withHeader('Content-Type', 'application/json')->withHeader('Access-Control-Allow-Origin', '*');
     }
 
-    public function channel_force_record(Request $request, Response $response, $args)
+    /**
+     * GET /api/v0/channels/{login}/force_record
+     * Start recording a channel manually
+     * 
+     * @Route("/api/v0/channels/{login}/force_record", methods={"GET"})
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return Response
+     */
+    public function channel_force_record(Request $request, Response $response, array $args)
     {
 
         $channel_id = TwitchChannel::channelIdFromLogin($args['login']);
@@ -87,7 +107,17 @@ class Channel
         return $response;
     }
 
-    public function channel_dump_playlist(Request $request, Response $response, $args)
+    /**
+     * GET /api/v0/channels/{login}/dump_playlist
+     * Start recording a channel manually by using the most recent video as a playlist
+     *
+     * @Route("/api/v0/channels/{login}/dump_playlist", methods={"GET"})
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return Response
+     */
+    public function channel_dump_playlist(Request $request, Response $response, array $args)
     {
 
         $login = $args['login'];
@@ -117,7 +147,17 @@ class Channel
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    public function channel_subscription(Request $request, Response $response, $args)
+    /**
+     * GET /api/v0/channels/{login}/subscription
+     * Show channel subscription info
+     *
+     * @Route("/api/v0/channels/{login}/subscription", methods={"GET"})
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return Response
+     */
+    public function channel_subscription(Request $request, Response $response, array $args)
     {
 
         $login = $args['login'];
@@ -135,7 +175,17 @@ class Channel
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    public function channel_download_video(Request $request, Response $response, $args)
+    /**
+     * GET /api/v0/channels/{login}/download_video
+     * Download an archived video from a channel
+     *
+     * @Route("/api/v0/channels/{login}/download_video", methods={"GET"})
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return Response
+     */
+    public function channel_download_video(Request $request, Response $response, array $args)
     {
         $login = (string)$args['login'];
         $video_id = (int)$args['video_id'];

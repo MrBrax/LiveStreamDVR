@@ -19,3 +19,4 @@ config/cron.txt
 config/config.json.bak
 client-vue/.env.staging
 config/channels.json
+phpDocumentor.phar

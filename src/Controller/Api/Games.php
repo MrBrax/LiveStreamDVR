@@ -11,7 +11,17 @@ use App\TwitchConfig;
 
 class Games
 {
-    public function games_list(Request $request, Response $response, $args)
+
+    /**
+     * GET /api/v0/games
+     * List games in cache
+     *
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return Response
+     */
+    public function games_list(Request $request, Response $response, array $args)
     {
 
         $games = TwitchConfig::getGames();
