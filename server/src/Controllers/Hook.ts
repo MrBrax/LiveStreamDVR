@@ -6,6 +6,7 @@ import crypto from "crypto";
 import path from "path";
 import { AppRoot } from "@/Core/BaseConfig";
 import fs from "fs";
+import { TwitchAutomator } from "@/Core/TwitchAutomator";
 
 export class Hook {
 
@@ -76,7 +77,7 @@ export class Hook {
         }
         */
 
-        const data_json: TwitchAPI.ChannelFollowEvent | TwitchAPI.ChallengeResponse = req.body;
+        const data_json = req.body;
 
         // $data_headers = $request->getHeaders();
         // $post_json = isset($_POST['json']) ? $_POST['json'] : null;
@@ -166,11 +167,17 @@ export class Hook {
                     res.status(400).send("Invalid signature check");
                 }
 
-                TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "hook", "Signature checked, no challenge. Run handle...");
-                const TwitchAutomator = new TwitchAutomator();
-                TwitchAutomator.handle(data_json, req.headers);
-                res.status(200).send("");
-                return;
+                if ("event" in data_json) {
+                    TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "hook", "Signature checked, no challenge. Run handle...");
+                    const TA = new TwitchAutomator();
+                    TA.handle(data_json, req.headers);
+                    res.status(200).send("");
+                    return;
+                } else {
+                    TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "hook", "No event in message!");
+                    res.status(400).send("No event in message");
+                    return;
+                }
             }
         }
 
