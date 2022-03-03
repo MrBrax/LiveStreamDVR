@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "axios": "^0.26.0",
+    "chalk": "4",
     "date-fns": "^2.28.0",
     "express": "^4.17.3"
   }

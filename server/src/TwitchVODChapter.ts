@@ -1,4 +1,5 @@
-import { TwitchHelper } from "./TwitchHelper";
+import { TwitchGame } from "./Core/TwitchGame";
+import { TwitchHelper } from "./Core/TwitchHelper";
 import { TwitchVODChapterJSON } from "./TwitchVOD";
 
 export class TwitchVODChapter {
@@ -8,14 +9,28 @@ export class TwitchVODChapter {
     duration: number | undefined;
     strings: Record<string, string> = {};
 
+    game: TwitchGame | undefined;
+
+    /**
+     * @deprecated
+     */
     game_id: string | undefined;
+    
+    /**
+     * @deprecated
+     */
     game_name: string | undefined; // make dynamic
+
+    /**
+     * @deprecated
+     */
     box_art_url: string | undefined; // make dynamic
 
 	title: string | undefined;
 
     is_mature: boolean | undefined;
     online: boolean | undefined;
+
     // favourite: boolean | undefined;
 
     constructor(raw_chapter: TwitchVODChapterJSON){

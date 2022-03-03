@@ -1,7 +1,7 @@
-import { SettingField, TwitchConfig } from "../TwitchConfig";
+import { SettingField, TwitchConfig } from "../Core/TwitchConfig";
 import express from 'express';
 import fs from 'fs';
-import { TwitchHelper } from "../TwitchHelper";
+import { TwitchHelper } from "../Core/TwitchHelper";
 import { generateStreamerList } from "../StreamerList";
 
 export function ListChannels(req: express.Request, res: express.Response): void {

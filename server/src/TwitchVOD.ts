@@ -2,14 +2,14 @@ import { differenceInSeconds, format, parse } from 'date-fns';
 import fs from 'fs';
 import path from 'path';
 import { TwitchChannel } from './TwitchChannel';
-import { LOGLEVEL, TwitchHelper } from './TwitchHelper';
+import { LOGLEVEL, TwitchHelper } from './Core/TwitchHelper';
 import { PHPDateTimeProxy } from './types';
 import { MediaInfo } from '../../client-vue/src/mediainfo';
 import { TwitchVODChapter } from './TwitchVODChapter';
-import { TwitchConfig } from './TwitchConfig';
+import { TwitchConfig } from './Core/TwitchConfig';
 import { TwitchVODSegment } from './TwitchVODSegment';
 import { PHPDateTime } from './PHPDateTime';
-import { TwitchGame } from './TwitchGame';
+import { TwitchGame } from './Core/TwitchGame';
 
 export interface TwitchVODJSON {
 	meta: any;
@@ -646,6 +646,7 @@ export class TwitchVOD {
 			let game_data;
 			if (chapter_data.game_id) {
 				game_data = await TwitchGame.getGameDataAsync(chapter_data.game_id);
+				if (game_data) new_chapter.game = game_data;
 			} else {
 				game_data = null;
 			}

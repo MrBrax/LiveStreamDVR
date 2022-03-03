@@ -32,7 +32,7 @@ export class TwitchGame {
             game.added = new Date( raw_game.added.toString().length <= 10 ? raw_game.added * 1000 : raw_game.added );
             this.game_db[id] = game;
         }
-        console.log(this.game_db);
+        TwitchHelper.logAdvanced(LOGLEVEL.INFO, "helper", `Game database populated with ${Object.keys(this.game_db).length} games.`);
     }
 
     public static getGameDataFromCache(game_id: string): TwitchGame | false | null {
@@ -118,6 +118,9 @@ export class TwitchGame {
         return this.game_db[game_id] || null;
     }
 
+    /**
+     * Save game data to cache.
+     */
     public save() {
         if (!this.id) {
             throw new Error("Cannot save game without id!");
@@ -137,6 +140,13 @@ export class TwitchGame {
         fs.writeFileSync(TwitchConfig.gameDbPath, JSON.stringify(json_db));
     }
 
+    /**
+     * Make box art url from dimensions.
+     * 
+     * @param width 
+     * @param height 
+     * @returns string URL
+     */
     public getBoxArtUrl(width: number, height: number): string {
         if (!this.box_art_url) {
             return "";

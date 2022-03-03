@@ -1,7 +1,7 @@
 import express from 'express';
 import * as Settings from './Controllers/Settings';
 import * as Channels from './Controllers/Channels';
-import { TwitchConfig } from './TwitchConfig';
+import { TwitchConfig } from './Core/TwitchConfig';
 
 const app = express();
 const port = 8080;

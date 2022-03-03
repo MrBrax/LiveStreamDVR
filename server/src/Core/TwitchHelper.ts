@@ -3,6 +3,7 @@ import fs from "fs";
 import { TwitchConfig } from "./TwitchConfig";
 import { format } from "date-fns";
 import axios, { Axios } from "axios";
+import chalk from "chalk";
 
 export enum LOGLEVEL {
     ERROR = "ERROR",
@@ -25,17 +26,9 @@ export class TwitchHelper {
 
 	static axios: Axios;
 
-    static readonly config_folder 	= path.join(__dirname, "..", "..", "config");
-	static readonly public_folder 	= path.join(__dirname, "..", "..", "public");
-	static readonly logs_folder 	= path.join(__dirname, "..", "..", "logs");
-	static readonly cache_folder 	= path.join(__dirname, "..", "..", "cache");
-	static readonly cron_folder 	= path.join(__dirname, "..", "..", "cache", "cron");
-	static readonly pids_folder 	= path.join(__dirname, "..", "..", "cache", "pids");
-	static readonly vod_folder 		= path.join(__dirname, "..", "..", "public", "vods");
-
     static accessToken = "";
 
-	static readonly accessTokenFile = path.join(this.cache_folder, "oauth.bin");
+	static readonly accessTokenFile = path.join(TwitchConfig.cache_folder, "oauth.bin");
 
 	static readonly accessTokenExpire = 60 * 60 * 24 * 60; // 60 days
 	static readonly accessTokenRefresh = 60 * 60 * 24 * 30; // 30 days
@@ -44,18 +37,27 @@ export class TwitchHelper {
 	static readonly TWITCH_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 	static readonly TWITCH_DATE_FORMAT_MS = "yyyy-MM-dd'T'HH:mm:ss'.'SSS'Z'";
 
+	static readonly LOG_COLORS = {
+		[LOGLEVEL.ERROR]: chalk.red,
+		[LOGLEVEL.WARNING]: chalk.yellow,
+		[LOGLEVEL.INFO]: chalk.blue,
+		[LOGLEVEL.DEBUG]: chalk.gray,
+		[LOGLEVEL.FATAL]: chalk.red,
+		[LOGLEVEL.SUCCESS]: chalk.green,
+	};
+
     static logAdvanced(level: LOGLEVEL, module: string, text: string, metadata?: any) {
         if (!TwitchConfig.cfg("debug") && level == LOGLEVEL.DEBUG) return;
 
         // check if folder exists
-        if (!fs.existsSync(TwitchHelper.logs_folder)) {
+        if (!fs.existsSync(TwitchConfig.logs_folder)) {
             throw new Error("Log folder does not exist!");
         }
 
         // today's filename in Y-m-d format
         const date = new Date();
         const filename = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}.log`;
-        const filepath = path.join(TwitchHelper.logs_folder, filename);
+        const filepath = path.join(TwitchConfig.logs_folder, filename);
         const jsonlinename = filepath + ".jsonline";
 
         const dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
@@ -66,11 +68,14 @@ export class TwitchHelper {
         fs.appendFileSync(filepath, textOutput + "\n");
 
         // if docker, output to stdout
-        if (TwitchConfig.cfg("docker")) {
-            console.log(textOutput);
-        }
+        // if (TwitchConfig.cfg("docker")) {
+        //     console.log(textOutput);
+        // }
 
-        console.log(textOutput);
+		console.log(
+			TwitchHelper.LOG_COLORS[level](`${dateString} | ${module} <${level}> ${text}`)
+		);
+        
 
         let log_data: LogLine = {
 			"module": module,
@@ -170,7 +175,7 @@ export class TwitchHelper {
 
     public static vodFolder(username: string = "")
 	{
-		return this.vod_folder + (TwitchConfig.cfg("channel_folders") && username !== "" ? path.sep + username : '');
+		return TwitchConfig.vod_folder + (TwitchConfig.cfg("channel_folders") && username !== "" ? path.sep + username : '');
 	}
 
 	public static JSDateToPHPDate(date: Date){

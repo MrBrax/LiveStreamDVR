@@ -1,7 +1,7 @@
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
-import { TwitchChannel } from './TwitchChannel';
+import { TwitchChannel } from '../TwitchChannel';
 import { TwitchGame } from './TwitchGame';
 import { LOGLEVEL, TwitchHelper } from './TwitchHelper';
 
@@ -29,6 +29,26 @@ export interface ChannelConfig {
 	no_capture: boolean;
 }
 
+export const AppRoot = path.join(__dirname, "..", "..", "..");
+
+export const BaseConfigFolder = {
+	config 		: path.join(AppRoot, "config"),
+	public 		: path.join(AppRoot, "public"),
+	logs 		: path.join(AppRoot, "logs"),
+	cache 		: path.join(AppRoot, "cache"),
+	cron 		: path.join(AppRoot, "cache", "cron"),
+	pids 		: path.join(AppRoot, "cache", "pids"),
+	vod 		: path.join(AppRoot, "public", "vods"),
+};
+
+export const BaseConfigPath = {
+	configPath 			: path.join(BaseConfigFolder.config, "config.json"),
+	channelPath 		: path.join(BaseConfigFolder.config, "channels.json"),
+	gameDbPath 			: path.join(BaseConfigFolder.cache, "games_v2.json"),
+	historyPath 		: path.join(BaseConfigFolder.cache, "history.json"),
+	streamerCachePath 	: path.join(BaseConfigFolder.cache, "streamers_v2.json"),
+};
+
 export class TwitchConfig {
 
 	static config: Record<string, any>;
@@ -36,13 +56,9 @@ export class TwitchConfig {
 
 	static channels: TwitchChannel[] = [];
 
-	static configPath = path.join(__dirname, '..', '..', 'config', 'config.json');
-	static channelPath = path.join(__dirname, '..', '..', 'config', 'channels.json');
-	static gameDbPath = path.join(__dirname, "..", '..', "cache", "games_v2.json");
-	static historyPath = path.join(__dirname, "..", '..', "cache", "history.json");
-	static streamerCachePath = path.join(__dirname, "..", '..', "cache", "streamers_v2.json");
+	
 
-	static streamerCacheTime = 2592000 * 1000; // 30 days
+	static readonly streamerCacheTime = 2592000 * 1000; // 30 days
 
 	static settingsFields: SettingField[] = [
 		{ 'key': 'bin_dir', 'group': 'Binaries', 'text': 'Python binary directory', 'type': 'string', 'required': true, 'help': 'No trailing slash', 'stripslash': true },
@@ -122,11 +138,6 @@ export class TwitchConfig {
 		{ 'key': 'checkmute_method', 'group': 'Basic', 'text': 'Method to use when checking for muted vods', 'type': 'array', 'default': 'api', 'choices': ['api', 'streamlink'], 'help': 'Streamlink is more accurate but is kind of a weird solution.' },
 	];
 
-	constructor() {
-		// this.config = {};
-		// this.loadConfig();
-	}
-
 	static cfg<T>(key: string, defaultValue?: T): T {
 
 		// return from env if set
@@ -150,13 +161,13 @@ export class TwitchConfig {
 
 		console.log('Loading config');
 
-		if (!fs.existsSync(this.configPath)) {
+		if (!fs.existsSync(BaseConfigFolder.config)) {
 			console.log('Config file not found, creating new one');
 			// throw new Error("Config file does not exist: " + this.configFile);
 			this.generateConfig();
 		}
 
-		const data = fs.readFileSync(this.configPath, 'utf8');
+		const data = fs.readFileSync(BaseConfigFolder.config, 'utf8');
 
 		this.config = JSON.parse(data);
 
@@ -213,10 +224,10 @@ export class TwitchConfig {
 	static saveConfig(source = 'unknown') {
 
 		// back up config
-		fs.copyFileSync(this.configPath, this.configPath + '.bak');
+		fs.copyFileSync(BaseConfigFolder.config, BaseConfigFolder.config + '.bak');
 
 		// save
-		fs.writeFileSync(this.configPath, JSON.stringify(this.config, null, 4));
+		fs.writeFileSync(BaseConfigFolder.config, JSON.stringify(this.config, null, 4));
 
 		console.log(`Saved config from ${source}`);
 	}
@@ -264,7 +275,7 @@ export class TwitchConfig {
 
 		key = key.replace(/\//g, '');
 
-		const keyPath = path.join(TwitchHelper.cache_folder, 'kv', key);
+		const keyPath = path.join(TwitchConfig.cache_folder, 'kv', key);
 
 		if (!fs.existsSync(keyPath)) {
 			return false;
@@ -288,7 +299,7 @@ export class TwitchConfig {
 
 		key = key.replace(/\//g, '');
 
-		const keyPath = path.join(TwitchHelper.cache_folder, 'kv', key);
+		const keyPath = path.join(TwitchConfig.cache_folder, 'kv', key);
 
 		if (value === null) {
 			if (fs.existsSync(keyPath)) {

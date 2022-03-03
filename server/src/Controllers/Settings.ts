@@ -1,4 +1,4 @@
-import { SettingField, TwitchConfig } from "../TwitchConfig";
+import { SettingField, TwitchConfig } from "../Core/TwitchConfig";
 import express from 'express';
 
 export function GetSettings(req: express.Request, res: express.Response): void {

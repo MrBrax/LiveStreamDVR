@@ -1,6 +1,6 @@
 import { TwitchChannel } from "./TwitchChannel";
-import { TwitchConfig } from "./TwitchConfig";
-import { TwitchHelper, LOGLEVEL } from "./TwitchHelper";
+import { TwitchConfig } from "./Core/TwitchConfig";
+import { TwitchHelper, LOGLEVEL } from "./Core/TwitchHelper";
 
 export function generateStreamerList(): { channels: TwitchChannel[], total_size: number } {
 
