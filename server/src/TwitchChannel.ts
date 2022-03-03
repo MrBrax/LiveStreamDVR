@@ -1,6 +1,7 @@
 import axios, { AxiosError } from "axios";
 import fs from "fs";
 import path from "path";
+import { BaseConfigPath } from "./Core/BaseConfig";
 import { ChannelConfig, TwitchConfig, VideoQuality } from "./Core/TwitchConfig";
 import { LOGLEVEL, TwitchHelper } from "./Core/TwitchHelper";
 import { TwitchVOD } from "./TwitchVOD";
@@ -162,8 +163,8 @@ export class TwitchChannel {
 
         TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "channel", `Fetching channel data for ${method} ${identifier}, force: ${force}`);
 
-        if (fs.existsSync(TwitchConfig.streamerCachePath) && !force) {
-            const data: Record<string, ChannelData> = JSON.parse(fs.readFileSync(TwitchConfig.streamerCachePath, 'utf8'));
+        if (fs.existsSync(BaseConfigPath.streamerCache) && !force) {
+            const data: Record<string, ChannelData> = JSON.parse(fs.readFileSync(BaseConfigPath.streamerCache, 'utf8'));
             const channelData = method == "id" ? data[identifier] : Object.values(data).find(channel => channel.login == identifier);
             if (channelData) {
                 TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "channel", `Channel data found in cache for ${method} ${identifier}`);
@@ -223,14 +224,14 @@ export class TwitchChannel {
 
         data._updated = Date.now();
 
-        if (fs.existsSync(TwitchConfig.streamerCachePath)) {
-            const data_old: Record<string, ChannelData> = JSON.parse(fs.readFileSync(TwitchConfig.streamerCachePath, 'utf8'));
+        if (fs.existsSync(BaseConfigPath.streamerCache)) {
+            const data_old: Record<string, ChannelData> = JSON.parse(fs.readFileSync(BaseConfigPath.streamerCache, 'utf8'));
             data_old[data.id] = data;
             TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "CHANNEL", `Saving channel cache file.`);
-            fs.writeFileSync(TwitchConfig.streamerCachePath, JSON.stringify(data_old));
+            fs.writeFileSync(BaseConfigPath.streamerCache, JSON.stringify(data_old));
         } else {
             TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "CHANNEL", `Saving new channel cache file.`);
-            fs.writeFileSync(TwitchConfig.streamerCachePath, JSON.stringify({ [data.id]: data }));
+            fs.writeFileSync(BaseConfigPath.streamerCache, JSON.stringify({ [data.id]: data }));
         }
 
         return data;

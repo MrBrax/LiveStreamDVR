@@ -681,7 +681,7 @@ export class TwitchVOD {
 
 			} else {
 				// $entry['strings']['started_at'] = $entry['datetime'].format("Y-m-d H:i:s");
-				new_chapter.strings.started_at = format(new_chapter.datetime, 'YYYY-MM-DD HH:mm:ss');
+				new_chapter.strings.started_at = format(new_chapter.datetime, 'yyyy-MM-dd HH:mm:ss');
 			}
 
 			if (chapter_data.duration) {

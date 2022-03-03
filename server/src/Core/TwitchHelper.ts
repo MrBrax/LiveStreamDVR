@@ -4,6 +4,7 @@ import { TwitchConfig } from "./TwitchConfig";
 import { format } from "date-fns";
 import axios, { Axios } from "axios";
 import chalk from "chalk";
+import { BaseConfigFolder } from "./BaseConfig";
 
 export enum LOGLEVEL {
     ERROR = "ERROR",
@@ -28,7 +29,7 @@ export class TwitchHelper {
 
     static accessToken = "";
 
-	static readonly accessTokenFile = path.join(TwitchConfig.cache_folder, "oauth.bin");
+	static readonly accessTokenFile = path.join(BaseConfigFolder.cache, "oauth.bin");
 
 	static readonly accessTokenExpire = 60 * 60 * 24 * 60; // 60 days
 	static readonly accessTokenRefresh = 60 * 60 * 24 * 30; // 30 days
@@ -50,14 +51,14 @@ export class TwitchHelper {
         if (!TwitchConfig.cfg("debug") && level == LOGLEVEL.DEBUG) return;
 
         // check if folder exists
-        if (!fs.existsSync(TwitchConfig.logs_folder)) {
+        if (!fs.existsSync(BaseConfigFolder.logs)) {
             throw new Error("Log folder does not exist!");
         }
 
         // today's filename in Y-m-d format
         const date = new Date();
         const filename = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}.log`;
-        const filepath = path.join(TwitchConfig.logs_folder, filename);
+        const filepath = path.join(BaseConfigFolder.logs, filename);
         const jsonlinename = filepath + ".jsonline";
 
         const dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
@@ -175,7 +176,7 @@ export class TwitchHelper {
 
     public static vodFolder(username: string = "")
 	{
-		return TwitchConfig.vod_folder + (TwitchConfig.cfg("channel_folders") && username !== "" ? path.sep + username : '');
+		return BaseConfigFolder.vod + (TwitchConfig.cfg("channel_folders") && username !== "" ? path.sep + username : '');
 	}
 
 	public static JSDateToPHPDate(date: Date){

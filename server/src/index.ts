@@ -2,16 +2,22 @@ import express from 'express';
 import * as Settings from './Controllers/Settings';
 import * as Channels from './Controllers/Channels';
 import { TwitchConfig } from './Core/TwitchConfig';
+import history from "connect-history-api-fallback";
+import path from 'path';
 
 const app = express();
 const port = 8080;
 
 app.use(express.json());
 
+app.use(history());
+
 // app.get("/", (req, res) => {
 //     // res.send(TwitchConfig.cfg<string>("app_url", "test"));
 //     res.send(TwitchConfig.config);
 // });
+
+app.use(express.static( path.join(__dirname, "..", "..", "client-vue", "dist")) );
 
 app.get("/api/v0/settings", Settings.GetSettings);
 

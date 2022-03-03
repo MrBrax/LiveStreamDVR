@@ -2,6 +2,7 @@ import fs from 'fs';
 import axios from 'axios';
 import { LOGLEVEL, TwitchHelper } from './TwitchHelper';
 import { TwitchConfig } from './TwitchConfig';
+import { BaseConfigPath } from './BaseConfig';
 
 interface TwitchGameJSON {
 	name: string;
@@ -21,7 +22,7 @@ export class TwitchGame {
     public static populateGameDatabase() {
         TwitchHelper.logAdvanced(LOGLEVEL.INFO, "helper", "Populating game database...");
         this.game_db = {};
-        const raw_games: Record<string, TwitchGameJSON> = JSON.parse(fs.readFileSync(TwitchConfig.gameDbPath, "utf8"));
+        const raw_games: Record<string, TwitchGameJSON> = JSON.parse(fs.readFileSync(BaseConfigPath.gameDb, "utf8"));
         for (const id in raw_games) {
             const raw_game = raw_games[id];
             const game = new this();
@@ -137,7 +138,7 @@ export class TwitchGame {
             };
             json_db[id] = json_game;
         }
-        fs.writeFileSync(TwitchConfig.gameDbPath, JSON.stringify(json_db));
+        fs.writeFileSync(BaseConfigPath.gameDb, JSON.stringify(json_db));
     }
 
     /**

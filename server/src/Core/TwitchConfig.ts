@@ -2,6 +2,7 @@ import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 import { TwitchChannel } from '../TwitchChannel';
+import { BaseConfigFolder, BaseConfigPath } from './BaseConfig';
 import { TwitchGame } from './TwitchGame';
 import { LOGLEVEL, TwitchHelper } from './TwitchHelper';
 
@@ -28,27 +29,6 @@ export interface ChannelConfig {
 	burn_chat: boolean;
 	no_capture: boolean;
 }
-
-export const AppRoot = path.join(__dirname, "..", "..", "..");
-
-export const BaseConfigFolder = {
-	config 		: path.join(AppRoot, "config"),
-	public 		: path.join(AppRoot, "public"),
-	logs 		: path.join(AppRoot, "logs"),
-	cache 		: path.join(AppRoot, "cache"),
-	cron 		: path.join(AppRoot, "cache", "cron"),
-	pids 		: path.join(AppRoot, "cache", "pids"),
-	vod 		: path.join(AppRoot, "public", "vods"),
-};
-
-export const BaseConfigPath = {
-	configPath 			: path.join(BaseConfigFolder.config, "config.json"),
-	channelPath 		: path.join(BaseConfigFolder.config, "channels.json"),
-	gameDbPath 			: path.join(BaseConfigFolder.cache, "games_v2.json"),
-	historyPath 		: path.join(BaseConfigFolder.cache, "history.json"),
-	streamerCachePath 	: path.join(BaseConfigFolder.cache, "streamers_v2.json"),
-};
-
 export class TwitchConfig {
 
 	static config: Record<string, any>;
@@ -56,7 +36,7 @@ export class TwitchConfig {
 
 	static channels: TwitchChannel[] = [];
 
-	
+
 
 	static readonly streamerCacheTime = 2592000 * 1000; // 30 days
 
@@ -161,13 +141,13 @@ export class TwitchConfig {
 
 		console.log('Loading config');
 
-		if (!fs.existsSync(BaseConfigFolder.config)) {
+		if (!fs.existsSync(BaseConfigPath.config)) {
 			console.log('Config file not found, creating new one');
 			// throw new Error("Config file does not exist: " + this.configFile);
 			this.generateConfig();
 		}
 
-		const data = fs.readFileSync(BaseConfigFolder.config, 'utf8');
+		const data = fs.readFileSync(BaseConfigPath.config, 'utf8');
 
 		this.config = JSON.parse(data);
 
@@ -233,11 +213,11 @@ export class TwitchConfig {
 	}
 
 	static loadChannelsConfig() {
-		if (!fs.existsSync(this.channelPath)) {
+		if (!fs.existsSync(BaseConfigPath.channel)) {
 			return false;
 		}
 
-		const data = fs.readFileSync(this.channelPath, 'utf8');
+		const data = fs.readFileSync(BaseConfigPath.channel, 'utf8');
 		this.channels_config = JSON.parse(data);
 	}
 
@@ -275,7 +255,7 @@ export class TwitchConfig {
 
 		key = key.replace(/\//g, '');
 
-		const keyPath = path.join(TwitchConfig.cache_folder, 'kv', key);
+		const keyPath = path.join(BaseConfigFolder.keyvalue, key);
 
 		if (!fs.existsSync(keyPath)) {
 			return false;
@@ -299,7 +279,7 @@ export class TwitchConfig {
 
 		key = key.replace(/\//g, '');
 
-		const keyPath = path.join(TwitchConfig.cache_folder, 'kv', key);
+		const keyPath = path.join(BaseConfigFolder.keyvalue, key);
 
 		if (value === null) {
 			if (fs.existsSync(keyPath)) {
