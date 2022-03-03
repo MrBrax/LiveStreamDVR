@@ -21,12 +21,6 @@ interface LogLine {
     metadata?: any;
 }
 
-interface TwitchGame {
-	name: string;
-	box_art_url: string;
-	added: number; // 1/1000
-}
-
 export class TwitchHelper {
 
 	static axios: Axios;
@@ -48,8 +42,7 @@ export class TwitchHelper {
 
 	static readonly PHP_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSSSSS";
 	static readonly TWITCH_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
-
-	static game_db: Record<number, TwitchGame>;
+	static readonly TWITCH_DATE_FORMAT_MS = "yyyy-MM-dd'T'HH:mm:ss'.'SSS'Z'";
 
     static logAdvanced(level: LOGLEVEL, module: string, text: string, metadata?: any) {
         if (!TwitchConfig.cfg("debug") && level == LOGLEVEL.DEBUG) return;
@@ -178,70 +171,6 @@ export class TwitchHelper {
     public static vodFolder(username: string = "")
 	{
 		return this.vod_folder + (TwitchConfig.cfg("channel_folders") && username !== "" ? path.sep + username : '');
-	}
-
-	public static async getGameData(game_id: number): Promise<TwitchGame | false | null> {
-
-		if (!this.game_db && fs.existsSync(TwitchConfig.gameDbPath)) {
-			this.game_db = JSON.parse(fs.readFileSync(TwitchConfig.gameDbPath, "utf8"));
-		}
-
-		if (!game_id) {
-			this.logAdvanced(LOGLEVEL.ERROR, "helper", "No game id supplied for game fetch!");
-			return false;
-		}
-
-		if (this.game_db && this.game_db[game_id]) {
-			if (this.game_db[game_id].added && Date.now() > this.game_db[game_id].added + (60 * 60 * 24 * 60 * 1000)) { // two months?
-				this.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} needs refreshing.`);
-			} else {
-				return this.game_db[game_id];
-			}
-		}
-
-		if (!this.game_db) {
-			this.game_db = [];
-		}
-
-		this.logAdvanced(LOGLEVEL.DEBUG, "helper", `Game id ${game_id} not in cache, fetching...`);
-
-		let response;
-		try {
-			response = await TwitchHelper.axios.get(`/helix/games?id=${game_id}`);
-		} catch (th) {
-			this.logAdvanced(LOGLEVEL.FATAL, "helper", `Tried to get game data for ${game_id} but server returned: ${th}`);
-			return false;
-		}
-
-		const json = response.data;
-
-		const game_data = json.data[0];
-
-		if (game_data) {
-			
-			const game = {
-				"id": game_id,
-				"name": game_data.name,
-				"box_art_url": game_data.box_art_url,
-				"added": Date.now(),
-			} as TwitchGame;
-
-			this.game_db[game_id] = game;
-
-			// $game_db[ $id ] = $game_data["name"];
-
-			fs.writeFileSync(TwitchConfig.gameDbPath, JSON.stringify(this.game_db));
-
-			this.logAdvanced(LOGLEVEL.SUCCESS, "helper", `New game saved to cache: ${game.name}`);
-
-			return game;
-
-		} else {
-
-			this.logAdvanced(LOGLEVEL.ERROR, "helper", `Invalid game returned in query for ${game_id} (${json})`);
-
-			return null;
-		}
 	}
 
 	public static JSDateToPHPDate(date: Date){

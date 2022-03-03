@@ -2,6 +2,7 @@ import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 import { TwitchChannel } from './TwitchChannel';
+import { TwitchGame } from './TwitchGame';
 import { LOGLEVEL, TwitchHelper } from './TwitchHelper';
 
 export interface SettingField {
@@ -299,6 +300,10 @@ export class TwitchConfig {
 		fs.writeFileSync(keyPath, value);
 	}
 
+	static getChannels(): TwitchChannel[] {
+		return this.channels;
+	}
+
 	static async setupAxios() {
 		// TwitchHelper.logAdvanced(LOGLEVEL.INFO, "config", `Setting defaults for axios...`);
 		// axios.defaults.headers.common['Client-ID'] = TwitchConfig.cfg('api_client_id');
@@ -324,8 +329,10 @@ export class TwitchConfig {
 
 }
 
+// Main load
 TwitchConfig.loadConfig();
 TwitchConfig.setupAxios().then(() => {
+	TwitchGame.populateGameDatabase();
 	TwitchConfig.loadChannelsConfig();
 	TwitchConfig.loadChannels();
 });

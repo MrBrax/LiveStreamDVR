@@ -44,6 +44,7 @@ export class TwitchChannel {
 
     public vods_raw: string[] | undefined;
     public vods_list: TwitchVOD[] | undefined;
+    public vods_size: number | undefined;
 
     // public ?bool is_live = false;
     // public ?bool is_converting = false;
@@ -250,6 +251,7 @@ export class TwitchChannel {
         // $this->vods_raw = glob($this->getFolder() . DIRECTORY_SEPARATOR . $this->login . "_*.json");
         this.vods_raw = fs.readdirSync(this.getFolder()).filter(file => file.startsWith(this.login + "_") && file.endsWith(".json"));
         this.vods_list = [];
+        this.vods_size = 0;
 
         for (let vod of this.vods_raw) {
 
@@ -275,11 +277,9 @@ export class TwitchChannel {
             //     $this->is_converting = true;
             // }
 
-            // if (vodclass.segments) {
-            //     for(let segment of vodclass.segments) {
-            //         this.vods_size += vod['filesize'];
-            //     }
-            // }
+            if (vodclass.segments) {
+                this.vods_size += vodclass.segments.reduce((acc, seg) => acc + (seg && seg.filesize ? seg.filesize : 0), 0);
+            }
 
             TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "CHANNEL", `VOD ${vod} added to ${this.login}`);
 

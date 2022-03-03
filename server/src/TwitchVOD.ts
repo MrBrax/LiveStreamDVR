@@ -9,6 +9,7 @@ import { TwitchVODChapter } from './TwitchVODChapter';
 import { TwitchConfig } from './TwitchConfig';
 import { TwitchVODSegment } from './TwitchVODSegment';
 import { PHPDateTime } from './PHPDateTime';
+import { TwitchGame } from './TwitchGame';
 
 export interface TwitchVODJSON {
 	meta: any;
@@ -81,6 +82,8 @@ export interface TwitchVODSegment {
 */
 
 export class TwitchVOD {
+
+	vod_path: string = "vods";
     
     capture_id: string | undefined;
     filename: string | undefined;
@@ -97,11 +100,13 @@ export class TwitchVOD {
     segments_raw: string[] = [];
     segments: TwitchVODSegment[] = [];
 
+	chapters_raw: TwitchVODChapterJSON[] = [];
 	chapters: TwitchVODChapter[] = [];
 
 	dt_started_at: Date | undefined;
 	dt_ended_at: Date | undefined;
-	saved_at: Date | undefined;
+	// saved_at: Date | undefined;
+	dt_saved_at: Date | undefined;
 	dt_capture_started: Date | undefined;
 	dt_conversion_started: Date | undefined;
 
@@ -147,6 +152,8 @@ export class TwitchVOD {
 	stream_resolution: string | undefined;
 
 	duration_live: number | undefined;
+	created: boolean = false;
+	webpath: any;
 
 	// is_chat_downloaded: any;
 	// is_vod_downloaded: any;
@@ -346,7 +353,7 @@ export class TwitchVOD {
 		
 		if (this.json.dt_started_at) this.dt_started_at = parse(this.json.dt_started_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date());
 		if (this.json.dt_ended_at) this.dt_ended_at = parse(this.json.dt_ended_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date());
-		if (this.json.saved_at) this.saved_at = parse(this.json.saved_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date());
+		if (this.json.saved_at) this.dt_saved_at = parse(this.json.saved_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date());
 
 		if (this.json.dt_capture_started) this.dt_capture_started = parse(this.json.dt_capture_started.date, TwitchHelper.PHP_DATE_FORMAT, new Date());
 		if (this.json.dt_conversion_started) this.dt_conversion_started = parse(this.json.dt_conversion_started.date, TwitchHelper.PHP_DATE_FORMAT, new Date());
@@ -382,6 +389,8 @@ export class TwitchVOD {
 
 		const dur = this.getDurationLive();
 		this.duration_live = dur === false ? -1 : dur;
+
+		this.webpath = `${TwitchConfig.cfg('basepath')}/vods/${TwitchConfig.cfg("channel_folders") && this.streamer_login ? this.streamer_login : ''}`;
 	
 	}
 
@@ -636,7 +645,7 @@ export class TwitchVOD {
 
 			let game_data;
 			if (chapter_data.game_id) {
-				game_data = await TwitchHelper.getGameData(parseInt(chapter_data.game_id));
+				game_data = await TwitchGame.getGameDataAsync(chapter_data.game_id);
 			} else {
 				game_data = null;
 			}
@@ -680,41 +689,13 @@ export class TwitchVOD {
 
 			// box art
 			if (game_data && game_data.box_art_url) {
-
 				let box_art_width = Math.round(140 * 0.5); // 14
 				let box_art_height = Math.round(190 * 0.5); // 19
-
-				// $img_url = $game_data['box_art_url'];
-				// $img_url = str_replace("{width}", (string)$box_art_width, $img_url);
-				// $img_url = str_replace("{height}", (string)$box_art_height, $img_url);
-				// $entry['box_art_url'] = $img_url;
-
-				new_chapter.box_art_url = game_data.box_art_url.replace("{width}", box_art_width.toString()).replace("{height}", box_art_height.toString());
-
+				new_chapter.box_art_url = game_data.getBoxArtUrl(box_art_width, box_art_height);
 			}
 
 			chapters.push(new_chapter);
 		}
-
-		/*
-		$i = 0;
-		foreach ($chapters as $chapter) {
-
-			if (isset($chapters[$i + 1]) && $chapters[$i + 1]) {
-				$chapters[$i]['duration'] = $chapters[$i + 1]['datetime'].getTimestamp() - $chapter['datetime'].getTimestamp();
-			}
-
-			if ($i == 0) {
-				this.game_offset = $chapter['offset'];
-			}
-
-			if ($i == sizeof($chapters) - 1 && this.dt_ended_at) {
-				$chapters[$i]['duration'] = this.dt_ended_at.getTimestamp() - $chapter['datetime']->getTimestamp();
-			}
-
-			$i++;
-		}
-		*/
 
 		this.chapters.forEach((chapter, index) => {
 
@@ -723,6 +704,8 @@ export class TwitchVOD {
 			// calculate duration from next chapter
 			if (nextChapter && nextChapter.datetime && chapter.datetime) {
 				chapter.duration = nextChapter.datetime.getTime() - chapter.datetime.getTime();
+			} else {
+				console.warn(`Could not calculate duration for chapter ${chapter.title}`);
 			}
 
 			// can't remember why this is here
@@ -736,7 +719,9 @@ export class TwitchVOD {
 			}
 		});
 
+		this.chapters_raw = raw_chapters;
 		this.chapters = chapters;
+
 	}
 
 	public parseSegments(array: string[])
@@ -799,6 +784,87 @@ export class TwitchVOD {
 
 	rebuildSegmentList() {
 		throw new Error('Method rebuild segment list not implemented.');
+	}
+
+	toJSON() {
+		return {
+			vod_path: this.vod_path,
+			capture_id: this.capture_id,
+			filename: this.filename,
+			basename: this.basename,
+			directory: this.directory,
+			json: this.json,
+			meta: this.meta,
+			streamer_name: this.streamer_name,
+			streamer_id: this.streamer_id,
+			streamer_login: this.streamer_login,
+			segments: this.segments,
+			segments_raw: this.segments_raw,
+			chapters: this.chapters,
+			// ads: this.ads,
+			// started_at: null,
+			// ended_at: null,
+			duration_seconds: this.duration_seconds,
+			duration_live: this.duration_live,
+			game_offset: this.game_offset,
+			stream_resolution: this.stream_resolution,
+			stream_title: this.stream_title,
+			total_size: this.total_size,
+			twitch_vod_id: this.twitch_vod_id,
+			twitch_vod_url: this.twitch_vod_url,
+			twitch_vod_duration: this.twitch_vod_duration,
+			twitch_vod_title: this.twitch_vod_title,
+			twitch_vod_date: this.twitch_vod_date,
+			twitch_vod_exists: this.twitch_vod_exists,
+			twitch_vod_attempted: this.twitch_vod_attempted,
+			twitch_vod_neversaved: this.twitch_vod_neversaved,
+			twitch_vod_muted: this.twitch_vod_muted,
+			is_recording: this.is_recording,
+			is_converted: this.is_converted,
+			is_capturing: this.is_capturing,
+			is_converting: this.is_converting,
+			is_finalized: this.is_finalized,
+			video_fail2: this.video_fail2,
+			// video_metadata_public: [],
+			is_chat_downloaded: this.is_chat_downloaded,
+			is_vod_downloaded: this.is_vod_downloaded,
+			is_chat_rendered: this.is_chat_rendered,
+			is_chat_burned: this.is_chat_burned,
+			is_lossless_cut_generated: this.is_lossless_cut_generated,
+			is_chatdump_captured: this.is_chatdump_captured,
+			is_capture_paused: this.is_capture_paused,
+			dt_saved_at: this.dt_saved_at ? TwitchHelper.JSDateToPHPDate(this.dt_saved_at) : null,
+			dt_started_at: this.dt_started_at ? TwitchHelper.JSDateToPHPDate(this.dt_started_at) : null,
+			dt_ended_at: this.dt_ended_at ? TwitchHelper.JSDateToPHPDate(this.dt_ended_at) : null,
+			dt_capture_started: this.dt_capture_started ? TwitchHelper.JSDateToPHPDate(this.dt_capture_started) : null,
+			dt_conversion_started: this.dt_conversion_started ? TwitchHelper.JSDateToPHPDate(this.dt_conversion_started) : null,
+			// json_hash: this.json_hash,
+			created: this.created,
+			force_record: this.force_record,
+			automator_fail: this.automator_fail,
+			path_chat: this.path_chat,
+			path_downloaded_vod: this.path_downloaded_vod,
+			path_losslesscut: this.path_losslesscut,
+			path_chatrender: this.path_chatrender,
+			path_chatburn: this.path_chatburn,
+			path_chatdump: this.path_chatdump,
+			path_chatmask: this.path_chatmask,
+			path_adbreak: this.path_adbreak,
+			path_playlist: this.path_playlist,
+			// api_hasFavouriteGame:
+			// api_getUniqueGames:
+			// api_getWebhookDuration:
+			// api_getDuration: this.getDuration(),
+			api_getDuration: this.duration_seconds,
+			// api_getCapturingStatus:
+			// api_getRecordingSize:
+			// api_getChatDumpStatus:
+			// api_getDurationLive:
+			webpath: this.webpath,
+			// dt_started_at: this.dt_started_at ? TwitchHelper.JSDateToPHPDate(this.dt_started_at) : null,
+			// dt_ended_at: this.dt_ended_at ? TwitchHelper.JSDateToPHPDate(this.dt_ended_at) : null,
+
+		}
 	}
 
 }
