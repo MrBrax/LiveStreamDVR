@@ -1,4 +1,4 @@
-import { TwitchChannel } from "./TwitchChannel";
+import { TwitchChannel } from "./Core/TwitchChannel";
 import { TwitchConfig } from "./Core/TwitchConfig";
 import { TwitchHelper, LOGLEVEL } from "./Core/TwitchHelper";
 

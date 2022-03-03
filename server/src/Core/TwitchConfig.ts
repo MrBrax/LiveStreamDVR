@@ -1,7 +1,7 @@
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
-import { TwitchChannel } from '../TwitchChannel';
+import { TwitchChannel } from './TwitchChannel';
 import { BaseConfigFolder, BaseConfigPath } from './BaseConfig';
 import { TwitchGame } from './TwitchGame';
 import { LOGLEVEL, TwitchHelper } from './TwitchHelper';

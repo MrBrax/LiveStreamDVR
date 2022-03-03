@@ -47,6 +47,13 @@ export class TwitchHelper {
 		[LOGLEVEL.SUCCESS]: chalk.green,
 	};
 
+	static readonly SUBSTATUS = {
+		NONE: "0",
+		WAITING: "1",
+		SUBSCRIBED: "2",
+		FAILED: "3",
+	};
+
     static logAdvanced(level: LOGLEVEL, module: string, text: string, metadata?: any) {
         if (!TwitchConfig.cfg("debug") && level == LOGLEVEL.DEBUG) return;
 

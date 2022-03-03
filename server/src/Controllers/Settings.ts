@@ -1,5 +1,6 @@
 import { SettingField, TwitchConfig } from "../Core/TwitchConfig";
 import express from 'express';
+import { version } from '../../package.json';
 
 export function GetSettings(req: express.Request, res: express.Response): void {
 
@@ -13,7 +14,8 @@ export function GetSettings(req: express.Request, res: express.Response): void {
         data: {
             config: TwitchConfig.config,
             channels: TwitchConfig.channels_config,
-            fields: fields
+            fields: fields,
+            version: version,
         },
         status: "OK",
     });

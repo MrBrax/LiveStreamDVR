@@ -1,9 +1,9 @@
 import axios, { AxiosError } from "axios";
 import fs from "fs";
 import path from "path";
-import { BaseConfigPath } from "./Core/BaseConfig";
-import { ChannelConfig, TwitchConfig, VideoQuality } from "./Core/TwitchConfig";
-import { LOGLEVEL, TwitchHelper } from "./Core/TwitchHelper";
+import { BaseConfigPath } from "./BaseConfig";
+import { ChannelConfig, TwitchConfig, VideoQuality } from "./TwitchConfig";
+import { LOGLEVEL, TwitchHelper } from "./TwitchHelper";
 import { TwitchVOD } from "./TwitchVOD";
 interface ChannelData {
     id: string;
