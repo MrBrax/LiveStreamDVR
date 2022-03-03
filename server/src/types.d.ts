@@ -4,3 +4,9 @@ export interface ApiResponse {
     statusCode?: number;
     message?: string;
 }
+
+export interface PHPDateTimeProxy {
+    date: string;
+    timezone_type: number;
+    timezone: string;
+}

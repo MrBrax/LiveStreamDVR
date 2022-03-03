@@ -114,7 +114,7 @@ export class TwitchChannel {
             fs.mkdirSync(channel.getFolder());
         }
 
-        channel.parseVODs(api);
+        await channel.parseVODs(api);
 
         return channel;
 
@@ -133,6 +133,18 @@ export class TwitchChannel {
         TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "channel", `Convert login to channel id for ${login}`);
         const channelData = await this.getChannelDataByLogin(login, false);
         return channelData ? channelData.id : false;
+    }
+
+    static async channelLoginFromId(channel_id: string): Promise<string | false> {
+        TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "channel", `Convert channel id to login for ${channel_id}`);
+        const channelData = await this.getChannelDataById(channel_id, false);
+        return channelData ? channelData.login : false;
+    }
+
+    static async channelDisplayNameFromId(channel_id: string): Promise<string | false> {
+        TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "channel", `Convert channel id to display name for ${channel_id}`);
+        const channelData = await this.getChannelDataById(channel_id, false);
+        return channelData ? channelData.display_name : false;
     }
 
     static async getChannelDataById(channel_id: string, force = false): Promise<ChannelData | false> {
@@ -233,7 +245,7 @@ export class TwitchChannel {
         return TwitchHelper.vodFolder(this.login);
     }
 
-    private parseVODs(api = false) {
+    private async parseVODs(api = false) {
 
         // $this->vods_raw = glob($this->getFolder() . DIRECTORY_SEPARATOR . $this->login . "_*.json");
         this.vods_raw = fs.readdirSync(this.getFolder()).filter(file => file.startsWith(this.login + "_") && file.endsWith(".json"));
@@ -245,7 +257,7 @@ export class TwitchChannel {
 
             const vod_full_path = path.join(this.getFolder(), vod);
             
-            let vodclass = TwitchVOD.load(vod_full_path, api);
+            let vodclass = await TwitchVOD.load(vod_full_path, api);
 
             if (!vodclass) {
                 continue;
@@ -268,6 +280,8 @@ export class TwitchChannel {
             //         this.vods_size += vod['filesize'];
             //     }
             // }
+
+            TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "CHANNEL", `VOD ${vod} added to ${this.login}`);
 
             this.vods_list.push(vodclass);
         }
