@@ -4,7 +4,8 @@ import path from 'path';
 import { TwitchChannel } from './TwitchChannel';
 import { BaseConfigFolder, BaseConfigPath } from './BaseConfig';
 import { TwitchGame } from './TwitchGame';
-import { LOGLEVEL, TwitchHelper } from './TwitchHelper';
+import { TwitchHelper } from './TwitchHelper';
+import { LOGLEVEL, TwitchLog } from './TwitchLog';
 
 export interface SettingField {
 	key: string;
@@ -247,15 +248,15 @@ export class TwitchConfig {
 	}
 
 	static async setupAxios() {
-		// TwitchHelper.logAdvanced(LOGLEVEL.INFO, "config", `Setting defaults for axios...`);
+		// TwitchLog.logAdvanced(LOGLEVEL.INFO, "config", `Setting defaults for axios...`);
 		// axios.defaults.headers.common['Client-ID'] = TwitchConfig.cfg('api_client_id');
 		// axios.defaults.headers.common['Authorization'] = "Bearer " + await TwitchHelper.getAccessToken();
 		// axios.defaults.baseURL = "https://api.twitch.tv";
-		// TwitchHelper.logAdvanced(LOGLEVEL.INFO, "config", `Defaults for axios set!`);
+		// TwitchLog.logAdvanced(LOGLEVEL.INFO, "config", `Defaults for axios set!`);
 
 		const token = await TwitchHelper.getAccessToken();
 		if (!token) {
-			TwitchHelper.logAdvanced(LOGLEVEL.FATAL, "config", `Could not get access token!`);
+			TwitchLog.logAdvanced(LOGLEVEL.FATAL, "config", `Could not get access token!`);
 			throw new Error('Could not get access token!');
 		}
 
@@ -274,6 +275,17 @@ export class TwitchConfig {
 // Main load
 TwitchConfig.loadConfig();
 TwitchConfig.setupAxios().then(() => {
+
+	TwitchLog.readTodaysLog();
+
+	TwitchLog.logAdvanced(
+		LOGLEVEL.SUCCESS,
+		'config',
+		`The time is ${new Date().toLocaleString()}.` +
+		` Current topside temperature is 93 degrees, with an estimated high of one hundred and five.` +
+		` The Black Mesa compound is maintained at a pleasant 68 degrees at all times.`
+	);
+
 	TwitchGame.populateGameDatabase();
 	TwitchChannel.loadChannelsConfig();
 	TwitchChannel.loadChannels();

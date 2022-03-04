@@ -1,8 +1,9 @@
 import fs from 'fs';
 import axios from 'axios';
-import { LOGLEVEL, TwitchHelper } from './TwitchHelper';
+import { TwitchHelper } from './TwitchHelper';
 import { TwitchConfig } from './TwitchConfig';
 import { BaseConfigPath } from './BaseConfig';
+import { LOGLEVEL, TwitchLog } from './TwitchLog';
 
 interface TwitchGameJSON {
 	name: string;
@@ -20,7 +21,7 @@ export class TwitchGame {
     public added: Date | undefined;
 
     public static populateGameDatabase() {
-        TwitchHelper.logAdvanced(LOGLEVEL.INFO, "helper", "Populating game database...");
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Populating game database...");
         this.game_db = {};
         const raw_games: Record<string, TwitchGameJSON> = JSON.parse(fs.readFileSync(BaseConfigPath.gameDb, "utf8"));
         for (const id in raw_games) {
@@ -33,7 +34,7 @@ export class TwitchGame {
             game.added = new Date( raw_game.added.toString().length <= 10 ? raw_game.added * 1000 : raw_game.added );
             this.game_db[id] = game;
         }
-        TwitchHelper.logAdvanced(LOGLEVEL.INFO, "helper", `Game database populated with ${Object.keys(this.game_db).length} games.`);
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Game database populated with ${Object.keys(this.game_db).length} games.`);
     }
 
     public static getGameDataFromCache(game_id: string): TwitchGame | false | null {
@@ -46,7 +47,7 @@ export class TwitchGame {
     public static async getGameDataAsync(game_id: string): Promise<TwitchGame | false | null> {
 
 		if (!game_id) {
-			TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "helper", "No game id supplied for game fetch!");
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", "No game id supplied for game fetch!");
 			return false;
 		}
 
@@ -54,19 +55,19 @@ export class TwitchGame {
 
 		if (cachedGame) {
 			if (cachedGame && cachedGame.added && Date.now() > cachedGame.added.getTime() + (60 * 60 * 24 * 60 * 1000)) { // two months?
-				TwitchHelper.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} needs refreshing.`);
+				TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} needs refreshing.`);
 			} else {
 				return this.game_db[game_id];
 			}
 		}
 
-		TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "helper", `Game id ${game_id} not in cache, fetching...`);
+		TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "helper", `Game id ${game_id} not in cache, fetching...`);
 
 		let response;
 		try {
 			response = await TwitchHelper.axios.get(`/helix/games?id=${game_id}`);
 		} catch (th) {
-			TwitchHelper.logAdvanced(LOGLEVEL.FATAL, "helper", `Tried to get game data for ${game_id} but server returned: ${th}`);
+			TwitchLog.logAdvanced(LOGLEVEL.FATAL, "helper", `Tried to get game data for ${game_id} but server returned: ${th}`);
 			return false;
 		}
 
@@ -95,13 +96,13 @@ export class TwitchGame {
 
 			// $game_db[ $id ] = $game_data["name"];
 
-			TwitchHelper.logAdvanced(LOGLEVEL.SUCCESS, "helper", `New game saved to cache: ${game.name}`);
+			TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `New game saved to cache: ${game.name}`);
 
 			return game;
 
 		} else {
 
-			TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "helper", `Invalid game returned in query for ${game_id} (${json})`);
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Invalid game returned in query for ${game_id} (${json})`);
 
 			return null;
 		}

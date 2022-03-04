@@ -1,6 +1,7 @@
 import express from 'express';
 import * as Settings from './Controllers/Settings';
 import * as Channels from './Controllers/Channels';
+import * as Log from './Controllers/Log';
 import { TwitchConfig } from './Core/TwitchConfig';
 import history from "connect-history-api-fallback";
 import path from 'path';
@@ -24,6 +25,9 @@ app.use(express.static( path.join(__dirname, "..", "..", "client-vue", "dist")) 
 app.get("/api/v0/settings", Settings.GetSettings);
 
 app.get("/api/v0/channels", Channels.ListChannels);
+
+app.get("/api/v0/log/:filename/?:last_line?", Log.GetLog);
+
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)

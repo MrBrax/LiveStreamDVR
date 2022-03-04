@@ -2,7 +2,7 @@ import { differenceInSeconds, format, parse } from 'date-fns';
 import fs from 'fs';
 import path from 'path';
 import { TwitchChannel } from './TwitchChannel';
-import { LOGLEVEL, TwitchHelper } from './TwitchHelper';
+import { TwitchHelper } from './TwitchHelper';
 import { PHPDateTimeProxy } from '../types';
 import { MediaInfo } from '../../../client-vue/src/mediainfo';
 import { TwitchVODChapter, TwitchVODChapterJSON, TwitchVODChapterMinimalJSON } from './TwitchVODChapter';
@@ -10,6 +10,7 @@ import { TwitchConfig } from './TwitchConfig';
 import { TwitchVODSegment } from './TwitchVODSegment';
 import { PHPDateTime } from '../PHPDateTime';
 import { TwitchGame } from './TwitchGame';
+import { LOGLEVEL, TwitchLog } from './TwitchLog';
 
 export interface TwitchVODJSON {
 	meta: any;
@@ -328,7 +329,7 @@ export class TwitchVOD {
 		// 	vod.setupApiHelper();
 		// }
 
-		TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `VOD Class for ${vod.basename} with api ${api ? 'enabled' : 'disabled'}!`);
+		TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `VOD Class for ${vod.basename} with api ${api ? 'enabled' : 'disabled'}!`);
 
 		// vod.saveJSON();
 
@@ -339,7 +340,7 @@ export class TwitchVOD {
 	setupDates() {
 
 		if (!this.json) {
-			TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No JSON loaded for date setup!");
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No JSON loaded for date setup!");
 			return;
 		}
 
@@ -397,7 +398,7 @@ export class TwitchVOD {
 
 	async setupUserData() {
 		if (!this.json) {
-			TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No JSON loaded for user data setup!");
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No JSON loaded for user data setup!");
 			return;
 		}
 		this.streamer_id = this.json.streamer_id;
@@ -408,7 +409,7 @@ export class TwitchVOD {
 	setupProvider() {
 
 		if (!this.json) {
-			TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No JSON loaded for provider setup!");
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No JSON loaded for provider setup!");
 			return;
 		}
 
@@ -435,7 +436,7 @@ export class TwitchVOD {
 	async setupAssoc() {
 
 		if (!this.json) {
-			TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No JSON loaded for assoc setup!");
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No JSON loaded for assoc setup!");
 			return;
 		}
 
@@ -449,7 +450,7 @@ export class TwitchVOD {
 		} else if (this.json.chapters !== undefined && this.json.chapters.length > 0) {
 			this.parseChapters(this.json.chapters); // old method
 		} else {
-			TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No chapters on ${this.basename}!`);
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No chapters on ${this.basename}!`);
 		}
 
 		this.segments_raw = this.json.segments_raw !== undefined ? this.json.segments_raw : [];
@@ -457,13 +458,13 @@ export class TwitchVOD {
 		if (this.is_finalized) {
 			this.parseSegments(this.segments_raw);
 			if (!this.duration_seconds) {
-				TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `VOD ${this.basename} finalized but no duration, trying to fix`);
+				TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `VOD ${this.basename} finalized but no duration, trying to fix`);
 				this.getDuration(true);
 			}
 		}
 
 		if (!this.video_metadata && this.is_finalized && this.segments_raw.length > 0 && !this.video_fail2 && TwitchHelper.path_mediainfo()) {
-			TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `VOD ${this.basename} finalized but no metadata, trying to fix`);
+			TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `VOD ${this.basename} finalized but no metadata, trying to fix`);
 			if (await this.getMediainfo()) {
 				this.saveJSON('fix mediainfo');
 			}
@@ -480,47 +481,47 @@ export class TwitchVOD {
 		if (this.video_metadata) {
 
 			if (this.video_metadata.general.FileSize && this.video_metadata.general.FileSize == '0') {
-				TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Invalid video metadata for {this.basename}!");
+				TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Invalid video metadata for {this.basename}!");
 				return null;
 			}
 
 			if (this.video_metadata.general.Duration) {
-				TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `No duration_seconds but metadata exists for ${this.basename}: ${this.video_metadata.general.Duration}`);
+				TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `No duration_seconds but metadata exists for ${this.basename}: ${this.video_metadata.general.Duration}`);
 				this.duration_seconds = parseInt(this.video_metadata.general.Duration);
 				return this.duration_seconds;
 			}
 
-			TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Video metadata for {this.basename} does not include duration!");
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Video metadata for {this.basename} does not include duration!");
 
 			return null;
 		}
 
 		if (this.is_capturing) {
-			TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "vodclass", "Can't request duration because {this.basename} is still recording!");
+			TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", "Can't request duration because {this.basename} is still recording!");
 			return null;
 		}
 
 		if (!this.is_converted || this.is_converting) {
-			TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "vodclass", "Can't request duration because {this.basename} is converting!");
+			TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", "Can't request duration because {this.basename} is converting!");
 			return null;
 		}
 
 		if (!this.is_finalized) {
-			TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "vodclass", "Can't request duration because {this.basename} is not finalized!");
+			TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", "Can't request duration because {this.basename} is not finalized!");
 			return null;
 		}
 
 		if (!this.segments_raw || this.segments_raw.length == 0) {
-			TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No video file available for duration of {this.basename}");
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No video file available for duration of {this.basename}");
 			return null;
 		}
 
-		TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "vodclass", "No mediainfo for getDuration of {this.basename}");
+		TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", "No mediainfo for getDuration of {this.basename}");
 
 		const file = await this.getMediainfo();
 
 		if (!file) {
-			TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Could not find duration of {this.basename}");
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Could not find duration of {this.basename}");
 			return null;
 		} else {
 
@@ -528,16 +529,16 @@ export class TwitchVOD {
 			this.duration_seconds = parseInt(file.general.Duration);
 
 			if (save) {
-				TwitchHelper.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", "Saved duration for {this.basename}");
+				TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", "Saved duration for {this.basename}");
 				this.saveJSON('duration save');
 			}
 
-			TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "vodclass", "Duration fetched for {this.basename}: {this.duration_seconds}");
+			TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", "Duration fetched for {this.basename}: {this.duration_seconds}");
 
 			return this.duration_seconds;
 		}
 
-		TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Reached end of getDuration for {this.basename}, this shouldn't happen!");
+		TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Reached end of getDuration for {this.basename}, this shouldn't happen!");
 	}
 
 	async getMediainfo(): Promise<false | MediaInfo> {
@@ -617,7 +618,7 @@ export class TwitchVOD {
 	async parseChapters(raw_chapters: TwitchVODChapterJSON[] | TwitchVODChapterMinimalJSON[]) {
 
 		if (!raw_chapters || raw_chapters.length == 0) {
-			TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No chapter data found for ${this.basename}`);
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No chapter data found for ${this.basename}`);
 			return false;
 		}
 
@@ -734,10 +735,10 @@ export class TwitchVOD {
 		}
 
 		if (!array) {
-			TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No segment data supplied on ${this.basename}`);
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No segment data supplied on ${this.basename}`);
 
 			if (!this.segments_raw) {
-				TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No segment_raw data on ${this.basename}, calling rebuild...`);
+				TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No segment_raw data on ${this.basename}, calling rebuild...`);
 				this.rebuildSegmentList();
 			}
 
@@ -749,7 +750,7 @@ export class TwitchVOD {
 		for (let raw_segment of array) {
 
 			if (typeof raw_segment !== 'string') {
-				TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Segment list containing invalid data for ${this.basename}, rebuilding...`);
+				TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Segment list containing invalid data for ${this.basename}, rebuilding...`);
 				this.rebuildSegmentList();
 				return;
 			}
@@ -887,15 +888,15 @@ export class TwitchVOD {
 		}
 
 		if (!this.created && (this.is_capturing || this.is_converting || !this.is_finalized)) {
-			TwitchHelper.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Saving JSON of ${this.basename} while not finalized!`);
+			TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Saving JSON of ${this.basename} while not finalized!`);
 		}
 
 		if (!this.chapters || this.chapters.length == 0) {
-			TwitchHelper.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Saving JSON of ${this.basename} with no chapters!!`);
+			TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Saving JSON of ${this.basename} with no chapters!!`);
 		}
 
 		if (!this.streamer_name && !this.created) {
-			TwitchHelper.logAdvanced(LOGLEVEL.FATAL, "vodclass", `Found no streamer name in class of ${this.basename}, not saving!`);
+			TwitchLog.logAdvanced(LOGLEVEL.FATAL, "vodclass", `Found no streamer name in class of ${this.basename}, not saving!`);
 			return false;
 		}
 
@@ -959,7 +960,7 @@ export class TwitchVOD {
 		// 	// return false;
 		// }
 
-		TwitchHelper.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `Saving JSON of ${this.basename} ${(reason ? ' (' + reason + ')' : '')}`);
+		TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `Saving JSON of ${this.basename} ${(reason ? ' (' + reason + ')' : '')}`);
 
 		//file_put_contents(this.filename, json_encode(generated));
 		// this.setPermissions();

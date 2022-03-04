@@ -5,23 +5,7 @@ import { format } from "date-fns";
 import axios, { Axios } from "axios";
 import chalk from "chalk";
 import { BaseConfigFolder } from "./BaseConfig";
-
-export enum LOGLEVEL {
-    ERROR = "ERROR",
-	WARNING = "WARNING",
-	INFO = "INFO",
-	DEBUG = "DEBUG",
-	FATAL = "FATAL",
-	SUCCESS = "SUCCESS",
-}
-
-interface LogLine {
-    module: string;
-    date: number;
-    level: LOGLEVEL;
-    text: string;
-    metadata?: any;
-}
+import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 
 export class TwitchHelper {
 
@@ -38,66 +22,12 @@ export class TwitchHelper {
 	static readonly TWITCH_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 	static readonly TWITCH_DATE_FORMAT_MS = "yyyy-MM-dd'T'HH:mm:ss'.'SSS'Z'";
 
-	static readonly LOG_COLORS = {
-		[LOGLEVEL.ERROR]: chalk.red,
-		[LOGLEVEL.WARNING]: chalk.yellow,
-		[LOGLEVEL.INFO]: chalk.blue,
-		[LOGLEVEL.DEBUG]: chalk.gray,
-		[LOGLEVEL.FATAL]: chalk.red,
-		[LOGLEVEL.SUCCESS]: chalk.green,
-	};
-
 	static readonly SUBSTATUS = {
 		NONE: "0",
 		WAITING: "1",
 		SUBSCRIBED: "2",
 		FAILED: "3",
-	};
-
-    static logAdvanced(level: LOGLEVEL, module: string, text: string, metadata?: any) {
-        if (!TwitchConfig.cfg("debug") && level == LOGLEVEL.DEBUG) return;
-
-        // check if folder exists
-        if (!fs.existsSync(BaseConfigFolder.logs)) {
-            throw new Error("Log folder does not exist!");
-        }
-
-        // today's filename in Y-m-d format
-        const date = new Date();
-        const filename = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}.log`;
-        const filepath = path.join(BaseConfigFolder.logs, filename);
-        const jsonlinename = filepath + ".jsonline";
-
-        const dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
-        const dateString = format(date, dateFormat);
-
-        // write cleartext
-        const textOutput = `${dateString} | ${module} <${level}> ${text}`;
-        fs.appendFileSync(filepath, textOutput + "\n");
-
-        // if docker, output to stdout
-        // if (TwitchConfig.cfg("docker")) {
-        //     console.log(textOutput);
-        // }
-
-		console.log(
-			TwitchHelper.LOG_COLORS[level](`${dateString} | ${module} <${level}> ${text}`)
-		);
-        
-
-        let log_data: LogLine = {
-			"module": module,
-			"date": Date.now(),
-			"level": level,
-			"text": text
-        };
-
-		if (metadata !== undefined) log_data['metadata'] = metadata;
-
-        // write jsonline
-        fs.appendFileSync(jsonlinename, JSON.stringify(log_data) + "\n");
-
-    }
+	};    
 
     static async getAccessToken(force = false): Promise<string> {
         // token should last 60 days, delete it after 30 just to be sure
@@ -105,23 +35,23 @@ export class TwitchHelper {
 			
             /*
 			if (time() > filemtime(this.accessTokenFile) + TwitchHelper::$accessTokenRefresh) {
-				this.logAdvanced(LOGLEVEL.INFO, "helper", "Deleting old access token");
+				TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Deleting old access token");
 				unlink(this.accessTokenFile);
 			}
             */
             if (Date.now() > fs.statSync(this.accessTokenFile).mtimeMs + this.accessTokenRefresh) {
-                this.logAdvanced(LOGLEVEL.INFO, "helper", "Deleting old access token");
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Deleting old access token");
                 fs.unlinkSync(this.accessTokenFile);
             }
 		}
 
 		if (!force && fs.existsSync(this.accessTokenFile)) {
-			this.logAdvanced(LOGLEVEL.DEBUG, "helper", "Fetched access token from cache");
+			TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "helper", "Fetched access token from cache");
 			return fs.readFileSync(this.accessTokenFile, "utf8");
 		}
 
 		if (!TwitchConfig.cfg('api_secret') || !TwitchConfig.cfg('api_client_id')) {
-			this.logAdvanced(LOGLEVEL.ERROR, "helper", "Missing either api secret or client id, aborting fetching of access token!");
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", "Missing either api secret or client id, aborting fetching of access token!");
 			throw new Error("Missing either api secret or client id, aborting fetching of access token!");
 		}
 
@@ -142,7 +72,7 @@ export class TwitchHelper {
 				]
 			]);
 		} catch (\Throwable $th) {
-			this.logAdvanced(LOGLEVEL.FATAL, "helper", "Tried to get oauth token but server returned: " . $th->getMessage());
+			TwitchLog.logAdvanced(LOGLEVEL.FATAL, "helper", "Tried to get oauth token but server returned: " . $th->getMessage());
 			sleep(5);
 			return false;
 		}
@@ -159,14 +89,14 @@ export class TwitchHelper {
         });
 
         if (response.status != 200) {
-            this.logAdvanced(LOGLEVEL.FATAL, "helper", "Tried to get oauth token but server returned: " + response.statusText);
+            TwitchLog.logAdvanced(LOGLEVEL.FATAL, "helper", "Tried to get oauth token but server returned: " + response.statusText);
             throw new Error("Tried to get oauth token but server returned: " + response.statusText);
         }
 
         const json = response.data;
 
 		if (!json || !json.access_token) {
-			this.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to fetch access token: ${json}`);
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to fetch access token: ${json}`);
 			throw new Error(`Failed to fetch access token: ${json}`);
 		}
 
@@ -176,7 +106,7 @@ export class TwitchHelper {
 
 		fs.writeFileSync(this.accessTokenFile, access_token);
 
-		this.logAdvanced(LOGLEVEL.INFO, "helper", "Fetched new access token");
+		TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Fetched new access token");
 
 		return access_token;
     }
@@ -231,7 +161,7 @@ export class TwitchHelper {
 	public static async eventSubUnsubscribe(subscription_id: string)
 	{
 
-		this.logAdvanced(LOGLEVEL.INFO, "helper", "Unsubscribing from eventsub id {$subscription_id}");
+		TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Unsubscribing from eventsub id {$subscription_id}");
 
 		let response;
 
@@ -239,11 +169,11 @@ export class TwitchHelper {
 			// $response = $this->$guzzler->request("DELETE", "/helix/eventsub/subscriptions?id={$subscription_id}");
 			response = await this.axios.delete(`/helix/eventsub/subscriptions?id=${subscription_id}`);
 		} catch (th) {
-			this.logAdvanced(LOGLEVEL.FATAL, "helper", `Unsubscribe from eventsub ${subscription_id} error: ${th}`);
+			TwitchLog.logAdvanced(LOGLEVEL.FATAL, "helper", `Unsubscribe from eventsub ${subscription_id} error: ${th}`);
 			return false;
 		}
 
-		this.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Unsubscribed from eventsub ${subscription_id} successfully`);
+		TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Unsubscribed from eventsub ${subscription_id} successfully`);
 
 		return true;
 		
