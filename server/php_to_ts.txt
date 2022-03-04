@@ -12,3 +12,7 @@ ${$1}
 
 \{\$this->([\w]+)\}
 ${this.$1}
+
+# log
+TwitchHelper::logAdvanced(TwitchHelper::LOG_
+TwitchLog.logAdvanced(LOGLEVEL.

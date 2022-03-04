@@ -337,6 +337,16 @@ export class TwitchVOD {
 
 	}
 
+	public create(filename: string)
+	{
+		TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", "Create VOD JSON: " + path.basename(filename) + " @ " + path.dirname(filename));
+		this.created = true;
+		this.filename = filename;
+		this.basename = path.basename(filename, '.json');
+		this.saveJSON('create json');
+		return true;
+	}
+
 	setupDates() {
 
 		if (!this.json) {
@@ -352,6 +362,7 @@ export class TwitchVOD {
 		if (this.json.dt_conversion_started) this.dt_conversion_started = parse(this.json.dt_conversion_started.date, TwitchHelper.PHP_DATE_FORMAT, new Date());
 
 	}
+
 	setupBasic() {
 
 		if (!this.json) {
@@ -883,7 +894,7 @@ export class TwitchVOD {
 		if (fs.existsSync(this.filename)) {
 			// $tmp = file_get_contents(this.filename);
 			// if (md5($tmp) !== this.json_hash) {
-			// 	TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "vodclass", "JSON has been changed since loading of {this.basename}");
+			// 	TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", "JSON has been changed since loading of {this.basename}");
 			// }
 		}
 
@@ -969,6 +980,18 @@ export class TwitchVOD {
 
 		return generated;
 
+	}
+
+	public async refreshJSON(api = false)
+	{
+		if (!this.filename) {
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Can't refresh vod, not found!");
+			return false;
+		}
+		TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", "Refreshing JSON on {$this->basename} ({$this->filename}) @ {$this->directory}!");
+		// $this->load($this->filename);
+		// return static::load($this->filename, $api);
+		return await TwitchVOD.load(this.filename, api);
 	}
 
 }

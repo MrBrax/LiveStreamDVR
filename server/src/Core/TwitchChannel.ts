@@ -1,3 +1,4 @@
+import { Stream, StreamsResponse } from "@/TwitchAPI/Streams";
 import axios, { AxiosError } from "axios";
 import fs from "fs";
 import path from "path";
@@ -22,12 +23,12 @@ interface ChannelData {
 }
 
 export interface ChannelConfig {
-	login: string;
-	quality: VideoQuality[];
-	match: string[];
-	download_chat: boolean;
-	burn_chat: boolean;
-	no_capture: boolean;
+    login: string;
+    quality: VideoQuality[];
+    match: string[];
+    download_chat: boolean;
+    burn_chat: boolean;
+    no_capture: boolean;
 }
 
 export class TwitchChannel {
@@ -216,7 +217,7 @@ export class TwitchChannel {
         try {
             response = await TwitchHelper.axios.get(`/helix/users?${method}=${identifier}`);
         } catch (err) {
-            if (axios.isAxiosError(err)){
+            if (axios.isAxiosError(err)) {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`);
                 return false;
             }
@@ -279,7 +280,7 @@ export class TwitchChannel {
             TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "CHANNEL", `Try to parse VOD ${vod}`);
 
             const vod_full_path = path.join(this.getFolder(), vod);
-            
+
             let vodclass = await TwitchVOD.load(vod_full_path, api);
 
             if (!vodclass) {
@@ -309,44 +310,66 @@ export class TwitchChannel {
     }
 
     static loadChannelsConfig() {
-		if (!fs.existsSync(BaseConfigPath.channel)) {
-			return false;
-		}
+        if (!fs.existsSync(BaseConfigPath.channel)) {
+            return false;
+        }
 
-		const data = fs.readFileSync(BaseConfigPath.channel, 'utf8');
-		this.channels_config = JSON.parse(data);
-	}
+        const data = fs.readFileSync(BaseConfigPath.channel, 'utf8');
+        this.channels_config = JSON.parse(data);
+    }
 
-	static async loadChannels() {
-		if (this.channels_config.length > 0) {
-			for (let channel of this.channels_config) {
+    static async loadChannels() {
+        if (this.channels_config.length > 0) {
+            for (let channel of this.channels_config) {
 
-				let ch: TwitchChannel;
+                let ch: TwitchChannel;
 
-				try {
-					ch = await TwitchChannel.loadFromLogin(channel.login, true);
-				} catch (th) {
-					TwitchLog.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be loaded: ${th}`);
-					// continue;
-					break;
-				}
+                try {
+                    ch = await TwitchChannel.loadFromLogin(channel.login, true);
+                } catch (th) {
+                    TwitchLog.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be loaded: ${th}`);
+                    // continue;
+                    break;
+                }
 
-				if (ch) {
-					this.channels.push(ch);
-				} else {
-					TwitchLog.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be added, please check logs.`);
-					break;
-				}
-			}
-		}
-	}
+                if (ch) {
+                    this.channels.push(ch);
+                } else {
+                    TwitchLog.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be added, please check logs.`);
+                    break;
+                }
+            }
+        }
+    }
 
     static getChannels(): TwitchChannel[] {
-		return this.channels;
-	}
+        return this.channels;
+    }
 
     public static getChannelByLogin(login: string): TwitchChannel | undefined {
         return this.channels.find(ch => ch.login === login);
+    }
+
+    public static async getStreams(streamer_id: string): Promise<Stream[] | false> {
+        let response;
+
+        try {
+            response = await TwitchHelper.axios.get(`/helix/streams?user_id=${streamer_id}`);
+        } catch (error) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get streams for ${streamer_id}: ${error}`);
+            return false;
+        }
+
+        const json: StreamsResponse = response.data;
+
+        if (!json.data) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `No streams found for user id ${streamer_id}`);
+            return false;
+        }
+
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Querying streams for streamer id ${streamer_id}`);
+
+        return json.data ?? false;
     }
 
 }

@@ -18,4 +18,14 @@ export interface Subscription {
     created_at: Date;
 }
 
+export interface Pagination {
+    cursor: string;
+}
+
+export interface ErrorResponse {
+    error: "Unauthorized";
+    status: number;
+    "message": "Invalid OAuth token";
+}
+
 export type EventSubTypes = "channel.update" | "stream.offline" | "stream.online";

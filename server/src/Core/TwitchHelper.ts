@@ -6,6 +6,7 @@ import axios, { Axios } from "axios";
 import chalk from "chalk";
 import { BaseConfigFolder } from "./BaseConfig";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
+import { exec } from "child_process";
 
 export class TwitchHelper {
 
@@ -181,6 +182,18 @@ export class TwitchHelper {
 
 	static webhook(data: any) {
 		throw new Error("Method not implemented.");
+	}
+
+	static async exec(cmd: string[]): Promise<string> {
+		return new Promise((resolve, reject) => {
+			exec(cmd.join(' '), (err, stdout, stderr) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(stdout);
+				}
+			});
+		});
 	}
 
 }
