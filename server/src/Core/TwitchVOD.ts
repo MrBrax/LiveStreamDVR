@@ -723,6 +723,10 @@ export class TwitchVOD {
 		return raw_chapters;
 	}
 
+	addChapter(chapter: TwitchVODChapter) {
+		this.chapters.push(chapter);
+	}
+
 	public parseSegments(array: string[]) {
 
 		if (!this.directory) {

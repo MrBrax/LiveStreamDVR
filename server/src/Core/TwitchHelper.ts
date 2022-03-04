@@ -249,4 +249,8 @@ export class TwitchHelper {
 		
 	}
 
+	static webhook(data: any) {
+		throw new Error("Method not implemented.");
+	}
+
 }

@@ -15,7 +15,7 @@ export function generateStreamerList(): { channels: TwitchChannel[], total_size:
     });
     */
 
-    let channels = TwitchConfig.getChannels();
+    let channels = TwitchChannel.getChannels();
 
     if (channels.length == 0) {
         TwitchHelper.logAdvanced(LOGLEVEL.WARNING, "api", "No channels in channel list");

@@ -9,3 +9,6 @@ $1 !== undefined
 # template literal
 \{\$([\w]+)\}
 ${$1}
+
+\{\$this->([\w]+)\}
+${this.$1}

@@ -4,7 +4,7 @@ interface ChannelUpdateSubscription extends Subscription {
     type: "channel.update";
 }
 
-interface ChannelUpdateEvent {
+export interface ChannelUpdateEvent {
     broadcaster_user_id: string;
     broadcaster_user_login: string;
     broadcaster_user_name: string;
