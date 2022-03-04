@@ -10,13 +10,15 @@ const port = 8080;
 
 app.use(express.json());
 
-app.use(history());
+
 
 // app.get("/", (req, res) => {
 //     // res.send(TwitchConfig.cfg<string>("app_url", "test"));
 //     res.send(TwitchConfig.config);
 // });
 
+// single page app
+app.use(history());
 app.use(express.static( path.join(__dirname, "..", "..", "client-vue", "dist")) );
 
 app.get("/api/v0/settings", Settings.GetSettings);

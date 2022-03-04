@@ -5,7 +5,7 @@ import { TwitchChannel } from './TwitchChannel';
 import { LOGLEVEL, TwitchHelper } from './TwitchHelper';
 import { PHPDateTimeProxy } from '../types';
 import { MediaInfo } from '../../../client-vue/src/mediainfo';
-import { TwitchVODChapter } from './TwitchVODChapter';
+import { TwitchVODChapter, TwitchVODChapterJSON, TwitchVODChapterMinimalJSON } from './TwitchVODChapter';
 import { TwitchConfig } from './TwitchConfig';
 import { TwitchVODSegment } from './TwitchVODSegment';
 import { PHPDateTime } from '../PHPDateTime';
@@ -13,57 +13,47 @@ import { TwitchGame } from './TwitchGame';
 
 export interface TwitchVODJSON {
 	meta: any;
-	twitch_vod_exists: boolean | null;
-	twitch_vod_attempted: boolean | null;
-	twitch_vod_neversaved: boolean | null;
-	twitch_vod_muted: boolean | null;
+	
 	stream_resolution: string;
+	
 	streamer_name: string;
 	streamer_id: string;
 	streamer_login: string;
+
+	chapters_raw: TwitchVODChapterMinimalJSON[];
 	chapters: TwitchVODChapterJSON[];
+
 	segments_raw: string[];
 	segments: TwitchVODSegmentJSON[];
+
 	// ads: any[];
 	is_capturing: boolean;
 	is_converting: boolean;
 	is_finalized: boolean;
-	duration_seconds: number;
-	video_metadata: MediaInfo;
-	video_fail2: boolean;
-	force_record: boolean;
-	automator_fail: boolean;
-	saved_at: PHPDateTimeProxy;
-	dt_capture_started: PHPDateTimeProxy;
-	dt_conversion_started: PHPDateTimeProxy;
-	dt_started_at: PHPDateTimeProxy;
-	dt_ended_at: PHPDateTimeProxy;
-	capture_id: string;
-	twitch_vod_id: number;
-	twitch_vod_url: string;
-	twitch_vod_duration: number;
-	twitch_vod_title: string;
-	twitch_vod_date: string; // Date
+	duration_seconds: number | null;
+	video_metadata?: MediaInfo;
+	video_fail2?: boolean;
+	force_record?: boolean;
+	automator_fail?: boolean;
+	saved_at?: PHPDateTimeProxy;
+	dt_capture_started?: PHPDateTimeProxy;
+	dt_conversion_started?: PHPDateTimeProxy;
+	dt_started_at?: PHPDateTimeProxy;
+	dt_ended_at?: PHPDateTimeProxy;
+	capture_id: string | undefined;
+	
+	twitch_vod_id: number | undefined;
+	twitch_vod_url: string | undefined;
+	twitch_vod_duration: number | undefined;
+	twitch_vod_title: string | undefined;
+	twitch_vod_date: string | undefined; // Date
+	twitch_vod_exists?: boolean | null;
+	twitch_vod_attempted?: boolean | null;
+	twitch_vod_neversaved?: boolean | null;
+	twitch_vod_muted?: boolean | null;
 }
 
-export interface TwitchVODChapterJSON {
-	/** Date, 2022-02-23T00:47:32Z */
-	time: string;
-	dt_started_at: PHPDateTimeProxy;
-	game_id: string;
-	game_name: string;
-	title: string;
-	is_mature: boolean;
-	online: boolean;
-	viewer_count: number;
-	datetime: PHPDateTimeProxy;
-	favourite: boolean;
-	offset: number;
-	strings: Record<string, string>;
-	box_art_url: string;
-	duration: number;
-	width: number;
-}
+
 
 export interface TwitchVODSegmentJSON {
 	filename: string;
@@ -340,6 +330,8 @@ export class TwitchVOD {
 
 		TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `VOD Class for ${vod.basename} with api ${api ? 'enabled' : 'disabled'}!`);
 
+		// vod.saveJSON();
+
 		return vod;
 
 	}
@@ -377,15 +369,15 @@ export class TwitchVOD {
 
 		// $this->force_record				= isset($this->json['force_record']) ? $this->json['force_record'] : false;
 		// $this->automator_fail			= isset($this->json['automator_fail']) ? $this->json['automator_fail'] : false;
-		this.force_record = this.json.force_record;
-		this.automator_fail = this.json.automator_fail;
+		this.force_record 		= this.json.force_record == true;
+		this.automator_fail 	= this.json.automator_fail == true;
 
 		// $this->stream_resolution		= isset($this->json['stream_resolution']) && gettype($this->json['stream_resolution']) == 'string' ? $this->json['stream_resolution'] : '';
 		this.stream_resolution = this.json.stream_resolution;
 
 		// $this->duration 			= $this->json['duration'];
 		// $this->duration_seconds 	= $this->json['duration_seconds'] ? (int)$this->json['duration_seconds'] : null;
-		this.duration_seconds = this.json.duration_seconds;
+		this.duration_seconds = this.json.duration_seconds ?? undefined;
 
 		const dur = this.getDurationLive();
 		this.duration_live = dur === false ? -1 : dur;
@@ -452,9 +444,10 @@ export class TwitchVOD {
 		// this.filterMediainfo();
 
 		// this.ads = this.json.ads !== undefined ? this.json.ads : [];
-
-		if (this.json.chapters !== undefined && this.json.chapters.length > 0) {
-			this.parseChapters(this.json.chapters);
+		if (this.json.chapters_raw !== undefined && this.json.chapters_raw.length > 0) {
+			this.parseChapters(this.json.chapters_raw);
+		} else if (this.json.chapters !== undefined && this.json.chapters.length > 0) {
+			this.parseChapters(this.json.chapters); // old method
 		} else {
 			TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No chapters on ${this.basename}!`);
 		}
@@ -551,10 +544,6 @@ export class TwitchVOD {
 		throw new Error('Method getMediaInfo not implemented.');
 	}
 
-	saveJSON(reason: string) {
-		throw new Error('Method saveJSON not implemented.');
-	}
-
 	private realpath(expanded_path: string): string {
 		return path.normalize(expanded_path);
 	}
@@ -625,7 +614,7 @@ export class TwitchVOD {
 		throw new Error('Method apihelper not implemented.');
 	}
 
-	async parseChapters(raw_chapters: TwitchVODChapterJSON[]) {
+	async parseChapters(raw_chapters: TwitchVODChapterJSON[] | TwitchVODChapterMinimalJSON[]) {
 
 		if (!raw_chapters || raw_chapters.length == 0) {
 			TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No chapter data found for ${this.basename}`);
@@ -640,6 +629,7 @@ export class TwitchVOD {
 
 			let new_chapter = new TwitchVODChapter(chapter_data);
 
+			/*
 			let game_data;
 			if (chapter_data.game_id) {
 				game_data = await TwitchGame.getGameDataAsync(chapter_data.game_id);
@@ -691,7 +681,7 @@ export class TwitchVOD {
 				let box_art_height = Math.round(190 * 0.5); // 19
 				new_chapter.box_art_url = game_data.getBoxArtUrl(box_art_width, box_art_height);
 			}
-
+			*/
 			chapters.push(new_chapter);
 		}
 
@@ -717,9 +707,20 @@ export class TwitchVOD {
 			}
 		});
 
-		this.chapters_raw = raw_chapters;
+		// console.log("Chapters:", chapters);
+
+		// this.chapters_raw = raw_chapters;
 		this.chapters = chapters;
 
+	}
+
+	generateChaptersRaw() {
+		let raw_chapters: TwitchVODChapterMinimalJSON[] = [];
+		for (let chapter of this.chapters) {
+			let raw_chapter = chapter.getRawChapter();
+			if (raw_chapter) raw_chapters.push(raw_chapter);
+		}
+		return raw_chapters;
 	}
 
 	public parseSegments(array: string[]) {
@@ -795,9 +796,13 @@ export class TwitchVOD {
 			streamer_name: this.streamer_name,
 			streamer_id: this.streamer_id,
 			streamer_login: this.streamer_login,
+			
 			segments: this.segments,
 			segments_raw: this.segments_raw,
+
 			chapters: this.chapters,
+			chapters_raw: this.generateChaptersRaw(),
+
 			// ads: this.ads,
 			// started_at: null,
 			// ended_at: null,
@@ -862,6 +867,103 @@ export class TwitchVOD {
 			// dt_ended_at: this.dt_ended_at ? TwitchHelper.JSDateToPHPDate(this.dt_ended_at) : null,
 
 		}
+	}
+
+	saveJSON(reason = ""){
+
+		if (!this.filename) {
+			throw new Error('Filename not set.');
+		}
+
+		if (fs.existsSync(this.filename)) {
+			// $tmp = file_get_contents(this.filename);
+			// if (md5($tmp) !== this.json_hash) {
+			// 	TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "vodclass", "JSON has been changed since loading of {this.basename}");
+			// }
+		}
+
+		if (!this.created && (this.is_capturing || this.is_converting || !this.is_finalized)) {
+			TwitchHelper.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Saving JSON of ${this.basename} while not finalized!`);
+		}
+
+		if (!this.chapters || this.chapters.length == 0) {
+			TwitchHelper.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Saving JSON of ${this.basename} with no chapters!!`);
+		}
+
+		if (!this.streamer_name && !this.created) {
+			TwitchHelper.logAdvanced(LOGLEVEL.FATAL, "vodclass", `Found no streamer name in class of ${this.basename}, not saving!`);
+			return false;
+		}
+
+		// clone this.json
+		let generated: TwitchVODJSON = JSON.parse(JSON.stringify(this.json));
+
+		if (this.twitch_vod_id && this.twitch_vod_url) {
+			generated.twitch_vod_id 		= this.twitch_vod_id;
+			generated.twitch_vod_url 		= this.twitch_vod_url;
+			generated.twitch_vod_duration 	= this.twitch_vod_duration ?? undefined;
+			generated.twitch_vod_title 		= this.twitch_vod_title;
+			generated.twitch_vod_date 		= this.twitch_vod_date;
+		}
+
+		generated.twitch_vod_exists 		= this.twitch_vod_exists;
+		generated.twitch_vod_attempted 		= this.twitch_vod_attempted;
+		generated.twitch_vod_neversaved 	= this.twitch_vod_neversaved;
+		generated.twitch_vod_muted 			= this.twitch_vod_muted;
+
+		generated.stream_resolution = this.stream_resolution ?? "";
+
+		generated.streamer_name 	= this.streamer_name ?? "";
+		generated.streamer_id 		= this.streamer_id ?? "";
+		generated.streamer_login 	= this.streamer_login ?? "";
+
+		// generated.started_at 		= this.started_at;
+		// generated.ended_at 			= this.ended_at;
+
+		generated.chapters_raw 		= this.generateChaptersRaw();
+		generated.segments_raw 		= this.segments_raw;
+		// generated.segments 			= this.segments;
+		// generated.ads 				= this.ads;
+
+		generated.is_capturing		= this.is_capturing;
+		generated.is_converting		= this.is_converting;
+		generated.is_finalized		= this.is_finalized;
+
+		// generated.duration 			= this.duration;
+		generated.duration_seconds 	= this.duration_seconds ?? null;
+
+		generated.video_metadata 	= this.video_metadata;
+		generated.video_fail2 		= this.video_fail2;
+
+		generated.force_record 		= this.force_record;
+
+		generated.automator_fail 	= this.automator_fail;
+
+		generated.meta				= this.meta;
+
+		generated.saved_at			= TwitchHelper.JSDateToPHPDate(new Date());
+
+		if (this.dt_capture_started) generated.dt_capture_started = TwitchHelper.JSDateToPHPDate(this.dt_capture_started);
+		if (this.dt_conversion_started) generated.dt_conversion_started = TwitchHelper.JSDateToPHPDate(this.dt_conversion_started);
+		if (this.dt_started_at) generated.dt_started_at = TwitchHelper.JSDateToPHPDate(this.dt_started_at);
+		if (this.dt_ended_at) generated.dt_ended_at = TwitchHelper.JSDateToPHPDate(this.dt_ended_at);
+
+		generated.capture_id				= this.capture_id;
+
+		// if (!is_writable(this.filename)) { // this is not the function i want
+		// 	// TwitchHelper::log(TwitchHelper::LOG_FATAL, "Saving JSON of " . this.basename . " failed, permissions issue?");
+		// 	// return false;
+		// }
+
+		TwitchHelper.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `Saving JSON of ${this.basename} ${(reason ? ' (' + reason + ')' : '')}`);
+
+		//file_put_contents(this.filename, json_encode(generated));
+		// this.setPermissions();
+
+		console.log("GENERATED", generated);
+
+		return generated;
+
 	}
 
 }

@@ -7,7 +7,7 @@ import { generateStreamerList } from "../StreamerList";
 export function ListChannels(req: express.Request, res: express.Response): void {
 
     let { channels, total_size } = generateStreamerList();
-    
+
     res.send({
         data: {
             streamer_list: channels,
