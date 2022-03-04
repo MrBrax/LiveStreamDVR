@@ -20,3 +20,4 @@ config/config.json.bak
 client-vue/.env.staging
 config/channels.json
 phpDocumentor.phar
+config/favourite_games.json

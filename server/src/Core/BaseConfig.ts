@@ -16,6 +16,7 @@ export const BaseConfigFolder = {
 export const BaseConfigPath = {
 	config: path.join(BaseConfigFolder.config, "config.json"),
 	channel: path.join(BaseConfigFolder.config, "channels.json"),
+	favouriteGames: path.join(BaseConfigFolder.config, "favourite_games.json"),
 	gameDb: path.join(BaseConfigFolder.cache, "games_v2.json"),
 	history: path.join(BaseConfigFolder.cache, "history.json"),
 	streamerCache: path.join(BaseConfigFolder.cache, "streamers_v2.json"),

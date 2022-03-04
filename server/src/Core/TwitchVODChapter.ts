@@ -25,7 +25,7 @@ export interface TwitchVODChapterMinimalJSON {
     /** Date, 2022-02-23T00:47:32Z */
     time: string;
     dt_started_at: PHPDateTimeProxy;
-    game_id: string;
+    game_id: string | false;
     game_name: string;
     viewer_count?: number;
     title: string;
@@ -47,13 +47,15 @@ export interface TwitchVODChapterMinimalJSON {
 
 export class TwitchVODChapter {
 
+    raw_chapter: TwitchVODChapterJSON | TwitchVODChapterMinimalJSON | undefined;
+
     datetime: Date | undefined;
     offset: number | undefined;
     duration: number | undefined;
     strings: Record<string, string> = {};
 
     game: TwitchGame | undefined;
-    game_id: string | undefined;
+    game_id: string | false | undefined;
 
     /** Do not use for display */
     game_name: string | undefined; // make dynamic
@@ -95,24 +97,51 @@ export class TwitchVODChapter {
             console.error(`No game_id for chapter: ${raw_chapter.title}`);
         }
 
+        this.raw_chapter = raw_chapter;
+
     }
 
     getRawChapter(): TwitchVODChapterMinimalJSON {
         if (!this.datetime) throw new Error("Can't get raw chapter: No datetime set");
-        if (!this.game_id) throw new Error("Can't get raw chapter: No game_id set");
-        if (!this.game_name) throw new Error("Can't get raw chapter: No game_name set");
+        // if (!this.game_id) throw new Error("Can't get raw chapter: No game_id set");
+        // if (!this.game_name) throw new Error("Can't get raw chapter: No game_name set");
         if (!this.title) throw new Error("Can't get raw chapter: No title set");
         return {
             time: format(this.datetime, TwitchHelper.TWITCH_DATE_FORMAT),
             dt_started_at: TwitchHelper.JSDateToPHPDate(this.datetime),
-            game_id: this.game_id,
-            game_name: this.game_name,
+            game_id: this.game_id || false,
+            game_name: this.game_name || "",
             title: this.title,
             is_mature: this.is_mature || false,
             online: this.online || false,
             viewer_count: this.viewer_count ?? undefined,
         }
     };
+
+    get dt_started_at(): PHPDateTimeProxy {
+        if (!this.datetime) throw new Error("Can't get dt_started_at: No datetime set");
+        return TwitchHelper.JSDateToPHPDate(this.datetime);
+    }
+
+    toJSON() {
+        return {
+            time: this.raw_chapter?.time,
+            dt_started_at: this.dt_started_at,
+            game_id: this.game_id,
+            game_name: this.game_name,
+            title: this.title,
+            is_mature: this.is_mature,
+            online: this.online,
+            viewer_count: this.viewer_count,
+            datetime: this.datetime ? TwitchHelper.JSDateToPHPDate(this.datetime) : undefined,
+            favourite: this.game ? this.game.isFavourite() : false,
+            offset: this.offset,
+            strings: this.strings,
+            box_art_url: this.box_art_url,
+            duration: this.duration,
+            // width: this.width,
+        }
+    }
 
     /*
     let raw_chapter: TwitchVODChapterJSON = {

@@ -287,6 +287,7 @@ TwitchConfig.setupAxios().then(() => {
 	);
 
 	TwitchGame.populateGameDatabase();
+	TwitchGame.populateFavouriteGames();
 	TwitchChannel.loadChannelsConfig();
 	TwitchChannel.loadChannels();
 });

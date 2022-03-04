@@ -107,7 +107,6 @@ export class TwitchLog {
     static fetchLog(date: string, fromLine: number = 0) {
 
         if (date == this.currentDate) {
-            console.log(`Fetching from line ${fromLine} lines from memory`);
             return this.lines.slice(fromLine);
         }
 

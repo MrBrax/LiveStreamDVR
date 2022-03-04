@@ -412,7 +412,7 @@
 
         <!-- game list / chapters -->
         <div class="video-chapters">
-            <table class="table game-list" v-if="vod && vod.chapters">
+            <table class="table game-list" v-if="vod && vod.chapters && vod.chapters.length > 0">
                 <thead>
                     <tr>
                         <th>Offset</th>
@@ -528,6 +528,9 @@
                     </tr>
                 </tbody>
             </table>
+            <div v-else>
+                <span class="is-error">No chapters found</span>
+            </div>
         </div>
     </div>
     <modal-box ref="burnMenu" title="Render Menu" v-if="vod?.is_finalized">
@@ -827,6 +830,14 @@ export default defineComponent({
     mounted() {
         if (this.vod && this.vod.video_metadata_public && this.vod.video_metadata_public.video)
             this.burnSettings.chatHeight = parseInt(this.vod.video_metadata_public.video.Height);
+
+        if (this.vod) {
+            if (!this.vod.chapters) {
+                console.error("No chapters found for vod", this.vod.basename, this.vod);
+            } else if (this.vod.chapters && this.vod.chapters.length == 0) {
+                console.error("Chapters array found but empty for vod", this.vod.basename, this.vod);
+            }
+        }
     },
     props: {
         vod: Object as () => ApiVod,

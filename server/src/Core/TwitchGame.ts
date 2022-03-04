@@ -14,6 +14,7 @@ interface TwitchGameJSON {
 export class TwitchGame {
 
     static game_db: Record<string, TwitchGame> = {};
+    static favourite_games: string[] = [];
 
     public id: string | undefined;
     public name: string | undefined;
@@ -35,6 +36,16 @@ export class TwitchGame {
             this.game_db[id] = game;
         }
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Game database populated with ${Object.keys(this.game_db).length} games.`);
+    }
+
+    public static populateFavouriteGames() {
+        if (!fs.existsSync(BaseConfigPath.favouriteGames)) {
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Favourite games file not found, creating...");
+            fs.writeFileSync(BaseConfigPath.favouriteGames, "[]");
+        }
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Populating favourite games...");
+        this.favourite_games = JSON.parse(fs.readFileSync(BaseConfigPath.favouriteGames, "utf8"));
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Favourite games populated with ${this.favourite_games.length} games.`);
     }
 
     public static getGameDataFromCache(game_id: string): TwitchGame | false | null {
@@ -120,6 +131,10 @@ export class TwitchGame {
         return this.game_db[game_id] || null;
     }
 
+    public static getFavouriteGames(): string[] {
+        return this.favourite_games;
+    }
+
     /**
      * Save game data to cache.
      */
@@ -154,6 +169,26 @@ export class TwitchGame {
             return "";
         }
         return this.box_art_url.replace("{width}", width.toString()).replace("{height}", height.toString());
+    }
+
+    public isFavourite(): boolean {
+        if (!this.id) return false;
+        return TwitchGame.getFavouriteGames().includes(this.id);
+    }
+
+    public setFavourite(fav: boolean) {
+        if (!this.id) return;
+        if (fav) {
+            if (!TwitchGame.favourite_games.includes(this.id)) {
+                TwitchGame.favourite_games.push(this.id);
+            }
+        } else {
+            const index = TwitchGame.favourite_games.indexOf(this.id);
+            if (index > -1) {
+                TwitchGame.favourite_games.splice(index, 1);
+            }
+        }
+        fs.writeFileSync(BaseConfigPath.favouriteGames, JSON.stringify(TwitchGame.favourite_games));
     }
 
 }
