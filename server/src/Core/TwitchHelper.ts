@@ -228,4 +228,25 @@ export class TwitchHelper {
 		return false;
 	}
 
+	public static async eventSubUnsubscribe(subscription_id: string)
+	{
+
+		this.logAdvanced(LOGLEVEL.INFO, "helper", "Unsubscribing from eventsub id {$subscription_id}");
+
+		let response;
+
+		try {
+			// $response = $this->$guzzler->request("DELETE", "/helix/eventsub/subscriptions?id={$subscription_id}");
+			response = await this.axios.delete(`/helix/eventsub/subscriptions?id=${subscription_id}`);
+		} catch (th) {
+			this.logAdvanced(LOGLEVEL.FATAL, "helper", `Unsubscribe from eventsub ${subscription_id} error: ${th}`);
+			return false;
+		}
+
+		this.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Unsubscribed from eventsub ${subscription_id} successfully`);
+
+		return true;
+		
+	}
+
 }

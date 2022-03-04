@@ -2,7 +2,7 @@ import axios, { AxiosError } from "axios";
 import fs from "fs";
 import path from "path";
 import { BaseConfigPath } from "./BaseConfig";
-import { ChannelConfig, TwitchConfig, VideoQuality } from "./TwitchConfig";
+import { TwitchConfig, VideoQuality } from "./TwitchConfig";
 import { LOGLEVEL, TwitchHelper } from "./TwitchHelper";
 import { TwitchVOD } from "./TwitchVOD";
 interface ChannelData {
@@ -20,7 +20,19 @@ interface ChannelData {
     cache_avatar: string;
 }
 
+export interface ChannelConfig {
+	login: string;
+	quality: VideoQuality[];
+	match: string[];
+	download_chat: boolean;
+	burn_chat: boolean;
+	no_capture: boolean;
+}
+
 export class TwitchChannel {
+
+    static channels: TwitchChannel[] = [];
+    static channels_config: ChannelConfig[] = [];
 
     /**
      * User ID
@@ -40,7 +52,14 @@ export class TwitchChannel {
     public quality: VideoQuality[] | undefined;
     public match: string[] | undefined;
     public download_chat: boolean | undefined;
+
+    /** Don't capture, just exist */
     public no_capture: boolean | undefined;
+
+    /** 
+     * Burn chat after capturing.
+     * Currently not used.
+     */
     public burn_chat: boolean | undefined;
 
     public vods_raw: string[] | undefined;
@@ -79,7 +98,7 @@ export class TwitchChannel {
 
         const channel_login = channel_data.login;
 
-        const channel_config = TwitchConfig.channels_config.find(c => c.login === channel_login);
+        const channel_config = TwitchChannel.channels_config.find(c => c.login === channel_login);
         if (!channel_config) throw new Error(`Could not find channel config for channel login: ${channel_login}`);
 
         channel.channel_data = channel_data;
@@ -288,5 +307,45 @@ export class TwitchChannel {
         }
     }
 
+    static loadChannelsConfig() {
+		if (!fs.existsSync(BaseConfigPath.channel)) {
+			return false;
+		}
+
+		const data = fs.readFileSync(BaseConfigPath.channel, 'utf8');
+		this.channels_config = JSON.parse(data);
+	}
+
+	static async loadChannels() {
+		if (this.channels_config.length > 0) {
+			for (let channel of this.channels_config) {
+
+				let ch: TwitchChannel;
+
+				try {
+					ch = await TwitchChannel.loadFromLogin(channel.login, true);
+				} catch (th) {
+					TwitchHelper.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be loaded: ${th}`);
+					// continue;
+					break;
+				}
+
+				if (ch) {
+					this.channels.push(ch);
+				} else {
+					TwitchHelper.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be added, please check logs.`);
+					break;
+				}
+			}
+		}
+	}
+
+    static getChannels(): TwitchChannel[] {
+		return this.channels;
+	}
+
+    public static getChannelByLogin(login: string): TwitchChannel | undefined {
+        return this.channels.find(ch => ch.login === login);
+    }
 
 }

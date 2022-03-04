@@ -7,6 +7,8 @@ import path from "path";
 import { AppRoot } from "@/Core/BaseConfig";
 import fs from "fs";
 import { TwitchAutomator } from "@/Core/TwitchAutomator";
+import { EventSubResponse } from "@/TwitchAPI/EventSub";
+import { ChallengeRequest } from "@/TwitchAPI/Challenge";
 
 export class Hook {
 
@@ -77,7 +79,7 @@ export class Hook {
         }
         */
 
-        const data_json = req.body;
+        const data_json: EventSubResponse | ChallengeRequest = req.body;
 
         // $data_headers = $request->getHeaders();
         // $post_json = isset($_POST['json']) ? $_POST['json'] : null;

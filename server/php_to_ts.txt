@@ -1,6 +1,11 @@
+# array
 \['([\w+]+)'\]
 .$1
 
-
+# isset
 isset\(([\w_.]+)\)
 $1 !== undefined
+
+# template literal
+\{\$([\w]+)\}
+${$1}

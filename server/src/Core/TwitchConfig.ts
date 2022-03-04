@@ -21,22 +21,10 @@ export interface SettingField {
 
 export type VideoQuality = "best" | "1080p60" | "1080p" | "720p60" | "720p" | "480p" | "360p" | "160p" | "140p" | "worst";
 
-export interface ChannelConfig {
-	login: string;
-	quality: VideoQuality[];
-	match: string[];
-	download_chat: boolean;
-	burn_chat: boolean;
-	no_capture: boolean;
-}
 export class TwitchConfig {
 
 	static config: Record<string, any>;
-	static channels_config: ChannelConfig[] = [];
-
-	static channels: TwitchChannel[] = [];
-
-
+	
 
 	static readonly streamerCacheTime = 2592000 * 1000; // 30 days
 
@@ -212,39 +200,6 @@ export class TwitchConfig {
 		console.log(`Saved config from ${source}`);
 	}
 
-	static loadChannelsConfig() {
-		if (!fs.existsSync(BaseConfigPath.channel)) {
-			return false;
-		}
-
-		const data = fs.readFileSync(BaseConfigPath.channel, 'utf8');
-		this.channels_config = JSON.parse(data);
-	}
-
-	static async loadChannels() {
-		if (this.channels_config.length > 0) {
-			for (let channel of this.channels_config) {
-
-				let ch: TwitchChannel;
-
-				try {
-					ch = await TwitchChannel.loadFromLogin(channel.login, true);
-				} catch (th) {
-					TwitchHelper.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be loaded: ${th}`);
-					// continue;
-					break;
-				}
-
-				if (ch) {
-					this.channels.push(ch);
-				} else {
-					TwitchHelper.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be added, please check logs.`);
-					break;
-				}
-			}
-		}
-	}
-
 	// todo: redis or something
 	static getCache(key: string) {
 		/*
@@ -265,7 +220,7 @@ export class TwitchConfig {
 
 	}
 
-	static setCache(key: string, value: string) {
+	static setCache(key: string, value: string | null) {
 		/*
 		$key = str_replace("/", "", $key);
 		if ($value === null) {
@@ -289,10 +244,6 @@ export class TwitchConfig {
 		}
 
 		fs.writeFileSync(keyPath, value);
-	}
-
-	static getChannels(): TwitchChannel[] {
-		return this.channels;
 	}
 
 	static async setupAxios() {
@@ -324,6 +275,6 @@ export class TwitchConfig {
 TwitchConfig.loadConfig();
 TwitchConfig.setupAxios().then(() => {
 	TwitchGame.populateGameDatabase();
-	TwitchConfig.loadChannelsConfig();
-	TwitchConfig.loadChannels();
+	TwitchChannel.loadChannelsConfig();
+	TwitchChannel.loadChannels();
 });
