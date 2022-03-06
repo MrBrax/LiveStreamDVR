@@ -5,6 +5,7 @@ import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { PHPDateTimeProxy } from "@/types";
 import { TwitchHelper } from "./TwitchHelper";
 import { parse } from "date-fns";
+import { ChildProcessWithoutNullStreams } from "child_process";
 
 export interface TwitchAutomatorJobJSON {
     name: string;
@@ -38,8 +39,13 @@ export class TwitchAutomatorJob
     public metadata: any | undefined;
     public status: number | false | undefined;
     public error: number | undefined;
-    // public process: any | undefined;
+    public process: ChildProcessWithoutNullStreams | undefined;
     public dt_started_at: Date | undefined;	
+
+	public stdout: string[] = [];
+	public stderr: string[] = [];
+	
+	logfile: string = "";
 
 	private realpath(str: string): string {
 		return path.normalize(str);
@@ -48,13 +54,14 @@ export class TwitchAutomatorJob
 	public static create(name: string): TwitchAutomatorJob
 	{
 
-        const basepath = path.join(BaseConfigFolder.pids, name);
+        const basepath = BaseConfigFolder.pids;
 
 		// if(file_exists(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . ".json")){
 		// 	TwitchLog.logAdvanced(LOGLEVEL.WARNING, "job", "Creating job {$name} overwrites existing!");
 		// }
-        if (!fs.existsSync(path.join(basepath, name + ".json"))) {
-            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "job", "Creating job {$name} overwrites existing!");
+        
+		if (fs.existsSync(path.join(basepath, name + ".json"))) {
+            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "job", `Creating job ${name} overwrites existing!`);
         }
 
 		let job = new this();
@@ -69,7 +76,7 @@ export class TwitchAutomatorJob
 	public static load(name: string): TwitchAutomatorJob | false
 	{
 
-        const basepath = path.join(BaseConfigFolder.pids, name);
+        const basepath = BaseConfigFolder.pids;
 
 		let job = new this();
 		job.name = name;
@@ -117,7 +124,7 @@ export class TwitchAutomatorJob
             throw new Error("pidfile not set");
         }
 
-		TwitchLog.logAdvanced(LOGLEVEL.INFO, "job", `Save job ${this.name} with PID ${this.pid}`, this.metadata);
+		TwitchLog.logAdvanced(LOGLEVEL.INFO, "job", `Save job ${this.name} with PID ${this.pid} to ${this.pidfile}`, this.metadata);
 
 		TwitchHelper.webhook({
 			'action': 'job_save',
@@ -127,7 +134,12 @@ export class TwitchAutomatorJob
 
 		//return file_put_contents($this->pidfile, json_encode($this)) != false;
         fs.writeFileSync(this.pidfile, JSON.stringify(this), "utf8");
-        return fs.existsSync(this.pidfile);
+
+		const exists = fs.existsSync(this.pidfile);
+
+		TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Job ${this.name} ${exists ? "saved" : "failed to save"}`, this.metadata);
+
+        return exists;
 	}
 
 	/**
@@ -169,6 +181,7 @@ export class TwitchAutomatorJob
 	setPid(pid: number)
 	{
 		this.pid = pid;
+		TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Set PID ${pid} for job ${this.name}`, this.metadata);
 	}
 
 	/**
@@ -190,9 +203,10 @@ export class TwitchAutomatorJob
 	 * @param Process $process
 	 * @return void
 	 */
-	setProcess(process: any)
+	setProcess(process: ChildProcessWithoutNullStreams)
 	{
-		// $this->process = $process;
+		this.process = process;
+		TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Set process for job ${this.name}`, this.metadata);
 	}
 
 	/**
@@ -233,11 +247,11 @@ export class TwitchAutomatorJob
 		}
         */
         if (output.indexOf(this.pid.toString()) !== -1) {
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", "PID file check for '{this.name}', process is running");
+            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `PID file check for '${this.name}', process is running`);
             this.status = this.pid;
             return this.pid;
         } else {
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", "PID file check for '{this.name}', process does not exist");
+            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `PID file check for '${this.name}', process does not exist`);
             this.status = false;
             return false;
         }
@@ -250,9 +264,9 @@ export class TwitchAutomatorJob
 	 */
 	kill()
 	{
-		// if (this.process) {
-		// 	return this.process.stop();
-		// }
+		if (this.process) {
+			return this.process.kill();
+		}
 
         const pid = this.getPid();
 
@@ -264,4 +278,44 @@ export class TwitchAutomatorJob
 		this.clear();
 		return exec;
 	}
+
+	startLog(filename: string, start_text: string) {
+
+		const logs_path = path.join(BaseConfigFolder.logs, "software");
+		
+		this.logfile = filename;
+
+		const logfile = path.join(logs_path, filename);
+
+		TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Start log for job ${this.name} on path ${logfile}`, this.metadata);
+
+		fs.writeFileSync(`${logfile}_stdout.log`, start_text, "utf8");
+		fs.writeFileSync(`${logfile}_stderr.log`, start_text, "utf8");
+
+		if (this.process) {
+			TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Attach log for job ${this.name} to process`, this.metadata);
+			this.process.stdout.on('data', (data: any) => {
+				// TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Job ${this.name} STDOUT: ${data}`, this.metadata);
+				this.stdout.push(data);
+				fs.appendFileSync(`${logfile}_stdout.log`, data, "utf8");
+			});
+
+			this.process.stderr.on('data', (data: any) => {
+				// TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Job ${this.name} STDERR: ${data}`, this.metadata);
+				this.stderr.push(data);
+				fs.appendFileSync(`${logfile}_stderr.log`, data, "utf8");
+			});
+		} else {
+			TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `No process attached for job ${this.name}`, this.metadata);
+		}
+	}
+
+	stopLog() {
+		if (this.process) {
+			TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Detach log for job ${this.name} from process`, this.metadata);
+			this.process.stdout.removeAllListeners();
+			this.process.stderr.removeAllListeners();
+		}
+	}
+
 }

@@ -5,6 +5,7 @@ import * as Log from './Controllers/Log';
 import { TwitchConfig } from './Core/TwitchConfig';
 import history from "connect-history-api-fallback";
 import path from 'path';
+import { TwitchVOD } from './Core/TwitchVOD';
 
 const app = express();
 const port = 8080;
@@ -19,14 +20,29 @@ app.use(express.json());
 // });
 
 // single page app
-app.use(history());
-app.use(express.static( path.join(__dirname, "..", "..", "client-vue", "dist")) );
+// app.use(history());
+// app.use(express.static( path.join(__dirname, "..", "..", "client-vue", "dist")) );
 
 app.get("/api/v0/settings", Settings.GetSettings);
 
 app.get("/api/v0/channels", Channels.ListChannels);
 
 app.get("/api/v0/log/:filename/?:last_line?", Log.GetLog);
+
+app.get("/api/v0/test_video_download", (req, res) => {
+    if (!req.query.video_id){
+        res.send("Missing video_id");
+        return;
+    }
+
+    TwitchVOD.downloadVideo(req.query.video_id as string, "best", req.query.video_id as string + ".mp4")
+        .then(() => {
+            res.send("OK");
+        })
+        .catch(() => {
+            res.send("FAIL");
+        });
+});
 
 
 app.listen(port, () => {

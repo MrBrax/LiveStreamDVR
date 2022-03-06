@@ -6,17 +6,20 @@ import { TwitchHelper } from './TwitchHelper';
 import { PHPDateTimeProxy } from '../types';
 import { MediaInfo } from '../../../client-vue/src/mediainfo';
 import { TwitchVODChapter, TwitchVODChapterJSON, TwitchVODChapterMinimalJSON } from './TwitchVODChapter';
-import { TwitchConfig } from './TwitchConfig';
+import { TwitchConfig, VideoQuality } from './TwitchConfig';
 import { TwitchVODSegment } from './TwitchVODSegment';
 import { PHPDateTime } from '../PHPDateTime';
 import { TwitchGame } from './TwitchGame';
 import { LOGLEVEL, TwitchLog } from './TwitchLog';
+import { Videos, Video } from '@/TwitchAPI/Video';
+import { BaseConfigFolder } from './BaseConfig';
+import { spawn } from 'child_process';
 
 export interface TwitchVODJSON {
 	meta: any;
-	
+
 	stream_resolution: string;
-	
+
 	streamer_name: string;
 	streamer_id: string;
 	streamer_login: string;
@@ -42,7 +45,7 @@ export interface TwitchVODJSON {
 	dt_started_at?: PHPDateTimeProxy;
 	dt_ended_at?: PHPDateTimeProxy;
 	capture_id: string | undefined;
-	
+
 	twitch_vod_id: number | undefined;
 	twitch_vod_url: string | undefined;
 	twitch_vod_duration: number | undefined;
@@ -73,6 +76,8 @@ export interface TwitchVODSegment {
 */
 
 export class TwitchVOD {
+
+	static vods: TwitchVOD[] = [];
 
 	vod_path: string = "vods";
 
@@ -292,6 +297,14 @@ export class TwitchVOD {
 
 	static async load(filename: string, api = false): Promise<TwitchVOD> {
 
+		const basename = path.basename(filename);
+
+		const cached_vod = this.getVod(basename);
+		if (cached_vod) {
+			console.log(`[TwitchVOD] Returning cached vod ${basename}`);
+			return cached_vod;
+		}
+
 		// check if file exists
 		if (!fs.existsSync(filename)) {
 			throw new Error("VOD JSON does not exist: " + filename);
@@ -333,18 +346,50 @@ export class TwitchVOD {
 
 		// vod.saveJSON();
 
+		// add to cache
+		this.addVod(vod);
+
 		return vod;
 
 	}
 
-	public create(filename: string)
-	{
+	static addVod(vod: TwitchVOD): boolean {
+
+		if (!vod.basename)
+			throw new Error("VOD basename is not set!");
+
+		if (this.hasVod(vod.basename))
+			throw new Error(`VOD ${vod.basename} is already in cache!`);
+
+		this.vods.push(vod);
+
+		return this.hasVod(vod.basename);
+	}
+
+	static hasVod(basename: string): boolean {
+		return this.vods.findIndex(vod => vod.basename == basename) != -1;
+	}
+
+	static getVod(basename: string): TwitchVOD | undefined {
+		if (TwitchVOD.hasVod(basename)) {
+			return TwitchVOD.vods.find(vod => vod.basename == basename);
+		}
+	}
+
+	/**
+	 * Create an empty VOD object
+	 * @param filename 
+	 * @returns Empty VOD
+	 */
+	public static create(filename: string): TwitchVOD {
 		TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", "Create VOD JSON: " + path.basename(filename) + " @ " + path.dirname(filename));
-		this.created = true;
-		this.filename = filename;
-		this.basename = path.basename(filename, '.json');
-		this.saveJSON('create json');
-		return true;
+
+		const vod = new TwitchVOD();
+		vod.created = true;
+		vod.filename = filename;
+		vod.basename = path.basename(filename, '.json');
+		vod.saveJSON('create json');
+		return vod;
 	}
 
 	setupDates() {
@@ -381,8 +426,8 @@ export class TwitchVOD {
 
 		// $this->force_record				= isset($this->json['force_record']) ? $this->json['force_record'] : false;
 		// $this->automator_fail			= isset($this->json['automator_fail']) ? $this->json['automator_fail'] : false;
-		this.force_record 		= this.json.force_record == true;
-		this.automator_fail 	= this.json.automator_fail == true;
+		this.force_record = this.json.force_record == true;
+		this.automator_fail = this.json.automator_fail == true;
 
 		// $this->stream_resolution		= isset($this->json['stream_resolution']) && gettype($this->json['stream_resolution']) == 'string' ? $this->json['stream_resolution'] : '';
 		this.stream_resolution = this.json.stream_resolution;
@@ -796,8 +841,92 @@ export class TwitchVOD {
 		this.segments = segments;
 	}
 
+	public addSegment(segment: string) {
+		this.segments_raw.push(segment);
+	}
+
 	rebuildSegmentList() {
 		throw new Error('Method rebuild segment list not implemented.');
+	}
+
+	public async finalize() {
+		TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Finalize ${this.basename} @ ${this.directory}`);
+
+		if (this.path_playlist && fs.existsSync(this.path_playlist)) {
+			fs.unlinkSync(this.path_playlist);
+		}
+
+		await this.getMediainfo();
+		this.saveLosslessCut();
+		// this.matchProviderVod(); // @todo: implement
+		// this.checkMutedVod(); // initially not muted when vod is published
+		this.is_finalized = true;
+
+		return true;
+	}
+
+	public saveLosslessCut() {
+		if (!this.directory) {
+			throw new Error('TwitchVOD.saveLosslessCut: directory is not set');
+		}
+
+		if (!this.chapters || this.chapters.length == 0) {
+			// throw new Error('TwitchVOD.saveLosslessCut: chapters are not set');
+			return false;
+		}
+
+		// $csv_path = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv';
+		const csv_path = path.join(this.directory, `${this.basename}-llc-edl.csv`);
+
+		TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Saving lossless cut csv for ${this.basename} to ${csv_path}`);
+
+		let data = "";
+
+		/*
+		for (let i in this.chapters) {
+			let chapter = this.chapters[i];
+
+			let offset = chapter.offset;
+			if (!offset) continue;
+
+			offset -= this.chapters[0].offset || 0;
+
+			data += offset + ',';
+
+			if (i < this.chapters.length - 1) {
+				$data .= ($offset + $chapter['duration']) . ',';
+			} else {
+				$data .= ',';
+			}
+
+			$data .= $chapter['game_name'] ?: $chapter['game_id'];
+			$data .= "\n";
+		}
+		*/
+
+		this.chapters.forEach((chapter, i) => {
+			let offset = chapter.offset;
+			if (!offset) return;
+
+			offset -= this.chapters[0].offset || 0;
+
+			data += offset + ',';
+
+			if (i < this.chapters.length - 1) {
+				data += (offset + (chapter.duration || 0)) + ',';
+			} else {
+				data += ',';
+			}
+
+			data += chapter.game_name || chapter.game_id;
+			data += "\n";
+		});
+
+		// file_put_contents($csv_path, $data);
+		fs.writeFileSync(csv_path, data);
+		// $this->setPermissions();
+
+		return fs.existsSync(csv_path);
 	}
 
 	toJSON() {
@@ -812,7 +941,7 @@ export class TwitchVOD {
 			streamer_name: this.streamer_name,
 			streamer_id: this.streamer_id,
 			streamer_login: this.streamer_login,
-			
+
 			segments: this.segments,
 			segments_raw: this.segments_raw,
 
@@ -885,7 +1014,7 @@ export class TwitchVOD {
 		}
 	}
 
-	saveJSON(reason = ""){
+	saveJSON(reason = "") {
 
 		if (!this.filename) {
 			throw new Error('Filename not set.');
@@ -915,56 +1044,56 @@ export class TwitchVOD {
 		let generated: TwitchVODJSON = JSON.parse(JSON.stringify(this.json));
 
 		if (this.twitch_vod_id && this.twitch_vod_url) {
-			generated.twitch_vod_id 		= this.twitch_vod_id;
-			generated.twitch_vod_url 		= this.twitch_vod_url;
-			generated.twitch_vod_duration 	= this.twitch_vod_duration ?? undefined;
-			generated.twitch_vod_title 		= this.twitch_vod_title;
-			generated.twitch_vod_date 		= this.twitch_vod_date;
+			generated.twitch_vod_id = this.twitch_vod_id;
+			generated.twitch_vod_url = this.twitch_vod_url;
+			generated.twitch_vod_duration = this.twitch_vod_duration ?? undefined;
+			generated.twitch_vod_title = this.twitch_vod_title;
+			generated.twitch_vod_date = this.twitch_vod_date;
 		}
 
-		generated.twitch_vod_exists 		= this.twitch_vod_exists;
-		generated.twitch_vod_attempted 		= this.twitch_vod_attempted;
-		generated.twitch_vod_neversaved 	= this.twitch_vod_neversaved;
-		generated.twitch_vod_muted 			= this.twitch_vod_muted;
+		generated.twitch_vod_exists = this.twitch_vod_exists;
+		generated.twitch_vod_attempted = this.twitch_vod_attempted;
+		generated.twitch_vod_neversaved = this.twitch_vod_neversaved;
+		generated.twitch_vod_muted = this.twitch_vod_muted;
 
 		generated.stream_resolution = this.stream_resolution ?? "";
 
-		generated.streamer_name 	= this.streamer_name ?? "";
-		generated.streamer_id 		= this.streamer_id ?? "";
-		generated.streamer_login 	= this.streamer_login ?? "";
+		generated.streamer_name = this.streamer_name ?? "";
+		generated.streamer_id = this.streamer_id ?? "";
+		generated.streamer_login = this.streamer_login ?? "";
 
 		// generated.started_at 		= this.started_at;
 		// generated.ended_at 			= this.ended_at;
 
-		generated.chapters_raw 		= this.generateChaptersRaw();
-		generated.segments_raw 		= this.segments_raw;
+		generated.chapters_raw = this.generateChaptersRaw();
+		generated.segments_raw = this.segments_raw;
 		// generated.segments 			= this.segments;
 		// generated.ads 				= this.ads;
 
-		generated.is_capturing		= this.is_capturing;
-		generated.is_converting		= this.is_converting;
-		generated.is_finalized		= this.is_finalized;
+		generated.is_capturing = this.is_capturing;
+		generated.is_converting = this.is_converting;
+		generated.is_finalized = this.is_finalized;
 
 		// generated.duration 			= this.duration;
-		generated.duration_seconds 	= this.duration_seconds ?? null;
+		generated.duration_seconds = this.duration_seconds ?? null;
 
-		generated.video_metadata 	= this.video_metadata;
-		generated.video_fail2 		= this.video_fail2;
+		generated.video_metadata = this.video_metadata;
+		generated.video_fail2 = this.video_fail2;
 
-		generated.force_record 		= this.force_record;
+		generated.force_record = this.force_record;
 
-		generated.automator_fail 	= this.automator_fail;
+		generated.automator_fail = this.automator_fail;
 
-		generated.meta				= this.meta;
+		generated.meta = this.meta;
 
-		generated.saved_at			= TwitchHelper.JSDateToPHPDate(new Date());
+		generated.saved_at = TwitchHelper.JSDateToPHPDate(new Date());
 
 		if (this.dt_capture_started) generated.dt_capture_started = TwitchHelper.JSDateToPHPDate(this.dt_capture_started);
 		if (this.dt_conversion_started) generated.dt_conversion_started = TwitchHelper.JSDateToPHPDate(this.dt_conversion_started);
 		if (this.dt_started_at) generated.dt_started_at = TwitchHelper.JSDateToPHPDate(this.dt_started_at);
 		if (this.dt_ended_at) generated.dt_ended_at = TwitchHelper.JSDateToPHPDate(this.dt_ended_at);
 
-		generated.capture_id				= this.capture_id;
+		generated.capture_id = this.capture_id;
 
 		// if (!is_writable(this.filename)) { // this is not the function i want
 		// 	// TwitchHelper::log(TwitchHelper::LOG_FATAL, "Saving JSON of " . this.basename . " failed, permissions issue?");
@@ -982,8 +1111,7 @@ export class TwitchVOD {
 
 	}
 
-	public async refreshJSON(api = false)
-	{
+	public async refreshJSON(api = false) {
 		if (!this.filename) {
 			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Can't refresh vod, not found!");
 			return false;
@@ -992,6 +1120,124 @@ export class TwitchVOD {
 		// $this->load($this->filename);
 		// return static::load($this->filename, $api);
 		return await TwitchVOD.load(this.filename, api);
+	}
+
+	public static async downloadVideo(video_id: string, quality: VideoQuality, filename: string) {
+
+		TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", `Download VOD ${video_id}`);
+
+		const video = await TwitchVOD.getVideo(video_id);
+
+		if (!video) {
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to get video ${video_id}`);
+			throw new Error(`Failed to get video ${video_id}`);
+			return false;
+		}
+
+		// const basename = `${video.user_login}_${video.created_at.replace(":", "_")}_${video.stream_id}`;
+		const basename = path.basename(filename);
+
+		// $capture_filename = TwitchHelper::vodFolder($this->login) . DIRECTORY_SEPARATOR . $basename . ($vod_ext ? '_vod' : '') . '.ts';
+		// $converted_filename = TwitchHelper::vodFolder($this->login) . DIRECTORY_SEPARATOR . $basename . ($vod_ext ? '_vod' : '') . '.mp4';
+		const capture_filename = path.join(BaseConfigFolder.cache, `${video_id}.ts`);
+		const converted_filename = filename;
+
+		// download vod
+		if (!fs.existsSync(capture_filename) && !fs.existsSync(converted_filename)) {
+
+			const video_url = `https://www.twitch.tv/videos/${video_id}`;
+
+			const streamlink_bin = TwitchHelper.path_streamlink();
+			const ffmpeg_bin = TwitchHelper.path_ffmpeg();
+
+			if (!streamlink_bin) {
+				TwitchLog.logAdvanced(LOGLEVEL.ERROR, "channel", "Failed to find streamlink binary!");
+				throw new Error("Failed to find streamlink binary!");
+			}
+
+			if (!ffmpeg_bin) {
+				TwitchLog.logAdvanced(LOGLEVEL.ERROR, "channel", "Failed to find ffmpeg binary!");
+				throw new Error("Failed to find ffmpeg binary!");
+			}
+
+			const cmd = [];
+
+			cmd.push("--ffmpeg-ffmpeg", ffmpeg_bin);
+
+			cmd.push('-o', capture_filename); // output file
+
+			cmd.push('--hls-segment-threads', '10');
+
+			cmd.push('--url', video_url); // stream url
+
+			cmd.push('--default-stream', 'best'); // twitch url and quality
+
+			// logging level
+			if (TwitchConfig.cfg('debug', false)) {
+				cmd.push('--loglevel', 'debug');
+			} else if (TwitchConfig.cfg('app_verbose', false)) {
+				cmd.push('--loglevel', 'info');
+			}
+
+			TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", `Downloading VOD ${video_id}...`);
+
+			const ret = await TwitchHelper.execAdvanced(streamlink_bin, cmd, `download_vod_${video_id}`);
+
+			TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", `Downloaded VOD ${video_id}...}`);
+
+			if (ret.stdout.includes("error: Unable to find video:") || ret.stderr.includes("error: Unable to find video:")) {
+				throw new Error("VOD on Twitch not found, is it deleted?");
+			}
+		}
+
+		if (!fs.existsSync(converted_filename)) {
+
+			TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Starting remux of ${basename}`);
+
+			const ret = TwitchHelper.remuxFile(capture_filename, converted_filename);
+
+			if (fs.existsSync(capture_filename) && fs.existsSync(converted_filename) && fs.statSync(converted_filename).size > 0) {
+				TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Successfully remuxed ${basename}, removing ${capture_filename}`);
+				fs.unlinkSync(capture_filename);
+			} else {
+				TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Failed to remux ${basename}`);
+			}
+		}
+
+		const successful = fs.existsSync(converted_filename) && fs.statSync(converted_filename).size > 0;
+
+		TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Download of ${basename} ${successful ? "successful" : "failed"}`);
+
+		TwitchHelper.webhook({
+			'action': 'video_download',
+			'success': successful,
+			'path': converted_filename,
+		});
+
+		return converted_filename;
+	}
+
+	static async getVideo(video_id: string): Promise<false | Video> {
+		if (!video_id) throw new Error('No video id');
+
+		let response;
+
+		try {
+			response = await TwitchHelper.axios.get(`/helix/videos/?id=${video_id}`);
+		} catch (e) {
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, 'vodclass', `Tried to get video id ${video_id} but got error ${e}`);
+			return false;
+		}
+
+		const json: Videos = response.data;
+
+		if (json.data.length === 0) {
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, 'vodclass', `Tried to get video id ${video_id} but got no data`);
+			return false;
+		}
+
+		return json.data[0];
+
 	}
 
 }

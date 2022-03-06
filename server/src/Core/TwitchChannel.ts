@@ -1,4 +1,6 @@
+import { ErrorResponse } from "@/TwitchAPI/Shared";
 import { Stream, StreamsResponse } from "@/TwitchAPI/Streams";
+import { Users } from "@/TwitchAPI/Users";
 import axios, { AxiosError } from "axios";
 import fs from "fs";
 import path from "path";
@@ -35,6 +37,7 @@ export class TwitchChannel {
 
     static channels: TwitchChannel[] = [];
     static channels_config: ChannelConfig[] = [];
+    static channels_cache: Record<string, ChannelData> = {};
 
     /**
      * User ID
@@ -184,6 +187,7 @@ export class TwitchChannel {
 
         TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Fetching channel data for ${method} ${identifier}, force: ${force}`);
 
+        /*
         if (fs.existsSync(BaseConfigPath.streamerCache) && !force) {
             const data: Record<string, ChannelData> = JSON.parse(fs.readFileSync(BaseConfigPath.streamerCache, 'utf8'));
             const channelData = method == "id" ? data[identifier] : Object.values(data).find(channel => channel.login == identifier);
@@ -198,6 +202,20 @@ export class TwitchChannel {
             } else {
                 TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Channel data not found in cache for ${method} ${identifier}, continue fetching`);
             }
+        }
+        */
+
+        const channelData = method == "id" ? this.channels_cache[identifier] : Object.values(this.channels_cache).find(channel => channel.login == identifier);
+        if (channelData) {
+            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Channel data found in memory cache for ${method} ${identifier}`);
+            if (Date.now() > channelData._updated + TwitchConfig.streamerCacheTime) {
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Memory cache for ${identifier} is outdated, fetching new data`);
+            } else {
+                TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Returning memory cache for ${method} ${identifier}`);
+                return channelData;
+            }
+        } else {
+            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Channel data not found in memory cache for ${method} ${identifier}, continue fetching`);
         }
 
         if (TwitchConfig.getCache(`${identifier}.deleted`) == "1" && !force) {
@@ -234,17 +252,26 @@ export class TwitchChannel {
             throw new Error(`Could not get channel data for ${identifier}, code ${response.status}.`);
         }
 
-        const json = response.data;
+        const json: Users | ErrorResponse = response.data;
+
+        if ("error" in json) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${identifier}: ${json.message}`);
+            return false;
+        }
 
         if (json.data.length === 0) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${identifier}, no data.`);
             throw new Error(`Could not get channel data for ${identifier}, no data.`);
         }
 
-        let data: ChannelData = json.data[0];
+        let data = json.data[0];
 
-        data._updated = Date.now();
+        // use as ChannelData
+        let userData = data as unknown as ChannelData;
 
+        userData._updated = Date.now();
+
+        /*
         if (fs.existsSync(BaseConfigPath.streamerCache)) {
             const data_old: Record<string, ChannelData> = JSON.parse(fs.readFileSync(BaseConfigPath.streamerCache, 'utf8'));
             data_old[data.id] = data;
@@ -254,8 +281,13 @@ export class TwitchChannel {
             TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "CHANNEL", `Saving new channel cache file.`);
             fs.writeFileSync(BaseConfigPath.streamerCache, JSON.stringify({ [data.id]: data }));
         }
+        */
 
-        return data;
+        // insert into memory and save to file
+        TwitchChannel.channels_cache[userData.id] = userData;
+        fs.writeFileSync(BaseConfigPath.streamerCache, JSON.stringify(TwitchChannel.channels_cache));
+
+        return userData;
 
     }
 
@@ -264,7 +296,7 @@ export class TwitchChannel {
      * 
      * @returns {string} Folder path
      */
-    public getFolder() {
+    public getFolder(): string {
         return TwitchHelper.vodFolder(this.login);
     }
 
@@ -316,6 +348,14 @@ export class TwitchChannel {
 
         const data = fs.readFileSync(BaseConfigPath.channel, 'utf8');
         this.channels_config = JSON.parse(data);
+    }
+
+    static loadChannelsCache() {
+        if (!fs.existsSync(BaseConfigPath.streamerCache))  return false;
+
+        const data = fs.readFileSync(BaseConfigPath.streamerCache, 'utf8');
+        this.channels_cache = JSON.parse(data);
+        TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "CHANNEL", `Loaded ${Object.keys(this.channels_cache).length} channels from cache.`);
     }
 
     static async loadChannels() {

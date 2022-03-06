@@ -6,8 +6,21 @@ import axios, { Axios } from "axios";
 import chalk from "chalk";
 import { BaseConfigFolder } from "./BaseConfig";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
-import { exec } from "child_process";
+import { ChildProcessWithoutNullStreams, exec, spawn } from "child_process";
+import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 
+interface ExecReturn {
+	stdout: string[];
+	stderr: string[];
+	code: number;
+}
+
+interface RemuxReturn {
+	stdout: string[];
+	stderr: string[];
+	code: number;
+	success: boolean;
+}
 export class TwitchHelper {
 
 	static axios: Axios;
@@ -144,10 +157,14 @@ export class TwitchHelper {
 		
 	}
 
-	public static path_mediainfo()
+	public static is_windows() {
+		return process.platform === 'win32';
+	}
+
+	public static path_mediainfo(): string | false
 	{
 
-		if (TwitchConfig.cfg('mediainfo_path')) return TwitchConfig.cfg('mediainfo_path');
+		if (TwitchConfig.cfg('mediainfo_path')) return TwitchConfig.cfg<string>('mediainfo_path');
 
 		// const path = this.whereis("mediainfo", "mediainfo.exe");
 		// if (path) {
@@ -157,6 +174,35 @@ export class TwitchHelper {
 		// }
 
 		return false;
+	}
+
+	public static path_ffmpeg(): string | false
+	{
+		if (TwitchConfig.cfg('ffmpeg_path')) return TwitchConfig.cfg<string>('ffmpeg_path');
+
+		// const path = this.whereis("ffmpeg", "ffmpeg.exe");
+		// if (path) {
+		// 	TwitchConfig.setConfig('ffmpeg_path', path);
+		// 	TwitchConfig.saveConfig("path resolver");
+		// 	return path;
+		// }
+
+		return false;
+	}
+
+	public static path_streamlink(): string | false
+	{
+		// $path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "streamlink" . (self::is_windows() ? '.exe' : '');
+		// return file_exists($path) ? $path : false;
+		const full_path = path.join(TwitchConfig.cfg('bin_dir'), `streamlink${this.is_windows() ? '.exe' : ''}`);
+		const exists = fs.existsSync(full_path);
+
+		if (!exists){
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Streamlink binary not found at: ${full_path}`);
+			return false;
+		}
+
+		return exists ? full_path : false;
 	}
 
 	public static async eventSubUnsubscribe(subscription_id: string)
@@ -181,7 +227,9 @@ export class TwitchHelper {
 	}
 
 	static webhook(data: any) {
-		throw new Error("Method not implemented.");
+		console.log("Webhook", data);
+		// TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Webhook: " + JSON.stringify(data));
+		// throw new Error("Method not implemented.");
 	}
 
 	static async exec(cmd: string[]): Promise<string> {
@@ -191,6 +239,136 @@ export class TwitchHelper {
 					reject(err);
 				} else {
 					resolve(stdout);
+				}
+			});
+		});
+	}
+
+	static execSimple(bin: string, args: string[]): ChildProcessWithoutNullStreams {
+		const process = spawn(bin, args);
+		return process;
+	}
+
+
+	/**
+	 * Execute a command, make a job, and when it's done, return the output
+	 * 
+	 * @param bin 
+	 * @param args 
+	 * @param jobName 
+	 * @returns 
+	 */
+	static async execAdvanced(bin: string, args: string[], jobName: string): Promise<ExecReturn> {
+		return new Promise((resolve, reject) => {
+
+			const process = spawn(bin, args || [], {
+				// detached: true,
+				windowsHide: true,
+			});
+
+			TwitchLog.logAdvanced(LOGLEVEL.INFO, jobName, `Executing ${bin} ${args.join(' ')}`);
+
+			let job: TwitchAutomatorJob;
+
+			if (process.pid) {
+				TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Spawned process ${process.pid} for ${jobName}`);
+				job = TwitchAutomatorJob.create(jobName);
+				job.setPid(process.pid);
+				job.setProcess(process);
+				job.startLog(jobName, `$ ${bin} ${args.join(' ')}\n`);
+				if(!job.save()) {
+					TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to save job ${jobName}`);
+				}
+			} else {
+				TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to spawn process for ${jobName}`);
+				// reject(new Error(`Failed to spawn process for ${jobName}`));
+			}
+
+			let stdout: string[] = [];
+			let stderr: string[] = [];
+			
+			process.stdout.on('data', (data) => {
+				stdout.push(data);
+			});
+			
+			process.stderr.on('data', (data) => {
+				stderr.push(data);
+			});
+
+			process.on('close', (code) => {
+				TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Process ${process.pid} for ${jobName} exited with code ${code}`);
+				if (job){
+					job.clear();
+				}
+				// const out_log = ffmpeg.stdout.read();
+				// const success = fs.existsSync(output) && fs.statSync(output).size > 0;
+				if (code == 0) {
+					resolve({ code, stdout, stderr });
+				} else {
+					reject({ code, stdout, stderr });
+				}
+			});
+
+			TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Attached to all streams for process ${process.pid} for ${jobName}`);
+			
+		});
+	}
+
+	static async remuxFile(input: string, output: string, overwrite = false): Promise<RemuxReturn> {
+		const ffmpeg_path = this.path_ffmpeg();
+		if (!ffmpeg_path) {
+			throw new Error("Failed to find ffmpeg");
+		}
+		return new Promise((resolve, reject) => {
+			
+			let opts = [
+				'-i', input,
+				'-c', 'copy',
+				'-bsf:a', 'aac_adtstoasc',
+				// ...ffmpeg_options,
+				output
+			];
+
+			if (overwrite) {
+				opts.push('-y');
+			}
+
+			if (TwitchConfig.cfg('debug') || TwitchConfig.cfg('app_verbose')) {
+				opts.push('-loglevel', 'repeat+level+verbose');
+			}
+
+			const ffmpeg = spawn(ffmpeg_path, opts);
+
+			let job: TwitchAutomatorJob;
+
+			if (ffmpeg.pid) {
+				job = TwitchAutomatorJob.create(`remux_${path.basename(input)}`);
+				job.setPid(ffmpeg.pid);
+				job.setProcess(ffmpeg);
+				job.startLog(`remux_${path.basename(input)}`, `$ ffmpeg ${opts.join(' ')}\n`);
+				job.save();
+			}
+
+			let stdout: string[] = [];
+			let stderr: string[] = [];
+
+			process.stdout.on('data', (data) => {
+				stdout.push(data);
+			});
+			process.stderr.on('data', (data) => {
+				stderr.push(data);
+			});
+
+			ffmpeg.on('close', (code) => {
+				if (job){
+					job.clear();
+				}
+				// const out_log = ffmpeg.stdout.read();
+				const success = fs.existsSync(output) && fs.statSync(output).size > 0;
+				if (code == 0) {
+					resolve({ code, success, stdout, stderr });
+				} else {
+					reject({ code, success, stdout, stderr });
 				}
 			});
 		});
