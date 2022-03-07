@@ -244,9 +244,40 @@ export class TwitchHelper {
 		});
 	}
 
-	static execSimple(bin: string, args: string[]): ChildProcessWithoutNullStreams {
-		const process = spawn(bin, args);
-		return process;
+	static execSimple(bin: string, args: string[]): Promise<ExecReturn> {
+				
+		return new Promise((resolve, reject) => {
+
+			const process = spawn(bin, args || [], {
+				// detached: true,
+				windowsHide: true,
+			});
+
+			TwitchLog.logAdvanced(LOGLEVEL.INFO, "exec", `Executing ${bin} ${args.join(' ')}`);
+
+			let stdout: string[] = [];
+			let stderr: string[] = [];
+			
+			process.stdout.on('data', (data) => {
+				stdout.push(data);
+			});
+			
+			process.stderr.on('data', (data) => {
+				stderr.push(data);
+			});
+
+			process.on('close', (code) => {
+				TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Process ${process.pid} exited with code ${code}`);
+
+				if (code == 0) {
+					resolve({ code, stdout, stderr });
+				} else {
+					reject({ code, stdout, stderr });
+				}
+			});
+
+		});
+		
 	}
 
 

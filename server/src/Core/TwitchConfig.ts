@@ -6,6 +6,7 @@ import { BaseConfigFolder, BaseConfigPath } from './BaseConfig';
 import { TwitchGame } from './TwitchGame';
 import { TwitchHelper } from './TwitchHelper';
 import { LOGLEVEL, TwitchLog } from './TwitchLog';
+import { TwitchAutomatorJob } from './TwitchAutomatorJob';
 
 export interface SettingField {
 	key: string;
@@ -291,4 +292,5 @@ TwitchConfig.setupAxios().then(() => {
 	TwitchChannel.loadChannelsConfig();
 	TwitchChannel.loadChannelsCache();
 	TwitchChannel.loadChannels();
+	TwitchAutomatorJob.loadJobsFromCache();
 });

@@ -17,6 +17,8 @@ export interface TwitchAutomatorJobJSON {
 export class TwitchAutomatorJob
 {
 
+	static jobs: TwitchAutomatorJob[] = [];
+
 	static readonly NO_FILE = 1;
 	static readonly NO_DATA = 2;
 
@@ -51,6 +53,31 @@ export class TwitchAutomatorJob
 		return path.normalize(str);
 	}
 
+	public static loadJobsFromCache() {
+		const jobs = fs.readdirSync(BaseConfigFolder.pids).filter(f => f.endsWith(".json"));
+		for (const job_data of jobs){
+			TwitchAutomatorJob.load(job_data.replace(".json", ""));
+		}
+		TwitchLog.logAdvanced(LOGLEVEL.INFO, `job`, `Loaded ${jobs.length} jobs from cache`);
+
+		this.checkStaleJobs();
+	}
+
+	public static async checkStaleJobs() {
+		const now = new Date();
+		for (const job of this.jobs) {
+			if (await job.getStatus() == false) {
+				TwitchLog.logAdvanced(LOGLEVEL.WARNING, `job`, `Job ${job.name} is stale, no process found. Clearing.`);
+				job.clear();
+			} else {
+				TwitchLog.logAdvanced(LOGLEVEL.INFO, `job`, `Job ${job.name} is still running from previous session.`);
+			}
+			// if (job.dt_started_at && job.dt_started_at.getTime() + (60 * 1000) < now.getTime()) {
+			// 	job.clear();
+			// }
+		}
+	}
+
 	public static create(name: string): TwitchAutomatorJob
 	{
 
@@ -76,12 +103,20 @@ export class TwitchAutomatorJob
 	public static load(name: string): TwitchAutomatorJob | false
 	{
 
+		TwitchLog.logAdvanced(LOGLEVEL.DEBUG, `job`, `Loading job ${name}`);
+
+		const memJob = this.jobs.find(job => job.name === name);
+		if (memJob) {
+			TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Job ${name} found in memory`);
+			return memJob;
+		}
+
         const basepath = BaseConfigFolder.pids;
 
 		let job = new this();
 		job.name = name;
-		job.pidfile = job.realpath(path.join(basepath, name + ".json"));
-		job.pidfile_simple = job.realpath(path.join(basepath, name + ".pid"));
+		job.pidfile = job.realpath(path.join(basepath, `${name}.json`));
+		job.pidfile_simple = job.realpath(path.join(basepath, `${name}.pid`));
 		job.dt_started_at = new Date();
 
 		// if no pid file
@@ -107,6 +142,11 @@ export class TwitchAutomatorJob
 		job.dt_started_at = data.dt_started_at ? parse(data.dt_started_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date()) : undefined;
 
 		// TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", "Job {$this->name} loaded, proceed to get status.", $this->metadata);
+
+		if (!TwitchAutomatorJob.jobs.includes(job)) {
+			TwitchAutomatorJob.jobs.push(job);
+			TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Loaded job ${job.name} added to jobs list`, job.metadata);
+		}
 
 		// $this->getStatus();
 		return job;
@@ -139,6 +179,11 @@ export class TwitchAutomatorJob
 
 		TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Job ${this.name} ${exists ? "saved" : "failed to save"}`, this.metadata);
 
+		if (exists && !TwitchAutomatorJob.jobs.includes(this)) {
+			TwitchAutomatorJob.jobs.push(this);
+			TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `New job ${this.name} added to jobs list`, this.metadata);
+		}
+
         return exists;
 	}
 
@@ -169,6 +214,12 @@ export class TwitchAutomatorJob
             fs.unlinkSync(this.pidfile);
             return !fs.existsSync(this.pidfile);
 		}
+
+		if (TwitchAutomatorJob.jobs.includes(this)) {
+			TwitchAutomatorJob.jobs.splice(TwitchAutomatorJob.jobs.indexOf(this), 1);
+			TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Job ${this.name} removed from jobs list`, this.metadata);
+		}
+
 		return false;
 	}
 
@@ -233,7 +284,14 @@ export class TwitchAutomatorJob
 			throw new Error("No pid set on job");
 		}
 
-		const output = await TwitchHelper.exec(["ps", "-p", this.pid.toString()]);
+		let output = "";
+		if (TwitchHelper.is_windows()) {
+			const proc = await TwitchHelper.execSimple("tasklist", [`/FI`, `PID eq ${this.pid}`]);
+			output = proc.stdout.join("\n");
+		} else {
+			const proc = await TwitchHelper.execSimple("ps", ["-p", this.pid.toString()]);
+			output = proc.stdout.join("\n");
+		}
 
         /*
 		if (mb_strpos($output, (string)$this->pid) !== false) {
