@@ -1240,4 +1240,25 @@ export class TwitchVOD {
 
 	}
 
+	public hasFavouriteGame(): boolean {
+		return this.chapters.some(chapter => chapter.game?.isFavourite());
+	}
+
+	public delete(): void {
+
+		if (!this.directory) {
+			throw new Error('No directory set for deletion');
+		}
+
+		TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Delete ${this.basename}`);
+
+		for (let file of this.associatedFiles) {
+			if (fs.existsSync(path.join(this.directory, file))) {
+				TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Delete ${file}`);
+				fs.unlinkSync(path.join(this.directory, file));
+			}
+		}
+
+	}
+
 }

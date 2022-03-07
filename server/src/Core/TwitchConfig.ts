@@ -7,6 +7,7 @@ import { TwitchGame } from './TwitchGame';
 import { TwitchHelper } from './TwitchHelper';
 import { LOGLEVEL, TwitchLog } from './TwitchLog';
 import { TwitchAutomatorJob } from './TwitchAutomatorJob';
+import chalk from 'chalk';
 
 export interface SettingField {
 	key: string;
@@ -106,9 +107,17 @@ export class TwitchConfig {
 		{ 'key': 'file_chown_group', 'group': 'Advanced', 'text': 'File chown group', 'type': 'string', 'default': 'nobody' },
 
 		{ 'key': 'checkmute_method', 'group': 'Basic', 'text': 'Method to use when checking for muted vods', 'type': 'array', 'default': 'api', 'choices': ['api', 'streamlink'], 'help': 'Streamlink is more accurate but is kind of a weird solution.' },
+		
+		{ 'key': 'server_port', 'group': 'Basic', 'text': 'Server port', 'type': 'number', 'default': 8080 },
+	
 	];
 
 	static cfg<T>(key: string, defaultValue?: T): T {
+
+		if (!this.settingExists(key)) {
+			TwitchLog.logAdvanced(LOGLEVEL.WARNING, "config", `Setting '${key}' does not exist.`);
+			console.warn(chalk.red(`Setting '${key}' does not exist.`));
+		}
 
 		// return from env if set
 		if (process.env[key]) {
@@ -272,25 +281,3 @@ export class TwitchConfig {
 	}
 
 }
-
-// Main load
-TwitchConfig.loadConfig();
-TwitchConfig.setupAxios().then(() => {
-
-	TwitchLog.readTodaysLog();
-
-	TwitchLog.logAdvanced(
-		LOGLEVEL.SUCCESS,
-		'config',
-		`The time is ${new Date().toLocaleString()}.` +
-		` Current topside temperature is 93 degrees, with an estimated high of one hundred and five.` +
-		` The Black Mesa compound is maintained at a pleasant 68 degrees at all times.`
-	);
-
-	TwitchGame.populateGameDatabase();
-	TwitchGame.populateFavouriteGames();
-	TwitchChannel.loadChannelsConfig();
-	TwitchChannel.loadChannelsCache();
-	TwitchChannel.loadChannels();
-	TwitchAutomatorJob.loadJobsFromCache();
-});

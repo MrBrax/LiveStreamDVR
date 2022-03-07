@@ -156,30 +156,30 @@ export class TwitchChannel {
     }
 
     static async channelIdFromLogin(login: string): Promise<string | false> {
-        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Convert login to channel id for ${login}`);
+        // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Convert login to channel id for ${login}`);
         const channelData = await this.getChannelDataByLogin(login, false);
         return channelData ? channelData.id : false;
     }
 
     static async channelLoginFromId(channel_id: string): Promise<string | false> {
-        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Convert channel id to login for ${channel_id}`);
+        // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Convert channel id to login for ${channel_id}`);
         const channelData = await this.getChannelDataById(channel_id, false);
         return channelData ? channelData.login : false;
     }
 
     static async channelDisplayNameFromId(channel_id: string): Promise<string | false> {
-        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Convert channel id to display name for ${channel_id}`);
+        // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Convert channel id to display name for ${channel_id}`);
         const channelData = await this.getChannelDataById(channel_id, false);
         return channelData ? channelData.display_name : false;
     }
 
     static async getChannelDataById(channel_id: string, force = false): Promise<ChannelData | false> {
-        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Fetching channel data for ID ${channel_id}`);
+        // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Fetching channel data for ID ${channel_id}`);
         return this.getChannelDataProxy("id", channel_id, force);
     }
 
     static async getChannelDataByLogin(login: string, force = false): Promise<ChannelData | false> {
-        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Fetching channel data for LOGIN ${login}`);
+        // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Fetching channel data for LOGIN ${login}`);
         return this.getChannelDataProxy("login", login, force);
     }
 
@@ -309,7 +309,7 @@ export class TwitchChannel {
 
         for (let vod of this.vods_raw) {
 
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "CHANNEL", `Try to parse VOD ${vod}`);
+            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Try to parse VOD ${vod}`);
 
             const vod_full_path = path.join(this.getFolder(), vod);
 
@@ -335,7 +335,7 @@ export class TwitchChannel {
                 this.vods_size += vodclass.segments.reduce((acc, seg) => acc + (seg && seg.filesize ? seg.filesize : 0), 0);
             }
 
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "CHANNEL", `VOD ${vod} added to ${this.login}`);
+            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `VOD ${vod} added to ${this.login}`);
 
             this.vods_list.push(vodclass);
         }
@@ -355,7 +355,7 @@ export class TwitchChannel {
 
         const data = fs.readFileSync(BaseConfigPath.streamerCache, 'utf8');
         this.channels_cache = JSON.parse(data);
-        TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "CHANNEL", `Loaded ${Object.keys(this.channels_cache).length} channels from cache.`);
+        TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${Object.keys(this.channels_cache).length} channels from cache.`);
     }
 
     static async loadChannels() {

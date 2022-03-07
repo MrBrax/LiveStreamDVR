@@ -6,6 +6,7 @@ import { PHPDateTimeProxy } from "@/types";
 import { TwitchHelper } from "./TwitchHelper";
 import { parse } from "date-fns";
 import { ChildProcessWithoutNullStreams } from "child_process";
+import { EventEmitter } from "stream";
 
 export interface TwitchAutomatorJobJSON {
     name: string;
@@ -14,7 +15,7 @@ export interface TwitchAutomatorJobJSON {
     dt_started_at: PHPDateTimeProxy;
 }
 
-export class TwitchAutomatorJob
+export class TwitchAutomatorJob extends EventEmitter
 {
 
 	static jobs: TwitchAutomatorJob[] = [];
@@ -46,6 +47,7 @@ export class TwitchAutomatorJob
 
 	public stdout: string[] = [];
 	public stderr: string[] = [];
+	public code: number | null = null;
 	
 	logfile: string = "";
 
@@ -184,6 +186,8 @@ export class TwitchAutomatorJob
 			TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `New job ${this.name} added to jobs list`, this.metadata);
 		}
 
+		this.emit("save");
+
         return exists;
 	}
 
@@ -201,6 +205,8 @@ export class TwitchAutomatorJob
         if (!this.pidfile) {
             throw new Error("pidfile not set");
         }
+
+		this.emit("pre_clear");
 
 		if (fs.existsSync(this.pidfile)) {
 			TwitchLog.logAdvanced(LOGLEVEL.INFO, "job", `Clear job ${this.name} with PID ${this.pid}`, this.metadata);
@@ -220,6 +226,8 @@ export class TwitchAutomatorJob
 			TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Job ${this.name} removed from jobs list`, this.metadata);
 		}
 
+		this.emit("clear");
+
 		return false;
 	}
 
@@ -231,6 +239,7 @@ export class TwitchAutomatorJob
 	 */
 	setPid(pid: number)
 	{
+		this.emit("pid_set", this.pid, pid);
 		this.pid = pid;
 		TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Set PID ${pid} for job ${this.name}`, this.metadata);
 	}
@@ -256,8 +265,16 @@ export class TwitchAutomatorJob
 	 */
 	setProcess(process: ChildProcessWithoutNullStreams)
 	{
+		this.emit("process_set", this.process, process);
 		this.process = process;
 		TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Set process for job ${this.name}`, this.metadata);
+
+		/*
+		this.process.on("close", (code, signal) => {
+			TwitchLog.logAdvanced(LOGLEVEL.INFO, "job", `Process for job ${this.name} exited with code ${code} and signal ${signal}`, this.metadata);
+			this.emit("close", code, signal);
+		}
+		*/
 	}
 
 	/**
@@ -268,6 +285,7 @@ export class TwitchAutomatorJob
 	 */
 	setMetadata(metadata: any)
 	{
+		this.emit("metadata_set", this.metadata, metadata);
 		this.metadata = metadata;
 	}
 
@@ -318,12 +336,11 @@ export class TwitchAutomatorJob
 	/**
 	 * Quit the process via PID
 	 *
-	 * @return string kill output
 	 */
-	kill()
+	async kill(method: NodeJS.Signals = "SIGTERM")
 	{
 		if (this.process) {
-			return this.process.kill();
+			return this.process.kill(method);
 		}
 
         const pid = this.getPid();
@@ -332,9 +349,17 @@ export class TwitchAutomatorJob
             return false;
         }
 
-		const exec = TwitchHelper.exec(["kill", pid.toString()]);
-		this.clear();
-		return exec;
+		this.emit("pre_kill", method);
+
+		if (TwitchHelper.is_windows()) {
+			const exec = await TwitchHelper.execSimple("taskkill", [`/F`, `/PID`, `${pid}`]);
+			this.clear();
+			return exec;
+		} else {
+			const exec = await TwitchHelper.execSimple("kill", [pid.toString()]);
+			this.clear();
+			return exec;
+		}
 	}
 
 	startLog(filename: string, start_text: string) {
@@ -374,6 +399,11 @@ export class TwitchAutomatorJob
 			this.process.stdout.removeAllListeners();
 			this.process.stderr.removeAllListeners();
 		}
+	}
+
+	onClose(code: number | null) {
+		this.emit("close", code);
+		this.code = code;
 	}
 
 }

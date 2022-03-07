@@ -345,6 +345,67 @@ export class TwitchHelper {
 		});
 	}
 
+	static startJob(bin: string, args: string[], jobName: string): TwitchAutomatorJob | false {
+
+		const process = spawn(bin, args || [], {
+			// detached: true,
+			windowsHide: true,
+		});
+
+		TwitchLog.logAdvanced(LOGLEVEL.INFO, jobName, `Executing ${bin} ${args.join(' ')}`);
+
+		let job: TwitchAutomatorJob | false = false;
+
+		if (process.pid) {
+			TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Spawned process ${process.pid} for ${jobName}`);
+			job = TwitchAutomatorJob.create(jobName);
+			job.setPid(process.pid);
+			job.setProcess(process);
+			job.startLog(jobName, `$ ${bin} ${args.join(' ')}\n`);
+			if(!job.save()) {
+				TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to save job ${jobName}`);
+			}
+		} else {
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to spawn process for ${jobName}`);
+			// reject(new Error(`Failed to spawn process for ${jobName}`));
+		}
+
+		let stdout: string[] = [];
+		let stderr: string[] = [];
+		
+		process.stdout.on('data', (data) => {
+			stdout.push(data);
+		});
+		
+		process.stderr.on('data', (data) => {
+			stderr.push(data);
+		});
+
+		process.on('close', (code) => {
+			TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Process ${process.pid} for ${jobName} exited with code ${code}`);
+
+			if (typeof job !== 'boolean') {
+				job.onClose(code);
+				job.clear(); // ?
+			}
+
+			// const out_log = ffmpeg.stdout.read();
+			// const success = fs.existsSync(output) && fs.statSync(output).size > 0;
+			/*
+			if (code == 0) {
+				resolve({ code, stdout, stderr });
+			} else {
+				reject({ code, stdout, stderr });
+			}
+			*/
+		});
+
+		TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Attached to all streams for process ${process.pid} for ${jobName}`);
+
+		return job;
+
+	}
+
 	static async remuxFile(input: string, output: string, overwrite = false): Promise<RemuxReturn> {
 		const ffmpeg_path = this.path_ffmpeg();
 		if (!ffmpeg_path) {
@@ -403,6 +464,23 @@ export class TwitchHelper {
 				}
 			});
 		});
+	}
+
+	// https://stackoverflow.com/a/2510459
+	static formatBytes(bytes: number, precision = 2): string {
+	
+		const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+		bytes = Math.max(bytes, 0);
+		let pow = Math.floor((bytes ? Math.log(bytes) : 0) / Math.log(1024));
+		pow = Math.min(pow, units.length - 1);
+
+		// Uncomment one of the following alternatives
+		bytes /= Math.pow(1024, pow);
+		// $bytes /= (1 << (10 * $pow)); 
+
+		// return round($bytes, $precision) . ' ' . $units[$pow];
+		return `${bytes.toFixed(precision)} ${units[pow]}`;
 	}
 
 }

@@ -31,6 +31,13 @@ export class TwitchAutomator {
 	force_record: boolean = false;
 	stream_resolution: string = "";
 
+	capture_filename: string = "";
+	converted_filename: string = "";
+	chat_filename: string = "";
+	
+	captureJob: TwitchAutomatorJob | undefined;
+	chatJob: TwitchAutomatorJob | undefined;
+
 	public basename() {
 
 		// return $this->getLogin() . '_' . str_replace(':', '_', $this->getStartDate()) . '_' . $this->getVodID();
@@ -328,6 +335,70 @@ export class TwitchAutomator {
 
 	}
 
+	private cleanup() {
+		// const vods = fs.readdirSync(TwitchHelper.vodFolder(this.getLogin())).filter(f => f.startsWith(`${this.getLogin()}_`) && f.endsWith(".json"));
+		
+		let total_size = 0;
+		const vods = TwitchChannel.getChannelByLogin(this.getLogin())?.vods_list;
+
+		let vod_candidates = [];
+		if (vods) {
+			for (const vodclass of vods) {
+				if (vodclass.is_finalized && vodclass.basename !== this.basename()) {
+
+					if (TwitchConfig.cfg('keep_deleted_vods') && vodclass.twitch_vod_exists === false) {
+						TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being deleted on Twitch.`);
+						continue;
+					}
+		
+					if (TwitchConfig.cfg('keep_favourite_vods') && vodclass.hasFavouriteGame()) {
+						TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it having a favourite game.`);
+						continue;
+					}
+		
+					if (TwitchConfig.cfg('keep_muted_vods') && vodclass.twitch_vod_muted === true) {
+						TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being muted on Twitch.`);
+						continue;
+					}
+
+					total_size += vodclass.total_size;
+					vod_candidates.push(vodclass);
+				}
+			}
+		}
+
+		const gigabytes = total_size / (1024 * 1024 * 1024);
+
+		TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Total filesize for ${this.getLogin()}: ${TwitchHelper.formatBytes(total_size)}`);
+		TwitchLog.logAdvanced(
+			LOGLEVEL.INFO,
+			"automator",
+			`Amount for ${this.getLogin()}: ${vod_candidates.length}/${(TwitchConfig.cfg<number>("vods_to_keep", 5) + 1)}`
+		);
+
+		if (
+			vod_candidates.length > TwitchConfig.cfg<number>('vods_to_keep', 5) + 1 ||
+			gigabytes > TwitchConfig.cfg<number>('storage_per_streamer', 100))
+		{
+			const candidate = vod_candidates[0];
+
+			TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Total filesize for ${this.getLogin()} exceeds either vod amount or storage per streamer`);
+
+			// don't delete the newest vod, hopefully. this shouldn't happen, but just in case.
+			if (candidate.basename == this.basename()) {
+				TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Trying to cleanup latest VOD ${candidate.basename}`);
+				return false;
+			}
+
+			// only delete first vod, too scared of having it do all
+			TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Cleanup ${candidate.basename}`);
+			
+			candidate.delete();
+
+		}
+
+	}
+
 	public end() {
 		TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", "Stream end");
 	}
@@ -425,21 +496,29 @@ export class TwitchAutomator {
 			TwitchConfig.setCache(`${this.getLogin()}.channeldata`, null);
 		}
 
-		// capture with streamlink, this is the crucial point in this entire program
-		const capture_filename = await this.captureMain(basename, tries);
+		const container_ext = TwitchConfig.cfg("vod_container", "mp4");
+		this.capture_filename = path.join(folder_base, `${basename}.ts`);
+		this.converted_filename = path.join(folder_base, `${basename}.${container_ext}`);
+		this.chat_filename = path.join(folder_base, `${basename}.chatdump`);
 
-		// $capture_failed = !$capture_filename || (isset($capture_filename) && !file_exists($capture_filename));
-		const capture_failed = !capture_filename || (capture_filename && !fs.existsSync(capture_filename));
+
+		// capture with streamlink, this is the crucial point in this entire program
+		this.startCaptureChat();
+		await this.captureVideo();
+		this.endCaptureChat();
+
+
+		const capture_success = fs.existsSync(this.capture_filename) && fs.statSync(this.capture_filename).size > 0;
 
 		// send internal webhook for capture start
 		TwitchHelper.webhook({
 			'action': 'end_capture',
 			'vod': this.vod,
-			'success': !capture_failed
+			'success': capture_success
 		});
 
 		// error handling if nothing got downloaded
-		if (capture_failed) {
+		if (!capture_success) {
 
 			TwitchLog.logAdvanced(LOGLEVEL.WARNING, "automator", `Panic handler for ${basename}, no captured file!`);
 
@@ -464,10 +543,11 @@ export class TwitchAutomator {
 		// end timestamp
 		TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Add end timestamp for ${basename}`);
 
-		let tmp_vod = await this.vod.refreshJSON();
-		if (!tmp_vod) throw new Error('Failed to refresh JSON');
+		// todo: no hack
+		//let tmp_vod = await this.vod.refreshJSON();
+		//if (!tmp_vod) throw new Error('Failed to refresh JSON');
+		//this.vod = tmp_vod;
 
-		this.vod = tmp_vod;
 		// $this->vod->ended_at = $this->getDateTime();
 		this.vod.dt_ended_at = new Date();
 		this.vod.is_capturing = false;
@@ -486,11 +566,11 @@ export class TwitchAutomator {
 		this.vod.saveJSON('is_converting set');
 
 		// convert with ffmpeg
-		const converted_filename = await this.convert(basename);
+		await this.convertVideo();
 
 		// sleep(10);
 
-		const convert_success = converted_filename && fs.existsSync(capture_filename) && fs.existsSync(converted_filename);
+		const convert_success = fs.existsSync(this.capture_filename) && fs.existsSync(this.converted_filename) && fs.statSync(this.converted_filename).size > 0;
 
 		// send internal webhook for convert start
 		TwitchHelper.webhook({
@@ -502,7 +582,7 @@ export class TwitchAutomator {
 		// remove ts if both files exist
 		if (convert_success) {
 			TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "automator", `Remove ts file for ${basename}`);
-			fs.unlinkSync(capture_filename);
+			fs.unlinkSync(this.capture_filename);
 		} else {
 			TwitchLog.logAdvanced(LOGLEVEL.FATAL, "automator", `Missing conversion files for ${basename}`);
 			this.vod.automator_fail = true;
@@ -513,16 +593,19 @@ export class TwitchAutomator {
 
 		// add the captured segment to the vod info
 		TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Conversion done, add segments to ${basename}`);
-		tmp_vod = await this.vod.refreshJSON();
-		if (!tmp_vod) throw new Error('Failed to refresh JSON');
-		this.vod = tmp_vod;
+		
+		// @todo: no hack
+		// tmp_vod = await this.vod.refreshJSON();
+		// if (!tmp_vod) throw new Error('Failed to refresh JSON');
+		// this.vod = tmp_vod;
+
 		this.vod.is_converting = false;
-		this.vod.addSegment(converted_filename);
+		this.vod.addSegment(this.converted_filename);
 		this.vod.saveJSON('add segment');
 
 		// remove old vods for the streamer
 		TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Cleanup old VODs for ${data_username}`);
-		this.cleanup(this.getLogin(), basename);
+		this.cleanup();
 
 		// finalize
 		TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Sleep 2 minutes for ${basename}`);
@@ -533,7 +616,7 @@ export class TwitchAutomator {
 		const vodclass = await TwitchVOD.load(path.join(folder_base, `${basename}.json`));
 		if (!vodclass) throw new Error('Failed to load VOD');
 
-		vodclass.finalize();
+		await vodclass.finalize();
 		vodclass.saveJSON('finalized');
 
 		/*
@@ -577,10 +660,11 @@ export class TwitchAutomator {
 
 	}
 
-	public async captureMain(basename: string, tries: number = 0) {
+	/*
+	public async captureMain(tries: number = 0) {
 
 		if (!this.vod) {
-			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `No VOD for ${basename}, this should not happen`);
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `No VOD for ${this.basename()}, this should not happen`);
 			return false;
 		}
 
@@ -594,8 +678,6 @@ export class TwitchAutomator {
 			return false;
 		}
 
-		const chat_filename = path.join(folder_base, `${basename}.chatdump`);
-
 		this.captureVideo();
 		this.captureChat();
 
@@ -608,169 +690,202 @@ export class TwitchAutomator {
 			$capture_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '-' . $int . '.ts';
 			$int++;
 		}
-		*/
+		*
 	}
+	*/
 
-	public async captureVideo() {
+	public async captureVideo(): Promise<boolean> {
 
-		const basename = this.basename();
+		return new Promise((resolve, reject) => {
 
-		const stream_url = this.streamURL();
-		const folder_base = TwitchHelper.vodFolder(this.getLogin());
-		const capture_filename = path.join(folder_base, `${basename}.ts`);
-		const streamer_config = TwitchChannel.getChannelByLogin(this.getLogin());
-
-		const bin = TwitchHelper.path_streamlink();
-
-		if (!bin) {
-			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", "Streamlink not found");
-			return false;
-		}
-
-		const cmd: string[] = [];
-
-		// start recording from start of stream, though twitch doesn't support this
-		cmd.push('--hls-live-restart');
-
-		// How many segments from the end to start live HLS streams on.
-		cmd.push('--hls-live-edge', '99999');
-
-		// timeout due to ads
-		cmd.push('--hls-timeout', TwitchConfig.cfg('hls_timeout', 120).toString());
-
-		// timeout due to ads
-		cmd.push('--hls-segment-timeout', TwitchConfig.cfg('hls_timeout', 120).toString());
-
-		// The size of the thread pool used to download HLS segments.
-		cmd.push('--hls-segment-threads', '5');
-
-		// disable channel hosting
-		cmd.push('--twitch-disable-hosting');
-
-		// enable low latency mode, probably not a good idea without testing
-		if (TwitchConfig.cfg('low_latency', false)) {
-			cmd.push('--twitch-low-latency');
-		}
-
-		// Skip embedded advertisement segments at the beginning or during a stream
-		if (TwitchConfig.cfg('disable_ads', false)) {
-			cmd.push('--twitch-disable-ads');
-		}
-
-		// Retry fetching the list of available streams until streams are found 
-		cmd.push('--retry-streams', '10');
-
-		// stop retrying the fetch after COUNT retry attempt(s).
-		cmd.push('--retry-max', '5');
-
-		// disable reruns
-		cmd.push('--twitch-disable-reruns');
-
-		// logging level
-		if (TwitchConfig.cfg('debug', false)) {
-			cmd.push('--loglevel', 'debug');
-		} else if (TwitchConfig.cfg('app_verbose', false)) {
-			cmd.push('--loglevel', 'info');
-		}
-
-		// output file
-		cmd.push('-o', capture_filename);
-
-		// twitch url
-		cmd.push('--url', stream_url);
-
-		// twitch quality
-		cmd.push('--default-stream');
-		if (streamer_config && streamer_config.quality) {
-			// cmd.push(implode(",", $streamer_config->quality); // qualit)y
-			cmd.push(streamer_config.quality.join(','));
-		} else {
-			cmd.push('best');
-		}
-
-		// $this->info[] = 'Streamlink cmd: ' . implode(" ", $cmd);
-
-		// $this->vod = $this->vod->refreshJSON(); // @todo: fix
-		this.vod.dt_capture_started = new Date();
-		this.vod.saveJSON('dt_capture_started set');
-
-		TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Starting capture with filename ${path.basename(capture_filename)}`);
-
-		// spawn process
-		const process = spawn(bin, cmd, {
-			cwd: path.dirname(capture_filename),
-			windowsHide: true,
-		});
-
-		// make job for capture
-		let capture_job: TwitchAutomatorJob;
-		const jobName = `capture_${basename}`;
-		if (process.pid) {
-			TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Spawned process ${process.pid} for ${jobName}`);
-			capture_job = TwitchAutomatorJob.create(jobName);
-			capture_job.setPid(process.pid);
-			capture_job.setProcess(process);
-			capture_job.startLog(jobName, `$ ${bin} ${cmd.join(' ')}\n`);
-			if (!capture_job.save()) {
-				TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to save job ${jobName}`);
+			if (!this.vod) {
+				TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `No VOD for ${this.basename()}, this should not happen`);
+				reject(false);
+				return;
 			}
-		} else {
-			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to spawn process for ${jobName}`);
-		}
 
-		// process.on('error', (err) => {
-		// 	TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Error in process ${jobName}`, err);
-		// 	capture_job.setStatus(TwitchAutomatorJob.STATUS_ERROR);
-		// 	capture_job.setError(err);
-		// 	capture_job.save();
-		// });
+			const basename = this.basename();
 
-		// critical end
-		process.on('close', (code) => {
-			TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Job ${jobName} exited with code ${code}`);
-			this.handleVideoCaptureEnd(code, capture_job);
-		});
+			const stream_url = this.streamURL();
+			const folder_base = TwitchHelper.vodFolder(this.getLogin());
+			const streamer_config = TwitchChannel.getChannelByLogin(this.getLogin());
 
-		// this.vod.generatePlaylistFile();
+			const bin = TwitchHelper.path_streamlink();
 
-		/*
-		// start process in async mode
-		$process = new Process($cmd, dirname($capture_filename), null, null, null);
-		$process->start();
+			if (!bin) {
+				TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", "Streamlink not found");
+				reject(false);
+				return;
+			}
 
-		// output command line
-		TwitchHelper::clearLog("streamlink_{$basename}_stdout.{$tries}");
-		TwitchHelper::clearLog("streamlink_{$basename}_stderr.{$tries}");
-		TwitchHelper::appendLog("streamlink_{$basename}_stdout.{$tries}", "$ " . implode(" ", $cmd));
-		TwitchHelper::appendLog("streamlink_{$basename}_stderr.{$tries}", "$ " . implode(" ", $cmd));
+			const cmd: string[] = [];
 
-		// generate m3u8 file
-		$this->vod->generatePlaylistFile();
+			// start recording from start of stream, though twitch doesn't support this
+			cmd.push('--hls-live-restart');
 
-		// save pid to file
-		// $pidfile = TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . 'capture_' . $data_username . '.pid';
-		TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "automator", "Capture " . basename($capture_filename) . " has PID " . $process->getPid(), ['download-capture' => $data_username]);
-		// file_put_contents($pidfile, $process->getPid());
-		$captureJob = TwitchAutomatorJob::create("capture_{$basename}");
-		$captureJob->setPid($process->getPid());
-		$captureJob->setProcess($process);
-		$captureJob->setMetadata([
-			'username' => $data_username,
-			'basename' => $basename,
-			'capture_filename' => $capture_filename,
-			'stream_id' => $data_id
-		]);
-		$captureJob->save();
-		*/
+			// How many segments from the end to start live HLS streams on.
+			cmd.push('--hls-live-edge', '99999');
 
-		// send internal webhook for capture start
-		TwitchHelper.webhook({
-			'action': 'start_capture',
-			'vod': this.vod
+			// timeout due to ads
+			cmd.push('--hls-timeout', TwitchConfig.cfg('hls_timeout', 120).toString());
+
+			// timeout due to ads
+			cmd.push('--hls-segment-timeout', TwitchConfig.cfg('hls_timeout', 120).toString());
+
+			// The size of the thread pool used to download HLS segments.
+			cmd.push('--hls-segment-threads', '5');
+
+			// disable channel hosting
+			cmd.push('--twitch-disable-hosting');
+
+			// enable low latency mode, probably not a good idea without testing
+			if (TwitchConfig.cfg('low_latency', false)) {
+				cmd.push('--twitch-low-latency');
+			}
+
+			// Skip embedded advertisement segments at the beginning or during a stream
+			if (TwitchConfig.cfg('disable_ads', false)) {
+				cmd.push('--twitch-disable-ads');
+			}
+
+			// Retry fetching the list of available streams until streams are found 
+			cmd.push('--retry-streams', '10');
+
+			// stop retrying the fetch after COUNT retry attempt(s).
+			cmd.push('--retry-max', '5');
+
+			// disable reruns
+			cmd.push('--twitch-disable-reruns');
+
+			// logging level
+			if (TwitchConfig.cfg('debug', false)) {
+				cmd.push('--loglevel', 'debug');
+			} else if (TwitchConfig.cfg('app_verbose', false)) {
+				cmd.push('--loglevel', 'info');
+			}
+
+			// output file
+			cmd.push('-o', this.capture_filename);
+
+			// twitch url
+			cmd.push('--url', stream_url);
+
+			// twitch quality
+			cmd.push('--default-stream');
+			if (streamer_config && streamer_config.quality) {
+				// cmd.push(implode(",", $streamer_config->quality); // qualit)y
+				cmd.push(streamer_config.quality.join(','));
+			} else {
+				cmd.push('best');
+			}
+
+			// $this->info[] = 'Streamlink cmd: ' . implode(" ", $cmd);
+
+			// $this->vod = $this->vod->refreshJSON(); // @todo: fix
+			this.vod.dt_capture_started = new Date();
+			this.vod.saveJSON('dt_capture_started set');
+
+			TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Starting capture with filename ${path.basename(this.capture_filename)}`);
+
+			// spawn process
+			const process = spawn(bin, cmd, {
+				cwd: path.dirname(this.capture_filename),
+				windowsHide: true,
+			});
+
+			// make job for capture
+			let capture_job: TwitchAutomatorJob;
+			const jobName = `capture_${basename}`;
+			if (process.pid) {
+				TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Spawned process ${process.pid} for ${jobName}`);
+				capture_job = TwitchAutomatorJob.create(jobName);
+				capture_job.setPid(process.pid);
+				capture_job.setProcess(process);
+				capture_job.startLog(jobName, `$ ${bin} ${cmd.join(' ')}\n`);
+				if (!capture_job.save()) {
+					TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to save job ${jobName}`);
+				}
+			} else {
+				TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to spawn process for ${jobName}`);
+				reject(false);
+				return;
+			}
+
+			// critical end
+			process.on('close', (code) => {
+				TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Job ${jobName} exited with code ${code}`);
+				
+				if (fs.existsSync(this.capture_filename) && fs.statSync(this.capture_filename).size > 0) {
+					
+					const stream_resolution = capture_job.stdout.join("\n").match(/stream:\s([0-9_a-z]+)\s/);
+					if (stream_resolution && this.vod) {
+						this.vod.stream_resolution = stream_resolution[1];
+					}
+
+					resolve(true);
+				}
+			});
+
+			let chunks_missing = 0;
+			let current_ad_start = null;
+
+			const ticker = (source: "stdout" | "stderr", data: string) => {
+
+				if (data.includes("bad interpreter: No such file or directory")) {
+					TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", "Fatal error with streamlink, please check logs");
+				}
+
+				// get stream resolution
+				const res_match = data.match(/stream:\s([0-9_a-z]+)\s/);
+				if (res_match) {
+					this.stream_resolution = res_match[1];
+					TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Stream resolution for ${basename}: ${this.stream_resolution}`);
+				}
+
+				// stream stop
+				if (data.includes("404 Client Error")) {
+					TwitchLog.logAdvanced(LOGLEVEL.WARNING, "automator", `Chunk 404'd for ${basename} (${chunks_missing}/100)!`);
+					chunks_missing++;
+					if (chunks_missing >= 100) {
+						TwitchLog.logAdvanced(LOGLEVEL.WARNING, "automator", `Too many 404'd chunks for ${basename}, stopping!`);
+						this.captureJob?.kill();
+					}
+				}
+
+				if (data.includes("Waiting for streams")) {
+					TwitchLog.logAdvanced(LOGLEVEL.WARNING, "automator", `No streams found for ${basename}, retrying...`);
+				}
+
+				// stream error
+				if (data.includes("403 Client Error")) {
+					TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Chunk 403'd for ${basename}!`);
+				}
+
+				// ad removal
+				if (data.includes("Will skip ad segments")) {
+					TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Capturing of ${basename}, will try to remove ads!`);
+					current_ad_start = new Date();
+				}
+
+			};
+
+			// attach output to parsing
+			process.stdout.on('data', (data) => { ticker("stdout", data); });
+			process.stderr.on('data', (data) => { ticker("stderr", data); });
+
+			// this.vod.generatePlaylistFile();
+
+			// send internal webhook for capture start
+			TwitchHelper.webhook({
+				'action': 'start_capture',
+				'vod': this.vod
+			});
+
 		});
 
 	}
 
+	/*
 	handleVideoCaptureEnd(code: number | null, capture_job: TwitchAutomatorJob) {
 
 		const stream_resolution = capture_job.stdout.join("\n").match(/stream:\s([0-9_a-z]+)\s/);
@@ -780,12 +895,23 @@ export class TwitchAutomator {
 		
 		capture_job.clear();
 	}
+	*/
 
-	async captureChat() {
+	/**
+	 * Capture chat in a "detached" process
+	 */
+	startCaptureChat() {
 
 		// chat capture
 		if (TwitchConfig.cfg('chat_dump') && this.realm == 'twitch') {
 
+			const data_started = this.getStartDate();
+			// const data_id = this.getVodID();
+			const data_login = this.getLogin();
+			// const data_username = this.getUsername();
+			const data_userid = this.getUserID();
+
+			const chat_bin = 'node';
 			const chat_cmd: string[] = [];
 
 			// test
@@ -795,68 +921,93 @@ export class TwitchAutomator {
 
 			// $chat_cmd[] = 'python';
 			// $chat_cmd[] = __DIR__ . '/Utilities/twitch-chat.py';
-			$chat_cmd[] = 'node';
-			$chat_cmd[] = __DIR__. '/../twitch-chat-dumper/index.js';
+			
+			// $chat_cmd[] = 'node';
+			// $chat_cmd[] = __DIR__. '/../twitch-chat-dumper/index.js';
 
-			$chat_cmd[] = '--channel';
-			$chat_cmd[] = $this->vod->streamer_login;
+			// todo: execute directly in node?
+			chat_cmd.push(path.join(__dirname, '..', '..', 'twitch-chat-dumper', 'index.js'));
+			chat_cmd.push('--channel', data_login);
+			chat_cmd.push('--userid', data_userid);
+			chat_cmd.push('--date', data_started);
+			chat_cmd.push('--output', this.chat_filename);
 
-			$chat_cmd[] = '--userid';
-			$chat_cmd[] = $this->vod->streamer_id;
+			TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Starting chat dump with filename ${path.basename(this.chat_filename)}`);
 
-			$chat_cmd[] = '--date';
-			$chat_cmd[] = $data_started;
-
-			$chat_cmd[] = '--output';
-			$chat_cmd[] = $chat_filename;
-
-			TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", "Starting chat dump with filename ".basename($chat_filename), ['download-capture' => $data_username, 'cmd' => implode(' ', $chat_cmd)]);
-
-			// $chat_process = Process::fromShellCommandline( implode(" ", $cmd) );
-			$chat_process = new Process($chat_cmd, null, null, null, null);
-			$chat_process->setTimeout(null);
-			$chat_process->setIdleTimeout(null);
-
-			// these don't seem to work and i don't know what good they do so i'll just comment these out
 			/*
-			try {
-				$chat_process->setTty(true);
-			} catch (\Throwable $th) {
-				TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", "TTY not supported", ['download-capture' => $data_username]);
-			}
+			// start process
+			const chat_process = spawn(chat_bin, chat_cmd, {
+				windowsHide: true,
+			});
 
-			if ($chat_process->isTty()) {
-				TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", "TTY enabled", ['download-capture' => $data_username]);
-			}
+			// $chat_process->start();
 
-			if ($chat_process->isPtySupported()) {
-				$chat_process->setPty(true);
-				TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", "PTY enabled", ['download-capture' => $data_username]);
-			} else {
-				TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", "PTY not supported", ['download-capture' => $data_username]);
+			if (chat_process.pid) {
+				this.chatJob = TwitchAutomatorJob.create(`chatdump_${this.basename()}`);
+				this.chatJob.setPid(chat_process.pid);
+				this.chatJob.setProcess(chat_process);
+				this.chatJob.setMetadata([
+					'username' => $data_username,
+					'basename' => $basename,
+					'chat_filename' => $chat_filename
+				]);
+				$chatJob->save();
 			}
 			*/
 
+			const chat_job = TwitchHelper.startJob(chat_bin, chat_cmd, `chatdump_${this.basename()}`);
+		
+			if (chat_job && chat_job.pid) {
+				this.chatJob = chat_job;
+			} else {
+				TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to start chat dump job with filename ${path.basename(this.chat_filename)}`);
+				return false;
+			} 
 
-			$chat_process->start();
+			// TwitchHelper:: clearLog("chatdump_{$basename}_stdout.{$tries}");
+			// TwitchHelper:: clearLog("chatdump_{$basename}_stderr.{$tries}");
+			// TwitchHelper:: appendLog("chatdump_{$basename}_stdout.{$tries}", implode(" ", $chat_cmd));
+			// TwitchHelper:: appendLog("chatdump_{$basename}_stderr.{$tries}", implode(" ", $chat_cmd));
 
-			$chatJob = TwitchAutomatorJob:: create("chatdump_{$basename}");
-			$chatJob->setPid($chat_process->getPid());
-			$chatJob->setProcess($chat_process);
-			$chatJob->setMetadata([
-				'username' => $data_username,
-				'basename' => $basename,
-				'chat_filename' => $chat_filename
-			]);
-			$chatJob->save();
-
-			TwitchHelper:: clearLog("chatdump_{$basename}_stdout.{$tries}");
-			TwitchHelper:: clearLog("chatdump_{$basename}_stderr.{$tries}");
-			TwitchHelper:: appendLog("chatdump_{$basename}_stdout.{$tries}", implode(" ", $chat_cmd));
-			TwitchHelper:: appendLog("chatdump_{$basename}_stderr.{$tries}", implode(" ", $chat_cmd));
-		} else {
-			$chat_process = null;
+			return true;
 		}
+
+		return false;
+
+	}
+
+	/**
+	 * Kill the process, stopping chat capture
+	 */
+	endCaptureChat() {
+
+		if (this.chatJob) {
+			TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Ending chat dump with filename ${path.basename(this.chat_filename)}`);
+			this.chatJob.kill();
+		}
+
+	}
+	
+	// maybe use this?
+	compressChat() {
+		if (fs.existsSync(this.chat_filename)) {
+			const ret = TwitchHelper.execSimple('gzip', [this.chat_filename]);
+			return fs.existsSync(`${this.chat_filename}.gz`);
+		}
+		return false;
+	}
+
+	async convertVideo() {
+
+		const result = await TwitchHelper.remuxFile(this.capture_filename, this.converted_filename);
+
+		if (result && result.success) {
+			TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Converted video ${this.capture_filename} to ${this.converted_filename}`);
+		} else {
+			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to convert video ${this.capture_filename} to ${this.converted_filename}`);
+		}
+
+		return result && result.success;
 
 	}
 	
