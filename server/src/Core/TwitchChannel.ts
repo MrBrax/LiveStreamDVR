@@ -49,9 +49,21 @@ export class TwitchChannel {
      */
     public login: string | undefined;
 
+    /**
+     * Channel data directly from Twitch
+     */
     public channel_data: ChannelData | undefined;
+
+    /**
+     * Channel config from config file
+     */
     public config: ChannelConfig | undefined;
+
+    /**
+     * Display name used in chats and profile pages.
+     */
     public display_name: string | undefined;
+
     public description: string | undefined;
     public profile_image_url: string | undefined;
     public quality: VideoQuality[] | undefined;
@@ -70,6 +82,8 @@ export class TwitchChannel {
     public vods_raw: string[] | undefined;
     public vods_list: TwitchVOD[] | undefined;
     public vods_size: number | undefined;
+
+    // public current_vod: TwitchVOD | undefined;
 
     // public ?bool is_live = false;
     // public ?bool is_converting = false;
@@ -358,7 +372,12 @@ export class TwitchChannel {
         TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${Object.keys(this.channels_cache).length} channels from cache.`);
     }
 
-    static async loadChannels() {
+    /**
+     * Load channels into memory
+     * 
+     * @returns Amount of loaded channels
+     */
+    static async loadChannels(): Promise<number> {
         if (this.channels_config.length > 0) {
             for (const channel of this.channels_config) {
 
@@ -380,6 +399,7 @@ export class TwitchChannel {
                 }
             }
         }
+        return this.channels.length;
     }
 
     static getChannels(): TwitchChannel[] {
@@ -410,6 +430,15 @@ export class TwitchChannel {
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Querying streams for streamer id ${streamer_id}`);
 
         return json.data ?? false;
+    }
+
+    get current_vod(): TwitchVOD | undefined {
+        return this.vods_list?.find(vod => vod.is_capturing);
+    }
+
+    // a bit excessive since current_vod is already set with the capturing vod
+    get is_live(): boolean {
+        return this.current_vod != undefined && this.current_vod.is_capturing;
     }
 
 }

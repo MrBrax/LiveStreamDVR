@@ -120,9 +120,7 @@ export class TwitchVOD {
     video_fail2: boolean | undefined;
     video_metadata: MediaInfo | undefined;
 
-    /** @deprecated 3.2.0 use $is_capturing instead */
-    is_recording = false;
-    is_converted = false;
+    // is_converted = false;
     is_capturing = false;
     is_converting = false;
     is_finalized = false;
@@ -324,7 +322,7 @@ export class TwitchVOD {
 
         vod.capture_id = json.capture_id;
         vod.filename = filename;
-        vod.basename = path.basename(filename);
+        vod.basename = path.basename(filename, ".json");
         vod.directory = path.dirname(filename);
 
         vod.json = json;
@@ -631,6 +629,7 @@ export class TwitchVOD {
 
     }
 
+    get is_converted() { return this.directory && fs.existsSync(path.join(this.directory, `${this.basename}.mp4`)); }
     get is_chat_downloaded() { return this.path_chat && fs.existsSync(this.path_chat); }
     get is_vod_downloaded() { return this.path_downloaded_vod && fs.existsSync(this.path_downloaded_vod); }
     get is_lossless_cut_generated() { return this.path_losslesscut && fs.existsSync(this.path_losslesscut); }
@@ -779,6 +778,18 @@ export class TwitchVOD {
         }
         return raw_chapters;
     }
+
+    /*
+    getSegmentsApi() {
+        return this.segments.map(segment => {
+            return {
+                filename: segment.filename,
+                basename: segment.basename,
+
+            };
+        });
+    }
+    */
 
     addChapter(chapter: TwitchVODChapter) {
         this.chapters.push(chapter);
@@ -929,7 +940,7 @@ export class TwitchVOD {
         return fs.existsSync(csv_path);
     }
 
-    toJSON() {
+    toAPI() {
         return {
             vod_path: this.vod_path,
             capture_id: this.capture_id,
@@ -966,7 +977,7 @@ export class TwitchVOD {
             twitch_vod_attempted: this.twitch_vod_attempted,
             twitch_vod_neversaved: this.twitch_vod_neversaved,
             twitch_vod_muted: this.twitch_vod_muted,
-            is_recording: this.is_recording,
+            // is_recording: this.is_recording,
             is_converted: this.is_converted,
             is_capturing: this.is_capturing,
             is_converting: this.is_converting,
@@ -1011,6 +1022,43 @@ export class TwitchVOD {
             // dt_started_at: this.dt_started_at ? TwitchHelper.JSDateToPHPDate(this.dt_started_at) : null,
             // dt_ended_at: this.dt_ended_at ? TwitchHelper.JSDateToPHPDate(this.dt_ended_at) : null,
 
+        };
+    }
+
+    toJSON() {
+        return {
+            meta: this.meta,
+            twitch_vod_exists: this.twitch_vod_exists,
+            twitch_vod_attempted: this.twitch_vod_attempted,
+            twitch_vod_neversaved: this.twitch_vod_neversaved,
+            twitch_vod_muted: this.twitch_vod_muted,
+            stream_resolution: this.stream_resolution,
+            streamer_name: this.streamer_name,
+            streamer_id: this.streamer_id,
+            streamer_login: this.streamer_login,
+            chapters_raw: this.generateChaptersRaw(),
+            // chapters: this.chapters,
+            segments_raw: this.segments_raw,
+            // segments: this.segments,
+            ads: [],
+            is_capturing: this.is_capturing,
+            is_converting: this.is_converting,
+            is_finalized: this.is_finalized,
+            duration_seconds: this.duration_seconds,
+            video_metadata: this.video_metadata,
+            video_fail2: this.video_fail2,
+            force_record: this.force_record,
+            automator_fail: this.automator_fail,
+            saved_at: this.dt_saved_at ? TwitchHelper.JSDateToPHPDate(this.dt_saved_at) : null,
+            dt_capture_started: this.dt_capture_started ? TwitchHelper.JSDateToPHPDate(this.dt_capture_started) : null,
+            dt_conversion_started: this.dt_conversion_started ? TwitchHelper.JSDateToPHPDate(this.dt_conversion_started) : null,
+            dt_started_at: this.dt_started_at ? TwitchHelper.JSDateToPHPDate(this.dt_started_at) : null,
+            dt_ended_at: this.dt_ended_at ? TwitchHelper.JSDateToPHPDate(this.dt_ended_at) : null,
+            twitch_vod_id: this.twitch_vod_id,
+            twitch_vod_url: this.twitch_vod_url,
+            twitch_vod_duration: this.twitch_vod_duration,
+            twitch_vod_title: this.twitch_vod_title,
+            twitch_vod_date: this.twitch_vod_date,
         };
     }
 

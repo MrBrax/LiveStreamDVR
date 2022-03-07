@@ -5,6 +5,9 @@ import { BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
 import { TwitchHelper } from "./TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import chalk from "chalk";
+import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
+import { TwitchChannel } from "./TwitchChannel";
+import { TwitchGame } from "./TwitchGame";
 
 export interface SettingField<T> {
     key: string;
@@ -289,6 +292,39 @@ export class TwitchConfig {
                 "Authorization": "Bearer " + token,
             },
         });
+    }
+
+    static async init() {
+        
+        // Main load
+
+        if (TwitchConfig.config && Object.keys(TwitchConfig.config).length > 0) {
+            // throw new Error("Config already loaded, has init been called twice?");
+            console.error(chalk.red("Config already loaded, has init been called twice?"));
+            return false;
+        }
+        
+        TwitchConfig.loadConfig();
+        
+        await TwitchConfig.setupAxios();
+
+        TwitchLog.readTodaysLog();
+
+        TwitchLog.logAdvanced(
+            LOGLEVEL.SUCCESS,
+            "config",
+            `The time is ${new Date().toLocaleString()}.` +
+            " Current topside temperature is 93 degrees, with an estimated high of one hundred and five." +
+            " The Black Mesa compound is maintained at a pleasant 68 degrees at all times."
+        );
+
+        TwitchGame.populateGameDatabase();
+        TwitchGame.populateFavouriteGames();
+        TwitchChannel.loadChannelsConfig();
+        TwitchChannel.loadChannelsCache();
+        await TwitchChannel.loadChannels();
+        TwitchAutomatorJob.loadJobsFromCache();
+        
     }
 
 }

@@ -143,6 +143,10 @@ export class TwitchVODChapter {
         };
     }
 
+    hasFavouriteGame() {
+        return this.game && this.game.isFavourite();
+    }
+
     /*
     let raw_chapter: TwitchVODChapterJSON = {
                 title: chapter.title ?? "",

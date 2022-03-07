@@ -47,13 +47,16 @@ export class TwitchLog {
         }
 
         const lines = fs.readFileSync(jsonlinename, "utf8").split("\n");
-        console.log(`Read ${lines.length} lines from ${jsonlinename}`);
+        // console.log(`Read ${lines.length} lines from ${jsonlinename}`);
         this.lines = lines.map(line => line.length > 0 ? JSON.parse(line) : null).filter(line => line !== null);
-        console.log(`Parsed ${lines.length} lines from ${jsonlinename}`);
+        // console.log(`Parsed ${lines.length} lines from ${jsonlinename}`);
     }
 
     static logAdvanced(level: LOGLEVEL, module: string, text: string, metadata?: any) {
         if (!TwitchConfig.cfg("debug") && level == LOGLEVEL.DEBUG) return;
+
+        // if testing, don't log
+        if (process.env.NODE_ENV == "test") return;
 
         // check if folder exists
         if (!fs.existsSync(BaseConfigFolder.logs)) {
