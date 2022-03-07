@@ -1,7 +1,7 @@
 import { ErrorResponse } from "@/TwitchAPI/Shared";
 import { Stream, StreamsResponse } from "@/TwitchAPI/Streams";
 import { Users } from "@/TwitchAPI/Users";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import fs from "fs";
 import path from "path";
 import { BaseConfigPath } from "./BaseConfig";
@@ -135,7 +135,7 @@ export class TwitchChannel {
 
         // $channel->api_getSubscriptionStatus = $channel->getSubscriptionStatus();
 
-        if (TwitchConfig.cfg('channel_folders') && !fs.existsSync(channel.getFolder())) {
+        if (TwitchConfig.cfg("channel_folders") && !fs.existsSync(channel.getFolder())) {
             // mkdir(TwitchHelper::vodFolder($streamer['username']));
             fs.mkdirSync(channel.getFolder());
         }
@@ -148,7 +148,7 @@ export class TwitchChannel {
 
     static async loadFromLogin(login: string, api: boolean): Promise<TwitchChannel> {
         if (!login) throw new Error("Streamer login is empty");
-        if (typeof login !== 'string') throw new TypeError("Streamer login is not a string");
+        if (typeof login !== "string") throw new TypeError("Streamer login is not a string");
         TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Load from login ${login}`);
         const channel_id = await this.channelIdFromLogin(login);
         if (!channel_id) throw new Error(`Could not get channel id from login: ${login}`);
@@ -175,12 +175,12 @@ export class TwitchChannel {
 
     static async getChannelDataById(channel_id: string, force = false): Promise<ChannelData | false> {
         // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Fetching channel data for ID ${channel_id}`);
-        return this.getChannelDataProxy("id", channel_id, force);
+        return await this.getChannelDataProxy("id", channel_id, force);
     }
 
     static async getChannelDataByLogin(login: string, force = false): Promise<ChannelData | false> {
         // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Fetching channel data for LOGIN ${login}`);
-        return this.getChannelDataProxy("login", login, force);
+        return await this.getChannelDataProxy("login", login, force);
     }
 
     private static async getChannelDataProxy(method: "id" | "login", identifier: string, force: boolean): Promise<ChannelData | false> {
@@ -264,10 +264,10 @@ export class TwitchChannel {
             throw new Error(`Could not get channel data for ${identifier}, no data.`);
         }
 
-        let data = json.data[0];
+        const data = json.data[0];
 
         // use as ChannelData
-        let userData = data as unknown as ChannelData;
+        const userData = data as unknown as ChannelData;
 
         userData._updated = Date.now();
 
@@ -307,13 +307,13 @@ export class TwitchChannel {
         this.vods_list = [];
         this.vods_size = 0;
 
-        for (let vod of this.vods_raw) {
+        for (const vod of this.vods_raw) {
 
             TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Try to parse VOD ${vod}`);
 
             const vod_full_path = path.join(this.getFolder(), vod);
 
-            let vodclass = await TwitchVOD.load(vod_full_path, api);
+            const vodclass = await TwitchVOD.load(vod_full_path, api);
 
             if (!vodclass) {
                 continue;
@@ -346,21 +346,21 @@ export class TwitchChannel {
             return false;
         }
 
-        const data = fs.readFileSync(BaseConfigPath.channel, 'utf8');
+        const data = fs.readFileSync(BaseConfigPath.channel, "utf8");
         this.channels_config = JSON.parse(data);
     }
 
     static loadChannelsCache() {
         if (!fs.existsSync(BaseConfigPath.streamerCache))  return false;
 
-        const data = fs.readFileSync(BaseConfigPath.streamerCache, 'utf8');
+        const data = fs.readFileSync(BaseConfigPath.streamerCache, "utf8");
         this.channels_cache = JSON.parse(data);
         TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${Object.keys(this.channels_cache).length} channels from cache.`);
     }
 
     static async loadChannels() {
         if (this.channels_config.length > 0) {
-            for (let channel of this.channels_config) {
+            for (const channel of this.channels_config) {
 
                 let ch: TwitchChannel;
 

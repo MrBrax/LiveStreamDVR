@@ -1,14 +1,12 @@
-import fs from 'fs';
-import axios from 'axios';
-import { TwitchHelper } from './TwitchHelper';
-import { TwitchConfig } from './TwitchConfig';
-import { BaseConfigPath } from './BaseConfig';
-import { LOGLEVEL, TwitchLog } from './TwitchLog';
+import fs from "fs";
+import { TwitchHelper } from "./TwitchHelper";
+import { BaseConfigPath } from "./BaseConfig";
+import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 
 interface TwitchGameJSON {
-	name: string;
-	box_art_url: string;
-	added: number; // 1/1000
+    name: string;
+    box_art_url: string;
+    added: number; // 1/1000
 }
 
 export class TwitchGame {
@@ -57,46 +55,46 @@ export class TwitchGame {
 
     public static async getGameDataAsync(game_id: string): Promise<TwitchGame | false | null> {
 
-		if (!game_id) {
-			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", "No game id supplied for game fetch!");
-			return false;
-		}
+        if (!game_id) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", "No game id supplied for game fetch!");
+            return false;
+        }
 
         const cachedGame = this.getGameDataFromCache(game_id);
 
-		if (cachedGame) {
-			if (cachedGame && cachedGame.added && Date.now() > cachedGame.added.getTime() + (60 * 60 * 24 * 60 * 1000)) { // two months?
-				TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} needs refreshing.`);
-			} else {
-				return this.game_db[game_id];
-			}
-		}
+        if (cachedGame) {
+            if (cachedGame && cachedGame.added && Date.now() > cachedGame.added.getTime() + (60 * 60 * 24 * 60 * 1000)) { // two months?
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} needs refreshing.`);
+            } else {
+                return this.game_db[game_id];
+            }
+        }
 
-		TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "helper", `Game id ${game_id} not in cache, fetching...`);
+        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "helper", `Game id ${game_id} not in cache, fetching...`);
 
-		let response;
-		try {
-			response = await TwitchHelper.axios.get(`/helix/games?id=${game_id}`);
-		} catch (th) {
-			TwitchLog.logAdvanced(LOGLEVEL.FATAL, "helper", `Tried to get game data for ${game_id} but server returned: ${th}`);
-			return false;
-		}
+        let response;
+        try {
+            response = await TwitchHelper.axios.get(`/helix/games?id=${game_id}`);
+        } catch (th) {
+            TwitchLog.logAdvanced(LOGLEVEL.FATAL, "helper", `Tried to get game data for ${game_id} but server returned: ${th}`);
+            return false;
+        }
 
-		const json = response.data;
+        const json = response.data;
 
-		const game_data = json.data[0];
+        const game_data = json.data[0];
 
-		if (game_data) {
-			
+        if (game_data) {
+            
             /*
-			const game = {
-				"id": game_id,
-				"name": game_data.name,
-				"box_art_url": game_data.box_art_url,
-				"added": Date.now(),
-			} as TwitchGame;
+            const game = {
+                "id": game_id,
+                "name": game_data.name,
+                "box_art_url": game_data.box_art_url,
+                "added": Date.now(),
+            } as TwitchGame;
 
-			this.game_db[game_id] = game;
+            this.game_db[game_id] = game;
             */
             const game = new this();
             game.id = game_id;
@@ -105,19 +103,19 @@ export class TwitchGame {
             game.added = new Date();
             game.save();
 
-			// $game_db[ $id ] = $game_data["name"];
+            // $game_db[ $id ] = $game_data["name"];
 
-			TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `New game saved to cache: ${game.name}`);
+            TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `New game saved to cache: ${game.name}`);
 
-			return game;
+            return game;
 
-		} else {
+        } else {
 
-			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Invalid game returned in query for ${game_id} (${json})`);
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Invalid game returned in query for ${game_id} (${json})`);
 
-			return null;
-		}
-	}
+            return null;
+        }
+    }
 
     /**
      * Get game data from cache. **Does not fetch from server.**

@@ -12,6 +12,7 @@ import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { Videos, Video } from "@/TwitchAPI/Video";
 import { BaseConfigFolder } from "./BaseConfig";
 import { EventSubResponse } from "@/TwitchAPI/EventSub";
+import { TwitchWebhook } from "./TwitchWebhook";
 
 export interface TwitchVODJSON {
     
@@ -670,7 +671,7 @@ export class TwitchVOD {
         throw new Error("Method apihelper not implemented.");
     }
 
-    async parseChapters(raw_chapters: TwitchVODChapterJSON[] | TwitchVODChapterMinimalJSON[]) {
+    parseChapters(raw_chapters: TwitchVODChapterJSON[] | TwitchVODChapterMinimalJSON[]) {
 
         if (!raw_chapters || raw_chapters.length == 0) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No chapter data found for ${this.basename}`);
@@ -1213,12 +1214,9 @@ export class TwitchVOD {
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Download of ${basename} ${successful ? "successful" : "failed"}`);
 
-        TwitchHelper.webhook({
-            "action": "video_download",
-            "data": {
-                "success": successful,
-                "path": converted_filename,
-            },
+        TwitchWebhook.dispatch("video_download", {
+            "success": successful,
+            "path": converted_filename,
         });
 
         return converted_filename;

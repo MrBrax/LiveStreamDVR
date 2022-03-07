@@ -7,11 +7,11 @@ import { TwitchConfig } from "./TwitchConfig";
 
 export enum LOGLEVEL {
     ERROR = "ERROR",
-	WARNING = "WARNING",
-	INFO = "INFO",
-	DEBUG = "DEBUG",
-	FATAL = "FATAL",
-	SUCCESS = "SUCCESS",
+    WARNING = "WARNING",
+    INFO = "INFO",
+    DEBUG = "DEBUG",
+    FATAL = "FATAL",
+    SUCCESS = "SUCCESS",
 }
 
 interface LogLine {
@@ -28,13 +28,13 @@ export class TwitchLog {
     public static lines: LogLine[] = [];
 
     static readonly LOG_COLORS = {
-		[LOGLEVEL.ERROR]: chalk.red,
-		[LOGLEVEL.WARNING]: chalk.yellow,
-		[LOGLEVEL.INFO]: chalk.blue,
-		[LOGLEVEL.DEBUG]: chalk.gray,
-		[LOGLEVEL.FATAL]: chalk.red,
-		[LOGLEVEL.SUCCESS]: chalk.green,
-	};
+        [LOGLEVEL.ERROR]: chalk.red,
+        [LOGLEVEL.WARNING]: chalk.yellow,
+        [LOGLEVEL.INFO]: chalk.blue,
+        [LOGLEVEL.DEBUG]: chalk.gray,
+        [LOGLEVEL.FATAL]: chalk.red,
+        [LOGLEVEL.SUCCESS]: chalk.green,
+    };
 
     static readTodaysLog(){
         const today = format(new Date(), "yyyy-MM-dd");
@@ -85,18 +85,18 @@ export class TwitchLog {
         //     console.log(textOutput);
         // }
 
-		console.log(
-			this.LOG_COLORS[level](`${dateString} | ${module} <${level}> ${text}`)
-		);
+        console.log(
+            this.LOG_COLORS[level](`${dateString} | ${module} <${level}> ${text}`)
+        );
         
-        let log_data: LogLine = {
-			"module": module,
-			"date": Date.now(),
-			"level": level,
-			"text": text
+        const log_data: LogLine = {
+            "module": module,
+            "date": Date.now(),
+            "level": level,
+            "text": text,
         };
 
-		if (metadata !== undefined) log_data['metadata'] = metadata;
+        if (metadata !== undefined) log_data.metadata = metadata;
 
         // write jsonline
         fs.appendFileSync(jsonlinename, JSON.stringify(log_data) + "\n");
@@ -104,7 +104,7 @@ export class TwitchLog {
 
     }
 
-    static fetchLog(date: string, fromLine: number = 0) {
+    static fetchLog(date: string, fromLine = 0) {
 
         if (date == this.currentDate) {
             return this.lines.slice(fromLine);

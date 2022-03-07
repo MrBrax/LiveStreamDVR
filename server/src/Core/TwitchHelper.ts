@@ -21,11 +21,6 @@ interface RemuxReturn {
     success: boolean;
 }
 
-interface WebhookData {
-    action: string;
-    data: unknown;
-}
-
 export class TwitchHelper {
 
     static axios: Axios;
@@ -100,11 +95,11 @@ export class TwitchHelper {
         const response = await axios.post(oauth_url, {
             "client_id": TwitchConfig.cfg("api_client_id"),
             "client_secret": TwitchConfig.cfg("api_secret"),
-            "grant_type": "client_credentials"
+            "grant_type": "client_credentials",
         }, {
             headers: {
-                "Client-ID": TwitchConfig.cfg("api_client_id")
-            }
+                "Client-ID": TwitchConfig.cfg("api_client_id"),
+            },
         });
 
         if (response.status != 200) {
@@ -225,19 +220,23 @@ export class TwitchHelper {
             return false;
         }
 
+        if (response.status > 299) {
+            TwitchLog.logAdvanced(LOGLEVEL.FATAL, "helper", `Unsubscribe from eventsub ${subscription_id} error: ${response.statusText}`);
+            return false;
+        }
+
         TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Unsubscribed from eventsub ${subscription_id} successfully`);
 
         return true;
         
     }
 
-    static webhook(action: string, data: unknown) {
-        console.log("Webhook", data);
-        // TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Webhook: " + JSON.stringify(data));
-        // throw new Error("Method not implemented.");
-    }
-
-    static async exec(cmd: string[]): Promise<string> {
+    /**
+     * @deprecated
+     * @param cmd 
+     * @returns 
+     */
+    static exec(cmd: string[]): Promise<string> {
         return new Promise((resolve, reject) => {
             exec(cmd.join(" "), (err, stdout, stderr) => {
                 if (err) {
@@ -294,7 +293,7 @@ export class TwitchHelper {
      * @param jobName 
      * @returns 
      */
-    static async execAdvanced(bin: string, args: string[], jobName: string): Promise<ExecReturn> {
+    static execAdvanced(bin: string, args: string[], jobName: string): Promise<ExecReturn> {
         return new Promise((resolve, reject) => {
 
             const process = spawn(bin, args || [], {
@@ -411,7 +410,7 @@ export class TwitchHelper {
 
     }
 
-    static async remuxFile(input: string, output: string, overwrite = false): Promise<RemuxReturn> {
+    static remuxFile(input: string, output: string, overwrite = false): Promise<RemuxReturn> {
         const ffmpeg_path = this.path_ffmpeg();
         if (!ffmpeg_path) {
             throw new Error("Failed to find ffmpeg");
@@ -423,7 +422,7 @@ export class TwitchHelper {
                 "-c", "copy",
                 "-bsf:a", "aac_adtstoasc",
                 // ...ffmpeg_options,
-                output
+                output,
             ];
 
             if (overwrite) {

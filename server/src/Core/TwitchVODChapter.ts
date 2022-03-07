@@ -87,7 +87,7 @@ export class TwitchVODChapter {
         this.datetime = parse(raw_chapter.time, TwitchHelper.TWITCH_DATE_FORMAT, new Date());
 
         if (raw_chapter.game_id) {
-            let game = TwitchGame.getGameDataFromCache(raw_chapter.game_id);
+            const game = TwitchGame.getGameDataFromCache(raw_chapter.game_id);
             if (game) {
                 this.game = game;
             } else {
@@ -115,8 +115,8 @@ export class TwitchVODChapter {
             is_mature: this.is_mature || false,
             online: this.online || false,
             viewer_count: this.viewer_count ?? undefined,
-        }
-    };
+        };
+    }
 
     get dt_started_at(): PHPDateTimeProxy {
         if (!this.datetime) throw new Error("Can't get dt_started_at: No datetime set");
@@ -140,7 +140,7 @@ export class TwitchVODChapter {
             box_art_url: this.box_art_url,
             duration: this.duration,
             // width: this.width,
-        }
+        };
     }
 
     /*
