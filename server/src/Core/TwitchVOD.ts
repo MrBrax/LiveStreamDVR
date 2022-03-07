@@ -1111,7 +1111,13 @@ export class TwitchVOD {
 
 	}
 
-	public async refreshJSON(api = false) {
+	/**
+	 * 
+	 * @param api 
+	 * @deprecated
+	 * @returns 
+	 */
+	public async refreshJSON(api = false): Promise<false | TwitchVOD> {
 		if (!this.filename) {
 			TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Can't refresh vod, not found!");
 			return false;
@@ -1240,6 +1246,9 @@ export class TwitchVOD {
 
 	}
 
+	/**
+	 * Checks all chapters for games with the favourite flag set
+	 */
 	public hasFavouriteGame(): boolean {
 		return this.chapters.some(chapter => chapter.game?.isFavourite());
 	}
