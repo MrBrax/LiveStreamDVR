@@ -595,8 +595,42 @@ export class TwitchVOD {
         TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Reached end of getDuration for {this.basename}, this shouldn't happen!");
     }
 
-    async getMediainfo(): Promise<false | MediaInfo> {
-        throw new Error("Method getMediaInfo not implemented.");
+    async getMediainfo(segment_num = 0): Promise<false | MediaInfo> {
+        
+        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Fetching mediainfo of ${this.basename}, segment #${segment_num}`);
+
+        if (!this.directory) {
+            throw new Error("No directory set!");
+        }
+
+        if (!this.segments_raw || this.segments_raw.length == 0) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No segments available for mediainfo of ${this.basename}`);
+            return false;
+        }
+
+        const filename = path.join(this.directory, path.basename(this.segments_raw[segment_num]));
+
+        if (!fs.existsSync(filename)) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `File does not exist for mediainfo of ${this.basename} (${filename} @ ${this.directory})`);
+            return false;
+        }
+
+        let data: MediaInfo | false = false;
+
+        try {
+            data = await TwitchHelper.mediainfo(filename);
+        } catch (th) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Trying to get mediainfo of ${this.basename} returned: ${th}`);
+            return false;
+        }
+
+        if (data !== false) {
+            this.video_metadata = data;
+            return this.video_metadata;
+        }
+
+        this.video_fail2 = true;
+        return false;
     }
 
     private realpath(expanded_path: string): string {

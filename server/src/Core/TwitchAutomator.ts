@@ -998,7 +998,7 @@ export class TwitchAutomator {
     // maybe use this?
     async compressChat() {
         if (fs.existsSync(this.chat_filename)) {
-            const ret = await TwitchHelper.execSimple("gzip", [this.chat_filename]);
+            await TwitchHelper.execSimple("gzip", [this.chat_filename]);
             return fs.existsSync(`${this.chat_filename}.gz`);
         }
         return false;

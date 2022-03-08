@@ -7,6 +7,8 @@ import { BaseConfigFolder } from "./BaseConfig";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { exec, spawn } from "child_process";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
+import { MediaInfo } from "../../../client-vue/src/mediainfo";
+import { MediaInfoJSONOutput } from "@/MediaInfo";
 
 interface ExecReturn {
     stdout: string[];
@@ -486,5 +488,54 @@ export class TwitchHelper {
         // return round($bytes, $precision) . ' ' . $units[$pow];
         return `${bytes.toFixed(precision)} ${units[pow]}`;
     }
+
+    public static async mediainfo(filename: string): Promise<MediaInfo | false> {
+
+        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "mediainfo", `Run mediainfo on ${filename}`);
+
+        if (!filename) {
+            throw new Error("No filename supplied for mediainfo");
+        }
+
+        if (!fs.existsSync(filename)) {
+            throw new Error("File not found for mediainfo");
+        }
+
+        if (fs.statSync(filename).size == 0) {
+            throw new Error("Filesize is 0 for mediainfo");
+        }
+
+        // $output = shell_exec( TwitchHelper::path_mediainfo() . ' --Full --Output=JSON ' . escapeshellarg($filename) );
+        // $process = new Process( [TwitchHelper::path_mediainfo(), '--Full', '--Output=JSON', $filename] );
+        // $process->run();
+
+        const mediainfo_path = TwitchHelper.path_mediainfo();
+        if (!mediainfo_path) throw new Error("Failed to find mediainfo");
+
+        const output = await TwitchHelper.execSimple(mediainfo_path, ["--Full", "--Output=JSON", filename]);
+
+        if (output && output.stdout) {
+
+            const json: MediaInfoJSONOutput = JSON.parse(output.stdout.join("\n"));
+
+            const data: any = {};
+
+            for(const track of json.media.track) {
+                if (track["@type"] == "General") {
+                    data.general = track;
+                } else if (track["@type"] == "Video") {
+                    data.video = track;
+                } else if (track["@type"] == "Audio") {
+                    data.audio = track;
+                }
+            }
+
+            return data as MediaInfo;
+        } else {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "mediainfo", `No output from mediainfo for ${filename}`);
+            return false;
+        }
+    }
+
 
 }

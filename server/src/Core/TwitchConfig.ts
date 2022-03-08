@@ -43,8 +43,7 @@ export type VideoQuality = "best" | "1080p60" | "1080p" | "720p60" | "720p" | "4
 
 export class TwitchConfig {
 
-    static config: Record<string, any>;
-    
+    static config: Record<string, string | number | boolean | string[]>;
 
     static readonly streamerCacheTime = 2592000 * 1000; // 30 days
 
@@ -173,12 +172,12 @@ export class TwitchConfig {
 
         console.log("Generating config");
 
-        const example: Record<string, any> = {};
+        const example: Record<string, string | boolean | number | string[]> = {};
         for (const field of this.settingsFields) {
-            example[field["key"]] = field["default"] ? field["default"] : null;
+            if (field["default"]) example[field["key"]] = field["default"];
         }
-        example["favourites"] = [];
-        example["streamers"] = [];
+        // example["favourites"] = [];
+        // example["streamers"] = [];
 
         this.config = example;
         this.saveConfig();

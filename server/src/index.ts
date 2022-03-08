@@ -2,6 +2,9 @@ import express from "express";
 import * as Settings from "./Controllers/Settings";
 import * as Channels from "./Controllers/Channels";
 import * as Log from "./Controllers/Log";
+import * as Vod from "./Controllers/Vod";
+import * as Games from "./Controllers/Games";
+import * as About from "./Controllers/About";
 import { TwitchConfig } from "./Core/TwitchConfig";
 import history from "connect-history-api-fallback";
 import path from "path";
@@ -26,6 +29,13 @@ app.use(express.json());
 app.get("/api/v0/settings", Settings.GetSettings);
 
 app.get("/api/v0/channels", Channels.ListChannels);
+app.get("/api/v0/channels/:login", Channels.GetChannel);
+
+app.get("/api/v0/vod/:basename", Vod.GetVod);
+
+app.get("/api/v0/games", Games.ListGames);
+
+app.get("/api/v0/about", About.About);
 
 app.get("/api/v0/log/:filename/?:last_line?", Log.GetLog);
 

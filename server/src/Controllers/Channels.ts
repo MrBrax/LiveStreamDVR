@@ -1,12 +1,10 @@
-import { SettingField, TwitchConfig } from "../Core/TwitchConfig";
-import express from 'express';
-import fs from 'fs';
-import { TwitchHelper } from "../Core/TwitchHelper";
+import express from "express";
 import { generateStreamerList } from "../StreamerList";
+import { TwitchChannel } from "../Core/TwitchChannel";
 
 export function ListChannels(req: express.Request, res: express.Response): void {
 
-    let { channels, total_size } = generateStreamerList();
+    const { channels, total_size } = generateStreamerList();
 
     res.send({
         data: {
@@ -17,4 +15,23 @@ export function ListChannels(req: express.Request, res: express.Response): void 
         },
         status: "OK",
     });
-};
+}
+
+export function GetChannel(req: express.Request, res: express.Response): void {
+    
+    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+
+    if (!channel) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel not found",
+        });
+        return;
+    }
+
+    res.send({
+        data: channel,
+        status: "OK",
+    });
+
+}

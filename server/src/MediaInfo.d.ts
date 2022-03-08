@@ -1,5 +1,15 @@
-interface General {
-    "@type": string;
+interface VideoTrackExtra {
+    CodecConfigurationBox: string;
+}
+
+interface AudioTrackExtra {
+    mdhd_Duration: string;
+}
+
+// type TrackType = "Video" | "Audio" | "Text" | "Other";
+
+export interface GeneralTrack {
+    "@type": "General";
     Count: string;
     StreamCount: string;
     StreamKind: string;
@@ -60,21 +70,16 @@ interface General {
     DataSize: string;
     FooterSize: string;
     IsStreamable: string;
+    File_Created_Date: string;
+    File_Created_Date_Local: string;
     File_Modified_Date: string;
     File_Modified_Date_Local: string;
     Encoded_Application: string;
     Encoded_Application_String: string;
 }
 
-interface Extra {
-    Source_Delay?: string;
-    Source_Delay_Source?: string;
-    mdhd_Duration?: string;
-    CodecConfigurationBox?: string;
-}
-
-interface Video {
-    "@type": string;
+export interface VideoTrack {
+    "@type": "Video";
     Count: string;
     StreamCount: string;
     StreamKind: string;
@@ -106,40 +111,21 @@ interface Video {
     Duration_String3: string;
     Duration_String4: string;
     Duration_String5: string;
-    Source_Duration?: string;
-    Source_Duration_String?: string;
-    Source_Duration_String1?: string;
-    Source_Duration_String2?: string;
-    Source_Duration_String3?: string;
-    BitRate_Mode: string;
-    BitRate_Mode_String: string;
     BitRate: string;
     BitRate_String: string;
-    BitRate_Nominal: string;
-    BitRate_Nominal_String: string;
     Width: string;
     Width_String: string;
     Height: string;
     Height_String: string;
-    Stored_Height: string;
     Sampled_Width: string;
     Sampled_Height: string;
     PixelAspectRatio: string;
     DisplayAspectRatio: string;
     DisplayAspectRatio_String: string;
     Rotation: string;
-    FrameRate_Mode: string;
-    FrameRate_Mode_String: string;
     FrameRate: string;
     FrameRate_String: string;
-    FrameRate_Minimum: string;
-    FrameRate_Minimum_String: string;
-    FrameRate_Maximum: string;
-    FrameRate_Maximum_String: string;
-    FrameRate_Original: string;
-    FrameRate_Original_String: string;
     FrameCount: string;
-    Source_FrameCount: string;
     ColorSpace: string;
     ChromaSubsampling: string;
     ChromaSubsampling_String: string;
@@ -156,37 +142,19 @@ interface Video {
     StreamSize_String4: string;
     StreamSize_String5: string;
     StreamSize_Proportion: string;
-    Source_StreamSize: string;
-    Source_StreamSize_String: string;
-    Source_StreamSize_String1: string;
-    Source_StreamSize_String2: string;
-    Source_StreamSize_String3: string;
-    Source_StreamSize_String4: string;
-    Source_StreamSize_String5: string;
-    Source_StreamSize_Proportion: string;
-    BufferSize: string;
     colour_description_present: string;
     colour_description_present_Source: string;
     colour_range: string;
     colour_range_Source: string;
-    colour_primaries: string;
     colour_primaries_Source: string;
-    transfer_characteristics: string;
     transfer_characteristics_Source: string;
-    matrix_coefficients: string;
     matrix_coefficients_Source: string;
-    extra: Extra;
+    extra: VideoTrackExtra;
 }
 
-export interface Extra2 {
-    Source_Delay?: string;
-    Source_Delay_Source?: string;
-    mdhd_Duration?: string;
-}
-
-export interface Audio {
-    "@type": string;
-    Count: string;
+export interface AudioTrack {
+   "@type": "Audio";
+   Count: string;
     StreamCount: string;
     StreamKind: string;
     StreamKind_String: string;
@@ -253,11 +221,15 @@ export interface Audio {
     Default_String: string;
     AlternateGroup: string;
     AlternateGroup_String: string;
-    extra: Extra2;
+    extra: AudioTrackExtra;
 }
 
-export interface MediaInfo {
-    general: General;
-    video: Video;
-    audio: Audio;
+export interface Media {
+    "@ref": string;
+    track: VideoTrack[] | AudioTrack[] | GeneralTrack[];
 }
+
+export interface MediaInfoJSONOutput {
+    media: Media;
+}
+
