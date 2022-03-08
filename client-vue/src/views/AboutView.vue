@@ -64,20 +64,23 @@
                             <li><strong>Python version:</strong> {{ aboutData.bins.python.version ? aboutData.bins.python.version : "(no output)" }}</li>
                             <li><strong>Python3 version:</strong> {{ aboutData.bins.python3.version ? aboutData.bins.python3.version : "(no output)" }}</li>
                             <li><strong>Node.js version:</strong> {{ aboutData.bins.node.version ? aboutData.bins.node.version : "(no output)" }}</li>
-                            <li><strong>PHP version:</strong> {{ aboutData.bins.php.version ? aboutData.bins.php.version : "(no output)" }}</li>
-                            <li><strong>PHP User:</strong> {{ aboutData.bins.php.user }}</li>
-                            <li><strong>PHP PID:</strong> {{ aboutData.bins.php.pid }}</li>
-                            <li><strong>PHP UID:</strong> {{ aboutData.bins.php.uid }}</li>
-                            <li><strong>PHP GID:</strong> {{ aboutData.bins.php.gid }}</li>
-                            <li><strong>PHP SAPI:</strong> {{ aboutData.bins.php.sapi }}</li>
-                            <li><strong>PHP Display errors:</strong> {{ aboutData.bins.php.display_errors }}</li>
-                            <li><strong>PHP Error reporting:</strong> {{ aboutData.bins.php.error_reporting }}</li>
-                            <li>
-                                <strong>Platform:</strong> {{ aboutData.bins.php.platform ? aboutData.bins.php.platform : "unknown" }}/{{
-                                    aboutData.bins.php.platform_family ? aboutData.bins.php.platform_family : "unknown"
-                                }}
-                            </li>
+                            <template v-if="store.serverType == 'php-server'">
+                                <li><strong>PHP version:</strong> {{ aboutData.bins.php.version ? aboutData.bins.php.version : "(no output)" }}</li>
+                                <li><strong>PHP User:</strong> {{ aboutData.bins.php.user }}</li>
+                                <li><strong>PHP PID:</strong> {{ aboutData.bins.php.pid }}</li>
+                                <li><strong>PHP UID:</strong> {{ aboutData.bins.php.uid }}</li>
+                                <li><strong>PHP GID:</strong> {{ aboutData.bins.php.gid }}</li>
+                                <li><strong>PHP SAPI:</strong> {{ aboutData.bins.php.sapi }}</li>
+                                <li><strong>PHP Display errors:</strong> {{ aboutData.bins.php.display_errors }}</li>
+                                <li><strong>PHP Error reporting:</strong> {{ aboutData.bins.php.error_reporting }}</li>
+                                <li>
+                                    <strong>Platform:</strong> {{ aboutData.bins.php.platform ? aboutData.bins.php.platform : "unknown" }}/{{
+                                        aboutData.bins.php.platform_family ? aboutData.bins.php.platform_family : "unknown"
+                                    }}
+                                </li>
+                            </template>
                             <li><strong>Docker:</strong> {{ aboutData.is_docker ? "Yes" : "No" }}</li>
+                            <li><strong>Backend type:</strong> {{ store.serverType || "unknown" }}</li>
                             <li><strong>Backend version:</strong> {{ store.version }}</li>
                             <li><strong>Frontend version:</strong> {{ clientVersion }}</li>
                             <li><strong>Frontend build:</strong> {{ clientMode }}</li>

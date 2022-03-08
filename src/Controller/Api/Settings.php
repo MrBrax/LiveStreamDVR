@@ -44,7 +44,8 @@ class Settings
                 'config' => $config,
                 'channels' => TwitchConfig::$channels_config,
                 'fields' => $fields,
-                'version' => $version
+                'version' => $version,
+                'server' => 'php-server',
             ],
             'status' => 'OK'
         ]);

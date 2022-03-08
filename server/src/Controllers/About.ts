@@ -2,30 +2,17 @@ import { BaseConfigFolder } from "../Core/BaseConfig";
 import express from "express";
 import fs from "fs";
 import path from "path";
+import { ExecReturn, TwitchHelper } from "../Core/TwitchHelper";
 
-export function About(req: express.Request, res: express.Response) {
-    
-    /*
-    $bins = [];
+interface Bins {
+    path?: string;
+    status?: string;
+    version?: string;
+}
 
-    $pip_requirements = [];
-    $requirements_file = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "requirements.txt";
-    if (file_exists($requirements_file)) {
-        $requirements_data = file_get_contents($requirements_file);
-        $lines = explode("\n", $requirements_data);
-        foreach ($lines as $line) {
-            preg_match("/^([a-z_-]+)([=<>]+)(.*)$/", $line, $matches);
-            if ($matches) {
-                $pip_requirements[trim($matches[1])] = [
-                    'comparator' => trim($matches[2]),
-                    'version' => trim($matches[3])
-                ];
-            }
-        }
-    }
-    */
+export async function About(req: express.Request, res: express.Response) {
 
-    const bins = {};
+    const bins: Record<string, Bins> = {};
 
     const pip_requirements: Record<string, { comparator: string; version: string; }> = {};
     const requirements_file = path.join(__dirname, "..", "..", "..", "requirements.txt");
@@ -47,6 +34,86 @@ export function About(req: express.Request, res: express.Response) {
         console.error("requirements.txt not found", requirements_file);
     }
 
+    const bin_args: Record<string, { binary: string | false; version_args: string[]; version_regex: RegExp; }> = {
+        ffmpeg: { binary: TwitchHelper.path_ffmpeg(), version_args: ["-version"], version_regex: /ffmpeg version ([\w0-9\-_.]+) Copyright/m },
+        mediainfo: { binary: TwitchHelper.path_mediainfo(), version_args: ["--Version"], version_regex: /v(\d+\.\d+)/m },
+        twitchdownloader: { binary: TwitchHelper.path_twitchdownloader(), version_args: ["--version", "2>&1"], version_regex: /TwitchDownloader (\d+\.\d+\.\d+)/m },
+        python: { binary: "python", version_args: ["--version"], version_regex: /Python ([\d.]+)/m },
+        python3: { binary: "python3", version_args: ["--version"], version_regex: /Python ([\d.]+)/m },
+        node: { binary: "node", version_args: ["--version"], version_regex: /v([\d.]+)/m },
+        php: { binary: "php", version_args: ["-v"], version_regex: /PHP Version ([\d.]+)/m }, // deprecated
+    };
+
+    for (const bin_name in bin_args) {
+        const bin_data = bin_args[bin_name];
+        if (bin_data.binary) {
+            
+            let exec_out;
+            try {
+                exec_out = await TwitchHelper.execSimple(bin_data.binary, bin_data.version_args);
+            } catch (error: unknown) {
+                const e = error as ExecReturn;
+                if ("code" in e) {
+                    console.error("exec error", error);
+                }
+            }
+
+            if (exec_out) {
+            
+                const match_data = exec_out.stdout.join("\n") + "\n" + exec_out.stderr.join("\n");
+                const match = match_data.trim().match(bin_data.version_regex);
+
+                if (!match || match.length < 2) {
+                    console.error(bin_name, "failed to match", match, match_data.trim());
+                }
+                
+                bins[bin_name] = {
+                    path: bin_data.binary,
+                    version: match ? match[1] : "",
+                    status: match ? match[1] : "No match.", // compare versions
+                };
+
+            } else {
+                bins[bin_name] = {
+                    path: bin_data.binary,
+                    status: "No console output.",
+                };
+            }
+
+        } else {
+            bins[bin_name] = {
+                status: "Not installed.",
+            };
+        }
+    }
+
+
+    const pip_pkg: Record<string, { binary: string | false; version_args: string[]; version_regex: RegExp; }> = {
+        tcd: { binary: TwitchHelper.path_tcd(), version_args: ["--version", "--settings-file", path.join(BaseConfigFolder.config, "tcd_settings.json")], version_regex: /^Twitch Chat Downloader\s+([0-9.]+)$/ },
+        streamlink: { binary: TwitchHelper.path_streamlink(), version_args: ["--version"], version_regex: /^streamlink\s+([0-9.]+)$/gm },
+        "youtubedl": { binary: TwitchHelper.path_youtubedl(), version_args: ["--version"], version_regex: /^([0-9.]+)$/gm },
+        pipenv: { binary: TwitchHelper.path_pipenv(), version_args: ["--version"], version_regex: /^pipenv, version ([0-9.]+)$/gm },
+    };
+
+    for (const pkg_name in pip_pkg) {
+        const pkg_data = pip_pkg[pkg_name];
+        if (pkg_data.binary){
+            const out = await TwitchHelper.execSimple(pkg_data.binary, pkg_data.version_args);
+            const match_data = out.stdout.join("\n") + "\n" + out.stderr.join("\n");
+            const match = match_data.trim().match(pkg_data.version_regex);
+            
+            bins[pkg_name] = {
+                path: pkg_data.binary,
+                version: match ? match[0] : "",
+                status: match ? match[0] : "No match.",
+            };
+        } else {
+            bins[pkg_name] = {
+                status: "Not installed.",
+            };
+        }
+    }
+
     /*
     $cron_lastrun = [];
     foreach (['check_deleted_vods', 'check_muted_vods', 'dump_playlists'] as $cron) {
@@ -62,7 +129,7 @@ export function About(req: express.Request, res: express.Response) {
 
     const cron_lastrun: Record<string, string> = {};
     for (const cron of ["check_deleted_vods", "check_muted_vods", "dump_playlists"]) {
-        const fp = path.join(BaseConfigFolder.cr on, cron);
+        const fp = path.join(BaseConfigFolder.cron, cron);
         if (fs.existsSync(fp)) {
             const t = fs.readFileSync(fp, "utf8");
             cron_lastrun[cron] = new Date(parseInt(t)).toISOString();

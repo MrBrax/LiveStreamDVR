@@ -68,6 +68,7 @@ export default defineComponent({
 
             this.store.updateConfig(response.data.data.config);
             this.store.updateVersion(response.data.data.version);
+            this.store.updateServerType(response.data.data.server);
         },
     },
     components: {

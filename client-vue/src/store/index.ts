@@ -10,6 +10,7 @@ export const useStore = defineStore("twitchAutomator", {
             config: {} as ApiConfig | null,
             version: "",
             clientConfig: {} as ClientSettings,
+            serverType: "",
         };
     },
     actions: {
@@ -137,6 +138,9 @@ export const useStore = defineStore("twitchAutomator", {
         },
         updateVersion(data: string) {
             this.version = data;
+        },
+        updateServerType(data: string) {
+            this.serverType = data;
         },
         fetchClientConfig() {
             // client config

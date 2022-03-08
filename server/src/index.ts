@@ -23,8 +23,8 @@ app.use(express.json());
 // });
 
 // single page app
-// app.use(history());
-// app.use(express.static( path.join(__dirname, "..", "..", "client-vue", "dist")) );
+app.use(history());
+app.use(express.static( path.join(__dirname, "..", "..", "client-vue", "dist")));
 
 app.get("/api/v0/settings", Settings.GetSettings);
 

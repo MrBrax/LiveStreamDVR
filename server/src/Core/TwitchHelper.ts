@@ -9,14 +9,16 @@ import { exec, spawn } from "child_process";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { MediaInfo } from "../../../client-vue/src/mediainfo";
 import { MediaInfoJSONOutput } from "@/MediaInfo";
+import { Stream } from "stream";
+import chalk from "chalk";
 
-interface ExecReturn {
+export interface ExecReturn {
     stdout: string[];
     stderr: string[];
     code: number;
 }
 
-interface RemuxReturn {
+export interface RemuxReturn {
     stdout: string[];
     stderr: string[];
     code: number;
@@ -207,6 +209,58 @@ export class TwitchHelper {
         return exists ? full_path : false;
     }
 
+    public static path_youtubedl(): string | false
+    {
+        // $path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "youtube-dl" . (self::is_windows() ? '.exe' : '');
+        // return file_exists($path) ? $path : false;
+        const full_path = path.join(TwitchConfig.cfg("bin_dir"), `yt-dlp${this.is_windows() ? ".exe" : ""}`);
+        const exists = fs.existsSync(full_path);
+
+        if (!exists){
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `yt-dlp binary not found at: ${full_path}`);
+            return false;
+        }
+
+        return exists ? full_path : false;
+    }
+
+    public static path_tcd(): string | false
+    {
+        // $path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "tcd" . (self::is_windows() ? '.exe' : '');
+        // return file_exists($path) ? $path : false;
+        const full_path = path.join(TwitchConfig.cfg("bin_dir"), `tcd${this.is_windows() ? ".exe" : ""}`);
+        const exists = fs.existsSync(full_path);
+
+        if (!exists){
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `tcd binary not found at: ${full_path}`);
+            return false;
+        }
+
+        return exists ? full_path : false;
+    }
+
+    public static path_pipenv(): string | false
+    {
+        // $path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "pipenv" . (self::is_windows() ? '.exe' : '');
+        // return file_exists($path) ? $path : false;
+        const full_path = path.join(TwitchConfig.cfg("bin_dir"), `pipenv${this.is_windows() ? ".exe" : ""}`);
+        const exists = fs.existsSync(full_path);
+
+        if (!exists){
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `pipenv binary not found at: ${full_path}`);
+            return false;
+        }
+
+        return exists ? full_path : false;
+    }
+
+    public static path_twitchdownloader(): string | false
+    {
+        if (TwitchConfig.cfg("twitchdownloader_path")) return TwitchConfig.cfg<string>("twitchdownloader_path");
+
+        return false;
+    }
+
     public static async eventSubUnsubscribe(subscription_id: string)
     {
 
@@ -264,12 +318,14 @@ export class TwitchHelper {
             const stdout: string[] = [];
             const stderr: string[] = [];
             
-            process.stdout.on("data", (data) => {
-                stdout.push(data);
+            process.stdout.on("data", (data: Stream) => {
+                if (TwitchConfig.cfg("debug")) console.debug(chalk.green(`$ ${bin} ${args.join(" ")}\n`, chalk.green(data.toString().trim())));
+                stdout.push(data.toString());
             });
             
-            process.stderr.on("data", (data) => {
-                stderr.push(data);
+            process.stderr.on("data", (data: Stream) => {
+                if (TwitchConfig.cfg("debug")) console.error(chalk.red(`$ ${bin} ${args.join(" ")}\n`, chalk.red(data.toString().trim())));
+                stderr.push(data.toString());
             });
 
             process.on("close", (code) => {
@@ -324,12 +380,12 @@ export class TwitchHelper {
             const stdout: string[] = [];
             const stderr: string[] = [];
             
-            process.stdout.on("data", (data) => {
-                stdout.push(data);
+            process.stdout.on("data", (data: Stream) => {
+                stdout.push(data.toString());
             });
             
-            process.stderr.on("data", (data) => {
-                stderr.push(data);
+            process.stderr.on("data", (data: Stream) => {
+                stderr.push(data.toString());
             });
 
             process.on("close", (code) => {
@@ -379,12 +435,12 @@ export class TwitchHelper {
         const stdout: string[] = [];
         const stderr: string[] = [];
         
-        process.stdout.on("data", (data) => {
-            stdout.push(data);
+        process.stdout.on("data", (data: Stream) => {
+            stdout.push(data.toString());
         });
         
-        process.stderr.on("data", (data) => {
-            stderr.push(data);
+        process.stderr.on("data", (data: Stream) => {
+            stderr.push(data.toString());
         });
 
         process.on("close", (code) => {
@@ -450,11 +506,11 @@ export class TwitchHelper {
             const stdout: string[] = [];
             const stderr: string[] = [];
 
-            process.stdout.on("data", (data) => {
-                stdout.push(data);
+            process.stdout.on("data", (data: Stream) => {
+                stdout.push(data.toString());
             });
-            process.stderr.on("data", (data) => {
-                stderr.push(data);
+            process.stderr.on("data", (data: Stream) => {
+                stderr.push(data.toString());
             });
 
             ffmpeg.on("close", (code) => {
@@ -489,6 +545,13 @@ export class TwitchHelper {
         return `${bytes.toFixed(precision)} ${units[pow]}`;
     }
 
+    /**
+     * Return mediainfo for a file
+     * 
+     * @param filename 
+     * @throws
+     * @returns 
+     */
     public static async mediainfo(filename: string): Promise<MediaInfo | false> {
 
         TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "mediainfo", `Run mediainfo on ${filename}`);

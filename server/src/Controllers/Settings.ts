@@ -19,6 +19,7 @@ export function GetSettings(req: express.Request, res: express.Response): void {
             favourite_games: TwitchGame.favourite_games,
             fields: fields,
             version: version,
+            server: "ts-server",
         },
         status: "OK",
     });
