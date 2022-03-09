@@ -1,6 +1,7 @@
 import express from "express";
 import { generateStreamerList } from "../StreamerList";
-import { TwitchChannel } from "../Core/TwitchChannel";
+import { ChannelConfig, TwitchChannel } from "../Core/TwitchChannel";
+import { VideoQuality } from "@/Core/TwitchConfig";
 
 export function ListChannels(req: express.Request, res: express.Response): void {
 
@@ -33,5 +34,44 @@ export function GetChannel(req: express.Request, res: express.Response): void {
         data: channel,
         status: "OK",
     });
+
+}
+
+export function UpdateChannel(req: express.Request, res: express.Response): void {
+
+    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+
+    if (!channel || !channel.login) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel not found",
+        });
+        return;
+    }
+
+    const formdata: {
+        quality: string;
+        match: string;
+        download_chat: boolean;
+        burn_chat: boolean;
+        no_capture: boolean;
+    } = req.body;
+
+    const quality        = formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [];
+    const match          = formdata.match ? formdata.match.split(",").map(m => m.trim()) : [];
+    const download_chat  = formdata.download_chat !== undefined;
+    const burn_chat      = formdata.burn_chat !== undefined;
+    const no_capture     = formdata.no_capture !== undefined;
+
+    const channel_data: ChannelConfig = {
+        login: channel.login,
+        quality: quality,
+        match: match,
+        download_chat: download_chat,
+        burn_chat: burn_chat,
+        no_capture: no_capture,
+    };
+
+    channel.update(channel_data);
 
 }

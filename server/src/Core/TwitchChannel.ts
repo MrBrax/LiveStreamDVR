@@ -130,11 +130,7 @@ export class TwitchChannel {
         channel.display_name = channel_data.display_name;
         channel.description = channel_data.description;
         channel.profile_image_url = channel_data.profile_image_url;
-        channel.quality = channel_config.quality !== undefined ? channel_config.quality : ["best"];
-        channel.match = channel_config.match !== undefined ? channel_config.match : [];
-        channel.download_chat = channel_config.download_chat !== undefined ? channel_config.download_chat : false;
-        channel.no_capture = channel_config.no_capture !== undefined ? channel_config.no_capture : false;
-        channel.burn_chat = channel_config.burn_chat !== undefined ? channel_config.burn_chat : false;
+        channel.applyConfig(channel_config);
 
         /*
             $subfile = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "subs.json";
@@ -161,6 +157,14 @@ export class TwitchChannel {
 
         return channel;
 
+    }
+
+    applyConfig(channel_config: ChannelConfig) {
+        this.quality = channel_config.quality !== undefined ? channel_config.quality : ["best"];
+        this.match = channel_config.match !== undefined ? channel_config.match : [];
+        this.download_chat = channel_config.download_chat !== undefined ? channel_config.download_chat : false;
+        this.no_capture = channel_config.no_capture !== undefined ? channel_config.no_capture : false;
+        this.burn_chat = channel_config.burn_chat !== undefined ? channel_config.burn_chat : false;
     }
 
     static async loadFromLogin(login: string, api: boolean): Promise<TwitchChannel> {
@@ -367,6 +371,11 @@ export class TwitchChannel {
         this.channels_config = JSON.parse(data);
     }
 
+    static saveChannelsConfig() {
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", "Saving channel config");
+        fs.writeFileSync(BaseConfigPath.channel, JSON.stringify(this.channels_config));
+    }
+
     static loadChannelsCache() {
         if (!fs.existsSync(BaseConfigPath.streamerCache))  return false;
 
@@ -493,6 +502,26 @@ export class TwitchChannel {
             deactivated: this.deactivated,
             api_getSubscriptionStatus: this.getSubscriptionStatus(),
         };
+    }
+
+    /**
+     * Update and save channel config
+     * 
+     * @param config 
+     */
+    public update(config: ChannelConfig): boolean {
+        const i = TwitchChannel.channels_config.findIndex(ch => ch.login === this.login);
+        if (i !== -1) {
+            this.config = config;
+            this.applyConfig(config);
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", `Replacing channel config for ${this.login}`);
+            TwitchChannel.channels_config[i] = config;
+            TwitchChannel.saveChannelsConfig();
+            return true;
+        } else {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not update channel ${this.login}`);
+        }
+        return false;
     }
 
 }

@@ -47,8 +47,8 @@
 [ ] POST /subscriptions/{id}
 [ ] DELETE /subscriptions/{id}
 
-[ ] GET /api/v0/cron/check_deleted_vods
-[ ] GET /api/v0/cron/check_muted_vods
+[?] GET /api/v0/cron/check_deleted_vods
+[?] GET /api/v0/cron/check_muted_vods
 [ ] GET /api/v0/cron/dump_playlists
 
 [x] GET /api/v0/hook

@@ -1,16 +1,17 @@
 import express from "express";
-import * as Settings from "./Controllers/Settings";
-import * as Channels from "./Controllers/Channels";
-import * as Log from "./Controllers/Log";
-import * as Vod from "./Controllers/Vod";
-import * as Games from "./Controllers/Games";
-import * as About from "./Controllers/About";
-import * as Jobs from "./Controllers/Jobs";
-import * as Subscriptions from "./Controllers/Subscriptions";
-import { TwitchConfig } from "./Core/TwitchConfig";
+import * as Settings from "@/Controllers/Settings";
+import * as Channels from "@/Controllers/Channels";
+import * as Log from "@/Controllers/Log";
+import * as Vod from "@/Controllers/Vod";
+import * as Games from "@/Controllers/Games";
+import * as About from "@/Controllers/About";
+import * as Jobs from "@/Controllers/Jobs";
+import * as Subscriptions from "@/Controllers/Subscriptions";
+import * as Cron from "@/Controllers/Cron";
+import { TwitchConfig } from "@/Core/TwitchConfig";
 import history from "connect-history-api-fallback";
 import path from "path";
-import { TwitchVOD } from "./Core/TwitchVOD";
+import { TwitchVOD } from "@/Core/TwitchVOD";
 import morgan from "morgan";
 
 TwitchConfig.init();
@@ -44,6 +45,9 @@ app.get("/api/v0/jobs", Jobs.ListJobs);
 app.delete("/api/v0/jobs/:name", Jobs.KillJob);
 
 app.get("/api/v0/subscriptions", Subscriptions.ListSubscriptions);
+
+app.get("/api/v0/cron/check_deleted_vods", Cron.CheckDeletedVods);
+app.get("/api/v0/cron/check_muted_vods", Cron.CheckMutedVods);
 
 app.get("/api/v0/test_video_download", (req, res) => {
     if (!req.query.video_id){

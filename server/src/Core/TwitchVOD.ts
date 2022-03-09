@@ -1458,37 +1458,39 @@ export class TwitchVOD {
 
     private async checkMutedVodStreamlink(save = false, force = false): Promise<MUTE_STATUS> {
 
-		const previous = this.twitch_vod_muted;
+        const previous = this.twitch_vod_muted;
 
         const slp = TwitchHelper.path_streamlink();
         if (!slp) throw new Error("Streamlink not found!");
 
-        const output = await TwitchHelper.execSimple(slp, ["--stream-url", `https://www.twitch.tv/videos/${this.twitch_vod_id}`, "best"]);
+        const ex = await TwitchHelper.execSimple(slp, ["--stream-url", `https://www.twitch.tv/videos/${this.twitch_vod_id}`, "best"]);
 
-		if (!output) {
-			// TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "VOD {$this->basename} could not be checked for mute status!", ['output' => $output]);
-			throw new Error("VOD could not be checked for mute status, no output.");
-		}
+        if (!ex) {
+            // TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", "VOD {$this->basename} could not be checked for mute status!", ['output' => $output]);
+            throw new Error("VOD could not be checked for mute status, no output.");
+        }
 
-		if (output.includes("index-muted-") !== false) {
-			$this->twitch_vod_muted = true;
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "vodclass", "VOD {$this->basename} is muted!");
-			if ($previous !== $this->twitch_vod_muted && $save) {
-				$this->saveJSON("vod mute true");
-			}
-			return true;
-		} elseif (output.includes("Unable to find video") !== false) {
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "VOD {$this->basename} is deleted!");
-			throw new \Exception("VOD is deleted!");
-		} else {
-			$this->twitch_vod_muted = false;
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "VOD {$this->basename} is not muted!");
-			if ($previous !== $this->twitch_vod_muted && $save) {
-				$this->saveJSON("vod mute false");
-			}
-			return false;
-		}
-	}
+        const output = ex.stdout.join("\n");
+
+        if (output.includes("index-muted-")) {
+            this.twitch_vod_muted = MUTE_STATUS.MUTED;
+            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", "VOD {$this->basename} is muted!");
+            if (previous !== this.twitch_vod_muted && save) {
+                this.saveJSON("vod mute true");
+            }
+            return MUTE_STATUS.MUTED;
+        } else if (output.includes("Unable to find video")) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "VOD {$this->basename} is deleted!");
+            throw new Error("VOD is deleted!");
+        } else {
+            this.twitch_vod_muted = MUTE_STATUS.UNMUTED;
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", "VOD {$this->basename} is not muted!");
+            if (previous !== this.twitch_vod_muted && save) {
+                this.saveJSON("vod mute false");
+            }
+            return MUTE_STATUS.UNMUTED;
+        }
+    }
 
 
 }

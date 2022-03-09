@@ -1,8 +1,8 @@
-import { BaseConfigFolder } from "../Core/BaseConfig";
+import { BaseConfigFolder } from "@/Core/BaseConfig";
 import express from "express";
 import fs from "fs";
 import path from "path";
-import { ExecReturn, TwitchHelper } from "../Core/TwitchHelper";
+import { ExecReturn, TwitchHelper } from "@/Core/TwitchHelper";
 
 interface Bins {
     path?: string;
