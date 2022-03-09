@@ -26,6 +26,7 @@ app.use(morgan("dev"));
 // });
 
 app.get("/api/v0/settings", Settings.GetSettings);
+app.put("/api/v0/settings", Settings.SaveSettings);
 
 app.get("/api/v0/channels", Channels.ListChannels);
 app.get("/api/v0/channels/:login", Channels.GetChannel);
@@ -39,6 +40,7 @@ app.get("/api/v0/about", About.About);
 app.get("/api/v0/log/:filename/?:last_line?", Log.GetLog);
 
 app.get("/api/v0/jobs", Jobs.ListJobs);
+app.delete("/api/v0/jobs/:name", Jobs.KillJob);
 
 app.get("/api/v0/test_video_download", (req, res) => {
     if (!req.query.video_id){
