@@ -1,6 +1,6 @@
-import { TwitchChannel } from "@/Core/TwitchChannel";
-import { TwitchConfig } from "@/Core/TwitchConfig";
-import { LOGLEVEL, TwitchHelper } from "@/Core/TwitchHelper";
+import { TwitchChannel } from "../Core/TwitchChannel";
+import { TwitchConfig } from "../Core/TwitchConfig";
+import { TwitchHelper } from "../Core/TwitchHelper";
 import express from "express";
 import crypto from "crypto";
 import path from "path";
@@ -9,6 +9,7 @@ import fs from "fs";
 import { TwitchAutomator } from "@/Core/TwitchAutomator";
 import { EventSubResponse } from "@/TwitchAPI/EventSub";
 import { ChallengeRequest } from "@/TwitchAPI/Challenge";
+import { LOGLEVEL, TwitchLog } from "@/Core/TwitchLog";
 
 export class Hook {
 
@@ -25,7 +26,7 @@ export class Hook {
         */
 
         if (!TwitchConfig.cfg("eventsub_secret")) {
-            TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "hook", "No eventsub secret in config.");
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "hook", "No eventsub secret in config.");
             return false;
         }
 
@@ -48,7 +49,7 @@ export class Hook {
         */
 
         if (!twitch_message_id || !twitch_message_timestamp || !twitch_message_signature) {
-            TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "hook", "Missing twitch headers.");
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "hook", "Missing twitch headers.");
             return false;
         }
 
@@ -73,7 +74,7 @@ export class Hook {
         try {
             $data_json = json_decode(file_get_contents('php://input'), true);
         } catch (\Throwable $th) {
-            TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "hook", "Hook called with invalid JSON.", ['GET' => $_GET, 'POST' => $_POST]);
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "hook", "Hook called with invalid JSON.", ['GET' => $_GET, 'POST' => $_POST]);
             $response->getBody()->write("No data supplied");
             return $response;
         }
@@ -84,23 +85,23 @@ export class Hook {
         // $data_headers = $request->getHeaders();
         // $post_json = isset($_POST['json']) ? $_POST['json'] : null;
 
-        const debugMeta = {'GET': req.query, 'POST': req.body, 'HEADERS': req.headers, 'DATA': data_json};
+        const debugMeta = {"GET": req.query, "POST": req.body, "HEADERS": req.headers, "DATA": data_json};
 
-        TwitchHelper.logAdvanced(LOGLEVEL.INFO, "hook", "Hook called", debugMeta);
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "hook", "Hook called", debugMeta);
 
-        if (TwitchConfig.cfg('instance_id')) {
-            if (!req.query.instance || req.query.instance != TwitchConfig.cfg('instance_id')) {
-                TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "hook", `Hook called with the wrong instance (${req.query.instance})`);
+        if (TwitchConfig.cfg("instance_id")) {
+            if (!req.query.instance || req.query.instance != TwitchConfig.cfg("instance_id")) {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "hook", `Hook called with the wrong instance (${req.query.instance})`);
                 res.send("Invalid instance");
                 return;
             }
         }
 
         // handle regular hook
-        if (source == 'twitch') {
+        if (source == "twitch") {
 
             // if (post_json) {
-            //     TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "hook", "Custom payload received...");
+            //     TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "hook", "Custom payload received...");
             //     $data_json = json_decode($post_json, true);
             // }
 
@@ -108,7 +109,7 @@ export class Hook {
 
                 if (req.header("Twitch-Notification-Id")) {
                     
-                    TwitchHelper.logAdvanced(
+                    TwitchLog.logAdvanced(
                         LOGLEVEL.ERROR,
                         "hook",
                         "Hook got data with old webhook format."
@@ -130,11 +131,11 @@ export class Hook {
 
                     // $signature = $response->getHeader("Twitch-Eventsub-Message-Signature");
 
-                    TwitchHelper.logAdvanced(LOGLEVEL.INFO, "hook", `Challenge received for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]})`, debugMeta);
+                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "hook", `Challenge received for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]})`, debugMeta);
 
                     if (!this.verifySignature(req)) {
                         
-                        TwitchHelper.logAdvanced(
+                        TwitchLog.logAdvanced(
                             LOGLEVEL.FATAL,
                             "hook",
                             "Invalid signature check for challenge!"
@@ -143,7 +144,7 @@ export class Hook {
                         res.status(400).send("Invalid signature check");
                     }
 
-                    TwitchHelper.logAdvanced(LOGLEVEL.SUCCESS, "hook", `Challenge completed, subscription active for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}).`, debugMeta);
+                    TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "hook", `Challenge completed, subscription active for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}).`, debugMeta);
 
                     TwitchConfig.setCache(`${channel_id}.substatus.${sub_type}`, TwitchHelper.SUBSTATUS.SUBSCRIBED);
 
@@ -152,16 +153,16 @@ export class Hook {
                     return;
                 }
 
-                if (TwitchConfig.cfg('debug')) {
+                if (TwitchConfig.cfg("debug")) {
                     // $payload_file = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . 'payloads' . DIRECTORY_SEPARATOR . date("Y-m-d.h_i_s") . '.json';
                     const payload_file = path.join(AppRoot, "payloads", new Date().toISOString().replace(/[-:.]/g, "_") + ".json");
-                    TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "hook", `Dumping debug hook payload to ${payload_file}`);
+                    TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "hook", `Dumping debug hook payload to ${payload_file}`);
                     fs.writeFileSync(payload_file, JSON.stringify(data_json));
                 }
 
                 // verify message
                 if (!this.verifySignature(req)) {
-                    TwitchHelper.logAdvanced(
+                    TwitchLog.logAdvanced(
                         LOGLEVEL.FATAL,
                         "hook",
                         "Invalid signature check for message!"
@@ -170,20 +171,20 @@ export class Hook {
                 }
 
                 if ("event" in data_json) {
-                    TwitchHelper.logAdvanced(LOGLEVEL.DEBUG, "hook", "Signature checked, no challenge. Run handle...");
+                    TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "hook", "Signature checked, no challenge. Run handle...");
                     const TA = new TwitchAutomator();
                     TA.handle(data_json, req.headers);
                     res.status(200).send("");
                     return;
                 } else {
-                    TwitchHelper.logAdvanced(LOGLEVEL.ERROR, "hook", "No event in message!");
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "hook", "No event in message!");
                     res.status(400).send("No event in message");
                     return;
                 }
             }
         }
 
-        TwitchHelper.logAdvanced(LOGLEVEL.WARNING, "hook", `Hook called with no data (${source})...`, debugMeta);
+        TwitchLog.logAdvanced(LOGLEVEL.WARNING, "hook", `Hook called with no data (${source})...`, debugMeta);
 
         res.status(400).send("No data supplied");
         return;

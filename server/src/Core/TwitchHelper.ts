@@ -45,7 +45,9 @@ export class TwitchHelper {
         WAITING: "1",
         SUBSCRIBED: "2",
         FAILED: "3",
-    };    
+    };
+
+    static readonly CHANNEL_SUB_TYPES = ["stream.online", "stream.offline", "channel.update"];
 
     static async getAccessToken(force = false): Promise<string> {
         // token should last 60 days, delete it after 30 just to be sure
@@ -319,12 +321,12 @@ export class TwitchHelper {
             const stderr: string[] = [];
             
             process.stdout.on("data", (data: Stream) => {
-                if (TwitchConfig.cfg("debug")) console.debug(chalk.green(`$ ${bin} ${args.join(" ")}\n`, chalk.green(data.toString().trim())));
+                if (TwitchConfig.cfg("debug")) console.debug(chalk.green(`$ ${bin} ${args.join(" ")}\n`, chalk.green(`> ${data.toString().trim()}`)));
                 stdout.push(data.toString());
             });
             
             process.stderr.on("data", (data: Stream) => {
-                if (TwitchConfig.cfg("debug")) console.error(chalk.red(`$ ${bin} ${args.join(" ")}\n`, chalk.red(data.toString().trim())));
+                if (TwitchConfig.cfg("debug")) console.error(chalk.red(`$ ${bin} ${args.join(" ")}\n`, chalk.red(`> ${data.toString().trim()}`)));
                 stderr.push(data.toString());
             });
 

@@ -23,7 +23,7 @@
 [ ] GET /api/v0/channels/{login}/subscription
 [ ] GET /api/v0/channels/{login}/download/{video_id}
 
-[ ] GET /api/v0/jobs
+[?] GET /api/v0/jobs
 [ ] DELETE /api/v0/jobs/{job}
 
 [ ] GET /api/v0/twitchapi/videos/{login}

@@ -8,7 +8,7 @@ export function ListChannels(req: express.Request, res: express.Response): void 
 
     res.send({
         data: {
-            streamer_list: channels,
+            streamer_list: channels.map(c => c.toAPI()),
             total_size: total_size,
             // free_size: fs.statSync(TwitchHelper.vodFolder()).size,
             free_size: -1, // broken until further notice
@@ -18,7 +18,7 @@ export function ListChannels(req: express.Request, res: express.Response): void 
 }
 
 export function GetChannel(req: express.Request, res: express.Response): void {
-    
+
     const channel = TwitchChannel.getChannelByLogin(req.params.login);
 
     if (!channel) {

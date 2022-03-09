@@ -10,44 +10,49 @@
                             <tr>
                                 <th>Name</th>
                                 <th>Path</th>
+                                <th>Version</th>
                                 <th>Status</th>
                             </tr>
                             <tr>
                                 <td>FFmpeg</td>
                                 <td>{{ aboutData.bins.ffmpeg.path }}</td>
+                                <td>{{ aboutData.bins.ffmpeg.version }}</td>
                                 <td>{{ aboutData.bins.ffmpeg.status }}</td>
                             </tr>
                             <tr>
                                 <td>Mediainfo</td>
                                 <td>{{ aboutData.bins.mediainfo.path }}</td>
+                                <td>{{ aboutData.bins.mediainfo.version }}</td>
                                 <td>{{ aboutData.bins.mediainfo.status }}</td>
                             </tr>
                             <tr>
                                 <td>Twitch chat downloader</td>
                                 <td>{{ aboutData.bins.tcd.path }}</td>
+                                <td>{{ aboutData.bins.tcd.version }}</td>
                                 <td>{{ aboutData.bins.tcd.status }}</td>
-                                <td>{{ aboutData.bins.tcd.update }}</td>
                             </tr>
                             <tr>
                                 <td>Streamlink</td>
                                 <td>{{ aboutData.bins.streamlink.path }}</td>
+                                <td>{{ aboutData.bins.streamlink.version }}</td>
                                 <td>{{ aboutData.bins.streamlink.status }}</td>
-                                <td>{{ aboutData.bins.streamlink.update }}</td>
                             </tr>
                             <tr>
                                 <td>yt-dlp</td>
                                 <td>{{ aboutData.bins.youtubedl.path }}</td>
+                                <td>{{ aboutData.bins.youtubedl.version }}</td>
                                 <td>{{ aboutData.bins.youtubedl.status }}</td>
-                                <td>{{ aboutData.bins.youtubedl.update }}</td>
                             </tr>
                             <tr>
                                 <td>Pipenv</td>
                                 <td>{{ aboutData.bins.pipenv.path }}</td>
+                                <td>{{ aboutData.bins.pipenv.version }}</td>
                                 <td v-html="aboutData.bins.pipenv.status"></td>
                             </tr>
                             <tr>
                                 <td>TwitchDownloaderCLI</td>
                                 <td>{{ aboutData.bins.twitchdownloader.path }}</td>
+                                <td>{{ aboutData.bins.twitchdownloader.version }}</td>
                                 <td v-html="aboutData.bins.twitchdownloader.status"></td>
                             </tr>
                         </table>

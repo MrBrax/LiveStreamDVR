@@ -44,6 +44,7 @@ export type VideoQuality = "best" | "1080p60" | "1080p" | "720p60" | "720p" | "4
 export class TwitchConfig {
 
     static config: Record<string, string | number | boolean | string[]>;
+    private static _writeConfig = false;
 
     static readonly streamerCacheTime = 2592000 * 1000; // 30 days
 
@@ -220,6 +221,8 @@ export class TwitchConfig {
 
     static saveConfig(source = "unknown") {
 
+        this._writeConfig = true;
+
         // back up config
         fs.copyFileSync(BaseConfigFolder.config, BaseConfigFolder.config + ".bak");
 
@@ -227,6 +230,9 @@ export class TwitchConfig {
         fs.writeFileSync(BaseConfigFolder.config, JSON.stringify(this.config, null, 4));
 
         console.log(`Saved config from ${source}`);
+
+        this._writeConfig = false;
+
     }
 
     // todo: redis or something
@@ -324,6 +330,13 @@ export class TwitchConfig {
         await TwitchChannel.loadChannels();
         TwitchAutomatorJob.loadJobsFromCache();
         
+        // monitor config for external changes
+        fs.watch(BaseConfigFolder.config, (eventType, filename) => {
+            console.log(`Config file changed: ${eventType} ${filename}`);
+            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "config", "Config file changed externally");
+            // TwitchConfig.loadConfig();
+        });
+
     }
 
 }

@@ -1,2 +1,2 @@
-streamlink>=2.0.0
+streamlink>=3.2.0
 yt-dlp>=2021.12.27

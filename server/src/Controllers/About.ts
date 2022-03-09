@@ -47,7 +47,7 @@ export async function About(req: express.Request, res: express.Response) {
     for (const bin_name in bin_args) {
         const bin_data = bin_args[bin_name];
         if (bin_data.binary) {
-            
+
             let exec_out;
             try {
                 exec_out = await TwitchHelper.execSimple(bin_data.binary, bin_data.version_args);
@@ -59,18 +59,18 @@ export async function About(req: express.Request, res: express.Response) {
             }
 
             if (exec_out) {
-            
+
                 const match_data = exec_out.stdout.join("\n") + "\n" + exec_out.stderr.join("\n");
                 const match = match_data.trim().match(bin_data.version_regex);
 
                 if (!match || match.length < 2) {
                     console.error(bin_name, "failed to match", match, match_data.trim());
                 }
-                
+
                 bins[bin_name] = {
                     path: bin_data.binary,
                     version: match ? match[1] : "",
-                    status: match ? match[1] : "No match.", // compare versions
+                    status: match ? "" : "No match.", // compare versions
                 };
 
             } else {
@@ -89,24 +89,43 @@ export async function About(req: express.Request, res: express.Response) {
 
 
     const pip_pkg: Record<string, { binary: string | false; version_args: string[]; version_regex: RegExp; }> = {
-        tcd: { binary: TwitchHelper.path_tcd(), version_args: ["--version", "--settings-file", path.join(BaseConfigFolder.config, "tcd_settings.json")], version_regex: /^Twitch Chat Downloader\s+([0-9.]+)$/ },
-        streamlink: { binary: TwitchHelper.path_streamlink(), version_args: ["--version"], version_regex: /^streamlink\s+([0-9.]+)$/gm },
-        "youtubedl": { binary: TwitchHelper.path_youtubedl(), version_args: ["--version"], version_regex: /^([0-9.]+)$/gm },
-        pipenv: { binary: TwitchHelper.path_pipenv(), version_args: ["--version"], version_regex: /^pipenv, version ([0-9.]+)$/gm },
+        tcd: { binary: TwitchHelper.path_tcd(), version_args: ["--version", "--settings-file", path.join(BaseConfigFolder.config, "tcd_settings.json")], version_regex: /^Twitch Chat Downloader\s+([0-9.]+)$/m },
+        streamlink: { binary: TwitchHelper.path_streamlink(), version_args: ["--version"], version_regex: /^streamlink\s+([0-9.]+)$/m },
+        "youtubedl": { binary: TwitchHelper.path_youtubedl(), version_args: ["--version"], version_regex: /^([0-9.]+)$/m },
+        pipenv: { binary: TwitchHelper.path_pipenv(), version_args: ["--version"], version_regex: /^pipenv, version ([0-9.]+)$/m },
     };
 
     for (const pkg_name in pip_pkg) {
         const pkg_data = pip_pkg[pkg_name];
-        if (pkg_data.binary){
-            const out = await TwitchHelper.execSimple(pkg_data.binary, pkg_data.version_args);
-            const match_data = out.stdout.join("\n") + "\n" + out.stderr.join("\n");
-            const match = match_data.trim().match(pkg_data.version_regex);
-            
-            bins[pkg_name] = {
-                path: pkg_data.binary,
-                version: match ? match[0] : "",
-                status: match ? match[0] : "No match.",
-            };
+        if (pkg_data.binary) {
+            let exec_out;
+
+            try {
+                exec_out = await TwitchHelper.execSimple(pkg_data.binary, pkg_data.version_args);
+            } catch (error) {
+                const e = error as ExecReturn;
+                if ("code" in e) {
+                    console.error("exec error", error);
+                }
+            }
+
+            if (exec_out) {
+
+                const match_data = exec_out.stdout.join("\n") + "\n" + exec_out.stderr.join("\n");
+                const match = match_data.trim().match(pkg_data.version_regex);
+
+                bins[pkg_name] = {
+                    path: pkg_data.binary,
+                    version: match ? match[1] : "",
+                    status: match ? "" : "No match.",
+                };
+
+            } else {
+                bins[pkg_name] = {
+                    path: pkg_data.binary,
+                    status: "No console output.",
+                };
+            }
         } else {
             bins[pkg_name] = {
                 status: "Not installed.",

@@ -66,6 +66,8 @@ export default defineComponent({
                 return;
             }
 
+            console.log(`Server type: ${response.data.data.server ?? "unknown"}`);
+
             this.store.updateConfig(response.data.data.config);
             this.store.updateVersion(response.data.data.version);
             this.store.updateServerType(response.data.data.server);

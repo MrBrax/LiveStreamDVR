@@ -9,6 +9,7 @@ import { TwitchConfig, VideoQuality } from "./TwitchConfig";
 import { TwitchHelper } from "./TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { TwitchVOD } from "./TwitchVOD";
+import { TwitchVODChapter } from "./TwitchVODChapter";
 interface ChannelData {
     id: string;
     login: string;
@@ -104,6 +105,8 @@ export class TwitchChannel {
     // public bool deactivated = false;
     //
     // public ?bool api_getSubscriptionStatus = null;
+
+    public deactivated = false;
 
     static async loadAbstract(channel_id: string, api: boolean): Promise<TwitchChannel> {
 
@@ -436,9 +439,60 @@ export class TwitchChannel {
         return this.vods_list?.find(vod => vod.is_capturing);
     }
 
+    get current_game(): TwitchVODChapter | undefined {
+        return this.current_vod?.chapters.at(-1);
+    }
+
+    get current_duration(): number | undefined {
+        return this.current_vod?.duration_seconds;
+    }
+
     // a bit excessive since current_vod is already set with the capturing vod
     get is_live(): boolean {
         return this.current_vod != undefined && this.current_vod.is_capturing;
+    }
+
+    get is_converting(): boolean {
+        return this.vods_list?.some(vod => vod.is_converting) ?? false;
+    }
+
+    public getSubscriptionStatus() {
+        for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
+            if (TwitchConfig.getCache(`${this.userid}.substatus.${sub_type}`) != TwitchHelper.SUBSTATUS.SUBSCRIBED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public toAPI() {
+        return {
+            userid: this.userid,
+            login: this.login,
+            display_name: this.display_name,
+            description: this.description,
+            profile_image_url: this.profile_image_url,
+            is_live: this.is_live,
+            is_converting: this.is_converting,
+            current_vod: this.current_vod?.toAPI(),
+            current_game: this.current_game,
+            current_duration: this.current_duration,
+            quality: this.quality,
+            match: this.match,
+            download_chat: this.download_chat,
+            no_capture: this.no_capture,
+            burn_chat: this.burn_chat,
+            // subbed_at: this.subbed_at,
+            // expires_at: this.expires_at,
+            // last_online: this.last_online,
+            vods_list: this.vods_list?.map(vod => vod.toAPI()),
+            vods_raw: this.vods_raw,
+            vods_size: this.vods_size,
+            channel_data: this.channel_data,
+            config: this.config,
+            deactivated: this.deactivated,
+            api_getSubscriptionStatus: this.getSubscriptionStatus(),
+        };
     }
 
 }

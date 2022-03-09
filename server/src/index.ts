@@ -5,10 +5,12 @@ import * as Log from "./Controllers/Log";
 import * as Vod from "./Controllers/Vod";
 import * as Games from "./Controllers/Games";
 import * as About from "./Controllers/About";
+import * as Jobs from "./Controllers/Jobs";
 import { TwitchConfig } from "./Core/TwitchConfig";
 import history from "connect-history-api-fallback";
 import path from "path";
 import { TwitchVOD } from "./Core/TwitchVOD";
+import morgan from "morgan";
 
 TwitchConfig.init();
 
@@ -16,15 +18,12 @@ const app = express();
 const port = TwitchConfig.cfg<number>("server_port", 8080);
 
 app.use(express.json());
+app.use(morgan("dev"));
 
 // app.get("/", (req, res) => {
 //     // res.send(TwitchConfig.cfg<string>("app_url", "test"));
 //     res.send(TwitchConfig.config);
 // });
-
-// single page app
-app.use(history());
-app.use(express.static( path.join(__dirname, "..", "..", "client-vue", "dist")));
 
 app.get("/api/v0/settings", Settings.GetSettings);
 
@@ -38,6 +37,8 @@ app.get("/api/v0/games", Games.ListGames);
 app.get("/api/v0/about", About.About);
 
 app.get("/api/v0/log/:filename/?:last_line?", Log.GetLog);
+
+app.get("/api/v0/jobs", Jobs.ListJobs);
 
 app.get("/api/v0/test_video_download", (req, res) => {
     if (!req.query.video_id){
@@ -54,6 +55,9 @@ app.get("/api/v0/test_video_download", (req, res) => {
         });
 });
 
+// single page app
+app.use(history());
+app.use(express.static( path.join(__dirname, "..", "..", "client-vue", "dist")));
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
