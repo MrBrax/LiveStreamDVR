@@ -26,7 +26,7 @@ export function GetLog(req: express.Request, res: express.Response) {
             "last_line" : line_num,
             "logs" : logfiles,
         },
-        "status" : "OK"
+        "status" : "OK",
     });
 
 }
