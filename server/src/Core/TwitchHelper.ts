@@ -11,6 +11,7 @@ import { MediaInfo } from "../../../client-vue/src/mediainfo";
 import { MediaInfoJSONOutput } from "@/MediaInfo";
 import { Stream } from "stream";
 import chalk from "chalk";
+import { Subscriptions } from "../TwitchAPI/Subscriptions";
 
 export interface ExecReturn {
     stdout: string[];
@@ -602,5 +603,25 @@ export class TwitchHelper {
         }
     }
 
+    public static async getSubs(): Promise<Subscriptions | false> {
+
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Requesting subscriptions list");
+
+        let response;
+
+        try {
+            response = await this.axios.get("/helix/eventsub/subscriptions");
+        } catch (err) {
+            TwitchLog.logAdvanced(LOGLEVEL.FATAL, "helper", `Subs return: ${err}`);
+            return false;
+        }
+
+        const json: Subscriptions = response.data;
+
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `${json.total} subscriptions`);
+
+        return json;
+
+    }
 
 }

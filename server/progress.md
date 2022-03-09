@@ -42,7 +42,7 @@
 [ ] GET /api/v0/tools/playlist_dump/{username}
 [ ] GET /api/v0/tools/check_vods
 
-[ ] GET /subscriptions
+[x] GET /subscriptions
 [ ] POST /subscriptions
 [ ] POST /subscriptions/{id}
 [ ] DELETE /subscriptions/{id}

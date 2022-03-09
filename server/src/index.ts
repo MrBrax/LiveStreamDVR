@@ -6,6 +6,7 @@ import * as Vod from "./Controllers/Vod";
 import * as Games from "./Controllers/Games";
 import * as About from "./Controllers/About";
 import * as Jobs from "./Controllers/Jobs";
+import * as Subscriptions from "./Controllers/Subscriptions";
 import { TwitchConfig } from "./Core/TwitchConfig";
 import history from "connect-history-api-fallback";
 import path from "path";
@@ -41,6 +42,8 @@ app.get("/api/v0/log/:filename/?:last_line?", Log.GetLog);
 
 app.get("/api/v0/jobs", Jobs.ListJobs);
 app.delete("/api/v0/jobs/:name", Jobs.KillJob);
+
+app.get("/api/v0/subscriptions", Subscriptions.ListSubscriptions);
 
 app.get("/api/v0/test_video_download", (req, res) => {
     if (!req.query.video_id){

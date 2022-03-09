@@ -15,11 +15,11 @@ export interface Subscription {
     cost: number;
     condition: Condition;
     transport: Transport;
-    created_at: Date;
+    created_at: string;
 }
 
 export interface Pagination {
-    cursor: string;
+    cursor?: string;
 }
 
 export interface ErrorResponse {
