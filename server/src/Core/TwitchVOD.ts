@@ -19,6 +19,14 @@ export enum MUTE_STATUS {
     MUTED = 2,
     UNKNOWN = 3,
 }
+
+export enum EXIST_STATUS {
+    EXISTS = 1,
+    NOT_EXISTS = 2,
+    NEVER_EXISTED = 3,
+    UNKNOWN = 4,
+}
+
 export interface TwitchVODJSON {
     
     meta: EventSubResponse | null;
@@ -60,6 +68,7 @@ export interface TwitchVODJSON {
     twitch_vod_attempted?: boolean | null;
     twitch_vod_neversaved?: boolean | null;
     twitch_vod_muted?: MUTE_STATUS | boolean | null;
+    twitch_vod_status?: EXIST_STATUS;
 }
 
 
@@ -119,6 +128,7 @@ export class TwitchVOD {
     twitch_vod_exists: boolean | null | undefined;
     twitch_vod_neversaved: boolean | null | undefined;
     twitch_vod_attempted: boolean | null | undefined;
+    twitch_vod_status: EXIST_STATUS = EXIST_STATUS.UNKNOWN;
     // twitch_vod_muted: boolean | null | undefined;
     twitch_vod_muted: MUTE_STATUS = MUTE_STATUS.UNKNOWN;
 
@@ -490,6 +500,18 @@ export class TwitchVOD {
             this.twitch_vod_muted = MUTE_STATUS.UNKNOWN;
         } else if (typeof this.json.twitch_vod_muted == "number") {
             this.twitch_vod_muted = this.json.twitch_vod_muted;
+        }
+
+        if (this.json.twitch_vod_status) {
+            this.twitch_vod_status = this.json.twitch_vod_status;
+        } else if (this.twitch_vod_neversaved) {
+            this.twitch_vod_status = EXIST_STATUS.NEVER_EXISTED;
+        } else if (this.twitch_vod_exists) {
+            this.twitch_vod_status = EXIST_STATUS.EXISTS;
+        } else if (!this.twitch_vod_exists) {
+            this.twitch_vod_status = EXIST_STATUS.NOT_EXISTS;
+        } else {
+            this.twitch_vod_status = EXIST_STATUS.UNKNOWN;
         }
 
         // legacy
@@ -1070,7 +1092,7 @@ export class TwitchVOD {
             webpath: this.webpath,
             // dt_started_at: this.dt_started_at ? TwitchHelper.JSDateToPHPDate(this.dt_started_at) : null,
             // dt_ended_at: this.dt_ended_at ? TwitchHelper.JSDateToPHPDate(this.dt_ended_at) : null,
-
+            twitch_vod_status: this.twitch_vod_status,
         };
     }
 

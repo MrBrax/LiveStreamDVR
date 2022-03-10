@@ -75,3 +75,23 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
     channel.update(channel_data);
 
 }
+
+export function DeleteChannel(req: express.Request, res: express.Response): void {
+
+    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+
+    if (!channel || !channel.login) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel not found",
+        });
+        return;
+    }
+
+    channel.delete();
+
+    res.send({
+        status: "OK",
+    });
+
+}

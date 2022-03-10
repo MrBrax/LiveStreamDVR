@@ -524,4 +524,21 @@ export class TwitchChannel {
         return false;
     }
 
+    public delete() {
+        const login = this.login;
+        if (!login) throw new Error("Channel login is not set");
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", `Deleting channel ${login}`);
+        const index_config = TwitchChannel.channels_config.findIndex(ch => ch.login === login);
+        if (index_config !== -1) {
+            TwitchChannel.channels_config.splice(index_config, 1);
+        }
+
+        const index_channel = TwitchChannel.channels.findIndex(ch => ch.login === login);
+        if (index_channel !== -1) {
+            TwitchChannel.channels.splice(index_channel, 1);
+        }
+
+        return TwitchChannel.getChannelByLogin(login) == undefined;
+    }
+
 }

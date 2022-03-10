@@ -13,8 +13,8 @@
 [ ] POST /api/v0/channels
 
 [x] GET /api/v0/channels/{login}
-[ ] PUT /api/v0/channels/{login}
-[ ] DELETE /api/v0/channels/{login}
+[?] PUT /api/v0/channels/{login}
+[?] DELETE /api/v0/channels/{login}
 [ ] GET /api/v0/channels/{login}/force_record
 [ ] GET /api/v0/channels/{login}/dump_playlist
 [ ] GET /api/v0/channels/{login}/subscription

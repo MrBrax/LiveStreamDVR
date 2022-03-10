@@ -1,5 +1,5 @@
 import { TwitchConfig } from "./TwitchConfig";
-import { TwitchVOD } from "./TwitchVOD";
+import { MUTE_STATUS, TwitchVOD } from "./TwitchVOD";
 import { TwitchHelper } from "./TwitchHelper";
 import { IncomingHttpHeaders } from "http";
 import { EventSubResponse } from "@/TwitchAPI/EventSub";
@@ -356,7 +356,7 @@ export class TwitchAutomator {
                         continue;
                     }
         
-                    if (TwitchConfig.cfg("keep_muted_vods") && vodclass.twitch_vod_muted === true) {
+                    if (TwitchConfig.cfg("keep_muted_vods") && vodclass.twitch_vod_muted === MUTE_STATUS.MUTED) {
                         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being muted on Twitch.`);
                         continue;
                     }
