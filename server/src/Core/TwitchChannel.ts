@@ -1,7 +1,7 @@
-import { ChallengeRequest } from "@/TwitchAPI/Challenge";
 import { ErrorResponse, EventSubTypes } from "@/TwitchAPI/Shared";
 import { Stream, StreamsResponse } from "@/TwitchAPI/Streams";
-import { Users } from "@/TwitchAPI/Users";
+import { SubscriptionRequest, SubscriptionResponse } from "@/TwitchAPI/Subscriptions";
+import { User, Users } from "@/TwitchAPI/Users";
 import axios from "axios";
 import fs from "fs";
 import path from "path";
@@ -12,17 +12,7 @@ import { TwitchHelper } from "./TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
-interface ChannelData {
-    id: string;
-    login: string;
-    display_name: string;
-    type: string;
-    broadcaster_type: string;
-    description: string;
-    profile_image_url: string;
-    offline_image_url: string;
-    view_count: number;
-    created_at: string; // Date
+interface ChannelData extends User {
     _updated: number;
     cache_avatar: string;
 }
@@ -582,7 +572,7 @@ export class TwitchChannel {
 
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Subscribe to ${channel_id}:${sub_type} (${streamer_login})`);
 
-            const payload: ChallengeRequest = {
+            const payload: SubscriptionRequest = {
                 type: sub_type,
                 version: "1",
                 condition: {
@@ -617,7 +607,7 @@ export class TwitchChannel {
                 continue;
             }
 
-            const json = response.data;
+            const json: SubscriptionResponse = response.data;
             const http_code = response.status;
 
             if (http_code == 202) {

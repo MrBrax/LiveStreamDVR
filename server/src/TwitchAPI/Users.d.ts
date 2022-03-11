@@ -9,7 +9,7 @@ export interface User {
     profile_image_url: string;
     offline_image_url: string;
     view_count: number;
-    email: string;
+    email?: string;
     created_at: string;
 }
 
