@@ -11,7 +11,20 @@ interface Subscription {
     created_at: Date;
 }
 
-export interface ChallengeRequest {
+/**
+ * Returned from subscribe requests
+ */
+export interface ChallengeResponse {
     challenge: string;
     subscription: Subscription;
+}
+
+/**
+ * Used for subscribing to events.
+ */
+export interface ChallengeRequest {
+    type: EventSubTypes,
+    version: string,
+    condition: Condition;
+    transport: Transport;
 }

@@ -12,6 +12,7 @@ import { MediaInfoJSONOutput } from "@/MediaInfo";
 import { Stream } from "stream";
 import chalk from "chalk";
 import { Subscriptions } from "../TwitchAPI/Subscriptions";
+import { EventSubTypes } from "@/TwitchAPI/Shared";
 
 export interface ExecReturn {
     stdout: string[];
@@ -25,8 +26,6 @@ export interface RemuxReturn {
     code: number;
     success: boolean;
 }
-
-export type CHANNEL_SUB_TYPES = "stream.online" | "stream.offline" | "channel.update";
 
 export class TwitchHelper {
 
@@ -50,7 +49,7 @@ export class TwitchHelper {
         FAILED: "3",
     };
 
-    static readonly CHANNEL_SUB_TYPES: CHANNEL_SUB_TYPES[] = ["stream.online", "stream.offline", "channel.update"];
+    static readonly CHANNEL_SUB_TYPES: EventSubTypes[] = ["stream.online", "stream.offline", "channel.update"];
 
     static async getAccessToken(force = false): Promise<string> {
         // token should last 60 days, delete it after 30 just to be sure

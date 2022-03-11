@@ -6,7 +6,7 @@ import { EventSubResponse } from "@/TwitchAPI/EventSub";
 import { TwitchChannel } from "./TwitchChannel";
 import fs from "fs";
 import path from "path";
-import { ChannelUpdateEvent } from "@/TwitchAPI/ChannelUpdate";
+import { ChannelUpdateEvent } from "@/TwitchAPI/EventSub/ChannelUpdate";
 import { TwitchVODChapter, TwitchVODChapterMinimalJSON } from "./TwitchVODChapter";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { format, parse } from "date-fns";

@@ -3,8 +3,9 @@ export interface Condition {
 }
 
 export interface Transport {
-    method: string;
+    method: "webhook";
     callback: string;
+    secret?: string;
 }
 
 export interface Subscription {

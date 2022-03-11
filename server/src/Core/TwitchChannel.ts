@@ -1,4 +1,5 @@
-import { ErrorResponse } from "@/TwitchAPI/Shared";
+import { ChallengeRequest } from "@/TwitchAPI/Challenge";
+import { ErrorResponse, EventSubTypes } from "@/TwitchAPI/Shared";
 import { Stream, StreamsResponse } from "@/TwitchAPI/Streams";
 import { Users } from "@/TwitchAPI/Users";
 import axios from "axios";
@@ -7,7 +8,7 @@ import path from "path";
 import { BaseConfigPath } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchConfig, VideoQuality } from "./TwitchConfig";
-import { CHANNEL_SUB_TYPES, TwitchHelper } from "./TwitchHelper";
+import { TwitchHelper } from "./TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
@@ -581,16 +582,16 @@ export class TwitchChannel {
 
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Subscribe to ${channel_id}:${sub_type} (${streamer_login})`);
 
-            const payload = {
-                "type": sub_type,
-                "version": "1",
-                "condition": {
-                    "broadcaster_user_id": channel_id,
+            const payload: ChallengeRequest = {
+                type: sub_type,
+                version: "1",
+                condition: {
+                    broadcaster_user_id: channel_id,
                 },
-                "transport": {
-                    "method": "webhook",
-                    "callback": hook_callback,
-                    "secret": TwitchConfig.cfg("eventsub_secret"),
+                transport: {
+                    method: "webhook",
+                    callback: hook_callback,
+                    secret: TwitchConfig.cfg("eventsub_secret"),
                 },
             };
 
@@ -645,7 +646,7 @@ export class TwitchChannel {
 
     }
 
-    public static async getSubscriptionId(channel_id: string, sub_type: CHANNEL_SUB_TYPES): Promise<string | false> {
+    public static async getSubscriptionId(channel_id: string, sub_type: EventSubTypes): Promise<string | false> {
         const all_subs = await TwitchHelper.getSubs();
         if (all_subs) {
             const sub_id = all_subs.data.find(sub => sub.condition.broadcaster_user_id == channel_id && sub.type == sub_type);

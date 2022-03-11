@@ -1,4 +1,4 @@
-import { Condition, Subscription, Transport } from "./Shared";
+import { Subscription } from "../Shared";
 
 interface StreamOnlineSubscription extends Subscription {
     type: "stream.online";

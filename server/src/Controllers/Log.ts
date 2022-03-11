@@ -1,5 +1,4 @@
 import express from "express";
-import path from "path";
 import fs from "fs";
 import { BaseConfigFolder } from "../Core/BaseConfig";
 import { TwitchLog } from "../Core/TwitchLog";
