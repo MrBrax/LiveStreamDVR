@@ -31,6 +31,7 @@ app.get("/api/v0/settings", Settings.GetSettings);
 app.put("/api/v0/settings", Settings.SaveSettings);
 
 app.get("/api/v0/channels", Channels.ListChannels);
+app.post("/api/v0/channels", Channels.AddChannel);
 app.get("/api/v0/channels/:login", Channels.GetChannel);
 
 app.get("/api/v0/vod/:basename", Vod.GetVod);

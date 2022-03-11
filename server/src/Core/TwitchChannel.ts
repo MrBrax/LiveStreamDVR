@@ -112,6 +112,12 @@ export class TwitchChannel {
 
         TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Load channel ${channel_id}`);
 
+        const channel_memory = this.channels.find(channel => channel.userid === channel_id);
+        if (channel_memory) {
+            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel_id} already loaded`);
+            return channel_memory;
+        }
+
         const channel = new this();
         channel.userid = channel_id;
 
@@ -208,24 +214,6 @@ export class TwitchChannel {
 
         TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Fetching channel data for ${method} ${identifier}, force: ${force}`);
 
-        /*
-        if (fs.existsSync(BaseConfigPath.streamerCache) && !force) {
-            const data: Record<string, ChannelData> = JSON.parse(fs.readFileSync(BaseConfigPath.streamerCache, 'utf8'));
-            const channelData = method == "id" ? data[identifier] : Object.values(data).find(channel => channel.login == identifier);
-            if (channelData) {
-                TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Channel data found in cache for ${method} ${identifier}`);
-                if (Date.now() > channelData._updated + TwitchConfig.streamerCacheTime) {
-                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Cache for ${identifier} is outdated, fetching new data`);
-                } else {
-                    TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Returning cache for ${method} ${identifier}`);
-                    return channelData;
-                }
-            } else {
-                TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Channel data not found in cache for ${method} ${identifier}, continue fetching`);
-            }
-        }
-        */
-
         const channelData = method == "id" ? this.channels_cache[identifier] : Object.values(this.channels_cache).find(channel => channel.login == identifier);
         if (channelData) {
             TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Channel data found in memory cache for ${method} ${identifier}`);
@@ -291,18 +279,6 @@ export class TwitchChannel {
         const userData = data as unknown as ChannelData;
 
         userData._updated = Date.now();
-
-        /*
-        if (fs.existsSync(BaseConfigPath.streamerCache)) {
-            const data_old: Record<string, ChannelData> = JSON.parse(fs.readFileSync(BaseConfigPath.streamerCache, 'utf8'));
-            data_old[data.id] = data;
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "CHANNEL", `Saving channel cache file.`);
-            fs.writeFileSync(BaseConfigPath.streamerCache, JSON.stringify(data_old));
-        } else {
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "CHANNEL", `Saving new channel cache file.`);
-            fs.writeFileSync(BaseConfigPath.streamerCache, JSON.stringify({ [data.id]: data }));
-        }
-        */
 
         // insert into memory and save to file
         TwitchChannel.channels_cache[userData.id] = userData;
@@ -405,6 +381,7 @@ export class TwitchChannel {
 
                 if (ch) {
                     this.channels.push(ch);
+                    TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "config", `Loaded channel ${channel.login}`);
                 } else {
                     TwitchLog.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be added, please check logs.`);
                     break;
@@ -504,6 +481,26 @@ export class TwitchChannel {
         };
     }
 
+    public static async create(config: ChannelConfig): Promise<TwitchChannel> {
+        
+        const exists_config = TwitchChannel.channels_config.find(ch => ch.login === config.login);
+        if(exists_config) throw new Error(`Channel ${config.login} already exists in config`);
+
+        const exists_channel = TwitchChannel.channels.find(ch => ch.login === config.login);
+        if(exists_channel) throw new Error(`Channel ${config.login} already exists in channels`);
+
+        const channel = await TwitchChannel.loadFromLogin(config.login, true);
+        if(!channel) throw new Error(`Channel ${config.login} could not be loaded`);
+
+        TwitchChannel.channels_config.push(config);
+        TwitchChannel.channels.push(channel);
+        TwitchChannel.saveChannelsConfig();
+
+        // @todo: subscribe
+
+        return channel;
+    }
+
     /**
      * Update and save channel config
      * 
@@ -537,6 +534,8 @@ export class TwitchChannel {
         if (index_channel !== -1) {
             TwitchChannel.channels.splice(index_channel, 1);
         }
+
+        // @todo: unsubscribe
 
         return TwitchChannel.getChannelByLogin(login) == undefined;
     }

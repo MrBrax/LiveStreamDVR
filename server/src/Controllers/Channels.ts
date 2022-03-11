@@ -95,3 +95,42 @@ export function DeleteChannel(req: express.Request, res: express.Response): void
     });
 
 }
+
+export function AddChannel(req: express.Request, res: express.Response): void {
+
+    const formdata: {
+        login: string;
+        quality: string;
+        match: string;
+        download_chat: boolean;
+        burn_chat: boolean;
+        no_capture: boolean;
+    } = req.body;
+
+    const channel_data: ChannelConfig = {
+        login: formdata.login,
+        quality: formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [],
+        match: formdata.match ? formdata.match.split(",").map(m => m.trim()) : [],
+        download_chat: formdata.download_chat !== undefined,
+        burn_chat: formdata.burn_chat !== undefined,
+        no_capture: formdata.no_capture !== undefined,
+    };
+
+    const channel = TwitchChannel.getChannelByLogin(channel_data.login);
+
+    if (channel) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel already exists",
+        });
+        return;
+    }
+
+    const new_channel = TwitchChannel.create(channel_data);
+
+    res.send({
+        data: new_channel,
+        status: "OK",
+    });
+
+}

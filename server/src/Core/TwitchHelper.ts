@@ -34,8 +34,8 @@ export class TwitchHelper {
 
     static readonly accessTokenFile = path.join(BaseConfigFolder.cache, "oauth.bin");
 
-    static readonly accessTokenExpire = 60 * 60 * 24 * 60; // 60 days
-    static readonly accessTokenRefresh = 60 * 60 * 24 * 30; // 30 days
+    static readonly accessTokenExpire = 60 * 60 * 24 * 60 * 1000; // 60 days
+    static readonly accessTokenRefresh = 60 * 60 * 24 * 30 * 1000; // 30 days
 
     static readonly PHP_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSSSSS";
     static readonly TWITCH_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
@@ -53,22 +53,17 @@ export class TwitchHelper {
     static async getAccessToken(force = false): Promise<string> {
         // token should last 60 days, delete it after 30 just to be sure
         if (fs.existsSync(this.accessTokenFile)) {
-            
-            /*
-            if (time() > filemtime(this.accessTokenFile) + TwitchHelper::$accessTokenRefresh) {
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Deleting old access token");
-                unlink(this.accessTokenFile);
-            }
-            */
+
             if (Date.now() > fs.statSync(this.accessTokenFile).mtimeMs + this.accessTokenRefresh) {
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Deleting old access token");
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Deleting old access token, too old: ${format(fs.statSync(this.accessTokenFile).mtimeMs, this.PHP_DATE_FORMAT)}`);
                 fs.unlinkSync(this.accessTokenFile);
             }
-        }
 
-        if (!force && fs.existsSync(this.accessTokenFile)) {
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "helper", "Fetched access token from cache");
-            return fs.readFileSync(this.accessTokenFile, "utf8");
+            if (!force) {
+                TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "helper", "Fetched access token from cache");
+                return fs.readFileSync(this.accessTokenFile, "utf8");
+            }
+
         }
 
         if (!TwitchConfig.cfg("api_secret") || !TwitchConfig.cfg("api_client_id")) {
@@ -132,12 +127,11 @@ export class TwitchHelper {
         return access_token;
     }
 
-    public static vodFolder(username = "")
-    {
+    public static vodFolder(username = "") {
         return BaseConfigFolder.vod + (TwitchConfig.cfg("channel_folders") && username !== "" ? path.sep + username : "");
     }
 
-    public static JSDateToPHPDate(date: Date){
+    public static JSDateToPHPDate(date: Date) {
         return {
             date: format(date, this.PHP_DATE_FORMAT),
             timezone_type: 3,
@@ -145,7 +139,7 @@ export class TwitchHelper {
         };
     }
 
-    public static getNiceDuration(duration: number){
+    public static getNiceDuration(duration: number) {
         // format 1d 2h 3m 4s
 
         const days = Math.floor(duration / (60 * 60 * 24));
@@ -161,15 +155,14 @@ export class TwitchHelper {
         if (seconds > 0) str += seconds + "s";
 
         return str.trim();
-        
+
     }
 
     public static is_windows() {
         return process.platform === "win32";
     }
 
-    public static path_mediainfo(): string | false
-    {
+    public static path_mediainfo(): string | false {
 
         if (TwitchConfig.cfg("mediainfo_path")) return TwitchConfig.cfg<string>("mediainfo_path");
 
@@ -183,8 +176,7 @@ export class TwitchHelper {
         return false;
     }
 
-    public static path_ffmpeg(): string | false
-    {
+    public static path_ffmpeg(): string | false {
         if (TwitchConfig.cfg("ffmpeg_path")) return TwitchConfig.cfg<string>("ffmpeg_path");
 
         // const path = this.whereis("ffmpeg", "ffmpeg.exe");
@@ -197,14 +189,13 @@ export class TwitchHelper {
         return false;
     }
 
-    public static path_streamlink(): string | false
-    {
+    public static path_streamlink(): string | false {
         // $path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "streamlink" . (self::is_windows() ? '.exe' : '');
         // return file_exists($path) ? $path : false;
         const full_path = path.join(TwitchConfig.cfg("bin_dir"), `streamlink${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
-        if (!exists){
+        if (!exists) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Streamlink binary not found at: ${full_path}`);
             return false;
         }
@@ -212,14 +203,13 @@ export class TwitchHelper {
         return exists ? full_path : false;
     }
 
-    public static path_youtubedl(): string | false
-    {
+    public static path_youtubedl(): string | false {
         // $path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "youtube-dl" . (self::is_windows() ? '.exe' : '');
         // return file_exists($path) ? $path : false;
         const full_path = path.join(TwitchConfig.cfg("bin_dir"), `yt-dlp${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
-        if (!exists){
+        if (!exists) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `yt-dlp binary not found at: ${full_path}`);
             return false;
         }
@@ -227,14 +217,13 @@ export class TwitchHelper {
         return exists ? full_path : false;
     }
 
-    public static path_tcd(): string | false
-    {
+    public static path_tcd(): string | false {
         // $path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "tcd" . (self::is_windows() ? '.exe' : '');
         // return file_exists($path) ? $path : false;
         const full_path = path.join(TwitchConfig.cfg("bin_dir"), `tcd${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
-        if (!exists){
+        if (!exists) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `tcd binary not found at: ${full_path}`);
             return false;
         }
@@ -242,14 +231,13 @@ export class TwitchHelper {
         return exists ? full_path : false;
     }
 
-    public static path_pipenv(): string | false
-    {
+    public static path_pipenv(): string | false {
         // $path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "pipenv" . (self::is_windows() ? '.exe' : '');
         // return file_exists($path) ? $path : false;
         const full_path = path.join(TwitchConfig.cfg("bin_dir"), `pipenv${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
-        if (!exists){
+        if (!exists) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `pipenv binary not found at: ${full_path}`);
             return false;
         }
@@ -257,15 +245,13 @@ export class TwitchHelper {
         return exists ? full_path : false;
     }
 
-    public static path_twitchdownloader(): string | false
-    {
+    public static path_twitchdownloader(): string | false {
         if (TwitchConfig.cfg("twitchdownloader_path")) return TwitchConfig.cfg<string>("twitchdownloader_path");
 
         return false;
     }
 
-    public static async eventSubUnsubscribe(subscription_id: string)
-    {
+    public static async eventSubUnsubscribe(subscription_id: string) {
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Unsubscribing from eventsub id {$subscription_id}");
 
@@ -287,7 +273,7 @@ export class TwitchHelper {
         TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Unsubscribed from eventsub ${subscription_id} successfully`);
 
         return true;
-        
+
     }
 
     /**
@@ -308,7 +294,7 @@ export class TwitchHelper {
     }
 
     static execSimple(bin: string, args: string[]): Promise<ExecReturn> {
-                
+
         return new Promise((resolve, reject) => {
 
             const process = spawn(bin, args || [], {
@@ -320,12 +306,12 @@ export class TwitchHelper {
 
             const stdout: string[] = [];
             const stderr: string[] = [];
-            
+
             process.stdout.on("data", (data: Stream) => {
                 if (TwitchConfig.cfg("debug")) console.debug(chalk.green(`$ ${bin} ${args.join(" ")}\n`, chalk.green(`> ${data.toString().trim()}`)));
                 stdout.push(data.toString());
             });
-            
+
             process.stderr.on("data", (data: Stream) => {
                 if (TwitchConfig.cfg("debug")) console.error(chalk.red(`$ ${bin} ${args.join(" ")}\n`, chalk.red(`> ${data.toString().trim()}`)));
                 stderr.push(data.toString());
@@ -342,7 +328,7 @@ export class TwitchHelper {
             });
 
         });
-        
+
     }
 
 
@@ -372,7 +358,7 @@ export class TwitchHelper {
                 job.setPid(process.pid);
                 job.setProcess(process);
                 job.startLog(jobName, `$ ${bin} ${args.join(" ")}\n`);
-                if(!job.save()) {
+                if (!job.save()) {
                     TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to save job ${jobName}`);
                 }
             } else {
@@ -382,18 +368,18 @@ export class TwitchHelper {
 
             const stdout: string[] = [];
             const stderr: string[] = [];
-            
+
             process.stdout.on("data", (data: Stream) => {
                 stdout.push(data.toString());
             });
-            
+
             process.stderr.on("data", (data: Stream) => {
                 stderr.push(data.toString());
             });
 
             process.on("close", (code) => {
                 TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Process ${process.pid} for ${jobName} exited with code ${code}`);
-                if (job){
+                if (job) {
                     job.clear();
                 }
                 // const out_log = ffmpeg.stdout.read();
@@ -406,7 +392,7 @@ export class TwitchHelper {
             });
 
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Attached to all streams for process ${process.pid} for ${jobName}`);
-            
+
         });
     }
 
@@ -427,7 +413,7 @@ export class TwitchHelper {
             job.setPid(process.pid);
             job.setProcess(process);
             job.startLog(jobName, `$ ${bin} ${args.join(" ")}\n`);
-            if(!job.save()) {
+            if (!job.save()) {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to save job ${jobName}`);
             }
         } else {
@@ -437,11 +423,11 @@ export class TwitchHelper {
 
         const stdout: string[] = [];
         const stderr: string[] = [];
-        
+
         process.stdout.on("data", (data: Stream) => {
             stdout.push(data.toString());
         });
-        
+
         process.stderr.on("data", (data: Stream) => {
             stderr.push(data.toString());
         });
@@ -477,7 +463,7 @@ export class TwitchHelper {
             throw new Error("Failed to find ffmpeg");
         }
         return new Promise((resolve, reject) => {
-            
+
             const opts = [
                 "-i", input,
                 "-c", "copy",
@@ -517,7 +503,7 @@ export class TwitchHelper {
             });
 
             ffmpeg.on("close", (code) => {
-                if (job){
+                if (job) {
                     job.clear();
                 }
                 // const out_log = ffmpeg.stdout.read();
@@ -533,7 +519,7 @@ export class TwitchHelper {
 
     // https://stackoverflow.com/a/2510459
     static formatBytes(bytes: number, precision = 2): string {
-    
+
         const units = ["B", "KB", "MB", "GB", "TB"];
 
         bytes = Math.max(bytes, 0);
@@ -586,7 +572,7 @@ export class TwitchHelper {
 
             const data: any = {};
 
-            for(const track of json.media.track) {
+            for (const track of json.media.track) {
                 if (track["@type"] == "General") {
                     data.general = track;
                 } else if (track["@type"] == "Video") {
