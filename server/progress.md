@@ -10,7 +10,7 @@
 [ ] POST /vod/{basename}/unbreak
 
 [x] GET /api/v0/channels
-[ ] POST /api/v0/channels
+[?] POST /api/v0/channels
 
 [x] GET /api/v0/channels/{login}
 [?] PUT /api/v0/channels/{login}
@@ -29,12 +29,12 @@
 [x] GET /api/v0/settings
 [?] PUT /api/v0/settings
 
-[ ] GET /api/v0/favourites
-[ ] PUT /api/v0/favourites
+[?] GET /api/v0/favourites
+[?] PUT /api/v0/favourites
 
 [x] GET /api/v0/games
 
-[ ] GET /api/v0/about
+[x] GET /api/v0/about
 
 // [ ] GET /api/v0/tools/fullvodburn
 [ ] GET /api/v0/tools/voddownload

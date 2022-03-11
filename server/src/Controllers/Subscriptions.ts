@@ -89,3 +89,16 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
     }
 
 }
+
+export async function SubscribeToAllChannels(req: express.Request, res: express.Response): Promise<void> {
+
+    const all_channels = TwitchChannel.getChannels();
+
+    // const payload_data: { channels: ChannelSub[]; total: number; all_usernames: Set<string>; } = {
+
+    for (const channel of all_channels) {
+        if (!channel.userid) continue;
+        const sub = await TwitchChannel.subscribe(channel.userid);
+    }
+
+}

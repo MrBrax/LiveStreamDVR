@@ -1,6 +1,5 @@
 import axios from "axios";
 import fs from "fs";
-import path from "path";
 import { BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
 import { TwitchHelper } from "./TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";

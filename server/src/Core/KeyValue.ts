@@ -35,6 +35,11 @@ export class KeyValue {
             this.save();
         }
     }
+
+    static deleteAll() {
+        this.data = {};
+        this.save();
+    }
     
     static save() {
         fs.writeFileSync(BaseConfigPath.keyvalue, JSON.stringify(this.data));

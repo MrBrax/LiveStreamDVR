@@ -7,7 +7,7 @@ import path from "path";
 import { BaseConfigPath } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchConfig, VideoQuality } from "./TwitchConfig";
-import { TwitchHelper } from "./TwitchHelper";
+import { CHANNEL_SUB_TYPES, TwitchHelper } from "./TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
@@ -549,4 +549,109 @@ export class TwitchChannel {
 
     }
 
+    public static async subscribe(channel_id: string): Promise<boolean> {
+        /*
+        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Subscribing to channel ${channel_id}`);
+        TwitchHelper.axios.post(`/helix/webhooks/hub`, {
+            "hub.callback": `${BaseConfigPath.baseURL}/api/twitch/subscribe`,
+            "hub.mode": "subscribe",
+            "hub.topic": `https://api.twitch.tv/helix/streams?user_id=${channel_id}`,
+            "hub.lease_seconds": TwitchConfig.streamerCacheTime / 1000
+        });
+        */
+
+        if (!TwitchConfig.cfg("app_url")) {
+            throw new Error("app_url is not set");
+        }
+
+        let hook_callback = TwitchConfig.cfg("app_url") + "/api/v0/hook";
+
+        if (TwitchConfig.cfg("instance_id")) {
+            hook_callback += "?instance=" + TwitchConfig.cfg("instance_id");
+        }
+
+        const streamer_login = TwitchChannel.channelLoginFromId(channel_id);
+
+        for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
+
+            if (KeyValue.get(`${channel_id}.sub.${sub_type}`)) {
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Skip subscription to ${channel_id}:${sub_type} (${streamer_login}), in cache.`);
+                continue; // todo: alert
+            }
+
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Subscribe to ${channel_id}:${sub_type} (${streamer_login})`);
+
+            const payload = {
+                "type": sub_type,
+                "version": "1",
+                "condition": {
+                    "broadcaster_user_id": channel_id,
+                },
+                "transport": {
+                    "method": "webhook",
+                    "callback": hook_callback,
+                    "secret": TwitchConfig.cfg("eventsub_secret"),
+                },
+            };
+
+            let response;
+
+            try {
+                response = await TwitchHelper.axios.post("/helix/eventsub/subscriptions", payload);
+            } catch (err) {
+                if (axios.isAxiosError(err)) {
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not subscribe to ${channel_id}:${sub_type}: ${err.message} / ${err.response?.data.message}`);
+                    
+                    if (err.response?.data.status == 409) { // duplicate
+                        const sub_id = await TwitchChannel.getSubscriptionId(channel_id, sub_type);
+                        if (sub_id) KeyValue.set(`${channel_id}.sub.${sub_type}`, sub_id);
+                        continue;
+                    }
+                    
+                    continue;
+                }
+
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Subscription request for ${channel_id} exceptioned: ${err}`);
+                console.log(err);
+                continue;
+            }
+
+            const json = response.data;
+            const http_code = response.status;
+
+            if (http_code == 202) {
+
+                if (json.data[0].status !== "webhook_callback_verification_pending") {
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Got 202 return for subscription request for ${channel_id}:${sub_type} but did not get callback verification.`);
+                    return false;
+                    // continue;
+                }
+
+                KeyValue.set(`${channel_id}.sub.${sub_type}`, json.data[0].id);
+                KeyValue.set(`${channel_id}.substatus.${sub_type}`, TwitchHelper.SUBSTATUS.WAITING);
+
+                TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) sent. Check logs for a 'subscription active' message.`);
+            } else if (http_code == 409) {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Duplicate sub for ${channel_id}:${sub_type} detected.`);
+            } else {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to send subscription request for ${channel_id}:${sub_type}: ${json}, HTTP ${http_code})`);
+                return false;
+                // continue;
+            }
+
+        }
+
+        return true;
+
+    }
+
+    public static async getSubscriptionId(channel_id: string, sub_type: CHANNEL_SUB_TYPES): Promise<string | false> {
+        const all_subs = await TwitchHelper.getSubs();
+        if (all_subs) {
+            const sub_id = all_subs.data.find(sub => sub.condition.broadcaster_user_id == channel_id && sub.type == sub_type);
+            return sub_id ? sub_id.id : false;
+        } else {
+            return false;
+        }
+    }
 }

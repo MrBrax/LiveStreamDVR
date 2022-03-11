@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import axios, { Axios } from "axios";
 import { BaseConfigFolder } from "./BaseConfig";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
-import { exec, spawn } from "child_process";
+import { spawn } from "child_process";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { MediaInfo } from "../../../client-vue/src/mediainfo";
 import { MediaInfoJSONOutput } from "@/MediaInfo";
@@ -25,6 +25,8 @@ export interface RemuxReturn {
     code: number;
     success: boolean;
 }
+
+export type CHANNEL_SUB_TYPES = "stream.online" | "stream.offline" | "channel.update";
 
 export class TwitchHelper {
 
@@ -48,7 +50,7 @@ export class TwitchHelper {
         FAILED: "3",
     };
 
-    static readonly CHANNEL_SUB_TYPES = ["stream.online", "stream.offline", "channel.update"];
+    static readonly CHANNEL_SUB_TYPES: CHANNEL_SUB_TYPES[] = ["stream.online", "stream.offline", "channel.update"];
 
     static async getAccessToken(force = false): Promise<string> {
         // token should last 60 days, delete it after 30 just to be sure
@@ -281,6 +283,7 @@ export class TwitchHelper {
      * @param cmd 
      * @returns 
      */
+    /*
     static exec(cmd: string[]): Promise<string> {
         return new Promise((resolve, reject) => {
             exec(cmd.join(" "), (err, stdout, stderr) => {
@@ -292,6 +295,7 @@ export class TwitchHelper {
             });
         });
     }
+    */
 
     static execSimple(bin: string, args: string[]): Promise<ExecReturn> {
 
