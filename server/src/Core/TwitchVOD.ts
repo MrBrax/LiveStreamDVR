@@ -27,15 +27,20 @@ export enum EXIST_STATUS {
     UNKNOWN = 4,
 }
 
+export interface AdBreak {
+    start: number;
+    end: number;
+}
+
 export interface TwitchVODJSON {
-    
-    meta: EventSubResponse | null;
+
+    meta: EventSubResponse | undefined;
 
     stream_resolution: string;
 
-    streamer_name: string;
-    streamer_id: string;
-    streamer_login: string;
+    streamer_name: string | undefined;
+    streamer_id: string | undefined;
+    streamer_login: string | undefined;
 
     chapters_raw: TwitchVODChapterMinimalJSON[];
     chapters: TwitchVODChapterJSON[];
@@ -43,11 +48,12 @@ export interface TwitchVODJSON {
     segments_raw: string[];
     segments: TwitchVODSegmentJSON[];
 
-    // ads: any[];
+    ads: AdBreak[];
+
     is_capturing: boolean;
     is_converting: boolean;
     is_finalized: boolean;
-    duration_seconds: number | null;
+    duration_seconds: number | undefined;
     video_metadata?: MediaInfo;
     video_fail2?: boolean;
     force_record?: boolean;
@@ -309,104 +315,7 @@ export class TwitchVOD {
         // this.directory = "";
     }
 
-    static async load(filename: string, api = false): Promise<TwitchVOD> {
-
-        const basename = path.basename(filename);
-
-        const cached_vod = this.getVod(basename);
-        if (cached_vod) {
-            console.log(`[TwitchVOD] Returning cached vod ${basename}`);
-            return cached_vod;
-        }
-
-        // check if file exists
-        if (!fs.existsSync(filename)) {
-            throw new Error("VOD JSON does not exist: " + filename);
-        }
-
-        // load file
-        const data = fs.readFileSync(filename, "utf8");
-        if (data.length == 0) {
-            throw new Error("File is empty: " + filename);
-        }
-
-        // parse file
-        const json = JSON.parse(data);
-
-        // create object
-        const vod = new TwitchVOD();
-
-        vod.capture_id = json.capture_id;
-        vod.filename = filename;
-        vod.basename = path.basename(filename, ".json");
-        vod.directory = path.dirname(filename);
-
-        vod.json = json;
-
-        vod.setupDates();
-        vod.setupBasic();
-        await vod.setupUserData();
-        vod.setupProvider();
-        await vod.setupAssoc();
-        vod.setupFiles();
-
-        // $vod.webpath = TwitchConfig.cfg('basepath') . '/vods/' . (TwitchConfig.cfg("channel_folders") && $vod.streamer_login ? $vod.streamer_login : '');
-
-        // if (api) {
-        // 	vod.setupApiHelper();
-        // }
-
-        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `VOD Class for ${vod.basename} with api ${api ? "enabled" : "disabled"}!`);
-
-        // vod.saveJSON();
-
-        // add to cache
-        this.addVod(vod);
-
-        return vod;
-
-    }
-
-    static addVod(vod: TwitchVOD): boolean {
-
-        if (!vod.basename)
-            throw new Error("VOD basename is not set!");
-
-        if (this.hasVod(vod.basename))
-            throw new Error(`VOD ${vod.basename} is already in cache!`);
-
-        this.vods.push(vod);
-
-        return this.hasVod(vod.basename);
-    }
-
-    static hasVod(basename: string): boolean {
-        return this.vods.findIndex(vod => vod.basename == basename) != -1;
-    }
-
-    static getVod(basename: string): TwitchVOD | undefined {
-        if (TwitchVOD.hasVod(basename)) {
-            return TwitchVOD.vods.find(vod => vod.basename == basename);
-        }
-    }
-
-    /**
-     * Create an empty VOD object
-     * @param filename 
-     * @returns Empty VOD
-     */
-    public static create(filename: string): TwitchVOD {
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", "Create VOD JSON: " + path.basename(filename) + " @ " + path.dirname(filename));
-
-        const vod = new TwitchVOD();
-        vod.created = true;
-        vod.filename = filename;
-        vod.basename = path.basename(filename, ".json");
-        vod.saveJSON("create json");
-        return vod;
-    }
-
-    setupDates() {
+    private setupDates() {
 
         if (!this.json) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No JSON loaded for date setup!");
@@ -422,7 +331,7 @@ export class TwitchVOD {
 
     }
 
-    setupBasic() {
+    private setupBasic() {
 
         if (!this.json) {
             throw new Error("No JSON loaded for basic setup!");
@@ -457,7 +366,11 @@ export class TwitchVOD {
 
     }
 
-    getDurationLive() {
+    /**
+     * why is this here?
+     * @returns
+     */
+    public getDurationLive() {
         // if (!$this->dt_started_at) return false;
         // $now = new \DateTime();
         // return abs($this->dt_started_at->getTimestamp() - $now->getTimestamp());
@@ -466,17 +379,17 @@ export class TwitchVOD {
         return Math.abs((this.dt_started_at.getTime() - now.getTime()) / 1000);
     }
 
-    async setupUserData() {
+    public async setupUserData() {
         if (!this.json) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No JSON loaded for user data setup!");
             return;
         }
         this.streamer_id = this.json.streamer_id;
-        this.streamer_login = await TwitchChannel.channelLoginFromId(this.json.streamer_id) || "";
-        this.streamer_name = await TwitchChannel.channelDisplayNameFromId(this.json.streamer_id) || "";
+        this.streamer_login = await TwitchChannel.channelLoginFromId(this.streamer_id || "") || "";
+        this.streamer_name = await TwitchChannel.channelDisplayNameFromId(this.streamer_id || "") || "";
     }
 
-    setupProvider() {
+    private setupProvider() {
 
         if (!this.json) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No JSON loaded for provider setup!");
@@ -492,9 +405,9 @@ export class TwitchVOD {
         this.twitch_vod_neversaved = this.json.twitch_vod_neversaved !== undefined ? this.json.twitch_vod_neversaved : undefined;
         this.twitch_vod_attempted = this.json.twitch_vod_attempted !== undefined ? this.json.twitch_vod_attempted : undefined;
         //  this.twitch_vod_muted = this.json.twitch_vod_muted !== undefined ? this.json.twitch_vod_muted : undefined;
-       
+
         if (typeof this.json.twitch_vod_muted == "boolean") {
-            if (this.json.twitch_vod_muted === false ) this.twitch_vod_muted = MUTE_STATUS.UNMUTED;
+            if (this.json.twitch_vod_muted === false) this.twitch_vod_muted = MUTE_STATUS.UNMUTED;
             else if (this.json.twitch_vod_muted === true) this.twitch_vod_muted = MUTE_STATUS.MUTED;
         } else if (this.json.twitch_vod_muted === null) {
             this.twitch_vod_muted = MUTE_STATUS.UNKNOWN;
@@ -524,7 +437,7 @@ export class TwitchVOD {
         // }
     }
 
-    async setupAssoc() {
+    public async setupAssoc() {
 
         if (!this.json) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No JSON loaded for assoc setup!");
@@ -632,8 +545,8 @@ export class TwitchVOD {
         TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Reached end of getDuration for {this.basename}, this shouldn't happen!");
     }
 
-    async getMediainfo(segment_num = 0): Promise<false | MediaInfo> {
-        
+    public async getMediainfo(segment_num = 0): Promise<false | MediaInfo> {
+
         TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Fetching mediainfo of ${this.basename}, segment #${segment_num}`);
 
         if (!this.directory) {
@@ -674,7 +587,7 @@ export class TwitchVOD {
         return path.normalize(expanded_path);
     }
 
-    setupFiles() {
+    private setupFiles() {
 
         if (!this.directory) {
             throw new Error("No directory set!");
@@ -737,11 +650,11 @@ export class TwitchVOD {
 
     }
 
-    setupApiHelper() {
+    public setupApiHelper() {
         throw new Error("Method apihelper not implemented.");
     }
 
-    parseChapters(raw_chapters: TwitchVODChapterJSON[] | TwitchVODChapterMinimalJSON[]) {
+    public parseChapters(raw_chapters: TwitchVODChapterJSON[] | TwitchVODChapterMinimalJSON[]) {
 
         if (!raw_chapters || raw_chapters.length == 0) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No chapter data found for ${this.basename}`);
@@ -841,7 +754,7 @@ export class TwitchVOD {
 
     }
 
-    generateChaptersRaw() {
+    public generateChaptersRaw() {
         const raw_chapters: TwitchVODChapterMinimalJSON[] = [];
         for (const chapter of this.chapters) {
             const raw_chapter = chapter.getRawChapter();
@@ -850,19 +763,7 @@ export class TwitchVOD {
         return raw_chapters;
     }
 
-    /*
-    getSegmentsApi() {
-        return this.segments.map(segment => {
-            return {
-                filename: segment.filename,
-                basename: segment.basename,
-
-            };
-        });
-    }
-    */
-
-    addChapter(chapter: TwitchVODChapter) {
+    public addChapter(chapter: TwitchVODChapter) {
         this.chapters.push(chapter);
     }
 
@@ -927,7 +828,7 @@ export class TwitchVOD {
         this.segments_raw.push(segment);
     }
 
-    rebuildSegmentList() {
+    public rebuildSegmentList() {
         throw new Error("Method rebuild segment list not implemented.");
     }
 
@@ -964,28 +865,6 @@ export class TwitchVOD {
 
         let data = "";
 
-        /*
-        for (let i in this.chapters) {
-            let chapter = this.chapters[i];
-
-            let offset = chapter.offset;
-            if (!offset) continue;
-
-            offset -= this.chapters[0].offset || 0;
-
-            data += offset + ',';
-
-            if (i < this.chapters.length - 1) {
-                $data .= ($offset + $chapter['duration']) . ',';
-            } else {
-                $data .= ',';
-            }
-
-            $data .= $chapter['game_name'] ?: $chapter['game_id'];
-            $data .= "\n";
-        }
-        */
-
         this.chapters.forEach((chapter, i) => {
             let offset = chapter.offset;
             if (!offset) return;
@@ -1004,14 +883,14 @@ export class TwitchVOD {
             data += "\n";
         });
 
-        // file_put_contents($csv_path, $data);
         fs.writeFileSync(csv_path, data);
+
         // $this->setPermissions();
 
         return fs.existsSync(csv_path);
     }
 
-    toAPI() {
+    public toAPI() {
         return {
             vod_path: this.vod_path,
             capture_id: this.capture_id,
@@ -1096,14 +975,14 @@ export class TwitchVOD {
         };
     }
 
-    toJSON() {
+    public toJSON() /*: TwitchVODJSON*/ {
         return {
             meta: this.meta,
             twitch_vod_exists: this.twitch_vod_exists,
             twitch_vod_attempted: this.twitch_vod_attempted,
             twitch_vod_neversaved: this.twitch_vod_neversaved,
             twitch_vod_muted: this.twitch_vod_muted,
-            stream_resolution: this.stream_resolution,
+            stream_resolution: this.stream_resolution || "",
             streamer_name: this.streamer_name,
             streamer_id: this.streamer_id,
             streamer_login: this.streamer_login,
@@ -1120,11 +999,11 @@ export class TwitchVOD {
             video_fail2: this.video_fail2,
             force_record: this.force_record,
             automator_fail: this.automator_fail,
-            saved_at: this.dt_saved_at ? TwitchHelper.JSDateToPHPDate(this.dt_saved_at) : null,
-            dt_capture_started: this.dt_capture_started ? TwitchHelper.JSDateToPHPDate(this.dt_capture_started) : null,
-            dt_conversion_started: this.dt_conversion_started ? TwitchHelper.JSDateToPHPDate(this.dt_conversion_started) : null,
-            dt_started_at: this.dt_started_at ? TwitchHelper.JSDateToPHPDate(this.dt_started_at) : null,
-            dt_ended_at: this.dt_ended_at ? TwitchHelper.JSDateToPHPDate(this.dt_ended_at) : null,
+            saved_at: this.dt_saved_at ? TwitchHelper.JSDateToPHPDate(this.dt_saved_at) : undefined,
+            dt_capture_started: this.dt_capture_started ? TwitchHelper.JSDateToPHPDate(this.dt_capture_started) : undefined,
+            dt_conversion_started: this.dt_conversion_started ? TwitchHelper.JSDateToPHPDate(this.dt_conversion_started) : undefined,
+            dt_started_at: this.dt_started_at ? TwitchHelper.JSDateToPHPDate(this.dt_started_at) : undefined,
+            dt_ended_at: this.dt_ended_at ? TwitchHelper.JSDateToPHPDate(this.dt_ended_at) : undefined,
             twitch_vod_id: this.twitch_vod_id,
             twitch_vod_url: this.twitch_vod_url,
             twitch_vod_duration: this.twitch_vod_duration,
@@ -1133,7 +1012,7 @@ export class TwitchVOD {
         };
     }
 
-    saveJSON(reason = "") {
+    public saveJSON(reason = "") {
 
         if (!this.filename) {
             throw new Error("Filename not set.");
@@ -1194,7 +1073,7 @@ export class TwitchVOD {
         generated.is_finalized = this.is_finalized;
 
         // generated.duration 			= this.duration;
-        generated.duration_seconds = this.duration_seconds ?? null;
+        generated.duration_seconds = this.duration_seconds ?? undefined;
 
         generated.video_metadata = this.video_metadata;
         generated.video_fail2 = this.video_fail2;
@@ -1245,6 +1124,258 @@ export class TwitchVOD {
         // $this->load($this->filename);
         // return static::load($this->filename, $api);
         return await TwitchVOD.load(this.filename, api);
+    }
+
+    /**
+     * Checks all chapters for games with the favourite flag set
+     */
+    public hasFavouriteGame(): boolean {
+        return this.chapters.some(chapter => chapter.game?.isFavourite());
+    }
+
+    public delete(): void {
+
+        if (!this.directory) {
+            throw new Error("No directory set for deletion");
+        }
+
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Delete ${this.basename}`);
+
+        for (const file of this.associatedFiles) {
+            if (fs.existsSync(path.join(this.directory, file))) {
+                TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Delete ${file}`);
+                fs.unlinkSync(path.join(this.directory, file));
+            }
+        }
+
+    }
+
+    public async checkValidVod(save = false, force = false): Promise<boolean | null> {
+
+        const current_status = this.twitch_vod_exists;
+
+        if (!this.is_finalized) {
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Trying to check vod valid while not finalized on ${this.basename}`);
+            return null;
+        }
+
+        if (!this.twitch_vod_id) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No twitch VOD id for valid checking on {$this->basename}");
+            if (this.twitch_vod_neversaved) {
+                if (save && current_status !== false) {
+                    this.twitch_vod_exists = false;
+                    this.saveJSON("vod check neversaved");
+                }
+            }
+            return false;
+        }
+
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Check valid VOD for ${this.basename}`);
+
+        const video = await TwitchVOD.getVideo(this.twitch_vod_id.toString());
+
+        if (video) {
+            TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `VOD exists for ${this.basename}`);
+            this.twitch_vod_exists = true;
+            if (save && current_status !== this.twitch_vod_exists) {
+                this.saveJSON("vod check true");
+            }
+            return true;
+        }
+
+        TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `No VOD for ${this.basename}`);
+
+        this.twitch_vod_exists = false;
+
+        if (save && current_status !== this.twitch_vod_exists) {
+            this.saveJSON("vod check false");
+        }
+
+        return false;
+
+    }
+
+    public async checkMutedVod(save = false, force = false): Promise<MUTE_STATUS> {
+
+        if (!this.twitch_vod_id) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "VOD mute check for {$this->basename} canceled, no vod id!");
+            return MUTE_STATUS.UNKNOWN;
+        }
+
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", "Check muted VOD for {$this->basename}");
+
+        return TwitchConfig.cfg("checkmute_method", "api") == "api" ? await this.checkMutedVodAPI(save, force) : await this.checkMutedVodStreamlink(save, force);
+
+    }
+
+    private async checkMutedVodAPI(save = false, force = false): Promise<MUTE_STATUS> {
+
+        if (!this.twitch_vod_id) return MUTE_STATUS.UNKNOWN;
+
+        const previous = this.twitch_vod_muted;
+
+        const data = await TwitchVOD.getVideo(this.twitch_vod_id.toString());
+
+        if (!data) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `VOD ${this.basename} is deleted!`);
+            throw new Error("VOD is deleted!");
+            // return null;
+        } else {
+            if (data.muted_segments && data.muted_segments.length > 0) {
+                this.twitch_vod_muted = MUTE_STATUS.MUTED;
+                TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${this.basename} is muted!`, data);
+                if (previous !== this.twitch_vod_muted && save) {
+                    this.saveJSON("vod mute true");
+                }
+                return MUTE_STATUS.MUTED;
+            } else {
+                this.twitch_vod_muted = MUTE_STATUS.UNMUTED;
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD ${this.basename} is not muted!`, data);
+                if (previous !== this.twitch_vod_muted && save) {
+                    this.saveJSON("vod mute false");
+                }
+                return MUTE_STATUS.UNMUTED;
+            }
+        }
+    }
+
+    private async checkMutedVodStreamlink(save = false, force = false): Promise<MUTE_STATUS> {
+
+        const previous = this.twitch_vod_muted;
+
+        const slp = TwitchHelper.path_streamlink();
+        if (!slp) throw new Error("Streamlink not found!");
+
+        const ex = await TwitchHelper.execSimple(slp, ["--stream-url", `https://www.twitch.tv/videos/${this.twitch_vod_id}`, "best"]);
+
+        if (!ex) {
+            // TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", "VOD {$this->basename} could not be checked for mute status!", ['output' => $output]);
+            throw new Error("VOD could not be checked for mute status, no output.");
+        }
+
+        const output = ex.stdout.join("\n");
+
+        if (output.includes("index-muted-")) {
+            this.twitch_vod_muted = MUTE_STATUS.MUTED;
+            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", "VOD {$this->basename} is muted!");
+            if (previous !== this.twitch_vod_muted && save) {
+                this.saveJSON("vod mute true");
+            }
+            return MUTE_STATUS.MUTED;
+        } else if (output.includes("Unable to find video")) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "VOD {$this->basename} is deleted!");
+            throw new Error("VOD is deleted!");
+        } else {
+            this.twitch_vod_muted = MUTE_STATUS.UNMUTED;
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", "VOD {$this->basename} is not muted!");
+            if (previous !== this.twitch_vod_muted && save) {
+                this.saveJSON("vod mute false");
+            }
+            return MUTE_STATUS.UNMUTED;
+        }
+    }
+
+    /**
+     * 
+     * STATIC
+     * 
+     */
+
+    public static async load(filename: string, api = false): Promise<TwitchVOD> {
+
+        const basename = path.basename(filename);
+
+        const cached_vod = this.getVod(basename);
+        if (cached_vod) {
+            console.log(`[TwitchVOD] Returning cached vod ${basename}`);
+            return cached_vod;
+        }
+
+        // check if file exists
+        if (!fs.existsSync(filename)) {
+            throw new Error("VOD JSON does not exist: " + filename);
+        }
+
+        // load file
+        const data = fs.readFileSync(filename, "utf8");
+        if (data.length == 0) {
+            throw new Error("File is empty: " + filename);
+        }
+
+        // parse file
+        const json = JSON.parse(data);
+
+        // create object
+        const vod = new TwitchVOD();
+
+        vod.capture_id = json.capture_id;
+        vod.filename = filename;
+        vod.basename = path.basename(filename, ".json");
+        vod.directory = path.dirname(filename);
+
+        vod.json = json;
+
+        vod.setupDates();
+        vod.setupBasic();
+        await vod.setupUserData();
+        vod.setupProvider();
+        await vod.setupAssoc();
+        vod.setupFiles();
+
+        // $vod.webpath = TwitchConfig.cfg('basepath') . '/vods/' . (TwitchConfig.cfg("channel_folders") && $vod.streamer_login ? $vod.streamer_login : '');
+
+        // if (api) {
+        // 	vod.setupApiHelper();
+        // }
+
+        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `VOD Class for ${vod.basename} with api ${api ? "enabled" : "disabled"}!`);
+
+        // vod.saveJSON();
+
+        // add to cache
+        this.addVod(vod);
+
+        return vod;
+
+    }
+
+    public static addVod(vod: TwitchVOD): boolean {
+
+        if (!vod.basename)
+            throw new Error("VOD basename is not set!");
+
+        if (this.hasVod(vod.basename))
+            throw new Error(`VOD ${vod.basename} is already in cache!`);
+
+        this.vods.push(vod);
+
+        return this.hasVod(vod.basename);
+    }
+
+    public static hasVod(basename: string): boolean {
+        return this.vods.findIndex(vod => vod.basename == basename) != -1;
+    }
+
+    public static getVod(basename: string): TwitchVOD | undefined {
+        if (TwitchVOD.hasVod(basename)) {
+            return TwitchVOD.vods.find(vod => vod.basename == basename);
+        }
+    }
+
+    /**
+     * Create an empty VOD object
+     * @param filename 
+     * @returns Empty VOD
+     */
+    public static create(filename: string): TwitchVOD {
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", "Create VOD JSON: " + path.basename(filename) + " @ " + path.dirname(filename));
+
+        const vod = new TwitchVOD();
+        vod.created = true;
+        vod.filename = filename;
+        vod.basename = path.basename(filename, ".json");
+        vod.saveJSON("create json");
+        return vod;
     }
 
     public static async downloadVideo(video_id: string, quality: VideoQuality, filename: string) {
@@ -1363,156 +1494,5 @@ export class TwitchVOD {
         return json.data[0];
 
     }
-
-    /**
-     * Checks all chapters for games with the favourite flag set
-     */
-    public hasFavouriteGame(): boolean {
-        return this.chapters.some(chapter => chapter.game?.isFavourite());
-    }
-
-    public delete(): void {
-
-        if (!this.directory) {
-            throw new Error("No directory set for deletion");
-        }
-
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Delete ${this.basename}`);
-
-        for (const file of this.associatedFiles) {
-            if (fs.existsSync(path.join(this.directory, file))) {
-                TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Delete ${file}`);
-                fs.unlinkSync(path.join(this.directory, file));
-            }
-        }
-
-    }
-
-    public async checkValidVod(save = false, force = false): Promise<boolean | null> {
-
-        const current_status = this.twitch_vod_exists;
-
-        if (!this.is_finalized) {
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Trying to check vod valid while not finalized on ${this.basename}`);
-            return null;
-        }
-
-        if (!this.twitch_vod_id) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No twitch VOD id for valid checking on {$this->basename}");
-            if (this.twitch_vod_neversaved) {
-                if (save && current_status !== false) {
-                    this.twitch_vod_exists = false;
-                    this.saveJSON("vod check neversaved");
-                }
-            }
-            return false;
-        }
-
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Check valid VOD for ${this.basename}`);
-
-        const video = await TwitchVOD.getVideo(this.twitch_vod_id.toString());
-
-        if (video) {
-            TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `VOD exists for ${this.basename}`);
-            this.twitch_vod_exists = true;
-            if (save && current_status !== this.twitch_vod_exists) {
-                this.saveJSON("vod check true");
-            }
-            return true;
-        }
-
-        TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `No VOD for ${this.basename}`);
-
-        this.twitch_vod_exists = false;
-
-        if (save && current_status !== this.twitch_vod_exists) {
-            this.saveJSON("vod check false");
-        }
-
-        return false;
-
-    }
-
-    
-    public async checkMutedVod(save = false, force = false): Promise<MUTE_STATUS> {
-
-        if (!this.twitch_vod_id) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "VOD mute check for {$this->basename} canceled, no vod id!");
-            return MUTE_STATUS.UNKNOWN;
-        }
-
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", "Check muted VOD for {$this->basename}");
-
-        return TwitchConfig.cfg("checkmute_method", "api") == "api" ? await this.checkMutedVodAPI(save, force) : await this.checkMutedVodStreamlink(save, force);
-
-    }
-
-    private async checkMutedVodAPI(save = false, force = false): Promise<MUTE_STATUS> {
-
-        if (!this.twitch_vod_id) return MUTE_STATUS.UNKNOWN;
-
-        const previous = this.twitch_vod_muted;
-
-        const data = await TwitchVOD.getVideo(this.twitch_vod_id.toString());
-
-        if (!data) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `VOD ${this.basename} is deleted!`);
-            throw new Error("VOD is deleted!");
-            // return null;
-        } else {
-            if (data.muted_segments && data.muted_segments.length > 0) {
-                this.twitch_vod_muted = MUTE_STATUS.MUTED;
-                TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${this.basename} is muted!`, data);
-                if (previous !== this.twitch_vod_muted && save) {
-                    this.saveJSON("vod mute true");
-                }
-                return MUTE_STATUS.MUTED;
-            } else {
-                this.twitch_vod_muted = MUTE_STATUS.UNMUTED;
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD ${this.basename} is not muted!`, data);
-                if (previous !== this.twitch_vod_muted && save) {
-                    this.saveJSON("vod mute false");
-                }
-                return MUTE_STATUS.UNMUTED;
-            }
-        }
-    }
-
-    private async checkMutedVodStreamlink(save = false, force = false): Promise<MUTE_STATUS> {
-
-        const previous = this.twitch_vod_muted;
-
-        const slp = TwitchHelper.path_streamlink();
-        if (!slp) throw new Error("Streamlink not found!");
-
-        const ex = await TwitchHelper.execSimple(slp, ["--stream-url", `https://www.twitch.tv/videos/${this.twitch_vod_id}`, "best"]);
-
-        if (!ex) {
-            // TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", "VOD {$this->basename} could not be checked for mute status!", ['output' => $output]);
-            throw new Error("VOD could not be checked for mute status, no output.");
-        }
-
-        const output = ex.stdout.join("\n");
-
-        if (output.includes("index-muted-")) {
-            this.twitch_vod_muted = MUTE_STATUS.MUTED;
-            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", "VOD {$this->basename} is muted!");
-            if (previous !== this.twitch_vod_muted && save) {
-                this.saveJSON("vod mute true");
-            }
-            return MUTE_STATUS.MUTED;
-        } else if (output.includes("Unable to find video")) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "VOD {$this->basename} is deleted!");
-            throw new Error("VOD is deleted!");
-        } else {
-            this.twitch_vod_muted = MUTE_STATUS.UNMUTED;
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", "VOD {$this->basename} is not muted!");
-            if (previous !== this.twitch_vod_muted && save) {
-                this.saveJSON("vod mute false");
-            }
-            return MUTE_STATUS.UNMUTED;
-        }
-    }
-
 
 }

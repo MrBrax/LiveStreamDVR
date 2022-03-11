@@ -108,7 +108,170 @@ export class TwitchChannel {
 
     public deactivated = false;
 
-    static async loadAbstract(channel_id: string, api: boolean): Promise<TwitchChannel> {
+    applyConfig(channel_config: ChannelConfig) {
+        this.quality = channel_config.quality !== undefined ? channel_config.quality : ["best"];
+        this.match = channel_config.match !== undefined ? channel_config.match : [];
+        this.download_chat = channel_config.download_chat !== undefined ? channel_config.download_chat : false;
+        this.no_capture = channel_config.no_capture !== undefined ? channel_config.no_capture : false;
+        this.burn_chat = channel_config.burn_chat !== undefined ? channel_config.burn_chat : false;
+    }
+
+    /**
+     * Folder for the channel that stores VODs and all other data
+     * 
+     * @returns {string} Folder path
+     */
+    public getFolder(): string {
+        return TwitchHelper.vodFolder(this.login);
+    }
+
+    private async parseVODs(api = false) {
+
+        // $this->vods_raw = glob($this->getFolder() . DIRECTORY_SEPARATOR . $this->login . "_*.json");
+        this.vods_raw = fs.readdirSync(this.getFolder()).filter(file => file.startsWith(this.login + "_") && file.endsWith(".json"));
+        this.vods_list = [];
+        this.vods_size = 0;
+
+        for (const vod of this.vods_raw) {
+
+            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Try to parse VOD ${vod}`);
+
+            const vod_full_path = path.join(this.getFolder(), vod);
+
+            const vodclass = await TwitchVOD.load(vod_full_path, api);
+
+            if (!vodclass) {
+                continue;
+            }
+
+
+            // if (vodclass.is_capturing) {
+            //     $this->is_live = true;
+            //     $this->current_vod = $vodclass;
+            //     $this->current_game = $vodclass->getCurrentGame();
+            //     $this->current_duration = $vodclass->getDurationLive() ?: null;
+            // }
+            // 
+            // if ($vodclass->is_converting) {
+            //     $this->is_converting = true;
+            // }
+
+            if (vodclass.segments) {
+                this.vods_size += vodclass.segments.reduce((acc, seg) => acc + (seg && seg.filesize ? seg.filesize : 0), 0);
+            }
+
+            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `VOD ${vod} added to ${this.login}`);
+
+            this.vods_list.push(vodclass);
+        }
+    }
+
+    public getSubscriptionStatus() {
+        for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
+            if (TwitchConfig.getCache(`${this.userid}.substatus.${sub_type}`) != TwitchHelper.SUBSTATUS.SUBSCRIBED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public toAPI() {
+        return {
+            userid: this.userid,
+            login: this.login,
+            display_name: this.display_name,
+            description: this.description,
+            profile_image_url: this.profile_image_url,
+            is_live: this.is_live,
+            is_converting: this.is_converting,
+            current_vod: this.current_vod?.toAPI(),
+            current_game: this.current_game,
+            current_duration: this.current_duration,
+            quality: this.quality,
+            match: this.match,
+            download_chat: this.download_chat,
+            no_capture: this.no_capture,
+            burn_chat: this.burn_chat,
+            // subbed_at: this.subbed_at,
+            // expires_at: this.expires_at,
+            // last_online: this.last_online,
+            vods_list: this.vods_list?.map(vod => vod.toAPI()),
+            vods_raw: this.vods_raw,
+            vods_size: this.vods_size,
+            channel_data: this.channel_data,
+            config: this.config,
+            deactivated: this.deactivated,
+            api_getSubscriptionStatus: this.getSubscriptionStatus(),
+        };
+    }
+
+    /**
+     * Update and save channel config
+     * 
+     * @param config 
+     */
+    public update(config: ChannelConfig): boolean {
+        const i = TwitchChannel.channels_config.findIndex(ch => ch.login === this.login);
+        if (i !== -1) {
+            this.config = config;
+            this.applyConfig(config);
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", `Replacing channel config for ${this.login}`);
+            TwitchChannel.channels_config[i] = config;
+            TwitchChannel.saveChannelsConfig();
+            return true;
+        } else {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not update channel ${this.login}`);
+        }
+        return false;
+    }
+
+    public delete() {
+        const login = this.login;
+        if (!login) throw new Error("Channel login is not set");
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", `Deleting channel ${login}`);
+        const index_config = TwitchChannel.channels_config.findIndex(ch => ch.login === login);
+        if (index_config !== -1) {
+            TwitchChannel.channels_config.splice(index_config, 1);
+        }
+
+        const index_channel = TwitchChannel.channels.findIndex(ch => ch.login === login);
+        if (index_channel !== -1) {
+            TwitchChannel.channels.splice(index_channel, 1);
+        }
+
+        // @todo: unsubscribe
+
+        return TwitchChannel.getChannelByLogin(login) == undefined;
+    }
+
+    get current_vod(): TwitchVOD | undefined {
+        return this.vods_list?.find(vod => vod.is_capturing);
+    }
+
+    get current_game(): TwitchVODChapter | undefined {
+        return this.current_vod?.chapters.at(-1);
+    }
+
+    get current_duration(): number | undefined {
+        return this.current_vod?.duration_seconds;
+    }
+
+    // a bit excessive since current_vod is already set with the capturing vod
+    get is_live(): boolean {
+        return this.current_vod != undefined && this.current_vod.is_capturing;
+    }
+
+    get is_converting(): boolean {
+        return this.vods_list?.some(vod => vod.is_converting) ?? false;
+    }
+
+    /**
+     * 
+     * STATIC
+     * 
+     */
+
+    public static async loadAbstract(channel_id: string, api: boolean): Promise<TwitchChannel> {
 
         TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Load channel ${channel_id}`);
 
@@ -165,15 +328,117 @@ export class TwitchChannel {
 
     }
 
-    applyConfig(channel_config: ChannelConfig) {
-        this.quality = channel_config.quality !== undefined ? channel_config.quality : ["best"];
-        this.match = channel_config.match !== undefined ? channel_config.match : [];
-        this.download_chat = channel_config.download_chat !== undefined ? channel_config.download_chat : false;
-        this.no_capture = channel_config.no_capture !== undefined ? channel_config.no_capture : false;
-        this.burn_chat = channel_config.burn_chat !== undefined ? channel_config.burn_chat : false;
+    /**
+     * Create and insert channel in memory. Subscribe too.
+     * 
+     * @param config
+     * @returns 
+     */
+    public static async create(config: ChannelConfig): Promise<TwitchChannel> {
+
+        const exists_config = TwitchChannel.channels_config.find(ch => ch.login === config.login);
+        if (exists_config) throw new Error(`Channel ${config.login} already exists in config`);
+
+        const exists_channel = TwitchChannel.channels.find(ch => ch.login === config.login);
+        if (exists_channel) throw new Error(`Channel ${config.login} already exists in channels`);
+
+        TwitchChannel.channels_config.push(config);
+        TwitchChannel.saveChannelsConfig();
+
+        const channel = await TwitchChannel.loadFromLogin(config.login, true);
+        if (!channel) throw new Error(`Channel ${config.login} could not be loaded`);
+
+        TwitchChannel.channels.push(channel);
+
+        // @todo: subscribe
+
+        return channel;
     }
 
-    static async loadFromLogin(login: string, api: boolean): Promise<TwitchChannel> {
+    public static loadChannelsConfig() {
+        if (!fs.existsSync(BaseConfigPath.channel)) {
+            return false;
+        }
+
+        const data = fs.readFileSync(BaseConfigPath.channel, "utf8");
+        this.channels_config = JSON.parse(data);
+    }
+
+    public static saveChannelsConfig() {
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", "Saving channel config");
+        fs.writeFileSync(BaseConfigPath.channel, JSON.stringify(this.channels_config));
+    }
+
+    public static loadChannelsCache() {
+        if (!fs.existsSync(BaseConfigPath.streamerCache)) return false;
+
+        const data = fs.readFileSync(BaseConfigPath.streamerCache, "utf8");
+        this.channels_cache = JSON.parse(data);
+        TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${Object.keys(this.channels_cache).length} channels from cache.`);
+    }
+
+    /**
+     * Load channels into memory
+     * 
+     * @returns Amount of loaded channels
+     */
+    public static async loadChannels(): Promise<number> {
+        if (this.channels_config.length > 0) {
+            for (const channel of this.channels_config) {
+
+                let ch: TwitchChannel;
+
+                try {
+                    ch = await TwitchChannel.loadFromLogin(channel.login, true);
+                } catch (th) {
+                    TwitchLog.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be loaded: ${th}`);
+                    // continue;
+                    break;
+                }
+
+                if (ch) {
+                    this.channels.push(ch);
+                    TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "config", `Loaded channel ${channel.login}`);
+                } else {
+                    TwitchLog.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be added, please check logs.`);
+                    break;
+                }
+            }
+        }
+        return this.channels.length;
+    }
+
+    public static getChannels(): TwitchChannel[] {
+        return this.channels;
+    }
+
+    public static getChannelByLogin(login: string): TwitchChannel | undefined {
+        return this.channels.find(ch => ch.login === login);
+    }
+
+    public static async getStreams(streamer_id: string): Promise<Stream[] | false> {
+        let response;
+
+        try {
+            response = await TwitchHelper.axios.get(`/helix/streams?user_id=${streamer_id}`);
+        } catch (error) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get streams for ${streamer_id}: ${error}`);
+            return false;
+        }
+
+        const json: StreamsResponse = response.data;
+
+        if (!json.data) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `No streams found for user id ${streamer_id}`);
+            return false;
+        }
+
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Querying streams for streamer id ${streamer_id}`);
+
+        return json.data ?? false;
+    }
+
+    public static async loadFromLogin(login: string, api: boolean): Promise<TwitchChannel> {
         if (!login) throw new Error("Streamer login is empty");
         if (typeof login !== "string") throw new TypeError("Streamer login is not a string");
         TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Load from login ${login}`);
@@ -182,31 +447,26 @@ export class TwitchChannel {
         return this.loadAbstract(channel_id, api); // $channel;
     }
 
-    static async channelIdFromLogin(login: string): Promise<string | false> {
-        // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Convert login to channel id for ${login}`);
+    public static async channelIdFromLogin(login: string): Promise<string | false> {
         const channelData = await this.getChannelDataByLogin(login, false);
         return channelData ? channelData.id : false;
     }
 
-    static async channelLoginFromId(channel_id: string): Promise<string | false> {
-        // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Convert channel id to login for ${channel_id}`);
+    public static async channelLoginFromId(channel_id: string): Promise<string | false> {
         const channelData = await this.getChannelDataById(channel_id, false);
         return channelData ? channelData.login : false;
     }
 
-    static async channelDisplayNameFromId(channel_id: string): Promise<string | false> {
-        // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Convert channel id to display name for ${channel_id}`);
+    public static async channelDisplayNameFromId(channel_id: string): Promise<string | false> {
         const channelData = await this.getChannelDataById(channel_id, false);
         return channelData ? channelData.display_name : false;
     }
 
-    static async getChannelDataById(channel_id: string, force = false): Promise<ChannelData | false> {
-        // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Fetching channel data for ID ${channel_id}`);
+    public static async getChannelDataById(channel_id: string, force = false): Promise<ChannelData | false> {
         return await this.getChannelDataProxy("id", channel_id, force);
     }
 
-    static async getChannelDataByLogin(login: string, force = false): Promise<ChannelData | false> {
-        // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Fetching channel data for LOGIN ${login}`);
+    public static async getChannelDataByLogin(login: string, force = false): Promise<ChannelData | false> {
         return await this.getChannelDataProxy("login", login, force);
     }
 
@@ -286,258 +546,6 @@ export class TwitchChannel {
 
         return userData;
 
-    }
-
-    /**
-     * Folder for the channel that stores VODs and all other data
-     * 
-     * @returns {string} Folder path
-     */
-    public getFolder(): string {
-        return TwitchHelper.vodFolder(this.login);
-    }
-
-    private async parseVODs(api = false) {
-
-        // $this->vods_raw = glob($this->getFolder() . DIRECTORY_SEPARATOR . $this->login . "_*.json");
-        this.vods_raw = fs.readdirSync(this.getFolder()).filter(file => file.startsWith(this.login + "_") && file.endsWith(".json"));
-        this.vods_list = [];
-        this.vods_size = 0;
-
-        for (const vod of this.vods_raw) {
-
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Try to parse VOD ${vod}`);
-
-            const vod_full_path = path.join(this.getFolder(), vod);
-
-            const vodclass = await TwitchVOD.load(vod_full_path, api);
-
-            if (!vodclass) {
-                continue;
-            }
-
-
-            // if (vodclass.is_capturing) {
-            //     $this->is_live = true;
-            //     $this->current_vod = $vodclass;
-            //     $this->current_game = $vodclass->getCurrentGame();
-            //     $this->current_duration = $vodclass->getDurationLive() ?: null;
-            // }
-            // 
-            // if ($vodclass->is_converting) {
-            //     $this->is_converting = true;
-            // }
-
-            if (vodclass.segments) {
-                this.vods_size += vodclass.segments.reduce((acc, seg) => acc + (seg && seg.filesize ? seg.filesize : 0), 0);
-            }
-
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `VOD ${vod} added to ${this.login}`);
-
-            this.vods_list.push(vodclass);
-        }
-    }
-
-    static loadChannelsConfig() {
-        if (!fs.existsSync(BaseConfigPath.channel)) {
-            return false;
-        }
-
-        const data = fs.readFileSync(BaseConfigPath.channel, "utf8");
-        this.channels_config = JSON.parse(data);
-    }
-
-    static saveChannelsConfig() {
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", "Saving channel config");
-        fs.writeFileSync(BaseConfigPath.channel, JSON.stringify(this.channels_config));
-    }
-
-    static loadChannelsCache() {
-        if (!fs.existsSync(BaseConfigPath.streamerCache))  return false;
-
-        const data = fs.readFileSync(BaseConfigPath.streamerCache, "utf8");
-        this.channels_cache = JSON.parse(data);
-        TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${Object.keys(this.channels_cache).length} channels from cache.`);
-    }
-
-    /**
-     * Load channels into memory
-     * 
-     * @returns Amount of loaded channels
-     */
-    static async loadChannels(): Promise<number> {
-        if (this.channels_config.length > 0) {
-            for (const channel of this.channels_config) {
-
-                let ch: TwitchChannel;
-
-                try {
-                    ch = await TwitchChannel.loadFromLogin(channel.login, true);
-                } catch (th) {
-                    TwitchLog.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be loaded: ${th}`);
-                    // continue;
-                    break;
-                }
-
-                if (ch) {
-                    this.channels.push(ch);
-                    TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "config", `Loaded channel ${channel.login}`);
-                } else {
-                    TwitchLog.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be added, please check logs.`);
-                    break;
-                }
-            }
-        }
-        return this.channels.length;
-    }
-
-    static getChannels(): TwitchChannel[] {
-        return this.channels;
-    }
-
-    public static getChannelByLogin(login: string): TwitchChannel | undefined {
-        return this.channels.find(ch => ch.login === login);
-    }
-
-    public static async getStreams(streamer_id: string): Promise<Stream[] | false> {
-        let response;
-
-        try {
-            response = await TwitchHelper.axios.get(`/helix/streams?user_id=${streamer_id}`);
-        } catch (error) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get streams for ${streamer_id}: ${error}`);
-            return false;
-        }
-
-        const json: StreamsResponse = response.data;
-
-        if (!json.data) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `No streams found for user id ${streamer_id}`);
-            return false;
-        }
-
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Querying streams for streamer id ${streamer_id}`);
-
-        return json.data ?? false;
-    }
-
-    get current_vod(): TwitchVOD | undefined {
-        return this.vods_list?.find(vod => vod.is_capturing);
-    }
-
-    get current_game(): TwitchVODChapter | undefined {
-        return this.current_vod?.chapters.at(-1);
-    }
-
-    get current_duration(): number | undefined {
-        return this.current_vod?.duration_seconds;
-    }
-
-    // a bit excessive since current_vod is already set with the capturing vod
-    get is_live(): boolean {
-        return this.current_vod != undefined && this.current_vod.is_capturing;
-    }
-
-    get is_converting(): boolean {
-        return this.vods_list?.some(vod => vod.is_converting) ?? false;
-    }
-
-    public getSubscriptionStatus() {
-        for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
-            if (TwitchConfig.getCache(`${this.userid}.substatus.${sub_type}`) != TwitchHelper.SUBSTATUS.SUBSCRIBED) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public toAPI() {
-        return {
-            userid: this.userid,
-            login: this.login,
-            display_name: this.display_name,
-            description: this.description,
-            profile_image_url: this.profile_image_url,
-            is_live: this.is_live,
-            is_converting: this.is_converting,
-            current_vod: this.current_vod?.toAPI(),
-            current_game: this.current_game,
-            current_duration: this.current_duration,
-            quality: this.quality,
-            match: this.match,
-            download_chat: this.download_chat,
-            no_capture: this.no_capture,
-            burn_chat: this.burn_chat,
-            // subbed_at: this.subbed_at,
-            // expires_at: this.expires_at,
-            // last_online: this.last_online,
-            vods_list: this.vods_list?.map(vod => vod.toAPI()),
-            vods_raw: this.vods_raw,
-            vods_size: this.vods_size,
-            channel_data: this.channel_data,
-            config: this.config,
-            deactivated: this.deactivated,
-            api_getSubscriptionStatus: this.getSubscriptionStatus(),
-        };
-    }
-
-    public static async create(config: ChannelConfig): Promise<TwitchChannel> {
-        
-        const exists_config = TwitchChannel.channels_config.find(ch => ch.login === config.login);
-        if(exists_config) throw new Error(`Channel ${config.login} already exists in config`);
-
-        const exists_channel = TwitchChannel.channels.find(ch => ch.login === config.login);
-        if(exists_channel) throw new Error(`Channel ${config.login} already exists in channels`);
-
-        const channel = await TwitchChannel.loadFromLogin(config.login, true);
-        if(!channel) throw new Error(`Channel ${config.login} could not be loaded`);
-
-        TwitchChannel.channels_config.push(config);
-        TwitchChannel.channels.push(channel);
-        TwitchChannel.saveChannelsConfig();
-
-        // @todo: subscribe
-
-        return channel;
-    }
-
-    /**
-     * Update and save channel config
-     * 
-     * @param config 
-     */
-    public update(config: ChannelConfig): boolean {
-        const i = TwitchChannel.channels_config.findIndex(ch => ch.login === this.login);
-        if (i !== -1) {
-            this.config = config;
-            this.applyConfig(config);
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", `Replacing channel config for ${this.login}`);
-            TwitchChannel.channels_config[i] = config;
-            TwitchChannel.saveChannelsConfig();
-            return true;
-        } else {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not update channel ${this.login}`);
-        }
-        return false;
-    }
-
-    public delete() {
-        const login = this.login;
-        if (!login) throw new Error("Channel login is not set");
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", `Deleting channel ${login}`);
-        const index_config = TwitchChannel.channels_config.findIndex(ch => ch.login === login);
-        if (index_config !== -1) {
-            TwitchChannel.channels_config.splice(index_config, 1);
-        }
-
-        const index_channel = TwitchChannel.channels.findIndex(ch => ch.login === login);
-        if (index_channel !== -1) {
-            TwitchChannel.channels.splice(index_channel, 1);
-        }
-
-        // @todo: unsubscribe
-
-        return TwitchChannel.getChannelByLogin(login) == undefined;
     }
 
 }
