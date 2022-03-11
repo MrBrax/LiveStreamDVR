@@ -8,6 +8,7 @@ import chalk from "chalk";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
+import { KeyValue } from "./KeyValue";
 
 export interface SettingField<T> {
     key: string;
@@ -235,52 +236,6 @@ export class TwitchConfig {
 
     }
 
-    // todo: redis or something
-    static getCache(key: string): string | false {
-        /*
-        $key = str_replace("/", "", $key);
-        if (!file_exists(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key)) return false;
-        return file_get_contents(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key);
-        */
-
-        key = key.replace(/\//g, "");
-
-        const keyPath = path.join(BaseConfigFolder.keyvalue, key);
-
-        if (!fs.existsSync(keyPath)) {
-            return false;
-        }
-
-        return fs.readFileSync(keyPath, "utf8");
-
-    }
-
-    static setCache(key: string, value: string | null) {
-        /*
-        $key = str_replace("/", "", $key);
-        if ($value === null) {
-            if (file_exists(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key)) {
-                unlink(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key);
-            }
-            return;
-        }
-        file_put_contents(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "kv" . DIRECTORY_SEPARATOR . $key, $value);
-        */
-
-        key = key.replace(/\//g, "");
-
-        const keyPath = path.join(BaseConfigFolder.keyvalue, key);
-
-        if (value === null) {
-            if (fs.existsSync(keyPath)) {
-                fs.unlinkSync(keyPath);
-            }
-            return;
-        }
-
-        fs.writeFileSync(keyPath, value);
-    }
-
     static async setupAxios() {
 
         const token = await TwitchHelper.getAccessToken();
@@ -308,6 +263,8 @@ export class TwitchConfig {
             console.error(chalk.red("Config already loaded, has init been called twice?"));
             return false;
         }
+
+        KeyValue.load();
         
         TwitchConfig.loadConfig();
         

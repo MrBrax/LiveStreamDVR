@@ -20,4 +20,5 @@ export const BaseConfigPath = {
     gameDb: path.join(BaseConfigFolder.cache, "games_v2.json"),
     history: path.join(BaseConfigFolder.cache, "history.json"),
     streamerCache: path.join(BaseConfigFolder.cache, "streamers_v2.json"),
+    keyvalue: path.join(BaseConfigFolder.keyvalue, "kv.json"),
 };

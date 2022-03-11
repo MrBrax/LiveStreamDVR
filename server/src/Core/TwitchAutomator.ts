@@ -13,6 +13,7 @@ import { format, parse } from "date-fns";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { spawn } from "child_process";
 import { TwitchWebhook } from "./TwitchWebhook";
+import { KeyValue } from "./KeyValue";
 
 export class TwitchAutomator {
     vod: TwitchVOD | undefined;
@@ -46,7 +47,7 @@ export class TwitchAutomator {
     }
 
     public getVodID() {
-        return TwitchConfig.getCache(`${this.getLogin()}.vod.id`);
+        return KeyValue.get(`${this.getLogin()}.vod.id`);
         // return $this->payload['id'];
     }
 
@@ -63,7 +64,7 @@ export class TwitchAutomator {
     }
 
     public getStartDate() {
-        return TwitchConfig.getCache(`${this.getLogin()}.vod.started_at`) || "";
+        return KeyValue.get(`${this.getLogin()}.vod.started_at`) || "";
     }
 
     public getDateTime() {
@@ -114,14 +115,14 @@ export class TwitchAutomator {
                 return false;
             }
 
-            // TwitchConfig.setCache("${this.broadcaster_user_login}.last.update", (new DateTime())->format(DateTime::ATOM));
-            TwitchConfig.setCache(`${this.broadcaster_user_login}.last.update`, new Date().toISOString());
+            // KeyValue.set("${this.broadcaster_user_login}.last.update", (new DateTime())->format(DateTime::ATOM));
+            KeyValue.set(`${this.broadcaster_user_login}.last.update`, new Date().toISOString());
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Channel update for ${this.broadcaster_user_login}`);
 
             await this.updateGame();
         } else if (subscription_type == "stream.online" && "id" in event) {
 
-            TwitchConfig.setCache(`${this.broadcaster_user_login}.last.online`, new Date().toISOString());
+            KeyValue.set(`${this.broadcaster_user_login}.last.online`, new Date().toISOString());
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Stream online for ${this.broadcaster_user_login} (retry ${message_retry})`);
 
             const channel_obj = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
@@ -141,9 +142,9 @@ export class TwitchAutomator {
                 return false;
             }
 
-            TwitchConfig.setCache(`${this.broadcaster_user_login}.online`, "1");
-            TwitchConfig.setCache(`${this.broadcaster_user_login}.vod.id`, event.id);
-            TwitchConfig.setCache(`${this.broadcaster_user_login}.vod.started_at`, event.started_at);
+            KeyValue.set(`${this.broadcaster_user_login}.online`, "1");
+            KeyValue.set(`${this.broadcaster_user_login}.vod.id`, event.id);
+            KeyValue.set(`${this.broadcaster_user_login}.vod.started_at`, event.started_at);
 
             // $this->payload = $data['data'][0];
 
@@ -185,13 +186,13 @@ export class TwitchAutomator {
             }
         } else if (subscription_type == "stream.offline") {
 
-            TwitchConfig.setCache(`${this.broadcaster_user_login}.last.offline`, new Date().toISOString());
+            KeyValue.set(`${this.broadcaster_user_login}.last.offline`, new Date().toISOString());
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Stream offline for ${this.broadcaster_user_login}`);
 
-            // TwitchConfig.setCache("${this.broadcaster_user_login}.online", "0");
-            TwitchConfig.setCache(`${this.broadcaster_user_login}.online`, null);
-            // TwitchConfig.setCache("${this.broadcaster_user_login}.vod.id", null);
-            // TwitchConfig.setCache("${this.broadcaster_user_login}.vod.started_at", null);
+            // KeyValue.set("${this.broadcaster_user_login}.online", "0");
+            KeyValue.set(`${this.broadcaster_user_login}.online`, null);
+            // KeyValue.set("${this.broadcaster_user_login}.vod.id", null);
+            // KeyValue.set("${this.broadcaster_user_login}.vod.started_at", null);
 
             await this.end();
         } else {
@@ -204,7 +205,7 @@ export class TwitchAutomator {
     public async updateGame(from_cache = false) {
 
         // if online
-        if (TwitchConfig.getCache(`${this.getLogin()}.online`) === "1") {
+        if (KeyValue.get(`${this.getLogin()}.online`) === "1") {
 
             const basename = this.basename();
             const folder_base = TwitchHelper.vodFolder(this.getLogin());
@@ -216,7 +217,7 @@ export class TwitchAutomator {
                     TwitchLog.logAdvanced(LOGLEVEL.FATAL, "automator", `Tried to load VOD ${basename} but errored: ${th}`);
 
                     TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Resetting online status on ${this.getLogin()} due to file error.`);
-                    TwitchConfig.setCache(`${this.broadcaster_user_login}.online`, null);
+                    KeyValue.set(`${this.broadcaster_user_login}.online`, null);
                     return false;
                 }
             }
@@ -225,7 +226,7 @@ export class TwitchAutomator {
 
             // fetch from cache
             if (from_cache) {
-                const cd = TwitchConfig.getCache(`${this.getLogin()}.channeldata`);
+                const cd = KeyValue.get(`${this.getLogin()}.channeldata`);
                 if (!cd) {
                     TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Tried to get channel cache for ${this.broadcaster_user_login} but it was not available.`);
                     return false;
@@ -288,7 +289,7 @@ export class TwitchAutomator {
             }
 
             const event = this.payload_eventsub.event;
-            TwitchConfig.setCache(`${this.broadcaster_user_login}.channeldata`, JSON.stringify(this.payload_eventsub.event));
+            KeyValue.set(`${this.broadcaster_user_login}.channeldata`, JSON.stringify(this.payload_eventsub.event));
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, saving channel data to cache: ${event.category_name} (${event.title})`);
 
             const chapter_data = await this.getChapterData(event);
@@ -496,9 +497,9 @@ export class TwitchAutomator {
 
         // update the game + title if it wasn't updated already
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Update game for ${basename}`);
-        if (TwitchConfig.getCache(`${this.getLogin()}.channeldata`)) {
+        if (KeyValue.get(`${this.getLogin()}.channeldata`)) {
             this.updateGame(true);
-            TwitchConfig.setCache(`${this.getLogin()}.channeldata`, null);
+            KeyValue.set(`${this.getLogin()}.channeldata`, null);
         }
 
         const container_ext = TwitchConfig.cfg("vod_container", "mp4");

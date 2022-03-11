@@ -5,6 +5,7 @@ import axios from "axios";
 import fs from "fs";
 import path from "path";
 import { BaseConfigPath } from "./BaseConfig";
+import { KeyValue } from "./KeyValue";
 import { TwitchConfig, VideoQuality } from "./TwitchConfig";
 import { TwitchHelper } from "./TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
@@ -168,7 +169,7 @@ export class TwitchChannel {
 
     public getSubscriptionStatus() {
         for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
-            if (TwitchConfig.getCache(`${this.userid}.substatus.${sub_type}`) != TwitchHelper.SUBSTATUS.SUBSCRIBED) {
+            if (KeyValue.get(`${this.userid}.substatus.${sub_type}`) != TwitchHelper.SUBSTATUS.SUBSCRIBED) {
                 return false;
             }
         }
@@ -487,7 +488,7 @@ export class TwitchChannel {
             TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Channel data not found in memory cache for ${method} ${identifier}, continue fetching`);
         }
 
-        if (TwitchConfig.getCache(`${identifier}.deleted`) == "1" && !force) {
+        if (KeyValue.get(`${identifier}.deleted`) == "1" && !force) {
             TwitchLog.logAdvanced(LOGLEVEL.WARNING, "helper", `Channel ${identifier} is deleted, ignore. Delete kv file to force update.`);
             return false;
         }

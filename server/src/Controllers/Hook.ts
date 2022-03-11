@@ -140,13 +140,13 @@ export class Hook {
                             "hook",
                             "Invalid signature check for challenge!"
                         );
-                        TwitchConfig.setCache(`${channel_id}.substatus.${sub_type}`, TwitchHelper.SUBSTATUS.FAILED);
+                        KeyValue.set(`${channel_id}.substatus.${sub_type}`, TwitchHelper.SUBSTATUS.FAILED);
                         res.status(400).send("Invalid signature check");
                     }
 
                     TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "hook", `Challenge completed, subscription active for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}).`, debugMeta);
 
-                    TwitchConfig.setCache(`${channel_id}.substatus.${sub_type}`, TwitchHelper.SUBSTATUS.SUBSCRIBED);
+                    KeyValue.set(`${channel_id}.substatus.${sub_type}`, TwitchHelper.SUBSTATUS.SUBSCRIBED);
 
                     // return the challenge string to twitch if signature matches
                     res.status(202).send(challenge);
