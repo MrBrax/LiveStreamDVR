@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import fs from "fs";
 import { BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
@@ -46,14 +47,18 @@ export class KeyValue {
     }
 
     static load() {
+        console.log(chalk.green("Loading key-value pairs..."));
         if (fs.existsSync(BaseConfigPath.keyvalue)) {
             this.data = JSON.parse(fs.readFileSync(BaseConfigPath.keyvalue, "utf8"));
-            TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "keyvalue", `Loaded ${Object.keys(this.data).length} key-value pairs`);
+            console.log(chalk.green(`Loaded ${Object.keys(this.data).length} key-value pairs`));
+        } else {
+            console.log("No key-value pairs found in storage.");
+            this.migrateFromFileBasedKeyValue();
         }
-        this.migrateFromFileBasedKeyValue();
     }
 
     static migrateFromFileBasedKeyValue() {
+        console.log(chalk.green("Migrating key-value pairs..."));
         const files = fs.readdirSync(BaseConfigFolder.keyvalue).filter(file => !file.endsWith(".json"));
         let migrated = 0;
         for (const file of files) {
@@ -64,8 +69,10 @@ export class KeyValue {
             migrated++;
         }
         if (migrated > 0) {
-            TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "keyvalue", `Migrated ${migrated} key-value pairs`);
+            console.log(chalk.green(`Migrated ${migrated} key-value pairs`));
             this.save();
+        } else {
+            console.log("No key-value pairs found to migrate.");
         }
     }
 

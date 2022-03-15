@@ -1,4 +1,4 @@
-import { PHPDateTimeProxy } from "@/types";
+import { PHPDateTimeProxy } from "../types";
 import { parse, format } from "date-fns";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchHelper } from "./TwitchHelper";

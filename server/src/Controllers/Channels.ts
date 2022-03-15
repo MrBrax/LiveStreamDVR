@@ -1,7 +1,7 @@
 import express from "express";
 import { generateStreamerList } from "../StreamerList";
 import { ChannelConfig, TwitchChannel } from "../Core/TwitchChannel";
-import { VideoQuality } from "@/Core/TwitchConfig";
+import { VideoQuality } from "../Core/TwitchConfig";
 
 export function ListChannels(req: express.Request, res: express.Response): void {
 

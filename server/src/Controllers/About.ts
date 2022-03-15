@@ -1,8 +1,8 @@
-import { BaseConfigFolder } from "@/Core/BaseConfig";
+import { AppRoot, BaseConfigFolder } from "../Core/BaseConfig";
 import express from "express";
 import fs from "fs";
 import path from "path";
-import { ExecReturn, TwitchHelper } from "@/Core/TwitchHelper";
+import { ExecReturn, TwitchHelper } from "../Core/TwitchHelper";
 
 interface Bins {
     path?: string;
@@ -15,7 +15,7 @@ export async function About(req: express.Request, res: express.Response) {
     const bins: Record<string, Bins> = {};
 
     const pip_requirements: Record<string, { comparator: string; version: string; }> = {};
-    const requirements_file = path.join(__dirname, "..", "..", "..", "requirements.txt");
+    const requirements_file = path.join(AppRoot, "requirements.txt");
     if (fs.existsSync(requirements_file)) {
         const requirements_data = fs.readFileSync(requirements_file, "utf8");
         const lines = requirements_data.split("\n");

@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import { BaseConfigFolder } from "./BaseConfig";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
-import { PHPDateTimeProxy } from "@/types";
+import { PHPDateTimeProxy } from "../types";
 import { TwitchHelper } from "./TwitchHelper";
 import { parse } from "date-fns";
 import { ChildProcessWithoutNullStreams } from "child_process";

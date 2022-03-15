@@ -1,14 +1,14 @@
 import express from "express";
-import * as Settings from "@/Controllers/Settings";
-import * as Channels from "@/Controllers/Channels";
-import * as Log from "@/Controllers/Log";
-import * as Vod from "@/Controllers/Vod";
-import * as Games from "@/Controllers/Games";
-import * as About from "@/Controllers/About";
-import * as Jobs from "@/Controllers/Jobs";
-import * as Subscriptions from "@/Controllers/Subscriptions";
-import * as Cron from "@/Controllers/Cron";
-import { TwitchVOD } from "@/Core/TwitchVOD";
+import * as Settings from "../Controllers/Settings";
+import * as Channels from "../Controllers/Channels";
+import * as Log from "../Controllers/Log";
+import * as Vod from "../Controllers/Vod";
+import * as Games from "../Controllers/Games";
+import * as About from "../Controllers/About";
+import * as Jobs from "../Controllers/Jobs";
+import * as Subscriptions from "../Controllers/Subscriptions";
+import * as Cron from "../Controllers/Cron";
+import { TwitchVOD } from "../Core/TwitchVOD";
 
 const router = express.Router();
 

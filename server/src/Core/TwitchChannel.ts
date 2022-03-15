@@ -1,7 +1,7 @@
-import { ErrorResponse, EventSubTypes } from "@/TwitchAPI/Shared";
-import { Stream, StreamsResponse } from "@/TwitchAPI/Streams";
-import { SubscriptionRequest, SubscriptionResponse } from "@/TwitchAPI/Subscriptions";
-import { User, Users } from "@/TwitchAPI/Users";
+import { ErrorResponse, EventSubTypes } from "../TwitchAPI/Shared";
+import { Stream, StreamsResponse } from "../TwitchAPI/Streams";
+import { SubscriptionRequest, SubscriptionResponse } from "../TwitchAPI/Subscriptions";
+import { User, Users } from "../TwitchAPI/Users";
 import axios from "axios";
 import fs from "fs";
 import path from "path";

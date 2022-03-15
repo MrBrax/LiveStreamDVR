@@ -4,13 +4,13 @@ import { TwitchHelper } from "../Core/TwitchHelper";
 import express from "express";
 import crypto from "crypto";
 import path from "path";
-import { AppRoot } from "@/Core/BaseConfig";
+import { AppRoot } from "../Core/BaseConfig";
 import fs from "fs";
-import { TwitchAutomator } from "@/Core/TwitchAutomator";
-import { EventSubResponse } from "@/TwitchAPI/EventSub";
-import { ChallengeResponse } from "@/TwitchAPI/Challenge";
-import { LOGLEVEL, TwitchLog } from "@/Core/TwitchLog";
-import { KeyValue } from "@/Core/KeyValue";
+import { TwitchAutomator } from "../Core/TwitchAutomator";
+import { EventSubResponse } from "../TwitchAPI/EventSub";
+import { ChallengeResponse } from "../TwitchAPI/Challenge";
+import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
+import { KeyValue } from "../Core/KeyValue";
 
 export class Hook {
 

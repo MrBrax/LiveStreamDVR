@@ -52,6 +52,15 @@ export class TwitchLog {
         // console.log(`Parsed ${lines.length} lines from ${jsonlinename}`);
     }
 
+    /**
+     * Log a message to the log file. Do NOT call before loading the config.
+     * 
+     * @param level 
+     * @param module 
+     * @param text 
+     * @param metadata 
+     * @returns 
+     */
     static logAdvanced(level: LOGLEVEL, module: string, text: string, metadata?: any) {
         if (!TwitchConfig.cfg("debug") && level == LOGLEVEL.DEBUG) return;
 

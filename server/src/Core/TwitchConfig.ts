@@ -131,6 +131,11 @@ export class TwitchConfig {
 
     static cfg<T>(key: string, defaultValue?: T): T {
 
+        if (!this.config) {
+            console.error("Config not loaded", key, defaultValue);
+            throw new Error("Config not loaded");
+        }
+
         if (!this.settingExists(key)) {
             TwitchLog.logAdvanced(LOGLEVEL.WARNING, "config", `Setting '${key}' does not exist.`);
             console.warn(chalk.red(`Setting '${key}' does not exist.`));
@@ -155,10 +160,10 @@ export class TwitchConfig {
 
     static loadConfig() {
 
-        console.log("Loading config");
+        console.log("Loading config...");
 
         if (!fs.existsSync(BaseConfigPath.config)) {
-            console.log("Config file not found, creating new one");
+            console.error("Config file not found, creating new one");
             // throw new Error("Config file does not exist: " + this.configFile);
             this.generateConfig();
         }
@@ -256,6 +261,7 @@ export class TwitchConfig {
     static async init() {
         
         // Main load
+        console.log(chalk.green("Initialising..."));
 
         if (TwitchConfig.config && Object.keys(TwitchConfig.config).length > 0) {
             // throw new Error("Config already loaded, has init been called twice?");

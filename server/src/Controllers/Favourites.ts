@@ -1,4 +1,4 @@
-import { TwitchGame } from "@/Core/TwitchGame";
+import { TwitchGame } from "../Core/TwitchGame";
 import express from "express";
 
 export function ListFavourites(req: express.Request, res: express.Response): void {

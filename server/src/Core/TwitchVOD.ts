@@ -9,9 +9,9 @@ import { TwitchVODChapter, TwitchVODChapterJSON, TwitchVODChapterMinimalJSON } f
 import { TwitchConfig, VideoQuality } from "./TwitchConfig";
 import { TwitchVODSegment } from "./TwitchVODSegment";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
-import { Videos, Video } from "@/TwitchAPI/Video";
+import { Videos, Video } from "../TwitchAPI/Video";
 import { BaseConfigFolder } from "./BaseConfig";
-import { EventSubResponse } from "@/TwitchAPI/EventSub";
+import { EventSubResponse } from "../TwitchAPI/EventSub";
 import { TwitchWebhook } from "./TwitchWebhook";
 
 export enum MUTE_STATUS {

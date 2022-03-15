@@ -8,11 +8,11 @@ import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { spawn } from "child_process";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { MediaInfo } from "../../../client-vue/src/mediainfo";
-import { MediaInfoJSONOutput } from "@/MediaInfo";
+import { MediaInfoJSONOutput } from "../MediaInfo";
 import { Stream } from "stream";
 import chalk from "chalk";
 import { Subscriptions } from "../TwitchAPI/Subscriptions";
-import { EventSubTypes } from "@/TwitchAPI/Shared";
+import { EventSubTypes } from "../TwitchAPI/Shared";
 
 export interface ExecReturn {
     stdout: string[];

@@ -8,12 +8,7 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "baseUrl": "src",
-    "outDir": "./build",
-    "paths": {
-      "@/*": [
-        "./*"
-      ]
-    },
+    "outDir": "./build"
   },
   "include": [
     "src/**/*.ts",
