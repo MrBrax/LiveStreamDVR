@@ -51,7 +51,7 @@ export async function About(req: express.Request, res: express.Response) {
             let exec_out;
             try {
                 exec_out = await TwitchHelper.execSimple(bin_data.binary, bin_data.version_args);
-            } catch (error: unknown) {
+            } catch (error) {
                 const e = error as ExecReturn;
                 if ("code" in e) {
                     console.error("exec error", error);
