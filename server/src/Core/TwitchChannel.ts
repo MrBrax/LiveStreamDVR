@@ -1,10 +1,10 @@
-import { ErrorResponse, EventSubTypes } from "../TwitchAPI/Shared";
-import { Stream, StreamsResponse } from "../TwitchAPI/Streams";
-import { SubscriptionRequest, SubscriptionResponse } from "../TwitchAPI/Subscriptions";
-import { User, Users } from "../TwitchAPI/Users";
 import axios from "axios";
 import fs from "fs";
 import path from "path";
+import { ErrorResponse, EventSubTypes } from "../../../common/TwitchAPI/Shared";
+import { Stream, StreamsResponse } from "../../../common/TwitchAPI/Streams";
+import { SubscriptionRequest, SubscriptionResponse } from "../../../common/TwitchAPI/Subscriptions";
+import { User, Users } from "../../../common/TwitchAPI/Users";
 import { BaseConfigPath } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchConfig, VideoQuality } from "./TwitchConfig";

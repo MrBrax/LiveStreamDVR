@@ -262,6 +262,7 @@ export class TwitchConfig {
         
         // Main load
         console.log(chalk.green("Initialising..."));
+        console.log(chalk.magenta(`Environment: ${process.env.NODE_ENV}`));
 
         if (TwitchConfig.config && Object.keys(TwitchConfig.config).length > 0) {
             // throw new Error("Config already loaded, has init been called twice?");

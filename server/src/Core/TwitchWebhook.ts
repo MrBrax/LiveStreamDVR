@@ -56,7 +56,7 @@ export type WebhookData =
 export class TwitchWebhook {
 
     // dispatch function, infer data type from action
-    static async dispatch(action: WebhookAction, data: WebhookData): Promise<boolean> {
+    static dispatch(action: WebhookAction, data: WebhookData): Promise<boolean> {
         console.log("Webhook:", action, data);
 
         /*

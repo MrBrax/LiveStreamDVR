@@ -7,8 +7,8 @@ import path from "path";
 import { AppRoot } from "../Core/BaseConfig";
 import fs from "fs";
 import { TwitchAutomator } from "../Core/TwitchAutomator";
-import { EventSubResponse } from "../TwitchAPI/EventSub";
-import { ChallengeResponse } from "../TwitchAPI/Challenge";
+import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
+import { ChallengeResponse } from "../../../common/TwitchAPI/Challenge";
 import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
 import { KeyValue } from "../Core/KeyValue";
 

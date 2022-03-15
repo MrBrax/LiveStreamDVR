@@ -1,17 +1,17 @@
 import { parse } from "date-fns";
 import fs from "fs";
 import path from "path";
-import { TwitchChannel } from "./TwitchChannel";
-import { TwitchHelper } from "./TwitchHelper";
+import { MediaInfo } from "../../../common/mediainfofield";
+import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
+import { Video, Videos } from "../../../common/TwitchAPI/Video";
 import { PHPDateTimeProxy } from "../types";
-import { MediaInfo } from "../../../client-vue/src/mediainfo";
-import { TwitchVODChapter, TwitchVODChapterJSON, TwitchVODChapterMinimalJSON } from "./TwitchVODChapter";
-import { TwitchConfig, VideoQuality } from "./TwitchConfig";
-import { TwitchVODSegment } from "./TwitchVODSegment";
-import { LOGLEVEL, TwitchLog } from "./TwitchLog";
-import { Videos, Video } from "../TwitchAPI/Video";
 import { BaseConfigFolder } from "./BaseConfig";
-import { EventSubResponse } from "../TwitchAPI/EventSub";
+import { TwitchChannel } from "./TwitchChannel";
+import { TwitchConfig, VideoQuality } from "./TwitchConfig";
+import { TwitchHelper } from "./TwitchHelper";
+import { LOGLEVEL, TwitchLog } from "./TwitchLog";
+import { TwitchVODChapter, TwitchVODChapterJSON, TwitchVODChapterMinimalJSON } from "./TwitchVODChapter";
+import { TwitchVODSegment } from "./TwitchVODSegment";
 import { TwitchWebhook } from "./TwitchWebhook";
 
 export enum MUTE_STATUS {

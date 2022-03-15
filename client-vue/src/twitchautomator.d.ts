@@ -1,4 +1,4 @@
-import { MediaInfo } from "./mediainfo";
+import { MediaInfo } from "../../common/mediainfofield";
 
 enum SubStatus {
     NONE = "0",

@@ -1,18 +1,18 @@
-import path from "path";
-import fs from "fs";
-import { TwitchConfig } from "./TwitchConfig";
-import { format } from "date-fns";
 import axios, { Axios } from "axios";
-import { BaseConfigFolder } from "./BaseConfig";
-import { LOGLEVEL, TwitchLog } from "./TwitchLog";
-import { spawn } from "child_process";
-import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
-import { MediaInfo } from "../../../client-vue/src/mediainfo";
-import { MediaInfoJSONOutput } from "../MediaInfo";
-import { Stream } from "stream";
 import chalk from "chalk";
-import { Subscriptions } from "../TwitchAPI/Subscriptions";
-import { EventSubTypes } from "../TwitchAPI/Shared";
+import { spawn } from "child_process";
+import { format } from "date-fns";
+import fs from "fs";
+import path from "path";
+import { Stream } from "stream";
+import { MediaInfoJSONOutput } from "../../../common/MediaInfo";
+import { MediaInfo } from "../../../common/mediainfofield";
+import { EventSubTypes } from "../../../common/TwitchAPI/Shared";
+import { Subscriptions } from "../../../common/TwitchAPI/Subscriptions";
+import { BaseConfigFolder } from "./BaseConfig";
+import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
+import { TwitchConfig } from "./TwitchConfig";
+import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 
 export interface ExecReturn {
     stdout: string[];

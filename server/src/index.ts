@@ -4,7 +4,8 @@ import history from "connect-history-api-fallback";
 import path from "path";
 import morgan from "morgan";
 import ApiRouter from "./Routes/Api";
-import { AppRoot } from "./Core/BaseConfig";
+import { AppName, AppRoot } from "./Core/BaseConfig";
+import chalk from "chalk";
 
 TwitchConfig.init().then(() => {
 
@@ -26,7 +27,14 @@ TwitchConfig.init().then(() => {
     app.use(express.static( path.join(AppRoot, "client-vue", "dist")));
 
     app.listen(port, () => {
-        console.log(`TA listening on port ${port}`);
+        console.log(chalk.greenBright(`${AppName} listening on port ${port}, mode ${process.env.NODE_ENV}`));
+        if (process.env.npm_lifecycle_script?.includes("index.ts")){
+            console.log(chalk.greenBright("Running with TypeScript"));
+        } else {
+            console.log(chalk.greenBright("Running with plain JS"));
+        }
     });
+
+    console.log(process.env);
 
 });

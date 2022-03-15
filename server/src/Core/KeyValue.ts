@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import fs from "fs";
+import path from "path";
 import { BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
-import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 
 export class KeyValue {
     
@@ -62,10 +62,10 @@ export class KeyValue {
         const files = fs.readdirSync(BaseConfigFolder.keyvalue).filter(file => !file.endsWith(".json"));
         let migrated = 0;
         for (const file of files) {
-            const key = file.replace(".json", "");
-            const value = fs.readFileSync(BaseConfigFolder.keyvalue + file, "utf8");
-            this.set(key, value);
-            fs.unlinkSync(BaseConfigFolder.keyvalue + file);
+            // const key = file.replace(".json", "");
+            const value = fs.readFileSync(path.join(BaseConfigFolder.keyvalue, file), "utf8");
+            this.set(file, value);
+            fs.unlinkSync(path.join(BaseConfigFolder.keyvalue, file));
             migrated++;
         }
         if (migrated > 0) {

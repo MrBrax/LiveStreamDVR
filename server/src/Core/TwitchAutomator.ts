@@ -1,20 +1,20 @@
-import { TwitchConfig } from "./TwitchConfig";
-import { MUTE_STATUS, TwitchVOD } from "./TwitchVOD";
-import { TwitchHelper } from "./TwitchHelper";
-import { IncomingHttpHeaders } from "http";
-import { EventSubResponse } from "../TwitchAPI/EventSub";
-import { TwitchChannel } from "./TwitchChannel";
-import fs from "fs";
-import path from "path";
-import { ChannelUpdateEvent } from "../TwitchAPI/EventSub/ChannelUpdate";
-import { TwitchVODChapter, TwitchVODChapterMinimalJSON } from "./TwitchVODChapter";
-import { LOGLEVEL, TwitchLog } from "./TwitchLog";
-import { format, parse } from "date-fns";
-import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { spawn } from "child_process";
-import { TwitchWebhook } from "./TwitchWebhook";
-import { KeyValue } from "./KeyValue";
+import { format, parse } from "date-fns";
+import fs from "fs";
+import { IncomingHttpHeaders } from "http";
+import path from "path";
+import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
+import { ChannelUpdateEvent } from "../../../common/TwitchAPI/EventSub/ChannelUpdate";
 import { AppRoot } from "./BaseConfig";
+import { KeyValue } from "./KeyValue";
+import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
+import { TwitchChannel } from "./TwitchChannel";
+import { TwitchConfig } from "./TwitchConfig";
+import { TwitchHelper } from "./TwitchHelper";
+import { LOGLEVEL, TwitchLog } from "./TwitchLog";
+import { MUTE_STATUS, TwitchVOD } from "./TwitchVOD";
+import { TwitchVODChapter, TwitchVODChapterMinimalJSON } from "./TwitchVODChapter";
+import { TwitchWebhook } from "./TwitchWebhook";
 
 export class TwitchAutomator {
     vod: TwitchVOD | undefined;
