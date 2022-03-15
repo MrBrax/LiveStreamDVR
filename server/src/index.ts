@@ -1,18 +1,9 @@
 import express from "express";
-import * as Settings from "@/Controllers/Settings";
-import * as Channels from "@/Controllers/Channels";
-import * as Log from "@/Controllers/Log";
-import * as Vod from "@/Controllers/Vod";
-import * as Games from "@/Controllers/Games";
-import * as About from "@/Controllers/About";
-import * as Jobs from "@/Controllers/Jobs";
-import * as Subscriptions from "@/Controllers/Subscriptions";
-import * as Cron from "@/Controllers/Cron";
 import { TwitchConfig } from "@/Core/TwitchConfig";
 import history from "connect-history-api-fallback";
 import path from "path";
-import { TwitchVOD } from "@/Core/TwitchVOD";
 import morgan from "morgan";
+import ApiRouter from "@/Routes/Api";
 
 TwitchConfig.init();
 
@@ -27,43 +18,7 @@ app.use(morgan("dev"));
 //     res.send(TwitchConfig.config);
 // });
 
-app.get("/api/v0/settings", Settings.GetSettings);
-app.put("/api/v0/settings", Settings.SaveSettings);
-
-app.get("/api/v0/channels", Channels.ListChannels);
-app.post("/api/v0/channels", Channels.AddChannel);
-app.get("/api/v0/channels/:login", Channels.GetChannel);
-
-app.get("/api/v0/vod/:basename", Vod.GetVod);
-
-app.get("/api/v0/games", Games.ListGames);
-
-app.get("/api/v0/about", About.About);
-
-app.get("/api/v0/log/:filename/?:last_line?", Log.GetLog);
-
-app.get("/api/v0/jobs", Jobs.ListJobs);
-app.delete("/api/v0/jobs/:name", Jobs.KillJob);
-
-app.get("/api/v0/subscriptions", Subscriptions.ListSubscriptions);
-
-app.get("/api/v0/cron/check_deleted_vods", Cron.CheckDeletedVods);
-app.get("/api/v0/cron/check_muted_vods", Cron.CheckMutedVods);
-
-app.get("/api/v0/test_video_download", (req, res) => {
-    if (!req.query.video_id){
-        res.send("Missing video_id");
-        return;
-    }
-
-    TwitchVOD.downloadVideo(req.query.video_id as string, "best", req.query.video_id as string + ".mp4")
-        .then(() => {
-            res.send("OK");
-        })
-        .catch(() => {
-            res.send("FAIL");
-        });
-});
+app.use("/api/v0", ApiRouter);
 
 // single page app
 app.use(history());

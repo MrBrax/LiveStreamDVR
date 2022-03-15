@@ -43,9 +43,9 @@
 [ ] GET /api/v0/tools/check_vods
 
 [x] GET /subscriptions
-[ ] POST /subscriptions
+[?] POST /subscriptions
 [ ] POST /subscriptions/{id}
-[ ] DELETE /subscriptions/{id}
+[?] DELETE /subscriptions/{id}
 
 [?] GET /api/v0/cron/check_deleted_vods
 [?] GET /api/v0/cron/check_muted_vods

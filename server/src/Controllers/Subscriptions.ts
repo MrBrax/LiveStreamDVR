@@ -94,11 +94,51 @@ export async function SubscribeToAllChannels(req: express.Request, res: express.
 
     const all_channels = TwitchChannel.getChannels();
 
-    // const payload_data: { channels: ChannelSub[]; total: number; all_usernames: Set<string>; } = {
+    const payload_data: { channels: { login: string; status: string; }[] } = {
+        channels: [],
+    };
 
     for (const channel of all_channels) {
-        if (!channel.userid) continue;
+        if (!channel.userid || !channel.login) continue;
         const sub = await TwitchChannel.subscribe(channel.userid);
+        const entry = {
+            login: channel.login,
+            status: sub === true ? "Subscription request sent, check logs for details" : "ERROR",
+        };
+        payload_data.channels.push(entry);
+    }
+
+    if (payload_data.channels.length == 0) {
+        res.status(500).send({
+            status: "ERROR",
+            message: "No channels to subscribe to.",
+        });
+        return;
+    }
+
+    res.send({
+        data: payload_data,
+        status: "OK",
+    });
+
+}
+
+export async function UnsubscribeFromId(req: express.Request, res: express.Response): Promise<void> {
+
+    const sub_id = req.params.sub_id;
+
+    const sub = await TwitchHelper.eventSubUnsubscribe(sub_id);
+
+    if (sub === true) {
+        res.send({
+            status: "OK",
+            message: `Could not unsubscribe from ${sub_id}.`,
+        });
+    } else {
+        res.status(400).send({
+            status: "ERROR",
+            message: `Could not unsubscribe from ${sub_id}.`,
+        });
     }
 
 }
