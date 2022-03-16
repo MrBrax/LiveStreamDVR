@@ -49,11 +49,11 @@ TwitchConfig.init().then(() => {
     app.use(basepath, baserouter);
 
     app.listen(port, () => {
-        console.log(chalk.greenBright(`${AppName} listening on port ${port}, mode ${process.env.NODE_ENV}. Base path: ${basepath}`));
+        console.log(chalk.bgBlue.greenBright(`🥞 ${AppName} listening on port ${port}, mode ${process.env.NODE_ENV}. Base path: ${basepath || "/"} 🥞`));
         if (process.env.npm_lifecycle_script?.includes("index.ts")){
-            console.log(chalk.greenBright("Running with TypeScript"));
+            console.log(chalk.greenBright("~ Running with TypeScript ~"));
         } else {
-            console.log(chalk.greenBright("Running with plain JS"));
+            console.log(chalk.greenBright("~ Running with plain JS ~"));
         }
     });
 

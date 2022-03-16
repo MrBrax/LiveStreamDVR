@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import { format, parse } from "date-fns";
 import { PHPDateTimeProxy } from "../types";
 import { TwitchGame } from "./TwitchGame";
@@ -155,7 +156,7 @@ export class TwitchVODChapter {
                 console.error(`Could not find game data for game_id: ${data.game_id}`);
             }
         } else {
-            console.error(`No game_id for chapter: ${data.title}`);
+            console.error(chalk.red(`No game_id for chapter: ${data.title}`), data);
         }
 
         chapter.raw_chapter = data;

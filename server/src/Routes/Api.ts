@@ -9,9 +9,12 @@ import * as Jobs from "../Controllers/Jobs";
 import * as Subscriptions from "../Controllers/Subscriptions";
 import * as Cron from "../Controllers/Cron";
 import * as TwitchAPI from "../Controllers/TwitchAPI";
+import * as Hook from "../Controllers/Hook";
 import { TwitchVOD } from "../Core/TwitchVOD";
 
 const router = express.Router();
+
+router.all("/hook", Hook.Hook);
 
 router.get("/settings", Settings.GetSettings);
 router.put("/settings", Settings.SaveSettings);

@@ -859,7 +859,7 @@ export class TwitchVOD {
             path_chatmask: this.path_chatmask,
             path_adbreak: this.path_adbreak,
             path_playlist: this.path_playlist,
-            // api_hasFavouriteGame:
+            api_hasFavouriteGame: this.hasFavouriteGame(),
             api_getUniqueGames: this.getUniqueGames(),
             // api_getWebhookDuration:
             // api_getDuration: this.getDuration(),

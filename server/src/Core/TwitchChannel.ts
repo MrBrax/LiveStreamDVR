@@ -346,6 +346,9 @@ export class TwitchChannel {
         return channel;
     }
 
+    /**
+     * Load channel config into memory, not the channels themselves.
+     */
     public static loadChannelsConfig() {
         if (!fs.existsSync(BaseConfigPath.channel)) {
             return false;
@@ -358,14 +361,19 @@ export class TwitchChannel {
     public static saveChannelsConfig() {
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", "Saving channel config");
         fs.writeFileSync(BaseConfigPath.channel, JSON.stringify(this.channels_config));
+        return fs.existsSync(BaseConfigPath.channel) && fs.readFileSync(BaseConfigPath.channel, "utf8") === JSON.stringify(this.channels_config);
     }
 
+    /**
+     * Load channel cache into memory, like usernames and id's.
+     */
     public static loadChannelsCache() {
         if (!fs.existsSync(BaseConfigPath.streamerCache)) return false;
 
         const data = fs.readFileSync(BaseConfigPath.streamerCache, "utf8");
         this.channels_cache = JSON.parse(data);
         TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${Object.keys(this.channels_cache).length} channels from cache.`);
+        return true;
     }
 
     /**
@@ -389,7 +397,7 @@ export class TwitchChannel {
 
                 if (ch) {
                     this.channels.push(ch);
-                    TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "config", `Loaded channel ${channel.login}`);
+                    TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "config", `Loaded channel ${channel.login} with ${ch.vods_list?.length} vods`);
                 } else {
                     TwitchLog.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be added, please check logs.`);
                     break;
@@ -540,15 +548,6 @@ export class TwitchChannel {
     }
 
     public static async subscribe(channel_id: string): Promise<boolean> {
-        /*
-        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Subscribing to channel ${channel_id}`);
-        TwitchHelper.axios.post(`/helix/webhooks/hub`, {
-            "hub.callback": `${BaseConfigPath.baseURL}/api/twitch/subscribe`,
-            "hub.mode": "subscribe",
-            "hub.topic": `https://api.twitch.tv/helix/streams?user_id=${channel_id}`,
-            "hub.lease_seconds": TwitchConfig.streamerCacheTime / 1000
-        });
-        */
 
         if (!TwitchConfig.cfg("app_url")) {
             throw new Error("app_url is not set");
@@ -591,13 +590,13 @@ export class TwitchChannel {
             } catch (err) {
                 if (axios.isAxiosError(err)) {
                     TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not subscribe to ${channel_id}:${sub_type}: ${err.message} / ${err.response?.data.message}`);
-                    
+
                     if (err.response?.data.status == 409) { // duplicate
                         const sub_id = await TwitchChannel.getSubscriptionId(channel_id, sub_type);
                         if (sub_id) KeyValue.set(`${channel_id}.sub.${sub_type}`, sub_id);
                         continue;
                     }
-                    
+
                     continue;
                 }
 

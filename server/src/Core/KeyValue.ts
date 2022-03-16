@@ -47,7 +47,7 @@ export class KeyValue {
     }
 
     static load() {
-        console.log(chalk.green("Loading key-value pairs..."));
+        console.log(chalk.blue("Loading key-value pairs..."));
         if (fs.existsSync(BaseConfigPath.keyvalue)) {
             this.data = JSON.parse(fs.readFileSync(BaseConfigPath.keyvalue, "utf8"));
             console.log(chalk.green(`Loaded ${Object.keys(this.data).length} key-value pairs`));
@@ -58,7 +58,7 @@ export class KeyValue {
     }
 
     static migrateFromFileBasedKeyValue() {
-        console.log(chalk.green("Migrating key-value pairs..."));
+        console.log(chalk.blue("Migrating key-value pairs..."));
         const files = fs.readdirSync(BaseConfigFolder.keyvalue).filter(file => !file.endsWith(".json"));
         let migrated = 0;
         for (const file of files) {

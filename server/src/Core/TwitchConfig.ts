@@ -124,9 +124,9 @@ export class TwitchConfig {
         { "key": "file_chown_group", "group": "Advanced", "text": "File chown group", "type": "string", "default": "nobody" },
 
         { "key": "checkmute_method", "group": "Basic", "text": "Method to use when checking for muted vods", "type": "array", "default": "api", "choices": ["api", "streamlink"], "help": "Streamlink is more accurate but is kind of a weird solution." },
-        
+
         { "key": "server_port", "group": "Basic", "text": "Server port", "type": "number", "default": 8080 },
-    
+
     ];
 
     static cfg<T>(key: string, defaultValue?: T): T {
@@ -160,7 +160,7 @@ export class TwitchConfig {
 
     static loadConfig() {
 
-        console.log("Loading config...");
+        console.log(chalk.blue("Loading config..."));
 
         if (!fs.existsSync(BaseConfigPath.config)) {
             console.error("Config file not found, creating new one");
@@ -173,6 +173,15 @@ export class TwitchConfig {
         this.config = JSON.parse(data);
 
         this.config.app_name = AppName;
+
+        for (const key in this.config) {
+            if (key !== "app_name" && !this.settingExists(key)) {
+                console.warn(chalk.yellow(`Saved setting '${key}' does not exist, deprecated? Discarding.`));
+                delete this.config[key];
+            }
+        }
+
+        console.log(chalk.green(`✔ ${Object.keys(this.config).length} settings loaded.`));
 
     }
 
@@ -226,7 +235,7 @@ export class TwitchConfig {
         }
     }
 
-    static saveConfig(source = "unknown") {
+    static saveConfig(source = "unknown"): boolean {
 
         this._writeConfig = true;
 
@@ -239,6 +248,8 @@ export class TwitchConfig {
         console.log(`Saved config from ${source}`);
 
         this._writeConfig = false;
+
+        return fs.existsSync(BaseConfigPath.config) && fs.statSync(BaseConfigPath.config).size > 0;
 
     }
 
@@ -277,8 +288,11 @@ export class TwitchConfig {
 
     }
 
+    /**
+     * Initialise entire application, like loading config, creating folders, etc.
+     */
     static async init() {
-        
+
         // Main load
         console.log(chalk.green("Initialising..."));
         console.log(chalk.magenta(`Environment: ${process.env.NODE_ENV}`));
@@ -292,9 +306,9 @@ export class TwitchConfig {
         TwitchConfig.createFolders();
 
         KeyValue.load();
-        
+
         TwitchConfig.loadConfig();
-        
+
         await TwitchConfig.setupAxios();
 
         TwitchLog.readTodaysLog();
@@ -313,7 +327,7 @@ export class TwitchConfig {
         TwitchChannel.loadChannelsCache();
         await TwitchChannel.loadChannels();
         TwitchAutomatorJob.loadJobsFromCache();
-        
+
         // monitor config for external changes
         fs.watch(BaseConfigFolder.config, (eventType, filename) => {
             console.log(`Config file changed: ${eventType} ${filename}`);

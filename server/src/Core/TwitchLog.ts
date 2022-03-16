@@ -37,7 +37,7 @@ export class TwitchLog {
     };
 
     static readTodaysLog() {
-        console.log("Read todays log");
+        console.log(chalk.blue("Read today's log..."));
         const today = format(new Date(), "yyyy-MM-dd");
         const filename = `${today}.log`;
         const filepath = path.join(BaseConfigFolder.logs, filename);
@@ -50,7 +50,7 @@ export class TwitchLog {
         const lines = fs.readFileSync(jsonlinename, "utf8").split("\n");
         // console.log(`Read ${lines.length} lines from ${jsonlinename}`);
         this.lines = lines.map(line => line.length > 0 ? JSON.parse(line) : null).filter(line => line !== null);
-        console.log(`Parsed ${this.lines.length} lines from ${jsonlinename}`);
+        console.log(chalk.green(`✔ Parsed ${this.lines.length} lines from ${jsonlinename}`));
         this.currentDate = today;
     }
 
@@ -74,10 +74,14 @@ export class TwitchLog {
             throw new Error("Log folder does not exist!");
         }
 
+        if (!TwitchLog.currentDate) {
+            console.error(chalk.bgRed.whiteBright("😤 Log called before date was set!"));
+        }
+
         // clear old logs from memory
         const today = format(new Date(), "yyyy-MM-dd");
         if (today != TwitchLog.currentDate) {
-            console.log(`Clearing log memory from ${TwitchLog.currentDate} to ${today}`);
+            console.log(chalk.yellow(`Clearing log memory from ${TwitchLog.currentDate} to ${today}`));
             TwitchLog.currentDate = today;
             TwitchLog.lines = [];
         }
