@@ -3,7 +3,7 @@
 [ ] POST /vod/{basename}/download_chat
 [ ] POST /vod/{basename}/download
 [ ] POST /vod/{basename}/check_mute
-[ ] POST /vod/{basename}/delete
+[?] POST /vod/{basename}/delete
 [?] POST /vod/{basename}/save
 [ ] POST /vod/{basename}/cut
 [ ] POST /vod/{basename}/renderwizard
@@ -23,8 +23,8 @@
 [?] GET /api/v0/jobs
 [?] DELETE /api/v0/jobs/{job}
 
-[ ] GET /api/v0/twitchapi/videos/{login}
-[ ] GET /api/v0/twitchapi/video/{video_id}
+[x] GET /api/v0/twitchapi/videos/{login}
+[x] GET /api/v0/twitchapi/video/{video_id}
 
 [x] GET /api/v0/settings
 [?] PUT /api/v0/settings

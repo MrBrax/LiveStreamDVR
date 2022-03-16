@@ -59,3 +59,23 @@ export function DeleteVod(req: express.Request, res: express.Response): void {
     });
     
 }
+
+export function DownloadVod(req: express.Request, res: express.Response): void {
+    
+    const vod = TwitchVOD.getVod(req.params.basename);
+
+    if (!vod) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not found",
+        });
+        return;
+    }
+
+    vod.downloadVod();
+
+    res.send({
+        status: "OK",
+    });
+    
+}

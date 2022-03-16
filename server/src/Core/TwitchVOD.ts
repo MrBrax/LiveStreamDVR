@@ -1182,6 +1182,14 @@ export class TwitchVOD {
         }
     }
 
+    public async downloadVod(quality: VideoQuality = "best"): Promise<boolean> {
+        if (!this.twitch_vod_id) throw new Error("No VOD id!");
+        if (!this.directory) throw new Error("No directory!");
+
+        return await TwitchVOD.downloadVideo(this.twitch_vod_id.toString(), quality, path.join(this.directory, this.basename + "_vod.mp4")) != false;
+
+    }
+
     /**
      * 
      * STATIC
@@ -1400,6 +1408,28 @@ export class TwitchVOD {
 
         return json.data[0];
 
+    }
+
+    static async getVideos(channel_id: string) {
+        if (!channel_id) throw new Error("No channel id");
+
+        let response;
+
+        try {
+            response = await TwitchHelper.axios.get(`/helix/videos?user_id=${channel_id}`);
+        } catch (e) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Tried to get videos for channel id ${channel_id} but got error ${e}`);
+            return false;
+        }
+
+        const json: Videos = response.data;
+
+        if (json.data.length === 0) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Tried to get videos for channel id ${channel_id} but got no data`);
+            return false;
+        }
+
+        return json.data;
     }
 
 }

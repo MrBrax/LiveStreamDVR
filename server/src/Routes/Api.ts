@@ -8,6 +8,7 @@ import * as About from "../Controllers/About";
 import * as Jobs from "../Controllers/Jobs";
 import * as Subscriptions from "../Controllers/Subscriptions";
 import * as Cron from "../Controllers/Cron";
+import * as TwitchAPI from "../Controllers/TwitchAPI";
 import { TwitchVOD } from "../Core/TwitchVOD";
 
 const router = express.Router();
@@ -39,6 +40,9 @@ router.delete("/subscriptions/:sub_id", Subscriptions.UnsubscribeFromId);
 
 router.get("/cron/check_deleted_vods", Cron.CheckDeletedVods);
 router.get("/cron/check_muted_vods", Cron.CheckMutedVods);
+
+router.get("/twitchapi/videos/:login", TwitchAPI.TwitchAPIVideos);
+router.get("/twitchapi/video/:video_id", TwitchAPI.TwitchAPIVideo);
 
 router.get("/test_video_download", (req, res) => {
     if (!req.query.video_id){
