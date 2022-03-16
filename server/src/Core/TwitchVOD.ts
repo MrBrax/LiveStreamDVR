@@ -99,7 +99,7 @@ export class TwitchVOD {
 
     static vods: TwitchVOD[] = [];
 
-    vod_path = "vods";
+    // vod_path = "vods";
 
     capture_id: string | undefined;
     filename: string | undefined;
@@ -247,7 +247,7 @@ export class TwitchVOD {
         const dur = this.getDurationLive();
         this.duration_live = dur === false ? -1 : dur;
 
-        this.webpath = `${TwitchConfig.cfg("basepath")}/vods/${TwitchConfig.cfg("channel_folders") && this.streamer_login ? this.streamer_login : ""}`;
+        this.webpath = `${TwitchConfig.cfg<string>("basepath")}/vods/${TwitchConfig.cfg<boolean>("channel_folders") && this.streamer_login ? this.streamer_login : ""}`;
 
     }
 
@@ -778,7 +778,7 @@ export class TwitchVOD {
 
     public toAPI() {
         return {
-            vod_path: this.vod_path,
+            // vod_path: this.vod_path,
             capture_id: this.capture_id,
             filename: this.filename,
             basename: this.basename,
@@ -1036,6 +1036,27 @@ export class TwitchVOD {
 
     }
 
+    public move(newDirectory: string): void {
+
+        if (!this.directory) throw new Error("No directory set for move");
+
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Move ${this.basename} to ${newDirectory}`);
+
+        for (const file of this.associatedFiles) {
+            const file_from = path.join(this.directory, file);
+            const file_to = path.join(newDirectory, file);
+            if (fs.existsSync(file_from)) {
+                TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Move ${file_from} to ${file_to}`);
+                fs.renameSync(file_from, file_to);
+            }
+        }
+
+    }
+
+    public archive(): void {
+        this.move(BaseConfigFolder.saved_vods);
+    }
+
     public async checkValidVod(save = false, force = false): Promise<boolean | null> {
 
         const current_status = this.twitch_vod_exists;
@@ -1202,8 +1223,8 @@ export class TwitchVOD {
         vod.json = json;
 
         vod.setupDates();
-        vod.setupBasic();
         await vod.setupUserData();
+        vod.setupBasic();
         vod.setupProvider();
         await vod.setupAssoc();
         vod.setupFiles();

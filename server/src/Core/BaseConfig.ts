@@ -2,16 +2,25 @@ import path from "path";
 
 // export const AppRoot = path.join(__dirname, "..", "..", "..");
 export const AppName = "TwitchAutomator";
+
+/**
+ * The root directory of the application containing client-vue, public, etc.
+ */
 export const AppRoot = process.env.NODE_ENV === "development" ? path.join(__dirname, "..", "..", "..") : path.join(__dirname, "..", "..", "..", "..");
 
 export const BaseConfigFolder = {
+    client: path.join(AppRoot, "client-vue", "dist"),
     config: path.join(AppRoot, "config"),
     public: path.join(AppRoot, "public"),
     logs: path.join(AppRoot, "logs"),
     cache: path.join(AppRoot, "cache"),
     cron: path.join(AppRoot, "cache", "cron"),
     pids: path.join(AppRoot, "cache", "pids"),
-    vod: path.join(AppRoot, "public", "vods"),
+    // vod: path.join(AppRoot, "public", "vods"),
+    vod: path.join(AppRoot, "storage", "vods"),
+    saved_vods: path.join(AppRoot, "storage", "saved_vods"),
+    saved_clips: path.join(AppRoot, "storage", "saved_clips"),
+    vodplayer: path.join(AppRoot, "vodplayer"),
     keyvalue: path.join(AppRoot, "cache", "kv"),
 };
 

@@ -19,3 +19,43 @@ export function GetVod(req: express.Request, res: express.Response): void {
     });
     
 }
+
+export function ArchiveVod(req: express.Request, res: express.Response): void {
+    
+    const vod = TwitchVOD.getVod(req.params.basename);
+
+    if (!vod) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not found",
+        });
+        return;
+    }
+
+    vod.archive();
+
+    res.send({
+        status: "OK",
+    });
+    
+}
+
+export function DeleteVod(req: express.Request, res: express.Response): void {
+    
+    const vod = TwitchVOD.getVod(req.params.basename);
+
+    if (!vod) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not found",
+        });
+        return;
+    }
+
+    vod.delete();
+
+    res.send({
+        status: "OK",
+    });
+    
+}

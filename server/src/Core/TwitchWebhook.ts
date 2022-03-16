@@ -3,17 +3,17 @@ import { TwitchConfig } from "./TwitchConfig";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 
-export type WebhookAction = 
-    "chapter_update" | 
-    "start_download" | 
-    "end_capture" | 
-    "end_convert" | 
-    "end_download" | 
+export type WebhookAction =
+    "chapter_update" |
+    "start_download" |
+    "end_capture" |
+    "end_convert" |
+    "end_download" |
     "start_capture" |
     "job_save" |
     "job_clear" |
     "video_download"
-;
+    ;
 
 export interface ChapterUpdateData {
     chapter: TwitchVODChapter;
@@ -44,14 +44,14 @@ export interface JobClear {
     job: TwitchAutomatorJob;
 }
 
-export type WebhookData = 
-    ChapterUpdateData | 
+export type WebhookData =
+    ChapterUpdateData |
     StartDownloadData |
     EndCaptureData |
     VideoDownloadData |
     JobSave |
     JobClear
-;
+    ;
 
 export class TwitchWebhook {
 
@@ -83,7 +83,7 @@ export class TwitchWebhook {
         const payload = {
             server: true,
             action: action,
-            data: {action, ...data},
+            data: { action, ...data },
         };
 
         return new Promise((resolve, reject) => {

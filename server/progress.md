@@ -4,7 +4,7 @@
 [ ] POST /vod/{basename}/download
 [ ] POST /vod/{basename}/check_mute
 [ ] POST /vod/{basename}/delete
-[ ] POST /vod/{basename}/save
+[?] POST /vod/{basename}/save
 [ ] POST /vod/{basename}/cut
 [ ] POST /vod/{basename}/renderwizard
 [ ] POST /vod/{basename}/unbreak

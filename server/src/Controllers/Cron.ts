@@ -1,6 +1,6 @@
 import { TwitchLog, LOGLEVEL } from "../Core/TwitchLog";
 import { MUTE_STATUS } from "../Core/TwitchVOD";
-import { generateStreamerList } from "../StreamerList";
+import { generateStreamerList } from "../Helpers/StreamerList";
 import express from "express";
 
 export async function CheckDeletedVods(req: express.Request, res: express.Response): Promise<void> {

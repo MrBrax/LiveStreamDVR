@@ -1,7 +1,8 @@
+import { format, parse } from "date-fns";
 import { PHPDateTimeProxy } from "../types";
-import { parse, format } from "date-fns";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchHelper } from "./TwitchHelper";
+
 export interface TwitchVODChapterJSON {
     /** Date, 2022-02-23T00:47:32Z */
     time: string;

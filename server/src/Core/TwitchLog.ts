@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { format } from "date-fns";
-import path from "path";
 import fs from "fs";
+import path from "path";
 import { BaseConfigFolder } from "./BaseConfig";
 import { TwitchConfig } from "./TwitchConfig";
 
@@ -36,7 +36,7 @@ export class TwitchLog {
         [LOGLEVEL.SUCCESS]: chalk.green,
     };
 
-    static readTodaysLog(){
+    static readTodaysLog() {
         const today = format(new Date(), "yyyy-MM-dd");
         const filename = `${today}.log`;
         const filepath = path.join(BaseConfigFolder.logs, filename);
@@ -100,7 +100,7 @@ export class TwitchLog {
         console.log(
             this.LOG_COLORS[level](`${dateString} | ${module} <${level}> ${text}`)
         );
-        
+
         const log_data: LogLine = {
             "module": module,
             "date": Date.now(),
