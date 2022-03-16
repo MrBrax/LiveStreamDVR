@@ -310,7 +310,6 @@ export class TwitchChannel {
         // $channel->api_getSubscriptionStatus = $channel->getSubscriptionStatus();
 
         if (TwitchConfig.cfg("channel_folders") && !fs.existsSync(channel.getFolder())) {
-            // mkdir(TwitchHelper::vodFolder($streamer['username']));
             fs.mkdirSync(channel.getFolder());
         }
 

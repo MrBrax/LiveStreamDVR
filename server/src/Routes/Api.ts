@@ -29,7 +29,8 @@ router.get("/games", Games.ListGames);
 
 router.get("/about", About.About);
 
-router.get("/log/:filename/?:last_line?", Log.GetLog);
+router.get("/log/:filename/:start_from?", Log.GetLog);
+// router.get("/log/:filename/:start_from", Log.GetLog);
 
 router.get("/jobs", Jobs.ListJobs);
 router.delete("/jobs/:name", Jobs.KillJob);

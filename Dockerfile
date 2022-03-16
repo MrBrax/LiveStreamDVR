@@ -3,9 +3,8 @@ USER root
 
 # system packages
 RUN apk --no-cache add \
-    gcc g++ libc-dev git \
+    gcc g++ libc-dev git curl \
     ca-certificates \
-    composer \
     python3 py3-pip py3-wheel \
     ffmpeg mediainfo \
     util-linux busybox-initscripts procps gcompat \
@@ -45,17 +44,16 @@ COPY ./docker/fetch-tdl.sh /tmp/fetch-tdl.sh
 RUN sh /tmp/fetch-tdl.sh
 ENV TCD_TWITCHDOWNLOADER_PATH=/usr/local/bin/TwitchDownloaderCLI
 
-
 # src perms
-RUN chown -R nobody:nobody /usr/local/share/twitchautomator && chmod -R 775 /usr/local/share/twitchautomator
+RUN chown -R node:node /usr/local/share/twitchautomator && chmod -R 775 /usr/local/share/twitchautomator
 
 # make home folder
-RUN mkdir -p /home/nobody && chown -R nobody:nobody /home/nobody
-ENV HOME /home/nobody
+RUN mkdir -p /home/node && chown -R node:node /home/node
+ENV HOME /home/node
 
 # fonts
-RUN mkdir /home/nobody/.fonts && chown nobody:nobody /home/nobody/.fonts
-COPY ./docker/fonts /home/nobody/.fonts
+RUN mkdir /home/node/.fonts && chown node:node /home/node/.fonts
+COPY ./docker/fonts /home/node/.fonts
 
 # get certs
 RUN wget https://curl.haxx.se/ca/cacert.pem -O /tmp/cacert.pem
@@ -68,7 +66,9 @@ ENV TCD_DOCKER=1
 ENV TCD_WEBSOCKET_ENABLED=1
 ENV TCD_CA_PATH=/tmp/cacert.pem
 
-USER nobody
-WORKDIR /usr/local/share/twitchautomator
+USER node
+WORKDIR /usr/local/share/twitchautomator/server
 
-ENTRYPOINT [ "yarn start" ]
+ENTRYPOINT [ "yarn", "run", "start" ]
+# ENTRYPOINT yarn run start
+EXPOSE 8080

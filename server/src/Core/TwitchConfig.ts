@@ -1,6 +1,6 @@
 import axios from "axios";
 import fs from "fs";
-import { BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
+import { AppName, BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
 import { TwitchHelper } from "./TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import chalk from "chalk";
@@ -172,6 +172,8 @@ export class TwitchConfig {
 
         this.config = JSON.parse(data);
 
+        this.config.app_name = AppName;
+
     }
 
     static generateConfig() {
@@ -229,15 +231,21 @@ export class TwitchConfig {
         this._writeConfig = true;
 
         // back up config
-        fs.copyFileSync(BaseConfigFolder.config, BaseConfigFolder.config + ".bak");
+        this.backupConfig();
 
         // save
-        fs.writeFileSync(BaseConfigFolder.config, JSON.stringify(this.config, null, 4));
+        fs.writeFileSync(BaseConfigPath.config, JSON.stringify(this.config, null, 4));
 
         console.log(`Saved config from ${source}`);
 
         this._writeConfig = false;
 
+    }
+
+    static backupConfig() {
+        if (fs.existsSync(BaseConfigPath.config)) {
+            fs.copyFileSync(BaseConfigPath.config, `${BaseConfigPath.config}.${Date.now()}.bak`);
+        }
     }
 
     static async setupAxios() {
@@ -258,6 +266,17 @@ export class TwitchConfig {
         });
     }
 
+    static createFolders() {
+
+        for (const folder of Object.values(BaseConfigFolder)) {
+            if (!fs.existsSync(folder)) {
+                fs.mkdirSync(folder);
+                console.log(chalk.green(`Created folder: ${folder}`));
+            }
+        }
+
+    }
+
     static async init() {
         
         // Main load
@@ -269,6 +288,8 @@ export class TwitchConfig {
             console.error(chalk.red("Config already loaded, has init been called twice?"));
             return false;
         }
+
+        TwitchConfig.createFolders();
 
         KeyValue.load();
         

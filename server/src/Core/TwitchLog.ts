@@ -37,6 +37,7 @@ export class TwitchLog {
     };
 
     static readTodaysLog() {
+        console.log("Read todays log");
         const today = format(new Date(), "yyyy-MM-dd");
         const filename = `${today}.log`;
         const filepath = path.join(BaseConfigFolder.logs, filename);
@@ -49,7 +50,8 @@ export class TwitchLog {
         const lines = fs.readFileSync(jsonlinename, "utf8").split("\n");
         // console.log(`Read ${lines.length} lines from ${jsonlinename}`);
         this.lines = lines.map(line => line.length > 0 ? JSON.parse(line) : null).filter(line => line !== null);
-        // console.log(`Parsed ${lines.length} lines from ${jsonlinename}`);
+        console.log(`Parsed ${this.lines.length} lines from ${jsonlinename}`);
+        this.currentDate = today;
     }
 
     /**
@@ -75,6 +77,7 @@ export class TwitchLog {
         // clear old logs from memory
         const today = format(new Date(), "yyyy-MM-dd");
         if (today != TwitchLog.currentDate) {
+            console.log(`Clearing log memory from ${TwitchLog.currentDate} to ${today}`);
             TwitchLog.currentDate = today;
             TwitchLog.lines = [];
         }
@@ -116,9 +119,18 @@ export class TwitchLog {
 
     }
 
+    /**
+     * Fetch n lines from a log file.
+     * @param date 
+     * @param fromLine 
+     * @throws
+     * @returns 
+     */
     static fetchLog(date: string, fromLine = 0) {
 
+        // return lines from n to end
         if (date == this.currentDate) {
+            console.debug(`Fetching ${this.lines.length} lines from ${fromLine} from memory`);
             return this.lines.slice(fromLine);
         }
 
@@ -131,7 +143,9 @@ export class TwitchLog {
         }
 
         const lines = fs.readFileSync(jsonlinename, "utf8").split("\n");
-        return lines.map(line => line.length > 0 ? JSON.parse(line) : null).filter(line => line !== null);
+        const parsed_lines = lines.map(line => line.length > 0 ? JSON.parse(line) : null).filter(line => line !== null);
+        console.debug(`Fetched ${parsed_lines.length} lines from ${jsonlinename}`);
+        return parsed_lines;
     }
 
 }

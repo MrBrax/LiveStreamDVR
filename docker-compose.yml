@@ -8,13 +8,15 @@ services:
     ports:
       - "8082:8080"
     volumes:
-      - ./config:/var/www/twitchautomator/config
-      - ./cache:/var/www/twitchautomator/cache
-      - ./logs:/var/www/twitchautomator/logs
-      - ./storage:/var/www/twitchautomator/storage
+      - ./config:/usr/local/share/twitchautomator/config
+      - ./cache:/usr/local/share/twitchautomator/cache
+      - ./logs:/usr/local/share/twitchautomator/logs
+      - ./storage:/usr/local/share/twitchautomator/storage
       # - ./docker/vods:/var/www/twitchautomator/public/vods
       # - ./docker/saved_clips:/var/www/twitchautomator/public/saved_clips
       # - ./docker/saved_vods:/var/www/twitchautomator/public/saved_vods
+    environment:
+      - NODE_ENV=production
   cron:
     build: ./docker/cron-container/
     image: mrbrax/twitchautomator:latest-cron

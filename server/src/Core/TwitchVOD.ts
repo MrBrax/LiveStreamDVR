@@ -553,7 +553,7 @@ export class TwitchVOD {
 
         for (const chapter_data of raw_chapters) {
 
-            const new_chapter = new TwitchVODChapter(chapter_data);
+            const new_chapter = TwitchVODChapter.fromData(chapter_data);
 
             /*
             let game_data;

@@ -7,14 +7,22 @@ export function GetLog(req: express.Request, res: express.Response) {
     
     const filename = req.params.filename;
     
-    const last_line = req.params.last_line ? parseInt(req.params.last_line) : 0;
+    const start_from = req.params.start_from ? parseInt(req.params.start_from) : 0;
 
     if (!filename) {
         res.status(400).send("Missing filename");
         return;
     }
     
-    const log_lines = TwitchLog.fetchLog(filename, last_line);
+    let log_lines;
+    
+    try {
+        log_lines = TwitchLog.fetchLog(filename, start_from);
+    } catch (error) {
+        res.status(400).send({ status: "ERROR", message: (error as Error).message });
+        return;
+    }
+
     const line_num = log_lines.length;
     
     const logfiles = fs.readdirSync(BaseConfigFolder.logs).filter(f => f.endsWith(".jsonline")).map(f => f.replace(".log.jsonline", ""));

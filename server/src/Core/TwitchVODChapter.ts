@@ -73,35 +73,6 @@ export class TwitchVODChapter {
 
     // favourite: boolean | undefined;
 
-    constructor(raw_chapter: TwitchVODChapterJSON | TwitchVODChapterMinimalJSON) {
-
-        if ("box_art_url" in raw_chapter) this.box_art_url = raw_chapter.box_art_url;
-        this.game_id = raw_chapter.game_id;
-        this.game_name = raw_chapter.game_name;
-        if ("duration" in raw_chapter) this.duration = raw_chapter.duration;
-        if ("offset" in raw_chapter) this.offset = raw_chapter.offset;
-        this.title = raw_chapter.title;
-        this.is_mature = raw_chapter.is_mature;
-        this.online = raw_chapter.online;
-        // this.favourite = raw_chapter.favourite;
-
-        this.datetime = parse(raw_chapter.time, TwitchHelper.TWITCH_DATE_FORMAT, new Date());
-
-        if (raw_chapter.game_id) {
-            const game = TwitchGame.getGameDataFromCache(raw_chapter.game_id);
-            if (game) {
-                this.game = game;
-            } else {
-                console.error(`Could not find game data for game_id: ${raw_chapter.game_id}`);
-            }
-        } else {
-            console.error(`No game_id for chapter: ${raw_chapter.title}`);
-        }
-
-        this.raw_chapter = raw_chapter;
-
-    }
-
     getRawChapter(): TwitchVODChapterMinimalJSON {
         if (!this.datetime) throw new Error("Can't get raw chapter: No datetime set");
         // if (!this.game_id) throw new Error("Can't get raw chapter: No game_id set");
@@ -160,5 +131,36 @@ export class TwitchVODChapter {
     //     const game_data = await TwitchHelper.getGameData(this.game_id);
     //     return game_data?.name;
     // }
+
+    static fromData(data: TwitchVODChapterJSON | TwitchVODChapterMinimalJSON): TwitchVODChapter {
+        
+        const chapter = new TwitchVODChapter();
+        if ("box_art_url" in data) chapter.box_art_url = data.box_art_url;
+        chapter.game_id = data.game_id;
+        chapter.game_name = data.game_name;
+        if ("duration" in data) chapter.duration = data.duration;
+        if ("offset" in data) chapter.offset = data.offset;
+        chapter.title = data.title;
+        chapter.is_mature = data.is_mature;
+        chapter.online = data.online;
+        // chapter.favourite = data.favourite;
+
+        chapter.datetime = parse(data.time, TwitchHelper.TWITCH_DATE_FORMAT, new Date());
+
+        if (data.game_id) {
+            const game = TwitchGame.getGameDataFromCache(data.game_id);
+            if (game) {
+                chapter.game = game;
+            } else {
+                console.error(`Could not find game data for game_id: ${data.game_id}`);
+            }
+        } else {
+            console.error(`No game_id for chapter: ${data.title}`);
+        }
+
+        chapter.raw_chapter = data;
+
+        return chapter;
+    }
 
 }
