@@ -277,7 +277,14 @@ export class TwitchHelper {
 
     }
 
-    
+    /**
+     * Execute a command and return the output
+     * 
+     * @param bin 
+     * @param args 
+     * @throws Exception
+     * @returns 
+     */
     static execSimple(bin: string, args: string[]): Promise<ExecReturn> {
 
         return new Promise((resolve, reject) => {
@@ -310,6 +317,11 @@ export class TwitchHelper {
                 } else {
                     reject({ code, stdout, stderr });
                 }
+            });
+
+            process.on("error", (err) => {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
+                reject({ code: -1, stdout, stderr });
             });
 
         });
@@ -376,6 +388,11 @@ export class TwitchHelper {
                 }
             });
 
+            process.on("error", (err) => {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
+                reject({ code: -1, stdout, stderr });
+            });
+
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Attached to all streams for process ${process.pid} for ${jobName}`);
 
         });
@@ -436,6 +453,10 @@ export class TwitchHelper {
             */
         });
 
+        process.on("error", (err) => {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} on job ${jobName} error: ${err}`);
+        });
+
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Attached to all streams for process ${process.pid} for ${jobName}`);
 
         return job;
@@ -483,8 +504,14 @@ export class TwitchHelper {
             process.stdout.on("data", (data: Stream) => {
                 stdout.push(data.toString());
             });
+            
             process.stderr.on("data", (data: Stream) => {
                 stderr.push(data.toString());
+            });
+
+            process.on("error", (err) => {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
+                reject({ code: -1, success: false, stdout, stderr });
             });
 
             ffmpeg.on("close", (code) => {

@@ -105,7 +105,9 @@ export async function About(req: express.Request, res: express.Response) {
             } catch (error) {
                 const e = error as ExecReturn;
                 if ("code" in e) {
-                    console.error("exec error", error);
+                    console.error("execreturn error", error);
+                } else {
+                    console.error("generic error", error);
                 }
             }
 
@@ -132,19 +134,6 @@ export async function About(req: express.Request, res: express.Response) {
             };
         }
     }
-
-    /*
-    $cron_lastrun = [];
-    foreach (['check_deleted_vods', 'check_muted_vods', 'dump_playlists'] as $cron) {
-        $fp = TwitchHelper::$cron_folder . DIRECTORY_SEPARATOR . $cron;
-        if (file_exists($fp)) {
-            $t = (int)file_get_contents($fp);
-            $cron_lastrun[$cron] = date("Y-m-d H:i:s", $t);
-        } else {
-            $cron_lastrun[$cron] = "Never run";
-        }
-    }
-    */
 
     const cron_lastrun: Record<string, string> = {};
     for (const cron of ["check_deleted_vods", "check_muted_vods", "dump_playlists"]) {

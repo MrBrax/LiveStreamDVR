@@ -776,6 +776,20 @@ export class TwitchVOD {
         return fs.existsSync(csv_path);
     }
 
+    public getUniqueGames() {
+        const games: { id: string; name: string; image_url: string; }[] = [];
+        this.chapters.forEach((chapter) => {
+            if (chapter.game_id && !games.find((g) => g.id == chapter.game_id)) {
+                games.push({
+                    id: chapter.game_id,
+                    name: chapter.game_name || chapter.game_id,
+                    image_url: chapter.game?.getBoxArtUrl(70, 95) || "",
+                });
+            }
+        });
+        return games;
+    }
+
     public toAPI() {
         return {
             // vod_path: this.vod_path,
@@ -846,7 +860,7 @@ export class TwitchVOD {
             path_adbreak: this.path_adbreak,
             path_playlist: this.path_playlist,
             // api_hasFavouriteGame:
-            // api_getUniqueGames:
+            api_getUniqueGames: this.getUniqueGames(),
             // api_getWebhookDuration:
             // api_getDuration: this.getDuration(),
             api_getDuration: this.duration_seconds,
