@@ -100,7 +100,8 @@ import ChannelUpdateForm from "@/components/forms/ChannelUpdateForm.vue";
 import SettingsForm from "@/components/forms/SettingsForm.vue";
 import FavouritesForm from "@/components/forms/FavouritesForm.vue";
 
-import type { ApiSettingsField, ApiGame, ApiChannelConfig } from "@/twitchautomator.d";
+import type { ApiSettingsField, ApiGame, ApiChannelConfig, ApiConfig } from "../../../common/Api/Client";
+import { ApiSettingsResponse } from "../../../common/Api";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUser, faCalendarCheck, faStar } from "@fortawesome/free-solid-svg-icons";
@@ -116,14 +117,21 @@ export default defineComponent({
     title() {
         return `Settings`;
     },
-    data() {
+    data(): {
+        loading: boolean;
+        formChannels: ApiChannelConfig[];
+        settingsData: Record<string, ApiConfig>;
+        settingsFields: Record<string, ApiSettingsField>;
+        favouritesData: string[];
+        gamesData: Record<string, ApiGame>;
+    } {
         return {
             loading: false,
-            settingsData: [],
-            settingsFields: [] as ApiSettingsField[],
-            gamesData: {} as Record<number, ApiGame>,
-            favouritesData: {},
-            formChannels: [] as ApiChannelConfig[],
+            settingsData: {},
+            settingsFields: {},
+            gamesData: {},
+            favouritesData: [],
+            formChannels: [],
             // games: Object as () => [key: string]: ApiGame
         };
     },
@@ -141,13 +149,14 @@ export default defineComponent({
                     this.$http
                         .get(`api/v0/settings`)
                         .then((response) => {
-                            const json = response.data;
+
+                            const json: ApiSettingsResponse = response.data;
                             if (json.message) alert(json.message);
                             console.log("settings list", json);
 
                             const config = json.data.config;
                             const channels: ApiChannelConfig[] = json.data.channels;
-                            const favourites = config.favourites;
+                            const favourites = json.data.favourite_games;
 
                             this.favouritesData = favourites;
                             // this.gamesData = games;
@@ -165,7 +174,7 @@ export default defineComponent({
                     this.$http
                         .get(`api/v0/games`)
                         .then((response) => {
-                            const json = response.data;
+                            const json: ApiGamesResponse = response.data;
                             if (json.message) alert(json.message);
                             console.log("games list", json);
                             const games = json.data;

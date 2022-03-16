@@ -8,38 +8,7 @@ import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
 import { KeyValue } from "./KeyValue";
-
-export interface SettingField<T> {
-    key: string;
-    group: string;
-    text: string;
-
-    /**
-     * Value type
-     */
-    type: "string" | "number" | "boolean" | "array";
-    // type: T;
-
-    /** Default value */
-    default?: T;
-
-    /** Array of choices */
-    choices?: T[];
-
-    /** Help text to appear next to field in settings */
-    help?: string;
-
-    /** Required to save settings? */
-    required?: boolean;
-
-    /** Automatically strip slashes? */
-    stripslash?: boolean;
-
-    /** Send to client? */
-    secret?: boolean;
-}
-
-export type VideoQuality = "best" | "1080p60" | "1080p" | "720p60" | "720p" | "480p" | "360p" | "160p" | "140p" | "worst";
+import { SettingField } from "../../../common/Config";
 
 export class TwitchConfig {
 

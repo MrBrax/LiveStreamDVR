@@ -1,10 +1,11 @@
-import { SettingField, TwitchConfig } from "../Core/TwitchConfig";
+import { TwitchConfig } from "../Core/TwitchConfig";
 import express from "express";
 import { version } from "../../package.json";
 import { TwitchChannel } from "../Core/TwitchChannel";
 import { TwitchGame } from "../Core/TwitchGame";
 import axios, { AxiosResponse } from "axios";
 import { TwitchHelper } from "../Core/TwitchHelper";
+import { SettingField } from "../../../common/Config";
 
 export function GetSettings(req: express.Request, res: express.Response): void {
 

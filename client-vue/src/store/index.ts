@@ -1,25 +1,40 @@
-import { ApiChannel, ApiConfig, ApiJob, ApiVod, ClientSettings } from "@/twitchautomator";
+import { ApiChannel, ApiJob, ApiVod } from "../../../common/Api/Client";
 import axios from "axios";
 import { defineStore } from "pinia";
+import { ClientSettings } from "@/twitchautomator";
 
 export const useStore = defineStore("twitchAutomator", {
-    state: () => {
+    state: function (): {
+        streamerList: ApiChannel[];
+        jobList: ApiJob[];
+        config: Record<string, any> | null;
+        favourite_games: string[];
+        version: string;
+        clientConfig: ClientSettings | null;
+        serverType: string;
+    } {
         return {
-            streamerList: [] as ApiChannel[],
-            jobList: [] as ApiJob[],
-            config: {} as ApiConfig | null,
+            streamerList: [],
+            jobList: [],
+            config: {},
+            favourite_games: [],
             version: "",
-            clientConfig: {} as ClientSettings,
+            clientConfig: null,
             serverType: "",
         };
     },
     actions: {
-        cfg<T>(key: string, def: T | null = null): T | null {
-            const k: keyof ApiConfig = key as keyof ApiConfig;
+        // cfg<T>(key: string, def: T | null = null): T | null {
+        //     const k: keyof ApiConfig = key as keyof ApiConfig;
+        //     if (!this.config) return null;
+        //     // if (!key in this.config) return def;
+        //     if (this.config[k] === undefined || this.config[k] === null) return def;
+        //     return this.config[k] as unknown as T;
+        // },
+        cfg(key: string, def: any = null): any {
             if (!this.config) return null;
-            // if (!key in this.config) return def;
-            if (this.config[k] === undefined || this.config[k] === null) return def;
-            return this.config[k] as unknown as T;
+            if (this.config[key] === undefined || this.config[key] === null) return def;
+            return this.config[key];
         },
         async fetchStreamerList() {
             console.debug("fetchStreamerList");
@@ -130,7 +145,7 @@ export const useStore = defineStore("twitchAutomator", {
         updateJobList(data: ApiJob[]) {
             this.jobList = data;
         },
-        updateConfig(data: ApiConfig | null) {
+        updateConfig(data: Record<string, any> | null) {
             this.config = data;
         },
         updateClientConfig(data: ClientSettings) {
@@ -141,6 +156,9 @@ export const useStore = defineStore("twitchAutomator", {
         },
         updateServerType(data: string) {
             this.serverType = data;
+        },
+        updateFavouriteGames(data: string[]) {
+            this.favourite_games = data;
         },
         fetchClientConfig() {
             // client config

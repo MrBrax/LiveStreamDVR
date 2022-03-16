@@ -6,3 +6,9 @@ export class PHPDateTime extends Date {
         super(date);
     }
 }
+
+export type PHPDateTimeJSON = {
+    date: string;
+    timezone_type: number;
+    timezone: string;
+};

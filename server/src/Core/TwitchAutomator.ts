@@ -85,6 +85,7 @@ export class TwitchAutomator {
 
         if (!headers["Twitch-Eventsub-Message-Id"]) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", "No twitch message id supplied to handle");
+            console.log(headers);
             return false;
         }
 

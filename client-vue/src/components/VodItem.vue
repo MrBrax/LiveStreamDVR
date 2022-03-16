@@ -428,7 +428,7 @@
                         v-for="(chapter, chapterIndex) in vod.chapters"
                         :key="chapterIndex"
                         :class="{
-                            favourite: store.config && store.config.favourites[chapter.game_id],
+                            favourite: store.config && store.favourite_games.includes(chapter.game_id.toString()),
                             current: chapterIndex === vod.chapters.length - 1 && vod.is_capturing,
                         }"
                     >
@@ -747,7 +747,7 @@
 </template>
 
 <script lang="ts">
-import type { ApiJob, ApiVod } from "@/twitchautomator.d";
+import type { ApiJob, ApiVod } from "../../../common/Api/Client";
 import { defineComponent, ref } from "vue";
 import DurationDisplay from "@/components/DurationDisplay.vue";
 // import { format, toDate, parse } from 'date-fns';
@@ -1000,7 +1000,7 @@ export default defineComponent({
             };
 
             data.games[game_id] = true;
-            for (const fid in this.store.config.favourites) {
+            for (const fid of this.store.favourite_games) {
                 data.games[parseInt(fid)] = true;
             }
 

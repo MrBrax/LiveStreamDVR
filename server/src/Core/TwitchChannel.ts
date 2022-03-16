@@ -1,29 +1,22 @@
 import axios from "axios";
 import fs from "fs";
 import path from "path";
+import { ChannelConfig, VideoQuality } from "../../../common/Config";
 import { ErrorResponse, EventSubTypes } from "../../../common/TwitchAPI/Shared";
 import { Stream, StreamsResponse } from "../../../common/TwitchAPI/Streams";
 import { SubscriptionRequest, SubscriptionResponse } from "../../../common/TwitchAPI/Subscriptions";
 import { User, Users } from "../../../common/TwitchAPI/Users";
 import { BaseConfigPath } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
-import { TwitchConfig, VideoQuality } from "./TwitchConfig";
+import { TwitchConfig } from "./TwitchConfig";
 import { TwitchHelper } from "./TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
+
 interface ChannelData extends User {
     _updated: number;
     cache_avatar: string;
-}
-
-export interface ChannelConfig {
-    login: string;
-    quality: VideoQuality[];
-    match: string[];
-    download_chat: boolean;
-    burn_chat: boolean;
-    no_capture: boolean;
 }
 
 export class TwitchChannel {

@@ -3,7 +3,7 @@
         :class="{
             'top-menu-item': true,
             'is-live': streamer.is_live,
-            'is-animated': store.clientConfig.animationsEnabled,
+            'is-animated': store.clientConfig?.animationsEnabled,
             'is-active': $route.query.channel == streamer.login,
             'is-converting': streamer.is_converting,
             streamer: true,
@@ -11,7 +11,7 @@
         :data-streamer="streamer.login"
         v-if="streamer"
     >
-        <router-link :to="store.clientConfig.singlePage ? { path: 'dashboard', query: { channel: streamer.login } } : '#streamer_' + streamer.login">
+        <router-link :to="store.clientConfig?.singlePage ? { path: 'dashboard', query: { channel: streamer.login } } : '#streamer_' + streamer.login">
             <span class="avatar" @click.prevent="streamer && store.updateStreamer(streamer.login)">
                 <img :src="streamer.profile_image_url" :alt="streamer.login" />
             </span>
@@ -33,7 +33,7 @@
                     for
                     <duration-display
                         :startDate="streamer.current_vod.dt_started_at.date"
-                        :outputStyle="store.clientConfig.useRelativeTime ? 'human' : 'numbers'"
+                        :outputStyle="store.clientConfig?.useRelativeTime ? 'human' : 'numbers'"
                     ></duration-display>
                 </template>
                 <template v-else-if="streamer.is_converting"> Converting... </template>
@@ -49,14 +49,14 @@
             <li v-for="vod in streamer.vods_list" :key="vod.basename">
                 <router-link
                     :to="
-                        store.clientConfig.singlePage
+                        store.clientConfig?.singlePage
                             ? { path: 'dashboard', query: { channel: streamer.login }, hash: '#vod_' + vod.basename }
                             : '#vod_' + vod.basename
                     "
                     :class="{
                         'is-favourite': vod.api_hasFavouriteGame,
                         'is-live': vod.is_capturing,
-                        'is-animated': store.clientConfig.animationsEnabled,
+                        'is-animated': store.clientConfig?.animationsEnabled,
                         'is-converting': vod.is_converting,
                         'is-waiting': !vod.is_capturing && !vod.is_converting && !vod.is_finalized,
                     }"
@@ -81,17 +81,17 @@
                     <!-- started at -->
 
                     <!-- absolute time -->
-                    <span v-if="!store.clientConfig.useRelativeTime && vod.dt_started_at">{{ formatDate(vod.dt_started_at.date) }}</span>
+                    <span v-if="!store.clientConfig?.useRelativeTime && vod.dt_started_at">{{ formatDate(vod.dt_started_at.date) }}</span>
 
                     <!-- relative time -->
-                    <span v-if="store.clientConfig.useRelativeTime && vod.dt_started_at">{{ humanDate(vod.dt_started_at.date, true) }}</span>
+                    <span v-if="store.clientConfig?.useRelativeTime && vod.dt_started_at">{{ humanDate(vod.dt_started_at.date, true) }}</span>
 
                     <!-- when capturing -->
                     <template v-if="vod.is_capturing">
                         <span>
                             &middot; (<duration-display
                                 :startDate="streamer.current_vod.dt_started_at.date"
-                                :outputStyle="store.clientConfig.useRelativeTime ? 'human' : 'numbers'"
+                                :outputStyle="store.clientConfig?.useRelativeTime ? 'human' : 'numbers'"
                             ></duration-display
                             >)</span
                         ><!-- duration -->
@@ -103,7 +103,7 @@
                     <template v-else>
                         <!-- duration -->
                         <span v-if="vod.duration_seconds">
-                            &middot; ({{ store.clientConfig.useRelativeTime ? niceDuration(vod.duration_seconds) : humanDuration(vod.duration_seconds) }})
+                            &middot; ({{ store.clientConfig?.useRelativeTime ? niceDuration(vod.duration_seconds) : humanDuration(vod.duration_seconds) }})
                         </span>
 
                         <!-- filesize -->
@@ -128,7 +128,7 @@
                     </template>
 
                     <!-- tooltip -->
-                    <div :class="{ tooltip: true, 'is-static': store.clientConfig.tooltipStatic }">
+                    <div :class="{ tooltip: true, 'is-static': store.clientConfig?.tooltipStatic }">
                         <div class="stream-channel">
                             {{ streamer.display_name }}
                             <template v-if="streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }})</template>
@@ -138,7 +138,7 @@
                             <div
                                 v-for="game in vod.api_getUniqueGames"
                                 :key="game.name"
-                                :class="{ 'boxart-item': true, 'is-favourite': store.config && store.config.favourites[game.id] }"
+                                :class="{ 'boxart-item': true, 'is-favourite': store.config && store.favourite_games.includes(game.id) }"
                             >
                                 <img v-if="game.image_url" :title="game.name" :alt="game.name" :src="game.image_url" loading="lazy" />
                                 <span class="boxart-name">{{ game.name }}</span>
@@ -162,7 +162,7 @@ import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faTrashArrowUp } from "@fortawesome/free-solid-svg-icons";
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import { useStore } from "@/store";
-import { ApiChannel, ApiVod } from "@/twitchautomator";
+import { ApiChannel, ApiVod } from "../../../common/Api/Client";
 library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp);
 
 import { nonGameCategories } from "@/defs";

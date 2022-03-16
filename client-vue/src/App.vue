@@ -26,6 +26,7 @@ import { defineComponent } from "vue";
 
 import SideMenu from "@/components/SideMenu.vue";
 import { useStore } from "./store";
+import { ApiSettingsResponse } from "../../common/Api";
 
 export default defineComponent({
     name: "App",
@@ -66,11 +67,14 @@ export default defineComponent({
                 return;
             }
 
-            console.log(`Server type: ${response.data.data.server ?? "unknown"}`);
+            const data: ApiSettingsResponse = response.data;
 
-            this.store.updateConfig(response.data.data.config);
-            this.store.updateVersion(response.data.data.version);
-            this.store.updateServerType(response.data.data.server);
+            console.log(`Server type: ${data.data.server ?? "unknown"}`);
+
+            this.store.updateConfig(data.data.config);
+            this.store.updateVersion(data.data.version);
+            this.store.updateServerType(data.data.server);
+            this.store.updateFavouriteGames(data.data.favourite_games);
         },
     },
     components: {

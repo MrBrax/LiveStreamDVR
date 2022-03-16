@@ -33,6 +33,10 @@ const verifySignature = (request: express.Request): boolean => {
     const twitch_message_timestamp = request.header("Twitch-Eventsub-Message-Timestamp");
     const twitch_message_signature = request.header("Twitch-Eventsub-Message-Signature");
 
+    console.debug(`Twitch-Eventsub-Message-Id: ${twitch_message_id}`);
+    console.debug(`Twitch-Eventsub-Message-Timestamp: ${twitch_message_timestamp}`);
+    console.debug(`Twitch-Eventsub-Message-Signature: ${twitch_message_signature}`);
+    console.debug(`Secret: ${TwitchConfig.cfg("eventsub_secret")}`);
     /*
         $hmac_message =
             $twitch_message_id .
@@ -51,14 +55,21 @@ const verifySignature = (request: express.Request): boolean => {
         TwitchLog.logAdvanced(LOGLEVEL.ERROR, "hook", "Missing twitch headers.");
         return false;
     }
+    
+    const body = JSON.stringify(request.body);
 
-    const hmac_message = twitch_message_id + twitch_message_timestamp + request.body;
+    const hmac_message = twitch_message_id + twitch_message_timestamp + body;
+
+    console.log(`HMAC Message: ${hmac_message}`);
 
     const signature = crypto.createHmac("sha256", TwitchConfig.cfg("eventsub_secret"))
         .update(hmac_message)
         .digest("hex");
 
     const expected_signature_header = "sha256=" + signature;
+
+    console.log(`Expected Signature: ${expected_signature_header}`);
+    console.log(`Actual Signature: ${twitch_message_signature}`);
 
     return twitch_message_signature === expected_signature_header;
 
@@ -67,6 +78,8 @@ const verifySignature = (request: express.Request): boolean => {
 export async function Hook(req: express.Request, res: express.Response): Promise<void> {
 
     const source = req.query.source ?? "twitch";
+
+    console.log("Body", req.body, req.body.toString(), JSON.stringify(req.body));
 
     /*
         try {
@@ -83,7 +96,7 @@ export async function Hook(req: express.Request, res: express.Response): Promise
     // $data_headers = $request->getHeaders();
     // $post_json = isset($_POST['json']) ? $_POST['json'] : null;
 
-    const debugMeta = {"GET": req.query, "POST": req.body, "HEADERS": req.headers, "DATA": data_json};
+    const debugMeta = { "GET": req.query, "POST": req.body, "HEADERS": req.headers, "DATA": data_json };
 
     TwitchLog.logAdvanced(LOGLEVEL.INFO, "hook", "Hook called", debugMeta);
 
@@ -106,7 +119,7 @@ export async function Hook(req: express.Request, res: express.Response): Promise
         if (data_json && Object.keys(data_json).length > 0) {
 
             if (req.header("Twitch-Notification-Id")) {
-                    
+
                 TwitchLog.logAdvanced(
                     LOGLEVEL.ERROR,
                     "hook",
@@ -132,7 +145,7 @@ export async function Hook(req: express.Request, res: express.Response): Promise
                 TwitchLog.logAdvanced(LOGLEVEL.INFO, "hook", `Challenge received for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]})`, debugMeta);
 
                 if (!verifySignature(req)) {
-                        
+
                     TwitchLog.logAdvanced(
                         LOGLEVEL.FATAL,
                         "hook",
@@ -191,5 +204,5 @@ export async function Hook(req: express.Request, res: express.Response): Promise
 
     res.status(400).send("No data supplied");
     return;
-    
+
 }
