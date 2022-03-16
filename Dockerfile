@@ -1,44 +1,39 @@
-FROM trafex/php-nginx
+FROM node:17-alpine3.15
 USER root
 
 # system packages
 RUN apk --no-cache add \
-    gcc libc-dev git \
+    gcc g++ libc-dev git \
     ca-certificates \
     composer \
     python3 py3-pip py3-wheel \
     ffmpeg mediainfo \
     util-linux busybox-initscripts procps gcompat \
     libxml2-dev libxslt-dev python3-dev \
-    yarn nodejs \
     bash icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib fontconfig
+
+# install yarn
+# RUN npm install -g yarn
     
 # libfontconfig1 can't be found
 
 # pip packages
-# RUN pip install streamlink youtube-dl tcd
 COPY ./requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt
 
 # copy app
-RUN mkdir -p /var/www/twitchautomator
-COPY . /var/www/twitchautomator/
+RUN mkdir -p /usr/local/share/twitchautomator
+COPY . /usr/local/share/twitchautomator/
 # RUN git clone https://github.com/MrBrax/TwitchAutomator /var/www/twitchautomator/
 
-# composer
-COPY ./docker/memory_limit.ini /etc/php7/conf.d/memory_limit.ini
-ENV COMPOSER_MEMORY_LIMIT=256M
-ENV MEMORY_LIMIT=256M
-ENV PHP_MEMORY_LIMIT=256M
-ENV PHP7_MEMORY_LIMIT=256M
-RUN cd /var/www/twitchautomator/ && composer install --optimize-autoloader --no-interaction --no-dev
-# RUN cd /var/www/twitchautomator/ && npm install # nodejs
+# server
+RUN cd /usr/local/share/twitchautomator/server && yarn install && yarn build
 
 # client
-RUN cd /var/www/twitchautomator/client-vue && yarn install && yarn build && cp -r dist/* ../public/ && cd .. && rm -r -f client-vue
+RUN cd /usr/local/share/twitchautomator/client-vue && yarn install && yarn build
 
 # install chat dumper dependencies, test
-RUN cd /var/www/twitchautomator/twitch-chat-dumper && yarn install
+RUN cd /usr/local/share/twitchautomator/twitch-chat-dumper && yarn install
 
 # install dotnet for twitchdownloader
 # ADD https://dot.net/v1/dotnet-install.sh /tmp/dotnet-install.sh
@@ -52,13 +47,7 @@ ENV TCD_TWITCHDOWNLOADER_PATH=/usr/local/bin/TwitchDownloaderCLI
 
 
 # src perms
-RUN chown -R nobody:nobody /var/www/twitchautomator && chmod -R 775 /var/www/twitchautomator
-
-# nginx config
-COPY ./docker/nginx.conf /etc/nginx/nginx.conf
-
-# php config
-COPY ./docker/cacert.ini /etc/php8/conf.d/cacert.ini
+RUN chown -R nobody:nobody /usr/local/share/twitchautomator && chmod -R 775 /usr/local/share/twitchautomator
 
 # make home folder
 RUN mkdir -p /home/nobody && chown -R nobody:nobody /home/nobody
@@ -80,4 +69,6 @@ ENV TCD_WEBSOCKET_ENABLED=1
 ENV TCD_CA_PATH=/tmp/cacert.pem
 
 USER nobody
-WORKDIR /var/www/twitchautomator
+WORKDIR /usr/local/share/twitchautomator
+
+ENTRYPOINT [ "yarn start" ]
