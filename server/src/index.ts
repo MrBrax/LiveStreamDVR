@@ -13,10 +13,14 @@ if (!fs.existsSync(path.join(BaseConfigFolder.client, "index.html"))) {
     process.exit(1);
 }
 
+const override_port = process.argv && process.argv.length > 2 && process.argv[2] ? parseInt(process.argv[2]) : undefined;
+
 TwitchConfig.init().then(() => {
 
     const app = express();
-    const port = TwitchConfig.cfg<number>("server_port", 8080);
+    const port = override_port || TwitchConfig.cfg<number>("server_port", 8080);
+
+    const basepath = TwitchConfig.cfg<string>("basepath", "");
 
     app.use(express.json());
     app.use(morgan("dev"));
@@ -26,22 +30,26 @@ TwitchConfig.init().then(() => {
     //     res.send(TwitchConfig.config);
     // });
 
-    app.use("/api/v0", ApiRouter);
+    const baserouter = express.Router();
+
+    baserouter.use("/api/v0", ApiRouter);
 
     // single page app
-    // app.use(history());
-    app.use(express.static(BaseConfigFolder.client));
-    app.use("/vodplayer", express.static(BaseConfigFolder.vodplayer));
-    app.use("/vods", express.static(BaseConfigFolder.vod));
-    app.use("/saved_vods", express.static(BaseConfigFolder.saved_vods));
-    app.use("/saved_clips", express.static(BaseConfigFolder.saved_clips));
+    // baserouter.use(history());
+    baserouter.use(express.static(BaseConfigFolder.client));
+    baserouter.use("/vodplayer", express.static(BaseConfigFolder.vodplayer));
+    baserouter.use("/vods", express.static(BaseConfigFolder.vod));
+    baserouter.use("/saved_vods", express.static(BaseConfigFolder.saved_vods));
+    baserouter.use("/saved_clips", express.static(BaseConfigFolder.saved_clips));
 
-    app.use("*", (req, res) => {
+    baserouter.use("*", (req, res) => {
         res.sendFile(path.join(BaseConfigFolder.client, "index.html"));
     });
 
+    app.use(basepath, baserouter);
+
     app.listen(port, () => {
-        console.log(chalk.greenBright(`${AppName} listening on port ${port}, mode ${process.env.NODE_ENV}`));
+        console.log(chalk.greenBright(`${AppName} listening on port ${port}, mode ${process.env.NODE_ENV}. Base path: ${basepath}`));
         if (process.env.npm_lifecycle_script?.includes("index.ts")){
             console.log(chalk.greenBright("Running with TypeScript"));
         } else {

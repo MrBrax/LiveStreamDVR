@@ -60,7 +60,7 @@ export function DeleteVod(req: express.Request, res: express.Response): void {
     
 }
 
-export function DownloadVod(req: express.Request, res: express.Response): void {
+export async function DownloadVod(req: express.Request, res: express.Response): Promise<void> {
     
     const vod = TwitchVOD.getVod(req.params.basename);
 
@@ -72,10 +72,10 @@ export function DownloadVod(req: express.Request, res: express.Response): void {
         return;
     }
 
-    vod.downloadVod();
+    const success = await vod.downloadVod();
 
     res.send({
-        status: "OK",
+        status: success ? "OK" : "ERROR",
     });
     
 }

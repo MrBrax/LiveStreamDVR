@@ -277,25 +277,7 @@ export class TwitchHelper {
 
     }
 
-    /**
-     * @deprecated
-     * @param cmd 
-     * @returns 
-     */
-    /*
-    static exec(cmd: string[]): Promise<string> {
-        return new Promise((resolve, reject) => {
-            exec(cmd.join(" "), (err, stdout, stderr) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(stdout);
-                }
-            });
-        });
-    }
-    */
-
+    
     static execSimple(bin: string, args: string[]): Promise<ExecReturn> {
 
         return new Promise((resolve, reject) => {

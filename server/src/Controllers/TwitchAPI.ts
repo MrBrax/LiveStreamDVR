@@ -1,5 +1,5 @@
-import { TwitchChannel } from "Core/TwitchChannel";
-import { TwitchVOD } from "Core/TwitchVOD";
+import { TwitchChannel } from "../Core/TwitchChannel";
+import { TwitchVOD } from "../Core/TwitchVOD";
 import express from "express";
 
 export async function TwitchAPIVideos(req: express.Request, res: express.Response): Promise<void> {

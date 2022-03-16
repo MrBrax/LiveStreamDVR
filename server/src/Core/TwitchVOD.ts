@@ -1182,6 +1182,12 @@ export class TwitchVOD {
         }
     }
 
+    /**
+     * Download the VOD from Twitch if vod id is set
+     * @param quality 
+     * @returns 
+     * @throws
+     */
     public async downloadVod(quality: VideoQuality = "best"): Promise<boolean> {
         if (!this.twitch_vod_id) throw new Error("No VOD id!");
         if (!this.directory) throw new Error("No directory!");
@@ -1293,7 +1299,16 @@ export class TwitchVOD {
         return vod;
     }
 
-    public static async downloadVideo(video_id: string, quality: VideoQuality, filename: string) {
+    /**
+     * Download a video from Twitch to a file
+     * 
+     * @param video_id 
+     * @param quality 
+     * @param filename 
+     * @throws
+     * @returns 
+     */
+    public static async downloadVideo(video_id: string, quality: VideoQuality = "best", filename: string) {
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", `Download VOD ${video_id}`);
 
@@ -1341,7 +1356,7 @@ export class TwitchVOD {
 
             cmd.push("--url", video_url); // stream url
 
-            cmd.push("--default-stream", "best"); // twitch url and quality
+            cmd.push("--default-stream", quality); // twitch url and quality
 
             // logging level
             if (TwitchConfig.cfg("debug", false)) {

@@ -307,11 +307,29 @@ export class TwitchAutomatorJob extends EventEmitter
 
         let output = "";
         if (TwitchHelper.is_windows()) {
-            const proc = await TwitchHelper.execSimple("tasklist", ["/FI", `PID eq ${this.pid}`]);
+            
+            let proc;
+            try {
+                proc = await TwitchHelper.execSimple("tasklist", ["/FI", `PID eq ${this.pid}`]);
+            } catch (e) {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for job ${this.name}`, this.metadata);
+                return false;
+            }
+
             output = proc.stdout.join("\n");
+
         } else {
-            const proc = await TwitchHelper.execSimple("ps", ["-p", this.pid.toString()]);
+
+            let proc;
+            try {
+                proc = await TwitchHelper.execSimple("ps", ["-p", this.pid.toString()]);
+            } catch (e) {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for job ${this.name}`, this.metadata);
+                return false;
+            }
+
             output = proc.stdout.join("\n");
+
         }
 
         /*

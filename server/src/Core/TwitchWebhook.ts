@@ -2,6 +2,7 @@ import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchConfig } from "./TwitchConfig";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
+import WebSocket from "ws";
 
 export type WebhookAction =
     "chapter_update" |

@@ -18,6 +18,7 @@
     "@types/jest": "^27.4.1",
     "@types/morgan": "^1.9.3",
     "@types/node": "^17.0.21",
+    "@types/ws": "^8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.13.0",
     "@typescript-eslint/parser": "^5.13.0",
     "eslint": "^7.32.0",
@@ -38,6 +39,7 @@
     "connect-history-api-fallback": "^1.6.0",
     "date-fns": "^2.28.0",
     "express": "^4.17.3",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "ws": "^8.5.0"
   }
 }
