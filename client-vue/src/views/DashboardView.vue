@@ -3,7 +3,7 @@
         <section class="section" data-section="vods">
             <div class="section-title"><h1>Recorded VODs</h1></div>
             <div class="section-content" v-if="store.streamerList && store.streamerList.length > 0">
-                <template v-if="!store.clientConfig.singlePage">
+                <template v-if="!store.clientConfig?.singlePage">
                     <streamer v-for="streamer in sortedStreamers" v-bind:key="streamer.userid" v-bind:streamer="streamer" />
                 </template>
                 <template v-else>
@@ -79,7 +79,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import Streamer from "@/components/StreamerItem.vue";
-import type { ApiLogLine, ApiChannel } from "@/twitchautomator.d";
+import type { ApiLogLine, ApiChannel } from "@common/Api/Client";
 import { format } from "date-fns";
 import { useStore } from "@/store";
 import { nonGameCategories } from "@/defs";
@@ -162,11 +162,11 @@ export default defineComponent({
     mounted() {
         this.processNotifications();
 
-        if (this.store.cfg("websocket_enabled") && this.store.clientConfig.useWebsockets) {
+        if (this.store.cfg("websocket_enabled") && this.store.clientConfig?.useWebsockets) {
             console.debug("Websockets enabled");
             this.connectWebsocket();
         } else {
-            if (this.store.clientConfig.useBackgroundTicker) {
+            if (this.store.clientConfig?.useBackgroundTicker) {
                 console.debug("Websockets disabled");
                 this.tickerInterval = setInterval(() => {
                     this.fetchTicker();
@@ -175,7 +175,7 @@ export default defineComponent({
         }
 
         // update vods every 15 minutes
-        if (this.store.clientConfig.useBackgroundRefresh) {
+        if (this.store.clientConfig?.useBackgroundRefresh) {
             this.vodUpdateInterval = setInterval(() => {
                 this.store.updateCapturingVods();
             }, 1000 * 60 * 15);
@@ -401,7 +401,7 @@ export default defineComponent({
             }
         },
         processNotifications() {
-            if (!this.store.clientConfig.enableNotifications) {
+            if (!this.store.clientConfig?.enableNotifications) {
                 return;
             }
 
@@ -409,7 +409,7 @@ export default defineComponent({
 
             this.notificationSub = this.store.$onAction(({ name, store, args, after, onError }) => {
                 // unsub if changed
-                if (!this.store.clientConfig.enableNotifications) {
+                if (!this.store.clientConfig?.enableNotifications) {
                     console.log("Notification setting disabled, stopping subscription.");
                     this.notificationSub();
                     return;

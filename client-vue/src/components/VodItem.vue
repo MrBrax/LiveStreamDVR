@@ -3,7 +3,7 @@
         v-if="vod"
         :class="{
             video: true,
-            'is-animated': store.clientConfig.animationsEnabled,
+            'is-animated': store.clientConfig?.animationsEnabled,
             'is-recording': vod.is_capturing,
             'is-converting': vod.is_converting,
             'is-finalized': vod.is_finalized,
@@ -17,7 +17,7 @@
             <h3>
                 <span class="icon"><fa icon="file-video"></fa></span>
                 <span class="video-date" :title="formatDate(vod?.dt_started_at.date)" v-if="vod?.dt_started_at">{{
-                    store.clientConfig.useRelativeTime ? humanDate(vod?.dt_started_at.date, true) : formatDate(vod?.dt_started_at.date)
+                    store.clientConfig?.useRelativeTime ? humanDate(vod?.dt_started_at.date, true) : formatDate(vod?.dt_started_at.date)
                 }}</span>
                 <span class="video-filename">{{ vod?.basename }}</span>
             </h3>

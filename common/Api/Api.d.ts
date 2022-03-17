@@ -1,4 +1,5 @@
 import { ChannelConfig, SettingField } from "../Config";
+import { ApiGame } from "./Client";
 
 interface ApiResponse {
     data: any;
@@ -12,12 +13,13 @@ export interface ApiSettingsResponse extends ApiResponse {
         // config: ApiConfig;
         channels: ChannelConfig[];
         favourite_games: string[];
-        fields: Record<string, SettingField<any>>;
+        // fields: Record<string, SettingField<any>>;
+        fields: SettingField<string | number | boolean>[];
         version: string;
         server: string;
     };
 }
 
 export interface ApiGamesResponse extends ApiResponse {
-    data: Record<string, any>;
+    data: Record<string, ApiGame>;
 }

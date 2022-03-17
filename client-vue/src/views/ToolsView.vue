@@ -71,7 +71,7 @@ import ToolsBurnForm from "@/components/forms/ToolsBurnForm.vue";
 import ToolsVodDownloadForm from "@/components/forms/ToolsVodDownloadForm.vue";
 import ToolsChatDownloadForm from "@/components/forms/ToolsChatDownloadForm.vue";
 
-import type { ApiJob } from "@/twitchautomator.d";
+import type { ApiJob } from "@common/Api/Client";
 
 export default defineComponent({
     name: "ToolsView",

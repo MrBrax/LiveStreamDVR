@@ -2,6 +2,7 @@ import fs from "fs";
 import { TwitchHelper } from "./TwitchHelper";
 import { BaseConfigPath } from "./BaseConfig";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
+import { ApiGame } from "../../../common/Api/Client";
 
 interface TwitchGameJSON {
     name: string;
@@ -187,6 +188,18 @@ export class TwitchGame {
             }
         }
         fs.writeFileSync(BaseConfigPath.favouriteGames, JSON.stringify(TwitchGame.favourite_games));
+    }
+
+    public toAPI(): ApiGame {
+        return {
+            id: this.id || "",
+            name: this.name || "",
+            game_name: this.name || "",
+            box_art_url: this.box_art_url || "",
+            favourite: this.isFavourite(),
+            image_url: this.getBoxArtUrl(140, 190),
+            added: this.added ? this.added.getTime() / 1000 : 0,
+        };
     }
 
 }

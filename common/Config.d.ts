@@ -28,6 +28,11 @@ export interface SettingField<T> {
 
     /** Send to client? */
     secret?: boolean;
+
+    deprecated?: boolean;
+
+    pattern?: string;
+
 }
 
 export interface ChannelConfig {

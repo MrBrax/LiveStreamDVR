@@ -1,8 +1,8 @@
 <template>
     <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm" v-if="settingsFields && settingsData">
-        <details class="settings-details" v-for="(groupData, groupName) in settingsGroups" v-bind:key="groupName">
-            <summary>{{ groupName }}</summary>
-            <div class="field" v-for="(data, index) in groupData" v-bind:key="index">
+        <details class="settings-details" v-for="groupData in settingsGroups" v-bind:key="groupData.name">
+            <summary>{{ groupData.name }}</summary>
+            <div class="field" v-for="(data, index) in groupData.fields" v-bind:key="index">
                 <label v-if="data.type != 'boolean'" class="label" :for="'input_' + data.key">
                     {{ data.text }}
                     <span v-if="data.deprecated" class="is-small is-error">Deprecated</span>
@@ -15,7 +15,7 @@
                             type="checkbox"
                             :name="data.key"
                             :id="'input_' + data.key"
-                            :checked="configValue(data.key) !== undefined ? configValue(data.key) : data.default"
+                            :checked="configValue(data.key) !== undefined ? configValue(data.key) as boolean : data.default as boolean"
                         />
                         {{ data.text }}
                     </label>
@@ -50,8 +50,8 @@
                     <!--<input class="input" :name="key" :id="key" :value="settings[key]" />-->
                     <select class="input" :name="data.key" :id="'input_' + data.key" v-if="data.choices">
                         <option
-                            v-for="item in data.choices"
-                            :key="item"
+                            v-for="(item, ix) in data.choices"
+                            :key="ix"
                             :selected="
                                 (configValue(data.key) !== undefined && configValue(data.key) === item) ||
                                 (configValue(data.key) === undefined && item === data.default)
@@ -78,18 +78,23 @@
 
 <script lang="ts">
 import { useStore } from "@/store";
-import { ApiConfig, ApiSettingsField } from "@/twitchautomator";
+import { SettingField } from "@common/Config";
 import { AxiosError } from "axios";
-import { defineComponent } from "vue";
+import { defineComponent, PropType } from "vue";
+
+interface SettingsGroup {
+    name: string;
+    fields: SettingField<string | number | boolean>[];
+}
 
 export default defineComponent({
     name: "SettingsForm",
     props: {
         settingsData: {
-            type: Object as () => ApiConfig,
+            type: Object as PropType<Record<string, string | number | boolean>>,
         },
         settingsFields: {
-            type: Array as () => ApiSettingsField[],
+            type: Array as PropType<SettingField<string | number | boolean>[]>,
         },
     },
     setup() {
@@ -146,13 +151,25 @@ export default defineComponent({
             event.preventDefault();
             return false;
         },
-        configValue<T>(key: string): T | null {
-            if (!this.settingsData) return null;
-            const k: keyof ApiConfig = key as keyof ApiConfig;
-            return this.settingsData[k] as unknown as T;
+        configValue(key: string): string | number | boolean | undefined {
+            if (!this.settingsData) return undefined;
+            // const k: keyof ApiConfig = key as keyof ApiConfig;
+            // return this.settingsData[k] as unknown as T;
+            return this.settingsData[key];
         },
     },
     computed: {
+        settingsGroups(): SettingsGroup[] {
+            if (!this.settingsFields) return [];
+            const groups: Record<string, SettingsGroup> = {};
+            for (const field of this.settingsFields) {
+                if (!field.group) continue;
+                if (!groups[field.group]) groups[field.group] = { name: field.group, fields: [] };
+                groups[field.group].fields.push(field);
+            }
+            return Object.values(groups);
+        },
+        /*
         settingsGroups(): Record<string, ApiSettingsField[]> {
             if (!this.settingsFields) return {};
             let data: Record<string, ApiSettingsField[]> = {};
@@ -174,6 +191,7 @@ export default defineComponent({
             console.log("settingsGroups sort", data);
             return data;
         },
+        */
         formStatusClass(): Record<string, boolean> {
             return {
                 "form-status": true,

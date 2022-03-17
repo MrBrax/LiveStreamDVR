@@ -69,7 +69,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import type { ApiVod } from "@/twitchautomator.d";
+import type { ApiVod } from "@common/Api/Client";
 
 export default defineComponent({
     name: "EditorView",

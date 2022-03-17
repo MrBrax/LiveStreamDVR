@@ -26,7 +26,7 @@ import { defineComponent } from "vue";
 
 import SideMenu from "@/components/SideMenu.vue";
 import { useStore } from "./store";
-import { ApiSettingsResponse } from "../../common/Api";
+import type { ApiSettingsResponse } from "@common/Api/Api";
 
 export default defineComponent({
     name: "App",

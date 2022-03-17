@@ -3,7 +3,7 @@
         <div class="favourites_list" v-if="gamesData && favouritesData">
             <div v-for="game in sortedGames" :key="game.id" class="checkbox">
                 <label v-if="favouritesData">
-                    <input type="checkbox" :name="game.id" :checked="favouritesData[game.id]" value="1" /> {{ game.name }}
+                    <input type="checkbox" :name="game.id" :checked="favouritesData.includes(game.id)" value="1" /> {{ game.name }}
                     <span class="is-gray">{{ formatTimestamp(game.added) }}</span>
                 </label>
             </div>
@@ -19,17 +19,17 @@
 </template>
 
 <script lang="ts">
-import { ApiGame } from "@/twitchautomator";
+import { ApiGame } from "@common/Api/Client";
 import { defineComponent } from "vue";
 
 export default defineComponent({
     name: "FavouritesForm",
     props: {
         favouritesData: {
-            type: Object as () => { [key: string]: boolean },
+            type: Array as () => string[],
         },
         gamesData: {
-            type: Object as () => Record<number, ApiGame>,
+            type: Object as () => Record<string, ApiGame>,
         },
     },
     emits: ["formSuccess"],

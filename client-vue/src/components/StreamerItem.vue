@@ -98,7 +98,6 @@
 </template>
 
 <script lang="ts">
-import type { ApiChannel } from "@/twitchautomator.d";
 // import { TwitchAPI.Video } from "@/twitchapi.d";
 import { defineComponent, ref } from "vue";
 import VodItem from "@/components/VodItem.vue";
@@ -106,7 +105,9 @@ import ModalBox from "@/components/ModalBox.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faVideo, faPlayCircle, faVideoSlash, faDownload } from "@fortawesome/free-solid-svg-icons";
-import { TwitchAPI } from "@/twitchapi";
+// import { TwitchAPI } from "@/twitchapi";
+import { Video } from "@common/TwitchAPI/Video";
+import type { ApiChannel } from "@common/Api/Client";
 library.add(faVideo, faPlayCircle, faVideoSlash, faDownload);
 
 export default defineComponent({
@@ -116,7 +117,7 @@ export default defineComponent({
         streamer: Object as () => ApiChannel,
     },
     data: () => ({
-        twitchVods: [] as TwitchAPI.Video[],
+        twitchVods: [] as Video[],
     }),
     setup() {
         const videoDownloadMenu = ref<InstanceType<typeof ModalBox>>();

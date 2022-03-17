@@ -169,7 +169,7 @@
 
 <script lang="ts">
 import { useStore } from "@/store";
-import { ApiSubscription } from "@/twitchautomator";
+import { ApiSubscription } from "@common/Api/Client";
 import { defineComponent } from "vue";
 
 interface SoftwareCallback {

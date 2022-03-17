@@ -54,6 +54,7 @@
 </template>
 
 <script lang="ts">
+import type { ApiChannel } from "@common/Api/Client";
 import { defineComponent } from "vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -61,8 +62,9 @@ import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync } from "@fortawesome/free-solid-svg-icons";
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import SideMenuStreamer from "./SideMenuStreamer.vue";
-import { ApiChannel } from "@/twitchautomator";
+
 import { useStore } from "@/store";
+
 library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass);
 
 export default defineComponent({

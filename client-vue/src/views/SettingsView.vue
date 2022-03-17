@@ -100,12 +100,13 @@ import ChannelUpdateForm from "@/components/forms/ChannelUpdateForm.vue";
 import SettingsForm from "@/components/forms/SettingsForm.vue";
 import FavouritesForm from "@/components/forms/FavouritesForm.vue";
 
-import type { ApiSettingsField, ApiGame, ApiChannelConfig, ApiConfig } from "../../../common/Api/Client";
-import { ApiSettingsResponse } from "../../../common/Api";
+import type { ApiGame, ApiChannelConfig } from "@common/Api/Client";
+import type { ApiSettingsResponse, ApiGamesResponse } from "@common/Api/Api";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUser, faCalendarCheck, faStar } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
+import { SettingField } from "@common/Config";
 library.add(faUser, faCalendarCheck, faStar);
 
 export default defineComponent({
@@ -120,15 +121,15 @@ export default defineComponent({
     data(): {
         loading: boolean;
         formChannels: ApiChannelConfig[];
-        settingsData: Record<string, ApiConfig>;
-        settingsFields: Record<string, ApiSettingsField>;
+        settingsData: Record<string, string | number | boolean>;
+        settingsFields: SettingField<string | number | boolean>[];
         favouritesData: string[];
         gamesData: Record<string, ApiGame>;
     } {
         return {
             loading: false,
             settingsData: {},
-            settingsFields: {},
+            settingsFields: [],
             gamesData: {},
             favouritesData: [],
             formChannels: [],
@@ -149,7 +150,6 @@ export default defineComponent({
                     this.$http
                         .get(`api/v0/settings`)
                         .then((response) => {
-
                             const json: ApiSettingsResponse = response.data;
                             if (json.message) alert(json.message);
                             console.log("settings list", json);

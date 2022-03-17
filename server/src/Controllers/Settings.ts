@@ -1,31 +1,34 @@
-import { TwitchConfig } from "../Core/TwitchConfig";
+import axios, { AxiosResponse } from "axios";
 import express from "express";
+import type { ApiSettingsResponse } from "../../../common/Api/Api";
+import type { SettingField } from "../../../common/Config";
 import { version } from "../../package.json";
 import { TwitchChannel } from "../Core/TwitchChannel";
+import { TwitchConfig } from "../Core/TwitchConfig";
 import { TwitchGame } from "../Core/TwitchGame";
-import axios, { AxiosResponse } from "axios";
 import { TwitchHelper } from "../Core/TwitchHelper";
-import { SettingField } from "../../../common/Config";
 
 export function GetSettings(req: express.Request, res: express.Response): void {
 
     // flatten settings fields to key value pairs
+    /*
     const fields = TwitchConfig.settingsFields.reduce((acc: Record<string, SettingField<any>>, cur) => {
         acc[cur.key] = cur;
         return acc;
     }, {});
+    */
 
     res.send({
         data: {
             config: TwitchConfig.config,
             channels: TwitchChannel.channels_config,
             favourite_games: TwitchGame.favourite_games,
-            fields: fields,
+            fields: TwitchConfig.settingsFields,
             version: version,
             server: "ts-server",
         },
         status: "OK",
-    });
+    } as ApiSettingsResponse);
 }
 
 export async function SaveSettings(req: express.Request, res: express.Response): Promise<void> {

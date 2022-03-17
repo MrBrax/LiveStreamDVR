@@ -343,18 +343,34 @@ export class TwitchChannel {
      * Load channel config into memory, not the channels themselves.
      */
     public static loadChannelsConfig() {
+        
         if (!fs.existsSync(BaseConfigPath.channel)) {
             return false;
         }
 
-        const data = fs.readFileSync(BaseConfigPath.channel, "utf8");
-        this.channels_config = JSON.parse(data);
+        const data: ChannelConfig[] = JSON.parse(fs.readFileSync(BaseConfigPath.channel, "utf8"));
+
+        let needsSave = false;
+        for (const channel of data) {
+            if (!("quality" in channel)) {
+                TwitchLog.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel.login} has no quality set, setting to default`);
+                channel.quality = ["best"];
+                needsSave = true;
+            }
+        }
+        
+        this.channels_config = data;
+
+        if (needsSave) {
+            this.saveChannelsConfig();
+        }
+        
     }
 
     public static saveChannelsConfig() {
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", "Saving channel config");
-        fs.writeFileSync(BaseConfigPath.channel, JSON.stringify(this.channels_config));
-        return fs.existsSync(BaseConfigPath.channel) && fs.readFileSync(BaseConfigPath.channel, "utf8") === JSON.stringify(this.channels_config);
+        fs.writeFileSync(BaseConfigPath.channel, JSON.stringify(this.channels_config, null, 4));
+        return fs.existsSync(BaseConfigPath.channel) && fs.readFileSync(BaseConfigPath.channel, "utf8") === JSON.stringify(this.channels_config, null, 4);
     }
 
     /**
