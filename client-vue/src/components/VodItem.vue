@@ -484,7 +484,7 @@
                             <!-- favourite button -->
                             <button
                                 class="icon-button favourite-button"
-                                v-if="store.config && !store.config.favourites[chapter.game_id]"
+                                v-if="store.config && !store.favourite_games.includes(chapter.game_id.toString())"
                                 title="Add to favourites"
                                 @click="addFavouriteGame(chapter.game_id)"
                             >

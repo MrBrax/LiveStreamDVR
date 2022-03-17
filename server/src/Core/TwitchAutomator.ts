@@ -1,5 +1,6 @@
 import { spawn } from "child_process";
 import { format, parse } from "date-fns";
+import express from "express";
 import fs from "fs";
 import { IncomingHttpHeaders } from "http";
 import path from "path";
@@ -80,19 +81,18 @@ export class TwitchAutomator {
     /**
      * Entrypoint for stream capture, this is where all Twitch EventSub (webhooks) end up.
      */
-    public async handle(data: EventSubResponse, headers: IncomingHttpHeaders) {
+    public async handle(data: EventSubResponse, request: express.Request) {
         TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "automator", "Handle called, proceed to parsing.");
 
-        if (!headers["Twitch-Eventsub-Message-Id"]) {
+        if (!request.header("Twitch-Eventsub-Message-Id")) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", "No twitch message id supplied to handle");
-            console.log(headers);
             return false;
         }
 
-        const message_retry = headers["Twitch-Eventsub-Message-Retry"] || null;
+        const message_retry = request.header("Twitch-Eventsub-Message-Retry") || null;
 
         this.payload_eventsub = data;
-        this.payload_headers = headers;
+        this.payload_headers = request.headers;
 
         const subscription = data.subscription;
         const subscription_type = subscription.type;

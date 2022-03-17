@@ -5,7 +5,7 @@
             <div v-if="errors" class="big-error">
                 <div v-for="error in errors" :key="error" class="big-error-item">Error</div>
             </div>
-            <router-view v-if="store.config !== null && store.config.favourites !== null" />
+            <router-view v-if="store.config !== null && store.favourite_games !== null" />
             <div v-else>
                 <div class="container">
                     <section class="section">

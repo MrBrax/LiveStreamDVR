@@ -185,7 +185,7 @@ export async function Hook(req: express.Request, res: express.Response): Promise
             if ("event" in data_json) {
                 TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "hook", "Signature checked, no challenge. Run handle...");
                 const TA = new TwitchAutomator();
-                await TA.handle(data_json, req.headers);
+                await TA.handle(data_json, req);
                 res.status(200).send("");
                 return;
             } else {
