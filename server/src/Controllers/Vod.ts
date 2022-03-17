@@ -2,7 +2,7 @@ import { TwitchVOD } from "../Core/TwitchVOD";
 import express from "express";
 import { ApiVodResponse } from "../../../common/Api/Api";
 
-export function GetVod(req: express.Request, res: express.Response): void {
+export async function GetVod(req: express.Request, res: express.Response): Promise<void> {
     
     const vod = TwitchVOD.getVod(req.params.basename);
 
@@ -15,7 +15,7 @@ export function GetVod(req: express.Request, res: express.Response): void {
     }
 
     res.send({
-        data: vod.toAPI(),
+        data: await vod.toAPI(),
         status: "OK",
     } as ApiVodResponse);
     

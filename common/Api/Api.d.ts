@@ -26,7 +26,7 @@ export interface ApiGamesResponse extends ApiResponse {
 
 export interface ApiChannelsResponse extends ApiResponse {
     data: {
-        streamers_list: ApiChannel[];
+        streamer_list: ApiChannel[];
         total_size: number;
         free_size: number;
     };

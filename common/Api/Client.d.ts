@@ -2,7 +2,7 @@ import { PHPDateTimeJSON } from "../PHPDateTime";
 import { MediaInfo, MediaInfoPublic } from "../mediainfofield";
 import { SubStatus, VideoQuality } from "../Config";
 import { ChannelData } from "../Channel";
-import { MuteStatus, ExistStatus } from "../../common/Vod";
+import { MuteStatus, ExistStatus } from "../../common/Defs";
 
 export type ApiVodSegment = {
     basename: string;
@@ -58,8 +58,10 @@ export type ApiVod = {
     twitch_vod_id?: string;
     twitch_vod_date?: string;
     twitch_vod_title?: string;
-    // twitch_vod_neversaved?: boolean;
-    // twitch_vod_exists?: boolean;
+    
+    twitch_vod_neversaved?: boolean;
+    twitch_vod_exists?: boolean;
+    twitch_vod_attempted?: boolean;
 
     saved_at?: string;
     started_at: string;
@@ -179,7 +181,7 @@ export type ApiChannel = {
     userid: string;
 
     /** @deprecated */
-    username: string;
+    // username: string;
 
     display_name: string;
     login: string;
@@ -190,11 +192,14 @@ export type ApiChannel = {
     vods_list: ApiVod[];
     vods_size: number;
 
-    expires_at: PHPDateTimeJSON;
+    
     is_live: boolean;
     is_converting: boolean;
     profile_image_url: string;
-    subbed_at: PHPDateTimeJSON;
+
+    subbed_at?: string;
+    expires_at?: string;
+    last_online?: string;
 
     match: string[] | undefined;
 

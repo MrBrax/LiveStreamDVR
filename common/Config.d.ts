@@ -43,10 +43,3 @@ export interface ChannelConfig {
     burn_chat: boolean;
     no_capture: boolean;
 }
-
-export enum SubStatus {
-    NONE = "0",
-    WAITING = "1",
-    SUBSCRIBED = "2",
-    FAILED = "3",
-}

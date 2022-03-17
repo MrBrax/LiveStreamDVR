@@ -1,7 +1,7 @@
 import { VideoQuality } from "../../../common/Config";
 import { MediaInfo } from "../../../common/mediainfofield";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
-import { ExistStatus, MuteStatus } from "../../../common/Vod";
+import { MuteStatus } from "../../../common/Vod";
 
 export interface TwitchVODJSON {
 
@@ -40,7 +40,10 @@ export interface TwitchVODJSON {
     twitch_vod_title?: string;
     twitch_vod_date?: string;
     twitch_vod_muted?: MuteStatus;
-    twitch_vod_status?: ExistStatus;
+    // twitch_vod_status?: ExistStatus;
+    twitch_vod_neversaved?: boolean;
+    twitch_vod_exists?: boolean;
+    twitch_vod_attempted?: boolean;
 
 }
 

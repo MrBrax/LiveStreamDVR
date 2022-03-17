@@ -18,7 +18,7 @@ import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchWebhook } from "./TwitchWebhook";
-import { MuteStatus, ExistStatus } from "../../../common/Vod";
+import { MuteStatus } from "../../../common/Defs";
 
 export class TwitchAutomator {
     vod: TwitchVOD | undefined;
@@ -352,7 +352,7 @@ export class TwitchAutomator {
             for (const vodclass of vods) {
                 if (vodclass.is_finalized && vodclass.basename !== this.basename()) {
 
-                    if (TwitchConfig.cfg("keep_deleted_vods") && vodclass.twitch_vod_status !== ExistStatus.EXISTS) {
+                    if (TwitchConfig.cfg("keep_deleted_vods") && vodclass.twitch_vod_exists === false) {
                         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being deleted on Twitch.`);
                         continue;
                     }

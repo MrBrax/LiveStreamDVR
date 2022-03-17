@@ -1,14 +1,14 @@
 import axios from "axios";
-import fs from "fs";
-import { AppName, BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
-import { TwitchHelper } from "./TwitchHelper";
-import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import chalk from "chalk";
+import fs from "fs";
+import { SettingField } from "../../../common/Config";
+import { AppName, BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
+import { KeyValue } from "./KeyValue";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
-import { KeyValue } from "./KeyValue";
-import { SettingField } from "../../../common/Config";
+import { TwitchHelper } from "./TwitchHelper";
+import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 
 export class TwitchConfig {
 

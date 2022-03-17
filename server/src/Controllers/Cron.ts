@@ -1,5 +1,5 @@
 import { TwitchLog, LOGLEVEL } from "../Core/TwitchLog";
-import { MUTE_STATUS } from "../Core/TwitchVOD";
+import { MuteStatus } from "../../../common/Defs";
 import { generateStreamerList } from "../Helpers/StreamerList";
 import express from "express";
 
@@ -73,13 +73,13 @@ export async function CheckMutedVods(req: express.Request, res: express.Response
                 continue;
             }
 
-            if (check == MUTE_STATUS.MUTED) {
+            if (check == MuteStatus.MUTED) {
                 // notify
                 // $this->sendNotify("{$vod->basename} muted");
                 res.send(`${vod.basename} muted<br>\n`);
                 // $this->addToNotifyCache("mute_{$vod->basename}");
                 TwitchLog.logAdvanced(LOGLEVEL.INFO, "cron", `Cronjob mute check: ${vod.basename} muted`);
-            } else if (check == MUTE_STATUS.UNMUTED) {
+            } else if (check == MuteStatus.UNMUTED) {
                 res.send(`${vod.basename} unmuted<br>\n`);
             } else {
                 res.send(`${vod.basename} unknown<br>\n`);

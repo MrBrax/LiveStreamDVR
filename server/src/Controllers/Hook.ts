@@ -1,6 +1,5 @@
 import { TwitchChannel } from "../Core/TwitchChannel";
 import { TwitchConfig } from "../Core/TwitchConfig";
-import { TwitchHelper } from "../Core/TwitchHelper";
 import express from "express";
 import crypto from "crypto";
 import path from "path";
@@ -11,7 +10,7 @@ import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { ChallengeResponse } from "../../../common/TwitchAPI/Challenge";
 import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
 import { KeyValue } from "../Core/KeyValue";
-import { SubStatus } from "../../../common/Config";
+import { SubStatus } from "../../../common/Defs";
 
 const verifySignature = (request: express.Request): boolean => {
 

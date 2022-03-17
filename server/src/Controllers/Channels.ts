@@ -4,13 +4,15 @@ import { TwitchChannel } from "../Core/TwitchChannel";
 import { ChannelConfig, VideoQuality } from "../../../common/Config";
 import { ApiChannelsResponse } from "../../../common/Api/Api";
 
-export function ListChannels(req: express.Request, res: express.Response): void {
+export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
     const { channels, total_size } = generateStreamerList();
 
+    const streamer_list = await Promise.all(channels.map(async c => await c.toAPI()));
+    
     res.send({
         data: {
-            streamer_list: channels.map(c => c.toAPI()),
+            streamer_list: streamer_list,
             total_size: total_size,
             // free_size: fs.statSync(TwitchHelper.vodFolder()).size,
             free_size: -1, // broken until further notice

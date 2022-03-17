@@ -1,4 +1,4 @@
-import { differenceInSeconds, format, parse, parseISO } from "date-fns";
+import { differenceInSeconds, format, parseISO } from "date-fns";
 import fs from "fs";
 import path from "path";
 import { MediaInfo, MediaInfoPublic } from "../../../common/mediainfofield";
@@ -16,7 +16,7 @@ import { TwitchWebhook } from "./TwitchWebhook";
 import { ApiVod } from "../../../common/Api/Client";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../Storage/JSON";
-import { MuteStatus, ExistStatus } from "../../../common/Vod";
+import { MuteStatus } from "../../../common/Defs";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 
 /*
@@ -75,7 +75,10 @@ export class TwitchVOD {
     twitch_vod_title?: string;
     twitch_vod_date?: string;
     twitch_vod_muted?: MuteStatus;
-    twitch_vod_status?: ExistStatus;
+    // twitch_vod_status?: ExistStatus;
+    twitch_vod_neversaved?: boolean;
+    twitch_vod_exists?: boolean;
+    twitch_vod_attempted?: boolean;
    
     video_metadata: MediaInfo | undefined;
 
@@ -232,10 +235,12 @@ export class TwitchVOD {
         this.twitch_vod_duration = this.json.twitch_vod_duration !== undefined ? this.json.twitch_vod_duration : undefined;
         this.twitch_vod_title = this.json.twitch_vod_title !== undefined ? this.json.twitch_vod_title : undefined;
         this.twitch_vod_date = this.json.twitch_vod_date !== undefined ? this.json.twitch_vod_date : undefined;
-        // this.twitch_vod_exists = this.json.twitch_vod_exists !== undefined ? this.json.twitch_vod_exists : undefined;
-        // this.twitch_vod_neversaved = this.json.twitch_vod_neversaved !== undefined ? this.json.twitch_vod_neversaved : undefined;
-        // this.twitch_vod_attempted = this.json.twitch_vod_attempted !== undefined ? this.json.twitch_vod_attempted : undefined;
-        //  this.twitch_vod_muted = this.json.twitch_vod_muted !== undefined ? this.json.twitch_vod_muted : undefined;
+        
+        this.twitch_vod_exists = this.json.twitch_vod_exists !== undefined ? this.json.twitch_vod_exists : undefined;
+        this.twitch_vod_neversaved = this.json.twitch_vod_neversaved !== undefined ? this.json.twitch_vod_neversaved : undefined;
+        this.twitch_vod_attempted = this.json.twitch_vod_attempted !== undefined ? this.json.twitch_vod_attempted : undefined;
+        
+        this.twitch_vod_muted = this.json.twitch_vod_muted !== undefined ? this.json.twitch_vod_muted : undefined;
 
         /*
         if (typeof this.json.twitch_vod_muted == "boolean") {
@@ -259,7 +264,7 @@ export class TwitchVOD {
             this.twitch_vod_status = EXIST_STATUS.UNKNOWN;
         }
         */
-        this.twitch_vod_status = this.json.twitch_vod_status;
+        // this.twitch_vod_status = this.json.twitch_vod_status;
 
 
         // legacy
@@ -777,10 +782,13 @@ export class TwitchVOD {
 
             twitch_vod_duration: this.twitch_vod_duration,
             twitch_vod_muted: this.twitch_vod_muted,
-            twitch_vod_status: this.twitch_vod_status,
+            // twitch_vod_status: this.twitch_vod_status,
             twitch_vod_id: this.twitch_vod_id,
             twitch_vod_date: this.twitch_vod_date,
             twitch_vod_title: this.twitch_vod_title,
+            twitch_vod_neversaved: this.twitch_vod_neversaved,
+            twitch_vod_exists: this.twitch_vod_exists,
+            twitch_vod_attempted: this.twitch_vod_attempted,
 
             saved_at: this.saved_at ? this.saved_at.toISOString() : "",
             started_at: this.started_at ? this.started_at.toISOString() : "",
@@ -1001,11 +1009,12 @@ export class TwitchVOD {
             generated.twitch_vod_date = this.twitch_vod_date;
         }
 
-        // generated.twitch_vod_exists = this.twitch_vod_exists;
-        // generated.twitch_vod_attempted = this.twitch_vod_attempted;
-        // generated.twitch_vod_neversaved = this.twitch_vod_neversaved;
+        generated.twitch_vod_exists = this.twitch_vod_exists;
+        generated.twitch_vod_attempted = this.twitch_vod_attempted;
+        generated.twitch_vod_neversaved = this.twitch_vod_neversaved;
         generated.twitch_vod_muted = this.twitch_vod_muted;
-        generated.twitch_vod_status = this.twitch_vod_status;        
+
+        // generated.twitch_vod_status = this.twitch_vod_status;        
 
         // generated.video_fail2 = this.video_fail2;
         // generated.force_record = this.force_record;
@@ -1091,7 +1100,7 @@ export class TwitchVOD {
 
     public async checkValidVod(save = false, force = false): Promise<boolean | null> {
 
-        const current_status = this.twitch_vod_status;
+        const current_status = this.twitch_vod_exists;
 
         if (!this.is_finalized) {
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Trying to check vod valid while not finalized on ${this.basename}`);
@@ -1102,7 +1111,7 @@ export class TwitchVOD {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No twitch VOD id for valid checking on {$this->basename}");
             if (this.twitch_vod_neversaved) {
                 if (save && current_status !== false) {
-                    this.twitch_vod_status = false;
+                    this.twitch_vod_exists = false;
                     this.saveJSON("vod check neversaved");
                 }
             }
@@ -1115,8 +1124,8 @@ export class TwitchVOD {
 
         if (video) {
             TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `VOD exists for ${this.basename}`);
-            this.twitch_vod_status = true;
-            if (save && current_status !== this.twitch_vod_status) {
+            this.twitch_vod_exists = true;
+            if (save && current_status !== this.twitch_vod_exists) {
                 this.saveJSON("vod check true");
             }
             return true;
@@ -1124,9 +1133,9 @@ export class TwitchVOD {
 
         TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `No VOD for ${this.basename}`);
 
-        this.twitch_vod_status = false;
+        this.twitch_vod_exists = false;
 
-        if (save && current_status !== this.twitch_vod_status) {
+        if (save && current_status !== this.twitch_vod_exists) {
             this.saveJSON("vod check false");
         }
 
@@ -1261,7 +1270,7 @@ export class TwitchVOD {
         // create object
         const vod = new TwitchVOD();
 
-        vod.capture_id = json.capture_id;
+        vod.capture_id = json.capture_id || "";
         vod.filename = filename;
         vod.basename = path.basename(filename, ".json");
         vod.directory = path.dirname(filename);

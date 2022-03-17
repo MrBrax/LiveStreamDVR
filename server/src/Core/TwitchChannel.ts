@@ -2,21 +2,22 @@ import axios from "axios";
 import chalk from "chalk";
 import fs from "fs";
 import path from "path";
-import { ApiChannel } from "../../../common/Api/Client";
-import { ChannelConfig, SubStatus, VideoQuality } from "../../../common/Config";
-import { ErrorResponse, EventSubTypes } from "../../../common/TwitchAPI/Shared";
-import { Stream, StreamsResponse } from "../../../common/TwitchAPI/Streams";
-import { SubscriptionRequest, SubscriptionResponse } from "../../../common/TwitchAPI/Subscriptions";
-import { Users } from "../../../common/TwitchAPI/Users";
-import { ChannelData } from "../../../common/Channel";
+import type { ApiChannel } from "../../../common/Api/Client";
+import type { ChannelData } from "../../../common/Channel";
+import { ChannelConfig, VideoQuality } from "../../../common/Config";
+import { SubStatus } from "../../../common/Defs";
+import type { ErrorResponse, EventSubTypes } from "../../../common/TwitchAPI/Shared";
+import type { Stream, StreamsResponse } from "../../../common/TwitchAPI/Streams";
+import type { SubscriptionRequest, SubscriptionResponse } from "../../../common/TwitchAPI/Subscriptions";
+import type { Users } from "../../../common/TwitchAPI/Users";
 import { BaseConfigPath } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchConfig } from "./TwitchConfig";
+import { TwitchGame } from "./TwitchGame";
 import { TwitchHelper } from "./TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
-import { TwitchGame } from "./TwitchGame";
 
 
 export class TwitchChannel {
@@ -68,6 +69,10 @@ export class TwitchChannel {
     public vods_raw: string[] = [];
     public vods_list: TwitchVOD[] = [];
     public vods_size = 0;
+
+    public subbed_at: Date | undefined;
+    public expires_at: Date | undefined;
+    public last_online: Date | undefined;
 
     // public current_vod: TwitchVOD | undefined;
 
@@ -160,11 +165,13 @@ export class TwitchChannel {
         return true;
     }
 
-    public toAPI(): ApiChannel {
+    public async toAPI(): Promise<ApiChannel> {
         
         if (!this.userid || !this.login || !this.display_name)
             console.error(chalk.red(`Channel ${this.login} is missing userid, login or display_name`));
             
+        const vods_list = await Promise.all(this.vods_list?.map(async (vod) => await vod.toAPI()));
+
         return {
             userid: this.userid || "",
             login: this.login || "",
@@ -173,7 +180,7 @@ export class TwitchChannel {
             profile_image_url: this.profile_image_url || "",
             is_live: this.is_live,
             is_converting: this.is_converting,
-            current_vod: this.current_vod?.toAPI(),
+            current_vod: await this.current_vod?.toAPI(),
             current_game: this.current_game?.toAPI(),
             current_chapter: this.current_chapter?.toAPI(),
             // current_duration: this.current_duration,
@@ -185,13 +192,17 @@ export class TwitchChannel {
             // subbed_at: this.subbed_at,
             // expires_at: this.expires_at,
             // last_online: this.last_online,
-            vods_list: this.vods_list?.map(vod => vod.toAPI()) || [],
+            vods_list: vods_list || [],
             vods_raw: this.vods_raw,
             vods_size: this.vods_size || 0,
             channel_data: this.channel_data,
-            config: this.config,
-            deactivated: this.deactivated,
+            // config: this.config,
+            // deactivated: this.deactivated,
             api_getSubscriptionStatus: this.getSubscriptionStatus(),
+
+            subbed_at: this.subbed_at ? this.subbed_at.toISOString() : undefined,
+            expires_at: this.expires_at ? this.expires_at.toISOString() : undefined,
+            last_online: this.last_online ? this.last_online.toISOString() : undefined,
         };
     }
 
@@ -247,7 +258,7 @@ export class TwitchChannel {
     }
 
     get current_duration(): number | undefined {
-        return this.current_vod?.duration_seconds;
+        return this.current_vod?.duration;
     }
 
     // a bit excessive since current_vod is already set with the capturing vod
