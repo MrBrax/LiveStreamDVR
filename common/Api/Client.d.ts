@@ -1,6 +1,7 @@
 import { PHPDateTimeJSON } from "../PHPDateTime";
 import { MediaInfo } from "../mediainfofield";
-import { SubStatus } from "../Config";
+import { SubStatus, VideoQuality } from "../Config";
+import { ChannelData } from "../Channel";
 
 export type ApiVodSegment = {
     basename: string;
@@ -46,13 +47,13 @@ export type ApiVod = {
     streamer_id: string;
     streamer_login: string;
 
-    twitch_vod_duration: number;
-    twitch_vod_muted: boolean;
-    twitch_vod_exists: boolean;
-    twitch_vod_url: string;
-    twitch_vod_id: string;
-    twitch_vod_date: string;
-    twitch_vod_title: string;
+    twitch_vod_duration: number | undefined;
+    twitch_vod_muted: boolean | undefined;
+    twitch_vod_exists: boolean | undefined;
+    twitch_vod_url: string | undefined;
+    twitch_vod_id: number | undefined;
+    twitch_vod_date: string | undefined;
+    twitch_vod_title: string | undefined;
 
     dt_started_at: PHPDateTimeJSON;
     dt_ended_at: PHPDateTimeJSON;
@@ -162,20 +163,35 @@ export type ApiChannel = {
 
     display_name: string;
     login: string;
-    quality: string[];
+    description: string;
+    quality: VideoQuality[] | undefined;
+    
+    vods_raw: string[];
     vods_list: ApiVod[];
     vods_size: number;
+
     expires_at: PHPDateTimeJSON;
     is_live: boolean;
     is_converting: boolean;
     profile_image_url: string;
     subbed_at: PHPDateTimeJSON;
-    current_game: ApiGame;
-    current_vod: ApiVod;
-    channel_data: {
-        profile_image_url: string;
-    };
-    api_getSubscriptionStatus: SubStatus;
+
+    match: string[] | undefined;
+
+    download_chat: boolean;
+    no_capture: boolean;
+    burn_chat: boolean;
+
+    current_chapter?: ApiVodChapter;
+    current_game?: ApiGame;
+    current_vod?: ApiVod;
+    // channel_data: {
+    //     profile_image_url: string;
+    // };
+    channel_data: ChannelData | undefined;
+
+    // api_getSubscriptionStatus: SubStatus;
+    api_getSubscriptionStatus: boolean;
 };
 
 export type ApiSubscription = {

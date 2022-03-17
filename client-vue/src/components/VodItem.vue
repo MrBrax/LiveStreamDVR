@@ -939,7 +939,7 @@ export default defineComponent({
             if (this.vod?.twitch_vod_exists === false && !confirm(`The VOD "${this.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
             this.taskStatus.delete = true;
             this.$http
-                .post(`/api/v0/vod/${this.vod?.basename}/delete`)
+                .delete(`/api/v0/vod/${this.vod?.basename}`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);

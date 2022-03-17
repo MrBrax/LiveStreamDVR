@@ -1,11 +1,14 @@
 import axios from "axios";
+import chalk from "chalk";
 import fs from "fs";
 import path from "path";
-import { ChannelConfig, VideoQuality } from "../../../common/Config";
+import { ApiChannel } from "../../../common/Api/Client";
+import { ChannelConfig, SubStatus, VideoQuality } from "../../../common/Config";
 import { ErrorResponse, EventSubTypes } from "../../../common/TwitchAPI/Shared";
 import { Stream, StreamsResponse } from "../../../common/TwitchAPI/Streams";
 import { SubscriptionRequest, SubscriptionResponse } from "../../../common/TwitchAPI/Subscriptions";
-import { User, Users } from "../../../common/TwitchAPI/Users";
+import { Users } from "../../../common/TwitchAPI/Users";
+import { ChannelData } from "../../../common/Channel";
 import { BaseConfigPath } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchConfig } from "./TwitchConfig";
@@ -13,11 +16,8 @@ import { TwitchHelper } from "./TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
+import { TwitchGame } from "./TwitchGame";
 
-interface ChannelData extends User {
-    _updated: number;
-    cache_avatar: string;
-}
 
 export class TwitchChannel {
 
@@ -54,20 +54,20 @@ export class TwitchChannel {
     public profile_image_url: string | undefined;
     public quality: VideoQuality[] | undefined;
     public match: string[] | undefined;
-    public download_chat: boolean | undefined;
+    public download_chat = false;
 
     /** Don't capture, just exist */
-    public no_capture: boolean | undefined;
+    public no_capture = false;
 
     /** 
      * Burn chat after capturing.
      * Currently not used.
      */
-    public burn_chat: boolean | undefined;
+    public burn_chat = false;
 
-    public vods_raw: string[] | undefined;
-    public vods_list: TwitchVOD[] | undefined;
-    public vods_size: number | undefined;
+    public vods_raw: string[] = [];
+    public vods_list: TwitchVOD[] = [];
+    public vods_size = 0;
 
     // public current_vod: TwitchVOD | undefined;
 
@@ -153,25 +153,30 @@ export class TwitchChannel {
 
     public getSubscriptionStatus() {
         for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
-            if (KeyValue.get(`${this.userid}.substatus.${sub_type}`) != TwitchHelper.SUBSTATUS.SUBSCRIBED) {
+            if (KeyValue.get(`${this.userid}.substatus.${sub_type}`) != SubStatus.SUBSCRIBED) {
                 return false;
             }
         }
         return true;
     }
 
-    public toAPI() {
+    public toAPI(): ApiChannel {
+        
+        if (!this.userid || !this.login || !this.display_name)
+            console.error(chalk.red(`Channel ${this.login} is missing userid, login or display_name`));
+            
         return {
-            userid: this.userid,
-            login: this.login,
-            display_name: this.display_name,
-            description: this.description,
-            profile_image_url: this.profile_image_url,
+            userid: this.userid || "",
+            login: this.login || "",
+            display_name: this.display_name || "",
+            description: this.description || "",
+            profile_image_url: this.profile_image_url || "",
             is_live: this.is_live,
             is_converting: this.is_converting,
             current_vod: this.current_vod?.toAPI(),
-            current_game: this.current_game,
-            current_duration: this.current_duration,
+            current_game: this.current_game?.toAPI(),
+            current_chapter: this.current_chapter?.toAPI(),
+            // current_duration: this.current_duration,
             quality: this.quality,
             match: this.match,
             download_chat: this.download_chat,
@@ -180,9 +185,9 @@ export class TwitchChannel {
             // subbed_at: this.subbed_at,
             // expires_at: this.expires_at,
             // last_online: this.last_online,
-            vods_list: this.vods_list?.map(vod => vod.toAPI()),
+            vods_list: this.vods_list?.map(vod => vod.toAPI()) || [],
             vods_raw: this.vods_raw,
-            vods_size: this.vods_size,
+            vods_size: this.vods_size || 0,
             channel_data: this.channel_data,
             config: this.config,
             deactivated: this.deactivated,
@@ -233,8 +238,12 @@ export class TwitchChannel {
         return this.vods_list?.find(vod => vod.is_capturing);
     }
 
-    get current_game(): TwitchVODChapter | undefined {
+    get current_chapter(): TwitchVODChapter | undefined {
         return this.current_vod?.chapters.at(-1);
+    }
+
+    get current_game(): TwitchGame | undefined {
+        return this.current_vod?.current_game;
     }
 
     get current_duration(): number | undefined {
@@ -626,7 +635,7 @@ export class TwitchChannel {
                 }
 
                 KeyValue.set(`${channel_id}.sub.${sub_type}`, json.data[0].id);
-                KeyValue.set(`${channel_id}.substatus.${sub_type}`, TwitchHelper.SUBSTATUS.WAITING);
+                KeyValue.set(`${channel_id}.substatus.${sub_type}`, SubStatus.WAITING);
 
                 TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) sent. Check logs for a 'subscription active' message.`);
             } else if (http_code == 409) {

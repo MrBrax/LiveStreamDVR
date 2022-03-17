@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import { format, parse } from "date-fns";
+import { ApiVodChapter } from "../../../common/Api/Client";
 import { PHPDateTimeProxy } from "../types";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchHelper } from "./TwitchHelper";
@@ -113,6 +114,12 @@ export class TwitchVODChapter {
             box_art_url: this.box_art_url,
             duration: this.duration,
             // width: this.width,
+        };
+    }
+
+    toAPI(): ApiVodChapter {
+        return {
+            
         };
     }
 

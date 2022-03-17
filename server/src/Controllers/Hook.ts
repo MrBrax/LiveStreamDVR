@@ -11,6 +11,7 @@ import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { ChallengeResponse } from "../../../common/TwitchAPI/Challenge";
 import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
 import { KeyValue } from "../Core/KeyValue";
+import { SubStatus } from "../../../common/Config";
 
 const verifySignature = (request: express.Request): boolean => {
 
@@ -33,10 +34,6 @@ const verifySignature = (request: express.Request): boolean => {
     const twitch_message_timestamp = request.header("Twitch-Eventsub-Message-Timestamp");
     const twitch_message_signature = request.header("Twitch-Eventsub-Message-Signature");
 
-    console.debug(`Twitch-Eventsub-Message-Id: ${twitch_message_id}`);
-    console.debug(`Twitch-Eventsub-Message-Timestamp: ${twitch_message_timestamp}`);
-    console.debug(`Twitch-Eventsub-Message-Signature: ${twitch_message_signature}`);
-    console.debug(`Secret: ${TwitchConfig.cfg("eventsub_secret")}`);
     /*
         $hmac_message =
             $twitch_message_id .
@@ -52,7 +49,7 @@ const verifySignature = (request: express.Request): boolean => {
         */
 
     if (!twitch_message_id || !twitch_message_timestamp || !twitch_message_signature) {
-        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "hook", "Missing twitch headers.");
+        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "hook", "Missing twitch headers for signature check.");
         return false;
     }
     
@@ -60,16 +57,11 @@ const verifySignature = (request: express.Request): boolean => {
 
     const hmac_message = twitch_message_id + twitch_message_timestamp + body;
 
-    console.log(`HMAC Message: ${hmac_message}`);
-
     const signature = crypto.createHmac("sha256", TwitchConfig.cfg("eventsub_secret"))
         .update(hmac_message)
         .digest("hex");
 
     const expected_signature_header = "sha256=" + signature;
-
-    console.log(`Expected Signature: ${expected_signature_header}`);
-    console.log(`Actual Signature: ${twitch_message_signature}`);
 
     return twitch_message_signature === expected_signature_header;
 
@@ -151,13 +143,13 @@ export async function Hook(req: express.Request, res: express.Response): Promise
                         "hook",
                         "Invalid signature check for challenge!"
                     );
-                    KeyValue.set(`${channel_id}.substatus.${sub_type}`, TwitchHelper.SUBSTATUS.FAILED);
+                    KeyValue.set(`${channel_id}.substatus.${sub_type}`, SubStatus.FAILED);
                     res.status(400).send("Invalid signature check for challenge");
                 }
 
                 TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "hook", `Challenge completed, subscription active for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}).`, debugMeta);
 
-                KeyValue.set(`${channel_id}.substatus.${sub_type}`, TwitchHelper.SUBSTATUS.SUBSCRIBED);
+                KeyValue.set(`${channel_id}.substatus.${sub_type}`, SubStatus.SUBSCRIBED);
 
                 // return the challenge string to twitch if signature matches
                 res.status(202).send(challenge);

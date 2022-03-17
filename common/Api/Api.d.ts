@@ -1,5 +1,5 @@
 import { ChannelConfig, SettingField } from "../Config";
-import { ApiGame } from "./Client";
+import { ApiChannel, ApiGame, ApiVod } from "./Client";
 
 interface ApiResponse {
     data: any;
@@ -22,4 +22,16 @@ export interface ApiSettingsResponse extends ApiResponse {
 
 export interface ApiGamesResponse extends ApiResponse {
     data: Record<string, ApiGame>;
+}
+
+export interface ApiChannelsResponse extends ApiResponse {
+    data: {
+        streamers_list: ApiChannel[];
+        total_size: number;
+        free_size: number;
+    };
+}
+
+export interface ApiVodResponse extends ApiResponse {
+    data: ApiVod;
 }

@@ -1,5 +1,6 @@
 import { TwitchVOD } from "../Core/TwitchVOD";
 import express from "express";
+import { ApiVodResponse } from "../../../common/Api/Api";
 
 export function GetVod(req: express.Request, res: express.Response): void {
     
@@ -14,9 +15,9 @@ export function GetVod(req: express.Request, res: express.Response): void {
     }
 
     res.send({
-        data: vod,
+        data: vod.toAPI(),
         status: "OK",
-    });
+    } as ApiVodResponse);
     
 }
 

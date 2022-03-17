@@ -42,12 +42,14 @@ export class TwitchHelper {
     static readonly TWITCH_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     static readonly TWITCH_DATE_FORMAT_MS = "yyyy-MM-dd'T'HH:mm:ss'.'SSS'Z'";
 
+    /*
     static readonly SUBSTATUS = {
         NONE: "0",
         WAITING: "1",
         SUBSCRIBED: "2",
         FAILED: "3",
     };
+    */
 
     static readonly CHANNEL_SUB_TYPES: EventSubTypes[] = ["stream.online", "stream.offline", "channel.update"];
 

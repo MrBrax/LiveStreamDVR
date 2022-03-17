@@ -2,6 +2,7 @@ import express from "express";
 import { generateStreamerList } from "../Helpers/StreamerList";
 import { TwitchChannel } from "../Core/TwitchChannel";
 import { ChannelConfig, VideoQuality } from "../../../common/Config";
+import { ApiChannelsResponse } from "../../../common/Api/Api";
 
 export function ListChannels(req: express.Request, res: express.Response): void {
 
@@ -15,7 +16,7 @@ export function ListChannels(req: express.Request, res: express.Response): void 
             free_size: -1, // broken until further notice
         },
         status: "OK",
-    });
+    } as ApiChannelsResponse);
 }
 
 export function GetChannel(req: express.Request, res: express.Response): void {

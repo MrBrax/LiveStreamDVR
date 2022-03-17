@@ -26,7 +26,7 @@ router.get("/channels/:login", Channels.GetChannel);
 router.get("/vod/:basename", Vod.GetVod);
 router.delete("/vod/:basename", Vod.DeleteVod);
 router.post("/vod/:basename/archive", Vod.ArchiveVod);
-router.post("/vod/:basename/delete", Vod.DeleteVod); // old endpoint
+// router.post("/vod/:basename/delete", Vod.DeleteVod); // old endpoint
 
 router.get("/games", Games.ListGames);
 

@@ -14,6 +14,8 @@ import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { TwitchVODChapter, TwitchVODChapterJSON, TwitchVODChapterMinimalJSON } from "./TwitchVODChapter";
 import { TwitchVODSegment } from "./TwitchVODSegment";
 import { TwitchWebhook } from "./TwitchWebhook";
+import { ApiVod } from "../../../common/Api/Client";
+import { TwitchGame } from "./TwitchGame";
 
 export enum MUTE_STATUS {
     UNMUTED = 1,
@@ -509,6 +511,11 @@ export class TwitchVOD {
     get is_chat_rendered() { return this.path_chatrender && fs.existsSync(this.path_chatrender); }
     get is_chat_burned() { return this.path_chatburn && fs.existsSync(this.path_chatburn); }
 
+    get current_game(): TwitchGame | undefined {
+        if (!this.chapters) return undefined;
+        return this.chapters.at(-1)?.game;
+    }
+
     get associatedFiles() {
 
         if (!this.directory) return [];
@@ -791,31 +798,31 @@ export class TwitchVOD {
         return games;
     }
 
-    public toAPI() {
+    public toAPI(): ApiVod {
         return {
             // vod_path: this.vod_path,
             capture_id: this.capture_id,
             filename: this.filename,
-            basename: this.basename,
+            basename: this.basename || "",
             directory: this.directory,
             json: this.json,
             meta: this.meta,
-            streamer_name: this.streamer_name,
-            streamer_id: this.streamer_id,
-            streamer_login: this.streamer_login,
+            streamer_name: this.streamer_name || "",
+            streamer_id: this.streamer_id || "",
+            streamer_login: this.streamer_login || "",
 
-            segments: this.segments,
+            segments: this.segments.map((s) => s.toAPI()),
             segments_raw: this.segments_raw,
 
-            chapters: this.chapters,
+            chapters: this.chapters.map((c) => c.toAPI()),
             chapters_raw: this.generateChaptersRaw(),
 
             // ads: this.ads,
             // started_at: null,
             // ended_at: null,
-            duration_seconds: this.duration_seconds,
-            duration_live: this.duration_live,
-            game_offset: this.game_offset,
+            duration_seconds: this.duration_seconds || 0,
+            duration_live: this.duration_live || 0,
+            game_offset: this.game_offset || 0,
             stream_resolution: this.stream_resolution,
             stream_title: this.stream_title,
             total_size: this.total_size,
