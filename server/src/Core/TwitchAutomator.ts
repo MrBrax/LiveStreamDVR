@@ -4,6 +4,8 @@ import express from "express";
 import fs from "fs";
 import { IncomingHttpHeaders } from "http";
 import path from "path";
+import { TwitchVODChapterJSON } from "Storage/JSON";
+import { VideoQuality } from "../../../common/Config";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { ChannelUpdateEvent } from "../../../common/TwitchAPI/EventSub/ChannelUpdate";
 import { AppRoot } from "./BaseConfig";
@@ -13,9 +15,10 @@ import { TwitchChannel } from "./TwitchChannel";
 import { TwitchConfig } from "./TwitchConfig";
 import { TwitchHelper } from "./TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
-import { MUTE_STATUS, TwitchVOD } from "./TwitchVOD";
-import { TwitchVODChapter, TwitchVODChapterMinimalJSON } from "./TwitchVODChapter";
+import { TwitchVOD } from "./TwitchVOD";
+import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchWebhook } from "./TwitchWebhook";
+import { MuteStatus, ExistStatus } from "../../../common/Vod";
 
 export class TwitchAutomator {
     vod: TwitchVOD | undefined;
@@ -33,7 +36,7 @@ export class TwitchAutomator {
     data_cache: EventSubResponse | undefined;
 
     force_record = false;
-    stream_resolution = "";
+    stream_resolution: VideoQuality | undefined;
 
     capture_filename = "";
     converted_filename = "";
@@ -307,18 +310,17 @@ export class TwitchAutomator {
 
     }
 
-    private async getChapterData(event: ChannelUpdateEvent): Promise<TwitchVODChapterMinimalJSON> {
+    private async getChapterData(event: ChannelUpdateEvent): Promise<TwitchVODChapterJSON> {
 
         const chapter_data = {
-            "time": this.getDateTime(),
-            "dt_started_at": TwitchHelper.JSDateToPHPDate(new Date()),
-            "game_id": event.category_id,
-            "game_name": event.category_name,
+            started_at: new Date().toISOString(),
+            game_id: event.category_id,
+            game_name: event.category_name,
             // 'viewer_count' 	: $data_viewer_count,
-            "title": event.title,
-            "is_mature": event.is_mature,
-            "online": true,
-        } as TwitchVODChapterMinimalJSON;
+            title: event.title,
+            is_mature: event.is_mature,
+            online: true,
+        } as TwitchVODChapterJSON;
 
         // extra metadata with a separate api request
         if (TwitchConfig.cfg("api_metadata")) {
@@ -350,7 +352,7 @@ export class TwitchAutomator {
             for (const vodclass of vods) {
                 if (vodclass.is_finalized && vodclass.basename !== this.basename()) {
 
-                    if (TwitchConfig.cfg("keep_deleted_vods") && vodclass.twitch_vod_exists === false) {
+                    if (TwitchConfig.cfg("keep_deleted_vods") && vodclass.twitch_vod_status !== ExistStatus.EXISTS) {
                         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being deleted on Twitch.`);
                         continue;
                     }
@@ -360,7 +362,7 @@ export class TwitchAutomator {
                         continue;
                     }
         
-                    if (TwitchConfig.cfg("keep_muted_vods") && vodclass.twitch_vod_muted === MUTE_STATUS.MUTED) {
+                    if (TwitchConfig.cfg("keep_muted_vods") && vodclass.twitch_vod_muted === MuteStatus.MUTED) {
                         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being muted on Twitch.`);
                         continue;
                     }
@@ -453,7 +455,7 @@ export class TwitchAutomator {
         this.vod.streamer_name = this.getUsername();
         this.vod.streamer_login = this.getLogin();
         this.vod.streamer_id = this.getUserID();
-        this.vod.dt_started_at = parse(data_started, TwitchHelper.TWITCH_DATE_FORMAT, new Date());
+        this.vod.started_at = parse(data_started, TwitchHelper.TWITCH_DATE_FORMAT, new Date());
 
         if (this.force_record) this.vod.force_record = true;
 
@@ -557,7 +559,7 @@ export class TwitchAutomator {
         //this.vod = tmp_vod;
 
         // $this->vod->ended_at = $this->getDateTime();
-        this.vod.dt_ended_at = new Date();
+        this.vod.ended_at = new Date();
         this.vod.is_capturing = false;
         if (this.stream_resolution) this.vod.stream_resolution = this.stream_resolution;
         this.vod.saveJSON("stream capture end");
@@ -592,7 +594,7 @@ export class TwitchAutomator {
             fs.unlinkSync(this.capture_filename);
         } else {
             TwitchLog.logAdvanced(LOGLEVEL.FATAL, "automator", `Missing conversion files for ${basename}`);
-            this.vod.automator_fail = true;
+            // this.vod.automator_fail = true;
             this.vod.is_converting = false;
             this.vod.saveJSON("automator fail");
             return false;
@@ -788,7 +790,7 @@ export class TwitchAutomator {
             // $this->info[] = 'Streamlink cmd: ' . implode(" ", $cmd);
 
             // $this->vod = $this->vod->refreshJSON(); // @todo: fix
-            this.vod.dt_capture_started = new Date();
+            this.vod.capture_started = new Date();
             this.vod.saveJSON("dt_capture_started set");
 
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Starting capture with filename ${path.basename(this.capture_filename)}`);
@@ -831,7 +833,7 @@ export class TwitchAutomator {
                     
                     const stream_resolution = capture_job.stdout.join("\n").match(/stream:\s([0-9_a-z]+)\s/);
                     if (stream_resolution && this.vod) {
-                        this.vod.stream_resolution = stream_resolution[1];
+                        this.vod.stream_resolution = stream_resolution[1] as VideoQuality;
                     }
 
                     resolve(true);
@@ -850,7 +852,7 @@ export class TwitchAutomator {
                 // get stream resolution
                 const res_match = data.match(/stream:\s([0-9_a-z]+)\s/);
                 if (res_match) {
-                    this.stream_resolution = res_match[1];
+                    this.stream_resolution = res_match[1] as VideoQuality;
                     TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Stream resolution for ${basename}: ${this.stream_resolution}`);
                 }
 

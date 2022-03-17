@@ -15,10 +15,10 @@ export class TwitchGame {
     static game_db: Record<string, TwitchGame> = {};
     static favourite_games: string[] = [];
 
-    public id: string | undefined;
-    public name: string | undefined;
-    public box_art_url: string | undefined;
-    public added: Date | undefined;
+    public id!: string;
+    public name!: string;
+    public box_art_url!: string;
+    public added!: Date;
 
     public static populateGameDatabase() {
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Populating game database...");
@@ -47,21 +47,21 @@ export class TwitchGame {
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Favourite games populated with ${this.favourite_games.length} games.`);
     }
 
-    public static getGameDataFromCache(game_id: string): TwitchGame | false | null {
+    public static getGameFromCache(game_id: string): TwitchGame | null {
         if (!this.game_db) {
             throw new Error("Game database not initialized!");
         }
         return this.game_db[game_id] || null;
     }
 
-    public static async getGameDataAsync(game_id: string): Promise<TwitchGame | false | null> {
+    public static async getGameAsync(game_id: string): Promise<TwitchGame | null> {
 
         if (!game_id) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", "No game id supplied for game fetch!");
-            return false;
+            return null;
         }
 
-        const cachedGame = this.getGameDataFromCache(game_id);
+        const cachedGame = this.getGameFromCache(game_id);
 
         if (cachedGame) {
             if (cachedGame && cachedGame.added && Date.now() > cachedGame.added.getTime() + (60 * 60 * 24 * 60 * 1000)) { // two months?
@@ -78,7 +78,7 @@ export class TwitchGame {
             response = await TwitchHelper.axios.get(`/helix/games?id=${game_id}`);
         } catch (th) {
             TwitchLog.logAdvanced(LOGLEVEL.FATAL, "helper", `Tried to get game data for ${game_id} but server returned: ${th}`);
-            return false;
+            return null;
         }
 
         const json = response.data;
@@ -123,7 +123,7 @@ export class TwitchGame {
      * @param game_id 
      * @returns 
      */
-    public static getGameDataSync(game_id: string): TwitchGame | false | null {
+    public static getGameSync(game_id: string): TwitchGame | false | null {
         if (!this.game_db) {
             throw new Error("Game database not initialized!");
         }

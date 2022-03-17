@@ -265,3 +265,33 @@ export interface MediaInfo {
     video: Video;
     audio: Audio;
 }
+
+interface GeneralPublic {
+    Duration: string;
+    Duration_String: string;
+    FileSize: string;
+    OverallBitRate: string;
+}
+
+interface VideoPublic {
+    Width: string;
+    Height: string;
+    FrameRate_Mode: string;
+    FrameRate_Original: string;
+    FrameRate: string;
+    Format: string;
+    BitRate_Mode: string;
+    BitRate: string;
+}
+
+interface AudioPublic {
+    Format: string;
+    BitRate_Mode: string;
+    BitRate: string;
+}
+
+export interface MediaInfoPublic {
+    general: GeneralPublic;
+    video: VideoPublic;
+    audio: AudioPublic;
+}

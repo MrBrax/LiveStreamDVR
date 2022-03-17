@@ -53,7 +53,7 @@ export class TwitchVODChapter {
 
     raw_chapter: TwitchVODChapterJSON | undefined;
 
-    started_at: Date;
+    started_at!: Date;
 
     offset?: number;
     duration?: number;
@@ -139,8 +139,8 @@ export class TwitchVODChapter {
             is_mature: this.is_mature,
             online: this.online, // ?
             viewer_count: this.viewer_count ?? undefined,
-            offset: this.offset,
-            duration: this.duration,
+            // offset: this.offset,
+            // duration: this.duration,
             box_art_url: this.box_art_url,
         };
     }
@@ -194,7 +194,7 @@ export class TwitchVODChapter {
         chapter.viewer_count = data.viewer_count;
 
         if (data.game_id) {
-            const game = TwitchGame.getGameDataFromCache(data.game_id);
+            const game = TwitchGame.getGameFromCache(data.game_id);
             if (game) {
                 chapter.game = game;
             } else {

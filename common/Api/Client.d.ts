@@ -1,7 +1,8 @@
 import { PHPDateTimeJSON } from "../PHPDateTime";
-import { MediaInfo } from "../mediainfofield";
+import { MediaInfo, MediaInfoPublic } from "../mediainfofield";
 import { SubStatus, VideoQuality } from "../Config";
 import { ChannelData } from "../Channel";
+import { MuteStatus, ExistStatus } from "../../common/Vod";
 
 export type ApiVodSegment = {
     basename: string;
@@ -42,7 +43,7 @@ export type ApiVod = {
     basename: string;
 
     stream_title: string;
-    stream_quality: string;
+    stream_resolution?: VideoQuality;
 
     segments: ApiVodSegment[];
     segments_raw: string[];
@@ -51,48 +52,63 @@ export type ApiVod = {
     streamer_id: string;
     streamer_login: string;
 
-    twitch_vod_duration: number | undefined;
-    twitch_vod_muted: boolean | undefined;
-    twitch_vod_exists: boolean | undefined;
-    twitch_vod_url: string | undefined;
-    twitch_vod_id: string | undefined;
-    twitch_vod_date: string | undefined;
-    twitch_vod_title: string | undefined;
+    twitch_vod_duration?: number;
+    twitch_vod_muted?: MuteStatus;
+    twitch_vod_status?: ExistStatus;
+    twitch_vod_id?: string;
+    twitch_vod_date?: string;
+    twitch_vod_title?: string;
+    // twitch_vod_neversaved?: boolean;
+    // twitch_vod_exists?: boolean;
 
-    dt_started_at: PHPDateTimeJSON;
-    dt_ended_at: PHPDateTimeJSON;
-    dt_capture_started: PHPDateTimeJSON;
-    dt_conversion_started: PHPDateTimeJSON;
+    saved_at?: string;
+    started_at: string;
+    ended_at?: string;
+    capture_started?: string;
+    conversion_started?: string;
 
     is_capturing: boolean;
     is_converting: boolean;
+    is_converted: boolean;
     is_finalized: boolean;
+
     is_chat_downloaded: boolean;
     is_chatdump_captured: boolean;
     is_chat_rendered: boolean;
     is_chat_burned: boolean;
     is_vod_downloaded: boolean;
     is_capture_paused: boolean;
+    is_lossless_cut_generated: boolean;
 
     api_hasFavouriteGame: boolean;
     api_getUniqueGames: ApiGame[];
-    api_getWebhookDuration: string;
-    api_getDuration: number;
-    api_getCapturingStatus: number;
-    api_getConvertingStatus: number;
-    api_getRecordingSize: number;
-    api_getChatDumpStatus: number;
-    api_getDurationLive: number;
+    api_getWebhookDuration?: string;
+    api_getDuration: number | null;
+    api_getCapturingStatus: number | false;
+    api_getConvertingStatus: number | false;
+    api_getRecordingSize: number | false;
+    api_getChatDumpStatus: number | false;
+    api_getDurationLive: number | false;
+
+    path_chat: string;
+    path_downloaded_vod: string;
+    path_losslesscut: string;
+    path_chatrender: string;
+    path_chatburn: string;
+    path_chatdump: string;
+    path_chatmask: string;
+    path_adbreak: string;
+    path_playlist: string;
 
     duration_live: number | false;
-    duration_seconds: number;
+    duration: number;
 
     total_size: number;
 
-    game_offset: number;
+    // game_offset: number;
 
     // video_metadata: MediaInfo;
-    video_metadata_public: MediaInfo;
+    video_metadata_public?: MediaInfoPublic;
 
     chapters: ApiVodChapter[];
 

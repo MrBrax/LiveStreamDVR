@@ -1,7 +1,7 @@
-import { parse, parseISO } from "date-fns";
+import { differenceInSeconds, format, parse, parseISO } from "date-fns";
 import fs from "fs";
 import path from "path";
-import { MediaInfo } from "../../../common/mediainfofield";
+import { MediaInfo, MediaInfoPublic } from "../../../common/mediainfofield";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { Video, Videos } from "../../../common/TwitchAPI/Video";
 import { VideoQuality } from "../../../common/Config";
@@ -16,24 +16,8 @@ import { TwitchWebhook } from "./TwitchWebhook";
 import { ApiVod } from "../../../common/Api/Client";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../Storage/JSON";
-
-export enum MUTE_STATUS {
-    UNMUTED = 1,
-    MUTED = 2,
-    UNKNOWN = 3,
-}
-
-export enum EXIST_STATUS {
-    EXISTS = 1,
-    NOT_EXISTS = 2,
-    NEVER_EXISTED = 3,
-    UNKNOWN = 4,
-}
-
-export interface AdBreak {
-    start: number;
-    end: number;
-}
+import { MuteStatus, ExistStatus } from "../../../common/Vod";
+import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 
 /*
 export interface TwitchVODSegmentJSON {
@@ -90,8 +74,8 @@ export class TwitchVOD {
     twitch_vod_duration?: number;
     twitch_vod_title?: string;
     twitch_vod_date?: string;
-    twitch_vod_muted?: MUTE_STATUS;
-    twitch_vod_status?: EXIST_STATUS;
+    twitch_vod_muted?: MuteStatus;
+    twitch_vod_status?: ExistStatus;
    
     video_metadata: MediaInfo | undefined;
 
@@ -204,6 +188,28 @@ export class TwitchVOD {
         return Math.abs((this.started_at.getTime() - now.getTime()) / 1000);
     }
 
+    /*
+    public function getWebhookDuration()
+	{
+		if ($this->dt_started_at && $this->dt_ended_at) {
+			$diff = $this->dt_started_at->diff($this->dt_ended_at);
+			return $diff->format('%H:%I:%S');
+		} else {
+			return null;
+		}
+	}
+    */
+    public getWebhookDuration(): string | undefined {
+        if (this.started_at && this.ended_at) {
+            // date-fns, format is H:i:s
+            const diff = differenceInSeconds(this.ended_at, this.started_at);
+            return format(diff, "h:mm:ss"); // untested
+        } else {
+            return undefined;
+        }
+    }
+
+
     public async setupUserData() {
         if (!this.json) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No JSON loaded for user data setup!");
@@ -302,7 +308,7 @@ export class TwitchVOD {
         }
     }
 
-    public async getDuration(save = false) {
+    public async getDuration(save = false): Promise<number | null> {
 
         if (this.duration) {
             // TwitchHelper.log(LOGLEVEL.DEBUG, "Returning saved duration for " . this.basename . ": " . this.duration_seconds );
@@ -440,14 +446,14 @@ export class TwitchVOD {
 
     }
 
-    get is_converted() { return this.directory && fs.existsSync(path.join(this.directory, `${this.basename}.mp4`)); }
-    get is_chat_downloaded() { return this.path_chat && fs.existsSync(this.path_chat); }
-    get is_vod_downloaded() { return this.path_downloaded_vod && fs.existsSync(this.path_downloaded_vod); }
-    get is_lossless_cut_generated() { return this.path_losslesscut && fs.existsSync(this.path_losslesscut); }
-    get is_chatdump_captured() { return this.path_chatdump && fs.existsSync(this.path_chatdump); }
-    get is_capture_paused() { return this.path_adbreak && fs.existsSync(this.path_adbreak); }
-    get is_chat_rendered() { return this.path_chatrender && fs.existsSync(this.path_chatrender); }
-    get is_chat_burned() { return this.path_chatburn && fs.existsSync(this.path_chatburn); }
+    get is_converted(): boolean { return this.directory !== "" && fs.existsSync(path.join(this.directory, `${this.basename}.mp4`)); }
+    get is_chat_downloaded(): boolean { return this.path_chat !== "" && fs.existsSync(this.path_chat); }
+    get is_vod_downloaded(): boolean { return this.path_downloaded_vod !== "" && fs.existsSync(this.path_downloaded_vod); }
+    get is_lossless_cut_generated(): boolean { return this.path_losslesscut !== "" && fs.existsSync(this.path_losslesscut); }
+    get is_chatdump_captured(): boolean { return this.path_chatdump !== "" && fs.existsSync(this.path_chatdump); }
+    get is_capture_paused(): boolean { return this.path_adbreak !== "" && fs.existsSync(this.path_adbreak); }
+    get is_chat_rendered(): boolean { return this.path_chatrender !== "" && fs.existsSync(this.path_chatrender); }
+    get is_chat_burned(): boolean { return this.path_chatburn !== "" && fs.existsSync(this.path_chatburn); }
 
     get current_game(): TwitchGame | undefined {
         if (!this.chapters) return undefined;
@@ -504,6 +510,10 @@ export class TwitchVOD {
 
             const new_chapter = TwitchVODChapter.fromJSON(chapter);
             // const new_chapter = new TwitchVODChapter(chapter);
+
+            // const test = new TwitchVODChapter {
+            //     title: "test",
+            // };
 
             const next_chapter = raw_chapters.at(index + 1);
             
@@ -744,65 +754,45 @@ export class TwitchVOD {
         return fs.existsSync(csv_path);
     }
 
-    public getUniqueGames() {
-        const games: { id: string; name: string; image_url: string; }[] = [];
-        this.chapters.forEach((chapter) => {
-            if (chapter.game_id && !games.find((g) => g.id == chapter.game_id)) {
-                games.push({
-                    id: chapter.game_id,
-                    name: chapter.game_name || chapter.game_id,
-                    image_url: chapter.game?.getBoxArtUrl(70, 95) || "",
-                });
-            }
-        });
+    public getUniqueGames(): TwitchGame[] {
+        const games: TwitchGame[] = [];
+        this.chapters.forEach((chapter) => { if (chapter.game && !games.includes(chapter.game)) games.push(chapter.game); });
         return games;
     }
 
-    public toAPI(): ApiVod {
+    public async toAPI(): Promise<ApiVod> {
         return {
-            // vod_path: this.vod_path,
-            capture_id: this.capture_id,
-            filename: this.filename,
+
             basename: this.basename || "",
-            directory: this.directory,
-            json: this.json,
-            meta: this.meta,
+
+            stream_title: this.stream_title,
+            stream_resolution: this.stream_resolution,
+
+            segments: this.segments.map((s) => s.toAPI()),
+            segments_raw: this.segments_raw,
+            
             streamer_name: this.streamer_name || "",
             streamer_id: this.streamer_id || "",
             streamer_login: this.streamer_login || "",
 
-            segments: this.segments.map((s) => s.toAPI()),
-            segments_raw: this.segments_raw,
-
-            chapters: this.chapters.map((c) => c.toAPI()),
-            chapters_raw: this.chapters_raw,
-
-            // ads: this.ads,
-            // started_at: null,
-            // ended_at: null,
-            duration: this.duration || 0,
-            duration_live: this.getDurationLive(),
-            // game_offset: this.game_offset || 0,
-            stream_resolution: this.stream_resolution,
-            stream_title: this.stream_title,
-            total_size: this.total_size,
-            twitch_vod_id: this.twitch_vod_id,
-            // twitch_vod_url: this.twitch_vod_url,
             twitch_vod_duration: this.twitch_vod_duration,
-            twitch_vod_title: this.twitch_vod_title,
-            twitch_vod_date: this.twitch_vod_date,
-            // twitch_vod_exists: this.twitch_vod_exists,
-            // twitch_vod_attempted: this.twitch_vod_attempted,
-            // twitch_vod_neversaved: this.twitch_vod_neversaved,
             twitch_vod_muted: this.twitch_vod_muted,
             twitch_vod_status: this.twitch_vod_status,
-            // is_recording: this.is_recording,
+            twitch_vod_id: this.twitch_vod_id,
+            twitch_vod_date: this.twitch_vod_date,
+            twitch_vod_title: this.twitch_vod_title,
+
+            saved_at: this.saved_at ? this.saved_at.toISOString() : "",
+            started_at: this.started_at ? this.started_at.toISOString() : "",
+            ended_at: this.ended_at ? this.ended_at.toISOString() : undefined,
+            capture_started: this.capture_started ? this.capture_started.toISOString() : undefined,
+            conversion_started: this.conversion_started ? this.conversion_started.toISOString() : undefined,
+
             is_converted: this.is_converted,
             is_capturing: this.is_capturing,
             is_converting: this.is_converting,
             is_finalized: this.is_finalized,
-            // video_fail2: this.video_fail2,
-            // video_metadata_public: [],
+
             is_chat_downloaded: this.is_chat_downloaded,
             is_vod_downloaded: this.is_vod_downloaded,
             is_chat_rendered: this.is_chat_rendered,
@@ -810,15 +800,18 @@ export class TwitchVOD {
             is_lossless_cut_generated: this.is_lossless_cut_generated,
             is_chatdump_captured: this.is_chatdump_captured,
             is_capture_paused: this.is_capture_paused,
-            dt_saved_at: this.dt_saved_at ? TwitchHelper.JSDateToPHPDate(this.dt_saved_at) : null,
-            dt_started_at: this.dt_started_at ? TwitchHelper.JSDateToPHPDate(this.dt_started_at) : null,
-            dt_ended_at: this.dt_ended_at ? TwitchHelper.JSDateToPHPDate(this.dt_ended_at) : null,
-            dt_capture_started: this.dt_capture_started ? TwitchHelper.JSDateToPHPDate(this.dt_capture_started) : null,
-            dt_conversion_started: this.dt_conversion_started ? TwitchHelper.JSDateToPHPDate(this.dt_conversion_started) : null,
-            // json_hash: this.json_hash,
-            created: this.created,
-            force_record: this.force_record,
-            automator_fail: this.automator_fail,
+
+            api_hasFavouriteGame: this.hasFavouriteGame(),
+            api_getUniqueGames: this.getUniqueGames().map((g) => g.toAPI()),
+            api_getWebhookDuration: this.getWebhookDuration(),
+            // api_getDuration: this.duration, // this.getDuration(),
+            api_getDuration: await this.getDuration(true),
+            api_getCapturingStatus: await this.getCapturingStatus(),
+            api_getRecordingSize: this.getRecordingSize(),
+            api_getChatDumpStatus: await this.getChatDumpStatus(),
+            api_getDurationLive: this.getDurationLive(),
+            api_getConvertingStatus: await this.getConvertingStatus(),
+
             path_chat: this.path_chat,
             path_downloaded_vod: this.path_downloaded_vod,
             path_losslesscut: this.path_losslesscut,
@@ -828,22 +821,35 @@ export class TwitchVOD {
             path_chatmask: this.path_chatmask,
             path_adbreak: this.path_adbreak,
             path_playlist: this.path_playlist,
-            api_hasFavouriteGame: this.hasFavouriteGame(),
-            api_getUniqueGames: this.getUniqueGames(),
-            // api_getWebhookDuration:
-            // api_getDuration: this.getDuration(),
-            api_getDuration: this.duration_seconds,
-            // api_getCapturingStatus:
-            // api_getRecordingSize:
-            // api_getChatDumpStatus:
-            // api_getDurationLive:
+
+            duration_live: this.getDurationLive(),
+            duration: this.duration || 0,
+
+            total_size: this.total_size,
+
+            video_metadata_public: this.getPublicVideoMetadata() || undefined,
+
+            chapters: this.chapters.map((c) => c.toAPI()),
+            // chapters_raw: this.chapters_raw,
+
             webpath: this.webpath,
+
+            // game_offset: this.game_offset || 0,
+            // twitch_vod_url: this.twitch_vod_url,
+            // twitch_vod_exists: this.twitch_vod_exists,
+            // twitch_vod_attempted: this.twitch_vod_attempted,
+            // twitch_vod_neversaved: this.twitch_vod_neversaved,            
+            // video_fail2: this.video_fail2,
+            // json_hash: this.json_hash,
+            // created: this.created,
+            // force_record: this.force_record,
+            // automator_fail: this.automator_fail,
             // dt_started_at: this.dt_started_at ? TwitchHelper.JSDateToPHPDate(this.dt_started_at) : null,
             // dt_ended_at: this.dt_ended_at ? TwitchHelper.JSDateToPHPDate(this.dt_ended_at) : null,
-            twitch_vod_status: this.twitch_vod_status,
         };
     }
 
+    /*
     public toJSON(): TwitchVODJSON {
         return {
             version: 2,
@@ -854,6 +860,81 @@ export class TwitchVOD {
             streamer_login: this.streamer_login,
             chapters: this.chapters.map((chapter) => chapter.toJSON()),
         };
+    }
+    */
+
+    public getPublicVideoMetadata(): MediaInfoPublic | false {
+        
+        if (!this.video_metadata) return false;
+
+        const filter = [
+            "general.Duration",
+            "general.Duration_String",
+            "general.FileSize",
+            "general.OverallBitRate",
+
+            "video.BitRate",
+            "video.Width",
+            "video.Height",
+            "video.FrameRate_Mode",
+            "video.FrameRate_Original",
+            "video.FrameRate",
+            "video.Format",
+            "video.BitRate_Mode",
+            "video.BitRate",
+
+            "audio.Format",
+            "audio.BitRate_Mode",
+            "audio.BitRate",
+        ];
+        
+        /*
+        foreach ($this->video_metadata as $keyp => $value) {
+			$this->video_metadata_public[$keyp] = array_filter($value, function ($value, $keyc) use ($filter, $keyp) {
+				return in_array("{$keyp}.{$keyc}", $filter);
+			}, ARRAY_FILTER_USE_BOTH);
+		}
+        */
+        // let video_metadata_public: MediaInfoPublic = {
+        //     general: {} as any,
+        //     video: {} as any,
+        //     audio: {} as any,
+        // };
+        const video_metadata_public: any = {};
+
+        for (const [track, value] of Object.entries(this.video_metadata)) {
+            video_metadata_public[track] = {};
+            for (const [key, val] of Object.entries(value)) {
+                if (filter.includes(`${track}.${key}`)) {
+                    video_metadata_public[track][key] = val;
+                }
+            }
+        }
+
+        return video_metadata_public as MediaInfoPublic;
+        
+    }
+
+    public async getChatDumpStatus(): Promise<number | false> {
+        const job = TwitchAutomatorJob.findJob(`chatdump_${this.basename}`);
+        return job ? await job.getStatus() : false;
+    }
+
+    public async getCapturingStatus(): Promise<number | false> {
+        const job = TwitchAutomatorJob.findJob(`capture_${this.basename}`);
+        return job ? await job.getStatus() : false;
+    }
+
+    public async getConvertingStatus(): Promise<number | false> {
+        const job = TwitchAutomatorJob.findJob(`convert_${this.basename}`);
+        return job ? await job.getStatus() : false;
+    }
+
+    public getRecordingSize(): number | false {
+        if (!this.is_capturing) return false;
+        const filename = path.join(this.directory, `${this.basename}.ts`);
+        if (!fs.existsSync(filename)) return false;
+        return fs.statSync(filename).size;
     }
 
     public saveJSON(reason = "") {
@@ -885,57 +966,50 @@ export class TwitchVOD {
         // clone this.json
         const generated: TwitchVODJSON = JSON.parse(JSON.stringify(this.json));
 
-        if (this.twitch_vod_id && this.twitch_vod_url) {
-            generated.twitch_vod_id = this.twitch_vod_id;
-            generated.twitch_vod_url = this.twitch_vod_url;
-            generated.twitch_vod_duration = this.twitch_vod_duration ?? undefined;
-            generated.twitch_vod_title = this.twitch_vod_title;
-            generated.twitch_vod_date = this.twitch_vod_date;
-        }
-
-        generated.twitch_vod_exists = this.twitch_vod_exists;
-        generated.twitch_vod_attempted = this.twitch_vod_attempted;
-        generated.twitch_vod_neversaved = this.twitch_vod_neversaved;
-        generated.twitch_vod_muted = this.twitch_vod_muted;
-
-        generated.stream_resolution = this.stream_resolution ?? "";
+        generated.version = 2;
+        generated.capture_id = this.capture_id;
+        if (this.meta) generated.meta = this.meta;
+        generated.stream_resolution = this.stream_resolution ?? undefined;
 
         generated.streamer_name = this.streamer_name ?? "";
         generated.streamer_id = this.streamer_id ?? "";
         generated.streamer_login = this.streamer_login ?? "";
 
-        // generated.started_at 		= this.started_at;
-        // generated.ended_at 			= this.ended_at;
-
-        generated.chapters_raw = this.generateChaptersRaw();
-        generated.segments_raw = this.segments_raw;
-        // generated.segments 			= this.segments;
-        // generated.ads 				= this.ads;
+        generated.chapters = this.chapters_raw;
+        generated.segments = this.segments_raw;
 
         generated.is_capturing = this.is_capturing;
         generated.is_converting = this.is_converting;
         generated.is_finalized = this.is_finalized;
 
-        // generated.duration 			= this.duration;
-        generated.duration_seconds = this.duration_seconds ?? undefined;
+        generated.duration = this.duration ?? undefined;
 
         generated.video_metadata = this.video_metadata;
-        generated.video_fail2 = this.video_fail2;
 
-        generated.force_record = this.force_record;
+        generated.saved_at = new Date().toISOString();
 
-        generated.automator_fail = this.automator_fail;
+        if (this.capture_started) generated.capture_started = this.capture_started.toISOString();
+        if (this.conversion_started) generated.conversion_started = this.conversion_started.toISOString();
+        if (this.started_at) generated.started_at = this.started_at.toISOString();
+        if (this.ended_at) generated.ended_at = this.ended_at.toISOString();
 
-        if (this.meta) generated.meta = this.meta;
+        if (this.twitch_vod_id) {
+            generated.twitch_vod_id = this.twitch_vod_id;
+            // generated.twitch_vod_url = this.twitch_vod_url;
+            generated.twitch_vod_duration = this.twitch_vod_duration ?? undefined;
+            generated.twitch_vod_title = this.twitch_vod_title;
+            generated.twitch_vod_date = this.twitch_vod_date;
+        }
 
-        generated.saved_at = TwitchHelper.JSDateToPHPDate(new Date());
+        // generated.twitch_vod_exists = this.twitch_vod_exists;
+        // generated.twitch_vod_attempted = this.twitch_vod_attempted;
+        // generated.twitch_vod_neversaved = this.twitch_vod_neversaved;
+        generated.twitch_vod_muted = this.twitch_vod_muted;
+        generated.twitch_vod_status = this.twitch_vod_status;        
 
-        if (this.dt_capture_started) generated.dt_capture_started = TwitchHelper.JSDateToPHPDate(this.dt_capture_started);
-        if (this.dt_conversion_started) generated.dt_conversion_started = TwitchHelper.JSDateToPHPDate(this.dt_conversion_started);
-        if (this.dt_started_at) generated.dt_started_at = TwitchHelper.JSDateToPHPDate(this.dt_started_at);
-        if (this.dt_ended_at) generated.dt_ended_at = TwitchHelper.JSDateToPHPDate(this.dt_ended_at);
-
-        generated.capture_id = this.capture_id;
+        // generated.video_fail2 = this.video_fail2;
+        // generated.force_record = this.force_record;
+        // generated.automator_fail = this.automator_fail;
 
         // if (!is_writable(this.filename)) { // this is not the function i want
         // 	// TwitchHelper::log(TwitchHelper::LOG_FATAL, "Saving JSON of " . this.basename . " failed, permissions issue?");
@@ -1017,7 +1091,7 @@ export class TwitchVOD {
 
     public async checkValidVod(save = false, force = false): Promise<boolean | null> {
 
-        const current_status = this.twitch_vod_exists;
+        const current_status = this.twitch_vod_status;
 
         if (!this.is_finalized) {
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Trying to check vod valid while not finalized on ${this.basename}`);
@@ -1028,7 +1102,7 @@ export class TwitchVOD {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No twitch VOD id for valid checking on {$this->basename}");
             if (this.twitch_vod_neversaved) {
                 if (save && current_status !== false) {
-                    this.twitch_vod_exists = false;
+                    this.twitch_vod_status = false;
                     this.saveJSON("vod check neversaved");
                 }
             }
@@ -1041,8 +1115,8 @@ export class TwitchVOD {
 
         if (video) {
             TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `VOD exists for ${this.basename}`);
-            this.twitch_vod_exists = true;
-            if (save && current_status !== this.twitch_vod_exists) {
+            this.twitch_vod_status = true;
+            if (save && current_status !== this.twitch_vod_status) {
                 this.saveJSON("vod check true");
             }
             return true;
@@ -1050,9 +1124,9 @@ export class TwitchVOD {
 
         TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `No VOD for ${this.basename}`);
 
-        this.twitch_vod_exists = false;
+        this.twitch_vod_status = false;
 
-        if (save && current_status !== this.twitch_vod_exists) {
+        if (save && current_status !== this.twitch_vod_status) {
             this.saveJSON("vod check false");
         }
 
@@ -1060,11 +1134,11 @@ export class TwitchVOD {
 
     }
 
-    public async checkMutedVod(save = false, force = false): Promise<MUTE_STATUS> {
+    public async checkMutedVod(save = false, force = false): Promise<MuteStatus> {
 
         if (!this.twitch_vod_id) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "VOD mute check for {$this->basename} canceled, no vod id!");
-            return MUTE_STATUS.UNKNOWN;
+            return MuteStatus.UNKNOWN;
         }
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", "Check muted VOD for {$this->basename}");
@@ -1073,9 +1147,9 @@ export class TwitchVOD {
 
     }
 
-    private async checkMutedVodAPI(save = false, force = false): Promise<MUTE_STATUS> {
+    private async checkMutedVodAPI(save = false, force = false): Promise<MuteStatus> {
 
-        if (!this.twitch_vod_id) return MUTE_STATUS.UNKNOWN;
+        if (!this.twitch_vod_id) return MuteStatus.UNKNOWN;
 
         const previous = this.twitch_vod_muted;
 
@@ -1087,24 +1161,24 @@ export class TwitchVOD {
             // return null;
         } else {
             if (data.muted_segments && data.muted_segments.length > 0) {
-                this.twitch_vod_muted = MUTE_STATUS.MUTED;
+                this.twitch_vod_muted = MuteStatus.MUTED;
                 TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${this.basename} is muted!`, data);
                 if (previous !== this.twitch_vod_muted && save) {
                     this.saveJSON("vod mute true");
                 }
-                return MUTE_STATUS.MUTED;
+                return MuteStatus.MUTED;
             } else {
-                this.twitch_vod_muted = MUTE_STATUS.UNMUTED;
+                this.twitch_vod_muted = MuteStatus.UNMUTED;
                 TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD ${this.basename} is not muted!`, data);
                 if (previous !== this.twitch_vod_muted && save) {
                     this.saveJSON("vod mute false");
                 }
-                return MUTE_STATUS.UNMUTED;
+                return MuteStatus.UNMUTED;
             }
         }
     }
 
-    private async checkMutedVodStreamlink(save = false, force = false): Promise<MUTE_STATUS> {
+    private async checkMutedVodStreamlink(save = false, force = false): Promise<MuteStatus> {
 
         const previous = this.twitch_vod_muted;
 
@@ -1121,22 +1195,22 @@ export class TwitchVOD {
         const output = ex.stdout.join("\n");
 
         if (output.includes("index-muted-")) {
-            this.twitch_vod_muted = MUTE_STATUS.MUTED;
+            this.twitch_vod_muted = MuteStatus.MUTED;
             TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", "VOD {$this->basename} is muted!");
             if (previous !== this.twitch_vod_muted && save) {
                 this.saveJSON("vod mute true");
             }
-            return MUTE_STATUS.MUTED;
+            return MuteStatus.MUTED;
         } else if (output.includes("Unable to find video")) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "VOD {$this->basename} is deleted!");
             throw new Error("VOD is deleted!");
         } else {
-            this.twitch_vod_muted = MUTE_STATUS.UNMUTED;
+            this.twitch_vod_muted = MuteStatus.UNMUTED;
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", "VOD {$this->basename} is not muted!");
             if (previous !== this.twitch_vod_muted && save) {
                 this.saveJSON("vod mute false");
             }
-            return MUTE_STATUS.UNMUTED;
+            return MuteStatus.UNMUTED;
         }
     }
 

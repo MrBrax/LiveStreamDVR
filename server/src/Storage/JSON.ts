@@ -1,12 +1,15 @@
-import { EXIST_STATUS, MUTE_STATUS } from "Core/TwitchVOD";
 import { VideoQuality } from "../../../common/Config";
 import { MediaInfo } from "../../../common/mediainfofield";
+import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
+import { ExistStatus, MuteStatus } from "../../../common/Vod";
 
 export interface TwitchVODJSON {
 
     version: number;
 
-    capture_id: string;
+    capture_id?: string;
+
+    meta?: EventSubResponse;
 
     stream_resolution: VideoQuality | undefined;
     
@@ -36,8 +39,8 @@ export interface TwitchVODJSON {
     twitch_vod_duration?: number
     twitch_vod_title?: string;
     twitch_vod_date?: string;
-    twitch_vod_muted?: MUTE_STATUS;
-    twitch_vod_status?: EXIST_STATUS;
+    twitch_vod_muted?: MuteStatus;
+    twitch_vod_status?: ExistStatus;
 
 }
 
@@ -54,7 +57,7 @@ export interface TwitchVODChapterJSON {
     online: boolean; // ?
     viewer_count?: number;
 
-    offset: number;
-    duration: number;
+    // offset: number;
+    // duration: number;
     
 }

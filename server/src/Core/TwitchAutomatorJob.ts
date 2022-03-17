@@ -156,6 +156,14 @@ export class TwitchAutomatorJob extends EventEmitter
         
     }
 
+    public static findJob(search: string): TwitchAutomatorJob | false {
+        const job = this.jobs.find(job => job.name?.includes(search));
+        if (job) {
+            return job;
+        }
+        return false;
+    }
+
     /**
      * Save to disk, like when the process starts
      *
