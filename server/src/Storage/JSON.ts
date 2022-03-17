@@ -1,7 +1,7 @@
 import { VideoQuality } from "../../../common/Config";
 import { MediaInfo } from "../../../common/mediainfofield";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
-import { MuteStatus } from "../../../common/Vod";
+import { MuteStatus } from "../../../common/Defs";
 
 export interface TwitchVODJSON {
 
