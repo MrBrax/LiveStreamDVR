@@ -256,7 +256,7 @@ export class TwitchAutomator {
 
             const chapter_data = await this.getChapterData(event);
 
-            const chapter = TwitchVODChapter.fromData(chapter_data);
+            const chapter = TwitchVODChapter.fromJSON(chapter_data);
 
             this.vod.addChapter(chapter);
             this.vod.saveJSON("game update");

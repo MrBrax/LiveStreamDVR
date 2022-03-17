@@ -62,7 +62,7 @@ describe("TwitchVOD", () => {
         expect(vod.chapters.length).toBeGreaterThan(0);
 
         vod.chapters.forEach(chapter => {
-            expect(chapter.datetime?.getTime()).toBeGreaterThan(0);
+            expect(chapter.started_at?.getTime()).toBeGreaterThan(0);
             expect(chapter.offset).toBeDefined();
             expect(chapter.duration).toBeGreaterThan(0);
             expect(chapter.game).toBeInstanceOf(TwitchGame);

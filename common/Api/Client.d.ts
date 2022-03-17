@@ -11,16 +11,20 @@ export type ApiVodSegment = {
 
 export type ApiVodChapter = {
     title: string;
-    game_id: number;
+    
+    game_id?: string;
+    game_name?: string;
+    game?: ApiGame;
+    box_art_url?: string;
+
     strings: Record<string, string>;
     duration: number;
-    box_art_url: string;
-    game_name: string;
-    started_at: PHPDateTimeJSON;
-    datetime: PHPDateTimeJSON;
+    
+    started_at: string;
+    // datetime: PHPDateTimeJSON;
     offset: number;
-    viewer_count: number;
-    width: number; // why
+    viewer_count?: number;
+    // width: number; // why
     is_mature: boolean;
 };
 
