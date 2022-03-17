@@ -1,8 +1,9 @@
 import axios from "axios";
 import chalk from "chalk";
 import fs from "fs";
+import path from "path";
 import { SettingField } from "../../../common/Config";
-import { AppName, BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
+import { AppName, AppRoot, BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchChannel } from "./TwitchChannel";

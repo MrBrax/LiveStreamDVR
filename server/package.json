@@ -7,7 +7,7 @@
     "test": "jest",
     "lint": "eslint src/**/*.ts",
     "start:dev": "nodemon src/index.ts",
-    "start": "node --enable-source-maps build/src/index.js",
+    "start": "node --enable-source-maps build/server/src/index.js",
     "build": "tsc --project tsconfig.json"
   },
   "author": "",

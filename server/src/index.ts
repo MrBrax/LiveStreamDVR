@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import history from "connect-history-api-fallback";
+// import history from "connect-history-api-fallback";
 import fs from "fs";
 import express from "express";
 import morgan from "morgan";
@@ -8,8 +8,16 @@ import { AppName, AppRoot, BaseConfigFolder } from "./Core/BaseConfig";
 import { TwitchConfig } from "./Core/TwitchConfig";
 import ApiRouter from "./Routes/Api";
 
+console.log(chalk.blue(`App root: ${AppRoot}, env ${process.env.NODE_ENV}`));
+
+if (!fs.existsSync(path.join(BaseConfigFolder.server, "tsconfig.json"))) {
+    console.error(chalk.red(`Could not find tsconfig.json in ${AppRoot}`));
+    process.exit(1);
+}
+
 if (!fs.existsSync(path.join(BaseConfigFolder.client, "index.html"))) {
-    console.log(chalk.red("Client is not built. Please run yarn build inside the client-vue folder."));
+    console.error(chalk.red("Client is not built. Please run yarn build inside the client-vue folder."));
+    console.error(chalk.red(`Expected path: ${path.join(BaseConfigFolder.client, "index.html")}`));
     process.exit(1);
 }
 

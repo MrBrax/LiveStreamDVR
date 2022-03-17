@@ -1267,6 +1267,10 @@ export class TwitchVOD {
         // parse file
         const json: TwitchVODJSON = JSON.parse(data);
 
+        if (!("version" in json) || json.version != 2) {
+            throw new Error(`Invalid VOD JSON version: ${filename}`);
+        }
+
         // create object
         const vod = new TwitchVOD();
 

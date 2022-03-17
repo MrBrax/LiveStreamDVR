@@ -70,7 +70,7 @@ export async function Hook(req: express.Request, res: express.Response): Promise
 
     const source = req.query.source ?? "twitch";
 
-    console.log("Body", req.body, req.body.toString(), JSON.stringify(req.body));
+    // console.log("Body", req.body, req.body.toString(), JSON.stringify(req.body));
 
     /*
         try {
