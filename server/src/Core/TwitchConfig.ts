@@ -1,9 +1,8 @@
 import axios from "axios";
 import chalk from "chalk";
 import fs from "fs";
-import path from "path";
 import { SettingField } from "../../../common/Config";
-import { AppName, AppRoot, BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
+import { AppName, BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchChannel } from "./TwitchChannel";
@@ -286,7 +285,7 @@ export class TwitchConfig {
         TwitchLog.logAdvanced(
             LOGLEVEL.SUCCESS,
             "config",
-            `The time is ${new Date().toLocaleString()}.` +
+            `The time is ${new Date().toISOString()}.` +
             " Current topside temperature is 93 degrees, with an estimated high of one hundred and five." +
             " The Black Mesa compound is maintained at a pleasant 68 degrees at all times."
         );
@@ -304,6 +303,8 @@ export class TwitchConfig {
             TwitchLog.logAdvanced(LOGLEVEL.WARNING, "config", "Config file changed externally");
             // TwitchConfig.loadConfig();
         });
+
+        TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "config", "Loading config stuff done.");
 
     }
 

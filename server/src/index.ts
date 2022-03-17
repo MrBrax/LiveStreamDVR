@@ -8,7 +8,7 @@ import { AppName, AppRoot, BaseConfigFolder } from "./Core/BaseConfig";
 import { TwitchConfig } from "./Core/TwitchConfig";
 import ApiRouter from "./Routes/Api";
 
-console.log(chalk.blue(`App root: ${AppRoot}, env ${process.env.NODE_ENV}`));
+// console.log(chalk.blue(`App root: ${AppRoot}, env ${process.env.NODE_ENV}`));
 
 if (!fs.existsSync(path.join(BaseConfigFolder.server, "tsconfig.json"))) {
     console.error(chalk.red(`Could not find tsconfig.json in ${AppRoot}`));
@@ -62,6 +62,7 @@ TwitchConfig.init().then(() => {
             console.log(chalk.greenBright("~ Running with TypeScript ~"));
         } else {
             console.log(chalk.greenBright("~ Running with plain JS ~"));
+            console.log(chalk.greenBright(`Build date: ${fs.statSync(__filename).mtime.toISOString()}`));
         }
     });
 

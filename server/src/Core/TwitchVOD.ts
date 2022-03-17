@@ -1029,8 +1029,7 @@ export class TwitchVOD {
 
         //file_put_contents(this.filename, json_encode(generated));
         // this.setPermissions();
-
-        console.log("GENERATED", generated);
+        fs.writeFileSync(this.filename, JSON.stringify(generated, null, 4));
 
         return generated;
 

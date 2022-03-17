@@ -128,7 +128,14 @@ export class TwitchChannel {
 
             const vod_full_path = path.join(this.getFolder(), vod);
 
-            const vodclass = await TwitchVOD.load(vod_full_path, api);
+            let vodclass;
+
+            try {
+                vodclass = await TwitchVOD.load(vod_full_path, api);
+            } catch (e) {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not load VOD ${vod}: ${e}`);
+                continue;
+            }
 
             if (!vodclass) {
                 continue;
@@ -368,6 +375,8 @@ export class TwitchChannel {
             return false;
         }
 
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", "Loading channel configs...");
+
         const data: ChannelConfig[] = JSON.parse(fs.readFileSync(BaseConfigPath.channel, "utf8"));
 
         let needsSave = false;
@@ -380,6 +389,8 @@ export class TwitchChannel {
         }
         
         this.channels_config = data;
+
+        TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${this.channels_config.length} channel configs!`);
 
         if (needsSave) {
             this.saveChannelsConfig();
@@ -411,6 +422,7 @@ export class TwitchChannel {
      * @returns Amount of loaded channels
      */
     public static async loadChannels(): Promise<number> {
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", "Loading channels...");
         if (this.channels_config.length > 0) {
             for (const channel of this.channels_config) {
 
@@ -433,6 +445,7 @@ export class TwitchChannel {
                 }
             }
         }
+        TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${this.channels.length} channels!`);
         return this.channels.length;
     }
 
