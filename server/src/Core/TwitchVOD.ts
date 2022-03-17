@@ -1,21 +1,21 @@
-import { parse } from "date-fns";
+import { parse, parseISO } from "date-fns";
 import fs from "fs";
 import path from "path";
 import { MediaInfo } from "../../../common/mediainfofield";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { Video, Videos } from "../../../common/TwitchAPI/Video";
 import { VideoQuality } from "../../../common/Config";
-import { PHPDateTimeProxy } from "../types";
 import { BaseConfigFolder } from "./BaseConfig";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchConfig } from "./TwitchConfig";
 import { TwitchHelper } from "./TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
-import { TwitchVODChapter, TwitchVODChapterJSON, TwitchVODChapterMinimalJSON } from "./TwitchVODChapter";
+import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchVODSegment } from "./TwitchVODSegment";
 import { TwitchWebhook } from "./TwitchWebhook";
 import { ApiVod } from "../../../common/Api/Client";
 import { TwitchGame } from "./TwitchGame";
+import { TwitchVODChapterJSON, TwitchVODJSON } from "../Storage/JSON";
 
 export enum MUTE_STATUS {
     UNMUTED = 1,
@@ -35,59 +35,14 @@ export interface AdBreak {
     end: number;
 }
 
-export interface TwitchVODJSON {
-
-    meta: EventSubResponse | undefined;
-
-    stream_resolution: string;
-
-    streamer_name: string | undefined;
-    streamer_id: string | undefined;
-    streamer_login: string | undefined;
-
-    chapters_raw: TwitchVODChapterMinimalJSON[];
-    chapters: TwitchVODChapterJSON[];
-
-    segments_raw: string[];
-    segments: TwitchVODSegmentJSON[];
-
-    ads: AdBreak[];
-
-    is_capturing: boolean;
-    is_converting: boolean;
-    is_finalized: boolean;
-    duration_seconds: number | undefined;
-    video_metadata?: MediaInfo;
-    video_fail2?: boolean;
-    force_record?: boolean;
-    automator_fail?: boolean;
-    saved_at?: PHPDateTimeProxy;
-    dt_capture_started?: PHPDateTimeProxy;
-    dt_conversion_started?: PHPDateTimeProxy;
-    dt_started_at?: PHPDateTimeProxy;
-    dt_ended_at?: PHPDateTimeProxy;
-    capture_id: string | undefined;
-
-    twitch_vod_id: number | undefined;
-    twitch_vod_url: string | undefined;
-    twitch_vod_duration: number | undefined;
-    twitch_vod_title: string | undefined;
-    twitch_vod_date: string | undefined; // Date
-    twitch_vod_exists?: boolean | null;
-    twitch_vod_attempted?: boolean | null;
-    twitch_vod_neversaved?: boolean | null;
-    twitch_vod_muted?: MUTE_STATUS | boolean | null;
-    twitch_vod_status?: EXIST_STATUS;
-}
-
-
-
+/*
 export interface TwitchVODSegmentJSON {
     filename: string;
     basename: string;
     filesize: number;
     strings: Record<string, string>;
 }
+*/
 
 /*
 export interface TwitchVODSegment {
@@ -104,17 +59,17 @@ export class TwitchVOD {
 
     // vod_path = "vods";
 
-    capture_id: string | undefined;
-    filename: string | undefined;
-    basename: string | undefined;
-    directory: string | undefined;
+    capture_id = "";
+    filename = "";
+    basename = "";
+    directory = "";
 
-    json: TwitchVODJSON | undefined;
-    meta: EventSubResponse | undefined;
+    json?: TwitchVODJSON;
+    meta?: EventSubResponse;
 
-    streamer_name: string | undefined;
-    streamer_id: string | undefined;
-    streamer_login: string | undefined;
+    streamer_name = "";
+    streamer_id = "";
+    streamer_login = "";
 
     /**
      * An array of strings containing the file paths of the segments.
@@ -125,73 +80,52 @@ export class TwitchVOD {
     chapters_raw: TwitchVODChapterJSON[] = [];
     chapters: TwitchVODChapter[] = [];
 
-    dt_started_at: Date | undefined;
-    dt_ended_at: Date | undefined;
-    // saved_at: Date | undefined;
-    dt_saved_at: Date | undefined;
-    dt_capture_started: Date | undefined;
-    dt_conversion_started: Date | undefined;
+    started_at?: Date;
+    ended_at?: Date;
+    saved_at?: Date;
+    capture_started?: Date;
+    conversion_started?: Date;
 
-    twitch_vod_id: number | undefined;
-    twitch_vod_url: string | undefined;
-    twitch_vod_duration: number | undefined;
-    twitch_vod_title: string | undefined;
-    twitch_vod_date: string | undefined;
-    twitch_vod_exists: boolean | null | undefined;
-    twitch_vod_neversaved: boolean | null | undefined;
-    twitch_vod_attempted: boolean | null | undefined;
-    twitch_vod_status: EXIST_STATUS = EXIST_STATUS.UNKNOWN;
-    // twitch_vod_muted: boolean | null | undefined;
-    twitch_vod_muted: MUTE_STATUS = MUTE_STATUS.UNKNOWN;
-
-    video_fail2: boolean | undefined;
+    twitch_vod_id?: string;
+    twitch_vod_duration?: number;
+    twitch_vod_title?: string;
+    twitch_vod_date?: string;
+    twitch_vod_muted?: MUTE_STATUS;
+    twitch_vod_status?: EXIST_STATUS;
+   
     video_metadata: MediaInfo | undefined;
 
-    // is_converted = false;
     is_capturing = false;
     is_converting = false;
     is_finalized = false;
 
-    game_offset: number | undefined;
+    // game_offset: number | undefined;
 
-    duration_seconds: number | undefined;
+    duration = 0;
     total_size = 0;
 
-    path_chat: string | undefined;
-    path_downloaded_vod: string | undefined;
-    path_losslesscut: string | undefined;
-    path_chatrender: string | undefined;
-    path_chatmask: string | undefined;
-    path_chatburn: string | undefined;
-    path_chatdump: string | undefined;
-    path_adbreak: string | undefined;
-    path_playlist: string | undefined;
-    // associatedFiles: string[] | undefined;
+    path_chat = "";
+    path_downloaded_vod = "";
+    path_losslesscut = "";
+    path_chatrender = "";
+    path_chatmask = "";
+    path_chatburn = "";
+    path_chatdump = "";
+    path_adbreak = "";
+    path_playlist = "";
 
     force_record = false;
-    automator_fail = false;
 
-    stream_resolution = "";
+    stream_resolution: VideoQuality | undefined;
     stream_title = "";
 
-    duration_live: number | undefined;
+    // duration_live: number | undefined;
     created = false;
+    
     webpath = "";
 
-    // is_chat_downloaded: any;
-    // is_vod_downloaded: any;
-    // is_lossless_cut_generated: any;
-    // is_chatdump_captured: any;
-    // is_capture_paused: any;
-    // is_chat_rendered: any;
-    // is_chat_burned: any;
 
     /*
-
-    public ?int $game_offset = null;
-
-    public ?string $json_hash = null;
-
     public ?bool $api_hasFavouriteGame = null;
     public ?array $api_getUniqueGames = null;
     public ?string $api_getWebhookDuration = null;
@@ -200,7 +134,6 @@ export class TwitchVOD {
     public ?int $api_getRecordingSize = null;
     public ?int $api_getChatDumpStatus = null;
     public ?int $api_getDurationLive = null;
-
     */
 
     private setupDates() {
@@ -210,12 +143,13 @@ export class TwitchVOD {
             return;
         }
 
-        if (this.json.dt_started_at) this.dt_started_at = parse(this.json.dt_started_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date());
-        if (this.json.dt_ended_at) this.dt_ended_at = parse(this.json.dt_ended_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date());
-        if (this.json.saved_at) this.dt_saved_at = parse(this.json.saved_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date());
+        if (this.json.started_at) this.started_at = parseISO(this.json.started_at);
+        
+        if (this.json.ended_at) this.ended_at = parseISO(this.json.ended_at);
+        if (this.json.saved_at) this.saved_at = parseISO(this.json.saved_at);
 
-        if (this.json.dt_capture_started) this.dt_capture_started = parse(this.json.dt_capture_started.date, TwitchHelper.PHP_DATE_FORMAT, new Date());
-        if (this.json.dt_conversion_started) this.dt_conversion_started = parse(this.json.dt_conversion_started.date, TwitchHelper.PHP_DATE_FORMAT, new Date());
+        if (this.json.capture_started) this.capture_started = parseISO(this.json.capture_started);
+        if (this.json.conversion_started) this.conversion_started = parseISO(this.json.conversion_started);
 
     }
 
@@ -237,18 +171,20 @@ export class TwitchVOD {
 
         // $this->force_record				= isset($this->json['force_record']) ? $this->json['force_record'] : false;
         // $this->automator_fail			= isset($this->json['automator_fail']) ? $this->json['automator_fail'] : false;
-        this.force_record = this.json.force_record == true;
-        this.automator_fail = this.json.automator_fail == true;
+        // this.force_record = this.json.force_record == true;
+        // this.automator_fail = this.json.automator_fail == true;
 
         // $this->stream_resolution		= isset($this->json['stream_resolution']) && gettype($this->json['stream_resolution']) == 'string' ? $this->json['stream_resolution'] : '';
         this.stream_resolution = this.json.stream_resolution;
 
         // $this->duration 			= $this->json['duration'];
         // $this->duration_seconds 	= $this->json['duration_seconds'] ? (int)$this->json['duration_seconds'] : null;
-        this.duration_seconds = this.json.duration_seconds ?? undefined;
+        
+        this.duration = this.json.duration ?? undefined;
 
-        const dur = this.getDurationLive();
-        this.duration_live = dur === false ? -1 : dur;
+        // @todo: what
+        // const dur = this.getDurationLive();
+        // this.duration_live = dur === false ? -1 : dur;
 
         this.webpath = `${TwitchConfig.cfg<string>("basepath")}/vods/${TwitchConfig.cfg<boolean>("channel_folders") && this.streamer_login ? this.streamer_login : ""}`;
 
@@ -263,9 +199,9 @@ export class TwitchVOD {
         // if (!$this->dt_started_at) return false;
         // $now = new \DateTime();
         // return abs($this->dt_started_at->getTimestamp() - $now->getTimestamp());
-        if (!this.dt_started_at) return false;
+        if (!this.started_at) return false;
         const now = new Date();
-        return Math.abs((this.dt_started_at.getTime() - now.getTime()) / 1000);
+        return Math.abs((this.started_at.getTime() - now.getTime()) / 1000);
     }
 
     public async setupUserData() {
@@ -286,15 +222,16 @@ export class TwitchVOD {
         }
 
         this.twitch_vod_id = this.json.twitch_vod_id !== undefined ? this.json.twitch_vod_id : undefined;
-        this.twitch_vod_url = this.json.twitch_vod_url !== undefined ? this.json.twitch_vod_url : undefined;
+        // this.twitch_vod_url = this.json.twitch_vod_url !== undefined ? this.json.twitch_vod_url : undefined;
         this.twitch_vod_duration = this.json.twitch_vod_duration !== undefined ? this.json.twitch_vod_duration : undefined;
         this.twitch_vod_title = this.json.twitch_vod_title !== undefined ? this.json.twitch_vod_title : undefined;
         this.twitch_vod_date = this.json.twitch_vod_date !== undefined ? this.json.twitch_vod_date : undefined;
-        this.twitch_vod_exists = this.json.twitch_vod_exists !== undefined ? this.json.twitch_vod_exists : undefined;
-        this.twitch_vod_neversaved = this.json.twitch_vod_neversaved !== undefined ? this.json.twitch_vod_neversaved : undefined;
-        this.twitch_vod_attempted = this.json.twitch_vod_attempted !== undefined ? this.json.twitch_vod_attempted : undefined;
+        // this.twitch_vod_exists = this.json.twitch_vod_exists !== undefined ? this.json.twitch_vod_exists : undefined;
+        // this.twitch_vod_neversaved = this.json.twitch_vod_neversaved !== undefined ? this.json.twitch_vod_neversaved : undefined;
+        // this.twitch_vod_attempted = this.json.twitch_vod_attempted !== undefined ? this.json.twitch_vod_attempted : undefined;
         //  this.twitch_vod_muted = this.json.twitch_vod_muted !== undefined ? this.json.twitch_vod_muted : undefined;
 
+        /*
         if (typeof this.json.twitch_vod_muted == "boolean") {
             if (this.json.twitch_vod_muted === false) this.twitch_vod_muted = MUTE_STATUS.UNMUTED;
             else if (this.json.twitch_vod_muted === true) this.twitch_vod_muted = MUTE_STATUS.MUTED;
@@ -315,6 +252,9 @@ export class TwitchVOD {
         } else {
             this.twitch_vod_status = EXIST_STATUS.UNKNOWN;
         }
+        */
+        this.twitch_vod_status = this.json.twitch_vod_status;
+
 
         // legacy
         // if (this.meta?.data[0]?.title) {
@@ -333,30 +273,28 @@ export class TwitchVOD {
             return;
         }
 
-        this.video_fail2 = this.json.video_fail2 !== undefined ? this.json.video_fail2 : false;
+        // this.video_fail2 = this.json.video_fail2 !== undefined ? this.json.video_fail2 : false;
         this.video_metadata = this.json.video_metadata !== undefined ? this.json.video_metadata : undefined;
         // this.filterMediainfo();
 
         // this.ads = this.json.ads !== undefined ? this.json.ads : [];
-        if (this.json.chapters_raw !== undefined && this.json.chapters_raw.length > 0) {
-            this.parseChapters(this.json.chapters_raw);
-        } else if (this.json.chapters !== undefined && this.json.chapters.length > 0) {
-            this.parseChapters(this.json.chapters); // old method
+        if (this.json.chapters && this.json.chapters.length > 0) {
+            this.parseChapters(this.json.chapters);
         } else {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No chapters on ${this.basename}!`);
         }
 
-        this.segments_raw = this.json.segments_raw !== undefined ? this.json.segments_raw : [];
+        this.segments_raw = this.json.segments !== undefined ? this.json.segments : [];
 
         if (this.is_finalized) {
             this.parseSegments(this.segments_raw);
-            if (!this.duration_seconds) {
+            if (!this.duration) {
                 TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `VOD ${this.basename} finalized but no duration, trying to fix`);
                 this.getDuration(true);
             }
         }
 
-        if (!this.video_metadata && this.is_finalized && this.segments_raw.length > 0 && !this.video_fail2 && TwitchHelper.path_mediainfo()) {
+        if (!this.video_metadata && this.is_finalized && this.segments_raw.length > 0 && TwitchHelper.path_mediainfo()) {
             TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `VOD ${this.basename} finalized but no metadata, trying to fix`);
             if (await this.getMediainfo()) {
                 this.saveJSON("fix mediainfo");
@@ -366,9 +304,9 @@ export class TwitchVOD {
 
     public async getDuration(save = false) {
 
-        if (this.duration_seconds) {
+        if (this.duration) {
             // TwitchHelper.log(LOGLEVEL.DEBUG, "Returning saved duration for " . this.basename . ": " . this.duration_seconds );
-            return this.duration_seconds;
+            return this.duration;
         }
 
         if (this.video_metadata) {
@@ -380,8 +318,8 @@ export class TwitchVOD {
 
             if (this.video_metadata.general.Duration) {
                 TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `No duration_seconds but metadata exists for ${this.basename}: ${this.video_metadata.general.Duration}`);
-                this.duration_seconds = parseInt(this.video_metadata.general.Duration);
-                return this.duration_seconds;
+                this.duration = parseInt(this.video_metadata.general.Duration);
+                return this.duration;
             }
 
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Video metadata for {this.basename} does not include duration!");
@@ -419,7 +357,7 @@ export class TwitchVOD {
         } else {
 
             // this.duration 			= $file['playtime_string'];
-            this.duration_seconds = parseInt(file.general.Duration);
+            this.duration = parseInt(file.general.Duration);
 
             if (save) {
                 TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", "Saved duration for {this.basename}");
@@ -428,7 +366,7 @@ export class TwitchVOD {
 
             TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", "Duration fetched for {this.basename}: {this.duration_seconds}");
 
-            return this.duration_seconds;
+            return this.duration;
         }
 
         TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Reached end of getDuration for {this.basename}, this shouldn't happen!");
@@ -468,7 +406,7 @@ export class TwitchVOD {
             return this.video_metadata;
         }
 
-        this.video_fail2 = true;
+        // this.video_fail2 = true;
         return false;
     }
 
@@ -548,7 +486,7 @@ export class TwitchVOD {
         throw new Error("Method apihelper not implemented.");
     }
 
-    public parseChapters(raw_chapters: TwitchVODChapterJSON[] | TwitchVODChapterMinimalJSON[]) {
+    public parseChapters(raw_chapters: TwitchVODChapterJSON[]) {
 
         if (!raw_chapters || raw_chapters.length == 0) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No chapter data found for ${this.basename}`);
@@ -631,13 +569,14 @@ export class TwitchVOD {
             }
 
             // can't remember why this is here
-            if (index == 0) {
-                this.game_offset = chapter.offset;
-            }
+            // @todo: investigate
+            // if (index == 0) {
+            //     this.game_offset = chapter.offset;
+            // }
 
             // final chapter, make duration to end of vod
-            if (index == chapters.length - 1 && this.dt_ended_at && chapter.datetime) {
-                chapter.duration = this.dt_ended_at.getTime() - chapter.datetime.getTime();
+            if (index == chapters.length - 1 && this.ended_at && chapter.datetime) {
+                chapter.duration = this.ended_at.getTime() - chapter.datetime.getTime();
             }
         });
 
@@ -649,7 +588,7 @@ export class TwitchVOD {
     }
 
     public generateChaptersRaw() {
-        const raw_chapters: TwitchVODChapterMinimalJSON[] = [];
+        const raw_chapters: TwitchVODChapterJSON[] = [];
         for (const chapter of this.chapters) {
             const raw_chapter = chapter.getRawChapter();
             if (raw_chapter) raw_chapters.push(raw_chapter);
@@ -820,21 +759,22 @@ export class TwitchVOD {
             // ads: this.ads,
             // started_at: null,
             // ended_at: null,
-            duration_seconds: this.duration_seconds || 0,
-            duration_live: this.duration_live || 0,
-            game_offset: this.game_offset || 0,
+            duration: this.duration || 0,
+            duration_live: this.getDurationLive(),
+            // game_offset: this.game_offset || 0,
             stream_resolution: this.stream_resolution,
             stream_title: this.stream_title,
             total_size: this.total_size,
             twitch_vod_id: this.twitch_vod_id,
-            twitch_vod_url: this.twitch_vod_url,
+            // twitch_vod_url: this.twitch_vod_url,
             twitch_vod_duration: this.twitch_vod_duration,
             twitch_vod_title: this.twitch_vod_title,
             twitch_vod_date: this.twitch_vod_date,
-            twitch_vod_exists: this.twitch_vod_exists,
-            twitch_vod_attempted: this.twitch_vod_attempted,
-            twitch_vod_neversaved: this.twitch_vod_neversaved,
+            // twitch_vod_exists: this.twitch_vod_exists,
+            // twitch_vod_attempted: this.twitch_vod_attempted,
+            // twitch_vod_neversaved: this.twitch_vod_neversaved,
             twitch_vod_muted: this.twitch_vod_muted,
+            twitch_vod_status: this.twitch_vod_status,
             // is_recording: this.is_recording,
             is_converted: this.is_converted,
             is_capturing: this.is_capturing,
@@ -883,8 +823,9 @@ export class TwitchVOD {
         };
     }
 
-    public toJSON() /*: TwitchVODJSON*/ {
+    public toJSON(): TwitchVODJSON {
         return {
+            /*
             meta: this.meta,
             twitch_vod_exists: this.twitch_vod_exists,
             twitch_vod_attempted: this.twitch_vod_attempted,
@@ -907,7 +848,7 @@ export class TwitchVOD {
             video_fail2: this.video_fail2,
             force_record: this.force_record,
             automator_fail: this.automator_fail,
-            saved_at: this.dt_saved_at ? TwitchHelper.JSDateToPHPDate(this.dt_saved_at) : undefined,
+            saved_at: this.saved_at?.toISOString(),
             dt_capture_started: this.dt_capture_started ? TwitchHelper.JSDateToPHPDate(this.dt_capture_started) : undefined,
             dt_conversion_started: this.dt_conversion_started ? TwitchHelper.JSDateToPHPDate(this.dt_conversion_started) : undefined,
             dt_started_at: this.dt_started_at ? TwitchHelper.JSDateToPHPDate(this.dt_started_at) : undefined,
@@ -917,6 +858,15 @@ export class TwitchVOD {
             twitch_vod_duration: this.twitch_vod_duration,
             twitch_vod_title: this.twitch_vod_title,
             twitch_vod_date: this.twitch_vod_date,
+            */
+            version: 2,
+            capture_id: this.capture_id,
+            stream_resolution: this.stream_resolution,
+            streamer_name: this.streamer_name,
+            streamer_id: this.streamer_id,
+            streamer_login: this.streamer_login,
+            chapters: this.chapters.map((chapter) => chapter.toJSON()),
+            
         };
     }
 

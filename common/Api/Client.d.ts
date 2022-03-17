@@ -51,7 +51,7 @@ export type ApiVod = {
     twitch_vod_muted: boolean | undefined;
     twitch_vod_exists: boolean | undefined;
     twitch_vod_url: string | undefined;
-    twitch_vod_id: number | undefined;
+    twitch_vod_id: string | undefined;
     twitch_vod_date: string | undefined;
     twitch_vod_title: string | undefined;
 
@@ -80,7 +80,7 @@ export type ApiVod = {
     api_getChatDumpStatus: number;
     api_getDurationLive: number;
 
-    duration_live: number;
+    duration_live: number | false;
     duration_seconds: number;
 
     total_size: number;

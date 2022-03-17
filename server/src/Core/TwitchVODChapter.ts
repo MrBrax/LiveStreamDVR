@@ -1,12 +1,14 @@
 import chalk from "chalk";
 import { format, parse } from "date-fns";
+import { TwitchVODChapterJSON } from "../Storage/JSON";
 import { ApiVodChapter } from "../../../common/Api/Client";
 import { PHPDateTimeProxy } from "../types";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchHelper } from "./TwitchHelper";
 
+/*
 export interface TwitchVODChapterJSON {
-    /** Date, 2022-02-23T00:47:32Z */
+    /** Date, 2022-02-23T00:47:32Z *
     time: string;
     dt_started_at: PHPDateTimeProxy;
     game_id: string;
@@ -25,7 +27,7 @@ export interface TwitchVODChapterJSON {
 }
 
 export interface TwitchVODChapterMinimalJSON {
-    /** Date, 2022-02-23T00:47:32Z */
+    /** Date, 2022-02-23T00:47:32Z *
     time: string;
     dt_started_at: PHPDateTimeProxy;
     game_id: string | false;
@@ -35,6 +37,7 @@ export interface TwitchVODChapterMinimalJSON {
     is_mature: boolean;
     online: boolean;
 }
+*/
 
 /*
 'time' 			=> $this->getDateTime(),
@@ -50,7 +53,7 @@ export interface TwitchVODChapterMinimalJSON {
 
 export class TwitchVODChapter {
 
-    raw_chapter: TwitchVODChapterJSON | TwitchVODChapterMinimalJSON | undefined;
+    raw_chapter: TwitchVODChapterJSON | undefined;
 
     datetime: Date | undefined;
     offset: number | undefined;
@@ -119,7 +122,18 @@ export class TwitchVODChapter {
 
     toAPI(): ApiVodChapter {
         return {
-            
+            title: this.title,
+            game_id: this.game_id,
+            strings: this.strings,
+            duration: this.duration,
+            box_art_url: this.box_art_url,
+            game_name: this.game_name,
+            started_at: this.dt_started_at ? 
+            datetime: PHPDateTimeJSON;
+            offset: number;
+            viewer_count: number;
+            width: number; // why
+            is_mature: boolean;
         };
     }
 
