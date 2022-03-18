@@ -76,25 +76,32 @@ export async function SaveSettings(req: express.Request, res: express.Response):
             full_url += "?instance=" + TwitchConfig.cfg("instance_id");
         }
 
-        let req: AxiosResponse;
+        let req: AxiosResponse | undefined;
+        let response_body = "";
 
         try {
             req = await axios.get(full_url, {
                 timeout: 10000,
             });
         } catch (error) {
-            console.error(error);
-            res.status(400).send({
-                status: "ERROR",
-                message: `External app url could not be contacted on '${full_url}' due to a bad response: ${error}`,
-            });
-            return;
+            if (axios.isAxiosError(error)) {
+                response_body = error.response?.data ?? "";
+            } else {
+                console.error("app url check error", error);
+                res.status(400).send({
+                    status: "ERROR",
+                    message: `External app url could not be contacted on '${full_url}' due to an error: ${error}`,
+                });
+                return;
+            }
         }
 
-        if (req.data !== "No data supplied") {
+        if (req) response_body = req.data;
+
+        if (response_body !== "No data supplied") {
             res.status(400).send({
                 status: "ERROR",
-                message: `External app url responded with an unexpected response: ${req.data}`,
+                message: `External app url responded with an unexpected response: ${response_body}`,
             });
             return;
         }
