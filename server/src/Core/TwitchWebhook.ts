@@ -68,7 +68,7 @@ export class TwitchWebhook {
         
         // console.log("Webhook:", action, data);
 
-        console.log(chalk.bgGrey.whiteBright(`WebSocket payload ${action} dispatching...`));
+        if (TwitchConfig.cfg("debug")) console.log(chalk.bgGrey.whiteBright(`WebSocket payload ${action} dispatching...`));
 
         /*
         $public_websocket_url = TwitchConfig::cfg("websocket_server_address") ?: (preg_replace("/https?/", "ws", TwitchConfig::cfg('app_url')) . "/socket/");
@@ -110,6 +110,14 @@ export class TwitchWebhook {
             ws.on("error", (err) => {
                 console.error(chalk.bgRed.whiteBright(`WebSocket error: ${err.message}. Is client-broker running?`));
                 // reject(false);
+            });
+
+            ws.on("message", (data) => {
+                if (TwitchConfig.cfg("debug")) console.log(chalk.bgBlue.whiteBright(`WebSocket message: ${data}`));
+            });
+
+            ws.on("close", () => {
+                if (TwitchConfig.cfg("debug")) console.log(chalk.bgBlue.whiteBright("WebSocket closed"));
             });
 
         });

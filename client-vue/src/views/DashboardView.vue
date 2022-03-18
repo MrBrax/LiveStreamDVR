@@ -270,6 +270,9 @@ export default defineComponent({
                         // alert(json.data.text);
                         const toast = new Notification(json.data.text);
                         console.log(`Notify: ${json.data.text}`, toast);
+                    } else if (action == "init") {
+                        const toast = new Notification("Server connected to broker");
+                        console.log("Init", toast);
                     } else {
                         console.log(`Websocket wrong action (${action})`);
                     }
