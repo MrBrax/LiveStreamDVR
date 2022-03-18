@@ -10,6 +10,7 @@ import { TwitchGame } from "./TwitchGame";
 import { TwitchHelper } from "./TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { TwitchWebhook } from "./TwitchWebhook";
+import crypto from "crypto";
 
 export class TwitchConfig {
 
@@ -258,6 +259,14 @@ export class TwitchConfig {
 
     }
 
+    static generateEventSubSecret() {
+        if (TwitchConfig.cfg("event_sub_secret")) return;
+        console.log(chalk.yellow("Generating eventsub secret..."));
+        const secret = crypto.randomBytes(16).toString("hex");
+        TwitchConfig.setConfig("event_sub_secret", secret);
+        TwitchConfig.saveConfig("eventsub_secret not set");
+    }
+
     /**
      * Initialise entire application, like loading config, creating folders, etc.
      */
@@ -278,6 +287,8 @@ export class TwitchConfig {
         KeyValue.load();
 
         TwitchConfig.loadConfig();
+
+        TwitchConfig.generateEventSubSecret();
 
         await TwitchConfig.setupAxios();
 

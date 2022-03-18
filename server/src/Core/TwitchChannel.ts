@@ -607,7 +607,11 @@ export class TwitchChannel {
             hook_callback += "?instance=" + TwitchConfig.cfg("instance_id");
         }
 
-        const streamer_login = TwitchChannel.channelLoginFromId(channel_id);
+        if (!TwitchConfig.cfg("eventsub_secret")) {
+            throw new Error("eventsub_secret is not set");
+        }
+
+        const streamer_login = await TwitchChannel.channelLoginFromId(channel_id);
 
         for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
 

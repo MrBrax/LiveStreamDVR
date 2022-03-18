@@ -66,7 +66,7 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
     const burn_chat      = formdata.burn_chat !== undefined;
     const no_capture     = formdata.no_capture !== undefined;
 
-    const channel_data: ChannelConfig = {
+    const channel_config: ChannelConfig = {
         login: channel.login,
         quality: quality,
         match: match,
@@ -75,7 +75,11 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
         no_capture: no_capture,
     };
 
-    channel.update(channel_data);
+    channel.update(channel_config);
+
+    res.send({
+        status: "OK",
+    });
 
 }
 
@@ -87,7 +91,7 @@ export function DeleteChannel(req: express.Request, res: express.Response): void
         res.status(400).send({
             status: "ERROR",
             message: "Channel not found",
-        });
+        } as ApiErrorResponse);
         return;
     }
 
@@ -99,7 +103,7 @@ export function DeleteChannel(req: express.Request, res: express.Response): void
 
 }
 
-export function AddChannel(req: express.Request, res: express.Response): void {
+export async function AddChannel(req: express.Request, res: express.Response): Promise<void> {
 
     const formdata: {
         login: string;
@@ -110,7 +114,7 @@ export function AddChannel(req: express.Request, res: express.Response): void {
         no_capture: boolean;
     } = req.body;
 
-    const channel_data: ChannelConfig = {
+    const channel_config: ChannelConfig = {
         login: formdata.login,
         quality: formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [],
         match: formdata.match ? formdata.match.split(",").map(m => m.trim()) : [],
@@ -119,7 +123,7 @@ export function AddChannel(req: express.Request, res: express.Response): void {
         no_capture: formdata.no_capture !== undefined,
     };
 
-    const channel = TwitchChannel.getChannelByLogin(channel_data.login);
+    const channel = TwitchChannel.getChannelByLogin(channel_config.login);
 
     if (channel) {
         res.status(400).send({
@@ -129,7 +133,7 @@ export function AddChannel(req: express.Request, res: express.Response): void {
         return;
     }
 
-    const new_channel = TwitchChannel.create(channel_data);
+    const new_channel = await TwitchChannel.create(channel_config);
 
     res.send({
         data: new_channel,

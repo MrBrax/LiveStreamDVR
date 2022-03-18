@@ -128,11 +128,28 @@
                         <button class="button is-confirm is-small" @click="subscribeAll" :disabled="subscriptionsLoading">Subscribe</button>
                         <span v-if="subscriptionsLoading">Loading...</span>
                         <table>
+                            <!--
+                            <tr>
+                                <th>ID</th>
+                                <th>Created</th>
+                                <th>Username</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Instance match</th>
+                            </tr>
+                            -->
                             <tr v-for="subscription in subscriptions" :key="subscription.id">
                                 <td>{{ subscription.id }}</td>
                                 <td>{{ subscription.created_at }}</td>
-                                <td>{{ subscription.username }}</td>
-                                <td>{{ subscription.type }}</td>
+                                <td>
+                                    {{ subscription.username }}<br />
+                                    <small>{{ subscription.type }}</small>
+                                </td>
+                                <td>{{ subscription.status }}</td>
+                                <td>
+                                    {{ subscription.instance_match }}<br />
+                                    <small>{{ subscription.callback }}</small>
+                                </td>
                                 <td>
                                     <button class="button is-confirm is-small" @click="unsubscribe(subscription.id)" :disabled="subscriptionsLoading">
                                         Unsubscribe
