@@ -1304,6 +1304,29 @@ export class TwitchVOD {
 
     }
 
+    // too much work
+    /*
+    private static migrateOldJSON(json: any): TwitchVODJSON {
+
+        const new_json: TwitchVODJSON = {
+            "version": 2,
+            meta: json.meta,
+            twitch_vod_exists: json.twitch_vod_exists,
+            twitch_vod_attempted: json.twitch_vod_attempted,
+            twitch_vod_neversaved: json.twitch_vod_neversaved,
+            twitch_vod_muted: json.twitch_vod_muted === true ? MuteStatus.MUTED : MuteStatus.UNKNOWN,
+            stream_resolution: json.stream_resolution,
+            streamer_name: json.streamer_name,
+            streamer_id: json.streamer_id,
+            streamer_login: json.streamer_login,
+            chapters: json.chapters,
+        };
+
+        return new_json;
+
+    }
+    */
+
     public static addVod(vod: TwitchVOD): boolean {
 
         if (!vod.basename)

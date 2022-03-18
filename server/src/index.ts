@@ -61,13 +61,21 @@ TwitchConfig.init().then(() => {
 
     app.use(basepath, baserouter);
 
-    app.listen(port, () => {
+    const server = app.listen(port, () => {
         console.log(chalk.bgBlue.greenBright(`🥞 ${AppName} listening on port ${port}, mode ${process.env.NODE_ENV}. Base path: ${basepath || "/"} 🥞`));
         if (process.env.npm_lifecycle_script?.includes("index.ts")){
             console.log(chalk.greenBright("~ Running with TypeScript ~"));
         } else {
             console.log(chalk.greenBright("~ Running with plain JS ~"));
             console.log(chalk.greenBright(`Build date: ${fs.statSync(__filename).mtime.toISOString()}`));
+        }
+    });
+
+    server.on("error", (err) => {
+        console.log(chalk.bgRed.whiteBright(`${AppName} fatal error: ${err.message}`));
+        if (err.message.includes("EADDRINUSE")) {
+            console.log(chalk.bgRed.whiteBright(`Port ${port} is already in use.`));
+            process.exit(1);
         }
     });
 
