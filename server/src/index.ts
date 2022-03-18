@@ -8,21 +8,23 @@ import { AppName, AppRoot, BaseConfigFolder } from "./Core/BaseConfig";
 import { TwitchConfig } from "./Core/TwitchConfig";
 import ApiRouter from "./Routes/Api";
 
-// console.log(chalk.blue(`App root: ${AppRoot}, env ${process.env.NODE_ENV}`));
-
+// check that the app root is not outside of the root
 if (!fs.existsSync(path.join(BaseConfigFolder.server, "tsconfig.json"))) {
     console.error(chalk.red(`Could not find tsconfig.json in ${AppRoot}`));
     process.exit(1);
 }
 
+// check if the client is built before starting the server
 if (!fs.existsSync(path.join(BaseConfigFolder.client, "index.html"))) {
     console.error(chalk.red("Client is not built. Please run yarn build inside the client-vue folder."));
     console.error(chalk.red(`Expected path: ${path.join(BaseConfigFolder.client, "index.html")}`));
     process.exit(1);
 }
 
+// for overriding port if you can't or don't want to use the web gui to change it
 const override_port = process.argv && process.argv.length > 2 && process.argv[2] ? parseInt(process.argv[2]) : undefined;
 
+// load all required config files and cache stuff
 TwitchConfig.init().then(() => {
 
     const app = express();
@@ -30,46 +32,50 @@ TwitchConfig.init().then(() => {
 
     const basepath = TwitchConfig.cfg<string>("basepath", "");
 
+    // https://github.com/expressjs/morgan/issues/76#issuecomment-450552807
     if (TwitchConfig.cfg<boolean>("trust_proxy", false)) {
         app.set("trust proxy", true);
         console.log(chalk.yellow("Setting trust proxy to true."));
     }
 
+
+    /**
+     * https://flaviocopes.com/express-get-raw-body/
+     * 
+     * apparently this is needed to get the raw body since express doesn't do it by default,
+     * i read it takes up twice the memory, but it's required for signature verification
+     */
     app.use(express.json({
         verify: (req, res, buf) => {
             (req as any).rawBody = buf;
         },
     }));
-
-    //app.use(express.json());
     
+    // logging
     if (process.env.NODE_ENV == "development") {
         app.use(morgan("dev"));
     } else {
         app.use(morgan("combined"));
     }
 
-    // app.get("/", (req, res) => {
-    //     // res.send(TwitchConfig.cfg<string>("app_url", "test"));
-    //     res.send(TwitchConfig.config);
-    // });
-
     const baserouter = express.Router();
 
+    // bind the api routes
     baserouter.use("/api/v0", ApiRouter);
 
-    // single page app
-    // baserouter.use(history());
+    // static files and storage
     baserouter.use(express.static(BaseConfigFolder.client));
     baserouter.use("/vodplayer", express.static(BaseConfigFolder.vodplayer));
     baserouter.use("/vods", express.static(BaseConfigFolder.vod));
     baserouter.use("/saved_vods", express.static(BaseConfigFolder.saved_vods));
     baserouter.use("/saved_clips", express.static(BaseConfigFolder.saved_clips));
 
+    // send index.html for all other routes, so that SPA routes are handled correctly
     baserouter.use("*", (req, res) => {
         res.sendFile(path.join(BaseConfigFolder.client, "index.html"));
     });
 
+    // for the base path to work
     app.use(basepath, baserouter);
 
     const server = app.listen(port, () => {
