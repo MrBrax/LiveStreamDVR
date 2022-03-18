@@ -44,3 +44,11 @@ export interface ApiChannelResponse extends ApiResponse {
 export interface ApiVodResponse extends ApiResponse {
     data: ApiVod;
 }
+
+export interface ApiLogResponse extends ApiResponse {
+    data: {
+        lines: any;
+        last_line: number;
+        logs: string[];
+    };
+}

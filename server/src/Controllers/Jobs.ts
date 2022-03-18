@@ -1,5 +1,6 @@
 import { TwitchAutomatorJob } from "../Core/TwitchAutomatorJob";
 import express from "express";
+import { ApiErrorResponse } from "../../../common/Api/Api";
 
 export function ListJobs(req: express.Request, res: express.Response): void {
     
@@ -19,7 +20,7 @@ export async function KillJob(req: express.Request, res: express.Response): Prom
         res.status(400).send({
             status: "ERROR",
             message: "Job not found",
-        });
+        } as ApiErrorResponse);
         return;
     }
     
@@ -33,6 +34,6 @@ export async function KillJob(req: express.Request, res: express.Response): Prom
         res.status(400).send({
             status: "ERROR",
             message: "Job could not be killed.",
-        });
+        } as ApiErrorResponse);
     }
 }

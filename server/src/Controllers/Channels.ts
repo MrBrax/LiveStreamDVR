@@ -2,7 +2,7 @@ import express from "express";
 import { generateStreamerList } from "../Helpers/StreamerList";
 import { TwitchChannel } from "../Core/TwitchChannel";
 import { ChannelConfig, VideoQuality } from "../../../common/Config";
-import { ApiChannelResponse, ApiChannelsResponse } from "../../../common/Api/Api";
+import { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse } from "../../../common/Api/Api";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -29,7 +29,7 @@ export async function GetChannel(req: express.Request, res: express.Response): P
         res.status(400).send({
             status: "ERROR",
             message: "Channel not found",
-        });
+        } as ApiErrorResponse);
         return;
     }
 
@@ -48,7 +48,7 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
         res.status(400).send({
             status: "ERROR",
             message: "Channel not found",
-        });
+        } as ApiErrorResponse);
         return;
     }
 
@@ -125,7 +125,7 @@ export function AddChannel(req: express.Request, res: express.Response): void {
         res.status(400).send({
             status: "ERROR",
             message: "Channel already exists",
-        });
+        } as ApiErrorResponse);
         return;
     }
 

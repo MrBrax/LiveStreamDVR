@@ -3,6 +3,7 @@ import express from "express";
 import { TwitchChannel } from "../Core/TwitchChannel";
 import { TwitchConfig } from "../Core/TwitchConfig";
 import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
+import { ApiErrorResponse } from "../../../common/Api/Api";
 
 interface ChannelSub {
     type: string;
@@ -85,7 +86,7 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
         res.send({
             status: "ERROR",
             message: "No subscriptions found",
-        });
+        } as ApiErrorResponse);
     }
 
 }
@@ -112,7 +113,7 @@ export async function SubscribeToAllChannels(req: express.Request, res: express.
         res.status(500).send({
             status: "ERROR",
             message: "No channels to subscribe to.",
-        });
+        } as ApiErrorResponse);
         return;
     }
 
@@ -138,7 +139,7 @@ export async function UnsubscribeFromId(req: express.Request, res: express.Respo
         res.status(400).send({
             status: "ERROR",
             message: `Could not unsubscribe from ${sub_id}.`,
-        });
+        } as ApiErrorResponse);
     }
 
 }

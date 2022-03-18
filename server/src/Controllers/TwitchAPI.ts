@@ -1,6 +1,7 @@
 import { TwitchChannel } from "../Core/TwitchChannel";
 import { TwitchVOD } from "../Core/TwitchVOD";
 import express from "express";
+import { ApiErrorResponse } from "../../../common/Api/Api";
 
 export async function TwitchAPIVideos(req: express.Request, res: express.Response): Promise<void> {
 
@@ -17,7 +18,7 @@ export async function TwitchAPIVideos(req: express.Request, res: express.Respons
         res.status(400).send({
             status: "ERROR",
             message: "Videos not found",
-        });
+        } as ApiErrorResponse);
         return;
     }
 
@@ -43,7 +44,7 @@ export async function TwitchAPIVideo(req: express.Request, res: express.Response
         res.status(400).send({
             status: "ERROR",
             message: "Video not found",
-        });
+        } as ApiErrorResponse);
         return;
     }
 

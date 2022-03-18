@@ -1,6 +1,6 @@
 import { TwitchVOD } from "../Core/TwitchVOD";
 import express from "express";
-import { ApiVodResponse } from "../../../common/Api/Api";
+import { ApiErrorResponse, ApiVodResponse } from "../../../common/Api/Api";
 
 export async function GetVod(req: express.Request, res: express.Response): Promise<void> {
     
@@ -10,7 +10,7 @@ export async function GetVod(req: express.Request, res: express.Response): Promi
         res.status(400).send({
             status: "ERROR",
             message: "Vod not found",
-        });
+        } as ApiErrorResponse);
         return;
     }
 
@@ -29,7 +29,7 @@ export function ArchiveVod(req: express.Request, res: express.Response): void {
         res.status(400).send({
             status: "ERROR",
             message: "Vod not found",
-        });
+        } as ApiErrorResponse);
         return;
     }
 
@@ -49,7 +49,7 @@ export function DeleteVod(req: express.Request, res: express.Response): void {
         res.status(400).send({
             status: "ERROR",
             message: "Vod not found",
-        });
+        } as ApiErrorResponse);
         return;
     }
 
@@ -69,7 +69,7 @@ export async function DownloadVod(req: express.Request, res: express.Response): 
         res.status(400).send({
             status: "ERROR",
             message: "Vod not found",
-        });
+        } as ApiErrorResponse);
         return;
     }
 

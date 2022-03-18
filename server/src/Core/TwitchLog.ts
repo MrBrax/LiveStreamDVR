@@ -14,7 +14,7 @@ export enum LOGLEVEL {
     SUCCESS = "SUCCESS",
 }
 
-interface LogLine {
+export interface LogLine {
     module: string;
     date: number;
     level: LOGLEVEL;
@@ -130,7 +130,7 @@ export class TwitchLog {
      * @throws
      * @returns 
      */
-    static fetchLog(date: string, fromLine = 0) {
+    static fetchLog(date: string, fromLine = 0): LogLine[] {
 
         // return lines from n to end
         if (date == this.currentDate) {
@@ -147,7 +147,7 @@ export class TwitchLog {
         }
 
         const lines = fs.readFileSync(jsonlinename, "utf8").split("\n");
-        const parsed_lines = lines.map(line => line.length > 0 ? JSON.parse(line) : null).filter(line => line !== null);
+        const parsed_lines: LogLine[] = lines.map(line => line.length > 0 ? JSON.parse(line) : null).filter(line => line !== null);
         console.debug(`Fetched ${parsed_lines.length} lines from ${jsonlinename}`);
         return parsed_lines;
     }
