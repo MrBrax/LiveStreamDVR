@@ -299,7 +299,7 @@ export class TwitchConfig {
         TwitchAutomatorJob.loadJobsFromCache();
 
         // monitor config for external changes
-        fs.watch(BaseConfigFolder.config, (eventType, filename) => {
+        fs.watch(BaseConfigPath.config, (eventType, filename) => {
             console.log(`Config file changed: ${eventType} ${filename}`);
             TwitchLog.logAdvanced(LOGLEVEL.WARNING, "config", "Config file changed externally");
             // TwitchConfig.loadConfig();

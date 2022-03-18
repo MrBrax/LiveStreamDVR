@@ -234,8 +234,12 @@ export class TwitchChannel {
     }
 
     public delete() {
+        
         const login = this.login;
         if (!login) throw new Error("Channel login is not set");
+
+        const userid = this.userid;
+
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", `Deleting channel ${login}`);
         const index_config = TwitchChannel.channels_config.findIndex(ch => ch.login === login);
         if (index_config !== -1) {
@@ -248,6 +252,7 @@ export class TwitchChannel {
         }
 
         // @todo: unsubscribe
+        if (userid) TwitchChannel.unsubscribe(userid);
 
         return TwitchChannel.getChannelByLogin(login) == undefined;
     }
@@ -362,6 +367,7 @@ export class TwitchChannel {
         TwitchChannel.channels.push(channel);
 
         // @todo: subscribe
+        if (channel.userid) TwitchChannel.subscribe(channel.userid);
 
         return channel;
     }
@@ -675,6 +681,40 @@ export class TwitchChannel {
         return true;
 
     }
+
+    public static async unsubscribe(channel_id: string): Promise<boolean> {
+
+        const subscriptions = await TwitchHelper.getSubs();
+
+        if (!subscriptions) {
+            return false;
+        }
+
+        const streamer_login = TwitchChannel.channelLoginFromId(channel_id);
+
+        let unsubbed = 0;
+        for (const sub of subscriptions.data) {
+
+            if (sub.condition.broadcaster_user_id !== channel_id) {
+                continue;
+            }
+
+            const unsub = await TwitchHelper.eventSubUnsubscribe(sub.id);
+
+            if (unsub) {
+                TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Unsubscribed from ${channel_id}:${sub.type} (${streamer_login})`);
+                unsubbed++;
+            } else {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to unsubscribe from ${channel_id}:${sub.type} (${streamer_login})`);
+            }
+
+        }
+
+        return unsubbed === subscriptions.data.length;
+
+    }
+
+
 
     public static async getSubscriptionId(channel_id: string, sub_type: EventSubTypes): Promise<string | false> {
         const all_subs = await TwitchHelper.getSubs();
