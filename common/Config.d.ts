@@ -33,6 +33,8 @@ export interface SettingField<T> {
 
     pattern?: string;
 
+    restart_required?: boolean;
+
 }
 
 export interface ChannelConfig {

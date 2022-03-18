@@ -30,7 +30,18 @@ TwitchConfig.init().then(() => {
 
     const basepath = TwitchConfig.cfg<string>("basepath", "");
 
-    app.use(express.json());
+    if (TwitchConfig.cfg<boolean>("trust_proxy", false)) {
+        app.set("trust proxy", true);
+        console.log(chalk.yellow("Setting trust proxy to true."));
+    }
+
+    app.use(express.json({
+        verify: (req, res, buf) => {
+            (req as any).rawBody = buf;
+        },
+    }));
+
+    //app.use(express.json());
     
     if (process.env.NODE_ENV == "development") {
         app.use(morgan("dev"));
@@ -69,6 +80,7 @@ TwitchConfig.init().then(() => {
             console.log(chalk.greenBright("~ Running with plain JS ~"));
             console.log(chalk.greenBright(`Build date: ${fs.statSync(__filename).mtime.toISOString()}`));
         }
+        console.log(chalk.greenBright(`Version: ${process.env.npm_package_version}`));
     });
 
     server.on("error", (err) => {

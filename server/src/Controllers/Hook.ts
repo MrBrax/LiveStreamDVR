@@ -52,7 +52,8 @@ const verifySignature = (request: express.Request): boolean => {
         return false;
     }
     
-    const body = JSON.stringify(request.body);
+    // const body = JSON.stringify(request.body); // needs raw body
+    const body: string = (request as any).rawBody;
 
     const hmac_message = twitch_message_id + twitch_message_timestamp + body;
 
@@ -61,6 +62,10 @@ const verifySignature = (request: express.Request): boolean => {
         .digest("hex");
 
     const expected_signature_header = "sha256=" + signature;
+
+    if (twitch_message_signature !== expected_signature_header) {
+        console.log(`Signature mismatch: ${twitch_message_signature} != ${expected_signature_header}`);
+    }
 
     return twitch_message_signature === expected_signature_header;
 
@@ -118,6 +123,10 @@ export async function Hook(req: express.Request, res: express.Response): Promise
                 );
                 res.status(400).send("Outdated format");
             }
+
+            const message_retry = req.header("Twitch-Eventsub-Message-Retry") || null;
+
+            console.log("Message retry", message_retry);
 
             if ("challenge" in data_json && data_json.challenge !== null) {
 

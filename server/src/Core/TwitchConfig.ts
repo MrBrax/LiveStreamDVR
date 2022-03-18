@@ -97,6 +97,7 @@ export class TwitchConfig {
         { "key": "checkmute_method", "group": "Basic", "text": "Method to use when checking for muted vods", "type": "array", "default": "api", "choices": ["api", "streamlink"], "help": "Streamlink is more accurate but is kind of a weird solution." },
 
         { "key": "server_port", "group": "Basic", "text": "Server port", "type": "number", "default": 8080 },
+        { "key": "trust_proxy", "group": "Basic", "text": "Trust proxy", "type": "boolean", "default": false, "help": "If server is behind a reverse proxy, enable this.", restart_required: true },
 
     ];
 
@@ -260,10 +261,10 @@ export class TwitchConfig {
     }
 
     static generateEventSubSecret() {
-        if (TwitchConfig.cfg("event_sub_secret")) return;
+        if (TwitchConfig.cfg("eventsub_secret")) return;
         console.log(chalk.yellow("Generating eventsub secret..."));
         const secret = crypto.randomBytes(16).toString("hex");
-        TwitchConfig.setConfig("event_sub_secret", secret);
+        TwitchConfig.setConfig("eventsub_secret", secret);
         TwitchConfig.saveConfig("eventsub_secret not set");
     }
 
@@ -311,6 +312,7 @@ export class TwitchConfig {
 
         // monitor config for external changes
         fs.watch(BaseConfigPath.config, (eventType, filename) => {
+            if (TwitchConfig._writeConfig) return;
             console.log(`Config file changed: ${eventType} ${filename}`);
             TwitchLog.logAdvanced(LOGLEVEL.WARNING, "config", "Config file changed externally");
             // TwitchConfig.loadConfig();
