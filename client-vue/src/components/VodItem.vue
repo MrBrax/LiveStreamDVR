@@ -16,8 +16,8 @@
         <div class="video-title">
             <h3>
                 <span class="icon"><fa icon="file-video"></fa></span>
-                <span class="video-date" :title="formatDate(vod?.dt_started_at.date)" v-if="vod?.dt_started_at">{{
-                    store.clientConfig?.useRelativeTime ? humanDate(vod?.dt_started_at.date, true) : formatDate(vod?.dt_started_at.date)
+                <span class="video-date" :title="formatDate(vod?.started_at)" v-if="vod?.started_at">{{
+                    store.clientConfig?.useRelativeTime ? humanDate(vod?.started_at, true) : formatDate(vod?.started_at)
                 }}</span>
                 <span class="video-filename">{{ vod?.basename }}</span>
             </h3>
@@ -44,21 +44,21 @@
                         </li>
                         <li>
                             <strong>Stream start:</strong>
-                            {{ formatDate(vod?.dt_started_at.date, "yyyy-MM-dd HH:mm:ss") }}
+                            {{ formatDate(vod?.started_at, "yyyy-MM-dd HH:mm:ss") }}
                         </li>
-                        <template v-if="vod?.dt_capture_started">
+                        <template v-if="vod?.capture_started && vod?.conversion_started">
                             <li>
                                 <strong>Capture start:</strong>
-                                {{ formatDate(vod?.dt_capture_started.date, "yyyy-MM-dd HH:mm:ss") }}
+                                {{ formatDate(vod?.capture_started, "yyyy-MM-dd HH:mm:ss") }}
                             </li>
                             <li>
                                 <strong>Conversion start:</strong>
-                                {{ formatDate(vod?.dt_conversion_started.date, "yyyy-MM-dd HH:mm:ss") }}
+                                {{ formatDate(vod?.conversion_started, "yyyy-MM-dd HH:mm:ss") }}
                             </li>
                         </template>
-                        <li>
+                        <li v-if="vod.api_getDuration">
                             <strong>Missing from captured file:</strong>
-                            <span class="px-1" v-if="vod?.twitch_vod_duration">{{ humanDuration(vod?.twitch_vod_duration - vod?.api_getDuration) }}</span>
+                            <span class="px-1" v-if="vod?.twitch_vod_duration">{{ humanDuration(vod.twitch_vod_duration - vod.api_getDuration) }}</span>
                             <span class="px-1" v-else>
                                 <strong><em>No data</em></strong>
                             </span>
@@ -85,9 +85,9 @@
                 <div class="info-column">
                     <h4>Capture</h4>
                     <ul class="video-info">
-                        <li>
+                        <li v-if="vod.api_getDuration">
                             <strong>File duration:</strong>
-                            {{ humanDuration(vod?.api_getDuration) }}
+                            {{ humanDuration(vod.api_getDuration) }}
                         </li>
                         <li>
                             <strong>Size:</strong>
@@ -141,8 +141,8 @@
                             </li>
                             <li>
                                 <strong>ID:</strong>
-                                <span class="px-1" v-if="vod?.twitch_vod_url">
-                                    <a :href="vod?.twitch_vod_url" rel="noreferrer" target="_blank">{{ vod?.twitch_vod_id }}</a>
+                                <span class="px-1" v-if="vod.twitch_vod_id">
+                                    <a :href="twitchVideoLink(vod.twitch_vod_id)" rel="noreferrer" target="_blank">{{ vod.twitch_vod_id }}</a>
                                 </span>
                                 <span class="px-1" v-else>
                                     <strong><em>Not matched or VOD deleted</em></strong>
@@ -166,8 +166,8 @@
                             </li>
                             <li>
                                 <strong>Is muted:</strong>
-                                <span class="px-1" v-if="vod?.twitch_vod_muted === true"><strong class="is-error">Yes</strong></span>
-                                <span class="px-1" v-else-if="vod?.twitch_vod_muted === false">No</span>
+                                <span class="px-1" v-if="vod.twitch_vod_muted === MuteStatus.MUTED"><strong class="is-error">Yes</strong></span>
+                                <span class="px-1" v-else-if="vod.twitch_vod_muted === MuteStatus.UNMUTED">No</span>
                                 <span class="px-1" v-else><em>No data</em></span>
                             </li>
                         </template>
@@ -177,7 +177,7 @@
                             </li>
                             <li>
                                 <span v-if="vod?.twitch_vod_id">
-                                    The ID was <a :href="vod?.twitch_vod_url" rel="noreferrer" target="_blank">{{ vod?.twitch_vod_id }}</a
+                                    The ID was <a :href="twitchVideoLink(vod.twitch_vod_id)" rel="noreferrer" target="_blank">{{ vod.twitch_vod_id }}</a
                                     >.
                                 </span>
                                 <span v-else>The VOD probably never got saved.</span>
@@ -200,9 +200,7 @@
                 <div class="info-column">
                     <h4>Recording</h4>
                     <ul class="video-info">
-                        <li>
-                            <strong>Current duration:</strong> <duration-display :startDate="vod.dt_started_at.date" outputStyle="human"></duration-display>
-                        </li>
+                        <li><strong>Current duration:</strong> <duration-display :startDate="vod.started_at" outputStyle="human"></duration-display></li>
                         <li>
                             <strong>Watch live:</strong>
                             <a :href="'https://twitch.tv/' + vod.streamer_login" rel="noreferrer" target="_blank">Twitch</a>
@@ -346,7 +344,9 @@
             <template v-else-if="vod && vod.is_capturing">
                 <em class="text-overflow">
                     <span class="icon"><fa icon="video"></fa></span>
-                    Capturing to <strong>{{ vod?.basename }}.ts</strong> (<strong>{{ formatBytes(vod?.api_getRecordingSize) }}</strong
+                    Capturing to <strong>{{ vod?.basename }}.ts</strong> (<strong>{{
+                        vod.api_getRecordingSize ? formatBytes(vod.api_getRecordingSize) : "unknown"
+                    }}</strong
                     >)
                     <span class="icon clickable" title="Refresh" @click="vod && store.updateVod(vod.basename)"><fa icon="sync"></fa></span>
                 </em>
@@ -385,7 +385,7 @@
                 </template>
             </template>
             <template v-else-if="!vod?.is_capturing && !vod?.is_converting && !vod?.is_finalized">
-                <em>Waiting to finalize video (since {{ vod?.dt_ended_at ? formatDate(vod?.dt_ended_at.date, "yyyy-MM-dd HH:mm:ss") : "(unknown)" }})</em>
+                <em>Waiting to finalize video (since {{ vod?.ended_at ? formatDate(vod?.ended_at, "yyyy-MM-dd HH:mm:ss") : "(unknown)" }})</em>
             </template>
             <template v-else>
                 <em>No video file or error</em>
@@ -428,12 +428,12 @@
                         v-for="(chapter, chapterIndex) in vod.chapters"
                         :key="chapterIndex"
                         :class="{
-                            favourite: store.config && store.favourite_games.includes(chapter.game_id.toString()),
+                            favourite: store.config && chapter.game_id && store.favourite_games.includes(chapter.game_id.toString()),
                             current: chapterIndex === vod.chapters.length - 1 && vod.is_capturing,
                         }"
                     >
                         <!-- start timestamp -->
-                        <td data-contents="started_at" :title="formatDate(chapter.datetime.date)">
+                        <td data-contents="started_at" :title="formatDate(chapter.started_at)">
                             {{ humanDuration(chapter.offset) }}
                         </td>
 
@@ -443,7 +443,7 @@
                                 {{ niceDuration(chapter.duration) }}
                             </span>
                             <span v-else>
-                                <duration-display :startDate="chapter.datetime.date" outputStyle="human"></duration-display>
+                                <duration-display :startDate="chapter.started_at" outputStyle="human"></duration-display>
                             </span>
                         </td>
 
@@ -468,8 +468,8 @@
 
                                     <!-- open on twitch link -->
                                     <a
-                                        v-if="vod?.twitch_vod_exists"
-                                        :href="vod?.twitch_vod_url + '?t=' + twitchDuration(chapter.offset)"
+                                        v-if="vod.twitch_vod_exists && vod.twitch_vod_id"
+                                        :href="twitchVideoLink(vod.twitch_vod_id) + '?t=' + twitchDuration(chapter.offset)"
                                         target="_blank"
                                         rel="noreferrer"
                                         aria-label="Open on Twitch"
@@ -484,9 +484,9 @@
                             <!-- favourite button -->
                             <button
                                 class="icon-button favourite-button"
-                                v-if="store.config && !store.favourite_games.includes(chapter.game_id.toString())"
+                                v-if="store.config && chapter.game_id && !store.favourite_games.includes(chapter.game_id.toString())"
                                 title="Add to favourites"
-                                @click="addFavouriteGame(chapter.game_id)"
+                                @click="chapter.game_id && addFavouriteGame(chapter.game_id.toString())"
                             >
                                 <span class="icon"><fa icon="star"></fa></span>
                             </button>
@@ -508,8 +508,8 @@
                         </td>
                     </tr>
 
-                    <tr v-if="vod?.dt_ended_at">
-                        <td :title="formatDate(vod.dt_ended_at.date)">
+                    <tr v-if="vod.ended_at">
+                        <td :title="formatDate(vod.ended_at)">
                             {{ vod?.api_getWebhookDuration }}
                         </td>
                         <td colspan="10">
@@ -518,9 +518,9 @@
                     </tr>
 
                     <tr v-else>
-                        <td v-if="vod?.dt_started_at">
+                        <td v-if="vod.started_at">
                             <!--{{ humanDuration(vod?.api_getDurationLive) }}-->
-                            <duration-display :startDate="vod.dt_started_at.date"></duration-display>
+                            <duration-display :startDate="vod.started_at"></duration-display>
                         </td>
                         <td colspan="10">
                             <em><strong>ONGOING</strong></em>
@@ -533,7 +533,7 @@
             </div>
         </div>
     </div>
-    <modal-box ref="burnMenu" title="Render Menu" v-if="vod?.is_finalized">
+    <modal-box ref="burnMenu" title="Render Menu" v-if="vod && vod.is_finalized && vod.video_metadata_public">
         <div>
             <pre>{{ vod.basename }}</pre>
             <ul class="list" v-if="vod.video_metadata_public && vod.video_metadata_public.video && vod.video_metadata_public.audio">
@@ -770,6 +770,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
 import ModalBox from "./ModalBox.vue";
+import { MuteStatus } from "../../../common/Defs";
 library.add(
     faFileVideo,
     faCut,
@@ -793,7 +794,7 @@ export default defineComponent({
         const store = useStore();
         const burnMenu = ref<InstanceType<typeof ModalBox>>();
         const chatDownloadMenu = ref<InstanceType<typeof ModalBox>>();
-        return { store, burnMenu, chatDownloadMenu };
+        return { store, burnMenu, chatDownloadMenu, MuteStatus };
     },
     data() {
         return {
@@ -992,10 +993,10 @@ export default defineComponent({
                     // this.burnLoading = false;
                 });
         },
-        addFavouriteGame(game_id: number) {
+        addFavouriteGame(game_id: string) {
             if (!this.store.config) return;
 
-            let data: { games: Record<number, boolean> } = {
+            let data: { games: Record<string, boolean> } = {
                 games: {},
             };
 
@@ -1026,6 +1027,9 @@ export default defineComponent({
             let chat_path = `${this.vod?.webpath}/${this.vod?.basename}.${chatdownload ? "chat" : "chatdump"}`;
             return `${this.store.cfg("basepath")}/vodplayer/index.html#source=file_http&video_path=${video_path}&chatfile=${chat_path}&offset=${offset}`;
         },
+        twitchVideoLink(video_id: string): string {
+            return `https://www.twitch.tv/videos/${video_id}`;
+        },
     },
     computed: {
         compDownloadChat(): boolean {
@@ -1041,7 +1045,7 @@ export default defineComponent({
             if (!this.vod) return false;
             if (!this.vod.chapters) return false;
             return this.vod.chapters.some((chapter) => {
-                return chapter.viewer_count > 0;
+                return chapter.viewer_count && chapter.viewer_count > 0;
             });
         },
         burnJobs(): ApiJob[] {
@@ -1055,7 +1059,7 @@ export default defineComponent({
             return jobs;
         },
         burnPreviewChat(): Record<string, string> {
-            if (!this.vod) return {};
+            if (!this.vod || !this.vod.video_metadata_public) return {};
             return {
                 width: `${(this.burnSettings.chatWidth / parseInt(this.vod.video_metadata_public.video.Width)) * 100}%`,
                 height: `${(this.burnSettings.chatHeight / parseInt(this.vod.video_metadata_public.video.Height)) * 100}%`,

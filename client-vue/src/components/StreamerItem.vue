@@ -264,12 +264,16 @@ export default defineComponent({
     },
     computed: {
         quality(): string | undefined {
-            return this.streamer?.quality.join(", ");
+            if (!this.streamer || !this.streamer.quality) return "";
+            return this.streamer.quality.join(", ");
         },
         averageVodBitrate(): number | undefined {
             if (!this.streamer) return;
             const vods = this.streamer.vods_list;
-            const total = vods.reduce((acc, vod) => acc + parseInt(vod.video_metadata_public.general.OverallBitRate), 0);
+            const total = vods.reduce((acc, vod) => {
+                if (!vod.video_metadata_public) return acc;
+                return acc + parseInt(vod.video_metadata_public.general.OverallBitRate);
+            }, 0);
             return total / vods.length;
         },
     },

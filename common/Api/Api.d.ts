@@ -3,8 +3,13 @@ import { ApiChannel, ApiGame, ApiVod } from "./Client";
 
 interface ApiResponse {
     data: any;
-    status: string;
+    status: "OK";
     message?: string;
+}
+
+interface ApiErrorResponse {
+    status: "ERROR";
+    message: string;
 }
 
 export interface ApiSettingsResponse extends ApiResponse {
@@ -30,6 +35,10 @@ export interface ApiChannelsResponse extends ApiResponse {
         total_size: number;
         free_size: number;
     };
+}
+
+export interface ApiChannelResponse extends ApiResponse {
+    data: ApiChannel;
 }
 
 export interface ApiVodResponse extends ApiResponse {

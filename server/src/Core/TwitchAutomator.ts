@@ -460,11 +460,11 @@ export class TwitchAutomator {
         if (this.force_record) this.vod.force_record = true;
 
         this.vod.saveJSON("stream download");
-        const r = await this.vod.refreshJSON();
-        if (!r) {
-            throw new Error("Failed to refresh JSON");
-        }
-        this.vod = r;
+        // const r = await this.vod.refreshJSON();
+        // if (!r) {
+        //     throw new Error("Failed to refresh JSON");
+        // }
+        // this.vod = r;
 
         TwitchWebhook.dispatch("start_download", {
             "vod": this.vod,

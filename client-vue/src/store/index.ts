@@ -1,4 +1,5 @@
 import { ApiChannel, ApiJob, ApiVod } from "../../../common/Api/Client";
+import { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiVodResponse } from "../../../common/Api/Api";
 import axios from "axios";
 import { defineStore } from "pinia";
 import { ClientSettings } from "@/twitchautomator";
@@ -46,15 +47,15 @@ export const useStore = defineStore("twitchAutomator", {
                 return false;
             }
 
-            if (!response.data.data) {
-                console.error("fetchStreamers invalid data", response.data);
+            const data: ApiChannelsResponse | ApiErrorResponse = response.data;
+
+            if (data.status === "ERROR") {
+                console.error("fetchStreamerList", data.message);
                 return false;
             }
 
-            const data: { streamer_list: ApiChannel[]; total_size: number; free_size: number } = response.data.data;
-
             // this.streamerList = data.streamer_list;
-            return data;
+            return data.data;
         },
         async fetchVod(basename: string) {
             let response;
@@ -64,9 +65,15 @@ export const useStore = defineStore("twitchAutomator", {
                 console.error("fetchVod error", error);
                 return false;
             }
-            if (!response.data.data) return false;
-            const vod: ApiVod = response.data.data;
-            return vod;
+
+            const data: ApiVodResponse | ApiErrorResponse = response.data;
+
+            if (data.status === "ERROR") {
+                console.error("fetchVod", data.message);
+                return false;
+            }
+
+            return data.data;
         },
         async updateVod(basename: string) {
             const vod = await this.fetchVod(basename);
@@ -105,8 +112,16 @@ export const useStore = defineStore("twitchAutomator", {
                 console.error("fetchStreamer error", error);
                 return false;
             }
-            if (!response.data.data) return false;
-            const streamer: ApiChannel = response.data.data;
+            if (!response.data) return false;
+            const data: ApiChannelResponse | ApiErrorResponse = response.data;
+
+            if (data.status === "ERROR") {
+                console.error("fetchVod", data.message);
+                return false;
+            }
+
+            const streamer: ApiChannel = data.data;
+
             return streamer;
         },
         async updateStreamer(login: string) {

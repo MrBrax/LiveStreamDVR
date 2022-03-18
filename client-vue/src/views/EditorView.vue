@@ -19,7 +19,7 @@
                     :key="chapterIndex"
                     :title="chapter.title + ' | \\n' + chapter.game_name"
                     class="videoplayer-chapter"
-                    :style="{ width: chapter.width + '%' }"
+                    :style="{ width: /* chapter.width */ 999 + '%' }"
                     @click="scrub(chapter.offset, chapter.duration)"
                 >
                     <div class="videoplayer-chapter-title">{{ chapter.title }}</div>
@@ -123,7 +123,8 @@ export default defineComponent({
             (this.$refs.player as HTMLVideoElement).pause();
         },
         scrub(tIn: number, tOut: number) {
-            const gameOffset = this.vodData.game_offset;
+            // const gameOffset = this.vodData.game_offset; // @todo: why
+            const gameOffset = 0;
             this.timeIn = Math.round(tIn - gameOffset);
             this.timeOut = Math.round(tIn + tOut - gameOffset);
             // this.$forceUpdate();

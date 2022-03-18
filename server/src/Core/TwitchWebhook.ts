@@ -3,6 +3,7 @@ import { TwitchConfig } from "./TwitchConfig";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import WebSocket from "ws";
+import chalk from "chalk";
 
 export type WebhookAction =
     "chapter_update" |
@@ -13,7 +14,8 @@ export type WebhookAction =
     "start_capture" |
     "job_save" |
     "job_clear" |
-    "video_download"
+    "video_download" |
+    "init"
     ;
 
 export interface ChapterUpdateData {
@@ -45,20 +47,28 @@ export interface JobClear {
     job: TwitchAutomatorJob;
 }
 
+export interface Init {
+    hello: "world";
+}
+
 export type WebhookData =
     ChapterUpdateData |
     StartDownloadData |
     EndCaptureData |
     VideoDownloadData |
     JobSave |
-    JobClear
+    JobClear |
+    Init
     ;
 
 export class TwitchWebhook {
 
     // dispatch function, infer data type from action
     static dispatch(action: WebhookAction, data: WebhookData): Promise<boolean> {
-        console.log("Webhook:", action, data);
+        
+        // console.log("Webhook:", action, data);
+
+        console.log(chalk.bgGrey.whiteBright(`WebSocket payload ${action} dispatching...`));
 
         /*
         $public_websocket_url = TwitchConfig::cfg("websocket_server_address") ?: (preg_replace("/https?/", "ws", TwitchConfig::cfg('app_url')) . "/socket/");
@@ -90,15 +100,16 @@ export class TwitchWebhook {
         return new Promise((resolve, reject) => {
 
             const ws = new WebSocket(websocket_url);
-            ws.addEventListener("open", () => {
+            ws.on("open", () => {
+                console.log(chalk.bgGreen.whiteBright(`WebSocket payload ${action} sent`));
                 ws.send(JSON.stringify(payload));
                 ws.close();
                 resolve(true);
             });
 
-            ws.addEventListener("error", (err) => {
-                console.error("WebSocket error:", err);
-                reject(false);
+            ws.on("error", (err) => {
+                console.error(chalk.bgRed.whiteBright(`WebSocket error: ${err.message}. Is client-broker running?`));
+                // reject(false);
             });
 
         });

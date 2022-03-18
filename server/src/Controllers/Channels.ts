@@ -2,7 +2,7 @@ import express from "express";
 import { generateStreamerList } from "../Helpers/StreamerList";
 import { TwitchChannel } from "../Core/TwitchChannel";
 import { ChannelConfig, VideoQuality } from "../../../common/Config";
-import { ApiChannelsResponse } from "../../../common/Api/Api";
+import { ApiChannelResponse, ApiChannelsResponse } from "../../../common/Api/Api";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -21,7 +21,7 @@ export async function ListChannels(req: express.Request, res: express.Response):
     } as ApiChannelsResponse);
 }
 
-export function GetChannel(req: express.Request, res: express.Response): void {
+export async function GetChannel(req: express.Request, res: express.Response): Promise<void> {
 
     const channel = TwitchChannel.getChannelByLogin(req.params.login);
 
@@ -34,9 +34,9 @@ export function GetChannel(req: express.Request, res: express.Response): void {
     }
 
     res.send({
-        data: channel,
+        data: await channel.toAPI(),
         status: "OK",
-    });
+    } as ApiChannelResponse);
 
 }
 

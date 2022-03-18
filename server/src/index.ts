@@ -31,7 +31,12 @@ TwitchConfig.init().then(() => {
     const basepath = TwitchConfig.cfg<string>("basepath", "");
 
     app.use(express.json());
-    app.use(morgan("dev"));
+    
+    if (process.env.NODE_ENV == "development") {
+        app.use(morgan("dev"));
+    } else {
+        app.use(morgan("combined"));
+    }
 
     // app.get("/", (req, res) => {
     //     // res.send(TwitchConfig.cfg<string>("app_url", "test"));

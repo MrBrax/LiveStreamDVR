@@ -458,6 +458,7 @@ export default defineComponent({
 
                         if (!streamer.channel_data) {
                             console.warn(`No channel data for ${login}`);
+                            continue;
                         }
 
                         const opt = {

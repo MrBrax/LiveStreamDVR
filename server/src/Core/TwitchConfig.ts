@@ -9,6 +9,7 @@ import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchHelper } from "./TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
+import { TwitchWebhook } from "./TwitchWebhook";
 
 export class TwitchConfig {
 
@@ -302,6 +303,10 @@ export class TwitchConfig {
             console.log(`Config file changed: ${eventType} ${filename}`);
             TwitchLog.logAdvanced(LOGLEVEL.WARNING, "config", "Config file changed externally");
             // TwitchConfig.loadConfig();
+        });
+
+        TwitchWebhook.dispatch("init", {
+            "hello": "world",
         });
 
         TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "config", "Loading config stuff done.");

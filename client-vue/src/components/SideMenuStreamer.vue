@@ -32,7 +32,7 @@
                     <template v-else>Streaming</template>
                     for
                     <duration-display
-                        :startDate="streamer.current_vod.dt_started_at.date"
+                        :startDate="streamer.current_vod?.started_at"
                         :outputStyle="store.clientConfig?.useRelativeTime ? 'human' : 'numbers'"
                     ></duration-display>
                 </template>
@@ -60,7 +60,7 @@
                         'is-converting': vod.is_converting,
                         'is-waiting': !vod.is_capturing && !vod.is_converting && !vod.is_finalized,
                     }"
-                    :title="formatDate(vod.dt_started_at.date)"
+                    :title="formatDate(vod.started_at)"
                     v-if="streamer"
                 >
                     <!-- capturing -->
@@ -81,16 +81,16 @@
                     <!-- started at -->
 
                     <!-- absolute time -->
-                    <span v-if="!store.clientConfig?.useRelativeTime && vod.dt_started_at">{{ formatDate(vod.dt_started_at.date) }}</span>
+                    <span v-if="!store.clientConfig?.useRelativeTime && vod.started_at">{{ formatDate(vod.started_at) }}</span>
 
                     <!-- relative time -->
-                    <span v-if="store.clientConfig?.useRelativeTime && vod.dt_started_at">{{ humanDate(vod.dt_started_at.date, true) }}</span>
+                    <span v-if="store.clientConfig?.useRelativeTime && vod.started_at">{{ humanDate(vod.started_at, true) }}</span>
 
                     <!-- when capturing -->
                     <template v-if="vod.is_capturing">
                         <span>
                             &middot; (<duration-display
-                                :startDate="streamer.current_vod.dt_started_at.date"
+                                :startDate="streamer.current_vod?.started_at"
                                 :outputStyle="store.clientConfig?.useRelativeTime ? 'human' : 'numbers'"
                             ></duration-display
                             >)</span
@@ -102,8 +102,8 @@
                     <!-- when not capturing -->
                     <template v-else>
                         <!-- duration -->
-                        <span v-if="vod.duration_seconds">
-                            &middot; ({{ store.clientConfig?.useRelativeTime ? niceDuration(vod.duration_seconds) : humanDuration(vod.duration_seconds) }})
+                        <span v-if="vod.duration">
+                            &middot; ({{ store.clientConfig?.useRelativeTime ? niceDuration(vod.duration) : humanDuration(vod.duration) }})
                         </span>
 
                         <!-- filesize -->
@@ -120,7 +120,7 @@
                             ><!-- vod deleted -->
                             <span v-if="vod.twitch_vod_exists === null" class="icon is-error" title="Not checked"><fa icon="question"></fa></span
                             ><!-- vod not checked -->
-                            <span v-if="vod.twitch_vod_muted === true" class="icon is-error" title="Muted"><fa icon="volume-mute"></fa></span
+                            <span v-if="vod.twitch_vod_muted === MuteStatus.MUTED" class="icon is-error" title="Muted"><fa icon="volume-mute"></fa></span
                             ><!-- vod muted -->
                             <span v-if="vod.is_capture_paused" class="icon is-error" title="Paused"><fa icon="pause"></fa></span
                             ><!-- capturing paused -->
@@ -166,6 +166,7 @@ import { ApiChannel, ApiVod } from "../../../common/Api/Client";
 library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp);
 
 import { nonGameCategories } from "@/defs";
+import { MuteStatus } from "../../../common/Defs";
 
 export default defineComponent({
     name: "SideMenuStreamer",
@@ -176,7 +177,7 @@ export default defineComponent({
     },
     setup() {
         const store = useStore();
-        return { store, nonGameCategories };
+        return { store, nonGameCategories, MuteStatus };
     },
     components: {
         DurationDisplay,
@@ -187,7 +188,7 @@ export default defineComponent({
             const maxVodAge = 12 * 24 * 60 * 60 * 1000;
 
             // if the vod is older than 12 days, it is considered risky
-            const vod_date = new Date(vod.dt_started_at.date);
+            const vod_date = new Date(vod.started_at);
             return Date.now() - vod_date.getTime() >= maxVodAge;
         },
     },
