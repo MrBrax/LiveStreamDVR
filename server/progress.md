@@ -59,3 +59,7 @@
 [x] = implemented
 [?] = not tested
 [ ] = to do
+
+
+[ ] record a stream
+[ ] delete vod from disk and handle
