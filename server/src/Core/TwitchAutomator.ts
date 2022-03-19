@@ -19,6 +19,7 @@ import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchWebhook } from "./TwitchWebhook";
 import { MuteStatus } from "../../../common/Defs";
+import chalk from "chalk";
 
 export class TwitchAutomator {
     vod: TwitchVOD | undefined;
@@ -427,6 +428,12 @@ export class TwitchAutomator {
         const data_id = this.getVodID();
         const data_username = this.getUsername();
 
+        const channel = TwitchChannel.getChannelByLogin(this.getLogin());
+
+        if (!channel) {
+            throw new Error(`Channel ${this.getLogin()} not found, weird.`);
+        }
+
         if (!data_id) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", "No data supplied for download, try #{$tries}");
             throw new Error("No data supplied");
@@ -459,16 +466,15 @@ export class TwitchAutomator {
         }
 
         // create the vod and put it inside this class
-        this.vod = TwitchVOD.create(path.join(folder_base, `${basename}.json`));
+        this.vod = await channel.createVOD(path.join(folder_base, `${basename}.json`));
         this.vod.meta = this.payload_eventsub;
         // this.vod.json.meta = $this.payload_eventsub; // what
         this.vod.capture_id = this.getVodID() || "1";
-        this.vod.streamer_name = this.getUsername();
-        this.vod.streamer_login = this.getLogin();
-        this.vod.streamer_id = this.getUserID();
         this.vod.started_at = parse(data_started, TwitchHelper.TWITCH_DATE_FORMAT, new Date());
 
         if (this.force_record) this.vod.force_record = true;
+
+        this.vod.not_started = false;
 
         this.vod.saveJSON("stream download");
         // const r = await this.vod.refreshJSON();
@@ -849,9 +855,22 @@ export class TwitchAutomator {
                 return;
             }
 
+            const keepaliveAlert = () => {
+                if (fs.existsSync(this.capture_filename)) {
+                    const size = fs.statSync(this.capture_filename).size;
+                    console.log(chalk.bgMagenta.whiteBright(`🎥 ${new Date().toISOString()} ${basename} ${size} bytes`));
+                } else {
+                    console.log(chalk.bgRed.whiteBright(`🎥 ${new Date().toISOString()} ${basename} missing`));
+                }
+            };
+
+            const keepalive = setInterval(keepaliveAlert, 120 * 1000);
+
             // critical end
             process.on("close", (code) => {
                 TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Job ${jobName} exited with code ${code}`);
+
+                clearInterval(keepalive);
                 
                 if (fs.existsSync(this.capture_filename) && fs.statSync(this.capture_filename).size > 0) {
                     
@@ -861,13 +880,19 @@ export class TwitchAutomator {
                     }
 
                     resolve(true);
+                } else {
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Capture ${basename} failed`);
+                    reject(false);
                 }
+
             });
 
             let chunks_missing = 0;
             // let current_ad_start = null;
 
-            const ticker = (source: "stdout" | "stderr", data: string) => {
+            const ticker = (source: "stdout" | "stderr", raw_data: Buffer) => {
+
+                const data = raw_data.toString();
 
                 if (data.includes("bad interpreter: No such file or directory")) {
                     TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", "Fatal error with streamlink, please check logs");
@@ -913,6 +938,7 @@ export class TwitchAutomator {
 
             // check for errors
             process.on("error", (err) => {
+                clearInterval(keepalive);
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Error with streamlink for ${basename}: ${err}`);
                 reject(false);
             });
@@ -1034,7 +1060,7 @@ export class TwitchAutomator {
     // maybe use this?
     async compressChat() {
         if (fs.existsSync(this.chat_filename)) {
-            await TwitchHelper.execSimple("gzip", [this.chat_filename]);
+            await TwitchHelper.execSimple("gzip", [this.chat_filename], "compress chat");
             return fs.existsSync(`${this.chat_filename}.gz`);
         }
         return false;

@@ -86,7 +86,7 @@ TwitchConfig.init().then(() => {
             console.log(chalk.greenBright("~ Running with plain JS ~"));
             console.log(chalk.greenBright(`Build date: ${fs.statSync(__filename).mtime.toISOString()}`));
         }
-        console.log(chalk.greenBright(`Version: ${process.env.npm_package_version}`));
+        console.log(chalk.greenBright(`Version: ${process.env.npm_package_version} running on node ${process.version} ${process.platform} 🦄`));
     });
 
     server.on("error", (err) => {

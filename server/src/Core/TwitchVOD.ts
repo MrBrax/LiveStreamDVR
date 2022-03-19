@@ -79,7 +79,7 @@ export class TwitchVOD {
     twitch_vod_neversaved?: boolean;
     twitch_vod_exists?: boolean;
     twitch_vod_attempted?: boolean;
-   
+
     video_metadata: MediaInfo | undefined;
 
     is_capturing = false;
@@ -108,9 +108,9 @@ export class TwitchVOD {
 
     // duration_live: number | undefined;
     created = false;
-    
-    webpath = "";
+    not_started = false;
 
+    webpath = "";
 
     /*
     public ?bool $api_hasFavouriteGame = null;
@@ -123,15 +123,18 @@ export class TwitchVOD {
     public ?int $api_getDurationLive = null;
     */
 
-    private setupDates() {
+    /**
+     * Set up date related data
+     * Requires JSON to be loaded
+     */
+    public setupDates(): void {
 
         if (!this.json) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No JSON loaded for date setup!");
-            return;
+            throw new Error("No JSON loaded for date setup!");
         }
 
         if (this.json.started_at) this.started_at = parseISO(this.json.started_at);
-        
+
         if (this.json.ended_at) this.ended_at = parseISO(this.json.ended_at);
         if (this.json.saved_at) this.saved_at = parseISO(this.json.saved_at);
 
@@ -140,7 +143,11 @@ export class TwitchVOD {
 
     }
 
-    private setupBasic() {
+    /**
+     * Set up basic data
+     * Requires JSON to be loaded
+     */
+    public setupBasic(): void {
 
         if (!this.json) {
             throw new Error("No JSON loaded for basic setup!");
@@ -166,7 +173,7 @@ export class TwitchVOD {
 
         // $this->duration 			= $this->json['duration'];
         // $this->duration_seconds 	= $this->json['duration_seconds'] ? (int)$this->json['duration_seconds'] : null;
-        
+
         this.duration = this.json.duration ?? undefined;
 
         // @todo: what
@@ -178,56 +185,28 @@ export class TwitchVOD {
     }
 
     /**
-     * why is this here?
-     * @deprecated why
-     * @returns
+     * Set up user data
+     * Requires JSON to be loaded
      */
-    public getDurationLive() {
-        // if (!$this->dt_started_at) return false;
-        // $now = new \DateTime();
-        // return abs($this->dt_started_at->getTimestamp() - $now->getTimestamp());
-        if (!this.started_at) return false;
-        const now = new Date();
-        return Math.abs((this.started_at.getTime() - now.getTime()) / 1000);
-    }
-
-    /*
-    public function getWebhookDuration()
-	{
-		if ($this->dt_started_at && $this->dt_ended_at) {
-			$diff = $this->dt_started_at->diff($this->dt_ended_at);
-			return $diff->format('%H:%I:%S');
-		} else {
-			return null;
-		}
-	}
-    */
-    public getWebhookDuration(): string | undefined {
-        if (this.started_at && this.ended_at) {
-            // date-fns, format is H:i:s
-            const diff = differenceInSeconds(this.ended_at, this.started_at);
-            return format(diff, "h:mm:ss"); // untested
-        } else {
-            return undefined;
-        }
-    }
-
-
     public async setupUserData() {
+
         if (!this.json) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No JSON loaded for user data setup!");
-            return;
+            throw new Error("No JSON loaded for user data setup!");
         }
+
         this.streamer_id = this.json.streamer_id;
         this.streamer_login = await TwitchChannel.channelLoginFromId(this.streamer_id || "") || "";
         this.streamer_name = await TwitchChannel.channelDisplayNameFromId(this.streamer_id || "") || "";
     }
 
-    private setupProvider() {
+    /**
+     * Set up provider related data
+     * Requires JSON to be loaded
+     */
+    public setupProvider() {
 
         if (!this.json) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No JSON loaded for provider setup!");
-            return;
+            throw new Error("No JSON loaded for provider setup!");
         }
 
         this.twitch_vod_id = this.json.twitch_vod_id !== undefined ? this.json.twitch_vod_id : undefined;
@@ -235,11 +214,11 @@ export class TwitchVOD {
         this.twitch_vod_duration = this.json.twitch_vod_duration !== undefined ? this.json.twitch_vod_duration : undefined;
         this.twitch_vod_title = this.json.twitch_vod_title !== undefined ? this.json.twitch_vod_title : undefined;
         this.twitch_vod_date = this.json.twitch_vod_date !== undefined ? this.json.twitch_vod_date : undefined;
-        
+
         this.twitch_vod_exists = this.json.twitch_vod_exists !== undefined ? this.json.twitch_vod_exists : undefined;
         this.twitch_vod_neversaved = this.json.twitch_vod_neversaved !== undefined ? this.json.twitch_vod_neversaved : undefined;
         this.twitch_vod_attempted = this.json.twitch_vod_attempted !== undefined ? this.json.twitch_vod_attempted : undefined;
-        
+
         this.twitch_vod_muted = this.json.twitch_vod_muted !== undefined ? this.json.twitch_vod_muted : undefined;
 
         /*
@@ -277,11 +256,14 @@ export class TwitchVOD {
         // }
     }
 
+    /**
+     * Set up misc data
+     * Requires JSON to be loaded
+     */
     public async setupAssoc() {
 
         if (!this.json) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No JSON loaded for assoc setup!");
-            return;
+            throw new Error("No JSON loaded for assoc setup!");
         }
 
         // this.video_fail2 = this.json.video_fail2 !== undefined ? this.json.video_fail2 : false;
@@ -313,9 +295,45 @@ export class TwitchVOD {
         }
     }
 
+
+    /**
+     * why is this here?
+     * @deprecated why
+     * @returns
+     */
+    public getDurationLive() {
+        // if (!$this->dt_started_at) return false;
+        // $now = new \DateTime();
+        // return abs($this->dt_started_at->getTimestamp() - $now->getTimestamp());
+        if (!this.started_at) return false;
+        const now = new Date();
+        return Math.abs((this.started_at.getTime() - now.getTime()) / 1000);
+    }
+
+    /*
+    public function getWebhookDuration()
+    {
+        if ($this->dt_started_at && $this->dt_ended_at) {
+            $diff = $this->dt_started_at->diff($this->dt_ended_at);
+            return $diff->format('%H:%I:%S');
+        } else {
+            return null;
+        }
+    }
+    */
+    public getWebhookDuration(): string | undefined {
+        if (this.started_at && this.ended_at) {
+            // date-fns, format is H:i:s
+            const diff = differenceInSeconds(this.ended_at, this.started_at);
+            return format(diff, "h:mm:ss"); // untested
+        } else {
+            return undefined;
+        }
+    }
+
     public async getDuration(save = false): Promise<number | null> {
 
-        if (this.duration) {
+        if (this.duration && this.duration > 0) {
             // TwitchHelper.log(LOGLEVEL.DEBUG, "Returning saved duration for " . this.basename . ": " . this.duration_seconds );
             return this.duration;
         }
@@ -425,7 +443,7 @@ export class TwitchVOD {
         return path.normalize(expanded_path);
     }
 
-    private setupFiles() {
+    public setupFiles() {
 
         if (!this.directory) {
             throw new Error("No directory set!");
@@ -461,8 +479,9 @@ export class TwitchVOD {
     get is_chat_burned(): boolean { return this.path_chatburn !== "" && fs.existsSync(this.path_chatburn); }
 
     get current_game(): TwitchGame | undefined {
-        if (!this.chapters) return undefined;
-        return this.chapters.at(-1)?.game;
+        if (!this.chapters || this.chapters.length == 0) return undefined;
+        // return this.chapters.at(-1)?.game;
+        return this.chapters[this.chapters.length - 1].game;
     }
 
     get associatedFiles() {
@@ -521,7 +540,7 @@ export class TwitchVOD {
             // };
 
             const next_chapter = raw_chapters.at(index + 1);
-            
+
             const cstd = next_chapter ? parseISO(next_chapter.started_at) : undefined;
 
             new_chapter.calculateDurationAndOffset(this.started_at, this.ended_at, cstd);
@@ -775,7 +794,7 @@ export class TwitchVOD {
 
             segments: this.segments.map((s) => s.toAPI()),
             segments_raw: this.segments_raw,
-            
+
             streamer_name: this.streamer_name || "",
             streamer_id: this.streamer_id || "",
             streamer_login: this.streamer_login || "",
@@ -872,7 +891,7 @@ export class TwitchVOD {
     */
 
     public getPublicVideoMetadata(): MediaInfoPublic | false {
-        
+
         if (!this.video_metadata) return false;
 
         const filter = [
@@ -895,13 +914,13 @@ export class TwitchVOD {
             "audio.BitRate_Mode",
             "audio.BitRate",
         ];
-        
+
         /*
         foreach ($this->video_metadata as $keyp => $value) {
-			$this->video_metadata_public[$keyp] = array_filter($value, function ($value, $keyc) use ($filter, $keyp) {
-				return in_array("{$keyp}.{$keyc}", $filter);
-			}, ARRAY_FILTER_USE_BOTH);
-		}
+            $this->video_metadata_public[$keyp] = array_filter($value, function ($value, $keyc) use ($filter, $keyp) {
+                return in_array("{$keyp}.{$keyc}", $filter);
+            }, ARRAY_FILTER_USE_BOTH);
+        }
         */
         // let video_metadata_public: MediaInfoPublic = {
         //     general: {} as any,
@@ -920,7 +939,7 @@ export class TwitchVOD {
         }
 
         return video_metadata_public as MediaInfoPublic;
-        
+
     }
 
     public async getChatDumpStatus(): Promise<number | false> {
@@ -1014,6 +1033,8 @@ export class TwitchVOD {
         generated.twitch_vod_attempted = this.twitch_vod_attempted;
         generated.twitch_vod_neversaved = this.twitch_vod_neversaved;
         generated.twitch_vod_muted = this.twitch_vod_muted;
+
+        generated.not_started = this.not_started;
 
         // generated.twitch_vod_status = this.twitch_vod_status;        
 
@@ -1194,7 +1215,7 @@ export class TwitchVOD {
         const slp = TwitchHelper.path_streamlink();
         if (!slp) throw new Error("Streamlink not found!");
 
-        const ex = await TwitchHelper.execSimple(slp, ["--stream-url", `https://www.twitch.tv/videos/${this.twitch_vod_id}`, "best"]);
+        const ex = await TwitchHelper.execSimple(slp, ["--stream-url", `https://www.twitch.tv/videos/${this.twitch_vod_id}`, "best"], "vod mute check");
 
         if (!ex) {
             // TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", "VOD {$this->basename} could not be checked for mute status!", ['output' => $output]);
@@ -1301,6 +1322,17 @@ export class TwitchVOD {
         // add to cache
         this.addVod(vod);
 
+        fs.watch(vod.filename, (eventType, filename) => {
+            if (eventType === "rename") {
+                if (!fs.existsSync(vod.filename)) {
+                    TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD JSON ${vod.basename} deleted!`);
+                    if (TwitchVOD.vods.find(v => v.basename == vod.basename)) {
+                        TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${vod.basename} still in memory!`);
+                    }
+                }
+            }
+        });
+
         return vod;
 
     }
@@ -1349,22 +1381,6 @@ export class TwitchVOD {
         if (TwitchVOD.hasVod(basename)) {
             return TwitchVOD.vods.find(vod => vod.basename == basename);
         }
-    }
-
-    /**
-     * Create an empty VOD object
-     * @param filename 
-     * @returns Empty VOD
-     */
-    public static create(filename: string): TwitchVOD {
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", "Create VOD JSON: " + path.basename(filename) + " @ " + path.dirname(filename));
-
-        const vod = new TwitchVOD();
-        vod.created = true;
-        vod.filename = filename;
-        vod.basename = path.basename(filename, ".json");
-        vod.saveJSON("create json");
-        return vod;
     }
 
     /**

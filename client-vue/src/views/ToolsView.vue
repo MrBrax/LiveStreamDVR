@@ -142,7 +142,7 @@ export default defineComponent({
                     console.log("payload", data);
 
                     this.$http
-                        .post(`/api/v0/hook`, data, {
+                        .post(`/api/v0/hook`, data.body, {
                             headers: data.headers,
                         })
                         .then((response) => {

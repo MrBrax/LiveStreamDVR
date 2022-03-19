@@ -3,6 +3,7 @@ import express from "express";
 import fs from "fs";
 import path from "path";
 import { ExecReturn, TwitchHelper } from "../Core/TwitchHelper";
+import { KeyValue } from "Core/KeyValue";
 
 interface Bins {
     path?: string;
@@ -41,7 +42,7 @@ export async function About(req: express.Request, res: express.Response) {
         python: { binary: "python", version_args: ["--version"], version_regex: /Python ([\d.]+)/m },
         python3: { binary: "python3", version_args: ["--version"], version_regex: /Python ([\d.]+)/m },
         node: { binary: "node", version_args: ["--version"], version_regex: /v([\d.]+)/m },
-        php: { binary: "php", version_args: ["-v"], version_regex: /PHP Version ([\d.]+)/m }, // deprecated
+        // php: { binary: "php", version_args: ["-v"], version_regex: /PHP Version ([\d.]+)/m }, // deprecated
     };
 
     for (const bin_name in bin_args) {
@@ -50,7 +51,7 @@ export async function About(req: express.Request, res: express.Response) {
 
             let exec_out;
             try {
-                exec_out = await TwitchHelper.execSimple(bin_data.binary, bin_data.version_args);
+                exec_out = await TwitchHelper.execSimple(bin_data.binary, bin_data.version_args, "about binary check");
             } catch (error) {
                 const e = error as ExecReturn;
                 if ("code" in e) {
@@ -101,7 +102,7 @@ export async function About(req: express.Request, res: express.Response) {
             let exec_out;
 
             try {
-                exec_out = await TwitchHelper.execSimple(pkg_data.binary, pkg_data.version_args);
+                exec_out = await TwitchHelper.execSimple(pkg_data.binary, pkg_data.version_args, "about pip check");
             } catch (error) {
                 const e = error as ExecReturn;
                 if ("code" in e) {
@@ -152,6 +153,7 @@ export async function About(req: express.Request, res: express.Response) {
             pip: pip_requirements,
             cron_lastrun: cron_lastrun,
             is_docker: process.env.TCD_DOCKER == "1",
+            keyvalue: KeyValue.data,
         },
         status: "OK",
     });

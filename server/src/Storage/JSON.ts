@@ -45,6 +45,8 @@ export interface TwitchVODJSON {
     twitch_vod_exists?: boolean;
     twitch_vod_attempted?: boolean;
 
+    not_started: boolean;
+
 }
 
 export interface TwitchVODChapterJSON {

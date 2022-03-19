@@ -126,6 +126,7 @@
                         <h3>Subscriptions</h3>
                         <button class="button is-confirm is-small" @click="fetchSubscriptions" :disabled="subscriptionsLoading">Fetch</button>
                         <button class="button is-confirm is-small" @click="subscribeAll" :disabled="subscriptionsLoading">Subscribe</button>
+                        <!--<button class="button is-confirm is-small" @click="unsubscribeAll" :disabled="subscriptionsLoading">Unsubscribe</button>-->
                         <span v-if="subscriptionsLoading">Loading...</span>
                         <table>
                             <!--
@@ -143,12 +144,12 @@
                                 <td>{{ subscription.created_at }}</td>
                                 <td>
                                     {{ subscription.username }}<br />
-                                    <small>{{ subscription.type }}</small>
+                                    <small class="is-dark-gray">{{ subscription.type }}</small>
                                 </td>
                                 <td>{{ subscription.status }}</td>
                                 <td>
                                     {{ subscription.instance_match }}<br />
-                                    <small>{{ subscription.callback }}</small>
+                                    <small class="is-dark-gray">{{ subscription.callback }}</small>
                                 </td>
                                 <td>
                                     <button class="button is-confirm is-small" @click="unsubscribe(subscription.id)" :disabled="subscriptionsLoading">
@@ -157,6 +158,18 @@
                                 </td>
                             </tr>
                         </table>
+                    </div>
+
+                    <div class="block" v-if="aboutData.keyvalue">
+                        <h3>KeyValue store</h3>
+                        <table class="table is-fullwidth is-striped" v-if="Object.keys(aboutData.keyvalue).length > 0">
+                            <tr v-for="(value, key) in aboutData.keyvalue" :key="key">
+                                <td>{{ key }}</td>
+                                <td>{{ value }}</td>
+                                <td><button class="button is-danger is-small" @click="deleteKeyValue(key)">Delete</button></td>
+                            </tr>
+                        </table>
+                        <p v-else>No key-value data found.</p>
                     </div>
 
                     <!-- pip update -->
@@ -227,6 +240,7 @@ interface AboutData {
         dump_playlists: string;
         sub: string;
     };
+    keyvalue?: Record<string, string>;
 }
 
 export default defineComponent({
@@ -346,6 +360,35 @@ export default defineComponent({
                     console.error("about error", err.response);
                 });
         },
+        deleteKeyValue(key: string) {
+            this.$http
+                .delete(`/api/v0/keyvalue/${key}`)
+                .then((response) => {
+                    const json = response.data;
+                    console.debug("deleteKeyValue", json);
+                    alert(`Deleted key ${key}`);
+                    // this.fetchData();
+                })
+                .catch((err) => {
+                    console.error("about error", err.response);
+                });
+        },
+        /*
+        unsubscribeAll() {
+            this.subscriptionsLoading = true;
+            this.$http
+                .delete(`/api/v0/subscriptions`)
+                .then((response) => {
+                    const json = response.data;
+                    console.debug("unsubscribeAll", json);
+                    this.subscriptionsLoading = false;
+                    this.fetchSubscriptions();
+                })
+                .catch((err) => {
+                    console.error("about error", err.response);
+                });
+        },
+        */
     },
 });
 </script>

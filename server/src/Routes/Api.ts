@@ -10,6 +10,7 @@ import * as Subscriptions from "../Controllers/Subscriptions";
 import * as Cron from "../Controllers/Cron";
 import * as TwitchAPI from "../Controllers/TwitchAPI";
 import * as Hook from "../Controllers/Hook";
+import * as KeyValue from "../Controllers/KeyValue";
 import { TwitchVOD } from "../Core/TwitchVOD";
 
 const router = express.Router();
@@ -22,6 +23,8 @@ router.put("/settings", Settings.SaveSettings);
 router.get("/channels", Channels.ListChannels);
 router.post("/channels", Channels.AddChannel);
 router.get("/channels/:login", Channels.GetChannel);
+router.put("/channels/:login", Channels.UpdateChannel);
+router.delete("/channels/:login", Channels.DeleteChannel);
 
 router.get("/vod/:basename", Vod.GetVod);
 router.delete("/vod/:basename", Vod.DeleteVod);
@@ -47,6 +50,10 @@ router.get("/cron/check_muted_vods", Cron.CheckMutedVods);
 
 router.get("/twitchapi/videos/:login", TwitchAPI.TwitchAPIVideos);
 router.get("/twitchapi/video/:video_id", TwitchAPI.TwitchAPIVideo);
+
+router.get("/keyvalue/:key", KeyValue.GetKeyValue);
+router.put("/keyvalue/:key", KeyValue.SetKeyValue);
+router.delete("/keyvalue/:key", KeyValue.DeleteKeyValue);
 
 router.get("/test_video_download", (req, res) => {
     if (!req.query.video_id){

@@ -287,7 +287,7 @@ export class TwitchHelper {
      * @throws Exception
      * @returns 
      */
-    static execSimple(bin: string, args: string[]): Promise<ExecReturn> {
+    static execSimple(bin: string, args: string[], what: string): Promise<ExecReturn> {
 
         return new Promise((resolve, reject) => {
 
@@ -296,7 +296,7 @@ export class TwitchHelper {
                 windowsHide: true,
             });
 
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "exec", `Executing ${bin} ${args.join(" ")}`);
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "exec", `Executing ${what}: ${bin} ${args.join(" ")}`);
 
             const stdout: string[] = [];
             const stderr: string[] = [];
@@ -312,7 +312,7 @@ export class TwitchHelper {
             });
 
             process.on("close", (code) => {
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Process ${process.pid} exited with code ${code}`);
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Process ${process.pid} for ${what} exited with code ${code}`);
 
                 if (code == 0) {
                     resolve({ code, stdout, stderr });
@@ -322,7 +322,7 @@ export class TwitchHelper {
             });
 
             process.on("error", (err) => {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} for ${what} error: ${err}`);
                 reject({ code: -1, stdout, stderr });
             });
 
@@ -578,7 +578,7 @@ export class TwitchHelper {
         const mediainfo_path = TwitchHelper.path_mediainfo();
         if (!mediainfo_path) throw new Error("Failed to find mediainfo");
 
-        const output = await TwitchHelper.execSimple(mediainfo_path, ["--Full", "--Output=JSON", filename]);
+        const output = await TwitchHelper.execSimple(mediainfo_path, ["--Full", "--Output=JSON", filename], "mediainfo");
 
         if (output && output.stdout) {
 

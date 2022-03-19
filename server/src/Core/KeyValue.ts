@@ -7,6 +7,10 @@ export class KeyValue {
     
     public static data: Record<string, string> = {};
 
+    static has(key: string): boolean {
+        return key in KeyValue.data;
+    }
+
     // todo: redis or something
     static get(key: string): string | false {
 

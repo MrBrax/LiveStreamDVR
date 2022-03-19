@@ -68,7 +68,7 @@ export class TwitchChannel {
 
     public vods_raw: string[] = [];
     public vods_list: TwitchVOD[] = [];
-    public vods_size = 0;
+    // public vods_size = 0;
 
     public subbed_at: Date | undefined;
     public expires_at: Date | undefined;
@@ -120,7 +120,6 @@ export class TwitchChannel {
         // $this->vods_raw = glob($this->getFolder() . DIRECTORY_SEPARATOR . $this->login . "_*.json");
         this.vods_raw = fs.readdirSync(this.getFolder()).filter(file => file.startsWith(this.login + "_") && file.endsWith(".json"));
         this.vods_list = [];
-        this.vods_size = 0;
 
         for (const vod of this.vods_raw) {
 
@@ -153,9 +152,9 @@ export class TwitchChannel {
             //     $this->is_converting = true;
             // }
 
-            if (vodclass.segments) {
-                this.vods_size += vodclass.segments.reduce((acc, seg) => acc + (seg && seg.filesize ? seg.filesize : 0), 0);
-            }
+            // if (vodclass.segments) {
+            //     this.vods_size += vodclass.segments.reduce((acc, seg) => acc + (seg && seg.filesize ? seg.filesize : 0), 0);
+            // }
 
             TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `VOD ${vod} added to ${this.login}`);
 
@@ -173,10 +172,10 @@ export class TwitchChannel {
     }
 
     public async toAPI(): Promise<ApiChannel> {
-        
+
         if (!this.userid || !this.login || !this.display_name)
             console.error(chalk.red(`Channel ${this.login} is missing userid, login or display_name`));
-            
+
         const vods_list = await Promise.all(this.vods_list?.map(async (vod) => await vod.toAPI()));
 
         return {
@@ -234,7 +233,7 @@ export class TwitchChannel {
     }
 
     public delete() {
-        
+
         const login = this.login;
         if (!login) throw new Error("Channel login is not set");
 
@@ -262,7 +261,9 @@ export class TwitchChannel {
     }
 
     get current_chapter(): TwitchVODChapter | undefined {
-        return this.current_vod?.chapters.at(-1);
+        if (!this.current_vod || !this.current_vod.chapters || this.current_vod.chapters.length == 0) return undefined;
+        // return this.current_vod.chapters.at(-1);
+        return this.current_vod.chapters[this.current_vod.chapters.length - 1];
     }
 
     get current_game(): TwitchGame | undefined {
@@ -280,6 +281,48 @@ export class TwitchChannel {
 
     get is_converting(): boolean {
         return this.vods_list?.some(vod => vod.is_converting) ?? false;
+    }
+
+    get vods_size(): number {
+        return this.vods_list?.reduce((acc, vod) => acc + (vod.segments?.reduce((acc, seg) => acc + (seg && seg.filesize ? seg.filesize : 0), 0) ?? 0), 0) ?? 0;
+    }
+
+    /**
+     * Create an empty VOD object
+     * @param filename 
+     * @returns Empty VOD
+     */
+    public async createVOD(filename: string): Promise<TwitchVOD> {
+
+        if (!this.userid) throw new Error("Channel userid is not set");
+        if (!this.login) throw new Error("Channel login is not set");
+        if (!this.display_name) throw new Error("Channel display_name is not set");
+
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Create VOD JSON for ${this.login}: ${path.basename(filename)} @ ${path.dirname(filename)}`);
+
+        const vod = new TwitchVOD();
+
+        vod.created = true;
+        vod.not_started = true;
+
+        vod.filename = filename;
+        vod.basename = path.basename(filename, ".json");
+        vod.directory = path.dirname(filename);
+
+        vod.streamer_name = this.display_name;
+        vod.streamer_login = this.login;
+        vod.streamer_id = this.userid;
+
+        vod.saveJSON("create json");
+
+        // reload
+        const load_vod = await TwitchVOD.load(vod.filename);
+        
+        // TwitchVOD.addVod(vod);
+        this.vods_list.push(load_vod);
+
+        return load_vod;
+
     }
 
     /**
@@ -366,6 +409,9 @@ export class TwitchChannel {
         const exists_channel = TwitchChannel.channels.find(ch => ch.login === config.login);
         if (exists_channel) throw new Error(`Channel ${config.login} already exists in channels`);
 
+        const data = await TwitchChannel.getChannelDataByLogin(config.login, true);
+        if (!data) throw new Error(`Could not get channel data for channel login: ${config.login}`);
+
         TwitchChannel.channels_config.push(config);
         TwitchChannel.saveChannelsConfig();
 
@@ -384,7 +430,7 @@ export class TwitchChannel {
      * Load channel config into memory, not the channels themselves.
      */
     public static loadChannelsConfig() {
-        
+
         if (!fs.existsSync(BaseConfigPath.channel)) {
             return false;
         }
@@ -401,7 +447,7 @@ export class TwitchChannel {
                 needsSave = true;
             }
         }
-        
+
         this.channels_config = data;
 
         TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${this.channels_config.length} channel configs!`);
@@ -409,7 +455,7 @@ export class TwitchChannel {
         if (needsSave) {
             this.saveChannelsConfig();
         }
-        
+
     }
 
     public static saveChannelsConfig() {
@@ -529,22 +575,25 @@ export class TwitchChannel {
 
         TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Fetching channel data for ${method} ${identifier}, force: ${force}`);
 
-        const channelData = method == "id" ? this.channels_cache[identifier] : Object.values(this.channels_cache).find(channel => channel.login == identifier);
-        if (channelData) {
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Channel data found in memory cache for ${method} ${identifier}`);
-            if (Date.now() > channelData._updated + TwitchConfig.streamerCacheTime) {
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Memory cache for ${identifier} is outdated, fetching new data`);
+        // check cache first
+        if (!force) {
+            const channelData = method == "id" ? this.channels_cache[identifier] : Object.values(this.channels_cache).find(channel => channel.login == identifier);
+            if (channelData) {
+                TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Channel data found in memory cache for ${method} ${identifier}`);
+                if (Date.now() > channelData._updated + TwitchConfig.streamerCacheTime) {
+                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Memory cache for ${identifier} is outdated, fetching new data`);
+                } else {
+                    TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Returning memory cache for ${method} ${identifier}`);
+                    return channelData;
+                }
             } else {
-                TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Returning memory cache for ${method} ${identifier}`);
-                return channelData;
+                TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Channel data not found in memory cache for ${method} ${identifier}, continue fetching`);
             }
-        } else {
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Channel data not found in memory cache for ${method} ${identifier}, continue fetching`);
-        }
 
-        if (KeyValue.get(`${identifier}.deleted`) == "1" && !force) {
-            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "helper", `Channel ${identifier} is deleted, ignore. Delete kv file to force update.`);
-            return false;
+            if (KeyValue.get(`${identifier}.deleted`)) {
+                TwitchLog.logAdvanced(LOGLEVEL.WARNING, "helper", `Channel ${identifier} is deleted, ignore. Delete kv file to force update.`);
+                return false;
+            }
         }
 
         const access_token = await TwitchHelper.getAccessToken();
@@ -716,6 +765,8 @@ export class TwitchChannel {
             if (unsub) {
                 TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Unsubscribed from ${channel_id}:${sub.type} (${streamer_login})`);
                 unsubbed++;
+                KeyValue.delete(`${channel_id}.sub.${sub.type}`);
+                KeyValue.delete(`${channel_id}.substatus.${sub.type}`);
             } else {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to unsubscribe from ${channel_id}:${sub.type} (${streamer_login})`);
             }

@@ -52,3 +52,7 @@ export interface ApiLogResponse extends ApiResponse {
         logs: string[];
     };
 }
+
+export interface ApiFavouriteGamesResponse extends ApiResponse {
+    data: string[];
+}

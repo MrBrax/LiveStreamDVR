@@ -2,7 +2,9 @@ import express from "express";
 import { generateStreamerList } from "../Helpers/StreamerList";
 import { TwitchChannel } from "../Core/TwitchChannel";
 import { ChannelConfig, VideoQuality } from "../../../common/Config";
-import { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse } from "../../../common/Api/Api";
+import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse } from "../../../common/Api/Api";
+import { VideoQualityArray } from "../../../common/Defs";
+import { LOGLEVEL, TwitchLog } from "Core/TwitchLog";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -88,6 +90,19 @@ export function DeleteChannel(req: express.Request, res: express.Response): void
     const channel = TwitchChannel.getChannelByLogin(req.params.login);
 
     if (!channel || !channel.login) {
+
+        if (TwitchChannel.channels_config.find(c => c.login === req.params.login)) {
+            TwitchChannel.channels_config = TwitchChannel.channels_config.filter(c => c.login !== req.params.login);
+            TwitchChannel.saveChannelsConfig();
+
+            res.send({
+                status: "OK",
+                message: "Channel found in config but not in memory, removed from config",
+            });
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "route.channels.delete", `Channel ${req.params.login} found in config but not in memory, removed from config`);
+            return;
+        }
+
         res.status(400).send({
             status: "ERROR",
             message: "Channel not found",
@@ -96,6 +111,8 @@ export function DeleteChannel(req: express.Request, res: express.Response): void
     }
 
     channel.delete();
+
+    TwitchLog.logAdvanced(LOGLEVEL.INFO, "route.channels.delete", `Channel ${req.params.login} deleted`);
 
     res.send({
         status: "OK",
@@ -123,9 +140,35 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         no_capture: formdata.no_capture !== undefined,
     };
 
+    if (!channel_config.login) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel login not specified",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (channel_config.quality.length === 0) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "No quality selected",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (channel_config.quality.some(q => !VideoQualityArray.includes(q))) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Invalid quality selected",
+        } as ApiErrorResponse);
+        return;
+    }
+
+
     const channel = TwitchChannel.getChannelByLogin(channel_config.login);
 
     if (channel) {
+        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, channel already exists: ${channel_config.login}`);
         res.status(400).send({
             status: "ERROR",
             message: "Channel already exists",
@@ -133,7 +176,19 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         return;
     }
 
-    const new_channel = await TwitchChannel.create(channel_config);
+    let new_channel;
+    try {
+        new_channel = await TwitchChannel.create(channel_config);   
+    } catch (error) {
+        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel: ${error}`);
+        res.status(400).send({
+            status: "ERROR",
+            message: (error as Error).message,
+        } as ApiErrorResponse);
+        return;
+    }
+
+    TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.add", `Created channel: ${new_channel.login}`);
 
     res.send({
         data: new_channel,

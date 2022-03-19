@@ -71,26 +71,13 @@ const verifySignature = (request: express.Request): boolean => {
 
 };
 
-export async function Hook(req: express.Request, res: express.Response): Promise<void> {
+export function Hook(req: express.Request, res: express.Response): void {
 
     const source = req.query.source ?? "twitch";
 
     // console.log("Body", req.body, req.body.toString(), JSON.stringify(req.body));
 
-    /*
-        try {
-            $data_json = json_decode(file_get_contents('php://input'), true);
-        } catch (\Throwable $th) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "hook", "Hook called with invalid JSON.", ['GET' => $_GET, 'POST' => $_POST]);
-            $response->getBody()->write("No data supplied");
-            return $response;
-        }
-        */
-
     const data_json: EventSubResponse | ChallengeResponse = req.body;
-
-    // $data_headers = $request->getHeaders();
-    // $post_json = isset($_POST['json']) ? $_POST['json'] : null;
 
     const debugMeta = { "GET": req.query, "POST": req.body, "HEADERS": req.headers, "DATA": data_json };
 
@@ -194,7 +181,7 @@ export async function Hook(req: express.Request, res: express.Response): Promise
             if ("event" in data_json) {
                 TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "hook", "Signature checked, no challenge. Run handle...");
                 const TA = new TwitchAutomator();
-                await TA.handle(data_json, req);
+                /* await */ TA.handle(data_json, req);
                 res.status(200).send("");
                 return;
             } else {

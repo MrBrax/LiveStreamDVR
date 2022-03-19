@@ -9,6 +9,8 @@ export async function CheckDeletedVods(req: express.Request, res: express.Respon
 
     const streamerList = generateStreamerList();
 
+    let output = "";
+
     for(const channel of streamerList.channels) {
 
         if (!channel.vods_list) continue;
@@ -26,7 +28,7 @@ export async function CheckDeletedVods(req: express.Request, res: express.Respon
             if (vod.twitch_vod_id && check === false) {
                 // notify
                 // $this->sendNotify("{$vod->basename} deleted");
-                res.send(`${vod.basename} deleted<br>\n`);
+                output += `${vod.basename} deleted<br>\n`;
                 // $this->addToNotifyCache("deleted_{$vod->basename}");
                 TwitchLog.logAdvanced(LOGLEVEL.INFO, "cron", "Cronjob deleted check: {$vod->basename} deleted");
             }
@@ -35,11 +37,15 @@ export async function CheckDeletedVods(req: express.Request, res: express.Respon
 
     }
 
+    res.send(output || "No deleted vods found");
+
 }
 
 export async function CheckMutedVods(req: express.Request, res: express.Response): Promise<void> {
 
     const streamerList = generateStreamerList();
+
+    let output = "";
 
     for(const channel of streamerList.channels) {
 
@@ -68,7 +74,7 @@ export async function CheckMutedVods(req: express.Request, res: express.Response
             try {
                 check = await vod.checkMutedVod(true, false);
             } catch (th) {
-                res.send(`${vod.basename} error: ${th}<br>\n`);
+                output += `${vod.basename} error: ${th}<br>\n`;
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "cron", "Cronjob mute check: {$vod->basename} error: {$th->getMessage()}");
                 continue;
             }
@@ -76,17 +82,19 @@ export async function CheckMutedVods(req: express.Request, res: express.Response
             if (check == MuteStatus.MUTED) {
                 // notify
                 // $this->sendNotify("{$vod->basename} muted");
-                res.send(`${vod.basename} muted<br>\n`);
+                output += `${vod.basename} muted<br>\n`;
                 // $this->addToNotifyCache("mute_{$vod->basename}");
                 TwitchLog.logAdvanced(LOGLEVEL.INFO, "cron", `Cronjob mute check: ${vod.basename} muted`);
             } else if (check == MuteStatus.UNMUTED) {
-                res.send(`${vod.basename} unmuted<br>\n`);
+                output += `${vod.basename} unmuted<br>\n`;
             } else {
-                res.send(`${vod.basename} unknown<br>\n`);
+                output += `${vod.basename} unknown<br>\n`;
             }
 
         }
 
     }
+
+    res.send(output || "No muted vods found");
 
 }

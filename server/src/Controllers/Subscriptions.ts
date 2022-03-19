@@ -4,6 +4,8 @@ import { TwitchChannel } from "../Core/TwitchChannel";
 import { TwitchConfig } from "../Core/TwitchConfig";
 import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
 import { ApiErrorResponse } from "../../../common/Api/Api";
+import { KeyValue } from "Core/KeyValue";
+import { SubStatus } from "../../../common/Defs";
 
 interface ChannelSub {
     type: string;
@@ -52,7 +54,7 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
         };
         */
 
-        let callback = TwitchConfig.cfg("app_url") + "/hook";
+        let callback = `${TwitchConfig.cfg("app_url")}/api/v0/hook`;
         if(TwitchConfig.cfg("instance_id")) callback += "?instance=" + TwitchConfig.cfg("instance_id");
 
         for (const sub of subs.data) {
@@ -75,6 +77,12 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
                 status: sub.status,
                 created_at: sub.created_at,
             };
+
+            if (!KeyValue.get(`${entry.user_id}.sub.${entry.type}`)) {
+                KeyValue.set(`${entry.user_id}.sub.${entry.type}`, entry.id);
+                KeyValue.set(`${entry.user_id}.substatus.${entry.type}`, entry.status == "enabled" ? SubStatus.SUBSCRIBED : SubStatus.NONE);
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "route.subscriptions.list", `Added missing keyvalue subs for ${entry.user_id}`);
+            }
 
             payload_data.channels.push(entry);
             payload_data.all_usernames.add(username);

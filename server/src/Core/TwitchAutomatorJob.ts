@@ -229,12 +229,14 @@ export class TwitchAutomatorJob extends EventEmitter
             });
 
             fs.unlinkSync(this.pidfile);
-            return !fs.existsSync(this.pidfile);
+            // return !fs.existsSync(this.pidfile);
         }
 
-        if (TwitchAutomatorJob.jobs.includes(this)) {
-            TwitchAutomatorJob.jobs.splice(TwitchAutomatorJob.jobs.indexOf(this), 1);
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Job ${this.name} removed from jobs list`, this.metadata);
+        if (TwitchAutomatorJob.jobs.find(job => job.name === this.name)) {
+            TwitchAutomatorJob.jobs = TwitchAutomatorJob.jobs.filter(job => job.name !== this.name);
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "job", `Job ${this.name} removed from jobs list`, this.metadata);
+        } else {
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "job", `Job ${this.name} not found in jobs list`, this.metadata);
         }
 
         this.emit("clear");
@@ -318,7 +320,7 @@ export class TwitchAutomatorJob extends EventEmitter
             
             let proc;
             try {
-                proc = await TwitchHelper.execSimple("tasklist", ["/FI", `PID eq ${this.pid}`]);
+                proc = await TwitchHelper.execSimple("tasklist", ["/FI", `PID eq ${this.pid}`], "windows process status");
             } catch (e) {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for job ${this.name}`, this.metadata);
                 return false;
@@ -330,7 +332,7 @@ export class TwitchAutomatorJob extends EventEmitter
 
             let proc;
             try {
-                proc = await TwitchHelper.execSimple("ps", ["-p", this.pid.toString()]);
+                proc = await TwitchHelper.execSimple("ps", ["-p", this.pid.toString()], "linux process status");
             } catch (e) {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for job ${this.name}`, this.metadata);
                 return false;
@@ -381,11 +383,11 @@ export class TwitchAutomatorJob extends EventEmitter
         this.emit("pre_kill", method);
 
         if (TwitchHelper.is_windows()) {
-            const exec = await TwitchHelper.execSimple("taskkill", ["/F", "/PID", `${pid}`]);
+            const exec = await TwitchHelper.execSimple("taskkill", ["/F", "/PID", `${pid}`], "windows process kill");
             this.clear();
             return exec;
         } else {
-            const exec = await TwitchHelper.execSimple("kill", [pid.toString()]);
+            const exec = await TwitchHelper.execSimple("kill", [pid.toString()], "linux process kill");
             this.clear();
             return exec;
         }

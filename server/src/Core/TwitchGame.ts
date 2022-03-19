@@ -187,6 +187,11 @@ export class TwitchGame {
                 TwitchGame.favourite_games.splice(index, 1);
             }
         }
+        TwitchGame.saveFavouriteGames();
+    }
+
+    public static saveFavouriteGames() {
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Saving favourite games...");
         fs.writeFileSync(BaseConfigPath.favouriteGames, JSON.stringify(TwitchGame.favourite_games));
     }
 

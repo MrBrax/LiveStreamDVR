@@ -319,11 +319,16 @@ export class TwitchConfig {
             // TwitchConfig.loadConfig();
         });
 
+        /*
         // monitor for program exit
-        const goodbye = () => { TwitchLog.logAdvanced(LOGLEVEL.INFO, "config", "See you next time!"); };
+        const goodbye = () => {
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "config", "See you next time!");
+            process.exit(0);
+        };
         process.on("exit", goodbye);
         process.on("SIGINT", goodbye);
         process.on("SIGTERM", goodbye);
+        */
 
         TwitchWebhook.dispatch("init", {
             "hello": "world",

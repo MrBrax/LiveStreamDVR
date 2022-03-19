@@ -17,3 +17,5 @@ export enum ExistStatus {
     NEVER_EXISTED = 3,
     UNKNOWN = 4,
 }
+
+export const VideoQualityArray: string[] = ["best", "1080p60", "1080p", "720p60", "720p", "480p", "360p", "160p", "140p", "worst"];

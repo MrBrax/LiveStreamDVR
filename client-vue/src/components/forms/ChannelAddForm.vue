@@ -12,6 +12,7 @@
             <div class="control">
                 <input class="input input-required" type="text" name="quality" value="" required />
                 <p class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</p>
+                <p class="input-help">Valid choices: {{ VideoQualityArray.join(", ") }}</p>
             </div>
         </div>
         <div class="field">
@@ -53,6 +54,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { VideoQualityArray } from "../../../../common/Defs";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
@@ -61,6 +63,9 @@ library.add(faUserPlus);
 export default defineComponent({
     name: "ChannelAddForm",
     emits: ["formSuccess"],
+    setup() {
+        return { VideoQualityArray };
+    },
     data() {
         return {
             formStatusText: "Ready",

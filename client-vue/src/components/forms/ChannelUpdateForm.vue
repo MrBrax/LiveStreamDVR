@@ -15,6 +15,7 @@
                         required
                     />
                     <p class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</p>
+                    <p class="input-help">Valid choices: {{ VideoQualityArray.join(", ") }}</p>
                 </div>
             </div>
 
@@ -66,6 +67,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { VideoQualityArray } from "../../../../common/Defs";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSave } from "@fortawesome/free-solid-svg-icons";
@@ -75,6 +77,9 @@ export default defineComponent({
     name: "ChannelUpdateForm",
     props: ["channel"],
     emits: ["formSuccess"],
+    setup() {
+        return { VideoQualityArray };
+    },
     data() {
         return {
             formStatusText: "Ready",
