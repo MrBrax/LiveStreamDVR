@@ -158,6 +158,14 @@ export class TwitchAutomator {
 
             const folder_base = TwitchHelper.vodFolder(this.broadcaster_user_login);
 
+            if (TwitchVOD.hasVod(basename)) {
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} online, but vod ${basename} already exists, skipping`);
+                return false;
+            }
+
+            await this.download();
+
+            /*
             if (fs.existsSync(path.join(folder_base, `${basename}.json`))) {
 
                 const vodclass = await TwitchVOD.load(path.join(folder_base, `${basename}.json`));
@@ -185,11 +193,12 @@ export class TwitchAutomator {
 
                     $this->updateGame($data);
                 }
-                */
+                *
             } else {
 
                 await this.download();
             }
+            */
         } else if (subscription_type == "stream.offline") {
 
             KeyValue.set(`${this.broadcaster_user_login}.last.offline`, new Date().toISOString());
@@ -210,22 +219,20 @@ export class TwitchAutomator {
 
     public async updateGame(from_cache = false) {
 
+        const basename = this.basename();
+
         // if online
         if (KeyValue.get(`${this.getLogin()}.online`) === "1") {
+            
+            // const folder_base = TwitchHelper.vodFolder(this.getLogin());
 
-            const basename = this.basename();
-            const folder_base = TwitchHelper.vodFolder(this.getLogin());
+            const vod = TwitchVOD.getVod(basename);
 
-            if (!this.vod) {
-                try {
-                    this.vod = await TwitchVOD.load(path.join(folder_base, `${basename}.json`));
-                } catch (th) {
-                    TwitchLog.logAdvanced(LOGLEVEL.FATAL, "automator", `Tried to load VOD ${basename} but errored: ${th}`);
-
-                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Resetting online status on ${this.getLogin()} due to file error.`);
-                    KeyValue.set(`${this.broadcaster_user_login}.online`, null);
-                    return false;
-                }
+            if (!vod) {
+                TwitchLog.logAdvanced(LOGLEVEL.FATAL, "automator", `Tried to load VOD ${basename} for chapter update but errored.`);
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Resetting online status on ${this.getLogin()}.`);
+                KeyValue.delete(`${this.broadcaster_user_login}.online`);
+                return false;
             }
 
             let event: ChannelUpdateEvent;
@@ -261,12 +268,12 @@ export class TwitchAutomator {
 
             const chapter = TwitchVODChapter.fromJSON(chapter_data);
 
-            this.vod.addChapter(chapter);
-            this.vod.saveJSON("game update");
+            vod.addChapter(chapter);
+            vod.saveJSON("game update");
 
             TwitchWebhook.dispatch("chapter_update", {
                 "chapter": chapter,
-                "vod": this.vod,
+                "vod": vod,
             });
 
             // append chapter to history
@@ -300,6 +307,10 @@ export class TwitchAutomator {
 
             const chapter_data = await this.getChapterData(event);
             chapter_data.online = false;
+
+            if (chapter_data.viewer_count) {
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, but managed to get viewer count, so it's online? 🤔`);
+            }
 
             // $fp = fopen(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "history" . DIRECTORY_SEPARATOR . this.broadcaster_user_login . ".jsonline", 'a');
             // fwrite($fp, json_encode($chapter) . "\n");
@@ -504,7 +515,7 @@ export class TwitchAutomator {
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Update game for ${basename}`);
         if (KeyValue.get(`${this.getLogin()}.channeldata`)) {
             this.updateGame(true);
-            KeyValue.set(`${this.getLogin()}.channeldata`, null);
+            KeyValue.delete(`${this.getLogin()}.channeldata`);
         }
 
         const container_ext = TwitchConfig.cfg("vod_container", "mp4");
@@ -515,9 +526,17 @@ export class TwitchAutomator {
 
         // capture with streamlink, this is the crucial point in this entire program
         this.startCaptureChat();
-        await this.captureVideo();
-        this.endCaptureChat();
 
+        try {
+            await this.captureVideo();
+        } catch (error) {
+            TwitchLog.logAdvanced(LOGLEVEL.FATAL, "automator", `Failed to capture video: ${error}`);
+            this.endCaptureChat();
+            // this.vod.delete();
+            return false;
+        }
+
+        this.endCaptureChat();
 
         const capture_success = fs.existsSync(this.capture_filename) && fs.statSync(this.capture_filename).size > 0;
 
@@ -702,6 +721,11 @@ export class TwitchAutomator {
     }
     */
 
+    /**
+     * Create process and capture video
+     * @throws
+     * @returns 
+     */
     public captureVideo(): Promise<boolean> {
 
         return new Promise((resolve, reject) => {
@@ -820,7 +844,7 @@ export class TwitchAutomator {
                     TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to save job ${jobName}`);
                 }
             } else {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to spawn process for ${jobName}`);
+                TwitchLog.logAdvanced(LOGLEVEL.FATAL, "automator", `Failed to spawn process for ${jobName}`);
                 reject(false);
                 return;
             }
@@ -886,6 +910,12 @@ export class TwitchAutomator {
             // attach output to parsing
             process.stdout.on("data", (data) => { ticker("stdout", data); });
             process.stderr.on("data", (data) => { ticker("stderr", data); });
+
+            // check for errors
+            process.on("error", (err) => {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Error with streamlink for ${basename}: ${err}`);
+                reject(false);
+            });
 
             // this.vod.generatePlaylistFile();
 

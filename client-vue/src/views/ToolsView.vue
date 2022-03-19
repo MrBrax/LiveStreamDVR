@@ -21,6 +21,13 @@
             </div>
         </section>
 
+        <section class="section">
+            <div class="section-title"><h1>Hook debug</h1></div>
+            <div class="section-content">
+                <input type="file" @change="sendHookDebug" accept=".json" />
+            </div>
+        </section>
+
         <!--
         <section class="section">
             <div class="section-title"><h1>Saved VODs</h1></div>
@@ -73,6 +80,13 @@ import ToolsChatDownloadForm from "@/components/forms/ToolsChatDownloadForm.vue"
 
 import type { ApiJob } from "@common/Api/Client";
 
+interface PayloadDump {
+    headers: Record<string, string>;
+    body: any;
+    query: any;
+    ip: string;
+}
+
 export default defineComponent({
     name: "ToolsView",
     title: "Tools",
@@ -111,6 +125,37 @@ export default defineComponent({
                 .catch((err) => {
                     console.error("tools jobs fetch error", err.response);
                 });
+        },
+        sendHookDebug(e: Event) {
+            const target = e.target as HTMLInputElement;
+            if (target.files && target.files.length > 0) {
+                const file = target.files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const raw = e.target?.result;
+                    if (!raw) {
+                        alert("No data");
+                        return;
+                    }
+                    const data: PayloadDump = JSON.parse(raw.toString());
+
+                    console.log("payload", data);
+
+                    this.$http
+                        .post(`/api/v0/hook`, data, {
+                            headers: data.headers,
+                        })
+                        .then((response) => {
+                            const json = response.data;
+                            if (json.message) alert(json.message);
+                            console.log(json);
+                        })
+                        .catch((err) => {
+                            console.error("tools hook debug error", err.response);
+                        });
+                };
+                reader.readAsText(file, "UTF-8");
+            }
         },
     },
     components: {

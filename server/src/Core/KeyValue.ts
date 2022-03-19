@@ -43,7 +43,7 @@ export class KeyValue {
     }
     
     static save() {
-        fs.writeFileSync(BaseConfigPath.keyvalue, JSON.stringify(this.data));
+        fs.writeFileSync(BaseConfigPath.keyvalue, JSON.stringify(this.data, null, 4));
     }
 
     static load() {

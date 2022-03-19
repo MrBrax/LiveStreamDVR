@@ -99,6 +99,7 @@ export class TwitchConfig {
         { "key": "server_port", "group": "Basic", "text": "Server port", "type": "number", "default": 8080 },
         { "key": "trust_proxy", "group": "Basic", "text": "Trust proxy", "type": "boolean", "default": false, "help": "If server is behind a reverse proxy, enable this.", restart_required: true },
 
+        { "key": "dump_payloads", "group": "Advanced", "text": "Dump payloads", "type": "boolean", "default": false },
     ];
 
     static cfg<T>(key: string, defaultValue?: T): T {

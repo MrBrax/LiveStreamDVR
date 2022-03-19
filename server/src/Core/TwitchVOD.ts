@@ -972,7 +972,8 @@ export class TwitchVOD {
         }
 
         // clone this.json
-        const generated: TwitchVODJSON = JSON.parse(JSON.stringify(this.json));
+        const generated: TwitchVODJSON = this.json && Object.keys(this.json).length > 0 ? JSON.parse(JSON.stringify(this.json)) : {};
+        // const generated: TwitchVODJSON = Object.assign({}, this.json || {});
 
         generated.version = 2;
         generated.capture_id = this.capture_id;

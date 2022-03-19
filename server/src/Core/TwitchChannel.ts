@@ -318,6 +318,14 @@ export class TwitchChannel {
         channel.profile_image_url = channel_data.profile_image_url;
         channel.applyConfig(channel_config);
 
+        if (KeyValue.get(`${channel.login}.online`)) {
+            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel.login} is online, stale?`);
+        }
+
+        if (KeyValue.get(`${channel.login}.channeldata`)) {
+            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel.login} has stale chapter data.`);
+        }
+
         /*
             $subfile = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "subs.json";
             if (file_exists($subfile)) {

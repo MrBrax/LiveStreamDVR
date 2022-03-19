@@ -164,11 +164,18 @@ export async function Hook(req: express.Request, res: express.Response): Promise
                 return;
             }
 
-            if (TwitchConfig.cfg("debug")) {
-                // $payload_file = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . 'payloads' . DIRECTORY_SEPARATOR . date("Y-m-d.h_i_s") . '.json';
-                const payload_file = path.join(AppRoot, "payloads", new Date().toISOString().replace(/[-:.]/g, "_") + ".json");
-                TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "hook", `Dumping debug hook payload to ${payload_file}`);
-                fs.writeFileSync(payload_file, JSON.stringify(data_json));
+            if (TwitchConfig.cfg<boolean>("debug") || TwitchConfig.cfg<boolean>("dump_payloads")) {
+                let payload_filename = new Date().toISOString().replace(/[-:.]/g, "_");
+                if (data_json.subscription.type) payload_filename += `_${data_json.subscription.type}`;
+                payload_filename += ".json";
+                const payload_filepath = path.join(AppRoot, "payloads", payload_filename);
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "hook", `Dumping debug hook payload to ${payload_filepath}`);
+                fs.writeFileSync(payload_filepath, JSON.stringify({
+                    headers: req.headers,
+                    body: data_json,
+                    query: req.query,
+                    ip: req.ip,
+                }, null, 4));
             }
 
             // verify message
