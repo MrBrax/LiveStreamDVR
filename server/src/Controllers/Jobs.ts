@@ -2,11 +2,13 @@ import { TwitchAutomatorJob } from "../Core/TwitchAutomatorJob";
 import express from "express";
 import { ApiErrorResponse } from "../../../common/Api/Api";
 
-export function ListJobs(req: express.Request, res: express.Response): void {
+export async function ListJobs(req: express.Request, res: express.Response): Promise<void> {
 
     const jobs = TwitchAutomatorJob.jobs;
 
-    jobs.forEach((job) => { job.getStatus(); });
+    for (const job of jobs) {
+        await job.getStatus();
+    }
 
     res.send({
         data: jobs,

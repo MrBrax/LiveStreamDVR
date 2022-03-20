@@ -20,6 +20,7 @@ export class TwitchAutomatorJob extends EventEmitter
 {
 
     static jobs: TwitchAutomatorJob[] = [];
+    static pidstatus: Record<number, boolean> = {};
 
     static readonly NO_FILE = 1;
     static readonly NO_DATA = 2;
@@ -323,6 +324,7 @@ export class TwitchAutomatorJob extends EventEmitter
                 proc = await TwitchHelper.execSimple("tasklist", ["/FI", `PID eq ${this.pid}`], `windows process status (${this.name})`);
             } catch (e) {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for job ${this.name}`, this.metadata);
+                this.status = false;
                 return false;
             }
 
@@ -335,6 +337,7 @@ export class TwitchAutomatorJob extends EventEmitter
                 proc = await TwitchHelper.execSimple("ps", ["-p", this.pid.toString()], `linux process status (${this.name})`);
             } catch (e) {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for job ${this.name}`, this.metadata);
+                this.status = false;
                 return false;
             }
 
@@ -371,16 +374,18 @@ export class TwitchAutomatorJob extends EventEmitter
     async kill(method: NodeJS.Signals = "SIGTERM")
     {
         if (this.process) {
-            return this.process.kill(method);
+            this.process.kill(method);
         }
 
         const pid = this.getPid();
 
+        this.emit("pre_kill", method);
+
         if (!pid) {
+            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "job", `Kill process for job ${this.name}, PID not found`, this.metadata);
+            this.clear();
             return false;
         }
-
-        this.emit("pre_kill", method);
 
         if (TwitchHelper.is_windows()) {
             const exec = await TwitchHelper.execSimple("taskkill", ["/F", "/PID", `${pid}`], "windows process kill");

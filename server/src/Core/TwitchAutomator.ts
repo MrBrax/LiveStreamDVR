@@ -20,6 +20,7 @@ import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchWebhook } from "./TwitchWebhook";
 import { MuteStatus } from "../../../common/Defs";
 import chalk from "chalk";
+import { Sleep } from "Helpers/Sleep";
 
 export class TwitchAutomator {
     vod: TwitchVOD | undefined;
@@ -266,7 +267,7 @@ export class TwitchAutomator {
 
             const chapter_data = await this.getChapterData(event);
 
-            const chapter = TwitchVODChapter.fromJSON(chapter_data);
+            const chapter = await TwitchVODChapter.fromJSON(chapter_data);
 
             vod.addChapter(chapter);
             vod.saveJSON("game update");
@@ -576,11 +577,10 @@ export class TwitchAutomator {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Error when downloading, retrying ${basename}`);
 
             // sleep(15);
-
-            setTimeout(() => {
-                this.download(tries + 1);
-            }, 15000);
-
+            await Sleep(15 * 1000);
+            
+            this.download(tries + 1);
+    
             return;
         }
 
@@ -598,12 +598,14 @@ export class TwitchAutomator {
         if (this.stream_resolution) this.vod.stream_resolution = this.stream_resolution;
         this.vod.saveJSON("stream capture end");
 
-        if (this.vod.getDurationLive() > (86400 - (60 * 10))) {
+        const duration = this.vod.getDurationLive();
+        if (duration && duration > (86400 - (60 * 10))) {
             TwitchLog.logAdvanced(LOGLEVEL.WARNING, "automator", `The stream ${basename} is 24 hours, this might cause issues.`);
         }
 
         // wait for one minute in case something didn't finish
         // sleep(60);
+        await Sleep(60 * 1000);
 
         // $this->vod = $this->vod->refreshJSON();
         this.vod.is_converting = true;
@@ -613,6 +615,7 @@ export class TwitchAutomator {
         await this.convertVideo();
 
         // sleep(10);
+        await Sleep(10 * 1000);
 
         const convert_success = fs.existsSync(this.capture_filename) && fs.existsSync(this.converted_filename) && fs.statSync(this.converted_filename).size > 0;
 
@@ -653,6 +656,7 @@ export class TwitchAutomator {
         // finalize
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Sleep 2 minutes for ${basename}`);
         // sleep(60 * 2);
+        await Sleep(60 * 1000 * 2);
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Do metadata on ${basename}`);
 
@@ -867,7 +871,7 @@ export class TwitchAutomator {
             const keepaliveAlert = () => {
                 if (fs.existsSync(this.capture_filename)) {
                     const size = fs.statSync(this.capture_filename).size;
-                    console.log(chalk.bgGreen.whiteBright(`🎥 ${new Date().toISOString()} ${basename} ${TwitchHelper.formatBytes(size)}`));
+                    console.log(chalk.bgGreen.whiteBright(`🎥 ${new Date().toISOString()} ${basename} ${this.stream_resolution} ${TwitchHelper.formatBytes(size)}`));
                 } else {
                     console.log(chalk.bgRed.whiteBright(`🎥 ${new Date().toISOString()} ${basename} missing`));
                 }
@@ -881,6 +885,10 @@ export class TwitchAutomator {
                 TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Job ${jobName} exited with code ${code}`);
 
                 clearInterval(keepalive);
+
+                if (capture_job) {
+                    capture_job.clear();
+                }
 
                 if (fs.existsSync(this.capture_filename) && fs.statSync(this.capture_filename).size > 0) {
 

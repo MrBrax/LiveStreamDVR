@@ -46,6 +46,10 @@
                             <strong>Stream start:</strong>
                             {{ formatDate(vod?.started_at, "yyyy-MM-dd HH:mm:ss") }}
                         </li>
+                        <li v-if="vod.ended_at">
+                            <strong>Stream end:</strong>
+                            {{ formatDate(vod.ended_at, "yyyy-MM-dd HH:mm:ss") }}
+                        </li>
                         <template v-if="vod?.capture_started && vod?.conversion_started">
                             <li>
                                 <strong>Capture start:</strong>
@@ -89,9 +93,9 @@
                             <strong>File duration:</strong>
                             {{ humanDuration(vod.api_getDuration) }}
                         </li>
-                        <li>
+                        <li v-if="vod.segments && vod.segments.length > 0">
                             <strong>Size:</strong>
-                            {{ formatBytes(vod?.segments[0].filesize) }}
+                            {{ formatBytes(vod.segments[0].filesize) }}
                         </li>
                         <template v-if="vod.video_metadata">
                             <li>

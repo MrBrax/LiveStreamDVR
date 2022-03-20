@@ -51,17 +51,17 @@ export interface TwitchVODChapterMinimalJSON {
 
 export class TwitchVODChapter {
 
-    raw_chapter: TwitchVODChapterJSON | undefined;
+    public raw_chapter: TwitchVODChapterJSON | undefined;
 
-    started_at!: Date;
+    public started_at!: Date;
 
-    offset?: number;
-    duration?: number;
+    public offset?: number;
+    public duration?: number;
 
-    strings: Record<string, string> = {};
+    public strings: Record<string, string> = {};
 
-    game?: TwitchGame;
-    game_id?: string;
+    public game?: TwitchGame;
+    public game_id?: string;
 
     /** Do not use for display */
     // game_name?: string; // make dynamic
@@ -69,14 +69,14 @@ export class TwitchVODChapter {
     /** Do not use for display */
     // box_art_url?: string; // make dynamic
 
-    title = "";
+    public title = "";
 
-    is_mature = false;
+    public is_mature = false;
     // online: boolean | undefined;
 
-    viewer_count?: number;
+    public viewer_count?: number;
 
-    online = false;
+    public online = false;
 
     // favourite: boolean | undefined;
 
@@ -133,15 +133,15 @@ export class TwitchVODChapter {
     toJSON(): TwitchVODChapterJSON {
         return {
             started_at: this.started_at.toISOString(),
-            game_id: this.game_id,
-            game_name: this.game_name,
+            game_id: this.game_id ?? undefined,
+            game_name: this.game_name ?? undefined,
             title: this.title,
             is_mature: this.is_mature,
             online: this.online, // ?
             viewer_count: this.viewer_count ?? undefined,
             // offset: this.offset,
             // duration: this.duration,
-            box_art_url: this.box_art_url,
+            box_art_url: this.box_art_url ?? undefined,
         };
     }
 
@@ -179,7 +179,7 @@ export class TwitchVODChapter {
             `*/
 
     
-    static fromJSON(data: TwitchVODChapterJSON): TwitchVODChapter {
+    static async fromJSON(data: TwitchVODChapterJSON): Promise<TwitchVODChapter> {
 
         const chapter = new TwitchVODChapter();
         // chapter.box_art_url = data.box_art_url;
@@ -193,8 +193,10 @@ export class TwitchVODChapter {
         chapter.started_at = parseISO(data.started_at);
         chapter.viewer_count = data.viewer_count;
 
+        console.log("chapter started", chapter.started_at);
+
         if (data.game_id) {
-            const game = TwitchGame.getGameFromCache(data.game_id);
+            const game = await TwitchGame.getGameAsync(data.game_id);
             if (game) {
                 chapter.game = game;
                 // chapter.game_name = game.name;
@@ -203,7 +205,7 @@ export class TwitchVODChapter {
                 console.error(`Could not find game data for game_id: ${data.game_id}`);
             }
         } else {
-            console.error(chalk.red(`No game_id for chapter: ${data.title}`), data);
+            console.warn(chalk.red(`No game_id for chapter: ${data.title}`), data);
         }
 
         chapter.raw_chapter = data;
@@ -212,15 +214,15 @@ export class TwitchVODChapter {
 
     }
 
-    calculateDurationAndOffset(vod_started_at: Date, vod_ended_at: Date, next_chapter_started_at: Date | undefined) {
+    calculateDurationAndOffset(vod_started_at: Date, vod_ended_at: Date | undefined, next_chapter_started_at: Date | undefined) {
 
         if (next_chapter_started_at) {
-            this.duration = next_chapter_started_at.getTime() - this.started_at.getTime();
-        } else {
-            this.duration = vod_ended_at.getTime() - this.started_at.getTime();
+            this.duration = (next_chapter_started_at.getTime() - this.started_at.getTime()) / 1000;
+        } else if (vod_ended_at) {
+            this.duration = (vod_ended_at.getTime() - this.started_at.getTime()) / 1000;
         }
 
-        this.offset = this.started_at.getTime() - vod_started_at.getTime();
+        this.offset = (this.started_at.getTime() - vod_started_at.getTime()) / 1000;
 
         console.debug(`Calculated duration and offset for chapter: ${this.title}`, this.offset, this.duration);
 

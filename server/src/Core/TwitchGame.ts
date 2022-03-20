@@ -51,7 +51,12 @@ export class TwitchGame {
         if (!this.game_db) {
             throw new Error("Game database not initialized!");
         }
-        return this.game_db[game_id] || null;
+        if (!this.game_db[game_id]) {
+            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "helper", `Game id ${game_id} not in cache.`);
+            return null;
+        }
+        
+        return this.game_db[game_id];
     }
 
     public static async getGameAsync(game_id: string): Promise<TwitchGame | null> {
@@ -121,13 +126,11 @@ export class TwitchGame {
     /**
      * Get game data from cache. **Does not fetch from server.**
      * @param game_id 
+     * @deprecated Use getGameFromCache instead?
      * @returns 
      */
     public static getGameSync(game_id: string): TwitchGame | false | null {
-        if (!this.game_db) {
-            throw new Error("Game database not initialized!");
-        }
-        return this.game_db[game_id] || null;
+        return this.getGameFromCache(game_id);
     }
 
     public static getFavouriteGames(): string[] {

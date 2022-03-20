@@ -276,7 +276,7 @@ export class TwitchVOD {
 
         // this.ads = this.json.ads !== undefined ? this.json.ads : [];
         if (this.json.chapters && this.json.chapters.length > 0) {
-            this.parseChapters(this.json.chapters);
+            await this.parseChapters(this.json.chapters);
         } else {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No chapters on ${this.basename}!`);
         }
@@ -304,8 +304,7 @@ export class TwitchVOD {
 
 
     /**
-     * why is this here?
-     * @deprecated why
+     * Get duration from the start of the broadcast
      * @returns
      */
     public getDurationLive() {
@@ -330,9 +329,9 @@ export class TwitchVOD {
     */
     public getWebhookDuration(): string | undefined {
         if (this.started_at && this.ended_at) {
-            // date-fns, format is H:i:s
-            const diff = differenceInSeconds(this.ended_at, this.started_at);
-            return format(diff, "h:mm:ss"); // untested
+            // format is H:i:s
+            const diff_seconds = (this.ended_at.getTime() - this.started_at.getTime()) / 1000;
+            return TwitchHelper.formatDuration(diff_seconds);
         } else {
             return undefined;
         }
@@ -571,7 +570,7 @@ export class TwitchVOD {
         throw new Error("Method apihelper not implemented.");
     }
 
-    public parseChapters(raw_chapters: TwitchVODChapterJSON[]) {
+    public async parseChapters(raw_chapters: TwitchVODChapterJSON[]): Promise<boolean> {
 
         if (!raw_chapters || raw_chapters.length == 0) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No chapter data found for ${this.basename}`);
@@ -580,29 +579,19 @@ export class TwitchVOD {
 
         const chapters: TwitchVODChapter[] = [];
 
-        raw_chapters.forEach((chapter, index) => {
+        for (const chapter of raw_chapters) {
 
             if (!this.started_at || !this.ended_at) {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No time found for ${this.basename}`);
                 return false;
             }
 
-            const new_chapter = TwitchVODChapter.fromJSON(chapter);
-            // const new_chapter = new TwitchVODChapter(chapter);
-
-            // const test = new TwitchVODChapter {
-            //     title: "test",
-            // };
-
-            // const next_chapter = raw_chapters.at(index + 1);
-
-            // const cstd = next_chapter ? parseISO(next_chapter.started_at) : undefined;
-
-            // new_chapter.calculateDurationAndOffset(this.started_at, this.ended_at, cstd);
+            const new_chapter = await TwitchVODChapter.fromJSON(chapter);
 
             chapters.push(new_chapter);
 
-        });
+        }
+
         /*
         for (const chapter_data of raw_chapters) {
 
@@ -697,6 +686,8 @@ export class TwitchVOD {
 
         this.calculateChapters();
 
+        return true;
+
     }
 
     // public generateChaptersRaw() {
@@ -722,8 +713,8 @@ export class TwitchVOD {
      */
     public calculateChapters(): boolean {
 
-        if (!this.started_at || !this.ended_at) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No time found for ${this.basename}, can't calculate chapters`);
+        if (!this.started_at) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No start time found for ${this.basename}, can't calculate chapters`);
             return false;
         }
 
@@ -732,11 +723,11 @@ export class TwitchVOD {
             return false;
         }
 
-        console.debug(`Calculating chapters for ${this.basename}`);
+        console.debug(`Calculating chapters for ${this.basename}, ${this.chapters.length} chapters`);
 
         this.chapters.forEach((chapter, index) => {
 
-            if (!this.started_at || !this.ended_at) return; // thanks scoping
+            if (!this.started_at) return; // thanks scoping
 
             const next_chapter = this.chapters[index + 1];
 
@@ -746,6 +737,18 @@ export class TwitchVOD {
 
         return true;
 
+    }
+
+    public async generateDefaultChapter() {
+        if (!this.started_at) return;
+        const chapter = await TwitchVODChapter.fromJSON({
+            "title": this.json?.twitch_vod_title ?? "Unknown title",
+            "started_at": this.started_at.toISOString(),
+            is_mature: false,
+            online: true,
+        });
+
+        this.addChapter(chapter);
     }
 
     public parseSegments(array: string[]) {
@@ -849,7 +852,8 @@ export class TwitchVOD {
 
         await this.getMediainfo();
         this.saveLosslessCut();
-        await this.matchProviderVod(); // @todo: implement
+        await this.matchProviderVod();
+        this.calculateChapters();
         // this.checkMutedVod(); // initially not muted when vod is published   
         this.is_finalized = true;
 
@@ -1188,6 +1192,7 @@ export class TwitchVOD {
      * @deprecated
      * @returns 
      */
+    /*
     public async refreshJSON(api = false): Promise<false | TwitchVOD> {
         if (!this.filename) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Can't refresh vod, not found!");
@@ -1198,6 +1203,7 @@ export class TwitchVOD {
         // return static::load($this->filename, $api);
         return await TwitchVOD.load(this.filename, api);
     }
+    */
 
     /**
      * Checks all chapters for games with the favourite flag set
@@ -1421,6 +1427,19 @@ export class TwitchVOD {
             }
         }
 
+        if (this.is_finalized && (!this.segments || this.segments.length === 0)) {
+            console.log(chalk.bgRed.whiteBright(`${this.basename} is finalized but no segments found, rebuilding!`));
+            this.rebuildSegmentList();
+            this.saveJSON("fix rebuild segment list");
+        }
+
+        // add default chapter
+        if (this.is_finalized && (!this.chapters || this.chapters.length === 0)) {
+            console.log(chalk.bgBlue.whiteBright(`${this.basename} is finalized but no chapters found, fixing now!`));
+            await this.generateDefaultChapter();
+            this.saveJSON("fix chapters");
+        }
+
     }
 
     /**
@@ -1502,6 +1521,8 @@ export class TwitchVOD {
                 TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD JSON ${vod.basename} changed (${vod._writeJSON ? "internal" : "external"})!`);
             }
         });
+
+        // fs.unwatchFile(vod.filename);
 
         await vod.fixIssues();
 
