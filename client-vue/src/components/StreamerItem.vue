@@ -271,8 +271,8 @@ export default defineComponent({
             if (!this.streamer) return;
             const vods = this.streamer.vods_list;
             const total = vods.reduce((acc, vod) => {
-                if (!vod.video_metadata_public) return acc;
-                return acc + parseInt(vod.video_metadata_public.general.OverallBitRate);
+                if (!vod.video_metadata) return acc;
+                return acc + vod.video_metadata.bitrate;
             }, 0);
             return total / vods.length;
         },

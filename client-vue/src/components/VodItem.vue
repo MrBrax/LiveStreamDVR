@@ -93,35 +93,31 @@
                             <strong>Size:</strong>
                             {{ formatBytes(vod?.segments[0].filesize) }}
                         </li>
-                        <template v-if="vod?.video_metadata_public && vod?.video_metadata_public.video && vod?.video_metadata_public.audio">
+                        <template v-if="vod.video_metadata">
                             <li>
                                 <strong>Dimensions:</strong>
-                                {{ vod?.video_metadata_public.video.Width }}x{{ vod?.video_metadata_public.video.Height }}
+                                {{ vod.video_metadata.width }}x{{ vod.video_metadata.height }}
                             </li>
                             <li>
                                 <strong>Framerate:</strong>
-                                {{ vod?.video_metadata_public.video.FrameRate_Mode }}
-                                {{
-                                    vod?.video_metadata_public.video.FrameRate_Original
-                                        ? vod?.video_metadata_public.video.FrameRate_Original
-                                        : vod?.video_metadata_public.video.FrameRate
-                                }}
+                                {{ vod.video_metadata.fps_mode }}
+                                {{ vod.video_metadata.fps }}
                             </li>
                             <li>
                                 <strong>Total:</strong>
-                                {{ Math.round(parseInt(vod?.video_metadata_public.general.OverallBitRate) / 1000) }}kbps
+                                {{ Math.round(vod.video_metadata.bitrate / 1000) }}kbps
                             </li>
                             <li>
                                 <strong>Video:</strong>
-                                {{ vod?.video_metadata_public.video.Format }}
-                                {{ vod?.video_metadata_public.video.BitRate_Mode }}
-                                {{ Math.round(parseInt(vod?.video_metadata_public.video.BitRate) / 1000) }}kbps
+                                {{ vod.video_metadata.video_codec }}
+                                {{ vod.video_metadata.video_bitrate_mode }}
+                                {{ Math.round(vod.video_metadata.video_bitrate / 1000) }}kbps
                             </li>
                             <li>
                                 <strong>Audio:</strong>
-                                {{ vod?.video_metadata_public.audio.Format }}
-                                {{ vod?.video_metadata_public.audio.BitRate_Mode }}
-                                {{ Math.round(parseInt(vod?.video_metadata_public.audio.BitRate) / 1000) }}kbps
+                                {{ vod?.video_metadata.audio_codec }}
+                                {{ vod?.video_metadata.audio_bitrate_mode }}
+                                {{ Math.round(vod.video_metadata.audio_bitrate / 1000) }}kbps
                             </li>
                         </template>
                     </ul>
@@ -533,33 +529,33 @@
             </div>
         </div>
     </div>
-    <modal-box ref="burnMenu" title="Render Menu" v-if="vod && vod.is_finalized && vod.video_metadata_public">
+    <modal-box ref="burnMenu" title="Render Menu" v-if="vod && vod.is_finalized && vod.video_metadata">
         <div>
             <pre>{{ vod.basename }}</pre>
-            <ul class="list" v-if="vod.video_metadata_public && vod.video_metadata_public.video && vod.video_metadata_public.audio">
+            <ul class="list" v-if="vod.video_metadata">
                 <li>
                     <strong>Format</strong>
-                    {{ vod.video_metadata_public.video.Width }}x{{ vod.video_metadata_public.video.Height }}@
-                    {{ vod.video_metadata_public.video.FrameRate_Original }}
+                    {{ vod.video_metadata.width }}x{{ vod.video_metadata.height }}@
+                    {{ vod.video_metadata.fps }}
                 </li>
 
                 <li>
                     <strong>Video</strong>
-                    {{ vod?.video_metadata_public.video.Format }}
-                    {{ vod?.video_metadata_public.video.BitRate_Mode }}
-                    {{ Math.round(parseInt(vod?.video_metadata_public.video.BitRate) / 1000) }}kbps
+                    {{ vod.video_metadata.video_codec }}
+                    {{ vod.video_metadata.video_bitrate_mode }}
+                    {{ Math.round(vod.video_metadata.video_bitrate / 1000) }}kbps
                 </li>
 
                 <li>
                     <strong>Audio</strong>
-                    {{ vod?.video_metadata_public.audio.Format }}
-                    {{ vod?.video_metadata_public.audio.BitRate_Mode }}
-                    {{ Math.round(parseInt(vod?.video_metadata_public.audio.BitRate) / 1000) }}kbps
+                    {{ vod.video_metadata.audio_codec }}
+                    {{ vod.video_metadata.audio_bitrate_mode }}
+                    {{ Math.round(vod.video_metadata.audio_bitrate / 1000) }}kbps
                 </li>
 
                 <li>
                     <strong>General</strong>
-                    {{ formatBytes(parseInt(vod.video_metadata_public.general.FileSize)) }} / {{ vod.video_metadata_public.general.Duration_String }}
+                    {{ formatBytes(vod.video_metadata.size) }} / {{ vod.video_metadata.duration }}
                 </li>
             </ul>
             <p>Burning chat seems to work pretty good, but dumped chat+video has a pretty large offset, I have yet to find the offset anywhere.</p>
@@ -615,7 +611,7 @@
                 <div class="field">
                     <label>
                         <p>Chat width</p>
-                        <input class="input" type="range" min="1" :max="vod.video_metadata_public.video.Width" v-model="burnSettings.chatWidth" />
+                        <input class="input" type="range" min="1" :max="vod.video_metadata.width" v-model="burnSettings.chatWidth" />
                         <br /><input class="input" type="number" v-model="burnSettings.chatWidth" />
                         <span :class="{ 'input-help': true, error: burnSettings.chatWidth % 2 }">Chat width must be an even number.</span>
                     </label>
@@ -623,7 +619,7 @@
                 <div class="field">
                     <label>
                         <p>Chat height</p>
-                        <input class="input" type="range" min="1" :max="vod.video_metadata_public.video.Height" v-model="burnSettings.chatHeight" />
+                        <input class="input" type="range" min="1" :max="vod.video_metadata.height" v-model="burnSettings.chatHeight" />
                         <br /><input class="input" type="number" v-model="burnSettings.chatHeight" />
                         <span :class="{ 'input-help': true, error: burnSettings.chatHeight % 2 }">Chat height must be an even number.</span>
                     </label>
@@ -829,8 +825,7 @@ export default defineComponent({
         };
     },
     mounted() {
-        if (this.vod && this.vod.video_metadata_public && this.vod.video_metadata_public.video)
-            this.burnSettings.chatHeight = parseInt(this.vod.video_metadata_public.video.Height);
+        if (this.vod && this.vod.video_metadata) this.burnSettings.chatHeight = this.vod.video_metadata.height;
 
         if (this.vod) {
             if (!this.vod.chapters) {
@@ -1059,10 +1054,10 @@ export default defineComponent({
             return jobs;
         },
         burnPreviewChat(): Record<string, string> {
-            if (!this.vod || !this.vod.video_metadata_public) return {};
+            if (!this.vod || !this.vod.video_metadata) return {};
             return {
-                width: `${(this.burnSettings.chatWidth / parseInt(this.vod.video_metadata_public.video.Width)) * 100}%`,
-                height: `${(this.burnSettings.chatHeight / parseInt(this.vod.video_metadata_public.video.Height)) * 100}%`,
+                width: `${(this.burnSettings.chatWidth / this.vod.video_metadata.width) * 100}%`,
+                height: `${(this.burnSettings.chatHeight / this.vod.video_metadata.height) * 100}%`,
                 left: this.burnSettings.burnHorizontal == "left" ? "0" : "",
                 right: this.burnSettings.burnHorizontal == "right" ? "0" : "",
                 top: this.burnSettings.burnVertical == "top" ? "0" : "",

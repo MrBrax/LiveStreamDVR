@@ -173,7 +173,6 @@ export function Hook(req: express.Request, res: express.Response): void {
                     "Invalid signature check for message!",
                     debugMeta
                 );
-                console.debug("body", req.body);
                 res.status(400).send("Invalid signature check");
                 return;
             }

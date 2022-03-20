@@ -1,7 +1,8 @@
 import { differenceInSeconds, format, parseISO } from "date-fns";
 import fs from "fs";
 import path from "path";
-import { MediaInfo, MediaInfoPublic } from "../../../common/mediainfofield";
+import { MediaInfo } from "../../../common/mediainfofield";
+import { VideoMetadata } from "../../../common/MediaInfo";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { Video, Videos } from "../../../common/TwitchAPI/Video";
 import { VideoQuality } from "../../../common/Config";
@@ -81,7 +82,7 @@ export class TwitchVOD {
     twitch_vod_exists?: boolean;
     twitch_vod_attempted?: boolean;
 
-    video_metadata: MediaInfo | undefined;
+    video_metadata: VideoMetadata | undefined;
 
     is_capturing = false;
     is_converting = false;
@@ -344,62 +345,68 @@ export class TwitchVOD {
             return this.duration;
         }
 
-        if (this.video_metadata) {
+        const isOldFormat = this.video_metadata && "general" in this.video_metadata;
 
-            if (this.video_metadata.general.FileSize && this.video_metadata.general.FileSize == "0") {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Invalid video metadata for ${this.basename}!");
+        if (this.video_metadata && isOldFormat) {
+            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${this.basename} has old video metadata format.`);
+        }
+
+        if (this.video_metadata && !isOldFormat) {
+
+            if (this.video_metadata.size && this.video_metadata.size == 0) {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Invalid video metadata for ${this.basename}!`);
                 return null;
             }
 
-            if (this.video_metadata.general.Duration) {
-                TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `No duration_seconds but metadata exists for ${this.basename}: ${this.video_metadata.general.Duration}`);
-                this.duration = parseInt(this.video_metadata.general.Duration);
+            if (this.video_metadata.duration) {
+                TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `No duration_seconds but metadata exists for ${this.basename}: ${this.video_metadata.duration}`);
+                this.duration = this.video_metadata.duration;
                 return this.duration;
             }
 
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Video metadata for ${this.basename} does not include duration!");
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Video metadata for ${this.basename} does not include duration!`);
 
             return null;
         }
 
         if (this.is_capturing) {
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", "Can't request duration because ${this.basename} is still recording!");
+            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Can't request duration because ${this.basename} is still recording!`);
             return null;
         }
 
         if (!this.is_converted || this.is_converting) {
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", "Can't request duration because ${this.basename} is converting!");
+            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Can't request duration because ${this.basename} is converting!`);
             return null;
         }
 
         if (!this.is_finalized) {
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", "Can't request duration because ${this.basename} is not finalized!");
+            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Can't request duration because ${this.basename} is not finalized!`);
             return null;
         }
 
         if (!this.segments_raw || this.segments_raw.length == 0) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "No video file available for duration of ${this.basename}");
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No video file available for duration of ${this.basename}`);
             return null;
         }
 
-        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", "No mediainfo for getDuration of ${this.basename}");
+        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `No mediainfo for getDuration of ${this.basename}`);
 
         const file = await this.getMediainfo();
 
         if (!file) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Could not find duration of ${this.basename}");
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Could not find duration of ${this.basename}`);
             return null;
         } else {
 
             // this.duration 			= $file['playtime_string'];
-            this.duration = parseInt(file.general.Duration);
+            this.duration = file.duration;
 
             if (save) {
-                TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", "Saved duration for ${this.basename}");
+                TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `Saved duration for ${this.basename}`);
                 this.saveJSON("duration save");
             }
 
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", "Duration fetched for ${this.basename}: ${this.duration_seconds}");
+            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Duration fetched for ${this.basename}: ${this.duration}`);
 
             return this.duration;
         }
@@ -407,9 +414,9 @@ export class TwitchVOD {
         TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Reached end of getDuration for {this.basename}, this shouldn't happen!");
     }
 
-    public async getMediainfo(segment_num = 0): Promise<false | MediaInfo> {
+    public async getMediainfo(segment_num = 0): Promise<false | VideoMetadata> {
 
-        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Fetching mediainfo of ${this.basename}, segment #${segment_num}`);
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Fetching mediainfo of ${this.basename}, segment #${segment_num}`);
 
         if (!this.directory) {
             throw new Error("No directory set!");
@@ -437,9 +444,43 @@ export class TwitchVOD {
         }
 
         if (data !== false) {
-            this.video_metadata = data;
+            // console.debug(`Got mediainfo of ${this.basename}`);
+            
+            if (!data.general.Format || !data.general.Duration) {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Invalid mediainfo for ${this.basename}`);
+                return false;
+            }
+            
+            // use proxy type for mediainfo, can switch to ffprobe if needed
+            this.video_metadata = {
+
+                container: data.general.Format,
+
+                size: parseInt(data.general.FileSize),
+                duration: parseInt(data.general.Duration),
+                bitrate: parseInt(data.general.OverallBitRate),
+
+                width: parseInt(data.video.Width),
+                height: parseInt(data.video.Height),
+
+                fps: parseInt(data.video.FrameRate),
+                fps_mode: data.video.FrameRate_Mode as any,
+
+                audio_codec: data.audio.Format,
+                audio_bitrate: parseInt(data.audio.BitRate),
+                audio_bitrate_mode: data.audio.BitRate_Mode as any,
+                audio_sample_rate: parseInt(data.audio.SamplingRate),
+                audio_channels: parseInt(data.audio.Channels),
+
+                video_codec: data.video.Format,
+                video_bitrate: parseInt(data.video.BitRate),
+                video_bitrate_mode: data.video.BitRate_Mode as any,
+            };
+
             return this.video_metadata;
         }
+
+        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Could not get mediainfo of ${this.basename}`);
 
         // this.video_fail2 = true;
         return false;
@@ -794,6 +835,11 @@ export class TwitchVOD {
 
     }
 
+    /**
+     * Finalize the video. Does **NOT** save.
+     * @todo save?
+     * @returns 
+     */
     public async finalize() {
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Finalize ${this.basename} @ ${this.directory}`);
 
@@ -804,7 +850,7 @@ export class TwitchVOD {
         await this.getMediainfo();
         this.saveLosslessCut();
         // this.matchProviderVod(); // @todo: implement
-        // this.checkMutedVod(); // initially not muted when vod is published
+        // this.checkMutedVod(); // initially not muted when vod is published   
         this.is_finalized = true;
 
         return true;
@@ -928,12 +974,12 @@ export class TwitchVOD {
 
             total_size: this.total_size,
 
-            video_metadata_public: this.getPublicVideoMetadata() || undefined,
-
             chapters: this.chapters.map((c) => c.toAPI()),
             // chapters_raw: this.chapters_raw,
 
             webpath: this.webpath,
+
+            video_metadata: this.video_metadata,
 
             // game_offset: this.game_offset || 0,
             // twitch_vod_url: this.twitch_vod_url,
@@ -963,58 +1009,6 @@ export class TwitchVOD {
         };
     }
     */
-
-    public getPublicVideoMetadata(): MediaInfoPublic | false {
-
-        if (!this.video_metadata) return false;
-
-        const filter = [
-            "general.Duration",
-            "general.Duration_String",
-            "general.FileSize",
-            "general.OverallBitRate",
-
-            "video.BitRate",
-            "video.Width",
-            "video.Height",
-            "video.FrameRate_Mode",
-            "video.FrameRate_Original",
-            "video.FrameRate",
-            "video.Format",
-            "video.BitRate_Mode",
-            "video.BitRate",
-
-            "audio.Format",
-            "audio.BitRate_Mode",
-            "audio.BitRate",
-        ];
-
-        /*
-        foreach ($this->video_metadata as $keyp => $value) {
-            $this->video_metadata_public[$keyp] = array_filter($value, function ($value, $keyc) use ($filter, $keyp) {
-                return in_array("{$keyp}.{$keyc}", $filter);
-            }, ARRAY_FILTER_USE_BOTH);
-        }
-        */
-        // let video_metadata_public: MediaInfoPublic = {
-        //     general: {} as any,
-        //     video: {} as any,
-        //     audio: {} as any,
-        // };
-        const video_metadata_public: any = {};
-
-        for (const [track, value] of Object.entries(this.video_metadata)) {
-            video_metadata_public[track] = {};
-            for (const [key, val] of Object.entries(value)) {
-                if (filter.includes(`${track}.${key}`)) {
-                    video_metadata_public[track][key] = val;
-                }
-            }
-        }
-
-        return video_metadata_public as MediaInfoPublic;
-
-    }
 
     public async getChatDumpStatus(): Promise<number | false> {
         const job = TwitchAutomatorJob.findJob(`chatdump_${this.basename}`);
@@ -1352,7 +1346,8 @@ export class TwitchVOD {
         // finalize if finished converting and not yet finalized
         if (this.is_converted && !this.is_finalized && this.segments.length > 0) {
             console.log(chalk.bgBlue.whiteBright(`${this.basename} is finished converting but not finalized, finalizing now!`));
-            this.finalize();
+            await this.finalize();
+            this.saveJSON("fix finalize");
         }
 
         // remux if not yet remuxed
@@ -1364,7 +1359,7 @@ export class TwitchVOD {
                 console.log(chalk.bgBlue.whiteBright(`${this.basename} remux status: ${status.success}`));
                 this.addSegment(`${this.basename}.mp4`);
                 this.is_converting = false;
-                this.finalize();
+                await this.finalize();
                 this.saveJSON("fix remux");
             } else {
                 console.log(chalk.bgRed.whiteBright(`${this.basename} is not yet remuxed but no ts file found, skipping!`));
@@ -1457,17 +1452,8 @@ export class TwitchVOD {
 
         // console.debug("vod getter check", vod.basename, vod.directory, vod.is_converted, vod.is_finalized, vod.is_capturing, vod.is_converting);
 
-        console.debug(vod.basename, "is_converted", vod.is_converted);
-        console.debug(vod.basename, "is_finalized", vod.is_finalized);
-        console.debug(vod.basename, "is_capturing", vod.is_capturing);
-        console.debug(vod.basename, "is_converting", vod.is_converting);
-        console.debug(vod.basename, "segments", vod.segments.length);
-        console.debug(vod.basename, "segments_raw", vod.segments_raw.length);
-        console.debug(vod.basename, "chapters", vod.chapters.length);
-        console.debug(vod.basename, "chapters_raw", vod.chapters_raw.length);
-
         if (!vod.is_finalized) {
-            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${vod.basename} is not finalized!`);
+            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Loaded VOD ${vod.basename} is not finalized!`);
         }
 
         return vod;

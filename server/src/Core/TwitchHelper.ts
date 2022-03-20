@@ -557,7 +557,7 @@ export class TwitchHelper {
      */
     public static async mediainfo(filename: string): Promise<MediaInfo | false> {
 
-        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "mediainfo", `Run mediainfo on ${filename}`);
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "mediainfo", `Run mediainfo on ${filename}`);
 
         if (!filename) {
             throw new Error("No filename supplied for mediainfo");
@@ -597,6 +597,7 @@ export class TwitchHelper {
             }
 
             return data as MediaInfo;
+
         } else {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "mediainfo", `No output from mediainfo for ${filename}`);
             return false;

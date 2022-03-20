@@ -134,7 +134,7 @@ export class TwitchLog {
 
         // return lines from n to end
         if (date == this.currentDate) {
-            console.debug(`Fetching ${this.lines.length} lines from ${fromLine} from memory`);
+            // console.debug(`Fetching ${this.lines.length} lines starting from ${fromLine} from memory`);
             return this.lines.slice(fromLine);
         }
 
@@ -148,7 +148,7 @@ export class TwitchLog {
 
         const lines = fs.readFileSync(jsonlinename, "utf8").split("\n");
         const parsed_lines: LogLine[] = lines.map(line => line.length > 0 ? JSON.parse(line) : null).filter(line => line !== null);
-        console.debug(`Fetched ${parsed_lines.length} lines from ${jsonlinename}`);
+        // console.debug(`Fetched ${parsed_lines.length} lines from ${jsonlinename}`);
         return parsed_lines;
     }
 

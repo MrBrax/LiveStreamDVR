@@ -2,6 +2,7 @@ import { MediaInfo, MediaInfoPublic } from "../mediainfofield";
 import { VideoQuality } from "../Config";
 import { ChannelData } from "../Channel";
 import { MuteStatus, ExistStatus} from "../../common/Defs";
+import { VideoMetadata } from "../MediaInfo";
 
 export type ApiVodSegment = {
     basename: string;
@@ -109,7 +110,8 @@ export type ApiVod = {
     // game_offset: number;
 
     // video_metadata: MediaInfo;
-    video_metadata_public?: MediaInfoPublic;
+    // video_metadata_public?: MediaInfoPublic;
+    video_metadata?: VideoMetadata;
 
     chapters: ApiVodChapter[];
 

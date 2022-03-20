@@ -90,7 +90,6 @@ export class TwitchAutomator {
 
         if (!request.header("Twitch-Eventsub-Message-Id")) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", "No twitch message id supplied to handle");
-            console.debug("headers", request.headers);
             return false;
         }
 
@@ -270,7 +269,6 @@ export class TwitchAutomator {
             const chapter = TwitchVODChapter.fromJSON(chapter_data);
 
             vod.addChapter(chapter);
-            vod.calculateChapters();
             vod.saveJSON("game update");
 
             TwitchWebhook.dispatch("chapter_update", {

@@ -1,7 +1,7 @@
 import { VideoQuality } from "../../../common/Config";
-import { MediaInfo } from "../../../common/mediainfofield";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { MuteStatus } from "../../../common/Defs";
+import { VideoMetadata } from "../../../common/MediaInfo";
 
 export interface TwitchVODJSON {
 
@@ -26,7 +26,8 @@ export interface TwitchVODJSON {
 
     duration: number;
 
-    video_metadata?: MediaInfo;
+    // video_metadata?: MediaInfo;
+    video_metadata?: VideoMetadata;
 
     saved_at: string;
 

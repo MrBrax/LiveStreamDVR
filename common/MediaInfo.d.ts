@@ -153,8 +153,8 @@ export interface VideoTrack {
 }
 
 export interface AudioTrack {
-   "@type": "Audio";
-   Count: string;
+    "@type": "Audio";
+    Count: string;
     StreamCount: string;
     StreamKind: string;
     StreamKind_String: string;
@@ -233,3 +233,28 @@ export interface MediaInfoJSONOutput {
     media: Media;
 }
 
+export interface VideoMetadata {
+
+    container: string;
+
+    size: number;
+    duration: number;
+    bitrate: number;
+
+    width: number;
+    height: number;
+
+    fps: number;
+    fps_mode: "VBR" | "CBR";
+
+    audio_codec: string;
+    audio_bitrate: number;
+    audio_bitrate_mode: "VBR" | "CBR";
+    audio_sample_rate: number;
+    audio_channels: number;
+
+    video_codec: string;
+    video_bitrate: number;
+    video_bitrate_mode: "VBR" | "CBR";
+
+}
