@@ -326,6 +326,31 @@ export class TwitchChannel {
     }
 
     /**
+     * Remove a vod from the channel and the main vods list
+     * 
+     * @param basename 
+     * @returns 
+     */
+    public removeVod(basename: string): boolean {
+
+        if (!this.userid) throw new Error("Channel userid is not set");
+        if (!this.login) throw new Error("Channel login is not set");
+        if (!this.display_name) throw new Error("Channel display_name is not set");
+
+        const vod = this.vods_list.find(v => v.basename === basename);
+        if (!vod) return false;
+
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Remove VOD JSON for ${this.login}: ${basename}`);
+
+        this.vods_list = this.vods_list.filter(v => v.basename !== basename);
+
+        TwitchVOD.removeVod(basename);      
+
+        return true;
+
+    }
+
+    /**
      * 
      * STATIC
      * 

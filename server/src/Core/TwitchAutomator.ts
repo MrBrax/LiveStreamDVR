@@ -42,7 +42,7 @@ export class TwitchAutomator {
     capture_filename = "";
     converted_filename = "";
     chat_filename = "";
-    
+
     captureJob: TwitchAutomatorJob | undefined;
     chatJob: TwitchAutomatorJob | undefined;
 
@@ -157,7 +157,7 @@ export class TwitchAutomator {
 
             const basename = this.basename();
 
-            const folder_base = TwitchHelper.vodFolder(this.broadcaster_user_login);
+            // const folder_base = TwitchHelper.vodFolder(this.broadcaster_user_login);
 
             if (TwitchVOD.hasVod(basename)) {
                 TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} online, but vod ${basename} already exists, skipping`);
@@ -224,7 +224,7 @@ export class TwitchAutomator {
 
         // if online
         if (KeyValue.get(`${this.getLogin()}.online`) === "1") {
-            
+
             // const folder_base = TwitchHelper.vodFolder(this.getLogin());
 
             const vod = TwitchVOD.getVod(basename);
@@ -270,6 +270,7 @@ export class TwitchAutomator {
             const chapter = TwitchVODChapter.fromJSON(chapter_data);
 
             vod.addChapter(chapter);
+            vod.calculateChapters();
             vod.saveJSON("game update");
 
             TwitchWebhook.dispatch("chapter_update", {
@@ -336,26 +337,37 @@ export class TwitchAutomator {
 
         // extra metadata with a separate api request
         if (TwitchConfig.cfg("api_metadata")) {
+
             const streams = await TwitchChannel.getStreams(this.getUserID());
+
             if (streams && streams.length > 0) {
+
                 const stream = streams[0];
+
                 if (stream.viewer_count !== undefined) {
+
                     chapter_data.viewer_count = stream.viewer_count;
+
                 } else {
+
                     TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", "No viewer count in metadata request.");
+
                 }
+
             } else {
+
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", "No streams in metadata request.");
+
             }
-            //$chapter['viewer_count'];
         }
+
         return chapter_data;
 
     }
 
     private cleanup() {
         // const vods = fs.readdirSync(TwitchHelper.vodFolder(this.getLogin())).filter(f => f.startsWith(`${this.getLogin()}_`) && f.endsWith(".json"));
-        
+
         let total_size = 0;
         const vods = TwitchChannel.getChannelByLogin(this.getLogin())?.vods_list;
 
@@ -368,12 +380,12 @@ export class TwitchAutomator {
                         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being deleted on Twitch.`);
                         continue;
                     }
-        
+
                     if (TwitchConfig.cfg("keep_favourite_vods") && vodclass.hasFavouriteGame()) {
                         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it having a favourite game.`);
                         continue;
                     }
-        
+
                     if (TwitchConfig.cfg("keep_muted_vods") && vodclass.twitch_vod_muted === MuteStatus.MUTED) {
                         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being muted on Twitch.`);
                         continue;
@@ -396,8 +408,7 @@ export class TwitchAutomator {
 
         if (
             vod_candidates.length > TwitchConfig.cfg<number>("vods_to_keep", 5) + 1 ||
-            gigabytes > TwitchConfig.cfg<number>("storage_per_streamer", 100))
-        {
+            gigabytes > TwitchConfig.cfg<number>("storage_per_streamer", 100)) {
             const candidate = vod_candidates[0];
 
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Total filesize for ${this.getLogin()} exceeds either vod amount or storage per streamer`);
@@ -410,7 +421,7 @@ export class TwitchAutomator {
 
             // only delete first vod, too scared of having it do all
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Cleanup ${candidate.basename}`);
-            
+
             candidate.delete();
 
         }
@@ -627,14 +638,14 @@ export class TwitchAutomator {
 
         // add the captured segment to the vod info
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Conversion done, add segments to ${basename}`);
-        
+
         // @todo: no hack
         // tmp_vod = await this.vod.refreshJSON();
         // if (!tmp_vod) throw new Error('Failed to refresh JSON');
         // this.vod = tmp_vod;
 
         this.vod.is_converting = false;
-        this.vod.addSegment(this.converted_filename);
+        this.vod.addSegment(path.basename(this.converted_filename));
         this.vod.saveJSON("add segment");
 
         // remove old vods for the streamer
@@ -647,11 +658,11 @@ export class TwitchAutomator {
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Do metadata on ${basename}`);
 
-        const vodclass = await TwitchVOD.load(path.join(folder_base, `${basename}.json`));
-        if (!vodclass) throw new Error("Failed to load VOD");
+        // const vodclass = await TwitchVOD.load(path.join(folder_base, `${basename}.json`));
+        // if (!vodclass) throw new Error("Failed to load VOD");
 
-        await vodclass.finalize();
-        vodclass.saveJSON("finalized");
+        await this.vod.finalize();
+        this.vod.saveJSON("finalized");
 
         /*
         // download chat and optionally burn it
@@ -686,7 +697,7 @@ export class TwitchAutomator {
 
         // finally send internal webhook for capture finish
         TwitchWebhook.dispatch("end_download", {
-            "vod": vodclass,
+            "vod": this.vod,
         });
 
         return true;
@@ -854,26 +865,27 @@ export class TwitchAutomator {
                 reject(false);
                 return;
             }
-
+            
             const keepaliveAlert = () => {
                 if (fs.existsSync(this.capture_filename)) {
                     const size = fs.statSync(this.capture_filename).size;
-                    console.log(chalk.bgMagenta.whiteBright(`🎥 ${new Date().toISOString()} ${basename} ${size} bytes`));
+                    console.log(chalk.bgGreen.whiteBright(`🎥 ${new Date().toISOString()} ${basename} ${TwitchHelper.formatBytes(size)}`));
                 } else {
                     console.log(chalk.bgRed.whiteBright(`🎥 ${new Date().toISOString()} ${basename} missing`));
                 }
+                
             };
 
             const keepalive = setInterval(keepaliveAlert, 120 * 1000);
 
             // critical end
-            process.on("close", (code) => {
+            process.on("close", (code, signal) => {
                 TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Job ${jobName} exited with code ${code}`);
 
                 clearInterval(keepalive);
-                
+
                 if (fs.existsSync(this.capture_filename) && fs.statSync(this.capture_filename).size > 0) {
-                    
+
                     const stream_resolution = capture_job.stdout.join("\n").match(/stream:\s([0-9_a-z]+)\s/);
                     if (stream_resolution && this.vod) {
                         this.vod.stream_resolution = stream_resolution[1] as VideoQuality;
@@ -943,6 +955,11 @@ export class TwitchAutomator {
                 reject(false);
             });
 
+            // process.on("exit", (code, signal) => {
+            //     clearInterval(keepalive);
+            //     TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Streamlink exited with code ${code} for ${basename}`);
+            // });
+
             // this.vod.generatePlaylistFile();
 
             // send internal webhook for capture start
@@ -990,7 +1007,7 @@ export class TwitchAutomator {
 
             // $chat_cmd[] = 'python';
             // $chat_cmd[] = __DIR__ . '/Utilities/twitch-chat.py';
-            
+
             // $chat_cmd[] = 'node';
             // $chat_cmd[] = __DIR__. '/../twitch-chat-dumper/index.js';
 
@@ -1025,13 +1042,13 @@ export class TwitchAutomator {
             */
 
             const chat_job = TwitchHelper.startJob(chat_bin, chat_cmd, `chatdump_${this.basename()}`);
-        
+
             if (chat_job && chat_job.pid) {
                 this.chatJob = chat_job;
             } else {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to start chat dump job with filename ${path.basename(this.chat_filename)}`);
                 return false;
-            } 
+            }
 
             // TwitchHelper:: clearLog("chatdump_{$basename}_stdout.{$tries}");
             // TwitchHelper:: clearLog("chatdump_{$basename}_stderr.{$tries}");
@@ -1056,7 +1073,7 @@ export class TwitchAutomator {
         }
 
     }
-    
+
     // maybe use this?
     async compressChat() {
         if (fs.existsSync(this.chat_filename)) {
@@ -1079,5 +1096,5 @@ export class TwitchAutomator {
         return result && result.success;
 
     }
-    
+
 }

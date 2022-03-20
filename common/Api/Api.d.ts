@@ -1,5 +1,5 @@
 import { ChannelConfig, SettingField } from "../Config";
-import { ApiChannel, ApiGame, ApiVod } from "./Client";
+import { ApiChannel, ApiGame, ApiJob, ApiVod } from "./Client";
 
 interface ApiResponse {
     data: any;
@@ -55,4 +55,8 @@ export interface ApiLogResponse extends ApiResponse {
 
 export interface ApiFavouriteGamesResponse extends ApiResponse {
     data: string[];
+}
+
+export interface ApiJobsResponse extends ApiResponse {
+    data: ApiJob[];
 }

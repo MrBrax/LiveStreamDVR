@@ -163,7 +163,7 @@ export class TwitchGame {
      * @param height 
      * @returns string URL
      */
-    public getBoxArtUrl(width: number, height: number): string {
+    public getBoxArtUrl(width = 140, height = 190): string {
         if (!this.box_art_url) {
             return "";
         }

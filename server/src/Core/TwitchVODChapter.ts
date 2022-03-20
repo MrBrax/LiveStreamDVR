@@ -64,10 +64,10 @@ export class TwitchVODChapter {
     game_id?: string;
 
     /** Do not use for display */
-    game_name?: string; // make dynamic
+    // game_name?: string; // make dynamic
 
     /** Do not use for display */
-    box_art_url?: string; // make dynamic
+    // box_art_url?: string; // make dynamic
 
     title = "";
 
@@ -182,9 +182,9 @@ export class TwitchVODChapter {
     static fromJSON(data: TwitchVODChapterJSON): TwitchVODChapter {
 
         const chapter = new TwitchVODChapter();
-        chapter.box_art_url = data.box_art_url;
+        // chapter.box_art_url = data.box_art_url;
         chapter.game_id = data.game_id;
-        chapter.game_name = data.game_name;
+        // chapter.game_name = data.game_name;
         // chapter.duration = data.duration;
         // chapter.offset = data.offset;
         chapter.title = data.title;
@@ -197,6 +197,8 @@ export class TwitchVODChapter {
             const game = TwitchGame.getGameFromCache(data.game_id);
             if (game) {
                 chapter.game = game;
+                // chapter.game_name = game.name;
+                // chapter.box_art_url = game.box_art_url;
             } else {
                 console.error(`Could not find game data for game_id: ${data.game_id}`);
             }
@@ -220,6 +222,22 @@ export class TwitchVODChapter {
 
         this.offset = this.started_at.getTime() - vod_started_at.getTime();
 
+        console.debug(`Calculated duration and offset for chapter: ${this.title}`, this.offset, this.duration);
+
+    }
+
+    getBoxArtUrl(width = 140, height = 190): string {
+        if (!this.game) return "";
+        return this.game.getBoxArtUrl(width, height);
+    }
+
+    get game_name(): string {
+        return this.game?.name ?? "";
+    }
+
+    // formatted
+    get box_art_url(): string {
+        return this.getBoxArtUrl();
     }
 
 }

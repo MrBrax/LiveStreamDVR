@@ -3,19 +3,22 @@ import express from "express";
 import { ApiErrorResponse } from "../../../common/Api/Api";
 
 export function ListJobs(req: express.Request, res: express.Response): void {
-    
+
     const jobs = TwitchAutomatorJob.jobs;
-    
+
+    jobs.forEach((job) => { job.getStatus(); });
+
     res.send({
         data: jobs,
         status: "OK",
     });
+
 }
 
 export async function KillJob(req: express.Request, res: express.Response): Promise<void> {
-    
+
     const job = TwitchAutomatorJob.jobs.find(j => j.name === req.params.name);
-    
+
     if (!job) {
         res.status(400).send({
             status: "ERROR",
@@ -23,9 +26,9 @@ export async function KillJob(req: express.Request, res: express.Response): Prom
         } as ApiErrorResponse);
         return;
     }
-    
+
     const success = await job.kill();
-    
+
     if (success) {
         res.send({
             status: "OK",

@@ -11,6 +11,7 @@ import * as Cron from "../Controllers/Cron";
 import * as TwitchAPI from "../Controllers/TwitchAPI";
 import * as Hook from "../Controllers/Hook";
 import * as KeyValue from "../Controllers/KeyValue";
+import * as Debug from "../Controllers/Debug";
 import { TwitchVOD } from "../Core/TwitchVOD";
 
 const router = express.Router();
@@ -54,6 +55,9 @@ router.get("/twitchapi/video/:video_id", TwitchAPI.TwitchAPIVideo);
 router.get("/keyvalue/:key", KeyValue.GetKeyValue);
 router.put("/keyvalue/:key", KeyValue.SetKeyValue);
 router.delete("/keyvalue/:key", KeyValue.DeleteKeyValue);
+
+router.get("/debug/vods", Debug.ListVodsInMemory);
+router.get("/debug/channels", Debug.ListChannelsInMemory);
 
 router.get("/test_video_download", (req, res) => {
     if (!req.query.video_id){

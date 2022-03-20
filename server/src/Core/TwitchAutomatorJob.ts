@@ -320,7 +320,7 @@ export class TwitchAutomatorJob extends EventEmitter
             
             let proc;
             try {
-                proc = await TwitchHelper.execSimple("tasklist", ["/FI", `PID eq ${this.pid}`], "windows process status");
+                proc = await TwitchHelper.execSimple("tasklist", ["/FI", `PID eq ${this.pid}`], `windows process status (${this.name})`);
             } catch (e) {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for job ${this.name}`, this.metadata);
                 return false;
@@ -332,7 +332,7 @@ export class TwitchAutomatorJob extends EventEmitter
 
             let proc;
             try {
-                proc = await TwitchHelper.execSimple("ps", ["-p", this.pid.toString()], "linux process status");
+                proc = await TwitchHelper.execSimple("ps", ["-p", this.pid.toString()], `linux process status (${this.name})`);
             } catch (e) {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for job ${this.name}`, this.metadata);
                 return false;
