@@ -706,40 +706,6 @@ export class TwitchAutomator {
 
     }
 
-    /*
-    public async captureMain(tries: number = 0) {
-
-        if (!this.vod) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `No VOD for ${this.basename()}, this should not happen`);
-            return false;
-        }
-
-        const data_started = this.getStartDate();
-        const data_id = this.getVodID();
-        const data_username = this.getUsername();
-
-        if (!data_id) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", "No ID supplied for capture");
-            // $this->errors[] = 'ID not supplied for capture';
-            return false;
-        }
-
-        this.captureVideo();
-        this.captureChat();
-
-        // failure
-        /*
-        $int = 1;
-        while (file_exists($capture_filename)) {
-            // $this->errors[] = 'File exists while capturing, making a new name';
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", "File exists while capturing, making a new name for {$basename}, attempt #{$int}", ['download-capture' => $data_username]);
-            $capture_filename = $folder_base . DIRECTORY_SEPARATOR . $basename . '-' . $int . '.ts';
-            $int++;
-        }
-        *
-    }
-    */
-
     /**
      * Create process and capture video
      * @throws
@@ -838,8 +804,10 @@ export class TwitchAutomator {
 
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Starting capture with filename ${path.basename(this.capture_filename)}`);
 
+            // @todo: use TwitchHelper.startJob instead
+
             // spawn process
-            const process = spawn(bin, cmd, {
+            const capture_process = spawn(bin, cmd, {
                 cwd: path.dirname(this.capture_filename),
                 windowsHide: true,
             });
@@ -847,11 +815,12 @@ export class TwitchAutomator {
             // make job for capture
             let capture_job: TwitchAutomatorJob;
             const jobName = `capture_${basename}`;
-            if (process.pid) {
-                TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Spawned process ${process.pid} for ${jobName}`);
+            
+            if (capture_process.pid) {
+                TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Spawned process ${capture_process.pid} for ${jobName}`);
                 capture_job = TwitchAutomatorJob.create(jobName);
-                capture_job.setPid(process.pid);
-                capture_job.setProcess(process);
+                capture_job.setPid(capture_process.pid);
+                capture_job.setProcess(capture_process);
                 capture_job.startLog(jobName, `$ ${bin} ${cmd.join(" ")}\n`);
                 capture_job.setMetadata({
                     "login": this.getLogin(), // @todo: username?
@@ -868,6 +837,9 @@ export class TwitchAutomator {
                 return;
             }
             
+            // const capture_job = TwitchHelper.startJob(bin, cmd, jobName);
+            // const capture_process = capture_job.process;
+            
             const keepaliveAlert = () => {
                 if (fs.existsSync(this.capture_filename)) {
                     const size = fs.statSync(this.capture_filename).size;
@@ -881,7 +853,7 @@ export class TwitchAutomator {
             const keepalive = setInterval(keepaliveAlert, 120 * 1000);
 
             // critical end
-            process.on("close", (code, signal) => {
+            capture_process.on("close", (code, signal) => {
                 TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Job ${jobName} exited with code ${code}`);
 
                 clearInterval(keepalive);
@@ -951,11 +923,11 @@ export class TwitchAutomator {
             };
 
             // attach output to parsing
-            process.stdout.on("data", (data) => { ticker("stdout", data); });
-            process.stderr.on("data", (data) => { ticker("stderr", data); });
+            capture_process.stdout.on("data", (data) => { ticker("stdout", data); });
+            capture_process.stderr.on("data", (data) => { ticker("stderr", data); });
 
             // check for errors
-            process.on("error", (err) => {
+            capture_process.on("error", (err) => {
                 clearInterval(keepalive);
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Error with streamlink for ${basename}: ${err}`);
                 reject(false);
