@@ -142,6 +142,37 @@ export class TwitchHelper {
         };
     }
 
+    /**
+     * For some reason, twitch uses "1h1m1s" for durations, not seconds
+     * thanks copilot
+     * 
+     * @param duration 
+     */
+    public static parseTwitchDuration(duration: string) {
+        const regex = /(\d+)([a-z]+)/g;
+        let match;
+        let seconds = 0;
+        while ((match = regex.exec(duration)) !== null) {
+            const num = parseInt(match[1]);
+            const unit = match[2];
+            switch (unit) {
+            case "h":
+                seconds += num * 3600;
+                break;
+            case "m":
+                seconds += num * 60;
+                break;
+            case "s":
+                seconds += num;
+                break;
+            }
+        }
+        return seconds;
+    }
+
+
+
+
     public static getNiceDuration(duration: number) {
         // format 1d 2h 3m 4s
 
