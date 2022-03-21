@@ -1,6 +1,6 @@
 import { TwitchAutomatorJob } from "../Core/TwitchAutomatorJob";
 import express from "express";
-import { ApiErrorResponse } from "../../../common/Api/Api";
+import { ApiErrorResponse, ApiJobsResponse } from "../../../common/Api/Api";
 
 export async function ListJobs(req: express.Request, res: express.Response): Promise<void> {
 
@@ -11,15 +11,16 @@ export async function ListJobs(req: express.Request, res: express.Response): Pro
     }
 
     res.send({
-        data: jobs,
+        data: jobs.map(job => job.toAPI()),
         status: "OK",
-    });
+    } as ApiJobsResponse);
 
 }
 
 export async function KillJob(req: express.Request, res: express.Response): Promise<void> {
 
     const job = TwitchAutomatorJob.jobs.find(j => j.name === req.params.name);
+    const clear = req.query.clear;
 
     if (!job) {
         res.status(400).send({
@@ -29,11 +30,32 @@ export async function KillJob(req: express.Request, res: express.Response): Prom
         return;
     }
 
+    if (clear) {
+
+        const success = job.clear();
+
+        if (success) {
+            res.send({
+                status: "OK",
+                message: "Job cleared",
+            });
+        } else {
+            res.status(400).send({
+                status: "ERROR",
+                message: "Job could not be cleared.",
+            } as ApiErrorResponse);
+        }
+
+        return;
+
+    }
+
     const success = await job.kill();
 
     if (success) {
         res.send({
             status: "OK",
+            message: "Job killed",
         });
     } else {
         res.status(400).send({
@@ -41,4 +63,5 @@ export async function KillJob(req: express.Request, res: express.Response): Prom
             message: "Job could not be killed.",
         } as ApiErrorResponse);
     }
+
 }

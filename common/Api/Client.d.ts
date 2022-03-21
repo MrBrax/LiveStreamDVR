@@ -238,8 +238,9 @@ export type ApiChannelConfig = {
 
 export type ApiJob = {
     name: string;
-    pid: number;
-    status: number;
+    pid?: number;
+    status: number | false;
+    process_running: boolean;
 };
 
 export type ApiLogLine = {

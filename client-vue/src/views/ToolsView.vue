@@ -59,6 +59,9 @@
                         <td><!-- {{ job.status }}-->{{ job.status ? "Running" : "Unexpected exit" }}</td>
                         <td>
                             <a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name)" title="Kill job">
+                                <span class="icon"><fa icon="skull"></fa></span>
+                            </a>
+                            <a class="button is-danger is-small" v-if="job.status" @click="clearJob(job.name)" title="Clear job">
                                 <span class="icon"><fa icon="trash"></fa></span>
                             </a>
                         </td>
@@ -79,6 +82,10 @@ import ToolsVodDownloadForm from "@/components/forms/ToolsVodDownloadForm.vue";
 import ToolsChatDownloadForm from "@/components/forms/ToolsChatDownloadForm.vue";
 
 import type { ApiJob } from "@common/Api/Client";
+
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faSkull, faTrash } from "@fortawesome/free-solid-svg-icons";
+library.add(faSkull, faTrash);
 
 interface PayloadDump {
     headers: Record<string, string>;
@@ -117,6 +124,20 @@ export default defineComponent({
 
             this.$http
                 .delete(`/api/v0/jobs/${name}`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                })
+                .catch((err) => {
+                    console.error("tools jobs fetch error", err.response);
+                });
+        },
+        clearJob(name: string) {
+            if (!confirm(`Clear job "${name}? This does not necessarily kill the process."`)) return;
+
+            this.$http
+                .delete(`/api/v0/jobs/${name}?clear=1`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);

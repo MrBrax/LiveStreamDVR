@@ -8,6 +8,7 @@ import { parse } from "date-fns";
 import { ChildProcessWithoutNullStreams } from "child_process";
 import { EventEmitter } from "stream";
 import { TwitchWebhook } from "./TwitchWebhook";
+import { ApiJob } from "../../../common/Api/Client";
 
 export interface TwitchAutomatorJobJSON {
     name: string;
@@ -41,7 +42,7 @@ export class TwitchAutomatorJob extends EventEmitter {
     public pidfile: string | undefined;
     public pidfile_simple: string | undefined;
     public metadata: unknown | undefined;
-    public status: number | false | undefined;
+    public status: number | false = false;
     public error: number | undefined;
 
     public process: ChildProcessWithoutNullStreams | undefined;
@@ -456,6 +457,15 @@ export class TwitchAutomatorJob extends EventEmitter {
     onClose(code: number | null) {
         this.emit("close", code);
         this.code = code;
+    }
+
+    toAPI(): ApiJob {
+        return {
+            name: this.name || "",
+            pid: this.pid,
+            process_running: this.process_running,
+            status: this.status,
+        };
     }
 
 }
