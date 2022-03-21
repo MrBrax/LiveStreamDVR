@@ -527,6 +527,8 @@ export class TwitchHelper {
                 opts.push("-loglevel", "repeat+level+verbose");
             }
 
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Remuxing ${input} to ${output}`);
+
             const ffmpeg = spawn(ffmpeg_path, opts);
 
             let job: TwitchAutomatorJob;
@@ -562,8 +564,10 @@ export class TwitchHelper {
                 // const out_log = ffmpeg.stdout.read();
                 const success = fs.existsSync(output) && fs.statSync(output).size > 0;
                 if (code == 0) {
+                    TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Remuxed ${input} to ${output}`);
                     resolve({ code, success, stdout, stderr });
                 } else {
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to remux ${input} to ${output}`);
                     reject({ code, success, stdout, stderr });
                 }
             });

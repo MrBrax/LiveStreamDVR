@@ -814,8 +814,9 @@ export class TwitchVOD {
      * @param segment 
      */
     public addSegment(segment: string) {
-        console.debug(`Adding segment ${segment} to ${this.basename}`);
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Adding segment ${segment} to ${this.basename}`);
         this.segments_raw.push(segment);
+        this.parseSegments(this.segments_raw);
     }
 
     public rebuildSegmentList(): boolean {
