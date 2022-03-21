@@ -53,82 +53,36 @@ export class TwitchVODChapter {
 
     public raw_chapter: TwitchVODChapterJSON | undefined;
 
+    /**
+     * Started at date, offset and duration are calculated from this.
+     */
     public started_at!: Date;
 
     public offset?: number;
     public duration?: number;
 
+    /**
+     * @deprecated
+     */
     public strings: Record<string, string> = {};
 
-    public game?: TwitchGame;
     public game_id?: string;
-
-    /** Do not use for display */
-    // game_name?: string; // make dynamic
-
-    /** Do not use for display */
-    // box_art_url?: string; // make dynamic
+    public game?: TwitchGame;
 
     public title = "";
 
     public is_mature = false;
-    // online: boolean | undefined;
 
+    /**
+     * Twitch does not include viewer count in the EventSub response,
+     * so it has to be fetched from the GetStreams endpoint.
+     */
     public viewer_count?: number;
 
+    /**
+     * Was it added when the channel was online?
+     */
     public online = false;
-
-    // favourite: boolean | undefined;
-
-    /*
-    constructor(data: TwitchVODChapterJSON) {
-
-        this.box_art_url = data.box_art_url;
-        this.game_id = data.game_id;
-        this.game_name = data.game_name;
-        // this.duration = data.duration;
-        // this.offset = data.offset;
-        this.title = data.title;
-        this.is_mature = data.is_mature;
-        this.online = data.online;
-        this.started_at = parseISO(data.started_at);
-        this.viewer_count = data.viewer_count;
-
-        if (data.game_id) {
-            const game = TwitchGame.getGameDataFromCache(data.game_id);
-            if (game) {
-                this.game = game;
-            } else {
-                console.error(`Could not find game data for game_id: ${data.game_id}`);
-            }
-        } else {
-            console.error(chalk.red(`No game_id for chapter: ${data.title}`), data);
-        }
-
-        this.raw_chapter = data;
-
-    }
-    */
-
-    /*
-    getRawChapter(): TwitchVODChapterMinimalJSON {
-        if (!this.started_at) throw new Error("Can't get raw chapter: No datetime set");
-        // if (!this.game_id) throw new Error("Can't get raw chapter: No game_id set");
-        // if (!this.game_name) throw new Error("Can't get raw chapter: No game_name set");
-        if (!this.title) throw new Error("Can't get raw chapter: No title set");
-        return {
-            time: format(this.started_at, TwitchHelper.TWITCH_DATE_FORMAT),
-            dt_started_at: TwitchHelper.JSDateToPHPDate(this.started_at),
-            game_id: this.game_id || false,
-            game_name: this.game_name || "",
-            title: this.title,
-            is_mature: this.is_mature || false,
-            online: this.online || false,
-            viewer_count: this.viewer_count ?? undefined,
-        };
-    }
-    */
-
 
     toJSON(): TwitchVODChapterJSON {
         return {
@@ -145,7 +99,6 @@ export class TwitchVODChapter {
         };
     }
 
-    
     toAPI(): ApiVodChapter {
         return {
             title: this.title,
@@ -169,15 +122,6 @@ export class TwitchVODChapter {
     hasFavouriteGame() {
         return this.game && this.game.isFavourite();
     }
-
-    /*
-    let raw_chapter: TwitchVODChapterJSON = {
-                title: chapter.title ?? "",
-                time: format(chapter.datetime, TwitchHelper.TWITCH_DATE_FORMAT),
-                duration: chapter.duration ?? 0,
-            };
-            `*/
-
     
     static async fromJSON(data: TwitchVODChapterJSON): Promise<TwitchVODChapter> {
 

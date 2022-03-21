@@ -178,7 +178,7 @@ export class TwitchGame {
         if (!this.box_art_url) {
             return "";
         }
-        return this.box_art_url.replace("{width}", width.toString()).replace("{height}", height.toString());
+        return this.box_art_url.replace("{width}", width.toString()).replace("{height}", height.toString()); // does {width} have a % next to it?
     }
 
     public isFavourite(): boolean {
@@ -186,7 +186,12 @@ export class TwitchGame {
         return TwitchGame.getFavouriteGames().includes(this.id);
     }
 
-    public setFavourite(fav: boolean) {
+    /**
+     * Set game as favourite and save the database.
+     * 
+     * @param fav 
+     */
+    public setFavourite(fav: boolean): void {
         if (!this.id) return;
         if (fav) {
             if (!TwitchGame.favourite_games.includes(this.id)) {

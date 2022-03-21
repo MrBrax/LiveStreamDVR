@@ -587,12 +587,6 @@ export class TwitchAutomator {
         // end timestamp
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Add end timestamp for ${basename}`);
 
-        // todo: no hack
-        //let tmp_vod = await this.vod.refreshJSON();
-        //if (!tmp_vod) throw new Error('Failed to refresh JSON');
-        //this.vod = tmp_vod;
-
-        // $this->vod->ended_at = $this->getDateTime();
         this.vod.ended_at = new Date();
         this.vod.is_capturing = false;
         if (this.stream_resolution) this.vod.stream_resolution = this.stream_resolution;
@@ -796,9 +790,6 @@ export class TwitchAutomator {
                 cmd.push("best");
             }
 
-            // $this->info[] = 'Streamlink cmd: ' . implode(" ", $cmd);
-
-            // $this->vod = $this->vod->refreshJSON(); // @todo: fix
             this.vod.capture_started = new Date();
             this.vod.saveJSON("dt_capture_started set");
 
