@@ -3,11 +3,12 @@ import { TwitchHelper } from "./TwitchHelper";
 import { BaseConfigPath } from "./BaseConfig";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { ApiGame } from "../../../common/Api/Client";
+import { Games } from "../../../common/TwitchAPI/Games";
 
 interface TwitchGameJSON {
     name: string;
     box_art_url: string;
-    added: number; // 1/1000
+    added: string;
 }
 
 export class TwitchGame {
@@ -31,7 +32,7 @@ export class TwitchGame {
             game.id = id;
             game.name = raw_game.name;
             game.box_art_url = raw_game.box_art_url;
-            game.added = new Date( raw_game.added.toString().length <= 10 ? raw_game.added * 1000 : raw_game.added );
+            game.added = new Date(raw_game.added);
             this.game_db[id] = game;
         }
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Game database populated with ${Object.keys(this.game_db).length} games.`);
@@ -55,7 +56,7 @@ export class TwitchGame {
             TwitchLog.logAdvanced(LOGLEVEL.WARNING, "helper", `Game id ${game_id} not in cache.`);
             return null;
         }
-        
+
         return this.game_db[game_id];
     }
 
@@ -70,9 +71,11 @@ export class TwitchGame {
 
         if (cachedGame) {
             if (cachedGame && cachedGame.added && Date.now() > cachedGame.added.getTime() + (60 * 60 * 24 * 60 * 1000)) { // two months?
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} needs refreshing.`);
-            } else {
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} needs refreshing (${cachedGame.added.toISOString()}).`);
+            } else if (cachedGame && cachedGame.added) { // check if date is set
                 return this.game_db[game_id];
+            } else {
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} needs refreshing (no date set).`);
             }
         }
 
@@ -86,12 +89,12 @@ export class TwitchGame {
             return null;
         }
 
-        const json = response.data;
+        const json: Games = response.data;
 
         const game_data = json.data[0];
 
         if (game_data) {
-            
+
             /*
             const game = {
                 "id": game_id,
@@ -141,22 +144,27 @@ export class TwitchGame {
      * Save game data to cache.
      */
     public save() {
+
         if (!this.id) {
             throw new Error("Cannot save game without id!");
         }
+
         TwitchGame.game_db[this.id] = this;
 
         const json_db: Record<string, TwitchGameJSON> = {};
+
         for (const id in TwitchGame.game_db) {
             const game = TwitchGame.game_db[id];
             const json_game: TwitchGameJSON = {
                 name: game.name || "",
                 box_art_url: game.box_art_url || "",
-                added: game.added ? game.added.getTime() / 1000 : 0,
+                added: game.added.toISOString(),
             };
             json_db[id] = json_game;
         }
+
         fs.writeFileSync(BaseConfigPath.gameDb, JSON.stringify(json_db));
+
     }
 
     /**
@@ -206,7 +214,7 @@ export class TwitchGame {
             box_art_url: this.box_art_url || "",
             favourite: this.isFavourite(),
             image_url: this.getBoxArtUrl(140, 190),
-            added: this.added ? this.added.getTime() / 1000 : 0,
+            added: this.added.toISOString(),
         };
     }
 

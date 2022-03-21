@@ -1,4 +1,4 @@
-import { differenceInSeconds, format, parse, parseISO } from "date-fns";
+import { parse, parseISO } from "date-fns";
 import fs from "fs";
 import path from "path";
 import { MediaInfo } from "../../../common/mediainfofield";
@@ -444,12 +444,12 @@ export class TwitchVOD {
 
         if (data !== false) {
             // console.debug(`Got mediainfo of ${this.basename}`);
-            
+
             if (!data.general.Format || !data.general.Duration) {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Invalid mediainfo for ${this.basename}`);
                 return false;
             }
-            
+
             // use proxy type for mediainfo, can switch to ffprobe if needed
             this.video_metadata = {
 
@@ -814,23 +814,26 @@ export class TwitchVOD {
      * @param segment 
      */
     public addSegment(segment: string) {
+        console.debug(`Adding segment ${segment} to ${this.basename}`);
         this.segments_raw.push(segment);
     }
 
     public rebuildSegmentList(): boolean {
-        
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Rebuilding segment list for ${this.basename}`);
-        
-        const files = fs.readdirSync(this.directory).filter(file => file.endsWith(".mp4"));
 
-        if (!files || files.length == 0){
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Rebuilding segment list for ${this.basename}`);
+
+        const files = fs.readdirSync(this.directory).filter(file => file.startsWith(this.basename) && file.endsWith(".mp4"));
+
+        if (!files || files.length == 0) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No segments found for ${this.basename}, can't rebuild segment list`);
             return false;
         }
 
-        this.segments_raw = files.map(file => path.basename(file));
+        this.segments_raw = [];
         this.segments = [];
-        
+
+        files.forEach(file => this.addSegment(path.basename(file)));
+
         this.parseSegments(this.segments_raw);
         this.saveJSON("segments rebuild");
 
@@ -1175,7 +1178,7 @@ export class TwitchVOD {
 
         //file_put_contents(this.filename, json_encode(generated));
         // this.setPermissions();
-       
+
         this._writeJSON = true;
 
         fs.writeFileSync(this.filename, JSON.stringify(generated, null, 4));
@@ -1250,12 +1253,12 @@ export class TwitchVOD {
     }
 
     public archive(): void {
-        
+
         this.move(BaseConfigFolder.saved_vods);
 
         const channel = TwitchChannel.getChannelByLogin(this.streamer_login);
         if (channel) channel.removeVod(this.basename);
-        
+
     }
 
     public async checkValidVod(save = false, force = false): Promise<boolean | null> {
@@ -1404,6 +1407,13 @@ export class TwitchVOD {
 
     public async fixIssues() {
 
+        // if finalized but no segments
+        if (this.is_finalized && (!this.segments || this.segments.length === 0)) {
+            console.log(chalk.bgRed.whiteBright(`${this.basename} is finalized but no segments found, rebuilding!`));
+            this.rebuildSegmentList();
+            this.saveJSON("fix rebuild segment list");
+        }
+
         // finalize if finished converting and not yet finalized
         if (this.is_converted && !this.is_finalized && this.segments.length > 0) {
             console.log(chalk.bgBlue.whiteBright(`${this.basename} is finished converting but not finalized, finalizing now!`));
@@ -1425,12 +1435,6 @@ export class TwitchVOD {
             } else {
                 console.log(chalk.bgRed.whiteBright(`${this.basename} is not yet remuxed but no ts file found, skipping!`));
             }
-        }
-
-        if (this.is_finalized && (!this.segments || this.segments.length === 0)) {
-            console.log(chalk.bgRed.whiteBright(`${this.basename} is finalized but no segments found, rebuilding!`));
-            this.rebuildSegmentList();
-            this.saveJSON("fix rebuild segment list");
         }
 
         // add default chapter

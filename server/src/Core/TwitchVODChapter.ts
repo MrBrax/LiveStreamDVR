@@ -193,8 +193,6 @@ export class TwitchVODChapter {
         chapter.started_at = parseISO(data.started_at);
         chapter.viewer_count = data.viewer_count;
 
-        console.log("chapter started", chapter.started_at);
-
         if (data.game_id) {
             const game = await TwitchGame.getGameAsync(data.game_id);
             if (game) {
@@ -224,7 +222,7 @@ export class TwitchVODChapter {
 
         this.offset = (this.started_at.getTime() - vod_started_at.getTime()) / 1000;
 
-        console.debug(`Calculated duration and offset for chapter: ${this.title}`, this.offset, this.duration);
+        // console.debug(`Calculated duration and offset for chapter: ${this.title}`, this.offset, this.duration);
 
     }
 
