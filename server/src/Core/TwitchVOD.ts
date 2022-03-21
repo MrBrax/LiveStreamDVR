@@ -463,17 +463,17 @@ export class TwitchVOD {
                 height: parseInt(data.video.Height),
 
                 fps: parseInt(data.video.FrameRate),
-                fps_mode: data.video.FrameRate_Mode as any,
+                fps_mode: data.video.FrameRate_Mode as "VFR" | "CFR",
 
                 audio_codec: data.audio.Format,
                 audio_bitrate: parseInt(data.audio.BitRate),
-                audio_bitrate_mode: data.audio.BitRate_Mode as any,
+                audio_bitrate_mode: data.audio.BitRate_Mode as "VBR" | "CBR",
                 audio_sample_rate: parseInt(data.audio.SamplingRate),
                 audio_channels: parseInt(data.audio.Channels),
 
                 video_codec: data.video.Format,
                 video_bitrate: parseInt(data.video.BitRate),
-                video_bitrate_mode: data.video.BitRate_Mode as any,
+                video_bitrate_mode: data.video.BitRate_Mode as "VBR" | "CBR",
             };
 
             return this.video_metadata;
@@ -877,8 +877,6 @@ export class TwitchVOD {
             this.twitch_vod_exists = false;
             return false;
         }
-
-        let vod_id;
 
         for (const video of channel_videos) {
             const video_time = parse(video.created_at, TwitchHelper.TWITCH_DATE_FORMAT, new Date());

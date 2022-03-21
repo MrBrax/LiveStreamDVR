@@ -245,7 +245,7 @@ export interface VideoMetadata {
     height: number;
 
     fps: number;
-    fps_mode: "VBR" | "CBR";
+    fps_mode: "VFR" | "CFR";
 
     audio_codec: string;
     audio_bitrate: number;
