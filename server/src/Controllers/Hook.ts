@@ -152,7 +152,7 @@ export function Hook(req: express.Request, res: express.Response): void {
             }
 
             if (TwitchConfig.cfg<boolean>("debug") || TwitchConfig.cfg<boolean>("dump_payloads")) {
-                let payload_filename = new Date().toISOString().replace(/[-:.]/g, "_");
+                let payload_filename = new Date().toISOString().replace(/[-:.]/g, "_"); // @todo: replaceAll
                 if (data_json.subscription.type) payload_filename += `_${data_json.subscription.type}`;
                 payload_filename += ".json";
                 const payload_filepath = path.join(AppRoot, "payloads", payload_filename);

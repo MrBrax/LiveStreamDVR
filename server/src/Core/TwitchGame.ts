@@ -3,7 +3,7 @@ import { TwitchHelper } from "./TwitchHelper";
 import { BaseConfigPath } from "./BaseConfig";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { ApiGame } from "../../../common/Api/Client";
-import { Games } from "../../../common/TwitchAPI/Games";
+import { GamesResponse } from "../../../common/TwitchAPI/Games";
 
 interface TwitchGameJSON {
     name: string;
@@ -89,7 +89,7 @@ export class TwitchGame {
             return null;
         }
 
-        const json: Games = response.data;
+        const json: GamesResponse = response.data;
 
         const game_data = json.data[0];
 

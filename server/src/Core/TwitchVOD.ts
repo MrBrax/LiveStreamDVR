@@ -4,7 +4,7 @@ import path from "path";
 import { MediaInfo } from "../../../common/mediainfofield";
 import { VideoMetadata } from "../../../common/MediaInfo";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
-import { Video, Videos } from "../../../common/TwitchAPI/Video";
+import { Video, VideosResponse } from "../../../common/TwitchAPI/Video";
 import { VideoQuality } from "../../../common/Config";
 import { BaseConfigFolder } from "./BaseConfig";
 import { TwitchChannel } from "./TwitchChannel";
@@ -1715,7 +1715,7 @@ export class TwitchVOD {
             return false;
         }
 
-        const json: Videos = response.data;
+        const json: VideosResponse = response.data;
 
         if (json.data.length === 0) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Tried to get video id ${video_id} but got no data`);
@@ -1738,7 +1738,7 @@ export class TwitchVOD {
             return false;
         }
 
-        const json: Videos = response.data;
+        const json: VideosResponse = response.data;
 
         if (json.data.length === 0) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Tried to get videos for channel id ${channel_id} but got no data`);

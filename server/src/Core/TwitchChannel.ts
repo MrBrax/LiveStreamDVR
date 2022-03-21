@@ -9,7 +9,7 @@ import { SubStatus } from "../../../common/Defs";
 import type { ErrorResponse, EventSubTypes } from "../../../common/TwitchAPI/Shared";
 import type { Stream, StreamsResponse } from "../../../common/TwitchAPI/Streams";
 import type { SubscriptionRequest, SubscriptionResponse } from "../../../common/TwitchAPI/Subscriptions";
-import type { Users } from "../../../common/TwitchAPI/Users";
+import type { UsersResponse } from "../../../common/TwitchAPI/Users";
 import { BaseConfigPath } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchConfig } from "./TwitchConfig";
@@ -650,7 +650,7 @@ export class TwitchChannel {
             throw new Error(`Could not get channel data for ${identifier}, code ${response.status}.`);
         }
 
-        const json: Users | ErrorResponse = response.data;
+        const json: UsersResponse | ErrorResponse = response.data;
 
         if ("error" in json) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${identifier}: ${json.message}`);

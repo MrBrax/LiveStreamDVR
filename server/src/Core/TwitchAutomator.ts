@@ -50,7 +50,7 @@ export class TwitchAutomator {
     public basename() {
 
         // return $this->getLogin() . '_' . str_replace(':', '_', $this->getStartDate()) . '_' . $this->getVodID();
-        return this.getLogin() + "_" + this.getStartDate().replace(":", "_") + "_" + this.getVodID();
+        return this.getLogin() + "_" + this.getStartDate().replace(":", "_") + "_" + this.getVodID(); // @todo: replaceAll
     }
 
     public getVodID() {

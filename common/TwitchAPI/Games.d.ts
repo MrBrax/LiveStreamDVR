@@ -6,7 +6,7 @@ export interface Game {
     name: string;
 }
 
-export interface Games {
+export interface GamesResponse {
     data: Game[];
     pagination: Pagination;
 }

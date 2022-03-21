@@ -13,6 +13,6 @@ export interface User {
     created_at: string;
 }
 
-export interface Users {
+export interface UsersResponse {
     data: User[];
 }

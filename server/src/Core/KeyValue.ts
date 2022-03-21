@@ -14,7 +14,7 @@ export class KeyValue {
     // todo: redis or something
     static get(key: string): string | false {
 
-        key = key.replace(/\//g, "");
+        key = key.replace(/\//g, ""); // @todo: replaceAll
 
         return this.data[key] !== undefined ? this.data[key] : false;
 
@@ -22,7 +22,7 @@ export class KeyValue {
 
     static set(key: string, value: string | null) {
 
-        key = key.replace(/\//g, "");
+        key = key.replace(/\//g, ""); // @todo: replaceAll
 
         if (value === null) {
             this.delete(key);

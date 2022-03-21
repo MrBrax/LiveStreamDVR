@@ -211,6 +211,7 @@ export class TwitchConfig {
     static saveConfig(source = "unknown"): boolean {
 
         this._writeConfig = true;
+        console.debug("writeconfig start", Date.now());
 
         // back up config
         this.backupConfig();
@@ -221,6 +222,7 @@ export class TwitchConfig {
         console.log(`Saved config from ${source}`);
 
         this._writeConfig = false;
+        console.debug("writeconfig end", Date.now());
 
         return fs.existsSync(BaseConfigPath.config) && fs.statSync(BaseConfigPath.config).size > 0;
 
@@ -315,6 +317,7 @@ export class TwitchConfig {
         fs.watch(BaseConfigPath.config, (eventType, filename) => {
             if (TwitchConfig._writeConfig) return;
             console.log(`Config file changed: ${eventType} ${filename}`);
+            console.log("writeconfig check", Date.now());
             TwitchLog.logAdvanced(LOGLEVEL.WARNING, "config", "Config file changed externally");
             // TwitchConfig.loadConfig();
         });

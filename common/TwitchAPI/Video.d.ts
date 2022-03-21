@@ -25,7 +25,7 @@ export interface Video {
     muted_segments: MutedSegment[] | null;
 }
 
-export interface Videos {
+export interface VideosResponse {
     data: Video[];
     pagination: Pagination;
 }
