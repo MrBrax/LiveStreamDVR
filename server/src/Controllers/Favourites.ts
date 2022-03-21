@@ -1,6 +1,7 @@
 import { TwitchGame } from "../Core/TwitchGame";
 import express from "express";
 import { ApiFavouriteGamesResponse } from "../../../common/Api/Api";
+import { LOGLEVEL, TwitchLog } from "Core/TwitchLog";
 
 export function ListFavourites(req: express.Request, res: express.Response): void {
     res.send({
@@ -19,8 +20,11 @@ export function SaveFavourites(req: express.Request, res: express.Response): voi
 
     TwitchGame.saveFavouriteGames();
 
+    TwitchLog.logAdvanced(LOGLEVEL.INFO, "route.favourites.save", `Saved ${TwitchGame.favourite_games.length} favourite games.`);
+
     res.send({
         status: "OK",
+        message: `Saved ${TwitchGame.favourite_games.length} favourite games.`,
     });
 
 }

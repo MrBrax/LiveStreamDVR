@@ -12,6 +12,7 @@ import * as TwitchAPI from "../Controllers/TwitchAPI";
 import * as Hook from "../Controllers/Hook";
 import * as KeyValue from "../Controllers/KeyValue";
 import * as Debug from "../Controllers/Debug";
+import * as Favourites from "../Controllers/Favourites";
 import { TwitchVOD } from "../Core/TwitchVOD";
 
 const router = express.Router();
@@ -33,6 +34,10 @@ router.post("/vod/:basename/archive", Vod.ArchiveVod);
 // router.post("/vod/:basename/delete", Vod.DeleteVod); // old endpoint
 
 router.get("/games", Games.ListGames);
+
+router.get("/favourites", Favourites.ListFavourites);
+// router.post("/favourites", Favourites.AddFavourite);
+router.put("/favourites", Favourites.SaveFavourites);
 
 router.get("/about", About.About);
 

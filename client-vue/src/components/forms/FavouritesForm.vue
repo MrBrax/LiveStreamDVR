@@ -4,7 +4,7 @@
             <div v-for="game in sortedGames" :key="game.id" class="checkbox">
                 <label v-if="favouritesData">
                     <input type="checkbox" :name="game.id" :checked="favouritesData.includes(game.id)" value="1" /> {{ game.name }}
-                    <span class="is-gray">{{ formatTimestamp(game.added) }}</span>
+                    <span class="is-gray">{{ formatDate(game.added) }}</span>
                 </label>
             </div>
         </div>
@@ -61,6 +61,7 @@ export default defineComponent({
                     const json = response.data;
                     this.formStatusText = json.message;
                     this.formStatus = json.status;
+                    if (json.message) alert(json.message);
                     if (json.status == "OK") {
                         this.$emit("formSuccess", json);
                     }

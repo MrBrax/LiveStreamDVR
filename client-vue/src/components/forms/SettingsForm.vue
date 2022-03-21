@@ -136,6 +136,7 @@ export default defineComponent({
                     const json = response.data;
                     this.formStatusText = json.message;
                     this.formStatus = json.status;
+                    if (json.message) alert(json.message);
                     if (json.status == "OK") {
                         this.$emit("formSuccess", json);
                     }
