@@ -329,10 +329,10 @@ export class TwitchAutomatorJob extends EventEmitter {
         }
 
         // @todo: check if this works
-        // if (this.process && !use_command) {
-        //     this.status = this.process_running ? this.process.pid : false;
-        //     return this.process_running;
-        // }
+        if (this.process && !use_command) {
+            this.status = this.process_running && this.process.pid ? this.process.pid : false;
+            return this.process_running && this.process.pid ? this.process.pid : false;
+        }
 
         let output = "";
         if (TwitchHelper.is_windows()) {
@@ -342,6 +342,7 @@ export class TwitchAutomatorJob extends EventEmitter {
                 proc = await TwitchHelper.execSimple("tasklist", ["/FI", `PID eq ${this.pid}`], `windows process status (${this.name})`);
             } catch (e) {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for job ${this.name} (${this.process_running})`, this.metadata);
+                console.debug(`Error checking status for job ${this.name} (${this.process_running})`);
                 this.status = false;
                 return false;
             }
@@ -355,6 +356,7 @@ export class TwitchAutomatorJob extends EventEmitter {
                 proc = await TwitchHelper.execSimple("ps", ["-p", this.pid.toString()], `linux process status (${this.name})`);
             } catch (e) {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for job ${this.name} (${this.process_running})`, this.metadata);
+                console.debug(`Error checking status for job ${this.name} (${this.process_running})`);
                 this.status = false;
                 return false;
             }
@@ -376,10 +378,12 @@ export class TwitchAutomatorJob extends EventEmitter {
         */
         if (output.indexOf(this.pid.toString()) !== -1) {
             TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `PID file check for '${this.name}', process is running (${this.process_running})`);
+            console.debug(`PID file check for '${this.name}', process is running (${this.process_running})`);
             this.status = this.pid;
             return this.pid;
         } else {
             TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `PID file check for '${this.name}', process does not exist (${this.process_running})`);
+            console.debug(`PID file check for '${this.name}', process does not exist (${this.process_running})`);
             this.status = false;
             return false;
         }

@@ -461,7 +461,7 @@ export class TwitchAutomator {
         }
 
         // if running
-        const job = TwitchAutomatorJob.load(`capture_${basename}`);
+        const job = TwitchAutomatorJob.findJob(`capture_${basename}`);
         if (job && job.getStatus()) {
             const meta = job.metadata as {
                 login: string;

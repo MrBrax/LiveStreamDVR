@@ -29,8 +29,8 @@
 [x] GET /api/v0/settings
 [x] PUT /api/v0/settings
 
-[?] GET /api/v0/favourites
-[?] PUT /api/v0/favourites
+[x] GET /api/v0/favourites
+[x] PUT /api/v0/favourites
 
 [x] GET /api/v0/games
 
@@ -63,3 +63,4 @@
 
 [ ] record a stream
 [ ] delete vod from disk and handle
+[ ] integrate websocket server into ts-server?

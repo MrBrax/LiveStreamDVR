@@ -1406,6 +1406,11 @@ export class TwitchVOD {
 
     public async fixIssues() {
 
+        if (this.not_started) {
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD ${this.basename} not started yet, skipping fix!`);
+            return;
+        }
+
         // if finalized but no segments
         if (this.is_finalized && (!this.segments || this.segments.length === 0)) {
             console.log(chalk.bgRed.whiteBright(`${this.basename} is finalized but no segments found, rebuilding!`));
