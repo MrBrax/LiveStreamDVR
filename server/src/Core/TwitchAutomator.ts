@@ -22,6 +22,8 @@ import { MuteStatus } from "../../../common/Defs";
 import chalk from "chalk";
 import { Sleep } from "Helpers/Sleep";
 
+// import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
+
 export class TwitchAutomator {
     vod: TwitchVOD | undefined;
 
