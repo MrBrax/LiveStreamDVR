@@ -63,6 +63,7 @@ router.delete("/keyvalue/:key", KeyValue.DeleteKeyValue);
 
 router.get("/debug/vods", Debug.ListVodsInMemory);
 router.get("/debug/channels", Debug.ListChannelsInMemory);
+router.get("/debug/notify", Debug.NotifyTest);
 
 router.get("/test_video_download", (req, res) => {
     if (!req.query.video_id){

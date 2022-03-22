@@ -2,6 +2,8 @@ import { TwitchLog, LOGLEVEL } from "../Core/TwitchLog";
 import { MuteStatus } from "../../../common/Defs";
 import { generateStreamerList } from "../Helpers/StreamerList";
 import express from "express";
+import { ClientBroker } from "Core/ClientBroker";
+import { TwitchConfig } from "Core/TwitchConfig";
 
 export async function CheckDeletedVods(req: express.Request, res: express.Response): Promise<void> {
 
@@ -11,11 +13,11 @@ export async function CheckDeletedVods(req: express.Request, res: express.Respon
 
     let output = "";
 
-    for(const channel of streamerList.channels) {
+    for (const channel of streamerList.channels) {
 
         if (!channel.vods_list) continue;
 
-        for(const vod of channel.vods_list) {
+        for (const vod of channel.vods_list) {
 
             if (!vod.is_finalized) continue;
 
@@ -29,6 +31,11 @@ export async function CheckDeletedVods(req: express.Request, res: express.Respon
                 // notify
                 // $this->sendNotify("{$vod->basename} deleted");
                 output += `${vod.basename} deleted<br>\n`;
+
+                if (TwitchConfig.notificationCategories.vodDeleted) {
+                    ClientBroker.notify(`${vod.basename} deleted`);
+                }
+
                 // $this->addToNotifyCache("deleted_{$vod->basename}");
                 TwitchLog.logAdvanced(LOGLEVEL.INFO, "cron", "Cronjob deleted check: {$vod->basename} deleted");
             }
@@ -47,11 +54,11 @@ export async function CheckMutedVods(req: express.Request, res: express.Response
 
     let output = "";
 
-    for(const channel of streamerList.channels) {
+    for (const channel of streamerList.channels) {
 
         if (!channel.vods_list) continue;
 
-        for(const vod of channel.vods_list) {
+        for (const vod of channel.vods_list) {
 
             if (!vod.is_finalized) continue;
 
@@ -83,6 +90,11 @@ export async function CheckMutedVods(req: express.Request, res: express.Response
                 // notify
                 // $this->sendNotify("{$vod->basename} muted");
                 output += `${vod.basename} muted<br>\n`;
+
+                if (current_status !== check && TwitchConfig.notificationCategories.vodMuted) {
+                    ClientBroker.notify(`${vod.basename} muted`);
+                }
+
                 // $this->addToNotifyCache("mute_{$vod->basename}");
                 TwitchLog.logAdvanced(LOGLEVEL.INFO, "cron", `Cronjob mute check: ${vod.basename} muted`);
             } else if (check == MuteStatus.UNMUTED) {

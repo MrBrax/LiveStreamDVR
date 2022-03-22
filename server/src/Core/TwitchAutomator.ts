@@ -21,6 +21,7 @@ import { TwitchWebhook } from "./TwitchWebhook";
 import { MuteStatus } from "../../../common/Defs";
 import chalk from "chalk";
 import { Sleep } from "Helpers/Sleep";
+import { ClientBroker } from "./ClientBroker";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
@@ -112,6 +113,8 @@ export class TwitchAutomator {
         this.broadcaster_user_login = event.broadcaster_user_login;
         this.broadcaster_user_name = event.broadcaster_user_name;
 
+        const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
+
         if (subscription_type === "channel.update") {
 
             // check if channel is in config, copypaste
@@ -166,46 +169,28 @@ export class TwitchAutomator {
                 return false;
             }
 
+            if (TwitchConfig.notificationCategories.streamOnline && channel) {
+                ClientBroker.notify(
+                    `${this.broadcaster_user_login} is live!`,
+                    "",
+                    channel.profile_image_url
+                );
+            }
+
             await this.download();
 
-            /*
-            if (fs.existsSync(path.join(folder_base, `${basename}.json`))) {
-
-                const vodclass = await TwitchVOD.load(path.join(folder_base, `${basename}.json`));
-                if (vodclass) {
-
-                    if (vodclass.is_finalized) {
-                        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `VOD is finalized, but wanted more info on ${basename} (retry ${message_retry})`);
-                    } else if (vodclass.is_capturing) {
-                        // $this->updateGame();
-                        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `VOD exists and is still capturing on ${basename} (retry ${message_retry})`);
-                    } else {
-                        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `VOD exists but isn't capturing anymore on ${basename} (retry ${message_retry})`);
-                    }
-                } else {
-                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Could not load VOD in handle for ${basename} (retry ${message_retry})`);
-                }
-                /*
-                if (!file_exists($folder_base . DIRECTORY_SEPARATOR . $basename . '.ts')) {
-
-                    // $this->notify($basename, 'VOD JSON EXISTS BUT NOT VIDEO', self::NOTIFY_ERROR);
-                    TwitchHelper.log(LOGLEVEL.ERROR, "VOD JSON exists but not video on " . $basename);
-
-                    $this->download($data);
-                } else {
-
-                    $this->updateGame($data);
-                }
-                *
-            } else {
-
-                await this.download();
-            }
-            */
         } else if (subscription_type == "stream.offline") {
 
             KeyValue.set(`${this.broadcaster_user_login}.last.offline`, new Date().toISOString());
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Stream offline for ${this.broadcaster_user_login}`);
+
+            if (TwitchConfig.notificationCategories.streamOffline && channel) {
+                ClientBroker.notify(
+                    `${this.broadcaster_user_login} has gone offline!`,
+                    "",
+                    channel.profile_image_url
+                );
+            }
 
             // KeyValue.set("${this.broadcaster_user_login}.online", "0");
             KeyValue.set(`${this.broadcaster_user_login}.online`, null);
@@ -290,6 +275,11 @@ export class TwitchAutomator {
                 `Game updated on '${this.broadcaster_user_login}' to '${event.category_name}' (${event.title}) using ${from_cache ? "cache" : "notification"}.`
             );
 
+            const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
+            if (TwitchConfig.notificationCategories.streamStatusChange && channel) {
+                // ClientBroker.notify(); // @todo: compose message from previous and current game, favorite, etc.
+            }
+
             return true;
 
         } else {
@@ -307,6 +297,17 @@ export class TwitchAutomator {
             const event = this.payload_eventsub.event;
             KeyValue.set(`${this.broadcaster_user_login}.channeldata`, JSON.stringify(this.payload_eventsub.event));
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, saving channel data to cache: ${event.category_name} (${event.title})`);
+
+            if (TwitchConfig.notificationCategories.offlineStatusChange) {
+                const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
+                if (channel) {
+                    ClientBroker.notify(
+                        `Offline channel ${this.broadcaster_user_login} changed status`,
+                        `${event.category_name} (${event.title})`,
+                        channel.profile_image_url
+                    );
+                }
+            }
 
             const chapter_data = await this.getChapterData(event);
             chapter_data.online = false;

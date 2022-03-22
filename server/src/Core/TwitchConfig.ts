@@ -102,6 +102,15 @@ export class TwitchConfig {
         { "key": "dump_payloads", "group": "Advanced", "text": "Dump payloads", "type": "boolean", "default": false },
     ];
 
+    static notificationCategories: Record<string, boolean> = {
+        offlineStatusChange: true,
+        streamOnline: true,
+        streamOffline: true,
+        streamStatusChange: true,
+        vodMuted: true,
+        vodDeleted: true,
+    };
+
     static cfg<T>(key: string, defaultValue?: T): T {
 
         if (!this.config) {

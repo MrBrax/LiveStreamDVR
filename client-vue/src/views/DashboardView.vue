@@ -242,7 +242,10 @@ export default defineComponent({
                     return;
                 }
 
-                let json;
+                let json: {
+                    action: string;
+                    data: any;
+                };
 
                 try {
                     json = JSON.parse(text);
@@ -251,7 +254,7 @@ export default defineComponent({
                     return;
                 }
 
-                const action = json.data.action;
+                const action = json.action;
 
                 if (action) {
                     const downloader_actions = [
@@ -263,23 +266,25 @@ export default defineComponent({
                         "end_convert",
                         "chapter_update",
                     ];
+
                     const job_actions = ["job_save", "job_clear"];
+
                     if (downloader_actions.indexOf(action) !== -1) {
                         console.log("Websocket update");
-                        // const vod = json.data.vod;
+
                         this.fetchStreamers().then((sl) => {
                             if ("streamer_list" in sl) this.store.updateStreamerList(sl.streamer_list);
                             this.loading = false;
                         });
-
-                        // this.fetchLog();
                     } else if (job_actions.indexOf(action) !== -1) {
                         console.log(`Websocket jobs update: ${action}`, json.data.job_name, json.data.job);
                         this.fetchJobs();
                     } else if (action == "notify") {
-                        // alert(json.data.text);
-                        const toast = new Notification(json.data.text);
-                        console.log(`Notify: ${json.data.text}`, toast);
+                        const toast = new Notification(json.data.title, {
+                            body: json.data.body,
+                            icon: json.data.icon,
+                        });
+                        console.log(`Notify: ${json.data.title}: ${json.data.body}`);
                     } else if (action == "init") {
                         const toast = new Notification("Server connected to broker");
                         console.log("Init", toast);
@@ -290,12 +295,14 @@ export default defineComponent({
                     console.log(`Websocket unknown data`, json.data);
                 }
             };
+
             this.ws.onerror = (ev: Event) => {
                 console.error(`Websocket error!`, ev);
                 this.wsConnected = false;
                 this.wsConnecting = false;
                 clearInterval(this.wsKeepalive);
             };
+
             this.ws.onclose = (ev: CloseEvent) => {
                 console.log(`Disconnected from websocket! (${ev.code}/${ev.reason})`);
                 this.wsConnecting = false;
@@ -307,6 +314,7 @@ export default defineComponent({
                 this.wsConnected = false;
                 clearInterval(this.wsKeepalive);
             };
+
             return this.ws;
         },
         disconnectWebsocket() {

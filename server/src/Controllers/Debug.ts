@@ -1,3 +1,4 @@
+import { ClientBroker } from "Core/ClientBroker";
 import { TwitchChannel } from "Core/TwitchChannel";
 import { TwitchVOD } from "Core/TwitchVOD";
 import express from "express";
@@ -14,4 +15,9 @@ export function ListChannelsInMemory(req: express.Request, res: express.Response
         status: "OK",
         data: TwitchChannel.channels,
     });
+}
+
+export function NotifyTest(req: express.Request, res: express.Response): void {
+    ClientBroker.notify(req.query.title as string, req.query.body as string);
+    res.send("OK");
 }

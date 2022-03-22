@@ -114,4 +114,23 @@ export class ClientBroker {
         });
     }
 
+    /**
+     * Send a notification to all browsers/clients
+     * 
+     * @param title 
+     * @param body 
+     * @param icon 
+     */
+    static notify(title: string, body = "", icon = ""){
+        console.log(chalk.bgBlue.whiteBright(`Notifying clients: ${title}: ${body}`));
+        this.broadcast({
+            action: "notify",
+            data: {
+                title: title,
+                body: body,
+                icon: icon,
+            },
+        });
+    }
+
 }

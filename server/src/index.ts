@@ -99,19 +99,8 @@ TwitchConfig.init().then(() => {
         }
     });
 
+    // start websocket server and attach broker
     const websocketServer = new WebSocket.Server({ server, path: "/socket/" });
-
-    // const broker = new ClientBroker(websocketServer);
     ClientBroker.attach(websocketServer);
-
-    /*
-    websocketServer.on("connection", (ws) => {
-        console.log(chalk.bgBlue.greenBright("🦄 WebSocket connection established."));
-        ws.on("message", (msg) => {
-            console.log(msg.toString());
-        });
-    });
-    */
-
 
 });
