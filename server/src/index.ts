@@ -1,5 +1,4 @@
 import chalk from "chalk";
-// import history from "connect-history-api-fallback";
 import fs from "fs";
 import express from "express";
 import morgan from "morgan";
