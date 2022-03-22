@@ -192,7 +192,7 @@ export class TwitchVOD {
      * Set up user data
      * Requires JSON to be loaded
      */
-    public async setupUserData() {
+    public async setupUserData(): Promise<void> {
 
         if (!this.json) {
             throw new Error("No JSON loaded for user data setup!");
@@ -207,7 +207,7 @@ export class TwitchVOD {
      * Set up provider related data
      * Requires JSON to be loaded
      */
-    public setupProvider() {
+    public setupProvider(): void {
 
         if (!this.json) {
             throw new Error("No JSON loaded for provider setup!");
@@ -264,7 +264,7 @@ export class TwitchVOD {
      * Set up misc data
      * Requires JSON to be loaded
      */
-    public async setupAssoc() {
+    public async setupAssoc(): Promise<void> {
 
         if (!this.json) {
             throw new Error("No JSON loaded for assoc setup!");
@@ -307,7 +307,7 @@ export class TwitchVOD {
      * Get duration from the start of the broadcast
      * @returns
      */
-    public getDurationLive() {
+    public getDurationLive(): number | false {
         // if (!$this->dt_started_at) return false;
         // $now = new \DateTime();
         // return abs($this->dt_started_at->getTimestamp() - $now->getTimestamp());
@@ -316,17 +316,6 @@ export class TwitchVOD {
         return Math.abs((this.started_at.getTime() - now.getTime()) / 1000);
     }
 
-    /*
-    public function getWebhookDuration()
-    {
-        if ($this->dt_started_at && $this->dt_ended_at) {
-            $diff = $this->dt_started_at->diff($this->dt_ended_at);
-            return $diff->format('%H:%I:%S');
-        } else {
-            return null;
-        }
-    }
-    */
     public getWebhookDuration(): string | undefined {
         if (this.started_at && this.ended_at) {
             // format is H:i:s
@@ -489,7 +478,7 @@ export class TwitchVOD {
         return path.normalize(expanded_path);
     }
 
-    public setupFiles() {
+    public setupFiles(): void {
 
         if (!this.directory) {
             throw new Error("No directory set!");
@@ -538,7 +527,7 @@ export class TwitchVOD {
         return this.chapters[this.chapters.length - 1].game;
     }
 
-    get associatedFiles() {
+    get associatedFiles(): string[] {
 
         if (!this.directory) return [];
 
@@ -699,7 +688,7 @@ export class TwitchVOD {
     //     return raw_chapters;
     // }
 
-    public addChapter(chapter: TwitchVODChapter) {
+    public addChapter(chapter: TwitchVODChapter): void {
         this.chapters.push(chapter);
         this.chapters_raw.push(chapter.toJSON()); // needed?
         this.calculateChapters();
@@ -739,7 +728,7 @@ export class TwitchVOD {
 
     }
 
-    public async generateDefaultChapter() {
+    public async generateDefaultChapter(): Promise<void> {
         if (!this.started_at) return;
         const chapter = await TwitchVODChapter.fromJSON({
             "title": this.json?.twitch_vod_title ?? "Unknown title",
@@ -751,7 +740,7 @@ export class TwitchVOD {
         this.addChapter(chapter);
     }
 
-    public parseSegments(array: string[]) {
+    public parseSegments(array: string[]): false | undefined {
 
         if (!this.directory) {
             throw new Error("TwitchVOD.parseSegments: directory is not set");
@@ -813,12 +802,16 @@ export class TwitchVOD {
      * @todo basename or full path?
      * @param segment 
      */
-    public addSegment(segment: string) {
+    public addSegment(segment: string): void {
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Adding segment ${segment} to ${this.basename}`);
         this.segments_raw.push(segment);
         this.parseSegments(this.segments_raw);
     }
 
+    /**
+     * Rebuild segment list from video files named as basename and parse it
+     * @returns 
+     */
     public rebuildSegmentList(): boolean {
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Rebuilding segment list for ${this.basename}`);
@@ -847,7 +840,7 @@ export class TwitchVOD {
      * @todo save?
      * @returns 
      */
-    public async finalize() {
+    public async finalize(): Promise<boolean> {
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Finalize ${this.basename} @ ${this.directory}`);
 
         if (this.path_playlist && fs.existsSync(this.path_playlist)) {
@@ -864,7 +857,7 @@ export class TwitchVOD {
         return true;
     }
 
-    public async matchProviderVod() {
+    public async matchProviderVod(): Promise<boolean | undefined> {
         if (this.twitch_vod_id) return;
         if (this.is_capturing || this.is_converting) return;
         if (!this.started_at) return;
@@ -909,10 +902,8 @@ export class TwitchVOD {
 
     }
 
+    public saveLosslessCut(): boolean {
 
-
-
-    public saveLosslessCut() {
         if (!this.directory) {
             throw new Error("TwitchVOD.saveLosslessCut: directory is not set");
         }
@@ -1052,20 +1043,6 @@ export class TwitchVOD {
         };
     }
 
-    /*
-    public toJSON(): TwitchVODJSON {
-        return {
-            version: 2,
-            capture_id: this.capture_id,
-            stream_resolution: this.stream_resolution,
-            streamer_name: this.streamer_name,
-            streamer_id: this.streamer_id,
-            streamer_login: this.streamer_login,
-            chapters: this.chapters.map((chapter) => chapter.toJSON()),
-        };
-    }
-    */
-
     public async getChatDumpStatus(): Promise<number | false> {
         const job = TwitchAutomatorJob.findJob(`chatdump_${this.basename}`);
         return job ? await job.getStatus() : false;
@@ -1088,7 +1065,7 @@ export class TwitchVOD {
         return fs.statSync(filename).size;
     }
 
-    public saveJSON(reason = "") {
+    public saveJSON(reason = ""): false | TwitchVODJSON {
 
         if (!this.filename) {
             throw new Error("Filename not set.");
@@ -1401,10 +1378,9 @@ export class TwitchVOD {
         if (!this.directory) throw new Error("No directory!");
 
         return await TwitchVOD.downloadVideo(this.twitch_vod_id.toString(), quality, path.join(this.directory, this.basename + "_vod.mp4")) != false;
-
     }
 
-    public async fixIssues() {
+    public async fixIssues(): Promise<void> {
 
         if (this.not_started) {
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD ${this.basename} not started yet, skipping fix!`);
@@ -1447,6 +1423,8 @@ export class TwitchVOD {
             await this.generateDefaultChapter();
             this.saveJSON("fix chapters");
         }
+
+        return;
 
     }
 
@@ -1614,7 +1592,7 @@ export class TwitchVOD {
      * @throws
      * @returns 
      */
-    public static async downloadVideo(video_id: string, quality: VideoQuality = "best", filename: string) {
+    public static async downloadVideo(video_id: string, quality: VideoQuality = "best", filename: string): Promise<string | false> {
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", `Download VOD ${video_id}`);
 
@@ -1731,7 +1709,7 @@ export class TwitchVOD {
 
     }
 
-    static async getVideos(channel_id: string) {
+    static async getVideos(channel_id: string): Promise<false | Video[]> {
         if (!channel_id) throw new Error("No channel id");
 
         let response;
@@ -1753,7 +1731,7 @@ export class TwitchVOD {
         return json.data;
     }
 
-    static cleanLingeringVODs() {
+    static cleanLingeringVODs(): void {
         this.vods.forEach((vod, index) => {
             const channel = TwitchChannel.getChannelByLogin(vod.streamer_login);
             if (!channel) {

@@ -21,7 +21,7 @@ export class TwitchGame {
     public box_art_url!: string;
     public added!: Date;
 
-    public static populateGameDatabase() {
+    public static populateGameDatabase(): void {
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Populating game database...");
         this.game_db = {};
         const raw_games: Record<string, TwitchGameJSON> = JSON.parse(fs.readFileSync(BaseConfigPath.gameDb, "utf8"));
@@ -38,7 +38,7 @@ export class TwitchGame {
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Game database populated with ${Object.keys(this.game_db).length} games.`);
     }
 
-    public static populateFavouriteGames() {
+    public static populateFavouriteGames(): void {
         if (!fs.existsSync(BaseConfigPath.favouriteGames)) {
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Favourite games file not found, creating...");
             fs.writeFileSync(BaseConfigPath.favouriteGames, "[]");
@@ -143,7 +143,7 @@ export class TwitchGame {
     /**
      * Save game data to cache.
      */
-    public save() {
+    public save(): void {
 
         if (!this.id) {
             throw new Error("Cannot save game without id!");
@@ -206,7 +206,7 @@ export class TwitchGame {
         TwitchGame.saveFavouriteGames();
     }
 
-    public static saveFavouriteGames() {
+    public static saveFavouriteGames(): void {
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Saving favourite games...");
         fs.writeFileSync(BaseConfigPath.favouriteGames, JSON.stringify(TwitchGame.favourite_games));
     }

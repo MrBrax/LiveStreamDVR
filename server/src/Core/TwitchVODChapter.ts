@@ -84,7 +84,7 @@ export class TwitchVODChapter {
      */
     public online = false;
 
-    toJSON(): TwitchVODChapterJSON {
+    public toJSON(): TwitchVODChapterJSON {
         return {
             started_at: this.started_at.toISOString(),
             game_id: this.game_id ?? undefined,
@@ -99,7 +99,7 @@ export class TwitchVODChapter {
         };
     }
 
-    toAPI(): ApiVodChapter {
+    public toAPI(): ApiVodChapter {
         return {
             title: this.title,
 
@@ -119,8 +119,8 @@ export class TwitchVODChapter {
         };
     }
 
-    hasFavouriteGame() {
-        return this.game && this.game.isFavourite();
+    public hasFavouriteGame(): boolean {
+        return this.game !== undefined && this.game.isFavourite();
     }
     
     static async fromJSON(data: TwitchVODChapterJSON): Promise<TwitchVODChapter> {
@@ -156,7 +156,7 @@ export class TwitchVODChapter {
 
     }
 
-    calculateDurationAndOffset(vod_started_at: Date, vod_ended_at: Date | undefined, next_chapter_started_at: Date | undefined) {
+    public calculateDurationAndOffset(vod_started_at: Date, vod_ended_at: Date | undefined, next_chapter_started_at: Date | undefined): void {
 
         if (next_chapter_started_at) {
             this.duration = (next_chapter_started_at.getTime() - this.started_at.getTime()) / 1000;
@@ -170,7 +170,7 @@ export class TwitchVODChapter {
 
     }
 
-    getBoxArtUrl(width = 140, height = 190): string {
+    public getBoxArtUrl(width = 140, height = 190): string {
         if (!this.game) return "";
         return this.game.getBoxArtUrl(width, height);
     }

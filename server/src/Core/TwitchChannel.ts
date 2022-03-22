@@ -19,7 +19,6 @@ import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 
-
 export class TwitchChannel {
 
     static channels: TwitchChannel[] = [];
@@ -68,37 +67,17 @@ export class TwitchChannel {
 
     public vods_raw: string[] = [];
     public vods_list: TwitchVOD[] = [];
-    // public vods_size = 0;
 
     public subbed_at: Date | undefined;
     public expires_at: Date | undefined;
     public last_online: Date | undefined;
 
-    // public current_vod: TwitchVOD | undefined;
-
-    // public ?bool is_live = false;
-    // public ?bool is_converting = false;
-    // public ?TwitchVOD current_vod = null;
-    // public ?array current_game = null;
     // public ?int current_duration = null;
-    //
-    // public ?\DateTime subbed_at = null;
-    // public ?\DateTime expires_at = null;
-    // public ?\DateTime last_online = null;
-    //
-    // /** @var TwitchVOD[] */
-    // public array vods_list = [];
-    //
-    // public array vods_raw = [];
-    // public int vods_size = 0;
-    //
     // public bool deactivated = false;
-    //
-    // public ?bool api_getSubscriptionStatus = null;
 
     public deactivated = false;
 
-    applyConfig(channel_config: ChannelConfig) {
+    applyConfig(channel_config: ChannelConfig): void {
         this.quality = channel_config.quality !== undefined ? channel_config.quality : ["best"];
         this.match = channel_config.match !== undefined ? channel_config.match : [];
         this.download_chat = channel_config.download_chat !== undefined ? channel_config.download_chat : false;
@@ -115,7 +94,7 @@ export class TwitchChannel {
         return TwitchHelper.vodFolder(this.login);
     }
 
-    private async parseVODs(api = false) {
+    private async parseVODs(api = false): Promise<void> {
 
         // $this->vods_raw = glob($this->getFolder() . DIRECTORY_SEPARATOR . $this->login . "_*.json");
         this.vods_raw = fs.readdirSync(this.getFolder()).filter(file => file.startsWith(this.login + "_") && file.endsWith(".json"));
@@ -162,7 +141,7 @@ export class TwitchChannel {
         }
     }
 
-    public getSubscriptionStatus() {
+    public getSubscriptionStatus(): boolean {
         for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
             if (KeyValue.get(`${this.userid}.substatus.${sub_type}`) != SubStatus.SUBSCRIBED) {
                 return false;
@@ -232,7 +211,7 @@ export class TwitchChannel {
         return false;
     }
 
-    public delete() {
+    public delete(): boolean {
 
         const login = this.login;
         if (!login) throw new Error("Channel login is not set");
@@ -454,7 +433,7 @@ export class TwitchChannel {
     /**
      * Load channel config into memory, not the channels themselves.
      */
-    public static loadChannelsConfig() {
+    public static loadChannelsConfig(): boolean {
 
         if (!fs.existsSync(BaseConfigPath.channel)) {
             return false;
@@ -481,9 +460,11 @@ export class TwitchChannel {
             this.saveChannelsConfig();
         }
 
+        return true;
+
     }
 
-    public static saveChannelsConfig() {
+    public static saveChannelsConfig(): boolean {
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", "Saving channel config");
         fs.writeFileSync(BaseConfigPath.channel, JSON.stringify(this.channels_config, null, 4));
         return fs.existsSync(BaseConfigPath.channel) && fs.readFileSync(BaseConfigPath.channel, "utf8") === JSON.stringify(this.channels_config, null, 4);
@@ -492,7 +473,7 @@ export class TwitchChannel {
     /**
      * Load channel cache into memory, like usernames and id's.
      */
-    public static loadChannelsCache() {
+    public static loadChannelsCache(): boolean {
         if (!fs.existsSync(BaseConfigPath.streamerCache)) return false;
 
         const data = fs.readFileSync(BaseConfigPath.streamerCache, "utf8");
@@ -801,8 +782,6 @@ export class TwitchChannel {
         return unsubbed === subscriptions.data.length;
 
     }
-
-
 
     public static async getSubscriptionId(channel_id: string, sub_type: EventSubTypes): Promise<string | false> {
         const all_subs = await TwitchHelper.getSubs();

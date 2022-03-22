@@ -73,7 +73,7 @@ export class TwitchAutomatorJob extends EventEmitter {
     public static async checkStaleJobs() {
         // const now = new Date();
         for (const job of this.jobs) {
-            if (await job.getStatus() == false) {
+            if (await job.getStatus(true) == false) {
                 TwitchLog.logAdvanced(LOGLEVEL.WARNING, "job", `Job ${job.name} is stale, no process found. Clearing.`);
                 job.clear();
             } else {
@@ -169,9 +169,9 @@ export class TwitchAutomatorJob extends EventEmitter {
     /**
      * Save to disk, like when the process starts
      *
-     * @return bool
+     * @return {boolean} Success
      */
-    save() {
+    public save(): boolean {
         if (!this.pidfile) {
             throw new Error("pidfile not set");
         }
@@ -207,9 +207,9 @@ export class TwitchAutomatorJob extends EventEmitter {
     /**
      * Remove from disk, like when the process quits
      *
-     * @return bool success
+     * @return {boolean} Success
      */
-    clear() {
+    public clear(): boolean {
         // if (this.process) {
         // 	this.process = null;
         // }
@@ -247,10 +247,10 @@ export class TwitchAutomatorJob extends EventEmitter {
     /**
      * Set process PID
      *
-     * @param int $pid
+     * @param {number} pid
      * @return void
      */
-    setPid(pid: number) {
+    public setPid(pid: number): void {
         this.emit("pid_set", this.pid, pid);
         this.pid = pid;
         TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Set PID ${pid} for job ${this.name}`, this.metadata);
@@ -259,22 +259,19 @@ export class TwitchAutomatorJob extends EventEmitter {
     /**
      * Get process PID
      *
-     * @return int Process ID
+     * @return {(number|undefined)} Process ID
      */
-    getPid() {
-        // if (!$this->pid) {
-        // 	$this->load();
-        // }
+    public getPid(): number | undefined {
         return this.pid;
     }
 
     /**
      * Attach process to job, possibly avoiding the need to check running processes
      *
-     * @param Process $process
+     * @param {Process} process Process to attach
      * @return void
      */
-    setProcess(process: ChildProcessWithoutNullStreams): void {
+    public setProcess(process: ChildProcessWithoutNullStreams): void {
         this.emit("process_set", this.process, process);
         this.process = process;
         TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Set process for job ${this.name}`, this.metadata);
@@ -307,10 +304,10 @@ export class TwitchAutomatorJob extends EventEmitter {
     /**
      * Attach metadata
      *
-     * @param array $metadata
-     * @return void
+     * @param {any} metadata An object or array or any other data to attach
+     * @return {void}
      */
-    setMetadata(metadata: unknown): void {
+    public setMetadata(metadata: unknown): void {
         this.emit("metadata_set", this.metadata, metadata);
         this.metadata = metadata;
     }
@@ -318,9 +315,11 @@ export class TwitchAutomatorJob extends EventEmitter {
     /**
      * Get running status of job, PID if running.
      *
-     * @return int|false
+     * @param {boolean} use_command Use command to check if running, instead of relying on events.
+     * @throws {Error}
+     * @returns {(int|false)} PID if running, false if not.
      */
-    async getStatus(use_command = false): Promise<number | false> {
+    public async getStatus(use_command = false): Promise<number | false> {
 
         TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Check status for job ${this.name}`, this.metadata);
 
@@ -391,9 +390,11 @@ export class TwitchAutomatorJob extends EventEmitter {
 
     /**
      * Quit the process via PID
-     *
+     * 
+     * @param {NodeJS.Signals} method Method to use to quit process
+     * @returns {Promise<false|ExecReturn>} False if no PID set, otherwise the result of the quit command
      */
-    async kill(method: NodeJS.Signals = "SIGTERM"): Promise<false | ExecReturn> {
+    public async kill(method: NodeJS.Signals = "SIGTERM"): Promise<false | ExecReturn> {
         if (this.process) {
             this.process.kill(method);
         }
@@ -419,7 +420,12 @@ export class TwitchAutomatorJob extends EventEmitter {
         }
     }
 
-    startLog(filename: string, start_text: string): void {
+    /**
+     * Start logging to file from the attached process
+     * @param filename 
+     * @param start_text 
+     */
+    public startLog(filename: string, start_text: string): void {
 
         const logs_path = path.join(BaseConfigFolder.logs, "software");
 
@@ -450,7 +456,10 @@ export class TwitchAutomatorJob extends EventEmitter {
         }
     }
 
-    stopLog() {
+    /**
+     * Stop logging to file from the attached process
+     */
+    public stopLog() {
         if (this.process) {
             TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Detach log for job ${this.name} from process`, this.metadata);
             this.process.stdout.removeAllListeners();
@@ -458,12 +467,12 @@ export class TwitchAutomatorJob extends EventEmitter {
         }
     }
 
-    onClose(code: number | null) {
+    public onClose(code: number | null) {
         this.emit("close", code);
         this.code = code;
     }
 
-    toAPI(): ApiJob {
+    public toAPI(): ApiJob {
         return {
             name: this.name || "",
             pid: this.pid,

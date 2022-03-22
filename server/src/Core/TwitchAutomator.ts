@@ -847,7 +847,7 @@ export class TwitchAutomator {
 
             // critical end
             capture_process.on("close", (code, signal) => {
-                TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Job ${jobName} exited with code ${code}`);
+                TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Job ${jobName} exited with code ${code}, signal ${signal}`);
 
                 clearInterval(keepalive);
 
