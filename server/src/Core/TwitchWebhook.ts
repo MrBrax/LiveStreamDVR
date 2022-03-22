@@ -4,6 +4,7 @@ import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import WebSocket from "ws";
 import chalk from "chalk";
+import { ClientBroker } from "./ClientBroker";
 
 export type WebhookAction =
     "chapter_update" |
@@ -64,7 +65,7 @@ export type WebhookData =
 export class TwitchWebhook {
 
     // dispatch function, infer data type from action
-    static dispatch(action: WebhookAction, data: WebhookData): Promise<boolean> {
+    static dispatch(action: WebhookAction, data: WebhookData): void {
         
         // console.log("Webhook:", action, data);
 
@@ -81,22 +82,30 @@ export class TwitchWebhook {
             $websocket_url = $local_websocket_url;
         }
         */
+
+        /*
         const public_websocket_url = TwitchConfig.cfg<string>("websocket_server_address") ?? TwitchConfig.cfg<string>("app_url").replace(/https?/, "ws") + "/socket/";
         const docker_websocket_url = "ws://broker:8765/socket/";
         const local_websocket_url = "ws://localhost:8765/socket/";
         let websocket_url = process.env.TCD_DOCKER === "1" ? docker_websocket_url : public_websocket_url;
 
-        /** @todo: developement instead of debug */
+        /** @todo: developement instead of debug *
         if (TwitchConfig.cfg("debug") && !TwitchConfig.cfg("websocket_server_address")) {
             websocket_url = local_websocket_url;
         }
+        */
+
+        // const websocket_url = `ws://localhost:${TwitchConfig.cfg<number>("server_port", 8080)}/socket/`;
 
         const payload = {
             server: true,
             action: action,
-            data: { action, ...data },
+            data: data,
         };
 
+        ClientBroker.broadcast(payload);
+
+        /*
         return new Promise((resolve, reject) => {
 
             const ws = new WebSocket(websocket_url);
@@ -121,6 +130,7 @@ export class TwitchWebhook {
             });
 
         });
+        */
 
     }
 

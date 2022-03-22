@@ -26,6 +26,7 @@ export function GetSettings(req: express.Request, res: express.Response): void {
             fields: TwitchConfig.settingsFields,
             version: version,
             server: "ts-server",
+            websocket_url: TwitchConfig.getWebsocketUrl(),
         },
         status: "OK",
     } as ApiSettingsResponse);

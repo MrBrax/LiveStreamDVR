@@ -22,6 +22,7 @@ export interface ApiSettingsResponse extends ApiResponse {
         fields: SettingField<string | number | boolean>[];
         version: string;
         server: string;
+        websocket_url: string;
     };
 }
 

@@ -7,6 +7,9 @@ import path from "path";
 import { AppName, AppRoot, BaseConfigFolder } from "./Core/BaseConfig";
 import { TwitchConfig } from "./Core/TwitchConfig";
 import ApiRouter from "./Routes/Api";
+import WebSocket from "ws";
+import { ClientBroker } from "Core/ClientBroker";
+// import WebSocketRouter from "./Routes/WebSocket";
 
 // check that the app root is not outside of the root
 if (!fs.existsSync(path.join(BaseConfigFolder.server, "tsconfig.json"))) {
@@ -56,7 +59,7 @@ TwitchConfig.init().then(() => {
         app.use(morgan("dev"));
     } else {
         app.use(morgan("combined"));
-    }
+    }   
 
     const baserouter = express.Router();
 
@@ -96,5 +99,20 @@ TwitchConfig.init().then(() => {
             process.exit(1);
         }
     });
+
+    const websocketServer = new WebSocket.Server({ server, path: "/socket/" });
+
+    // const broker = new ClientBroker(websocketServer);
+    ClientBroker.attach(websocketServer);
+
+    /*
+    websocketServer.on("connection", (ws) => {
+        console.log(chalk.bgBlue.greenBright("🦄 WebSocket connection established."));
+        ws.on("message", (msg) => {
+            console.log(msg.toString());
+        });
+    });
+    */
+
 
 });

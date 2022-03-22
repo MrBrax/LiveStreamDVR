@@ -13,6 +13,7 @@ export const useStore = defineStore("twitchAutomator", {
         version: string;
         clientConfig: ClientSettings | null;
         serverType: string;
+        websocketUrl: string;
     } {
         return {
             streamerList: [],
@@ -22,6 +23,7 @@ export const useStore = defineStore("twitchAutomator", {
             version: "",
             clientConfig: null,
             serverType: "",
+            websocketUrl: "",
         };
     },
     actions: {

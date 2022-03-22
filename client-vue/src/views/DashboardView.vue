@@ -199,6 +199,8 @@ export default defineComponent({
         connectWebsocket() {
             if (this.ws) this.disconnectWebsocket();
             if (!this.store.config) return;
+
+            /*
             const proto = window.location.protocol === "https:" ? "wss://" : "ws://";
             const websocket_url_public = proto + window.location.host + this.store.cfg("basepath") + "/socket/";
             let websocket_url = process.env.NODE_ENV === "development" ? "ws://localhost:8765/socket/" : websocket_url_public;
@@ -207,6 +209,14 @@ export default defineComponent({
                 console.log(`Overriding generated websocket URL '${websocket_url}' with config '${this.store.cfg("websocket_client_address")}'`);
                 websocket_url = this.store.cfg("websocket_client_address") ?? "";
             }
+            */
+
+            if (!this.store.websocketUrl || this.store.websocketUrl == "") {
+                console.error("No websocket URL found");
+                return;
+            }
+
+            const websocket_url = this.store.websocketUrl;
 
             console.log(`Connecting to ${websocket_url}`);
             this.wsConnecting = true;

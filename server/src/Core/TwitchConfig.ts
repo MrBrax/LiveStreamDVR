@@ -271,6 +271,26 @@ export class TwitchConfig {
         TwitchConfig.saveConfig("eventsub_secret not set");
     }
 
+    static getWebsocketUrl() {
+        
+        // override
+        if (TwitchConfig.cfg("websocket_server_address")) {
+            return TwitchConfig.cfg("websocket_server_address");
+        }
+
+        if (TwitchConfig.cfg("debug")) {
+            return "ws://localhost:8080/socket/";
+        }
+
+        const http_path = TwitchConfig.cfg<string>("app_url");
+        // const http_port = TwitchConfig.cfg<number>("server_port", 8080);
+        const route = "/socket/";
+        const ws_path = http_path.replace(/^https:\/\//, "wss://").replace(/^http:\/\//, "ws://");
+
+        return `${ws_path}${route}`;
+
+    }
+
     /**
      * Initialise entire application, like loading config, creating folders, etc.
      */
