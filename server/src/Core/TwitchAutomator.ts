@@ -886,6 +886,7 @@ export class TwitchAutomator {
                 const res_match = data.match(/stream:\s([0-9_a-z]+)\s/);
                 if (res_match) {
                     this.stream_resolution = res_match[1] as VideoQuality;
+                    if (this.vod) this.vod.stream_resolution = this.stream_resolution;
                     TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Stream resolution for ${basename}: ${this.stream_resolution}`);
                 }
 

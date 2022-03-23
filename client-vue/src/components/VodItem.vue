@@ -201,11 +201,8 @@
                     <h4>Recording</h4>
                     <ul class="video-info">
                         <li><strong>Current duration:</strong> <duration-display :startDate="vod.started_at" outputStyle="human"></duration-display></li>
-                        <li>
-                            <strong>Watch live:</strong>
-                            <a :href="'https://twitch.tv/' + vod.streamer_login" rel="noreferrer" target="_blank">Twitch</a>
-                            / <a :href="vod?.webpath + '/' + vod?.basename + '.m3u8'" rel="noreferrer" target="_blank">Recap</a>
-                        </li>
+                        <li><strong>Resolution:</strong> {{ vod.stream_resolution || "Unknown" }}</li>
+                        <li><strong>Watch live:</strong> <a :href="'https://twitch.tv/' + vod.streamer_login" rel="noreferrer" target="_blank">Twitch</a></li>
                     </ul>
                     <button class="button is-small is-danger" @click="unbreak">Unbreak</button>
                 </div>
@@ -416,6 +413,7 @@
                 <thead>
                     <tr>
                         <th>Offset</th>
+                        <th>Started</th>
                         <th>Duration</th>
                         <th>Category</th>
                         <th>Title</th>
@@ -433,8 +431,13 @@
                         }"
                     >
                         <!-- start timestamp -->
-                        <td data-contents="started_at" :title="formatDate(chapter.started_at)">
+                        <td data-contents="offset" :title="formatDate(chapter.started_at)">
                             {{ humanDuration(chapter.offset) }}
+                        </td>
+
+                        <!-- start time -->
+                        <td data-contents="started_at" :title="chapter.started_at">
+                            {{ formatDate(chapter.started_at, "HH:mm:ss") }}
                         </td>
 
                         <!-- duration -->
