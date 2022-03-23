@@ -12,14 +12,14 @@ interface Client {
 }
 
 export class ClientBroker {
-    
+
     static clients: Client[] = [];
     static wss: WebSocket.Server<WebSocket.WebSocket> | undefined = undefined;
-    
-    static attach(server: WebSocket.Server<WebSocket.WebSocket>){
+
+    static attach(server: WebSocket.Server<WebSocket.WebSocket>) {
 
         console.log(chalk.bgGreen.whiteBright("Attaching WebSocket server to broker"));
-        
+
         this.clients = [];
 
         this.wss = server;
@@ -38,7 +38,7 @@ export class ClientBroker {
 
     }
 
-    private static onConnect(ws: WebSocket.WebSocket, req: IncomingMessage){
+    private static onConnect(ws: WebSocket.WebSocket, req: IncomingMessage) {
 
         const client: Client = {
             id: req.headers["sec-websocket-key"] || "",
@@ -60,7 +60,7 @@ export class ClientBroker {
 
             const message = raw_message.toString();
 
-            if(message == "ping"){
+            if (message == "ping") {
                 // console.debug(`Pong to ${ws.clientIP}`);
                 ws.send("pong");
                 return;
@@ -107,8 +107,11 @@ export class ClientBroker {
 
     }
 
-    static broadcast(data: any){
-        if (!this.wss) return;
+    static broadcast(data: any) {
+        if (!this.wss) {
+            console.error(chalk.redBright("No WebSocket server attached"));
+            return;
+        }
         this.wss.clients.forEach((client) => {
             client.send(JSON.stringify(data));
         });
@@ -121,7 +124,7 @@ export class ClientBroker {
      * @param body 
      * @param icon 
      */
-    static notify(title: string, body = "", icon = ""){
+    static notify(title: string, body = "", icon = "") {
         console.log(chalk.bgBlue.whiteBright(`Notifying clients: ${title}: ${body}`));
         this.broadcast({
             action: "notify",

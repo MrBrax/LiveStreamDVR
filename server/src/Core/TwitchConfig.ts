@@ -281,11 +281,11 @@ export class TwitchConfig {
         TwitchConfig.saveConfig("eventsub_secret not set");
     }
 
-    static getWebsocketUrl() {
+    static getWebsocketClientUrl() {
         
         // override
-        if (TwitchConfig.cfg("websocket_server_address")) {
-            return TwitchConfig.cfg("websocket_server_address");
+        if (TwitchConfig.cfg("websocket_client_address")) {
+            return TwitchConfig.cfg("websocket_client_address");
         }
 
         if (TwitchConfig.cfg("debug")) {
