@@ -1,15 +1,20 @@
-FROM node:17-alpine3.15
+FROM node:17-bullseye
 USER root
 
 # system packages
-RUN apk --no-cache add \
-    gcc g++ libc-dev git curl \
-    ca-certificates \
-    python3 py3-pip py3-wheel \
+#RUN apk --no-cache add \
+#    gcc g++ libc-dev git curl \
+#    ca-certificates \
+#    python3 py3-pip py3-wheel \
+#    ffmpeg mediainfo \
+#    util-linux busybox-initscripts procps gcompat \
+#    libxml2-dev libxslt-dev python3-dev \
+#    bash icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib fontconfig
+
+RUN apt-get update && apt-get install -y \
+    python3 python3-pip \
     ffmpeg mediainfo \
-    util-linux busybox-initscripts procps gcompat \
-    libxml2-dev libxslt-dev python3-dev \
-    bash icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib fontconfig
+    bash git
 
 # install yarn
 # RUN npm install -g yarn
@@ -22,7 +27,7 @@ RUN pip install -r /tmp/requirements.txt
 
 # copy app
 RUN mkdir -p /usr/local/share/twitchautomator
-COPY . /usr/local/share/twitchautomator/
+COPY --chown=node:node --chmod=775 . /usr/local/share/twitchautomator/
 # RUN git clone https://github.com/MrBrax/TwitchAutomator /var/www/twitchautomator/
 
 # server
@@ -44,8 +49,11 @@ COPY ./docker/fetch-tdl.sh /tmp/fetch-tdl.sh
 RUN sh /tmp/fetch-tdl.sh
 ENV TCD_TWITCHDOWNLOADER_PATH=/usr/local/bin/TwitchDownloaderCLI
 
-# src perms
-RUN chown -R node:node /usr/local/share/twitchautomator && chmod -R 775 /usr/local/share/twitchautomator
+# application folder permissions
+# seems like docker does not support recursive chown in the copy command
+# so this is a workaround, doubling the layer size unfortunately.
+# it also takes a very long time on slow storage
+RUN chown -c -R node:node /usr/local/share/twitchautomator && chmod -R 775 /usr/local/share/twitchautomator
 
 # make home folder
 RUN mkdir -p /home/node && chown -R node:node /home/node
@@ -65,6 +73,7 @@ ENV TCD_MEDIAINFO_PATH=/usr/bin/mediainfo
 ENV TCD_DOCKER=1
 ENV TCD_WEBSOCKET_ENABLED=1
 ENV TCD_CA_PATH=/tmp/cacert.pem
+ENV TCD_SERVER_PORT=8080
 
 USER node
 WORKDIR /usr/local/share/twitchautomator/server

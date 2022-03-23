@@ -20,7 +20,7 @@ import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchWebhook } from "./TwitchWebhook";
 import { MuteStatus } from "../../../common/Defs";
 import chalk from "chalk";
-import { Sleep } from "Helpers/Sleep";
+import { Sleep } from "../Helpers/Sleep";
 import { ClientBroker } from "./ClientBroker";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";

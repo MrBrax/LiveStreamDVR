@@ -265,6 +265,7 @@ export class TwitchConfig {
 
         for (const folder of Object.values(BaseConfigFolder)) {
             if (!fs.existsSync(folder)) {
+                console.warn(chalk.yellow(`Folder '${folder}' does not exist, creating.`));
                 fs.mkdirSync(folder);
                 console.log(chalk.green(`Created folder: ${folder}`));
             }
@@ -308,6 +309,7 @@ export class TwitchConfig {
         // Main load
         console.log(chalk.green("Initialising..."));
         console.log(chalk.magenta(`Environment: ${process.env.NODE_ENV}`));
+        console.log(chalk.magenta(`Running as user ${process.env.USER}`));
 
         if (TwitchConfig.config && Object.keys(TwitchConfig.config).length > 0) {
             // throw new Error("Config already loaded, has init been called twice?");

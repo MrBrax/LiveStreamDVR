@@ -1,13 +1,13 @@
 import chalk from "chalk";
-import fs from "fs";
 import express from "express";
+import fs from "fs";
 import morgan from "morgan";
 import path from "path";
+import WebSocket from "ws";
 import { AppName, AppRoot, BaseConfigFolder } from "./Core/BaseConfig";
+import { ClientBroker } from "./Core/ClientBroker";
 import { TwitchConfig } from "./Core/TwitchConfig";
 import ApiRouter from "./Routes/Api";
-import WebSocket from "ws";
-import { ClientBroker } from "Core/ClientBroker";
 // import WebSocketRouter from "./Routes/WebSocket";
 
 // check that the app root is not outside of the root

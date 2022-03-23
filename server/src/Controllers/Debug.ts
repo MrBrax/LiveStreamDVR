@@ -1,7 +1,7 @@
-import { ClientBroker } from "Core/ClientBroker";
-import { TwitchChannel } from "Core/TwitchChannel";
-import { TwitchVOD } from "Core/TwitchVOD";
 import express from "express";
+import { ClientBroker } from "../Core/ClientBroker";
+import { TwitchChannel } from "../Core/TwitchChannel";
+import { TwitchVOD } from "../Core/TwitchVOD";
 
 export function ListVodsInMemory(req: express.Request, res: express.Response): void {
     res.send({

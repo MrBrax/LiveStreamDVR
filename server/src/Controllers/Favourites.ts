@@ -1,7 +1,7 @@
-import { TwitchGame } from "../Core/TwitchGame";
 import express from "express";
 import { ApiFavouriteGamesResponse } from "../../../common/Api/Api";
-import { LOGLEVEL, TwitchLog } from "Core/TwitchLog";
+import { TwitchGame } from "../Core/TwitchGame";
+import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
 
 export function ListFavourites(req: express.Request, res: express.Response): void {
     res.send({

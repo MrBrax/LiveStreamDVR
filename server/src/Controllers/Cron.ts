@@ -1,9 +1,9 @@
-import { TwitchLog, LOGLEVEL } from "../Core/TwitchLog";
-import { MuteStatus } from "../../../common/Defs";
-import { generateStreamerList } from "../Helpers/StreamerList";
 import express from "express";
-import { ClientBroker } from "Core/ClientBroker";
-import { TwitchConfig } from "Core/TwitchConfig";
+import { MuteStatus } from "../../../common/Defs";
+import { ClientBroker } from "../Core/ClientBroker";
+import { TwitchConfig } from "../Core/TwitchConfig";
+import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
+import { generateStreamerList } from "../Helpers/StreamerList";
 
 export async function CheckDeletedVods(req: express.Request, res: express.Response): Promise<void> {
 

@@ -4,7 +4,7 @@ import { TwitchChannel } from "../Core/TwitchChannel";
 import { ChannelConfig, VideoQuality } from "../../../common/Config";
 import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse } from "../../../common/Api/Api";
 import { VideoQualityArray } from "../../../common/Defs";
-import { LOGLEVEL, TwitchLog } from "Core/TwitchLog";
+import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 

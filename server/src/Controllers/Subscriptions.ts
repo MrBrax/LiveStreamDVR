@@ -1,11 +1,11 @@
-import { TwitchHelper } from "../Core/TwitchHelper";
 import express from "express";
+import { ApiErrorResponse } from "../../../common/Api/Api";
+import { SubStatus } from "../../../common/Defs";
+import { KeyValue } from "../Core/KeyValue";
 import { TwitchChannel } from "../Core/TwitchChannel";
 import { TwitchConfig } from "../Core/TwitchConfig";
+import { TwitchHelper } from "../Core/TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
-import { ApiErrorResponse } from "../../../common/Api/Api";
-import { KeyValue } from "Core/KeyValue";
-import { SubStatus } from "../../../common/Defs";
 
 interface ChannelSub {
     type: string;

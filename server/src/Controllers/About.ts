@@ -3,7 +3,7 @@ import express from "express";
 import fs from "fs";
 import path from "path";
 import { ExecReturn, TwitchHelper } from "../Core/TwitchHelper";
-import { KeyValue } from "Core/KeyValue";
+import { KeyValue } from "../Core/KeyValue";
 
 interface Bins {
     path?: string;

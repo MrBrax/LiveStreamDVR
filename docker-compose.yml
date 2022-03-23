@@ -1,19 +1,19 @@
 version: "3.8"
 services:
+  #web:
+  #  image: nginx
+  #  volumes:
+  #    - ./docker/web/nginx.conf:/etc/nginx/nginx.conf:ro
+  #  depends_on:
+  #    - "server"
+  #    - "broker"
+  #  ports:
+  #    - "8082:80"
   web:
-    image: nginx
-    volumes:
-      - ./docker/web/nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - "server"
-      - "broker"
-    ports:
-      - "8082:80"
-  server:
     build: .
-    image: mrbrax/twitchautomator:latest-server
-    depends_on:
-      - "broker"
+    image: mrbrax/twitchautomator
+    ports:
+      - "8082:8080"
     volumes:
       - ./config:/usr/local/share/twitchautomator/config
       - ./cache:/usr/local/share/twitchautomator/cache
@@ -27,6 +27,6 @@ services:
   cron:
     build: ./docker/cron-container/
     image: mrbrax/twitchautomator:latest-cron
-  broker:
-    build: ./client-broker/
-    image: mrbrax/twitchautomator:latest-broker
+  # broker:
+  #   build: ./client-broker/
+  #   image: mrbrax/twitchautomator:latest-broker
