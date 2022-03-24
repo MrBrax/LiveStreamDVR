@@ -10,7 +10,7 @@
                     <label class="checkbox"><input type="checkbox" v-model="updateConfig.useSpeech" /> Use speech</label>
                 </div>
                 <div class="control">
-                    <label class="checkbox"><input type="checkbox" v-model="updateConfig.singlePage" /> Single page</label>
+                    <label class="checkbox"><input type="checkbox" v-model="updateConfig.singlePage" /> Separate channels to their own page</label>
                 </div>
                 <div class="control">
                     <label class="checkbox"><input type="checkbox" v-model="updateConfig.animationsEnabled" /> Enable animations</label>
@@ -30,11 +30,6 @@
                 <div class="control">
                     <label class="checkbox"><input type="checkbox" v-model="updateConfig.useBackgroundTicker" /> Background ticker</label>
                 </div>
-                <!--
-                <div class="control">
-                    <label class="checkbox"><input type="checkbox" v-model="updateConfig.showAdvancedInfo" /> Show advanced info</label>
-                </div>
-                -->
                 <div class="control">
                     <input type="text" class="input" v-model="updateConfig.websocketAddressOverride" placeholder="Websocket address override" />
                 </div>
