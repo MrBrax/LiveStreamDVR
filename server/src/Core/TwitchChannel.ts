@@ -300,6 +300,8 @@ export class TwitchChannel {
         // TwitchVOD.addVod(vod);
         this.vods_list.push(load_vod);
 
+        this.checkStaleVodsInMemory();
+
         return load_vod;
 
     }
@@ -323,9 +325,32 @@ export class TwitchChannel {
 
         this.vods_list = this.vods_list.filter(v => v.basename !== basename);
 
-        TwitchVOD.removeVod(basename);      
+        TwitchVOD.removeVod(basename);
+        
+        this.checkStaleVodsInMemory();
 
         return true;
+
+    }
+
+    public checkStaleVodsInMemory(): void {
+        if (!this.login) return;
+
+        const vods_on_disk = fs.readdirSync(TwitchHelper.vodFolder(this.login)).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".json"));
+        const vods_in_channel_memory = this.vods_list;
+        const vods_in_main_memory = TwitchVOD.vods.filter(v => v.streamer_login === this.login);
+
+        if (vods_on_disk.length !== vods_in_channel_memory.length) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Vod on disk and vod in memory are not the same for ${this.login}`);
+        }
+
+        if (vods_on_disk.length !== vods_in_main_memory.length) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Vod on disk and vod in main memory are not the same for ${this.login}`);
+        }
+
+        if (vods_in_channel_memory.length !== vods_in_main_memory.length) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Vod in memory and vod in main memory are not the same for ${this.login}`);
+        }
 
     }
 

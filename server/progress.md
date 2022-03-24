@@ -65,4 +65,4 @@
 [ ] delete vod from disk and handle
 [x] integrate websocket server into ts-server?
 [ ] burnwizard
-[ ] password protection
+[x] password protection
