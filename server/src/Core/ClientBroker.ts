@@ -18,14 +18,14 @@ export class ClientBroker {
 
     static attach(server: WebSocket.Server<WebSocket.WebSocket>) {
 
-        console.log(chalk.bgGreen.whiteBright("Attaching WebSocket server to broker"));
+        console.log(chalk.green("Attaching WebSocket server to broker..."));
 
         this.clients = [];
 
         this.wss = server;
 
         this.wss.on("listening", () => {
-            console.log(chalk.bgGreen.whiteBright("Websocket server now listening for connections."));
+            console.log(chalk.green("Client broker now attached to websocket."));
         });
 
         this.wss.on("error", (error) => {
@@ -48,7 +48,7 @@ export class ClientBroker {
             userAgent: req.headers["user-agent"] || "",
         };
 
-        console.debug(chalk.magenta(`Client ${client.id} connected from ${client.ip}, user-agent: ${client.userAgent}`));
+        // console.debug(chalk.magenta(`Client ${client.id} connected from ${client.ip}, user-agent: ${client.userAgent}`));
 
         this.clients.push(client);
 
@@ -93,7 +93,7 @@ export class ClientBroker {
 
         ws.on("pong", () => {
             client.alive = true;
-            console.log(`Pong from ${client.ip}`);
+            // console.log(`Pong from ${client.ip}`);
         });
 
         ws.on("error", (err) => {
@@ -101,7 +101,7 @@ export class ClientBroker {
         });
 
         ws.on("close", (code, reason) => {
-            console.log(`Client ${client.id} disconnected from ${client.ip}`);
+            // console.log(`Client ${client.id} disconnected from ${client.ip}`);
             this.clients = this.clients.filter((c) => c.id != client.id);
         });
 

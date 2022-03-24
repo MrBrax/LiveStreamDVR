@@ -9,7 +9,6 @@ import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchHelper } from "./TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
-import { TwitchWebhook } from "./TwitchWebhook";
 import crypto from "crypto";
 import path from "path";
 
@@ -381,10 +380,6 @@ export class TwitchConfig {
         process.on("SIGINT", goodbye);
         process.on("SIGTERM", goodbye);
         */
-
-        TwitchWebhook.dispatch("init", {
-            "hello": "world",
-        });
 
         TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "config", "Loading config stuff done.");
 

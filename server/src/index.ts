@@ -1,12 +1,12 @@
-import auth from "basic-auth";
 import chalk from "chalk";
+import { TwitchWebhook } from "Core/TwitchWebhook";
 import express from "express";
 import fs from "fs";
 import { Auth } from "Helpers/Auth";
 import morgan from "morgan";
 import path from "path";
 import WebSocket from "ws";
-import { AppName, AppRoot, BaseConfigFolder } from "./Core/BaseConfig";
+import { AppName, BaseConfigFolder } from "./Core/BaseConfig";
 import { ClientBroker } from "./Core/ClientBroker";
 import { TwitchConfig } from "./Core/TwitchConfig";
 import ApiRouter from "./Routes/Api";
@@ -94,6 +94,8 @@ TwitchConfig.init().then(() => {
     const websocketServer = new WebSocket.Server({ server, path: `${basepath}/socket/` });
     ClientBroker.attach(websocketServer);
     
-    
+    TwitchWebhook.dispatch("init", {
+        "hello": "world",
+    });
 
 });
