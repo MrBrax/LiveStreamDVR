@@ -1294,7 +1294,7 @@ export class TwitchVOD {
             return MuteStatus.UNKNOWN;
         }
 
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Check muted VOD for ${this.basename}`);
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Check muted VOD for ${this.basename} using ${TwitchConfig.cfg("checkmute_method", "api")}`);
 
         return TwitchConfig.cfg("checkmute_method", "api") == "api" ? await this.checkMutedVodAPI(save, force) : await this.checkMutedVodStreamlink(save, force);
 
@@ -1322,7 +1322,7 @@ export class TwitchVOD {
                 return MuteStatus.MUTED;
             } else {
                 this.twitch_vod_muted = MuteStatus.UNMUTED;
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD ${this.basename} is not muted!`, data);
+                TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `VOD ${this.basename} is not muted!`, data);
                 if (previous !== this.twitch_vod_muted && save) {
                     this.saveJSON("vod mute false");
                 }
