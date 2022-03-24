@@ -61,6 +61,7 @@
 [ ] = to do
 
 
-[ ] record a stream
+[x] record a stream
 [ ] delete vod from disk and handle
-[ ] integrate websocket server into ts-server?
+[x] integrate websocket server into ts-server?
+[ ] burnwizard
