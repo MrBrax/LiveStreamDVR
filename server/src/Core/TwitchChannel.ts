@@ -235,8 +235,19 @@ export class TwitchChannel {
         return TwitchChannel.getChannelByLogin(login) == undefined;
     }
 
+    /**
+     * Get the current capturing vod
+     */
     get current_vod(): TwitchVOD | undefined {
         return this.vods_list?.find(vod => vod.is_capturing);
+    }
+
+    /**
+     * Get the latest vod of the channel regardless of its status
+     */
+    get latest_vod(): TwitchVOD | undefined {
+        if (!this.vods_list || this.vods_list.length == 0) return undefined;
+        return this.vods_list[this.vods_list.length - 1]; // is this reliable?
     }
 
     get current_chapter(): TwitchVODChapter | undefined {

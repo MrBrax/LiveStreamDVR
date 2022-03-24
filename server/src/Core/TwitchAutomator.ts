@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-import { format, parse } from "date-fns";
+import { format, formatDistanceToNow, parse } from "date-fns";
 import express from "express";
 import fs from "fs";
 import { IncomingHttpHeaders } from "http";
@@ -184,10 +184,12 @@ export class TwitchAutomator {
             KeyValue.set(`${this.broadcaster_user_login}.last.offline`, new Date().toISOString());
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Stream offline for ${this.broadcaster_user_login}`);
 
+            const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
+
             if (TwitchConfig.notificationCategories.streamOffline && channel) {
                 ClientBroker.notify(
                     `${this.broadcaster_user_login} has gone offline!`,
-                    "",
+                    channel && channel.latest_vod && channel.latest_vod.started_at ? `Was streaming for ${formatDistanceToNow(channel.latest_vod.started_at)}.` : "",
                     channel.profile_image_url
                 );
             }
