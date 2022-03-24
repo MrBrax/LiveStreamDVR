@@ -437,7 +437,10 @@
 
                         <!-- start time -->
                         <td data-contents="started_at" :title="chapter.started_at">
-                            {{ formatDate(chapter.started_at, "HH:mm:ss") }}
+                            <span v-if="store.clientConfig?.useRelativeTime">
+                                <duration-display :start-date="chapter.started_at" output-style="human" /> ago
+                            </span>
+                            <span v-else>{{ formatDate(chapter.started_at, "HH:mm:ss") }}</span>
                         </td>
 
                         <!-- duration -->

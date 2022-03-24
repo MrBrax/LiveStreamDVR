@@ -1,4 +1,4 @@
-import { format, formatDistance, parseJSON } from "date-fns";
+import { format, formatDistance, formatDistanceToNow, parseISO, parseJSON } from "date-fns";
 // const dateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000
 
 export default {
@@ -96,6 +96,10 @@ export default {
         //         return (a as any)[value] - (b as any)[value];
         //     });
         // },
+        formatDurationSince(date: string) {
+            const o = parseISO(date);
+            return formatDistanceToNow(o, { addSuffix: true });
+        },
     },
     data() {
         return {
@@ -115,6 +119,7 @@ declare module "@vue/runtime-core" {
         formatNumber: (num: number, decimals?: number) => string;
         humanDate: (date: string, suffix?: boolean) => string;
         parseTwitchDuration: (duration: string) => number;
+        formatDurationSince: (date: string) => string;
         // sortObject: (game: Record<string, any>, value: string) => any;
     }
 }
