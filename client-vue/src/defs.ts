@@ -9,6 +9,7 @@ export const defaultConfig = {
     useWebsockets: true,
     useBackgroundRefresh: true,
     useBackgroundTicker: true,
+    websocketAddressOverride: "",
 };
 
 export const nonGameCategories = [

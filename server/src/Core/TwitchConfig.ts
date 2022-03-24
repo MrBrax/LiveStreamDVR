@@ -2,7 +2,7 @@ import axios from "axios";
 import chalk from "chalk";
 import fs from "fs";
 import { SettingField } from "../../../common/Config";
-import { AppName, BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
+import { AppName, AppRoot, BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchChannel } from "./TwitchChannel";
@@ -11,8 +11,11 @@ import { TwitchHelper } from "./TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { TwitchWebhook } from "./TwitchWebhook";
 import crypto from "crypto";
+import path from "path";
 
 export class TwitchConfig {
+
+    public initialised = false;
 
     static config: Record<string, string | number | boolean | string[]>;
     private static _writeConfig = false;
@@ -311,6 +314,21 @@ export class TwitchConfig {
         console.log(chalk.magenta(`Environment: ${process.env.NODE_ENV}`));
         console.log(chalk.magenta(`Running as user ${process.env.USER}`));
 
+        // check that the app root is not outside of the root
+        if (!fs.existsSync(path.join(BaseConfigFolder.server, "tsconfig.json"))) {
+            console.error(chalk.red(`Could not find tsconfig.json in ${AppRoot}`));
+            // process.exit(1);
+            throw new Error(`Could not find tsconfig.json in ${AppRoot}`);
+        }
+
+        // check if the client is built before starting the server
+        if (!fs.existsSync(path.join(BaseConfigFolder.client, "index.html"))) {
+            console.error(chalk.red("Client is not built. Please run yarn build inside the client-vue folder."));
+            console.error(chalk.red(`Expected path: ${path.join(BaseConfigFolder.client, "index.html")}`));
+            // process.exit(1);
+            throw new Error("Client is not built. Please run yarn build inside the client-vue folder.");
+        }
+
         if (TwitchConfig.config && Object.keys(TwitchConfig.config).length > 0) {
             // throw new Error("Config already loaded, has init been called twice?");
             console.error(chalk.red("Config already loaded, has init been called twice?"));
@@ -369,6 +387,8 @@ export class TwitchConfig {
         });
 
         TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "config", "Loading config stuff done.");
+
+        this.initialised = true;
 
     }
 

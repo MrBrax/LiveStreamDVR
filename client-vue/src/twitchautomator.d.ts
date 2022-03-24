@@ -15,6 +15,7 @@ export type ClientSettings = {
     useWebsockets: boolean;
     useBackgroundRefresh: boolean;
     useBackgroundTicker: boolean;
+    websocketAddressOverride: string;
 };
 
 export const phpDateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000

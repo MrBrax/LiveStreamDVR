@@ -211,17 +211,24 @@ export default defineComponent({
             }
             */
 
-            if (!this.store.websocketUrl || this.store.websocketUrl == "") {
-                console.error("No websocket URL found");
-                return;
-            }
+            let websocket_url = "";
 
-            const websocket_url = this.store.websocketUrl;
+            if (this.store.clientConfig?.websocketAddressOverride) {
+                websocket_url = this.store.clientConfig.websocketAddressOverride;
+                console.debug(`Overriding generated websocket URL with client config '${this.store.clientConfig.websocketAddressOverride}'`);
+            } else {
+                if (!this.store.websocketUrl || this.store.websocketUrl == "") {
+                    console.error("No websocket URL found");
+                    return;
+                }
+                websocket_url = this.store.websocketUrl;
+            }
 
             console.log(`Connecting to ${websocket_url}`);
             this.wsConnecting = true;
             this.ws = new WebSocket(websocket_url);
-            this.ws.onopen = (ev: Event) => {
+
+            this.ws.addEventListener("open", (ev: Event) => {
                 console.log(`Connected to websocket!`, ev);
                 if (!this.ws) return;
                 this.ws.send(JSON.stringify({ action: "helloworld" }));
@@ -231,8 +238,9 @@ export default defineComponent({
                     if (!this.ws) return;
                     this.ws.send("ping");
                 }, this.wsKeepaliveTime);
-            };
-            this.ws.onmessage = (ev: MessageEvent) => {
+            });
+
+            this.ws.addEventListener("message", (ev: MessageEvent) => {
                 // console.log("ws message", ev);
                 let text = ev.data;
 
@@ -294,16 +302,16 @@ export default defineComponent({
                 } else {
                     console.log(`Websocket unknown data`, json.data);
                 }
-            };
+            });
 
-            this.ws.onerror = (ev: Event) => {
+            this.ws.addEventListener("error", (ev: Event) => {
                 console.error(`Websocket error!`, ev);
                 this.wsConnected = false;
                 this.wsConnecting = false;
                 clearInterval(this.wsKeepalive);
-            };
+            });
 
-            this.ws.onclose = (ev: CloseEvent) => {
+            this.ws.addEventListener("close", (ev: CloseEvent) => {
                 console.log(`Disconnected from websocket! (${ev.code}/${ev.reason})`);
                 this.wsConnecting = false;
                 setTimeout(() => {
@@ -313,7 +321,7 @@ export default defineComponent({
                 }, 10000);
                 this.wsConnected = false;
                 clearInterval(this.wsKeepalive);
-            };
+            });
 
             return this.ws;
         },

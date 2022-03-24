@@ -10,19 +10,6 @@ import { TwitchConfig } from "./Core/TwitchConfig";
 import ApiRouter from "./Routes/Api";
 // import WebSocketRouter from "./Routes/WebSocket";
 
-// check that the app root is not outside of the root
-if (!fs.existsSync(path.join(BaseConfigFolder.server, "tsconfig.json"))) {
-    console.error(chalk.red(`Could not find tsconfig.json in ${AppRoot}`));
-    process.exit(1);
-}
-
-// check if the client is built before starting the server
-if (!fs.existsSync(path.join(BaseConfigFolder.client, "index.html"))) {
-    console.error(chalk.red("Client is not built. Please run yarn build inside the client-vue folder."));
-    console.error(chalk.red(`Expected path: ${path.join(BaseConfigFolder.client, "index.html")}`));
-    process.exit(1);
-}
-
 // for overriding port if you can't or don't want to use the web gui to change it
 const override_port = process.argv && process.argv.length > 2 && process.argv[2] ? parseInt(process.argv[2]) : undefined;
 
@@ -100,7 +87,7 @@ TwitchConfig.init().then(() => {
     });
 
     // start websocket server and attach broker
-    const websocketServer = new WebSocket.Server({ server, path: "/socket/" });
+    const websocketServer = new WebSocket.Server({ server, path: `${basepath}/socket/` });
     ClientBroker.attach(websocketServer);
 
 });
