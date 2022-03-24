@@ -571,7 +571,7 @@ export class TwitchVOD {
         for (const chapter of raw_chapters) {
 
             if (!this.started_at || !this.ended_at) {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No time found for ${this.basename}`);
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Time error for chapter parsing found for ${this.basename} (started_at: ${this.started_at}, ended_at: ${this.ended_at})`);
                 return false;
             }
 
@@ -1401,6 +1401,13 @@ export class TwitchVOD {
             this.saveJSON("fix finalize");
         }
 
+        // if capturing but process not running
+        if (this.is_capturing && !await this.getCapturingStatus()) {
+            console.log(chalk.bgRed.whiteBright(`${this.basename} is capturing but process not running. Setting to false for fixing.`));
+            this.is_capturing = false;
+            this.saveJSON("fix set capturing to false");
+        }
+
         // remux if not yet remuxed
         if (!this.is_capturing && !this.is_converted) {
             if (fs.existsSync(path.join(this.directory, `${this.basename}.ts`))) {
@@ -1417,14 +1424,24 @@ export class TwitchVOD {
             }
         }
 
+        // if no ended_at set
+        if (this.is_finalized && !this.ended_at) {
+            console.log(chalk.bgRed.whiteBright(`${this.basename} is finalized but no ended_at found, fixing!`));
+            const duration = await this.getDuration();
+            if (duration && this.started_at) {
+                this.ended_at = new Date(this.started_at.getTime() + (duration * 1000));
+                this.saveJSON("fix set ended_at");
+            } else {
+                console.log(chalk.bgRed.whiteBright(`${this.basename} has no duration or started_at, skipping!`));
+            }
+        }
+
         // add default chapter
         if (this.is_finalized && (!this.chapters || this.chapters.length === 0)) {
             console.log(chalk.bgBlue.whiteBright(`${this.basename} is finalized but no chapters found, fixing now!`));
             await this.generateDefaultChapter();
             this.saveJSON("fix chapters");
         }
-
-        return;
 
     }
 

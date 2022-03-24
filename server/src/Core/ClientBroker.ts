@@ -109,7 +109,7 @@ export class ClientBroker {
 
     static broadcast(data: any) {
         if (!this.wss) {
-            console.error(chalk.redBright("No WebSocket server attached"));
+            console.error(chalk.bgRed.whiteBright(`No WebSocket server attached to broker for data ${JSON.stringify(data)}`));
             return;
         }
         this.wss.clients.forEach((client) => {

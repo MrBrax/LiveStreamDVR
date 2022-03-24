@@ -15,7 +15,7 @@ import path from "path";
 
 export class TwitchConfig {
 
-    public initialised = false;
+    static initialised = false;
 
     static config: Record<string, string | number | boolean | string[]>;
     private static _writeConfig = false;
