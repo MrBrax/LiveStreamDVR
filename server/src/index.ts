@@ -1,6 +1,8 @@
+import auth from "basic-auth";
 import chalk from "chalk";
 import express from "express";
 import fs from "fs";
+import { Auth } from "Helpers/Auth";
 import morgan from "morgan";
 import path from "path";
 import WebSocket from "ws";
@@ -45,7 +47,9 @@ TwitchConfig.init().then(() => {
         app.use(morgan("dev"));
     } else {
         app.use(morgan("combined"));
-    }   
+    }
+
+    app.use(Auth);
 
     const baserouter = express.Router();
 
@@ -89,5 +93,7 @@ TwitchConfig.init().then(() => {
     // start websocket server and attach broker
     const websocketServer = new WebSocket.Server({ server, path: `${basepath}/socket/` });
     ClientBroker.attach(websocketServer);
+    
+    
 
 });
