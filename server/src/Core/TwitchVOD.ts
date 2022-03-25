@@ -1641,6 +1641,281 @@ export class TwitchVOD {
 
     }
 
+    /*
+    public function burnChat(
+		$burn_horizontal = "left",
+		$burn_vertical = "top",
+		$ffmpeg_preset = "slow",
+		$ffmpeg_crf = 26,
+		$use_vod = false,
+		$overwrite = false,
+		$test_duration = false
+	) {
+
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Burn chat for {$this->basename}");
+
+		if ($this->path_chatburn && file_exists($this->path_chatburn) && !$overwrite) {
+			throw new \Exception('Chat already burned');
+			return false;
+		}
+
+		if ($use_vod) {
+
+			if (!$this->is_vod_downloaded) {
+				throw new \Exception('no vod downloaded');
+				return false;
+			}
+
+			$video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_vod.mp4';
+		} else {
+			$video_filename = $this->directory . DIRECTORY_SEPARATOR . basename($this->segments_raw[0]);
+		}
+
+		// $chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
+		// $mask_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat_mask.mp4';
+		// $final_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_burned.mp4';
+
+		if (!file_exists($video_filename)) {
+			throw new \Exception('No video file');
+			return false;
+		}
+
+		if (!$this->path_chatrender || !file_exists($this->path_chatrender)) {
+			throw new \Exception('No chat render file');
+			return false;
+		}
+
+		if (!$this->path_chatmask || !file_exists($this->path_chatmask)) {
+			throw new \Exception('No chat mask file');
+			return false;
+		}
+
+		// $chat_x = $this->video_metadata['video']['Width'] - $chat_width;
+
+		$cmd = [];
+
+		$cmd[] = TwitchHelper::path_ffmpeg();
+
+		// chat render offset
+		if ($this->getStartOffset() && !$use_vod) {
+			$cmd[] = '-ss';
+			$cmd[] = round($this->getStartOffset());
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Using start offset for chat: {$this->getStartOffset()}");
+		}
+
+		// chat render
+		$cmd[] = '-i';
+		$cmd[] = realpath($this->path_chatrender);
+
+		// chat mask offset
+		if ($this->getStartOffset() && !$use_vod) {
+			$cmd[] = '-ss';
+			$cmd[] = round($this->getStartOffset());
+		}
+
+		// chat mask
+		$cmd[] = '-i';
+		$cmd[] = realpath($this->path_chatmask);
+
+		// vod
+		$cmd[] = '-i';
+		$cmd[] = $video_filename;
+
+		// alpha mask
+		// https://ffmpeg.org/ffmpeg-filters.html#overlay-1
+		// https://stackoverflow.com/questions/50338129/use-ffmpeg-to-overlay-a-video-on-top-of-another-using-an-alpha-channel
+		$cmd[] = '-filter_complex';
+
+		// if ($burn_horizontal == "left") {
+		// 	$cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=0:0';
+		// } else {
+		// 	$cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=main_w-overlay_w:0';
+		// }
+		$pos_x = $burn_horizontal == "left" ? 0 : "main_w-overlay_w";
+		$pos_y = $burn_vertical == "top" ? 0 : "main_h-overlay_h";
+		$cmd[] = "[0][1]alphamerge[ia];[2][ia]overlay=${pos_x}:${pos_y}";
+
+		// $cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=' . $chat_x . ':0';
+
+		// copy audio stream
+		$cmd[] = '-c:a';
+		$cmd[] = 'copy';
+
+		// h264 codec
+		$cmd[] = '-c:v';
+		$cmd[] = 'libx264';
+
+		// preset
+		$cmd[] = '-preset';
+		$cmd[] = $ffmpeg_preset;
+
+		// crf
+		$cmd[] = '-crf';
+		$cmd[] = $ffmpeg_crf;
+
+		// overwrite
+		$cmd[] = '-y';
+
+		$cmd[] = $this->path_chatburn;
+
+		set_time_limit(0);
+
+		$process = new Process($cmd, $this->directory, null, null, null);
+		$process->start();
+
+		// create pidfile
+		$burnchatJob = TwitchAutomatorJob::create("burnchat_{$this->streamer_login}");
+		$burnchatJob->setPid($process->getPid());
+		$burnchatJob->setProcess($process);
+		$burnchatJob->save();
+
+		// wait until process is done
+		$process->wait();
+
+		// remove pidfile
+		//if (file_exists($pidfile)) unlink($pidfile);
+		$burnchatJob->clear();
+
+		TwitchHelper::appendLog("burnchat_{$this->basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+		TwitchHelper::appendLog("burnchat_{$this->basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+
+		$successful = file_exists($this->path_chatburn) && filesize($this->path_chatburn) > 0;
+
+		if ($successful) {
+			$this->is_chat_burned = true;
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "vodclass", "Chat burned for {$this->basename}");
+		} else {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Chat couldn't be burned for {$this->basename}");
+		}
+
+		return $successful;
+	}
+    */
+
+    public burnChat(
+        burn_horizontal = "left",
+        burn_vertical = "top",
+        ffmpeg_preset = "slow",
+        ffmpeg_crf = 26,
+        use_vod = false,
+        overwrite = false,
+        test_duration = false
+    ): Promise<boolean> {
+
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Burn chat for ${this.basename}`);
+
+        if (this.path_chatburn && fs.existsSync(this.path_chatburn) && !overwrite) {
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat already burned for ${this.basename}`);
+            throw new Error(`Chat already burned for ${this.basename}`);
+        }
+
+        let video_filename = "";
+
+        if (use_vod) {
+            if (!this.is_vod_downloaded) {
+                throw new Error(`VOD not downloaded for ${this.basename}`);
+            }
+            video_filename = this.path_downloaded_vod;
+        } else if (this.segments && this.segments.length > 0 && this.segments[0].filename) {
+            video_filename = this.segments[0].filename;
+        } else {
+            throw new Error(`No segments available for ${this.basename}`);
+        }
+
+        if (!video_filename) {
+            throw new Error(`No video file for ${this.basename}`);
+        }
+
+        if (!this.path_chatrender || !fs.existsSync(this.path_chatrender)) {
+            throw new Error(`Chat render not found for ${this.basename}`);
+        }
+
+        if (!this.path_chatmask || !fs.existsSync(this.path_chatmask)) {
+            throw new Error(`Chat mask not found for ${this.basename}`);
+        }
+
+        const bin = TwitchHelper.path_ffmpeg();
+        const args: string[] = [];
+
+        if (!bin) {
+            throw new Error("ffmpeg not found");
+        }
+
+        const startOffset = this.getStartOffset();
+
+        // chat render offset
+        if (startOffset && !use_vod) {
+            args.push("-ss", startOffset.toString());
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Using start offset for chat: ${startOffset}`);
+        }
+
+        // chat render
+        args.push("-i", this.path_chatrender);
+
+
+        // chat mask offset
+        if (startOffset && !use_vod) {
+            args.push("-ss", startOffset.toString());
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Using start offset for chat mask: ${startOffset}`);
+        }
+
+        // chat mask
+        args.push("-i", this.path_chatmask);
+
+        // vod
+        args.push("-i", video_filename);
+
+        // alpha mask
+        // https://ffmpeg.org/ffmpeg-filters.html#overlay-1
+        // https://stackoverflow.com/questions/50338129/use-ffmpeg-to-overlay-a-video-on-top-of-another-using-an-alpha-channel
+        const pos_x = burn_horizontal == "left" ? 0 : "main_w-overlay_w";
+        const pos_y = burn_vertical == "top" ? 0 : "main_h-overlay_h";
+        args.push("-filter_complex", `[0][1]alphamerge[ia];[2][ia]overlay=${pos_x}:${pos_y}`);
+
+        // copy audio stream
+        args.push("-c:a", "copy");
+
+        // h264 codec
+        args.push("-c:v", "libx264");
+
+        // preset
+        args.push("-preset", ffmpeg_preset);
+
+        // crf
+        args.push("-crf", ffmpeg_crf.toString());
+
+        // overwrite
+        args.push("-y");
+
+        // output
+        args.push(this.path_chatburn);
+
+        return new Promise((resolve, reject) => {
+
+            const job = TwitchHelper.startJob(bin, args, `burnchat_${this.basename}`);
+            if (!job) throw new Error("Job failed");
+
+            job.on("close", (code, signal) => {
+
+                if (fs.existsSync(this.path_chatburn) && fs.statSync(this.path_chatburn).size > 0) {
+                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat burned for ${this.basename}`);
+                    resolve(true);
+                } else {
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Chat couldn't be burned for ${this.basename}`);
+                    reject(false);
+                }
+
+            });
+        });
+
+    }
+
+    public getStartOffset(): number | false {
+        if (!this.twitch_vod_duration) return false;
+        // const dur = await this.getDuration();
+        // if (!dur) return false;
+        return this.twitch_vod_duration - this.duration;
+    }
 
     /**
      * 
