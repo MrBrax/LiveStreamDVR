@@ -36,6 +36,13 @@
 
             <div class="field">
                 <label class="checkbox">
+                    <input class="input" type="checkbox" name="live_chat" value="1" :checked="channel.live_chat" />
+                    Live chat download
+                </label>
+            </div>
+
+            <div class="field">
+                <label class="checkbox">
                     <input class="input" type="checkbox" name="burn_chat" value="1" :checked="channel.burn_chat" />
                     Burn chat after downloading
                 </label>
@@ -71,11 +78,17 @@ import { VideoQualityArray } from "../../../../common/Defs";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSave } from "@fortawesome/free-solid-svg-icons";
+import { ApiChannelConfig } from "@common/Api/Client";
 library.add(faSave);
 
 export default defineComponent({
     name: "ChannelUpdateForm",
-    props: ["channel"],
+    props: {
+        channel: {
+            type: Object as () => ApiChannelConfig,
+            required: true,
+        },
+    },
     emits: ["formSuccess"],
     setup() {
         return { VideoQualityArray };

@@ -55,6 +55,9 @@ export class TwitchChannel {
     public quality: VideoQuality[] | undefined;
     public match: string[] | undefined;
     public download_chat = false;
+    
+    /** Capture chat live */
+    public live_chat = false;
 
     /** Don't capture, just exist */
     public no_capture = false;
@@ -83,6 +86,7 @@ export class TwitchChannel {
         this.download_chat = channel_config.download_chat !== undefined ? channel_config.download_chat : false;
         this.no_capture = channel_config.no_capture !== undefined ? channel_config.no_capture : false;
         this.burn_chat = channel_config.burn_chat !== undefined ? channel_config.burn_chat : false;
+        this.live_chat = channel_config.live_chat !== undefined ? channel_config.live_chat : false;
     }
 
     /**
@@ -174,6 +178,7 @@ export class TwitchChannel {
             download_chat: this.download_chat,
             no_capture: this.no_capture,
             burn_chat: this.burn_chat,
+            live_chat: this.live_chat,
             // subbed_at: this.subbed_at,
             // expires_at: this.expires_at,
             // last_online: this.last_online,

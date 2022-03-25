@@ -8,7 +8,7 @@ import { TwitchVODChapterJSON } from "Storage/JSON";
 import { VideoQuality } from "../../../common/Config";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { ChannelUpdateEvent } from "../../../common/TwitchAPI/EventSub/ChannelUpdate";
-import { AppRoot } from "./BaseConfig";
+import { AppRoot, BaseConfigFolder } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchChannel } from "./TwitchChannel";
@@ -267,14 +267,12 @@ export class TwitchAutomator {
             });
 
             // append chapter to history
-            // $fp = fopen(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "history" . DIRECTORY_SEPARATOR . this.broadcaster_user_login . ".jsonline", 'a');
-            // fwrite($fp, json_encode($chapter) . "\n");
-            // fclose($fp);
+            fs.writeFileSync(path.join(BaseConfigFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify(chapter) + "\n", { flag: "a" });
 
             TwitchLog.logAdvanced(
                 LOGLEVEL.SUCCESS,
                 "automator",
-                `Game updated on '${this.broadcaster_user_login}' to '${event.category_name}' (${event.title}) using ${from_cache ? "cache" : "notification"}.`
+                `Stream updated on '${this.broadcaster_user_login}' to '${event.category_name}' (${event.title}) using ${from_cache ? "cache" : "eventsub"}.`
             );
 
             const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
@@ -583,9 +581,9 @@ export class TwitchAutomator {
 
             // sleep(15);
             await Sleep(15 * 1000);
-            
+
             this.download(tries + 1);
-    
+
             return;
         }
 
@@ -811,7 +809,7 @@ export class TwitchAutomator {
             // make job for capture
             let capture_job: TwitchAutomatorJob;
             const jobName = `capture_${basename}`;
-            
+
             if (capture_process.pid) {
                 TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Spawned process ${capture_process.pid} for ${jobName}`);
                 capture_job = TwitchAutomatorJob.create(jobName);
@@ -832,10 +830,10 @@ export class TwitchAutomator {
                 reject(false);
                 return;
             }
-            
+
             // const capture_job = TwitchHelper.startJob(bin, cmd, jobName);
             // const capture_process = capture_job.process;
-            
+
             const keepaliveAlert = () => {
                 if (fs.existsSync(this.capture_filename)) {
                     const size = fs.statSync(this.capture_filename).size;
@@ -843,7 +841,7 @@ export class TwitchAutomator {
                 } else {
                     console.log(chalk.bgRed.whiteBright(`🎥 ${new Date().toISOString()} ${basename} missing`));
                 }
-                
+
             };
 
             const keepalive = setInterval(keepaliveAlert, 120 * 1000);
@@ -963,8 +961,10 @@ export class TwitchAutomator {
      */
     startCaptureChat() {
 
+        const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
+
         // chat capture
-        if (TwitchConfig.cfg("chat_dump") && this.realm == "twitch") {
+        if ((TwitchConfig.cfg<boolean>("chat_dump") || (channel && channel.live_chat)) && this.realm == "twitch") {
 
             const data_started = this.getStartDate();
             // const data_id = this.getVodID();

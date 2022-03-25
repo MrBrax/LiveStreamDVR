@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from "axios";
 import express from "express";
 import type { ApiSettingsResponse } from "../../../common/Api/Api";
-import type { SettingField } from "../../../common/Config";
+// import type { SettingField } from "../../../common/Config";
 import { version } from "../../package.json";
 import { TwitchChannel } from "../Core/TwitchChannel";
 import { TwitchConfig } from "../Core/TwitchConfig";

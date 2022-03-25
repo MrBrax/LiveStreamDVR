@@ -207,6 +207,7 @@ export type ApiChannel = {
     download_chat: boolean;
     no_capture: boolean;
     burn_chat: boolean;
+    live_chat: boolean;
 
     current_chapter?: ApiVodChapter;
     current_game?: ApiGame;
@@ -234,6 +235,11 @@ export type ApiSubscription = {
 export type ApiChannelConfig = {
     login: string;
     match: string[];
+    quality: VideoQuality[];
+    download_chat: boolean;
+    no_capture: boolean;
+    burn_chat: boolean;
+    live_chat: boolean;
 };
 
 export type ApiJob = {

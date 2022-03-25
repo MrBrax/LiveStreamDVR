@@ -30,6 +30,12 @@
         </div>
         <div class="field">
             <label class="checkbox">
+                <input type="checkbox" name="live_chat" value="1" />
+                Live chat download
+            </label>
+        </div>
+        <div class="field">
+            <label class="checkbox">
                 <input type="checkbox" name="burn_chat" value="1" />
                 Burn chat after downloading
             </label>
