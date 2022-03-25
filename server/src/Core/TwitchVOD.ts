@@ -451,7 +451,7 @@ export class TwitchVOD {
                 width: parseInt(data.video.Width),
                 height: parseInt(data.video.Height),
 
-                fps: parseInt(data.video.FrameRate),
+                fps: parseInt(data.video.FrameRate), // TODO: check if this is correct, seems to be variable
                 fps_mode: data.video.FrameRate_Mode as "VFR" | "CFR",
 
                 audio_codec: data.audio.Format,
@@ -1444,6 +1444,203 @@ export class TwitchVOD {
         }
 
     }
+
+    /*
+    public function renderChat($chat_width = 300, $chat_height = null, $font = 'Inter', $font_size = 12, $use_downloaded = false, $overwrite = false)
+	{
+
+		if ($use_downloaded && !$this->is_chat_downloaded) {
+			throw new \Exception('No chat downloaded');
+			return false;
+		} else if (!$use_downloaded && !$this->is_chatdump_captured) {
+			throw new \Exception('No chat dumped');
+			return false;
+		}
+
+		if (!TwitchHelper::path_twitchdownloader() || !file_exists(TwitchHelper::path_twitchdownloader())) {
+			throw new \Exception('TwitchDownloaderCLI not installed');
+			return false;
+		}
+
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Render chat for {$this->basename}");
+
+		// $chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
+		// $video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
+		// $chat_width = 300;
+
+		if (file_exists($this->path_chat) && file_exists($this->path_chatrender) && !$overwrite) {
+			throw new \Exception('Chat already rendered');
+			return false;
+		}
+
+		$cmd = [];
+
+		$cmd[] = TwitchHelper::path_twitchdownloader();
+
+		$cmd[] = '--mode';
+		$cmd[] = 'ChatRender';
+
+		$cmd[] = '--temp-path';
+		$cmd[] = TwitchHelper::$cache_folder;
+
+		$cmd[] = '--ffmpeg-path';
+		$cmd[] = TwitchHelper::path_ffmpeg();
+
+		$cmd[] = '--input';
+		$cmd[] = realpath($use_downloaded ? $this->path_chat : $this->path_chatdump);
+
+		$cmd[] = '--chat-height';
+		$cmd[] = $chat_height ?: $this->video_metadata['video']['Height'];
+
+		$cmd[] = '--chat-width';
+		$cmd[] = $chat_width;
+
+		$cmd[] = '--framerate';
+		// $cmd[] = round((int)explode(".", $this->video_metadata['video']['FrameRate_Original'])[0]);
+		$cmd[] = round($this->video_metadata['video']['FrameRate_Original'] ?? $this->video_metadata['video']['FrameRate']);
+
+		$cmd[] = '--update-rate';
+		$cmd[] = '0';
+
+		$cmd[] = '--font';
+		$cmd[] = $font;
+
+		$cmd[] = '--font-size';
+		$cmd[] = $font_size;
+
+		$cmd[] = '--outline';
+
+		$cmd[] = '--background-color';
+		$cmd[] = '#00000000';
+
+		$cmd[] = '--generate-mask';
+
+		$cmd[] = '--output';
+		$cmd[] = $this->path_chatrender;
+		// $cmd[] = ' 2>&1'; // console output
+
+		$env = [
+			'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "dotnet",
+			'PATH' => dirname(TwitchHelper::path_ffmpeg()),
+			'TEMP' => TwitchHelper::$cache_folder
+		];
+
+		set_time_limit(0);
+
+		TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n");
+		TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n");
+
+		$process = new Process($cmd, $this->directory, $env, null, null);
+		$process->start();
+
+		$tdrenderJob = TwitchAutomatorJob::create("tdrender_{$this->streamer_login}");
+		$tdrenderJob->setPid($process->getPid());
+		$tdrenderJob->setProcess($process);
+		$tdrenderJob->save();
+
+		$process->wait();
+
+		$tdrenderJob->clear();
+
+		TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stdout", $process->getOutput());
+		TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stderr", $process->getErrorOutput());
+
+		if (mb_strpos($process->getErrorOutput(), "Unhandled exception") !== false) {
+			throw new \Exception('Error when running TwitchDownloaderCLI. Please check logs.');
+			return false;
+		}
+
+		// return [$video_filename, $capture_output, $cmd];
+
+		$successful = file_exists($this->path_chatrender) && filesize($this->path_chatrender) > 0;
+
+		if ($successful) {
+			$this->is_chat_rendered = true;
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "vodclass", "Chat rendered for {$this->basename}");
+		} else {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Chat couldn't be rendered for {$this->basename}");
+		}
+
+		return $successful;
+	}
+    */
+    
+    public renderChat(chat_width: number, chat_height: number, font: string, font_size: number, use_downloaded: boolean, overwrite: boolean): Promise<boolean> {
+        
+        if (use_downloaded && !this.is_chat_downloaded) {
+            throw new Error("No chat downloaded");
+        } else if (!use_downloaded && !this.is_chatdump_captured) {
+            throw new Error("No chat dumped");
+        }
+
+        if (!this.video_metadata) {
+            throw new Error("No video metadata");
+        }
+
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Render chat for ${this.basename}`);
+
+        if (fs.existsSync(this.path_chat) && fs.existsSync(this.path_chatrender) && !overwrite) {
+            throw new Error("Chat already rendered");
+        }
+
+        const bin = TwitchHelper.path_twitchdownloader();
+        const ffmpeg_bin = TwitchHelper.path_ffmpeg();
+        const args: string[] = [];
+
+        if (!bin) {
+            throw new Error("TwitchDownloaderCLI not installed");
+        }
+
+        if (!ffmpeg_bin) {
+            throw new Error("FFmpeg not installed");
+        }
+
+        args.push("--mode", "ChatRender");
+        args.push("--temp-path", BaseConfigFolder.cache);
+        args.push("--ffmpeg-path", ffmpeg_bin);
+        args.push("--input", path.normalize(use_downloaded ? this.path_chat : this.path_chatdump));
+        args.push("--chat-height", (chat_height ? chat_height : this.video_metadata.height).toString());
+        args.push("--chat-width", chat_width.toString());
+        args.push("--framerate", Math.round(this.video_metadata.fps).toString());
+        args.push("--update-rate", "0");
+        args.push("--font", font);
+        args.push("--font-size", font_size.toString());
+        args.push("--outline");
+        args.push("--background-color", "#00000000"); // alpha
+        args.push("--generate-mask");
+        args.push("--output", this.path_chatrender);
+
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Running ${bin} ${args.join(" ")}`);
+
+        const env = {
+            DOTNET_BUNDLE_EXTRACT_BASE_DIR: BaseConfigFolder.dotnet,
+            // PATH: path.dirname(TwitchHelper.path_ffmpeg()),
+            TEMP: BaseConfigFolder.cache,
+        };
+
+        return new Promise((resolve, reject) => {
+
+            // @todo: env support
+            const job = TwitchHelper.startJob(bin, args, `tdrender_${this.basename}`);
+            
+            if (!job) {
+                throw new Error("Could not start job");
+            }
+
+            job.on("close", (code, signal) => {
+                if (fs.existsSync(this.path_chatrender) && fs.statSync(this.path_chatrender).size > 0) {
+                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat rendered for ${this.basename}`);
+                    resolve(true);
+                } else {
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Chat couldn't be rendered for ${this.basename}`);
+                    reject(false);
+                }
+            });
+
+        });
+
+    }
+
 
     /**
      * 
