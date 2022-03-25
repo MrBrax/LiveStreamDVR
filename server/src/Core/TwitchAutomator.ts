@@ -18,7 +18,7 @@ import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchWebhook } from "./TwitchWebhook";
-import { MuteStatus } from "../../../common/Defs";
+import { MuteStatus, nonGameCategories } from "../../../common/Defs";
 import chalk from "chalk";
 import { Sleep } from "../Helpers/Sleep";
 import { ClientBroker } from "./ClientBroker";
@@ -278,6 +278,7 @@ export class TwitchAutomator {
             const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
             if (TwitchConfig.notificationCategories.streamStatusChange && channel) {
                 // ClientBroker.notify(); // @todo: compose message from previous and current game, favorite, etc.
+                this.notifyChapterChange(channel);
             }
 
             return true;
@@ -321,6 +322,46 @@ export class TwitchAutomator {
             // fclose($fp);
 
             return true;
+        }
+
+    }
+    notifyChapterChange(channel: TwitchChannel) {
+
+        const vod = channel.latest_vod;
+        if (!vod) return;
+
+        const current_chapter = vod.chapters[vod.chapters.length - 1];
+        const previous_chapter = vod.chapters.length > 2 ? vod.chapters[vod.chapters.length - 2] : null;
+
+        let title = "";
+        const body = current_chapter.title;
+        const icon = channel.profile_image_url;
+        
+        if (
+            (!previous_chapter?.game_id && current_chapter.game_id) || // game changed from null to something
+            (previous_chapter?.game_id && current_chapter.game_id && previous_chapter.game_id !== current_chapter.game_id) // game changed
+        ) {
+            if (nonGameCategories.includes(current_chapter.game_name)) {
+                if (current_chapter.game?.isFavourite()){
+                    title = `${channel.display_name} is online with one of your favourite categories: ${current_chapter.game_name}!`;
+                } else if (current_chapter.game_name) {
+                    title = `${channel.display_name} is streaming ${current_chapter.game_name}!`;
+                } else {
+                    title = `${channel.display_name} is streaming without a category!`;
+                }
+            } else {
+                if (current_chapter.game?.isFavourite()) {
+                    title = `${channel.display_name} is now playing one of your favourite games: ${current_chapter.game_name}!`;
+                } else if (current_chapter.game_name) {
+                    title = `${channel.display_name} is now playing ${current_chapter.game_name}!`;
+                } else {
+                    title = `${channel.display_name} is streaming without a game!`;
+                }
+
+            }
+
+            ClientBroker.notify(title, body, icon);
+
         }
 
     }

@@ -19,3 +19,24 @@ export enum ExistStatus {
 }
 
 export const VideoQualityArray: string[] = ["best", "1080p60", "1080p", "720p60", "720p", "480p", "360p", "160p", "140p", "worst"];
+
+export const nonGameCategories = [
+    "Just Chatting",
+    "IRL",
+    "Art",
+    "Music",
+    "Pools, Hot Tubs, and Beaches",
+    "Sports",
+    "ASMR",
+    "Talk Shows & Podcasts",
+    "Special Events",
+    "Beauty & Body Art",
+    "Animals, Aquariums, and Zoos",
+    "Travel & Outdoors",
+    "Makers & Crafting",
+    "Software and Game Development",
+    "Science & Technology",
+    "Food & Drink",
+    "Politics",
+    "Fitness & Health",
+];
