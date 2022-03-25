@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import fs from "fs";
 import path from "path";
 import { BaseConfigFolder } from "./BaseConfig";
+import { ClientBroker } from "./ClientBroker";
 import { TwitchConfig } from "./TwitchConfig";
 
 export enum LOGLEVEL {
@@ -120,6 +121,14 @@ export class TwitchLog {
         // write jsonline
         fs.appendFileSync(jsonlinename, JSON.stringify(log_data) + "\n");
         this.lines.push(log_data);
+
+        // send over websocket, probably extremely slow
+        if (TwitchConfig.cfg<boolean>("websocket_log") && TwitchConfig.initialised) {
+            ClientBroker.broadcast({
+                action: "log",
+                data: log_data,
+            });
+        }
 
     }
 

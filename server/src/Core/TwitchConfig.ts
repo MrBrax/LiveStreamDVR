@@ -47,6 +47,8 @@ export class TwitchConfig {
         { "key": "websocket_enabled", "group": "Interface", "text": "Websockets enabled", "type": "boolean" },
         // { "key": "websocket_server_address", "group": "Interface", "text": "Websocket server address override", "type": "string" },
         { "key": "websocket_client_address", "group": "Interface", "text": "Websocket client address override", "type": "string" },
+        { "key": "websocket_log", "group": "Interface", "text": "Send logs over websocket", "type": "boolean" },
+        
         { "key": "storage_per_streamer", "group": "Basic", "text": "Gigabytes of storage per streamer", "type": "number", "default": 100 },
         { "key": "hls_timeout", "group": "Advanced", "text": "HLS Timeout in seconds (ads)", "type": "number", "default": 200 },
         { "key": "vods_to_keep", "group": "Basic", "text": "VODs to keep per streamer", "type": "number", "default": 5 },
@@ -102,6 +104,7 @@ export class TwitchConfig {
         { "key": "trust_proxy", "group": "Basic", "text": "Trust proxy", "type": "boolean", "default": false, "help": "If server is behind a reverse proxy, enable this.", restart_required: true },
 
         { "key": "dump_payloads", "group": "Advanced", "text": "Dump payloads", "type": "boolean", "default": false },
+
     ];
 
     static notificationCategories: Record<string, boolean> = {

@@ -296,6 +296,8 @@ export default defineComponent({
                     } else if (action == "init") {
                         const toast = new Notification("Server connected to broker");
                         console.log("Init", toast);
+                    } else if (action == "log") {
+                        this.logLines.push(json.data);
                     } else {
                         console.log(`Websocket wrong action (${action})`);
                     }
