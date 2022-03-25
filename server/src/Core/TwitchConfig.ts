@@ -43,9 +43,9 @@ export class TwitchConfig {
 
         { "key": "webhook_url", "group": "Basic", "text": "Webhook URL", "type": "string", "help": "For external scripting" },
         { "key": "password", "group": "Interface", "text": "Password", "type": "string", "help": "Keep blank for none. Username is admin" },
-        { "key": "password_secure", "group": "Interface", "text": "Force HTTPS for password", "type": "boolean", "default": true },
+        // { "key": "password_secure", "group": "Interface", "text": "Force HTTPS for password", "type": "boolean", "default": true },
         { "key": "websocket_enabled", "group": "Interface", "text": "Websockets enabled", "type": "boolean" },
-        { "key": "websocket_server_address", "group": "Interface", "text": "Websocket server address override", "type": "string" },
+        // { "key": "websocket_server_address", "group": "Interface", "text": "Websocket server address override", "type": "string" },
         { "key": "websocket_client_address", "group": "Interface", "text": "Websocket client address override", "type": "string" },
         { "key": "storage_per_streamer", "group": "Basic", "text": "Gigabytes of storage per streamer", "type": "number", "default": 100 },
         { "key": "hls_timeout", "group": "Advanced", "text": "HLS Timeout in seconds (ads)", "type": "number", "default": 200 },
@@ -71,7 +71,7 @@ export class TwitchConfig {
         { "key": "app_verbose", "group": "Developer", "text": "Verbose app output", "type": "boolean", "help": "Only verbose output" },
         { "key": "channel_folders", "group": "Basic", "text": "Channel folders", "type": "boolean", "default": true, "help": "Store VODs in subfolders instead of root" },
         { "key": "chat_compress", "group": "Advanced", "text": "Compress chat with gzip (untested)", "type": "boolean" },
-        { "key": "relative_time", "group": "Interface", "text": "Relative time", "type": "boolean", "help": "\"1 hour ago\" instead of 2020-01-01" },
+        // { "key": "relative_time", "group": "Interface", "text": "Relative time", "type": "boolean", "help": "\"1 hour ago\" instead of 2020-01-01" },
         { "key": "low_latency", "group": "Advanced", "text": "Low latency (untested)", "type": "boolean" },
         // {'key': 'youtube_dlc', 			'group': 'Advanced',	'text': 'Use youtube-dlc instead of the regular one', 	        'type': 'boolean'},
         // {'key': 'youtube_dl_alternative', 'group': 'Advanced',	'text': 'The alternative to youtube-dl to use', 			    'type': 'string'},
@@ -85,11 +85,11 @@ export class TwitchConfig {
 
         { "key": "eventsub_secret", "group": "Advanced", "text": "EventSub secret", "type": "string", "required": true },
 
-        { "key": "ca_path", "group": "Advanced", "text": "Path to certificate PEM file", "type": "string" },
+        // { "key": "ca_path", "group": "Advanced", "text": "Path to certificate PEM file", "type": "string" },
 
         { "key": "api_metadata", "group": "Basic", "text": "Get extra metadata when updating chapter.", "type": "boolean", "help": "Makes extra API requests." },
 
-        { "key": "error_handler", "group": "Advanced", "text": "Use app logging to catch PHP errors", "type": "boolean" },
+        // { "key": "error_handler", "group": "Advanced", "text": "Use app logging to catch PHP errors", "type": "boolean" },
 
         { "key": "file_permissions", "group": "Advanced", "text": "Set file permissions", "type": "boolean", "help": "Warning, can mess up permissions real bad." },
         { "key": "file_chmod", "group": "Advanced", "text": "File chmod", "type": "number", "default": 775 },
@@ -283,14 +283,16 @@ export class TwitchConfig {
         TwitchConfig.saveConfig("eventsub_secret not set");
     }
 
-    static getWebsocketClientUrl() {
+    static getWebsocketClientUrl(): string | undefined {
+
+        if (!TwitchConfig.cfg("websocket_enabled")) return undefined;
         
         // override
-        if (TwitchConfig.cfg("websocket_client_address")) {
-            return TwitchConfig.cfg("websocket_client_address");
+        if (TwitchConfig.cfg<string>("websocket_client_address")) {
+            return TwitchConfig.cfg<string>("websocket_client_address");
         }
 
-        if (TwitchConfig.cfg("debug")) {
+        if (TwitchConfig.cfg<boolean>("debug")) {
             return "ws://localhost:8080/socket/";
         }
 

@@ -816,7 +816,7 @@ export class TwitchVOD {
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Rebuilding segment list for ${this.basename}`);
 
-        const files = fs.readdirSync(this.directory).filter(file => file.startsWith(this.basename) && file.endsWith(".mp4"));
+        const files = fs.readdirSync(this.directory).filter(file => file.startsWith(this.basename) && file.endsWith(`.${TwitchConfig.cfg("vod_container", "mp4")}`));
 
         if (!files || files.length == 0) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No segments found for ${this.basename}, can't rebuild segment list`);
@@ -1415,7 +1415,7 @@ export class TwitchVOD {
                 this.is_converting = true;
                 const status = await TwitchHelper.remuxFile(path.join(this.directory, `${this.basename}.ts`), path.join(this.directory, `${this.basename}.mp4`));
                 console.log(chalk.bgBlue.whiteBright(`${this.basename} remux status: ${status.success}`));
-                this.addSegment(`${this.basename}.mp4`);
+                this.addSegment(`${this.basename}.${TwitchConfig.cfg("vod_container", "mp4")}`);
                 this.is_converting = false;
                 await this.finalize();
                 this.saveJSON("fix remux");

@@ -90,12 +90,18 @@ TwitchConfig.init().then(() => {
         }
     });
 
-    // start websocket server and attach broker
-    const websocketServer = new WebSocket.Server({ server, path: `${basepath}/socket/` });
-    ClientBroker.attach(websocketServer);
-    
-    TwitchWebhook.dispatch("init", {
-        "hello": "world",
-    });
+    if (TwitchConfig.cfg<boolean>("websocket_enabled")) {
+
+        // start websocket server and attach broker
+        const websocketServer = new WebSocket.Server({ server, path: `${basepath}/socket/` });
+        ClientBroker.attach(websocketServer);
+        
+        TwitchWebhook.dispatch("init", {
+            "hello": "world",
+        });
+
+    } else {
+        console.log(chalk.yellow("WebSocket is disabled. Change the 'websocket_enabled' config to enable it."));
+    }
 
 });
