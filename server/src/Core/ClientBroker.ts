@@ -112,6 +112,7 @@ export class ClientBroker {
             console.error(chalk.bgRed.whiteBright(`No WebSocket server attached to broker for data ${JSON.stringify(data)}`));
             return;
         }
+        console.log(chalk.blueBright(`Broadcasting data to ${this.wss.clients.size} clients: ${JSON.stringify(data)}`));
         this.wss.clients.forEach((client) => {
             client.send(JSON.stringify(data));
         });

@@ -234,9 +234,9 @@ export class TwitchAutomatorJob extends EventEmitter {
 
         if (TwitchAutomatorJob.jobs.find(job => job.name === this.name)) {
             TwitchAutomatorJob.jobs = TwitchAutomatorJob.jobs.filter(job => job.name !== this.name);
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "job", `Job ${this.name} removed from jobs list`, this.metadata);
+            TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "job", `Job ${this.name} removed from jobs list`, this.metadata);
         } else {
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "job", `Job ${this.name} not found in jobs list`, this.metadata);
+            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "job", `Job ${this.name} not found in jobs list`, this.metadata);
         }
 
         this.emit("clear");

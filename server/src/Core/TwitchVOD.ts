@@ -126,6 +126,8 @@ export class TwitchVOD {
     */
 
     /*private*/ public _writeJSON = false;
+    
+    fileWatcher?: fs.FSWatcher;
 
     /**
      * Set up date related data
@@ -712,7 +714,7 @@ export class TwitchVOD {
             return false;
         }
 
-        console.debug(`Calculating chapters for ${this.basename}, ${this.chapters.length} chapters`);
+        // console.debug(`Calculating chapters for ${this.basename}, ${this.chapters.length} chapters`);
 
         this.chapters.forEach((chapter, index) => {
 
@@ -1078,11 +1080,11 @@ export class TwitchVOD {
             // }
         }
 
-        if (!this.created && (this.is_capturing || this.is_converting || !this.is_finalized)) {
-            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Saving JSON of ${this.basename} while not finalized!`);
-        }
+        // if (!this.created && (this.is_capturing || this.is_converting || !this.is_finalized)) {
+        //     TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Saving JSON of ${this.basename} while not finalized!`);
+        // }
 
-        if (!this.chapters || this.chapters.length == 0) {
+        if (this.not_started && !this.chapters || this.chapters.length == 0) {
             TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Saving JSON of ${this.basename} with no chapters!!`);
         }
 
@@ -1155,11 +1157,15 @@ export class TwitchVOD {
         //file_put_contents(this.filename, json_encode(generated));
         // this.setPermissions();
 
+        this.stopWatching();
+
         this._writeJSON = true;
 
         fs.writeFileSync(this.filename, JSON.stringify(generated, null, 4));
 
         this._writeJSON = false;
+
+        this.startWatching();
 
         return generated;
 
@@ -1917,6 +1923,29 @@ export class TwitchVOD {
         return this.twitch_vod_duration - this.duration;
     }
 
+    public startWatching() {
+        if (this.fileWatcher) this.stopWatching();
+        this.fileWatcher = fs.watch(this.filename, (eventType, filename) => {
+            if (eventType === "rename") {
+                if (!fs.existsSync(this.filename)) {
+                    TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD JSON ${this.basename} deleted!`);
+                    if (TwitchVOD.vods.find(v => v.basename == this.basename)) {
+                        TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${this.basename} still in memory!`);
+
+                        // const channel = TwitchChannel.getChannelByLogin(this.streamer_login);
+                        // if (channel) channel.removeVod(this.basename);
+                    }
+                }
+            } else if (eventType === "change") {
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD JSON ${this.basename} changed (${this._writeJSON ? "internal" : "external"})!`);
+            }
+        });
+    }
+
+    public stopWatching() {
+        if (this.fileWatcher) this.fileWatcher.close();
+    }
+
     /**
      * 
      * STATIC
@@ -1981,21 +2010,7 @@ export class TwitchVOD {
         // add to cache
         this.addVod(vod);
 
-        fs.watch(vod.filename, (eventType, filename) => {
-            if (eventType === "rename") {
-                if (!fs.existsSync(vod.filename)) {
-                    TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD JSON ${vod.basename} deleted!`);
-                    if (TwitchVOD.vods.find(v => v.basename == vod.basename)) {
-                        TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${vod.basename} still in memory!`);
-
-                        // const channel = TwitchChannel.getChannelByLogin(vod.streamer_login);
-                        // if (channel) channel.removeVod(vod.basename);
-                    }
-                }
-            } else if (eventType === "change") {
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD JSON ${vod.basename} changed (${vod._writeJSON ? "internal" : "external"})!`);
-            }
-        });
+        vod.startWatching();
 
         // fs.unwatchFile(vod.filename);
 
