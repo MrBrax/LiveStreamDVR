@@ -225,6 +225,12 @@ export class TwitchAutomator {
                 return false;
             }
 
+            if (!vod.getCapturingStatus()) {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `VOD ${basename} is not capturing, skipping chapter update.`);
+                KeyValue.delete(`${this.broadcaster_user_login}.online`);
+                return false;
+            }
+
             let event: ChannelUpdateEvent;
 
             // fetch from cache
