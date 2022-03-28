@@ -1,7 +1,10 @@
 // const { cli } = require('webpack');
+import axios from "axios";
 import chalk from "chalk";
 import { IncomingMessage } from "http";
 import WebSocket from "ws";
+import { TwitchConfig } from "./TwitchConfig";
+import { TwitchLog, LOGLEVEL } from "./TwitchLog";
 
 interface Client {
     id: string;
@@ -128,7 +131,9 @@ export class ClientBroker {
      * @param icon 
      */
     static notify(title: string, body = "", icon = "") {
+        
         console.log(chalk.bgBlue.whiteBright(`Notifying clients: ${title}: ${body}`));
+        
         this.broadcast({
             action: "notify",
             data: {
@@ -137,6 +142,25 @@ export class ClientBroker {
                 icon: icon,
             },
         });
+        
+        if (TwitchConfig.cfg("telegram_enabled")) {
+
+            let response;
+
+            try {
+                response = axios.post(`https://api.telegram.org/bot${TwitchConfig.cfg("telegram_token")}/sendMessage`, {
+                    chat_id: TwitchConfig.cfg("telegram_chat_id"),
+                    text: `*${title}*\n${body}`,
+                    parse_mode: "markdown",
+                });
+            } catch (error) {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "webhook", `Telegram error: ${error}`);
+            }
+
+            console.debug("Telegram response", response);
+
+        }
+        
     }
 
 }
