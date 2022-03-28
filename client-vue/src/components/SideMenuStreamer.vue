@@ -165,8 +165,7 @@ import { useStore } from "@/store";
 import { ApiChannel, ApiVod } from "../../../common/Api/Client";
 library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp);
 
-import { nonGameCategories } from "@/defs";
-import { MuteStatus } from "../../../common/Defs";
+import { MuteStatus, nonGameCategories } from "../../../common/Defs";
 
 export default defineComponent({
     name: "SideMenuStreamer",

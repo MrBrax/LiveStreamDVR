@@ -82,7 +82,7 @@ import Streamer from "@/components/StreamerItem.vue";
 import type { ApiLogLine, ApiChannel } from "@common/Api/Client";
 import { format } from "date-fns";
 import { useStore } from "@/store";
-import { nonGameCategories } from "@common/Defs";
+import { nonGameCategories } from "../../../common/Defs";
 
 interface DashboardData {
     loading: boolean;
