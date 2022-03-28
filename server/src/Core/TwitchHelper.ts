@@ -504,19 +504,28 @@ export class TwitchHelper {
 
     }
 
+    /**
+     * Remux input to output
+     * 
+     * @param input 
+     * @param output 
+     * @param overwrite 
+     * @returns 
+     */
     static remuxFile(input: string, output: string, overwrite = false): Promise<RemuxReturn> {
-        
-        const ffmpeg_path = this.path_ffmpeg();
-        
-        if (!ffmpeg_path) {
-            throw new Error("Failed to find ffmpeg");
-        }
 
         return new Promise((resolve, reject) => {
 
+            const ffmpeg_path = this.path_ffmpeg();
+
+            if (!ffmpeg_path) {
+                reject(new Error("Failed to find ffmpeg"));
+                return;
+            }
+
             if (!overwrite && fs.existsSync(output)) {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Output file ${output} already exists`);
-                reject({ code: -1, stdout: [], stderr: [] });
+                reject(new Error(`Output file ${output} already exists`));
             }
 
             const opts = [
@@ -537,35 +546,19 @@ export class TwitchHelper {
 
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Remuxing ${input} to ${output}`);
 
-            const ffmpeg = spawn(ffmpeg_path, opts);
+            const job = TwitchHelper.startJob(ffmpeg_path, opts, `remux_${path.basename(input)}`);
 
-            let job: TwitchAutomatorJob;
-
-            if (ffmpeg.pid) {
-                job = TwitchAutomatorJob.create(`remux_${path.basename(input)}`);
-                job.setPid(ffmpeg.pid);
-                job.setProcess(ffmpeg);
-                job.startLog(`remux_${path.basename(input)}`, `$ ffmpeg ${opts.join(" ")}\n`);
-                job.save();
+            if (!job || !job.process) {
+                reject(new Error(`Failed to start job for remuxing ${input} to ${output}`));
+                return;
             }
 
-            const stdout: string[] = [];
-            const stderr: string[] = [];
-
-            process.stdout.on("data", (data: Stream) => {
-                stdout.push(data.toString());
-            });
-            
-            process.stderr.on("data", (data: Stream) => {
-                stderr.push(data.toString());
-            });
-
-            process.on("error", (err) => {
+            job.process.on("error", (err) => {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
-                reject({ code: -1, success: false, stdout, stderr });
+                reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
             });
 
-            ffmpeg.on("close", (code) => {
+            job.process.on("close", (code) => {
                 if (job) {
                     job.clear();
                 }
@@ -573,13 +566,15 @@ export class TwitchHelper {
                 const success = fs.existsSync(output) && fs.statSync(output).size > 0;
                 if (code == 0) {
                     TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Remuxed ${input} to ${output}`);
-                    resolve({ code, success, stdout, stderr });
+                    resolve({ code, success, stdout: job.stdout, stderr: job.stderr });
                 } else {
                     TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to remux ${input} to ${output}`);
-                    reject({ code, success, stdout, stderr });
+                    reject({ code, success, stdout: job.stdout, stderr: job.stderr });
                 }
             });
+
         });
+
     }
 
     // https://stackoverflow.com/a/2510459

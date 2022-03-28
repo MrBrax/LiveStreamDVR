@@ -193,7 +193,7 @@ export async function RenderWizard(req: express.Request, res: express.Response):
         } catch (error) {
             res.status(400).send({
                 status: "ERROR",
-                message: (error as Error).message,
+                message: (error as Error).message || "Unknown error occurred while rendering chat",
             } as ApiErrorResponse);
             return;
         }
@@ -205,7 +205,7 @@ export async function RenderWizard(req: express.Request, res: express.Response):
         } catch (error) {
             res.status(400).send({
                 status: "ERROR",
-                message: (error as Error).message,
+                message: (error as Error).message || "Unknown error occurred while burning chat",
             } as ApiErrorResponse);
             return;
         }

@@ -61,7 +61,7 @@
 - [x] record a stream
 - [ ] delete vod from disk and handle
 - [x] integrate websocket server into ts-server?
-- [?] burnwizard
+- [x] burnwizard
 - [x] password protection
 - [x] webhook+websocket
 
