@@ -505,11 +505,19 @@ export class TwitchHelper {
     }
 
     static remuxFile(input: string, output: string, overwrite = false): Promise<RemuxReturn> {
+        
         const ffmpeg_path = this.path_ffmpeg();
+        
         if (!ffmpeg_path) {
             throw new Error("Failed to find ffmpeg");
         }
+
         return new Promise((resolve, reject) => {
+
+            if (!overwrite && fs.existsSync(output)) {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Output file ${output} already exists`);
+                reject({ code: -1, stdout: [], stderr: [] });
+            }
 
             const opts = [
                 "-i", input,

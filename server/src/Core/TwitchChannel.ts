@@ -10,7 +10,7 @@ import type { ErrorResponse, EventSubTypes } from "../../../common/TwitchAPI/Sha
 import type { Stream, StreamsResponse } from "../../../common/TwitchAPI/Streams";
 import type { SubscriptionRequest, SubscriptionResponse } from "../../../common/TwitchAPI/Subscriptions";
 import type { UsersResponse } from "../../../common/TwitchAPI/Users";
-import { BaseConfigPath } from "./BaseConfig";
+import { BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchConfig } from "./TwitchConfig";
 import { TwitchGame } from "./TwitchGame";
@@ -115,7 +115,7 @@ export class TwitchChannel {
             try {
                 vodclass = await TwitchVOD.load(vod_full_path, api);
             } catch (e) {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not load VOD ${vod}: ${e}`);
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not load VOD ${vod}: ${(e as Error).message}`);
                 continue;
             }
 
@@ -499,6 +499,16 @@ export class TwitchChannel {
 
         if (needsSave) {
             this.saveChannelsConfig();
+        }
+
+        if (TwitchConfig.cfg("channel_folders")) {
+            const folders = fs.readdirSync(BaseConfigFolder.vod);
+            for (const folder of folders) {
+                if (folder == ".gitkeep") continue;
+                if (!this.channels_config.find(ch => ch.login === folder)) {
+                    TwitchLog.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel folder ${folder} is not in channel config, left over?`);
+                }
+            }
         }
 
         return true;

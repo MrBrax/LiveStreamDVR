@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import fs from "fs";
+import { replaceAll } from "Helpers/ReplaceAll";
 import path from "path";
 import { BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
 
@@ -14,7 +15,7 @@ export class KeyValue {
     // todo: redis or something
     static get(key: string): string | false {
 
-        key = key.replace(/\//g, ""); // @todo: replaceAll
+        key = replaceAll(key, /\//g, ""); // @todo: replaceAll
 
         return this.data[key] !== undefined ? this.data[key] : false;
 
@@ -22,7 +23,7 @@ export class KeyValue {
 
     static set(key: string, value: string | null) {
 
-        key = key.replace(/\//g, ""); // @todo: replaceAll
+        key = replaceAll(key, /\//g, ""); // @todo: replaceAll
 
         if (value === null) {
             this.delete(key);

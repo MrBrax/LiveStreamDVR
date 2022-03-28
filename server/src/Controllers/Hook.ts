@@ -11,6 +11,7 @@ import { ChallengeResponse } from "../../../common/TwitchAPI/Challenge";
 import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
 import { KeyValue } from "../Core/KeyValue";
 import { SubStatus } from "../../../common/Defs";
+import { replaceAll } from "Helpers/ReplaceAll";
 
 const verifySignature = (request: express.Request): boolean => {
 
@@ -152,7 +153,7 @@ export function Hook(req: express.Request, res: express.Response): void {
             }
 
             if (TwitchConfig.cfg<boolean>("debug") || TwitchConfig.cfg<boolean>("dump_payloads")) {
-                let payload_filename = new Date().toISOString().replace(/[-:.]/g, "_"); // @todo: replaceAll
+                let payload_filename = replaceAll(new Date().toISOString(), /[-:.]/g, "_"); // @todo: replaceAll
                 if (data_json.subscription.type) payload_filename += `_${data_json.subscription.type}`;
                 payload_filename += ".json";
                 const payload_filepath = path.join(AppRoot, "payloads", payload_filename);

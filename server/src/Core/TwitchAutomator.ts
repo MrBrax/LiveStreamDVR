@@ -22,6 +22,7 @@ import { MuteStatus, nonGameCategories } from "../../../common/Defs";
 import chalk from "chalk";
 import { Sleep } from "../Helpers/Sleep";
 import { ClientBroker } from "./ClientBroker";
+import { replaceAll } from "Helpers/ReplaceAll";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
@@ -51,9 +52,7 @@ export class TwitchAutomator {
     chatJob: TwitchAutomatorJob | undefined;
 
     public basename() {
-
-        // return $this->getLogin() . '_' . str_replace(':', '_', $this->getStartDate()) . '_' . $this->getVodID();
-        return this.getLogin() + "_" + this.getStartDate().replace(":", "_") + "_" + this.getVodID(); // @todo: replaceAll
+        return `${this.getLogin()}_${replaceAll(this.getStartDate(), ":", "_")}_${this.getVodID()}`; // @todo: replaceAll
     }
 
     public getVodID() {

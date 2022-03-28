@@ -126,7 +126,7 @@ export class TwitchVOD {
     */
 
     /*private*/ public _writeJSON = false;
-    
+
     fileWatcher?: fs.FSWatcher;
 
     /**
@@ -510,8 +510,6 @@ export class TwitchVOD {
         if (!this.directory) return false;
         if (!this.segments || this.segments.length == 0) return false;
         if (this.is_converting) return false;
-        // return this.directory !== "" && fs.existsSync(path.join(this.directory, `${this.basename}.mp4`)); }
-        // return this.segments_raw.some(segment => fs.existsSync(path.join(this.directory, segment)) && fs.statSync(path.join(this.directory, segment)).size > 0);
         return this.segments.some(segment => segment.filename && fs.existsSync(segment.filename) && fs.statSync(segment.filename).size > 0);
     }
 
@@ -767,6 +765,12 @@ export class TwitchVOD {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Segment list containing invalid data for ${this.basename}, rebuilding...`);
                 this.rebuildSegmentList();
                 return;
+            }
+
+            // find invalid characters for windows
+            if (raw_segment.match(/[:*?"<>|]/)) {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Segment list containing invalid characters for ${this.basename}: ${raw_segment}`);
+                return false;
             }
 
             const segment = new TwitchVODSegment();
@@ -1416,6 +1420,7 @@ export class TwitchVOD {
 
         // remux if not yet remuxed
         if (!this.is_capturing && !this.is_converted) {
+            console.debug(`is_capturing: ${this.is_capturing}, is_converted: ${this.is_converted}`);
             if (fs.existsSync(path.join(this.directory, `${this.basename}.ts`))) {
                 console.log(chalk.bgBlue.whiteBright(`${this.basename} is not yet remuxed, remuxing now!`));
                 this.is_converting = true;
@@ -1453,126 +1458,126 @@ export class TwitchVOD {
 
     /*
     public function renderChat($chat_width = 300, $chat_height = null, $font = 'Inter', $font_size = 12, $use_downloaded = false, $overwrite = false)
-	{
+    {
 
-		if ($use_downloaded && !$this->is_chat_downloaded) {
-			throw new \Exception('No chat downloaded');
-			return false;
-		} else if (!$use_downloaded && !$this->is_chatdump_captured) {
-			throw new \Exception('No chat dumped');
-			return false;
-		}
+        if ($use_downloaded && !$this->is_chat_downloaded) {
+            throw new \Exception('No chat downloaded');
+            return false;
+        } else if (!$use_downloaded && !$this->is_chatdump_captured) {
+            throw new \Exception('No chat dumped');
+            return false;
+        }
 
-		if (!TwitchHelper::path_twitchdownloader() || !file_exists(TwitchHelper::path_twitchdownloader())) {
-			throw new \Exception('TwitchDownloaderCLI not installed');
-			return false;
-		}
+        if (!TwitchHelper::path_twitchdownloader() || !file_exists(TwitchHelper::path_twitchdownloader())) {
+            throw new \Exception('TwitchDownloaderCLI not installed');
+            return false;
+        }
 
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Render chat for {$this->basename}");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Render chat for {$this->basename}");
 
-		// $chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
-		// $video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
-		// $chat_width = 300;
+        // $chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
+        // $video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
+        // $chat_width = 300;
 
-		if (file_exists($this->path_chat) && file_exists($this->path_chatrender) && !$overwrite) {
-			throw new \Exception('Chat already rendered');
-			return false;
-		}
+        if (file_exists($this->path_chat) && file_exists($this->path_chatrender) && !$overwrite) {
+            throw new \Exception('Chat already rendered');
+            return false;
+        }
 
-		$cmd = [];
+        $cmd = [];
 
-		$cmd[] = TwitchHelper::path_twitchdownloader();
+        $cmd[] = TwitchHelper::path_twitchdownloader();
 
-		$cmd[] = '--mode';
-		$cmd[] = 'ChatRender';
+        $cmd[] = '--mode';
+        $cmd[] = 'ChatRender';
 
-		$cmd[] = '--temp-path';
-		$cmd[] = TwitchHelper::$cache_folder;
+        $cmd[] = '--temp-path';
+        $cmd[] = TwitchHelper::$cache_folder;
 
-		$cmd[] = '--ffmpeg-path';
-		$cmd[] = TwitchHelper::path_ffmpeg();
+        $cmd[] = '--ffmpeg-path';
+        $cmd[] = TwitchHelper::path_ffmpeg();
 
-		$cmd[] = '--input';
-		$cmd[] = realpath($use_downloaded ? $this->path_chat : $this->path_chatdump);
+        $cmd[] = '--input';
+        $cmd[] = realpath($use_downloaded ? $this->path_chat : $this->path_chatdump);
 
-		$cmd[] = '--chat-height';
-		$cmd[] = $chat_height ?: $this->video_metadata['video']['Height'];
+        $cmd[] = '--chat-height';
+        $cmd[] = $chat_height ?: $this->video_metadata['video']['Height'];
 
-		$cmd[] = '--chat-width';
-		$cmd[] = $chat_width;
+        $cmd[] = '--chat-width';
+        $cmd[] = $chat_width;
 
-		$cmd[] = '--framerate';
-		// $cmd[] = round((int)explode(".", $this->video_metadata['video']['FrameRate_Original'])[0]);
-		$cmd[] = round($this->video_metadata['video']['FrameRate_Original'] ?? $this->video_metadata['video']['FrameRate']);
+        $cmd[] = '--framerate';
+        // $cmd[] = round((int)explode(".", $this->video_metadata['video']['FrameRate_Original'])[0]);
+        $cmd[] = round($this->video_metadata['video']['FrameRate_Original'] ?? $this->video_metadata['video']['FrameRate']);
 
-		$cmd[] = '--update-rate';
-		$cmd[] = '0';
+        $cmd[] = '--update-rate';
+        $cmd[] = '0';
 
-		$cmd[] = '--font';
-		$cmd[] = $font;
+        $cmd[] = '--font';
+        $cmd[] = $font;
 
-		$cmd[] = '--font-size';
-		$cmd[] = $font_size;
+        $cmd[] = '--font-size';
+        $cmd[] = $font_size;
 
-		$cmd[] = '--outline';
+        $cmd[] = '--outline';
 
-		$cmd[] = '--background-color';
-		$cmd[] = '#00000000';
+        $cmd[] = '--background-color';
+        $cmd[] = '#00000000';
 
-		$cmd[] = '--generate-mask';
+        $cmd[] = '--generate-mask';
 
-		$cmd[] = '--output';
-		$cmd[] = $this->path_chatrender;
-		// $cmd[] = ' 2>&1'; // console output
+        $cmd[] = '--output';
+        $cmd[] = $this->path_chatrender;
+        // $cmd[] = ' 2>&1'; // console output
 
-		$env = [
-			'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "dotnet",
-			'PATH' => dirname(TwitchHelper::path_ffmpeg()),
-			'TEMP' => TwitchHelper::$cache_folder
-		];
+        $env = [
+            'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "dotnet",
+            'PATH' => dirname(TwitchHelper::path_ffmpeg()),
+            'TEMP' => TwitchHelper::$cache_folder
+        ];
 
-		set_time_limit(0);
+        set_time_limit(0);
 
-		TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n");
-		TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n");
+        TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n");
+        TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n");
 
-		$process = new Process($cmd, $this->directory, $env, null, null);
-		$process->start();
+        $process = new Process($cmd, $this->directory, $env, null, null);
+        $process->start();
 
-		$tdrenderJob = TwitchAutomatorJob::create("tdrender_{$this->streamer_login}");
-		$tdrenderJob->setPid($process->getPid());
-		$tdrenderJob->setProcess($process);
-		$tdrenderJob->save();
+        $tdrenderJob = TwitchAutomatorJob::create("tdrender_{$this->streamer_login}");
+        $tdrenderJob->setPid($process->getPid());
+        $tdrenderJob->setProcess($process);
+        $tdrenderJob->save();
 
-		$process->wait();
+        $process->wait();
 
-		$tdrenderJob->clear();
+        $tdrenderJob->clear();
 
-		TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stdout", $process->getOutput());
-		TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stderr", $process->getErrorOutput());
+        TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stdout", $process->getOutput());
+        TwitchHelper::appendLog("tdrender_{$this->basename}_" . time() . "_stderr", $process->getErrorOutput());
 
-		if (mb_strpos($process->getErrorOutput(), "Unhandled exception") !== false) {
-			throw new \Exception('Error when running TwitchDownloaderCLI. Please check logs.');
-			return false;
-		}
+        if (mb_strpos($process->getErrorOutput(), "Unhandled exception") !== false) {
+            throw new \Exception('Error when running TwitchDownloaderCLI. Please check logs.');
+            return false;
+        }
 
-		// return [$video_filename, $capture_output, $cmd];
+        // return [$video_filename, $capture_output, $cmd];
 
-		$successful = file_exists($this->path_chatrender) && filesize($this->path_chatrender) > 0;
+        $successful = file_exists($this->path_chatrender) && filesize($this->path_chatrender) > 0;
 
-		if ($successful) {
-			$this->is_chat_rendered = true;
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "vodclass", "Chat rendered for {$this->basename}");
-		} else {
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Chat couldn't be rendered for {$this->basename}");
-		}
+        if ($successful) {
+            $this->is_chat_rendered = true;
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "vodclass", "Chat rendered for {$this->basename}");
+        } else {
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Chat couldn't be rendered for {$this->basename}");
+        }
 
-		return $successful;
-	}
+        return $successful;
+    }
     */
-    
+
     public renderChat(chat_width: number, chat_height: number, font: string, font_size: number, use_downloaded: boolean, overwrite: boolean): Promise<boolean> {
-        
+
         if (use_downloaded && !this.is_chat_downloaded) {
             throw new Error("No chat downloaded");
         } else if (!use_downloaded && !this.is_chatdump_captured) {
@@ -1628,7 +1633,7 @@ export class TwitchVOD {
 
             // @todo: env support
             const job = TwitchHelper.startJob(bin, args, `tdrender_${this.basename}`);
-            
+
             if (!job) {
                 throw new Error("Could not start job");
             }
@@ -1649,153 +1654,153 @@ export class TwitchVOD {
 
     /*
     public function burnChat(
-		$burn_horizontal = "left",
-		$burn_vertical = "top",
-		$ffmpeg_preset = "slow",
-		$ffmpeg_crf = 26,
-		$use_vod = false,
-		$overwrite = false,
-		$test_duration = false
-	) {
+        $burn_horizontal = "left",
+        $burn_vertical = "top",
+        $ffmpeg_preset = "slow",
+        $ffmpeg_crf = 26,
+        $use_vod = false,
+        $overwrite = false,
+        $test_duration = false
+    ) {
 
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Burn chat for {$this->basename}");
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Burn chat for {$this->basename}");
 
-		if ($this->path_chatburn && file_exists($this->path_chatburn) && !$overwrite) {
-			throw new \Exception('Chat already burned');
-			return false;
-		}
+        if ($this->path_chatburn && file_exists($this->path_chatburn) && !$overwrite) {
+            throw new \Exception('Chat already burned');
+            return false;
+        }
 
-		if ($use_vod) {
+        if ($use_vod) {
 
-			if (!$this->is_vod_downloaded) {
-				throw new \Exception('no vod downloaded');
-				return false;
-			}
+            if (!$this->is_vod_downloaded) {
+                throw new \Exception('no vod downloaded');
+                return false;
+            }
 
-			$video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_vod.mp4';
-		} else {
-			$video_filename = $this->directory . DIRECTORY_SEPARATOR . basename($this->segments_raw[0]);
-		}
+            $video_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_vod.mp4';
+        } else {
+            $video_filename = $this->directory . DIRECTORY_SEPARATOR . basename($this->segments_raw[0]);
+        }
 
-		// $chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
-		// $mask_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat_mask.mp4';
-		// $final_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_burned.mp4';
+        // $chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat.mp4';
+        // $mask_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_chat_mask.mp4';
+        // $final_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '_burned.mp4';
 
-		if (!file_exists($video_filename)) {
-			throw new \Exception('No video file');
-			return false;
-		}
+        if (!file_exists($video_filename)) {
+            throw new \Exception('No video file');
+            return false;
+        }
 
-		if (!$this->path_chatrender || !file_exists($this->path_chatrender)) {
-			throw new \Exception('No chat render file');
-			return false;
-		}
+        if (!$this->path_chatrender || !file_exists($this->path_chatrender)) {
+            throw new \Exception('No chat render file');
+            return false;
+        }
 
-		if (!$this->path_chatmask || !file_exists($this->path_chatmask)) {
-			throw new \Exception('No chat mask file');
-			return false;
-		}
+        if (!$this->path_chatmask || !file_exists($this->path_chatmask)) {
+            throw new \Exception('No chat mask file');
+            return false;
+        }
 
-		// $chat_x = $this->video_metadata['video']['Width'] - $chat_width;
+        // $chat_x = $this->video_metadata['video']['Width'] - $chat_width;
 
-		$cmd = [];
+        $cmd = [];
 
-		$cmd[] = TwitchHelper::path_ffmpeg();
+        $cmd[] = TwitchHelper::path_ffmpeg();
 
-		// chat render offset
-		if ($this->getStartOffset() && !$use_vod) {
-			$cmd[] = '-ss';
-			$cmd[] = round($this->getStartOffset());
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Using start offset for chat: {$this->getStartOffset()}");
-		}
+        // chat render offset
+        if ($this->getStartOffset() && !$use_vod) {
+            $cmd[] = '-ss';
+            $cmd[] = round($this->getStartOffset());
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Using start offset for chat: {$this->getStartOffset()}");
+        }
 
-		// chat render
-		$cmd[] = '-i';
-		$cmd[] = realpath($this->path_chatrender);
+        // chat render
+        $cmd[] = '-i';
+        $cmd[] = realpath($this->path_chatrender);
 
-		// chat mask offset
-		if ($this->getStartOffset() && !$use_vod) {
-			$cmd[] = '-ss';
-			$cmd[] = round($this->getStartOffset());
-		}
+        // chat mask offset
+        if ($this->getStartOffset() && !$use_vod) {
+            $cmd[] = '-ss';
+            $cmd[] = round($this->getStartOffset());
+        }
 
-		// chat mask
-		$cmd[] = '-i';
-		$cmd[] = realpath($this->path_chatmask);
+        // chat mask
+        $cmd[] = '-i';
+        $cmd[] = realpath($this->path_chatmask);
 
-		// vod
-		$cmd[] = '-i';
-		$cmd[] = $video_filename;
+        // vod
+        $cmd[] = '-i';
+        $cmd[] = $video_filename;
 
-		// alpha mask
-		// https://ffmpeg.org/ffmpeg-filters.html#overlay-1
-		// https://stackoverflow.com/questions/50338129/use-ffmpeg-to-overlay-a-video-on-top-of-another-using-an-alpha-channel
-		$cmd[] = '-filter_complex';
+        // alpha mask
+        // https://ffmpeg.org/ffmpeg-filters.html#overlay-1
+        // https://stackoverflow.com/questions/50338129/use-ffmpeg-to-overlay-a-video-on-top-of-another-using-an-alpha-channel
+        $cmd[] = '-filter_complex';
 
-		// if ($burn_horizontal == "left") {
-		// 	$cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=0:0';
-		// } else {
-		// 	$cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=main_w-overlay_w:0';
-		// }
-		$pos_x = $burn_horizontal == "left" ? 0 : "main_w-overlay_w";
-		$pos_y = $burn_vertical == "top" ? 0 : "main_h-overlay_h";
-		$cmd[] = "[0][1]alphamerge[ia];[2][ia]overlay=${pos_x}:${pos_y}";
+        // if ($burn_horizontal == "left") {
+        // 	$cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=0:0';
+        // } else {
+        // 	$cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=main_w-overlay_w:0';
+        // }
+        $pos_x = $burn_horizontal == "left" ? 0 : "main_w-overlay_w";
+        $pos_y = $burn_vertical == "top" ? 0 : "main_h-overlay_h";
+        $cmd[] = "[0][1]alphamerge[ia];[2][ia]overlay=${pos_x}:${pos_y}";
 
-		// $cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=' . $chat_x . ':0';
+        // $cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=' . $chat_x . ':0';
 
-		// copy audio stream
-		$cmd[] = '-c:a';
-		$cmd[] = 'copy';
+        // copy audio stream
+        $cmd[] = '-c:a';
+        $cmd[] = 'copy';
 
-		// h264 codec
-		$cmd[] = '-c:v';
-		$cmd[] = 'libx264';
+        // h264 codec
+        $cmd[] = '-c:v';
+        $cmd[] = 'libx264';
 
-		// preset
-		$cmd[] = '-preset';
-		$cmd[] = $ffmpeg_preset;
+        // preset
+        $cmd[] = '-preset';
+        $cmd[] = $ffmpeg_preset;
 
-		// crf
-		$cmd[] = '-crf';
-		$cmd[] = $ffmpeg_crf;
+        // crf
+        $cmd[] = '-crf';
+        $cmd[] = $ffmpeg_crf;
 
-		// overwrite
-		$cmd[] = '-y';
+        // overwrite
+        $cmd[] = '-y';
 
-		$cmd[] = $this->path_chatburn;
+        $cmd[] = $this->path_chatburn;
 
-		set_time_limit(0);
+        set_time_limit(0);
 
-		$process = new Process($cmd, $this->directory, null, null, null);
-		$process->start();
+        $process = new Process($cmd, $this->directory, null, null, null);
+        $process->start();
 
-		// create pidfile
-		$burnchatJob = TwitchAutomatorJob::create("burnchat_{$this->streamer_login}");
-		$burnchatJob->setPid($process->getPid());
-		$burnchatJob->setProcess($process);
-		$burnchatJob->save();
+        // create pidfile
+        $burnchatJob = TwitchAutomatorJob::create("burnchat_{$this->streamer_login}");
+        $burnchatJob->setPid($process->getPid());
+        $burnchatJob->setProcess($process);
+        $burnchatJob->save();
 
-		// wait until process is done
-		$process->wait();
+        // wait until process is done
+        $process->wait();
 
-		// remove pidfile
-		//if (file_exists($pidfile)) unlink($pidfile);
-		$burnchatJob->clear();
+        // remove pidfile
+        //if (file_exists($pidfile)) unlink($pidfile);
+        $burnchatJob->clear();
 
-		TwitchHelper::appendLog("burnchat_{$this->basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
-		TwitchHelper::appendLog("burnchat_{$this->basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+        TwitchHelper::appendLog("burnchat_{$this->basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+        TwitchHelper::appendLog("burnchat_{$this->basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
 
-		$successful = file_exists($this->path_chatburn) && filesize($this->path_chatburn) > 0;
+        $successful = file_exists($this->path_chatburn) && filesize($this->path_chatburn) > 0;
 
-		if ($successful) {
-			$this->is_chat_burned = true;
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "vodclass", "Chat burned for {$this->basename}");
-		} else {
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Chat couldn't be burned for {$this->basename}");
-		}
+        if ($successful) {
+            $this->is_chat_burned = true;
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "vodclass", "Chat burned for {$this->basename}");
+        } else {
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Chat couldn't be burned for {$this->basename}");
+        }
 
-		return $successful;
-	}
+        return $successful;
+    }
     */
 
     public burnChat(
