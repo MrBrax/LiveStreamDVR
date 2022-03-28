@@ -63,6 +63,7 @@
 - [x] integrate websocket server into ts-server?
 - [?] burnwizard
 - [x] password protection
+- [x] webhook+websocket
 
 # Key
 - [x] = implemented
