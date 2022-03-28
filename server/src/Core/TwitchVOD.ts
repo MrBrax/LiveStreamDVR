@@ -1688,19 +1688,24 @@ export class TwitchVOD {
     public startWatching() {
         if (this.fileWatcher) this.stopWatching();
         this.fileWatcher = fs.watch(this.filename, (eventType, filename) => {
-            if (eventType === "rename") {
-                if (!fs.existsSync(this.filename)) {
-                    TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD JSON ${this.basename} deleted!`);
-                    if (TwitchVOD.vods.find(v => v.basename == this.basename)) {
-                        TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${this.basename} still in memory!`);
+            // if (eventType === "rename") {
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD JSON ${this.basename} changed (${this._writeJSON ? "internal" : "external"})!`);
+            if (!fs.existsSync(this.filename)) {
+                TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD JSON ${this.basename} deleted!`);
+                if (TwitchVOD.vods.find(v => v.basename == this.basename)) {
+                    TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${this.basename} still in memory!`);
 
-                        // const channel = TwitchChannel.getChannelByLogin(this.streamer_login);
-                        // if (channel) channel.removeVod(this.basename);
-                    }
+                    // const channel = TwitchChannel.getChannelByLogin(this.streamer_login);
+                    // if (channel) channel.removeVod(this.basename);
                 }
-            } else if (eventType === "change") {
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD JSON ${this.basename} changed (${this._writeJSON ? "internal" : "external"})!`);
-            }
+                const channel = TwitchChannel.getChannelByLogin(this.streamer_login);
+                if (channel) {
+                    setTimeout(() => {
+                        if (!channel) return;
+                        channel.checkStaleVodsInMemory();
+                    }, 5000);
+                }
+            }            
         });
     }
 
@@ -1844,6 +1849,7 @@ export class TwitchVOD {
         if (TwitchVOD.hasVod(basename)) {
             TwitchVOD.vods = TwitchVOD.vods.filter(vod => vod.basename != basename);
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD ${basename} removed from memory!`);
+            TwitchWebhook.dispatch("vod_removed", { basename: basename });
             return true;
         }
         return false;

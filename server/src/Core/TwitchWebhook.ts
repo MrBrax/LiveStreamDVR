@@ -18,6 +18,7 @@ export type WebhookAction =
     "job_save" |
     "job_clear" |
     "video_download" |
+    "vod_removed" |
     "init"
     ;
 
@@ -50,6 +51,10 @@ export interface JobClear {
     job: TwitchAutomatorJob;
 }
 
+export interface VodRemoved {
+    basename: string;
+}
+
 export interface Init {
     hello: "world";
 }
@@ -61,12 +66,21 @@ export type WebhookData =
     VideoDownloadData |
     JobSave |
     JobClear |
+    VodRemoved |
     Init
     ;
 
 export class TwitchWebhook {
 
-    // dispatch function, infer data type from action
+    /**
+     * Dispatch a webhook + websocket message to all connected clients
+     * The payload constructed consists of a JSON object with the following properties:
+     * - action: the action to perform
+     * - data: the data to pass, can be anything.
+     * 
+     * @param action 
+     * @param data 
+     */
     static dispatch(action: WebhookAction, data: WebhookData): void {
         
         // console.log("Webhook:", action, data);
