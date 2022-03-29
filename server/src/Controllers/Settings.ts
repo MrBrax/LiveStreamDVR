@@ -39,6 +39,7 @@ export async function SaveSettings(req: express.Request, res: express.Response):
         force_new_token = true;
     }
 
+    // @todo: don't set config values unless everything is valid, like the http check
     let fields = 0;
     for(const setting of TwitchConfig.settingsFields) {
         const key = setting.key;
