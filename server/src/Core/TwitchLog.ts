@@ -130,29 +130,17 @@ export class TwitchLog {
             
             this.websocket_buffer.push(log_data);
 
-            if (!TwitchLog.websocket_timer) {
-                TwitchLog.websocket_timer = setTimeout(() => {
-                    console.debug(`Sending ${this.websocket_buffer.length} lines over websocket, no timer`);
-                    ClientBroker.broadcast({
-                        action: "log",
-                        data: this.websocket_buffer,
-                    });
-                    this.websocket_buffer = [];
-                    TwitchLog.websocket_timer = undefined;
-                }, 5000);
-            } else {
-                clearTimeout(TwitchLog.websocket_timer);
-                TwitchLog.websocket_timer = setTimeout(() => {
-                    console.debug(`Sending ${this.websocket_buffer.length} lines over websocket, timer exists`);
-                    ClientBroker.broadcast({
-                        action: "log",
-                        data: this.websocket_buffer,
-                    });
-                    this.websocket_buffer = [];
-                    TwitchLog.websocket_timer = undefined;
-                }, 5000);
-            }  
-
+            if (TwitchLog.websocket_timer) clearTimeout(TwitchLog.websocket_timer);
+            TwitchLog.websocket_timer = setTimeout(() => {
+                console.debug(`Sending ${this.websocket_buffer.length} lines over websocket`);
+                ClientBroker.broadcast({
+                    action: "log",
+                    data: this.websocket_buffer,
+                });
+                this.websocket_buffer = [];
+                TwitchLog.websocket_timer = undefined;
+            }, 5000);
+            
         }
 
         /*
