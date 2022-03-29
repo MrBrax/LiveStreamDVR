@@ -1372,7 +1372,7 @@ export class TwitchVOD {
             throw new Error("VOD is deleted!");
         } else {
             this.twitch_vod_muted = MuteStatus.UNMUTED;
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD ${this.basename} is not muted!`);
+            TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `VOD ${this.basename} is not muted!`);
             if (previous !== this.twitch_vod_muted && save) {
                 this.saveJSON("vod mute false");
             }

@@ -28,7 +28,6 @@ export class TwitchGame {
         for (const id in raw_games) {
             const raw_game = raw_games[id];
             const game = new this();
-            // game.id = parseInt(id);
             game.id = id;
             game.name = raw_game.name;
             game.box_art_url = raw_game.box_art_url;
@@ -48,6 +47,11 @@ export class TwitchGame {
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Favourite games populated with ${this.favourite_games.length} games.`);
     }
 
+    /**
+     * Get game data from cache. **Does not fetch from server.**
+     * @param game_id 
+     * @returns 
+     */
     public static getGameFromCache(game_id: string): TwitchGame | null {
         if (!this.game_db) {
             throw new Error("Game database not initialized!");
@@ -127,15 +131,10 @@ export class TwitchGame {
     }
 
     /**
-     * Get game data from cache. **Does not fetch from server.**
-     * @param game_id 
-     * @deprecated Use getGameFromCache instead?
-     * @returns 
+     * Get favourite games in a string array.
+     * 
+     * @returns {string[]} Favourite games
      */
-    public static getGameSync(game_id: string): TwitchGame | false | null {
-        return this.getGameFromCache(game_id);
-    }
-
     public static getFavouriteGames(): string[] {
         return this.favourite_games;
     }

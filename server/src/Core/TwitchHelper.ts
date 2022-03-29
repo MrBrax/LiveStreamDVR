@@ -446,7 +446,7 @@ export class TwitchHelper {
             windowsHide: true,
         });
 
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, jobName, `Executing ${bin} ${args.join(" ")}`);
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Executing ${bin} ${args.join(" ")}`);
 
         let job: TwitchAutomatorJob | false = false;
 

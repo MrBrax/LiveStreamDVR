@@ -124,6 +124,8 @@ export class TwitchConfig {
         vodDeleted: true,
     };
 
+    static watcher: fs.FSWatcher | undefined;
+
     static cfg<T>(key: string, defaultValue?: T): T {
 
         if (!this.config) {
@@ -233,7 +235,7 @@ export class TwitchConfig {
     static saveConfig(source = "unknown"): boolean {
 
         this._writeConfig = true;
-        console.debug("writeconfig start", Date.now());
+        this.stopWatchingConfig();
 
         // back up config
         this.backupConfig();
@@ -241,12 +243,19 @@ export class TwitchConfig {
         // save
         fs.writeFileSync(BaseConfigPath.config, JSON.stringify(this.config, null, 4));
 
-        console.log(`Saved config from ${source}`);
-
         this._writeConfig = false;
-        console.debug("writeconfig end", Date.now());
 
-        return fs.existsSync(BaseConfigPath.config) && fs.statSync(BaseConfigPath.config).size > 0;
+        const success = fs.existsSync(BaseConfigPath.config) && fs.statSync(BaseConfigPath.config).size > 0;
+        
+        if (success) {
+            TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "config", `Saved config from ${source}`);
+        } else {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "config", `Failed to save config from ${source}`);
+        }
+
+        this.startWatchingConfig();
+
+        return success;
 
     }
 
@@ -316,6 +325,26 @@ export class TwitchConfig {
 
     }
 
+    static startWatchingConfig() {
+
+        if (this.watcher) this.stopWatchingConfig();
+
+        // monitor config for external changes
+        this.watcher = fs.watch(BaseConfigPath.config, (eventType, filename) => {
+            if (TwitchConfig._writeConfig) return;
+            console.log(`Config file changed: ${eventType} ${filename}`);
+            console.log("writeconfig check", Date.now());
+            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "config", "Config file changed externally");
+            // TwitchConfig.loadConfig();
+        });
+
+    }
+
+    static stopWatchingConfig() {
+        if (this.watcher) this.watcher.close();
+    }
+
+
     /**
      * Initialise entire application, like loading config, creating folders, etc.
      */
@@ -374,14 +403,7 @@ export class TwitchConfig {
         await TwitchChannel.loadChannels();
         TwitchAutomatorJob.loadJobsFromCache();
 
-        // monitor config for external changes
-        fs.watch(BaseConfigPath.config, (eventType, filename) => {
-            if (TwitchConfig._writeConfig) return;
-            console.log(`Config file changed: ${eventType} ${filename}`);
-            console.log("writeconfig check", Date.now());
-            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "config", "Config file changed externally");
-            // TwitchConfig.loadConfig();
-        });
+        this.startWatchingConfig();
 
         /*
         // monitor for program exit

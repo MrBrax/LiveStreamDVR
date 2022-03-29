@@ -570,6 +570,15 @@ export class TwitchChannel {
         return this.channels;
     }
 
+    /**
+     * Fetch channel class object from memory by channel login.
+     * This is the main function to get a channel object.
+     * If it does not exist, undefined is returned.
+     * It does not fetch the channel data from the API or create it.
+     * 
+     * @param {string} login 
+     * @returns {TwitchChannel} Channel object
+     */
     public static getChannelByLogin(login: string): TwitchChannel | undefined {
         return this.channels.find(ch => ch.login === login);
     }
@@ -596,6 +605,14 @@ export class TwitchChannel {
         return json.data ?? false;
     }
 
+    /**
+     * Load channel class using login, don't call this. Used internally.
+     * 
+     * @internal
+     * @param login 
+     * @param api 
+     * @returns 
+     */
     public static async loadFromLogin(login: string, api: boolean): Promise<TwitchChannel> {
         if (!login) throw new Error("Streamer login is empty");
         if (typeof login !== "string") throw new TypeError("Streamer login is not a string");
@@ -620,14 +637,36 @@ export class TwitchChannel {
         return channelData ? channelData.display_name : false;
     }
 
+    /**
+     * Get channel data using the channel id (numeric in string form)
+     * @param channel_id 
+     * @param force 
+     * @returns 
+     */
     public static async getChannelDataById(channel_id: string, force = false): Promise<ChannelData | false> {
         return await this.getChannelDataProxy("id", channel_id, force);
     }
 
+    /**
+     * Get channel data using the channel login, not the display name
+     * @param login 
+     * @param force 
+     * @returns 
+     */
     public static async getChannelDataByLogin(login: string, force = false): Promise<ChannelData | false> {
         return await this.getChannelDataProxy("login", login, force);
     }
 
+    /**
+     * Get channel data from api using either id or login, a helper
+     * function for getChannelDataById and getChannelDataByLogin.
+     * 
+     * @internal
+     * @param method Either "id" or "login"
+     * @param identifier Either channel id or channel login
+     * @param force 
+     * @returns 
+     */
     private static async getChannelDataProxy(method: "id" | "login", identifier: string, force: boolean): Promise<ChannelData | false> {
 
         TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Fetching channel data for ${method} ${identifier}, force: ${force}`);
