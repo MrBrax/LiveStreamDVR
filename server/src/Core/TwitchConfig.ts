@@ -27,8 +27,10 @@ export class TwitchConfig {
         { "key": "mediainfo_path", "group": "Binaries", "text": "Mediainfo path", "type": "string", "required": true },
         { "key": "twitchdownloader_path", "group": "Binaries", "text": "TwitchDownloaderCLI path", "type": "string" },
 
-        { "key": "basepath", "group": "Advanced", "text": "Base path", "type": "string", "help": "No trailing slash. For reverse proxy etc", "stripslash": true },
-        { "key": "instance_id", "group": "Basic", "text": "Instance ID", "type": "string" },
+        { "key": "server_port", "group": "Basic", "text": "Server port", "type": "number", "default": 8080 },
+        { "key": "basepath",    "group": "Basic", "text": "Base path", "type": "string", "help": "No trailing slash. For reverse proxy etc", "stripslash": true },
+        { "key": "instance_id", "group": "Basic", "text": "Instance ID", "type": "string", "help": "Unique ID for this instance. Used for hook callbacks." },
+        { "key": "trust_proxy", "group": "Basic", "text": "Trust proxy", "type": "boolean", "default": false, "help": "If server is behind a reverse proxy, enable this.", restart_required: true },
 
         {
             "key": "app_url",
@@ -95,7 +97,7 @@ export class TwitchConfig {
 
         // { "key": "ca_path", "group": "Advanced", "text": "Path to certificate PEM file", "type": "string" },
 
-        { "key": "api_metadata", "group": "Basic", "text": "Get extra metadata when updating chapter.", "type": "boolean", "help": "Makes extra API requests." },
+        { "key": "api_metadata", "group": "Basic", "text": "Get extra metadata when updating chapter (viewer count).", "type": "boolean", "help": "Makes extra API requests." },
 
         // { "key": "error_handler", "group": "Advanced", "text": "Use app logging to catch PHP errors", "type": "boolean" },
 
@@ -104,11 +106,8 @@ export class TwitchConfig {
         { "key": "file_chown_user",     "group": "Advanced", "text": "File chown user", "type": "string", "default": "nobody" },
         { "key": "file_chown_group",    "group": "Advanced", "text": "File chown group", "type": "string", "default": "nobody" },
 
-        { "key": "checkmute_method", "group": "Basic", "text": "Method to use when checking for muted vods", "type": "array", "default": "api", "choices": ["api", "streamlink"], "help": "Streamlink is more accurate but is kind of a weird solution." },
-
-        { "key": "server_port", "group": "Basic", "text": "Server port", "type": "number", "default": 8080 },
-        { "key": "trust_proxy", "group": "Basic", "text": "Trust proxy", "type": "boolean", "default": false, "help": "If server is behind a reverse proxy, enable this.", restart_required: true },
-
+        { "key": "checkmute_method", "group": "Basic", "text": "Method to use when checking for muted vods", "type": "array", "default": "streamlink", "choices": ["api", "streamlink"], "help": "Bugged as of 2022-03-29: https://github.com/twitchdev/issues/issues/501" },
+        
         { "key": "telegram_enabled",    "group": "Notifications", "text": "Enable Telegram notifications", "type": "boolean", "default": false },
         { "key": "telegram_token",      "group": "Notifications", "text": "Telegram token", "type": "string" },
         { "key": "telegram_chat_id",    "group": "Notifications", "text": "Telegram chat id", "type": "string" },
