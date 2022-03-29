@@ -20,6 +20,7 @@ import { TwitchVODChapterJSON, TwitchVODJSON } from "../Storage/JSON";
 import { MuteStatus } from "../../../common/Defs";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import chalk from "chalk";
+import { replaceAll } from "Helpers/ReplaceAll";
 
 /*
 export interface TwitchVODSegmentJSON {
@@ -42,6 +43,8 @@ export interface TwitchVODSegment {
 export class TwitchVOD {
 
     static vods: TwitchVOD[] = [];
+
+    static filenameIllegalChars = /[:*?"<>|]/g;
 
     // vod_path = "vods";
 
@@ -768,7 +771,7 @@ export class TwitchVOD {
             }
 
             // find invalid characters for windows
-            if (raw_segment.match(/[:*?"<>|]/)) {
+            if (raw_segment.match(TwitchVOD.filenameIllegalChars)) {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Segment list containing invalid characters for ${this.basename}: ${raw_segment}`);
                 return false;
             }
@@ -834,7 +837,7 @@ export class TwitchVOD {
 
         files.forEach(file => this.addSegment(path.basename(file)));
 
-        this.parseSegments(this.segments_raw);
+        // this.parseSegments(this.segments_raw);
         this.saveJSON("segments rebuild");
 
         return true;
@@ -1397,11 +1400,20 @@ export class TwitchVOD {
             return;
         }
 
+        if (this.basename.match(TwitchVOD.filenameIllegalChars)) {
+            console.log(chalk.bgRed.whiteBright(`${this.basename} contains invalid characters!`));
+            const new_basename = replaceAll(this.basename, TwitchVOD.filenameIllegalChars, "_");
+            this.changeBaseName(new_basename);
+        }            
+
         // if finalized but no segments
         if (this.is_finalized && (!this.segments || this.segments.length === 0)) {
             console.log(chalk.bgRed.whiteBright(`${this.basename} is finalized but no segments found, rebuilding!`));
-            this.rebuildSegmentList();
-            this.saveJSON("fix rebuild segment list");
+            if (this.rebuildSegmentList()) {
+                this.saveJSON("fix rebuild segment list");
+            } else {
+                console.log(chalk.bgRed.whiteBright(`${this.basename} could not be rebuilt!`));
+            }
         }
 
         // finalize if finished converting and not yet finalized
@@ -1419,8 +1431,7 @@ export class TwitchVOD {
         }
 
         // remux if not yet remuxed
-        if (!this.is_capturing && !this.is_converted) {
-            console.debug(`is_capturing: ${this.is_capturing}, is_converted: ${this.is_converted}`);
+        if (!this.is_capturing && !this.is_converted && !this.is_finalized) {
             if (fs.existsSync(path.join(this.directory, `${this.basename}.ts`))) {
                 console.log(chalk.bgBlue.whiteBright(`${this.basename} is not yet remuxed, remuxing now!`));
                 this.is_converting = true;
@@ -1689,7 +1700,13 @@ export class TwitchVOD {
         if (this.fileWatcher) this.stopWatching();
         this.fileWatcher = fs.watch(this.filename, (eventType, filename) => {
             // if (eventType === "rename") {
+           
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD JSON ${this.basename} changed (${this._writeJSON ? "internal" : "external"})!`);
+            
+            setTimeout(() => {
+                TwitchVOD.cleanLingeringVODs();
+            }, 4000);
+            
             if (!fs.existsSync(this.filename)) {
                 TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD JSON ${this.basename} deleted!`);
                 if (TwitchVOD.vods.find(v => v.basename == this.basename)) {
@@ -1711,6 +1728,39 @@ export class TwitchVOD {
 
     public stopWatching() {
         if (this.fileWatcher) this.fileWatcher.close();
+    }
+
+    public changeBaseName(new_basename: string) {
+        if (this.basename == new_basename) return;
+        const old_basename = this.basename;
+
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Changing basename from ${old_basename} to ${new_basename}`);
+
+        for (const file of this.associatedFiles) {
+            const file_path = path.join(this.directory, file);
+            if (fs.existsSync(file_path)) {
+                console.log("rename", file_path, replaceAll(file_path, old_basename, new_basename));
+                fs.renameSync(file_path, replaceAll(file_path, old_basename, new_basename));
+            } else {
+                console.log("file not found", file_path);
+            }
+        }
+
+        for (const segment of this.segments_raw) {
+            const file_path = path.join(this.directory, path.basename(segment));
+            if (fs.existsSync(file_path)) {
+                console.log("rename", file_path, replaceAll(file_path, old_basename, new_basename));
+                fs.renameSync(file_path, replaceAll(file_path, old_basename, new_basename));
+            } else {
+                console.log("segment not found", file_path);
+            }
+        }
+
+
+        this.basename = new_basename;
+        this.filename = replaceAll(this.filename, old_basename, new_basename);
+        this.setupFiles();
+        this.rebuildSegmentList();
     }
 
     /**
@@ -2007,7 +2057,10 @@ export class TwitchVOD {
         this.vods.forEach((vod, index) => {
             const channel = TwitchChannel.getChannelByLogin(vod.streamer_login);
             if (!channel) {
-                TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Lingering VOD for ${vod.streamer_login}: ${vod.basename}`);
+                TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Channel ${vod.streamer_login} removed but VOD ${vod.basename} still lingering`);
+            }
+            if (!fs.existsSync(vod.filename)) {
+                TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${vod.basename} in memory but not on disk`);
             }
         });
     }
