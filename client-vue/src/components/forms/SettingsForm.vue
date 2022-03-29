@@ -78,6 +78,7 @@
 
 <script lang="ts">
 import { useStore } from "@/store";
+import { ApiResponse } from "@common/Api/Api";
 import { SettingField } from "@common/Config";
 import { AxiosError } from "axios";
 import { defineComponent, PropType } from "vue";
@@ -133,8 +134,8 @@ export default defineComponent({
             this.$http
                 .put(`/api/v0/settings`, data)
                 .then((response) => {
-                    const json = response.data;
-                    this.formStatusText = json.message;
+                    const json: ApiResponse = response.data;
+                    this.formStatusText = json.message || "No message";
                     this.formStatus = json.status;
                     if (json.message) alert(json.message);
                     if (json.status == "OK") {

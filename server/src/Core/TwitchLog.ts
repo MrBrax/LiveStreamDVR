@@ -28,6 +28,9 @@ export class TwitchLog {
     public static currentDate = "";
     public static lines: LogLine[] = [];
 
+    public static websocket_buffer: LogLine[] = [];
+    public static websocket_timer: NodeJS.Timeout | undefined;
+
     static readonly LOG_COLORS = {
         [LOGLEVEL.ERROR]: chalk.red,
         [LOGLEVEL.WARNING]: chalk.yellow,
@@ -123,12 +126,48 @@ export class TwitchLog {
         this.lines.push(log_data);
 
         // send over websocket, probably extremely slow
-        if (TwitchConfig.cfg<boolean>("websocket_log") && TwitchConfig.initialised) {
-            ClientBroker.broadcast({
-                action: "log",
-                data: log_data,
-            });
+        if (TwitchConfig.cfg<boolean>("websocket_log")) {
+            
+            this.websocket_buffer.push(log_data);
+
+            if (!TwitchLog.websocket_timer) {
+                TwitchLog.websocket_timer = setTimeout(() => {
+                    console.debug(`Sending ${this.websocket_buffer.length} lines over websocket, no timer`);
+                    ClientBroker.broadcast({
+                        action: "log",
+                        data: this.websocket_buffer,
+                    });
+                    this.websocket_buffer = [];
+                    TwitchLog.websocket_timer = undefined;
+                }, 5000);
+            } else {
+                clearTimeout(TwitchLog.websocket_timer);
+                TwitchLog.websocket_timer = setTimeout(() => {
+                    console.debug(`Sending ${this.websocket_buffer.length} lines over websocket, timer exists`);
+                    ClientBroker.broadcast({
+                        action: "log",
+                        data: this.websocket_buffer,
+                    });
+                    this.websocket_buffer = [];
+                    TwitchLog.websocket_timer = undefined;
+                }, 5000);
+            }  
+
         }
+
+        /*
+        ClientBroker.broadcast({
+            action: "log",
+            data: log_data,
+        });
+
+        TwitchLog.websocket_timer = setTimeout(() => {
+                    ClientBroker.send("log", TwitchLog.websocket_buffer);
+                    TwitchLog.websocket_buffer = [];
+                    TwitchLog.websocket_timer = undefined;
+                }, 100);
+            } else {
+        */
 
     }
 

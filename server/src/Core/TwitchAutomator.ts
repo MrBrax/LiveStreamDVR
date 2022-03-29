@@ -27,7 +27,9 @@ import { replaceAll } from "Helpers/ReplaceAll";
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
 export class TwitchAutomator {
+
     vod: TwitchVOD | undefined;
+    channel: TwitchChannel | undefined;
 
     realm = "twitch";
 
@@ -112,7 +114,7 @@ export class TwitchAutomator {
         this.broadcaster_user_login = event.broadcaster_user_login;
         this.broadcaster_user_name = event.broadcaster_user_name;
 
-        const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
+        this.channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
 
         if (subscription_type === "channel.update") {
 
@@ -136,10 +138,10 @@ export class TwitchAutomator {
             KeyValue.set(`${this.broadcaster_user_login}.last.online`, new Date().toISOString());
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Stream online for ${this.broadcaster_user_login} (retry ${message_retry})`);
 
-            const channel_obj = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
+            // const channel_obj = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
 
             // check if channel is in config, hmm
-            if (!channel_obj) {
+            if (!this.channel) {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Handle (online) triggered with sub id ${subscription_id}, but username '${this.broadcaster_user_login}' is not in config.`);
 
                 // 5head solution
@@ -148,7 +150,7 @@ export class TwitchAutomator {
                 return false;
             }
 
-            if (channel_obj.no_capture) {
+            if (this.channel.no_capture) {
                 TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Skip capture for ${this.broadcaster_user_login} because no-capture is set`);
                 return false;
             }
@@ -168,11 +170,11 @@ export class TwitchAutomator {
                 return false;
             }
 
-            if (TwitchConfig.notificationCategories.streamOnline && channel) {
+            if (TwitchConfig.notificationCategories.streamOnline && this.channel) {
                 ClientBroker.notify(
                     `${this.broadcaster_user_login} is live!`,
                     "",
-                    channel.profile_image_url
+                    this.channel.profile_image_url
                 );
             }
 
@@ -183,13 +185,13 @@ export class TwitchAutomator {
             KeyValue.set(`${this.broadcaster_user_login}.last.offline`, new Date().toISOString());
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Stream offline for ${this.broadcaster_user_login}`);
 
-            const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
+            // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
 
-            if (TwitchConfig.notificationCategories.streamOffline && channel) {
+            if (TwitchConfig.notificationCategories.streamOffline && this.channel) {
                 ClientBroker.notify(
                     `${this.broadcaster_user_login} has gone offline!`,
-                    channel && channel.latest_vod && channel.latest_vod.started_at ? `Was streaming for ${formatDistanceToNow(channel.latest_vod.started_at)}.` : "",
-                    channel.profile_image_url
+                    this.channel && this.channel.latest_vod && this.channel.latest_vod.started_at ? `Was streaming for ${formatDistanceToNow(this.channel.latest_vod.started_at)}.` : "",
+                    this.channel.profile_image_url
                 );
             }
 
@@ -280,10 +282,10 @@ export class TwitchAutomator {
                 `Stream updated on '${this.broadcaster_user_login}' to '${event.category_name}' (${event.title}) using ${from_cache ? "cache" : "eventsub"}.`
             );
 
-            const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
-            if (TwitchConfig.notificationCategories.streamStatusChange && channel) {
+            // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
+            if (TwitchConfig.notificationCategories.streamStatusChange && this.channel) {
                 // ClientBroker.notify(); // @todo: compose message from previous and current game, favorite, etc.
-                this.notifyChapterChange(channel);
+                this.notifyChapterChange(this.channel);
             }
 
             return true;
@@ -305,12 +307,12 @@ export class TwitchAutomator {
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, saving channel data to cache: ${event.category_name} (${event.title})`);
 
             if (TwitchConfig.notificationCategories.offlineStatusChange) {
-                const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
-                if (channel) {
+                // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
+                if (this.channel) {
                     ClientBroker.notify(
                         `Offline channel ${this.broadcaster_user_login} changed status`,
                         `${event.category_name} (${event.title})`,
-                        channel.profile_image_url
+                        this.channel.profile_image_url
                     );
                 }
             }
@@ -416,8 +418,13 @@ export class TwitchAutomator {
     private cleanup() {
         // const vods = fs.readdirSync(TwitchHelper.vodFolder(this.getLogin())).filter(f => f.startsWith(`${this.getLogin()}_`) && f.endsWith(".json"));
 
+        if (!this.channel) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Tried to cleanup ${this.broadcaster_user_login} but channel was not available.`);
+            return;
+        }
+
         let total_size = 0;
-        const vods = TwitchChannel.getChannelByLogin(this.getLogin())?.vods_list;
+        const vods = this.channel.vods_list;
 
         const vod_candidates = [];
         if (vods) {
@@ -487,9 +494,9 @@ export class TwitchAutomator {
         const data_id = this.getVodID();
         const data_username = this.getUsername();
 
-        const channel = TwitchChannel.getChannelByLogin(this.getLogin());
+        // const channel = TwitchChannel.getChannelByLogin(this.getLogin());
 
-        if (!channel) {
+        if (!this.channel) {
             throw new Error(`Channel ${this.getLogin()} not found, weird.`);
         }
 
@@ -525,7 +532,7 @@ export class TwitchAutomator {
         }
 
         // create the vod and put it inside this class
-        this.vod = await channel.createVOD(path.join(folder_base, `${basename}.json`));
+        this.vod = await this.channel.createVOD(path.join(folder_base, `${basename}.json`));
         this.vod.meta = this.payload_eventsub;
         // this.vod.json.meta = $this.payload_eventsub; // what
         this.vod.capture_id = this.getVodID() || "1";
@@ -768,7 +775,7 @@ export class TwitchAutomator {
 
             const stream_url = this.streamURL();
             // const folder_base = TwitchHelper.vodFolder(this.getLogin());
-            const streamer_config = TwitchChannel.getChannelByLogin(this.getLogin());
+            // const streamer_config = TwitchChannel.getChannelByLogin(this.getLogin());
 
             const bin = TwitchHelper.path_streamlink();
 
@@ -832,9 +839,8 @@ export class TwitchAutomator {
 
             // twitch quality
             cmd.push("--default-stream");
-            if (streamer_config && streamer_config.quality) {
-                // cmd.push(implode(",", $streamer_config->quality); // qualit)y
-                cmd.push(streamer_config.quality.join(","));
+            if (this.channel && this.channel.quality) {
+                cmd.push(this.channel.quality.join(","));
             } else {
                 cmd.push("best");
             }
@@ -1007,10 +1013,10 @@ export class TwitchAutomator {
      */
     startCaptureChat() {
 
-        const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
+        // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
 
         // chat capture
-        if ((TwitchConfig.cfg<boolean>("chat_dump") || (channel && channel.live_chat)) && this.realm == "twitch") {
+        if ((TwitchConfig.cfg<boolean>("chat_dump") || (this.channel && this.channel.live_chat)) && this.realm == "twitch") {
 
             const data_started = this.getStartDate();
             // const data_id = this.getVodID();

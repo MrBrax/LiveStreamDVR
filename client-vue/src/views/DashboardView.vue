@@ -297,7 +297,11 @@ export default defineComponent({
                         const toast = new Notification("Server connected to broker");
                         console.log("Init", toast);
                     } else if (action == "log") {
-                        this.logLines.push(json.data);
+                        // merge log lines
+                        this.logLines = [...this.logLines, ...json.data];
+                        setTimeout(() => {
+                            this.scrollLog();
+                        }, 100);
                     } else {
                         console.log(`Websocket wrong action (${action})`);
                     }
@@ -396,10 +400,13 @@ export default defineComponent({
 
             // scroll to bottom
             setTimeout(() => {
-                const lv = this.$refs.logViewer as HTMLDivElement;
-                if (!lv) return;
-                lv.scrollTop = lv.scrollHeight;
+                this.scrollLog();
             }, 100);
+        },
+        scrollLog() {
+            const lv = this.$refs.logViewer as HTMLDivElement;
+            if (!lv) return;
+            lv.scrollTop = lv.scrollHeight;
         },
         async fetchTicker() {
             if (this.timer <= 0 && !this.loading) {

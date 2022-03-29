@@ -1219,7 +1219,7 @@ export class TwitchVOD {
             }
         }
 
-        const channel = TwitchChannel.getChannelByLogin(this.streamer_login);
+        const channel = this.getChannel();
         if (channel) channel.removeVod(this.basename);
 
     }
@@ -1245,7 +1245,7 @@ export class TwitchVOD {
 
         this.move(BaseConfigFolder.saved_vods);
 
-        const channel = TwitchChannel.getChannelByLogin(this.streamer_login);
+        const channel = this.getChannel();
         if (channel) channel.removeVod(this.basename);
 
     }
@@ -1404,7 +1404,7 @@ export class TwitchVOD {
             console.log(chalk.bgRed.whiteBright(`${this.basename} contains invalid characters!`));
             const new_basename = replaceAll(this.basename, TwitchVOD.filenameIllegalChars, "_");
             this.changeBaseName(new_basename);
-        }            
+        }
 
         // if finalized but no segments
         if (this.is_finalized && (!this.segments || this.segments.length === 0)) {
@@ -1700,13 +1700,13 @@ export class TwitchVOD {
         if (this.fileWatcher) this.stopWatching();
         this.fileWatcher = fs.watch(this.filename, (eventType, filename) => {
             // if (eventType === "rename") {
-           
+
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD JSON ${this.basename} changed (${this._writeJSON ? "internal" : "external"})!`);
-            
+
             setTimeout(() => {
                 TwitchVOD.cleanLingeringVODs();
             }, 4000);
-            
+
             if (!fs.existsSync(this.filename)) {
                 TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD JSON ${this.basename} deleted!`);
                 if (TwitchVOD.vods.find(v => v.basename == this.basename)) {
@@ -1715,14 +1715,17 @@ export class TwitchVOD {
                     // const channel = TwitchChannel.getChannelByLogin(this.streamer_login);
                     // if (channel) channel.removeVod(this.basename);
                 }
-                const channel = TwitchChannel.getChannelByLogin(this.streamer_login);
+                const channel = this.getChannel();
                 if (channel) {
                     setTimeout(() => {
                         if (!channel) return;
                         channel.checkStaleVodsInMemory();
                     }, 5000);
                 }
-            }            
+            } else {
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD JSON ${this.basename} exists (again?)`);
+            }
+
         });
     }
 
@@ -1761,6 +1764,15 @@ export class TwitchVOD {
         this.filename = replaceAll(this.filename, old_basename, new_basename);
         this.setupFiles();
         this.rebuildSegmentList();
+    }
+
+    /**
+     * Get the channel of the vod
+     * 
+     * @returns Channel
+     */
+    public getChannel(): TwitchChannel | undefined {
+        return TwitchChannel.getChannelByLogin(this.streamer_login);
     }
 
     /**
@@ -2055,7 +2067,7 @@ export class TwitchVOD {
 
     static cleanLingeringVODs(): void {
         this.vods.forEach((vod, index) => {
-            const channel = TwitchChannel.getChannelByLogin(vod.streamer_login);
+            const channel = vod.getChannel();
             if (!channel) {
                 TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Channel ${vod.streamer_login} removed but VOD ${vod.basename} still lingering`);
             }
