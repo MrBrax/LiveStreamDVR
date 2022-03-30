@@ -594,6 +594,10 @@ export class TwitchHelper {
         return `${bytes.toFixed(precision)} ${units[pow]}`;
     }
 
+    static formatBits(bits: number, precision = 2): string {
+        return this.formatBytes(bits * 8, precision).toLowerCase();
+    }
+
     /**
      * Return mediainfo for a file
      * 

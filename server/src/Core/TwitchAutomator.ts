@@ -892,10 +892,18 @@ export class TwitchAutomator {
             // const capture_job = TwitchHelper.startJob(bin, cmd, jobName);
             // const capture_process = capture_job.process;
 
+            let lastSize = 0;
             const keepaliveAlert = () => {
                 if (fs.existsSync(this.capture_filename)) {
                     const size = fs.statSync(this.capture_filename).size;
-                    console.log(chalk.bgGreen.whiteBright(`🎥 ${new Date().toISOString()} ${basename} ${this.stream_resolution} ${TwitchHelper.formatBytes(size)}`));
+                    const bitRate = (size - lastSize) / 120;
+                    lastSize = size;
+                    console.log(
+                        chalk.bgGreen.whiteBright(
+                            `🎥 ${new Date().toISOString()} ${basename} ${this.stream_resolution} ` +
+                            `${TwitchHelper.formatBytes(size)} ${TwitchHelper.formatBits(bitRate)}`
+                        )
+                    );                    
                 } else {
                     console.log(chalk.bgRed.whiteBright(`🎥 ${new Date().toISOString()} ${basename} missing`));
                 }
