@@ -444,6 +444,12 @@ export class TwitchVOD {
                 return false;
             }
 
+            // check if even framerate
+            if (parseInt(data.video.FrameRate) % 2 != 0) {
+                TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Strange framerate for ${this.basename}: ${data.video.FrameRate}`);
+                console.debug("mediainfo", data);
+            }
+
             // use proxy type for mediainfo, can switch to ffprobe if needed
             this.video_metadata = {
 
