@@ -1,8 +1,8 @@
 # Routes
 - [x] GET /vod/{basename}
 - [ ] POST /vod/{basename}/search_chatdump
-- [ ] POST /vod/{basename}/download_chat
-- [ ] POST /vod/{basename}/download
+- [?] POST /vod/{basename}/download_chat
+- [?] POST /vod/{basename}/download
 - [ ] POST /vod/{basename}/check_mute
 - [?] POST /vod/{basename}/delete
 - [?] POST /vod/{basename}/save

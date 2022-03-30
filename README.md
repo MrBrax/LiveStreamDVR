@@ -13,10 +13,11 @@
 - Notifications with optional speech when the website is open, get stream live notifications far earlier than the mobile app does.
 - Writes a [losslesscut](https://github.com/mifi/lossless-cut/) compatible csv file for the full VOD so you don't have to find all the games.
 - Uses `ts` instead of `mp4` so if the stream or program crashes, the file won't be corrupted.
-- Optionally either dumps chat while capturing (unstable) or downloads the chat file after it's done.
+- Optionally either dumps chat while capturing or downloads the chat file after it's done.
 - Basic tools for downloading any VOD or chat.
 - Can be set to automatically download the whole stream chat to a JSON file, to be used in my [twitch-vod-chat](https://github.com/MrBrax/twitch-vod-chat) webapp or automatically burned in with [TwitchDownloader](https://github.com/lay295/TwitchDownloader).
 - Basic webhook support for external scripting.
+- Notifications over the browser, telegram, and discord.
 
 *One high-profile streamer VOD of 10 hours at 1080p60 is about 30-50GB.*
 

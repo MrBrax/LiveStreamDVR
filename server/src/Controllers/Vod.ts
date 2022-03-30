@@ -82,6 +82,26 @@ export async function DownloadVod(req: express.Request, res: express.Response): 
 
 }
 
+export async function DownloadChat(req: express.Request, res: express.Response): Promise<void> {
+
+    const vod = TwitchVOD.getVod(req.params.basename);
+
+    if (!vod) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const success = await vod.downloadChat();
+
+    res.send({
+        status: success ? "OK" : "ERROR",
+    });
+
+}
+
 /*
 public function vod_renderwizard(Request $request, Response $response, $args)
 {

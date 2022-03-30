@@ -101,7 +101,13 @@ export class TwitchChannel {
     private async parseVODs(api = false): Promise<void> {
 
         // $this->vods_raw = glob($this->getFolder() . DIRECTORY_SEPARATOR . $this->login . "_*.json");
-        this.vods_raw = fs.readdirSync(this.getFolder()).filter(file => file.startsWith(this.login + "_") && file.endsWith(".json"));
+        this.vods_raw = fs.readdirSync(this.getFolder())
+            .filter(file =>
+                file.startsWith(this.login + "_") &&
+                file.endsWith(".json") &&
+                !file.endsWith("_chat.json") // bad workaround
+            );
+        
         this.vods_list = [];
 
         for (const vod of this.vods_raw) {
@@ -352,7 +358,7 @@ export class TwitchChannel {
     public checkStaleVodsInMemory(): void {
         if (!this.login) return;
 
-        const vods_on_disk = fs.readdirSync(TwitchHelper.vodFolder(this.login)).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".json"));
+        const vods_on_disk = fs.readdirSync(TwitchHelper.vodFolder(this.login)).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".json") && !f.endsWith("_chat.json"));
         const vods_in_channel_memory = this.vods_list;
         const vods_in_main_memory = TwitchVOD.vods.filter(v => v.streamer_login === this.login);
 

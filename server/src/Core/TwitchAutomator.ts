@@ -722,20 +722,20 @@ export class TwitchAutomator {
         await this.vod.finalize();
         this.vod.saveJSON("finalized");
 
-        /*
+        
         // download chat and optionally burn it
-        if ($streamer->download_chat && $vodclass->twitch_vod_id) {
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", "Auto download chat on {$basename}", ['download' => $data_username]);
-            $vodclass->downloadChat();
+        if (this.channel.download_chat && this.vod.twitch_vod_id) {
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Auto download chat on ${basename}`);
+            this.vod.downloadChat();
 
-            if ($streamer->burn_chat) {
+            if (this.channel.burn_chat) {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", "Automatic chat burning has been disabled until settings have been implemented.");
                 // if ($vodclass->renderChat()) {
                 // 	$vodclass->burnChat();
                 // }
             }
         }
-        */
+        
 
         // vodclass.setPermissions();
 

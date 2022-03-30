@@ -489,7 +489,7 @@ export class TwitchVOD {
             throw new Error("No directory set!");
         }
 
-        this.path_chat = this.realpath(path.join(this.directory, `${this.basename}.chat`));
+        this.path_chat = this.realpath(path.join(this.directory, `${this.basename}_chat.json`));
         this.path_downloaded_vod = this.realpath(path.join(this.directory, `${this.basename}_vod.mp4`));
         this.path_losslesscut = this.realpath(path.join(this.directory, `${this.basename}-llc-edl.csv`));
         this.path_chatrender = this.realpath(path.join(this.directory, `${this.basename}_chat.mp4`));
@@ -1773,6 +1773,59 @@ export class TwitchVOD {
      */
     public getChannel(): TwitchChannel | undefined {
         return TwitchChannel.getChannelByLogin(this.streamer_login);
+    }
+
+    public downloadChat(): Promise<boolean> {
+        // since tcd does not work anymore, twitchdownloadercli is used instead
+        return this.downloadChatTD();
+    }
+
+    private downloadChatTD(): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            
+            const bin = TwitchHelper.path_twitchdownloader();
+            
+            if (!bin || !fs.existsSync(bin)) {
+                reject(new Error("twitchdownloadercli not found"));
+                return;
+            }
+
+            if (!this.twitch_vod_id) {
+                reject(new Error("No VOD ID"));
+                return;
+            }
+
+            if (fs.existsSync(this.path_chat)) {
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat already exists for ${this.basename}`);
+                resolve(true);
+                return;
+            }
+
+            const args: string[] = [];
+            args.push("--mode", "ChatDownload");
+            args.push("--temp-path", BaseConfigFolder.cache);
+            args.push("--id", this.twitch_vod_id);
+            args.push("-o", this.path_chat);
+
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Downloading chat for ${this.basename}`);
+
+            const job = TwitchHelper.startJob(bin, args, `chatdownload_${this.basename}`);
+            if (!job) {
+                reject(new Error("Job failed"));
+                return;
+            }
+
+            job.on("close", (code, signal) => {
+                if (fs.existsSync(this.path_chat) && fs.statSync(this.path_chat).size > 0) {
+                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat downloaded for ${this.basename}`);
+                    resolve(true);
+                } else {
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Chat couldn't be downloaded for ${this.basename}`);
+                    reject(false);
+                }
+            });
+
+        });
     }
 
     /**
