@@ -357,9 +357,9 @@ export class TwitchAutomator {
                     title = `${channel.display_name} is online with one of your favourite categories: ${current_chapter.game_name}!`;
                     category = TwitchConfig.notificationCategories.streamStatusChangeFavourite;
                 } else if (current_chapter.game_name) {
-                    title = `${channel.display_name} is streaming ${current_chapter.game_name}!`;
+                    title = `${channel.display_name} is now streaming ${current_chapter.game_name}!`;
                 } else {
-                    title = `${channel.display_name} is streaming without a category!`;
+                    title = `${channel.display_name} is now streaming without a category!`;
                 }
             } else {
                 if (current_chapter.game?.isFavourite()) {
@@ -368,7 +368,7 @@ export class TwitchAutomator {
                 } else if (current_chapter.game_name) {
                     title = `${channel.display_name} is now playing ${current_chapter.game_name}!`;
                 } else {
-                    title = `${channel.display_name} is streaming without a game!`;
+                    title = `${channel.display_name} is now streaming without a game!`;
                 }
 
             }
