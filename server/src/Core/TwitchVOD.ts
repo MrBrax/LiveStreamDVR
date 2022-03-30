@@ -1300,6 +1300,14 @@ export class TwitchVOD {
 
     }
 
+    /**
+     * Check vod for muted segments
+     * 
+     * @throws
+     * @param save 
+     * @param force 
+     * @returns 
+     */
     public async checkMutedVod(save = false, force = false): Promise<MuteStatus> {
 
         if (!this.twitch_vod_id) {
@@ -1309,7 +1317,11 @@ export class TwitchVOD {
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Check muted VOD for ${this.basename} using ${TwitchConfig.cfg("checkmute_method", "api")}`);
 
-        return TwitchConfig.cfg("checkmute_method", "api") == "api" ? await this.checkMutedVodAPI(save, force) : await this.checkMutedVodStreamlink(save, force);
+        // since the api doesn't return muted_segments if an app auth token is used,
+        // streamlink is used instead, until this is fixed in the api
+        
+        // return TwitchConfig.cfg("checkmute_method", "api") == "api" ? await this.checkMutedVodAPI(save, force) : await this.checkMutedVodStreamlink(save, force);
+        return await this.checkMutedVodStreamlink(save, force);
 
     }
 

@@ -291,7 +291,7 @@
                         <fa icon="download" type="fa" v-if="!taskStatus.downloadVod"></fa>
                         <fa icon="sync" type="fa" spin="true" v-else></fa>
                     </span>
-                    Download{{ vod?.twitch_vod_muted ? " muted" : "" }} VOD
+                    Download{{ vod?.twitch_vod_muted === MuteStatus.MUTED ? " muted" : "" }} VOD
                 </a>
                 <a class="button" @click="doCheckMute">
                     <span class="icon">
@@ -918,10 +918,10 @@ export default defineComponent({
                     console.log(json);
 
                     if (json.data) {
-                        if (json.data.muted === null) {
+                        if (json.data.muted === null || json.data.muted === MuteStatus.UNKNOWN) {
                             alert(`The vod "${this.vod?.basename}" could not be checked.`);
                         } else {
-                            alert(`The vod "${this.vod?.basename}" is${json.data.muted ? "" : " not"} muted.`);
+                            alert(`The vod "${this.vod?.basename}" is${json.data.muted === MuteStatus.MUTED ? "" : " not"} muted.`);
                         }
                     }
                     this.taskStatus.vodMuteCheck = false;
