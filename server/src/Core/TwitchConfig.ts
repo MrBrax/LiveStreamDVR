@@ -12,6 +12,15 @@ import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import crypto from "crypto";
 import path from "path";
 
+export enum NotificationProvider {
+    /** Websocket to all browser clients */
+    WEBSOCKET = 1 << 0,
+    /** Telegram bot */
+    TELEGRAM = 1 << 1,
+    /** Discord webhook */
+    DISCORD = 1 << 2,
+}
+
 export class TwitchConfig {
 
     static initialised = false;
@@ -111,16 +120,21 @@ export class TwitchConfig {
         { "key": "telegram_enabled",    "group": "Notifications", "text": "Enable Telegram notifications", "type": "boolean", "default": false },
         { "key": "telegram_token",      "group": "Notifications", "text": "Telegram token", "type": "string" },
         { "key": "telegram_chat_id",    "group": "Notifications", "text": "Telegram chat id", "type": "string" },
+        { "key": "discord_enabled",     "group": "Notifications", "text": "Enable Discord notifications", "type": "boolean", "default": false },
+        { "key": "discord_webhook",     "group": "Notifications", "text": "Discord webhook", "type": "string" },
 
     ];
 
-    static notificationCategories: Record<string, boolean> = {
-        offlineStatusChange: true,
-        streamOnline: true,
-        streamOffline: true,
-        streamStatusChange: true,
-        vodMuted: true,
-        vodDeleted: true,
+    /** @todo: make user configurable */
+    static readonly notificationCategories: Record<string, NotificationProvider> = {
+        offlineStatusChange: NotificationProvider.WEBSOCKET | NotificationProvider.TELEGRAM,
+        streamOnline: NotificationProvider.WEBSOCKET | NotificationProvider.TELEGRAM | NotificationProvider.DISCORD,
+        streamOffline: NotificationProvider.WEBSOCKET,
+        streamStatusChange: NotificationProvider.WEBSOCKET,
+        streamStatusChangeFavourite: NotificationProvider.WEBSOCKET | NotificationProvider.TELEGRAM,
+        vodMuted: NotificationProvider.WEBSOCKET,
+        vodDeleted: NotificationProvider.WEBSOCKET,
+        debug: NotificationProvider.WEBSOCKET | NotificationProvider.TELEGRAM | NotificationProvider.DISCORD,
     };
 
     static watcher: fs.FSWatcher | undefined;

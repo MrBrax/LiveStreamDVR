@@ -33,7 +33,7 @@ export async function CheckDeletedVods(req: express.Request, res: express.Respon
                 output += `${vod.basename} deleted<br>\n`;
 
                 if (TwitchConfig.notificationCategories.vodDeleted) {
-                    ClientBroker.notify(`${vod.basename} deleted`);
+                    ClientBroker.notify(`${vod.basename} deleted`, "", "", TwitchConfig.notificationCategories.vodDeleted);
                 }
 
                 // $this->addToNotifyCache("deleted_{$vod->basename}");
@@ -92,7 +92,7 @@ export async function CheckMutedVods(req: express.Request, res: express.Response
                 output += `${vod.basename} muted<br>\n`;
 
                 if (current_status !== check && TwitchConfig.notificationCategories.vodMuted) {
-                    ClientBroker.notify(`${vod.basename} muted`);
+                    ClientBroker.notify(`${vod.basename} muted`, "", "", TwitchConfig.notificationCategories.vodMuted);
                 }
 
                 // $this->addToNotifyCache("mute_{$vod->basename}");

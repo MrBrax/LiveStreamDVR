@@ -1,9 +1,9 @@
 // const { cli } = require('webpack');
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import chalk from "chalk";
 import { IncomingMessage } from "http";
 import WebSocket from "ws";
-import { TwitchConfig } from "./TwitchConfig";
+import { NotificationProvider, TwitchConfig } from "./TwitchConfig";
 import { TwitchLog, LOGLEVEL } from "./TwitchLog";
 
 interface Client {
@@ -130,35 +130,42 @@ export class ClientBroker {
      * @param body 
      * @param icon 
      */
-    static notify(title: string, body = "", icon = "") {
+    static notify(title: string, body = "", icon = "", category: NotificationProvider) {
         
-        console.log(chalk.bgBlue.whiteBright(`Notifying clients: ${title}: ${body}`));
+        console.log(chalk.bgBlue.whiteBright(`Notifying clients: ${title}: ${body}, category ${category}`));
         
-        this.broadcast({
-            action: "notify",
-            data: {
-                title: title,
-                body: body,
-                icon: icon,
-            },
-        });
+        if (category & NotificationProvider.WEBSOCKET) {
+            this.broadcast({
+                action: "notify",
+                data: {
+                    title: title,
+                    body: body,
+                    icon: icon,
+                },
+            });
+        }
         
-        if (TwitchConfig.cfg("telegram_enabled")) {
+        if (TwitchConfig.cfg("telegram_enabled") && category & NotificationProvider.TELEGRAM) {
+            axios.post(`https://api.telegram.org/bot${TwitchConfig.cfg("telegram_token")}/sendMessage`, {
+                chat_id: TwitchConfig.cfg("telegram_chat_id"),
+                text: `*${title}*\n${body}`,
+                parse_mode: "markdown",
+            }).then((res) => {
+                // console.debug("Telegram response", res);
+            }).catch((err: AxiosError) => {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "webhook", `Telegram error: ${err.message}`);
+            });
+        }
 
-            let response;
-
-            try {
-                response = axios.post(`https://api.telegram.org/bot${TwitchConfig.cfg("telegram_token")}/sendMessage`, {
-                    chat_id: TwitchConfig.cfg("telegram_chat_id"),
-                    text: `*${title}*\n${body}`,
-                    parse_mode: "markdown",
-                });
-            } catch (error) {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "webhook", `Telegram error: ${error}`);
-            }
-
-            console.debug("Telegram response", response);
-
+        if (TwitchConfig.cfg("discord_enabled") && category & NotificationProvider.DISCORD) {
+            axios.post(TwitchConfig.cfg("discord_webhook"), {
+                content: `**${title}**\n${body}`,
+                avatar_url: icon,
+            }).then((res) => {
+                // console.debug("Discord response", res);
+            }).catch((err: AxiosError) => {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "webhook", `Discord error: ${err.message}`);
+            });
         }
         
     }
