@@ -1097,7 +1097,7 @@ export class TwitchVOD {
         //     TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Saving JSON of ${this.basename} while not finalized!`);
         // }
 
-        if (this.not_started && !this.chapters || this.chapters.length == 0) {
+        if (!this.not_started && (!this.chapters || this.chapters.length == 0)) {
             TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Saving JSON of ${this.basename} with no chapters!!`);
         }
 
@@ -1716,10 +1716,11 @@ export class TwitchVOD {
 
     public startWatching() {
         if (this.fileWatcher) this.stopWatching();
+        console.log(`Watching ${this.basename}`);
         this.fileWatcher = fs.watch(this.filename, (eventType, filename) => {
             // if (eventType === "rename") {
 
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD JSON ${this.basename} changed (${this._writeJSON ? "internal" : "external"})!`);
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD JSON ${this.basename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})!`);
 
             setTimeout(() => {
                 TwitchVOD.cleanLingeringVODs();
@@ -1741,7 +1742,7 @@ export class TwitchVOD {
                     }, 5000);
                 }
             } else {
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD JSON ${this.basename} exists (again?)`);
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD JSON ${this.basename} exists (again?) ${eventType}`);
             }
 
         });
@@ -1749,6 +1750,8 @@ export class TwitchVOD {
 
     public stopWatching() {
         if (this.fileWatcher) this.fileWatcher.close();
+        this.fileWatcher = undefined;
+        console.log(`Stopped watching ${this.basename}`);
     }
 
     public changeBaseName(new_basename: string) {
@@ -1918,7 +1921,7 @@ export class TwitchVOD {
 
         // console.debug("vod getter check", vod.basename, vod.directory, vod.is_converted, vod.is_finalized, vod.is_capturing, vod.is_converting);
 
-        if (!vod.is_finalized) {
+        if (!vod.not_started && !vod.is_finalized) {
             TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Loaded VOD ${vod.basename} is not finalized!`);
         }
 
