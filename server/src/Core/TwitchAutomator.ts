@@ -900,7 +900,7 @@ export class TwitchAutomator {
                     console.log(
                         chalk.bgGreen.whiteBright(
                             `🎥 ${new Date().toISOString()} ${basename} ${this.stream_resolution} ` +
-                            `${TwitchHelper.formatBytes(size)} ${TwitchHelper.formatBits(bitRate)}`
+                            `${TwitchHelper.formatBytes(size)} / ${Math.round(bitRate / 1000)} kbps`
                         )
                     );                    
                 } else {
