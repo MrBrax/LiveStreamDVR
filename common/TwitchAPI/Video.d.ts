@@ -7,7 +7,7 @@ interface MutedSegment {
 
 export interface Video {
     id: string;
-    stream_id?: any;
+    stream_id?: string;
     user_id: string;
     user_login: string;
     user_name: string;

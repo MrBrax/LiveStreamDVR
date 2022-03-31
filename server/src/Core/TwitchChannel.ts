@@ -376,6 +376,10 @@ export class TwitchChannel {
 
     }
 
+    public hasVod(video_id: string): boolean {
+        return this.vods_list.find(v => v.twitch_vod_id && v.twitch_vod_id === video_id) != undefined;
+    }
+
     /**
      * 
      * STATIC

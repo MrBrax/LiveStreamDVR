@@ -21,6 +21,7 @@ import { MuteStatus } from "../../../common/Defs";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import chalk from "chalk";
 import { replaceAll } from "Helpers/ReplaceAll";
+import { AudioStream, FFProbe, VideoStream } from "../../../common/FFProbe";
 
 /*
 export interface TwitchVODSegmentJSON {
@@ -480,6 +481,96 @@ export class TwitchVOD {
         }
 
         TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Could not get mediainfo of ${this.basename}`);
+
+        // this.video_fail2 = true;
+        return false;
+    }
+
+    public async getFFProbe(segment_num = 0): Promise<false | VideoMetadata> {
+
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Fetching ffprobe of ${this.basename}, segment #${segment_num}`);
+
+        if (!this.directory) {
+            throw new Error("No directory set!");
+        }
+
+        if (!this.segments_raw || this.segments_raw.length == 0) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No segments available for ffprobe of ${this.basename}`);
+            return false;
+        }
+
+        const filename = path.join(this.directory, path.basename(this.segments_raw[segment_num]));
+
+        if (!fs.existsSync(filename)) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `File does not exist for ffprobe of ${this.basename} (${filename} @ ${this.directory})`);
+            return false;
+        }
+
+        let data: FFProbe | false = false;
+
+        try {
+            data = await TwitchHelper.ffprobe(filename);
+        } catch (th) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Trying to get ffprobe of ${this.basename} returned: ${(th as Error).message}`);
+            return false;
+        }
+
+        if (data) {
+            // console.debug(`Got ffprobe of ${this.basename}`);
+
+            if (!data.streams || data.streams.length == 0) {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Invalid ffprobe for ${this.basename}`);
+                return false;
+            }
+
+            const video_stream = data.streams.find((stream): stream is VideoStream => stream.codec_type == "video"); // FFProbeStream
+            const audio_stream = data.streams.find((stream): stream is AudioStream => stream.codec_type == "audio"); // FFProbeStream[]
+
+            if (!video_stream || !audio_stream) {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Invalid ffprobe for ${this.basename}`);
+                return false;
+            }
+
+            let fps = 0;
+            if (video_stream?.r_frame_rate) {
+                const fps_base = parseInt(video_stream.r_frame_rate.split("/")[0]);
+                const fps_den = parseInt(video_stream.r_frame_rate.split("/")[1]);
+                fps = fps_base / fps_den;
+            }
+
+            // use proxy type for mediainfo, can switch to ffprobe if needed
+            /*
+            this.video_metadata = {
+                container: data.format.format_name,
+
+                size: parseInt(data.format.size),
+                duration: parseInt(data.format.duration),
+                bitrate: parseInt(data.format.bit_rate),
+
+                width: video_stream.width,
+                height: video_stream.height,
+
+                fps: fps,
+                fps_mode: 
+                // fps_mode: video_stream.r_frame_rate_mode as "VFR" | "CFR",
+
+                audio_codec: audio_stream.codec_name,
+                audio_bitrate: parseInt(audio_stream.bit_rate),
+                // audio_bitrate_mode: audio_stream.bit_rate_mode as "VBR" | "CBR",
+                audio_sample_rate: audio_stream.sample_rate,
+                audio_channels: audio_stream.channels,
+
+                video_codec: video_stream.codec_name,
+                video_bitrate: parseInt(video_stream.bit_rate),
+                // video_bitrate_mode: video_stream.bit_rate_mode as "VBR" | "CBR",
+            };
+            */
+
+            // return this.video_metadata;
+
+        } else {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Could not get ffprobe of ${this.basename}`);
+        }
 
         // this.video_fail2 = true;
         return false;
@@ -1937,6 +2028,8 @@ export class TwitchVOD {
         if (!vod.not_started && !vod.is_finalized) {
             TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Loaded VOD ${vod.basename} is not finalized!`);
         }
+
+        // vod.getFFProbe();
 
         return vod;
 

@@ -5,6 +5,13 @@ import { ChannelConfig, VideoQuality } from "../../../common/Config";
 import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse } from "../../../common/Api/Api";
 import { VideoQualityArray } from "../../../common/Defs";
 import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
+import { TwitchVOD } from "../Core/TwitchVOD";
+import { replaceAll } from "Helpers/ReplaceAll";
+import { TwitchHelper } from "Core/TwitchHelper";
+import { TwitchConfig } from "Core/TwitchConfig";
+import path from "path";
+import { parse } from "date-fns";
+import { TwitchWebhook } from "Core/TwitchWebhook";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -199,5 +206,73 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         data: new_channel,
         status: "OK",
     });
+
+}
+
+export async function DownloadVideo(req: express.Request, res: express.Response): Promise<void> {
+
+    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+
+    if (!channel || !channel.login) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const video_id = req.params.video_id;
+    const quality = req.query.quality && VideoQualityArray.includes(req.query.quality as string) ? req.query.quality as VideoQuality : "best";
+
+    if (channel.hasVod(video_id)) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Video already downloaded",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const video = await TwitchVOD.getVideo(video_id);
+    if (!video){
+        res.status(400).send({
+            status: "ERROR",
+            message: "Video not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const basename = `${channel.login}_${replaceAll(video.created_at, ":", "-")}_${video.stream_id}`;
+
+    const filepath = path.join(TwitchHelper.vodFolder(channel.login), `${basename}.${TwitchConfig.cfg("vod_container", "mp4")}`);
+
+    const status = await TwitchVOD.downloadVideo(video_id, quality, filepath) != "";
+
+    if (status) {
+        const vod = await channel.createVOD(path.join(TwitchHelper.vodFolder(channel.login), `${basename}.json`));
+        // vod.meta = video;
+        // vod.streamer_name = channel.display_name || channel.login;
+        // vod.streamer_login = channel.login;
+        // vod.streamer_id = channel.userid || "";
+        vod.started_at = parse(video.created_at, TwitchHelper.TWITCH_DATE_FORMAT, new Date());
+
+        const duration = TwitchHelper.parseTwitchDuration(video.duration);
+        vod.ended_at = new Date(vod.started_at.getTime() + (duration * 1000));
+        vod.saveJSON("manual creation");
+
+        vod.addSegment(path.basename(filepath));
+        vod.finalize();
+        vod.saveJSON("manual finalize");
+
+        TwitchWebhook.dispatch("end_download", {
+            vod: vod,
+        });
+
+    } else {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Video download failed",
+        } as ApiErrorResponse);
+        return;
+    }
 
 }

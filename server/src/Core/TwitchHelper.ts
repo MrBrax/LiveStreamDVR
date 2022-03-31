@@ -6,7 +6,8 @@ import fs from "fs";
 import path from "path";
 import { Stream } from "stream";
 import { MediaInfoJSONOutput } from "../../../common/MediaInfo";
-import { MediaInfo } from "../../../common/mediainfofield";
+import { Audio, MediaInfo, Video } from "../../../common/mediainfofield";
+import { AudioStream, FFProbe, FFProbeStream, VideoStream } from "../../../common/FFProbe";
 import { EventSubTypes } from "../../../common/TwitchAPI/Shared";
 import { Subscriptions } from "../../../common/TwitchAPI/Subscriptions";
 import { BaseConfigFolder } from "./BaseConfig";
@@ -231,6 +232,13 @@ export class TwitchHelper {
         return false;
     }
 
+    // very bad
+    public static path_ffprobe(): string | false {
+        const f = this.path_ffmpeg();
+        if (!f) return false;
+        return f.replace("ffmpeg.exe", "ffprobe.exe");
+    }
+
     public static path_streamlink(): string | false {
         // $path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "streamlink" . (self::is_windows() ? '.exe' : '');
         // return file_exists($path) ? $path : false;
@@ -341,12 +349,12 @@ export class TwitchHelper {
             const stderr: string[] = [];
 
             process.stdout.on("data", (data: Stream) => {
-                if (TwitchConfig.cfg("debug")) console.debug(chalk.green(`$ ${bin} ${args.join(" ")}\n`, chalk.green(`> ${data.toString().trim()}`)));
+                if (TwitchConfig.cfg("debug")) console.debug(chalk.bold.green(`$ ${bin} ${args.join(" ")}\n`, chalk.green(`${data.toString().trim()}`)));
                 stdout.push(data.toString());
             });
 
             process.stderr.on("data", (data: Stream) => {
-                if (TwitchConfig.cfg("debug")) console.error(chalk.red(`$ ${bin} ${args.join(" ")}\n`, chalk.red(`> ${data.toString().trim()}`)));
+                if (TwitchConfig.cfg("debug")) console.error(chalk.bold.red(`$ ${bin} ${args.join(" ")}\n`, chalk.red(`> ${data.toString().trim()}`)));
                 stderr.push(data.toString());
             });
 
@@ -532,11 +540,17 @@ export class TwitchHelper {
 
                 console.log("remux mediainfo", info);
 
+                // ffmpeg seems to make ts cfr into vfr, don't know why
                 const opts = [
+                    "-r", parseInt(info.video.FrameRate).toString(),
+                    // "-vsync", "cfr",
                     "-i", input,
+                    "-map", "0",
                     // "-analyzeduration", 
                     "-c", "copy",
                     "-bsf:a", "aac_adtstoasc",
+                    // "-r", parseInt(info.video.FrameRate).toString(),
+                    // "-vsync", "cfr",
                     // ...ffmpeg_options,
                     output,
                 ];
@@ -633,10 +647,6 @@ export class TwitchHelper {
             throw new Error("Filesize is 0 for mediainfo");
         }
 
-        // $output = shell_exec( TwitchHelper::path_mediainfo() . ' --Full --Output=JSON ' . escapeshellarg($filename) );
-        // $process = new Process( [TwitchHelper::path_mediainfo(), '--Full', '--Output=JSON', $filename] );
-        // $process->run();
-
         const mediainfo_path = TwitchHelper.path_mediainfo();
         if (!mediainfo_path) throw new Error("Failed to find mediainfo");
 
@@ -664,6 +674,44 @@ export class TwitchHelper {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "mediainfo", `No output from mediainfo for ${filename}`);
             throw new Error("No output from mediainfo");
         }
+    }
+
+    public static async ffprobe(filename: string): Promise<FFProbe> {
+
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "ffprobe", `Run ffprobe on ${filename}`);
+
+        if (!filename) {
+            throw new Error("No filename supplied for ffprobe");
+        }
+
+        if (!fs.existsSync(filename)) {
+            throw new Error("File not found for ffprobe");
+        }
+
+        if (fs.statSync(filename).size == 0) {
+            throw new Error("Filesize is 0 for ffprobe");
+        }
+
+        const ffprobe_path = TwitchHelper.path_ffprobe();
+        if (!ffprobe_path) throw new Error("Failed to find ffprobe");
+
+        const output = await TwitchHelper.execSimple(ffprobe_path, [
+            "-v", "quiet",
+            "-print_format", "json",
+            "-show_format",
+            "-show_streams",
+            // "-show_entries",
+            filename,
+        ], "ffprobe");
+
+        if (output && output.stdout) {
+            const json: FFProbe = JSON.parse(output.stdout.join(""));
+            return json;
+        } else {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "ffprobe", `No output from ffprobe for ${filename}`);
+            throw new Error("No output from ffprobe");
+        }
+    
     }
 
     public static async getSubs(): Promise<Subscriptions | false> {
