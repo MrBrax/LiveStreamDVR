@@ -6,7 +6,7 @@ import { PHPDateTimeProxy } from "../types";
 import { ExecReturn, TwitchHelper } from "./TwitchHelper";
 import { parse } from "date-fns";
 import { ChildProcessWithoutNullStreams } from "child_process";
-import { EventEmitter } from "stream";
+import { EventEmitter } from "events";
 import { TwitchWebhook } from "./TwitchWebhook";
 import { ApiJob } from "../../../common/Api/Client";
 

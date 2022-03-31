@@ -238,12 +238,7 @@ export class TwitchAutomator {
 
             // fetch from cache
             if (from_cache) {
-                const cd = KeyValue.get(`${this.getLogin()}.channeldata`);
-                if (!cd) {
-                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Tried to get channel cache for ${this.broadcaster_user_login} but it was not available.`);
-                    return false;
-                }
-                const cdj = JSON.parse(cd);
+                const cdj = KeyValue.getObject<ChannelUpdateEvent>(`${this.getLogin()}.channeldata`);
                 if (!cdj) {
                     TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Tried to parse channel cache json for ${this.broadcaster_user_login} but it errored.`);
                     return false;
@@ -266,6 +261,8 @@ export class TwitchAutomator {
             const chapter_data = await this.getChapterData(event);
 
             const chapter = await TwitchVODChapter.fromJSON(chapter_data);
+
+            KeyValue.set(`${this.broadcaster_user_login}.chapterdata`, JSON.stringify(chapter_data));
 
             vod.addChapter(chapter);
             vod.saveJSON("game update");
@@ -305,7 +302,7 @@ export class TwitchAutomator {
             }
 
             const event = this.payload_eventsub.event;
-            KeyValue.set(`${this.broadcaster_user_login}.channeldata`, JSON.stringify(this.payload_eventsub.event));
+            KeyValue.setObject(`${this.broadcaster_user_login}.channeldata`, this.payload_eventsub.event);
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, saving channel data to cache: ${event.category_name} (${event.title})`);
 
             if (TwitchConfig.notificationCategories.offlineStatusChange) {
@@ -322,6 +319,8 @@ export class TwitchAutomator {
 
             const chapter_data = await this.getChapterData(event);
             chapter_data.online = false;
+
+            KeyValue.setObject(`${this.broadcaster_user_login}.chapterdata`, chapter_data);
 
             if (chapter_data.viewer_count) {
                 TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, but managed to get viewer count, so it's online? 🤔`);
@@ -591,7 +590,7 @@ export class TwitchAutomator {
 
         // update the game + title if it wasn't updated already
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Update game for ${basename}`);
-        if (KeyValue.get(`${this.getLogin()}.channeldata`)) {
+        if (KeyValue.has(`${this.getLogin()}.channeldata`)) {
             this.updateGame(true);
             KeyValue.delete(`${this.getLogin()}.channeldata`);
         }

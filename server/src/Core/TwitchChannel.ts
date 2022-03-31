@@ -2,6 +2,7 @@ import axios from "axios";
 import chalk from "chalk";
 import fs from "fs";
 import path from "path";
+import { TwitchVODChapterJSON } from "Storage/JSON";
 import type { ApiChannel } from "../../../common/Api/Client";
 import type { ChannelData } from "../../../common/Channel";
 import { ChannelConfig, VideoQuality } from "../../../common/Config";
@@ -378,6 +379,11 @@ export class TwitchChannel {
 
     public hasVod(video_id: string): boolean {
         return this.vods_list.find(v => v.twitch_vod_id && v.twitch_vod_id === video_id) != undefined;
+    }
+
+    public getChapterData(): TwitchVODChapterJSON | undefined {
+        const cd = KeyValue.get(`${this.login}.chapterdata`);
+        return cd ? JSON.parse(cd) as TwitchVODChapterJSON : undefined;
     }
 
     /**
