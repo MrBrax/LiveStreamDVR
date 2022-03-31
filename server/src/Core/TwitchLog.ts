@@ -17,7 +17,7 @@ export enum LOGLEVEL {
 
 export interface LogLine {
     module: string;
-    date: number;
+    time: number;
     level: LOGLEVEL;
     text: string;
     metadata?: any;
@@ -113,10 +113,10 @@ export class TwitchLog {
         );
 
         const log_data: LogLine = {
-            "module": module,
-            "date": Date.now(),
-            "level": level,
-            "text": text,
+            module: module,
+            time: Date.now(),
+            level: level,
+            text: text,
         };
 
         if (metadata !== undefined) log_data.metadata = metadata;

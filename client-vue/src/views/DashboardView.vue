@@ -35,7 +35,8 @@
                     <table>
                         <tr v-for="(line, lineIndex) in logFiltered" :key="lineIndex" :class="'log-line log-line-' + line.level.toLowerCase()">
                             <td v-if="line.date_string">{{ line.date_string }}</td>
-                            <td v-else>{{ formatTimestamp(line.date / 1000, "yyyy-MM-dd HH:ii:ss.SSS") }}</td>
+                            <td v-else-if="line.time">{{ formatTimestamp(line.time / 1000, "yyyy-MM-dd HH:ii:ss.SSS") }}</td>
+                            <td v-else>(no date)</td>
                             <td>
                                 <a @click="logSetFilter(line.module)">{{ line.module }}</a>
                             </td>
@@ -80,7 +81,7 @@
 import { defineComponent } from "vue";
 import Streamer from "@/components/StreamerItem.vue";
 import type { ApiLogLine, ApiChannel } from "@common/Api/Client";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { useStore } from "@/store";
 import { nonGameCategories } from "../../../common/Defs";
 
@@ -298,7 +299,16 @@ export default defineComponent({
                         console.log("Init", toast);
                     } else if (action == "log") {
                         // merge log lines
-                        this.logLines = [...this.logLines, ...json.data];
+                        const newLines: ApiLogLine[] = json.data;
+
+                        if (newLines.some((line) => line.date_string && parseISO(line.date_string).getDay() != new Date().getDay())) {
+                            // new day, clear log
+                            this.logLines = json.data;
+                            // this.logFilename =
+                        } else {
+                            this.logLines = [...this.logLines, ...json.data];
+                        }
+
                         setTimeout(() => {
                             this.scrollLog();
                         }, 100);

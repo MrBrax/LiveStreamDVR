@@ -253,7 +253,7 @@ export type ApiLogLine = {
     level: string;
     module: string;
     date_string: string;
-    date: number; // unix timestamp in ms
+    time: number; // unix timestamp in ms
     text: string;
     metadata?: any;
 };

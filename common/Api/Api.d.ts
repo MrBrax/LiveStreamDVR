@@ -1,5 +1,5 @@
 import { ChannelConfig, SettingField } from "../Config";
-import { ApiChannel, ApiGame, ApiJob, ApiVod } from "./Client";
+import { ApiChannel, ApiGame, ApiJob, ApiLogLine, ApiVod } from "./Client";
 
 interface ApiResponse {
     data: any;
@@ -48,7 +48,7 @@ export interface ApiVodResponse extends ApiResponse {
 
 export interface ApiLogResponse extends ApiResponse {
     data: {
-        lines: any;
+        lines: ApiLogLine[];
         last_line: number;
         logs: string[];
     };

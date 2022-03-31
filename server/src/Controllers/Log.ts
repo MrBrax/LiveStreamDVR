@@ -1,6 +1,8 @@
+import { format } from "date-fns";
 import express from "express";
 import fs from "fs";
 import { ApiErrorResponse, ApiLogResponse } from "../../../common/Api/Api";
+import { ApiLogLine } from "../../../common/Api/Client";
 import { BaseConfigFolder } from "../Core/BaseConfig";
 import { LogLine, TwitchLog } from "../Core/TwitchLog";
 
@@ -15,13 +17,19 @@ export function GetLog(req: express.Request, res: express.Response) {
         return;
     }
     
-    let log_lines: LogLine[] = [];
+    let log_lines: ApiLogLine[] = [];
     
     try {
-        log_lines = TwitchLog.fetchLog(filename, start_from);
+        log_lines = TwitchLog.fetchLog(filename, start_from) as ApiLogLine[];
     } catch (error) {
         res.status(400).send({ status: "ERROR", message: (error as Error).message } as ApiErrorResponse);
         return;
+    }
+
+    for (const i in log_lines) {
+        if (log_lines[i].time) {
+            log_lines[i].date_string = format(new Date(log_lines[i].time), "yyyy-MM-dd HH:mm:ss");
+        }
     }
 
     const line_num = log_lines.length;
