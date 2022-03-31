@@ -776,7 +776,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
 import ModalBox from "./ModalBox.vue";
-import { MuteStatus } from "../../../common/Defs";
+import { MuteStatus, VideoQualityArray } from "../../../common/Defs";
 library.add(
     faFileVideo,
     faCut,
@@ -891,10 +891,16 @@ export default defineComponent({
         //     alert(`RenderChat not implemented: ${useVod}`);
         // },
         doDownloadVod() {
-            if (!confirm(`Do you want to download the vod for "${this.vod?.basename}"?`)) return;
+            const quality = prompt(`What quality do you want to download "${this.vod?.basename}" in?\nValid options are: ${VideoQualityArray.join(" ")}`);
+            if (!quality) return;
+            if (!VideoQualityArray.includes(quality)) {
+                alert(`Invalid quality: ${quality}`);
+                return;
+            }
+
             this.taskStatus.downloadVod = true;
             this.$http
-                .post(`/api/v0/vod/${this.vod?.basename}/download`)
+                .post(`/api/v0/vod/${this.vod?.basename}/download?quality=${quality}`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);

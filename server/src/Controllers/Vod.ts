@@ -1,5 +1,7 @@
 import express from "express";
 import { ApiErrorResponse, ApiResponse, ApiVodResponse } from "../../../common/Api/Api";
+import { VideoQuality } from "../../../common/Config";
+import { VideoQualityArray } from "../../../common/Defs";
 import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
 import { TwitchVOD } from "../Core/TwitchVOD";
 
@@ -66,6 +68,8 @@ export async function DownloadVod(req: express.Request, res: express.Response): 
 
     const vod = TwitchVOD.getVod(req.params.basename);
 
+    const quality = req.query.quality && VideoQualityArray.includes(req.query.quality as string) ? req.query.quality as VideoQuality : "best";
+
     if (!vod) {
         res.status(400).send({
             status: "ERROR",
@@ -74,7 +78,7 @@ export async function DownloadVod(req: express.Request, res: express.Response): 
         return;
     }
 
-    const success = await vod.downloadVod();
+    const success = await vod.downloadVod(quality);
 
     res.send({
         status: success ? "OK" : "ERROR",

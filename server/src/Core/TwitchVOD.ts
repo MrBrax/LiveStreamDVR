@@ -831,7 +831,12 @@ export class TwitchVOD {
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Rebuilding segment list for ${this.basename}`);
 
-        const files = fs.readdirSync(this.directory).filter(file => file.startsWith(this.basename) && file.endsWith(`.${TwitchConfig.cfg("vod_container", "mp4")}`));
+        const files = fs.readdirSync(this.directory)
+            .filter(file => 
+                file.startsWith(this.basename) && 
+                file.endsWith(`.${TwitchConfig.cfg("vod_container", "mp4")}`) &&
+                !file.includes("_vod") && !file.includes("_chat") && !file.includes("_chat_mask") && !file.includes("_burned")
+            );
 
         if (!files || files.length == 0) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No segments found for ${this.basename}, can't rebuild segment list`);
@@ -1408,7 +1413,15 @@ export class TwitchVOD {
         if (!this.twitch_vod_id) throw new Error("No VOD id!");
         if (!this.directory) throw new Error("No directory!");
 
-        return await TwitchVOD.downloadVideo(this.twitch_vod_id.toString(), quality, path.join(this.directory, this.basename + "_vod.mp4")) != false;
+        let filename = "";
+        try {
+            filename = await TwitchVOD.downloadVideo(this.twitch_vod_id.toString(), quality, path.join(this.directory, `${this.basename}_vod.mp4`));
+        } catch (e) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `VOD ${this.basename} could not be downloaded: ${(e as Error).message}`);
+            return false;
+        }
+
+        return filename !== "";
     }
 
     public async fixIssues(): Promise<void> {
@@ -2000,7 +2013,7 @@ export class TwitchVOD {
      * @throws
      * @returns 
      */
-    public static async downloadVideo(video_id: string, quality: VideoQuality = "best", filename: string): Promise<string | false> {
+    public static async downloadVideo(video_id: string, quality: VideoQuality = "best", filename: string): Promise<string> {
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", `Download VOD ${video_id}`);
 
@@ -2009,14 +2022,10 @@ export class TwitchVOD {
         if (!video) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to get video ${video_id}`);
             throw new Error(`Failed to get video ${video_id}`);
-            return false;
         }
 
-        // const basename = `${video.user_login}_${video.created_at.replace(":", "_")}_${video.stream_id}`;
         const basename = path.basename(filename);
 
-        // $capture_filename = TwitchHelper::vodFolder($this->login) . DIRECTORY_SEPARATOR . $basename . ($vod_ext ? '_vod' : '') . '.ts';
-        // $converted_filename = TwitchHelper::vodFolder($this->login) . DIRECTORY_SEPARATOR . $basename . ($vod_ext ? '_vod' : '') . '.mp4';
         const capture_filename = path.join(BaseConfigFolder.cache, `${video_id}.ts`);
         const converted_filename = filename;
 
@@ -2063,7 +2072,7 @@ export class TwitchVOD {
 
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", `Downloaded VOD ${video_id}...}`);
 
-            if (ret.stdout.includes("error: Unable to find video:") || ret.stderr.includes("error: Unable to find video:")) {
+            if (ret.stdout.join("\n").includes("error: Unable to find video:") || ret.stderr.join("\n").includes("error: Unable to find video:")) {
                 throw new Error("VOD on Twitch not found, is it deleted?");
             }
         }
@@ -2072,7 +2081,13 @@ export class TwitchVOD {
 
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Starting remux of ${basename}`);
 
-            const ret = await TwitchHelper.remuxFile(capture_filename, converted_filename);
+            let ret;
+            try {
+                ret = await TwitchHelper.remuxFile(capture_filename, converted_filename);
+            } catch (error) {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to remux ${basename}: ${(error as Error).message}`);
+                throw new Error(`Failed to remux ${basename}: ${(error as Error).message}`);
+            } 
 
             if (ret.success) {
                 TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Successfully remuxed ${basename}, removing ${capture_filename}`);
@@ -2084,10 +2099,15 @@ export class TwitchVOD {
 
         const successful = fs.existsSync(converted_filename) && fs.statSync(converted_filename).size > 0;
 
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Download of ${basename} ${successful ? "successful" : "failed"}`);
+        if (!successful) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to download ${basename}, no file found!`);
+            throw new Error(`Failed to download ${basename}, no file found!`);
+        }
+
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Download of ${basename} successful`);
 
         TwitchWebhook.dispatch("video_download", {
-            "success": successful,
+            "success": true,
             "path": converted_filename,
         });
 

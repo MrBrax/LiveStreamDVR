@@ -7,7 +7,7 @@
 - [?] POST /vod/{basename}/delete
 - [?] POST /vod/{basename}/save
 - [ ] POST /vod/{basename}/cut
-- [ ] POST /vod/{basename}/renderwizard
+- [x] POST /vod/{basename}/renderwizard
 - [ ] POST /vod/{basename}/unbreak
 - 
 - [x] GET /api/v0/channels

@@ -528,13 +528,13 @@ export class TwitchHelper {
                 reject(new Error(`Output file ${output} already exists`));
             }
 
-            const mediainfo = this.mediainfo(input).then((info) => {
+            this.mediainfo(input).then((info) => {
 
                 console.log("remux mediainfo", info);
 
                 const opts = [
                     "-i", input,
-                    "-analyzeduration", 
+                    // "-analyzeduration", 
                     "-c", "copy",
                     "-bsf:a", "aac_adtstoasc",
                     // ...ffmpeg_options,
@@ -560,7 +560,8 @@ export class TwitchHelper {
 
                 job.process.on("error", (err) => {
                     TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
-                    reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
+                    // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
+                    reject(new Error(`Process ${process.pid} error: ${err}`));
                 });
 
                 job.process.on("close", (code) => {
@@ -569,12 +570,13 @@ export class TwitchHelper {
                     }
                     // const out_log = ffmpeg.stdout.read();
                     const success = fs.existsSync(output) && fs.statSync(output).size > 0;
-                    if (code == 0) {
+                    if (success) {
                         TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Remuxed ${input} to ${output}`);
-                        resolve({ code, success, stdout: job.stdout, stderr: job.stderr });
+                        resolve({ code: code || -1, success, stdout: job.stdout, stderr: job.stderr });
                     } else {
-                        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to remux ${input} to ${output}`);
-                        reject({ code, success, stdout: job.stdout, stderr: job.stderr });
+                        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to remux ${path.basename(input)} to ${path.basename(output)}`);
+                        // reject({ code, success, stdout: job.stdout, stderr: job.stderr });
+                        reject(new Error(`Failed to remux ${path.basename(input)} to ${path.basename(output)}`));
                     }
                 });
 
@@ -642,7 +644,7 @@ export class TwitchHelper {
 
         if (output && output.stdout) {
 
-            const json: MediaInfoJSONOutput = JSON.parse(output.stdout.join("\n"));
+            const json: MediaInfoJSONOutput = JSON.parse(output.stdout.join(""));
 
             const data: any = {};
 
