@@ -29,6 +29,7 @@ export function GetLog(req: express.Request, res: express.Response) {
     for (const i in log_lines) {
         if (log_lines[i].time) {
             log_lines[i].date_string = format(new Date(log_lines[i].time), "yyyy-MM-dd HH:mm:ss");
+            log_lines[i].date = new Date(log_lines[i].time).toISOString();
         }
     }
 

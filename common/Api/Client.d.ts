@@ -254,6 +254,7 @@ export type ApiLogLine = {
     module: string;
     date_string: string;
     time: number; // unix timestamp in ms
+    date: string; // Date;
     text: string;
     metadata?: any;
 };

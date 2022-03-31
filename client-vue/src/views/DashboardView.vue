@@ -34,8 +34,9 @@
                 <div class="log_viewer" ref="logViewer">
                     <table>
                         <tr v-for="(line, lineIndex) in logFiltered" :key="lineIndex" :class="'log-line log-line-' + line.level.toLowerCase()">
-                            <td v-if="line.date_string">{{ line.date_string }}</td>
+                            <td v-if="line.date">{{ formatDate(line.date) }}</td>
                             <td v-else-if="line.time">{{ formatTimestamp(line.time / 1000, "yyyy-MM-dd HH:ii:ss.SSS") }}</td>
+                            <td v-else-if="line.date_string">{{ line.date_string }}</td>
                             <td v-else>(no date)</td>
                             <td>
                                 <a @click="logSetFilter(line.module)">{{ line.module }}</a>
