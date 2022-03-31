@@ -528,49 +528,59 @@ export class TwitchHelper {
                 reject(new Error(`Output file ${output} already exists`));
             }
 
-            const opts = [
-                "-i", input,
-                "-c", "copy",
-                "-bsf:a", "aac_adtstoasc",
-                // ...ffmpeg_options,
-                output,
-            ];
+            const mediainfo = this.mediainfo(input).then((info) => {
 
-            if (overwrite) {
-                opts.push("-y");
-            }
+                console.log("remux mediainfo", info);
 
-            if (TwitchConfig.cfg("debug") || TwitchConfig.cfg("app_verbose")) {
-                opts.push("-loglevel", "repeat+level+verbose");
-            }
+                const opts = [
+                    "-i", input,
+                    "-analyzeduration", 
+                    "-c", "copy",
+                    "-bsf:a", "aac_adtstoasc",
+                    // ...ffmpeg_options,
+                    output,
+                ];
 
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Remuxing ${input} to ${output}`);
-
-            const job = TwitchHelper.startJob(ffmpeg_path, opts, `remux_${path.basename(input)}`);
-
-            if (!job || !job.process) {
-                reject(new Error(`Failed to start job for remuxing ${input} to ${output}`));
-                return;
-            }
-
-            job.process.on("error", (err) => {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
-                reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
-            });
-
-            job.process.on("close", (code) => {
-                if (job) {
-                    job.clear();
+                if (overwrite) {
+                    opts.push("-y");
                 }
-                // const out_log = ffmpeg.stdout.read();
-                const success = fs.existsSync(output) && fs.statSync(output).size > 0;
-                if (code == 0) {
-                    TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Remuxed ${input} to ${output}`);
-                    resolve({ code, success, stdout: job.stdout, stderr: job.stderr });
-                } else {
-                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to remux ${input} to ${output}`);
-                    reject({ code, success, stdout: job.stdout, stderr: job.stderr });
+
+                if (TwitchConfig.cfg("debug") || TwitchConfig.cfg("app_verbose")) {
+                    opts.push("-loglevel", "repeat+level+verbose");
                 }
+
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Remuxing ${input} to ${output}`);
+
+                const job = TwitchHelper.startJob(ffmpeg_path, opts, `remux_${path.basename(input)}`);
+
+                if (!job || !job.process) {
+                    reject(new Error(`Failed to start job for remuxing ${input} to ${output}`));
+                    return;
+                }
+
+                job.process.on("error", (err) => {
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
+                    reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
+                });
+
+                job.process.on("close", (code) => {
+                    if (job) {
+                        job.clear();
+                    }
+                    // const out_log = ffmpeg.stdout.read();
+                    const success = fs.existsSync(output) && fs.statSync(output).size > 0;
+                    if (code == 0) {
+                        TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Remuxed ${input} to ${output}`);
+                        resolve({ code, success, stdout: job.stdout, stderr: job.stderr });
+                    } else {
+                        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to remux ${input} to ${output}`);
+                        reject({ code, success, stdout: job.stdout, stderr: job.stderr });
+                    }
+                });
+
+            }).catch((err) => {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to get mediainfo for ${input}`);
+                reject(err);
             });
 
         });
@@ -601,7 +611,7 @@ export class TwitchHelper {
      * @throws
      * @returns 
      */
-    public static async mediainfo(filename: string): Promise<MediaInfo | false> {
+    public static async mediainfo(filename: string): Promise<MediaInfo> {
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "mediainfo", `Run mediainfo on ${filename}`);
 
@@ -646,7 +656,7 @@ export class TwitchHelper {
 
         } else {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "mediainfo", `No output from mediainfo for ${filename}`);
-            return false;
+            throw new Error("No output from mediainfo");
         }
     }
 

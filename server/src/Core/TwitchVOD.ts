@@ -436,7 +436,7 @@ export class TwitchVOD {
             return false;
         }
 
-        if (data !== false) {
+        if (data) {
             // console.debug(`Got mediainfo of ${this.basename}`);
 
             if (!data.general.Format || !data.general.Duration) {
