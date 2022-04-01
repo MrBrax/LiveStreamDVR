@@ -287,3 +287,29 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
     }
 
 }
+
+export async function SubscribeToChannel(req: express.Request, res: express.Response): Promise<void> {
+
+    const channel_login = req.params.channel;
+
+    const channel = TwitchChannel.getChannelByLogin(channel_login);
+
+    if (!channel || !channel.userid) {
+        res.status(400).send({
+            status: "ERROR",
+            message: `Channel ${channel_login} not found`,
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const sub = await TwitchChannel.subscribe(channel.userid);
+
+    res.send({
+        data: {
+            login: channel_login,
+            status: sub === true ? "Subscription request sent, check logs for details" : "ERROR",
+        },
+        status: "OK",
+    });
+
+}

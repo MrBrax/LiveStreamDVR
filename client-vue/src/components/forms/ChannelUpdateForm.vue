@@ -65,10 +65,15 @@
             </div>
         </form>
         <hr />
-        <button class="button is-small is-danger" type="submit" @click="deleteChannel">
-            <span class="icon"><fa icon="trash"></fa></span> Delete
-        </button>
-        (no undo)
+        <span>
+            <button class="button is-small is-danger" type="submit" @click="deleteChannel">
+                <span class="icon"><fa icon="trash"></fa></span> Delete
+            </button>
+            (no undo)
+        </span>
+        <span>
+            <button class="button is-small is-confirm" type="submit" @click="subscribeChannel">Subscribe</button>
+        </span>
     </div>
 </template>
 
@@ -134,6 +139,22 @@ export default defineComponent({
             if (!confirm(`Do you want to delete "${this.channel.login}"?`)) return;
             this.$http
                 .delete(`/api/v0/channels/${this.channel.login}`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.$emit("formSuccess", json);
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) {
+                        alert(err.response.data.message);
+                    }
+                });
+        },
+        subscribeChannel() {
+            this.$http
+                .post(`/api/v0/channels/${this.channel.login}/subscribe`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);

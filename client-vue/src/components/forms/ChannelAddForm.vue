@@ -3,14 +3,17 @@
         <div class="field">
             <label class="label">Login <span class="required">*</span></label>
             <div class="control">
-                <input class="input input-required" type="text" name="login" value="" required />
-                <p class="input-help">Channel login, lowercase. This is the part that comes after the domain name, not the display name.</p>
+                <input class="input input-required" type="text" name="login" v-model="formData.login" @keyup="checkLogin" required />
+                <p class="input-help">
+                    Channel login, lowercase. This is the part that comes after the domain name, not the display name.<br />
+                    You can paste a link to a channel page here to get the login.
+                </p>
             </div>
         </div>
         <div class="field">
             <label class="label">Quality <span class="required">*</span></label>
             <div class="control">
-                <input class="input input-required" type="text" name="quality" value="" required />
+                <input class="input input-required" type="text" name="quality" v-model="formData.quality" required />
                 <p class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</p>
                 <p class="input-help">Valid choices: {{ VideoQualityArray.join(", ") }}</p>
             </div>
@@ -18,31 +21,31 @@
         <div class="field">
             <label class="label">Match keywords</label>
             <div class="control">
-                <input class="input" type="text" name="match" value="" />
+                <input class="input" type="text" name="match" v-model="formData.match" />
                 <p class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</p>
             </div>
         </div>
         <div class="field">
             <label class="checkbox">
-                <input type="checkbox" name="download_chat" value="1" />
+                <input type="checkbox" name="download_chat" value="1" v-model="formData.download_chat" />
                 Download chat after video capture is complete
             </label>
         </div>
         <div class="field">
             <label class="checkbox">
-                <input type="checkbox" name="live_chat" value="1" />
+                <input type="checkbox" name="live_chat" value="1" v-model="formData.live_chat" />
                 Live chat download
             </label>
         </div>
         <div class="field">
             <label class="checkbox">
-                <input type="checkbox" name="burn_chat" value="1" />
+                <input type="checkbox" name="burn_chat" value="1" v-model="formData.burn_chat" />
                 Burn chat after downloading
             </label>
         </div>
         <div class="field">
             <label class="checkbox">
-                <input type="checkbox" name="no_capture" value="1" />
+                <input type="checkbox" name="no_capture" value="1" v-model="formData.no_capture" />
                 Do not capture video
             </label>
         </div>
@@ -76,12 +79,21 @@ export default defineComponent({
         return {
             formStatusText: "Ready",
             formStatus: "",
+            formData: {
+                login: "",
+                quality: "",
+                match: "",
+                download_chat: false,
+                live_chat: false,
+                burn_chat: false,
+                no_capture: false,
+            },
         };
     },
     methods: {
         submitForm(event: Event) {
-            const form = event.target as HTMLFormElement;
-            const inputs = new FormData(form);
+            // const form = event.target as HTMLFormElement;
+            // const inputs = new FormData(form);
 
             this.formStatusText = "Loading...";
             this.formStatus = "";
@@ -89,11 +101,11 @@ export default defineComponent({
             // console.log("form", form);
             // console.log("entries", inputs, inputs.entries(), inputs.values());
 
-            let data: Record<string, unknown> = {};
-            inputs.forEach((value, key) => (data[key] = value));
+            // let data: Record<string, unknown> = {};
+            // inputs.forEach((value, key) => (data[key] = value));
 
             this.$http
-                .post(`/api/v0/channels`, data)
+                .post(`/api/v0/channels`, this.formData)
                 .then((response) => {
                     const json = response.data;
                     this.formStatusText = json.message;
@@ -115,6 +127,12 @@ export default defineComponent({
 
             event.preventDefault();
             return false;
+        },
+        checkLogin() {
+            const match = this.formData.login.match(/^https?:\/\/www.twitch.tv\/(\w+)/);
+            if (match) {
+                this.formData.login = match[1];
+            }
         },
     },
     computed: {

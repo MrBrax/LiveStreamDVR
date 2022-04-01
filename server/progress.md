@@ -1,6 +1,6 @@
 # Routes
 - [x] GET /vod/{basename}
-- [ ] POST /vod/{basename}/search_chatdump
+// - [ ] POST /vod/{basename}/search_chatdump
 - [x] POST /vod/{basename}/download_chat
 - [x] POST /vod/{basename}/download
 - [x] POST /vod/{basename}/check_mute
@@ -8,7 +8,7 @@
 - [?] POST /vod/{basename}/save
 - [ ] POST /vod/{basename}/cut
 - [x] POST /vod/{basename}/renderwizard
-- [ ] POST /vod/{basename}/unbreak
+// - [ ] POST /vod/{basename}/unbreak
 - 
 - [x] GET /api/v0/channels
 - [x] POST /api/v0/channels
@@ -19,7 +19,7 @@
 - [ ] GET /api/v0/channels/{login}/force_record
 - [ ] GET /api/v0/channels/{login}/dump_playlist
 - [ ] GET /api/v0/channels/{login}/subscription
-- [ ] GET /api/v0/channels/{login}/download/{video_id}
+- [x] GET /api/v0/channels/{login}/download/{video_id}
 - 
 - [x] GET /api/v0/jobs
 - [?] DELETE /api/v0/jobs/{job}
