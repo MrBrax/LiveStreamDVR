@@ -245,7 +245,18 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
 
     const filepath = path.join(TwitchHelper.vodFolder(channel.login), `${basename}.${TwitchConfig.cfg("vod_container", "mp4")}`);
 
-    const status = await TwitchVOD.downloadVideo(video_id, quality, filepath) != "";
+    let status = false;
+    
+    try {
+        status = await TwitchVOD.downloadVideo(video_id, quality, filepath) != "";
+    } catch (error) {
+        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "route.channels.download", `Failed to download video: ${(error as Error).message}`);
+        res.status(400).send({
+            status: "ERROR",
+            message: (error as Error).message,
+        } as ApiErrorResponse);
+        return;
+    }
 
     if (status) {
         const vod = await channel.createVOD(path.join(TwitchHelper.vodFolder(channel.login), `${basename}.json`));

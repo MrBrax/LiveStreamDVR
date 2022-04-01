@@ -545,7 +545,7 @@ export class TwitchHelper {
                     "-r", parseInt(info.video.FrameRate).toString(),
                     // "-vsync", "cfr",
                     "-i", input,
-                    "-map", "0",
+                    // "-map", "0",
                     // "-analyzeduration", 
                     "-c", "copy",
                     "-bsf:a", "aac_adtstoasc",
@@ -590,7 +590,20 @@ export class TwitchHelper {
                     } else {
                         TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to remux ${path.basename(input)} to ${path.basename(output)}`);
                         // reject({ code, success, stdout: job.stdout, stderr: job.stderr });
-                        reject(new Error(`Failed to remux ${path.basename(input)} to ${path.basename(output)}`));
+
+                        let message = "Unknown error";
+                        const errorSearch = job.stderr.join("").match(/\[error\] (.*)/g);
+                        if (errorSearch && errorSearch.length > 0) {
+                            message = errorSearch.slice(1).join(", ");
+                        }
+
+                        if (fs.existsSync(output) && fs.statSync(output).size == 0) {
+                            fs.unlinkSync(output);
+                        }
+
+                        // for (const err of errorSearch) {
+                        //    message = err[1];
+                        reject(new Error(`Failed to remux ${path.basename(input)} to ${path.basename(output)}: ${message}`));
                     }
                 });
 

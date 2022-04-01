@@ -41,7 +41,7 @@
                             <td>
                                 <a @click="logSetFilter(line.module)">{{ line.module }}</a>
                             </td>
-                            <td>{{ line.level }}</td>
+                            <td>{{ line.level || "UNKNOWN" }}</td>
                             <td @click="expandLog(lineIndex)">{{ line.text }}</td>
                         </tr>
                     </table>
@@ -182,6 +182,33 @@ export default defineComponent({
                 this.store.updateCapturingVods();
             }, 1000 * 60 * 15);
         }
+
+        /*
+        let options = {
+            // root: document.body,
+            // rootMargin: "0px",
+            threshold: 0.5,
+        };
+
+        let observer = new IntersectionObserver((entries, observer) => {
+            console.debug("IntersectionObserver", entries[0].target, entries[0].isIntersecting, entries[0].intersectionRatio);
+        }, options);
+
+        for (let streamer of this.store.streamerList) {
+            let streamerItem = this.$refs[`streamer-${streamer.name}`] as HTMLElement;
+            if (streamerItem) {
+                for (let vod of streamer.vods) {
+                    let vodItem = this.$refs[`vod-${vod.id}`] as HTMLElement;
+                    if (vodItem) {
+                        observer.observe(vodItem);
+                    }
+                }
+            }
+        }
+        */
+
+        //observer.observe(this.$refs.vod as HTMLDivElement);
+
     },
     unmounted() {
         if (this.tickerInterval) clearTimeout(this.tickerInterval);

@@ -1037,15 +1037,20 @@ export class TwitchVOD {
 
             offset -= this.chapters[0].offset || 0;
 
-            data += offset + ",";
+            data += offset + ","; // offset
 
-            if (i < this.chapters.length - 1) {
+            if (i < this.chapters.length - 1) { // not last chapter
                 data += (offset + (chapter.duration || 0)) + ",";
-            } else {
+            } else { // last chapter
                 data += ",";
             }
 
-            data += chapter.game_name || chapter.game_id;
+            data += "\"";
+            let label = `${chapter.game_name || chapter.game_id} (${chapter.title})`;
+            label = label.replace(/"/g, "\\\"");
+            data += label;
+            data += "\"";
+
             data += "\n";
         });
 

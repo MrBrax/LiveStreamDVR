@@ -1,4 +1,4 @@
-<template v-for="streamer in store.streamerList" :key="streamer.username">
+<template>
     <div
         :class="{
             'top-menu-item': true,
@@ -59,6 +59,7 @@
                         'is-animated': store.clientConfig?.animationsEnabled,
                         'is-converting': vod.is_converting,
                         'is-waiting': !vod.is_capturing && !vod.is_converting && !vod.is_finalized,
+                        'streamer-jumpto-vod': true,
                     }"
                     :title="formatDate(vod.started_at)"
                     v-if="streamer"

@@ -1,6 +1,7 @@
 <template>
     <div
         v-if="vod"
+        ref="vod"
         :class="{
             video: true,
             'is-animated': store.clientConfig?.animationsEnabled,
