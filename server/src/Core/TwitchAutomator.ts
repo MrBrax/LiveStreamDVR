@@ -171,9 +171,14 @@ export class TwitchAutomator {
             }
 
             if (TwitchConfig.notificationCategories.streamOnline && this.channel) {
+                let body = "";
+                const chapter = this.channel.getChapterData();
+                if (chapter) {
+                    body = `${chapter.game_name}\n\n${chapter.title}`;
+                }
                 ClientBroker.notify(
                     `${this.broadcaster_user_login} is live!`,
-                    "",
+                    body,
                     this.channel.profile_image_url,
                     TwitchConfig.notificationCategories.streamOnline
                 );

@@ -40,3 +40,6 @@ export const nonGameCategories = [
     "Politics",
     "Fitness & Health",
 ];
+
+// twitch vod age is 14 days then it's deleted
+export const TwitchVodAge = 14 * 24 * 60 * 60 * 1000;

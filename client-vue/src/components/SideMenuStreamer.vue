@@ -166,7 +166,7 @@ import { useStore } from "@/store";
 import { ApiChannel, ApiVod } from "../../../common/Api/Client";
 library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp);
 
-import { MuteStatus, nonGameCategories } from "../../../common/Defs";
+import { MuteStatus, nonGameCategories, TwitchVodAge } from "../../../common/Defs";
 
 export default defineComponent({
     name: "SideMenuStreamer",
@@ -184,8 +184,8 @@ export default defineComponent({
     },
     methods: {
         isRiskOfBeingDeleted(vod: ApiVod) {
-            // 12 days
-            const maxVodAge = 12 * 24 * 60 * 60 * 1000;
+            // 14 days minus 2 days for some slack
+            const maxVodAge = TwitchVodAge - 2 * 24 * 60 * 60 * 1000;
 
             // if the vod is older than 12 days, it is considered risky
             const vod_date = new Date(vod.started_at);
