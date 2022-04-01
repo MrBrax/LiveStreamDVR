@@ -130,7 +130,14 @@ export class ClientBroker {
      * @param body 
      * @param icon 
      */
-    static notify(title: string, body = "", icon = "", category: NotificationProvider) {
+    static notify(
+        title: string,
+        body = "",
+        icon = "",
+        category: NotificationProvider, // change this?
+        url = "",
+        tts = false
+    ) {
         
         console.log(chalk.bgBlue.whiteBright(`Notifying clients: ${title}: ${body}, category ${category}`));
         
@@ -141,6 +148,8 @@ export class ClientBroker {
                     title: title,
                     body: body,
                     icon: icon,
+                    url: url,
+                    tts: tts,
                 },
             });
         }
@@ -161,6 +170,7 @@ export class ClientBroker {
             axios.post(TwitchConfig.cfg("discord_webhook"), {
                 content: `**${title}**\n${body}`,
                 avatar_url: icon,
+                tts: tts,
             }).then((res) => {
                 // console.debug("Discord response", res);
             }).catch((err: AxiosError) => {

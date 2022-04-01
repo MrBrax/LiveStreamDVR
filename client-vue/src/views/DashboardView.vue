@@ -110,6 +110,11 @@ interface DashboardData {
     notificationSub: () => void;
 }
 
+interface WebsocketJSON {
+    action: string;
+    data: any;
+}
+
 export default defineComponent({
     name: "DashboardView",
     setup() {
@@ -162,7 +167,7 @@ export default defineComponent({
             });
     },
     mounted() {
-        this.processNotifications();
+        // this.processNotifications();
 
         if (this.store.cfg("websocket_enabled") && this.store.clientConfig?.useWebsockets) {
             console.debug("Websockets enabled");
@@ -208,7 +213,6 @@ export default defineComponent({
         */
 
         //observer.observe(this.$refs.vod as HTMLDivElement);
-
     },
     unmounted() {
         if (this.tickerInterval) clearTimeout(this.tickerInterval);
@@ -228,17 +232,6 @@ export default defineComponent({
         connectWebsocket() {
             if (this.ws) this.disconnectWebsocket();
             if (!this.store.config) return;
-
-            /*
-            const proto = window.location.protocol === "https:" ? "wss://" : "ws://";
-            const websocket_url_public = proto + window.location.host + this.store.cfg("basepath") + "/socket/";
-            let websocket_url = process.env.NODE_ENV === "development" ? "ws://localhost:8765/socket/" : websocket_url_public;
-
-            if (this.store.cfg("websocket_client_address")) {
-                console.log(`Overriding generated websocket URL '${websocket_url}' with config '${this.store.cfg("websocket_client_address")}'`);
-                websocket_url = this.store.cfg("websocket_client_address") ?? "";
-            }
-            */
 
             let websocket_url = "";
 
@@ -279,10 +272,7 @@ export default defineComponent({
                     return;
                 }
 
-                let json: {
-                    action: string;
-                    data: any;
-                };
+                let json: WebsocketJSON;
 
                 try {
                     json = JSON.parse(text);
@@ -291,61 +281,7 @@ export default defineComponent({
                     return;
                 }
 
-                const action = json.action;
-
-                if (action) {
-                    const downloader_actions = [
-                        "start_download",
-                        "end_download",
-                        "start_capture",
-                        "end_capture",
-                        "start_convert",
-                        "end_convert",
-                        "chapter_update",
-                    ];
-
-                    const job_actions = ["job_save", "job_clear"];
-
-                    if (downloader_actions.indexOf(action) !== -1) {
-                        console.log("Websocket update");
-
-                        this.fetchStreamers().then((sl) => {
-                            if ("streamer_list" in sl) this.store.updateStreamerList(sl.streamer_list);
-                            this.loading = false;
-                        });
-                    } else if (job_actions.indexOf(action) !== -1) {
-                        console.log(`Websocket jobs update: ${action}`, json.data.job_name, json.data.job);
-                        this.fetchJobs();
-                    } else if (action == "notify") {
-                        const toast = new Notification(json.data.title, {
-                            body: json.data.body,
-                            icon: json.data.icon,
-                        });
-                        console.log(`Notify: ${json.data.title}: ${json.data.body}`);
-                    } else if (action == "init") {
-                        const toast = new Notification("Server connected to broker");
-                        console.log("Init", toast);
-                    } else if (action == "log") {
-                        // merge log lines
-                        const newLines: ApiLogLine[] = json.data;
-
-                        if (newLines.some((line) => line.date_string && parseISO(line.date_string).getDay() != new Date().getDay())) {
-                            // new day, clear log
-                            this.logLines = json.data;
-                            // this.logFilename =
-                        } else {
-                            this.logLines = [...this.logLines, ...json.data];
-                        }
-
-                        setTimeout(() => {
-                            this.scrollLog();
-                        }, 100);
-                    } else {
-                        console.log(`Websocket wrong action (${action})`);
-                    }
-                } else {
-                    console.log(`Websocket unknown data`, json.data);
-                }
+                this.handleWebsocketMessage(json);
             });
 
             this.ws.addEventListener("error", (ev: Event) => {
@@ -368,6 +304,68 @@ export default defineComponent({
             });
 
             return this.ws;
+        },
+        handleWebsocketMessage(json: WebsocketJSON) {
+            const action = json.action;
+
+            if (action) {
+                const downloader_actions = ["start_download", "end_download", "start_capture", "end_capture", "start_convert", "end_convert", "chapter_update"];
+
+                const job_actions = ["job_save", "job_clear"];
+
+                if (downloader_actions.indexOf(action) !== -1) {
+                    console.log("Websocket update");
+
+                    this.fetchStreamers().then((sl) => {
+                        if ("streamer_list" in sl) this.store.updateStreamerList(sl.streamer_list);
+                        this.loading = false;
+                    });
+                } else if (job_actions.indexOf(action) !== -1) {
+                    console.log(`Websocket jobs update: ${action}`, json.data.job_name, json.data.job);
+                    this.fetchJobs();
+                } else if (action == "notify") {
+                    const toast = new Notification(json.data.title, {
+                        body: json.data.body,
+                        icon: json.data.icon,
+                    });
+
+                    if (json.data.url) {
+                        toast.onclick = () => {
+                            window.open(json.data.url);
+                        };
+                    }
+
+                    if (json.data.tts || this.store.clientConfig?.useSpeech) {
+                        const utterance = new SpeechSynthesisUtterance(json.data.title + " " + json.data.body);
+                        utterance.lang = "en-US";
+                        speechSynthesis.speak(utterance);
+                    }
+
+                    console.log(`Notify: ${json.data.title}: ${json.data.body}`);
+                } else if (action == "init") {
+                    const toast = new Notification("Server connected to broker");
+                    console.log("Init", toast);
+                } else if (action == "log") {
+                    // merge log lines
+                    const newLines: ApiLogLine[] = json.data;
+
+                    if (newLines.some((line) => line.date_string && parseISO(line.date_string).getDay() != new Date().getDay())) {
+                        // new day, clear log
+                        this.logLines = json.data;
+                        // this.logFilename =
+                    } else {
+                        this.logLines = [...this.logLines, ...json.data];
+                    }
+
+                    setTimeout(() => {
+                        this.scrollLog();
+                    }, 100);
+                } else {
+                    console.log(`Websocket wrong action (${action})`);
+                }
+            } else {
+                console.log(`Websocket unknown data`, json.data);
+            }
         },
         disconnectWebsocket() {
             if (this.ws && this.ws.close) {
@@ -476,6 +474,7 @@ export default defineComponent({
                 this.timer -= 1;
             }
         },
+        /*
         processNotifications() {
             if (!this.store.clientConfig?.enableNotifications) {
                 return;
@@ -517,7 +516,7 @@ export default defineComponent({
                 /*
                 if( mutation.payload[0].current_game !== state.streamerList[0].current_game ){
                     alert( mutation.payload[0].display_name + ": " + mutation.payload[0].current_game );
-                }*/
+                }*
                 // console.log( "values", Object.(mutation.payload[0]));
                 const streamerPronounciation: { [key: string]: string } = {
                     pokelawls: "pookelawls",
@@ -608,6 +607,7 @@ export default defineComponent({
                 }
             });
         },
+        */
         logSetFilter(val: string) {
             this.logModule = this.logModule ? "" : val;
             console.log(`Log filter set to ${this.logModule}`);
