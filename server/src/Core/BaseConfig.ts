@@ -6,7 +6,7 @@ export const AppName = "TwitchAutomatorTS";
 /**
  * The root directory of the application containing client-vue, public, etc.
  */
-export const AppRoot = process.env.NODE_ENV === "development" ? path.join(__dirname, "..", "..", "..") : path.join(__dirname, "..", "..", "..", "..", "..");
+export const AppRoot = process.env.NODE_ENV === "development" ? path.join(__dirname, "..", "..", "..") : path.join(__dirname, "..", "..");
 
 export const BaseConfigFolder = {
     server: path.join(AppRoot, "server"),

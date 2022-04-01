@@ -502,7 +502,7 @@ export class TwitchChannel {
 
         let needsSave = false;
         for (const channel of data) {
-            if (!("quality" in channel)) {
+            if (!("quality" in channel) || !channel.quality) {
                 TwitchLog.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel.login} has no quality set, setting to default`);
                 channel.quality = ["best"];
                 needsSave = true;

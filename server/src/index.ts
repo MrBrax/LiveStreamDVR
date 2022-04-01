@@ -5,7 +5,7 @@ import fs from "fs";
 import { Auth } from "Helpers/Auth";
 import morgan from "morgan";
 import path from "path";
-import WebSocket from "ws";
+import { WebSocketServer } from "ws";
 import { AppName, BaseConfigFolder } from "./Core/BaseConfig";
 import { ClientBroker } from "./Core/ClientBroker";
 import { TwitchConfig } from "./Core/TwitchConfig";
@@ -77,7 +77,7 @@ TwitchConfig.init().then(() => {
             console.log(chalk.greenBright("~ Running with TypeScript ~"));
         } else {
             console.log(chalk.greenBright("~ Running with plain JS ~"));
-            console.log(chalk.greenBright(`Build date: ${fs.statSync(__filename).mtime.toISOString()}`));
+            console.log(chalk.greenBright(`Build date: ${fs.statSync(__filename).mtime.toLocaleString()} (${path.basename(__filename)})`));
         }
         console.log(chalk.greenBright(`Version: ${process.env.npm_package_version} running on node ${process.version} ${process.platform} 🦄`));
     });
@@ -93,7 +93,7 @@ TwitchConfig.init().then(() => {
     if (TwitchConfig.cfg<boolean>("websocket_enabled")) {
 
         // start websocket server and attach broker
-        const websocketServer = new WebSocket.Server({ server, path: `${basepath}/socket/` });
+        const websocketServer = new WebSocketServer({ server, path: `${basepath}/socket/` });
         ClientBroker.attach(websocketServer);
         
         TwitchWebhook.dispatch("init", {

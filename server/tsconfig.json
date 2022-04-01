@@ -8,7 +8,8 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "baseUrl": "src",
-    "outDir": "./build"
+    "outDir": "./build",
+    "isolatedModules": true
   },
   "include": [
     "src/**/*.ts",

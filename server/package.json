@@ -7,8 +7,9 @@
     "test": "jest",
     "lint": "eslint src/**/*.ts",
     "start:dev": "nodemon src/index.ts",
-    "start": "node --enable-source-maps build/server/src/index.js",
-    "build": "tsc --project tsconfig.json"
+    "start": "node --enable-source-maps build/server.js",
+    "build:ts": "tsc --project tsconfig.json",
+    "build": "esbuild ./src/index.ts --bundle --platform=node --target=node14 --sourcemap --outfile=./build/server.js"
   },
   "author": "",
   "license": "ISC",
@@ -21,6 +22,7 @@
     "@types/ws": "^8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.13.0",
     "@typescript-eslint/parser": "^5.13.0",
+    "esbuild": "^0.14.29",
     "eslint": "^7.32.0",
     "eslint-config-standard": "^16.0.3",
     "eslint-plugin-import": "^2.25.4",
