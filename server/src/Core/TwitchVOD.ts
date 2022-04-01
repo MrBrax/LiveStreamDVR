@@ -1056,7 +1056,7 @@ export class TwitchVOD {
 
         fs.writeFileSync(csv_path, data);
 
-        // $this->setPermissions();
+        this.setPermissions();
 
         return fs.existsSync(csv_path);
     }
@@ -1269,7 +1269,7 @@ export class TwitchVOD {
         TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `Saving JSON of ${this.basename} ${(reason ? " (" + reason + ")" : "")}`);
 
         //file_put_contents(this.filename, json_encode(generated));
-        // this.setPermissions();
+        this.setPermissions();
 
         this.stopWatching();
 
@@ -1282,6 +1282,27 @@ export class TwitchVOD {
         this.startWatching();
 
         return generated;
+
+    }
+
+    public setPermissions(): void {
+
+        if (
+            !TwitchConfig.cfg("file_permissions") ||
+            !TwitchConfig.cfg("file_chown_user") ||
+            !TwitchConfig.cfg("file_chown_group") ||
+            !TwitchConfig.cfg("file_chmod")
+        ) {
+            return;
+        }
+
+        for (const file of this.associatedFiles) {
+            const fullpath = path.join(this.directory, file);
+            if (fs.existsSync(fullpath)) {
+                fs.chownSync(fullpath, TwitchConfig.cfg("file_chown_user"), TwitchConfig.cfg("file_chown_group"));
+                fs.chmodSync(fullpath, TwitchConfig.cfg("file_chmod"));
+            }
+        }
 
     }
 
