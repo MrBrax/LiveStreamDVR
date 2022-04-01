@@ -953,6 +953,24 @@ export class TwitchAutomator {
                     this.stream_resolution = res_match[1] as VideoQuality;
                     if (this.vod) this.vod.stream_resolution = this.stream_resolution;
                     TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Stream resolution for ${basename}: ${this.stream_resolution}`);
+
+                    if (this.channel && this.channel.quality) {
+                        if (
+                            this.stream_resolution !== "best" && this.stream_resolution !== "worst" &&
+                            !this.channel.quality.includes(this.stream_resolution)
+                        ) {
+                            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "automator", `Stream resolution ${this.stream_resolution} not in channel quality list`);
+                        } else if (this.channel.quality.includes("best")) {
+                            if (this.stream_resolution !== "1080p60") { // considered best as of 2022
+                                TwitchLog.logAdvanced(LOGLEVEL.WARNING, "automator", `Stream resolution ${this.stream_resolution} assumed to not be in channel quality list`);
+                            }
+                        } else if (this.channel.quality.includes("worst")) {
+                            if (this.stream_resolution !== "140p") { // considered worst
+                                TwitchLog.logAdvanced(LOGLEVEL.WARNING, "automator", `Stream resolution ${this.stream_resolution} assumed to not be in channel quality list`);
+                            }
+                        }
+                    }
+
                 }
 
                 // stream stop
