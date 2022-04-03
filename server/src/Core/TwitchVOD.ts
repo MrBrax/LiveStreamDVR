@@ -1307,25 +1307,6 @@ export class TwitchVOD {
     }
 
     /**
-     * 
-     * @param api 
-     * @deprecated
-     * @returns 
-     */
-    /*
-    public async refreshJSON(api = false): Promise<false | TwitchVOD> {
-        if (!this.filename) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Can't refresh vod, not found!");
-            return false;
-        }
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", "Refreshing JSON on ${this.basename} (${this.filename}) @ ${this.directory}!");
-        // $this->load($this->filename);
-        // return static::load($this->filename, $api);
-        return await TwitchVOD.load(this.filename, api);
-    }
-    */
-
-    /**
      * Checks all chapters for games with the favourite flag set
      */
     public hasFavouriteGame(): boolean {

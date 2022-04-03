@@ -6,7 +6,7 @@ import { TwitchVODChapterJSON } from "Storage/JSON";
 import type { ApiChannel } from "../../../common/Api/Client";
 import type { ChannelData } from "../../../common/Channel";
 import { ChannelConfig, VideoQuality } from "../../../common/Config";
-import { SubStatus } from "../../../common/Defs";
+import { MuteStatus, SubStatus } from "../../../common/Defs";
 import type { ErrorResponse, EventSubTypes } from "../../../common/TwitchAPI/Shared";
 import type { Stream, StreamsResponse } from "../../../common/TwitchAPI/Streams";
 import type { SubscriptionRequest, SubscriptionResponse } from "../../../common/TwitchAPI/Subscriptions";
@@ -389,6 +389,79 @@ export class TwitchChannel {
     public getChapterData(): TwitchVODChapterJSON | undefined {
         const cd = KeyValue.get(`${this.login}.chapterdata`);
         return cd ? JSON.parse(cd) as TwitchVODChapterJSON : undefined;
+    }
+
+    private roundupCleanupVodCandidates(ignore_basename = ""): TwitchVOD[] {
+
+        let total_size = 0;
+        let total_vods = 0;
+
+        const vod_candidates: TwitchVOD[] = [];
+
+        const sps_bytes = TwitchConfig.cfg<number>("storage_per_streamer", 100) * 1024 * 1024 * 1024;
+
+        if (this.vods_list) {
+            for (const vodclass of [...this.vods_list].reverse()) { // reverse so we can delete the oldest ones first
+                if (!vodclass.is_finalized) continue;
+                if (vodclass.basename === ignore_basename) continue;
+
+                if (TwitchConfig.cfg("keep_deleted_vods") && vodclass.twitch_vod_exists === false) {
+                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being deleted on Twitch.`);
+                    continue;
+                }
+
+                if (TwitchConfig.cfg("keep_favourite_vods") && vodclass.hasFavouriteGame()) {
+                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it having a favourite game.`);
+                    continue;
+                }
+
+                if (TwitchConfig.cfg("keep_muted_vods") && vodclass.twitch_vod_muted === MuteStatus.MUTED) {
+                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being muted on Twitch.`);
+                    continue;
+                }
+
+                if (total_size > sps_bytes) {
+                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Adding ${vodclass.basename} to vod_candidates due to storage limit (${TwitchHelper.formatBytes(vodclass.total_size)} of current total ${TwitchHelper.formatBytes(total_size)}, limit ${TwitchHelper.formatBytes(sps_bytes)})`);
+                    vod_candidates.push(vodclass);
+                } else if (total_vods > TwitchConfig.cfg<number>("vods_to_keep", 5)) {
+                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Adding ${vodclass.basename} to vod_candidates due to vod limit (${total_vods} of limit ${TwitchConfig.cfg<number>("vods_to_keep", 5)})`);
+                    vod_candidates.push(vodclass);
+                }
+
+                total_size += vodclass.total_size;
+                total_vods += 1;
+
+            }
+        }
+
+        return vod_candidates;
+
+    }
+
+    public cleanupVods(ignore_basename = ""): number | false {
+
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Cleanup VODs for ${this.login}, ignore ${ignore_basename}`);
+
+        const vod_candidates = this.roundupCleanupVodCandidates(ignore_basename);
+
+        if (vod_candidates.length === 0) {
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Not enough vods to delete for ${this.login}`);
+            return false;
+        }
+
+        if (TwitchConfig.cfg("delete_only_one_vod")) {
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Deleting only one vod for ${this.login}`);
+            vod_candidates[0].delete();
+            return 1;
+        } else {
+            for (const vodclass of vod_candidates) {
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Cleanup ${vodclass.basename}`);
+                vodclass.delete();
+            }
+        }
+
+        return vod_candidates.length;
+
     }
 
     /**

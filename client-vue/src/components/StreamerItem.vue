@@ -51,6 +51,10 @@
                         <button class="icon-button" @click="videoDownloadMenu ? (videoDownloadMenu.show = true) : ''" title="Video download">
                             <span class="icon"><fa icon="download"></fa></span>
                         </button>
+
+                        <button class="icon-button" title="Clean up" @click="doChannelCleanup">
+                            <span class="icon"><fa icon="trash"></fa></span>
+                        </button>
                     </span>
                 </span>
             </div>
@@ -257,6 +261,33 @@ export default defineComponent({
             }
 
             console.log("Downloaded", data);
+        },
+        async doChannelCleanup() {
+            if (!this.streamer) return;
+
+            if (!confirm("Do you want to clean up vods that don't meet your criteria? There is no undo.")) return;
+
+            let response;
+
+            try {
+                response = await this.$http.post(`/api/v0/channels/${this.streamer.login}/cleanup`);
+            } catch (error) {
+                if (this.$http.isAxiosError(error)) {
+                    console.error("doChannelCleanup error", error.response);
+                    if (error.response && error.response.data && error.response.data.message) {
+                        alert(error.response.data.message);
+                    }
+                }
+                return;
+            }
+
+            const data = response.data;
+
+            if (data.message) {
+                alert(data.message);
+            }
+
+            console.log("Cleaned", data);
         },
         imageUrl(url: string, width: number, height: number) {
             return url.replace(/%\{width\}/g, width.toString()).replace(/%\{height\}/g, height.toString());

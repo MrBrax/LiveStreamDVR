@@ -313,3 +313,24 @@ export async function SubscribeToChannel(req: express.Request, res: express.Resp
     });
 
 }
+
+export function CleanupChannelVods(req: express.Request, res: express.Response): void {
+
+    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+
+    if (!channel || !channel.login) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const deleted = channel.cleanupVods();
+
+    res.send({
+        status: "OK",
+        message: `Deleted ${deleted} vods`,
+    });
+
+}

@@ -308,7 +308,16 @@ export default defineComponent({
             const action = json.action;
 
             if (action) {
-                const downloader_actions = ["start_download", "end_download", "start_capture", "end_capture", "start_convert", "end_convert", "chapter_update"];
+                const downloader_actions = [
+                    "start_download",
+                    "end_download",
+                    "start_capture",
+                    "end_capture",
+                    "start_convert",
+                    "end_convert",
+                    "chapter_update",
+                    "vod_removed",
+                ];
 
                 const job_actions = ["job_save", "job_clear"];
 

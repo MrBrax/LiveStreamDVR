@@ -29,6 +29,7 @@ router.put("/channels/:login", Channels.UpdateChannel);
 router.delete("/channels/:login", Channels.DeleteChannel);
 router.get("/channels/:login/download/:video_id", Channels.DownloadVideo);
 router.post("/channels/:login/subscribe", Channels.SubscribeToChannel);
+router.post("/channels/:login/cleanup", Channels.CleanupChannelVods);
 
 router.get("/vod/:basename", Vod.GetVod);
 router.delete("/vod/:basename", Vod.DeleteVod);

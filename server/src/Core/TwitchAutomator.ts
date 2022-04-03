@@ -433,63 +433,7 @@ export class TwitchAutomator {
             return;
         }
 
-        let total_size = 0;
-        const vods = this.channel.vods_list;
-
-        const vod_candidates = [];
-        if (vods) {
-            for (const vodclass of vods) {
-                if (vodclass.is_finalized && vodclass.basename !== this.basename()) {
-
-                    if (TwitchConfig.cfg("keep_deleted_vods") && vodclass.twitch_vod_exists === false) {
-                        TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being deleted on Twitch.`);
-                        continue;
-                    }
-
-                    if (TwitchConfig.cfg("keep_favourite_vods") && vodclass.hasFavouriteGame()) {
-                        TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it having a favourite game.`);
-                        continue;
-                    }
-
-                    if (TwitchConfig.cfg("keep_muted_vods") && vodclass.twitch_vod_muted === MuteStatus.MUTED) {
-                        TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being muted on Twitch.`);
-                        continue;
-                    }
-
-                    total_size += vodclass.total_size;
-                    vod_candidates.push(vodclass);
-                }
-            }
-        }
-
-        const gigabytes = total_size / (1024 * 1024 * 1024);
-
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Total filesize for ${this.getLogin()}: ${TwitchHelper.formatBytes(total_size)}`);
-        TwitchLog.logAdvanced(
-            LOGLEVEL.INFO,
-            "automator",
-            `Amount for ${this.getLogin()}: ${vod_candidates.length}/${(TwitchConfig.cfg<number>("vods_to_keep", 5) + 1)}`
-        );
-
-        if (
-            vod_candidates.length > TwitchConfig.cfg<number>("vods_to_keep", 5) + 1 ||
-            gigabytes > TwitchConfig.cfg<number>("storage_per_streamer", 100)) {
-            const candidate = vod_candidates[0];
-
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Total filesize for ${this.getLogin()} exceeds either vod amount or storage per streamer`);
-
-            // don't delete the newest vod, hopefully. this shouldn't happen, but just in case.
-            if (candidate.basename == this.basename()) {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Trying to cleanup latest VOD ${candidate.basename}`);
-                return false;
-            }
-
-            // only delete first vod, too scared of having it do all
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Cleanup ${candidate.basename}`);
-
-            candidate.delete();
-
-        }
+        this.channel.cleanupVods(this.basename());
 
     }
 

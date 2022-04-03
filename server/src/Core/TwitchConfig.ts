@@ -67,6 +67,7 @@ export class TwitchConfig {
         { "key": "keep_deleted_vods",       "group": "Storage", "text": "Keep Twitch deleted VODs", "type": "boolean", "default": false },
         { "key": "keep_favourite_vods",     "group": "Storage", "text": "Keep favourite VODs", "type": "boolean", "default": false },
         { "key": "keep_muted_vods",         "group": "Storage", "text": "Keep muted VODs", "type": "boolean", "default": false },
+        { "key": "delete_only_one_vod",     "group": "Storage", "text": "Delete only one VOD when cleaning up like old times", "type": "boolean", "default": false },
 
         { "key": "hls_timeout",         "group": "Capture", "text": "HLS Timeout in seconds (ads)", "type": "number", "default": 200 },
         { "key": "download_retries",    "group": "Capture", "text": "Download/capture retries", "type": "number", "default": 5 },
