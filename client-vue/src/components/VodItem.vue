@@ -310,6 +310,13 @@
                 Render menu
             </a>
 
+            <a class="button" @click="doFixIssues">
+                <span class="icon">
+                    <fa icon="wrench" type="fa"></fa>
+                </span>
+                Fix issues
+            </a>
+
             <a class="button is-danger" @click="doDelete">
                 <span class="icon">
                     <fa icon="trash" type="fa" v-if="!taskStatus.delete"></fa>
@@ -774,6 +781,7 @@ import {
     faDownload,
     faExclamationTriangle,
     faFileSignature,
+    faWrench,
 } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
 import ModalBox from "./ModalBox.vue";
@@ -791,7 +799,8 @@ library.add(
     faArchive,
     faDownload,
     faExclamationTriangle,
-    faFileSignature
+    faFileSignature,
+    faWrench
 );
 
 export default defineComponent({
@@ -814,6 +823,7 @@ export default defineComponent({
                 downloadVod: false,
                 fullBurn: false,
                 delete: false,
+                fixIssues: false,
             },
             burnLoading: false,
             burnSettings: {
@@ -984,6 +994,23 @@ export default defineComponent({
                 })
                 .finally(() => {
                     this.burnLoading = false;
+                });
+        },
+        doFixIssues() {
+            this.taskStatus.fixIssues = true;
+            this.$http
+                .post(`/api/v0/vod/${this.vod?.basename}/fix_issues`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.taskStatus.fixIssues = false;
+                    this.$emit("refresh");
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
+                    this.taskStatus.fixIssues = false;
                 });
         },
         unbreak() {

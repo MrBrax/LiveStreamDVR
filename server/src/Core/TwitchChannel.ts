@@ -381,6 +381,11 @@ export class TwitchChannel {
         return this.vods_list.find(v => v.twitch_vod_id && v.twitch_vod_id === video_id) != undefined;
     }
 
+    /**
+     * Get the latest chapter data stored in cache
+     * 
+     * @returns {TwitchVODChapterJSON|undefined} Chapter data
+     */
     public getChapterData(): TwitchVODChapterJSON | undefined {
         const cd = KeyValue.get(`${this.login}.chapterdata`);
         return cd ? JSON.parse(cd) as TwitchVODChapterJSON : undefined;

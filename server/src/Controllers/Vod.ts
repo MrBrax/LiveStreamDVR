@@ -210,6 +210,27 @@ export async function CheckMute(req: express.Request, res: express.Response): Pr
 
 }
 
+export async function FixIssues(req: express.Request, res: express.Response): Promise<void> {
+
+    const vod = TwitchVOD.getVod(req.params.basename);
+
+    if (!vod) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    await vod.fixIssues();
+
+    res.send({
+        status: "OK",
+        message: "Issues fixed, possibly.",
+    } as ApiResponse);
+
+}
+
 // export async function CutVod(req: express.Request, res: express.Response): Promise<void> {
 // 
 //     

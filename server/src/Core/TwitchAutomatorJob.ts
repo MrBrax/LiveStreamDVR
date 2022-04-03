@@ -443,6 +443,7 @@ export class TwitchAutomatorJob extends EventEmitter {
             this.process.stdout.on("data", (data: Buffer) => {
                 // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Job ${this.name} STDOUT: ${data}`, this.metadata);
                 this.emit("stdout", data.toString());
+                this.emit("log", "stdout", data.toString());
                 this.stdout.push(data.toString());
                 fs.appendFileSync(`${logfile}_stdout.log`, data, "utf8");
             });
@@ -450,6 +451,7 @@ export class TwitchAutomatorJob extends EventEmitter {
             this.process.stderr.on("data", (data: Buffer) => {
                 // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Job ${this.name} STDERR: ${data}`, this.metadata);
                 this.emit("stderr", data.toString());
+                this.emit("log", "stderr", data.toString());
                 this.stderr.push(data.toString());
                 fs.appendFileSync(`${logfile}_stderr.log`, data, "utf8");
             });

@@ -531,85 +531,98 @@ export class TwitchHelper {
                 return;
             }
 
-            if (!overwrite && fs.existsSync(output)) {
+            const emptyFile = fs.existsSync(output) && fs.statSync(output).size == 0;
+
+            if (!overwrite && fs.existsSync(output) && !emptyFile) {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Output file ${output} already exists`);
                 reject(new Error(`Output file ${output} already exists`));
             }
 
-            this.mediainfo(input).then((info) => {
+            if (emptyFile) {
+                fs.unlinkSync(output);
+            }
 
-                console.log("remux mediainfo", info);
+            // this.mediainfo(input).then((info) => {
 
-                // ffmpeg seems to make ts cfr into vfr, don't know why
-                const opts = [
-                    "-r", parseInt(info.video.FrameRate).toString(),
-                    // "-vsync", "cfr",
-                    "-i", input,
-                    // "-map", "0",
-                    // "-analyzeduration", 
-                    "-c", "copy",
-                    "-bsf:a", "aac_adtstoasc",
-                    // "-r", parseInt(info.video.FrameRate).toString(),
-                    // "-vsync", "cfr",
-                    // ...ffmpeg_options,
-                    output,
-                ];
+            // console.log("remux mediainfo", info);
 
-                if (overwrite) {
-                    opts.push("-y");
+            // ffmpeg seems to make ts cfr into vfr, don't know why
+            
+            const opts: string[] = [];
+            // "-r", parseInt(info.video.FrameRate).toString(),
+            // "-vsync", "cfr",
+            opts.push("-i", input);
+            // "-map", "0",
+            // "-analyzeduration", 
+            opts.push("-c", "copy");
+            opts.push("-bsf:a", "aac_adtstoasc");
+            // "-r", parseInt(info.video.FrameRate).toString(),
+            // "-vsync", "cfr",
+            // ...ffmpeg_options,
+            // output,
+
+            if (overwrite || emptyFile) {
+                opts.push("-y");
+            }
+
+            if (TwitchConfig.cfg("debug") || TwitchConfig.cfg("app_verbose")) {
+                opts.push("-loglevel", "repeat+level+verbose");
+            }
+
+            opts.push(output);
+            
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Remuxing ${input} to ${output}`);
+
+            const job = TwitchHelper.startJob(ffmpeg_path, opts, `remux_${path.basename(input)}`);
+
+            if (!job || !job.process) {
+                reject(new Error(`Failed to start job for remuxing ${input} to ${output}`));
+                return;
+            }
+
+            // @todo: progress log
+            // job.on("log", (data: string) => {
+            //     const progress_match = data.match(/time=([0-9\.\:]+)/);
+            //     if (progress_match) {
+            //         const progress = progress_match[1];
+            //         // TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Remuxing ${input} to ${output} progress: ${progress}`);
+            //         console.log(chalk.gray(`Remuxing ${input} to ${output} progress: ${progress}`));
+            //     }
+            // });
+
+            job.process.on("error", (err) => {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
+                // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
+                reject(new Error(`Process ${process.pid} error: ${err}`));
+            });
+
+            job.process.on("close", (code) => {
+                if (job) {
+                    job.clear();
                 }
+                // const out_log = ffmpeg.stdout.read();
+                const success = fs.existsSync(output) && fs.statSync(output).size > 0;
+                if (success) {
+                    TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Remuxed ${input} to ${output}`);
+                    resolve({ code: code || -1, success, stdout: job.stdout, stderr: job.stderr });
+                } else {
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to remux ${path.basename(input)} to ${path.basename(output)}`);
+                    // reject({ code, success, stdout: job.stdout, stderr: job.stderr });
 
-                if (TwitchConfig.cfg("debug") || TwitchConfig.cfg("app_verbose")) {
-                    opts.push("-loglevel", "repeat+level+verbose");
-                }
-
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Remuxing ${input} to ${output}`);
-
-                const job = TwitchHelper.startJob(ffmpeg_path, opts, `remux_${path.basename(input)}`);
-
-                if (!job || !job.process) {
-                    reject(new Error(`Failed to start job for remuxing ${input} to ${output}`));
-                    return;
-                }
-
-                job.process.on("error", (err) => {
-                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
-                    // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
-                    reject(new Error(`Process ${process.pid} error: ${err}`));
-                });
-
-                job.process.on("close", (code) => {
-                    if (job) {
-                        job.clear();
+                    let message = "Unknown error";
+                    const errorSearch = job.stderr.join("").match(/\[error\] (.*)/g);
+                    if (errorSearch && errorSearch.length > 0) {
+                        message = errorSearch.slice(1).join(", ");
                     }
-                    // const out_log = ffmpeg.stdout.read();
-                    const success = fs.existsSync(output) && fs.statSync(output).size > 0;
-                    if (success) {
-                        TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Remuxed ${input} to ${output}`);
-                        resolve({ code: code || -1, success, stdout: job.stdout, stderr: job.stderr });
-                    } else {
-                        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to remux ${path.basename(input)} to ${path.basename(output)}`);
-                        // reject({ code, success, stdout: job.stdout, stderr: job.stderr });
 
-                        let message = "Unknown error";
-                        const errorSearch = job.stderr.join("").match(/\[error\] (.*)/g);
-                        if (errorSearch && errorSearch.length > 0) {
-                            message = errorSearch.slice(1).join(", ");
-                        }
-
-                        if (fs.existsSync(output) && fs.statSync(output).size == 0) {
-                            fs.unlinkSync(output);
-                        }
-
-                        // for (const err of errorSearch) {
-                        //    message = err[1];
-                        reject(new Error(`Failed to remux ${path.basename(input)} to ${path.basename(output)}: ${message}`));
+                    if (fs.existsSync(output) && fs.statSync(output).size == 0) {
+                        fs.unlinkSync(output);
                     }
-                });
 
-            }).catch((err) => {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to get mediainfo for ${input}`);
-                reject(err);
+                    // for (const err of errorSearch) {
+                    //    message = err[1];
+                    reject(new Error(`Failed to remux ${path.basename(input)} to ${path.basename(output)}: ${message}`));
+                }
             });
 
         });
