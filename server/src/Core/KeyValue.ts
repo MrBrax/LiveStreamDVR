@@ -11,11 +11,20 @@ export class KeyValue {
 
     public static events = new events.EventEmitter();
 
+    /**
+     * Check if a key exists in the key-value store.
+     * @param key 
+     * @returns 
+     */
     static has(key: string): boolean {
         return key in KeyValue.data;
     }
 
-    // todo: redis or something
+    /**
+     * Get a value from the key-value store.
+     * @param key
+     * @returns {string|false} The value or false if the key does not exist.
+     */
     static get(key: string): string | false {
 
         key = replaceAll(key, /\//g, ""); // @todo: replaceAll
@@ -24,6 +33,11 @@ export class KeyValue {
 
     }
 
+    /**
+     * Get a value from the key-value store as an object.
+     * @param key 
+     * @returns 
+     */
     static getObject<T>(key: string): T | false {
 
         key = replaceAll(key, /\//g, ""); // @todo: replaceAll
@@ -40,7 +54,12 @@ export class KeyValue {
 
     }
 
-    static set(key: string, value: string | null) {
+    /**
+     * Set a value in the key-value store.
+     * @param key
+     * @param value
+     */
+    static set(key: string, value: string | null): void {
 
         key = replaceAll(key, /\//g, ""); // @todo: replaceAll
 
@@ -55,7 +74,12 @@ export class KeyValue {
 
     }
 
-    static setObject<T>(key: string, value: T | null) {
+    /**
+     * Set a value in the key-value store as an object (JSON).
+     * @param key
+     * @param value
+     */
+    static setObject<T>(key: string, value: T | null): void {
 
         key = replaceAll(key, /\//g, ""); // @todo: replaceAll
 
@@ -70,6 +94,10 @@ export class KeyValue {
 
     }
 
+    /**
+     * Delete a value from the key-value store.
+     * @param key
+     */
     static delete(key: string) {
         if (this.data[key]) {
             delete this.data[key];
@@ -78,12 +106,18 @@ export class KeyValue {
         }
     }
 
+    /**
+     * Delete all values from the key-value store.
+     */
     static deleteAll() {
         this.data = {};
         this.events.emit("delete_all");
         this.save();
     }
     
+    /**
+     * Save the key-value store to disk.
+     */
     static save() {
         fs.writeFileSync(BaseConfigPath.keyvalue, JSON.stringify(this.data, null, 4));
     }

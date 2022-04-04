@@ -18,7 +18,7 @@ import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchWebhook } from "./TwitchWebhook";
-import { MuteStatus, nonGameCategories } from "../../../common/Defs";
+import { nonGameCategories } from "../../../common/Defs";
 import chalk from "chalk";
 import { Sleep } from "../Helpers/Sleep";
 import { ClientBroker } from "./ClientBroker";
@@ -239,6 +239,8 @@ export class TwitchAutomator {
                 return false;
             }
 
+            /*
+
             let event: ChannelUpdateEvent;
 
             // fetch from cache
@@ -267,7 +269,7 @@ export class TwitchAutomator {
 
             const chapter = await TwitchVODChapter.fromJSON(chapter_data);
 
-            KeyValue.set(`${this.broadcaster_user_login}.chapterdata`, JSON.stringify(chapter_data));
+            KeyValue.setObject(`${this.broadcaster_user_login}.chapterdata`, chapter_data);
 
             vod.addChapter(chapter);
             vod.saveJSON("game update");
@@ -293,6 +295,68 @@ export class TwitchAutomator {
             }
 
             return true;
+            */
+
+            let event: ChannelUpdateEvent;
+            let chapter_data: TwitchVODChapterJSON | undefined;
+
+            // fetch from cache
+            if (from_cache) {
+                if (this.channel) {
+                    chapter_data = this.channel.getChapterData();
+                } else if (KeyValue.has(`${this.getLogin()}.chapterdata`)) {
+                    chapter_data = KeyValue.getObject<TwitchVODChapterJSON>(`${this.getLogin()}.chapterdata`) as TwitchVODChapterJSON; // type guard not working
+                } else {
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `No chapter data for ${this.broadcaster_user_login} found in cache.`);
+                    return false;
+                }
+            } else if (this.payload_eventsub && "title" in this.payload_eventsub.event) {
+                if (!this.payload_eventsub || !this.payload_eventsub.event) {
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Tried to get event for ${this.broadcaster_user_login} but it was not available.`);
+                    return false;
+                }
+                event = this.payload_eventsub.event as ChannelUpdateEvent;
+                chapter_data = await this.getChapterData(event);
+            } else {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `No last resort event for ${this.broadcaster_user_login} not available.`);
+                return false;
+            }
+
+            if (!chapter_data) {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `No chapter data for ${this.broadcaster_user_login} found.`);
+                return false;
+            }
+
+            TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Channel data for ${this.broadcaster_user_login} fetched from ${from_cache ? "cache" : "notification"}.`);
+
+            const chapter = await TwitchVODChapter.fromJSON(chapter_data);
+
+            KeyValue.setObject(`${this.broadcaster_user_login}.chapterdata`, chapter_data);
+
+            vod.addChapter(chapter);
+            vod.saveJSON("game update");
+
+            TwitchWebhook.dispatch("chapter_update", {
+                "chapter": chapter,
+                "vod": vod,
+            });
+
+            // append chapter to history
+            fs.writeFileSync(path.join(BaseConfigFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify(chapter) + "\n", { flag: "a" });
+
+            TwitchLog.logAdvanced(
+                LOGLEVEL.SUCCESS,
+                "automator",
+                `Stream updated on '${this.broadcaster_user_login}' to '${chapter_data.game_name}' (${chapter_data.title}) using ${from_cache ? "cache" : "eventsub"}.`
+            );
+
+            // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
+            if (TwitchConfig.notificationCategories.streamStatusChange && this.channel) {
+                // ClientBroker.notify(); // @todo: compose message from previous and current game, favorite, etc.
+                this.notifyChapterChange(this.channel);
+            }
+
+            return true;
 
         } else {
 
@@ -307,9 +371,8 @@ export class TwitchAutomator {
             }
 
             const event = this.payload_eventsub.event;
-            KeyValue.setObject(`${this.broadcaster_user_login}.channeldata`, this.payload_eventsub.event);
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, saving channel data to cache: ${event.category_name} (${event.title})`);
-
+            // KeyValue.setObject(`${this.broadcaster_user_login}.channeldata`, this.payload_eventsub.event);
+            
             if (TwitchConfig.notificationCategories.offlineStatusChange) {
                 // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
                 if (this.channel) {
@@ -325,6 +388,7 @@ export class TwitchAutomator {
             const chapter_data = await this.getChapterData(event);
             chapter_data.online = false;
 
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, saving channel data to cache: ${event.category_name} (${event.title})`);
             KeyValue.setObject(`${this.broadcaster_user_login}.chapterdata`, chapter_data);
 
             if (chapter_data.viewer_count) {
@@ -539,9 +603,9 @@ export class TwitchAutomator {
 
         // update the game + title if it wasn't updated already
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Update game for ${basename}`);
-        if (KeyValue.has(`${this.getLogin()}.channeldata`)) {
+        if (KeyValue.has(`${this.getLogin()}.chapterdata`)) {
             this.updateGame(true);
-            KeyValue.delete(`${this.getLogin()}.channeldata`);
+            // KeyValue.delete(`${this.getLogin()}.channeldata`);
         }
 
         const container_ext = TwitchConfig.cfg("vod_container", "mp4");
