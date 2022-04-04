@@ -180,7 +180,8 @@ export class TwitchAutomator {
                     `${this.broadcaster_user_login} is live!`,
                     body,
                     this.channel.profile_image_url,
-                    TwitchConfig.notificationCategories.streamOnline
+                    TwitchConfig.notificationCategories.streamOnline,
+                    this.channel.getUrl()
                 );
             }
 
@@ -198,7 +199,8 @@ export class TwitchAutomator {
                     `${this.broadcaster_user_login} has gone offline!`,
                     this.channel && this.channel.latest_vod && this.channel.latest_vod.started_at ? `Was streaming for ${formatDistanceToNow(this.channel.latest_vod.started_at)}.` : "",
                     this.channel.profile_image_url,
-                    TwitchConfig.notificationCategories.streamOffline
+                    TwitchConfig.notificationCategories.streamOffline,
+                    this.channel.getUrl()
                 );
             }
 
@@ -380,7 +382,8 @@ export class TwitchAutomator {
                         `Offline channel ${this.broadcaster_user_login} changed status`,
                         `${event.category_name} (${event.title})`,
                         this.channel.profile_image_url,
-                        TwitchConfig.notificationCategories.offlineStatusChange
+                        TwitchConfig.notificationCategories.offlineStatusChange,
+                        this.channel.getUrl()
                     );
                 }
             }
@@ -441,7 +444,7 @@ export class TwitchAutomator {
 
             }
 
-            ClientBroker.notify(title, body, icon, category);
+            ClientBroker.notify(title, body, icon, category, this.channel?.getUrl());
 
         }
 

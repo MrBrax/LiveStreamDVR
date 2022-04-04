@@ -14,6 +14,19 @@ interface Client {
     userAgent: string;
 }
 
+interface TelegramSendMessagePayload {
+    chat_id: number;
+    text: string;
+    parse_mode?: string;
+    entities?: any;
+    disable_web_page_preview?: boolean;
+    disable_notification?: boolean;
+    protect_content?: boolean;
+    reply_to_message_id?: number;
+    allow_sending_without_reply?: boolean;
+    reply_markup?: any;
+}
+
 export class ClientBroker {
 
     static clients: Client[] = [];
@@ -157,9 +170,9 @@ export class ClientBroker {
         if (TwitchConfig.cfg("telegram_enabled") && category & NotificationProvider.TELEGRAM) {
             axios.post(`https://api.telegram.org/bot${TwitchConfig.cfg("telegram_token")}/sendMessage`, {
                 chat_id: TwitchConfig.cfg("telegram_chat_id"),
-                text: `*${title}*\n${body}`,
+                text: `*${title}*\n${body}${url ? `\n\n${url}` : ""}`,
                 parse_mode: "markdown",
-            }).then((res) => {
+            } as TelegramSendMessagePayload).then((res) => {
                 // console.debug("Telegram response", res);
             }).catch((err: AxiosError) => {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "webhook", `Telegram error: ${err.message}`);

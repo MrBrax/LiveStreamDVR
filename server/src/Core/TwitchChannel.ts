@@ -464,6 +464,10 @@ export class TwitchChannel {
 
     }
 
+    public getUrl(): string {
+        return `https://www.twitch.tv/${this.login}`;
+    }
+
     /**
      * 
      * STATIC

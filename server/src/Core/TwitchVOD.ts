@@ -1,27 +1,28 @@
+import chalk from "chalk";
 import { parse, parseISO } from "date-fns";
 import fs from "fs";
+import { replaceAll } from "Helpers/ReplaceAll";
 import path from "path";
-import { MediaInfo } from "../../../common/mediainfofield";
+import { ApiVod } from "../../../common/Api/Client";
+import type { TwitchCommentDump } from "../../../common/Comments";
+import { VideoQuality } from "../../../common/Config";
+import { MuteStatus } from "../../../common/Defs";
+import { AudioStream, FFProbe, VideoStream } from "../../../common/FFProbe";
 import { VideoMetadata } from "../../../common/MediaInfo";
+import { MediaInfo } from "../../../common/mediainfofield";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { Video, VideosResponse } from "../../../common/TwitchAPI/Video";
-import { VideoQuality } from "../../../common/Config";
+import { TwitchVODChapterJSON, TwitchVODJSON } from "../Storage/JSON";
 import { BaseConfigFolder } from "./BaseConfig";
+import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchConfig } from "./TwitchConfig";
+import { TwitchGame } from "./TwitchGame";
 import { TwitchHelper } from "./TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchVODSegment } from "./TwitchVODSegment";
 import { TwitchWebhook } from "./TwitchWebhook";
-import { ApiVod } from "../../../common/Api/Client";
-import { TwitchGame } from "./TwitchGame";
-import { TwitchVODChapterJSON, TwitchVODJSON } from "../Storage/JSON";
-import { MuteStatus } from "../../../common/Defs";
-import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
-import chalk from "chalk";
-import { replaceAll } from "Helpers/ReplaceAll";
-import { AudioStream, FFProbe, VideoStream } from "../../../common/FFProbe";
 
 /*
 export interface TwitchVODSegmentJSON {
@@ -1960,6 +1961,30 @@ export class TwitchVOD {
         });
     }
 
+    public compareDumpedChatAndDownloadedChat(): void {
+
+        if (!fs.existsSync(this.path_chat)) return;
+        if (!fs.existsSync(this.path_chatdump)) return;
+
+        const chat: TwitchCommentDump = JSON.parse(fs.readFileSync(this.path_chat, "utf8"));
+        const chatdump: TwitchCommentDump = JSON.parse(fs.readFileSync(this.path_chatdump, "utf8"));
+
+        for (const i in chatdump.comments) {
+            const comment = chatdump.comments[i];
+            const idx = chat.comments.findIndex(c => c.message.body == comment.message.body && c.commenter.name == comment.commenter.name);
+            if (idx == -1) {
+                console.log(`Comment not found in chatdump: ${comment.message.body}`);
+            } else {
+                console.log(`${idx-parseInt(i)} comments mismatch`);
+                console.log("first downloaded comment date:", chat.comments[0].created_at);
+                console.log("first chatdump comment date:", chatdump.comments[0].created_at);
+                console.log("difference:", (parseISO(chat.comments[0].created_at).getTime() - parseISO(chatdump.comments[0].created_at).getTime()) / 1000);
+            }
+            return;
+        }
+        
+    }
+
     /**
      * 
      * STATIC
@@ -2035,6 +2060,8 @@ export class TwitchVOD {
         if (!vod.not_started && !vod.is_finalized) {
             TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Loaded VOD ${vod.basename} is not finalized!`);
         }
+
+        // vod.compareDumpedChatAndDownloadedChat();
 
         // vod.getFFProbe();
 
