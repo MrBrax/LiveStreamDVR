@@ -158,13 +158,24 @@ export class TwitchVODChapter {
 
     public calculateDurationAndOffset(vod_started_at: Date, vod_ended_at: Date | undefined, next_chapter_started_at: Date | undefined): void {
 
-        if (next_chapter_started_at) {
-            this.duration = (next_chapter_started_at.getTime() - this.started_at.getTime()) / 1000;
-        } else if (vod_ended_at) {
-            this.duration = (vod_ended_at.getTime() - this.started_at.getTime()) / 1000;
-        }
+        if (vod_started_at.getTime() > this.started_at.getTime()) { // this chapter started before the vod started
 
-        this.offset = (this.started_at.getTime() - vod_started_at.getTime()) / 1000;
+            /**
+             * calculate duration and offset for chapters that started before the vod started, always clamp the chapter start time to the vod start time
+             * i can't come up with a way to do this
+             **/
+        
+        } else {
+
+            if (next_chapter_started_at) {
+                this.duration = (next_chapter_started_at.getTime() - this.started_at.getTime()) / 1000;
+            } else if (vod_ended_at) {
+                this.duration = (vod_ended_at.getTime() - this.started_at.getTime()) / 1000;
+            }
+
+            this.offset = (this.started_at.getTime() - vod_started_at.getTime()) / 1000;
+
+        }
 
         // console.debug(`Calculated duration and offset for chapter: ${this.title}`, this.offset, this.duration);
 

@@ -174,7 +174,7 @@ export class TwitchAutomator {
                 let body = "";
                 const chapter = this.channel.getChapterData();
                 if (chapter) {
-                    body = `${chapter.game_name}\n\n${chapter.title}`;
+                    body = `${chapter.game_name}\n${chapter.title}`;
                 }
                 ClientBroker.notify(
                     `${this.broadcaster_user_login} is live!`,

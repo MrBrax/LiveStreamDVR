@@ -4,7 +4,7 @@ import fs from "fs";
 import { replaceAll } from "Helpers/ReplaceAll";
 import path from "path";
 import { ApiVod } from "../../../common/Api/Client";
-import type { TwitchCommentDump } from "../../../common/Comments";
+import type { TwitchComment, TwitchCommentDump } from "../../../common/Comments";
 import { VideoQuality } from "../../../common/Config";
 import { MuteStatus } from "../../../common/Defs";
 import { AudioStream, FFProbe, VideoStream } from "../../../common/FFProbe";
@@ -1969,6 +1969,29 @@ export class TwitchVOD {
         const chat: TwitchCommentDump = JSON.parse(fs.readFileSync(this.path_chat, "utf8"));
         const chatdump: TwitchCommentDump = JSON.parse(fs.readFileSync(this.path_chatdump, "utf8"));
 
+        const compareMessages = (message1: TwitchComment, message2: TwitchComment) => {
+            return message1.message.body.trim() == message2.message.body.trim() && message1.commenter.name == message2.commenter.name;
+        };
+
+        console.log("chat", this.path_chat);
+
+        // compare chat and chatdump
+        let not_found = 0;
+        for (const i in chatdump.comments) {
+            const comment = chatdump.comments[parseInt(i)];
+            const findIndex = chat.comments.findIndex(c => compareMessages(c, comment) && !(c as any).found);
+            if (findIndex !== -1) {
+                (chat.comments[findIndex] as any).found = true;
+                // if (parseInt(i) % 100 == 0) console.log(`found @ d${i}/c${findIndex}`, `${comment.commenter.name}: ${comment.message.body}`);
+            } else {
+                // console.log(chalk.red("not found", `${i}/${chatdump.comments.length}`, `${comment.commenter.name}: ${comment.message.body}`));
+                not_found++;
+            }
+            // if (parseInt(i) > 1000) break;
+        }
+
+        console.log(chalk.red("not found amount", not_found));
+        /*
         for (const i in chatdump.comments) {
             const comment = chatdump.comments[i];
             const idx = chat.comments.findIndex(c => c.message.body == comment.message.body && c.commenter.name == comment.commenter.name);
@@ -1979,9 +2002,14 @@ export class TwitchVOD {
                 console.log("first downloaded comment date:", chat.comments[0].created_at);
                 console.log("first chatdump comment date:", chatdump.comments[0].created_at);
                 console.log("difference:", (parseISO(chat.comments[0].created_at).getTime() - parseISO(chatdump.comments[0].created_at).getTime()) / 1000);
+
+                console.log(comment.commenter.name, comment.message.body);
+                console.log(chatdump.comments[idx].commenter.name, chatdump.comments[idx].message.body);
+                console.log("");
             }
             return;
         }
+        */
         
     }
 
