@@ -27,6 +27,20 @@ interface TelegramSendMessagePayload {
     reply_markup?: any;
 }
 
+interface DiscordSendMessagePayload {
+    content: string;
+    username?: string;
+    avatar_url?: string;
+    tts?: boolean;
+    embeds?: any;
+    allowed_mentions?: any;
+    components?: any;
+    files?: any;
+    payload_json?: string;
+    attachments?: any;
+    flags?: number;
+}
+
 export class ClientBroker {
 
     static clients: Client[] = [];
@@ -181,10 +195,10 @@ export class ClientBroker {
 
         if (TwitchConfig.cfg("discord_enabled") && category & NotificationProvider.DISCORD) {
             axios.post(TwitchConfig.cfg("discord_webhook"), {
-                content: `**${title}**\n${body}`,
+                content: `**${title}**\n${body}${url ? `\n\n${url}` : ""}`,
                 avatar_url: icon,
                 tts: tts,
-            }).then((res) => {
+            } as DiscordSendMessagePayload).then((res) => {
                 // console.debug("Discord response", res);
             }).catch((err: AxiosError) => {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "webhook", `Discord error: ${err.message}`);
