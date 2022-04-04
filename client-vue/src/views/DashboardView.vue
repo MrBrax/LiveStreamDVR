@@ -107,12 +107,27 @@ interface DashboardData {
     wsLastPing: number;
     oldData: Record<string, ApiChannel>;
     notificationSub: () => void;
+    faviconSub: () => void;
 }
 
 interface WebsocketJSON {
     action: string;
     data: any;
 }
+
+const faviconCanvas = document.createElement("canvas");
+faviconCanvas.width = 32;
+faviconCanvas.height = 32;
+const faviconCtx = faviconCanvas.getContext("2d");
+
+const faviconElement = document.querySelector("link[rel='icon']") as HTMLLinkElement;
+const faviconTempImage = new Image();
+faviconTempImage.src = faviconElement.href;
+faviconTempImage.onload = () => {
+    if (!faviconCtx) return;
+    faviconCtx.drawImage(faviconTempImage, 0, 0, 32, 32);
+    console.log("favicon drawn", faviconCtx);
+};
 
 export default defineComponent({
     name: "DashboardView",
@@ -143,6 +158,9 @@ export default defineComponent({
             notificationSub: () => {
                 console.log("notificationSub");
             },
+            faviconSub: () => {
+                console.log("faviconSub");
+            },
             ws: null,
             wsConnected: false,
             wsConnecting: false,
@@ -153,6 +171,7 @@ export default defineComponent({
     },
     created() {
         this.loading = true;
+        this.watchFaviconBadgeSub();
         this.fetchStreamers()
             .then((sl) => {
                 if ("streamer_list" in sl) this.store.updateStreamerList(sl.streamer_list);
@@ -218,10 +237,17 @@ export default defineComponent({
         if (this.vodUpdateInterval) clearTimeout(this.vodUpdateInterval);
 
         // unsub
-        if (this.notificationSub) {
-            console.log("unsubscribing from notifications, unmounted");
-            this.notificationSub();
+        // if (this.notificationSub) {
+        //     console.log("unsubscribing from notifications, unmounted");
+        //     this.notificationSub();
+        // }
+
+        if (this.faviconSub) {
+            console.log("unsubscribing from favicon, unmounted");
+            this.faviconSub();
         }
+
+        this.setFaviconBadgeState(false);
 
         if (this.ws) {
             this.disconnectWebsocket();
@@ -332,24 +358,7 @@ export default defineComponent({
                     console.log(`Websocket jobs update: ${action}`, json.data.job_name, json.data.job);
                     this.fetchJobs();
                 } else if (action == "notify") {
-                    const toast = new Notification(json.data.title, {
-                        body: json.data.body,
-                        icon: json.data.icon,
-                    });
-
-                    if (json.data.url) {
-                        toast.onclick = () => {
-                            window.open(json.data.url);
-                        };
-                    }
-
-                    if (json.data.tts || this.store.clientConfig?.useSpeech) {
-                        const utterance = new SpeechSynthesisUtterance(json.data.title + " " + json.data.body);
-                        utterance.lang = "en-US";
-                        speechSynthesis.speak(utterance);
-                    }
-
-                    console.log(`Notify: ${json.data.title}: ${json.data.body}`);
+                    this.onNotify(json.data.title, json.data.body, json.data.icon, json.data.url, json.data.tts);
                 } else if (action == "init") {
                     const toast = new Notification("Server connected to broker");
                     console.log("Init", toast);
@@ -374,6 +383,55 @@ export default defineComponent({
             } else {
                 console.log(`Websocket unknown data`, json.data);
             }
+        },
+        onNotify(title: string, body: string, icon: string, url: string, tts: boolean) {
+            const toast = new Notification(title, {
+                body: body,
+                icon: icon,
+            });
+
+            if (url) {
+                toast.onclick = () => {
+                    window.open(url);
+                };
+            }
+
+            if (tts || this.store.clientConfig?.useSpeech) {
+                const utterance = new SpeechSynthesisUtterance(`${title} ${body}`);
+                utterance.lang = "en-US";
+                speechSynthesis.speak(utterance);
+            }
+
+            // flash icon in favicon 5 times
+            if (icon) {
+                const image = new Image();
+                image.src = icon;
+                image.onload = () => {
+                    const tmp_canvas = document.createElement("canvas");
+                    tmp_canvas.width = 32;
+                    tmp_canvas.height = 32;
+                    const tmp_ctx = tmp_canvas.getContext("2d");
+                    if (tmp_ctx) {
+                        tmp_ctx.drawImage(image, 0, 0, 32, 32);
+
+                        let flash = 0;
+                        let interval = setInterval(() => {
+                            if (flash == 5) {
+                                clearInterval(interval);
+                                return;
+                            }
+                            if (flash % 2 == 0) {
+                                faviconElement.href = tmp_canvas.toDataURL();
+                            } else {
+                                faviconElement.href = faviconCanvas.toDataURL();
+                            }
+                            flash++;
+                        }, 700);
+                    }
+                };
+            }
+
+            console.log(`Notify: ${title}: ${body}`);
         },
         disconnectWebsocket() {
             if (this.ws && this.ws.close) {
@@ -482,6 +540,54 @@ export default defineComponent({
                 this.timer -= 1;
             }
         },
+        watchFaviconBadgeSub() {
+            this.faviconSub = this.store.$onAction(({ name, store, args, after, onError }) => {
+                if (!args) {
+                    // console.error("No payload for notification sub");
+                    return;
+                }
+
+                if (name !== "updateStreamerList") {
+                    // console.debug(`Streamer list notification check payload was ${name}, abort.`);
+                    return;
+                }
+
+                const payload = args[0] as ApiChannel[];
+
+                if (!payload) {
+                    return;
+                }
+
+                const isAnyoneLive = payload.some((el) => el.is_live == true);
+
+                this.setFaviconBadgeState(isAnyoneLive);
+            });
+        },
+        setFaviconBadgeState(state: boolean) {
+            console.log("Set favicon badge state", state);
+            // draw favicon into canvas and add badge
+            const canvas = document.createElement("canvas");
+            canvas.width = 32;
+            canvas.height = 32;
+
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+                ctx.drawImage(faviconCanvas, 0, 0);
+                if (state) {
+                    ctx.fillStyle = "red";
+
+                    // draw circle badge
+                    ctx.beginPath();
+                    ctx.arc(26, 26, 6, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+
+                faviconElement.href = canvas.toDataURL();
+                console.log("favicon updated", faviconElement);
+                // document.body.appendChild(canvas);
+            }
+        },
+
         /*
         processNotifications() {
             if (!this.store.clientConfig?.enableNotifications) {
