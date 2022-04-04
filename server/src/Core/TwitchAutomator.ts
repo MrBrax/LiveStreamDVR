@@ -653,10 +653,6 @@ export class TwitchAutomator {
         this.vod.addSegment(path.basename(this.converted_filename));
         this.vod.saveJSON("add segment");
 
-        // remove old vods for the streamer
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Cleanup old VODs for ${data_username}`);
-        this.cleanup();
-
         // finalize
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Sleep 2 minutes for ${basename}`);
         // sleep(60 * 2);
@@ -670,6 +666,9 @@ export class TwitchAutomator {
         await this.vod.finalize();
         this.vod.saveJSON("finalized");
 
+        // remove old vods for the streamer
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Cleanup old VODs for ${data_username}`);
+        this.cleanup();
         
         // download chat and optionally burn it
         if (this.channel.download_chat && this.vod.twitch_vod_id) {

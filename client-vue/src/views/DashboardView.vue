@@ -347,14 +347,14 @@ export default defineComponent({
 
                 const job_actions = ["job_save", "job_clear"];
 
-                if (downloader_actions.indexOf(action) !== -1) {
-                    console.log("Websocket update");
+                if (downloader_actions.includes(action)) {
+                    console.log("Websocket update", action);
 
                     this.fetchStreamers().then((sl) => {
                         if ("streamer_list" in sl) this.store.updateStreamerList(sl.streamer_list);
                         this.loading = false;
                     });
-                } else if (job_actions.indexOf(action) !== -1) {
+                } else if (job_actions.includes(action)) {
                     console.log(`Websocket jobs update: ${action}`, json.data.job_name, json.data.job);
                     this.fetchJobs();
                 } else if (action == "notify") {
