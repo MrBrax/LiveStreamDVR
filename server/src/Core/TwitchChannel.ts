@@ -500,7 +500,7 @@ export class TwitchChannel {
         channel.profile_image_url = channel_data.profile_image_url;
         channel.applyConfig(channel_config);
 
-        if (KeyValue.get(`${channel.login}.online`)) {
+        if (KeyValue.getBool(`${channel.login}.online`)) {
             TwitchLog.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel.login} is online, stale?`);
         }
 

@@ -155,7 +155,7 @@ export class TwitchAutomator {
                 return false;
             }
 
-            KeyValue.set(`${this.broadcaster_user_login}.online`, "1");
+            KeyValue.setBool(`${this.broadcaster_user_login}.online`, true);
             KeyValue.set(`${this.broadcaster_user_login}.vod.id`, event.id);
             KeyValue.set(`${this.broadcaster_user_login}.vod.started_at`, event.started_at);
 
@@ -203,7 +203,7 @@ export class TwitchAutomator {
             }
 
             // KeyValue.set("${this.broadcaster_user_login}.online", "0");
-            KeyValue.set(`${this.broadcaster_user_login}.online`, null);
+            KeyValue.delete(`${this.broadcaster_user_login}.online`);
             // KeyValue.set("${this.broadcaster_user_login}.vod.id", null);
             // KeyValue.set("${this.broadcaster_user_login}.vod.started_at", null);
 
@@ -220,7 +220,7 @@ export class TwitchAutomator {
         const basename = this.basename();
 
         // if online
-        if (KeyValue.get(`${this.getLogin()}.online`) === "1") {
+        if (KeyValue.getBool(`${this.getLogin()}.online`)) {
 
             // const folder_base = TwitchHelper.vodFolder(this.getLogin());
 
@@ -549,6 +549,26 @@ export class TwitchAutomator {
             return false;
         }
 
+        // check matched title
+        if (this.channel && this.channel.match && this.channel.match.length > 0) {
+
+            let match = false;
+
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Check keyword matches for ${basename}`);
+
+            for(const m of this.channel.match) {
+                if (this.channel.getChapterData()?.title.includes(m)) {
+                    match = true;
+                    break;
+                }
+            }
+
+            if (!match) {
+                TwitchLog.logAdvanced(LOGLEVEL.WARNING, "automator", `Cancel download of ${basename} due to missing keywords`);
+                return false;
+            }
+        }
+
         // create the vod and put it inside this class
         this.vod = await this.channel.createVOD(path.join(folder_base, `${basename}.json`));
         this.vod.meta = this.payload_eventsub;
@@ -560,43 +580,11 @@ export class TwitchAutomator {
 
         this.vod.not_started = false;
 
-        this.vod.saveJSON("stream download");
-        // const r = await this.vod.refreshJSON();
-        // if (!r) {
-        //     throw new Error("Failed to refresh JSON");
-        // }
-        // this.vod = r;
+        // this.vod.saveJSON("stream download");
 
         TwitchWebhook.dispatch("start_download", {
             "vod": this.vod,
-        });
-
-        // const streamer = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
-
-        // check matched title, broken?
-        /*
-        if (streamer && streamer.match && streamer.match.length > 0) {
-
-            let match = false;
-
-            // $this->notify($basename, 'Check keyword matches for user ' . json_encode($streamer), self::NOTIFY_GENERIC);
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", "Check keyword matches for {$basename}", ['download' => $data_username]);
-
-            foreach ($streamer->match as $m) {
-                if (mb_strpos(strtolower($data_title), $m) !== false) {
-                    $match = true;
-                    break;
-                }
-            }
-
-            if (!$match) {
-                // $this->notify($basename, 'Cancel download because stream title does not contain keywords', self::NOTIFY_GENERIC);
-                TwitchLog.logAdvanced(LOGLEVEL.WARNING, "automator", "Cancel download of {$basename} due to missing keywords", ['download' => $data_username]);
-                $this->vod->delete();
-                return;
-            }
-        }
-        */
+        });        
 
         this.vod.is_capturing = true;
         this.vod.saveJSON("is_capturing set");
@@ -667,15 +655,16 @@ export class TwitchAutomator {
         this.vod.saveJSON("stream capture end");
 
         const duration = this.vod.getDurationLive();
-        if (duration && duration > (86400 - (60 * 10))) {
+        if (duration && duration > (86400 - (60 * 10))) { // 24 hours - 10 minutes
             TwitchLog.logAdvanced(LOGLEVEL.WARNING, "automator", `The stream ${basename} is 24 hours, this might cause issues.`);
+            // https://github.com/streamlink/streamlink/issues/1058
+            // streamlink currently does not refresh the stream if it is 24 hours or longer
+            // it doesn't seem to get fixed, so we'll just warn the user
         }
 
         // wait for one minute in case something didn't finish
-        // sleep(60);
         await Sleep(60 * 1000);
 
-        // $this->vod = $this->vod->refreshJSON();
         this.vod.is_converting = true;
         this.vod.saveJSON("is_converting set");
 
@@ -685,7 +674,11 @@ export class TwitchAutomator {
         // sleep(10);
         await Sleep(10 * 1000);
 
-        const convert_success = fs.existsSync(this.capture_filename) && fs.existsSync(this.converted_filename) && fs.statSync(this.converted_filename).size > 0;
+        const convert_success =
+            fs.existsSync(this.capture_filename) &&
+            fs.existsSync(this.converted_filename) &&
+            fs.statSync(this.converted_filename).size > 0
+        ;
 
         // send internal webhook for convert start
         TwitchWebhook.dispatch("end_convert", {
@@ -708,24 +701,15 @@ export class TwitchAutomator {
         // add the captured segment to the vod info
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Conversion done, add segments to ${basename}`);
 
-        // @todo: no hack
-        // tmp_vod = await this.vod.refreshJSON();
-        // if (!tmp_vod) throw new Error('Failed to refresh JSON');
-        // this.vod = tmp_vod;
-
         this.vod.is_converting = false;
         this.vod.addSegment(path.basename(this.converted_filename));
         this.vod.saveJSON("add segment");
 
         // finalize
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Sleep 2 minutes for ${basename}`);
-        // sleep(60 * 2);
         await Sleep(60 * 1000 * 2);
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Do metadata on ${basename}`);
-
-        // const vodclass = await TwitchVOD.load(path.join(folder_base, `${basename}.json`));
-        // if (!vodclass) throw new Error("Failed to load VOD");
 
         await this.vod.finalize();
         this.vod.saveJSON("finalized");
@@ -747,9 +731,6 @@ export class TwitchAutomator {
             }
         }
         
-
-        // vodclass.setPermissions();
-
         // add to history, testing
         /*
         $history = file_exists(TwitchConfig::$historyPath) ? json_decode(file_get_contents(TwitchConfig::$historyPath), true) : [];
@@ -791,8 +772,6 @@ export class TwitchAutomator {
             const basename = this.basename();
 
             const stream_url = this.streamURL();
-            // const folder_base = TwitchHelper.vodFolder(this.getLogin());
-            // const streamer_config = TwitchChannel.getChannelByLogin(this.getLogin());
 
             const bin = TwitchHelper.path_streamlink();
 
@@ -899,9 +878,6 @@ export class TwitchAutomator {
                 reject(false);
                 return;
             }
-
-            // const capture_job = TwitchHelper.startJob(bin, cmd, jobName);
-            // const capture_process = capture_job.process;
 
             let lastSize = 0;
             const keepaliveAlert = () => {
@@ -1038,18 +1014,6 @@ export class TwitchAutomator {
         });
 
     }
-
-    /*
-    handleVideoCaptureEnd(code: number | null, capture_job: TwitchAutomatorJob) {
-
-        const stream_resolution = capture_job.stdout.join("\n").match(/stream:\s([0-9_a-z]+)\s/);
-        if (stream_resolution) {
-            this.vod.stream_resolution = stream_resolution[1];
-        }
-        
-        capture_job.clear();
-    }
-    */
 
     /**
      * Capture chat in a "detached" process

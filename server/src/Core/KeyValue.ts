@@ -54,21 +54,25 @@ export class KeyValue {
 
     }
 
+    static getBool(key: string): boolean {
+        return this.get(key) === "true";
+    }
+
     /**
      * Set a value in the key-value store.
      * @param key
      * @param value
      */
-    static set(key: string, value: string | null): void {
+    static set(key: string, value: string): void {
 
         key = replaceAll(key, /\//g, ""); // @todo: replaceAll
 
-        if (value === null) {
-            this.delete(key);
-        } else {
-            this.data[key] = value;
-            this.events.emit("set", key, value);
-        }
+        // if (value === null) {
+        //     this.delete(key);
+        // } else {
+        this.data[key] = value;
+        this.events.emit("set", key, value);
+        // }
         
         this.save();
 
@@ -92,6 +96,10 @@ export class KeyValue {
 
         this.save();
 
+    }
+
+    static setBool(key: string, value: boolean) {
+        this.set(key, value ? "true" : "false");
     }
 
     /**
