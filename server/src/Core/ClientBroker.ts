@@ -188,9 +188,15 @@ export class ClientBroker {
                 parse_mode: "MarkdownV2",
             } as TelegramSendMessagePayload).then((res) => {
                 // console.debug("Telegram response", res);
-            }).catch((err: AxiosError) => {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "webhook", `Telegram error: ${err.message}`);
-                console.error(chalk.bgRed.whiteBright(`Telegram error: ${err.message}, ${err.response?.data}`));
+            }).catch((err: Error) => {
+                if (axios.isAxiosError(err)) {
+                    const data = err.response?.data;
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "webhook", `Telegram error: ${err.message}`, err);
+                    console.error(chalk.bgRed.whiteBright(`Telegram error: ${err.message}`), JSON.stringify(data, null, 2));
+                } else {
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "webhook", `Telegram error: ${err.message}`, err);
+                    console.error(chalk.bgRed.whiteBright(`Telegram error: ${err.message}`));
+                }
             });
         }
 
