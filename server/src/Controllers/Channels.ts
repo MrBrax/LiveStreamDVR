@@ -330,7 +330,7 @@ export function CleanupChannelVods(req: express.Request, res: express.Response):
 
     res.send({
         status: "OK",
-        message: `Deleted ${deleted} vods`,
+        message: `Deleted ${deleted ? deleted : "no"} ${deleted === 1 ? "VOD" : "VODs"}`,
     });
 
 }

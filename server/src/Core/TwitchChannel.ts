@@ -400,22 +400,24 @@ export class TwitchChannel {
 
         const sps_bytes = TwitchConfig.cfg<number>("storage_per_streamer", 100) * 1024 * 1024 * 1024;
 
+        const vods_to_keep = TwitchConfig.cfg<number>("vods_to_keep", 5);
+
         if (this.vods_list) {
             for (const vodclass of [...this.vods_list].reverse()) { // reverse so we can delete the oldest ones first
                 if (!vodclass.is_finalized) continue;
                 if (vodclass.basename === ignore_basename) continue;
 
-                if (TwitchConfig.cfg("keep_deleted_vods") && vodclass.twitch_vod_exists === false) {
+                if (TwitchConfig.cfg<boolean>("keep_deleted_vods") && vodclass.twitch_vod_exists === false) {
                     TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being deleted on Twitch.`);
                     continue;
                 }
 
-                if (TwitchConfig.cfg("keep_favourite_vods") && vodclass.hasFavouriteGame()) {
+                if (TwitchConfig.cfg<boolean>("keep_favourite_vods") && vodclass.hasFavouriteGame()) {
                     TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it having a favourite game.`);
                     continue;
                 }
 
-                if (TwitchConfig.cfg("keep_muted_vods") && vodclass.twitch_vod_muted === MuteStatus.MUTED) {
+                if (TwitchConfig.cfg<boolean>("keep_muted_vods") && vodclass.twitch_vod_muted === MuteStatus.MUTED) {
                     TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being muted on Twitch.`);
                     continue;
                 }
@@ -423,9 +425,11 @@ export class TwitchChannel {
                 if (total_size > sps_bytes) {
                     TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Adding ${vodclass.basename} to vod_candidates due to storage limit (${TwitchHelper.formatBytes(vodclass.total_size)} of current total ${TwitchHelper.formatBytes(total_size)}, limit ${TwitchHelper.formatBytes(sps_bytes)})`);
                     vod_candidates.push(vodclass);
-                } else if (total_vods > TwitchConfig.cfg<number>("vods_to_keep", 5)) {
-                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Adding ${vodclass.basename} to vod_candidates due to vod limit (${total_vods} of limit ${TwitchConfig.cfg<number>("vods_to_keep", 5)})`);
+                } else if (total_vods > vods_to_keep) {
+                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Adding ${vodclass.basename} to vod_candidates due to vod limit (${total_vods} of limit ${vods_to_keep})`);
                     vod_candidates.push(vodclass);
+                } else {
+                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it not being over storage limit (${TwitchHelper.formatBytes(total_size)}/${TwitchHelper.formatBytes(sps_bytes)}) and not being over vod limit (${total_vods}/${vods_to_keep})`);
                 }
 
                 total_size += vodclass.total_size;

@@ -190,6 +190,7 @@ export class ClientBroker {
                 // console.debug("Telegram response", res);
             }).catch((err: AxiosError) => {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "webhook", `Telegram error: ${err.message}`);
+                console.error(chalk.bgRed.whiteBright(`Telegram error: ${err.message}, ${err.response?.data}`));
             });
         }
 
