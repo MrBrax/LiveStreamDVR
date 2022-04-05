@@ -303,7 +303,7 @@ export class TwitchHelper {
 
     public static async eventSubUnsubscribe(subscription_id: string) {
 
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Unsubscribing from eventsub id {$subscription_id}");
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Unsubscribing from eventsub id ${subscription_id}`);
 
         let response;
 

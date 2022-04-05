@@ -37,7 +37,7 @@ export async function CheckDeletedVods(req: express.Request, res: express.Respon
                 }
 
                 // $this->addToNotifyCache("deleted_{$vod->basename}");
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "cron", "Cronjob deleted check: {$vod->basename} deleted");
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "cron", `Cronjob deleted check: ${vod.basename} deleted`);
             }
 
         }
@@ -81,8 +81,8 @@ export async function CheckMutedVods(req: express.Request, res: express.Response
             try {
                 check = await vod.checkMutedVod(true, false);
             } catch (th) {
-                output += `${vod.basename} error: ${th}<br>\n`;
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "cron", "Cronjob mute check: {$vod->basename} error: {$th->getMessage()}");
+                output += `${vod.basename} error: ${(th as Error).message}<br>\n`;
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "cron", `Cronjob mute check: ${vod.basename} error: ${(th as Error).message}`);
                 continue;
             }
 

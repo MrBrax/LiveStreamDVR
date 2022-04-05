@@ -522,7 +522,7 @@ export class TwitchAutomator {
         }
 
         if (!data_id) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", "No data supplied for download, try #{$tries}");
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `No data supplied for download, try #${tries}`);
             throw new Error("No data supplied");
         }
 
