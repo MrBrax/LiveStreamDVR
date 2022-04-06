@@ -6,6 +6,7 @@
   "scripts": {
     "test": "jest",
     "lint": "eslint src/**/*.ts",
+    "lint:ts": "tsc -noEmit",
     "start:dev": "nodemon src/index.ts",
     "start": "node --enable-source-maps build/server.js",
     "build:ts": "tsc --project tsconfig.json",

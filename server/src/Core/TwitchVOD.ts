@@ -1165,9 +1165,9 @@ export class TwitchVOD {
         return job ? await job.getStatus() : false;
     }
 
-    public async getCapturingStatus(): Promise<number | false> {
+    public async getCapturingStatus(use_command = false): Promise<number | false> {
         const job = TwitchAutomatorJob.findJob(`capture_${this.basename}`);
-        return job ? await job.getStatus() : false;
+        return job ? await job.getStatus(use_command) : false;
     }
 
     public async getConvertingStatus(): Promise<number | false> {
