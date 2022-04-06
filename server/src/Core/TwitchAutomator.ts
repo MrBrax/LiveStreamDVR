@@ -217,7 +217,7 @@ export class TwitchAutomator {
 
     }
 
-    public async updateGame(from_cache = false) {
+    public async updateGame(from_cache = false, no_run_check = false) {
 
         const basename = this.basename();
 
@@ -235,8 +235,8 @@ export class TwitchAutomator {
                 return false;
             }
 
-            if (!await vod.getCapturingStatus(true)) {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `VOD ${basename} is not capturing, skipping chapter update.`);
+            if (!no_run_check && !await vod.getCapturingStatus(true)) {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `VOD ${basename} is not capturing, skipping chapter update. Removing online status.`);
                 KeyValue.delete(`${this.broadcaster_user_login}.online`);
                 return false;
             }
@@ -469,6 +469,8 @@ export class TwitchAutomator {
 
             if (streams && streams.length > 0) {
 
+                KeyValue.setBool(`${this.broadcaster_user_login}.online`, true); // if status has somehow been set to false, set it back to true
+
                 const stream = streams[0];
 
                 if (stream.viewer_count !== undefined) {
@@ -595,7 +597,7 @@ export class TwitchAutomator {
         // update the game + title if it wasn't updated already
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Update game for ${basename}`);
         if (KeyValue.has(`${this.getLogin()}.chapterdata`)) {
-            this.updateGame(true);
+            this.updateGame(true, true);
             // KeyValue.delete(`${this.getLogin()}.channeldata`);
         }
 

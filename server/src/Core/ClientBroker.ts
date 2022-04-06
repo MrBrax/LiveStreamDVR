@@ -182,17 +182,38 @@ export class ClientBroker {
         }
         
         if (TwitchConfig.cfg("telegram_enabled") && category & NotificationProvider.TELEGRAM) {
+
+            // escape with backslash
+            // const escaped_title = title.replace(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/g, "\\$&");
+            // const escaped_body = body.replace(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/g, "\\$&");
+
             axios.post(`https://api.telegram.org/bot${TwitchConfig.cfg("telegram_token")}/sendMessage`, {
                 chat_id: TwitchConfig.cfg<number>("telegram_chat_id"),
-                text: `*${title}*\n${body}${url ? `\n\n${url}` : ""}`,
-                parse_mode: "MarkdownV2",
+                text:
+                    `<strong>${title}</strong><br>` +
+                    `${body}` +
+                    `${url ? `<br><br><a href="${url}">${url}</a>` : ""}`
+                ,
+                parse_mode: "HTML",
             } as TelegramSendMessagePayload).then((res) => {
                 // console.debug("Telegram response", res);
             }).catch((err: Error) => {
                 if (axios.isAxiosError(err)) {
-                    const data = err.response?.data;
-                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "webhook", `Telegram error: ${err.message}`, err);
-                    console.error(chalk.bgRed.whiteBright(`Telegram error: ${err.message}`), JSON.stringify(data, null, 2));
+                    // const data = err.response?.data;
+                    // TwitchLog.logAdvanced(LOGLEVEL.ERROR, "webhook", `Telegram axios error: ${err.message} (${data})`, { err: err, response: data });
+                    // console.error(chalk.bgRed.whiteBright(`Telegram axios error: ${err.message} (${data})`), JSON.stringify(err, null, 2));
+
+                    if (err.response) {
+                        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "webhook", `Telegram axios error response: ${err.message} (${err.response.data})`, { err: err, response: err.response.data });
+                        console.error(chalk.bgRed.whiteBright(`Telegram axios error response : ${err.message} (${err.response.data})`), JSON.stringify(err, null, 2));
+                    } else if (err.request) {
+                        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "webhook", `Telegram axios error request: ${err.message} (${err.request})`, { err: err, request: err.request });
+                        console.error(chalk.bgRed.whiteBright(`Telegram axios error request: ${err.message} (${err.request})`), JSON.stringify(err, null, 2));
+                    } else {
+                        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "webhook", `Telegram axios error: ${err.message}`, err);
+                        console.error(chalk.bgRed.whiteBright(`Telegram axios error: ${err.message}`), JSON.stringify(err, null, 2));
+                    }
+
                 } else {
                     TwitchLog.logAdvanced(LOGLEVEL.ERROR, "webhook", `Telegram error: ${err.message}`, err);
                     console.error(chalk.bgRed.whiteBright(`Telegram error: ${err.message}`));
