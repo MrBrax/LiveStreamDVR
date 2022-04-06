@@ -1422,7 +1422,12 @@ export class TwitchVOD {
 
         if (!this.twitch_vod_id) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `VOD mute check for ${this.basename} canceled, no vod id!`);
-            return MuteStatus.UNKNOWN;
+            throw new Error("No VOD id");
+        }
+
+        if (!this.twitch_vod_exists) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `VOD mute check for ${this.basename} canceled, no vod!`);
+            throw new Error("No VOD");
         }
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Check muted VOD for ${this.basename} using ${TwitchConfig.cfg("checkmute_method", "api")}`);
