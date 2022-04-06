@@ -904,7 +904,12 @@ export class TwitchAutomator {
 
             // critical end
             capture_process.on("close", (code, signal) => {
-                TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Job ${jobName} exited with code ${code}, signal ${signal}`);
+
+                if (code === 0) {
+                    TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Job ${jobName} exited with code 0, signal ${signal}`);
+                } else {
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Job ${jobName} exited with code ${code}, signal ${signal}`);
+                }
 
                 clearInterval(keepalive);
 
@@ -973,6 +978,14 @@ export class TwitchAutomator {
                     }
                 }
 
+                if (data.includes("Failed to reload playlist")) {
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to reload playlist for ${basename}!`);
+                }
+
+                if (data.includes("Failed to fetch segment")) {
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to fetch segment for ${basename}!`);
+                }
+
                 if (data.includes("Waiting for streams")) {
                     TwitchLog.logAdvanced(LOGLEVEL.WARNING, "automator", `No streams found for ${basename}, retrying...`);
                 }
@@ -986,6 +999,18 @@ export class TwitchAutomator {
                 if (data.includes("Will skip ad segments")) {
                     TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Capturing of ${basename}, will try to remove ads!`);
                     // current_ad_start = new Date();
+                }
+
+                if (data.includes("Read timeout, exiting")) {
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Read timeout, exiting for ${basename}!`);
+                }
+
+                if (data.includes("Stream ended")) {
+                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Stream ended for ${basename}!`);
+                }
+
+                if (data.includes("Closing currently open stream...")) {
+                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Closing currently open stream for ${basename}!`);
                 }
 
             };
