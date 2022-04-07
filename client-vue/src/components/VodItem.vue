@@ -63,7 +63,10 @@
                         </template>
                         <li v-if="vod.api_getDuration">
                             <strong>Missing from captured file:</strong>
-                            <span class="px-1" v-if="vod?.twitch_vod_duration">{{ humanDuration(vod.twitch_vod_duration - vod.api_getDuration) }}</span>
+                            <span class="px-1" v-if="vod?.twitch_vod_duration">
+                                {{ humanDuration(vod.twitch_vod_duration - vod.api_getDuration) }}
+                                <strong v-if="vod.twitch_vod_duration - vod.api_getDuration > 600" class="is-error"><br />A lot missing!</strong>
+                            </span>
                             <span class="px-1" v-else>
                                 <strong><em>No data</em></strong>
                             </span>
@@ -144,6 +147,7 @@
                                 <strong>ID:</strong>
                                 <span class="px-1" v-if="vod.twitch_vod_id">
                                     <a :href="twitchVideoLink(vod.twitch_vod_id)" rel="noreferrer" target="_blank">{{ vod.twitch_vod_id }}</a>
+                                    &nbsp;<a href="javascript:void(0)" @click="matchVod()">(refresh)</a>
                                 </span>
                                 <span class="px-1" v-else>
                                     <strong><em>Not matched or VOD deleted</em></strong>
@@ -786,6 +790,7 @@ import {
 import { useStore } from "@/store";
 import ModalBox from "./ModalBox.vue";
 import { MuteStatus, VideoQualityArray } from "../../../common/Defs";
+import { ApiResponse } from "@common/Api/Api";
 library.add(
     faFileVideo,
     faCut,
@@ -866,7 +871,7 @@ export default defineComponent({
             this.$http
                 .post(`/api/v0/vod/${this.vod?.basename}/save`)
                 .then((response) => {
-                    const json = response.data;
+                    const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
                     console.log(json);
                     this.taskStatus.archive = false;
@@ -884,12 +889,12 @@ export default defineComponent({
             this.$http
                 .post(`/api/v0/vod/${this.vod?.basename}/download_chat?method=${method}`)
                 .then((response) => {
-                    const json = response.data;
+                    const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
                     console.log(json);
                     this.taskStatus.downloadChat = false;
                     this.$emit("refresh");
-                    if (this.vod) this.store.updateVod(this.vod.basename);
+                    if (this.vod) this.store.updateVodApi(this.vod.basename);
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
@@ -913,7 +918,7 @@ export default defineComponent({
             this.$http
                 .post(`/api/v0/vod/${this.vod?.basename}/download?quality=${quality}`)
                 .then((response) => {
-                    const json = response.data;
+                    const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
                     console.log(json);
                     this.taskStatus.downloadVod = false;
@@ -930,7 +935,7 @@ export default defineComponent({
             this.$http
                 .post(`/api/v0/vod/${this.vod?.basename}/check_mute`)
                 .then((response) => {
-                    const json = response.data;
+                    const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
                     console.log(json);
 
@@ -964,7 +969,7 @@ export default defineComponent({
             this.$http
                 .delete(`/api/v0/vod/${this.vod?.basename}`)
                 .then((response) => {
-                    const json = response.data;
+                    const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
                     console.log(json);
                     this.taskStatus.delete = false;
@@ -983,7 +988,7 @@ export default defineComponent({
             this.$http
                 .post(`/api/v0/vod/${this.vod?.basename}/renderwizard`, this.burnSettings)
                 .then((response) => {
-                    const json = response.data;
+                    const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
                     console.log(json);
                     this.$emit("refresh");
@@ -1001,7 +1006,7 @@ export default defineComponent({
             this.$http
                 .post(`/api/v0/vod/${this.vod?.basename}/fix_issues`)
                 .then((response) => {
-                    const json = response.data;
+                    const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
                     console.log(json);
                     this.taskStatus.fixIssues = false;
@@ -1019,7 +1024,7 @@ export default defineComponent({
             this.$http
                 .post(`/api/v0/vod/${this.vod?.basename}/unbreak`)
                 .then((response) => {
-                    const json = response.data;
+                    const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
                     console.log(json);
                     this.$emit("refresh");
@@ -1047,7 +1052,7 @@ export default defineComponent({
             this.$http
                 .put(`/api/v0/favourites`, data)
                 .then((response) => {
-                    const json = response.data;
+                    const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
                     console.log(json);
 
@@ -1068,6 +1073,21 @@ export default defineComponent({
         },
         twitchVideoLink(video_id: string): string {
             return `https://www.twitch.tv/videos/${video_id}`;
+        },
+        matchVod() {
+            if (!this.vod) return;
+            this.$http
+                .post(`/api/v0/vod/${this.vod.basename}/match`)
+                .then((response) => {
+                    const json: ApiResponse = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.$emit("refresh");
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
+                });
         },
     },
     computed: {

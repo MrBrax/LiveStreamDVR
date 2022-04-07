@@ -3,6 +3,7 @@ import axios, { AxiosError } from "axios";
 import chalk from "chalk";
 import { IncomingMessage } from "http";
 import WebSocket from "ws";
+import { NotifyData } from "../../../common/Webhook";
 import { NotificationProvider, TwitchConfig } from "./TwitchConfig";
 import { TwitchLog, LOGLEVEL } from "./TwitchLog";
 
@@ -177,7 +178,7 @@ export class ClientBroker {
                     icon: icon,
                     url: url,
                     tts: tts,
-                },
+                } as NotifyData,
             });
         }
         

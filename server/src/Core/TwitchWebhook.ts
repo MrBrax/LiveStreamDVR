@@ -1,63 +1,11 @@
-import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchConfig } from "./TwitchConfig";
-import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
-import WebSocket from "ws";
 import chalk from "chalk";
 import { ClientBroker } from "./ClientBroker";
 import axios from "axios";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
-
-export type WebhookAction =
-    "chapter_update" |
-    "start_download" |
-    "end_capture" |
-    "end_convert" |
-    "end_download" |
-    "start_capture" |
-    "job_save" |
-    "job_clear" |
-    "video_download" |
-    "vod_removed" |
-    "init"
-    ;
-
-export interface ChapterUpdateData {
-    chapter: TwitchVODChapter;
-    vod: TwitchVOD;
-}
-
-export interface StartDownloadData {
-    vod: TwitchVOD;
-}
-
-export interface EndCaptureData {
-    vod: TwitchVOD;
-    success: boolean;
-}
-
-export interface VideoDownloadData {
-    success: boolean;
-    path: string;
-}
-
-export interface JobSave {
-    job_name: string;
-    job: TwitchAutomatorJob;
-}
-
-export interface JobClear {
-    job_name: string;
-    job: TwitchAutomatorJob;
-}
-
-export interface VodRemoved {
-    basename: string;
-}
-
-export interface Init {
-    hello: "world";
-}
+import { ApiVod } from "../../../common/Api/Client";
+import { ChapterUpdateData, EndCaptureData, Init, JobClear, JobSave, StartDownloadData, VideoDownloadData, VodRemoved, VodUpdated, WebhookAction } from "../../../common/Webhook";
 
 export type WebhookData =
     ChapterUpdateData |
@@ -67,6 +15,7 @@ export type WebhookData =
     JobSave |
     JobClear |
     VodRemoved |
+    VodUpdated |
     Init
     ;
 

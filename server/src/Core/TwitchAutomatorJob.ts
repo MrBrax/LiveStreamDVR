@@ -184,7 +184,7 @@ export class TwitchAutomatorJob extends EventEmitter {
 
         TwitchWebhook.dispatch("job_save", {
             "job_name": this.name,
-            "job": this,
+            "job": this.toAPI(),
         });
 
         //return file_put_contents($this->pidfile, json_encode($this)) != false;
@@ -225,7 +225,7 @@ export class TwitchAutomatorJob extends EventEmitter {
 
             TwitchWebhook.dispatch("job_clear", {
                 "job_name": this.name || "",
-                "job": this,
+                "job": this.toAPI(),
             });
 
             fs.unlinkSync(this.pidfile);

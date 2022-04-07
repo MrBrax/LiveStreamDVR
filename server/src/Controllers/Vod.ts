@@ -231,6 +231,35 @@ export async function FixIssues(req: express.Request, res: express.Response): Pr
 
 }
 
+export async function MatchVod(req: express.Request, res: express.Response): Promise<void> {
+
+    const vod = TwitchVOD.getVod(req.params.basename);
+
+    if (!vod) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const success = await vod.matchProviderVod(true);
+
+    if (!success) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not matched",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    res.send({
+        status: "OK",
+        message: `Vod matched to ${vod.twitch_vod_id}, duration ${vod.twitch_vod_duration}`,
+    } as ApiResponse);
+
+}
+
 // export async function CutVod(req: express.Request, res: express.Response): Promise<void> {
 // 
 //     

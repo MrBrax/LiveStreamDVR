@@ -82,6 +82,7 @@
 import { defineComponent } from "vue";
 import Streamer from "@/components/StreamerItem.vue";
 import type { ApiLogLine, ApiChannel } from "@common/Api/Client";
+import type { ChapterUpdateData, EndCaptureData, EndConvertData, JobClear, JobSave, NotifyData, VodRemoved, VodUpdated, WebhookAction } from "@common/Webhook";
 import { format, parseISO } from "date-fns";
 import { useStore } from "@/store";
 
@@ -331,37 +332,39 @@ export default defineComponent({
             return this.ws;
         },
         handleWebsocketMessage(json: WebsocketJSON) {
-            const action = json.action;
+            const action: WebhookAction = json.action as WebhookAction;
+
+            console.debug("Websocket message", action, json.data);
 
             if (action) {
-                const downloader_actions = [
-                    "start_download",
-                    "end_download",
-                    "start_capture",
-                    "end_capture",
-                    "start_convert",
-                    "end_convert",
-                    "chapter_update",
-                    "vod_removed",
-                ];
-
-                const job_actions = ["job_save", "job_clear"];
-
-                if (downloader_actions.includes(action)) {
-                    console.log("Websocket update", action);
-
-                    this.fetchStreamers().then((sl) => {
-                        if ("streamer_list" in sl) this.store.updateStreamerList(sl.streamer_list);
-                        this.loading = false;
-                    });
-                } else if (job_actions.includes(action)) {
-                    console.log(`Websocket jobs update: ${action}`, json.data.job_name, json.data.job);
-                    this.fetchJobs();
-                } else if (action == "notify") {
-                    this.onNotify(json.data.title, json.data.body, json.data.icon, json.data.url, json.data.tts);
+                if (
+                    action == "vod_updated" ||
+                    action == "start_capture" ||
+                    action == "start_download" ||
+                    action == "start_convert" ||
+                    // action == "end_capture" ||
+                    // action == "end_convert"
+                    action == "end_download"
+                ) {
+                    const data: VodUpdated = json.data;
+                    this.store.updateVod(data.vod);
+                } else if (action == "vod_removed") {
+                    const data: VodRemoved = json.data;
+                    this.store.removeVod(data.basename);
+                    // } else if (action == "start_download") {
+                    //     const data: StartDownloadData = json.data;
+                    //     this.store.updateVod(data.vod);
+                } else if (action == "end_capture") {
+                    const data: EndCaptureData = json.data;
+                    this.store.updateVod(data.vod);
+                } else if (action == "end_convert") {
+                    const data: EndConvertData = json.data;
+                    this.store.updateVod(data.vod);
                 } else if (action == "init") {
-                    const toast = new Notification("Server connected to broker");
-                    console.log("Init", toast);
+                    new Notification("Server connected to broker");
+                } else if (action == "notify") {
+                    const data: NotifyData = json.data;
+                    this.onNotify(data.title, data.body, data.icon, data.url, data.tts);
                 } else if (action == "log") {
                     // merge log lines
                     const newLines: ApiLogLine[] = json.data;
@@ -377,9 +380,69 @@ export default defineComponent({
                     setTimeout(() => {
                         this.scrollLog();
                     }, 100);
+                } else if (action == "job_save") {
+                    const data: JobSave = json.data;
+                    this.store.updateJob(data.job);
+                } else if (action == "job_clear") {
+                    const data: JobClear = json.data;
+                    this.store.removeJob(data.job_name);
+                } else if (action == "chapter_update") {
+                    const data: ChapterUpdateData = json.data;
+                    console.log("chapter_update", data);
+                    this.store.updateVod(data.vod);
+                }
+
+                /*
+                const downloader_actions = [
+                    x "start_download",
+                    x "end_download",
+                    x "start_capture",
+                    x "end_capture",
+                    x "start_convert",
+                    x "end_convert",
+                    "chapter_update",
+                    x "vod_removed",
+                ];
+
+                x const job_actions = ["job_save", "job_clear"];
+
+                if (downloader_actions.includes(action)) {
+                    console.log("Websocket update", action);
+
+                    this.fetchStreamers().then((sl) => {
+                        if ("streamer_list" in sl) this.store.updateStreamerList(sl.streamer_list);
+                        this.loading = false;
+                    });
+                } else if (job_actions.includes(action)) {
+                    console.log(`Websocket jobs update: ${action}`, json.data.job_name, json.data.job);
+                    this.fetchJobs();
+                x } else if (action == "notify") {
+                    this.onNotify(json.data.title, json.data.body, json.data.icon, json.data.url, json.data.tts);
+                x } else if (action == "init") {
+                    const toast = new Notification("Server connected to broker");
+                    console.log("Init", toast);
+                x } else if (action == "log") {
+                    // merge log lines
+                    const newLines: ApiLogLine[] = json.data;
+
+                    if (newLines.some((line) => line.date_string && parseISO(line.date_string).getDay() != new Date().getDay())) {
+                        // new day, clear log
+                        this.logLines = json.data;
+                        // this.logFilename =
+                    } else {
+                        this.logLines = [...this.logLines, ...json.data];
+                    }
+
+                    setTimeout(() => {
+                        this.scrollLog();
+                    }, 100);
+                x } else if (action == "vod_updated") {
+                    const vod_data: ApiVod = json.data.vod;
+                    this.store.updateVod(vod_data);
                 } else {
                     console.log(`Websocket wrong action (${action})`);
                 }
+                */
             } else {
                 console.log(`Websocket unknown data`, json.data);
             }

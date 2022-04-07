@@ -77,7 +77,7 @@ export const useStore = defineStore("twitchAutomator", {
 
             return data.data;
         },
-        async updateVod(basename: string) {
+        async updateVodApi(basename: string) {
             const vod = await this.fetchVod(basename);
             if (!vod) return false;
 
@@ -96,12 +96,36 @@ export const useStore = defineStore("twitchAutomator", {
             }
             return true;
         },
+        updateVod(vod: ApiVod) {
+            const index = this.streamerList.findIndex((s) => s.userid === vod.streamer_id);
+            if (index === -1) return false;
+
+            // check if vod is already in the streamer's vods
+            const vodIndex = this.streamerList[index].vods_list.findIndex((v) => v.basename === vod.basename);
+
+            if (vodIndex === -1) {
+                this.streamerList[index].vods_list.push(vod);
+                console.debug("inserted vod", vod);
+            } else {
+                this.streamerList[index].vods_list[vodIndex] = vod;
+                console.debug("updated vod", vod);
+            }
+            return true;
+        },
+        removeVod(basename: string) {
+            this.streamerList.forEach((s) => {
+                const index = s.vods_list.findIndex((v) => v.basename === basename);
+                if (index !== -1) {
+                    s.vods_list.splice(index, 1);
+                }
+            });
+        },
         async updateCapturingVods() {
             this.streamerList.forEach((streamer) => {
                 streamer.vods_list.forEach((vod) => {
                     if (vod.is_capturing) {
                         console.debug("updateCapturingVods", vod.basename);
-                        this.updateVod(vod.basename);
+                        this.updateVodApi(vod.basename);
                     }
                 });
             });
@@ -161,6 +185,20 @@ export const useStore = defineStore("twitchAutomator", {
         */
         updateJobList(data: ApiJob[]) {
             this.jobList = data;
+        },
+        updateJob(job: ApiJob) {
+            const index = this.jobList.findIndex((j) => j.name === job.name);
+            if (index === -1) {
+                this.jobList.push(job);
+            } else {
+                this.jobList[index] = job;
+            }
+        },
+        removeJob(name: string) {
+            const index = this.jobList.findIndex((j) => j.name === name);
+            if (index !== -1) {
+                this.jobList.splice(index, 1);
+            }
         },
         updateConfig(data: Record<string, any> | null) {
             this.config = data;

@@ -12,6 +12,7 @@ import { VideoMetadata } from "../../../common/MediaInfo";
 import { MediaInfo } from "../../../common/mediainfofield";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { Video, VideosResponse } from "../../../common/TwitchAPI/Video";
+import { VodUpdated } from "../../../common/Webhook";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../Storage/JSON";
 import { BaseConfigFolder } from "./BaseConfig";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
@@ -969,8 +970,8 @@ export class TwitchVOD {
         return true;
     }
 
-    public async matchProviderVod(): Promise<boolean | undefined> {
-        if (this.twitch_vod_id) return;
+    public async matchProviderVod(force = false): Promise<boolean | undefined> {
+        if (this.twitch_vod_id && !force) return;
         if (this.is_capturing || this.is_converting) return;
         if (!this.started_at) return;
 
@@ -981,6 +982,7 @@ export class TwitchVOD {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No videos returned from streamer of ${this.basename}`);
             this.twitch_vod_neversaved = true;
             this.twitch_vod_exists = false;
+            this.broadcastUpdate();
             return false;
         }
 
@@ -998,6 +1000,8 @@ export class TwitchVOD {
                 this.twitch_vod_date = video.created_at;
                 this.twitch_vod_exists = true;
 
+                this.broadcastUpdate();
+
                 return true;
 
             }
@@ -1009,6 +1013,8 @@ export class TwitchVOD {
         this.twitch_vod_exists = false;
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `No matching VOD for ${this.basename}`);
+
+        this.broadcastUpdate();
 
         return false;
 
@@ -1282,6 +1288,8 @@ export class TwitchVOD {
 
         this.startWatching();
 
+        // this.broadcastUpdate(); // should this be here?
+
         return generated;
 
     }
@@ -1305,6 +1313,12 @@ export class TwitchVOD {
             }
         }
 
+    }
+
+    public async broadcastUpdate(): Promise<void> {
+        TwitchWebhook.dispatch("vod_updated", {
+            vod: await this.toAPI(),
+        } as VodUpdated);
     }
 
     /**

@@ -23,6 +23,7 @@ import chalk from "chalk";
 import { Sleep } from "../Helpers/Sleep";
 import { ClientBroker } from "./ClientBroker";
 import { replaceAll } from "Helpers/ReplaceAll";
+import { ChapterUpdateData } from "../../../common/Webhook";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
@@ -339,9 +340,9 @@ export class TwitchAutomator {
             vod.saveJSON("game update");
 
             TwitchWebhook.dispatch("chapter_update", {
-                "chapter": chapter,
-                "vod": vod,
-            });
+                "chapter": chapter.toAPI(),
+                "vod": await vod.toAPI(),
+            } as ChapterUpdateData);
 
             // append chapter to history
             fs.writeFileSync(path.join(BaseConfigFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify(chapter) + "\n", { flag: "a" });
@@ -588,7 +589,7 @@ export class TwitchAutomator {
         // this.vod.saveJSON("stream download");
 
         TwitchWebhook.dispatch("start_download", {
-            "vod": this.vod,
+            "vod": await this.vod.toAPI(),
         });        
 
         this.vod.is_capturing = true;
@@ -625,7 +626,7 @@ export class TwitchAutomator {
 
         // send internal webhook for capture start
         TwitchWebhook.dispatch("end_capture", {
-            "vod": this.vod,
+            "vod": await this.vod.toAPI(),
             "success": capture_success,
         });
 
@@ -687,7 +688,7 @@ export class TwitchAutomator {
 
         // send internal webhook for convert start
         TwitchWebhook.dispatch("end_convert", {
-            "vod": this.vod,
+            "vod": await this.vod.toAPI(),
             "success": convert_success,
         });
 
@@ -752,7 +753,7 @@ export class TwitchAutomator {
 
         // finally send internal webhook for capture finish
         TwitchWebhook.dispatch("end_download", {
-            "vod": this.vod,
+            "vod": await this.vod.toAPI(),
         });
 
         return true;
@@ -1036,8 +1037,10 @@ export class TwitchAutomator {
             // this.vod.generatePlaylistFile();
 
             // send internal webhook for capture start
-            TwitchWebhook.dispatch("start_capture", {
-                "vod": this.vod,
+            this.vod.toAPI().then(vod => {
+                TwitchWebhook.dispatch("start_capture", {
+                    "vod": vod,
+                });
             });
 
         });
@@ -1148,6 +1151,12 @@ export class TwitchAutomator {
 
     async convertVideo() {
 
+        if (!this.vod) return false;
+
+        TwitchWebhook.dispatch("start_convert", {
+            vod: await this.vod.toAPI(),
+        });
+
         const result = await TwitchHelper.remuxFile(this.capture_filename, this.converted_filename);
 
         if (result && result.success) {
@@ -1155,6 +1164,11 @@ export class TwitchAutomator {
         } else {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to convert video ${this.capture_filename} to ${this.converted_filename}`);
         }
+
+        TwitchWebhook.dispatch("end_convert", {
+            vod: await this.vod.toAPI(),
+            success: result && result.success,
+        });
 
         return result && result.success;
 

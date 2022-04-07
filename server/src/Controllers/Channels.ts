@@ -275,7 +275,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         vod.saveJSON("manual finalize");
 
         TwitchWebhook.dispatch("end_download", {
-            vod: vod,
+            vod: await vod.toAPI(),
         });
 
     } else {

@@ -38,6 +38,7 @@ router.post("/vod/:basename/renderwizard", Vod.RenderWizard);
 router.post("/vod/:basename/download_chat", Vod.DownloadChat);
 router.post("/vod/:basename/download", Vod.DownloadVod);
 router.post("/vod/:basename/check_mute", Vod.CheckMute);
+router.post("/vod/:basename/match", Vod.MatchVod);
 // router.post("/vod/:basename/delete", Vod.DeleteVod); // old endpoint
 
 router.get("/games", Games.ListGames);
