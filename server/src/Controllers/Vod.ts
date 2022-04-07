@@ -253,6 +253,8 @@ export async function MatchVod(req: express.Request, res: express.Response): Pro
         return;
     }
 
+    vod.saveJSON("matched provider vod");
+
     res.send({
         status: "OK",
         message: `Vod matched to ${vod.twitch_vod_id}, duration ${vod.twitch_vod_duration}`,

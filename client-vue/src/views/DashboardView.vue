@@ -466,6 +466,8 @@ export default defineComponent({
             }
 
             // flash icon in favicon 5 times
+            // cors issue, so we can't use this
+            /*
             if (icon) {
                 const image = new Image();
                 image.src = icon;
@@ -493,6 +495,7 @@ export default defineComponent({
                     }
                 };
             }
+            */
 
             console.log(`Notify: ${title}: ${body}`);
         },

@@ -147,7 +147,7 @@
                                 <strong>ID:</strong>
                                 <span class="px-1" v-if="vod.twitch_vod_id">
                                     <a :href="twitchVideoLink(vod.twitch_vod_id)" rel="noreferrer" target="_blank">{{ vod.twitch_vod_id }}</a>
-                                    &nbsp;<a href="javascript:void(0)" @click="matchVod()">(refresh)</a>
+                                    &nbsp;<a href="javascript:void(0)" @click="matchVod()"><fa icon="sync"></fa></a>
                                 </span>
                                 <span class="px-1" v-else>
                                     <strong><em>Not matched or VOD deleted</em></strong>
@@ -249,6 +249,10 @@
 
         <!-- controls -->
         <div class="video-controls" v-if="vod?.is_finalized">
+            <a :class="{ 'details-toggle': true, 'is-active': showAdvanced }" @click="showAdvanced = !showAdvanced">
+                <fa v-if="showAdvanced" icon="minus"></fa>
+                <fa v-else icon="plus"></fa>
+            </a>
             <!-- Editor -->
             <router-link class="button is-blue" :to="{ name: 'Editor', params: { vod: vod?.basename } }">
                 <span class="icon"><fa icon="cut" type="fa"></fa></span>
@@ -267,7 +271,7 @@
             </a>
 
             <!-- JSON -->
-            <a class="button" :href="vod?.webpath + '/' + vod?.basename + '.json'" target="_blank">
+            <a v-if="showAdvanced" class="button" :href="vod?.webpath + '/' + vod?.basename + '.json'" target="_blank">
                 <span class="icon"><fa icon="database" type="fa"></fa></span>
                 JSON
             </a>
@@ -298,7 +302,7 @@
                     </span>
                     Download{{ vod?.twitch_vod_muted === MuteStatus.MUTED ? " muted" : "" }} VOD
                 </a>
-                <a class="button" @click="doCheckMute">
+                <a v-if="showAdvanced" class="button" @click="doCheckMute">
                     <span class="icon">
                         <fa icon="volume-mute" type="fa" v-if="!taskStatus.vodMuteCheck"></fa>
                         <fa icon="sync" type="fa" spin="true" v-else></fa>
@@ -314,7 +318,7 @@
                 Render menu
             </a>
 
-            <a class="button" @click="doFixIssues">
+            <a v-if="showAdvanced" class="button" @click="doFixIssues">
                 <span class="icon">
                     <fa icon="wrench" type="fa"></fa>
                 </span>
@@ -357,7 +361,7 @@
                         vod.api_getRecordingSize ? formatBytes(vod.api_getRecordingSize) : "unknown"
                     }}</strong
                     >)
-                    <span class="icon clickable" title="Refresh" @click="vod && store.updateVod(vod.basename)"><fa icon="sync"></fa></span>
+                    <span class="icon clickable" title="Refresh" @click="vod && store.updateVodApi(vod.basename)"><fa icon="sync"></fa></span>
                 </em>
 
                 <br />
@@ -786,6 +790,9 @@ import {
     faExclamationTriangle,
     faFileSignature,
     faWrench,
+    faSync,
+    faMinus,
+    faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
 import ModalBox from "./ModalBox.vue";
@@ -805,7 +812,10 @@ library.add(
     faDownload,
     faExclamationTriangle,
     faFileSignature,
-    faWrench
+    faWrench,
+    faSync,
+    faMinus,
+    faPlus
 );
 
 export default defineComponent({
@@ -848,6 +858,7 @@ export default defineComponent({
                 ffmpegCrf: 26,
             },
             chatDownloadMethod: "tcd",
+            showAdvanced: false,
         };
     },
     mounted() {

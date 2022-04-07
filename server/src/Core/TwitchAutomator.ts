@@ -1004,6 +1004,10 @@ export class TwitchAutomator {
                     // current_ad_start = new Date();
                 }
 
+                if (data.includes("Writing output to")) {
+                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", "Writing output");
+                }
+
                 if (data.includes("Read timeout, exiting")) {
                     TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Read timeout, exiting for ${basename}!`);
                 }

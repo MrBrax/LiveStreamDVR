@@ -191,9 +191,9 @@ export class ClientBroker {
             axios.post(`https://api.telegram.org/bot${TwitchConfig.cfg("telegram_token")}/sendMessage`, {
                 chat_id: TwitchConfig.cfg<number>("telegram_chat_id"),
                 text:
-                    `<strong>${title}</strong><br>` +
+                    `<strong>${title}</strong>\n` +
                     `${body}` +
-                    `${url ? `<br><br><a href="${url}">${url}</a>` : ""}`
+                    `${url ? `\n\n<a href="${url}">${url}</a>` : ""}`
                 ,
                 parse_mode: "HTML",
             } as TelegramSendMessagePayload).then((res) => {
