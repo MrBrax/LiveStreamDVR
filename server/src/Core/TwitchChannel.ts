@@ -425,7 +425,7 @@ export class TwitchChannel {
                 if (total_size > sps_bytes) {
                     TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Adding ${vodclass.basename} to vod_candidates due to storage limit (${TwitchHelper.formatBytes(vodclass.total_size)} of current total ${TwitchHelper.formatBytes(total_size)}, limit ${TwitchHelper.formatBytes(sps_bytes)})`);
                     vod_candidates.push(vodclass);
-                } else if (total_vods > vods_to_keep) {
+                } else if (total_vods >= vods_to_keep) {
                     TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Adding ${vodclass.basename} to vod_candidates due to vod limit (${total_vods} of limit ${vods_to_keep})`);
                     vod_candidates.push(vodclass);
                 } else {
