@@ -45,11 +45,11 @@ export async function SaveSettings(req: express.Request, res: express.Response):
         const key = setting.key;
 
         if (setting.type === "boolean") {
-            TwitchConfig.setConfig(key, req.body[key] !== undefined);
+            TwitchConfig.setConfig<boolean>(key, req.body[key] !== undefined);
             fields++;
         } else if (setting.type === "number") {
             if (req.body[key] !== undefined) {
-                TwitchConfig.setConfig(key, parseInt(req.body[key]));
+                TwitchConfig.setConfig<number>(key, parseInt(req.body[key]));
                 fields++;
             }
         } else {

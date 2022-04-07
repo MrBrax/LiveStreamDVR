@@ -1,5 +1,11 @@
 import path from "path";
 
+/**
+ * Instead of using relative paths in every file, these paths are always
+ * pointing to the correct location. This is of course dependent on where
+ * the index.ts/js file is located. That's the bad hack here, but it works. * 
+ */
+
 // export const AppRoot = path.join(__dirname, "..", "..", "..");
 export const AppName = "TwitchAutomatorTS";
 

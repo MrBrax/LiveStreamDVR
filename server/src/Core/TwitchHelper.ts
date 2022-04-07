@@ -547,7 +547,7 @@ export class TwitchHelper {
             // console.log("remux mediainfo", info);
 
             // ffmpeg seems to make ts cfr into vfr, don't know why
-            
+
             const opts: string[] = [];
             // "-r", parseInt(info.video.FrameRate).toString(),
             // "-vsync", "cfr",
@@ -570,7 +570,7 @@ export class TwitchHelper {
             }
 
             opts.push(output);
-            
+
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Remuxing ${input} to ${output}`);
 
             const job = TwitchHelper.startJob(ffmpeg_path, opts, `remux_${path.basename(input)}`);
@@ -737,7 +737,7 @@ export class TwitchHelper {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "ffprobe", `No output from ffprobe for ${filename}`);
             throw new Error("No output from ffprobe");
         }
-    
+
     }
 
     public static async getSubs(): Promise<Subscriptions | false> {

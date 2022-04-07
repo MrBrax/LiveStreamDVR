@@ -375,7 +375,7 @@ export class TwitchAutomator {
 
             const event = this.payload_eventsub.event;
             // KeyValue.setObject(`${this.broadcaster_user_login}.channeldata`, this.payload_eventsub.event);
-            
+
             if (TwitchConfig.notificationCategories.offlineStatusChange) {
                 // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
                 if (this.channel) {
@@ -418,14 +418,14 @@ export class TwitchAutomator {
         let title = "";
         const body = current_chapter.title;
         const icon = channel.profile_image_url;
-        
+
         if (
             (!previous_chapter?.game_id && current_chapter.game_id) || // game changed from null to something
             (previous_chapter?.game_id && current_chapter.game_id && previous_chapter.game_id !== current_chapter.game_id) // game changed
         ) {
             let category = TwitchConfig.notificationCategories.streamStatusChange;
             if (nonGameCategories.includes(current_chapter.game_name)) {
-                if (current_chapter.game?.isFavourite()){
+                if (current_chapter.game?.isFavourite()) {
                     title = `${channel.display_name} is online with one of your favourite categories: ${current_chapter.game_name}!`;
                     category = TwitchConfig.notificationCategories.streamStatusChangeFavourite;
                 } else if (current_chapter.game_name) {
@@ -562,7 +562,7 @@ export class TwitchAutomator {
 
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Check keyword matches for ${basename}`);
 
-            for(const m of this.channel.match) {
+            for (const m of this.channel.match) {
                 if (this.channel.getChapterData()?.title.includes(m)) {
                     match = true;
                     break;
@@ -590,7 +590,7 @@ export class TwitchAutomator {
 
         TwitchWebhook.dispatch("start_download", {
             "vod": await this.vod.toAPI(),
-        });        
+        });
 
         this.vod.is_capturing = true;
         this.vod.saveJSON("is_capturing set");
@@ -684,7 +684,7 @@ export class TwitchAutomator {
             fs.existsSync(this.capture_filename) &&
             fs.existsSync(this.converted_filename) &&
             fs.statSync(this.converted_filename).size > 0
-        ;
+            ;
 
         // send internal webhook for convert start
         TwitchWebhook.dispatch("end_convert", {
@@ -723,7 +723,7 @@ export class TwitchAutomator {
         // remove old vods for the streamer
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Cleanup old VODs for ${data_username}`);
         this.cleanup();
-        
+
         // download chat and optionally burn it
         if (this.channel.download_chat && this.vod.twitch_vod_id) {
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Auto download chat on ${basename}`);
@@ -736,7 +736,7 @@ export class TwitchAutomator {
                 // }
             }
         }
-        
+
         // add to history, testing
         /*
         $history = file_exists(TwitchConfig::$historyPath) ? json_decode(file_get_contents(TwitchConfig::$historyPath), true) : [];
@@ -896,7 +896,7 @@ export class TwitchAutomator {
                             `🎥 ${new Date().toISOString()} ${basename} ${this.stream_resolution} ` +
                             `${TwitchHelper.formatBytes(size)} / ${Math.round((bitRate * 8) / 1000)} kbps`
                         )
-                    );                    
+                    );
                 } else {
                     console.log(chalk.bgRed.whiteBright(`🎥 ${new Date().toISOString()} ${basename} missing`));
                 }

@@ -6,7 +6,7 @@ import path from "path";
 import { BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
 
 export class KeyValue {
-    
+
     public static data: Record<string, string> = {};
 
     public static events = new events.EventEmitter();
@@ -73,7 +73,7 @@ export class KeyValue {
         this.data[key] = value;
         this.events.emit("set", key, value);
         // }
-        
+
         this.save();
 
     }
@@ -122,7 +122,7 @@ export class KeyValue {
         this.events.emit("delete_all");
         this.save();
     }
-    
+
     /**
      * Save the key-value store to disk.
      */

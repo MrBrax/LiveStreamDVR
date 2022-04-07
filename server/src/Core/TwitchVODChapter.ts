@@ -111,9 +111,9 @@ export class TwitchVODChapter {
 
             offset: this.offset || 0,
             duration: this.duration || 0,
-            
+
             started_at: this.started_at.toISOString(),
-            
+
             viewer_count: this.viewer_count,
             is_mature: this.is_mature,
         };
@@ -122,7 +122,7 @@ export class TwitchVODChapter {
     public hasFavouriteGame(): boolean {
         return this.game !== undefined && this.game.isFavourite();
     }
-    
+
     static async fromJSON(data: TwitchVODChapterJSON): Promise<TwitchVODChapter> {
 
         const chapter = new TwitchVODChapter();
@@ -169,7 +169,7 @@ export class TwitchVODChapter {
             }
 
             this.offset = 0;
-        
+
         } else {
 
             if (next_chapter_started_at) {

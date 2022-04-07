@@ -37,7 +37,7 @@ export class TwitchConfig {
         { "key": "twitchdownloader_path", "group": "Binaries", "text": "TwitchDownloaderCLI path", "type": "string" },
 
         { "key": "server_port", "group": "Basic", "text": "Server port", "type": "number", "default": 8080 },
-        { "key": "basepath",    "group": "Basic", "text": "Base path", "type": "string", "help": "No trailing slash. For reverse proxy etc", "stripslash": true },
+        { "key": "basepath", "group": "Basic", "text": "Base path", "type": "string", "help": "No trailing slash. For reverse proxy etc", "stripslash": true },
         { "key": "instance_id", "group": "Basic", "text": "Instance ID", "type": "string", "help": "Unique ID for this instance. Used for hook callbacks." },
         { "key": "trust_proxy", "group": "Basic", "text": "Trust proxy", "type": "boolean", "default": false, "help": "If server is behind a reverse proxy, enable this.", restart_required: true },
 
@@ -54,26 +54,26 @@ export class TwitchConfig {
 
         { "key": "password", "group": "Interface", "text": "Password", "type": "string", "help": "Keep blank for none. Username is admin" },
         // { "key": "password_secure", "group": "Interface", "text": "Force HTTPS for password", "type": "boolean", "default": true },
-        
-        { "key": "webhook_url",                 "group": "Notifications", "text": "Webhook URL", "type": "string", "help": "For external scripting" },
-        { "key": "websocket_enabled",           "group": "Notifications", "text": "Websockets enabled", "type": "boolean" },
-        // { "key": "websocket_server_address", "group": "Notifications", "text": "Websocket server address override", "type": "string" },
-        { "key": "websocket_client_address",    "group": "Notifications", "text": "Websocket client address override", "type": "string" },
-        { "key": "websocket_log",               "group": "Notifications", "text": "Send logs over websocket", "type": "boolean" },
-        
-        { "key": "channel_folders",         "group": "Storage", "text": "Channel folders", "type": "boolean", "default": true, "help": "Store VODs in subfolders instead of root" },
-        { "key": "storage_per_streamer",    "group": "Storage", "text": "Gigabytes of storage per streamer", "type": "number", "default": 100 },
-        { "key": "vods_to_keep",            "group": "Storage", "text": "VODs to keep per streamer", "type": "number", "default": 5 },
-        { "key": "keep_deleted_vods",       "group": "Storage", "text": "Keep Twitch deleted VODs", "type": "boolean", "default": false },
-        { "key": "keep_favourite_vods",     "group": "Storage", "text": "Keep favourite VODs", "type": "boolean", "default": false },
-        { "key": "keep_muted_vods",         "group": "Storage", "text": "Keep muted VODs", "type": "boolean", "default": false },
-        { "key": "delete_only_one_vod",     "group": "Storage", "text": "Delete only one VOD when cleaning up like old times", "type": "boolean", "default": false },
 
-        { "key": "hls_timeout",         "group": "Capture", "text": "HLS Timeout in seconds (ads)", "type": "number", "default": 200 },
-        { "key": "download_retries",    "group": "Capture", "text": "Download/capture retries", "type": "number", "default": 5 },
-        { "key": "low_latency",         "group": "Capture", "text": "Low latency (untested)", "type": "boolean" },
+        { "key": "webhook_url", "group": "Notifications", "text": "Webhook URL", "type": "string", "help": "For external scripting" },
+        { "key": "websocket_enabled", "group": "Notifications", "text": "Websockets enabled", "type": "boolean" },
+        // { "key": "websocket_server_address", "group": "Notifications", "text": "Websocket server address override", "type": "string" },
+        { "key": "websocket_client_address", "group": "Notifications", "text": "Websocket client address override", "type": "string" },
+        { "key": "websocket_log", "group": "Notifications", "text": "Send logs over websocket", "type": "boolean" },
+
+        { "key": "channel_folders", "group": "Storage", "text": "Channel folders", "type": "boolean", "default": true, "help": "Store VODs in subfolders instead of root" },
+        { "key": "storage_per_streamer", "group": "Storage", "text": "Gigabytes of storage per streamer", "type": "number", "default": 100 },
+        { "key": "vods_to_keep", "group": "Storage", "text": "VODs to keep per streamer", "type": "number", "default": 5 },
+        { "key": "keep_deleted_vods", "group": "Storage", "text": "Keep Twitch deleted VODs", "type": "boolean", "default": false },
+        { "key": "keep_favourite_vods", "group": "Storage", "text": "Keep favourite VODs", "type": "boolean", "default": false },
+        { "key": "keep_muted_vods", "group": "Storage", "text": "Keep muted VODs", "type": "boolean", "default": false },
+        { "key": "delete_only_one_vod", "group": "Storage", "text": "Delete only one VOD when cleaning up like old times", "type": "boolean", "default": false },
+
+        { "key": "hls_timeout", "group": "Capture", "text": "HLS Timeout in seconds (ads)", "type": "number", "default": 200 },
+        { "key": "download_retries", "group": "Capture", "text": "Download/capture retries", "type": "number", "default": 5 },
+        { "key": "low_latency", "group": "Capture", "text": "Low latency (untested)", "type": "boolean" },
         { "key": "disable_ads", "group": "Capture", "text": "Try to remove ads from captured file", "type": "boolean", "default": true, "help": "This removes the \"Commercial break in progress\", but stream is probably going to be cut off anyway" },
-        
+
         // { "key": "sub_lease", "group": "Advanced", "text": "Subscription lease", "type": "number", "default": 604800 },
         { "key": "api_client_id", "group": "Basic", "text": "Twitch client ID", "type": "string", "required": true },
         { "key": "api_secret", "group": "Basic", "text": "Twitch secret", "type": "string", "secret": true, "required": true, "help": "Keep blank to not change" },
@@ -85,14 +85,14 @@ export class TwitchConfig {
 
         // {'key': 'burn_preset', 			'group': 'Video',		'text': 'Burning h264 preset', 							    'type': 'array',		'choices': {'ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower', 'veryslow', 'placebo'}, 'default': 'slow'},
         // {'key': 'burn_crf', 				'group': 'Video',		'text': 'Burning h264 crf', 								'type': 'number',		'default': 26, 'help': 'Essentially a quality control. Lower is higher quality.'},
-        
-        { "key": "debug",           "group": "Developer", "text": "Debug", "type": "boolean", "default": false, "help": "Verbose logging, extra file outputs, more information available. Not for general use." },
-        { "key": "app_verbose",     "group": "Developer", "text": "Verbose app output", "type": "boolean", "help": "Only verbose output" },
-        { "key": "dump_payloads",   "group": "Developer", "text": "Dump payloads", "type": "boolean", "default": false },
+
+        { "key": "debug", "group": "Developer", "text": "Debug", "type": "boolean", "default": false, "help": "Verbose logging, extra file outputs, more information available. Not for general use." },
+        { "key": "app_verbose", "group": "Developer", "text": "Verbose app output", "type": "boolean", "help": "Only verbose output" },
+        { "key": "dump_payloads", "group": "Developer", "text": "Dump payloads", "type": "boolean", "default": false },
 
         { "key": "chat_compress", "group": "Advanced", "text": "Compress chat with gzip (untested)", "type": "boolean" },
         // { "key": "relative_time", "group": "Interface", "text": "Relative time", "type": "boolean", "help": "\"1 hour ago\" instead of 2020-01-01" },
-        
+
         // {'key': 'youtube_dlc', 			'group': 'Advanced',	'text': 'Use youtube-dlc instead of the regular one', 	        'type': 'boolean'},
         // {'key': 'youtube_dl_alternative', 'group': 'Advanced',	'text': 'The alternative to youtube-dl to use', 			    'type': 'string'},
         { "key": "pipenv_enabled", "group": "Advanced", "text": "Use pipenv", "type": "boolean", "default": false },
@@ -111,18 +111,18 @@ export class TwitchConfig {
 
         // { "key": "error_handler", "group": "Advanced", "text": "Use app logging to catch PHP errors", "type": "boolean" },
 
-        { "key": "file_permissions",    "group": "Advanced", "text": "Set file permissions", "type": "boolean", "help": "Warning, can mess up permissions real bad." },
-        { "key": "file_chmod",          "group": "Advanced", "text": "File chmod", "type": "number", "default": 775 },
-        { "key": "file_chown_user",     "group": "Advanced", "text": "File chown user", "type": "string", "default": "nobody" },
-        { "key": "file_chown_group",    "group": "Advanced", "text": "File chown group", "type": "string", "default": "nobody" },
+        { "key": "file_permissions", "group": "Advanced", "text": "Set file permissions", "type": "boolean", "help": "Warning, can mess up permissions real bad." },
+        { "key": "file_chmod", "group": "Advanced", "text": "File chmod", "type": "number", "default": 775 },
+        { "key": "file_chown_user", "group": "Advanced", "text": "File chown user", "type": "string", "default": "nobody" },
+        { "key": "file_chown_group", "group": "Advanced", "text": "File chown group", "type": "string", "default": "nobody" },
 
         { "key": "checkmute_method", "group": "Basic", "text": "Method to use when checking for muted vods", "type": "array", "default": "streamlink", "choices": ["api", "streamlink"], "help": "Bugged as of 2022-03-29: https://github.com/twitchdev/issues/issues/501" },
-        
-        { "key": "telegram_enabled",    "group": "Notifications", "text": "Enable Telegram notifications", "type": "boolean", "default": false },
-        { "key": "telegram_token",      "group": "Notifications", "text": "Telegram token", "type": "string" },
-        { "key": "telegram_chat_id",    "group": "Notifications", "text": "Telegram chat id", "type": "string" },
-        { "key": "discord_enabled",     "group": "Notifications", "text": "Enable Discord notifications", "type": "boolean", "default": false },
-        { "key": "discord_webhook",     "group": "Notifications", "text": "Discord webhook", "type": "string" },
+
+        { "key": "telegram_enabled", "group": "Notifications", "text": "Enable Telegram notifications", "type": "boolean", "default": false },
+        { "key": "telegram_token", "group": "Notifications", "text": "Telegram token", "type": "string" },
+        { "key": "telegram_chat_id", "group": "Notifications", "text": "Telegram chat id", "type": "string" },
+        { "key": "discord_enabled", "group": "Notifications", "text": "Enable Discord notifications", "type": "boolean", "default": false },
+        { "key": "discord_webhook", "group": "Notifications", "text": "Discord webhook", "type": "string" },
 
     ];
 
@@ -220,13 +220,31 @@ export class TwitchConfig {
         return this.settingsFields.find(field => field["key"] === key);
     }
 
-    static setConfig(key: string, value: any): void {
+    static setConfig<T extends number|string|boolean>(key: string, value: T): void {
 
         const setting = this.getSettingField(key);
 
         if (!setting) {
             throw new Error("Setting does not exist: " + key);
         } else {
+
+            let newValue: number | string | boolean = value;
+
+            if (setting.stripslash && typeof newValue === "string") {
+                newValue = newValue.replace(/\/$/, "");
+            }
+
+            if (setting.type === "number" && typeof newValue === "string") {
+                newValue = parseInt(newValue);
+            }
+
+            if (setting.type === "boolean" && typeof newValue === "string") {
+                newValue = newValue === "true" || newValue === "1";
+            }
+
+            this.config[key] = newValue;
+
+            /*
 
             // remove ending slash
             if (setting.stripslash && typeof value === "string") {
@@ -242,6 +260,7 @@ export class TwitchConfig {
 
             this.config[key] = value;
             // TwitchConfig.saveConfig();
+            */
 
         }
     }
@@ -260,7 +279,7 @@ export class TwitchConfig {
         this._writeConfig = false;
 
         const success = fs.existsSync(BaseConfigPath.config) && fs.statSync(BaseConfigPath.config).size > 0;
-        
+
         if (success) {
             TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "config", `Saved config from ${source}`);
         } else {
@@ -313,14 +332,14 @@ export class TwitchConfig {
         if (TwitchConfig.cfg("eventsub_secret")) return;
         console.log(chalk.yellow("Generating eventsub secret..."));
         const secret = crypto.randomBytes(16).toString("hex");
-        TwitchConfig.setConfig("eventsub_secret", secret);
+        TwitchConfig.setConfig<string>("eventsub_secret", secret);
         TwitchConfig.saveConfig("eventsub_secret not set");
     }
 
     static getWebsocketClientUrl(): string | undefined {
 
         if (!TwitchConfig.cfg("websocket_enabled")) return undefined;
-        
+
         // override
         if (TwitchConfig.cfg<string>("websocket_client_address")) {
             return TwitchConfig.cfg<string>("websocket_client_address");

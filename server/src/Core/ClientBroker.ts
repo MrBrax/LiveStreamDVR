@@ -144,7 +144,7 @@ export class ClientBroker {
             console.error(chalk.bgRed.whiteBright(`No WebSocket server attached to broker for data: ${d.length > 64 ? d.substring(0, 64) + "..." : d}`));
             return;
         }
-        
+
         console.log(chalk.blueBright(`Broadcasting data to ${this.wss.clients.size} clients: ${d.length > 64 ? d.substring(0, 64) + "..." : d}`));
         this.wss.clients.forEach((client) => {
             client.send(d);
@@ -166,9 +166,9 @@ export class ClientBroker {
         url = "",
         tts = false
     ) {
-        
+
         console.log(chalk.bgBlue.whiteBright(`Notifying clients: ${title}: ${body}, category ${category}`));
-        
+
         if (category & NotificationProvider.WEBSOCKET) {
             this.broadcast({
                 action: "notify",
@@ -181,7 +181,7 @@ export class ClientBroker {
                 } as NotifyData,
             });
         }
-        
+
         if (TwitchConfig.cfg("telegram_enabled") && category & NotificationProvider.TELEGRAM) {
 
             // escape with backslash
@@ -233,7 +233,7 @@ export class ClientBroker {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "webhook", `Discord error: ${err.message}`);
             });
         }
-        
+
     }
 
 }

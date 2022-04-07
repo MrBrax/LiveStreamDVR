@@ -33,7 +33,7 @@
 
                 <div class="log_viewer" ref="logViewer">
                     <table>
-                        <tr v-for="(line, lineIndex) in logFiltered" :key="lineIndex" :class="'log-line log-line-' + line.level.toLowerCase()">
+                        <tr v-for="(line, lineIndex) in logFiltered" :key="lineIndex" :class="logLineClass(line)">
                             <td v-if="line.date">{{ formatDate(line.date) }}</td>
                             <td v-else-if="line.time">{{ formatTimestamp(line.time / 1000, "yyyy-MM-dd HH:ii:ss.SSS") }}</td>
                             <td v-else-if="line.date_string">{{ line.date_string }}</td>
@@ -796,6 +796,13 @@ export default defineComponent({
                 if (!lv) return;
                 lv.scrollTop = lv.scrollHeight;
             }, 100);
+        },
+        logLineClass(line: ApiLogLine): Record<string, boolean> {
+            return {
+                "log-line": true,
+                [`log-line-${line.level.toLowerCase()}`]: true,
+                "log-line-interactive": line.metadata !== undefined,
+            };
         },
         expandLog(lineNumber: number) {
             if (!this.logLines[lineNumber]) return;

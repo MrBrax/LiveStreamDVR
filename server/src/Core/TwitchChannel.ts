@@ -56,7 +56,7 @@ export class TwitchChannel {
     public quality: VideoQuality[] | undefined;
     public match: string[] | undefined;
     public download_chat = false;
-    
+
     /** Capture chat live */
     public live_chat = false;
 
@@ -108,7 +108,7 @@ export class TwitchChannel {
                 file.endsWith(".json") &&
                 !file.endsWith("_chat.json") // bad workaround
             );
-        
+
         this.vods_list = [];
 
         for (const vod of this.vods_raw) {
@@ -319,7 +319,7 @@ export class TwitchChannel {
 
         // reload
         const load_vod = await TwitchVOD.load(vod.filename);
-        
+
         // TwitchVOD.addVod(vod);
         this.vods_list.push(load_vod);
 
@@ -349,7 +349,7 @@ export class TwitchChannel {
         this.vods_list = this.vods_list.filter(v => v.basename !== basename);
 
         TwitchVOD.removeVod(basename);
-        
+
         this.checkStaleVodsInMemory();
 
         return true;

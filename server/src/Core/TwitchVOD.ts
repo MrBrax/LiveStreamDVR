@@ -925,8 +925,8 @@ export class TwitchVOD {
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Rebuilding segment list for ${this.basename}`);
 
         const files = fs.readdirSync(this.directory)
-            .filter(file => 
-                file.startsWith(this.basename) && 
+            .filter(file =>
+                file.startsWith(this.basename) &&
                 file.endsWith(`.${TwitchConfig.cfg("vod_container", "mp4")}`) &&
                 !file.includes("_vod") && !file.includes("_chat") && !file.includes("_chat_mask") && !file.includes("_burned")
             );
@@ -1448,7 +1448,7 @@ export class TwitchVOD {
 
         // since the api doesn't return muted_segments if an app auth token is used,
         // streamlink is used instead, until this is fixed in the api
-        
+
         // return TwitchConfig.cfg("checkmute_method", "api") == "api" ? await this.checkMutedVodAPI(save, force) : await this.checkMutedVodStreamlink(save, force);
         return await this.checkMutedVodStreamlink(save, force);
 
@@ -1934,9 +1934,9 @@ export class TwitchVOD {
 
     private downloadChatTD(): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            
+
             const bin = TwitchHelper.path_twitchdownloader();
-            
+
             if (!bin || !fs.existsSync(bin)) {
                 reject(new Error("twitchdownloadercli not found"));
                 return;
@@ -2029,7 +2029,7 @@ export class TwitchVOD {
             return;
         }
         */
-        
+
     }
 
     /**
@@ -2261,7 +2261,7 @@ export class TwitchVOD {
             } catch (error) {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to remux ${basename}: ${(error as Error).message}`);
                 throw new Error(`Failed to remux ${basename}: ${(error as Error).message}`);
-            } 
+            }
 
             if (ret.success) {
                 TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Successfully remuxed ${basename}, removing ${capture_filename}`);
