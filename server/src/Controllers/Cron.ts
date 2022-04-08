@@ -1,7 +1,6 @@
 import express from "express";
 import { MuteStatus } from "../../../common/Defs";
 import { ClientBroker } from "../Core/ClientBroker";
-import { TwitchConfig } from "../Core/TwitchConfig";
 import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
 import { generateStreamerList } from "../Helpers/StreamerList";
 
@@ -32,9 +31,7 @@ export async function CheckDeletedVods(req: express.Request, res: express.Respon
                 // $this->sendNotify("{$vod->basename} deleted");
                 output += `${vod.basename} deleted<br>\n`;
 
-                if (TwitchConfig.notificationCategories.vodDeleted) {
-                    ClientBroker.notify(`${vod.basename} deleted`, "", "", TwitchConfig.notificationCategories.vodDeleted);
-                }
+                ClientBroker.notify(`${vod.basename} deleted`, "", "", "vodDeleted");
 
                 // $this->addToNotifyCache("deleted_{$vod->basename}");
                 TwitchLog.logAdvanced(LOGLEVEL.INFO, "cron", `Cronjob deleted check: ${vod.basename} deleted`);
@@ -91,9 +88,7 @@ export async function CheckMutedVods(req: express.Request, res: express.Response
                 // $this->sendNotify("{$vod->basename} muted");
                 output += `${vod.basename} muted<br>\n`;
 
-                if (current_status !== check && TwitchConfig.notificationCategories.vodMuted) {
-                    ClientBroker.notify(`${vod.basename} muted`, "", "", TwitchConfig.notificationCategories.vodMuted);
-                }
+                ClientBroker.notify(`${vod.basename} muted`, "", "", "vodMuted");
 
                 // $this->addToNotifyCache("mute_{$vod->basename}");
                 TwitchLog.logAdvanced(LOGLEVEL.INFO, "cron", `Cronjob mute check: ${vod.basename} muted`);

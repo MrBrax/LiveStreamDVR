@@ -3,8 +3,11 @@ import axios, { AxiosError } from "axios";
 import chalk from "chalk";
 import { IncomingMessage } from "http";
 import WebSocket from "ws";
+import fs from "fs";
+import { NotificationCategories, NotificationCategory, NotificationProvider } from "../../../common/Defs";
 import { NotifyData } from "../../../common/Webhook";
-import { NotificationProvider, TwitchConfig } from "./TwitchConfig";
+import { BaseConfigPath } from "./BaseConfig";
+import { TwitchConfig } from "./TwitchConfig";
 import { TwitchLog, LOGLEVEL } from "./TwitchLog";
 
 interface Client {
@@ -47,7 +50,10 @@ export class ClientBroker {
     static clients: Client[] = [];
     static wss: WebSocket.Server<WebSocket.WebSocket> | undefined = undefined;
 
-    static attach(server: WebSocket.Server<WebSocket.WebSocket>) {
+    // bitmask of notification categories and providers
+    static notificationSettings: Record<NotificationCategory, number> = {} as Record<NotificationCategory, number>;
+
+    static attach(server: WebSocket.Server<WebSocket.WebSocket>): void {
 
         console.log(chalk.green("Attaching WebSocket server to broker..."));
 
@@ -162,14 +168,14 @@ export class ClientBroker {
         title: string,
         body = "",
         icon = "",
-        category: NotificationProvider, // change this?
+        category: NotificationCategory, // change this?
         url = "",
         tts = false
     ) {
 
         console.log(chalk.bgBlue.whiteBright(`Notifying clients: ${title}: ${body}, category ${category}`));
 
-        if (category & NotificationProvider.WEBSOCKET) {
+        if (ClientBroker.getNotificationSettingForProvider(category, NotificationProvider.WEBSOCKET)) {
             this.broadcast({
                 action: "notify",
                 data: {
@@ -182,7 +188,7 @@ export class ClientBroker {
             });
         }
 
-        if (TwitchConfig.cfg("telegram_enabled") && category & NotificationProvider.TELEGRAM) {
+        if (TwitchConfig.cfg("telegram_enabled") && ClientBroker.getNotificationSettingForProvider(category, NotificationProvider.TELEGRAM)) {
 
             // escape with backslash
             // const escaped_title = title.replace(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/g, "\\$&");
@@ -222,7 +228,7 @@ export class ClientBroker {
             });
         }
 
-        if (TwitchConfig.cfg("discord_enabled") && category & NotificationProvider.DISCORD) {
+        if (TwitchConfig.cfg("discord_enabled") && ClientBroker.getNotificationSettingForProvider(category, NotificationProvider.DISCORD)) {
             axios.post(TwitchConfig.cfg("discord_webhook"), {
                 content: `**${title}**\n${body}${url ? `\n\n${url}` : ""}`,
                 avatar_url: icon,
@@ -234,6 +240,51 @@ export class ClientBroker {
             });
         }
 
+    }
+
+    static getNotificationSettingForProvider(category: NotificationCategory, provider: NotificationProvider): boolean {
+        if (!this.notificationSettings[category]) return false;
+        return this.notificationSettings[category] & provider ? true : false;
+    }
+
+    static setNotificationSettingForProvider(category: NotificationCategory, provider: NotificationProvider, value: boolean) {
+        if (!this.notificationSettings[category]) this.notificationSettings[category] = 0;
+        if (value) {
+            this.notificationSettings[category] |= provider;
+        } else {
+            this.notificationSettings[category] &= ~provider;
+        }
+    }
+
+    static resetNotificationSettings() {
+        this.notificationSettings = {} as Record<NotificationCategory, number>;
+        for (const category of NotificationCategories) {
+            this.notificationSettings[category.id as NotificationCategory] = 0;
+        }
+    }
+
+    static loadNotificationSettings() {
+        if (!fs.existsSync(BaseConfigPath.notifications)) {
+            this.resetNotificationSettings();
+            return;
+        }
+
+        const data = fs.readFileSync(BaseConfigPath.notifications, "utf8");
+        const settings = JSON.parse(data);
+
+        for (const category of NotificationCategories) {
+            if (settings[category.id as NotificationCategory]) {
+                this.notificationSettings[category.id as NotificationCategory] = settings[category.id as NotificationCategory];
+            } else {
+                this.notificationSettings[category.id as NotificationCategory] = 0;
+            }
+        }
+
+    }
+
+    static saveNotificationSettings() {
+        const data = JSON.stringify(this.notificationSettings);
+        fs.writeFileSync(BaseConfigPath.notifications, data);
     }
 
 }

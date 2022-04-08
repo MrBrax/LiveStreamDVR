@@ -48,4 +48,5 @@ export const BaseConfigPath = {
     history: path.join(BaseConfigFolder.cache, "history.json"),
     streamerCache: path.join(BaseConfigFolder.cache, "streamers_v2.json"),
     keyvalue: path.join(BaseConfigFolder.keyvalue, "kv.json"),
+    notifications: path.join(BaseConfigFolder.config, "notifications.json"),
 };

@@ -425,7 +425,7 @@
 
         <!-- game list / chapters -->
         <div class="video-chapters">
-            <table class="table game-list" v-if="vod && vod.chapters && vod.chapters.length > 0">
+            <table class="table game-list is-slim" v-if="vod && vod.chapters && vod.chapters.length > 0">
                 <thead>
                     <tr>
                         <th>Offset</th>

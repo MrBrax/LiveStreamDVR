@@ -11,15 +11,7 @@ import { TwitchHelper } from "./TwitchHelper";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import crypto from "crypto";
 import path from "path";
-
-export enum NotificationProvider {
-    /** Websocket to all browser clients */
-    WEBSOCKET = 1 << 0,
-    /** Telegram bot */
-    TELEGRAM = 1 << 1,
-    /** Discord webhook */
-    DISCORD = 1 << 2,
-}
+import { ClientBroker } from "./ClientBroker";
 
 export class TwitchConfig {
 
@@ -125,18 +117,6 @@ export class TwitchConfig {
         { "key": "discord_webhook", "group": "Notifications", "text": "Discord webhook", "type": "string" },
 
     ];
-
-    /** @todo: make user configurable */
-    static readonly notificationCategories: Record<string, NotificationProvider> = {
-        offlineStatusChange: NotificationProvider.WEBSOCKET | NotificationProvider.TELEGRAM,
-        streamOnline: NotificationProvider.WEBSOCKET | NotificationProvider.TELEGRAM | NotificationProvider.DISCORD,
-        streamOffline: NotificationProvider.WEBSOCKET,
-        streamStatusChange: NotificationProvider.WEBSOCKET,
-        streamStatusChangeFavourite: NotificationProvider.WEBSOCKET | NotificationProvider.TELEGRAM,
-        vodMuted: NotificationProvider.WEBSOCKET,
-        vodDeleted: NotificationProvider.WEBSOCKET,
-        debug: NotificationProvider.WEBSOCKET | NotificationProvider.TELEGRAM | NotificationProvider.DISCORD,
-    };
 
     static watcher: fs.FSWatcher | undefined;
 
@@ -414,6 +394,8 @@ export class TwitchConfig {
         KeyValue.load();
 
         TwitchConfig.loadConfig();
+
+        ClientBroker.loadNotificationSettings();
 
         TwitchConfig.generateEventSubSecret();
 

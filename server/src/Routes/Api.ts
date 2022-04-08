@@ -13,6 +13,7 @@ import * as Hook from "../Controllers/Hook";
 import * as KeyValue from "../Controllers/KeyValue";
 import * as Debug from "../Controllers/Debug";
 import * as Favourites from "../Controllers/Favourites";
+import * as Notifications from "../Controllers/Notifications";
 import { TwitchVOD } from "../Core/TwitchVOD";
 
 const router = express.Router();
@@ -72,6 +73,9 @@ router.delete("/keyvalue/:key", KeyValue.DeleteKeyValue);
 router.get("/debug/vods", Debug.ListVodsInMemory);
 router.get("/debug/channels", Debug.ListChannelsInMemory);
 router.get("/debug/notify", Debug.NotifyTest);
+
+router.get("/notifications", Notifications.GetNotificationSettings);
+router.put("/notifications", Notifications.SaveNotificationSettings);
 
 router.get("/test_video_download", (req, res) => {
     if (!req.query.video_id){

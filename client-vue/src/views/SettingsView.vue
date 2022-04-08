@@ -9,6 +9,9 @@
         <router-link :to="{ name: 'Settings', params: { tab: 'config' } }">
             <span class="icon"><fa icon="cog"></fa></span> Config
         </router-link>
+        <router-link :to="{ name: 'Settings', params: { tab: 'notifications' } }">
+            <span class="icon"><fa icon="bell"></fa></span> Notifications
+        </router-link>
         <router-link :to="{ name: 'Settings', params: { tab: 'favourites' } }">
             <span class="icon"><fa icon="star"></fa></span> Favourites
         </router-link>
@@ -51,6 +54,14 @@
             </div>
             <div class="section-content" v-else>
                 <span class="icon"><fa icon="sync" spin></fa></span> Loading...
+            </div>
+        </section>
+
+        <!-- notifications -->
+        <section class="section" v-if="$route.params.tab == 'notifications'">
+            <div class="section-title"><h1>Notifications</h1></div>
+            <div class="section-content">
+                <notifications-form @formSuccess="fetchData" />
             </div>
         </section>
 
@@ -99,15 +110,16 @@ import ChannelAddForm from "@/components/forms/ChannelAddForm.vue";
 import ChannelUpdateForm from "@/components/forms/ChannelUpdateForm.vue";
 import SettingsForm from "@/components/forms/SettingsForm.vue";
 import FavouritesForm from "@/components/forms/FavouritesForm.vue";
+import NotificationsForm from "@/components/forms/NotificationsForm.vue";
 
 import type { ApiGame, ApiChannelConfig } from "@common/Api/Client";
 import type { ApiSettingsResponse, ApiGamesResponse } from "@common/Api/Api";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faUser, faCalendarCheck, faStar } from "@fortawesome/free-solid-svg-icons";
+import { faUser, faCalendarCheck, faStar, faBell } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
 import { SettingField } from "@common/Config";
-library.add(faUser, faCalendarCheck, faStar);
+library.add(faUser, faCalendarCheck, faStar, faBell);
 
 export default defineComponent({
     name: "SettingsView",
@@ -201,6 +213,7 @@ export default defineComponent({
         ChannelUpdateForm,
         SettingsForm,
         FavouritesForm,
+        NotificationsForm,
     },
 });
 </script>

@@ -43,3 +43,31 @@ export const nonGameCategories = [
 
 // twitch vod age is 14 days then it's deleted
 export const TwitchVodAge = 14 * 24 * 60 * 60 * 1000;
+
+export enum NotificationProvider {
+    /** Websocket to all browser clients */
+    WEBSOCKET = 1 << 0,
+    /** Telegram bot */
+    TELEGRAM = 1 << 1,
+    /** Discord webhook */
+    DISCORD = 1 << 2,
+}
+
+export const NotificationProvidersList = [
+    { id: NotificationProvider.WEBSOCKET, name: "WebSocket" },
+    { id: NotificationProvider.TELEGRAM, name: "Telegram" },
+    { id: NotificationProvider.DISCORD, name: "Discord" },
+];
+
+export const NotificationCategories = [
+    { "id": "offlineStatusChange", name: "Offline status change" },
+    { "id": "streamOnline", name: "Stream online" },
+    { "id": "streamOffline", name: "Stream offline" },
+    { "id": "streamStatusChange", name: "Stream status change" },
+    { "id": "streamStatusChangeFavourite", name: "Stream status change with favourite game" },
+    { "id": "vodMuted", name: "VOD muted" },
+    { "id": "vodDeleted", name: "VOD deleted" },
+    { "id": "debug", name: "Debug" },
+];
+
+export type NotificationCategory = "offlineStatusChange" | "streamOnline" | "streamOffline" | "streamStatusChange" | "streamStatusChangeFavourite" | "vodMuted" | "vodDeleted" | "debug";

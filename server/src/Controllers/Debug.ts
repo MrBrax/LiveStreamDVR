@@ -1,4 +1,3 @@
-import { TwitchConfig } from "Core/TwitchConfig";
 import express from "express";
 import { ClientBroker } from "../Core/ClientBroker";
 import { TwitchChannel } from "../Core/TwitchChannel";
@@ -19,6 +18,6 @@ export function ListChannelsInMemory(req: express.Request, res: express.Response
 }
 
 export function NotifyTest(req: express.Request, res: express.Response): void {
-    ClientBroker.notify(req.query.title as string, req.query.body as string, "", TwitchConfig.notificationCategories.debug);
+    ClientBroker.notify(req.query.title as string, req.query.body as string, "", "debug");
     res.send("OK");
 }

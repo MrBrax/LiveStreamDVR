@@ -44,15 +44,6 @@ body {
     padding: 0;
 }
 
-table {
-    font-family: Roboto, Helvetica, Arial;
-    font-size: 14px;
-}
-
-td {
-    padding: 2px 4px;
-}
-
 h1,
 h2,
 h3 {
@@ -85,7 +76,18 @@ a {
 }
 
 .table {
+    font-family: Roboto, Helvetica, Arial;
+    font-size: 14px;
     text-align: left;
+    border-collapse: collapse;
+    td {
+        padding: 0.5em;
+    }
+    &.is-slim {
+        td {
+            padding: 2px 4px;
+        }
+    } 
     th {
         text-align: left;
     }
@@ -96,6 +98,20 @@ a {
         tr {
             &:nth-child(even) {
                 background: rgba(255, 255, 255, 0.1);
+            }
+        }
+    }
+    &.is-hoverable {
+        tr {
+            &:hover {
+                background: rgba(255, 255, 255, 0.05);
+            }
+        }
+        &.is-striped {
+            tr:hover {
+                &:nth-child(even) {
+                    background: rgba(255, 255, 255, 0.15);
+                }
             }
         }
     }

@@ -18,7 +18,7 @@ import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchWebhook } from "./TwitchWebhook";
-import { nonGameCategories } from "../../../common/Defs";
+import { nonGameCategories, NotificationCategory } from "../../../common/Defs";
 import chalk from "chalk";
 import { Sleep } from "../Helpers/Sleep";
 import { ClientBroker } from "./ClientBroker";
@@ -171,7 +171,7 @@ export class TwitchAutomator {
                 return false;
             }
 
-            if (TwitchConfig.notificationCategories.streamOnline && this.channel) {
+            if (this.channel) {
                 let body = "";
                 const chapter = this.channel.getChapterData();
                 if (chapter) {
@@ -181,7 +181,7 @@ export class TwitchAutomator {
                     `${this.broadcaster_user_login} is live!`,
                     body,
                     this.channel.profile_image_url,
-                    TwitchConfig.notificationCategories.streamOnline,
+                    "streamOnline",
                     this.channel.getUrl()
                 );
             }
@@ -195,12 +195,12 @@ export class TwitchAutomator {
 
             // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
 
-            if (TwitchConfig.notificationCategories.streamOffline && this.channel) {
+            if (this.channel) {
                 ClientBroker.notify(
                     `${this.broadcaster_user_login} has gone offline!`,
                     this.channel && this.channel.latest_vod && this.channel.latest_vod.started_at ? `Was streaming for ${formatDistanceToNow(this.channel.latest_vod.started_at)}.` : "",
                     this.channel.profile_image_url,
-                    TwitchConfig.notificationCategories.streamOffline,
+                    "streamOffline",
                     this.channel.getUrl()
                 );
             }
@@ -354,7 +354,7 @@ export class TwitchAutomator {
             );
 
             // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
-            if (TwitchConfig.notificationCategories.streamStatusChange && this.channel) {
+            if (this.channel) {
                 // ClientBroker.notify(); // @todo: compose message from previous and current game, favorite, etc.
                 this.notifyChapterChange(this.channel);
             }
@@ -376,17 +376,14 @@ export class TwitchAutomator {
             const event = this.payload_eventsub.event;
             // KeyValue.setObject(`${this.broadcaster_user_login}.channeldata`, this.payload_eventsub.event);
 
-            if (TwitchConfig.notificationCategories.offlineStatusChange) {
-                // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
-                if (this.channel) {
-                    ClientBroker.notify(
-                        `Offline channel ${this.broadcaster_user_login} changed status`,
-                        `${event.category_name} (${event.title})`,
-                        this.channel.profile_image_url,
-                        TwitchConfig.notificationCategories.offlineStatusChange,
-                        this.channel.getUrl()
-                    );
-                }
+            if (this.channel) {
+                ClientBroker.notify(
+                    `Offline channel ${this.broadcaster_user_login} changed status`,
+                    `${event.category_name} (${event.title})`,
+                    this.channel.profile_image_url,
+                    "offlineStatusChange",
+                    this.channel.getUrl()
+                );
             }
 
             const chapter_data = await this.getChapterData(event);
@@ -423,11 +420,11 @@ export class TwitchAutomator {
             (!previous_chapter?.game_id && current_chapter.game_id) || // game changed from null to something
             (previous_chapter?.game_id && current_chapter.game_id && previous_chapter.game_id !== current_chapter.game_id) // game changed
         ) {
-            let category = TwitchConfig.notificationCategories.streamStatusChange;
+            let category: NotificationCategory = "streamStatusChange";
             if (nonGameCategories.includes(current_chapter.game_name)) {
                 if (current_chapter.game?.isFavourite()) {
                     title = `${channel.display_name} is online with one of your favourite categories: ${current_chapter.game_name}!`;
-                    category = TwitchConfig.notificationCategories.streamStatusChangeFavourite;
+                    category = "streamStatusChangeFavourite";
                 } else if (current_chapter.game_name) {
                     title = `${channel.display_name} is now streaming ${current_chapter.game_name}!`;
                 } else {
@@ -436,7 +433,7 @@ export class TwitchAutomator {
             } else {
                 if (current_chapter.game?.isFavourite()) {
                     title = `${channel.display_name} is now playing one of your favourite games: ${current_chapter.game_name}!`;
-                    category = TwitchConfig.notificationCategories.streamStatusChangeFavourite;
+                    category = "streamStatusChangeFavourite";
                 } else if (current_chapter.game_name) {
                     title = `${channel.display_name} is now playing ${current_chapter.game_name}!`;
                 } else {
