@@ -61,9 +61,7 @@ export class TwitchHelper {
             if (Date.now() > fs.statSync(this.accessTokenFile).mtimeMs + this.accessTokenRefresh) {
                 TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Deleting old access token, too old: ${format(fs.statSync(this.accessTokenFile).mtimeMs, this.PHP_DATE_FORMAT)}`);
                 fs.unlinkSync(this.accessTokenFile);
-            }
-
-            if (!force) {
+            } else if (!force) {
                 TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "helper", "Fetched access token from cache");
                 return fs.readFileSync(this.accessTokenFile, "utf8");
             }

@@ -14,6 +14,8 @@ export const AppName = "TwitchAutomatorTS";
  */
 export const AppRoot = process.env.NODE_ENV === "development" ? path.join(__dirname, "..", "..", "..") : path.join(__dirname, "..", "..");
 
+console.log(`AppRoot: ${AppRoot}`);
+
 export const BaseConfigFolder = {
     server: path.join(AppRoot, "server"),
     config: path.join(AppRoot, "config"),

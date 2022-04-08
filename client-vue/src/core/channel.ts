@@ -28,7 +28,6 @@ export default class TwitchChannel {
         channel.vods_list = apiResponse.vods_list.map((vod) => TwitchVOD.makeFromApiResponse(vod));
         channel.profile_image_url = apiResponse.profile_image_url;
         channel.api_getSubscriptionStatus = apiResponse.api_getSubscriptionStatus;
-        console.log(channel);
         return channel;
     }
 

@@ -13,7 +13,6 @@ export class TwitchGame {
         game.name = apiResponse.name;
         game.box_art_url = apiResponse.box_art_url;
         game.added = new Date(apiResponse.added);
-        console.log(game);
         return game;
     }
 
