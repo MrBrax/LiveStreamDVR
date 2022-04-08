@@ -180,10 +180,6 @@ export interface ApiConfig {
 
 export type ApiChannel = {
     userid: string;
-
-    /** @deprecated */
-    // username: string;
-
     display_name: string;
     login: string;
     description: string;

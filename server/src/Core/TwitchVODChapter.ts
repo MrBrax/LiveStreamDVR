@@ -107,6 +107,8 @@ export class TwitchVODChapter {
             box_art_url: this.box_art_url,
             game_name: this.game_name,
 
+            game: this.game?.toAPI(),
+
             strings: this.strings,
 
             offset: this.offset || 0,

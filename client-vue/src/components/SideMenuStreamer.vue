@@ -22,12 +22,12 @@
             <span class="vodcount">{{ streamer.vods_list.length }}</span>
             <span class="subtitle">
                 <template v-if="streamer.is_live">
-                    <template v-if="streamer.current_game && nonGameCategories.includes(streamer.current_game.game_name)">
-                        Streaming <strong>{{ streamer.current_game.game_name }}</strong>
+                    <template v-if="streamer.current_game && nonGameCategories.includes(streamer.current_game.name)">
+                        Streaming <strong>{{ streamer.current_game.name }}</strong>
                     </template>
-                    <template v-else-if="streamer.current_game && streamer.current_game.game_name != ''">
+                    <template v-else-if="streamer.current_game && streamer.current_game.name != ''">
                         Playing
-                        <strong>{{ streamer.current_game.game_name }}</strong>
+                        <strong>{{ streamer.current_game.name }}</strong>
                     </template>
                     <template v-else>Streaming</template>
                     for
@@ -54,14 +54,14 @@
                             : '#vod_' + vod.basename
                     "
                     :class="{
-                        'is-favourite': vod.api_hasFavouriteGame,
+                        'is-favourite': vod.hasFavouriteGame(),
                         'is-live': vod.is_capturing,
                         'is-animated': store.clientConfig?.animationsEnabled,
                         'is-converting': vod.is_converting,
                         'is-waiting': !vod.is_capturing && !vod.is_converting && !vod.is_finalized,
                         'streamer-jumpto-vod': true,
                     }"
-                    :title="formatDate(vod.started_at)"
+                    :title="vod.started_at ? formatDate(vod.started_at) : 'Unknown'"
                     v-if="streamer"
                 >
                     <!-- capturing -->
@@ -71,7 +71,7 @@
                     <span class="icon" v-else-if="vod.is_converting"><fa icon="cog" spin></fa></span>
 
                     <!-- favourite -->
-                    <span class="icon" v-else-if="vod.api_hasFavouriteGame"><fa icon="star"></fa></span>
+                    <span class="icon" v-else-if="vod.hasFavouriteGame()"><fa icon="star"></fa></span>
 
                     <!-- waiting after capture -->
                     <span class="icon" v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized"><fa :icon="['far', 'hourglass']"></fa></span>
@@ -96,7 +96,7 @@
                             ></duration-display
                             >)</span
                         ><!-- duration -->
-                        <span v-if="vod.api_getRecordingSize"> &middot; {{ formatBytes(vod.api_getRecordingSize, 2) }}+</span
+                        <span v-if="vod.getRecordingSize()"> &middot; {{ formatBytes(vod.getRecordingSize() || 0, 2) }}+</span
                         ><!-- filesize -->
                     </template>
 
@@ -137,11 +137,11 @@
                         <div class="stream-name">{{ vod.basename }}</div>
                         <div class="boxart-carousel is-small">
                             <div
-                                v-for="game in vod.api_getUniqueGames"
+                                v-for="game in vod.getUniqueGames()"
                                 :key="game.name"
                                 :class="{ 'boxart-item': true, 'is-favourite': store.config && store.favourite_games.includes(game.id) }"
                             >
-                                <img v-if="game.image_url" :title="game.name" :alt="game.name" :src="game.image_url" loading="lazy" />
+                                <img v-if="game.box_art_url" :title="game.name" :alt="game.name" :src="game.getBoxArtUrl(140, 190)" loading="lazy" />
                                 <span class="boxart-name">{{ game.name }}</span>
                             </div>
                         </div>
@@ -163,16 +163,17 @@ import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faTrashArrowUp } from "@fortawesome/free-solid-svg-icons";
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import { useStore } from "@/store";
-import { ApiChannel, ApiVod } from "../../../common/Api/Client";
 library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp);
 
 import { MuteStatus, nonGameCategories, TwitchVodAge } from "../../../common/Defs";
+import TwitchChannel from "@/core/channel";
+import TwitchVOD from "@/core/vod";
 
 export default defineComponent({
     name: "SideMenuStreamer",
     props: {
         streamer: {
-            type: Object as () => ApiChannel,
+            type: Object as () => TwitchChannel,
         },
     },
     setup() {
@@ -183,13 +184,14 @@ export default defineComponent({
         DurationDisplay,
     },
     methods: {
-        isRiskOfBeingDeleted(vod: ApiVod) {
+        isRiskOfBeingDeleted(vod: TwitchVOD) {
+            if (!vod.started_at) return false;
+
             // 14 days minus 2 days for some slack
             const maxVodAge = TwitchVodAge - 2 * 24 * 60 * 60 * 1000;
 
             // if the vod is older than 12 days, it is considered risky
-            const vod_date = new Date(vod.started_at);
-            return Date.now() - vod_date.getTime() >= maxVodAge;
+            return Date.now() - vod.started_at.getTime() >= maxVodAge;
         },
     },
 });

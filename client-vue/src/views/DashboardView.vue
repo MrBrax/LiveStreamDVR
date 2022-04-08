@@ -85,6 +85,7 @@ import type { ApiLogLine, ApiChannel } from "@common/Api/Client";
 import type { ChapterUpdateData, EndCaptureData, EndConvertData, JobClear, JobSave, NotifyData, VodRemoved, VodUpdated, WebhookAction } from "@common/Webhook";
 import { format, parseISO } from "date-fns";
 import { useStore } from "@/store";
+import TwitchChannel from "@/core/channel";
 
 interface DashboardData {
     loading: boolean;
@@ -347,7 +348,7 @@ export default defineComponent({
                     action == "end_download"
                 ) {
                     const data: VodUpdated = json.data;
-                    this.store.updateVod(data.vod);
+                    this.store.updateVodFromData(data.vod);
                 } else if (action == "vod_removed") {
                     const data: VodRemoved = json.data;
                     this.store.removeVod(data.basename);
@@ -356,10 +357,10 @@ export default defineComponent({
                     //     this.store.updateVod(data.vod);
                 } else if (action == "end_capture") {
                     const data: EndCaptureData = json.data;
-                    this.store.updateVod(data.vod);
+                    this.store.updateVodFromData(data.vod);
                 } else if (action == "end_convert") {
                     const data: EndConvertData = json.data;
-                    this.store.updateVod(data.vod);
+                    this.store.updateVodFromData(data.vod);
                 } else if (action == "init") {
                     new Notification("Server connected to broker");
                 } else if (action == "notify") {
@@ -389,7 +390,7 @@ export default defineComponent({
                 } else if (action == "chapter_update") {
                     const data: ChapterUpdateData = json.data;
                     console.log("chapter_update", data);
-                    this.store.updateVod(data.vod);
+                    this.store.updateVodFromData(data.vod);
                 }
 
                 /*
@@ -816,8 +817,8 @@ export default defineComponent({
         },
     },
     computed: {
-        sortedStreamers() {
-            const streamers: ApiChannel[] = this.store.streamerList;
+        sortedStreamers(): TwitchChannel[] {
+            const streamers: TwitchChannel[] = [...this.store.streamerList];
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
         },
         logFiltered(): ApiLogLine[] {
@@ -828,7 +829,7 @@ export default defineComponent({
             if (!this.store.streamerList) return 0;
             return this.store.streamerList.filter((a) => a.is_live).length;
         },
-        singleStreamer(): ApiChannel | undefined {
+        singleStreamer(): TwitchChannel | undefined {
             if (!this.store.streamerList) return undefined;
 
             const current = this.$route.query.channel as string;

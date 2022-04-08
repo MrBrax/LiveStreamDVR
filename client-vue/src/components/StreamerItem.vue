@@ -111,14 +111,14 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faVideo, faPlayCircle, faVideoSlash, faDownload } from "@fortawesome/free-solid-svg-icons";
 // import { TwitchAPI } from "@/twitchapi";
 import { Video } from "@common/TwitchAPI/Video";
-import type { ApiChannel } from "@common/Api/Client";
+import TwitchChannel from "@/core/channel";
 library.add(faVideo, faPlayCircle, faVideoSlash, faDownload);
 
 export default defineComponent({
     name: "StreamerItem",
     emits: ["refresh"],
     props: {
-        streamer: Object as () => ApiChannel,
+        streamer: Object as () => TwitchChannel,
     },
     data: () => ({
         twitchVods: [] as Video[],

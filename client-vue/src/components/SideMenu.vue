@@ -54,7 +54,6 @@
 </template>
 
 <script lang="ts">
-import type { ApiChannel } from "@common/Api/Client";
 import { defineComponent } from "vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -64,6 +63,7 @@ import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import SideMenuStreamer from "./SideMenuStreamer.vue";
 
 import { useStore } from "@/store";
+import TwitchChannel from "@/core/channel";
 
 library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass);
 
@@ -75,8 +75,8 @@ export default defineComponent({
         return { store };
     },
     computed: {
-        sortedStreamers() {
-            const streamers: ApiChannel[] = this.store.streamerList;
+        sortedStreamers(): TwitchChannel[] {
+            const streamers = [...this.store.streamerList];
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
         },
         clientVersion() {

@@ -8,7 +8,7 @@
             'is-recording': vod.is_capturing,
             'is-converting': vod.is_converting,
             'is-finalized': vod.is_finalized,
-            'is-favourite': vod.api_hasFavouriteGame,
+            'is-favourite': vod.hasFavouriteGame(),
         }"
     >
         <div :id="'vod_' + vod?.basename" class="anchor"></div>
@@ -27,9 +27,9 @@
         <!-- description -->
         <div class="video-description">
             <!-- box art -->
-            <div class="boxart-carousel is-small" v-if="vod && vod.api_getUniqueGames">
-                <div v-for="game in vod.api_getUniqueGames" :key="game.id" class="boxart-item">
-                    <img v-if="game.image_url" :title="game.name" :alt="game.name" :src="game.image_url" loading="lazy" />
+            <div class="boxart-carousel is-small" v-if="vod && vod.getUniqueGames()">
+                <div v-for="game in vod.getUniqueGames()" :key="game.id" class="boxart-item">
+                    <img v-if="game.box_art_url" :title="game.name" :alt="game.name" :src="game.getBoxArtUrl(140, 190)" loading="lazy" />
                     <span v-else>{{ game.name }}</span>
                 </div>
             </div>
@@ -41,11 +41,11 @@
                     <ul class="video-info">
                         <li>
                             <strong>Webhook duration:</strong>
-                            {{ vod?.api_getWebhookDuration }}
+                            {{ vod?.getWebhookDuration() }}
                         </li>
-                        <li>
+                        <li v-if="vod.started_at">
                             <strong>Stream start:</strong>
-                            {{ formatDate(vod?.started_at, "yyyy-MM-dd HH:mm:ss") }}
+                            {{ formatDate(vod.started_at, "yyyy-MM-dd HH:mm:ss") }}
                         </li>
                         <li v-if="vod.ended_at">
                             <strong>Stream end:</strong>
@@ -61,11 +61,11 @@
                                 {{ formatDate(vod?.conversion_started, "yyyy-MM-dd HH:mm:ss") }}
                             </li>
                         </template>
-                        <li v-if="vod.api_getDuration">
+                        <li v-if="vod.getDuration()">
                             <strong>Missing from captured file:</strong>
-                            <span class="px-1" v-if="vod?.twitch_vod_duration">
-                                {{ humanDuration(vod.twitch_vod_duration - vod.api_getDuration) }}
-                                <strong v-if="vod.twitch_vod_duration - vod.api_getDuration > 600" class="is-error"><br />A lot missing!</strong>
+                            <span class="px-1" v-if="vod.twitch_vod_duration">
+                                {{ humanDuration(vod.twitch_vod_duration - vod.getDuration()) }}
+                                <strong v-if="vod.twitch_vod_duration - vod.getDuration() > 600" class="is-error"><br />A lot missing!</strong>
                             </span>
                             <span class="px-1" v-else>
                                 <strong><em>No data</em></strong>
@@ -93,11 +93,11 @@
                 <div class="info-column">
                     <h4>Capture</h4>
                     <ul class="video-info">
-                        <li v-if="vod.api_getDuration">
+                        <li v-if="vod.getDuration()">
                             <strong>File duration:</strong>
-                            {{ humanDuration(vod.api_getDuration) }}
+                            {{ humanDuration(vod.getDuration()) }}
                         </li>
-                        <li v-if="vod.segments && vod.segments.length > 0">
+                        <li v-if="vod.segments && vod.segments.length > 0 && vod.segments[0].filesize">
                             <strong>Size:</strong>
                             {{ formatBytes(vod.segments[0].filesize) }}
                         </li>
@@ -155,15 +155,15 @@
                             </li>
                             <li>
                                 <strong>Date:</strong>&#32;
-                                <span class="px-1" v-if="vod?.twitch_vod_date">{{ formatDate(vod?.twitch_vod_date) }}</span>
+                                <span class="px-1" v-if="vod.twitch_vod_date">{{ formatDate(vod.twitch_vod_date) }}</span>
                                 <span class="px-1" v-else>
                                     <strong><em>No data</em></strong>
                                 </span>
                             </li>
                             <li>
                                 <strong>Title:</strong>
-                                <span class="px-1 text-overflow" v-if="vod?.twitch_vod_title">
-                                    {{ vod?.twitch_vod_title }}
+                                <span class="px-1 text-overflow" v-if="vod.twitch_vod_title">
+                                    {{ vod.twitch_vod_title }}
                                 </span>
                                 <span class="px-1" v-else>
                                     <strong><em>No data</em></strong>
@@ -221,7 +221,7 @@
                 <li v-for="segment in vod.segments" :key="segment.basename">
                     <a :href="vod?.webpath + '/' + segment.basename">
                         <span class="text-overflow">{{ segment.basename }}</span>
-                        <span v-if="!segment.deleted"> ({{ formatBytes(segment.filesize) }}) </span>
+                        <span v-if="!segment.deleted && segment.filesize"> ({{ formatBytes(segment.filesize) }}) </span>
                     </a>
                     <span v-if="segment.deleted">
                         <strong class="is-error">&nbsp;(deleted)</strong>
@@ -342,9 +342,9 @@
                 </em>
                 <br />
                 <em>
-                    <span v-if="vod?.api_getConvertingStatus">
+                    <span v-if="vod.getConvertingStatus()">
                         <span class="icon"><fa icon="sync" spin></fa></span>
-                        Running (pid {{ vod?.api_getConvertingStatus }})
+                        Running (pid {{ vod.getConvertingStatus() }})
                     </span>
                     <span v-else>
                         <strong class="is-error flashing">
@@ -358,7 +358,7 @@
                 <em class="text-overflow">
                     <span class="icon"><fa icon="video"></fa></span>
                     Capturing to <strong>{{ vod?.basename }}.ts</strong> (<strong>{{
-                        vod.api_getRecordingSize ? formatBytes(vod.api_getRecordingSize) : "unknown"
+                        vod.getRecordingSize() ? formatBytes(vod.getRecordingSize() as number) : "unknown"
                     }}</strong
                     >)
                     <span class="icon clickable" title="Refresh" @click="vod && store.updateVodApi(vod.basename)"><fa icon="sync"></fa></span>
@@ -368,10 +368,10 @@
 
                 <template v-if="store.cfg('playlist_dump')">
                     <em>
-                        <span v-if="vod?.api_getCapturingStatus">
+                        <span v-if="vod.getCapturingStatus()">
                             <span class="icon"><fa icon="sync" spin></fa></span>
                             Video capture running (pid
-                            {{ vod?.api_getCapturingStatus }})
+                            {{ vod.getCapturingStatus() }})
                         </span>
                         <span v-else>
                             <strong class="is-error flashing">
@@ -382,10 +382,10 @@
                     </em>
                     <template v-if="store.cfg('chat_dump')">
                         <br /><em>
-                            <span v-if="vod?.api_getChatDumpStatus">
+                            <span v-if="vod.getChatDumpStatus()">
                                 <span class="icon"><fa icon="sync" spin></fa></span>
                                 Chat dump running (pid
-                                {{ vod?.api_getChatDumpStatus }})
+                                {{ vod.getChatDumpStatus() }})
                             </span>
                             <span v-else>
                                 <strong class="is-error flashing">
@@ -406,7 +406,7 @@
         </div>
 
         <!-- capture length warning -->
-        <div v-if="vod?.is_capturing && vod?.api_getDurationLive > 86400" class="video-error">
+        <div v-if="vod?.is_capturing && vod.getDurationLive() > 86400" class="video-error">
             Capture has been running for over 24 hours, streamlink does not support this. Is the capture stuck?
         </div>
 
@@ -448,11 +448,11 @@
                     >
                         <!-- start timestamp -->
                         <td data-contents="offset" :title="formatDate(chapter.started_at)">
-                            {{ humanDuration(chapter.offset) }}
+                            {{ chapter.offset ? humanDuration(chapter.offset) : "Unknown" }}
                         </td>
 
                         <!-- start time -->
-                        <td data-contents="started_at" :title="chapter.started_at">
+                        <td data-contents="started_at" :title="chapter.started_at.toISOString()">
                             <span v-if="store.clientConfig?.useRelativeTime">
                                 <duration-display :start-date="chapter.started_at" output-style="human" /> ago
                             </span>
@@ -490,7 +490,7 @@
 
                                     <!-- open on twitch link -->
                                     <a
-                                        v-if="vod.twitch_vod_exists && vod.twitch_vod_id"
+                                        v-if="vod.twitch_vod_exists && vod.twitch_vod_id && chapter.offset"
                                         :href="twitchVideoLink(vod.twitch_vod_id) + '?t=' + twitchDuration(chapter.offset)"
                                         target="_blank"
                                         rel="noreferrer"
@@ -532,7 +532,7 @@
 
                     <tr v-if="vod.ended_at">
                         <td :title="formatDate(vod.ended_at)">
-                            {{ vod?.api_getWebhookDuration }}
+                            {{ vod.getWebhookDuration() }}
                         </td>
                         <td colspan="10">
                             <em>END</em>
@@ -769,7 +769,7 @@
 </template>
 
 <script lang="ts">
-import type { ApiJob, ApiVod } from "../../../common/Api/Client";
+import type { ApiJob } from "../../../common/Api/Client";
 import { defineComponent, ref } from "vue";
 import DurationDisplay from "@/components/DurationDisplay.vue";
 // import { format, toDate, parse } from 'date-fns';
@@ -798,6 +798,7 @@ import { useStore } from "@/store";
 import ModalBox from "./ModalBox.vue";
 import { MuteStatus, VideoQualityArray } from "../../../common/Defs";
 import { ApiResponse } from "@common/Api/Api";
+import TwitchVOD from "@/core/vod";
 library.add(
     faFileVideo,
     faCut,
@@ -873,7 +874,7 @@ export default defineComponent({
         }
     },
     props: {
-        vod: Object as () => ApiVod,
+        vod: Object as () => TwitchVOD,
     },
     methods: {
         doArchive() {

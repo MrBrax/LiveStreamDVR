@@ -3,10 +3,13 @@ import { format, formatDistance, formatDistanceToNow, parseISO, parseJSON } from
 
 export default {
     methods: {
-        formatDate(date: string, fmt = "yyyy-MM-dd HH:mm:ss") {
+        formatDate(date: string | Date, fmt = "yyyy-MM-dd HH:mm:ss") {
             if (!date) return "";
-            // console.log("formatDate", date, fmt);
-            // const o = parse(date, dateFormat, new Date());
+
+            if (date instanceof Date) {
+                return format(date, fmt);
+            }
+
             const o = parseJSON(date);
             return format(o, fmt);
         },
@@ -62,10 +65,15 @@ export default {
         formatNumber(num: number, decimals = 0) {
             return num.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
         },
-        humanDate(date: string, suffix = false) {
-            // const o = parse(date, dateFormat, new Date());
-            const o = parseJSON(date);
-            return formatDistance(o, new Date(), { addSuffix: suffix });
+        humanDate(date: string | Date, suffix = false) {
+            if (!date) return "";
+            let d;
+            if (date instanceof Date) {
+                d = date;
+            } else {
+                d = parseJSON(date);
+            }
+            return formatDistance(d, new Date(), { addSuffix: suffix });
         },
         parseTwitchDuration(duration: string) {
             const regex = /(\d+)([hdms])/g;
@@ -110,14 +118,14 @@ export default {
 
 declare module "@vue/runtime-core" {
     export interface ComponentCustomProperties {
-        formatDate: (date: string, fmt?: string) => string;
+        formatDate: (date: string | Date, fmt?: string) => string;
         formatTimestamp: (timestamp: number, fmt?: string) => string;
         humanDuration: (duration: number) => string;
         formatBytes: (bytes: number, precision?: number) => string;
         niceDuration: (durationInSeconds: number) => string;
         twitchDuration: (seconds: number) => string;
         formatNumber: (num: number, decimals?: number) => string;
-        humanDate: (date: string, suffix?: boolean) => string;
+        humanDate: (date: string | Date, suffix?: boolean) => string;
         parseTwitchDuration: (duration: string) => number;
         formatDurationSince: (date: string) => string;
         // sortObject: (game: Record<string, any>, value: string) => any;
