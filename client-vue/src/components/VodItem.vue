@@ -763,7 +763,7 @@
         </div>
     </modal-box>
     <modal-box ref="chatDownloadMenu" title="Chat download">
-        <button class="button" @click="doDownloadChat('tcd')">Download with TCD</button>
+        <!--<button class="button" @click="doDownloadChat('tcd')">Download with TCD</button> -->
         <button class="button" @click="doDownloadChat('td')">Download with TwitchDownloader</button>
     </modal-box>
 </template>

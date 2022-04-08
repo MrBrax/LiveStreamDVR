@@ -10,33 +10,45 @@
     justify-content: center;
     align-items: center;
     cursor: pointer;
+
     .modal-box__container {
         width: 100%;
         max-width: 800px;
         max-height: 90vh;
-        overflow-y: scroll;
         background: #fff;
         border-radius: 5px;
-        padding: 20px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        // padding: 20px;
         cursor: default;
+        box-shadow: 0 10px 50px rgba(0,0,0,0.5);
+
         .modal-box__header {
+            padding: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background-color: #2b61d6;
+
             .modal-box__title {
                 font-size: 20px;
                 font-weight: bold;
                 // color: #333;
             }
+
             .modal-box__close {
                 cursor: pointer;
+
                 i {
                     font-size: 20px;
                     color: #333;
                 }
             }
         }
+
         .modal-box__body {
+            overflow-y: scroll;
             padding: 20px;
             // color: #444;
         }

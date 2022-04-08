@@ -3,19 +3,24 @@
         font-size: 1rem;
         padding-bottom: 60px;
     }
+
     .container {
         display: block;
         width: 100%;
     }
+
     .content {
         margin: 0;
     }
+
     .section {
         margin: 5px 0;
     }
+
     .splitter {
         flex-direction: column;
     }
+
     .side-menu {
         width: auto;
         height: auto;
@@ -112,9 +117,9 @@
 
             .vodcount {
                 // transform: translateX(-20px);
-                
+
                 font-size: 0.7em;
-                                
+
                 background: #333;
                 padding: 1px 3px;
                 border-radius: 50%;
@@ -129,6 +134,10 @@
 				&:after { content: ' vods'; }
 				&:before { content: '· '; }
 				*/
+
+                &[data-count="0"] {
+                    color: #999;
+                }
             }
 
             .subtitle {
@@ -145,11 +154,13 @@
                     background-color: unset;
                     animation: none;
                 }
+
                 .avatar {
                     border-width: 3px;
                     border-color: #f00;
                 }
-                .vodcount{
+
+                .vodcount {
                     color: #f00;
                 }
             }
@@ -162,9 +173,11 @@
 
     .streamer-title {
         font-size: 0.9em;
+
         .streamer-title-tools {
             display: none;
         }
+
         .streamer-title-subtitle {
             font-family: 'Roboto Condensed';
         }
@@ -174,9 +187,11 @@
         flex-direction: column;
         flex-wrap: wrap;
         font-size: 0.9em;
+
         .info-column {
             padding-right: 0px;
             padding-bottom: 10px;
+
             &:last-child {
                 padding-bottom: 0px;
             }
@@ -187,10 +202,12 @@
         .game-name {
             display: none;
         }
+
         .boxart {
             width: $boxart-width * 0.2;
             height: $boxart-height * 0.2;
         }
+
         /*
 		td[data-contents="started_at"] {
 			display: none;
@@ -208,6 +225,7 @@
         .boxart-item {
             width: $boxart-width * 0.4;
             height: $boxart-height * 0.4;
+
             img {
                 width: $boxart-width * 0.4;
                 height: $boxart-height * 0.4;
@@ -218,9 +236,11 @@
     .button-bar {
         display: flex;
         flex-wrap: wrap;
+
         .button {
             flex-grow: 1;
             text-align: center;
+
             .icon {
                 display: block;
                 font-size: 1.75em;
@@ -233,9 +253,11 @@
     .video-controls {
         display: flex;
         flex-wrap: wrap;
+
         .button {
             flex-grow: 1;
             text-align: center;
+
             .icon {
                 display: block;
                 font-size: 1.5em;
@@ -249,6 +271,7 @@
         .video-filename {
             display: block;
             font-size: 0.7em;
+
             &:before {
                 content: none;
             }
@@ -270,12 +293,14 @@
     label {
         &.checkbox {
             display: block;
+
             input {
                 // transform: scale(2);
                 height: 1.5em;
                 vertical-align: middle;
                 width: 1.5em;
             }
+
             margin-bottom: 0.4em;
         }
     }

@@ -15,12 +15,15 @@
 
     &.collapsed {
         width: 150px;
+
         .streamer-jumpto {
             display: none;
         }
+
         .top-menu-item.title span.title {
             display: none;
         }
+
         .menu-bottom {
             flex-wrap: wrap;
         }
@@ -41,18 +44,19 @@
         overflow-y: scroll;
         flex-grow: 1;
         scrollbar-color: #4a4a4a #222;
+
         &::-webkit-scrollbar {
             height: 12px;
             width: 12px;
             background: #222;
         }
-        
+
         &::-webkit-scrollbar-thumb {
             background: #4a4a4a;
             -webkit-border-radius: 1ex;
             -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
         }
-        
+
         &::-webkit-scrollbar-corner {
             background: #4a4a4a;
         }
@@ -62,9 +66,11 @@
         display: flex;
         text-align: center;
         height: 50px;
+
         .top-menu-item {
             height: 50px;
             flex-grow: 1;
+
             a {
                 width: 100%;
             }
@@ -85,13 +91,16 @@
 
     &.title {
         font-weight: 700;
+
         a {
             color: #fff;
             padding: 13px 8px;
         }
+
         .favicon {
             transition: ease-in-out 0.5s transform;
         }
+
         // .favicon { animation: 1s speeen linear; }
         &:hover .favicon {
             animation: 1s speen linear infinite;
@@ -103,6 +112,7 @@
         text-decoration: none;
         display: inline-block;
         padding: 5px 8px;
+
         &:hover {
             color: #fff;
             background: #111;
@@ -114,6 +124,7 @@
     }
 
     &.right {
+
         // flex-grow: 1;
         // text-align: right;
         a {
@@ -132,6 +143,7 @@
     }
 
     &.streamer {
+
         /*
 		a {
 			padding: 5px 8px 12px 8px;
@@ -153,12 +165,14 @@
                 height: 100%;
             }
         }
+
         .vodcount {
             display: inline-block;
             margin-left: 5px;
             font-size: 90%;
             color: #666;
         }
+
         .subtitle {
             font-family: "Roboto Condensed", "Roboto", "Arial";
             font-weight: 500;
@@ -167,6 +181,7 @@
             line-height: 1em;
             color: #444;
             padding-bottom: 5px;
+
             &:empty,
             &:-moz-only-whitespace {
                 // @todo: multiplatform
@@ -179,13 +194,16 @@
         a {
             background-color: #2b0e0e;
         }
+
         .username {
             color: #f00;
             font-weight: 700;
         }
+
         &.is-animated a {
             animation: live ease-in-out 1s infinite;
         }
+
         .subtitle,
         .vodcount {
             color: #b30000;
@@ -208,7 +226,9 @@
 
 a.linkback {
     font-weight: 700;
-    color: #e0e00d; /* forgive me padre for i have sinned */
+    color: #e0e00d;
+
+    /* forgive me padre for i have sinned */
     &:hover {
         color: #fff;
     }
@@ -218,11 +238,13 @@ a.linkback {
     .icon {
         margin-right: 0.2em;
     }
+
     ul {
         list-style: none;
         list-style-type: none;
         margin: 0;
         padding: 0;
+
         li {
             a {
                 font-family: "Roboto Condensed";
@@ -236,71 +258,92 @@ a.linkback {
                 padding: 3px 5px;
                 font-size: 0.8em;
                 transition: 0.1s border-width ease-in-out;
+
                 &:hover {
                     color: #fff;
                     background-color: lighten($base-bg, 5%);
                 }
+
                 &.is-favourite {
                     background-color: $favourite-base;
+
                     &:hover {
                         background-color: lighten($favourite-base, 5%);
                     }
+
                     .tooltip {
                         background-color: rgba(darken($favourite-base, 15%), 0.98);
                     }
                 }
+
                 &.is-live {
                     background-color: $recording-base;
                     color: #eee;
+
                     // text-shadow: 1px 1px 2px darken($recording-base, 10%);
                     &.is-animated {
                         animation: 1s ease-in-out infinite recording; // @todo: keep?
                     }
+
                     &:hover {
                         background-color: lighten($recording-base, 5%);
                     }
+
                     .tooltip {
                         background-color: rgba($recording-base, 0.95);
                     }
                 }
+
                 &.is-converting {
                     background-color: $converting-base;
+
                     &:hover {
                         background-color: lighten($converting-base, 5%);
                     }
+
                     .tooltip {
                         background-color: rgba($converting-base, 0.95);
                     }
                 }
+
                 &.is-waiting {
                     background-color: $waiting-base;
+
                     &:hover {
                         background-color: lighten($waiting-base, 5%);
                     }
+
                     .tooltip {
                         background-color: rgba($waiting-base, 0.95);
                     }
                 }
+
                 &.is-active {
                     &.is-favourite {
                         border-color: lighten($favourite-base, 60%);
                     }
+
                     &.is-live {
                         border-color: lighten($recording-base, 60%);
                     }
+
                     &.is-converting {
                         border-color: lighten($converting-base, 60%);
                     }
+
                     border-left: 2px solid lighten($base-bg, 60%);
                     color: #fff;
                 }
+
                 .flags {
                     float: right;
+
                     .icon {
                         margin: 0;
                         padding: 0;
                     }
                 }
+
                 .tooltip {
 
                     position: absolute;
@@ -317,24 +360,29 @@ a.linkback {
                     display: none;
                     word-wrap: none;
                     width: max-content;
+
                     .boxart-carousel {
                         margin: 5px 0;
                     }
+
                     .stream-channel {
                         font-size: 1.1em;
                         font-weight: 700;
                     }
+
                     .stream-name {
                         font-size: 0.9em;
-                        color:rgba(255, 255, 255, 0.6);
+                        color: rgba(255, 255, 255, 0.6);
                     }
+
                     /*
                     .stream-title {
                         
                     }
                     */
                 }
-                &:hover > .tooltip {
+
+                &:hover>.tooltip {
                     display: block;
                 }
             }

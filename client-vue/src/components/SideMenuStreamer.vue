@@ -19,7 +19,7 @@
                 {{ streamer.display_name }}
                 <template v-if="streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }})</template>
             </span>
-            <span class="vodcount">{{ streamer.vods_list.length }}</span>
+            <span class="vodcount" :data-count="streamer.vods_list.length">{{ streamer.vods_list.length }}</span>
             <span class="subtitle">
                 <template v-if="streamer.is_live">
                     <template v-if="streamer.current_game && nonGameCategories.includes(streamer.current_game.name)">
