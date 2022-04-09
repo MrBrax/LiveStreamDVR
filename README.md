@@ -76,13 +76,14 @@ Specify the data directory to use.
 ---
 
 ### Main requirements
+- [node.js](https://nodejs.org/) 14+
+- npm and yarn
 - HTTPS enabled with a valid certificate on the default port 443
 - Python 3.7+
 - [pip](https://pypi.org/project/pip/)
 - [FFmpeg](https://ffmpeg.org/download.html)
 - [MediaInfo](https://mediaarea.net/en/MediaInfo)
-- [TwitchDownloader](https://github.com/lay295/TwitchDownloader) (optional for chat burning)
-- [node.js](https://nodejs.org/) (optional, for live chat dumping)
+- [TwitchDownloader](https://github.com/lay295/TwitchDownloader) (optional for chat downloading and burning)
 - Public facing webserver (nginx, apache, etc) for reverse proxy (optional)
 
 ### pip packages
