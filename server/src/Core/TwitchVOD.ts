@@ -1040,7 +1040,7 @@ export class TwitchVOD {
 
         this.chapters.forEach((chapter, i) => {
             let offset = chapter.offset;
-            if (!offset) return;
+            if (offset === undefined) return;
 
             offset -= this.chapters[0].offset || 0;
 

@@ -448,7 +448,7 @@
                     >
                         <!-- start timestamp -->
                         <td data-contents="offset" :title="formatDate(chapter.started_at)">
-                            {{ chapter.offset ? humanDuration(chapter.offset) : "Unknown" }}
+                            {{ chapter.offset !== undefined ? humanDuration(chapter.offset) : "Unknown" }}
                         </td>
 
                         <!-- start time -->
