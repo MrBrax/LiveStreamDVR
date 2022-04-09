@@ -8,7 +8,7 @@ import { TwitchVODChapterJSON } from "Storage/JSON";
 import { VideoQuality } from "../../../common/Config";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { ChannelUpdateEvent } from "../../../common/TwitchAPI/EventSub/ChannelUpdate";
-import { AppRoot, BaseConfigFolder } from "./BaseConfig";
+import { AppRoot, BaseConfigDataFolder } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchChannel } from "./TwitchChannel";
@@ -345,7 +345,7 @@ export class TwitchAutomator {
             } as ChapterUpdateData);
 
             // append chapter to history
-            fs.writeFileSync(path.join(BaseConfigFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify(chapter) + "\n", { flag: "a" });
+            fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify(chapter) + "\n", { flag: "a" });
 
             TwitchLog.logAdvanced(
                 LOGLEVEL.SUCCESS,

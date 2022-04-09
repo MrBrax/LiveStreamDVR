@@ -2,7 +2,7 @@ import chalk from "chalk";
 import { format } from "date-fns";
 import fs from "fs";
 import path from "path";
-import { BaseConfigFolder } from "./BaseConfig";
+import { BaseConfigDataFolder } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { TwitchConfig } from "./TwitchConfig";
 
@@ -44,7 +44,7 @@ export class TwitchLog {
         console.log(chalk.blue("Read today's log..."));
         const today = format(new Date(), "yyyy-MM-dd");
         const filename = `${today}.log`;
-        const filepath = path.join(BaseConfigFolder.logs, filename);
+        const filepath = path.join(BaseConfigDataFolder.logs, filename);
         const jsonlinename = `${filepath}.jsonline`;
 
         if (!fs.existsSync(filepath)) {
@@ -74,7 +74,7 @@ export class TwitchLog {
         if (process.env.NODE_ENV == "test") return;
 
         // check if folder exists
-        if (!fs.existsSync(BaseConfigFolder.logs)) {
+        if (!fs.existsSync(BaseConfigDataFolder.logs)) {
             throw new Error("Log folder does not exist!");
         }
 
@@ -93,7 +93,7 @@ export class TwitchLog {
         // today's filename in Y-m-d format
         const date = new Date();
         const filename = format(date, "yyyy-MM-dd") + ".log";
-        const filepath = path.join(BaseConfigFolder.logs, filename);
+        const filepath = path.join(BaseConfigDataFolder.logs, filename);
         const jsonlinename = `${filepath}.jsonline`;
 
         const dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
@@ -175,7 +175,7 @@ export class TwitchLog {
         }
 
         const filename = `${date}.log`;
-        const filepath = path.join(BaseConfigFolder.logs, filename);
+        const filepath = path.join(BaseConfigDataFolder.logs, filename);
         const jsonlinename = `${filepath}.jsonline`;
 
         if (!fs.existsSync(filepath)) {

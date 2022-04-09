@@ -2,7 +2,7 @@ import axios from "axios";
 import chalk from "chalk";
 import fs from "fs";
 import { SettingField } from "../../../common/Config";
-import { AppName, AppRoot, BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
+import { AppName, AppRoot, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchChannel } from "./TwitchChannel";
@@ -12,6 +12,9 @@ import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import crypto from "crypto";
 import path from "path";
 import { ClientBroker } from "./ClientBroker";
+import minimist from "minimist";
+
+const argv = minimist(process.argv.slice(2));
 
 export class TwitchConfig {
 
@@ -280,7 +283,14 @@ export class TwitchConfig {
 
     static async setupAxios() {
 
-        const token = await TwitchHelper.getAccessToken();
+        let token;
+        try {
+            token = await TwitchHelper.getAccessToken();
+        } catch (error) {
+            console.error(`Failed to get access token: ${error}`);
+            return;
+        }
+
         if (!token) {
             TwitchLog.logAdvanced(LOGLEVEL.FATAL, "config", "Could not get access token!");
             throw new Error("Could not get access token!");
@@ -301,8 +311,16 @@ export class TwitchConfig {
         for (const folder of Object.values(BaseConfigFolder)) {
             if (!fs.existsSync(folder)) {
                 console.warn(chalk.yellow(`Folder '${folder}' does not exist, creating.`));
-                fs.mkdirSync(folder);
+                fs.mkdirSync(folder, { recursive: true });
                 console.log(chalk.green(`Created folder: ${folder}`));
+            }
+        }
+
+        for (const folder of Object.values(BaseConfigDataFolder)) {
+            if (!fs.existsSync(folder)) {
+                console.warn(chalk.yellow(`Data folder '${folder}' does not exist, creating.`));
+                fs.mkdirSync(folder, { recursive: true });
+                console.log(chalk.green(`Created data folder: ${folder}`));
             }
         }
 
@@ -435,6 +453,11 @@ export class TwitchConfig {
 
         this.initialised = true;
 
+    }
+
+    static get debug(): boolean {
+        if (argv.debug) return true;
+        return this.cfg("debug");
     }
 
 }

@@ -10,7 +10,7 @@ import { Audio, MediaInfo, Video } from "../../../common/mediainfofield";
 import { AudioStream, FFProbe, FFProbeStream, VideoStream } from "../../../common/FFProbe";
 import { EventSubTypes } from "../../../common/TwitchAPI/Shared";
 import { Subscriptions } from "../../../common/TwitchAPI/Subscriptions";
-import { BaseConfigFolder } from "./BaseConfig";
+import { BaseConfigDataFolder, BaseConfigFolder } from "./BaseConfig";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchConfig } from "./TwitchConfig";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
@@ -34,7 +34,7 @@ export class TwitchHelper {
 
     static accessToken = "";
 
-    static readonly accessTokenFile = path.join(BaseConfigFolder.cache, "oauth.bin");
+    static readonly accessTokenFile = path.join(BaseConfigDataFolder.cache, "oauth.bin");
 
     static readonly accessTokenExpire = 60 * 60 * 24 * 60 * 1000; // 60 days
     static readonly accessTokenRefresh = 60 * 60 * 24 * 30 * 1000; // 30 days
@@ -130,7 +130,7 @@ export class TwitchHelper {
     }
 
     public static vodFolder(username = "") {
-        return BaseConfigFolder.vod + (TwitchConfig.cfg("channel_folders") && username !== "" ? path.sep + username : "");
+        return BaseConfigDataFolder.vod + (TwitchConfig.cfg("channel_folders") && username !== "" ? path.sep + username : "");
     }
 
     public static JSDateToPHPDate(date: Date) {

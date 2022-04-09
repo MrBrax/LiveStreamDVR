@@ -6,14 +6,16 @@ import { Auth } from "Helpers/Auth";
 import morgan from "morgan";
 import path from "path";
 import { WebSocketServer } from "ws";
-import { AppName, BaseConfigFolder } from "./Core/BaseConfig";
+import { AppName, BaseConfigDataFolder, BaseConfigFolder } from "./Core/BaseConfig";
 import { ClientBroker } from "./Core/ClientBroker";
 import { TwitchConfig } from "./Core/TwitchConfig";
 import ApiRouter from "./Routes/Api";
-// import WebSocketRouter from "./Routes/WebSocket";
+import minimist from "minimist";
+
+const argv = minimist(process.argv.slice(2));
 
 // for overriding port if you can't or don't want to use the web gui to change it
-const override_port = process.argv && process.argv.length > 2 && process.argv[2] ? parseInt(process.argv[2]) : undefined;
+const override_port = argv.port ? parseInt(argv.port as string) : undefined;
 
 // load all required config files and cache stuff
 TwitchConfig.init().then(() => {
@@ -59,9 +61,9 @@ TwitchConfig.init().then(() => {
     // static files and storage
     baserouter.use(express.static(BaseConfigFolder.client));
     baserouter.use("/vodplayer", express.static(BaseConfigFolder.vodplayer));
-    baserouter.use("/vods", express.static(BaseConfigFolder.vod));
-    baserouter.use("/saved_vods", express.static(BaseConfigFolder.saved_vods));
-    baserouter.use("/saved_clips", express.static(BaseConfigFolder.saved_clips));
+    baserouter.use("/vods", express.static(BaseConfigDataFolder.vod));
+    baserouter.use("/saved_vods", express.static(BaseConfigDataFolder.saved_vods));
+    baserouter.use("/saved_clips", express.static(BaseConfigDataFolder.saved_clips));
 
     // send index.html for all other routes, so that SPA routes are handled correctly
     baserouter.use("*", (req, res) => {

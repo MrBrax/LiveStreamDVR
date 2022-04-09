@@ -14,7 +14,7 @@ import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { Video, VideosResponse } from "../../../common/TwitchAPI/Video";
 import { VodUpdated } from "../../../common/Webhook";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../Storage/JSON";
-import { BaseConfigFolder } from "./BaseConfig";
+import { BaseConfigDataFolder } from "./BaseConfig";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchConfig } from "./TwitchConfig";
@@ -1367,7 +1367,7 @@ export class TwitchVOD {
 
     public archive(): void {
 
-        this.move(BaseConfigFolder.saved_vods);
+        this.move(BaseConfigDataFolder.saved_vods);
 
         const channel = this.getChannel();
         if (channel) channel.removeVod(this.basename);
@@ -1653,7 +1653,7 @@ export class TwitchVOD {
         }
 
         args.push("--mode", "ChatRender");
-        args.push("--temp-path", BaseConfigFolder.cache);
+        args.push("--temp-path", BaseConfigDataFolder.cache);
         args.push("--ffmpeg-path", ffmpeg_bin);
         args.push("--input", path.normalize(use_downloaded ? this.path_chat : this.path_chatdump));
         args.push("--chat-height", (chat_height ? chat_height : this.video_metadata.height).toString());
@@ -1670,9 +1670,9 @@ export class TwitchVOD {
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Running ${bin} ${args.join(" ")}`);
 
         const env = {
-            DOTNET_BUNDLE_EXTRACT_BASE_DIR: BaseConfigFolder.dotnet,
+            DOTNET_BUNDLE_EXTRACT_BASE_DIR: BaseConfigDataFolder.dotnet,
             // PATH: path.dirname(TwitchHelper.path_ffmpeg()),
-            TEMP: BaseConfigFolder.cache,
+            TEMP: BaseConfigDataFolder.cache,
         };
 
         return new Promise((resolve, reject) => {
@@ -1955,7 +1955,7 @@ export class TwitchVOD {
 
             const args: string[] = [];
             args.push("--mode", "ChatDownload");
-            args.push("--temp-path", BaseConfigFolder.cache);
+            args.push("--temp-path", BaseConfigDataFolder.cache);
             args.push("--id", this.twitch_vod_id);
             args.push("-o", this.path_chat);
 
@@ -2200,7 +2200,7 @@ export class TwitchVOD {
 
         const basename = path.basename(filename);
 
-        const capture_filename = path.join(BaseConfigFolder.cache, `${video_id}.ts`);
+        const capture_filename = path.join(BaseConfigDataFolder.cache, `${video_id}.ts`);
         const converted_filename = filename;
 
         // download vod

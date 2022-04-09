@@ -23,6 +23,8 @@
 
 Post issues/help on the issues tab above. I already run an up to date version, so starting fresh might break stuff.
 
+---
+
 ## Docker setup
 
 Reminder that i don't use docker myself on my capturing setup, so any specific errors to this are hard to test.
@@ -44,6 +46,8 @@ Run `docker-compose up --build -d` in the app directory. The `docker-compose.yml
 
 If you want the public webapp to have a custom base folder, you must provide `BASE_URL` and `VUE_APP_BASE_URL` in the environment variable settings.
 
+---
+
 ## Standalone setup
 
 1. Place the downloaded files in a separate folder from your www directory.
@@ -57,8 +61,19 @@ If you want the public webapp to have a custom base folder, you must provide `BA
 8. Optionally add cronjobs shown on the settings page.
 9. Check stored vods in the `/storage` directory. Permissions might be an issue.
 
-
 Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in-subdirectory
+
+## Command line arguments
+### `--port <number>`
+Specify port to run the server on.
+
+### `--debug`
+Run the server in debug mode.
+
+### `--dataroot <path>`
+Specify the data directory to use.
+
+---
 
 ### Main requirements
 - HTTPS enabled with a valid certificate on the default port 443

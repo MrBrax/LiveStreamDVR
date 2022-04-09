@@ -1,4 +1,4 @@
-import { AppRoot, BaseConfigFolder } from "../Core/BaseConfig";
+import { AppRoot, BaseConfigDataFolder } from "../Core/BaseConfig";
 import express from "express";
 import fs from "fs";
 import path from "path";
@@ -90,7 +90,7 @@ export async function About(req: express.Request, res: express.Response) {
 
 
     const pip_pkg: Record<string, { binary: string | false; version_args: string[]; version_regex: RegExp; }> = {
-        tcd: { binary: TwitchHelper.path_tcd(), version_args: ["--version", "--settings-file", path.join(BaseConfigFolder.config, "tcd_settings.json")], version_regex: /^Twitch Chat Downloader\s+([0-9.]+)$/m },
+        tcd: { binary: TwitchHelper.path_tcd(), version_args: ["--version", "--settings-file", path.join(BaseConfigDataFolder.config, "tcd_settings.json")], version_regex: /^Twitch Chat Downloader\s+([0-9.]+)$/m },
         streamlink: { binary: TwitchHelper.path_streamlink(), version_args: ["--version"], version_regex: /^streamlink\s+([0-9.]+)$/m },
         "youtubedl": { binary: TwitchHelper.path_youtubedl(), version_args: ["--version"], version_regex: /^([0-9.]+)$/m },
         pipenv: { binary: TwitchHelper.path_pipenv(), version_args: ["--version"], version_regex: /^pipenv, version ([0-9.]+)$/m },
@@ -138,7 +138,7 @@ export async function About(req: express.Request, res: express.Response) {
 
     const cron_lastrun: Record<string, string> = {};
     for (const cron of ["check_deleted_vods", "check_muted_vods", "dump_playlists"]) {
-        const fp = path.join(BaseConfigFolder.cron, cron);
+        const fp = path.join(BaseConfigDataFolder.cron, cron);
         if (fs.existsSync(fp)) {
             const t = fs.readFileSync(fp, "utf8");
             cron_lastrun[cron] = new Date(parseInt(t)).toISOString();

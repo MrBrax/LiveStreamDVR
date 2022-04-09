@@ -11,7 +11,7 @@ import type { ErrorResponse, EventSubTypes } from "../../../common/TwitchAPI/Sha
 import type { Stream, StreamsResponse } from "../../../common/TwitchAPI/Streams";
 import type { SubscriptionRequest, SubscriptionResponse } from "../../../common/TwitchAPI/Subscriptions";
 import type { UsersResponse } from "../../../common/TwitchAPI/Users";
-import { BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
+import { BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchConfig } from "./TwitchConfig";
 import { TwitchGame } from "./TwitchGame";
@@ -604,7 +604,7 @@ export class TwitchChannel {
         }
 
         if (TwitchConfig.cfg("channel_folders")) {
-            const folders = fs.readdirSync(BaseConfigFolder.vod);
+            const folders = fs.readdirSync(BaseConfigDataFolder.vod);
             for (const folder of folders) {
                 if (folder == ".gitkeep") continue;
                 if (!this.channels_config.find(ch => ch.login === folder)) {

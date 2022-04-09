@@ -3,7 +3,7 @@ import events from "events";
 import fs from "fs";
 import { replaceAll } from "Helpers/ReplaceAll";
 import path from "path";
-import { BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
+import { BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
 
 export class KeyValue {
 
@@ -143,13 +143,13 @@ export class KeyValue {
 
     static migrateFromFileBasedKeyValue() {
         console.log(chalk.blue("Migrating key-value pairs..."));
-        const files = fs.readdirSync(BaseConfigFolder.keyvalue).filter(file => !file.endsWith(".json"));
+        const files = fs.readdirSync(BaseConfigDataFolder.keyvalue).filter(file => !file.endsWith(".json"));
         let migrated = 0;
         for (const file of files) {
             // const key = file.replace(".json", "");
-            const value = fs.readFileSync(path.join(BaseConfigFolder.keyvalue, file), "utf8");
+            const value = fs.readFileSync(path.join(BaseConfigDataFolder.keyvalue, file), "utf8");
             this.set(file, value);
-            fs.unlinkSync(path.join(BaseConfigFolder.keyvalue, file));
+            fs.unlinkSync(path.join(BaseConfigDataFolder.keyvalue, file));
             migrated++;
         }
         if (migrated > 0) {

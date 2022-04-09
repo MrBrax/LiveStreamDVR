@@ -3,8 +3,8 @@ import express from "express";
 import fs from "fs";
 import { ApiErrorResponse, ApiLogResponse } from "../../../common/Api/Api";
 import { ApiLogLine } from "../../../common/Api/Client";
-import { BaseConfigFolder } from "../Core/BaseConfig";
-import { LogLine, TwitchLog } from "../Core/TwitchLog";
+import { BaseConfigDataFolder } from "../Core/BaseConfig";
+import { TwitchLog } from "../Core/TwitchLog";
 
 export function GetLog(req: express.Request, res: express.Response) {
     
@@ -35,7 +35,7 @@ export function GetLog(req: express.Request, res: express.Response) {
 
     const line_num = log_lines.length;
     
-    const logfiles = fs.readdirSync(BaseConfigFolder.logs).filter(f => f.endsWith(".jsonline")).map(f => f.replace(".log.jsonline", ""));
+    const logfiles = fs.readdirSync(BaseConfigDataFolder.logs).filter(f => f.endsWith(".jsonline")).map(f => f.replace(".log.jsonline", ""));
 
     res.send({
         data: {

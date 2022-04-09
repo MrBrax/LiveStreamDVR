@@ -22,6 +22,7 @@ export class TwitchGame {
     public added!: Date;
 
     public static populateGameDatabase(): void {
+        if (!fs.existsSync(BaseConfigPath.gameDb)) return;
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Populating game database...");
         this.game_db = {};
         const raw_games: Record<string, TwitchGameJSON> = JSON.parse(fs.readFileSync(BaseConfigPath.gameDb, "utf8"));

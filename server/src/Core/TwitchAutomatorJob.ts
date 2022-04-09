@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-import { BaseConfigFolder } from "./BaseConfig";
+import { BaseConfigDataFolder } from "./BaseConfig";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { PHPDateTimeProxy } from "../types";
 import { ExecReturn, TwitchHelper } from "./TwitchHelper";
@@ -61,7 +61,7 @@ export class TwitchAutomatorJob extends EventEmitter {
     }
 
     public static loadJobsFromCache() {
-        const jobs = fs.readdirSync(BaseConfigFolder.pids).filter(f => f.endsWith(".json"));
+        const jobs = fs.readdirSync(BaseConfigDataFolder.pids).filter(f => f.endsWith(".json"));
         for (const job_data of jobs) {
             TwitchAutomatorJob.load(job_data.replace(".json", ""));
         }
@@ -87,7 +87,7 @@ export class TwitchAutomatorJob extends EventEmitter {
 
     public static create(name: string): TwitchAutomatorJob {
 
-        const basepath = BaseConfigFolder.pids;
+        const basepath = BaseConfigDataFolder.pids;
 
         // if(file_exists(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . ".json")){
         // 	TwitchLog.logAdvanced(LOGLEVEL.WARNING, "job", "Creating job {$name} overwrites existing!");
@@ -116,7 +116,7 @@ export class TwitchAutomatorJob extends EventEmitter {
             return memJob;
         }
 
-        const basepath = BaseConfigFolder.pids;
+        const basepath = BaseConfigDataFolder.pids;
 
         const job = new this();
         job.name = name;
@@ -427,7 +427,7 @@ export class TwitchAutomatorJob extends EventEmitter {
      */
     public startLog(filename: string, start_text: string): void {
 
-        const logs_path = path.join(BaseConfigFolder.logs, "software");
+        const logs_path = path.join(BaseConfigDataFolder.logs, "software");
 
         this.logfile = filename;
 
