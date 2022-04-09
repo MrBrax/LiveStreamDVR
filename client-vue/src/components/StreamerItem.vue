@@ -60,8 +60,16 @@
             </div>
         </div>
 
-        <div v-if="streamer.vods_list.length == 0" class="notice">None</div>
+        <div class="streamer-clips" v-if="streamer.clips_list && streamer.clips_list.length > 0">
+            <div class="streamer-clips-title"><h3>Clips</h3></div>
+            <ul>
+                <li v-for="clip in streamer.clips_list" :key="clip">
+                    <a :href="clipLink(clip)" target="_blank">{{ clip }}</a>
+                </li>
+            </ul>
+        </div>
 
+        <div v-if="streamer.vods_list.length == 0" class="notice">None</div>
         <div v-else>
             <vod-item v-for="vod in streamer.vods_list" :key="vod.basename" v-bind:vod="vod" @refresh="refresh" />
         </div>
@@ -112,6 +120,7 @@ import { faVideo, faPlayCircle, faVideoSlash, faDownload } from "@fortawesome/fr
 // import { TwitchAPI } from "@/twitchapi";
 import { Video } from "@common/TwitchAPI/Video";
 import TwitchChannel from "@/core/channel";
+import { useStore } from "@/store";
 library.add(faVideo, faPlayCircle, faVideoSlash, faDownload);
 
 export default defineComponent({
@@ -125,7 +134,8 @@ export default defineComponent({
     }),
     setup() {
         const videoDownloadMenu = ref<InstanceType<typeof ModalBox>>();
-        return { videoDownloadMenu };
+        const store = useStore();
+        return { videoDownloadMenu, store };
     },
     methods: {
         refresh() {
@@ -292,6 +302,9 @@ export default defineComponent({
         imageUrl(url: string, width: number, height: number) {
             return url.replace(/%\{width\}/g, width.toString()).replace(/%\{height\}/g, height.toString());
         },
+        clipLink(name: string): string {
+            return `${this.store.cfg("basepath")}/saved_clips/${name}`;
+        },
     },
     computed: {
         quality(): string | undefined {
@@ -321,6 +334,25 @@ export default defineComponent({
     padding: 1em;
     &:not(:last-child) {
         margin-bottom: 1em;
+    }
+}
+
+.streamer-clips {
+    background-color: #2b2b2b;
+    .streamer-clips-title {
+        padding: 5px;
+        background: #116d3c;
+        color: #fff;
+        h3 {
+            font-size: 1.2em;
+            margin: 0;
+            padding: 0;
+        }
+    }
+    ul {
+        display: block;
+        margin: 0;
+        padding: 1em 2em;
     }
 }
 </style>

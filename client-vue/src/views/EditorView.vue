@@ -27,27 +27,39 @@
                 </div>
             </div>
 
-            <div class="videoplayer-cut">
+            <div class="videoplayer-form">
                 <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
                     <input type="hidden" name="vod" value="{{ vodData.basename }}" />
 
-                    <div>
-                        <button type="button" class="button" @click="timeIn = Math.round(currentVideoTime)">Mark in</button>
-                        <input class="input" name="time_in" v-model="timeIn" placeholder="In timestamp" />
+                    <div class="field">
+                        <div class="control">
+                            <button type="button" class="button" @click="frameIn = Math.round(currentVideoTime)">Mark in</button>
+                            <input class="input" name="time_in" v-model="frameIn" placeholder="In timestamp" />
+                        </div>
                     </div>
 
-                    <div>
-                        <button type="button" class="button" @click="timeOut = Math.round(currentVideoTime)">Mark out</button>
-                        <input class="input" name="time_out" v-model="timeOut" placeholder="Out timestamp" />
+                    <div class="field">
+                        <div class="control">
+                            <button type="button" class="button" @click="frameOut = Math.round(currentVideoTime)">Mark out</button>
+                            <input class="input" name="time_out" v-model="frameOut" placeholder="Out timestamp" />
+                        </div>
                     </div>
 
-                    <div>
-                        <input class="input" type="text" name="name" v-model="cutName" placeholder="Name (optional)" />
+                    <div class="field">
+                        <div class="control"><strong>Duration:</strong> {{ cutSegmentlength > 0 ? humanDuration(cutSegmentlength) : "Error" }}</div>
                     </div>
 
-                    <div>
-                        <button type="submit" class="button">Submit cut</button>
-                        <span :class="formStatusClass">{{ formStatusText }}</span>
+                    <div class="field">
+                        <div class="control">
+                            <input class="input" type="text" name="name" v-model="cutName" placeholder="Name (optional)" />
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="control">
+                            <button type="submit" class="button">Submit cut</button>
+                            <span :class="formStatusClass">{{ formStatusText }}</span>
+                        </div>
                     </div>
                 </form>
 
@@ -77,8 +89,8 @@ export default defineComponent({
     data() {
         return {
             vodData: {} as ApiVod,
-            timeIn: 0,
-            timeOut: 0,
+            frameIn: 0,
+            frameOut: 0,
             currentVideoTime: 0,
             cutName: "",
             formStatusText: "Ready",
@@ -125,8 +137,8 @@ export default defineComponent({
         scrub(tIn: number, tOut: number) {
             // const gameOffset = this.vodData.game_offset; // @todo: why
             const gameOffset = 0;
-            this.timeIn = Math.round(tIn - gameOffset);
-            this.timeOut = Math.round(tIn + tOut - gameOffset);
+            this.frameIn = Math.round(tIn - gameOffset);
+            this.frameOut = Math.round(tIn + tOut - gameOffset);
             // this.$forceUpdate();
         },
         seek(event: MouseEvent) {
@@ -144,6 +156,7 @@ export default defineComponent({
             this.currentVideoTime = (event.target as HTMLVideoElement).currentTime;
         },
         submitForm(event: Event) {
+            /*
             console.log("submit", this.timeIn, this.timeOut, this.cutName);
 
             const form = event.target as HTMLFormElement;
@@ -154,6 +167,17 @@ export default defineComponent({
 
             console.log("form", form);
             console.log("entries", inputs, inputs.entries(), inputs.values());
+            */
+
+            this.formStatusText = "Loading...";
+            this.formStatus = "";
+
+            const inputs = {
+                vod: this.vodData.basename,
+                time_in: this.frameIn,
+                time_out: this.frameOut,
+                name: this.cutName,
+            };
 
             this.$http
                 .post(`/api/v0/vod/${this.vod}/cut`, inputs)
@@ -166,7 +190,10 @@ export default defineComponent({
                     }
                 })
                 .catch((err) => {
+                    const json = err.response.data;
                     console.error("form error", err.response);
+                    this.formStatus = json.status;
+                    this.formStatusText = json.message;
                 });
 
             event.preventDefault();
@@ -178,8 +205,8 @@ export default defineComponent({
             if (!this.currentVideoTime) return { left: "0%", right: "100%" };
             const dur = (this.$refs.player as HTMLVideoElement).duration;
             return {
-                left: (this.timeIn / dur) * 100 + "%",
-                right: 100 - (this.timeOut / dur) * 100 + "%",
+                left: (this.frameIn / dur) * 100 + "%",
+                right: 100 - (this.frameOut / dur) * 100 + "%",
             };
         },
         timelinePlayheadStyle(): Record<string, string> {
@@ -195,6 +222,11 @@ export default defineComponent({
                 "is-error": this.formStatus == "ERROR",
                 "is-success": this.formStatus == "OK",
             };
+        },
+        cutSegmentlength(): number {
+            if (!this.vodData.video_metadata) return 0;
+            const fps = this.vodData.video_metadata?.fps;
+            return (this.frameOut - this.frameIn) / fps;
         },
     },
 });

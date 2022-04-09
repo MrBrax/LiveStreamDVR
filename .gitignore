@@ -21,6 +21,7 @@ phpDocumentor.phar
 public/saved_vods/
 public/vods/
 storage/saved_vods/
+storage/saved_clips/
 storage/vods/
 style.css.map
 vendor/

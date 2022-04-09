@@ -627,6 +627,92 @@ export class TwitchHelper {
 
     }
 
+    static cutFile(input: string, output: string, start_second: number, end_second: number, overwrite = false): Promise<RemuxReturn> {
+
+        return new Promise((resolve, reject) => {
+
+            const ffmpeg_path = this.path_ffmpeg();
+
+            if (!ffmpeg_path) {
+                reject(new Error("Failed to find ffmpeg"));
+                return;
+            }
+
+            const emptyFile = fs.existsSync(output) && fs.statSync(output).size == 0;
+
+            if (!overwrite && fs.existsSync(output) && !emptyFile) {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Output file ${output} already exists`);
+                reject(new Error(`Output file ${output} already exists`));
+                return;
+            }
+
+            if (emptyFile) {
+                fs.unlinkSync(output);
+            }
+
+            const opts: string[] = [];
+            opts.push("-i", input);
+            opts.push("-ss", start_second.toString());
+            opts.push("-t", (end_second-start_second).toString());
+            opts.push("-c", "copy");
+            // opts.push("-bsf:a", "aac_adtstoasc");
+            // ...ffmpeg_options,
+            // output,
+
+            if (TwitchConfig.cfg("debug") || TwitchConfig.cfg("app_verbose")) {
+                opts.push("-loglevel", "repeat+level+verbose");
+            }
+
+            opts.push(output);
+
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Cutting ${input} to ${output}`);
+
+            const job = TwitchHelper.startJob(ffmpeg_path, opts, `cut_${path.basename(input)}`);
+
+            if (!job || !job.process) {
+                reject(new Error(`Failed to start job for cutting ${input} to ${output}`));
+                return;
+            }
+
+            job.process.on("error", (err) => {
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
+                // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
+                reject(new Error(`Process ${process.pid} error: ${err}`));
+            });
+
+            job.process.on("close", (code) => {
+                if (job) {
+                    job.clear();
+                }
+                // const out_log = ffmpeg.stdout.read();
+                const success = fs.existsSync(output) && fs.statSync(output).size > 0;
+                if (success) {
+                    TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Cut ${input} to ${output} success`);
+                    resolve({ code: code || -1, success, stdout: job.stdout, stderr: job.stderr });
+                } else {
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to cut ${path.basename(input)} to ${path.basename(output)}`);
+                    // reject({ code, success, stdout: job.stdout, stderr: job.stderr });
+
+                    let message = "Unknown error";
+                    const errorSearch = job.stderr.join("").match(/\[error\] (.*)/g);
+                    if (errorSearch && errorSearch.length > 0) {
+                        message = errorSearch.slice(1).join(", ");
+                    }
+
+                    if (fs.existsSync(output) && fs.statSync(output).size == 0) {
+                        fs.unlinkSync(output);
+                    }
+
+                    // for (const err of errorSearch) {
+                    //    message = err[1];
+                    reject(new Error(`Failed to cut ${path.basename(input)} to ${path.basename(output)}: ${message}`));
+                }
+            });
+
+        });
+
+    }
+
     // https://stackoverflow.com/a/2510459
     static formatBytes(bytes: number, precision = 2): string {
 

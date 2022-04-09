@@ -215,6 +215,9 @@ export type ApiChannel = {
 
     // api_getSubscriptionStatus: SubStatus;
     api_getSubscriptionStatus: boolean;
+
+    clips_list: string[];
+
 };
 
 export type ApiSubscription = {

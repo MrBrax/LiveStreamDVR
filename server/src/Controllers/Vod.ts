@@ -1,4 +1,7 @@
+import { BaseConfigDataFolder } from "Core/BaseConfig";
+import { TwitchHelper } from "Core/TwitchHelper";
 import express from "express";
+import path from "path";
 import { ApiErrorResponse, ApiResponse, ApiVodResponse } from "../../../common/Api/Api";
 import { VideoQuality } from "../../../common/Config";
 import { VideoQualityArray } from "../../../common/Defs";
@@ -262,8 +265,104 @@ export async function MatchVod(req: express.Request, res: express.Response): Pro
 
 }
 
-// export async function CutVod(req: express.Request, res: express.Response): Promise<void> {
-// 
-//     
-// 
-// }
+export async function CutVod(req: express.Request, res: express.Response): Promise<void> {
+
+    const vod = TwitchVOD.getVod(req.params.basename);
+
+    if (!vod) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const time_in = req.body.time_in;
+    const time_out = req.body.time_out;
+    const segment_name = req.body.name || "clip";
+
+    if (time_in === undefined || time_out === undefined) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Missing time_in or time_out",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (time_in >= time_out) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "time_in must be less than time_out",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (!vod.segments || vod.segments.length == 0) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod has no segments",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (!vod.is_finalized) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod is not finalized",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (!vod.segments[0].basename) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod has no valid first segment",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (!vod.video_metadata) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod has no video metadata",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const fps = vod.video_metadata.fps;
+    const seconds_in = Math.floor(time_in / fps);
+    const seconds_out = Math.floor(time_out / fps);
+
+    const file_in = path.join(vod.directory, vod.segments[0].basename);
+    const file_out = path.join(BaseConfigDataFolder.saved_clips, `${vod.basename}_${time_in}-${time_out}_${segment_name}.mp4`);
+
+    let ret;
+
+    try {
+        ret = await TwitchHelper.cutFile(file_in, file_out, seconds_in, seconds_out);
+    } catch (error) {
+        res.status(400).send({
+            status: "ERROR",
+            message: (error as Error).message || "Unknown error occurred while cutting vod",
+        } as ApiErrorResponse);
+        return;
+    } 
+
+    if (!ret) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Cut failed",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    vod.getChannel()?.findClips();
+
+    res.send({
+        status: "OK",
+        message: "Cut successful",
+    } as ApiResponse);
+
+    return;
+
+}

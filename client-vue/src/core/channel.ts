@@ -15,6 +15,8 @@ export default class TwitchChannel {
     vods_raw: string[] = [];
     vods_list: TwitchVOD[] = [];
 
+    clips_list: string[] = [];
+
     api_getSubscriptionStatus = false;
 
     public static makeFromApiResponse(apiResponse: ApiChannel): TwitchChannel {
@@ -28,6 +30,7 @@ export default class TwitchChannel {
         channel.vods_list = apiResponse.vods_list.map((vod) => TwitchVOD.makeFromApiResponse(vod));
         channel.profile_image_url = apiResponse.profile_image_url;
         channel.api_getSubscriptionStatus = apiResponse.api_getSubscriptionStatus;
+        channel.clips_list = apiResponse.clips_list;
         return channel;
     }
 

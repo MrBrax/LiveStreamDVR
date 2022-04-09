@@ -72,6 +72,8 @@ export class TwitchChannel {
     public vods_raw: string[] = [];
     public vods_list: TwitchVOD[] = [];
 
+    public clips_list: string[] = [];
+
     public subbed_at: Date | undefined;
     public expires_at: Date | undefined;
     public last_online: Date | undefined;
@@ -200,6 +202,7 @@ export class TwitchChannel {
             subbed_at: this.subbed_at ? this.subbed_at.toISOString() : undefined,
             expires_at: this.expires_at ? this.expires_at.toISOString() : undefined,
             last_online: this.last_online ? this.last_online.toISOString() : undefined,
+            clips_list: this.clips_list,
         };
     }
 
@@ -472,6 +475,13 @@ export class TwitchChannel {
         return `https://www.twitch.tv/${this.login}`;
     }
 
+    public findClips() {
+        if (!this.login) return;
+        this.clips_list = [];
+        const clips_on_disk = fs.readdirSync(BaseConfigDataFolder.saved_clips).filter(f => this.login && f.startsWith(this.login));
+        this.clips_list = clips_on_disk.map(f => path.basename(f));
+    }
+
     /**
      * 
      * STATIC
@@ -537,6 +547,8 @@ export class TwitchChannel {
         }
 
         await channel.parseVODs(api);
+
+        channel.findClips();
 
         return channel;
 
