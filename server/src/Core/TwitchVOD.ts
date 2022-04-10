@@ -1967,6 +1967,19 @@ export class TwitchVOD {
                 return;
             }
 
+            let lastPercent = -1;
+            // [STATUS] - Downloading 10%
+            job.on("log", (text: string) => {
+                const match = text.match(/\[STATUS\] - Downloading (\d+)%/);
+                if (match) {
+                    const percent = parseInt(match[1]);
+                    if (percent != lastPercent && percent % 10 == 0) {
+                        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Downloading chat for ${this.basename} (${percent}%)`);
+                        lastPercent = percent;
+                    }
+                }
+            });
+
             job.on("close", (code, signal) => {
                 if (fs.existsSync(this.path_chat) && fs.statSync(this.path_chat).size > 0) {
                     TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat downloaded for ${this.basename}`);

@@ -14,6 +14,8 @@ import { BaseConfigDataFolder, BaseConfigFolder } from "./BaseConfig";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchConfig } from "./TwitchConfig";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
+import { TwitchCommentDump } from "../../../common/Comments";
+import { replaceAll } from "Helpers/ReplaceAll";
 
 export interface ExecReturn {
     stdout: string[];
@@ -186,6 +188,11 @@ export class TwitchHelper {
 
         return str.trim();
 
+    }
+
+    public static twitchDuration(seconds: number): string {
+        return replaceAll(this.getNiceDuration(seconds), " ", "").trim();
+        // return trim(str_replace(" ", "", self::getNiceDuration($seconds)));
     }
 
     /**
@@ -711,6 +718,43 @@ export class TwitchHelper {
 
         });
 
+    }
+
+    // not sure if this is even working correctly, chat is horrible to work with, not even worth it
+    static cutChat(input: string, output: string, start_second: number, end_second: number, overwrite = false): boolean {
+
+        // return new Promise((resolve, reject) => {
+
+        if (!fs.existsSync(input)) {
+            throw new Error(`Input file ${input} does not exist`);
+        }
+
+        if (!overwrite && fs.existsSync(output)) {
+            throw new Error(`Output file ${output} already exists`);
+        }
+
+        const json: TwitchCommentDump = JSON.parse(fs.readFileSync(input, "utf8"));
+
+        // delete comments outside of the time range
+        json.comments = json.comments.filter((comment) => {
+            return comment.content_offset_seconds >= start_second && comment.content_offset_seconds <= end_second;
+        });
+
+        // normalize the offset of each comment
+        const base_offset = json.comments[0].content_offset_seconds;
+        json.comments.forEach((comment) => {
+            comment.content_offset_seconds -= base_offset;
+        });
+
+        // set length
+        // json.video.length = end_second - start_second;
+        json.video.start = 0;
+        json.video.end = end_second - start_second;
+        // json.video.duration = TwitchHelper.twitchDuration(end_second-start_second);
+
+        fs.writeFileSync(output, JSON.stringify(json));
+
+        return fs.existsSync(output) && fs.statSync(output).size > 0;
     }
 
     // https://stackoverflow.com/a/2510459

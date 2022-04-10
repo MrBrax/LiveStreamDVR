@@ -346,7 +346,7 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
             message: (error as Error).message || "Unknown error occurred while cutting vod",
         } as ApiErrorResponse);
         return;
-    } 
+    }
 
     if (!ret) {
         res.status(400).send({
@@ -354,6 +354,24 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
             message: "Cut failed",
         } as ApiErrorResponse);
         return;
+    }
+
+    if (vod.is_chat_downloaded || vod.is_chatdump_captured) {
+
+        const chat_file_in = vod.is_chat_downloaded ? vod.path_chat : vod.path_chatdump;
+        const chat_file_out = path.join(BaseConfigDataFolder.saved_clips, `${vod.basename}_${time_in}-${time_out}_${segment_name}_chat.json`);
+
+        let success;
+        try {
+            success = await TwitchHelper.cutChat(chat_file_in, chat_file_out, seconds_in, seconds_out);
+        } catch (error) {
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "route.vod.cutVod", `Cut chat failed: ${(error as Error).message}`);
+        }
+
+        if (success) {
+            TwitchLog.logAdvanced(LOGLEVEL.INFO, "route.vod.cutVod", `Cut chat ${chat_file_in} to ${chat_file_out} success`);
+        }
+
     }
 
     vod.getChannel()?.findClips();
