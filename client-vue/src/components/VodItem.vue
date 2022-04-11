@@ -801,7 +801,7 @@ import {
 import { useStore } from "@/store";
 import ModalBox from "./ModalBox.vue";
 import { MuteStatus, VideoQualityArray } from "../../../common/Defs";
-import { ApiResponse } from "@common/Api/Api";
+import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import TwitchVOD from "@/core/vod";
 library.add(
     faFileVideo,
@@ -1073,7 +1073,9 @@ export default defineComponent({
                     console.log(json);
 
                     this.$http.get(`/api/v0/settings`).then((response) => {
-                        this.store.updateConfig(response.data.data.config);
+                        const settings_json: ApiSettingsResponse = response.data;
+                        this.store.updateConfig(settings_json.data.config);
+                        this.store.updateFavouriteGames(settings_json.data.favourite_games);
                     });
                 })
                 .catch((err) => {

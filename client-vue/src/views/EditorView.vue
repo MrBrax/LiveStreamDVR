@@ -20,7 +20,7 @@
                     :title="chapter.title + ' | \\n' + chapter.game_name"
                     class="videoplayer-chapter"
                     :style="{ width: chapterWidth(chapter) + '%' }"
-                    @click="scrub(chapter.offset, chapter.duration)"
+                    @click="scrub(chapter.offset || 0, chapter.duration || 0)"
                 >
                     <div class="videoplayer-chapter-title">{{ chapter.title }}</div>
                     <div class="videoplayer-chapter-game">{{ chapter.game_name }}</div>
@@ -33,7 +33,7 @@
 
                     <div class="field">
                         <div class="control">
-                            <button type="button" class="button" @click="setFrameIn(frameIn)">Mark in</button>
+                            <button type="button" class="button" @click="setFrameIn(currentVideoTime)">Mark in</button>
                             <input class="input" name="time_in" v-model="frameIn" placeholder="In timestamp" />
                         </div>
                     </div>
@@ -81,7 +81,6 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import type { ApiVod } from "@common/Api/Client";
 import { TwitchVODChapter } from "@/core/chapter";
 import TwitchVOD from "@/core/vod";
 
@@ -204,9 +203,9 @@ export default defineComponent({
             return false;
         },
         chapterWidth(chapter: TwitchVODChapter): number {
-            const player = (this.$refs.player as HTMLVideoElement);
+            const player = this.$refs.player as HTMLVideoElement;
             if (!player) return 0;
-            const chapterOffset = chapter.offset || 0;
+            // const chapterOffset = chapter.offset || 0;
             const chapterDuration = chapter.duration || 0;
             const videoDuration = player.duration;
             const width = (chapterDuration / videoDuration) * 100;

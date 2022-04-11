@@ -478,7 +478,7 @@ export class TwitchChannel {
     public findClips() {
         if (!this.login) return;
         this.clips_list = [];
-        const clips_on_disk = fs.readdirSync(BaseConfigDataFolder.saved_clips).filter(f => this.login && f.startsWith(this.login));
+        const clips_on_disk = fs.readdirSync(BaseConfigDataFolder.saved_clips).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".mp4"));
         this.clips_list = clips_on_disk.map(f => path.basename(f));
     }
 
