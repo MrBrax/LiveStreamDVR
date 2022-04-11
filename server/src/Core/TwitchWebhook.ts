@@ -32,7 +32,7 @@ export class TwitchWebhook {
 
         // console.log("Webhook:", action, data);
 
-        if (TwitchConfig.cfg("debug")) console.log(chalk.bgGrey.whiteBright(`WebSocket payload ${action} dispatching...`));
+        if (TwitchConfig.debug) console.log(chalk.bgGrey.whiteBright(`WebSocket payload ${action} dispatching...`));
 
         // send websocket broadcast
         const payload = {

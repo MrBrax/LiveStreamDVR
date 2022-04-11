@@ -824,7 +824,7 @@ export class TwitchAutomator {
             cmd.push("--twitch-disable-reruns");
 
             // logging level
-            if (TwitchConfig.cfg("debug", false)) {
+            if (TwitchConfig.debug) {
                 cmd.push("--loglevel", "debug");
             } else if (TwitchConfig.cfg("app_verbose", false)) {
                 cmd.push("--loglevel", "info");

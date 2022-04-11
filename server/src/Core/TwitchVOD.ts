@@ -2247,7 +2247,7 @@ export class TwitchVOD {
             cmd.push("--default-stream", quality); // twitch url and quality
 
             // logging level
-            if (TwitchConfig.cfg("debug", false)) {
+            if (TwitchConfig.debug) {
                 cmd.push("--loglevel", "debug");
             } else if (TwitchConfig.cfg("app_verbose", false)) {
                 cmd.push("--loglevel", "info");
