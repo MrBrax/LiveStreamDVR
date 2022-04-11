@@ -19,7 +19,7 @@
                     :key="chapterIndex"
                     :title="chapter.title + ' | \\n' + chapter.game_name"
                     class="videoplayer-chapter"
-                    :style="{ width: /* chapter.width */ 999 + '%' }"
+                    :style="{ width: chapterWidth(chapter) + '%' }"
                     @click="scrub(chapter.offset, chapter.duration)"
                 >
                     <div class="videoplayer-chapter-title">{{ chapter.title }}</div>
@@ -33,14 +33,14 @@
 
                     <div class="field">
                         <div class="control">
-                            <button type="button" class="button" @click="frameIn = Math.round(currentVideoTime)">Mark in</button>
+                            <button type="button" class="button" @click="setFrameIn(frameIn)">Mark in</button>
                             <input class="input" name="time_in" v-model="frameIn" placeholder="In timestamp" />
                         </div>
                     </div>
 
                     <div class="field">
                         <div class="control">
-                            <button type="button" class="button" @click="frameOut = Math.round(currentVideoTime)">Mark out</button>
+                            <button type="button" class="button" @click="setFrameOut(currentVideoTime)">Mark out</button>
                             <input class="input" name="time_out" v-model="frameOut" placeholder="Out timestamp" />
                         </div>
                     </div>
@@ -82,13 +82,15 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import type { ApiVod } from "@common/Api/Client";
+import { TwitchVODChapter } from "@/core/chapter";
+import TwitchVOD from "@/core/vod";
 
 export default defineComponent({
     name: "EditorView",
     title: "Editor",
     data() {
         return {
-            vodData: {} as ApiVod,
+            vodData: {} as TwitchVOD,
             frameIn: 0,
             frameOut: 0,
             currentVideoTime: 0,
@@ -112,7 +114,7 @@ export default defineComponent({
                 .get(`/api/v0/vod/${this.vod}`)
                 .then((response) => {
                     const json = response.data;
-                    this.vodData = json.data;
+                    this.vodData = TwitchVOD.makeFromApiResponse(json.data);
                     setTimeout(() => {
                         this.setupPlayer();
                     }, 500);
@@ -124,6 +126,8 @@ export default defineComponent({
         setupPlayer() {
             if (this.$route.query.start !== undefined) {
                 (this.$refs.player as HTMLVideoElement).currentTime = parseInt(this.$route.query.start as string);
+                if (this.$route.query.start !== undefined) this.frameIn = parseInt(this.$route.query.start as string);
+                if (this.$route.query.end !== undefined) this.frameOut = parseInt(this.$route.query.end as string);
             }
         },
         play() {
@@ -198,6 +202,21 @@ export default defineComponent({
 
             event.preventDefault();
             return false;
+        },
+        chapterWidth(chapter: TwitchVODChapter): number {
+            const player = (this.$refs.player as HTMLVideoElement);
+            if (!player) return 0;
+            const chapterOffset = chapter.offset || 0;
+            const chapterDuration = chapter.duration || 0;
+            const videoDuration = player.duration;
+            const width = (chapterDuration / videoDuration) * 100;
+            return width;
+        },
+        setFrameIn(frameNum: number) {
+            this.frameIn = Math.round(frameNum);
+        },
+        setFrameOut(frameNum: number) {
+            this.frameOut = Math.round(frameNum);
         },
     },
     computed: {

@@ -1,5 +1,6 @@
 import { ApiChannel } from "@common/Api/Client";
 import { VideoQuality } from "@common/Config";
+import { TwitchVODChapter } from "./chapter";
 import { TwitchGame } from "./game";
 import TwitchVOD from "./vod";
 
@@ -44,6 +45,10 @@ export default class TwitchChannel {
 
     get current_game(): TwitchGame | undefined {
         return this.current_vod?.current_game;
+    }
+
+    get current_chapter(): TwitchVODChapter | undefined {
+        return this.current_vod?.current_chapter;
     }
 
     get is_converting(): boolean {

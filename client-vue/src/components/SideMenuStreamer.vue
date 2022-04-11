@@ -32,9 +32,14 @@
                     <template v-else>Streaming</template>
                     for
                     <duration-display
-                        :startDate="streamer.current_vod?.started_at"
+                        :startDate="streamer.current_vod?.current_chapter?.started_at"
                         :outputStyle="store.clientConfig?.useRelativeTime ? 'human' : 'numbers'"
                     ></duration-display>
+                    (<duration-display
+                        :startDate="streamer.current_vod?.started_at"
+                        :outputStyle="store.clientConfig?.useRelativeTime ? 'human' : 'numbers'"
+                    ></duration-display
+                    >)
                 </template>
                 <template v-else-if="streamer.is_converting"> Converting... </template>
                 <template v-else>

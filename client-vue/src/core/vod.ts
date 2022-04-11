@@ -155,4 +155,12 @@ export default class TwitchVOD {
             return undefined;
         }
     }
+
+    get current_chapter(): TwitchVODChapter | undefined {
+        if (this.chapters.length > 0) {
+            return this.chapters[this.chapters.length - 1];
+        } else {
+            return undefined;
+        }
+    }
 }

@@ -483,7 +483,11 @@
                                     <router-link
                                         rel="noreferrer"
                                         aria-label="Open on Twitch"
-                                        :to="{ name: 'Editor', params: { vod: vod?.basename }, query: { start: chapter.offset } }"
+                                        :to="{
+                                            name: 'Editor',
+                                            params: { vod: vod?.basename },
+                                            query: { start: chapter.offset, end: (chapter.offset || 0) + (chapter.duration || 0), chapter: chapterIndex },
+                                        }"
                                     >
                                         <span class="icon"><fa icon="cut"></fa></span>
                                     </router-link>
