@@ -58,7 +58,7 @@ export class TwitchConfig {
 
         { "key": "channel_folders", "group": "Storage", "text": "Channel folders", "type": "boolean", "default": true, "help": "Store VODs in subfolders instead of root" },
         { "key": "storage_per_streamer", "group": "Storage", "text": "Gigabytes of storage per streamer", "type": "number", "default": 100 },
-        { "key": "vods_to_keep", "group": "Storage", "text": "VODs to keep per streamer", "type": "number", "default": 5 },
+        { "key": "vods_to_keep", "group": "Storage", "text": "VODs to keep per streamer", "type": "number", "default": 5, "help": "This is in addition to kept VODs from muted/favourite etc." },
         { "key": "keep_deleted_vods", "group": "Storage", "text": "Keep Twitch deleted VODs", "type": "boolean", "default": false },
         { "key": "keep_favourite_vods", "group": "Storage", "text": "Keep favourite VODs", "type": "boolean", "default": false },
         { "key": "keep_muted_vods", "group": "Storage", "text": "Keep muted VODs", "type": "boolean", "default": false },
@@ -343,7 +343,7 @@ export class TwitchConfig {
             return TwitchConfig.cfg<string>("websocket_client_address");
         }
 
-        if (TwitchConfig.cfg<boolean>("debug")) {
+        if (TwitchConfig.debug) {
             return "ws://localhost:8080/socket/";
         }
 

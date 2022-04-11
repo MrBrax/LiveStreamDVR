@@ -68,7 +68,7 @@ export class TwitchLog {
      * @returns 
      */
     static logAdvanced(level: LOGLEVEL, module: string, text: string, metadata?: any) {
-        if (!TwitchConfig.cfg("debug") && level == LOGLEVEL.DEBUG) return;
+        if (!TwitchConfig.debug && level == LOGLEVEL.DEBUG) return;
 
         // if testing, don't log
         if (process.env.NODE_ENV == "test") return;

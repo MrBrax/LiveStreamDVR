@@ -51,6 +51,8 @@ export async function CheckMutedVods(req: express.Request, res: express.Response
 
     let output = "";
 
+    const force = req.query.force !== undefined;
+
     for (const channel of streamerList.channels) {
 
         if (!channel.vods_list) continue;
@@ -65,11 +67,11 @@ export async function CheckMutedVods(req: express.Request, res: express.Response
             //     continue;
             // }
 
-            // if ($vod->twitch_vod_muted === true) {
-            //     // muted forever unless twitch implements unmuting somehow
-            //     res.send("{$vod->basename} is muted<br />\n");
-            //     continue;
-            // }
+            if (vod.twitch_vod_muted === MuteStatus.MUTED && !force) {
+                // muted forever unless twitch implements unmuting somehow
+                output += `${vod.basename} forever muted<br>\n`;
+                continue;
+            }
 
             const current_status = vod.twitch_vod_muted;
 

@@ -354,12 +354,12 @@ export class TwitchHelper {
             const stderr: string[] = [];
 
             process.stdout.on("data", (data: Stream) => {
-                if (TwitchConfig.cfg("debug")) console.debug(chalk.bold.green(`$ ${bin} ${args.join(" ")}\n`, chalk.green(`${data.toString().trim()}`)));
+                if (TwitchConfig.debug) console.debug(chalk.bold.green(`$ ${bin} ${args.join(" ")}\n`, chalk.green(`${data.toString().trim()}`)));
                 stdout.push(data.toString());
             });
 
             process.stderr.on("data", (data: Stream) => {
-                if (TwitchConfig.cfg("debug")) console.error(chalk.bold.red(`$ ${bin} ${args.join(" ")}\n`, chalk.red(`> ${data.toString().trim()}`)));
+                if (TwitchConfig.debug) console.error(chalk.bold.red(`$ ${bin} ${args.join(" ")}\n`, chalk.red(`> ${data.toString().trim()}`)));
                 stderr.push(data.toString());
             });
 
@@ -666,7 +666,7 @@ export class TwitchHelper {
             // ...ffmpeg_options,
             // output,
 
-            if (TwitchConfig.cfg("debug") || TwitchConfig.cfg("app_verbose")) {
+            if (TwitchConfig.debug || TwitchConfig.cfg("app_verbose")) {
                 opts.push("-loglevel", "repeat+level+verbose");
             }
 

@@ -6,7 +6,7 @@
 - [x] POST /vod/{basename}/check_mute
 - [?] POST /vod/{basename}/delete
 - [?] POST /vod/{basename}/save
-- [ ] POST /vod/{basename}/cut
+- [x] POST /vod/{basename}/cut
 - [x] POST /vod/{basename}/renderwizard
 // - [ ] POST /vod/{basename}/unbreak
 - 
