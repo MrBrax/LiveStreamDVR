@@ -63,10 +63,12 @@ export type ApiVod = {
     twitch_vod_exists?: boolean;
     twitch_vod_attempted?: boolean;
 
+    created_at?: string;
     saved_at?: string;
     started_at: string;
     ended_at?: string;
     capture_started?: string;
+    capture_started2?: string;
     conversion_started?: string;
 
     is_capturing: boolean;

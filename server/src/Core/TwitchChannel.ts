@@ -318,6 +318,8 @@ export class TwitchChannel {
         vod.streamer_login = this.login;
         vod.streamer_id = this.userid;
 
+        vod.created_at = new Date();
+
         vod.saveJSON("create json");
 
         // reload

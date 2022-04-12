@@ -43,9 +43,21 @@
                             <strong>Webhook duration:</strong>
                             {{ vod?.getWebhookDuration() }}
                         </li>
+                        <li v-if="vod.created_at">
+                            <strong>Created:</strong>
+                            {{ formatDate(vod.created_at, "yyyy-MM-dd HH:mm:ss") }}
+                        </li>
                         <li v-if="vod.started_at">
                             <strong>Stream start:</strong>
                             {{ formatDate(vod.started_at, "yyyy-MM-dd HH:mm:ss") }}
+                        </li>
+                        <li v-if="vod.capture_started">
+                            <strong>Capture start:</strong>
+                            {{ formatDate(vod.capture_started, "yyyy-MM-dd HH:mm:ss") }}
+                        </li>
+                        <li v-if="vod.capture_started2">
+                            <strong>Capture2 start:</strong>
+                            {{ formatDate(vod.capture_started2, "yyyy-MM-dd HH:mm:ss") }}
                         </li>
                         <li v-if="vod.ended_at">
                             <strong>Stream end:</strong>

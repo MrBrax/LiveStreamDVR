@@ -16,10 +16,12 @@ export default class TwitchVOD {
     is_converting = false;
     is_finalized = false;
 
+    created_at?: Date;
     started_at?: Date;
     ended_at?: Date;
     saved_at?: Date;
     capture_started?: Date;
+    capture_started2?: Date;
     conversion_started?: Date;
 
     segments: TwitchVODSegment[] = [];

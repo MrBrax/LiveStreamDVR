@@ -31,7 +31,9 @@ export interface TwitchVODJSON {
 
     saved_at: string;
 
+    created_at?: string;
     capture_started?: string;
+    capture_started2?: string;
     conversion_started?: string;
     started_at: string;
     ended_at: string;

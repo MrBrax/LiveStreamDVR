@@ -72,10 +72,12 @@ export class TwitchVOD {
     chapters_raw: TwitchVODChapterJSON[] = [];
     chapters: TwitchVODChapter[] = [];
 
+    created_at?: Date;
     started_at?: Date;
     ended_at?: Date;
     saved_at?: Date;
     capture_started?: Date;
+    capture_started2?: Date;
     conversion_started?: Date;
 
     twitch_vod_id?: string;
@@ -145,12 +147,14 @@ export class TwitchVOD {
             throw new Error("No JSON loaded for date setup!");
         }
 
+        if (this.json.created_at) this.created_at = parseISO(this.json.created_at);
         if (this.json.started_at) this.started_at = parseISO(this.json.started_at);
 
         if (this.json.ended_at) this.ended_at = parseISO(this.json.ended_at);
         if (this.json.saved_at) this.saved_at = parseISO(this.json.saved_at);
 
         if (this.json.capture_started) this.capture_started = parseISO(this.json.capture_started);
+        if (this.json.capture_started2) this.capture_started2 = parseISO(this.json.capture_started2);
         if (this.json.conversion_started) this.conversion_started = parseISO(this.json.conversion_started);
 
     }
@@ -1099,10 +1103,12 @@ export class TwitchVOD {
             twitch_vod_exists: this.twitch_vod_exists,
             twitch_vod_attempted: this.twitch_vod_attempted,
 
+            created_at: this.created_at ? this.created_at.toISOString() : "",
             saved_at: this.saved_at ? this.saved_at.toISOString() : "",
             started_at: this.started_at ? this.started_at.toISOString() : "",
             ended_at: this.ended_at ? this.ended_at.toISOString() : undefined,
             capture_started: this.capture_started ? this.capture_started.toISOString() : undefined,
+            capture_started2: this.capture_started2 ? this.capture_started2.toISOString() : undefined,
             conversion_started: this.conversion_started ? this.conversion_started.toISOString() : undefined,
 
             is_converted: this.is_converted,
@@ -1242,7 +1248,9 @@ export class TwitchVOD {
 
         generated.saved_at = new Date().toISOString();
 
+        if (this.created_at) generated.created_at = this.created_at.toISOString();
         if (this.capture_started) generated.capture_started = this.capture_started.toISOString();
+        if (this.capture_started2) generated.capture_started2 = this.capture_started2.toISOString();
         if (this.conversion_started) generated.conversion_started = this.conversion_started.toISOString();
         if (this.started_at) generated.started_at = this.started_at.toISOString();
         if (this.ended_at) generated.ended_at = this.ended_at.toISOString();
