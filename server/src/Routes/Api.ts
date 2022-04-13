@@ -48,6 +48,7 @@ router.get("/games", Games.ListGames);
 router.get("/favourites", Favourites.ListFavourites);
 // router.post("/favourites", Favourites.AddFavourite);
 router.put("/favourites", Favourites.SaveFavourites);
+router.patch("/favourites", Favourites.AddFavourite);
 
 router.get("/about", About.About);
 

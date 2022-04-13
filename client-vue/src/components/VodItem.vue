@@ -1076,22 +1076,14 @@ export default defineComponent({
         addFavouriteGame(game_id: string) {
             if (!this.store.config) return;
 
-            let data: { games: Record<string, boolean> } = {
-                games: {},
-            };
-
-            data.games[game_id] = true;
-            for (const fid of this.store.favourite_games) {
-                data.games[parseInt(fid)] = true;
-            }
-
             this.$http
-                .put(`/api/v0/favourites`, data)
+                .patch(`/api/v0/favourites`, { game: game_id })
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
                     console.log(json);
 
+                    // fetch the new config
                     this.$http.get(`/api/v0/settings`).then((response) => {
                         const settings_json: ApiSettingsResponse = response.data;
                         this.store.updateConfig(settings_json.data.config);
