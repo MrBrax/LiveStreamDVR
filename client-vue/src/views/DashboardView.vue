@@ -381,7 +381,7 @@ export default defineComponent({
                     setTimeout(() => {
                         this.scrollLog();
                     }, 100);
-                } else if (action == "job_save") {
+                } else if (action == "job_save" || action == "job_update") {
                     const data: JobSave = json.data;
                     this.store.updateJob(data.job);
                 } else if (action == "job_clear") {

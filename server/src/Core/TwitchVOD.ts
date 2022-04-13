@@ -152,6 +152,8 @@ export class TwitchVOD {
 
     fileWatcher?: fs.FSWatcher;
 
+    private _updateTimer: NodeJS.Timeout | undefined;
+
     /**
      * Set up date related data
      * Requires JSON to be loaded
@@ -1312,7 +1314,7 @@ export class TwitchVOD {
 
         this.startWatching();
 
-        // this.broadcastUpdate(); // should this be here?
+        this.broadcastUpdate(); // should this be here?
 
         return generated;
 
@@ -1340,9 +1342,15 @@ export class TwitchVOD {
     }
 
     public async broadcastUpdate(): Promise<void> {
-        TwitchWebhook.dispatch("vod_updated", {
-            vod: await this.toAPI(),
-        } as VodUpdated);
+        if (this._updateTimer) clearTimeout(this._updateTimer);
+        const vod = await this.toAPI();
+        this._updateTimer = setTimeout(() => {
+            console.debug(`Broadcasting VOD update for ${this.basename}`);
+            TwitchWebhook.dispatch("vod_updated", {
+                vod: vod,
+            } as VodUpdated);
+            this._updateTimer = undefined;
+        }, 2000);
     }
 
     /**

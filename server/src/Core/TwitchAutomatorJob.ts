@@ -37,7 +37,7 @@ export class TwitchAutomatorJob extends EventEmitter {
     public ?\DateTime $dt_started_at;
     */
 
-    public name: string | undefined;
+    public name!: string;
     public pid: number | undefined;
     public pidfile: string | undefined;
     public pidfile_simple: string | undefined;
@@ -508,11 +508,11 @@ export class TwitchAutomatorJob extends EventEmitter {
 
     public broadcastUpdate() {
         if (this._updateTimer) clearTimeout(this._updateTimer);
-
         this._updateTimer = setTimeout(() => {
+            console.debug(`Broadcasting job update for ${this.name}`);
             this.emit("update", this.toAPI());
             this._updateTimer = undefined;
-            TwitchWebhook.dispatch("job_update", {
+            TwitchWebhook.dispatch(TwitchAutomatorJob.hasJob(this.name || "") ? "job_update" : "job_clear", {
                 "job_name": this.name || "",
                 "job": this.toAPI(),
             });

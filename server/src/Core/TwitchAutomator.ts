@@ -1003,7 +1003,10 @@ export class TwitchAutomator {
 
                 if (data.includes("Writing output to")) {
                     TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", "Writing output");
-                    if (this.vod) this.vod.capture_started2 = new Date();
+                    if (this.vod){ 
+                        this.vod.capture_started2 = new Date();
+                        this.vod.broadcastUpdate();
+                    }
                 }
 
                 if (data.includes("Read timeout, exiting")) {
