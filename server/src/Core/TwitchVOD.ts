@@ -72,11 +72,26 @@ export class TwitchVOD {
     chapters_raw: TwitchVODChapterJSON[] = [];
     chapters: TwitchVODChapter[] = [];
 
+    /**
+     * Date for when the VOD was created
+     */
     created_at?: Date;
+
+    /**
+     * Date for when the stream was started on the provider's end.
+     */
     started_at?: Date;
     ended_at?: Date;
     saved_at?: Date;
+
+    /**
+     * Date for when the capture process was launched
+     */
     capture_started?: Date;
+
+    /**
+     * Date for when the capture file was output
+     */
     capture_started2?: Date;
     conversion_started?: Date;
 
@@ -492,6 +507,7 @@ export class TwitchVOD {
         return false;
     }
 
+    /** @todo: implement ffprobe for mediainfo */
     public async getFFProbe(segment_num = 0): Promise<false | VideoMetadata> {
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Fetching ffprobe of ${this.basename}, segment #${segment_num}`);
@@ -537,12 +553,12 @@ export class TwitchVOD {
                 return false;
             }
 
-            let fps = 0;
-            if (video_stream?.r_frame_rate) {
-                const fps_base = parseInt(video_stream.r_frame_rate.split("/")[0]);
-                const fps_den = parseInt(video_stream.r_frame_rate.split("/")[1]);
-                fps = fps_base / fps_den;
-            }
+            // let fps = 0;
+            // if (video_stream?.r_frame_rate) {
+            //     const fps_base = parseInt(video_stream.r_frame_rate.split("/")[0]);
+            //     const fps_den = parseInt(video_stream.r_frame_rate.split("/")[1]);
+            //     fps = fps_base / fps_den;
+            // }
 
             // use proxy type for mediainfo, can switch to ffprobe if needed
             /*
@@ -1382,7 +1398,7 @@ export class TwitchVOD {
 
     }
 
-    public async checkValidVod(save = false, force = false): Promise<boolean | null> {
+    public async checkValidVod(save = false): Promise<boolean | null> {
 
         const current_status = this.twitch_vod_exists;
 
@@ -1434,13 +1450,11 @@ export class TwitchVOD {
 
     /**
      * Check vod for muted segments
-     * 
      * @throws
-     * @param save 
-     * @param force 
-     * @returns 
+     * @param save
+     * @returns
      */
-    public async checkMutedVod(save = false, force = false): Promise<MuteStatus> {
+    public async checkMutedVod(save = false): Promise<MuteStatus> {
 
         if (!this.twitch_vod_id) {
             TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `VOD mute check for ${this.basename} canceled, no vod id!`);
@@ -1458,11 +1472,11 @@ export class TwitchVOD {
         // streamlink is used instead, until this is fixed in the api
 
         // return TwitchConfig.cfg("checkmute_method", "api") == "api" ? await this.checkMutedVodAPI(save, force) : await this.checkMutedVodStreamlink(save, force);
-        return await this.checkMutedVodStreamlink(save, force);
+        return await this.checkMutedVodStreamlink(save);
 
     }
 
-    private async checkMutedVodAPI(save = false, force = false): Promise<MuteStatus> {
+    private async checkMutedVodAPI(save = false): Promise<MuteStatus> {
 
         if (!this.twitch_vod_id) return MuteStatus.UNKNOWN;
 
@@ -1493,7 +1507,7 @@ export class TwitchVOD {
         }
     }
 
-    private async checkMutedVodStreamlink(save = false, force = false): Promise<MuteStatus> {
+    private async checkMutedVodStreamlink(save = false): Promise<MuteStatus> {
 
         const previous = this.twitch_vod_muted;
 
@@ -1686,7 +1700,7 @@ export class TwitchVOD {
         return new Promise((resolve, reject) => {
 
             // @todo: env support
-            const job = TwitchHelper.startJob(bin, args, `tdrender_${this.basename}`);
+            const job = TwitchHelper.startJob(`tdrender_${this.basename}`, bin, args, env);
 
             if (!job) {
                 console.error(chalk.redBright("Couldn't start job"));
@@ -1706,7 +1720,7 @@ export class TwitchVOD {
                 }
             });
 
-            job.on("close", (code, signal) => {
+            job.on("close", (code) => {
 
                 if (job.stdout.join("").includes("Option 'temp-path' is unknown")) {
                     console.error(chalk.redBright("The version of TwitchDownloaderCLI  is too old. Please update to the latest version."));
@@ -1715,10 +1729,10 @@ export class TwitchVOD {
                 }
 
                 if (fs.existsSync(this.path_chatrender) && fs.statSync(this.path_chatrender).size > 0) {
-                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat rendered for ${this.basename}`);
+                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat rendered for ${this.basename} (code ${code})`);
                     resolve(true);
                 } else {
-                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Chat couldn't be rendered for ${this.basename}`);
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Chat couldn't be rendered for ${this.basename} (code ${code})`);
                     reject(new Error("Chat couldn't be rendered"));
                     // reject(false);
                 }
@@ -1828,16 +1842,16 @@ export class TwitchVOD {
 
         return new Promise((resolve, reject) => {
 
-            const job = TwitchHelper.startJob(bin, args, `burnchat_${this.basename}`);
+            const job = TwitchHelper.startJob(`burnchat_${this.basename}`, bin, args);
             if (!job) throw new Error("Job failed");
 
-            job.on("close", (code, signal) => {
+            job.on("close", (code) => {
 
                 if (fs.existsSync(this.path_chatburn) && fs.statSync(this.path_chatburn).size > 0) {
-                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat burned for ${this.basename}`);
+                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat burned for ${this.basename} (code ${code})`);
                     resolve(true);
                 } else {
-                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Chat couldn't be burned for ${this.basename}`);
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Chat couldn't be burned for ${this.basename} (code ${code})`);
                     reject(false);
                 }
 
@@ -1969,7 +1983,7 @@ export class TwitchVOD {
 
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Downloading chat for ${this.basename}`);
 
-            const job = TwitchHelper.startJob(bin, args, `chatdownload_${this.basename}`);
+            const job = TwitchHelper.startJob(`chatdownload_${this.basename}`, bin, args);
             if (!job) {
                 reject(new Error("Job failed"));
                 return;
@@ -2355,7 +2369,7 @@ export class TwitchVOD {
     }
 
     static cleanLingeringVODs(): void {
-        this.vods.forEach((vod, index) => {
+        this.vods.forEach((vod) => {
             const channel = vod.getChannel();
             if (!channel) {
                 TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Channel ${vod.streamer_login} removed but VOD ${vod.basename} still lingering`);

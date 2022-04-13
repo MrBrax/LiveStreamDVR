@@ -1109,7 +1109,7 @@ export class TwitchAutomator {
             }
             */
 
-            const chat_job = TwitchHelper.startJob(chat_bin, chat_cmd, `chatdump_${this.basename()}`);
+            const chat_job = TwitchHelper.startJob(`chatdump_${this.basename()}`, chat_bin, chat_cmd);
 
             if (chat_job && chat_job.pid) {
                 this.chatJob = chat_job;

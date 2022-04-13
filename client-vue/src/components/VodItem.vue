@@ -217,11 +217,19 @@
                 <div class="info-column">
                     <h4>Recording</h4>
                     <ul class="video-info">
+                        <li v-if="vod.created_at"><strong>Created:</strong> {{ formatDate(vod.created_at) }}</li>
                         <li><strong>Current duration:</strong> <duration-display :startDate="vod.started_at" outputStyle="human"></duration-display></li>
+                        <li v-if="vod.capture_started && vod.started_at">
+                            <strong>Capture started 1:</strong> {{ formatDate(vod.capture_started) }} ({{
+                                humanDuration((vod.capture_started.getTime() - vod.started_at.getTime()) / 1000)
+                            }}
+                            missing)
+                        </li>
+                        <li v-if="vod.capture_started2"><strong>Capture started 2:</strong> {{ formatDate(vod.capture_started2) }}</li>
                         <li><strong>Resolution:</strong> {{ vod.stream_resolution || "Unknown" }}</li>
                         <li><strong>Watch live:</strong> <a :href="'https://twitch.tv/' + vod.streamer_login" rel="noreferrer" target="_blank">Twitch</a></li>
                     </ul>
-                    <button class="button is-small is-danger" @click="unbreak">Unbreak</button>
+                    <!--<button class="button is-small is-danger" @click="unbreak">Unbreak</button>-->
                 </div>
             </div>
         </div>

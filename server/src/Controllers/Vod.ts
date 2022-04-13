@@ -329,9 +329,12 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
         return;
     }
 
-    const fps = vod.video_metadata.fps;
-    const seconds_in = Math.floor(time_in / fps);
-    const seconds_out = Math.floor(time_out / fps);
+    // const fps = vod.video_metadata.fps;
+    // const seconds_in = Math.floor(time_in / fps);
+    // const seconds_out = Math.floor(time_out / fps);
+    const seconds_in = time_in;
+    const seconds_out = time_out;
+    // don't use fps, not using frame numbers, but seconds
 
     const file_in = path.join(vod.directory, vod.segments[0].basename);
     const file_out = path.join(BaseConfigDataFolder.saved_clips, `${vod.basename}_${time_in}-${time_out}_${segment_name}.mp4`);

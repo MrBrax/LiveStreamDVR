@@ -6,7 +6,7 @@ import { generateStreamerList } from "../Helpers/StreamerList";
 
 export async function CheckDeletedVods(req: express.Request, res: express.Response): Promise<void> {
 
-    const force = req.query.force;
+    // const force = req.query.force;
 
     const streamerList = generateStreamerList();
 
@@ -24,7 +24,7 @@ export async function CheckDeletedVods(req: express.Request, res: express.Respon
             // 
             // }
 
-            const check = await vod.checkValidVod(true, false);
+            const check = await vod.checkValidVod(true);
 
             if (vod.twitch_vod_id && check === false) {
                 // notify
@@ -78,7 +78,7 @@ export async function CheckMutedVods(req: express.Request, res: express.Response
             let check;
 
             try {
-                check = await vod.checkMutedVod(true, false);
+                check = await vod.checkMutedVod(true);
             } catch (th) {
                 output += `${vod.basename} error: ${(th as Error).message}<br>\n`;
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "cron", `Cronjob mute check: ${vod.basename} error: ${(th as Error).message}`);
