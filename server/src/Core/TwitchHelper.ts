@@ -452,11 +452,12 @@ export class TwitchHelper {
         });
     }
 
-    static startJob(bin: string, args: string[], jobName: string): TwitchAutomatorJob | false {
+    static startJob(jobName: string, bin: string, args: string[], env: Record<string, string> = {}): TwitchAutomatorJob | false {
 
         const process = spawn(bin, args || [], {
             // detached: true,
             windowsHide: true,
+            env: env ?? undefined,
         });
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Executing ${bin} ${args.join(" ")}`);
@@ -578,7 +579,7 @@ export class TwitchHelper {
 
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Remuxing ${input} to ${output}`);
 
-            const job = TwitchHelper.startJob(ffmpeg_path, opts, `remux_${path.basename(input)}`);
+            const job = TwitchHelper.startJob(`remux_${path.basename(input)}`, ffmpeg_path, opts);
 
             if (!job || !job.process) {
                 reject(new Error(`Failed to start job for remuxing ${input} to ${output}`));
@@ -674,7 +675,7 @@ export class TwitchHelper {
 
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Cutting ${input} to ${output}`);
 
-            const job = TwitchHelper.startJob(ffmpeg_path, opts, `cut_${path.basename(input)}`);
+            const job = TwitchHelper.startJob(`cut_${path.basename(input)}`, ffmpeg_path, opts);
 
             if (!job || !job.process) {
                 reject(new Error(`Failed to start job for cutting ${input} to ${output}`));

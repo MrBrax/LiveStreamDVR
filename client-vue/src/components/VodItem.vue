@@ -217,11 +217,19 @@
                 <div class="info-column">
                     <h4>Recording</h4>
                     <ul class="video-info">
+                        <li v-if="vod.created_at"><strong>Created:</strong> {{ formatDate(vod.created_at) }}</li>
                         <li><strong>Current duration:</strong> <duration-display :startDate="vod.started_at" outputStyle="human"></duration-display></li>
+                        <li v-if="vod.capture_started && vod.started_at">
+                            <strong>Capture started 1:</strong> {{ formatDate(vod.capture_started) }} ({{
+                                humanDuration((vod.capture_started.getTime() - vod.started_at.getTime()) / 1000)
+                            }}
+                            missing)
+                        </li>
+                        <li v-if="vod.capture_started2"><strong>Capture started 2:</strong> {{ formatDate(vod.capture_started2) }}</li>
                         <li><strong>Resolution:</strong> {{ vod.stream_resolution || "Unknown" }}</li>
                         <li><strong>Watch live:</strong> <a :href="'https://twitch.tv/' + vod.streamer_login" rel="noreferrer" target="_blank">Twitch</a></li>
                     </ul>
-                    <button class="button is-small is-danger" @click="unbreak">Unbreak</button>
+                    <!--<button class="button is-small is-danger" @click="unbreak">Unbreak</button>-->
                 </div>
             </div>
         </div>
@@ -1068,22 +1076,14 @@ export default defineComponent({
         addFavouriteGame(game_id: string) {
             if (!this.store.config) return;
 
-            let data: { games: Record<string, boolean> } = {
-                games: {},
-            };
-
-            data.games[game_id] = true;
-            for (const fid of this.store.favourite_games) {
-                data.games[parseInt(fid)] = true;
-            }
-
             this.$http
-                .put(`/api/v0/favourites`, data)
+                .patch(`/api/v0/favourites`, { game: game_id })
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
                     console.log(json);
 
+                    // fetch the new config
                     this.$http.get(`/api/v0/settings`).then((response) => {
                         const settings_json: ApiSettingsResponse = response.data;
                         this.store.updateConfig(settings_json.data.config);

@@ -18,6 +18,9 @@ export default {
             return format(o, fmt);
         },
         humanDuration(duration: number) {
+            if (duration < 0) {
+                return "(NEGATIVE DURATION)";
+            }
             const hours = Math.floor(duration / 3600);
             const minutes = Math.floor((duration / 60) % 60);
             const seconds = Math.floor(duration % 60);

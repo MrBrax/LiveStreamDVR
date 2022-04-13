@@ -28,3 +28,22 @@ export function SaveFavourites(req: express.Request, res: express.Response): voi
     });
 
 }
+
+export function AddFavourite(req: express.Request, res: express.Response): void {
+
+    const formdata: {
+        game: string
+    } = req.body;
+
+    TwitchGame.favourite_games.push(formdata.game);
+
+    TwitchGame.saveFavouriteGames();
+
+    TwitchLog.logAdvanced(LOGLEVEL.INFO, "route.favourites.add", `Added ${formdata.game} to favourites.`);
+
+    res.send({
+        status: "OK",
+        message: `Added ${formdata.game} to favourites.`,
+    });
+
+}
