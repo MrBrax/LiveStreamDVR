@@ -11,7 +11,7 @@ import type { ErrorResponse, EventSubTypes } from "../../../common/TwitchAPI/Sha
 import type { Stream, StreamsResponse } from "../../../common/TwitchAPI/Streams";
 import type { SubscriptionRequest, SubscriptionResponse } from "../../../common/TwitchAPI/Subscriptions";
 import type { UsersResponse } from "../../../common/TwitchAPI/Users";
-import { BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
+import { BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchConfig } from "./TwitchConfig";
 import { TwitchGame } from "./TwitchGame";

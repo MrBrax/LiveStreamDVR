@@ -3,7 +3,7 @@ import chalk from "chalk";
 import { ClientBroker } from "./ClientBroker";
 import axios from "axios";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
-import { ChapterUpdateData, EndCaptureData, Init, JobClear, JobSave, StartDownloadData, VideoDownloadData, VodRemoved, VodUpdated, WebhookAction } from "../../../common/Webhook";
+import { ChapterUpdateData, EndCaptureData, Init, JobClear, JobSave, JobUpdate, StartDownloadData, VideoDownloadData, VodRemoved, VodUpdated, WebhookAction } from "../../../common/Webhook";
 
 export type WebhookData =
     ChapterUpdateData |
@@ -12,6 +12,7 @@ export type WebhookData =
     VideoDownloadData |
     JobSave |
     JobClear |
+    JobUpdate |
     VodRemoved |
     VodUpdated |
     Init

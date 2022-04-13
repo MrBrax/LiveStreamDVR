@@ -10,6 +10,7 @@ export type WebhookAction =
     "start_capture" |
     "job_save" |
     "job_clear" |
+    "job_update" |
     "video_download" |
     "vod_removed" |
     "vod_updated" |
@@ -59,13 +60,16 @@ export interface NotifyData {
 
 export interface JobSave {
     job_name: string;
-    // job: TwitchAutomatorJob;
     job: ApiJob;
 }
 
 export interface JobClear {
     job_name: string;
-    // job: TwitchAutomatorJob;
+    job: ApiJob;
+}
+
+export interface JobUpdate {
+    job_name: string;
     job: ApiJob;
 }
 

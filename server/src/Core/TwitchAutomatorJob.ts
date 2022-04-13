@@ -56,6 +56,8 @@ export class TwitchAutomatorJob extends EventEmitter {
 
     logfile = "";
 
+    private _updateTimer: NodeJS.Timeout | undefined;
+
     private realpath(str: string): string {
         return path.normalize(str);
     }
@@ -158,6 +160,10 @@ export class TwitchAutomatorJob extends EventEmitter {
 
     }
 
+    public static hasJob(name: string): boolean {
+        return this.jobs.some(job => job.name === name);
+    }
+
     public static findJob(search: string): TwitchAutomatorJob | false {
         const job = this.jobs.find(job => job.name?.includes(search));
         if (job) {
@@ -232,7 +238,7 @@ export class TwitchAutomatorJob extends EventEmitter {
             // return !fs.existsSync(this.pidfile);
         }
 
-        if (TwitchAutomatorJob.jobs.find(job => job.name === this.name)) {
+        if (TwitchAutomatorJob.hasJob(this.name || "")) {
             TwitchAutomatorJob.jobs = TwitchAutomatorJob.jobs.filter(job => job.name !== this.name);
             TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "job", `Job ${this.name} removed from jobs list`, this.metadata);
         } else {
@@ -240,6 +246,8 @@ export class TwitchAutomatorJob extends EventEmitter {
         }
 
         this.emit("clear");
+
+        this.broadcastUpdate();
 
         return false;
     }
@@ -254,6 +262,7 @@ export class TwitchAutomatorJob extends EventEmitter {
         this.emit("pid_set", this.pid, pid);
         this.pid = pid;
         TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Set PID ${pid} for job ${this.name}`, this.metadata);
+        this.broadcastUpdate();
     }
 
     /**
@@ -293,6 +302,8 @@ export class TwitchAutomatorJob extends EventEmitter {
             this.process_running = false;
         });
 
+        this.broadcastUpdate();
+
         /*
         this.process.on("close", (code, signal) => {
             TwitchLog.logAdvanced(LOGLEVEL.INFO, "job", `Process for job ${this.name} exited with code ${code} and signal ${signal}`, this.metadata);
@@ -310,6 +321,7 @@ export class TwitchAutomatorJob extends EventEmitter {
     public setMetadata(metadata: unknown): void {
         this.emit("metadata_set", this.metadata, metadata);
         this.metadata = metadata;
+        this.broadcastUpdate();
     }
 
     /**
@@ -330,6 +342,7 @@ export class TwitchAutomatorJob extends EventEmitter {
         // @todo: check if this works
         if (this.process && !use_command) {
             this.status = this.process_running && this.process.pid ? this.process.pid : false;
+            this.broadcastUpdate();
             return this.process_running && this.process.pid ? this.process.pid : false;
         }
 
@@ -343,6 +356,7 @@ export class TwitchAutomatorJob extends EventEmitter {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for job ${this.name} (${this.process_running})`, this.metadata);
                 console.debug(`Error checking status for job ${this.name} (${this.process_running})`);
                 this.status = false;
+                this.broadcastUpdate();
                 return false;
             }
 
@@ -357,6 +371,7 @@ export class TwitchAutomatorJob extends EventEmitter {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for job ${this.name} (${this.process_running})`, this.metadata);
                 console.debug(`Error checking status for job ${this.name} (${this.process_running})`);
                 this.status = false;
+                this.broadcastUpdate();
                 return false;
             }
 
@@ -379,11 +394,13 @@ export class TwitchAutomatorJob extends EventEmitter {
             TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `PID file check for '${this.name}', process is running (${this.process_running})`);
             console.debug(`PID file check for '${this.name}', process is running (${this.process_running})`);
             this.status = this.pid;
+            this.broadcastUpdate();
             return this.pid;
         } else {
             TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `PID file check for '${this.name}', process does not exist (${this.process_running})`);
             console.debug(`PID file check for '${this.name}', process does not exist (${this.process_running})`);
             this.status = false;
+            this.broadcastUpdate();
             return false;
         }
     }
@@ -406,16 +423,19 @@ export class TwitchAutomatorJob extends EventEmitter {
         if (!pid) {
             TwitchLog.logAdvanced(LOGLEVEL.WARNING, "job", `Kill process for job ${this.name}, PID not found`, this.metadata);
             this.clear();
+            this.broadcastUpdate();
             return false;
         }
 
         if (TwitchHelper.is_windows()) {
             const exec = await TwitchHelper.execSimple("taskkill", ["/F", "/PID", `${pid}`], "windows process kill");
             this.clear();
+            this.broadcastUpdate();
             return exec;
         } else {
             const exec = await TwitchHelper.execSimple("kill", [pid.toString()], "linux process kill");
             this.clear();
+            this.broadcastUpdate();
             return exec;
         }
     }
@@ -474,6 +494,7 @@ export class TwitchAutomatorJob extends EventEmitter {
     public onClose(code: number | null) {
         this.emit("close", code);
         this.code = code;
+        this.broadcastUpdate();
     }
 
     public toAPI(): ApiJob {
@@ -483,6 +504,19 @@ export class TwitchAutomatorJob extends EventEmitter {
             process_running: this.process_running,
             status: this.status,
         };
+    }
+
+    public broadcastUpdate() {
+        if (this._updateTimer) clearTimeout(this._updateTimer);
+
+        this._updateTimer = setTimeout(() => {
+            this.emit("update", this.toAPI());
+            this._updateTimer = undefined;
+            TwitchWebhook.dispatch("job_update", {
+                "job_name": this.name || "",
+                "job": this.toAPI(),
+            });
+        }, 2000);
     }
 
 }
