@@ -68,6 +68,7 @@ router.get("/cron/check_muted_vods", Cron.CheckMutedVods);
 
 router.get("/twitchapi/videos/:login", TwitchAPI.TwitchAPIVideos);
 router.get("/twitchapi/video/:video_id", TwitchAPI.TwitchAPIVideo);
+router.get("/twitchapi/user/:login", TwitchAPI.TwitchAPIUser);
 
 router.get("/keyvalue/:key", KeyValue.GetKeyValue);
 router.put("/keyvalue/:key", KeyValue.SetKeyValue);

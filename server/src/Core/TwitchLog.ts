@@ -121,13 +121,21 @@ export class TwitchLog {
 
         if (metadata !== undefined) log_data.metadata = metadata;
 
+        let stringy_log_data;
+        try {
+            stringy_log_data = JSON.stringify(log_data);
+        } catch (e) {
+            console.error(chalk.bgRed.whiteBright("😤 Error stringifying log data!"), log_data);
+            return;
+        }
+
         // write jsonline
-        fs.appendFileSync(jsonlinename, JSON.stringify(log_data) + "\n");
+        fs.appendFileSync(jsonlinename, stringy_log_data + "\n");
         this.lines.push(log_data);
 
         // send over websocket, probably extremely slow
         if (TwitchConfig.cfg<boolean>("websocket_log")) {
-            
+
             this.websocket_buffer.push(log_data);
 
             if (TwitchLog.websocket_timer) clearTimeout(TwitchLog.websocket_timer);

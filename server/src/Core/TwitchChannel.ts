@@ -857,11 +857,11 @@ export class TwitchChannel {
             response = await TwitchHelper.axios.get(`/helix/users?${method}=${identifier}`);
         } catch (err) {
             if (axios.isAxiosError(err)) {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`);
+                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`, err);
                 return false;
             }
 
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Channel data request for ${identifier} exceptioned: ${err}`);
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Channel data request for ${identifier} exceptioned: ${err}`, err);
             console.log(err);
             return false;
         }
@@ -881,7 +881,7 @@ export class TwitchChannel {
         }
 
         if (json.data.length === 0) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${identifier}, no data.`);
+            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${identifier}, no data.`, { json });
             throw new Error(`Could not get channel data for ${identifier}, no data.`);
         }
 
@@ -893,6 +893,7 @@ export class TwitchChannel {
         userData._updated = Date.now();
 
         // insert into memory and save to file
+        console.debug(`Inserting channel data for ${method} ${identifier} into cache and file`);
         TwitchChannel.channels_cache[userData.id] = userData;
         fs.writeFileSync(BaseConfigPath.streamerCache, JSON.stringify(TwitchChannel.channels_cache));
 
