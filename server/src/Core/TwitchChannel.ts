@@ -808,6 +808,49 @@ export class TwitchChannel {
         return await this.getChannelDataProxy("login", login, force);
     }
 
+    /*
+    async static getUserData({ id, login, skipCache = false }: { id?: string[], login?: string[], skipCache: boolean; }): Promise<ChannelData[]> {
+        if (!id && !login) throw new Error("No id or login provided");
+        const data: ChannelData[] = [];
+
+        // check cache first
+        if (!skipCache) {
+            let proceed = false;
+            if (id) {
+                for (const channel_id of id) {
+                    if (this.channels_cache[channel_id]) {
+                        if (Date.now() > this.channels_cache[channel_id]._updated + TwitchConfig.streamerCacheTime) {
+                            TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Memory cache for ${channel_id} is outdated, fetching new data`);
+                            proceed = true;
+                        } else {
+                            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "helper", `Memory cache for ${channel_id} is valid, using data`);
+                            data.push(this.channels_cache[channel_id]);
+                        }
+                    }
+                }
+            }
+
+            if (login) {
+                for (const channel_login of login) {
+                    const cd = Object.values(this.channels_cache).find(channel => channel.login == channel_login);
+                    if (cd) {
+                        if (Date.now() > cd._updated + TwitchConfig.streamerCacheTime) {
+                            TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Memory cache for ${channel_login} is outdated, fetching new data`);
+                            proceed = true;
+                        } else {
+                            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "helper", `Memory cache for ${channel_login} is valid, using data`);
+                            data.push(cd);
+                        }
+                    }
+                }
+            }
+
+            if (!proceed) return data;
+        }
+
+        // fetch data
+    */
+
     /**
      * Get channel data from api using either id or login, a helper
      * function for getChannelDataById and getChannelDataByLogin.

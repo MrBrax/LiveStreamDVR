@@ -70,10 +70,12 @@ export default class TwitchVOD {
         vod.segments = apiResponse.segments.map((seg) => TwitchVODSegment.makeFromApiResponse(seg));
         vod.chapters = apiResponse.chapters.map((chap) => TwitchVODChapter.makeFromApiResponse(chap));
         vod.video_metadata = apiResponse.video_metadata;
+        vod.created_at = apiResponse.created_at ? new Date(apiResponse.created_at) : undefined;
         vod.started_at = new Date(apiResponse.started_at);
         vod.ended_at = apiResponse.ended_at ? new Date(apiResponse.ended_at) : undefined;
         vod.saved_at = apiResponse.saved_at ? new Date(apiResponse.saved_at) : undefined;
         vod.capture_started = apiResponse.capture_started ? new Date(apiResponse.capture_started) : undefined;
+        vod.capture_started2 = apiResponse.capture_started2 ? new Date(apiResponse.capture_started2) : undefined;
         vod.conversion_started = apiResponse.conversion_started ? new Date(apiResponse.conversion_started) : undefined;
         vod.duration = apiResponse.duration;
         vod.twitch_vod_id = apiResponse.twitch_vod_id;

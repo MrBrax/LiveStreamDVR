@@ -4,7 +4,7 @@ import { BaseConfigDataFolder } from "./BaseConfig";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
 import { PHPDateTimeProxy } from "../types";
 import { ExecReturn, TwitchHelper } from "./TwitchHelper";
-import { parse } from "date-fns";
+import { parse, parseISO } from "date-fns";
 import { ChildProcessWithoutNullStreams } from "child_process";
 import { EventEmitter } from "events";
 import { TwitchWebhook } from "./TwitchWebhook";
@@ -14,7 +14,7 @@ export interface TwitchAutomatorJobJSON {
     name: string;
     pid: number;
     metadata: unknown;
-    dt_started_at: PHPDateTimeProxy;
+    dt_started_at: string;
 }
 
 export class TwitchAutomatorJob extends EventEmitter {
@@ -146,7 +146,7 @@ export class TwitchAutomatorJob extends EventEmitter {
 
         job.pid = data.pid;
 
-        job.dt_started_at = data.dt_started_at ? parse(data.dt_started_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date()) : undefined;
+        job.dt_started_at = data.dt_started_at ? parseISO(data.dt_started_at) : undefined;
 
         // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", "Job {$this->name} loaded, proceed to get status.", $this->metadata);
 
@@ -513,6 +513,15 @@ export class TwitchAutomatorJob extends EventEmitter {
             pid: this.pid,
             process_running: this.process_running,
             status: this.status,
+        };
+    }
+
+    public toJSON(): TwitchAutomatorJobJSON {
+        return {
+            name: this.name || "",
+            pid: this.pid || 0,
+            metadata: this.metadata,
+            dt_started_at: this.dt_started_at?.toISOString() || "",
         };
     }
 

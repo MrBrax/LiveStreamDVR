@@ -1345,7 +1345,7 @@ export class TwitchVOD {
         if (this._updateTimer) clearTimeout(this._updateTimer);
         const vod = await this.toAPI();
         this._updateTimer = setTimeout(() => {
-            console.debug(`Broadcasting VOD update for ${this.basename}`);
+            console.debug(`[${Date.now()}] Broadcasting VOD update for ${this.basename}`);
             TwitchWebhook.dispatch("vod_updated", {
                 vod: vod,
             } as VodUpdated);
