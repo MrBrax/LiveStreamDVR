@@ -18,7 +18,7 @@ export async function ListChannels(req: express.Request, res: express.Response):
     const { channels, total_size } = generateStreamerList();
 
     const streamer_list = await Promise.all(channels.map(async c => await c.toAPI()));
-    
+
     res.send({
         data: {
             streamer_list: streamer_list,
@@ -70,12 +70,12 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
         live_chat: boolean;
     } = req.body;
 
-    const quality        = formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [];
-    const match          = formdata.match ? formdata.match.split(",").map(m => m.trim()) : [];
-    const download_chat  = formdata.download_chat !== undefined;
-    const burn_chat      = formdata.burn_chat !== undefined;
-    const no_capture     = formdata.no_capture !== undefined;
-    const live_chat      = formdata.live_chat !== undefined;
+    const quality = formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [];
+    const match = formdata.match ? formdata.match.split(",").map(m => m.trim()) : [];
+    const download_chat = formdata.download_chat !== undefined;
+    const burn_chat = formdata.burn_chat !== undefined;
+    const no_capture = formdata.no_capture !== undefined;
+    const live_chat = formdata.live_chat !== undefined;
 
     const channel_config: ChannelConfig = {
         login: channel.login,
@@ -190,7 +190,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
 
     let new_channel;
     try {
-        new_channel = await TwitchChannel.create(channel_config);   
+        new_channel = await TwitchChannel.create(channel_config);
     } catch (error) {
         TwitchLog.logAdvanced(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel: ${error}`);
         res.status(400).send({
@@ -233,7 +233,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
     }
 
     const video = await TwitchVOD.getVideo(video_id);
-    if (!video){
+    if (!video) {
         res.status(400).send({
             status: "ERROR",
             message: "Video not found",
@@ -246,7 +246,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
     const filepath = path.join(TwitchHelper.vodFolder(channel.login), `${basename}.${TwitchConfig.cfg("vod_container", "mp4")}`);
 
     let status = false;
-    
+
     try {
         status = await TwitchVOD.downloadVideo(video_id, quality, filepath) != "";
     } catch (error) {
@@ -332,5 +332,45 @@ export function CleanupChannelVods(req: express.Request, res: express.Response):
         status: "OK",
         message: `Deleted ${deleted ? deleted : "no"} ${deleted === 1 ? "VOD" : "VODs"}`,
     });
+
+}
+
+export async function RefreshChannel(req: express.Request, res: express.Response): Promise<void> {
+
+    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+
+    if (!channel || !channel.login) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    let success;
+    try {
+        success = await channel.refreshData();
+    } catch (error) {
+        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "route.channels.refresh", `Failed to refresh channel: ${(error as Error).message}`);
+        res.status(400).send({
+            status: "ERROR",
+            message: (error as Error).message,
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (success) {
+        TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.refresh", `Refreshed channel: ${channel.login}`);
+        res.send({
+            status: "OK",
+            message: `Refreshed channel: ${channel.login}`,
+        });
+    } else {
+        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "route.channels.refresh", `Failed to refresh channel: ${channel.login}`);
+        res.status(400).send({
+            status: "ERROR",
+            message: "Failed to refresh channel",
+        } as ApiErrorResponse);
+    }
 
 }

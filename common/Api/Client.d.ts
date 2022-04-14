@@ -3,6 +3,7 @@ import { VideoQuality } from "../Config";
 import { ChannelData } from "../Channel";
 import { MuteStatus, ExistStatus} from "../../common/Defs";
 import { VideoMetadata } from "../MediaInfo";
+import { BroadcasterType } from "../TwitchAPI/Users";
 
 export type ApiVodSegment = {
     basename: string;
@@ -195,6 +196,7 @@ export type ApiChannel = {
     is_live: boolean;
     is_converting: boolean;
     profile_image_url: string;
+    broadcaster_type: BroadcasterType;
 
     subbed_at?: string;
     expires_at?: string;

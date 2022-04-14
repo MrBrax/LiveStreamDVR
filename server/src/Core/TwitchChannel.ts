@@ -10,7 +10,7 @@ import { MuteStatus, SubStatus } from "../../../common/Defs";
 import type { ErrorResponse, EventSubTypes } from "../../../common/TwitchAPI/Shared";
 import type { Stream, StreamsResponse } from "../../../common/TwitchAPI/Streams";
 import type { SubscriptionRequest, SubscriptionResponse } from "../../../common/TwitchAPI/Subscriptions";
-import type { UsersResponse } from "../../../common/TwitchAPI/Users";
+import type { BroadcasterType, UsersResponse } from "../../../common/TwitchAPI/Users";
 import { BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchConfig } from "./TwitchConfig";
@@ -50,6 +50,8 @@ export class TwitchChannel {
      * Display name used in chats and profile pages.
      */
     public display_name: string | undefined;
+
+    public broadcaster_type: BroadcasterType = "";
 
     public description: string | undefined;
     public profile_image_url: string | undefined;
@@ -176,6 +178,7 @@ export class TwitchChannel {
             display_name: this.display_name || "",
             description: this.description || "",
             profile_image_url: this.profile_image_url || "",
+            broadcaster_type: this.broadcaster_type || "",
             is_live: this.is_live,
             is_converting: this.is_converting,
             current_vod: await this.current_vod?.toAPI(),
@@ -484,6 +487,34 @@ export class TwitchChannel {
         this.clips_list = clips_on_disk.map(f => path.basename(f));
     }
 
+    public async refreshData() {
+        if (!this.userid) throw new Error("Userid not set");
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Refreshing data for ${this.login}`);
+
+        const channel_data = await TwitchChannel.getChannelDataById(this.userid, true);
+
+        if (channel_data) {
+            this.channel_data = channel_data;
+            this.userid = channel_data.id;
+            this.login = channel_data.login;
+            this.display_name = channel_data.display_name;
+            this.profile_image_url = channel_data.profile_image_url;
+            this.broadcaster_type = channel_data.broadcaster_type;
+            this.description = channel_data.description;
+            return true;
+        }
+
+        return false;
+
+        // try {
+        //     channel_data = TwitchChannel.getChannelDataById(this.userid);
+        // } catch (error) {
+        //     TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to get channel data for ${this.login}`);
+        //     return;
+        // }
+
+    }
+
     /**
      * 
      * STATIC
@@ -518,6 +549,7 @@ export class TwitchChannel {
         channel.display_name = channel_data.display_name;
         channel.description = channel_data.description;
         channel.profile_image_url = channel_data.profile_image_url;
+        channel.broadcaster_type = channel_data.broadcaster_type;
         channel.applyConfig(channel_config);
 
         if (KeyValue.getBool(`${channel.login}.online`)) {
@@ -757,6 +789,7 @@ export class TwitchChannel {
      * Get channel data using the channel id (numeric in string form)
      * @param channel_id 
      * @param force 
+     * @throws
      * @returns 
      */
     public static async getChannelDataById(channel_id: string, force = false): Promise<ChannelData | false> {
@@ -767,6 +800,7 @@ export class TwitchChannel {
      * Get channel data using the channel login, not the display name
      * @param login 
      * @param force 
+     * @throws
      * @returns 
      */
     public static async getChannelDataByLogin(login: string, force = false): Promise<ChannelData | false> {
@@ -781,6 +815,7 @@ export class TwitchChannel {
      * @param method Either "id" or "login"
      * @param identifier Either channel id or channel login
      * @param force 
+     * @throws
      * @returns 
      */
     private static async getChannelDataProxy(method: "id" | "login", identifier: string, force: boolean): Promise<ChannelData | false> {

@@ -1,5 +1,6 @@
 import { ApiChannel } from "@common/Api/Client";
 import { VideoQuality } from "@common/Config";
+import { BroadcasterType } from "@common/TwitchAPI/Users";
 import { TwitchVODChapter } from "./chapter";
 import { TwitchGame } from "./game";
 import TwitchVOD from "./vod";
@@ -10,6 +11,7 @@ export default class TwitchChannel {
     login = "";
     description = "";
     quality: VideoQuality[] = [];
+    broadcaster_type: BroadcasterType = "";
 
     profile_image_url = "";
 

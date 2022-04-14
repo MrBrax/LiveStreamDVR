@@ -26,6 +26,12 @@
                             One or more subscriptions missing
                         </span></span
                     ><!-- sub status -->
+                    &middot;
+                    <span class="streamer-type" title="Broadcaster type">
+                        <span v-if="streamer.broadcaster_type == 'partner'">Partner</span>
+                        <span v-else-if="streamer.broadcaster_type == 'affiliate'">Affiliate</span>
+                        <span v-else>Free</span>
+                    </span>
                     <span class="streamer-title-tools">
                         <span v-if="streamer.is_live">
                             &middot;
@@ -54,6 +60,10 @@
 
                         <button class="icon-button" title="Clean up" @click="doChannelCleanup">
                             <span class="icon"><fa icon="trash"></fa></span>
+                        </button>
+
+                        <button class="icon-button" title="Refresh data" @click="doChannelRefresh">
+                            <span class="icon"><fa icon="sync"></fa></span>
                         </button>
                     </span>
                 </span>
@@ -116,12 +126,13 @@ import VodItem from "@/components/VodItem.vue";
 import ModalBox from "@/components/ModalBox.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faVideo, faPlayCircle, faVideoSlash, faDownload } from "@fortawesome/free-solid-svg-icons";
+import { faVideo, faPlayCircle, faVideoSlash, faDownload, faSync } from "@fortawesome/free-solid-svg-icons";
 // import { TwitchAPI } from "@/twitchapi";
 import { Video } from "@common/TwitchAPI/Video";
 import TwitchChannel from "@/core/channel";
 import { useStore } from "@/store";
-library.add(faVideo, faPlayCircle, faVideoSlash, faDownload);
+import { ApiResponse } from "@common/Api/Api";
+library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync);
 
 export default defineComponent({
     name: "StreamerItem",
@@ -298,6 +309,25 @@ export default defineComponent({
             }
 
             console.log("Cleaned", data);
+        },
+        async doChannelRefresh() {
+            if (!this.streamer) return;
+            this.$http
+                .post(`/api/v0/channels/${this.streamer.login}/refresh`)
+                .then((response) => {
+                    const json: ApiResponse = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.store.fetchStreamerList();
+                })
+                .catch((error) => {
+                    if (this.$http.isAxiosError(error)) {
+                        console.error("doChannelRefresh error", error.response);
+                        if (error.response && error.response.data && error.response.data.message) {
+                            alert(error.response.data.message);
+                        }
+                    }
+                });
         },
         imageUrl(url: string, width: number, height: number) {
             return url.replace(/%\{width\}/g, width.toString()).replace(/%\{height\}/g, height.toString());
