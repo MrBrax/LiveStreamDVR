@@ -151,6 +151,11 @@ export class ClientBroker {
             return;
         }
 
+        if (this.wss.clients.size == 0) {
+            console.error(chalk.grey(`No clients connected to broker for data: ${d.length > 64 ? d.substring(0, 64) + "..." : d}`));
+            return;
+        }
+
         console.log(chalk.blueBright(`Broadcasting data to ${this.wss.clients.size} clients: ${d.length > 64 ? d.substring(0, 64) + "..." : d}`));
         this.wss.clients.forEach((client) => {
             client.send(d);

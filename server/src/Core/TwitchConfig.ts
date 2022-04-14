@@ -438,16 +438,16 @@ export class TwitchConfig {
 
         this.startWatchingConfig();
 
-        /*
         // monitor for program exit
-        const goodbye = () => {
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "config", "See you next time!");
-            process.exit(0);
-        };
-        process.on("exit", goodbye);
-        process.on("SIGINT", goodbye);
-        process.on("SIGTERM", goodbye);
-        */
+        // let saidGoobye = false;
+        // const goodbye = () => {
+        //     if (saidGoobye) return;
+        //     TwitchLog.logAdvanced(LOGLEVEL.INFO, "config", "See you next time!");
+        //     saidGoobye = true;
+        // };
+        // process.on("exit", goodbye);
+        // process.on("SIGINT", goodbye);
+        // process.on("SIGTERM", goodbye);
 
         TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "config", "Loading config stuff done.");
 
@@ -458,6 +458,11 @@ export class TwitchConfig {
     static get debug(): boolean {
         if (argv.debug) return true;
         return this.cfg("debug");
+    }
+
+    static get can_shutdown(): boolean {
+        if (!TwitchChannel.channels || TwitchChannel.channels.length === 0) return true;
+        return !TwitchChannel.channels.some(c => c.is_live);
     }
 
 }

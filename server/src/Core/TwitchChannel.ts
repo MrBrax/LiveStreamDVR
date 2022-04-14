@@ -485,6 +485,7 @@ export class TwitchChannel {
         this.clips_list = [];
         const clips_on_disk = fs.readdirSync(BaseConfigDataFolder.saved_clips).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".mp4"));
         this.clips_list = clips_on_disk.map(f => path.basename(f));
+        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Found ${this.clips_list.length} clips for ${this.login}`);
     }
 
     public async refreshData() {

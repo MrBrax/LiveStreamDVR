@@ -194,7 +194,17 @@ export class TwitchAutomatorJob extends EventEmitter {
         });
 
         //return file_put_contents($this->pidfile, json_encode($this)) != false;
-        fs.writeFileSync(this.pidfile, JSON.stringify(this), "utf8");
+        console.debug("job save", this);
+
+        let json_data;
+        try {
+            json_data = JSON.stringify(this);
+        } catch (e) {
+            TwitchLog.logAdvanced(LOGLEVEL.FATAL, "job", `Failed to stringify job ${this.name}`, this.metadata);
+            return false;
+        }
+
+        fs.writeFileSync(this.pidfile, json_data, "utf8");
 
         const exists = fs.existsSync(this.pidfile);
 

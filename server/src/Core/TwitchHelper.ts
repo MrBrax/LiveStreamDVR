@@ -469,6 +469,11 @@ export class TwitchHelper {
             job = TwitchAutomatorJob.create(jobName);
             job.setPid(process.pid);
             job.setProcess(process);
+            job.setMetadata({
+                bin: bin,
+                args: args,
+                env: env,
+            });
             job.startLog(jobName, `$ ${bin} ${args.join(" ")}\n`);
             if (!job.save()) {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to save job ${jobName}`);
