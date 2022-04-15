@@ -531,7 +531,7 @@ export class TwitchHelper {
      * @param overwrite 
      * @returns 
      */
-    static remuxFile(input: string, output: string, overwrite = false): Promise<RemuxReturn> {
+    static remuxFile(input: string, output: string, overwrite = false, metadata_file?: string): Promise<RemuxReturn> {
 
         return new Promise((resolve, reject) => {
 
@@ -563,6 +563,12 @@ export class TwitchHelper {
             // "-r", parseInt(info.video.FrameRate).toString(),
             // "-vsync", "cfr",
             opts.push("-i", input);
+
+            if (metadata_file) {
+                opts.push("-i", metadata_file);
+                opts.push("-map_metadata", "1");
+            }
+
             // "-map", "0",
             // "-analyzeduration", 
             opts.push("-c", "copy");
@@ -571,6 +577,8 @@ export class TwitchHelper {
             // "-vsync", "cfr",
             // ...ffmpeg_options,
             // output,
+
+            
 
             if (overwrite || emptyFile) {
                 opts.push("-y");

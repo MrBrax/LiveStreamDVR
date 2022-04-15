@@ -125,6 +125,7 @@ export class TwitchVOD {
     path_chatdump = "";
     path_adbreak = "";
     path_playlist = "";
+    path_ffmpegchapters = "";
 
     force_record = false;
 
@@ -619,6 +620,7 @@ export class TwitchVOD {
         this.path_chatdump = this.realpath(path.join(this.directory, `${this.basename}.chatdump`));
         this.path_adbreak = this.realpath(path.join(this.directory, `${this.basename}.adbreak`));
         this.path_playlist = this.realpath(path.join(this.directory, `${this.basename}.m3u8`));
+        this.path_ffmpegchapters = this.realpath(path.join(this.directory, `${this.basename}-ffmpeg-chapters.txt`));
 
         // this.is_chat_downloaded 			= file_exists(this.path_chat);
         // this.is_vod_downloaded 			= file_exists(this.path_downloaded_vod);
@@ -627,6 +629,10 @@ export class TwitchVOD {
         // this.is_capture_paused 			= file_exists(this.path_adbreak);
         // this.is_chat_rendered 			= file_exists(this.path_chatrender);
         // this.is_chat_burned 				= file_exists(this.path_chatburn);
+
+        // just to be sure, remake these
+        this.saveLosslessCut();
+        this.saveFFMPEGChapters();
 
     }
 
@@ -984,6 +990,7 @@ export class TwitchVOD {
 
         await this.getMediainfo();
         this.saveLosslessCut();
+        this.saveFFMPEGChapters();
         await this.matchProviderVod();
         this.calculateChapters();
         // this.checkMutedVod(); // initially not muted when vod is published   
@@ -1088,6 +1095,48 @@ export class TwitchVOD {
         this.setPermissions();
 
         return fs.existsSync(csv_path);
+    }
+
+    public saveFFMPEGChapters(): boolean {
+
+        if (!this.directory) {
+            throw new Error("TwitchVOD.saveFFMPEGChapters: directory is not set");
+        }
+
+        if (!this.chapters || this.chapters.length == 0) {
+            // throw new Error('TwitchVOD.saveFFMPEGChapters: chapters are not set');
+            return false;
+        }
+
+        let data = "";
+
+        data += ";FFMETADATA1\n\n";
+        // major_brand=isom
+        // minor_version=512
+        // compatible_brands=isomiso2avc1mp41
+        // encoder=Lavf59.20.101
+
+        this.chapters.forEach((chapter, i) => {
+            const offset = chapter.offset || 0;
+            const duration = chapter.duration || 0;
+
+            const start = Math.floor(offset * 1000);
+            const end = Math.floor((offset + duration) * 1000);
+
+            data += "[CHAPTER]\n";
+            data += "TIMEBASE=1/1000\n";
+            data += `START=${start}\n`;
+            data += `END=${end}\n`;
+            data += `TITLE=${chapter.title} (${chapter.game_name})\n\n`;
+
+        });
+
+        fs.writeFileSync(this.path_ffmpegchapters, data);
+
+        this.setPermissions();
+
+        return fs.existsSync(this.path_ffmpegchapters);
+
     }
 
     public getUniqueGames(): TwitchGame[] {

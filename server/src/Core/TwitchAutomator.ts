@@ -1162,7 +1162,12 @@ export class TwitchAutomator {
             vod: await this.vod.toAPI(),
         });
 
-        const result = await TwitchHelper.remuxFile(this.capture_filename, this.converted_filename);
+        let mf;
+        if (this.vod.saveFFMPEGChapters()) {
+            mf = this.vod.path_ffmpegchapters;
+        }
+
+        const result = await TwitchHelper.remuxFile(this.capture_filename, this.converted_filename, false, mf);
 
         if (result && result.success) {
             TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Converted video ${this.capture_filename} to ${this.converted_filename}`);
