@@ -1,7 +1,9 @@
 <template>
     <div class="container">
         <div class="videoplayer" v-if="vodData && vodData.basename">
-            <video id="video" ref="player" :src="vodData.webpath + '/' + vodData.basename + '.mp4'" @timeupdate="updateVideoTime" width="1280"></video>
+            <video id="video" ref="player" :src="vodData.webpath + '/' + vodData.basename + '.mp4'" @timeupdate="updateVideoTime" width="1280">
+                <track kind="chapters" :src="vodData.webpath + '/' + vodData.basename + '.chapters.vtt'" label="Chapters" default />
+            </video>
             <div id="videoplayer-controls">
                 <button class="button" @click="play">Play</button>
                 <button class="button" @click="pause">Pause</button>

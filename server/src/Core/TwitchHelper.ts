@@ -206,6 +206,14 @@ export class TwitchHelper {
         return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
     }
 
+    public static formatSubtitleDuration(duration_seconds: number) {
+        const hours = Math.floor(duration_seconds / (60 * 60));
+        const minutes = Math.floor((duration_seconds - (hours * 60 * 60)) / 60);
+        const seconds = Math.floor(duration_seconds - (hours * 60 * 60) - (minutes * 60));
+        const milliseconds = Math.floor((duration_seconds - (hours * 60 * 60) - (minutes * 60) - seconds) * 1000);
+        return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${milliseconds.toString().padStart(3, "0")}`;
+    }
+
     public static is_windows() {
         return process.platform === "win32";
     }
