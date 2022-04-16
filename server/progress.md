@@ -64,6 +64,7 @@
 - [x] burnwizard
 - [x] password protection
 - [x] webhook+websocket
+- [ ] vod folders inside channel folders
 
 # Key
 - [x] = implemented
