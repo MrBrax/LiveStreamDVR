@@ -42,7 +42,7 @@ export const useStore = defineStore("twitchAutomator", {
             return this.config[key];
         },
         async fetchStreamerList() {
-            console.debug("fetchStreamerList");
+            // console.debug("fetchStreamerList");
             let response;
             try {
                 response = await axios.get(`/api/v0/channels`);
@@ -54,7 +54,7 @@ export const useStore = defineStore("twitchAutomator", {
             const data: ApiChannelsResponse | ApiErrorResponse = response.data;
 
             if (data.status === "ERROR") {
-                console.error("fetchStreamerList", data.message);
+                // console.error("fetchStreamerList", data.message);
                 return false;
             }
 
@@ -89,6 +89,7 @@ export const useStore = defineStore("twitchAutomator", {
 
             const vod = TwitchVOD.makeFromApiResponse(vod_data);
 
+            /*
             // check if vod is already in the streamer's vods
             const vodIndex = this.streamerList[index].vods_list.findIndex((v) => basename === v.basename);
 
@@ -100,6 +101,9 @@ export const useStore = defineStore("twitchAutomator", {
                 console.debug("updated vod", vod);
             }
             return true;
+            */
+
+            return this.updateVod(vod);
         },
         updateVod(vod: TwitchVOD) {
             const index = this.streamerList.findIndex((s) => s.userid === vod.streamer_id);
@@ -110,10 +114,10 @@ export const useStore = defineStore("twitchAutomator", {
 
             if (vodIndex === -1) {
                 this.streamerList[index].vods_list.push(vod);
-                console.debug("inserted vod", vod);
+                // console.debug("inserted vod", vod);
             } else {
                 this.streamerList[index].vods_list[vodIndex] = vod;
-                console.debug("updated vod", vod);
+                // console.debug("updated vod", vod);
             }
             return true;
         },
@@ -133,7 +137,7 @@ export const useStore = defineStore("twitchAutomator", {
             this.streamerList.forEach((streamer) => {
                 streamer.vods_list.forEach((vod) => {
                     if (vod.is_capturing) {
-                        console.debug("updateCapturingVods", vod.basename);
+                        // console.debug("updateCapturingVods", vod.basename);
                         this.updateVodApi(vod.basename);
                     }
                 });
@@ -173,7 +177,7 @@ export const useStore = defineStore("twitchAutomator", {
             return true;
         },
         updateStreamerList(data: ApiChannel[]) {
-            console.debug("updateStreamerList", data);
+            // console.debug("updateStreamerList", data);
             const channels = data.map((channel) => TwitchChannel.makeFromApiResponse(channel));
             this.streamerList = channels;
         },
@@ -229,7 +233,7 @@ export const useStore = defineStore("twitchAutomator", {
         },
         fetchClientConfig() {
             // client config
-            console.debug("fetchClientConfig");
+            // console.debug("fetchClientConfig");
             const currentClientConfig = localStorage.getItem("twitchautomator_config")
                 ? JSON.parse(localStorage.getItem("twitchautomator_config") as string)
                 : {};

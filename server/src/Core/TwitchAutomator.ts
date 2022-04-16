@@ -444,6 +444,8 @@ export class TwitchAutomator {
 
             ClientBroker.notify(title, body, icon, category, this.channel?.getUrl());
 
+        } else if (previous_chapter?.title !== current_chapter.title) {
+            title = `${channel.display_name} changed title, still playing/streaming ${current_chapter.game_name}!`;
         }
 
     }

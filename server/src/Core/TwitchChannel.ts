@@ -157,12 +157,13 @@ export class TwitchChannel {
     }
 
     public getSubscriptionStatus(): boolean {
-        for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
-            if (KeyValue.get(`${this.userid}.substatus.${sub_type}`) != SubStatus.SUBSCRIBED) {
-                return false;
-            }
-        }
-        return true;
+        // for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
+        //     if (KeyValue.get(`${this.userid}.substatus.${sub_type}`) != SubStatus.SUBSCRIBED) {
+        //         return false;
+        //     }
+        // }
+        // return true;
+        return TwitchHelper.CHANNEL_SUB_TYPES.every(sub_type => KeyValue.get(`${this.userid}.substatus.${sub_type}`) === SubStatus.SUBSCRIBED);
     }
 
     public async toAPI(): Promise<ApiChannel> {
@@ -698,8 +699,8 @@ export class TwitchChannel {
                     ch = await TwitchChannel.loadFromLogin(channel.login, true);
                 } catch (th) {
                     TwitchLog.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be loaded: ${th}`);
-                    // continue;
-                    break;
+                    continue;
+                    // break;
                 }
 
                 if (ch) {

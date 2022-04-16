@@ -676,9 +676,10 @@ export class TwitchVOD {
         ];
 
         if (this.segments_raw) {
-            for (const seg of this.segments_raw) {
-                base.push(path.basename(seg));
-            }
+            // for (const seg of this.segments_raw) {
+            //     base.push(path.basename(seg));
+            // }
+            base.push(...this.segments_raw.map(seg => path.basename(seg)));
         }
 
         return base.filter(f => fs.existsSync(this.realpath(path.join(this.directory || "", f))));
@@ -1097,6 +1098,11 @@ export class TwitchVOD {
         return fs.existsSync(csv_path);
     }
 
+    /**
+     * Save chapter data in ffmpeg format for use in remuxing.
+     * @see {@link https://ikyle.me/blog/2020/add-mp4-chapters-ffmpeg}
+     * @returns Save success
+     */
     public saveFFMPEGChapters(): boolean {
 
         if (!this.directory) {
@@ -1108,15 +1114,20 @@ export class TwitchVOD {
             return false;
         }
 
+        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Saving FFMPEG chapters file for ${this.basename} to ${this.path_ffmpegchapters}`);
+
         let data = "";
 
-        data += ";FFMETADATA1\n\n";
+        data += ";FFMETADATA1\n";
+        data += `artist=${this.streamer_name}\n`;
+        data += `title=${this.twitch_vod_title ?? this.chapters[0].title}\n`;
+        data += "\n";
         // major_brand=isom
         // minor_version=512
         // compatible_brands=isomiso2avc1mp41
         // encoder=Lavf59.20.101
 
-        this.chapters.forEach((chapter, i) => {
+        this.chapters.forEach((chapter) => {
             const offset = chapter.offset || 0;
             const duration = chapter.duration || 0;
 
@@ -1124,6 +1135,13 @@ export class TwitchVOD {
             const end = Math.floor((offset + duration) * 1000);
 
             data += "[CHAPTER]\n";
+            data += `# Game ID: ${chapter.game_id}\n`;
+            data += `# Game Name: ${chapter.game_name}\n`;
+            data += `# Title: ${chapter.title}\n`;
+            data += `# Offset: ${offset}\n`;
+            data += `# Duration: ${duration}\n`;
+            data += `# Viewer count: ${chapter.viewer_count}\n`;
+            data += `# Started at: ${chapter.started_at.toISOString()}\n`;
             data += "TIMEBASE=1/1000\n";
             data += `START=${start}\n`;
             data += `END=${end}\n`;
@@ -1131,7 +1149,7 @@ export class TwitchVOD {
 
         });
 
-        fs.writeFileSync(this.path_ffmpegchapters, data);
+        fs.writeFileSync(this.path_ffmpegchapters, data, { encoding: "utf8" });
 
         this.setPermissions();
 
@@ -1390,16 +1408,20 @@ export class TwitchVOD {
 
     }
 
-    public async broadcastUpdate(): Promise<void> {
-        if (this._updateTimer) clearTimeout(this._updateTimer);
-        const vod = await this.toAPI();
-        this._updateTimer = setTimeout(() => {
+    public broadcastUpdate(): void {
+        if (this._updateTimer) {
+            clearTimeout(this._updateTimer);
+            this._updateTimer = undefined;
+            console.debug(`Cleared update timer for ${this.basename}`);
+        }
+        this._updateTimer = setTimeout(async () => {
+            const vod = await this.toAPI();
             console.debug(`[${Date.now()}] Broadcasting VOD update for ${this.basename}`);
             TwitchWebhook.dispatch("vod_updated", {
                 vod: vod,
             } as VodUpdated);
             this._updateTimer = undefined;
-        }, 2000);
+        }, 3000);
     }
 
     /**

@@ -2,9 +2,8 @@ import path from "path";
 import fs from "fs";
 import { BaseConfigDataFolder } from "./BaseConfig";
 import { LOGLEVEL, TwitchLog } from "./TwitchLog";
-import { PHPDateTimeProxy } from "../types";
 import { ExecReturn, TwitchHelper } from "./TwitchHelper";
-import { parse, parseISO } from "date-fns";
+import { parseISO } from "date-fns";
 import { ChildProcessWithoutNullStreams } from "child_process";
 import { EventEmitter } from "events";
 import { TwitchWebhook } from "./TwitchWebhook";
@@ -194,7 +193,7 @@ export class TwitchAutomatorJob extends EventEmitter {
         });
 
         //return file_put_contents($this->pidfile, json_encode($this)) != false;
-        console.debug("job save", this);
+        // console.debug("job save", this);
 
         let json_data;
         try {
@@ -349,10 +348,13 @@ export class TwitchAutomatorJob extends EventEmitter {
             throw new Error("No pid set on job");
         }
 
+        // broadcast only if changed status
+        const currentStatus = this.status;
+
         // @todo: check if this works
         if (this.process && !use_command) {
             this.status = this.process_running && this.process.pid ? this.process.pid : false;
-            this.broadcastUpdate();
+            if (currentStatus !== this.status) this.broadcastUpdate();
             return this.process_running && this.process.pid ? this.process.pid : false;
         }
 
@@ -366,7 +368,7 @@ export class TwitchAutomatorJob extends EventEmitter {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for job ${this.name} (${this.process_running})`, this.metadata);
                 console.debug(`Error checking status for job ${this.name} (${this.process_running})`);
                 this.status = false;
-                this.broadcastUpdate();
+                if (currentStatus !== this.status) this.broadcastUpdate();
                 return false;
             }
 
@@ -381,7 +383,7 @@ export class TwitchAutomatorJob extends EventEmitter {
                 TwitchLog.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for job ${this.name} (${this.process_running})`, this.metadata);
                 console.debug(`Error checking status for job ${this.name} (${this.process_running})`);
                 this.status = false;
-                this.broadcastUpdate();
+                if (currentStatus !== this.status) this.broadcastUpdate();
                 return false;
             }
 
@@ -404,13 +406,13 @@ export class TwitchAutomatorJob extends EventEmitter {
             TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `PID file check for '${this.name}', process is running (${this.process_running})`);
             console.debug(`PID file check for '${this.name}', process is running (${this.process_running})`);
             this.status = this.pid;
-            this.broadcastUpdate();
+            if (currentStatus !== this.status) this.broadcastUpdate();
             return this.pid;
         } else {
             TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `PID file check for '${this.name}', process does not exist (${this.process_running})`);
             console.debug(`PID file check for '${this.name}', process does not exist (${this.process_running})`);
             this.status = false;
-            this.broadcastUpdate();
+            if (currentStatus !== this.status) this.broadcastUpdate();
             return false;
         }
     }

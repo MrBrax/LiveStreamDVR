@@ -128,7 +128,6 @@ faviconTempImage.src = faviconElement.href;
 faviconTempImage.onload = () => {
     if (!faviconCtx) return;
     faviconCtx.drawImage(faviconTempImage, 0, 0, 32, 32);
-    console.log("favicon drawn", faviconCtx);
 };
 
 export default defineComponent({
@@ -190,11 +189,11 @@ export default defineComponent({
         // this.processNotifications();
 
         if (this.store.cfg("websocket_enabled") && this.store.clientConfig?.useWebsockets) {
-            console.debug("Websockets enabled");
+            // console.debug("Websockets enabled");
             this.connectWebsocket();
         } else {
             if (this.store.clientConfig?.useBackgroundTicker) {
-                console.debug("Websockets disabled");
+                // console.debug("Websockets disabled");
                 this.tickerInterval = setInterval(() => {
                     this.fetchTicker();
                 }, 1000);
@@ -245,7 +244,7 @@ export default defineComponent({
         // }
 
         if (this.faviconSub) {
-            console.log("unsubscribing from favicon, unmounted");
+            // console.log("unsubscribing from favicon, unmounted");
             this.faviconSub();
         }
 
@@ -530,7 +529,7 @@ export default defineComponent({
             }
 
             const json = response.data;
-            console.debug("Update jobs list", json.data);
+            // console.debug("Update jobs list", json.data);
             this.store.updateJobList(json.data);
         },
         async fetchLog(clear = false) {
@@ -614,24 +613,20 @@ export default defineComponent({
                     return;
                 }
 
-                if (name !== "updateStreamerList") {
-                    // console.debug(`Streamer list notification check payload was ${name}, abort.`);
+                if (name !== "updateStreamerList" && name !== "updateVod") {
+                    // console.debug(`Favicon update check got ${name}, abort.`);
                     return;
                 }
 
-                const payload = args[0] as ApiChannel[];
-
-                if (!payload) {
-                    return;
-                }
-
-                const isAnyoneLive = payload.some((el) => el.is_live == true);
-
-                this.setFaviconBadgeState(isAnyoneLive);
+                // console.debug(`Favicon update check got ${name}`);
+                after(() => {
+                    const isAnyoneLive = this.store.streamerList.some((el) => el.is_live == true);
+                    this.setFaviconBadgeState(isAnyoneLive);
+                });
             });
         },
         setFaviconBadgeState(state: boolean) {
-            console.log("Set favicon badge state", state);
+            // console.log("Set favicon badge state", state);
             // draw favicon into canvas and add badge
             const canvas = document.createElement("canvas");
             canvas.width = 32;
@@ -650,7 +645,7 @@ export default defineComponent({
                 }
 
                 faviconElement.href = canvas.toDataURL();
-                console.log("favicon updated", faviconElement);
+                // console.log("favicon updated", faviconElement);
                 // document.body.appendChild(canvas);
             }
         },

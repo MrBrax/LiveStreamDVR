@@ -48,15 +48,15 @@
                             {{ formatDate(vod.created_at, "yyyy-MM-dd HH:mm:ss") }}
                         </li>
                         <li v-if="vod.started_at">
-                            <strong>Stream start:</strong>
+                            <strong>Went live:</strong>
                             {{ formatDate(vod.started_at, "yyyy-MM-dd HH:mm:ss") }}
                         </li>
                         <li v-if="vod.capture_started">
-                            <strong>Capture start:</strong>
+                            <strong>Capture launched:</strong>
                             {{ formatDate(vod.capture_started, "yyyy-MM-dd HH:mm:ss") }}
                         </li>
                         <li v-if="vod.capture_started2">
-                            <strong>Capture2 start:</strong>
+                            <strong>Wrote file:</strong>
                             {{ formatDate(vod.capture_started2, "yyyy-MM-dd HH:mm:ss") }}
                         </li>
                         <li v-if="vod.ended_at">
