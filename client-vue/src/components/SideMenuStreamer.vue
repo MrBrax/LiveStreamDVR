@@ -192,6 +192,11 @@ export default defineComponent({
         isRiskOfBeingDeleted(vod: TwitchVOD) {
             if (!vod.started_at) return false;
 
+            const channel = vod.getChannel();
+            if (channel) {
+                if (channel.broadcaster_type === "partner") return false; // partner vods are never deleted, i think?
+            }
+
             // 14 days minus 2 days for some slack
             const maxVodAge = TwitchVodAge - 2 * 24 * 60 * 60 * 1000;
 

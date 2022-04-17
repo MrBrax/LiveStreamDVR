@@ -28,8 +28,7 @@
                     ><!-- sub status -->
                     &middot;
                     <span class="streamer-type" title="Broadcaster type">
-                        <span v-if="streamer.broadcaster_type == 'partner'">Partner</span>
-                        <span v-else-if="streamer.broadcaster_type == 'affiliate'">Affiliate</span>
+                        <span v-if="streamer.broadcaster_type">{{ streamer.broadcaster_type }}</span>
                         <span v-else>Free</span>
                     </span>
                     <span class="streamer-title-tools">

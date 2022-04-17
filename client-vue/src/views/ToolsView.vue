@@ -28,11 +28,18 @@
             </div>
         </section>
 
+        <section class="section">
+            <div class="section-title"><h1>Reset channels</h1></div>
+            <div class="section-content">
+                <button type="button" class="button" @click="resetChannels">Reset</button>
+            </div>
+        </section>
+
         <!--
         <section class="section">
             <div class="section-title"><h1>Saved VODs</h1></div>
             <div class="section-content">
-                
+
                 {% if saved_vods %}
                     <ul>
                     {% for vod in saved_vods %}
@@ -177,6 +184,20 @@ export default defineComponent({
                 };
                 reader.readAsText(file, "UTF-8");
             }
+        },
+        resetChannels() {
+            if (!confirm("Reset channels?")) return;
+
+            this.$http
+                .post(`/api/v0/tools/reset_channels`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                })
+                .catch((err) => {
+                    console.error("tools reset channels error", err.response);
+                });
         },
     },
     components: {

@@ -1,6 +1,8 @@
+import { useStore } from "@/store";
 import { ApiVod } from "../../../common/Api/Client";
 import { MuteStatus } from "../../../common/Defs";
 import { VideoMetadata } from "../../../common/MediaInfo";
+import TwitchChannel from "./channel";
 import { TwitchVODChapter } from "./chapter";
 // import { useStore } from "../store";
 import { TwitchGame } from "./game";
@@ -150,6 +152,11 @@ export default class TwitchVOD {
         if (!this.started_at) return false;
         const now = new Date();
         return Math.abs((this.started_at.getTime() - now.getTime()) / 1000);
+    }
+
+    public getChannel(): TwitchChannel | undefined {
+        const store = useStore();
+        return store.streamerList.find((streamer) => streamer.userid == this.streamer_id);
     }
 
     get current_game(): TwitchGame | undefined {

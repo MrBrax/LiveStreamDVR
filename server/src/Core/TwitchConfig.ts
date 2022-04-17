@@ -13,6 +13,7 @@ import crypto from "crypto";
 import path from "path";
 import { ClientBroker } from "./ClientBroker";
 import minimist from "minimist";
+import { TwitchVOD } from "./TwitchVOD";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -453,6 +454,16 @@ export class TwitchConfig {
 
         this.initialised = true;
 
+    }
+
+    static async resetChannels() {
+        TwitchChannel.channels_cache = {};
+        TwitchChannel.channels_config = [];
+        TwitchChannel.channels = [];
+        TwitchVOD.vods = [];
+        TwitchChannel.loadChannelsConfig();
+        TwitchChannel.loadChannelsCache();
+        await TwitchChannel.loadChannels();
     }
 
     static get debug(): boolean {

@@ -34,6 +34,7 @@ export default class TwitchChannel {
         channel.profile_image_url = apiResponse.profile_image_url;
         channel.api_getSubscriptionStatus = apiResponse.api_getSubscriptionStatus;
         channel.clips_list = apiResponse.clips_list;
+        channel.broadcaster_type = apiResponse.broadcaster_type;
         return channel;
     }
 
