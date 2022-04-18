@@ -98,9 +98,9 @@ export default class TwitchVOD {
         vod.streamer_login = apiResponse.streamer_login;
         vod.streamer_id = apiResponse.streamer_id;
         vod.webpath = apiResponse.webpath;
-        vod.convertingStatus = apiResponse.api_getCapturingStatus;
+        vod.convertingStatus = apiResponse.api_getConvertingStatus;
         vod.recordingSize = apiResponse.api_getRecordingSize;
-        vod.capturingStatus = apiResponse.api_getConvertingStatus;
+        vod.capturingStatus = apiResponse.api_getCapturingStatus;
         vod.chatDumpStatus = apiResponse.api_getChatDumpStatus;
         vod.total_size = apiResponse.total_size;
         return vod;

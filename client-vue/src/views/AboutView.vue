@@ -175,17 +175,17 @@
                     <!-- pip update -->
                     <div class="block" v-if="!aboutData.is_docker">
                         <h3>Pip update</h3>
-                        <code>pip install --user --upgrade yt-dlp streamlink tcd pipenv</code>
+                        <code>pip install --user --upgrade yt-dlp streamlink pipenv</code>
                         <br />You might want to install without the --user switch depending on environment.
                     </div>
                     <div class="block">
                         <!-- links -->
                         <h3>Links</h3>
                         <ul>
-                            <li><a href="https://www.python.org/downloads/" target="_blank">Python</a></li>
-                            <li><a href="https://www.gyan.dev/ffmpeg/builds/" target="_blank">FFmpeg builds for Windows</a> (rip zeranoe)</li>
-                            <li><a href="https://mediaarea.net/en/MediaInfo" target="_blank">MediaInfo</a></li>
-                            <li><a href="https://github.com/lay295/TwitchDownloader" target="_blank">TwitchDownloader</a></li>
+                            <li><a href="https://www.python.org/downloads/" target="_blank" rel="noreferrer">Python</a></li>
+                            <li><a href="https://www.gyan.dev/ffmpeg/builds/" target="_blank" rel="noreferrer">FFmpeg builds for Windows</a> (rip zeranoe)</li>
+                            <li><a href="https://mediaarea.net/en/MediaInfo" target="_blank" rel="noreferrer">MediaInfo</a></li>
+                            <li><a href="https://github.com/lay295/TwitchDownloader" target="_blank" rel="noreferrer">TwitchDownloader</a></li>
                         </ul>
                     </div>
                 </div>

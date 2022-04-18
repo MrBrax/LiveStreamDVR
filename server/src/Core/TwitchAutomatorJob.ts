@@ -404,13 +404,13 @@ export class TwitchAutomatorJob extends EventEmitter {
         */
         if (output.indexOf(this.pid.toString()) !== -1) {
             TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `PID file check for '${this.name}', process is running (${this.process_running})`);
-            console.debug(`PID file check for '${this.name}', process is running (${this.process_running})`);
+            // console.debug(`PID file check for '${this.name}', process is running (${this.process_running})`);
             this.status = this.pid;
             if (currentStatus !== this.status) this.broadcastUpdate();
             return this.pid;
         } else {
             TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `PID file check for '${this.name}', process does not exist (${this.process_running})`);
-            console.debug(`PID file check for '${this.name}', process does not exist (${this.process_running})`);
+            // console.debug(`PID file check for '${this.name}', process does not exist (${this.process_running})`);
             this.status = false;
             if (currentStatus !== this.status) this.broadcastUpdate();
             return false;

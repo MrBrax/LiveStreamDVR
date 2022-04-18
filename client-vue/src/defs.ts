@@ -1,4 +1,6 @@
-export const defaultConfig = {
+import { ClientSettings } from "./twitchautomator";
+
+export const defaultConfig: ClientSettings = {
     useSpeech: false,
     singlePage: false,
     enableNotifications: false,

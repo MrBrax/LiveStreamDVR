@@ -204,7 +204,7 @@ export class TwitchConfig {
         return this.settingsFields.find(field => field["key"] === key);
     }
 
-    static setConfig<T extends number|string|boolean>(key: string, value: T): void {
+    static setConfig<T extends number | string | boolean>(key: string, value: T): void {
 
         const setting = this.getSettingField(key);
 
@@ -272,6 +272,8 @@ export class TwitchConfig {
 
         this.startWatchingConfig();
 
+        this.setupAxios();
+
         return success;
 
     }
@@ -283,6 +285,13 @@ export class TwitchConfig {
     }
 
     static async setupAxios() {
+
+        console.log(chalk.blue("Setting up axios..."));
+
+        if (!TwitchConfig.cfg("api_client_id")) {
+            console.error("API client id not set, can't setup axios");
+            return;
+        }
 
         let token;
         try {
@@ -302,9 +311,12 @@ export class TwitchConfig {
             headers: {
                 "Client-ID": TwitchConfig.cfg("api_client_id"),
                 "Content-Type": "application/json",
-                "Authorization": "Bearer " + token,
+                "Authorization": `Bearer ${token}`,
             },
         });
+
+        console.log(chalk.green("✔ Axios setup."));
+
     }
 
     static createFolders() {
