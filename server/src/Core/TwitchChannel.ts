@@ -736,6 +736,10 @@ export class TwitchChannel {
     public static async getStreams(streamer_id: string): Promise<Stream[] | false> {
         let response;
 
+        if (!TwitchHelper.axios) {
+            throw new Error("Axios is not initialized");
+        }
+
         try {
             response = await TwitchHelper.axios.get(`/helix/streams?user_id=${streamer_id}`);
         } catch (error) {
@@ -895,6 +899,10 @@ export class TwitchChannel {
             throw new Error("Could not get access token, aborting.");
         }
 
+        if (!TwitchHelper.axios) {
+            throw new Error("Axios is not initialized");
+        }
+
         let response;
 
         try {
@@ -984,6 +992,10 @@ export class TwitchChannel {
                     secret: TwitchConfig.cfg("eventsub_secret"),
                 },
             };
+
+            if (!TwitchHelper.axios) {
+                throw new Error("Axios is not initialized");
+            }
 
             let response;
 

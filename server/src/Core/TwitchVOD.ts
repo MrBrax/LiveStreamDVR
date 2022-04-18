@@ -2450,6 +2450,10 @@ export class TwitchVOD {
     static async getVideo(video_id: string): Promise<false | Video> {
         if (!video_id) throw new Error("No video id");
 
+        if (!TwitchHelper.axios) {
+            throw new Error("Axios is not initialized");
+        }
+
         let response;
 
         try {
@@ -2472,6 +2476,10 @@ export class TwitchVOD {
 
     static async getVideos(channel_id: string): Promise<false | Video[]> {
         if (!channel_id) throw new Error("No channel id");
+
+        if (!TwitchHelper.axios) {
+            throw new Error("Axios is not initialized");
+        }
 
         let response;
 

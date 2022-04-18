@@ -32,7 +32,7 @@ export interface RemuxReturn {
 
 export class TwitchHelper {
 
-    static axios: Axios;
+    static axios: Axios | undefined;
 
     static accessToken = "";
 
@@ -317,6 +317,10 @@ export class TwitchHelper {
     public static async eventSubUnsubscribe(subscription_id: string) {
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Unsubscribing from eventsub id ${subscription_id}`);
+
+        if (!this.axios) {
+            throw new Error("Axios is not initialized");
+        }
 
         let response;
 
@@ -896,6 +900,10 @@ export class TwitchHelper {
     public static async getSubs(): Promise<Subscriptions | false> {
 
         TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Requesting subscriptions list");
+
+        if (!this.axios) {
+            throw new Error("Axios is not initialized");
+        }
 
         let response;
 

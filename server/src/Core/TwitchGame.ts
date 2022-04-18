@@ -86,6 +86,10 @@ export class TwitchGame {
 
         TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "helper", `Game id ${game_id} not in cache, fetching...`);
 
+        if (!TwitchHelper.axios) {
+            throw new Error("Axios is not initialized");
+        }
+
         let response;
         try {
             response = await TwitchHelper.axios.get(`/helix/games?id=${game_id}`);

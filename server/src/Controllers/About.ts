@@ -97,7 +97,7 @@ export async function About(req: express.Request, res: express.Response) {
 
 
     const pip_pkg: Record<string, { binary: string | false; version_args: string[]; version_regex: RegExp; }> = {
-        tcd: { binary: TwitchHelper.path_tcd(), version_args: ["--version", "--settings-file", path.join(BaseConfigDataFolder.config, "tcd_settings.json")], version_regex: /^Twitch Chat Downloader\s+([0-9.]+)$/m },
+        // tcd: { binary: TwitchHelper.path_tcd(), version_args: ["--version", "--settings-file", path.join(BaseConfigDataFolder.config, "tcd_settings.json")], version_regex: /^Twitch Chat Downloader\s+([0-9.]+)$/m },
         streamlink: { binary: TwitchHelper.path_streamlink(), version_args: ["--version"], version_regex: /^streamlink\s+([0-9.]+)$/m },
         "youtubedl": { binary: TwitchHelper.path_youtubedl(), version_args: ["--version"], version_regex: /^([0-9.]+)$/m },
         pipenv: { binary: TwitchHelper.path_pipenv(), version_args: ["--version"], version_regex: /^pipenv, version ([0-9.]+)$/m },

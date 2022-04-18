@@ -47,15 +47,15 @@
                             <strong>Created:</strong>
                             {{ formatDate(vod.created_at, "yyyy-MM-dd HH:mm:ss") }}
                         </li>
-                        <li v-if="vod.started_at">
+                        <li v-if="vod.started_at && showAdvanced">
                             <strong>Went live:</strong>
                             {{ formatDate(vod.started_at, "yyyy-MM-dd HH:mm:ss") }}
                         </li>
-                        <li v-if="vod.capture_started">
+                        <li v-if="vod.capture_started && showAdvanced">
                             <strong>Capture launched:</strong>
                             {{ formatDate(vod.capture_started, "yyyy-MM-dd HH:mm:ss") }}
                         </li>
-                        <li v-if="vod.capture_started2">
+                        <li v-if="vod.capture_started2 && showAdvanced">
                             <strong>Wrote file:</strong>
                             {{ formatDate(vod.capture_started2, "yyyy-MM-dd HH:mm:ss") }}
                         </li>
@@ -73,7 +73,7 @@
                                 {{ formatDate(vod?.conversion_started, "yyyy-MM-dd HH:mm:ss") }}
                             </li>
                         </template>
-                        <li v-if="vod.getDuration()">
+                        <li v-if="vod.getDuration() && showAdvanced">
                             <strong>Missing from captured file:</strong>
                             <span class="px-1" v-if="vod.twitch_vod_duration">
                                 {{ humanDuration(vod.twitch_vod_duration - vod.getDuration()) }}
