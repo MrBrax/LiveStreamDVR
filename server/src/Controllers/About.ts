@@ -38,7 +38,7 @@ export async function About(req: express.Request, res: express.Response) {
     const bin_args: Record<string, { binary: string | false; version_args: string[]; version_regex: RegExp; }> = {
         ffmpeg: { binary: TwitchHelper.path_ffmpeg(), version_args: ["-version"], version_regex: /ffmpeg version ([\w0-9\-_.]+) Copyright/m },
         mediainfo: { binary: TwitchHelper.path_mediainfo(), version_args: ["--Version"], version_regex: /v(\d+\.\d+)/m },
-        twitchdownloader: { binary: TwitchHelper.path_twitchdownloader(), version_args: ["--version", "2>&1"], version_regex: /TwitchDownloader (\d+\.\d+\.\d+)/m },
+        twitchdownloader: { binary: TwitchHelper.path_twitchdownloader(), version_args: ["--version", "2>&1"], version_regex: /TwitchDownloaderCLI (\d+\.\d+\.\d+)/m },
         python: { binary: "python", version_args: ["--version"], version_regex: /Python ([\d.]+)/m },
         python3: { binary: "python3", version_args: ["--version"], version_regex: /Python ([\d.]+)/m },
         node: { binary: "node", version_args: ["--version"], version_regex: /v([\d.]+)/m },
@@ -49,6 +49,8 @@ export async function About(req: express.Request, res: express.Response) {
         const bin_data = bin_args[bin_name];
         if (bin_data.binary) {
 
+            let string_out = "";
+
             let exec_out;
             try {
                 exec_out = await TwitchHelper.execSimple(bin_data.binary, bin_data.version_args, "about binary check");
@@ -57,15 +59,20 @@ export async function About(req: express.Request, res: express.Response) {
                 if ("code" in e) {
                     console.error("exec error", error);
                 }
+                if ("stdout" in e) string_out += e.stdout.map(line => line.trim()).join("\n");
+                if ("stderr" in e) string_out += e.stderr.map(line => line.trim()).join("\n");
             }
 
             if (exec_out) {
+                string_out += exec_out.stdout.map(line => line.trim()).join("\n");
+            }
 
-                const match_data = exec_out.stdout.join("\n") + "\n" + exec_out.stderr.join("\n");
-                const match = match_data.trim().match(bin_data.version_regex);
+            if (string_out !== "") {
+
+                const match = string_out.trim().match(bin_data.version_regex);
 
                 if (!match || match.length < 2) {
-                    console.error(bin_name, "failed to match", match, match_data.trim());
+                    console.error(bin_name, "failed to match", match, string_out.trim());
                 }
 
                 bins[bin_name] = {

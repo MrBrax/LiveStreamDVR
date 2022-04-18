@@ -572,6 +572,7 @@ export class TwitchHelper {
             // "-vsync", "cfr",
             opts.push("-i", input);
 
+            // write metadata to file
             if (metadata_file) {
                 opts.push("-i", metadata_file);
                 opts.push("-map_metadata", "1");
@@ -579,8 +580,10 @@ export class TwitchHelper {
 
             // "-map", "0",
             // "-analyzeduration", 
-            opts.push("-c", "copy");
-            opts.push("-bsf:a", "aac_adtstoasc");
+            opts.push("-c", "copy"); // copy all streams
+            opts.push("-bsf:a", "aac_adtstoasc"); // audio bitstream filter?
+
+            opts.push("-movflags", "faststart"); // make streaming possible, not sure if this is a good idea
             // "-r", parseInt(info.video.FrameRate).toString(),
             // "-vsync", "cfr",
             // ...ffmpeg_options,

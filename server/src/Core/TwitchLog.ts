@@ -140,7 +140,7 @@ export class TwitchLog {
 
             if (TwitchLog.websocket_timer) clearTimeout(TwitchLog.websocket_timer);
             TwitchLog.websocket_timer = setTimeout(() => {
-                console.debug(`Sending ${this.websocket_buffer.length} lines over websocket`);
+                // console.debug(`Sending ${this.websocket_buffer.length} lines over websocket`);
                 ClientBroker.broadcast({
                     action: "log",
                     data: this.websocket_buffer,

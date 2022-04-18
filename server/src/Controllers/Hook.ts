@@ -114,7 +114,7 @@ export function Hook(req: express.Request, res: express.Response): void {
 
             const message_retry = req.header("Twitch-Eventsub-Message-Retry") || null;
 
-            console.log("Message retry", message_retry);
+            // console.log("Message retry", message_retry);
 
             if ("challenge" in data_json && data_json.challenge !== null) {
 
@@ -130,7 +130,7 @@ export function Hook(req: express.Request, res: express.Response): void {
 
                 // $signature = $response->getHeader("Twitch-Eventsub-Message-Signature");
 
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "hook", `Challenge received for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]})`, debugMeta);
+                TwitchLog.logAdvanced(LOGLEVEL.INFO, "hook", `Challenge received for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}), retry ${message_retry}`, debugMeta);
 
                 if (!verifySignature(req)) {
 
@@ -143,7 +143,7 @@ export function Hook(req: express.Request, res: express.Response): void {
                     res.status(400).send("Invalid signature check for challenge");
                 }
 
-                TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "hook", `Challenge completed, subscription active for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}).`, debugMeta);
+                TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "hook", `Challenge completed, subscription active for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}), retry ${message_retry}.`, debugMeta);
 
                 KeyValue.set(`${channel_id}.substatus.${sub_type}`, SubStatus.SUBSCRIBED);
 
@@ -179,7 +179,7 @@ export function Hook(req: express.Request, res: express.Response): void {
             }
 
             if ("event" in data_json) {
-                TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "hook", "Signature checked, no challenge. Run handle...");
+                TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "hook", `Signature checked, no challenge, retry ${message_retry}. Run handle...`);
                 const TA = new TwitchAutomator();
                 /* await */ TA.handle(data_json, req);
                 res.status(200).send("");
