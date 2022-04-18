@@ -1,6 +1,6 @@
 {
   "name": "twitchautomator-client",
-  "version": "0.6.0a",
+  "version": "0.6.0b",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
