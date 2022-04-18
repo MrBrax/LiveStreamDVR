@@ -10,7 +10,7 @@
                     <label class="checkbox"><input type="checkbox" v-model="updateConfig.useSpeech" /> Use speech</label>
                 </div>
                 <div class="control">
-                    <label class="checkbox"><input type="checkbox" v-model="updateConfig.singlePage" /> Single page</label>
+                    <label class="checkbox"><input type="checkbox" v-model="updateConfig.singlePage" /> Separate channels to their own page</label>
                 </div>
                 <div class="control">
                     <label class="checkbox"><input type="checkbox" v-model="updateConfig.animationsEnabled" /> Enable animations</label>
@@ -30,11 +30,12 @@
                 <div class="control">
                     <label class="checkbox"><input type="checkbox" v-model="updateConfig.useBackgroundTicker" /> Background ticker</label>
                 </div>
-                <!--
                 <div class="control">
-                    <label class="checkbox"><input type="checkbox" v-model="updateConfig.showAdvancedInfo" /> Show advanced info</label>
+                    <input type="text" class="input" v-model="updateConfig.websocketAddressOverride" placeholder="Websocket address override" />
                 </div>
-                -->
+                <div class="control">
+                    <button class="button is-primary" @click="saveClientConfig">Save</button>
+                </div>
                 <br />
                 <div class="control">
                     <button class="button is-small" @click="requestNotifications">Request notification permissions</button>
@@ -77,6 +78,8 @@ export default defineComponent({
                 this.requestNotifications();
             }
             this.store.updateClientConfig(this.updateConfig);
+            alert("Settings saved, reloading...");
+            window.location.reload();
         },
         requestNotifications() {
             if (!("Notification" in window)) {
@@ -92,6 +95,7 @@ export default defineComponent({
             }
         },
     },
+    /*
     watch: {
         updateConfig: {
             handler() {
@@ -100,5 +104,6 @@ export default defineComponent({
             deep: true,
         },
     },
+    */
 });
 </script>

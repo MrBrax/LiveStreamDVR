@@ -21,11 +21,25 @@
             </div>
         </section>
 
+        <section class="section">
+            <div class="section-title"><h1>Hook debug</h1></div>
+            <div class="section-content">
+                <input type="file" @change="sendHookDebug" accept=".json" />
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-title"><h1>Reset channels</h1></div>
+            <div class="section-content">
+                <button type="button" class="button" @click="resetChannels">Reset</button>
+            </div>
+        </section>
+
         <!--
         <section class="section">
             <div class="section-title"><h1>Saved VODs</h1></div>
             <div class="section-content">
-                
+
                 {% if saved_vods %}
                     <ul>
                     {% for vod in saved_vods %}
@@ -52,6 +66,9 @@
                         <td><!-- {{ job.status }}-->{{ job.status ? "Running" : "Unexpected exit" }}</td>
                         <td>
                             <a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name)" title="Kill job">
+                                <span class="icon"><fa icon="skull"></fa></span>
+                            </a>
+                            <a class="button is-danger is-small" v-if="job.status" @click="clearJob(job.name)" title="Clear job">
                                 <span class="icon"><fa icon="trash"></fa></span>
                             </a>
                         </td>
@@ -71,7 +88,18 @@ import ToolsBurnForm from "@/components/forms/ToolsBurnForm.vue";
 import ToolsVodDownloadForm from "@/components/forms/ToolsVodDownloadForm.vue";
 import ToolsChatDownloadForm from "@/components/forms/ToolsChatDownloadForm.vue";
 
-import type { ApiJob } from "@/twitchautomator.d";
+import type { ApiJob } from "@common/Api/Client";
+
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faSkull, faTrash } from "@fortawesome/free-solid-svg-icons";
+library.add(faSkull, faTrash);
+
+interface PayloadDump {
+    headers: Record<string, string>;
+    body: any;
+    query: any;
+    ip: string;
+}
 
 export default defineComponent({
     name: "ToolsView",
@@ -110,6 +138,65 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("tools jobs fetch error", err.response);
+                });
+        },
+        clearJob(name: string) {
+            if (!confirm(`Clear job "${name}? This does not necessarily kill the process."`)) return;
+
+            this.$http
+                .delete(`/api/v0/jobs/${name}?clear=1`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                })
+                .catch((err) => {
+                    console.error("tools jobs fetch error", err.response);
+                });
+        },
+        sendHookDebug(e: Event) {
+            const target = e.target as HTMLInputElement;
+            if (target.files && target.files.length > 0) {
+                const file = target.files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const raw = e.target?.result;
+                    if (!raw) {
+                        alert("No data");
+                        return;
+                    }
+                    const data: PayloadDump = JSON.parse(raw.toString());
+
+                    console.log("payload", data);
+
+                    this.$http
+                        .post(`/api/v0/hook`, data.body, {
+                            headers: data.headers,
+                        })
+                        .then((response) => {
+                            const json = response.data;
+                            if (json.message) alert(json.message);
+                            console.log(json);
+                        })
+                        .catch((err) => {
+                            console.error("tools hook debug error", err.response);
+                        });
+                };
+                reader.readAsText(file, "UTF-8");
+            }
+        },
+        resetChannels() {
+            if (!confirm("Reset channels?")) return;
+
+            this.$http
+                .post(`/api/v0/tools/reset_channels`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                })
+                .catch((err) => {
+                    console.error("tools reset channels error", err.response);
                 });
         },
     },

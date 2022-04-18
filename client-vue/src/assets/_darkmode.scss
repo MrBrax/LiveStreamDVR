@@ -74,6 +74,9 @@
                 color: #b0b0b0;
             }
         }
+        tr.current {
+            background-color: #732828;
+        }
         td:nth-child(4) {
             color: #aaa;
         }
@@ -111,7 +114,7 @@
             border-color: #777;
             background-color: #353535;
         }
-        &[type=range] {
+        &[type="range"] {
             background-color: #444;
         }
     }
@@ -124,24 +127,30 @@
 
     .log_viewer {
         color: #888;
-        &.log-line-success {
-            color: #5bd250;
-        }
-        &.log-line-fatal {
-            color: #ff0000;
-        }
-        &.log-line-warning {
-            color: #ff7300;
-        }
-        &.log-line-error {
-            color: #db4d4d;
-        }
-        &.log-line-debug {
-            color: #9c9c9c;
+        .log-line {
+            color: #6f6f6f;
+            &.log-line-success {
+                color: #5bd250;
+            }
+            &.log-line-fatal {
+                color: #ff0000;
+            }
+            &.log-line-warning {
+                color: #ff7300;
+            }
+            &.log-line-error {
+                color: #db4d4d;
+            }
+            &.log-line-debug {
+                color: #9c9c9c;
+            }
         }
     }
 
     .modal-box {
+        // .modal-box__header {
+        //     background-color: #666;
+        // }
         .modal-box__container {
             background-color: #444;
         }
@@ -154,6 +163,4 @@
     .input-help {
         color: #bbb;
     }
-    
-
 }

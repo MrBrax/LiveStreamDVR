@@ -13,7 +13,7 @@
         </div>
 
         <div class="menu-middle" v-if="$route.name == 'Dashboard' && store.streamerList && store.streamerList.length > 0">
-            <side-menu-streamer v-for="streamer in sortedStreamers" :key="streamer.username" v-bind:streamer="streamer"></side-menu-streamer>
+            <side-menu-streamer v-for="streamer in sortedStreamers" :key="streamer.login" v-bind:streamer="streamer"></side-menu-streamer>
         </div>
 
         <div class="top-menu-item divider"></div>
@@ -61,8 +61,10 @@ import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync } from "@fortawesome/free-solid-svg-icons";
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import SideMenuStreamer from "./SideMenuStreamer.vue";
-import { ApiChannel } from "@/twitchautomator";
+
 import { useStore } from "@/store";
+import TwitchChannel from "@/core/channel";
+
 library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass);
 
 export default defineComponent({
@@ -73,8 +75,8 @@ export default defineComponent({
         return { store };
     },
     computed: {
-        sortedStreamers() {
-            const streamers: ApiChannel[] = this.store.streamerList;
+        sortedStreamers(): TwitchChannel[] {
+            const streamers = [...this.store.streamerList];
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
         },
         clientVersion() {

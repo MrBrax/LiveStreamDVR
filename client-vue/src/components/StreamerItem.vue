@@ -20,10 +20,17 @@
                     <span class="streamer-vods-size" title="Total vod size">{{ formatBytes(streamer?.vods_size) }}</span
                     ><!-- total size -->
                     &middot;
-                    <!--<span class="streamer-subbed-status" title="Subscription expiration">
-                        <span v-if="streamer.subbed_at && streamer.expires_at">{{ formatDate(this.streamer?.expires_at.date) }}</span>
-                        <span v-else>Not subbed</span>
-                    </span>-->
+                    <span class="streamer-subbed-status">
+                        <span v-if="streamer.api_getSubscriptionStatus">Subscribed</span>
+                        <span class="is-error" title="Could just be that subscriptions were made before this feature was implemented." v-else>
+                            One or more subscriptions missing
+                        </span></span
+                    ><!-- sub status -->
+                    &middot;
+                    <span class="streamer-type" title="Broadcaster type">
+                        <span v-if="streamer.broadcaster_type">{{ streamer.broadcaster_type }}</span>
+                        <span v-else>Free</span>
+                    </span>
                     <span class="streamer-title-tools">
                         <span v-if="streamer.is_live">
                             &middot;
@@ -45,35 +52,100 @@
                         <button class="icon-button" @click="playlistRecord" title="Playlist record">
                             <span class="icon"><fa icon="play-circle"></fa></span>
                         </button>
+
+                        <button class="icon-button" @click="videoDownloadMenu ? (videoDownloadMenu.show = true) : ''" title="Video download">
+                            <span class="icon"><fa icon="download"></fa></span>
+                        </button>
+
+                        <button class="icon-button" title="Clean up" @click="doChannelCleanup">
+                            <span class="icon"><fa icon="trash"></fa></span>
+                        </button>
+
+                        <button class="icon-button" title="Refresh data" @click="doChannelRefresh">
+                            <span class="icon"><fa icon="sync"></fa></span>
+                        </button>
                     </span>
                 </span>
             </div>
         </div>
 
-        <div v-if="streamer.vods_list.length == 0" class="notice">None</div>
+        <div class="streamer-clips" v-if="streamer.clips_list && streamer.clips_list.length > 0">
+            <div class="streamer-clips-title"><h3>Clips</h3></div>
+            <ul>
+                <li v-for="clip in streamer.clips_list" :key="clip">
+                    <a :href="clipLink(clip)" target="_blank">{{ clip }}</a>
+                </li>
+            </ul>
+        </div>
 
+        <div v-if="streamer.vods_list.length == 0" class="notice">None</div>
         <div v-else>
             <vod-item v-for="vod in streamer.vods_list" :key="vod.basename" v-bind:vod="vod" @refresh="refresh" />
         </div>
+        <modal-box ref="videoDownloadMenu" title="Video download">
+            <div class="video-download-menu">
+                <p>
+                    Videos downloaded with this tool will be cleaned up the same way as captured vods do when a stream is finished.<br />
+                    They are treated the same way as captured vods in its entirety.<br />
+                    <span v-if="averageVodBitrate">Average bitrate: {{ averageVodBitrate / 1000 }} kbps</span>
+                </p>
+                <button class="button is-confirm" @click="fetchTwitchVods">
+                    <span class="icon"><fa icon="download"></fa></span> Fetch vod list
+                </button>
+                <hr />
+                <div class="video-download-menu-item" v-for="vod in twitchVods" :key="vod.id">
+                    <h2>
+                        <a :href="vod.url" rel="nofollow" target="_blank">{{ vod.created_at }}</a> ({{ vod.type }})
+                    </h2>
+                    <img :src="imageUrl(vod.thumbnail_url, 320, 240)" /><br />
+                    <p>{{ vod.title }}</p>
+                    <ul>
+                        <li>{{ vod.duration }} ({{ parseTwitchDuration(vod.duration) }})</li>
+                        <li>{{ formatNumber(vod.view_count, 0) }} views</li>
+                        <li v-if="vod.muted_segments && vod.muted_segments.length > 0">
+                            <span class="is-error">Muted segments: {{ vod.muted_segments.length }}</span>
+                        </li>
+                        <li>Estimated size: {{ formatBytes(((averageVodBitrate || 6000000) / 10) * parseTwitchDuration(vod.duration)) }}</li>
+                    </ul>
+                    <br />
+                    <button class="button is-small is-confirm" @click="downloadVideo(vod.id.toString())">
+                        <span class="icon"><fa icon="download"></fa></span> Download
+                    </button>
+                </div>
+            </div>
+        </modal-box>
     </div>
     <div v-else>Invalid streamer</div>
 </template>
 
 <script lang="ts">
-import type { ApiChannel } from "@/twitchautomator.d";
-import { defineComponent } from "vue";
+// import { TwitchAPI.Video } from "@/twitchapi.d";
+import { defineComponent, ref } from "vue";
 import VodItem from "@/components/VodItem.vue";
-// import { AxiosError } from "axios";
+import ModalBox from "@/components/ModalBox.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faVideo, faPlayCircle, faVideoSlash } from "@fortawesome/free-solid-svg-icons";
-library.add(faVideo, faPlayCircle, faVideoSlash);
+import { faVideo, faPlayCircle, faVideoSlash, faDownload, faSync } from "@fortawesome/free-solid-svg-icons";
+// import { TwitchAPI } from "@/twitchapi";
+import { Video } from "@common/TwitchAPI/Video";
+import TwitchChannel from "@/core/channel";
+import { useStore } from "@/store";
+import { ApiResponse } from "@common/Api/Api";
+library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync);
 
 export default defineComponent({
     name: "StreamerItem",
     emits: ["refresh"],
     props: {
-        streamer: Object as () => ApiChannel,
+        streamer: Object as () => TwitchChannel,
+    },
+    data: () => ({
+        twitchVods: [] as Video[],
+    }),
+    setup() {
+        const videoDownloadMenu = ref<InstanceType<typeof ModalBox>>();
+        const store = useStore();
+        return { videoDownloadMenu, store };
     },
     methods: {
         refresh() {
@@ -160,14 +232,156 @@ export default defineComponent({
 
             console.log("Killed", data);
         },
+        async fetchTwitchVods() {
+            if (!this.streamer) return;
+            let response;
+
+            try {
+                response = await this.$http.get(`/api/v0/twitchapi/videos/${this.streamer.login}`);
+            } catch (error) {
+                if (this.$http.isAxiosError(error)) {
+                    console.error("fetchTwitchVods error", error.response);
+                    if (error.response && error.response.data && error.response.data.message) {
+                        alert(error.response.data.message);
+                    }
+                }
+                return;
+            }
+
+            const data = response.data;
+
+            if (data.message) {
+                alert(data.message);
+            }
+
+            console.log("Fetched", data);
+            this.twitchVods = data.data;
+        },
+        async downloadVideo(id: string) {
+            if (!this.streamer) return;
+
+            let response;
+
+            try {
+                response = await this.$http.get(`/api/v0/channels/${this.streamer.login}/download/${id}`);
+            } catch (error) {
+                if (this.$http.isAxiosError(error)) {
+                    console.error("downloadVideo error", error.response);
+                    if (error.response && error.response.data && error.response.data.message) {
+                        alert(error.response.data.message);
+                    }
+                }
+                return;
+            }
+
+            const data = response.data;
+
+            if (data.message) {
+                alert(data.message);
+            }
+
+            console.log("Downloaded", data);
+        },
+        async doChannelCleanup() {
+            if (!this.streamer) return;
+
+            if (!confirm("Do you want to clean up vods that don't meet your criteria? There is no undo.")) return;
+
+            let response;
+
+            try {
+                response = await this.$http.post(`/api/v0/channels/${this.streamer.login}/cleanup`);
+            } catch (error) {
+                if (this.$http.isAxiosError(error)) {
+                    console.error("doChannelCleanup error", error.response);
+                    if (error.response && error.response.data && error.response.data.message) {
+                        alert(error.response.data.message);
+                    }
+                }
+                return;
+            }
+
+            const data = response.data;
+
+            if (data.message) {
+                alert(data.message);
+            }
+
+            console.log("Cleaned", data);
+        },
+        async doChannelRefresh() {
+            if (!this.streamer) return;
+            this.$http
+                .post(`/api/v0/channels/${this.streamer.login}/refresh`)
+                .then((response) => {
+                    const json: ApiResponse = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.store.fetchStreamerList();
+                })
+                .catch((error) => {
+                    if (this.$http.isAxiosError(error)) {
+                        console.error("doChannelRefresh error", error.response);
+                        if (error.response && error.response.data && error.response.data.message) {
+                            alert(error.response.data.message);
+                        }
+                    }
+                });
+        },
+        imageUrl(url: string, width: number, height: number) {
+            return url.replace(/%\{width\}/g, width.toString()).replace(/%\{height\}/g, height.toString());
+        },
+        clipLink(name: string): string {
+            return `${this.store.cfg("basepath")}/saved_clips/${name}`;
+        },
     },
     computed: {
         quality(): string | undefined {
-            return this.streamer?.quality.join(", ");
+            if (!this.streamer || !this.streamer.quality) return "";
+            return this.streamer.quality.join(", ");
+        },
+        averageVodBitrate(): number | undefined {
+            if (!this.streamer) return;
+            const vods = this.streamer.vods_list;
+            const total = vods.reduce((acc, vod) => {
+                if (!vod.video_metadata) return acc;
+                return acc + vod.video_metadata.bitrate;
+            }, 0);
+            return total / vods.length;
         },
     },
     components: {
         VodItem,
+        ModalBox,
     },
 });
 </script>
+
+<style lang="scss" scoped>
+.video-download-menu-item {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 1em;
+    &:not(:last-child) {
+        margin-bottom: 1em;
+    }
+}
+
+.streamer-clips {
+    background-color: #2b2b2b;
+    .streamer-clips-title {
+        padding: 5px;
+        background: #116d3c;
+        color: #fff;
+        h3 {
+            font-size: 1.2em;
+            margin: 0;
+            padding: 0;
+        }
+    }
+    ul {
+        display: block;
+        margin: 0;
+        padding: 1em 2em;
+    }
+}
+</style>

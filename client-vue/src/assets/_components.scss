@@ -144,6 +144,9 @@
             color: #9c9c9c;
             font-weight: 200;
         }
+        &.log-line-interactive {
+            cursor: pointer;
+        }
     }
 
     a {

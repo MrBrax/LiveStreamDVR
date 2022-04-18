@@ -15,10 +15,10 @@ class TwitchVOD
 	public string $capture_id = '';
 	public string $filename = '';
 	public string $basename = '';
-	
+
 	/** Base directory of all related files */
 	public string $directory = '';
-	
+
 	public array $json = [];
 	public array $meta = [];
 
@@ -35,6 +35,11 @@ class TwitchVOD
 	public ?string $streamer_login = null;
 
 	public array $segments = [];
+
+	/**
+	 * An array of strings containing the file paths of the segments.
+	 * @var string[]
+	 * */
 	public array $segments_raw = [];
 
 	/**
@@ -171,6 +176,7 @@ class TwitchVOD
 		$vod->filename = $vod->realpath($filename);
 		$vod->basename = basename($filename, '.json');
 		$vod->directory = dirname($filename);
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Calculated directory {$vod->directory}");
 
 		$vod->meta = $vod->json['meta'];
 
@@ -370,7 +376,7 @@ class TwitchVOD
 		$this->api_getDurationLive = $this->getDurationLive();
 		$this->api_getRecordingSize = $this->getRecordingSize() ?: null;
 
-		if(!$this->is_finalized){
+		if (!$this->is_finalized) {
 			$this->api_getCapturingStatus = $this->getCapturingStatus();
 			$this->api_getChatDumpStatus = $this->getChatDumpStatus() ?: null;
 		}
@@ -384,7 +390,7 @@ class TwitchVOD
 	 */
 	public function create(string $filename)
 	{
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Create VOD JSON: " . basename($filename));
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Create VOD JSON: " . basename($filename) . " @ " . dirname($filename));
 		$this->created = true;
 		$this->filename = $filename;
 		$this->basename = basename($filename, '.json');
@@ -405,7 +411,7 @@ class TwitchVOD
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Can't refresh vod, not found!");
 			return false;
 		}
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Refreshing JSON on {$this->basename}!");
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Refreshing JSON on {$this->basename} ({$this->filename}) @ {$this->directory}!");
 		// $this->load($this->filename);
 		return static::load($this->filename, $api);
 	}
@@ -520,7 +526,7 @@ class TwitchVOD
 	public function getMediainfo($segment_num = 0)
 	{
 
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Fetching mediainfo of {$this->basename}");
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Fetching mediainfo of {$this->basename}, segment #{$segment_num}");
 
 		if (!isset($this->segments_raw) || count($this->segments_raw) == 0) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "No segments available for mediainfo of {$this->basename}");
@@ -530,7 +536,7 @@ class TwitchVOD
 		$filename = $this->directory . DIRECTORY_SEPARATOR . basename($this->segments_raw[$segment_num]);
 
 		if (!file_exists($filename)) {
-			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "No file available for mediainfo of {$this->basename}");
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "File does not exist for mediainfo of {$this->basename} ({$filename} @ {$this->directory})");
 			return false;
 		}
 
@@ -561,6 +567,7 @@ class TwitchVOD
 			"general.Duration",
 			"general.Duration_String",
 			"general.FileSize",
+			"general.OverallBitRate",
 
 			"video.BitRate",
 			"video.Width",
@@ -596,9 +603,6 @@ class TwitchVOD
 		if (!$this->dt_started_at) return false;
 		$now = new \DateTime();
 		return abs($this->dt_started_at->getTimestamp() - $now->getTimestamp());
-		// $diff = $this->started_at->diff( new \DateTime() );
-		// $diff->format("%s");
-		//return $diff->format('%H:%I:%S');
 	}
 
 	/**
@@ -612,32 +616,25 @@ class TwitchVOD
 		return $this->twitch_vod_duration - $this->getDuration();
 	}
 
-	public function getChapterString()
-	{
-		$str = '';
-		if ($this->chapters) {
-			foreach ($this->chapters as $chapter) {
-				if (!$chapter['offset'] || !$chapter['game_name']) continue;
-				$str .= $chapter['offset'] . ':' . str_replace(" ", "_", $chapter['game_name']) . ';';
-			}
-		}
-		return trim($str, ";");
-	}
-
 	/**
 	 * Download chat with tcd
 	 * @return bool success
 	 */
-	public function downloadChat()
+	public function downloadChat($method = 'tcd')
+	{
+		return $method == 'tcd' ? $this->downloadChatTCD() : $this->downloadChatTD(); // default
+	}
+
+	private function downloadChatTCD()
 	{
 
 		if (!file_exists(TwitchHelper::path_tcd())) {
-			throw new \Exception('tcd not found');
+			throw new \Exception('TCD not found');
 			return false;
 		}
 
 		if (!$this->twitch_vod_id) {
-			throw new \Exception('no twitch vod id');
+			throw new \Exception('No twitch vod id');
 			return false;
 		}
 
@@ -768,7 +765,116 @@ class TwitchVOD
 
 		return $successful;
 		// return [$chat_filename, $capture_output, $cmd];
+	}
 
+	private function downloadChatTD()
+	{
+
+		if (!file_exists(TwitchHelper::path_twitchdownloader())) {
+			throw new \Exception('TwitchDownloader not found');
+			return false;
+		}
+
+		if (!$this->twitch_vod_id) {
+			throw new \Exception('No twitch vod id');
+			return false;
+		}
+
+		// $chat_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat';
+
+		$compressed_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.chat.gz';
+
+		if (file_exists($this->path_chat)) {
+			return true;
+		}
+
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Download chat for {$this->basename}");
+
+		if (TwitchConfig::cfg('chat_compress', false)) {
+
+			if (file_exists($compressed_filename)) {
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Chat compressed already exists for {$this->basename}");
+				return;
+			}
+
+			if (file_exists($this->path_chat)) {
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "vodclass", "Chat already exists for {$this->basename}");
+				shell_exec("gzip " . $this->path_chat);
+				return;
+			}
+		} else {
+
+			if (file_exists($this->path_chat)) {
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Chat already exists for {$this->basename}");
+				return;
+			}
+		}
+
+		$cmd = [];
+
+		$cmd[] = TwitchHelper::path_twitchdownloader();
+
+		$cmd[] = '--mode';
+		$cmd[] = 'ChatDownload';
+
+		$cmd[] = '--id';
+		$cmd[] = $this->twitch_vod_id;
+
+		// $cmd[] = '--embed-emotes';
+
+		$cmd[] = '-o';
+		$cmd[] = $this->path_chat;
+
+		$process = new Process($cmd, $this->directory, null, null, null);
+		$process->start();
+
+		$tcdJob = TwitchAutomatorJob::create("tcd_{$this->basename}");
+		$tcdJob->setPid($process->getPid());
+		$tcdJob->setProcess($process);
+		$tcdJob->save();
+
+		$process->wait();
+
+		$tcdJob->clear();
+
+		TwitchHelper::appendLog("tcd_{$this->basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+		TwitchHelper::appendLog("tcd_{$this->basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+
+		if (mb_strpos($process->getErrorOutput(), "404 Client Error:") !== false) {
+			throw new \Exception("VOD on Twitch not found, is it deleted?");
+		}
+
+		if (mb_strpos($process->getErrorOutput(), "401 Client Error: Unauthorized") !== false) {
+			throw new \Exception("Unauthorized, probably need a new oauth token?");
+		}
+
+		if (file_exists($this->path_chat)) {
+			if (TwitchConfig::cfg('chat_compress', false)) {
+				shell_exec("gzip " . $this->path_chat);
+			}
+		} else {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "No chat file for {$this->basename} created.");
+			return false;
+		}
+
+		$successful = file_exists($this->path_chat) && filesize($this->path_chat) > 0;
+
+		if ($successful) {
+			$this->is_chat_downloaded = true;
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "vodclass", "Chat downloaded for {$this->basename}");
+		} else {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Chat couldn't be downloaded for {$this->basename}");
+		}
+
+		TwitchHelper::webhook([
+			'action' => 'chat_download',
+			'success' => $successful,
+			'path' => $this->path_chat,
+			'vod' => $this
+		]);
+
+		return $successful;
+		// return [$chat_filename, $capture_output, $cmd];
 	}
 
 	/**
@@ -851,7 +957,7 @@ class TwitchVOD
 		// $cmd[] = ' 2>&1'; // console output
 
 		$env = [
-			// 'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache",
+			'DOTNET_BUNDLE_EXTRACT_BASE_DIR' => TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "dotnet",
 			'PATH' => dirname(TwitchHelper::path_ffmpeg()),
 			'TEMP' => TwitchHelper::$cache_folder
 		];
@@ -908,8 +1014,7 @@ class TwitchVOD
 		$use_vod = false,
 		$overwrite = false,
 		$test_duration = false
-	)
-	{
+	) {
 
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Burn chat for {$this->basename}");
 
@@ -984,7 +1089,7 @@ class TwitchVOD
 		// https://ffmpeg.org/ffmpeg-filters.html#overlay-1
 		// https://stackoverflow.com/questions/50338129/use-ffmpeg-to-overlay-a-video-on-top-of-another-using-an-alpha-channel
 		$cmd[] = '-filter_complex';
-		
+
 		// if ($burn_horizontal == "left") {
 		// 	$cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=0:0';
 		// } else {
@@ -993,7 +1098,7 @@ class TwitchVOD
 		$pos_x = $burn_horizontal == "left" ? 0 : "main_w-overlay_w";
 		$pos_y = $burn_vertical == "top" ? 0 : "main_h-overlay_h";
 		$cmd[] = "[0][1]alphamerge[ia];[2][ia]overlay=${pos_x}:${pos_y}";
-		
+
 		// $cmd[] = '[0][1]alphamerge[ia];[2][ia]overlay=' . $chat_x . ':0';
 
 		// copy audio stream
@@ -1110,8 +1215,9 @@ class TwitchVOD
 
 	/**
 	 * Check if VOD has been deleted from Twitch
-	 *
-	 * @return boolean
+	 * @param bool $save Save to JSON
+	 * @param bool $force Force check (unused?)
+	 * @return boolean False if VOD has been deleted, true if exists.
 	 */
 	public function checkValidVod($save = false, $force = false)
 	{
@@ -1256,7 +1362,7 @@ class TwitchVOD
 
 	public function addSegment($data)
 	{
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Adding segment to {$this->basename}: " . basename($data));
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Adding segment to {$this->basename}: " . $data);
 		$this->segments_raw[] = basename($data);
 	}
 
@@ -1268,7 +1374,7 @@ class TwitchVOD
 
 	public function addAdvertisement($data)
 	{
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Adding advertisement to {$this->basename}: " . basename($data));
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "vodclass", "Adding advertisement to {$this->basename}: " . $data);
 		$this->ads[] = $data;
 	}
 
@@ -1518,7 +1624,9 @@ class TwitchVOD
 	public function saveLosslessCut()
 	{
 
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Saving lossless cut csv for {$this->basename}");
+		$csv_path = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv';
+
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Saving lossless cut csv for {$this->basename} to {$csv_path}");
 
 		$data = "";
 
@@ -1540,19 +1648,22 @@ class TwitchVOD
 			$data .= "\n";
 		}
 
-		file_put_contents($this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv', $data);
+		file_put_contents($csv_path, $data);
 		$this->setPermissions();
 	}
 
 	public function generatePlaylistFile()
 	{
 
+		$url = parse_url(TwitchConfig::cfg("app_url"));
+		$base = $url['scheme'] . '://' . $url['host'];
+
 		$string = "";
 		$string .= "#EXTM3U\n";
 		$string .= "#EXT-X-TARGETDURATION:{$this->getDurationLive()}\n";
 		$string .= "#EXTINF:" . $this->getDurationLive() . "\n";
 		// $string .= "{$this->basename}.ts\n";
-		$string .= "{$this->webpath}/{$this->basename}.ts\n";
+		$string .= "{$base}{$this->webpath}/{$this->basename}.ts\n";
 		$string .= "#EXT-X-ENDLIST\n";
 
 		file_put_contents($this->path_playlist, $string);
@@ -1750,41 +1861,61 @@ class TwitchVOD
 		return $converted_filename;
 	}
 
+	/**
+	 * Check if vod is muted
+	 *
+	 * @param boolean $save Save to database
+	 * @param boolean $force Force check, unused
+	 * @return bool true if muted, false if not, null if not found
+	 */
 	public function checkMutedVod($save = false, $force = false)
 	{
 
 		if (!$this->twitch_vod_id) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "VOD mute check for {$this->basename} canceled, no vod id!");
 			return null;
 		}
 
-		$previous = $this->twitch_vod_muted;
-
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Check muted VOD for {$this->basename}");
+
+		return TwitchConfig::cfg("checkmute_method", "api") == "api" ? $this->checkMutedVodAPI($save, $force) : $this->checkMutedVodStreamlink($save, $force);
+	}
+
+	private function checkMutedVodAPI($save, $force)
+	{
+
+		$previous = $this->twitch_vod_muted;
 
 		$data = TwitchHelper::getVideo($this->twitch_vod_id);
 
 		if (!$data) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "VOD {$this->basename} is deleted!");
 			throw new \Exception("VOD is deleted!");
-			return false;
+			return null;
 		} else {
 			if (isset($data['muted_segments']) && sizeof($data['muted_segments']) > 0) {
 				$this->twitch_vod_muted = true;
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "vodclass", "VOD {$this->basename} is muted!");
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "vodclass", "VOD {$this->basename} is muted!", $data);
 				if ($previous !== $this->twitch_vod_muted && $save) {
 					$this->saveJSON("vod mute true");
 				}
 				return true;
 			} else {
 				$this->twitch_vod_muted = false;
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "VOD {$this->basename} is not muted!");
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "VOD {$this->basename} is not muted!", $data);
 				if ($previous !== $this->twitch_vod_muted && $save) {
 					$this->saveJSON("vod mute false");
 				}
 				return false;
 			}
 		}
-		/*
+	}
+
+	private function checkMutedVodStreamlink($save, $force)
+	{
+
+		$previous = $this->twitch_vod_muted;
+
 		$cmd = [];
 
 		if (TwitchConfig::cfg('pipenv_enabled')) {
@@ -1826,7 +1957,6 @@ class TwitchVOD
 			}
 			return false;
 		}
-		*/
 	}
 
 	public function hasFavouriteGame()
@@ -1846,7 +1976,7 @@ class TwitchVOD
 		}
 		TwitchHelper::logAdvanced(TwitchHelper::LOG_DEBUG, "job", "Get capturing status for {$this->basename}");
 		$job = TwitchHelper::findJob("capture_{$this->streamer_login}_");
-		if($job === null){
+		if ($job === null) {
 			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "job", "Capturing status for {$this->basename} is null");
 		}
 		return $job ? $job->getStatus() : false;
@@ -1875,9 +2005,9 @@ class TwitchVOD
 
 	public function finalize()
 	{
-		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Finalize {$this->basename}");
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Finalize {$this->basename} @ {$this->directory}");
 
-		if (file_exists($this->path_playlist)) {
+		if ($this->path_playlist && file_exists($this->path_playlist)) {
 			unlink($this->path_playlist);
 		}
 
@@ -1886,14 +2016,6 @@ class TwitchVOD
 		$this->matchProviderVod();
 		// $this->checkMutedVod(); // initially not muted when vod is published
 		$this->is_finalized = true;
-	}
-
-	/** @todo Something */
-	public function repair()
-	{
-
-		$username = explode("_", $this->basename)[0];
-		// $user_id = TwitchHelper::getChannelId($username);
 	}
 
 	/**
@@ -2025,28 +2147,144 @@ class TwitchVOD
 		return true;
 	}
 
-	/** @deprecated 3.4.0 this function sucks */
-	public function convert()
+
+	public function remux()
 	{
+		$container_ext = TwitchConfig::cfg('vod_container', 'mp4');
 
-		set_time_limit(0);
+		$capture_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.ts';
+		$converted_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . "." . $container_ext;
 
-		$captured_filename = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '.ts';
-
-		if (!file_exists($captured_filename)) {
-			throw new \Exception("No TS file found");
+		if (!file_exists($capture_filename)) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "vodclass", "Remux failed, capture file does not exist: ${capture_filename}");
+			throw new \Exception("Remux failed, capture file does not exist: ${capture_filename}");
 			return false;
 		}
 
-		$TwitchAutomator = new TwitchAutomator();
+		$cmd = [];
 
-		$converted_filename = $TwitchAutomator->convert($this->basename);
+		$cmd[] = TwitchHelper::path_ffmpeg();
 
-		// delete captured file
-		if (file_exists($converted_filename) && file_exists($captured_filename)) {
-			unlink($captured_filename);
+		$cmd[] = '-i';
+		$cmd[] = $capture_filename;
+
+		// https://github.com/stoyanovgeorge/ffmpeg/wiki/How-to-Find-and-Fix-Corruptions-in-FFMPEG
+		if (TwitchConfig::cfg('fix_corruption')) {
+
+			// @todo: these error out
+			// $cmd[] = '-map';
+			// $cmd[] = '0';
+			// $cmd[] = '-ignore_unknown';
+			// $cmd[] = '-copy_unknown';
+
+			// @todo: test these
+			// $cmd[] = '-fflags';
+			// $cmd[] = '+genpts+igndts';
+
+			$cmd[] = '-use_wallclock_as_timestamps';
+			$cmd[] = '1';
+
+			// @todo: needs encoding
+			// $cmd[] = '-filter:a';
+			// $cmd[] = 'async=1';
+
 		}
 
-		return true;
+		// use same video codec
+		$cmd[] = '-c:v';
+		$cmd[] = 'copy';
+
+		if (TwitchConfig::cfg('encode_audio')) {
+			// re-encode audio
+			$cmd[] = '-c:a';
+			$cmd[] = 'aac';
+
+			// use same audio bitrate
+			$cmd[] = '-b:a';
+			$cmd[] = '160k';
+		} else {
+			// use same audio codec
+			$cmd[] = '-c:a';
+			$cmd[] = 'copy';
+		}
+
+		// fix audio sync in ts
+		$cmd[] = '-bsf:a';
+		$cmd[] = 'aac_adtstoasc';
+
+		if (TwitchConfig::cfg('ts_sync')) {
+
+			$cmd[] = '-async';
+			$cmd[] = '1';
+
+			// $cmd[] = '-use_wallclock_as_timestamps';
+			// $cmd[] = '1';
+
+			// $cmd[] = '-filter_complex';
+			// $cmd[] = 'aresample';
+
+			// $cmd[] = '-af';
+			// $cmd[] = 'aresample=async=1:first_pts=0';
+			// $cmd[] = 'aresample=async=1';
+
+			// $cmd[] = '-fflags';
+			// $cmd[] = '+genpts';
+			// $cmd[] = '+igndts';
+
+		}
+
+		// logging level
+		if (TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false)) {
+			$cmd[] = '-loglevel';
+			$cmd[] = 'repeat+level+verbose';
+		}
+
+		$cmd[] = $converted_filename;
+
+		$this->dt_conversion_started = new \DateTime();
+		$this->saveJSON('dt_conversion_started set');
+
+		TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Starting manual conversion of {$this->basename}.");
+
+		$process = new Process($cmd, dirname($this->directory), null, null, null);
+		$process->start();
+
+		// create pidfile
+		$convertJob = TwitchAutomatorJob::create("convert_{$this->basename}");
+		$convertJob->setPid($process->getPid());
+		$convertJob->setProcess($process);
+		$convertJob->setMetadata([
+			'capture_filename' => $capture_filename,
+			'converted_filename' => $converted_filename,
+		]);
+		$convertJob->save();
+
+		TwitchHelper::webhook([
+			'action' => 'start_convert',
+			'vod' => $this,
+		]);
+
+		// wait until process is done
+		$process->wait();
+
+		// remove pidfile
+		$convertJob->clear();
+		//if (file_exists($pidfile)) unlink($pidfile);
+
+		TwitchHelper::appendLog("ffmpeg_convert_{$this->basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+		TwitchHelper::appendLog("ffmpeg_convert_{$this->basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+
+		if (strpos($process->getErrorOutput(), "Packet corrupt") !== false || strpos($process->getErrorOutput(), "Non-monotonous DTS in output stream") !== false) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Found corrupt packets when converting " . basename($capture_filename) . " to " . basename($converted_filename));
+		}
+
+		if (file_exists($converted_filename) && filesize($converted_filename) > 0) {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_SUCCESS, "automator", "Finished conversion of " . basename($capture_filename) . " to " . basename($converted_filename));
+		} else {
+			TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "automator", "Failed conversion of " . basename($capture_filename) . " to " . basename($converted_filename));
+			return false;
+		}
+
+		return $converted_filename;
 	}
 }

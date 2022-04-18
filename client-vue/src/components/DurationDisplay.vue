@@ -28,6 +28,7 @@ export default defineComponent({
     },
     methods: {
         refreshTime() {
+            if (!this.startDate) return;
             const dateObj = parseJSON(this.startDate);
             const dur = intervalToDuration({ start: dateObj, end: new Date() });
             if (this.outputStyle == "human") {

@@ -115,6 +115,8 @@ class TwitchConfig
 		['key' => 'file_chmod',				'group' => 'Advanced', 'text' => 'File chmod', 				'type' => 'number', 'default' => 775],
 		['key' => 'file_chown_user',		'group' => 'Advanced', 'text' => 'File chown user', 		'type' => 'string', 'default' => 'nobody'],
 		['key' => 'file_chown_group',		'group' => 'Advanced', 'text' => 'File chown group', 		'type' => 'string', 'default' => 'nobody'],
+
+		['key' => 'checkmute_method',	'group' => 'Basic',	'text' => 'Method to use when checking for muted vods',	'type' => 'array', 'default' => 'api', 'choices' => ['api', 'streamlink'],	'help' => 'Streamlink is more accurate but is kind of a weird solution.'],
 	];
 
 	public static $timezone;
@@ -454,7 +456,7 @@ if (TwitchConfig::cfg("error_handler")) {
 
 		switch ($errno) {
 			case E_USER_ERROR:
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "PHP", "Fatal error caught in {$errfile}, check log for details", [
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_FATAL, "PHP", "Fatal error caught in {$errfile}:{$errline}, check log for details", [
 					"errno" => $errno,
 					"errstr" => $errstr,
 					"errfile" => $errfile,
@@ -463,7 +465,7 @@ if (TwitchConfig::cfg("error_handler")) {
 				exit(1);
 
 			case E_USER_WARNING:
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Warning caught in {$errfile}, check log for details", [
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Warning caught in {$errfile}:{$errline}, check log for details", [
 					"errno" => $errno,
 					"errstr" => $errstr,
 					"errfile" => $errfile,
@@ -472,16 +474,16 @@ if (TwitchConfig::cfg("error_handler")) {
 				break;
 
 			case E_USER_NOTICE:
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Notice caught in {$errfile}, check log for details", [
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Notice caught in {$errfile}:{$errline}, check log for details", [
 					"errno" => $errno,
 					"errstr" => $errstr,
 					"errfile" => $errfile,
 					"errline" => $errline,
 				]);
 				break;
-
+			
 			default:
-				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Unknown error caught in {$errfile}, check log for details", [
+				TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "PHP", "Unknown error ({$errno}) caught in {$errfile}:{$errline}, check log for details", [
 					"errno" => $errno,
 					"errstr" => $errstr,
 					"errfile" => $errfile,

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App;
 
 use GuzzleHttp\Exception\GuzzleException;
+use Symfony\Component\Process\Process;
 
 class TwitchChannel
 {
@@ -53,7 +54,9 @@ class TwitchChannel
     public ?\DateTime $expires_at = null;
     public ?\DateTime $last_online = null;
 
+    /** @var TwitchVOD[] */
     public array $vods_list = [];
+
     public array $vods_raw = [];
     public int $vods_size = 0;
 
@@ -61,6 +64,8 @@ class TwitchChannel
     public array $config = [];
 
     public bool $deactivated = false;
+
+    public ?bool $api_getSubscriptionStatus = null;
 
     private static function loadAbstract(string $streamer_id, $api = false)
     {
@@ -130,6 +135,8 @@ class TwitchChannel
                     $channel->expires_at = \DateTime::createFromFormat(TwitchHelper::DATE_FORMAT, $sub_data[$channel->display_name]['expires_at']);
             }
         }
+
+        $channel->api_getSubscriptionStatus = $channel->getSubscriptionStatus();
 
         if (TwitchConfig::cfg('channel_folders') && !file_exists($channel->getFolder())) {
             // mkdir(TwitchHelper::vodFolder($streamer['username']));
@@ -244,7 +251,7 @@ class TwitchChannel
             $json_streamers = [];
         }
 
-        if ( TwitchConfig::getCache("{$streamer_id}.deleted") == "1" && !$force) {
+        if (TwitchConfig::getCache("{$streamer_id}.deleted") == "1" && !$force) {
             TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "helper", "Channel {$streamer_id} is deleted, ignore. Delete kv file to force update.");
             return false;
         }
@@ -362,7 +369,7 @@ class TwitchChannel
             $json_streamers = [];
         }
 
-        if ( TwitchConfig::getCache("{$streamer_login}.deleted") == "1" && !$force) {
+        if (TwitchConfig::getCache("{$streamer_login}.deleted") == "1" && !$force) {
             TwitchHelper::logAdvanced(TwitchHelper::LOG_WARNING, "helper", "Channel {$streamer_login} is deleted, ignore. Delete kv file to force update.");
             return false;
         }
@@ -582,5 +589,195 @@ class TwitchChannel
         $streams = TwitchHelper::getStreams($this->userid);
         if (!$streams) return false;
         return $streams[0];
+    }
+
+    public function getSubscriptionStatus()
+    {
+        foreach (TwitchHelper::CHANNEL_SUB_TYPES as $type) {
+            if (TwitchConfig::getCache("{$this->userid}.substatus.${type}") != TwitchHelper::SUBSTATUS_SUBSCRIBED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public function hasVod(int $vod_id)
+    {
+        foreach ($this->vods_list as $vod) {
+            if ($vod->twitch_vod_id == $vod_id) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+	 * Download the VOD to disk
+	 *
+     * @param int $vod_id VOD ID
+	 * @param boolean $vod_ext Include _vod.mp4 in the filename
+	 * @return string|false The filename of the downloaded file, or false on failure
+	 */
+    public function downloadVod(int $video_id, $vod_ext = false)
+    {
+
+        TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "channel", "Download VOD {$video_id}");
+
+        set_time_limit(0); // todo: hotfix
+
+        $video = TwitchHelper::getVideo($video_id);
+
+        if (!$video) {
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_ERROR, "channel", "Failed to get video {$video_id}");
+            throw new \Exception("Failed to get video {$video_id}");
+            return false;
+        }
+
+        $basename = $this->login . "_" . str_replace(':', '_', $video['created_at']) . "_" . $video['stream_id'];
+
+        $capture_filename = TwitchHelper::vodFolder($this->login) . DIRECTORY_SEPARATOR . $basename . ($vod_ext ? '_vod' : '') . '.ts';
+        $converted_filename = TwitchHelper::vodFolder($this->login) . DIRECTORY_SEPARATOR . $basename . ($vod_ext ? '_vod' : '') . '.mp4';
+
+        // download vod
+        if (!file_exists($capture_filename) && !file_exists($converted_filename)) {
+
+            $video_url = 'https://www.twitch.tv/videos/' . $video_id;
+
+            $cmd = [];
+
+            if (TwitchConfig::cfg('pipenv_enabled')) {
+                $cmd[] = 'pipenv run streamlink';
+            } else {
+                $cmd[] = TwitchHelper::path_streamlink();
+            }
+
+            $cmd[] = '-o';
+            $cmd[] = $capture_filename; // output file
+
+            $cmd[] = '--hls-segment-threads';
+            $cmd[] = 10;
+
+            $cmd[] = '--url';
+            $cmd[] = $video_url; // stream url
+
+            $cmd[] = '--default-stream';
+            $cmd[] = 'best'; // twitch url and quality
+
+            // logging level
+            if (TwitchConfig::cfg('debug', false)) {
+                $cmd[] = '--loglevel';
+                $cmd[] = 'debug';
+            } elseif (TwitchConfig::cfg('app_verbose', false)) {
+                $cmd[] = '--loglevel';
+                $cmd[] = 'info';
+            }
+
+            $process = new Process($cmd, TwitchHelper::vodFolder($this->login), null, null, null);
+            $process->start();
+
+            $vod_downloadJob = TwitchAutomatorJob::create("vod_download_{$basename}");
+            $vod_downloadJob->setPid($process->getPid());
+            $vod_downloadJob->setProcess($process);
+            $vod_downloadJob->save();
+
+            $process->wait();
+
+            //if (file_exists($pidfile)) unlink($pidfile);
+            $vod_downloadJob->clear();
+
+            // output logs
+            TwitchHelper::appendLog("streamlink_vod_{$basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+            TwitchHelper::appendLog("streamlink_vod_{$basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+
+            if (mb_strpos($process->getOutput(), "error: Unable to find video:") !== false) {
+                throw new \Exception("VOD on Twitch not found, is it deleted?");
+            }
+        }
+
+        if (!file_exists($converted_filename)) {
+
+            TwitchHelper::logAdvanced(TwitchHelper::LOG_INFO, "vodclass", "Starting remux of {$basename}");
+
+            $cmd = [];
+
+            $cmd[] = TwitchHelper::path_ffmpeg();
+
+            $cmd[] = '-i';
+            $cmd[] = $capture_filename; // input filename
+
+            if (TwitchConfig::cfg('encode_audio')) {
+                $cmd[] = '-c:v';
+                $cmd[] = 'copy'; // use same video codec
+
+                $cmd[] = '-c:a';
+                $cmd[] = 'aac'; // re-encode audio
+
+                $cmd[] = '-b:a';
+                $cmd[] = '160k'; // use same audio bitrate
+            } else {
+                $cmd[] = '-codec';
+                $cmd[] = 'copy'; // use same codec
+            }
+
+            $cmd[] = '-bsf:a';
+            $cmd[] = 'aac_adtstoasc'; // fix audio sync in ts
+
+            if (TwitchConfig::cfg('ts_sync')) {
+
+                $cmd[] = '-async';
+                $cmd[] = '1';
+
+                // $cmd[] = '-filter_complex';
+                // $cmd[] = 'aresample';
+
+                // $cmd[] = '-af';
+                // $cmd[] = 'aresample=async=1';
+
+            }
+
+            if (TwitchConfig::cfg('debug', false) || TwitchConfig::cfg('app_verbose', false)) {
+                $cmd[] = '-loglevel';
+                $cmd[] = 'repeat+level+verbose';
+            }
+
+            $cmd[] = $converted_filename; // output filename
+
+            $process = new Process($cmd, TwitchHelper::vodFolder($this->login), null, null, null);
+            $process->start();
+
+            $vod_convertJob = TwitchAutomatorJob::create("vod_convert_{$basename}");
+            $vod_convertJob->setPid($process->getPid());
+            $vod_convertJob->setProcess($process);
+            $vod_convertJob->save();
+
+            $process->wait();
+
+            //if (file_exists($pidfile)) unlink($pidfile);
+            $vod_convertJob->clear();
+
+            TwitchHelper::appendLog("ffmpeg_vod_{$basename}_" . time() . "_stdout", "$ " . implode(" ", $cmd) . "\n" . $process->getOutput());
+            TwitchHelper::appendLog("ffmpeg_vod_{$basename}_" . time() . "_stderr", "$ " . implode(" ", $cmd) . "\n" . $process->getErrorOutput());
+
+            if (file_exists($capture_filename) && file_exists($converted_filename) && filesize($converted_filename) > 0) {
+                unlink($capture_filename);
+            }
+        }
+
+        $successful = file_exists($converted_filename) && filesize($converted_filename) > 0;
+
+        if ($successful) {
+            $this->is_vod_downloaded = true;
+        } else {
+            return false;
+        }
+
+        TwitchHelper::webhook([
+            'action' => 'vod_download',
+            'success' => $successful,
+            'path' => $converted_filename,
+            'vod' => $this
+        ]);
+
+        return $converted_filename;
     }
 }

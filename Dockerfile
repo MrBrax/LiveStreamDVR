@@ -1,44 +1,43 @@
-FROM trafex/php-nginx
+FROM node:17-bullseye
 USER root
 
 # system packages
-RUN apk --no-cache add \
-    gcc libc-dev git \
-    ca-certificates \
-    composer \
-    python3 py3-pip py3-wheel \
+#RUN apk --no-cache add \
+#    gcc g++ libc-dev git curl \
+#    ca-certificates \
+#    python3 py3-pip py3-wheel \
+#    ffmpeg mediainfo \
+#    util-linux busybox-initscripts procps gcompat \
+#    libxml2-dev libxslt-dev python3-dev \
+#    bash icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib fontconfig
+
+RUN apt-get update && apt-get install -y \
+    python3 python3-pip \
     ffmpeg mediainfo \
-    util-linux busybox-initscripts procps gcompat \
-    libxml2-dev libxslt-dev python3-dev \
-    yarn nodejs \
-    bash icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib fontconfig
+    bash git
+
+# install yarn
+# RUN npm install -g yarn
     
 # libfontconfig1 can't be found
 
 # pip packages
-# RUN pip install streamlink youtube-dl tcd
 COPY ./requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt
 
 # copy app
-RUN mkdir -p /var/www/twitchautomator
-COPY . /var/www/twitchautomator/
+RUN mkdir -p /usr/local/share/twitchautomator
+COPY --chown=node:node --chmod=775 . /usr/local/share/twitchautomator/
 # RUN git clone https://github.com/MrBrax/TwitchAutomator /var/www/twitchautomator/
 
-# composer
-COPY ./docker/memory_limit.ini /etc/php7/conf.d/memory_limit.ini
-ENV COMPOSER_MEMORY_LIMIT=256M
-ENV MEMORY_LIMIT=256M
-ENV PHP_MEMORY_LIMIT=256M
-ENV PHP7_MEMORY_LIMIT=256M
-RUN cd /var/www/twitchautomator/ && composer install --optimize-autoloader --no-interaction --no-dev
-# RUN cd /var/www/twitchautomator/ && npm install # nodejs
+# server
+RUN cd /usr/local/share/twitchautomator/server && yarn install && yarn build
 
 # client
-RUN cd /var/www/twitchautomator/client-vue && yarn install && yarn build && cp -r dist/* ../public/ && cd .. && rm -r -f client-vue
+RUN cd /usr/local/share/twitchautomator/client-vue && yarn install && yarn build
 
 # install chat dumper dependencies, test
-RUN cd /var/www/twitchautomator/twitch-chat-dumper && yarn install
+RUN cd /usr/local/share/twitchautomator/twitch-chat-dumper && yarn install
 
 # install dotnet for twitchdownloader
 # ADD https://dot.net/v1/dotnet-install.sh /tmp/dotnet-install.sh
@@ -50,23 +49,19 @@ COPY ./docker/fetch-tdl.sh /tmp/fetch-tdl.sh
 RUN sh /tmp/fetch-tdl.sh
 ENV TCD_TWITCHDOWNLOADER_PATH=/usr/local/bin/TwitchDownloaderCLI
 
-
-# src perms
-RUN chown -R nobody:nobody /var/www/twitchautomator && chmod -R 775 /var/www/twitchautomator
-
-# nginx config
-COPY ./docker/nginx.conf /etc/nginx/nginx.conf
-
-# php config
-COPY ./docker/cacert.ini /etc/php8/conf.d/cacert.ini
+# application folder permissions
+# seems like docker does not support recursive chown in the copy command
+# so this is a workaround, doubling the layer size unfortunately.
+# it also takes a very long time on slow storage
+RUN chown -c -R node:node /usr/local/share/twitchautomator && chmod -R 775 /usr/local/share/twitchautomator
 
 # make home folder
-RUN mkdir -p /home/nobody && chown -R nobody:nobody /home/nobody
-ENV HOME /home/nobody
+RUN mkdir -p /home/node && chown -R node:node /home/node
+ENV HOME /home/node
 
 # fonts
-RUN mkdir /home/nobody/.fonts && chown nobody:nobody /home/nobody/.fonts
-COPY ./docker/fonts /home/nobody/.fonts
+RUN mkdir /home/node/.fonts && chown node:node /home/node/.fonts
+COPY ./docker/fonts /home/node/.fonts
 
 # get certs
 RUN wget https://curl.haxx.se/ca/cacert.pem -O /tmp/cacert.pem
@@ -78,6 +73,11 @@ ENV TCD_MEDIAINFO_PATH=/usr/bin/mediainfo
 ENV TCD_DOCKER=1
 ENV TCD_WEBSOCKET_ENABLED=1
 ENV TCD_CA_PATH=/tmp/cacert.pem
+ENV TCD_SERVER_PORT=8080
 
-USER nobody
-WORKDIR /var/www/twitchautomator
+USER node
+WORKDIR /usr/local/share/twitchautomator/server
+
+ENTRYPOINT [ "yarn", "run", "start" ]
+# ENTRYPOINT yarn run start
+EXPOSE 8080

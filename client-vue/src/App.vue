@@ -5,7 +5,7 @@
             <div v-if="errors" class="big-error">
                 <div v-for="error in errors" :key="error" class="big-error-item">Error</div>
             </div>
-            <router-view v-if="store.config !== null && store.config.favourites !== null" />
+            <router-view v-if="store.config !== null && store.favourite_games !== null" />
             <div v-else>
                 <div class="container">
                     <section class="section">
@@ -26,6 +26,7 @@ import { defineComponent } from "vue";
 
 import SideMenu from "@/components/SideMenu.vue";
 import { useStore } from "./store";
+import type { ApiSettingsResponse } from "@common/Api/Api";
 
 export default defineComponent({
     name: "App",
@@ -66,8 +67,15 @@ export default defineComponent({
                 return;
             }
 
-            this.store.updateConfig(response.data.data.config);
-            this.store.updateVersion(response.data.data.version);
+            const data: ApiSettingsResponse = response.data;
+
+            console.log(`Server type: ${data.data.server ?? "unknown"}`);
+
+            this.store.updateConfig(data.data.config);
+            this.store.updateVersion(data.data.version);
+            this.store.updateServerType(data.data.server);
+            this.store.updateFavouriteGames(data.data.favourite_games);
+            this.store.websocketUrl = data.data.websocket_url;
         },
     },
     components: {

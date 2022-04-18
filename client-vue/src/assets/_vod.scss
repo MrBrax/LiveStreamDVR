@@ -58,6 +58,7 @@
     a {
         color: #fff;
         text-decoration: none;
+
         &:hover {
             color: #b673f5;
         }
@@ -65,9 +66,11 @@
 
     &.is-live {
         background-color: #5e0b0b;
+
         .streamer-title-subtitle {
             color: #db3131;
         }
+
         a:hover {
             color: #eb7b7b;
         }
@@ -85,16 +88,17 @@
 .video {
     margin-bottom: 10px;
     // border-bottom: 1px solid #eee;
-    
+
     &.is-recording {
         &.is-animated {
             .video-title {
                 animation: recording ease-in-out 1s infinite;
             }
         }
+
         .video-title {
             background-color: $recording-base;
-            
+
             h3 {
                 // text-shadow: 0 2px 0 darken($recording-base, 10%);
             }
@@ -104,6 +108,7 @@
     &.is-converting {
         .video-title {
             background-color: $converting-base;
+
             h3 {
                 // text-shadow: 0 2px 0 darken($converting-base, 10%);
             }
@@ -113,6 +118,7 @@
     &.is-favourite {
         .video-title {
             background-color: $favourite-base;
+
             h3 {
                 // text-shadow: 0 2px 0 darken($favourite-base, 10%);
             }
@@ -147,6 +153,7 @@
 .video-filename {
     font-family: "Roboto Condensed";
     color: rgba(255, 255, 255, 0.5);
+
     &:before {
         content: " · ";
     }
@@ -166,6 +173,7 @@
     border-bottom: 1px solid #d6dbf2;
     border-left: 1px solid #e3e3e3;
     border-right: 1px solid #e3e3e3;
+
     .icon {
         margin-right: 0.3em;
     }
@@ -199,8 +207,10 @@
     padding: 10px;
     color: #fff;
     font-weight: 700;
+
     a {
         color: #ffff00;
+
         &:hover {
             color: #fff;
         }
@@ -210,18 +220,22 @@
 .info-columns {
     margin-top: 5px;
     display: flex;
+
     h4 {
         font-size: 110%;
         margin: 0;
         padding: 0;
     }
+
     .info-column {
         flex-grow: 1;
         padding-right: 20px;
+
         &:last-child {
             padding-right: 0;
         }
     }
+
     .video-info {
         color: #3d3d3d;
         margin: 0;
@@ -240,9 +254,11 @@
 
     width: 100%;
     border-collapse: collapse;
+
     tr:nth-child(2n) {
         background: rgba(0, 0, 0, 0.05);
     }
+
     /*
 	thead {
 		background-color: #1e4599;
@@ -255,17 +271,24 @@
 
     tr.favourite {
         background-color: $favourite-bg;
+
         td {
             background-color: $favourite-bg;
         }
     }
 
+    tr.current {
+        background-color: #f0a6a6;
+    }
+
     a {
         color: blue;
         text-decoration: none;
+
         &:hover {
             color: #4481d1;
         }
+
         &:visited {
             color: purple;
         }

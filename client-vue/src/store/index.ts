@@ -1,27 +1,48 @@
-import { ApiChannel, ApiConfig, ApiJob, ApiVod, ClientSettings } from "@/twitchautomator";
+import { ApiChannel, ApiJob, ApiVod } from "../../../common/Api/Client";
+import { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiVodResponse } from "../../../common/Api/Api";
 import axios from "axios";
 import { defineStore } from "pinia";
+import { ClientSettings } from "@/twitchautomator";
+import TwitchChannel from "@/core/channel";
+import TwitchVOD from "@/core/vod";
 
 export const useStore = defineStore("twitchAutomator", {
-    state: () => {
+    state: function (): {
+        streamerList: TwitchChannel[];
+        jobList: ApiJob[];
+        config: Record<string, any> | null;
+        favourite_games: string[];
+        version: string;
+        clientConfig: ClientSettings | null;
+        serverType: string;
+        websocketUrl: string;
+    } {
         return {
-            streamerList: [] as ApiChannel[],
-            jobList: [] as ApiJob[],
-            config: {} as ApiConfig | null,
+            streamerList: [],
+            jobList: [],
+            config: {},
+            favourite_games: [],
             version: "",
-            clientConfig: {} as ClientSettings,
+            clientConfig: null,
+            serverType: "",
+            websocketUrl: "",
         };
     },
     actions: {
-        cfg<T>(key: string, def: T | null = null): T | null {
-            const k: keyof ApiConfig = key as keyof ApiConfig;
+        // cfg<T>(key: string, def: T | null = null): T | null {
+        //     const k: keyof ApiConfig = key as keyof ApiConfig;
+        //     if (!this.config) return null;
+        //     // if (!key in this.config) return def;
+        //     if (this.config[k] === undefined || this.config[k] === null) return def;
+        //     return this.config[k] as unknown as T;
+        // },
+        cfg(key: string, def: any = null): any {
             if (!this.config) return null;
-            // if (!key in this.config) return def;
-            if (this.config[k] === undefined || this.config[k] === null) return def;
-            return this.config[k] as unknown as T;
+            if (this.config[key] === undefined || this.config[key] === null) return def;
+            return this.config[key];
         },
         async fetchStreamerList() {
-            console.debug("fetchStreamerList");
+            // console.debug("fetchStreamerList");
             let response;
             try {
                 response = await axios.get(`/api/v0/channels`);
@@ -30,15 +51,15 @@ export const useStore = defineStore("twitchAutomator", {
                 return false;
             }
 
-            if (!response.data.data) {
-                console.error("fetchStreamers invalid data", response.data);
+            const data: ApiChannelsResponse | ApiErrorResponse = response.data;
+
+            if (data.status === "ERROR") {
+                // console.error("fetchStreamerList", data.message);
                 return false;
             }
 
-            const data: { streamer_list: ApiChannel[]; total_size: number; free_size: number } = response.data.data;
-
             // this.streamerList = data.streamer_list;
-            return data;
+            return data.data;
         },
         async fetchVod(basename: string) {
             let response;
@@ -48,17 +69,27 @@ export const useStore = defineStore("twitchAutomator", {
                 console.error("fetchVod error", error);
                 return false;
             }
-            if (!response.data.data) return false;
-            const vod: ApiVod = response.data.data;
-            return vod;
-        },
-        async updateVod(basename: string) {
-            const vod = await this.fetchVod(basename);
-            if (!vod) return false;
 
-            const index = this.streamerList.findIndex((s) => s.userid === vod.streamer_id);
+            const data: ApiVodResponse | ApiErrorResponse = response.data;
+
+            if (data.status === "ERROR") {
+                console.error("fetchVod", data.message);
+                return false;
+            }
+
+            return data.data;
+        },
+        async updateVodApi(basename: string) {
+            const vod_data = await this.fetchVod(basename);
+            if (!vod_data) return false;
+
+            // check if streamer is already in the list
+            const index = this.streamerList.findIndex((s) => s.userid === vod_data.streamer_id);
             if (index === -1) return false;
 
+            const vod = TwitchVOD.makeFromApiResponse(vod_data);
+
+            /*
             // check if vod is already in the streamer's vods
             const vodIndex = this.streamerList[index].vods_list.findIndex((v) => basename === v.basename);
 
@@ -70,13 +101,44 @@ export const useStore = defineStore("twitchAutomator", {
                 console.debug("updated vod", vod);
             }
             return true;
+            */
+
+            return this.updateVod(vod);
+        },
+        updateVod(vod: TwitchVOD) {
+            const index = this.streamerList.findIndex((s) => s.userid === vod.streamer_id);
+            if (index === -1) return false;
+
+            // check if vod is already in the streamer's vods
+            const vodIndex = this.streamerList[index].vods_list.findIndex((v) => v.basename === vod.basename);
+
+            if (vodIndex === -1) {
+                this.streamerList[index].vods_list.push(vod);
+                // console.debug("inserted vod", vod);
+            } else {
+                this.streamerList[index].vods_list[vodIndex] = vod;
+                // console.debug("updated vod", vod);
+            }
+            return true;
+        },
+        updateVodFromData(vod_data: ApiVod) {
+            const vod = TwitchVOD.makeFromApiResponse(vod_data);
+            return this.updateVod(vod);
+        },
+        removeVod(basename: string) {
+            this.streamerList.forEach((s) => {
+                const index = s.vods_list.findIndex((v) => v.basename === basename);
+                if (index !== -1) {
+                    s.vods_list.splice(index, 1);
+                }
+            });
         },
         async updateCapturingVods() {
             this.streamerList.forEach((streamer) => {
                 streamer.vods_list.forEach((vod) => {
                     if (vod.is_capturing) {
-                        console.debug("updateCapturingVods", vod.basename);
-                        this.updateVod(vod.basename);
+                        // console.debug("updateCapturingVods", vod.basename);
+                        this.updateVodApi(vod.basename);
                     }
                 });
             });
@@ -89,24 +151,35 @@ export const useStore = defineStore("twitchAutomator", {
                 console.error("fetchStreamer error", error);
                 return false;
             }
-            if (!response.data.data) return false;
-            const streamer: ApiChannel = response.data.data;
+            if (!response.data) return false;
+            const data: ApiChannelResponse | ApiErrorResponse = response.data;
+
+            if (data.status === "ERROR") {
+                console.error("fetchVod", data.message);
+                return false;
+            }
+
+            const streamer: ApiChannel = data.data;
+
             return streamer;
         },
         async updateStreamer(login: string) {
-            const streamer = await this.fetchStreamer(login);
-            if (!streamer) return false;
+            const streamer_data = await this.fetchStreamer(login);
+            if (!streamer_data) return false;
 
             const index = this.streamerList.findIndex((s) => s.login === login);
             if (index === -1) return false;
+
+            const streamer = TwitchChannel.makeFromApiResponse(streamer_data);
 
             this.streamerList[index] = streamer;
             console.debug("updated streamer", streamer);
             return true;
         },
         updateStreamerList(data: ApiChannel[]) {
-            console.debug("updateStreamerList", data);
-            this.streamerList = data;
+            // console.debug("updateStreamerList", data);
+            const channels = data.map((channel) => TwitchChannel.makeFromApiResponse(channel));
+            this.streamerList = channels;
         },
         /*
         updateVod(vod: ApiVod) {
@@ -129,7 +202,21 @@ export const useStore = defineStore("twitchAutomator", {
         updateJobList(data: ApiJob[]) {
             this.jobList = data;
         },
-        updateConfig(data: ApiConfig | null) {
+        updateJob(job: ApiJob) {
+            const index = this.jobList.findIndex((j) => j.name === job.name);
+            if (index === -1) {
+                this.jobList.push(job);
+            } else {
+                this.jobList[index] = job;
+            }
+        },
+        removeJob(name: string) {
+            const index = this.jobList.findIndex((j) => j.name === name);
+            if (index !== -1) {
+                this.jobList.splice(index, 1);
+            }
+        },
+        updateConfig(data: Record<string, any> | null) {
             this.config = data;
         },
         updateClientConfig(data: ClientSettings) {
@@ -138,13 +225,22 @@ export const useStore = defineStore("twitchAutomator", {
         updateVersion(data: string) {
             this.version = data;
         },
+        updateServerType(data: string) {
+            this.serverType = data;
+        },
+        updateFavouriteGames(data: string[]) {
+            this.favourite_games = data;
+        },
         fetchClientConfig() {
             // client config
-            console.debug("fetchClientConfig");
+            // console.debug("fetchClientConfig");
             const currentClientConfig = localStorage.getItem("twitchautomator_config")
                 ? JSON.parse(localStorage.getItem("twitchautomator_config") as string)
                 : {};
             this.updateClientConfig(currentClientConfig);
+        },
+        getStreamers(): TwitchChannel[] {
+            return this.streamerList;
         },
     },
 });

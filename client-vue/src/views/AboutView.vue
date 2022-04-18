@@ -10,50 +10,55 @@
                             <tr>
                                 <th>Name</th>
                                 <th>Path</th>
+                                <th>Version</th>
                                 <th>Status</th>
                             </tr>
                             <tr>
                                 <td>FFmpeg</td>
                                 <td>{{ aboutData.bins.ffmpeg.path }}</td>
+                                <td>{{ aboutData.bins.ffmpeg.version }}</td>
                                 <td>{{ aboutData.bins.ffmpeg.status }}</td>
                             </tr>
                             <tr>
                                 <td>Mediainfo</td>
                                 <td>{{ aboutData.bins.mediainfo.path }}</td>
+                                <td>{{ aboutData.bins.mediainfo.version }}</td>
                                 <td>{{ aboutData.bins.mediainfo.status }}</td>
                             </tr>
                             <tr>
                                 <td>Twitch chat downloader</td>
                                 <td>{{ aboutData.bins.tcd.path }}</td>
+                                <td>{{ aboutData.bins.tcd.version }}</td>
                                 <td>{{ aboutData.bins.tcd.status }}</td>
-                                <td>{{ aboutData.bins.tcd.update }}</td>
                             </tr>
                             <tr>
                                 <td>Streamlink</td>
                                 <td>{{ aboutData.bins.streamlink.path }}</td>
+                                <td>{{ aboutData.bins.streamlink.version }}</td>
                                 <td>{{ aboutData.bins.streamlink.status }}</td>
-                                <td>{{ aboutData.bins.streamlink.update }}</td>
                             </tr>
                             <tr>
                                 <td>yt-dlp</td>
                                 <td>{{ aboutData.bins.youtubedl.path }}</td>
+                                <td>{{ aboutData.bins.youtubedl.version }}</td>
                                 <td>{{ aboutData.bins.youtubedl.status }}</td>
-                                <td>{{ aboutData.bins.youtubedl.update }}</td>
                             </tr>
                             <tr>
                                 <td>Pipenv</td>
                                 <td>{{ aboutData.bins.pipenv.path }}</td>
+                                <td>{{ aboutData.bins.pipenv.version }}</td>
                                 <td v-html="aboutData.bins.pipenv.status"></td>
                             </tr>
                             <tr>
                                 <td>TwitchDownloaderCLI</td>
                                 <td>{{ aboutData.bins.twitchdownloader.path }}</td>
+                                <td>{{ aboutData.bins.twitchdownloader.version }}</td>
                                 <td v-html="aboutData.bins.twitchdownloader.status"></td>
                             </tr>
                         </table>
                         <p>
                             This app tries to find all the executables using system utilities. This may not work if they're on a custom PATH. Please visit
-                            <a href="{{ url_for('settings') }}">settings</a> to manually change them.
+                            <router-link :to="{ name: 'Settings' }">settings</router-link> to manually change them.
                         </p>
                     </div>
 
@@ -64,20 +69,23 @@
                             <li><strong>Python version:</strong> {{ aboutData.bins.python.version ? aboutData.bins.python.version : "(no output)" }}</li>
                             <li><strong>Python3 version:</strong> {{ aboutData.bins.python3.version ? aboutData.bins.python3.version : "(no output)" }}</li>
                             <li><strong>Node.js version:</strong> {{ aboutData.bins.node.version ? aboutData.bins.node.version : "(no output)" }}</li>
-                            <li><strong>PHP version:</strong> {{ aboutData.bins.php.version ? aboutData.bins.php.version : "(no output)" }}</li>
-                            <li><strong>PHP User:</strong> {{ aboutData.bins.php.user }}</li>
-                            <li><strong>PHP PID:</strong> {{ aboutData.bins.php.pid }}</li>
-                            <li><strong>PHP UID:</strong> {{ aboutData.bins.php.uid }}</li>
-                            <li><strong>PHP GID:</strong> {{ aboutData.bins.php.gid }}</li>
-                            <li><strong>PHP SAPI:</strong> {{ aboutData.bins.php.sapi }}</li>
-                            <li><strong>PHP Display errors:</strong> {{ aboutData.bins.php.display_errors }}</li>
-                            <li><strong>PHP Error reporting:</strong> {{ aboutData.bins.php.error_reporting }}</li>
-                            <li>
-                                <strong>Platform:</strong> {{ aboutData.bins.php.platform ? aboutData.bins.php.platform : "unknown" }}/{{
-                                    aboutData.bins.php.platform_family ? aboutData.bins.php.platform_family : "unknown"
-                                }}
-                            </li>
+                            <template v-if="store.serverType == 'php-server'">
+                                <li><strong>PHP version:</strong> {{ aboutData.bins.php.version ? aboutData.bins.php.version : "(no output)" }}</li>
+                                <li><strong>PHP User:</strong> {{ aboutData.bins.php.user }}</li>
+                                <li><strong>PHP PID:</strong> {{ aboutData.bins.php.pid }}</li>
+                                <li><strong>PHP UID:</strong> {{ aboutData.bins.php.uid }}</li>
+                                <li><strong>PHP GID:</strong> {{ aboutData.bins.php.gid }}</li>
+                                <li><strong>PHP SAPI:</strong> {{ aboutData.bins.php.sapi }}</li>
+                                <li><strong>PHP Display errors:</strong> {{ aboutData.bins.php.display_errors }}</li>
+                                <li><strong>PHP Error reporting:</strong> {{ aboutData.bins.php.error_reporting }}</li>
+                                <li>
+                                    <strong>Platform:</strong> {{ aboutData.bins.php.platform ? aboutData.bins.php.platform : "unknown" }}/{{
+                                        aboutData.bins.php.platform_family ? aboutData.bins.php.platform_family : "unknown"
+                                    }}
+                                </li>
+                            </template>
                             <li><strong>Docker:</strong> {{ aboutData.is_docker ? "Yes" : "No" }}</li>
+                            <li><strong>Backend type:</strong> {{ store.serverType || "unknown" }}</li>
                             <li><strong>Backend version:</strong> {{ store.version }}</li>
                             <li><strong>Frontend version:</strong> {{ clientVersion }}</li>
                             <li><strong>Frontend build:</strong> {{ clientMode }}</li>
@@ -118,13 +126,31 @@
                         <h3>Subscriptions</h3>
                         <button class="button is-confirm is-small" @click="fetchSubscriptions" :disabled="subscriptionsLoading">Fetch</button>
                         <button class="button is-confirm is-small" @click="subscribeAll" :disabled="subscriptionsLoading">Subscribe</button>
+                        <!--<button class="button is-confirm is-small" @click="unsubscribeAll" :disabled="subscriptionsLoading">Unsubscribe</button>-->
                         <span v-if="subscriptionsLoading">Loading...</span>
                         <table>
+                            <!--
+                            <tr>
+                                <th>ID</th>
+                                <th>Created</th>
+                                <th>Username</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Instance match</th>
+                            </tr>
+                            -->
                             <tr v-for="subscription in subscriptions" :key="subscription.id">
                                 <td>{{ subscription.id }}</td>
                                 <td>{{ subscription.created_at }}</td>
-                                <td>{{ subscription.username }}</td>
-                                <td>{{ subscription.type }}</td>
+                                <td>
+                                    {{ subscription.username }}<br />
+                                    <small class="is-dark-gray">{{ subscription.type }}</small>
+                                </td>
+                                <td>{{ subscription.status }}</td>
+                                <td>
+                                    {{ subscription.instance_match }}<br />
+                                    <small class="is-dark-gray">{{ subscription.callback }}</small>
+                                </td>
                                 <td>
                                     <button class="button is-confirm is-small" @click="unsubscribe(subscription.id)" :disabled="subscriptionsLoading">
                                         Unsubscribe
@@ -132,6 +158,18 @@
                                 </td>
                             </tr>
                         </table>
+                    </div>
+
+                    <div class="block" v-if="aboutData.keyvalue">
+                        <h3>KeyValue store</h3>
+                        <table class="table is-fullwidth is-striped" v-if="Object.keys(aboutData.keyvalue).length > 0">
+                            <tr v-for="(value, key) in aboutData.keyvalue" :key="key">
+                                <td>{{ key }}</td>
+                                <td>{{ value }}</td>
+                                <td><button class="button is-danger is-small" @click="deleteKeyValue(key)">Delete</button></td>
+                            </tr>
+                        </table>
+                        <p v-else>No key-value data found.</p>
                     </div>
 
                     <!-- pip update -->
@@ -161,7 +199,7 @@
 
 <script lang="ts">
 import { useStore } from "@/store";
-import { ApiSubscription } from "@/twitchautomator";
+import { ApiSubscription } from "@common/Api/Client";
 import { defineComponent } from "vue";
 
 interface SoftwareCallback {
@@ -202,6 +240,7 @@ interface AboutData {
         dump_playlists: string;
         sub: string;
     };
+    keyvalue?: Record<string, string>;
 }
 
 export default defineComponent({
@@ -321,6 +360,35 @@ export default defineComponent({
                     console.error("about error", err.response);
                 });
         },
+        deleteKeyValue(key: string) {
+            this.$http
+                .delete(`/api/v0/keyvalue/${key}`)
+                .then((response) => {
+                    const json = response.data;
+                    console.debug("deleteKeyValue", json);
+                    alert(`Deleted key ${key}`);
+                    // this.fetchData();
+                })
+                .catch((err) => {
+                    console.error("about error", err.response);
+                });
+        },
+        /*
+        unsubscribeAll() {
+            this.subscriptionsLoading = true;
+            this.$http
+                .delete(`/api/v0/subscriptions`)
+                .then((response) => {
+                    const json = response.data;
+                    console.debug("unsubscribeAll", json);
+                    this.subscriptionsLoading = false;
+                    this.fetchSubscriptions();
+                })
+                .catch((err) => {
+                    console.error("about error", err.response);
+                });
+        },
+        */
     },
 });
 </script>

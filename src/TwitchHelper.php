@@ -39,12 +39,20 @@ class TwitchHelper
 
 	public const DATE_FORMAT = "Y-m-d\TH:i:s\Z";
 
+	public const SUBSTATUS_NONE = "0";
+	public const SUBSTATUS_WAITING = "1";
+	public const SUBSTATUS_SUBSCRIBED = "2";
+	public const SUBSTATUS_FAILED = "3";
+
+	public const CHANNEL_SUB_TYPES = ['stream.online', 'stream.offline', 'channel.update'];
+
 	public static $config_folder 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "config";
 	public static $public_folder 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public";
 	public static $logs_folder 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "logs";
 	public static $cache_folder 	= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache";
 	public static $cron_folder 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "cron";
 	public static $pids_folder 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "pids";
+	public static $vod_folder 		= __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . "vods";
 	// public static $saved_vods_folder = self::$public_folder . DIRECTORY_SEPARATOR . 'saved_vods';
 	// public static $clips_folder = self::$public_folder . DIRECTORY_SEPARATOR . 'saved_clips';
 
@@ -64,6 +72,7 @@ class TwitchHelper
 		__DIR__ . "/../cache/channel/background",
 		__DIR__ . "/../cache/kv",
 		__DIR__ . "/../cache/history",
+		__DIR__ . "/../cache/dotnet",
 		__DIR__ . "/../logs",
 		__DIR__ . "/../logs/html",
 		__DIR__ . "/../logs/software",
@@ -326,7 +335,6 @@ class TwitchHelper
 		$fp = fopen($filepath, 'a');
 		fwrite($fp, ($newline ? "\n" : "") . trim($text));
 		fclose($fp);
-
 	}
 
 	/**
@@ -368,8 +376,33 @@ class TwitchHelper
 
 	/**
 	 * Get Twitch video by video ID
+	 * 
+	 * {
+	 *		"id": number;
+	 *		"stream_id": string;
+	 *		"user_id": string;
+	 *		"user_login": string;
+	 *		"user_name": string;
+	 *		"title": string;
+	 *		"description": string;
+	 *		"created_at": string;
+	 *		"published_at": string;
+	 *		"url": string;
+	 *		"thumbnail_url": string
+	 *		"viewable": string;
+	 *		"view_count": number;
+	 *		"language": string;
+	 *		"type": string;
+	 *		"duration": string;
+	 *		"muted_segments": [
+	 *			{
+	 *				"duration": number;
+	 *				"offset": number;
+	 *			}
+	 *		]
+	 *	}
 	 *
-	 * @param string $video_id
+	 * @param int $video_id
 	 * @return array
 	 */
 	public static function getVideo(int $video_id)
@@ -470,9 +503,9 @@ class TwitchHelper
 		}
 
 		if (self::$game_db && isset(self::$game_db[$game_id])) {
-			if(isset(self::$game_db[$game_id]['added']) && time() > self::$game_db[$game_id]['added'] + (60*60*24*60) ){ // two months?
+			if (isset(self::$game_db[$game_id]['added']) && time() > self::$game_db[$game_id]['added'] + (60 * 60 * 24 * 60)) { // two months?
 				self::logAdvanced(self::LOG_INFO, "helper", "Game id {$game_id} needs refreshing.");
-			}else{
+			} else {
 				return self::$game_db[$game_id];
 			}
 		}
@@ -546,16 +579,21 @@ class TwitchHelper
 	 */
 	public static function parseTwitchDuration(string $text)
 	{
-
+		
 		preg_match('/([0-9]+)h/', $text, $hours_match);
 		preg_match('/([0-9]+)m/', $text, $minutes_match);
 		preg_match('/([0-9]+)s/', $text, $seconds_match);
 
+		if (!$hours_match && !$minutes_match && !$seconds_match) {
+			throw new \ValueError("Invalid duration format: {$text}");
+			return;
+		}
+
 		$total_seconds = 0;
 
-		if ($seconds_match[1]) $total_seconds += $seconds_match[1];
-		if ($minutes_match[1]) $total_seconds += $minutes_match[1] * 60;
-		if ($hours_match[1]) $total_seconds += $hours_match[1] * 60 * 60;
+		if (count($seconds_match) > 0 && $seconds_match[1]) $total_seconds += $seconds_match[1];
+		if (count($minutes_match) > 0 && $minutes_match[1]) $total_seconds += $minutes_match[1] * 60;
+		if (count($hours_match) > 0 && $hours_match[1]) $total_seconds += $hours_match[1] * 60 * 60;
 
 		return $total_seconds;
 	}
@@ -694,8 +732,6 @@ class TwitchHelper
 		}
 	}
 
-	private static $channel_subscription_types = ['stream.online', 'stream.offline', 'channel.update'];
-
 	public static function channelSubscribe(string $streamer_id)
 	{
 
@@ -713,7 +749,7 @@ class TwitchHelper
 			$hook_callback .= '?instance=' . TwitchConfig::cfg('instance_id');
 		}
 
-		foreach (self::$channel_subscription_types as $type) {
+		foreach (self::CHANNEL_SUB_TYPES as $type) {
 
 			if (TwitchConfig::getCache("{$streamer_id}.sub.${type}")) {
 				self::logAdvanced(self::LOG_INFO, "helper", "Skip subscription to {$streamer_id}:{$type} ({$streamer_login}), in cache.");
@@ -771,8 +807,9 @@ class TwitchHelper
 				}
 
 				TwitchConfig::setCache("{$streamer_id}.sub.${type}", $json['data'][0]['id']);
+				TwitchConfig::setCache("{$streamer_id}.substatus.${type}", self::SUBSTATUS_WAITING);
 
-				self::logAdvanced(self::LOG_SUCCESS, "helper", "Subscribe for {$streamer_id}:{$type} ({$streamer_login}) seemingly succeeded. Check callback for details.");
+				self::logAdvanced(self::LOG_SUCCESS, "helper", "Subscribe for {$streamer_id}:{$type} ({$streamer_login}) sent. Check logs for a 'subscription active' message.");
 			} elseif ($http_code == 409) {
 				self::logAdvanced(self::LOG_ERROR, "helper", "Duplicate sub for {$streamer_id}:{$type} detected.", ['hub' => $data]);
 			} else {
@@ -792,7 +829,7 @@ class TwitchHelper
 
 		$streamer_login = TwitchChannel::channelLoginFromId($streamer_id);
 
-		foreach (self::$channel_subscription_types as $type) {
+		foreach (self::CHANNEL_SUB_TYPES as $type) {
 
 			$id = TwitchConfig::getCache("{$streamer_id}.sub.${type}");
 
@@ -993,7 +1030,7 @@ class TwitchHelper
 
 	public static function vodFolder(string $username = null)
 	{
-		return __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . "vods" . (TwitchConfig::cfg("channel_folders") && $username ? DIRECTORY_SEPARATOR . $username : '');
+		return self::$vod_folder . (TwitchConfig::cfg("channel_folders") && $username ? DIRECTORY_SEPARATOR . $username : '');
 	}
 }
 

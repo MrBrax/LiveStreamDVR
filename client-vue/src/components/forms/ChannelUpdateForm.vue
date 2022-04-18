@@ -15,6 +15,7 @@
                         required
                     />
                     <p class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</p>
+                    <p class="input-help">Valid choices: {{ VideoQualityArray.join(", ") }}</p>
                 </div>
             </div>
 
@@ -30,6 +31,13 @@
                 <label class="checkbox">
                     <input class="input" type="checkbox" name="download_chat" value="1" :checked="channel.download_chat" />
                     Download chat after video capture is complete
+                </label>
+            </div>
+
+            <div class="field">
+                <label class="checkbox">
+                    <input class="input" type="checkbox" name="live_chat" value="1" :checked="channel.live_chat" />
+                    Live chat download
                 </label>
             </div>
 
@@ -57,24 +65,39 @@
             </div>
         </form>
         <hr />
-        <button class="button is-small is-danger" type="submit" @click="deleteChannel">
-            <span class="icon"><fa icon="trash"></fa></span> Delete
-        </button>
-        (no undo)
+        <span>
+            <button class="button is-small is-danger" type="submit" @click="deleteChannel">
+                <span class="icon"><fa icon="trash"></fa></span> Delete
+            </button>
+            (no undo)
+        </span>
+        <span>
+            <button class="button is-small is-confirm" type="submit" @click="subscribeChannel">Subscribe</button>
+        </span>
     </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { VideoQualityArray } from "../../../../common/Defs";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSave } from "@fortawesome/free-solid-svg-icons";
+import { ApiChannelConfig } from "@common/Api/Client";
 library.add(faSave);
 
 export default defineComponent({
     name: "ChannelUpdateForm",
-    props: ["channel"],
+    props: {
+        channel: {
+            type: Object as () => ApiChannelConfig,
+            required: true,
+        },
+    },
     emits: ["formSuccess"],
+    setup() {
+        return { VideoQualityArray };
+    },
     data() {
         return {
             formStatusText: "Ready",
@@ -116,6 +139,22 @@ export default defineComponent({
             if (!confirm(`Do you want to delete "${this.channel.login}"?`)) return;
             this.$http
                 .delete(`/api/v0/channels/${this.channel.login}`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.$emit("formSuccess", json);
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) {
+                        alert(err.response.data.message);
+                    }
+                });
+        },
+        subscribeChannel() {
+            this.$http
+                .post(`/api/v0/channels/${this.channel.login}/subscribe`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);

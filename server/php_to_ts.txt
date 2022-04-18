@@ -1,0 +1,18 @@
+# array
+\['([\w+]+)'\]
+.$1
+
+# isset
+isset\(([\w_.]+)\)
+$1 !== undefined
+
+# template literal
+\{\$([\w]+)\}
+${$1}
+
+\{\$this->([\w]+)\}
+${this.$1}
+
+# log
+TwitchHelper::logAdvanced(TwitchHelper::LOG_
+TwitchLog.logAdvanced(LOGLEVEL.

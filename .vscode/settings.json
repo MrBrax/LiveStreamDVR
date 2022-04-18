@@ -1,0 +1,6 @@
+{
+    "search.exclude": {
+        "**/*.lock": true,
+        "build/**": true,
+    }
+}

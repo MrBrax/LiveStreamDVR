@@ -6,12 +6,14 @@
         height: 20px;
         position: relative;
     }
+
     #timeline-cut {
         background-color: #f00;
         position: absolute;
         top: 0;
         bottom: 0;
     }
+
     #timeline-playhead {
         background-color: #fff;
         position: absolute;
@@ -42,6 +44,7 @@
     white-space: nowrap;
     overflow: hidden;
     max-height: 100px;
+
     &:hover {
         background: #d3eafa;
         cursor: pointer;
@@ -51,8 +54,14 @@
 .videoplayer-chapter-title {
     font-weight: 700;
 }
+
 .videoplayer-chapter-game {
     font-weight: 400;
     font-size: 90%;
     color: #444;
+}
+
+.videoplayer-form {
+    padding: 1em;
+    margin-top: 1em;
 }

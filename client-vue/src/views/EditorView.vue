@@ -1,7 +1,9 @@
 <template>
     <div class="container">
         <div class="videoplayer" v-if="vodData && vodData.basename">
-            <video id="video" ref="player" :src="vodData.webpath + '/' + vodData.basename + '.mp4'" @timeupdate="updateVideoTime" width="1280"></video>
+            <video id="video" ref="player" :src="vodData.webpath + '/' + vodData.basename + '.mp4'" @timeupdate="updateVideoTime" width="1280">
+                <track kind="chapters" :src="vodData.webpath + '/' + vodData.basename + '.chapters.vtt'" label="Chapters" default />
+            </video>
             <div id="videoplayer-controls">
                 <button class="button" @click="play">Play</button>
                 <button class="button" @click="pause">Pause</button>
@@ -19,35 +21,47 @@
                     :key="chapterIndex"
                     :title="chapter.title + ' | \\n' + chapter.game_name"
                     class="videoplayer-chapter"
-                    :style="{ width: chapter.width + '%' }"
-                    @click="scrub(chapter.offset, chapter.duration)"
+                    :style="{ width: chapterWidth(chapter) + '%' }"
+                    @click="scrub(chapter.offset || 0, chapter.duration || 0)"
                 >
                     <div class="videoplayer-chapter-title">{{ chapter.title }}</div>
                     <div class="videoplayer-chapter-game">{{ chapter.game_name }}</div>
                 </div>
             </div>
 
-            <div class="videoplayer-cut">
+            <div class="videoplayer-form">
                 <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
                     <input type="hidden" name="vod" value="{{ vodData.basename }}" />
 
-                    <div>
-                        <button type="button" class="button" @click="timeIn = Math.round(currentVideoTime)">Mark in</button>
-                        <input class="input" name="time_in" v-model="timeIn" placeholder="In timestamp" />
+                    <div class="field">
+                        <div class="control">
+                            <button type="button" class="button" @click="setFrameIn(currentVideoTime)">Mark in</button>
+                            <input class="input" name="time_in" v-model="frameIn" placeholder="In timestamp" />
+                        </div>
                     </div>
 
-                    <div>
-                        <button type="button" class="button" @click="timeOut = Math.round(currentVideoTime)">Mark out</button>
-                        <input class="input" name="time_out" v-model="timeOut" placeholder="Out timestamp" />
+                    <div class="field">
+                        <div class="control">
+                            <button type="button" class="button" @click="setFrameOut(currentVideoTime)">Mark out</button>
+                            <input class="input" name="time_out" v-model="frameOut" placeholder="Out timestamp" />
+                        </div>
                     </div>
 
-                    <div>
-                        <input class="input" type="text" name="name" v-model="cutName" placeholder="Name (optional)" />
+                    <div class="field">
+                        <div class="control"><strong>Duration:</strong> {{ cutSegmentlength > 0 ? humanDuration(cutSegmentlength) : "Error" }}</div>
                     </div>
 
-                    <div>
-                        <button type="submit" class="button">Submit cut</button>
-                        <span :class="formStatusClass">{{ formStatusText }}</span>
+                    <div class="field">
+                        <div class="control">
+                            <input class="input" type="text" name="name" v-model="cutName" placeholder="Name (optional)" />
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="control">
+                            <button type="submit" class="button">Submit cut</button>
+                            <span :class="formStatusClass">{{ formStatusText }}</span>
+                        </div>
                     </div>
                 </form>
 
@@ -69,16 +83,17 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import type { ApiVod } from "@/twitchautomator.d";
+import { TwitchVODChapter } from "@/core/chapter";
+import TwitchVOD from "@/core/vod";
 
 export default defineComponent({
     name: "EditorView",
     title: "Editor",
     data() {
         return {
-            vodData: {} as ApiVod,
-            timeIn: 0,
-            timeOut: 0,
+            vodData: {} as TwitchVOD,
+            frameIn: 0,
+            frameOut: 0,
             currentVideoTime: 0,
             cutName: "",
             formStatusText: "Ready",
@@ -100,7 +115,7 @@ export default defineComponent({
                 .get(`/api/v0/vod/${this.vod}`)
                 .then((response) => {
                     const json = response.data;
-                    this.vodData = json.data;
+                    this.vodData = TwitchVOD.makeFromApiResponse(json.data);
                     setTimeout(() => {
                         this.setupPlayer();
                     }, 500);
@@ -112,6 +127,8 @@ export default defineComponent({
         setupPlayer() {
             if (this.$route.query.start !== undefined) {
                 (this.$refs.player as HTMLVideoElement).currentTime = parseInt(this.$route.query.start as string);
+                if (this.$route.query.start !== undefined) this.frameIn = parseInt(this.$route.query.start as string);
+                if (this.$route.query.end !== undefined) this.frameOut = parseInt(this.$route.query.end as string);
             }
         },
         play() {
@@ -123,9 +140,10 @@ export default defineComponent({
             (this.$refs.player as HTMLVideoElement).pause();
         },
         scrub(tIn: number, tOut: number) {
-            const gameOffset = this.vodData.game_offset;
-            this.timeIn = Math.round(tIn - gameOffset);
-            this.timeOut = Math.round(tIn + tOut - gameOffset);
+            // const gameOffset = this.vodData.game_offset; // @todo: why
+            const gameOffset = 0;
+            this.frameIn = Math.round(tIn - gameOffset);
+            this.frameOut = Math.round(tIn + tOut - gameOffset);
             // this.$forceUpdate();
         },
         seek(event: MouseEvent) {
@@ -143,6 +161,7 @@ export default defineComponent({
             this.currentVideoTime = (event.target as HTMLVideoElement).currentTime;
         },
         submitForm(event: Event) {
+            /*
             console.log("submit", this.timeIn, this.timeOut, this.cutName);
 
             const form = event.target as HTMLFormElement;
@@ -153,6 +172,17 @@ export default defineComponent({
 
             console.log("form", form);
             console.log("entries", inputs, inputs.entries(), inputs.values());
+            */
+
+            this.formStatusText = "Loading...";
+            this.formStatus = "";
+
+            const inputs = {
+                vod: this.vodData.basename,
+                time_in: this.frameIn,
+                time_out: this.frameOut,
+                name: this.cutName,
+            };
 
             this.$http
                 .post(`/api/v0/vod/${this.vod}/cut`, inputs)
@@ -165,11 +195,29 @@ export default defineComponent({
                     }
                 })
                 .catch((err) => {
+                    const json = err.response.data;
                     console.error("form error", err.response);
+                    this.formStatus = json.status;
+                    this.formStatusText = json.message;
                 });
 
             event.preventDefault();
             return false;
+        },
+        chapterWidth(chapter: TwitchVODChapter): number {
+            const player = this.$refs.player as HTMLVideoElement;
+            if (!player) return 0;
+            // const chapterOffset = chapter.offset || 0;
+            const chapterDuration = chapter.duration || 0;
+            const videoDuration = player.duration;
+            const width = (chapterDuration / videoDuration) * 100;
+            return width;
+        },
+        setFrameIn(frameNum: number) {
+            this.frameIn = Math.round(frameNum);
+        },
+        setFrameOut(frameNum: number) {
+            this.frameOut = Math.round(frameNum);
         },
     },
     computed: {
@@ -177,8 +225,8 @@ export default defineComponent({
             if (!this.currentVideoTime) return { left: "0%", right: "100%" };
             const dur = (this.$refs.player as HTMLVideoElement).duration;
             return {
-                left: (this.timeIn / dur) * 100 + "%",
-                right: 100 - (this.timeOut / dur) * 100 + "%",
+                left: (this.frameIn / dur) * 100 + "%",
+                right: 100 - (this.frameOut / dur) * 100 + "%",
             };
         },
         timelinePlayheadStyle(): Record<string, string> {
@@ -194,6 +242,11 @@ export default defineComponent({
                 "is-error": this.formStatus == "ERROR",
                 "is-success": this.formStatus == "OK",
             };
+        },
+        cutSegmentlength(): number {
+            if (!this.vodData.video_metadata) return 0;
+            const fps = this.vodData.video_metadata?.fps;
+            return (this.frameOut - this.frameIn) / fps;
         },
     },
 });

@@ -1,4 +1,5 @@
 .vscode
+**/node_modules
 cache
 build
 config/config.json
@@ -7,7 +8,6 @@ config/oauth.bin
 config/streamers.json
 dist
 logs
-node_modules
 payloads
 vendor
 docker/vods
@@ -21,3 +21,9 @@ client-vue/dist
 client-vue/.env
 client-vue/.env.production
 client-broker
+server/node_modules
+server/build
+storage
+**/*.mp4
+**/*.chatdump
+**/*.chatdump.line
