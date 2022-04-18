@@ -67,7 +67,7 @@ COPY ./docker/fonts /home/node/.fonts
 RUN wget https://curl.haxx.se/ca/cacert.pem -O /tmp/cacert.pem
 
 # twitchautomator docker specific configs
-ENV TCD_BIN_DIR=/usr/bin
+ENV TCD_BIN_DIR=/usr/local/bin
 ENV TCD_FFMPEG_PATH=/usr/bin/ffmpeg
 ENV TCD_MEDIAINFO_PATH=/usr/bin/mediainfo
 ENV TCD_DOCKER=1

@@ -137,8 +137,19 @@ export class TwitchConfig {
         }
 
         // return from env if set
-        if (process.env[key]) {
-            return <T><unknown>process.env[key];
+        if (process.env[`TCD_${key.toUpperCase()}`] !== undefined) {
+            const val: string | undefined = process.env[`TCD_${key.toUpperCase()}`];
+            if (val === undefined) {
+                return <T>defaultValue; // should not happen
+            }
+            const field = this.getSettingField(key);
+            if (field && field.type === "number") {
+                return <T><unknown>parseInt(val);
+            } else if (field && field.type === "boolean") {
+                return <T><unknown>(val === "true" || val === "1");
+            } else {
+                return <T><unknown>val;
+            }
         }
 
         // return default value if not set
@@ -177,6 +188,12 @@ export class TwitchConfig {
         }
 
         console.log(chalk.green(`✔ ${Object.keys(this.config).length} settings loaded.`));
+
+        for (const env_var of Object.keys(process.env)) {
+            if (env_var.startsWith("TCD_")) {
+                console.log(chalk.green(`Overriding setting '${env_var.substring(4)}' with environment variable: '${process.env[env_var]}'`));
+            }
+        }
 
     }
 

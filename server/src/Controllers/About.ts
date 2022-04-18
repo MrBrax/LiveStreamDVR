@@ -36,7 +36,7 @@ export async function About(req: express.Request, res: express.Response) {
     }
 
     const bin_args: Record<string, { binary: string | false; version_args: string[]; version_regex: RegExp; }> = {
-        ffmpeg: { binary: TwitchHelper.path_ffmpeg(), version_args: ["-version"], version_regex: /ffmpeg version ([\w0-9\-_.]+) Copyright/m },
+        ffmpeg: { binary: TwitchHelper.path_ffmpeg(), version_args: ["-version"], version_regex: /ffmpeg version ([\w0-9\-_.+]+) Copyright/m },
         mediainfo: { binary: TwitchHelper.path_mediainfo(), version_args: ["--Version"], version_regex: /v(\d+\.\d+)/m },
         twitchdownloader: { binary: TwitchHelper.path_twitchdownloader(), version_args: ["--version", "2>&1"], version_regex: /TwitchDownloaderCLI (\d+\.\d+\.\d+)/m },
         python: { binary: "python", version_args: ["--version"], version_regex: /Python ([\d.]+)/m },
