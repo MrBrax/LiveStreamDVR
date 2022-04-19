@@ -76,6 +76,9 @@ Run the server in debug mode.
 ### `--dataroot <path>`
 Specify the data directory to use.
 
+### `--home`
+Store the data in the home directory.
+
 ---
 
 ### Main requirements

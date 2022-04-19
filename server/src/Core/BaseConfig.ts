@@ -1,6 +1,7 @@
 import path from "path";
 import fs from "fs";
 import minimist from "minimist";
+import os from "os";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -19,11 +20,22 @@ export const AppName = "TwitchAutomatorTS";
 export const AppRoot = process.env.NODE_ENV === "development" ? path.join(__dirname, "..", "..", "..") : path.join(__dirname, "..", "..");
 console.log(`AppRoot: ${AppRoot}`);
 
+// let appdata = process.env.APPDATA || (process.platform == "darwin" ? `${process.env.HOME}/Library/Preferences` : `${process.env.HOME}/.local/share`);
+/**
+ * Home data directory.
+ */
+export const HomeRoot = path.join(os.homedir(), ".config", "twitch-automator"); // use this maybe?
+
 /**
  * The data directory of the application.
  */
 export const DataRoot = 
-    argv.dataroot ? path.resolve(argv.root) : path.join(AppRoot, "data");
+    argv.home ? HomeRoot :
+        (argv.dataroot ? path.resolve(argv.root) : path.join(AppRoot, "data"));
+
+if (argv.home && !fs.existsSync(HomeRoot)) {
+    fs.mkdirSync(HomeRoot, { recursive: true });
+}
 
 if (!fs.existsSync(DataRoot)) {
     throw new Error(`DataRoot does not exist: ${DataRoot}`);
