@@ -25,3 +25,6 @@ storage/saved_clips/
 storage/vods/
 style.css.map
 vendor/
+data/storage
+data/cache
+data/config

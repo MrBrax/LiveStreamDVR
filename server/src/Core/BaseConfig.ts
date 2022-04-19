@@ -23,8 +23,7 @@ console.log(`AppRoot: ${AppRoot}`);
  * The data directory of the application.
  */
 export const DataRoot = 
-    argv.dataroot ? path.resolve(argv.root) :
-        process.env.NODE_ENV === "development" ? path.join(__dirname, "..", "..", "..") : path.join(__dirname, "..", "..");
+    argv.dataroot ? path.resolve(argv.root) : path.join(AppRoot, "data");
 
 if (!fs.existsSync(DataRoot)) {
     throw new Error(`DataRoot does not exist: ${DataRoot}`);
@@ -62,7 +61,7 @@ export const BaseConfigDataFolder = {
     playlist: path.join(DataRoot, "cache", "playlist"),
     keyvalue: path.join(DataRoot, "cache", "kv"),
     history: path.join(DataRoot, "cache", "history"),
-    dotnet: path.join(DataRoot, "dotnet"),
+    dotnet: path.join(DataRoot, "cache", "dotnet"),
     logs: path.join(DataRoot, "logs"),
     logs_software: path.join(DataRoot, "logs", "software"),
     payloads: path.join(DataRoot, "payloads"),

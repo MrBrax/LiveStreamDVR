@@ -2,12 +2,15 @@
 
 ![1603661434863-wc](https://user-images.githubusercontent.com/1517911/97119662-fe1b0a80-1711-11eb-8f40-20c1690a01c9.png)
 
-***⚠ SINCE MID 2021, A DOMAIN WITH HTTPS IS REQUIRED ⚠***
+***⚠️ SINCE MID 2021, A DOMAIN WITH HTTPS IS REQUIRED ⚠️***
+
+***⚠️ SINCE THE NEW TYPESCRIPT SERVER, ALL USER DATA IS STORED IN /data/ ⚠️***
 
 ## Features
 - Automatic VOD recording pretty much the second the stream goes live, instead of checking it every minute like many other scripts do.
 - Cyclic recording, as in when a specified amount or storage per streamer is reached, the oldest stream gets deleted.
 - Tons of metadata, maybe too much. Stores info about games played, stream titles, duration, if the stream got muted from copyrighted music, etc.
+- Chapters (titles and games) are written to the final video file.
 - [Video player](https://github.com/MrBrax/twitch-vod-chat) with chat playback.
 - Video cutter with chapter display for easy exporting, also cuts the downloaded chat for synced rendering.
 - Notifications with optional speech when the website is open, get stream live notifications far earlier than the mobile app does.
@@ -59,7 +62,7 @@ If you want the public webapp to have a custom base folder, you must provide `BA
 6. Go to the settings page and set up basic stuff, get api key from twitch dev site.
 7. Check the About page for subscription status.
 8. Optionally add cronjobs shown on the settings page.
-9. Check stored vods in the `/storage` directory. Permissions might be an issue.
+9. Check stored vods in the `/data/storage` directory. Permissions might be an issue.
 
 Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in-subdirectory
 
