@@ -1,5 +1,7 @@
 # TwitchAutomator
 
+[![Check Server](https://github.com/MrBrax/TwitchAutomator/actions/workflows/check-server.yml/badge.svg)](https://github.com/MrBrax/TwitchAutomator/actions/workflows/check-server.yml) [![Check Client](https://github.com/MrBrax/TwitchAutomator/actions/workflows/check-client.yml/badge.svg)](https://github.com/MrBrax/TwitchAutomator/actions/workflows/check-client.yml)
+
 ![1603661434863-wc](https://user-images.githubusercontent.com/1517911/97119662-fe1b0a80-1711-11eb-8f40-20c1690a01c9.png)
 
 ***⚠️ SINCE MID 2021, A DOMAIN WITH HTTPS IS REQUIRED ⚠️***
