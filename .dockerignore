@@ -20,6 +20,7 @@ client-vue/node_modules
 client-vue/dist
 client-vue/.env
 client-vue/.env.production
+client-vue/.env.staging
 client-broker
 server/node_modules
 server/build

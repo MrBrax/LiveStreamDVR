@@ -31,7 +31,7 @@ export const HomeRoot = path.join(os.homedir(), ".config", "twitch-automator"); 
  */
 export const DataRoot = 
     argv.home ? HomeRoot :
-        (argv.dataroot ? path.resolve(argv.root) : path.join(AppRoot, "data"));
+        (argv.dataroot ? path.resolve(argv.dataroot) : path.join(AppRoot, "data"));
 
 if (argv.home && !fs.existsSync(HomeRoot)) {
     fs.mkdirSync(HomeRoot, { recursive: true });
