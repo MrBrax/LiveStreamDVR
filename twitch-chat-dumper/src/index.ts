@@ -61,4 +61,8 @@ process.on('SIGWINCH', function () {
     console.log('SIGWINCH fired')
 })
 
-dumper.start();
+try {
+    dumper.start();
+} catch (error) {
+    console.log(`Could not start dumper: ${(error as Error).message}`)
+}

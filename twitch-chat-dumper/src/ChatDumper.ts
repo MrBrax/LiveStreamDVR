@@ -1,10 +1,19 @@
 import { ChatClient } from 'dank-twitch-irc';
 import fs from 'fs';
 import { format, parse } from 'date-fns';
+import { TwitchComment, TwitchCommentMessageFragment, TwitchCommentUserBadge } from "../../common/Comments";
 
 export class ChatDumper {
+
+    client: ChatClient;
+    input_username: string;
+    file_output: string;
+    overwrite: boolean;
+    comments: TwitchComment[];
+    chatStream: fs.WriteStream | undefined;
+    textStream: fs.WriteStream | undefined;
     
-    constructor(input_username, file_output, overwrite = false) {
+    constructor(input_username: string, file_output: string, overwrite = false) {
         this.client = new ChatClient();
         this.input_username = input_username;
         this.file_output = file_output;
@@ -18,18 +27,15 @@ export class ChatDumper {
         const date_format = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
         if (!this.input_username) {
-            console.error("No channel supplied with --channel");
-            return;
+            throw new Error("No channel supplied.");
         }
 
         if (!this.file_output) {
-            console.error("No output file supplied with --output");
-            return;
+            throw new Error("No output file supplied.");
         }
 
         if (!this.overwrite && (fs.existsSync(this.file_output) || fs.existsSync(`${this.file_output}.line`) || fs.existsSync(`${this.file_output}.txt`))) {
-            console.error("Chat file already exists, force with --overwrite");
-            return;
+            throw new Error("Chat file already exists, force with overwrite.");
         }
 
         this.chatStream = fs.createWriteStream(`${this.file_output}.line`, { flags: 'a' });
@@ -47,6 +53,8 @@ export class ChatDumper {
 
         this.client.on("PRIVMSG", (msg) => {
 
+            if (!this.chatStream || !this.textStream) return;
+
             // 2021-11-14T03:38:58.626Z
             let thetime = format(msg.serverTimestamp, date_format);
 
@@ -62,7 +70,7 @@ export class ChatDumper {
             if(fmt_offset == 0) console.error("Comment offset at 0");
 
             // parse emotes
-            let fmt_emotes = [];
+            let fmt_emotes: { _id: string, begin: number; end: number; }[] = [];
             msg.emotes.forEach(element => {
                 fmt_emotes.push({
                     "_id": element.id,
@@ -72,7 +80,7 @@ export class ChatDumper {
                 // console.debug(`Emote added (${element.id}): ${element.startIndex} to ${element.endIndex}`);
             });
 
-            let fmt_fragments = [];
+            let fmt_fragments: TwitchCommentMessageFragment[] = [];
             let text_buffer = "";
 
             // parse message and emotes, creating fragments
@@ -92,7 +100,8 @@ export class ChatDumper {
                         if (i + 1 == emote['begin']) {
                             // text node
                             fmt_fragments.push({
-                                "text": text_buffer
+                                "text": text_buffer,
+                                "emoticon": null,
                             })
                             // console.debug(`Push text buffer: '${text_buffer}' ${emote['begin']}:${emote['end']}`);
                             text_buffer = ""
@@ -102,7 +111,8 @@ export class ChatDumper {
                             // emoticon node
                             fmt_fragments.push({
                                 "emoticon": {
-                                    "emoticon_id": emote["_id"]
+                                    "emoticon_id": emote["_id"],
+                                    "emoticon_set_id": "",
                                 },
                                 "text": text_buffer
                             })
@@ -116,13 +126,14 @@ export class ChatDumper {
                 }
             } else {
                 fmt_fragments.push({
-                    "text": msg.messageText
+                    "text": msg.messageText,
+                    "emoticon": null,
                 })
                 // console.debug(`No emotes, push text: '${msg.messageText}'`);
             }
 
             // parse badges
-            let fmt_badges = [];
+            let fmt_badges: TwitchCommentUserBadge[] = [];
             msg.badges.forEach(element => {
                 fmt_badges.push({
                     "_id": element.name,
@@ -131,7 +142,7 @@ export class ChatDumper {
             });
 
             let message = {
-                "_id": this.comments.length + 1,
+                "_id": `uid_${this.comments.length + 1}`,
                 "channel_id": msg.channelID,
                 "commenter": {
                     "_id": msg.senderUserID,
@@ -141,19 +152,21 @@ export class ChatDumper {
                     "name": msg.senderUsername,
                     "type": "user",
                     "updated_at": thetime,
+                    "logo": "dummy" // fake
                 },
-                "content_id": 1337,
+                "content_id": "1337",
                 "content_offset_seconds": fmt_offset, // hmm
                 "content_type": "video",
                 "created_at": thetime,
                 "message": {
                     "body": msg.messageText,
-                    "emoticons": fmt_emotes,
+                    // "emoticons": fmt_emotes, // old version
+                    "emoticons": null,
                     "fragments": fmt_fragments,
                     "is_action": false,
                     "user_badges": fmt_badges,
                     "user_color": msg.colorRaw || "#FFFFFF",
-                    "user_notice_params": {},
+                    // "user_notice_params": {},
                 },
                 "source": "chat",
                 "state": "published",
@@ -193,6 +206,10 @@ export class ChatDumper {
 
         if (!this.input_username) throw new Error("No username provided");
 
+        if (!this.chatStream || !this.textStream) {
+            throw new Error("File streams have not been set up.");
+        }
+
         // See below for more events
         this.client.connect().catch(reason => {
             console.log("connect error", reason);
@@ -227,10 +244,10 @@ export class ChatDumper {
         let duration_seconds = this.comments[this.comments.length - 1].content_offset_seconds;
 
 
-        var sec_num = parseInt(duration_seconds, 10)
-        var hours = Math.floor(sec_num / 3600)
-        var minutes = Math.floor(sec_num / 60) % 60
-        var seconds = sec_num % 60;
+        // var sec_num = parseInt(duration_seconds, 10)
+        var hours = Math.floor(duration_seconds / 3600)
+        var minutes = Math.floor(duration_seconds / 60) % 60
+        var seconds = duration_seconds % 60;
         let duration = `${hours}h${minutes}m${seconds}s`;
 
         let jsondata = {

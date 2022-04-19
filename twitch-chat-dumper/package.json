@@ -1,12 +1,21 @@
 {
-  "type": "module",
   "name": "twitch-chat-dumper",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "lint:ts": "tsc -noEmit",
+    "start": "node --enable-source-maps ./build/index.js",
+    "build": "esbuild ./src/index.ts --bundle --platform=node --target=node14 --sourcemap --outfile=./build/index.js"
+  },
   "dependencies": {
     "dank-twitch-irc": "^4.3.0",
     "date-fns": "^2.25.0",
     "minimist": "^1.2.5"
+  },
+  "devDependencies": {
+    "@types/minimist": "^1.2.2",
+    "esbuild": "^0.14.36",
+    "typescript": "^4.6.3"
   }
 }

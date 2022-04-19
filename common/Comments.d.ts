@@ -41,7 +41,7 @@ export interface TwitchCommentDump {
 
 export interface TwitchComment {
     // internal
-    displayed: boolean;
+    displayed?: boolean;
 
     _id: string;
     channel_id: string;
@@ -66,24 +66,34 @@ export interface TwitchComment {
     };
     message: {
         body: string;
-        // emoticons: {}
+        emoticons: null; // TODO:
 
-        fragments: {
-            text: string;
-            emoticon: {
-                emoticon_id: string;
-                emoticon_set_id: string;
-            };
-        }[];
-        user_badges: {
-            _id: string;
-            version: number;
-        }[];
-        user_color: string;
+        user_notice_params?: {
+            "msg-id": string | null;
+        };
+
+        fragments: TwitchCommentMessageFragment[];
+        user_badges: TwitchCommentUserBadge[];
+        user_color: string | null;
+        bits_spent?: number;
     };
+    more_replies?: boolean;
     created_at: string;
     // message: Array;
     source: string;
     state: string;
     updated_at: string;
+}
+
+export interface TwitchCommentUserBadge {
+    _id: string;
+    version: string;
+}
+
+export interface TwitchCommentMessageFragment {
+    text: string;
+    emoticon: {
+        emoticon_id: string;
+        emoticon_set_id: string;
+    } | null;
 }

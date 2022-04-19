@@ -1085,7 +1085,7 @@ export class TwitchAutomator {
             // $chat_cmd[] = __DIR__. '/../twitch-chat-dumper/index.js';
 
             // todo: execute directly in node?
-            chat_cmd.push(path.join(AppRoot, "twitch-chat-dumper", "index.js"));
+            chat_cmd.push(path.join(AppRoot, "twitch-chat-dumper", "build", "index.js"));
             chat_cmd.push("--channel", data_login);
             chat_cmd.push("--userid", data_userid);
             chat_cmd.push("--date", data_started);
