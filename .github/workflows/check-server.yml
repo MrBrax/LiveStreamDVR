@@ -3,9 +3,13 @@ name: Check Server
 on:
   push:
     branches: [ master ]
+    paths:
+      - "server/**"
   pull_request:
     branches: [ master ]
-  
+    paths:
+      - "server/**"
+
 jobs:
   build:
     runs-on: ubuntu-latest
