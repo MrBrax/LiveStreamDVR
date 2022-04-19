@@ -191,7 +191,8 @@ export class TwitchConfig {
 
         for (const env_var of Object.keys(process.env)) {
             if (env_var.startsWith("TCD_")) {
-                console.log(chalk.green(`Overriding setting '${env_var.substring(4)}' with environment variable: '${process.env[env_var]}'`));
+                const val = TwitchConfig.cfg(env_var.substring(4).toLowerCase());
+                console.log(chalk.green(`Overriding setting '${env_var.substring(4)}' with environment variable: '${val}'`));
             }
         }
 
