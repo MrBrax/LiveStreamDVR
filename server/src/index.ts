@@ -22,6 +22,7 @@ if (argv.help || argv.h) {
     Options:
         --help, -h: Show this help
         --port <number>: Set the port to listen on
+        --debug: Enable debug mode
         --home: Use the home directory instead of the data directory
         --dataroot <path>: Use the specified data directory instead of the default
     `);
