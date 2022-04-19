@@ -3,8 +3,12 @@ name: Check Client
 on:
   push:
     branches: [ master ]
+    paths:
+      - "client-vue/**"
   pull_request:
     branches: [ master ]
+    paths:
+      - "client-vue/**"
   
 jobs:
   build:
