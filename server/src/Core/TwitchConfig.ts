@@ -2,7 +2,7 @@ import axios from "axios";
 import chalk from "chalk";
 import fs from "fs";
 import { SettingField } from "../../../common/Config";
-import { AppName, AppRoot, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
+import { AppName, AppRoot, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchChannel } from "./TwitchChannel";
@@ -405,6 +405,18 @@ export class TwitchConfig {
         if (this.watcher) this.watcher.close();
     }
 
+    static checkPermissions() {
+        const folder = DataRoot;
+        const testfile = `${folder}/perm`;
+        try {
+            fs.writeFileSync(testfile, "test");
+            fs.unlinkSync(testfile);
+        } catch (err) {
+            console.error(chalk.bgRedBright.whiteBright.bold(`Permissions error: ${err}`));
+            process.exit(1);
+        }
+    }
+
 
     /**
      * Initialise entire application, like loading config, creating folders, etc.
@@ -436,6 +448,8 @@ export class TwitchConfig {
             console.error(chalk.red("Config already loaded, has init been called twice?"));
             return false;
         }
+
+        TwitchConfig.checkPermissions();
 
         TwitchConfig.createFolders();
 

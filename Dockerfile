@@ -1,5 +1,5 @@
 FROM node:17-bullseye
-USER root
+# USER root
 
 # system packages
 #RUN apk --no-cache add \
@@ -26,7 +26,7 @@ COPY ./requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt
 
 # copy app
-RUN mkdir -p /usr/local/share/twitchautomator
+RUN mkdir -p /usr/local/share/twitchautomator && chown -R node:node /usr/local/share/twitchautomator && chmod -R 775 /usr/local/share/twitchautomator
 COPY --chown=node:node --chmod=775 . /usr/local/share/twitchautomator/
 # RUN git clone https://github.com/MrBrax/TwitchAutomator /var/www/twitchautomator/
 
@@ -53,7 +53,8 @@ ENV TCD_TWITCHDOWNLOADER_PATH=/usr/local/bin/TwitchDownloaderCLI
 # seems like docker does not support recursive chown in the copy command
 # so this is a workaround, doubling the layer size unfortunately.
 # it also takes a very long time on slow storage
-RUN chown -c -R node:node /usr/local/share/twitchautomator && chmod -R 775 /usr/local/share/twitchautomator
+# RUN chown -c -R node:node /usr/local/share/twitchautomator && chmod -R 775 /usr/local/share/twitchautomator
+# RUN chown -c -R node:node /usr/local/share/twitchautomator/data && chmod -R 775 /usr/local/share/twitchautomator/data
 
 # make home folder
 RUN mkdir -p /home/node && chown -R node:node /home/node
@@ -64,7 +65,7 @@ RUN mkdir /home/node/.fonts && chown node:node /home/node/.fonts
 COPY ./docker/fonts /home/node/.fonts
 
 # get certs
-RUN wget https://curl.haxx.se/ca/cacert.pem -O /tmp/cacert.pem
+# RUN wget https://curl.haxx.se/ca/cacert.pem -O /tmp/cacert.pem
 
 # twitchautomator docker specific configs
 ENV TCD_BIN_DIR=/usr/local/bin
@@ -72,12 +73,11 @@ ENV TCD_FFMPEG_PATH=/usr/bin/ffmpeg
 ENV TCD_MEDIAINFO_PATH=/usr/bin/mediainfo
 ENV TCD_DOCKER=1
 ENV TCD_WEBSOCKET_ENABLED=1
-ENV TCD_CA_PATH=/tmp/cacert.pem
+# ENV TCD_CA_PATH=/tmp/cacert.pem
 ENV TCD_SERVER_PORT=8080
 
-USER node
+# USER node
 WORKDIR /usr/local/share/twitchautomator/server
 
 ENTRYPOINT [ "yarn", "run", "start" ]
-# ENTRYPOINT yarn run start
 EXPOSE 8080
