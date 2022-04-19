@@ -178,10 +178,10 @@ export class TwitchConfig {
 
         this.config = JSON.parse(data);
 
-        this.config.app_name = AppName;
+        // this.config.app_name = AppName;
 
         for (const key in this.config) {
-            if (key !== "app_name" && !this.settingExists(key)) {
+            if (!this.settingExists(key)) {
                 console.warn(chalk.yellow(`Saved setting '${key}' does not exist, deprecated? Discarding.`));
                 delete this.config[key];
             }
