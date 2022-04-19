@@ -31,10 +31,10 @@ COPY --chown=node:node --chmod=775 . /usr/local/share/twitchautomator/
 # RUN git clone https://github.com/MrBrax/TwitchAutomator /var/www/twitchautomator/
 
 # server
-RUN cd /usr/local/share/twitchautomator/server && yarn install && yarn build
+RUN cd /usr/local/share/twitchautomator/server && yarn install && yarn build && rm -rf node_modules
 
 # client
-RUN cd /usr/local/share/twitchautomator/client-vue && yarn install && yarn build
+RUN cd /usr/local/share/twitchautomator/client-vue && yarn install && yarn build && rm -rf node_modules
 
 # install chat dumper dependencies, test
 RUN cd /usr/local/share/twitchautomator/twitch-chat-dumper && yarn install

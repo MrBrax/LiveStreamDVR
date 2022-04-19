@@ -14,6 +14,20 @@ import minimist from "minimist";
 
 const argv = minimist(process.argv.slice(2));
 
+if (argv.help || argv.h) {
+    console.log(`
+    Usage:
+        yarn run start [options]
+
+    Options:
+        --help, -h: Show this help
+        --port <number>: Set the port to listen on
+        --home: Use the home directory instead of the data directory
+        --dataroot <path>: Use the specified data directory instead of the default
+    `);
+    process.exit(0);
+}
+
 // for overriding port if you can't or don't want to use the web gui to change it
 const override_port = argv.port ? parseInt(argv.port as string) : undefined;
 
