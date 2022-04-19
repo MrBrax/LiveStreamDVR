@@ -30,6 +30,9 @@ Post issues/help on the issues tab above. I already run an up to date version, s
 
 ---
 
+## Migration from the PHP version
+Move the folders `cache`,  `config`, `logs`, `payloads`, and `storage` to a new folder called `data` in the root of the application, or place them anywhere else on the filesystem and use the `--dataroot` argument to tell the server where to look for them.
+
 ## Docker setup
 
 Reminder that i don't use docker myself on my capturing setup, so any specific errors to this are hard to test.
@@ -40,7 +43,7 @@ Reminder that i don't use docker myself on my capturing setup, so any specific e
 1. Download the [docker-compose.yml](https://raw.githubusercontent.com/MrBrax/TwitchAutomator/master/docker-compose.yml) file and place it in a directory.
 2. Run `docker-compose pull` and `docker-compose up -d` to start it.
 3. Visit the webapp at `localhost:8082`
-4. Check stored vods in the `/storage` directory. Permissions might be an issue.
+4. Check stored vods in the `/data/storage` directory. Permissions might be an issue.
 
 Hub: https://hub.docker.com/r/mrbrax/twitchautomator
 
@@ -59,7 +62,6 @@ If you want the public webapp to have a custom base folder, you must provide `BA
 2. Enter the root folder and run `pip install -r requirements.txt`
 3. Enter the `/client-vue` folder and run `yarn install` and `yarn run build`.
 4. Enter the `/server` folder and run `yarn install` and `yarn run build`.
-
 5. In the `/server` folder, run `yarn run start` to start the server in production mode.
 6. Go to the settings page and set up basic stuff, get api key from twitch dev site.
 7. Check the About page for subscription status.
