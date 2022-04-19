@@ -15,10 +15,7 @@ services:
     ports:
       - "8082:8080"
     volumes:
-      - ./config:/usr/local/share/twitchautomator/config
-      - ./cache:/usr/local/share/twitchautomator/cache
-      - ./logs:/usr/local/share/twitchautomator/logs
-      - ./storage:/usr/local/share/twitchautomator/storage
+      - ./data:/usr/local/share/twitchautomator/data
       # - ./docker/vods:/var/www/twitchautomator/public/vods
       # - ./docker/saved_clips:/var/www/twitchautomator/public/saved_clips
       # - ./docker/saved_vods:/var/www/twitchautomator/public/saved_vods
