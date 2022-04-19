@@ -10,17 +10,14 @@ import { TwitchHelper } from "../Core/TwitchHelper";
 
 export function GetSettings(req: express.Request, res: express.Response): void {
 
-    // flatten settings fields to key value pairs
-    /*
-    const fields = TwitchConfig.settingsFields.reduce((acc: Record<string, SettingField<any>>, cur) => {
-        acc[cur.key] = cur;
-        return acc;
-    }, {});
-    */
+    const config: Record<string, any> = {};
+    for (const key in TwitchConfig.config) {
+        config[key] = TwitchConfig.cfg(key);
+    }
 
     res.send({
         data: {
-            config: TwitchConfig.config,
+            config: config,
             channels: TwitchChannel.channels_config,
             favourite_games: TwitchGame.favourite_games,
             fields: TwitchConfig.settingsFields,

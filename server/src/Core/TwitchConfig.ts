@@ -2,7 +2,7 @@ import axios from "axios";
 import chalk from "chalk";
 import fs from "fs";
 import { SettingField } from "../../../common/Config";
-import { AppName, AppRoot, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath } from "./BaseConfig";
+import { AppName, AppRoot, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchChannel } from "./TwitchChannel";
@@ -178,10 +178,10 @@ export class TwitchConfig {
 
         this.config = JSON.parse(data);
 
-        this.config.app_name = AppName;
+        // this.config.app_name = AppName;
 
         for (const key in this.config) {
-            if (key !== "app_name" && !this.settingExists(key)) {
+            if (!this.settingExists(key)) {
                 console.warn(chalk.yellow(`Saved setting '${key}' does not exist, deprecated? Discarding.`));
                 delete this.config[key];
             }
@@ -191,7 +191,8 @@ export class TwitchConfig {
 
         for (const env_var of Object.keys(process.env)) {
             if (env_var.startsWith("TCD_")) {
-                console.log(chalk.green(`Overriding setting '${env_var.substring(4)}' with environment variable: '${process.env[env_var]}'`));
+                const val = TwitchConfig.cfg(env_var.substring(4).toLowerCase());
+                console.log(chalk.green(`Overriding setting '${env_var.substring(4)}' with environment variable: '${val}'`));
             }
         }
 
@@ -377,6 +378,11 @@ export class TwitchConfig {
             return "ws://localhost:8080/socket/";
         }
 
+        if (!TwitchConfig.cfg<string>("app_url")) {
+            console.error(chalk.red("App url not set, can't get websocket client url"));
+            return undefined;
+        }
+
         const http_path = TwitchConfig.cfg<string>("app_url");
         // const http_port = TwitchConfig.cfg<number>("server_port", 8080);
         const route = "/socket/";
@@ -403,6 +409,18 @@ export class TwitchConfig {
 
     static stopWatchingConfig() {
         if (this.watcher) this.watcher.close();
+    }
+
+    static checkPermissions() {
+        const folder = DataRoot;
+        const testfile = `${folder}/perm`;
+        try {
+            fs.writeFileSync(testfile, "test");
+            fs.unlinkSync(testfile);
+        } catch (err) {
+            console.error(chalk.bgRedBright.whiteBright.bold(`Permissions error: ${err}`));
+            process.exit(1);
+        }
     }
 
 
@@ -436,6 +454,8 @@ export class TwitchConfig {
             console.error(chalk.red("Config already loaded, has init been called twice?"));
             return false;
         }
+
+        TwitchConfig.checkPermissions();
 
         TwitchConfig.createFolders();
 
