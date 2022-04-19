@@ -24,6 +24,7 @@ client-broker
 server/node_modules
 server/build
 storage
+data
 **/*.mp4
 **/*.chatdump
 **/*.chatdump.line

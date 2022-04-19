@@ -377,6 +377,11 @@ export class TwitchConfig {
             return "ws://localhost:8080/socket/";
         }
 
+        if (!TwitchConfig.cfg<string>("app_url")) {
+            console.error(chalk.red("App url not set, can't get websocket client url"));
+            return undefined;
+        }
+
         const http_path = TwitchConfig.cfg<string>("app_url");
         // const http_port = TwitchConfig.cfg<number>("server_port", 8080);
         const route = "/socket/";
