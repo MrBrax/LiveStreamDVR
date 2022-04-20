@@ -41,7 +41,7 @@
                             <td>
                                 <a @click="logSetFilter(line.module)">{{ line.module }}</a>
                             </td>
-                            <td>{{ line.level || "UNKNOWN" }}</td>
+                            <td :title="'PID: ' + line.pid">{{ line.level || "UNKNOWN" }}</td>
                             <td @click="expandLog(lineIndex)">{{ line.text }}</td>
                         </tr>
                     </table>

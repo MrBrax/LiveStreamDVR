@@ -20,6 +20,7 @@ export interface LogLine {
     time: number;
     level: LOGLEVEL;
     text: string;
+    pid?: number;
     metadata?: any;
 }
 
@@ -100,7 +101,7 @@ export class TwitchLog {
         const dateString = format(date, dateFormat);
 
         // write cleartext
-        const textOutput = `${dateString} | ${module} <${level}> ${text}`;
+        const textOutput = `${dateString} ${process.pid} | ${module} <${level}> ${text}`;
         fs.appendFileSync(filepath, textOutput + "\n");
 
         // if docker, output to stdout
@@ -117,6 +118,7 @@ export class TwitchLog {
             time: Date.now(),
             level: level,
             text: text,
+            pid: process.pid,
         };
 
         if (metadata !== undefined) log_data.metadata = metadata;
