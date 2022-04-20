@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 import { BaseConfigDataFolder } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
-import { TwitchConfig } from "./TwitchConfig";
+import { Config } from "./Config";
 
 export enum LOGLEVEL {
     ERROR = "ERROR",
@@ -24,7 +24,7 @@ export interface LogLine {
     metadata?: any;
 }
 
-export class TwitchLog {
+export class Log {
 
     public static currentDate = "";
     public static lines: LogLine[] = [];
@@ -69,7 +69,7 @@ export class TwitchLog {
      * @returns 
      */
     static logAdvanced(level: LOGLEVEL, module: string, text: string, metadata?: any) {
-        if (!TwitchConfig.debug && level == LOGLEVEL.DEBUG) return;
+        if (!Config.debug && level == LOGLEVEL.DEBUG) return;
 
         // if testing, don't log
         if (process.env.NODE_ENV == "test") return;
@@ -79,16 +79,16 @@ export class TwitchLog {
             throw new Error("Log folder does not exist!");
         }
 
-        if (!TwitchLog.currentDate) {
+        if (!Log.currentDate) {
             console.error(chalk.bgRed.whiteBright("😤 Log called before date was set!"));
         }
 
         // clear old logs from memory
         const today = format(new Date(), "yyyy-MM-dd");
-        if (today != TwitchLog.currentDate) {
-            console.log(chalk.yellow(`Clearing log memory from ${TwitchLog.currentDate} to ${today}`));
-            TwitchLog.currentDate = today;
-            TwitchLog.lines = [];
+        if (today != Log.currentDate) {
+            console.log(chalk.yellow(`Clearing log memory from ${Log.currentDate} to ${today}`));
+            Log.currentDate = today;
+            Log.lines = [];
         }
 
         // today's filename in Y-m-d format
@@ -136,19 +136,19 @@ export class TwitchLog {
         this.lines.push(log_data);
 
         // send over websocket, probably extremely slow
-        if (TwitchConfig.cfg<boolean>("websocket_log")) {
+        if (Config.cfg<boolean>("websocket_log")) {
 
             this.websocket_buffer.push(log_data);
 
-            if (TwitchLog.websocket_timer) clearTimeout(TwitchLog.websocket_timer);
-            TwitchLog.websocket_timer = setTimeout(() => {
+            if (Log.websocket_timer) clearTimeout(Log.websocket_timer);
+            Log.websocket_timer = setTimeout(() => {
                 // console.debug(`Sending ${this.websocket_buffer.length} lines over websocket`);
                 ClientBroker.broadcast({
                     action: "log",
                     data: this.websocket_buffer,
                 });
                 this.websocket_buffer = [];
-                TwitchLog.websocket_timer = undefined;
+                Log.websocket_timer = undefined;
             }, 5000);
             
         }

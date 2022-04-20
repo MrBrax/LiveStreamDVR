@@ -3,9 +3,9 @@ import { ApiErrorResponse } from "../../../common/Api/Api";
 import { SubStatus } from "../../../common/Defs";
 import { KeyValue } from "../Core/KeyValue";
 import { TwitchChannel } from "../Core/TwitchChannel";
-import { TwitchConfig } from "../Core/TwitchConfig";
-import { TwitchHelper } from "../Core/TwitchHelper";
-import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
+import { Config } from "../Core/Config";
+import { Helper } from "../Core/Helper";
+import { LOGLEVEL, Log } from "../Core/Log";
 
 interface ChannelSub {
     type: string;
@@ -20,7 +20,7 @@ interface ChannelSub {
 
 export async function ListSubscriptions(req: express.Request, res: express.Response): Promise<void> {
 
-    const subs = await TwitchHelper.getSubs();
+    const subs = await Helper.getSubs();
 
     if (subs && subs.total > 0) {
 
@@ -54,15 +54,15 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
         };
         */
 
-        let callback = `${TwitchConfig.cfg("app_url")}/api/v0/hook`;
-        if(TwitchConfig.cfg("instance_id")) callback += "?instance=" + TwitchConfig.cfg("instance_id");
+        let callback = `${Config.cfg("app_url")}/api/v0/hook`;
+        if(Config.cfg("instance_id")) callback += "?instance=" + Config.cfg("instance_id");
 
         for (const sub of subs.data) {
 
             const username = await TwitchChannel.channelLoginFromId(sub.condition.broadcaster_user_id);
 
             if (!username) {
-                TwitchLog.logAdvanced(LOGLEVEL.WARNING, "ListSubscriptions", `Could not find username for channel ${sub.condition.broadcaster_user_id}`);
+                Log.logAdvanced(LOGLEVEL.WARNING, "ListSubscriptions", `Could not find username for channel ${sub.condition.broadcaster_user_id}`);
                 continue;
             }
 
@@ -81,7 +81,7 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
             if (!KeyValue.get(`${entry.user_id}.sub.${entry.type}`)) {
                 KeyValue.set(`${entry.user_id}.sub.${entry.type}`, entry.id);
                 KeyValue.set(`${entry.user_id}.substatus.${entry.type}`, entry.status == "enabled" ? SubStatus.SUBSCRIBED : SubStatus.NONE);
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "route.subscriptions.list", `Added missing keyvalue subs for ${entry.user_id}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "route.subscriptions.list", `Added missing keyvalue subs for ${entry.user_id}`);
             }
 
             payload_data.channels.push(entry);
@@ -140,7 +140,7 @@ export async function UnsubscribeFromId(req: express.Request, res: express.Respo
 
     const sub_id = req.params.sub_id;
 
-    const sub = await TwitchHelper.eventSubUnsubscribe(sub_id);
+    const sub = await Helper.eventSubUnsubscribe(sub_id);
 
     if (sub === true) {
         res.send({

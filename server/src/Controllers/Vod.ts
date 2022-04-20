@@ -1,11 +1,11 @@
 import { BaseConfigDataFolder } from "Core/BaseConfig";
-import { TwitchHelper } from "Core/TwitchHelper";
+import { Helper } from "Core/Helper";
 import express from "express";
 import path from "path";
 import { ApiErrorResponse, ApiResponse, ApiVodResponse } from "../../../common/Api/Api";
 import { VideoQuality } from "../../../common/Config";
 import { VideoQualityArray } from "../../../common/Defs";
-import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
+import { LOGLEVEL, Log } from "../Core/Log";
 import { TwitchVOD } from "../Core/TwitchVOD";
 
 export async function GetVod(req: express.Request, res: express.Response): Promise<void> {
@@ -138,13 +138,13 @@ export async function RenderWizard(req: express.Request, res: express.Response):
     let status_renderchat = false;
     let status_burnchat = false;
 
-    TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Start render wizard for vod ${vod}`);
-    TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `chat_width: ${chat_width}`);
-    TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `chat_height: ${chat_height}`);
-    TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `render_chat: ${render_chat}`);
-    TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `burn_chat: ${burn_chat}`);
-    TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `vod_source: ${vod_source}`);
-    TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `chat_source: ${chat_source}`);
+    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Start render wizard for vod ${vod}`);
+    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `chat_width: ${chat_width}`);
+    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `chat_height: ${chat_height}`);
+    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `render_chat: ${render_chat}`);
+    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `burn_chat: ${burn_chat}`);
+    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `vod_source: ${vod_source}`);
+    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `chat_source: ${chat_source}`);
 
     if (render_chat) {
         try {
@@ -342,7 +342,7 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
     let ret;
 
     try {
-        ret = await TwitchHelper.cutFile(file_in, file_out, seconds_in, seconds_out);
+        ret = await Helper.cutFile(file_in, file_out, seconds_in, seconds_out);
     } catch (error) {
         res.status(400).send({
             status: "ERROR",
@@ -366,13 +366,13 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
 
         let success;
         try {
-            success = await TwitchHelper.cutChat(chat_file_in, chat_file_out, seconds_in, seconds_out);
+            success = await Helper.cutChat(chat_file_in, chat_file_out, seconds_in, seconds_out);
         } catch (error) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "route.vod.cutVod", `Cut chat failed: ${(error as Error).message}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "route.vod.cutVod", `Cut chat failed: ${(error as Error).message}`);
         }
 
         if (success) {
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "route.vod.cutVod", `Cut chat ${chat_file_in} to ${chat_file_out} success`);
+            Log.logAdvanced(LOGLEVEL.INFO, "route.vod.cutVod", `Cut chat ${chat_file_in} to ${chat_file_out} success`);
         }
 
     }

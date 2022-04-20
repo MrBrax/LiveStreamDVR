@@ -4,14 +4,14 @@ import { TwitchChannel } from "../Core/TwitchChannel";
 import { ChannelConfig, VideoQuality } from "../../../common/Config";
 import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse } from "../../../common/Api/Api";
 import { VideoQualityArray } from "../../../common/Defs";
-import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
+import { LOGLEVEL, Log } from "../Core/Log";
 import { TwitchVOD } from "../Core/TwitchVOD";
 import { replaceAll } from "Helpers/ReplaceAll";
-import { TwitchHelper } from "Core/TwitchHelper";
-import { TwitchConfig } from "Core/TwitchConfig";
+import { Helper } from "Core/Helper";
+import { Config } from "Core/Config";
 import path from "path";
 import { parse } from "date-fns";
-import { TwitchWebhook } from "Core/TwitchWebhook";
+import { Webhook } from "Core/Webhook";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -109,7 +109,7 @@ export function DeleteChannel(req: express.Request, res: express.Response): void
                 status: "OK",
                 message: "Channel found in config but not in memory, removed from config",
             });
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "route.channels.delete", `Channel ${req.params.login} found in config but not in memory, removed from config`);
+            Log.logAdvanced(LOGLEVEL.INFO, "route.channels.delete", `Channel ${req.params.login} found in config but not in memory, removed from config`);
             return;
         }
 
@@ -122,7 +122,7 @@ export function DeleteChannel(req: express.Request, res: express.Response): void
 
     channel.delete();
 
-    TwitchLog.logAdvanced(LOGLEVEL.INFO, "route.channels.delete", `Channel ${req.params.login} deleted`);
+    Log.logAdvanced(LOGLEVEL.INFO, "route.channels.delete", `Channel ${req.params.login} deleted`);
 
     res.send({
         status: "OK",
@@ -180,7 +180,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
     const channel = TwitchChannel.getChannelByLogin(channel_config.login);
 
     if (channel) {
-        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, channel already exists: ${channel_config.login}`);
+        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, channel already exists: ${channel_config.login}`);
         res.status(400).send({
             status: "ERROR",
             message: "Channel already exists",
@@ -192,7 +192,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
     try {
         new_channel = await TwitchChannel.create(channel_config);
     } catch (error) {
-        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel: ${error}`);
+        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel: ${error}`);
         res.status(400).send({
             status: "ERROR",
             message: (error as Error).message,
@@ -200,7 +200,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         return;
     }
 
-    TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.add", `Created channel: ${new_channel.login}`);
+    Log.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.add", `Created channel: ${new_channel.login}`);
 
     res.send({
         data: new_channel,
@@ -243,14 +243,14 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
 
     const basename = `${channel.login}_${replaceAll(video.created_at, ":", "-")}_${video.stream_id}`;
 
-    const filepath = path.join(TwitchHelper.vodFolder(channel.login), `${basename}.${TwitchConfig.cfg("vod_container", "mp4")}`);
+    const filepath = path.join(Helper.vodFolder(channel.login), `${basename}.${Config.cfg("vod_container", "mp4")}`);
 
     let status = false;
 
     try {
         status = await TwitchVOD.downloadVideo(video_id, quality, filepath) != "";
     } catch (error) {
-        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "route.channels.download", `Failed to download video: ${(error as Error).message}`);
+        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.download", `Failed to download video: ${(error as Error).message}`);
         res.status(400).send({
             status: "ERROR",
             message: (error as Error).message,
@@ -259,14 +259,14 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
     }
 
     if (status) {
-        const vod = await channel.createVOD(path.join(TwitchHelper.vodFolder(channel.login), `${basename}.json`));
+        const vod = await channel.createVOD(path.join(Helper.vodFolder(channel.login), `${basename}.json`));
         // vod.meta = video;
         // vod.streamer_name = channel.display_name || channel.login;
         // vod.streamer_login = channel.login;
         // vod.streamer_id = channel.userid || "";
-        vod.started_at = parse(video.created_at, TwitchHelper.TWITCH_DATE_FORMAT, new Date());
+        vod.started_at = parse(video.created_at, Helper.TWITCH_DATE_FORMAT, new Date());
 
-        const duration = TwitchHelper.parseTwitchDuration(video.duration);
+        const duration = Helper.parseTwitchDuration(video.duration);
         vod.ended_at = new Date(vod.started_at.getTime() + (duration * 1000));
         vod.saveJSON("manual creation");
 
@@ -274,7 +274,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         vod.finalize();
         vod.saveJSON("manual finalize");
 
-        TwitchWebhook.dispatch("end_download", {
+        Webhook.dispatch("end_download", {
             vod: await vod.toAPI(),
         });
 
@@ -351,7 +351,7 @@ export async function RefreshChannel(req: express.Request, res: express.Response
     try {
         success = await channel.refreshData();
     } catch (error) {
-        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "route.channels.refresh", `Failed to refresh channel: ${(error as Error).message}`);
+        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.refresh", `Failed to refresh channel: ${(error as Error).message}`);
         res.status(400).send({
             status: "ERROR",
             message: (error as Error).message,
@@ -360,13 +360,13 @@ export async function RefreshChannel(req: express.Request, res: express.Response
     }
 
     if (success) {
-        TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.refresh", `Refreshed channel: ${channel.login}`);
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.refresh", `Refreshed channel: ${channel.login}`);
         res.send({
             status: "OK",
             message: `Refreshed channel: ${channel.login}`,
         });
     } else {
-        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "route.channels.refresh", `Failed to refresh channel: ${channel.login}`);
+        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.refresh", `Failed to refresh channel: ${channel.login}`);
         res.status(400).send({
             status: "ERROR",
             message: "Failed to refresh channel",

@@ -2,7 +2,7 @@ import { AppRoot, BaseConfigDataFolder } from "../Core/BaseConfig";
 import express from "express";
 import fs from "fs";
 import path from "path";
-import { ExecReturn, TwitchHelper } from "../Core/TwitchHelper";
+import { ExecReturn, Helper } from "../Core/Helper";
 import { KeyValue } from "../Core/KeyValue";
 
 interface Bins {
@@ -36,9 +36,9 @@ export async function About(req: express.Request, res: express.Response) {
     }
 
     const bin_args: Record<string, { binary: string | false; version_args: string[]; version_regex: RegExp; }> = {
-        ffmpeg: { binary: TwitchHelper.path_ffmpeg(), version_args: ["-version"], version_regex: /ffmpeg version ([\w0-9\-_.+]+) Copyright/m },
-        mediainfo: { binary: TwitchHelper.path_mediainfo(), version_args: ["--Version"], version_regex: /v(\d+\.\d+)/m },
-        twitchdownloader: { binary: TwitchHelper.path_twitchdownloader(), version_args: ["--version", "2>&1"], version_regex: /TwitchDownloaderCLI (\d+\.\d+\.\d+)/m },
+        ffmpeg: { binary: Helper.path_ffmpeg(), version_args: ["-version"], version_regex: /ffmpeg version ([\w0-9\-_.+]+) Copyright/m },
+        mediainfo: { binary: Helper.path_mediainfo(), version_args: ["--Version"], version_regex: /v(\d+\.\d+)/m },
+        twitchdownloader: { binary: Helper.path_twitchdownloader(), version_args: ["--version", "2>&1"], version_regex: /TwitchDownloaderCLI (\d+\.\d+\.\d+)/m },
         python: { binary: "python", version_args: ["--version"], version_regex: /Python ([\d.]+)/m },
         python3: { binary: "python3", version_args: ["--version"], version_regex: /Python ([\d.]+)/m },
         node: { binary: "node", version_args: ["--version"], version_regex: /v([\d.]+)/m },
@@ -53,7 +53,7 @@ export async function About(req: express.Request, res: express.Response) {
 
             let exec_out;
             try {
-                exec_out = await TwitchHelper.execSimple(bin_data.binary, bin_data.version_args, "about binary check");
+                exec_out = await Helper.execSimple(bin_data.binary, bin_data.version_args, "about binary check");
             } catch (error) {
                 const e = error as ExecReturn;
                 if ("code" in e) {
@@ -98,9 +98,9 @@ export async function About(req: express.Request, res: express.Response) {
 
     const pip_pkg: Record<string, { binary: string | false; version_args: string[]; version_regex: RegExp; }> = {
         // tcd: { binary: TwitchHelper.path_tcd(), version_args: ["--version", "--settings-file", path.join(BaseConfigDataFolder.config, "tcd_settings.json")], version_regex: /^Twitch Chat Downloader\s+([0-9.]+)$/m },
-        streamlink: { binary: TwitchHelper.path_streamlink(), version_args: ["--version"], version_regex: /^streamlink\s+([0-9.]+)$/m },
-        "youtubedl": { binary: TwitchHelper.path_youtubedl(), version_args: ["--version"], version_regex: /^([0-9.]+)$/m },
-        pipenv: { binary: TwitchHelper.path_pipenv(), version_args: ["--version"], version_regex: /^pipenv, version ([0-9.]+)$/m },
+        streamlink: { binary: Helper.path_streamlink(), version_args: ["--version"], version_regex: /^streamlink\s+([0-9.]+)$/m },
+        "youtubedl": { binary: Helper.path_youtubedl(), version_args: ["--version"], version_regex: /^([0-9.]+)$/m },
+        pipenv: { binary: Helper.path_pipenv(), version_args: ["--version"], version_regex: /^pipenv, version ([0-9.]+)$/m },
     };
 
     for (const pkg_name in pip_pkg) {
@@ -109,7 +109,7 @@ export async function About(req: express.Request, res: express.Response) {
             let exec_out;
 
             try {
-                exec_out = await TwitchHelper.execSimple(pkg_data.binary, pkg_data.version_args, "about pip check");
+                exec_out = await Helper.execSimple(pkg_data.binary, pkg_data.version_args, "about pip check");
             } catch (error) {
                 const e = error as ExecReturn;
                 if ("code" in e) {

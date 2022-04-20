@@ -7,8 +7,8 @@ import { KeyValue } from "./KeyValue";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
-import { TwitchHelper } from "./TwitchHelper";
-import { LOGLEVEL, TwitchLog } from "./TwitchLog";
+import { Helper } from "./Helper";
+import { LOGLEVEL, Log } from "./Log";
 import crypto from "crypto";
 import path from "path";
 import { ClientBroker } from "./ClientBroker";
@@ -18,7 +18,7 @@ import { Scheduler } from "./Scheduler";
 
 const argv = minimist(process.argv.slice(2));
 
-export class TwitchConfig {
+export class Config {
 
     static initialised = false;
 
@@ -136,7 +136,7 @@ export class TwitchConfig {
         }
 
         if (!this.settingExists(key)) {
-            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "config", `Setting '${key}' does not exist.`);
+            Log.logAdvanced(LOGLEVEL.WARNING, "config", `Setting '${key}' does not exist.`);
             console.warn(chalk.red(`Setting '${key}' does not exist.`));
         }
 
@@ -195,7 +195,7 @@ export class TwitchConfig {
 
         for (const env_var of Object.keys(process.env)) {
             if (env_var.startsWith("TCD_")) {
-                const val = TwitchConfig.cfg(env_var.substring(4).toLowerCase());
+                const val = Config.cfg(env_var.substring(4).toLowerCase());
                 console.log(chalk.green(`Overriding setting '${env_var.substring(4)}' with environment variable: '${val}'`));
             }
         }
@@ -287,9 +287,9 @@ export class TwitchConfig {
         const success = fs.existsSync(BaseConfigPath.config) && fs.statSync(BaseConfigPath.config).size > 0;
 
         if (success) {
-            TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "config", `Saved config from ${source}`);
+            Log.logAdvanced(LOGLEVEL.SUCCESS, "config", `Saved config from ${source}`);
         } else {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "config", `Failed to save config from ${source}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "config", `Failed to save config from ${source}`);
         }
 
         this.startWatchingConfig();
@@ -310,28 +310,28 @@ export class TwitchConfig {
 
         console.log(chalk.blue("Setting up axios..."));
 
-        if (!TwitchConfig.cfg("api_client_id")) {
+        if (!Config.cfg("api_client_id")) {
             console.error("API client id not set, can't setup axios");
             return;
         }
 
         let token;
         try {
-            token = await TwitchHelper.getAccessToken();
+            token = await Helper.getAccessToken();
         } catch (error) {
             console.error(`Failed to get access token: ${error}`);
             return;
         }
 
         if (!token) {
-            TwitchLog.logAdvanced(LOGLEVEL.FATAL, "config", "Could not get access token!");
+            Log.logAdvanced(LOGLEVEL.FATAL, "config", "Could not get access token!");
             throw new Error("Could not get access token!");
         }
 
-        TwitchHelper.axios = axios.create({
+        Helper.axios = axios.create({
             baseURL: "https://api.twitch.tv",
             headers: {
-                "Client-ID": TwitchConfig.cfg("api_client_id"),
+                "Client-ID": Config.cfg("api_client_id"),
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`,
             },
@@ -362,32 +362,32 @@ export class TwitchConfig {
     }
 
     static generateEventSubSecret() {
-        if (TwitchConfig.cfg("eventsub_secret")) return;
+        if (Config.cfg("eventsub_secret")) return;
         console.log(chalk.yellow("Generating eventsub secret..."));
         const secret = crypto.randomBytes(16).toString("hex");
-        TwitchConfig.setConfig<string>("eventsub_secret", secret);
-        TwitchConfig.saveConfig("eventsub_secret not set");
+        Config.setConfig<string>("eventsub_secret", secret);
+        Config.saveConfig("eventsub_secret not set");
     }
 
     static getWebsocketClientUrl(): string | undefined {
 
-        if (!TwitchConfig.cfg("websocket_enabled")) return undefined;
+        if (!Config.cfg("websocket_enabled")) return undefined;
 
         // override
-        if (TwitchConfig.cfg<string>("websocket_client_address")) {
-            return TwitchConfig.cfg<string>("websocket_client_address");
+        if (Config.cfg<string>("websocket_client_address")) {
+            return Config.cfg<string>("websocket_client_address");
         }
 
-        if (TwitchConfig.debug) {
+        if (Config.debug) {
             return "ws://localhost:8080/socket/";
         }
 
-        if (!TwitchConfig.cfg<string>("app_url")) {
+        if (!Config.cfg<string>("app_url")) {
             console.error(chalk.red("App url not set, can't get websocket client url"));
             return undefined;
         }
 
-        const http_path = TwitchConfig.cfg<string>("app_url");
+        const http_path = Config.cfg<string>("app_url");
         // const http_port = TwitchConfig.cfg<number>("server_port", 8080);
         const route = "/socket/";
         const ws_path = http_path.replace(/^https:\/\//, "wss://").replace(/^http:\/\//, "ws://");
@@ -402,10 +402,10 @@ export class TwitchConfig {
 
         // monitor config for external changes
         this.watcher = fs.watch(BaseConfigPath.config, (eventType, filename) => {
-            if (TwitchConfig._writeConfig) return;
+            if (Config._writeConfig) return;
             console.log(`Config file changed: ${eventType} ${filename}`);
             console.log("writeconfig check", Date.now());
-            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "config", "Config file changed externally");
+            Log.logAdvanced(LOGLEVEL.WARNING, "config", "Config file changed externally");
             // TwitchConfig.loadConfig();
         });
 
@@ -453,29 +453,29 @@ export class TwitchConfig {
             throw new Error("Client is not built. Please run yarn build inside the client-vue folder.");
         }
 
-        if (TwitchConfig.config && Object.keys(TwitchConfig.config).length > 0) {
+        if (Config.config && Object.keys(Config.config).length > 0) {
             // throw new Error("Config already loaded, has init been called twice?");
             console.error(chalk.red("Config already loaded, has init been called twice?"));
             return false;
         }
 
-        TwitchConfig.checkPermissions();
+        Config.checkPermissions();
 
-        TwitchConfig.createFolders();
+        Config.createFolders();
 
         KeyValue.load();
 
-        TwitchConfig.loadConfig();
+        Config.loadConfig();
 
         ClientBroker.loadNotificationSettings();
 
-        TwitchConfig.generateEventSubSecret();
+        Config.generateEventSubSecret();
 
-        await TwitchConfig.setupAxios();
+        await Config.setupAxios();
 
-        TwitchLog.readTodaysLog();
+        Log.readTodaysLog();
 
-        TwitchLog.logAdvanced(
+        Log.logAdvanced(
             LOGLEVEL.SUCCESS,
             "config",
             `The time is ${new Date().toISOString()}.` +
@@ -505,7 +505,7 @@ export class TwitchConfig {
         // process.on("SIGINT", goodbye);
         // process.on("SIGTERM", goodbye);
 
-        TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "config", "Loading config stuff done.");
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "config", "Loading config stuff done.");
 
         this.initialised = true;
 

@@ -1,8 +1,8 @@
-import { TwitchConfig } from "./TwitchConfig";
+import { Config } from "./Config";
 import chalk from "chalk";
 import { ClientBroker } from "./ClientBroker";
 import axios from "axios";
-import { LOGLEVEL, TwitchLog } from "./TwitchLog";
+import { LOGLEVEL, Log } from "./Log";
 import { ChapterUpdateData, EndCaptureData, Init, JobClear, JobSave, JobUpdate, StartDownloadData, VideoDownloadData, VodRemoved, VodUpdated, WebhookAction } from "../../../common/Webhook";
 
 export type WebhookData =
@@ -18,7 +18,7 @@ export type WebhookData =
     Init
     ;
 
-export class TwitchWebhook {
+export class Webhook {
 
     /**
      * Dispatch a webhook + websocket message to all connected clients
@@ -33,7 +33,7 @@ export class TwitchWebhook {
 
         // console.log("Webhook:", action, data);
 
-        if (TwitchConfig.debug) console.log(chalk.bgGrey.whiteBright(`WebSocket payload ${action} dispatching...`));
+        if (Config.debug) console.log(chalk.bgGrey.whiteBright(`WebSocket payload ${action} dispatching...`));
 
         // send websocket broadcast
         const payload = {
@@ -45,9 +45,9 @@ export class TwitchWebhook {
         ClientBroker.broadcast(payload);
 
         // send webhook
-        if (TwitchConfig.cfg("webhook_url")) {
-            axios.post(TwitchConfig.cfg("webhook_url"), payload).catch(error => {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "webhook", `Webhook error: ${error}`);
+        if (Config.cfg("webhook_url")) {
+            axios.post(Config.cfg("webhook_url"), payload).catch(error => {
+                Log.logAdvanced(LOGLEVEL.ERROR, "webhook", `Webhook error: ${error}`);
             });
         }
 

@@ -2,13 +2,13 @@ import auth from "basic-auth";
 import chalk from "chalk";
 import express from "express";
 import { AppName } from "Core/BaseConfig";
-import { TwitchConfig } from "Core/TwitchConfig";
+import { Config } from "Core/Config";
 
 export function Auth(req: express.Request, res: express.Response, next: express.NextFunction): void {
 
     // password protect
-    const password = TwitchConfig.cfg<string>("password");
-    const basepath = TwitchConfig.cfg<string>("basepath", "");
+    const password = Config.cfg<string>("password");
+    const basepath = Config.cfg<string>("basepath", "");
 
     const ignored_paths = [
         `${basepath}/api/v0/hook`,
@@ -18,7 +18,7 @@ export function Auth(req: express.Request, res: express.Response, next: express.
         `${basepath}/api/v0/cron/playlist_dump`,
     ];
 
-    if (TwitchConfig.cfg<string>("password", "") != "") {
+    if (Config.cfg<string>("password", "") != "") {
 
         if (ignored_paths.includes(req.path)) {
             next();

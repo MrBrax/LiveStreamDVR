@@ -1,7 +1,7 @@
 import fs from "fs";
-import { TwitchHelper } from "./TwitchHelper";
+import { Helper } from "./Helper";
 import { BaseConfigPath } from "./BaseConfig";
-import { LOGLEVEL, TwitchLog } from "./TwitchLog";
+import { LOGLEVEL, Log } from "./Log";
 import { ApiGame } from "../../../common/Api/Client";
 import { GamesResponse } from "../../../common/TwitchAPI/Games";
 
@@ -23,7 +23,7 @@ export class TwitchGame {
 
     public static populateGameDatabase(): void {
         if (!fs.existsSync(BaseConfigPath.gameDb)) return;
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Populating game database...");
+        Log.logAdvanced(LOGLEVEL.INFO, "helper", "Populating game database...");
         this.game_db = {};
         const raw_games: Record<string, TwitchGameJSON> = JSON.parse(fs.readFileSync(BaseConfigPath.gameDb, "utf8"));
         for (const id in raw_games) {
@@ -35,17 +35,17 @@ export class TwitchGame {
             game.added = new Date(raw_game.added);
             this.game_db[id] = game;
         }
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Game database populated with ${Object.keys(this.game_db).length} games.`);
+        Log.logAdvanced(LOGLEVEL.INFO, "helper", `Game database populated with ${Object.keys(this.game_db).length} games.`);
     }
 
     public static populateFavouriteGames(): void {
         if (!fs.existsSync(BaseConfigPath.favouriteGames)) {
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Favourite games file not found, creating...");
+            Log.logAdvanced(LOGLEVEL.INFO, "helper", "Favourite games file not found, creating...");
             fs.writeFileSync(BaseConfigPath.favouriteGames, "[]");
         }
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Populating favourite games...");
+        Log.logAdvanced(LOGLEVEL.INFO, "helper", "Populating favourite games...");
         this.favourite_games = JSON.parse(fs.readFileSync(BaseConfigPath.favouriteGames, "utf8"));
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Favourite games populated with ${this.favourite_games.length} games.`);
+        Log.logAdvanced(LOGLEVEL.INFO, "helper", `Favourite games populated with ${this.favourite_games.length} games.`);
     }
 
     /**
@@ -58,7 +58,7 @@ export class TwitchGame {
             throw new Error("Game database not initialized!");
         }
         if (!this.game_db[game_id]) {
-            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "helper", `Game id ${game_id} not in cache.`);
+            Log.logAdvanced(LOGLEVEL.WARNING, "helper", `Game id ${game_id} not in cache.`);
             return null;
         }
 
@@ -68,7 +68,7 @@ export class TwitchGame {
     public static async getGameAsync(game_id: string): Promise<TwitchGame | null> {
 
         if (!game_id) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", "No game id supplied for game fetch!");
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", "No game id supplied for game fetch!");
             return null;
         }
 
@@ -76,25 +76,25 @@ export class TwitchGame {
 
         if (cachedGame) {
             if (cachedGame && cachedGame.added && Date.now() > cachedGame.added.getTime() + (60 * 60 * 24 * 60 * 1000)) { // two months?
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} needs refreshing (${cachedGame.added.toISOString()}).`);
+                Log.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} needs refreshing (${cachedGame.added.toISOString()}).`);
             } else if (cachedGame && cachedGame.added) { // check if date is set
                 return this.game_db[game_id];
             } else {
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} needs refreshing (no date set).`);
+                Log.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} needs refreshing (no date set).`);
             }
         }
 
-        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "helper", `Game id ${game_id} not in cache, fetching...`);
+        Log.logAdvanced(LOGLEVEL.DEBUG, "helper", `Game id ${game_id} not in cache, fetching...`);
 
-        if (!TwitchHelper.axios) {
+        if (!Helper.axios) {
             throw new Error("Axios is not initialized");
         }
 
         let response;
         try {
-            response = await TwitchHelper.axios.get(`/helix/games?id=${game_id}`);
+            response = await Helper.axios.get(`/helix/games?id=${game_id}`);
         } catch (th) {
-            TwitchLog.logAdvanced(LOGLEVEL.FATAL, "helper", `Tried to get game data for ${game_id} but server returned: ${th}`);
+            Log.logAdvanced(LOGLEVEL.FATAL, "helper", `Tried to get game data for ${game_id} but server returned: ${th}`);
             return null;
         }
 
@@ -123,13 +123,13 @@ export class TwitchGame {
 
             // $game_db[ $id ] = $game_data["name"];
 
-            TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `New game saved to cache: ${game.name}`);
+            Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `New game saved to cache: ${game.name}`);
 
             return game;
 
         } else {
 
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Invalid game returned in query for ${game_id} (${json})`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Invalid game returned in query for ${game_id} (${json})`);
 
             return null;
         }
@@ -211,7 +211,7 @@ export class TwitchGame {
     }
 
     public static saveFavouriteGames(): void {
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Saving favourite games...");
+        Log.logAdvanced(LOGLEVEL.INFO, "helper", "Saving favourite games...");
         fs.writeFileSync(BaseConfigPath.favouriteGames, JSON.stringify(TwitchGame.favourite_games));
     }
 
