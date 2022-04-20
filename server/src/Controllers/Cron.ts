@@ -4,9 +4,7 @@ import { ClientBroker } from "../Core/ClientBroker";
 import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
 import { generateStreamerList } from "../Helpers/StreamerList";
 
-export async function CheckDeletedVods(req: express.Request, res: express.Response): Promise<void> {
-
-    // const force = req.query.force;
+export async function fCheckDeletedVods(): Promise<string> {
 
     const streamerList = generateStreamerList();
 
@@ -41,17 +39,20 @@ export async function CheckDeletedVods(req: express.Request, res: express.Respon
 
     }
 
-    res.send(output || "No deleted vods found");
-
+    return output;
 }
 
-export async function CheckMutedVods(req: express.Request, res: express.Response): Promise<void> {
+export async function CheckDeletedVods(req: express.Request, res: express.Response): Promise<void> {
+    // const force = req.query.force;
+    const output = await fCheckDeletedVods();
+    res.send(output || "No deleted vods found");
+}
+
+export async function fCheckMutedVods(force = false): Promise<string> {
 
     const streamerList = generateStreamerList();
 
     let output = "";
-
-    const force = req.query.force !== undefined;
 
     for (const channel of streamerList.channels) {
 
@@ -104,6 +105,12 @@ export async function CheckMutedVods(req: express.Request, res: express.Response
 
     }
 
-    res.send(output || "No muted vods found");
+    return output;
 
+}
+
+export async function CheckMutedVods(req: express.Request, res: express.Response): Promise<void> {
+    const force = req.query.force !== undefined;
+    const output = await fCheckMutedVods(force);
+    res.send(output || "No muted vods found");
 }

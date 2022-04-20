@@ -29,3 +29,4 @@ data
 **/*.mp4
 **/*.chatdump
 **/*.chatdump.line
+release/

@@ -14,6 +14,7 @@ import path from "path";
 import { ClientBroker } from "./ClientBroker";
 import minimist from "minimist";
 import { TwitchVOD } from "./TwitchVOD";
+import { Scheduler } from "./Scheduler";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -119,6 +120,9 @@ export class TwitchConfig {
         { "key": "telegram_chat_id", "group": "Notifications", "text": "Telegram chat id", "type": "string" },
         { "key": "discord_enabled", "group": "Notifications", "text": "Enable Discord notifications", "type": "boolean", "default": false },
         { "key": "discord_webhook", "group": "Notifications", "text": "Discord webhook", "type": "string" },
+
+        { "key": "schedule_muted_vods", "group": "Schedules", "text": "Check muted vods", "type": "boolean", "default": true },
+        { "key": "schedule_deleted_vods", "group": "Schedules", "text": "Check deleted vods", "type": "boolean", "default": true },
 
     ];
 
@@ -487,6 +491,8 @@ export class TwitchConfig {
         TwitchAutomatorJob.loadJobsFromCache();
 
         this.startWatchingConfig();
+
+        Scheduler.defaultJobs();
 
         // monitor for program exit
         // let saidGoobye = false;
