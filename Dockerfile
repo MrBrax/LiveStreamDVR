@@ -36,8 +36,8 @@ RUN cd /usr/local/share/twitchautomator/server && yarn install && yarn build && 
 # client
 RUN cd /usr/local/share/twitchautomator/client-vue && yarn install && yarn build && rm -rf node_modules
 
-# install chat dumper dependencies, test
-RUN cd /usr/local/share/twitchautomator/twitch-chat-dumper && yarn install
+# chat dumper
+RUN cd /usr/local/share/twitchautomator/twitch-chat-dumper && yarn install && yarn build && rm -rf node_modules
 
 # install dotnet for twitchdownloader
 # ADD https://dot.net/v1/dotnet-install.sh /tmp/dotnet-install.sh

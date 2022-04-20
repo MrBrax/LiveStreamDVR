@@ -3,7 +3,7 @@ import { TwitchConfig } from "../Core/TwitchConfig";
 import express from "express";
 import crypto from "crypto";
 import path from "path";
-import { AppRoot } from "../Core/BaseConfig";
+import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import fs from "fs";
 import { TwitchAutomator } from "../Core/TwitchAutomator";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
@@ -156,14 +156,19 @@ export function Hook(req: express.Request, res: express.Response): void {
                 let payload_filename = replaceAll(new Date().toISOString(), /[-:.]/g, "_"); // @todo: replaceAll
                 if (data_json.subscription.type) payload_filename += `_${data_json.subscription.type}`;
                 payload_filename += ".json";
-                const payload_filepath = path.join(AppRoot, "payloads", payload_filename);
+                const payload_filepath = path.join(BaseConfigDataFolder.payloads, payload_filename);
                 TwitchLog.logAdvanced(LOGLEVEL.INFO, "hook", `Dumping debug hook payload to ${payload_filepath}`);
-                fs.writeFileSync(payload_filepath, JSON.stringify({
-                    headers: req.headers,
-                    body: data_json,
-                    query: req.query,
-                    ip: req.ip,
-                }, null, 4));
+                try {
+                    fs.writeFileSync(payload_filepath, JSON.stringify({
+                        headers: req.headers,
+                        body: data_json,
+                        query: req.query,
+                        ip: req.ip,
+                    }, null, 4));
+                } catch (error) {
+                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "hook", `Failed to dump payload to ${payload_filepath}`, error);
+                }
+                
             }
 
             // verify message

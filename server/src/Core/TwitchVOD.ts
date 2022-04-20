@@ -633,7 +633,14 @@ export class TwitchVOD {
         // this.is_chat_burned 				= file_exists(this.path_chatburn);
 
         // just to be sure, remake these
-        if (this.is_finalized) {
+        if (
+            this.is_finalized &&
+            (
+                !fs.existsSync(this.path_losslesscut) ||
+                !fs.existsSync(this.path_ffmpegchapters) ||
+                !fs.existsSync(this.path_vttchapters)
+            )
+        ) {
             this.saveLosslessCut();
             this.saveFFMPEGChapters();
             this.saveVTTChapters();
@@ -996,12 +1003,22 @@ export class TwitchVOD {
             fs.unlinkSync(this.path_playlist);
         }
 
+        // generate mediainfo, like duration, size, resolution, etc
         await this.getMediainfo();
+
+        // generate chapter related files
         this.saveLosslessCut();
         this.saveFFMPEGChapters();
+        this.saveVTTChapters();
+
+        // match stored vod to online vod
         await this.matchProviderVod();
+
+        // calculate chapter durations and offsets
         this.calculateChapters();
-        // this.checkMutedVod(); // initially not muted when vod is published   
+
+        // this.checkMutedVod(); // initially not muted when vod is published
+
         this.is_finalized = true;
 
         return true;
