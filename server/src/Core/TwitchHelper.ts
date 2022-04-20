@@ -253,8 +253,7 @@ export class TwitchHelper {
     }
 
     public static path_streamlink(): string | false {
-        // $path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "streamlink" . (self::is_windows() ? '.exe' : '');
-        // return file_exists($path) ? $path : false;
+        if (!TwitchConfig.cfg("bin_dir")) return false;
         const full_path = path.join(TwitchConfig.cfg("bin_dir"), `streamlink${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
@@ -267,8 +266,7 @@ export class TwitchHelper {
     }
 
     public static path_youtubedl(): string | false {
-        // $path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "youtube-dl" . (self::is_windows() ? '.exe' : '');
-        // return file_exists($path) ? $path : false;
+        if (!TwitchConfig.cfg("bin_dir")) return false;
         const full_path = path.join(TwitchConfig.cfg("bin_dir"), `yt-dlp${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
@@ -281,8 +279,7 @@ export class TwitchHelper {
     }
 
     public static path_tcd(): string | false {
-        // $path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "tcd" . (self::is_windows() ? '.exe' : '');
-        // return file_exists($path) ? $path : false;
+        if (!TwitchConfig.cfg("bin_dir")) return false;
         const full_path = path.join(TwitchConfig.cfg("bin_dir"), `tcd${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
@@ -295,8 +292,7 @@ export class TwitchHelper {
     }
 
     public static path_pipenv(): string | false {
-        // $path = TwitchConfig::cfg('bin_dir') . DIRECTORY_SEPARATOR . "pipenv" . (self::is_windows() ? '.exe' : '');
-        // return file_exists($path) ? $path : false;
+        if (!TwitchConfig.cfg("bin_dir")) return false;
         const full_path = path.join(TwitchConfig.cfg("bin_dir"), `pipenv${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
@@ -310,7 +306,6 @@ export class TwitchHelper {
 
     public static path_twitchdownloader(): string | false {
         if (TwitchConfig.cfg("twitchdownloader_path")) return TwitchConfig.cfg<string>("twitchdownloader_path");
-
         return false;
     }
 

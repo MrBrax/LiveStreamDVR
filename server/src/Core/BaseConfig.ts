@@ -35,10 +35,9 @@ export const DataRoot =
 
 if (argv.home && !fs.existsSync(HomeRoot)) {
     fs.mkdirSync(HomeRoot, { recursive: true });
-}
-
-if (!fs.existsSync(DataRoot)) {
-    throw new Error(`DataRoot does not exist: ${DataRoot}`);
+} else if (!argv.home && !fs.existsSync(DataRoot)) { // create data root, is this a good idea?
+    // throw new Error(`DataRoot does not exist: ${DataRoot}`);
+    fs.mkdirSync(DataRoot, { recursive: true });
 }
 
 console.log(`DataRoot: ${DataRoot}`);
