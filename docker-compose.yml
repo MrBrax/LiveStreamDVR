@@ -21,9 +21,9 @@ services:
       # - ./docker/saved_vods:/var/www/twitchautomator/public/saved_vods
     environment:
       - NODE_ENV=production
-  cron:
-    build: ./docker/cron-container/
-    image: mrbrax/twitchautomator:latest-cron
+  # cron:
+  #   build: ./docker/cron-container/
+  #   image: mrbrax/twitchautomator:latest-cron
   # broker:
   #   build: ./client-broker/
   #   image: mrbrax/twitchautomator:latest-broker
