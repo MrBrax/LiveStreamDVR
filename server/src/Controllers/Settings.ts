@@ -36,25 +36,20 @@ export async function SaveSettings(req: express.Request, res: express.Response):
     }
 
     // @todo: don't set config values unless everything is valid, like the http check
+
     let fields = 0;
     for(const setting of Config.settingsFields) {
         const key = setting.key;
-
-        if (setting.type === "boolean") {
-            Config.setConfig<boolean>(key, req.body[key] !== undefined);
-            fields++;
-        } else if (setting.type === "number") {
-            if (req.body[key] !== undefined) {
-                Config.setConfig<number>(key, parseInt(req.body[key]));
-                fields++;
-            }
-        } else {
-            if (req.body[key] !== undefined) {
-                Config.setConfig(key, req.body[key]);
-                fields++;
-            }
+        if (setting.required && !req.body[key]) {
+            res.status(400).send({
+                status: "ERROR",
+                message: `Missing required setting: ${key}`,
+            });
+            return;
         }
-
+        if (req.body[key] !== undefined) {
+            fields++;
+        }
     }
 
     if (fields == 0) {
@@ -66,11 +61,13 @@ export async function SaveSettings(req: express.Request, res: express.Response):
     }
 
     // verify app_url
-    if (Config.cfg("app_url") !== undefined) {
+    if (req.body.app_url !== undefined && req.body.app_url !== "debug") {
+
+        const test_url = req.body.app_url;
 
         let url_ok;
         try {
-            url_ok = await Config.validateExternalURL();
+            url_ok = await Config.validateExternalURL(test_url);
         } catch (error) {
             res.send({
                 status: "ERROR",
@@ -79,6 +76,21 @@ export async function SaveSettings(req: express.Request, res: express.Response):
             return;
         }
 
+    }
+
+    for(const setting of Config.settingsFields) {
+        const key = setting.key;
+        if (setting.type === "boolean") {
+            Config.setConfig<boolean>(key, req.body[key] !== undefined);
+        } else if (setting.type === "number") {
+            if (req.body[key] !== undefined) {
+                Config.setConfig<number>(key, parseInt(req.body[key]));
+            }
+        } else {
+            if (req.body[key] !== undefined) {
+                Config.setConfig(key, req.body[key]);
+            }
+        }
     }
 
     Config.saveConfig("settings form saved");

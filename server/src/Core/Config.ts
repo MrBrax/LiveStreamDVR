@@ -44,7 +44,7 @@ export class Config {
             "text": "App URL",
             "type": "string",
             "required": true,
-            "help": "Must use HTTPS on port 443 (aka no port visible). No trailing slash. E.g. https://twitchautomator.example.com",
+            "help": "Must use HTTPS on port 443 (aka no port visible). No trailing slash. E.g. https://twitchautomator.example.com . Enter 'debug' to not use, no recordings can be made.",
             // 'pattern': '^https:\/\/',
             "stripslash": true,
         },
@@ -387,6 +387,11 @@ export class Config {
             return undefined;
         }
 
+        if (Config.cfg<string>("app_url") === "debug") {
+            Log.logAdvanced(LOGLEVEL.WARNING, "config", "App url set to 'debug', can't get websocket client url");
+            return undefined;
+        }
+
         const http_path = Config.cfg<string>("app_url");
         // const http_port = TwitchConfig.cfg<number>("server_port", 8080);
         const route = "/socket/";
@@ -521,13 +526,17 @@ export class Config {
         await TwitchChannel.loadChannels();
     }
 
-    static async validateExternalURL(): Promise<boolean> {
+    static async validateExternalURL(test_url = ""): Promise<boolean> {
 
-        const url = Config.cfg<string>("app_url");
+        const url = test_url ?? Config.cfg<string>("app_url");
 
         // no url
         if (!url) {
             throw new Error("App url not set");
+        }
+
+        if (url === "debug") {
+            throw new Error("App url is debug, can't validate");
         }
 
         // no port allowed, only https
@@ -540,7 +549,7 @@ export class Config {
             throw new Error("App url must start with https://");
         }
 
-        let full_url = Config.cfg("app_url") + "/api/v0/hook";
+        let full_url = url + "/api/v0/hook";
 
         if (Config.cfg("instance_id") !== undefined) {
             full_url += "?instance=" + Config.cfg("instance_id");

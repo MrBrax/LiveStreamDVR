@@ -30,32 +30,8 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
             all_usernames: new Set(),
         };
 
-        /*
-        const payload_data = {
-            channels: subs.data.map(async sub => {
-                const username = await TwitchChannel.channelLoginFromId(sub.condition.broadcaster_user_id);
-                return {
-                    type: sub.type,
-                    id: sub.id,
-                    username: username,
-                    user_id: sub.condition.broadcaster_user_id,
-                    callback: sub.transport.callback,
-                    instance_match:
-                        sub.transport.callback ==
-                        TwitchConfig.cfg("app_url") + "/hook" +
-                        (TwitchConfig.cfg("instance_id") ? "?instance=" + TwitchConfig.cfg("instance_id") : ""
-                        ),
-                    status: sub.status,
-                    created_at: sub.created_at,
-                };
-            }),
-            total: subs.total,
-            all_usernames: [...new Set(subs.data.map(async sub => await TwitchChannel.channelLoginFromId(sub.condition.broadcaster_user_id)))],
-        };
-        */
-
         let callback = `${Config.cfg("app_url")}/api/v0/hook`;
-        if(Config.cfg("instance_id")) callback += "?instance=" + Config.cfg("instance_id");
+        if (Config.cfg("instance_id")) callback += "?instance=" + Config.cfg("instance_id");
 
         for (const sub of subs.data) {
 
@@ -66,7 +42,6 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
                 continue;
             }
 
-            
             const entry: ChannelSub = {
                 type: sub.type,
                 id: sub.id,

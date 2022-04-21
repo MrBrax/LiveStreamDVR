@@ -959,7 +959,11 @@ export class TwitchChannel {
             throw new Error("app_url is not set");
         }
 
-        let hook_callback = Config.cfg("app_url") + "/api/v0/hook";
+        if (Config.cfg("app_url") === "debug") {
+            throw new Error("app_url is set to debug, no subscriptions possible");
+        }
+
+        let hook_callback = `${Config.cfg("app_url")}/api/v0/hook`;
 
         if (Config.cfg("instance_id")) {
             hook_callback += "?instance=" + Config.cfg("instance_id");
