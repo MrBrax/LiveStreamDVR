@@ -1,5 +1,5 @@
 import { TwitchChannel } from "../src/Core/TwitchChannel";
-import { TwitchConfig } from "../src/Core/TwitchConfig";
+import { Config } from "../src/Core/Config";
 import { TwitchVOD } from "../src/Core/TwitchVOD";
 import fs from "fs";
 import { TwitchGame } from "../src/Core/TwitchGame";
@@ -33,7 +33,7 @@ describe("TwitchVOD", () => {
     */
 
     it("vod should have valid fields", async() => {
-        await TwitchConfig.init();
+        await Config.init();
 
         const vod = TwitchVOD.vods[0];
 
@@ -52,7 +52,7 @@ describe("TwitchVOD", () => {
     });
 
     it("vod should have valid chapters", async() => {
-        await TwitchConfig.init();
+        await Config.init();
 
         const vod = TwitchVOD.vods[0];
 

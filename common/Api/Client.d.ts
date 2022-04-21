@@ -259,5 +259,6 @@ export type ApiLogLine = {
     time: number; // unix timestamp in ms
     date: string; // Date;
     text: string;
+    pid?: number;
     metadata?: any;
 };

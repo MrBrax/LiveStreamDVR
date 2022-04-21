@@ -12,10 +12,11 @@ import { EventSubTypes } from "../../../common/TwitchAPI/Shared";
 import { Subscriptions } from "../../../common/TwitchAPI/Subscriptions";
 import { BaseConfigDataFolder } from "./BaseConfig";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
-import { TwitchConfig } from "./TwitchConfig";
-import { LOGLEVEL, TwitchLog } from "./TwitchLog";
+import { Config } from "./Config";
+import { LOGLEVEL, Log } from "./Log";
 import { TwitchCommentDump } from "../../../common/Comments";
 import { replaceAll } from "Helpers/ReplaceAll";
+import { TwitchChannel } from "./TwitchChannel";
 
 export interface ExecReturn {
     stdout: string[];
@@ -30,7 +31,7 @@ export interface RemuxReturn {
     success: boolean;
 }
 
-export class TwitchHelper {
+export class Helper {
 
     static axios: Axios | undefined;
 
@@ -61,17 +62,17 @@ export class TwitchHelper {
         if (fs.existsSync(this.accessTokenFile)) {
 
             if (Date.now() > fs.statSync(this.accessTokenFile).mtimeMs + this.accessTokenRefresh) {
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Deleting old access token, too old: ${format(fs.statSync(this.accessTokenFile).mtimeMs, this.PHP_DATE_FORMAT)}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "helper", `Deleting old access token, too old: ${format(fs.statSync(this.accessTokenFile).mtimeMs, this.PHP_DATE_FORMAT)}`);
                 fs.unlinkSync(this.accessTokenFile);
             } else if (!force) {
-                TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "helper", "Fetched access token from cache");
+                Log.logAdvanced(LOGLEVEL.DEBUG, "helper", "Fetched access token from cache");
                 return fs.readFileSync(this.accessTokenFile, "utf8");
             }
 
         }
 
-        if (!TwitchConfig.cfg("api_secret") || !TwitchConfig.cfg("api_client_id")) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", "Missing either api secret or client id, aborting fetching of access token!");
+        if (!Config.cfg("api_secret") || !Config.cfg("api_client_id")) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", "Missing either api secret or client id, aborting fetching of access token!");
             throw new Error("Missing either api secret or client id, aborting fetching of access token!");
         }
 
@@ -99,24 +100,24 @@ export class TwitchHelper {
         */
 
         const response = await axios.post(oauth_url, {
-            "client_id": TwitchConfig.cfg("api_client_id"),
-            "client_secret": TwitchConfig.cfg("api_secret"),
+            "client_id": Config.cfg("api_client_id"),
+            "client_secret": Config.cfg("api_secret"),
             "grant_type": "client_credentials",
         }, {
             headers: {
-                "Client-ID": TwitchConfig.cfg("api_client_id"),
+                "Client-ID": Config.cfg("api_client_id"),
             },
         });
 
         if (response.status != 200) {
-            TwitchLog.logAdvanced(LOGLEVEL.FATAL, "helper", "Tried to get oauth token but server returned: " + response.statusText);
+            Log.logAdvanced(LOGLEVEL.FATAL, "helper", "Tried to get oauth token but server returned: " + response.statusText);
             throw new Error("Tried to get oauth token but server returned: " + response.statusText);
         }
 
         const json = response.data;
 
         if (!json || !json.access_token) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to fetch access token: ${json}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to fetch access token: ${json}`);
             throw new Error(`Failed to fetch access token: ${json}`);
         }
 
@@ -126,13 +127,13 @@ export class TwitchHelper {
 
         fs.writeFileSync(this.accessTokenFile, access_token);
 
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Fetched new access token");
+        Log.logAdvanced(LOGLEVEL.INFO, "helper", "Fetched new access token");
 
         return access_token;
     }
 
     public static vodFolder(username = "") {
-        return BaseConfigDataFolder.vod + (TwitchConfig.cfg("channel_folders") && username !== "" ? path.sep + username : "");
+        return BaseConfigDataFolder.vod + (Config.cfg("channel_folders") && username !== "" ? path.sep + username : "");
     }
 
     public static JSDateToPHPDate(date: Date) {
@@ -157,15 +158,15 @@ export class TwitchHelper {
             const num = parseInt(match[1]);
             const unit = match[2];
             switch (unit) {
-            case "h":
-                seconds += num * 3600;
-                break;
-            case "m":
-                seconds += num * 60;
-                break;
-            case "s":
-                seconds += num;
-                break;
+                case "h":
+                    seconds += num * 3600;
+                    break;
+                case "m":
+                    seconds += num * 60;
+                    break;
+                case "s":
+                    seconds += num;
+                    break;
             }
         }
         return seconds;
@@ -220,7 +221,7 @@ export class TwitchHelper {
 
     public static path_mediainfo(): string | false {
 
-        if (TwitchConfig.cfg("mediainfo_path")) return TwitchConfig.cfg<string>("mediainfo_path");
+        if (Config.cfg("mediainfo_path")) return Config.cfg<string>("mediainfo_path");
 
         // const path = this.whereis("mediainfo", "mediainfo.exe");
         // if (path) {
@@ -233,7 +234,7 @@ export class TwitchHelper {
     }
 
     public static path_ffmpeg(): string | false {
-        if (TwitchConfig.cfg("ffmpeg_path")) return TwitchConfig.cfg<string>("ffmpeg_path");
+        if (Config.cfg("ffmpeg_path")) return Config.cfg<string>("ffmpeg_path");
 
         // const path = this.whereis("ffmpeg", "ffmpeg.exe");
         // if (path) {
@@ -253,12 +254,12 @@ export class TwitchHelper {
     }
 
     public static path_streamlink(): string | false {
-        if (!TwitchConfig.cfg("bin_dir")) return false;
-        const full_path = path.join(TwitchConfig.cfg("bin_dir"), `streamlink${this.is_windows() ? ".exe" : ""}`);
+        if (!Config.cfg("bin_dir")) return false;
+        const full_path = path.join(Config.cfg("bin_dir"), `streamlink${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
         if (!exists) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Streamlink binary not found at: ${full_path}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Streamlink binary not found at: ${full_path}`);
             return false;
         }
 
@@ -266,12 +267,12 @@ export class TwitchHelper {
     }
 
     public static path_youtubedl(): string | false {
-        if (!TwitchConfig.cfg("bin_dir")) return false;
-        const full_path = path.join(TwitchConfig.cfg("bin_dir"), `yt-dlp${this.is_windows() ? ".exe" : ""}`);
+        if (!Config.cfg("bin_dir")) return false;
+        const full_path = path.join(Config.cfg("bin_dir"), `yt-dlp${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
         if (!exists) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `yt-dlp binary not found at: ${full_path}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `yt-dlp binary not found at: ${full_path}`);
             return false;
         }
 
@@ -279,12 +280,12 @@ export class TwitchHelper {
     }
 
     public static path_tcd(): string | false {
-        if (!TwitchConfig.cfg("bin_dir")) return false;
-        const full_path = path.join(TwitchConfig.cfg("bin_dir"), `tcd${this.is_windows() ? ".exe" : ""}`);
+        if (!Config.cfg("bin_dir")) return false;
+        const full_path = path.join(Config.cfg("bin_dir"), `tcd${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
         if (!exists) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `tcd binary not found at: ${full_path}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `tcd binary not found at: ${full_path}`);
             return false;
         }
 
@@ -292,12 +293,12 @@ export class TwitchHelper {
     }
 
     public static path_pipenv(): string | false {
-        if (!TwitchConfig.cfg("bin_dir")) return false;
-        const full_path = path.join(TwitchConfig.cfg("bin_dir"), `pipenv${this.is_windows() ? ".exe" : ""}`);
+        if (!Config.cfg("bin_dir")) return false;
+        const full_path = path.join(Config.cfg("bin_dir"), `pipenv${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
         if (!exists) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `pipenv binary not found at: ${full_path}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `pipenv binary not found at: ${full_path}`);
             return false;
         }
 
@@ -305,13 +306,13 @@ export class TwitchHelper {
     }
 
     public static path_twitchdownloader(): string | false {
-        if (TwitchConfig.cfg("twitchdownloader_path")) return TwitchConfig.cfg<string>("twitchdownloader_path");
+        if (Config.cfg("twitchdownloader_path")) return Config.cfg<string>("twitchdownloader_path");
         return false;
     }
 
     public static async eventSubUnsubscribe(subscription_id: string) {
 
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Unsubscribing from eventsub id ${subscription_id}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "helper", `Unsubscribing from eventsub id ${subscription_id}`);
 
         if (!this.axios) {
             throw new Error("Axios is not initialized");
@@ -323,16 +324,16 @@ export class TwitchHelper {
             // $response = $this->$guzzler->request("DELETE", "/helix/eventsub/subscriptions?id={$subscription_id}");
             response = await this.axios.delete(`/helix/eventsub/subscriptions?id=${subscription_id}`);
         } catch (th) {
-            TwitchLog.logAdvanced(LOGLEVEL.FATAL, "helper", `Unsubscribe from eventsub ${subscription_id} error: ${th}`);
+            Log.logAdvanced(LOGLEVEL.FATAL, "helper", `Unsubscribe from eventsub ${subscription_id} error: ${th}`);
             return false;
         }
 
         if (response.status > 299) {
-            TwitchLog.logAdvanced(LOGLEVEL.FATAL, "helper", `Unsubscribe from eventsub ${subscription_id} error: ${response.statusText}`);
+            Log.logAdvanced(LOGLEVEL.FATAL, "helper", `Unsubscribe from eventsub ${subscription_id} error: ${response.statusText}`);
             return false;
         }
 
-        TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Unsubscribed from eventsub ${subscription_id} successfully`);
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Unsubscribed from eventsub ${subscription_id} successfully`);
 
         return true;
 
@@ -355,23 +356,23 @@ export class TwitchHelper {
                 windowsHide: true,
             });
 
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "exec", `Executing ${what}: ${bin} ${args.join(" ")}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "exec", `Executing ${what}: ${bin} ${args.join(" ")}`);
 
             const stdout: string[] = [];
             const stderr: string[] = [];
 
             process.stdout.on("data", (data: Stream) => {
-                if (TwitchConfig.debug) console.debug(chalk.bold.green(`$ ${bin} ${args.join(" ")}\n`, chalk.green(`${data.toString().trim()}`)));
+                if (Config.debug) console.debug(chalk.bold.green(`$ ${bin} ${args.join(" ")}\n`, chalk.green(`${data.toString().trim()}`)));
                 stdout.push(data.toString());
             });
 
             process.stderr.on("data", (data: Stream) => {
-                if (TwitchConfig.debug) console.error(chalk.bold.red(`$ ${bin} ${args.join(" ")}\n`, chalk.red(`> ${data.toString().trim()}`)));
+                if (Config.debug) console.error(chalk.bold.red(`$ ${bin} ${args.join(" ")}\n`, chalk.red(`> ${data.toString().trim()}`)));
                 stderr.push(data.toString());
             });
 
             process.on("close", (code) => {
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Process ${process.pid} for ${what} exited with code ${code}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "helper", `Process ${process.pid} for ${what} exited with code ${code}`);
 
                 if (code == 0) {
                     resolve({ code, stdout, stderr });
@@ -381,7 +382,7 @@ export class TwitchHelper {
             });
 
             process.on("error", (err) => {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} for ${what} error: ${err}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} for ${what} error: ${err}`);
                 reject({ code: -1, stdout, stderr });
             });
 
@@ -406,21 +407,21 @@ export class TwitchHelper {
                 windowsHide: true,
             });
 
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, jobName, `Executing ${bin} ${args.join(" ")}`);
+            Log.logAdvanced(LOGLEVEL.INFO, jobName, `Executing ${bin} ${args.join(" ")}`);
 
             let job: TwitchAutomatorJob;
 
             if (process.pid) {
-                TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Spawned process ${process.pid} for ${jobName}`);
+                Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Spawned process ${process.pid} for ${jobName}`);
                 job = TwitchAutomatorJob.create(jobName);
                 job.setPid(process.pid);
                 job.setProcess(process);
                 job.startLog(jobName, `$ ${bin} ${args.join(" ")}\n`);
                 if (!job.save()) {
-                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to save job ${jobName}`);
+                    Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to save job ${jobName}`);
                 }
             } else {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to spawn process for ${jobName}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to spawn process for ${jobName}`);
                 // reject(new Error(`Failed to spawn process for ${jobName}`));
             }
 
@@ -436,7 +437,7 @@ export class TwitchHelper {
             });
 
             process.on("close", (code) => {
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Process ${process.pid} for ${jobName} exited with code ${code}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "helper", `Process ${process.pid} for ${jobName} exited with code ${code}`);
                 if (job) {
                     job.clear();
                 }
@@ -450,11 +451,11 @@ export class TwitchHelper {
             });
 
             process.on("error", (err) => {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
                 reject({ code: -1, stdout, stderr });
             });
 
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Attached to all streams for process ${process.pid} for ${jobName}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "helper", `Attached to all streams for process ${process.pid} for ${jobName}`);
 
         });
     }
@@ -467,12 +468,12 @@ export class TwitchHelper {
             env: env ?? undefined,
         });
 
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Executing ${bin} ${args.join(" ")}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "helper", `Executing ${bin} ${args.join(" ")}`);
 
         let job: TwitchAutomatorJob | false = false;
 
         if (process.pid) {
-            TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Spawned process ${process.pid} for ${jobName}`);
+            Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Spawned process ${process.pid} for ${jobName}`);
             job = TwitchAutomatorJob.create(jobName);
             job.setPid(process.pid);
             job.setProcess(process);
@@ -483,10 +484,10 @@ export class TwitchHelper {
             });
             job.startLog(jobName, `$ ${bin} ${args.join(" ")}\n`);
             if (!job.save()) {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to save job ${jobName}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to save job ${jobName}`);
             }
         } else {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to spawn process for ${jobName}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to spawn process for ${jobName}`);
             // reject(new Error(`Failed to spawn process for ${jobName}`));
         }
 
@@ -502,7 +503,7 @@ export class TwitchHelper {
         });
 
         process.on("close", (code) => {
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Process ${process.pid} for ${jobName} exited with code ${code}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "helper", `Process ${process.pid} for ${jobName} exited with code ${code}`);
 
             if (typeof job !== "boolean") {
                 job.onClose(code);
@@ -521,10 +522,10 @@ export class TwitchHelper {
         });
 
         process.on("error", (err) => {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} on job ${jobName} error: ${err}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} on job ${jobName} error: ${err}`);
         });
 
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Attached to all streams for process ${process.pid} for ${jobName}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "helper", `Attached to all streams for process ${process.pid} for ${jobName}`);
 
         return job;
 
@@ -552,7 +553,7 @@ export class TwitchHelper {
             const emptyFile = fs.existsSync(output) && fs.statSync(output).size == 0;
 
             if (!overwrite && fs.existsSync(output) && !emptyFile) {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Output file ${output} already exists`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Output file ${output} already exists`);
                 reject(new Error(`Output file ${output} already exists`));
             }
 
@@ -588,21 +589,21 @@ export class TwitchHelper {
             // ...ffmpeg_options,
             // output,
 
-            
+
 
             if (overwrite || emptyFile) {
                 opts.push("-y");
             }
 
-            if (TwitchConfig.cfg("debug") || TwitchConfig.cfg("app_verbose")) {
+            if (Config.cfg("debug") || Config.cfg("app_verbose")) {
                 opts.push("-loglevel", "repeat+level+verbose");
             }
 
             opts.push(output);
 
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Remuxing ${input} to ${output}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "helper", `Remuxing ${input} to ${output}`);
 
-            const job = TwitchHelper.startJob(`remux_${path.basename(input)}`, ffmpeg_path, opts);
+            const job = Helper.startJob(`remux_${path.basename(input)}`, ffmpeg_path, opts);
 
             if (!job || !job.process) {
                 reject(new Error(`Failed to start job for remuxing ${input} to ${output}`));
@@ -620,7 +621,7 @@ export class TwitchHelper {
             // });
 
             job.process.on("error", (err) => {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
                 // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
                 reject(new Error(`Process ${process.pid} error: ${err}`));
             });
@@ -632,10 +633,10 @@ export class TwitchHelper {
                 // const out_log = ffmpeg.stdout.read();
                 const success = fs.existsSync(output) && fs.statSync(output).size > 0;
                 if (success) {
-                    TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Remuxed ${input} to ${output}`);
+                    Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Remuxed ${input} to ${output}`);
                     resolve({ code: code || -1, success, stdout: job.stdout, stderr: job.stderr });
                 } else {
-                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to remux ${path.basename(input)} to ${path.basename(output)}`);
+                    Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to remux ${path.basename(input)} to ${path.basename(output)}`);
                     // reject({ code, success, stdout: job.stdout, stderr: job.stderr });
 
                     let message = "Unknown error";
@@ -672,7 +673,7 @@ export class TwitchHelper {
             const emptyFile = fs.existsSync(output) && fs.statSync(output).size == 0;
 
             if (!overwrite && fs.existsSync(output) && !emptyFile) {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Output file ${output} already exists`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Output file ${output} already exists`);
                 reject(new Error(`Output file ${output} already exists`));
                 return;
             }
@@ -684,21 +685,21 @@ export class TwitchHelper {
             const opts: string[] = [];
             opts.push("-i", input);
             opts.push("-ss", start_second.toString());
-            opts.push("-t", (end_second-start_second).toString());
+            opts.push("-t", (end_second - start_second).toString());
             opts.push("-c", "copy");
             // opts.push("-bsf:a", "aac_adtstoasc");
             // ...ffmpeg_options,
             // output,
 
-            if (TwitchConfig.debug || TwitchConfig.cfg("app_verbose")) {
+            if (Config.debug || Config.cfg("app_verbose")) {
                 opts.push("-loglevel", "repeat+level+verbose");
             }
 
             opts.push(output);
 
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Cutting ${input} to ${output}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "helper", `Cutting ${input} to ${output}`);
 
-            const job = TwitchHelper.startJob(`cut_${path.basename(input)}`, ffmpeg_path, opts);
+            const job = Helper.startJob(`cut_${path.basename(input)}`, ffmpeg_path, opts);
 
             if (!job || !job.process) {
                 reject(new Error(`Failed to start job for cutting ${input} to ${output}`));
@@ -706,7 +707,7 @@ export class TwitchHelper {
             }
 
             job.process.on("error", (err) => {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
                 // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
                 reject(new Error(`Process ${process.pid} error: ${err}`));
             });
@@ -718,10 +719,10 @@ export class TwitchHelper {
                 // const out_log = ffmpeg.stdout.read();
                 const success = fs.existsSync(output) && fs.statSync(output).size > 0;
                 if (success) {
-                    TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Cut ${input} to ${output} success`);
+                    Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Cut ${input} to ${output} success`);
                     resolve({ code: code || -1, success, stdout: job.stdout, stderr: job.stderr });
                 } else {
-                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to cut ${path.basename(input)} to ${path.basename(output)}`);
+                    Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to cut ${path.basename(input)} to ${path.basename(output)}`);
                     // reject({ code, success, stdout: job.stdout, stderr: job.stderr });
 
                     let message = "Unknown error";
@@ -811,7 +812,7 @@ export class TwitchHelper {
      */
     public static async mediainfo(filename: string): Promise<MediaInfo> {
 
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "mediainfo", `Run mediainfo on ${filename}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "mediainfo", `Run mediainfo on ${filename}`);
 
         if (!filename) {
             throw new Error("No filename supplied for mediainfo");
@@ -825,10 +826,10 @@ export class TwitchHelper {
             throw new Error("Filesize is 0 for mediainfo");
         }
 
-        const mediainfo_path = TwitchHelper.path_mediainfo();
+        const mediainfo_path = Helper.path_mediainfo();
         if (!mediainfo_path) throw new Error("Failed to find mediainfo");
 
-        const output = await TwitchHelper.execSimple(mediainfo_path, ["--Full", "--Output=JSON", filename], "mediainfo");
+        const output = await Helper.execSimple(mediainfo_path, ["--Full", "--Output=JSON", filename], "mediainfo");
 
         if (output && output.stdout) {
 
@@ -849,14 +850,14 @@ export class TwitchHelper {
             return data as MediaInfo;
 
         } else {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "mediainfo", `No output from mediainfo for ${filename}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "mediainfo", `No output from mediainfo for ${filename}`);
             throw new Error("No output from mediainfo");
         }
     }
 
     public static async ffprobe(filename: string): Promise<FFProbe> {
 
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "ffprobe", `Run ffprobe on ${filename}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "ffprobe", `Run ffprobe on ${filename}`);
 
         if (!filename) {
             throw new Error("No filename supplied for ffprobe");
@@ -870,10 +871,10 @@ export class TwitchHelper {
             throw new Error("Filesize is 0 for ffprobe");
         }
 
-        const ffprobe_path = TwitchHelper.path_ffprobe();
+        const ffprobe_path = Helper.path_ffprobe();
         if (!ffprobe_path) throw new Error("Failed to find ffprobe");
 
-        const output = await TwitchHelper.execSimple(ffprobe_path, [
+        const output = await Helper.execSimple(ffprobe_path, [
             "-v", "quiet",
             "-print_format", "json",
             "-show_format",
@@ -886,7 +887,7 @@ export class TwitchHelper {
             const json: FFProbe = JSON.parse(output.stdout.join(""));
             return json;
         } else {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "ffprobe", `No output from ffprobe for ${filename}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "ffprobe", `No output from ffprobe for ${filename}`);
             throw new Error("No output from ffprobe");
         }
 
@@ -894,7 +895,7 @@ export class TwitchHelper {
 
     public static async getSubs(): Promise<Subscriptions | false> {
 
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", "Requesting subscriptions list");
+        Log.logAdvanced(LOGLEVEL.INFO, "helper", "Requesting subscriptions list");
 
         if (!this.axios) {
             throw new Error("Axios is not initialized");
@@ -905,16 +906,31 @@ export class TwitchHelper {
         try {
             response = await this.axios.get("/helix/eventsub/subscriptions");
         } catch (err) {
-            TwitchLog.logAdvanced(LOGLEVEL.FATAL, "helper", `Subs return: ${err}`);
+            Log.logAdvanced(LOGLEVEL.FATAL, "helper", `Subs return: ${err}`);
             return false;
         }
 
         const json: Subscriptions = response.data;
 
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `${json.total} subscriptions`);
+        Log.logAdvanced(LOGLEVEL.INFO, "helper", `${json.total} subscriptions`);
 
         return json;
 
+    }
+
+    public static getErrors(): string[] {
+        const errors = [];
+        if (!this.axios) errors.push("Axios is not initialized. Make sure the client id and secret are set in the config.");
+        if (!Config.cfg("app_url") && Config.cfg("app_url") !== "debug") errors.push("No app url set in the config.");
+        if (!Config.cfg("api_client_id")) errors.push("No client id set in the config.");
+        if (!Config.cfg("api_secret")) errors.push("No client secret set in the config.");
+        if (TwitchChannel.channels.length == 0) errors.push("No channels set in the config.");
+
+        if (!this.path_ffmpeg()) errors.push("Failed to find ffmpeg");
+        if (!this.path_streamlink()) errors.push("Failed to find streamlink");
+        if (!this.path_mediainfo()) errors.push("Failed to find mediainfo");
+
+        return errors;
     }
 
 }

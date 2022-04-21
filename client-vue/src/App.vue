@@ -75,6 +75,7 @@ export default defineComponent({
             this.store.updateVersion(data.data.version);
             this.store.updateServerType(data.data.server);
             this.store.updateFavouriteGames(data.data.favourite_games);
+            this.store.updateErrors(data.data.errors ?? []);
             this.store.websocketUrl = data.data.websocket_url;
         },
     },

@@ -23,7 +23,7 @@ exec('cd client-vue && yarn install && yarn run build').then(() => {
 
         // package files
         exec(
-            `7za a -tzip -r -xr!node_modules ./release/${release_name}.zip ` +
+            `7za a -tzip -xr!node_modules ./release/${release_name}.zip ` +
             `client-vue/dist ` + 
             `client-vue/package.json ` +
             `server/build ` + 

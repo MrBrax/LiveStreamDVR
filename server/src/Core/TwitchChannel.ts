@@ -13,10 +13,10 @@ import type { SubscriptionRequest, SubscriptionResponse } from "../../../common/
 import type { BroadcasterType, UsersResponse } from "../../../common/TwitchAPI/Users";
 import { BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
-import { TwitchConfig } from "./TwitchConfig";
+import { Config } from "./Config";
 import { TwitchGame } from "./TwitchGame";
-import { TwitchHelper } from "./TwitchHelper";
-import { LOGLEVEL, TwitchLog } from "./TwitchLog";
+import { Helper } from "./Helper";
+import { LOGLEVEL, Log } from "./Log";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 
@@ -100,7 +100,7 @@ export class TwitchChannel {
      * @returns {string} Folder path
      */
     public getFolder(): string {
-        return TwitchHelper.vodFolder(this.login);
+        return Helper.vodFolder(this.login);
     }
 
     private async parseVODs(api = false): Promise<void> {
@@ -117,7 +117,7 @@ export class TwitchChannel {
 
         for (const vod of this.vods_raw) {
 
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Try to parse VOD ${vod}`);
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Try to parse VOD ${vod}`);
 
             const vod_full_path = path.join(this.getFolder(), vod);
 
@@ -126,7 +126,7 @@ export class TwitchChannel {
             try {
                 vodclass = await TwitchVOD.load(vod_full_path, api);
             } catch (e) {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not load VOD ${vod}: ${(e as Error).message}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not load VOD ${vod}: ${(e as Error).message}`);
                 continue;
             }
 
@@ -150,7 +150,7 @@ export class TwitchChannel {
             //     this.vods_size += vodclass.segments.reduce((acc, seg) => acc + (seg && seg.filesize ? seg.filesize : 0), 0);
             // }
 
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `VOD ${vod} added to ${this.login}`);
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `VOD ${vod} added to ${this.login}`);
 
             this.vods_list.push(vodclass);
         }
@@ -163,7 +163,7 @@ export class TwitchChannel {
         //     }
         // }
         // return true;
-        return TwitchHelper.CHANNEL_SUB_TYPES.every(sub_type => KeyValue.get(`${this.userid}.substatus.${sub_type}`) === SubStatus.SUBSCRIBED);
+        return Helper.CHANNEL_SUB_TYPES.every(sub_type => KeyValue.get(`${this.userid}.substatus.${sub_type}`) === SubStatus.SUBSCRIBED);
     }
 
     public async toAPI(): Promise<ApiChannel> {
@@ -220,12 +220,12 @@ export class TwitchChannel {
         if (i !== -1) {
             this.config = config;
             this.applyConfig(config);
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", `Replacing channel config for ${this.login}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "channel", `Replacing channel config for ${this.login}`);
             TwitchChannel.channels_config[i] = config;
             TwitchChannel.saveChannelsConfig();
             return true;
         } else {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not update channel ${this.login}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not update channel ${this.login}`);
         }
         return false;
     }
@@ -237,7 +237,7 @@ export class TwitchChannel {
 
         const userid = this.userid;
 
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", `Deleting channel ${login}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Deleting channel ${login}`);
         const index_config = TwitchChannel.channels_config.findIndex(ch => ch.login === login);
         if (index_config !== -1) {
             TwitchChannel.channels_config.splice(index_config, 1);
@@ -307,7 +307,7 @@ export class TwitchChannel {
         if (!this.login) throw new Error("Channel login is not set");
         if (!this.display_name) throw new Error("Channel display_name is not set");
 
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Create VOD JSON for ${this.login}: ${path.basename(filename)} @ ${path.dirname(filename)}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Create VOD JSON for ${this.login}: ${path.basename(filename)} @ ${path.dirname(filename)}`);
 
         const vod = new TwitchVOD();
 
@@ -353,7 +353,7 @@ export class TwitchChannel {
         const vod = this.vods_list.find(v => v.basename === basename);
         if (!vod) return false;
 
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Remove VOD JSON for ${this.login}: ${basename}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Remove VOD JSON for ${this.login}: ${basename}`);
 
         this.vods_list = this.vods_list.filter(v => v.basename !== basename);
 
@@ -368,20 +368,20 @@ export class TwitchChannel {
     public checkStaleVodsInMemory(): void {
         if (!this.login) return;
 
-        const vods_on_disk = fs.readdirSync(TwitchHelper.vodFolder(this.login)).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".json") && !f.endsWith("_chat.json"));
+        const vods_on_disk = fs.readdirSync(Helper.vodFolder(this.login)).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".json") && !f.endsWith("_chat.json"));
         const vods_in_channel_memory = this.vods_list;
         const vods_in_main_memory = TwitchVOD.vods.filter(v => v.streamer_login === this.login);
 
         if (vods_on_disk.length !== vods_in_channel_memory.length) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Vod on disk and vod in memory are not the same for ${this.login}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Vod on disk and vod in memory are not the same for ${this.login}`);
         }
 
         if (vods_on_disk.length !== vods_in_main_memory.length) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Vod on disk and vod in main memory are not the same for ${this.login}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Vod on disk and vod in main memory are not the same for ${this.login}`);
         }
 
         if (vods_in_channel_memory.length !== vods_in_main_memory.length) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Vod in memory and vod in main memory are not the same for ${this.login}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Vod in memory and vod in main memory are not the same for ${this.login}`);
         }
 
     }
@@ -407,38 +407,38 @@ export class TwitchChannel {
 
         const vod_candidates: TwitchVOD[] = [];
 
-        const sps_bytes = TwitchConfig.cfg<number>("storage_per_streamer", 100) * 1024 * 1024 * 1024;
+        const sps_bytes = Config.cfg<number>("storage_per_streamer", 100) * 1024 * 1024 * 1024;
 
-        const vods_to_keep = TwitchConfig.cfg<number>("vods_to_keep", 5);
+        const vods_to_keep = Config.cfg<number>("vods_to_keep", 5);
 
         if (this.vods_list) {
             for (const vodclass of [...this.vods_list].reverse()) { // reverse so we can delete the oldest ones first
                 if (!vodclass.is_finalized) continue;
                 if (vodclass.basename === ignore_basename) continue;
 
-                if (TwitchConfig.cfg<boolean>("keep_deleted_vods") && vodclass.twitch_vod_exists === false) {
-                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being deleted on Twitch.`);
+                if (Config.cfg<boolean>("keep_deleted_vods") && vodclass.twitch_vod_exists === false) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being deleted on Twitch.`);
                     continue;
                 }
 
-                if (TwitchConfig.cfg<boolean>("keep_favourite_vods") && vodclass.hasFavouriteGame()) {
-                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it having a favourite game.`);
+                if (Config.cfg<boolean>("keep_favourite_vods") && vodclass.hasFavouriteGame()) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it having a favourite game.`);
                     continue;
                 }
 
-                if (TwitchConfig.cfg<boolean>("keep_muted_vods") && vodclass.twitch_vod_muted === MuteStatus.MUTED) {
-                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being muted on Twitch.`);
+                if (Config.cfg<boolean>("keep_muted_vods") && vodclass.twitch_vod_muted === MuteStatus.MUTED) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being muted on Twitch.`);
                     continue;
                 }
 
                 if (total_size > sps_bytes) {
-                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Adding ${vodclass.basename} to vod_candidates due to storage limit (${TwitchHelper.formatBytes(vodclass.total_size)} of current total ${TwitchHelper.formatBytes(total_size)}, limit ${TwitchHelper.formatBytes(sps_bytes)})`);
+                    Log.logAdvanced(LOGLEVEL.INFO, "automator", `Adding ${vodclass.basename} to vod_candidates due to storage limit (${Helper.formatBytes(vodclass.total_size)} of current total ${Helper.formatBytes(total_size)}, limit ${Helper.formatBytes(sps_bytes)})`);
                     vod_candidates.push(vodclass);
                 } else if (total_vods >= vods_to_keep) {
-                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Adding ${vodclass.basename} to vod_candidates due to vod limit (${total_vods} of limit ${vods_to_keep})`);
+                    Log.logAdvanced(LOGLEVEL.INFO, "automator", `Adding ${vodclass.basename} to vod_candidates due to vod limit (${total_vods} of limit ${vods_to_keep})`);
                     vod_candidates.push(vodclass);
                 } else {
-                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it not being over storage limit (${TwitchHelper.formatBytes(total_size)}/${TwitchHelper.formatBytes(sps_bytes)}) and not being over vod limit (${total_vods}/${vods_to_keep})`);
+                    Log.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it not being over storage limit (${Helper.formatBytes(total_size)}/${Helper.formatBytes(sps_bytes)}) and not being over vod limit (${total_vods}/${vods_to_keep})`);
                 }
 
                 total_size += vodclass.total_size;
@@ -453,22 +453,22 @@ export class TwitchChannel {
 
     public cleanupVods(ignore_basename = ""): number | false {
 
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Cleanup VODs for ${this.login}, ignore ${ignore_basename}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Cleanup VODs for ${this.login}, ignore ${ignore_basename}`);
 
         const vod_candidates = this.roundupCleanupVodCandidates(ignore_basename);
 
         if (vod_candidates.length === 0) {
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Not enough vods to delete for ${this.login}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Not enough vods to delete for ${this.login}`);
             return false;
         }
 
-        if (TwitchConfig.cfg("delete_only_one_vod")) {
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Deleting only one vod for ${this.login}`);
+        if (Config.cfg("delete_only_one_vod")) {
+            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Deleting only one vod for ${this.login}`);
             vod_candidates[0].delete();
             return 1;
         } else {
             for (const vodclass of vod_candidates) {
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "automator", `Cleanup ${vodclass.basename}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Cleanup ${vodclass.basename}`);
                 vodclass.delete();
             }
         }
@@ -486,12 +486,12 @@ export class TwitchChannel {
         this.clips_list = [];
         const clips_on_disk = fs.readdirSync(BaseConfigDataFolder.saved_clips).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".mp4"));
         this.clips_list = clips_on_disk.map(f => path.basename(f));
-        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Found ${this.clips_list.length} clips for ${this.login}`);
+        Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Found ${this.clips_list.length} clips for ${this.login}`);
     }
 
     public async refreshData() {
         if (!this.userid) throw new Error("Userid not set");
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "vodclass", `Refreshing data for ${this.login}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Refreshing data for ${this.login}`);
 
         const channel_data = await TwitchChannel.getChannelDataById(this.userid, true);
 
@@ -525,11 +525,11 @@ export class TwitchChannel {
 
     public static async loadAbstract(channel_id: string, api: boolean): Promise<TwitchChannel> {
 
-        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Load channel ${channel_id}`);
+        Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Load channel ${channel_id}`);
 
         const channel_memory = this.channels.find(channel => channel.userid === channel_id);
         if (channel_memory) {
-            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel_id} already loaded`);
+            Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel_id} already loaded`);
             return channel_memory;
         }
 
@@ -555,11 +555,11 @@ export class TwitchChannel {
         channel.applyConfig(channel_config);
 
         if (KeyValue.getBool(`${channel.login}.online`)) {
-            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel.login} is online, stale?`);
+            Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel.login} is online, stale?`);
         }
 
         if (KeyValue.get(`${channel.login}.channeldata`)) {
-            TwitchLog.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel.login} has stale chapter data.`);
+            Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel.login} has stale chapter data.`);
         }
 
         /*
@@ -578,7 +578,7 @@ export class TwitchChannel {
 
         // $channel->api_getSubscriptionStatus = $channel->getSubscriptionStatus();
 
-        if (TwitchConfig.cfg("channel_folders") && !fs.existsSync(channel.getFolder())) {
+        if (Config.cfg("channel_folders") && !fs.existsSync(channel.getFolder())) {
             fs.mkdirSync(channel.getFolder());
         }
 
@@ -630,14 +630,14 @@ export class TwitchChannel {
             return false;
         }
 
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", "Loading channel configs...");
+        Log.logAdvanced(LOGLEVEL.INFO, "channel", "Loading channel configs...");
 
         const data: ChannelConfig[] = JSON.parse(fs.readFileSync(BaseConfigPath.channel, "utf8"));
 
         let needsSave = false;
         for (const channel of data) {
             if (!("quality" in channel) || !channel.quality) {
-                TwitchLog.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel.login} has no quality set, setting to default`);
+                Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel.login} has no quality set, setting to default`);
                 channel.quality = ["best"];
                 needsSave = true;
             }
@@ -645,18 +645,18 @@ export class TwitchChannel {
 
         this.channels_config = data;
 
-        TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${this.channels_config.length} channel configs!`);
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${this.channels_config.length} channel configs!`);
 
         if (needsSave) {
             this.saveChannelsConfig();
         }
 
-        if (TwitchConfig.cfg("channel_folders")) {
+        if (Config.cfg("channel_folders")) {
             const folders = fs.readdirSync(BaseConfigDataFolder.vod);
             for (const folder of folders) {
                 if (folder == ".gitkeep") continue;
                 if (!this.channels_config.find(ch => ch.login === folder)) {
-                    TwitchLog.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel folder ${folder} is not in channel config, left over?`);
+                    Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel folder ${folder} is not in channel config, left over?`);
                 }
             }
         }
@@ -666,7 +666,7 @@ export class TwitchChannel {
     }
 
     public static saveChannelsConfig(): boolean {
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", "Saving channel config");
+        Log.logAdvanced(LOGLEVEL.INFO, "channel", "Saving channel config");
         fs.writeFileSync(BaseConfigPath.channel, JSON.stringify(this.channels_config, null, 4));
         return fs.existsSync(BaseConfigPath.channel) && fs.readFileSync(BaseConfigPath.channel, "utf8") === JSON.stringify(this.channels_config, null, 4);
     }
@@ -679,7 +679,7 @@ export class TwitchChannel {
 
         const data = fs.readFileSync(BaseConfigPath.streamerCache, "utf8");
         this.channels_cache = JSON.parse(data);
-        TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${Object.keys(this.channels_cache).length} channels from cache.`);
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${Object.keys(this.channels_cache).length} channels from cache.`);
         return true;
     }
 
@@ -689,7 +689,7 @@ export class TwitchChannel {
      * @returns Amount of loaded channels
      */
     public static async loadChannels(): Promise<number> {
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "channel", "Loading channels...");
+        Log.logAdvanced(LOGLEVEL.INFO, "channel", "Loading channels...");
         if (this.channels_config.length > 0) {
             for (const channel of this.channels_config) {
 
@@ -698,21 +698,21 @@ export class TwitchChannel {
                 try {
                     ch = await TwitchChannel.loadFromLogin(channel.login, true);
                 } catch (th) {
-                    TwitchLog.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be loaded: ${th}`);
+                    Log.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be loaded: ${th}`);
                     continue;
                     // break;
                 }
 
                 if (ch) {
                     this.channels.push(ch);
-                    TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "config", `Loaded channel ${channel.login} with ${ch.vods_list?.length} vods`);
+                    Log.logAdvanced(LOGLEVEL.SUCCESS, "config", `Loaded channel ${channel.login} with ${ch.vods_list?.length} vods`);
                 } else {
-                    TwitchLog.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be added, please check logs.`);
+                    Log.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be added, please check logs.`);
                     break;
                 }
             }
         }
-        TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${this.channels.length} channels!`);
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${this.channels.length} channels!`);
         return this.channels.length;
     }
 
@@ -736,25 +736,25 @@ export class TwitchChannel {
     public static async getStreams(streamer_id: string): Promise<Stream[] | false> {
         let response;
 
-        if (!TwitchHelper.axios) {
+        if (!Helper.axios) {
             throw new Error("Axios is not initialized");
         }
 
         try {
-            response = await TwitchHelper.axios.get(`/helix/streams?user_id=${streamer_id}`);
+            response = await Helper.axios.get(`/helix/streams?user_id=${streamer_id}`);
         } catch (error) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get streams for ${streamer_id}: ${error}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get streams for ${streamer_id}: ${error}`);
             return false;
         }
 
         const json: StreamsResponse = response.data;
 
         if (!json.data) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `No streams found for user id ${streamer_id}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `No streams found for user id ${streamer_id}`);
             return false;
         }
 
-        TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Querying streams for streamer id ${streamer_id}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "helper", `Querying streams for streamer id ${streamer_id}`);
 
         return json.data ?? false;
     }
@@ -770,7 +770,7 @@ export class TwitchChannel {
     public static async loadFromLogin(login: string, api: boolean): Promise<TwitchChannel> {
         if (!login) throw new Error("Streamer login is empty");
         if (typeof login !== "string") throw new TypeError("Streamer login is not a string");
-        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Load from login ${login}`);
+        Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Load from login ${login}`);
         const channel_id = await this.channelIdFromLogin(login);
         if (!channel_id) throw new Error(`Could not get channel id from login: ${login}`);
         return this.loadAbstract(channel_id, api); // $channel;
@@ -869,51 +869,51 @@ export class TwitchChannel {
      */
     private static async getChannelDataProxy(method: "id" | "login", identifier: string, force: boolean): Promise<ChannelData | false> {
 
-        TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Fetching channel data for ${method} ${identifier}, force: ${force}`);
+        Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Fetching channel data for ${method} ${identifier}, force: ${force}`);
 
         // check cache first
         if (!force) {
             const channelData = method == "id" ? this.channels_cache[identifier] : Object.values(this.channels_cache).find(channel => channel.login == identifier);
             if (channelData) {
-                TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Channel data found in memory cache for ${method} ${identifier}`);
-                if (Date.now() > channelData._updated + TwitchConfig.streamerCacheTime) {
-                    TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Memory cache for ${identifier} is outdated, fetching new data`);
+                Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Channel data found in memory cache for ${method} ${identifier}`);
+                if (Date.now() > channelData._updated + Config.streamerCacheTime) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "helper", `Memory cache for ${identifier} is outdated, fetching new data`);
                 } else {
-                    TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Returning memory cache for ${method} ${identifier}`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Returning memory cache for ${method} ${identifier}`);
                     return channelData;
                 }
             } else {
-                TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "channel", `Channel data not found in memory cache for ${method} ${identifier}, continue fetching`);
+                Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Channel data not found in memory cache for ${method} ${identifier}, continue fetching`);
             }
 
             if (KeyValue.get(`${identifier}.deleted`)) {
-                TwitchLog.logAdvanced(LOGLEVEL.WARNING, "helper", `Channel ${identifier} is deleted, ignore. Delete kv file to force update.`);
+                Log.logAdvanced(LOGLEVEL.WARNING, "helper", `Channel ${identifier} is deleted, ignore. Delete kv file to force update.`);
                 return false;
             }
         }
 
-        const access_token = await TwitchHelper.getAccessToken();
+        const access_token = await Helper.getAccessToken();
 
         if (!access_token) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", "Could not get access token, aborting.");
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", "Could not get access token, aborting.");
             throw new Error("Could not get access token, aborting.");
         }
 
-        if (!TwitchHelper.axios) {
+        if (!Helper.axios) {
             throw new Error("Axios is not initialized");
         }
 
         let response;
 
         try {
-            response = await TwitchHelper.axios.get(`/helix/users?${method}=${identifier}`);
+            response = await Helper.axios.get(`/helix/users?${method}=${identifier}`);
         } catch (err) {
             if (axios.isAxiosError(err)) {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`, err);
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`, err);
                 return false;
             }
 
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Channel data request for ${identifier} exceptioned: ${err}`, err);
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Channel data request for ${identifier} exceptioned: ${err}`, err);
             console.log(err);
             return false;
         }
@@ -921,19 +921,19 @@ export class TwitchChannel {
         // TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `URL: ${response.request.path} (default ${axios.defaults.baseURL})`);
 
         if (response.status !== 200) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${identifier}, code ${response.status}.`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${identifier}, code ${response.status}.`);
             throw new Error(`Could not get channel data for ${identifier}, code ${response.status}.`);
         }
 
         const json: UsersResponse | ErrorResponse = response.data;
 
         if ("error" in json) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${identifier}: ${json.message}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${identifier}: ${json.message}`);
             return false;
         }
 
         if (json.data.length === 0) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${identifier}, no data.`, { json });
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${identifier}, no data.`, { json });
             throw new Error(`Could not get channel data for ${identifier}, no data.`);
         }
 
@@ -955,30 +955,34 @@ export class TwitchChannel {
 
     public static async subscribe(channel_id: string): Promise<boolean> {
 
-        if (!TwitchConfig.cfg("app_url")) {
+        if (!Config.cfg("app_url")) {
             throw new Error("app_url is not set");
         }
 
-        let hook_callback = TwitchConfig.cfg("app_url") + "/api/v0/hook";
-
-        if (TwitchConfig.cfg("instance_id")) {
-            hook_callback += "?instance=" + TwitchConfig.cfg("instance_id");
+        if (Config.cfg("app_url") === "debug") {
+            throw new Error("app_url is set to debug, no subscriptions possible");
         }
 
-        if (!TwitchConfig.cfg("eventsub_secret")) {
+        let hook_callback = `${Config.cfg("app_url")}/api/v0/hook`;
+
+        if (Config.cfg("instance_id")) {
+            hook_callback += "?instance=" + Config.cfg("instance_id");
+        }
+
+        if (!Config.cfg("eventsub_secret")) {
             throw new Error("eventsub_secret is not set");
         }
 
         const streamer_login = await TwitchChannel.channelLoginFromId(channel_id);
 
-        for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
+        for (const sub_type of Helper.CHANNEL_SUB_TYPES) {
 
             if (KeyValue.get(`${channel_id}.sub.${sub_type}`)) {
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Skip subscription to ${channel_id}:${sub_type} (${streamer_login}), in cache.`);
+                Log.logAdvanced(LOGLEVEL.INFO, "helper", `Skip subscription to ${channel_id}:${sub_type} (${streamer_login}), in cache.`);
                 continue; // todo: alert
             }
 
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Subscribe to ${channel_id}:${sub_type} (${streamer_login})`);
+            Log.logAdvanced(LOGLEVEL.INFO, "helper", `Subscribe to ${channel_id}:${sub_type} (${streamer_login})`);
 
             const payload: SubscriptionRequest = {
                 type: sub_type,
@@ -989,21 +993,21 @@ export class TwitchChannel {
                 transport: {
                     method: "webhook",
                     callback: hook_callback,
-                    secret: TwitchConfig.cfg("eventsub_secret"),
+                    secret: Config.cfg("eventsub_secret"),
                 },
             };
 
-            if (!TwitchHelper.axios) {
+            if (!Helper.axios) {
                 throw new Error("Axios is not initialized");
             }
 
             let response;
 
             try {
-                response = await TwitchHelper.axios.post("/helix/eventsub/subscriptions", payload);
+                response = await Helper.axios.post("/helix/eventsub/subscriptions", payload);
             } catch (err) {
                 if (axios.isAxiosError(err)) {
-                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not subscribe to ${channel_id}:${sub_type}: ${err.message} / ${err.response?.data.message}`);
+                    Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not subscribe to ${channel_id}:${sub_type}: ${err.message} / ${err.response?.data.message}`);
 
                     if (err.response?.data.status == 409) { // duplicate
                         const sub_id = await TwitchChannel.getSubscriptionId(channel_id, sub_type);
@@ -1014,7 +1018,7 @@ export class TwitchChannel {
                     continue;
                 }
 
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Subscription request for ${channel_id} exceptioned: ${err}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Subscription request for ${channel_id} exceptioned: ${err}`);
                 console.log(err);
                 continue;
             }
@@ -1025,7 +1029,7 @@ export class TwitchChannel {
             if (http_code == 202) {
 
                 if (json.data[0].status !== "webhook_callback_verification_pending") {
-                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Got 202 return for subscription request for ${channel_id}:${sub_type} but did not get callback verification.`);
+                    Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Got 202 return for subscription request for ${channel_id}:${sub_type} but did not get callback verification.`);
                     return false;
                     // continue;
                 }
@@ -1033,11 +1037,11 @@ export class TwitchChannel {
                 KeyValue.set(`${channel_id}.sub.${sub_type}`, json.data[0].id);
                 KeyValue.set(`${channel_id}.substatus.${sub_type}`, SubStatus.WAITING);
 
-                TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) sent. Check logs for a 'subscription active' message.`);
+                Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) sent. Check logs for a 'subscription active' message.`);
             } else if (http_code == 409) {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Duplicate sub for ${channel_id}:${sub_type} detected.`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Duplicate sub for ${channel_id}:${sub_type} detected.`);
             } else {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to send subscription request for ${channel_id}:${sub_type}: ${json}, HTTP ${http_code})`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to send subscription request for ${channel_id}:${sub_type}: ${json}, HTTP ${http_code})`);
                 return false;
                 // continue;
             }
@@ -1050,7 +1054,7 @@ export class TwitchChannel {
 
     public static async unsubscribe(channel_id: string): Promise<boolean> {
 
-        const subscriptions = await TwitchHelper.getSubs();
+        const subscriptions = await Helper.getSubs();
 
         if (!subscriptions) {
             return false;
@@ -1065,15 +1069,15 @@ export class TwitchChannel {
                 continue;
             }
 
-            const unsub = await TwitchHelper.eventSubUnsubscribe(sub.id);
+            const unsub = await Helper.eventSubUnsubscribe(sub.id);
 
             if (unsub) {
-                TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Unsubscribed from ${channel_id}:${sub.type} (${streamer_login})`);
+                Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Unsubscribed from ${channel_id}:${sub.type} (${streamer_login})`);
                 unsubbed++;
                 KeyValue.delete(`${channel_id}.sub.${sub.type}`);
                 KeyValue.delete(`${channel_id}.substatus.${sub.type}`);
             } else {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to unsubscribe from ${channel_id}:${sub.type} (${streamer_login})`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to unsubscribe from ${channel_id}:${sub.type} (${streamer_login})`);
             }
 
         }
@@ -1083,7 +1087,7 @@ export class TwitchChannel {
     }
 
     public static async getSubscriptionId(channel_id: string, sub_type: EventSubTypes): Promise<string | false> {
-        const all_subs = await TwitchHelper.getSubs();
+        const all_subs = await Helper.getSubs();
         if (all_subs) {
             const sub_id = all_subs.data.find(sub => sub.condition.broadcaster_user_id == channel_id && sub.type == sub_type);
             return sub_id ? sub_id.id : false;

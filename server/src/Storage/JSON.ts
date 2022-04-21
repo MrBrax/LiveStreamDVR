@@ -3,21 +3,13 @@ import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { MuteStatus } from "../../../common/Defs";
 import { VideoMetadata } from "../../../common/MediaInfo";
 
-export interface TwitchVODJSON {
+export interface VODJSON {
 
     version: number;
-
-    capture_id?: string;
-
-    meta?: EventSubResponse;
+    type: string;
 
     stream_resolution: VideoQuality | undefined;
-    
-    streamer_name: string;
-    streamer_id: string;
-    streamer_login: string;
 
-    chapters: TwitchVODChapterJSON[];
     segments: string[];
 
     is_capturing: boolean;
@@ -38,6 +30,24 @@ export interface TwitchVODJSON {
     started_at: string;
     ended_at: string;
 
+    not_started: boolean;
+
+}
+export interface TwitchVODJSON extends VODJSON {
+
+    version: number;
+    type: "twitch";
+
+    capture_id?: string;
+
+    meta?: EventSubResponse;
+
+    streamer_name: string;
+    streamer_id: string;
+    streamer_login: string;
+
+    chapters: TwitchVODChapterJSON[];
+
     twitch_vod_id?: string;
     twitch_vod_duration?: number
     twitch_vod_title?: string;
@@ -48,12 +58,10 @@ export interface TwitchVODJSON {
     twitch_vod_exists?: boolean;
     twitch_vod_attempted?: boolean;
 
-    not_started: boolean;
-
 }
 
 export interface TwitchVODChapterJSON {
-    
+
     started_at: string;
     title: string;
 
@@ -67,5 +75,5 @@ export interface TwitchVODChapterJSON {
 
     // offset: number;
     // duration: number;
-    
+
 }

@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { TwitchWebhook } from "Core/TwitchWebhook";
+import { Webhook } from "Core/Webhook";
 import express from "express";
 import fs from "fs";
 import { Auth } from "Helpers/Auth";
@@ -8,7 +8,7 @@ import path from "path";
 import { WebSocketServer } from "ws";
 import { AppName, BaseConfigDataFolder, BaseConfigFolder } from "./Core/BaseConfig";
 import { ClientBroker } from "./Core/ClientBroker";
-import { TwitchConfig } from "./Core/TwitchConfig";
+import { Config } from "./Core/Config";
 import ApiRouter from "./Routes/Api";
 import minimist from "minimist";
 
@@ -33,15 +33,15 @@ if (argv.help || argv.h) {
 const override_port = argv.port ? parseInt(argv.port as string) : undefined;
 
 // load all required config files and cache stuff
-TwitchConfig.init().then(() => {
+Config.init().then(() => {
 
     const app = express();
-    const port = override_port || TwitchConfig.cfg<number>("server_port", 8080);
+    const port = override_port || Config.cfg<number>("server_port", 8080);
 
-    const basepath = TwitchConfig.cfg<string>("basepath", "");
+    const basepath = Config.cfg<string>("basepath", "");
 
     // https://github.com/expressjs/morgan/issues/76#issuecomment-450552807
-    if (TwitchConfig.cfg<boolean>("trust_proxy", false)) {
+    if (Config.cfg<boolean>("trust_proxy", false)) {
         app.set("trust proxy", true);
         console.log(chalk.yellow("Setting trust proxy to true."));
     }
@@ -107,13 +107,13 @@ TwitchConfig.init().then(() => {
         }
     });
 
-    if (TwitchConfig.cfg<boolean>("websocket_enabled")) {
+    if (Config.cfg<boolean>("websocket_enabled")) {
 
         // start websocket server and attach broker
         const websocketServer = new WebSocketServer({ server, path: `${basepath}/socket/` });
         ClientBroker.attach(websocketServer);
         
-        TwitchWebhook.dispatch("init", {
+        Webhook.dispatch("init", {
             "hello": "world",
         });
 

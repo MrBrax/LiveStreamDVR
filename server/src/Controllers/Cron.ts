@@ -1,7 +1,7 @@
 import express from "express";
 import { MuteStatus } from "../../../common/Defs";
 import { ClientBroker } from "../Core/ClientBroker";
-import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
+import { LOGLEVEL, Log } from "../Core/Log";
 import { generateStreamerList } from "../Helpers/StreamerList";
 
 export async function fCheckDeletedVods(): Promise<string> {
@@ -32,7 +32,7 @@ export async function fCheckDeletedVods(): Promise<string> {
                 ClientBroker.notify(`${vod.basename} deleted`, "", "", "vodDeleted");
 
                 // $this->addToNotifyCache("deleted_{$vod->basename}");
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "cron", `Cronjob deleted check: ${vod.basename} deleted`);
+                Log.logAdvanced(LOGLEVEL.INFO, "cron", `Cronjob deleted check: ${vod.basename} deleted`);
             }
 
         }
@@ -82,7 +82,7 @@ export async function fCheckMutedVods(force = false): Promise<string> {
                 check = await vod.checkMutedVod(true);
             } catch (th) {
                 output += `${vod.basename} error: ${(th as Error).message}<br>\n`;
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "cron", `Cronjob mute check: ${vod.basename} error: ${(th as Error).message}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "cron", `Cronjob mute check: ${vod.basename} error: ${(th as Error).message}`);
                 continue;
             }
 
@@ -94,7 +94,7 @@ export async function fCheckMutedVods(force = false): Promise<string> {
                 ClientBroker.notify(`${vod.basename} muted`, "", "", "vodMuted");
 
                 // $this->addToNotifyCache("mute_{$vod->basename}");
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "cron", `Cronjob mute check: ${vod.basename} muted`);
+                Log.logAdvanced(LOGLEVEL.INFO, "cron", `Cronjob mute check: ${vod.basename} muted`);
             } else if (check == MuteStatus.UNMUTED) {
                 output += `${vod.basename} unmuted<br>\n`;
             } else {

@@ -72,3 +72,16 @@ hr {
     padding-left: 0.5em;
     padding-right: 0.5em;
 }
+
+.errors {
+    background-color: #b62d2d;
+    color: #fff;
+    padding: 1em;
+    text-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+    border-radius: 0.5em;
+    ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+}

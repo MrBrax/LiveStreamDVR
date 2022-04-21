@@ -1,14 +1,14 @@
 import { TwitchChannel } from "../Core/TwitchChannel";
-import { TwitchConfig } from "../Core/TwitchConfig";
+import { Config } from "../Core/Config";
 import express from "express";
 import crypto from "crypto";
 import path from "path";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import fs from "fs";
-import { TwitchAutomator } from "../Core/TwitchAutomator";
+import { Automator } from "../Core/Automator";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { ChallengeResponse } from "../../../common/TwitchAPI/Challenge";
-import { LOGLEVEL, TwitchLog } from "../Core/TwitchLog";
+import { LOGLEVEL, Log } from "../Core/Log";
 import { KeyValue } from "../Core/KeyValue";
 import { SubStatus } from "../../../common/Defs";
 import { replaceAll } from "Helpers/ReplaceAll";
@@ -25,8 +25,8 @@ const verifySignature = (request: express.Request): boolean => {
                 return 403
         */
 
-    if (!TwitchConfig.cfg("eventsub_secret")) {
-        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "hook", "No eventsub secret in config.");
+    if (!Config.cfg("eventsub_secret")) {
+        Log.logAdvanced(LOGLEVEL.ERROR, "hook", "No eventsub secret in config.");
         return false;
     }
 
@@ -49,7 +49,7 @@ const verifySignature = (request: express.Request): boolean => {
         */
 
     if (!twitch_message_id || !twitch_message_timestamp || !twitch_message_signature) {
-        TwitchLog.logAdvanced(LOGLEVEL.ERROR, "hook", "Missing twitch headers for signature check.");
+        Log.logAdvanced(LOGLEVEL.ERROR, "hook", "Missing twitch headers for signature check.");
         return false;
     }
     
@@ -58,7 +58,7 @@ const verifySignature = (request: express.Request): boolean => {
 
     const hmac_message = twitch_message_id + twitch_message_timestamp + body;
 
-    const signature = crypto.createHmac("sha256", TwitchConfig.cfg("eventsub_secret"))
+    const signature = crypto.createHmac("sha256", Config.cfg("eventsub_secret"))
         .update(hmac_message)
         .digest("hex");
 
@@ -82,11 +82,11 @@ export function Hook(req: express.Request, res: express.Response): void {
 
     const debugMeta = { "GET": req.query, "POST": req.body, "HEADERS": req.headers, "DATA": data_json };
 
-    TwitchLog.logAdvanced(LOGLEVEL.INFO, "hook", "Hook called", debugMeta);
+    Log.logAdvanced(LOGLEVEL.INFO, "hook", "Hook called", debugMeta);
 
-    if (TwitchConfig.cfg("instance_id")) {
-        if (!req.query.instance || req.query.instance != TwitchConfig.cfg("instance_id")) {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "hook", `Hook called with the wrong instance (${req.query.instance})`);
+    if (Config.cfg("instance_id")) {
+        if (!req.query.instance || req.query.instance != Config.cfg("instance_id")) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "hook", `Hook called with the wrong instance (${req.query.instance})`);
             res.send("Invalid instance");
             return;
         }
@@ -104,7 +104,7 @@ export function Hook(req: express.Request, res: express.Response): void {
 
             if (req.header("Twitch-Notification-Id")) {
 
-                TwitchLog.logAdvanced(
+                Log.logAdvanced(
                     LOGLEVEL.ERROR,
                     "hook",
                     "Hook got data with old webhook format."
@@ -130,11 +130,11 @@ export function Hook(req: express.Request, res: express.Response): void {
 
                 // $signature = $response->getHeader("Twitch-Eventsub-Message-Signature");
 
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "hook", `Challenge received for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}), retry ${message_retry}`, debugMeta);
+                Log.logAdvanced(LOGLEVEL.INFO, "hook", `Challenge received for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}), retry ${message_retry}`, debugMeta);
 
                 if (!verifySignature(req)) {
 
-                    TwitchLog.logAdvanced(
+                    Log.logAdvanced(
                         LOGLEVEL.FATAL,
                         "hook",
                         "Invalid signature check for challenge!"
@@ -143,7 +143,7 @@ export function Hook(req: express.Request, res: express.Response): void {
                     res.status(400).send("Invalid signature check for challenge");
                 }
 
-                TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "hook", `Challenge completed, subscription active for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}), retry ${message_retry}.`, debugMeta);
+                Log.logAdvanced(LOGLEVEL.SUCCESS, "hook", `Challenge completed, subscription active for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}), retry ${message_retry}.`, debugMeta);
 
                 KeyValue.set(`${channel_id}.substatus.${sub_type}`, SubStatus.SUBSCRIBED);
 
@@ -152,12 +152,12 @@ export function Hook(req: express.Request, res: express.Response): void {
                 return;
             }
 
-            if (TwitchConfig.debug || TwitchConfig.cfg<boolean>("dump_payloads")) {
+            if (Config.debug || Config.cfg<boolean>("dump_payloads")) {
                 let payload_filename = replaceAll(new Date().toISOString(), /[-:.]/g, "_"); // @todo: replaceAll
                 if (data_json.subscription.type) payload_filename += `_${data_json.subscription.type}`;
                 payload_filename += ".json";
                 const payload_filepath = path.join(BaseConfigDataFolder.payloads, payload_filename);
-                TwitchLog.logAdvanced(LOGLEVEL.INFO, "hook", `Dumping debug hook payload to ${payload_filepath}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "hook", `Dumping debug hook payload to ${payload_filepath}`);
                 try {
                     fs.writeFileSync(payload_filepath, JSON.stringify({
                         headers: req.headers,
@@ -166,14 +166,14 @@ export function Hook(req: express.Request, res: express.Response): void {
                         ip: req.ip,
                     }, null, 4));
                 } catch (error) {
-                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "hook", `Failed to dump payload to ${payload_filepath}`, error);
+                    Log.logAdvanced(LOGLEVEL.ERROR, "hook", `Failed to dump payload to ${payload_filepath}`, error);
                 }
                 
             }
 
             // verify message
             if (!verifySignature(req)) {
-                TwitchLog.logAdvanced(
+                Log.logAdvanced(
                     LOGLEVEL.FATAL,
                     "hook",
                     "Invalid signature check for message!",
@@ -184,24 +184,24 @@ export function Hook(req: express.Request, res: express.Response): void {
             }
 
             if ("event" in data_json) {
-                TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "hook", `Signature checked, no challenge, retry ${message_retry}. Run handle...`);
-                const TA = new TwitchAutomator();
+                Log.logAdvanced(LOGLEVEL.DEBUG, "hook", `Signature checked, no challenge, retry ${message_retry}. Run handle...`);
+                const TA = new Automator();
                 /* await */ TA.handle(data_json, req);
                 res.status(200).send("");
                 return;
             } else {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "hook", "No event in message!");
+                Log.logAdvanced(LOGLEVEL.ERROR, "hook", "No event in message!");
                 res.status(400).send("No event in message");
                 return;
             }
         } else {
-            TwitchLog.logAdvanced(LOGLEVEL.ERROR, "hook", "Hook called with invalid JSON.");
+            Log.logAdvanced(LOGLEVEL.ERROR, "hook", "Hook called with invalid JSON.");
             res.status(400).send("No data supplied");
             return;
         }
     }
 
-    TwitchLog.logAdvanced(LOGLEVEL.WARNING, "hook", `Hook called with no data (${source})...`, debugMeta);
+    Log.logAdvanced(LOGLEVEL.WARNING, "hook", `Hook called with no data (${source})...`, debugMeta);
 
     res.status(400).send("No data supplied");
     return;
