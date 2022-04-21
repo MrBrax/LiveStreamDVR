@@ -2093,69 +2093,13 @@ export class TwitchVOD {
 
     public downloadChat(): Promise<boolean> {
         // since tcd does not work anymore, twitchdownloadercli is used instead
-        return this.downloadChatTD();
+        if (!this.twitch_vod_id) {
+            throw new Error("No twitch_vod_id for chat download");
+        }
+        return TwitchVOD.downloadChatTD(this.twitch_vod_id, this.path_chat);
     }
 
-    private downloadChatTD(): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-
-            const bin = Helper.path_twitchdownloader();
-
-            if (!bin || !fs.existsSync(bin)) {
-                reject(new Error("twitchdownloadercli not found"));
-                return;
-            }
-
-            if (!this.twitch_vod_id) {
-                reject(new Error("No VOD ID"));
-                return;
-            }
-
-            if (fs.existsSync(this.path_chat)) {
-                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat already exists for ${this.basename}`);
-                resolve(true);
-                return;
-            }
-
-            const args: string[] = [];
-            args.push("--mode", "ChatDownload");
-            args.push("--temp-path", BaseConfigDataFolder.cache);
-            args.push("--id", this.twitch_vod_id);
-            args.push("-o", this.path_chat);
-
-            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Downloading chat for ${this.basename}`);
-
-            const job = Helper.startJob(`chatdownload_${this.basename}`, bin, args);
-            if (!job) {
-                reject(new Error("Job failed"));
-                return;
-            }
-
-            let lastPercent = -1;
-            // [STATUS] - Downloading 10%
-            job.on("log", (text: string) => {
-                const match = text.match(/\[STATUS\] - Downloading (\d+)%/);
-                if (match) {
-                    const percent = parseInt(match[1]);
-                    if (percent != lastPercent && percent % 10 == 0) {
-                        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Downloading chat for ${this.basename} (${percent}%)`);
-                        lastPercent = percent;
-                    }
-                }
-            });
-
-            job.on("close", (code, signal) => {
-                if (fs.existsSync(this.path_chat) && fs.statSync(this.path_chat).size > 0) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat downloaded for ${this.basename}`);
-                    resolve(true);
-                } else {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Chat couldn't be downloaded for ${this.basename}`);
-                    reject(false);
-                }
-            });
-
-        });
-    }
+    
 
     public compareDumpedChatAndDownloadedChat(): void {
 
@@ -2527,6 +2471,71 @@ export class TwitchVOD {
             if (!fs.existsSync(vod.filename)) {
                 Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${vod.basename} in memory but not on disk`);
             }
+        });
+    }
+
+    public static async downloadChat(vod_id: string, output: string): Promise<boolean> {
+        return await this.downloadChatTD(vod_id, output);
+    }
+
+    public static downloadChatTD(vod_id: string, output: string): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+
+            const bin = Helper.path_twitchdownloader();
+
+            if (!bin || !fs.existsSync(bin)) {
+                reject(new Error("twitchdownloadercli not found"));
+                return;
+            }
+
+            if (!vod_id) {
+                reject(new Error("No VOD ID"));
+                return;
+            }
+
+            if (fs.existsSync(output)) {
+                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat already exists for ${vod_id}`);
+                resolve(true);
+                return;
+            }
+
+            const args: string[] = [];
+            args.push("--mode", "ChatDownload");
+            args.push("--temp-path", BaseConfigDataFolder.cache);
+            args.push("--id", vod_id);
+            args.push("-o", output);
+
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Downloading chat for ${vod_id}`);
+
+            const job = Helper.startJob(`chatdownload_${vod_id}`, bin, args);
+            if (!job) {
+                reject(new Error("Job failed"));
+                return;
+            }
+
+            let lastPercent = -1;
+            // [STATUS] - Downloading 10%
+            job.on("log", (text: string) => {
+                const match = text.match(/\[STATUS\] - Downloading (\d+)%/);
+                if (match) {
+                    const percent = parseInt(match[1]);
+                    if (percent != lastPercent && percent % 10 == 0) {
+                        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Downloading chat for ${vod_id} (${percent}%)`);
+                        lastPercent = percent;
+                    }
+                }
+            });
+
+            job.on("close", (code, signal) => {
+                if (fs.existsSync(output) && fs.statSync(output).size > 0) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat downloaded for ${vod_id}`);
+                    resolve(true);
+                } else {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Chat couldn't be downloaded for ${vod_id}`);
+                    reject(false);
+                }
+            });
+
         });
     }
 

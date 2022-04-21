@@ -83,6 +83,8 @@ router.get("/notifications", Notifications.GetNotificationSettings);
 router.put("/notifications", Notifications.SaveNotificationSettings);
 
 router.post("/tools/reset_channels", Tools.ResetChannels);
+router.post("/tools/vod_download", Tools.DownloadVod);
+router.post("/tools/chat_download", Tools.DownloadChat);
 
 router.get("/test_video_download", (req, res) => {
     if (!req.query.video_id){

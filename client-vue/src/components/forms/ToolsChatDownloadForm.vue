@@ -3,7 +3,7 @@
         <div class="field">
             <label class="label">VOD URL</label>
             <div class="control">
-                <input class="input input-required" type="text" name="url" value="" required />
+                <input class="input input-required" type="text" v-model="formData.url" required />
             </div>
         </div>
 
@@ -32,22 +32,19 @@ export default defineComponent({
         return {
             formStatusText: "Ready",
             formStatus: "",
+            formData: {
+                url: "",
+            },
             fileLink: "",
         };
     },
     methods: {
         submitForm(event: Event) {
-            const form = event.target as HTMLFormElement;
-            const inputs = new FormData(form);
-
             this.formStatusText = "Loading...";
             this.formStatus = "";
 
-            console.log("form", form);
-            console.log("entries", inputs, inputs.entries(), inputs.values());
-
             this.$http
-                .post(`/api/v0/tools/chatdownload`, inputs)
+                .post(`/api/v0/tools/chat_download`, this.formData)
                 .then((response) => {
                     const json = response.data;
                     this.formStatusText = json.message;

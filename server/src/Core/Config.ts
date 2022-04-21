@@ -1,8 +1,8 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
 import fs from "fs";
 import { SettingField } from "../../../common/Config";
-import { AppName, AppRoot, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot } from "./BaseConfig";
+import { AppRoot, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchChannel } from "./TwitchChannel";
@@ -311,7 +311,7 @@ export class Config {
         console.log(chalk.blue("Setting up axios..."));
 
         if (!Config.cfg("api_client_id")) {
-            console.error("API client id not set, can't setup axios");
+            console.error(chalk.red("API client id not set, can't setup axios"));
             return;
         }
 
@@ -319,7 +319,7 @@ export class Config {
         try {
             token = await Helper.getAccessToken();
         } catch (error) {
-            console.error(`Failed to get access token: ${error}`);
+            console.error(chalk.red(`Failed to get access token: ${error}`));
             return;
         }
 
@@ -519,6 +519,66 @@ export class Config {
         TwitchChannel.loadChannelsConfig();
         TwitchChannel.loadChannelsCache();
         await TwitchChannel.loadChannels();
+    }
+
+    static async validateExternalURL(): Promise<boolean> {
+
+        const url = Config.cfg<string>("app_url");
+
+        // no url
+        if (!url) {
+            throw new Error("App url not set");
+        }
+
+        // no port allowed, only https
+        if (url.includes(":") && !url.includes(":443")) {
+            throw new Error("App url cannot contain a port");
+        }
+
+        // https required
+        if (!url.startsWith("https://")) {
+            throw new Error("App url must start with https://");
+        }
+
+        let full_url = Config.cfg("app_url") + "/api/v0/hook";
+
+        if (Config.cfg("instance_id") !== undefined) {
+            full_url += "?instance=" + Config.cfg("instance_id");
+        }
+
+        let req: AxiosResponse | undefined;
+        let response_body = "";
+
+        try {
+            req = await axios.get(full_url, {
+                timeout: 10000,
+            });
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                response_body = error.response?.data ?? "";
+            } else {
+                console.error("app url check error", error);
+                // res.status(400).send({
+                //     status: "ERROR",
+                //     message: `External app url could not be contacted on '${full_url}' due to an error: ${error}`,
+                // });
+                // return;
+                throw new Error(`External app url could not be contacted on '${full_url}' due to an error: ${(error as Error).message}`);
+            }
+        }
+
+        if (req) response_body = req.data;
+
+        if (response_body !== "No data supplied") {
+            // res.status(400).send({
+            //     status: "ERROR",
+            //     message: `External app url responded with an unexpected response: ${response_body}`,
+            // });
+            throw new Error(`External app url responded with an unexpected response: ${response_body}`);
+        }
+
+        return true;
+
     }
 
     static get debug(): boolean {

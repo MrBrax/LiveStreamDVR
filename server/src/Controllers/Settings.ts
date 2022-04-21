@@ -1,4 +1,3 @@
-import axios, { AxiosResponse } from "axios";
 import express from "express";
 import type { ApiSettingsResponse } from "../../../common/Api/Api";
 // import type { SettingField } from "../../../common/Config";
@@ -69,42 +68,17 @@ export async function SaveSettings(req: express.Request, res: express.Response):
     // verify app_url
     if (Config.cfg("app_url") !== undefined) {
 
-        let full_url = Config.cfg("app_url") + "/api/v0/hook";
-
-        if (Config.cfg("instance_id") !== undefined) {
-            full_url += "?instance=" + Config.cfg("instance_id");
-        }
-
-        let req: AxiosResponse | undefined;
-        let response_body = "";
-
+        let url_ok;
         try {
-            req = await axios.get(full_url, {
-                timeout: 10000,
-            });
+            url_ok = await Config.validateExternalURL();
         } catch (error) {
-            if (axios.isAxiosError(error)) {
-                response_body = error.response?.data ?? "";
-            } else {
-                console.error("app url check error", error);
-                res.status(400).send({
-                    status: "ERROR",
-                    message: `External app url could not be contacted on '${full_url}' due to an error: ${error}`,
-                });
-                return;
-            }
-        }
-
-        if (req) response_body = req.data;
-
-        if (response_body !== "No data supplied") {
-            res.status(400).send({
+            res.send({
                 status: "ERROR",
-                message: `External app url responded with an unexpected response: ${response_body}`,
+                message: `External URL is invalid: ${(error as Error).message}`,
             });
             return;
         }
-        
+
     }
 
     Config.saveConfig("settings form saved");

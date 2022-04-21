@@ -1,17 +1,17 @@
 <template>
-    <form method="POST" @submit="submitForm">
+    <form method="POST" @submit.prevent="submitForm">
         <div class="field">
             <label class="label">VOD URL</label>
             <div class="control">
-                <input class="input input-required" type="text" name="url" value="" required />
+                <input class="input input-required" type="text" v-model="formData.url" required />
             </div>
         </div>
 
         <div class="field">
             <label class="label">Quality</label>
             <div class="control">
-                <select class="input input-required" name="quality">
-                    <option v-for="quality in twitchQuality" :key="quality">{{ quality }}</option>
+                <select class="input input-required" v-model="formData.quality">
+                    <option v-for="quality of VideoQualityArray" :key="quality">{{ quality }}</option>
                 </select>
             </div>
         </div>
@@ -33,6 +33,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { VideoQualityArray } from "../../../../common/Defs";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
@@ -41,26 +42,27 @@ library.add(faDownload);
 export default defineComponent({
     name: "ToolsVodDownloadForm",
     emits: ["formSuccess"],
+    setup() {
+        return { VideoQualityArray };
+    },
     data() {
         return {
             formStatusText: "Ready",
             formStatus: "",
+            formData: {
+                url: "",
+                quality: "",
+            },
             fileLink: "",
         };
     },
     methods: {
         submitForm(event: Event) {
-            const form = event.target as HTMLFormElement;
-            const inputs = new FormData(form);
-
             this.formStatusText = "Loading...";
             this.formStatus = "";
 
-            console.log("form", form);
-            console.log("entries", inputs, inputs.entries(), inputs.values());
-
             this.$http
-                .post(`/api/v0/tools/voddownload`, inputs)
+                .post(`/api/v0/tools/vod_download`, this.formData)
                 .then((response) => {
                     const json = response.data;
                     this.formStatusText = json.message;
