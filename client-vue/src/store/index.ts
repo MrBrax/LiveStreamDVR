@@ -16,6 +16,7 @@ export const useStore = defineStore("twitchAutomator", {
         clientConfig: ClientSettings | null;
         serverType: string;
         websocketUrl: string;
+        errors: string[];
     } {
         return {
             streamerList: [],
@@ -26,6 +27,7 @@ export const useStore = defineStore("twitchAutomator", {
             clientConfig: null,
             serverType: "",
             websocketUrl: "",
+            errors: [],
         };
     },
     actions: {
@@ -180,6 +182,9 @@ export const useStore = defineStore("twitchAutomator", {
             // console.debug("updateStreamerList", data);
             const channels = data.map((channel) => TwitchChannel.makeFromApiResponse(channel));
             this.streamerList = channels;
+        },
+        updateErrors(data: string[]) {
+            this.errors = data;
         },
         /*
         updateVod(vod: ApiVod) {

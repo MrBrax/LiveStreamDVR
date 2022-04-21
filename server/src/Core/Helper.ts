@@ -16,6 +16,7 @@ import { Config } from "./Config";
 import { LOGLEVEL, Log } from "./Log";
 import { TwitchCommentDump } from "../../../common/Comments";
 import { replaceAll } from "Helpers/ReplaceAll";
+import { TwitchChannel } from "./TwitchChannel";
 
 export interface ExecReturn {
     stdout: string[];
@@ -157,15 +158,15 @@ export class Helper {
             const num = parseInt(match[1]);
             const unit = match[2];
             switch (unit) {
-            case "h":
-                seconds += num * 3600;
-                break;
-            case "m":
-                seconds += num * 60;
-                break;
-            case "s":
-                seconds += num;
-                break;
+                case "h":
+                    seconds += num * 3600;
+                    break;
+                case "m":
+                    seconds += num * 60;
+                    break;
+                case "s":
+                    seconds += num;
+                    break;
             }
         }
         return seconds;
@@ -588,7 +589,7 @@ export class Helper {
             // ...ffmpeg_options,
             // output,
 
-            
+
 
             if (overwrite || emptyFile) {
                 opts.push("-y");
@@ -684,7 +685,7 @@ export class Helper {
             const opts: string[] = [];
             opts.push("-i", input);
             opts.push("-ss", start_second.toString());
-            opts.push("-t", (end_second-start_second).toString());
+            opts.push("-t", (end_second - start_second).toString());
             opts.push("-c", "copy");
             // opts.push("-bsf:a", "aac_adtstoasc");
             // ...ffmpeg_options,
@@ -915,6 +916,21 @@ export class Helper {
 
         return json;
 
+    }
+
+    public static getErrors(): string[] {
+        const errors = [];
+        if (!this.axios) errors.push("Axios is not initialized. Make sure the client id and secret are set in the config.");
+        if (!Config.cfg("app_url") && Config.cfg("app_url") !== "debug") errors.push("No app url set in the config.");
+        if (!Config.cfg("api_client_id")) errors.push("No client id set in the config.");
+        if (!Config.cfg("api_secret")) errors.push("No client secret set in the config.");
+        if (TwitchChannel.channels.length == 0) errors.push("No channels set in the config.");
+
+        if (!this.path_ffmpeg()) errors.push("Failed to find ffmpeg");
+        if (!this.path_streamlink()) errors.push("Failed to find streamlink");
+        if (!this.path_mediainfo()) errors.push("Failed to find mediainfo");
+
+        return errors;
     }
 
 }

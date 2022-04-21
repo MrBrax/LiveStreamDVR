@@ -1,5 +1,14 @@
 <template>
     <div class="container vertical">
+        <section class="section" v-if="store.errors && store.errors.length > 0">
+            <div class="errors">
+                <ul>
+                    <li v-for="error in store.errors" :key="error">
+                        {{ error }}
+                    </li>
+                </ul>
+            </div>
+        </section>
         <section class="section" data-section="vods">
             <div class="section-title"><h1>Recorded VODs</h1></div>
             <div class="section-content" v-if="store.streamerList && store.streamerList.length > 0">

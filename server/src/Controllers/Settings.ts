@@ -23,6 +23,7 @@ export function GetSettings(req: express.Request, res: express.Response): void {
             version: version,
             server: "ts-server",
             websocket_url: Config.getWebsocketClientUrl(),
+            errors: Helper.getErrors(),
         },
         status: "OK",
     } as ApiSettingsResponse);

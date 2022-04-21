@@ -23,6 +23,7 @@ export interface ApiSettingsResponse extends ApiResponse {
         version: string;
         server: string;
         websocket_url: string;
+        errors?: string[];
     };
 }
 
