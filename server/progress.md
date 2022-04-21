@@ -38,8 +38,8 @@
 - [x] GET /api/v0/about
 - 
 - // [ ] GET /api/v0/tools/fullvodburn
-- [ ] GET /api/v0/tools/voddownload
-- [ ] GET /api/v0/tools/chatdownload
+- [x] GET /api/v0/tools/voddownload
+- [x] GET /api/v0/tools/chatdownload
 - [ ] GET /api/v0/tools/playlist_dump/{username}
 - [ ] GET /api/v0/tools/check_vods
 - 
