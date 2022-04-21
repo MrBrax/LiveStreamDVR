@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>twitchautomator</Name>
+  <Repository>mrbrax/twitchautomator</Repository>
+  <Registry>https://hub.docker.com/r/mrbrax/twitchautomator/</Registry>
+  <Network>proxynet</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/MrBrax/TwitchAutomator/issues</Support>
+  <Project>https://github.com/MrBrax/TwitchAutomator</Project>
+  <Overview>An automatic twitch recorder.&#xD;
+## Features&#xD;
+- Automatic VOD recording pretty much the second the stream goes live, instead of checking it every minute like many other scripts do.&#xD;
+- Cyclic recording, as in when a specified amount or storage per streamer is reached, the oldest stream gets deleted.&#xD;
+- Tons of metadata, maybe too much. Stores info about games played, stream titles, duration, if the stream got muted from copyrighted music, etc.&#xD;
+- Chapters (titles and games) are written to the final video file.&#xD;
+- [Video player](https://github.com/MrBrax/twitch-vod-chat) with chat playback.&#xD;
+- Video cutter with chapter display for easy exporting, also cuts the downloaded chat for synced rendering.&#xD;
+- Notifications with optional speech when the website is open, get stream live notifications far earlier than the mobile app does.&#xD;
+- Writes a [losslesscut](https://github.com/mifi/lossless-cut/) compatible csv file for the full VOD so you don't have to find all the games.&#xD;
+- Uses `ts` instead of `mp4` so if the stream or program crashes, the file won't be corrupted.&#xD;
+- Optionally either dumps chat while capturing or downloads the chat file after it's done.&#xD;
+- Basic tools for downloading any VOD or chat.&#xD;
+- Can be set to automatically download the whole stream chat to a JSON file, to be used in my [twitch-vod-chat](https://github.com/MrBrax/twitch-vod-chat) webapp or automatically burned in with [TwitchDownloader](https://github.com/lay295/TwitchDownloader).&#xD;
+- Basic webhook support for external scripting.&#xD;
+- Notifications over the browser, telegram, and discord.&#xD;
+&#xD;
+*One high-profile streamer VOD of 10 hours at 1080p60 is about 30-50GB.*</Overview>
+  <Category>MediaApp:Video</Category>
+  <WebUI/>
+  <TemplateURL/>
+  <Icon>https://github.com/MrBrax/TwitchAutomator/blob/master/client-vue/src/assets/favicon-huge.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1650543797</DateInstalled>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="Webinterface" Target="8080" Default="8080" Mode="tcp" Description="WebUI Port" Type="Port" Display="always" Required="true" Mask="false">8146</Config>
+  <Config Name="Host Path 1" Target="/usr/local/share/twitchautomator/data" Default="/mnt/user/appdata" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/twitch_vods/</Config>
+  <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">1000</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">1000</Config>
+  <Config Name="UMASK" Target="UMASK" Default="022" Mode="" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">022</Config>
+</Container>
