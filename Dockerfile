@@ -1,4 +1,4 @@
-FROM node:17-bullseye
+FROM node:17-bullseye-slim
 # USER root
 
 # system packages
@@ -14,7 +14,8 @@ FROM node:17-bullseye
 RUN apt-get update && apt-get install -y \
     python3 python3-pip \
     ffmpeg mediainfo \
-    bash git
+    bash git \
+    && apt-get clean
 
 # install yarn
 # RUN npm install -g yarn
@@ -23,21 +24,36 @@ RUN apt-get update && apt-get install -y \
 
 # pip packages
 COPY ./requirements.txt /tmp/requirements.txt
-RUN pip install -r /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt \
+    && rm /tmp/requirements.txt \
+    && pip cache purge
 
 # copy app
-RUN mkdir -p /usr/local/share/twitchautomator && chown -R node:node /usr/local/share/twitchautomator && chmod -R 775 /usr/local/share/twitchautomator
+RUN mkdir -p /usr/local/share/twitchautomator \
+    && chown -R node:node /usr/local/share/twitchautomator \
+    && chmod -R 775 /usr/local/share/twitchautomator
 COPY --chown=node:node --chmod=775 . /usr/local/share/twitchautomator/
 # RUN git clone https://github.com/MrBrax/TwitchAutomator /var/www/twitchautomator/
 
 # server
-RUN cd /usr/local/share/twitchautomator/server && yarn install && yarn build && rm -rf node_modules
+RUN cd /usr/local/share/twitchautomator/server \
+    && yarn install --frozen-lockfile \
+    && yarn build \
+    && rm -rf node_modules \
+    && yarn cache clean --all
 
 # client
-RUN cd /usr/local/share/twitchautomator/client-vue && yarn install && yarn build && rm -rf node_modules
+RUN cd /usr/local/share/twitchautomator/client-vue \
+    && yarn install --frozen-lockfile \
+    && yarn build \
+    && rm -rf node_modules \
+    && yarn cache clean --all
 
 # chat dumper
-RUN cd /usr/local/share/twitchautomator/twitch-chat-dumper && yarn install && yarn build && rm -rf node_modules
+RUN cd /usr/local/share/twitchautomator/twitch-chat-dumper \
+    && yarn install --frozen-lockfile \
+    && yarn build \
+    && rm -rf node_modules && yarn cache clean --all
 
 # install dotnet for twitchdownloader
 # ADD https://dot.net/v1/dotnet-install.sh /tmp/dotnet-install.sh
