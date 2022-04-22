@@ -105,7 +105,7 @@ export class Log {
         fs.appendFileSync(filepath, textOutput + "\n");
 
         // if docker, output to stdout
-        // if (TwitchConfig.cfg("docker")) {
+        // if (TwitchConfig.getInstance().cfg("docker")) {
         //     console.log(textOutput);
         // }
 
@@ -136,7 +136,7 @@ export class Log {
         this.lines.push(log_data);
 
         // send over websocket, probably extremely slow
-        if (Config.cfg<boolean>("websocket_log")) {
+        if (Config.getInstance().cfg<boolean>("websocket_log")) {
 
             this.websocket_buffer.push(log_data);
 

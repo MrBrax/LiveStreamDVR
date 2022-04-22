@@ -407,26 +407,26 @@ export class TwitchChannel {
 
         const vod_candidates: TwitchVOD[] = [];
 
-        const sps_bytes = Config.cfg<number>("storage_per_streamer", 100) * 1024 * 1024 * 1024;
+        const sps_bytes = Config.getInstance().cfg<number>("storage_per_streamer", 100) * 1024 * 1024 * 1024;
 
-        const vods_to_keep = Config.cfg<number>("vods_to_keep", 5);
+        const vods_to_keep = Config.getInstance().cfg<number>("vods_to_keep", 5);
 
         if (this.vods_list) {
             for (const vodclass of [...this.vods_list].reverse()) { // reverse so we can delete the oldest ones first
                 if (!vodclass.is_finalized) continue;
                 if (vodclass.basename === ignore_basename) continue;
 
-                if (Config.cfg<boolean>("keep_deleted_vods") && vodclass.twitch_vod_exists === false) {
+                if (Config.getInstance().cfg<boolean>("keep_deleted_vods") && vodclass.twitch_vod_exists === false) {
                     Log.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being deleted on Twitch.`);
                     continue;
                 }
 
-                if (Config.cfg<boolean>("keep_favourite_vods") && vodclass.hasFavouriteGame()) {
+                if (Config.getInstance().cfg<boolean>("keep_favourite_vods") && vodclass.hasFavouriteGame()) {
                     Log.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it having a favourite game.`);
                     continue;
                 }
 
-                if (Config.cfg<boolean>("keep_muted_vods") && vodclass.twitch_vod_muted === MuteStatus.MUTED) {
+                if (Config.getInstance().cfg<boolean>("keep_muted_vods") && vodclass.twitch_vod_muted === MuteStatus.MUTED) {
                     Log.logAdvanced(LOGLEVEL.INFO, "automator", `Keeping ${vodclass.basename} due to it being muted on Twitch.`);
                     continue;
                 }
@@ -462,7 +462,7 @@ export class TwitchChannel {
             return false;
         }
 
-        if (Config.cfg("delete_only_one_vod")) {
+        if (Config.getInstance().cfg("delete_only_one_vod")) {
             Log.logAdvanced(LOGLEVEL.INFO, "automator", `Deleting only one vod for ${this.login}`);
             vod_candidates[0].delete();
             return 1;
@@ -578,7 +578,7 @@ export class TwitchChannel {
 
         // $channel->api_getSubscriptionStatus = $channel->getSubscriptionStatus();
 
-        if (Config.cfg("channel_folders") && !fs.existsSync(channel.getFolder())) {
+        if (Config.getInstance().cfg("channel_folders") && !fs.existsSync(channel.getFolder())) {
             fs.mkdirSync(channel.getFolder());
         }
 
@@ -651,7 +651,7 @@ export class TwitchChannel {
             this.saveChannelsConfig();
         }
 
-        if (Config.cfg("channel_folders")) {
+        if (Config.getInstance().cfg("channel_folders")) {
             const folders = fs.readdirSync(BaseConfigDataFolder.vod);
             for (const folder of folders) {
                 if (folder == ".gitkeep") continue;
@@ -955,21 +955,21 @@ export class TwitchChannel {
 
     public static async subscribe(channel_id: string): Promise<boolean> {
 
-        if (!Config.cfg("app_url")) {
+        if (!Config.getInstance().cfg("app_url")) {
             throw new Error("app_url is not set");
         }
 
-        if (Config.cfg("app_url") === "debug") {
+        if (Config.getInstance().cfg("app_url") === "debug") {
             throw new Error("app_url is set to debug, no subscriptions possible");
         }
 
-        let hook_callback = `${Config.cfg("app_url")}/api/v0/hook`;
+        let hook_callback = `${Config.getInstance().cfg("app_url")}/api/v0/hook`;
 
-        if (Config.cfg("instance_id")) {
-            hook_callback += "?instance=" + Config.cfg("instance_id");
+        if (Config.getInstance().cfg("instance_id")) {
+            hook_callback += "?instance=" + Config.getInstance().cfg("instance_id");
         }
 
-        if (!Config.cfg("eventsub_secret")) {
+        if (!Config.getInstance().cfg("eventsub_secret")) {
             throw new Error("eventsub_secret is not set");
         }
 
@@ -993,7 +993,7 @@ export class TwitchChannel {
                 transport: {
                     method: "webhook",
                     callback: hook_callback,
-                    secret: Config.cfg("eventsub_secret"),
+                    secret: Config.getInstance().cfg("eventsub_secret"),
                 },
             };
 

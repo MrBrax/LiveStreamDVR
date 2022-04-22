@@ -215,7 +215,7 @@ export class TwitchVOD {
         // const dur = this.getDurationLive();
         // this.duration_live = dur === false ? -1 : dur;
 
-        this.webpath = `${Config.cfg<string>("basepath")}/vods/${Config.cfg<boolean>("channel_folders") && this.streamer_login ? this.streamer_login : ""}`;
+        this.webpath = `${Config.getInstance().cfg<string>("basepath")}/vods/${Config.getInstance().cfg<boolean>("channel_folders") && this.streamer_login ? this.streamer_login : ""}`;
 
     }
 
@@ -745,8 +745,8 @@ export class TwitchVOD {
             new_chapter.datetime = parse(chapter_data.time, TwitchHelper.TWITCH_DATE_FORMAT, new Date());
 
             // @todo: fix
-            // if (null !== TwitchConfig.cfg('favourites') && TwitchConfig.cfg('favourites').length) > 0) {
-            // 	$entry['favourite'] = isset(TwitchConfig.cfg('favourites')[$entry['game_id']]);
+            // if (null !== TwitchConfig.getInstance().cfg('favourites') && TwitchConfig.getInstance().cfg('favourites').length) > 0) {
+            // 	$entry['favourite'] = isset(TwitchConfig.getInstance().cfg('favourites')[$entry['game_id']]);
             // }
 
             // offset
@@ -970,7 +970,7 @@ export class TwitchVOD {
         const files = fs.readdirSync(this.directory)
             .filter(file =>
                 file.startsWith(this.basename) &&
-                file.endsWith(`.${Config.cfg("vod_container", "mp4")}`) &&
+                file.endsWith(`.${Config.getInstance().cfg("vod_container", "mp4")}`) &&
                 !file.includes("_vod") && !file.includes("_chat") && !file.includes("_chat_mask") && !file.includes("_burned")
             );
 
@@ -1453,10 +1453,10 @@ export class TwitchVOD {
     public setPermissions(): void {
 
         if (
-            !Config.cfg("file_permissions") ||
-            !Config.cfg("file_chown_user") ||
-            !Config.cfg("file_chown_group") ||
-            !Config.cfg("file_chmod")
+            !Config.getInstance().cfg("file_permissions") ||
+            !Config.getInstance().cfg("file_chown_user") ||
+            !Config.getInstance().cfg("file_chown_group") ||
+            !Config.getInstance().cfg("file_chmod")
         ) {
             return;
         }
@@ -1464,8 +1464,8 @@ export class TwitchVOD {
         for (const file of this.associatedFiles) {
             const fullpath = path.join(this.directory, file);
             if (fs.existsSync(fullpath)) {
-                fs.chownSync(fullpath, Config.cfg("file_chown_user"), Config.cfg("file_chown_group"));
-                fs.chmodSync(fullpath, Config.cfg("file_chmod"));
+                fs.chownSync(fullpath, Config.getInstance().cfg("file_chown_user"), Config.getInstance().cfg("file_chown_group"));
+                fs.chmodSync(fullpath, Config.getInstance().cfg("file_chmod"));
             }
         }
 
@@ -1608,12 +1608,12 @@ export class TwitchVOD {
             throw new Error("No VOD");
         }
 
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Check muted VOD for ${this.basename} using ${Config.cfg("checkmute_method", "api")}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Check muted VOD for ${this.basename} using ${Config.getInstance().cfg("checkmute_method", "api")}`);
 
         // since the api doesn't return muted_segments if an app auth token is used,
         // streamlink is used instead, until this is fixed in the api
 
-        // return TwitchConfig.cfg("checkmute_method", "api") == "api" ? await this.checkMutedVodAPI(save, force) : await this.checkMutedVodStreamlink(save, force);
+        // return TwitchConfig.getInstance().cfg("checkmute_method", "api") == "api" ? await this.checkMutedVodAPI(save, force) : await this.checkMutedVodStreamlink(save, force);
         return await this.checkMutedVodStreamlink(save);
 
     }
@@ -1750,7 +1750,7 @@ export class TwitchVOD {
                 this.is_converting = true;
                 const status = await Helper.remuxFile(path.join(this.directory, `${this.basename}.ts`), path.join(this.directory, `${this.basename}.mp4`));
                 console.log(chalk.bgBlue.whiteBright(`${this.basename} remux status: ${status.success}`));
-                this.addSegment(`${this.basename}.${Config.cfg("vod_container", "mp4")}`);
+                this.addSegment(`${this.basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
                 this.is_converting = false;
                 await this.finalize();
                 this.saveJSON("fix remux");
@@ -2204,7 +2204,7 @@ export class TwitchVOD {
         await vod.setupAssoc();
         vod.setupFiles();
 
-        // $vod.webpath = TwitchConfig.cfg('basepath') . '/vods/' . (TwitchConfig.cfg("channel_folders") && $vod.streamer_login ? $vod.streamer_login : '');
+        // $vod.webpath = TwitchConfig.getInstance().cfg('basepath') . '/vods/' . (TwitchConfig.getInstance().cfg("channel_folders") && $vod.streamer_login ? $vod.streamer_login : '');
 
         // if (api) {
         // 	vod.setupApiHelper();
@@ -2357,7 +2357,7 @@ export class TwitchVOD {
             // logging level
             if (Config.debug) {
                 cmd.push("--loglevel", "debug");
-            } else if (Config.cfg("app_verbose", false)) {
+            } else if (Config.getInstance().cfg("app_verbose", false)) {
                 cmd.push("--loglevel", "info");
             }
 

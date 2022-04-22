@@ -243,7 +243,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
 
     const basename = `${channel.login}_${replaceAll(video.created_at, ":", "-")}_${video.stream_id}`;
 
-    const filepath = path.join(Helper.vodFolder(channel.login), `${basename}.${Config.cfg("vod_container", "mp4")}`);
+    const filepath = path.join(Helper.vodFolder(channel.login), `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
 
     let status = false;
 

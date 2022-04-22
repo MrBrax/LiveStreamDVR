@@ -36,12 +36,12 @@ const override_port = argv.port ? parseInt(argv.port as string) : undefined;
 Config.init().then(() => {
 
     const app = express();
-    const port = override_port || Config.cfg<number>("server_port", 8080);
+    const port = override_port || Config.getInstance().cfg<number>("server_port", 8080);
 
-    const basepath = Config.cfg<string>("basepath", "");
+    const basepath = Config.getInstance().cfg<string>("basepath", "");
 
     // https://github.com/expressjs/morgan/issues/76#issuecomment-450552807
-    if (Config.cfg<boolean>("trust_proxy", false)) {
+    if (Config.getInstance().cfg<boolean>("trust_proxy", false)) {
         app.set("trust proxy", true);
         console.log(chalk.yellow("Setting trust proxy to true."));
     }
@@ -107,7 +107,7 @@ Config.init().then(() => {
         }
     });
 
-    if (Config.cfg<boolean>("websocket_enabled")) {
+    if (Config.getInstance().cfg<boolean>("websocket_enabled")) {
 
         // start websocket server and attach broker
         const websocketServer = new WebSocketServer({ server, path: `${basepath}/socket/` });

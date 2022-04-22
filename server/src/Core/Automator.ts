@@ -463,7 +463,7 @@ export class Automator {
         } as TwitchVODChapterJSON;
 
         // extra metadata with a separate api request
-        if (Config.cfg("api_metadata")) {
+        if (Config.getInstance().cfg("api_metadata")) {
 
             const streams = await TwitchChannel.getStreams(this.getUserID());
 
@@ -601,7 +601,7 @@ export class Automator {
             // KeyValue.delete(`${this.getLogin()}.channeldata`);
         }
 
-        const container_ext = Config.cfg("vod_container", "mp4");
+        const container_ext = Config.getInstance().cfg("vod_container", "mp4");
         this.capture_filename = path.join(folder_base, `${basename}.ts`);
         this.converted_filename = path.join(folder_base, `${basename}.${container_ext}`);
         this.chat_filename = path.join(folder_base, `${basename}.chatdump`);
@@ -634,7 +634,7 @@ export class Automator {
 
             Log.logAdvanced(LOGLEVEL.WARNING, "automator", `Panic handler for ${basename}, no captured file!`);
 
-            if (tries >= Config.cfg<number>("download_retries")) {
+            if (tries >= Config.getInstance().cfg<number>("download_retries")) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Giving up on downloading, too many tries for ${basename}`);
                 fs.renameSync(path.join(folder_base, `${basename}.json`), path.join(folder_base, `${basename}.json.broken`));
                 throw new Error("Too many tries");
@@ -795,10 +795,10 @@ export class Automator {
             cmd.push("--hls-live-edge", "99999");
 
             // timeout due to ads
-            cmd.push("--hls-timeout", Config.cfg("hls_timeout", 120).toString());
+            cmd.push("--hls-timeout", Config.getInstance().cfg("hls_timeout", 120).toString());
 
             // timeout due to ads
-            cmd.push("--hls-segment-timeout", Config.cfg("hls_timeout", 120).toString());
+            cmd.push("--hls-segment-timeout", Config.getInstance().cfg("hls_timeout", 120).toString());
 
             // The size of the thread pool used to download HLS segments.
             cmd.push("--hls-segment-threads", "5");
@@ -807,12 +807,12 @@ export class Automator {
             cmd.push("--twitch-disable-hosting");
 
             // enable low latency mode, probably not a good idea without testing
-            if (Config.cfg("low_latency", false)) {
+            if (Config.getInstance().cfg("low_latency", false)) {
                 cmd.push("--twitch-low-latency");
             }
 
             // Skip embedded advertisement segments at the beginning or during a stream
-            if (Config.cfg("disable_ads", false)) {
+            if (Config.getInstance().cfg("disable_ads", false)) {
                 cmd.push("--twitch-disable-ads");
             }
 
@@ -828,7 +828,7 @@ export class Automator {
             // logging level
             if (Config.debug) {
                 cmd.push("--loglevel", "debug");
-            } else if (Config.cfg("app_verbose", false)) {
+            } else if (Config.getInstance().cfg("app_verbose", false)) {
                 cmd.push("--loglevel", "info");
             }
 
@@ -1062,7 +1062,7 @@ export class Automator {
         // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
 
         // chat capture
-        if ((Config.cfg<boolean>("chat_dump") || (this.channel && this.channel.live_chat)) && this.realm == "twitch") {
+        if ((Config.getInstance().cfg<boolean>("chat_dump") || (this.channel && this.channel.live_chat)) && this.realm == "twitch") {
 
             const data_started = this.getStartDate();
             // const data_id = this.getVodID();

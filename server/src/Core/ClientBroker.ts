@@ -193,14 +193,14 @@ export class ClientBroker {
             });
         }
 
-        if (Config.cfg("telegram_enabled") && ClientBroker.getNotificationSettingForProvider(category, NotificationProvider.TELEGRAM)) {
+        if (Config.getInstance().cfg("telegram_enabled") && ClientBroker.getNotificationSettingForProvider(category, NotificationProvider.TELEGRAM)) {
 
             // escape with backslash
             // const escaped_title = title.replace(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/g, "\\$&");
             // const escaped_body = body.replace(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/g, "\\$&");
 
-            axios.post(`https://api.telegram.org/bot${Config.cfg("telegram_token")}/sendMessage`, {
-                chat_id: Config.cfg<number>("telegram_chat_id"),
+            axios.post(`https://api.telegram.org/bot${Config.getInstance().cfg("telegram_token")}/sendMessage`, {
+                chat_id: Config.getInstance().cfg<number>("telegram_chat_id"),
                 text:
                     `<strong>${title}</strong>\n` +
                     `${body}` +
@@ -233,8 +233,8 @@ export class ClientBroker {
             });
         }
 
-        if (Config.cfg("discord_enabled") && ClientBroker.getNotificationSettingForProvider(category, NotificationProvider.DISCORD)) {
-            axios.post(Config.cfg("discord_webhook"), {
+        if (Config.getInstance().cfg("discord_enabled") && ClientBroker.getNotificationSettingForProvider(category, NotificationProvider.DISCORD)) {
+            axios.post(Config.getInstance().cfg("discord_webhook"), {
                 content: `**${title}**\n${body}${url ? `\n\n${url}` : ""}`,
                 avatar_url: icon,
                 tts: tts,

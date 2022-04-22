@@ -1,32 +1,32 @@
 import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
+import crypto from "crypto";
 import fs from "fs";
+import minimist from "minimist";
+import path from "path";
 import { SettingField } from "../../../common/Config";
 import { AppRoot, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot, HomeRoot } from "./BaseConfig";
+import { ClientBroker } from "./ClientBroker";
+import { Helper } from "./Helper";
 import { KeyValue } from "./KeyValue";
+import { Log, LOGLEVEL } from "./Log";
+import { Scheduler } from "./Scheduler";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
-import { Helper } from "./Helper";
-import { LOGLEVEL, Log } from "./Log";
-import crypto from "crypto";
-import path from "path";
-import { ClientBroker } from "./ClientBroker";
-import minimist from "minimist";
 import { TwitchVOD } from "./TwitchVOD";
-import { Scheduler } from "./Scheduler";
 
 const argv = minimist(process.argv.slice(2));
 
 export class Config {
 
-    static initialised = false;
+    initialised = false;
+    config: Record<string, string | number | boolean | string[]> | undefined;
+    private _writeConfig = false;
+    watcher: fs.FSWatcher | undefined;
 
-    static config: Record<string, string | number | boolean | string[]>;
-    private static _writeConfig = false;
 
     static readonly streamerCacheTime = 2592000 * 1000; // 30 days
-
     static readonly settingsFields: Array<SettingField<string> | SettingField<number> | SettingField<boolean>> = [
         { "key": "bin_dir", "group": "Binaries", "text": "Python binary directory", "type": "string", "required": true, "help": "No trailing slash", "stripslash": true },
         { "key": "ffmpeg_path", "group": "Binaries", "text": "FFmpeg path", "type": "string", "required": true },
@@ -126,16 +126,27 @@ export class Config {
 
     ];
 
-    static watcher: fs.FSWatcher | undefined;
 
-    static cfg<T>(key: string, defaultValue?: T): T {
+    static instance: Config | undefined;
+    static getInstance(): Config {
+        if (this.instance === undefined) {
+            this.instance = new Config();
+        }
+        return this.instance;
+    }
 
-        if (!this.config) {
+    static getCleanInstance(): Config {
+        return new Config();
+    }
+
+    cfg<T>(key: string, defaultValue?: T): T {
+
+        if (this.config === undefined) {
             console.error("Config not loaded", key, defaultValue);
             throw new Error("Config not loaded");
         }
 
-        if (!this.settingExists(key)) {
+        if (!Config.settingExists(key)) {
             Log.logAdvanced(LOGLEVEL.WARNING, "config", `Setting '${key}' does not exist.`);
             console.warn(chalk.red(`Setting '${key}' does not exist.`));
         }
@@ -146,7 +157,7 @@ export class Config {
             if (val === undefined) {
                 return <T>defaultValue; // should not happen
             }
-            const field = this.getSettingField(key);
+            const field = Config.getSettingField(key);
             if (field && field.type === "number") {
                 return <T><unknown>parseInt(val);
             } else if (field && field.type === "boolean") {
@@ -168,7 +179,7 @@ export class Config {
         return <T><unknown>this.config[key];
     }
 
-    static loadConfig() {
+    loadConfig() {
 
         console.log(chalk.blue("Loading config..."));
 
@@ -185,36 +196,38 @@ export class Config {
         // this.config.app_name = AppName;
 
         for (const key in this.config) {
-            if (!this.settingExists(key)) {
+            if (!Config.settingExists(key)) {
                 console.warn(chalk.yellow(`Saved setting '${key}' does not exist, deprecated? Discarding.`));
                 delete this.config[key];
             }
         }
 
+        if (!this.config) throw new Error("Config is empty");
+
         console.log(chalk.green(`✔ ${Object.keys(this.config).length} settings loaded.`));
 
         for (const env_var of Object.keys(process.env)) {
             if (env_var.startsWith("TCD_")) {
-                const val = Config.cfg(env_var.substring(4).toLowerCase());
+                const val = this.cfg(env_var.substring(4).toLowerCase());
                 console.log(chalk.green(`Overriding setting '${env_var.substring(4)}' with environment variable: '${val}'`));
             }
         }
 
     }
 
-    static generateConfig() {
+    generateConfig() {
 
         console.log("Generating config");
 
         const example: Record<string, string | boolean | number | string[]> = {};
-        for (const field of this.settingsFields) {
-            if (field["default"]) example[field["key"]] = field["default"];
+        for (const field of Config.settingsFields) {
+            if (field["default"] !== undefined) example[field["key"]] = field["default"];
         }
         // example["favourites"] = [];
         // example["streamers"] = [];
 
         this.config = example;
-        this.saveConfig();
+        this.saveConfig("generate config");
 
     }
 
@@ -226,9 +239,13 @@ export class Config {
         return this.settingsFields.find(field => field["key"] === key);
     }
 
-    static setConfig<T extends number | string | boolean>(key: string, value: T): void {
+    setConfig<T extends number | string | boolean>(key: string, value: T): void {
 
-        const setting = this.getSettingField(key);
+        if (!this.config) {
+            throw new Error("Config not loaded");
+        }
+
+        const setting = Config.getSettingField(key);
 
         if (!setting) {
             throw new Error("Setting does not exist: " + key);
@@ -271,7 +288,7 @@ export class Config {
         }
     }
 
-    static saveConfig(source = "unknown"): boolean {
+    saveConfig(source = "unknown"): boolean {
 
         this._writeConfig = true;
         this.stopWatchingConfig();
@@ -300,17 +317,17 @@ export class Config {
 
     }
 
-    static backupConfig() {
+    backupConfig() {
         if (fs.existsSync(BaseConfigPath.config)) {
             fs.copyFileSync(BaseConfigPath.config, `${BaseConfigPath.config}.${Date.now()}.bak`);
         }
     }
 
-    static async setupAxios() {
+    async setupAxios() {
 
         console.log(chalk.blue("Setting up axios..."));
 
-        if (!Config.cfg("api_client_id")) {
+        if (!this.cfg("api_client_id")) {
             console.error(chalk.red("API client id not set, can't setup axios"));
             return;
         }
@@ -331,7 +348,7 @@ export class Config {
         Helper.axios = axios.create({
             baseURL: "https://api.twitch.tv",
             headers: {
-                "Client-ID": Config.cfg("api_client_id"),
+                "Client-ID": this.cfg("api_client_id"),
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`,
             },
@@ -361,39 +378,39 @@ export class Config {
 
     }
 
-    static generateEventSubSecret() {
-        if (Config.cfg("eventsub_secret")) return;
+    generateEventSubSecret() {
+        if (this.cfg("eventsub_secret")) return;
         console.log(chalk.yellow("Generating eventsub secret..."));
         const secret = crypto.randomBytes(16).toString("hex");
-        Config.setConfig<string>("eventsub_secret", secret);
-        Config.saveConfig("eventsub_secret not set");
+        this.setConfig<string>("eventsub_secret", secret);
+        this.saveConfig("eventsub_secret not set");
     }
 
-    static getWebsocketClientUrl(): string | undefined {
+    getWebsocketClientUrl(): string | undefined {
 
-        if (!Config.cfg("websocket_enabled")) return undefined;
+        if (!this.cfg("websocket_enabled")) return undefined;
 
         // override
-        if (Config.cfg<string>("websocket_client_address")) {
-            return Config.cfg<string>("websocket_client_address");
+        if (this.cfg<string>("websocket_client_address")) {
+            return this.cfg<string>("websocket_client_address");
         }
 
         if (Config.debug) {
             return "ws://localhost:8080/socket/";
         }
 
-        if (!Config.cfg<string>("app_url")) {
+        if (!this.cfg<string>("app_url")) {
             console.error(chalk.red("App url not set, can't get websocket client url"));
             return undefined;
         }
 
-        if (Config.cfg<string>("app_url") === "debug") {
+        if (this.cfg<string>("app_url") === "debug") {
             Log.logAdvanced(LOGLEVEL.WARNING, "config", "App url set to 'debug', can't get websocket client url");
             return undefined;
         }
 
-        const http_path = Config.cfg<string>("app_url");
-        // const http_port = TwitchConfig.cfg<number>("server_port", 8080);
+        const http_path = this.cfg<string>("app_url");
+        // const http_port = Twitchthis.cfg<number>("server_port", 8080);
         const route = "/socket/";
         const ws_path = http_path.replace(/^https:\/\//, "wss://").replace(/^http:\/\//, "ws://");
 
@@ -401,13 +418,13 @@ export class Config {
 
     }
 
-    static startWatchingConfig() {
+    startWatchingConfig() {
 
         if (this.watcher) this.stopWatchingConfig();
 
         // monitor config for external changes
         this.watcher = fs.watch(BaseConfigPath.config, (eventType, filename) => {
-            if (Config._writeConfig) return;
+            if (this._writeConfig) return;
             console.log(`Config file changed: ${eventType} ${filename}`);
             console.log("writeconfig check", Date.now());
             Log.logAdvanced(LOGLEVEL.WARNING, "config", "Config file changed externally");
@@ -416,11 +433,11 @@ export class Config {
 
     }
 
-    static stopWatchingConfig() {
+    stopWatchingConfig() {
         if (this.watcher) this.watcher.close();
     }
 
-    static checkPermissions() {
+    checkPermissions() {
         const folder = DataRoot;
         const testfile = `${folder}/perm`;
         try {
@@ -468,25 +485,26 @@ export class Config {
             throw new Error("Client is not built. Please run yarn build inside the client-vue folder.");
         }
 
-        if (Config.config && Object.keys(Config.config).length > 0) {
+        const config = Config.getInstance().config;
+        if (config && Object.keys(config).length > 0) {
             // throw new Error("Config already loaded, has init been called twice?");
             console.error(chalk.red("Config already loaded, has init been called twice?"));
             return false;
         }
 
-        Config.checkPermissions();
+        Config.getInstance().checkPermissions();
 
         Config.createFolders();
 
         KeyValue.load();
 
-        Config.loadConfig();
+        Config.getInstance().loadConfig();
 
         ClientBroker.loadNotificationSettings();
 
-        Config.generateEventSubSecret();
+        Config.getInstance().generateEventSubSecret();
 
-        await Config.setupAxios();
+        await Config.getInstance().setupAxios();
 
         Log.readTodaysLog();
 
@@ -505,7 +523,7 @@ export class Config {
         await TwitchChannel.loadChannels();
         TwitchAutomatorJob.loadJobsFromCache();
 
-        this.startWatchingConfig();
+        Config.getInstance().startWatchingConfig();
 
         Scheduler.defaultJobs();
 
@@ -522,7 +540,7 @@ export class Config {
 
         Log.logAdvanced(LOGLEVEL.SUCCESS, "config", "Loading config stuff done.");
 
-        this.initialised = true;
+        Config.getInstance().initialised = true;
 
     }
 
@@ -536,16 +554,16 @@ export class Config {
         await TwitchChannel.loadChannels();
     }
 
-    static async validateExternalURL(test_url = ""): Promise<boolean> {
+    async validateExternalURL(test_url = ""): Promise<boolean> {
 
-        const url = test_url ?? Config.cfg<string>("app_url");
+        const url = test_url ?? this.cfg<string>("app_url");
 
-        this.validateExternalURLRules(url);
+        Config.validateExternalURLRules(url);
 
         let full_url = url + "/api/v0/hook";
 
-        if (Config.cfg("instance_id") !== undefined) {
-            full_url += "?instance=" + Config.cfg("instance_id");
+        if (this.cfg("instance_id") !== undefined) {
+            full_url += "?instance=" + this.cfg("instance_id");
         }
 
         let req: AxiosResponse | undefined;
@@ -613,7 +631,7 @@ export class Config {
 
     static get debug(): boolean {
         if (argv.debug) return true;
-        return this.cfg("debug");
+        return Config.getInstance().cfg("debug");
     }
 
     static get can_shutdown(): boolean {

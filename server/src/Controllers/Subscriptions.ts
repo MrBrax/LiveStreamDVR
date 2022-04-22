@@ -30,8 +30,8 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
             all_usernames: new Set(),
         };
 
-        let callback = `${Config.cfg("app_url")}/api/v0/hook`;
-        if (Config.cfg("instance_id")) callback += "?instance=" + Config.cfg("instance_id");
+        let callback = `${Config.getInstance().cfg("app_url")}/api/v0/hook`;
+        if (Config.getInstance().cfg("instance_id")) callback += "?instance=" + Config.getInstance().cfg("instance_id");
 
         for (const sub of subs.data) {
 
