@@ -8,6 +8,7 @@ import TwitchVOD from "@/core/vod";
 
 export const useStore = defineStore("twitchAutomator", {
     state: function (): {
+        app_name: string;
         streamerList: TwitchChannel[];
         jobList: ApiJob[];
         config: Record<string, any> | null;
@@ -19,6 +20,7 @@ export const useStore = defineStore("twitchAutomator", {
         errors: string[];
     } {
         return {
+            app_name: "",
             streamerList: [],
             jobList: [],
             config: {},

@@ -14,6 +14,7 @@ interface ApiErrorResponse {
 
 export interface ApiSettingsResponse extends ApiResponse {
     data: {
+        app_name: string;
         config: Record<string, any>;
         // config: ApiConfig;
         channels: ChannelConfig[];

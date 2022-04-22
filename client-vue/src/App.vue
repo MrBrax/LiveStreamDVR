@@ -77,6 +77,7 @@ export default defineComponent({
             this.store.updateFavouriteGames(data.data.favourite_games);
             this.store.updateErrors(data.data.errors ?? []);
             this.store.websocketUrl = data.data.websocket_url;
+            this.store.app_name = data.data.app_name;
         },
     },
     components: {

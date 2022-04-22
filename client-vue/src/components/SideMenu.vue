@@ -5,7 +5,7 @@
                 <router-link to="/dashboard">
                     <img src="../assets/logo.png" class="favicon" width="24" height="24" :alt="store.cfg('app_name', 'TA') ?? 'TA'" />
                     <span class="title" :title="verboseClientVersion">
-                        {{ store.cfg("app_name") }} {{ store.version }}/{{ clientVersion }}
+                        {{ store.app_name }} {{ store.version }}/{{ clientVersion }}
                         <span class="debug-mode" v-if="store.cfg('debug')" title="Debug">👽</span>
                     </span>
                 </router-link>
@@ -45,7 +45,7 @@
                 </router-link>
             </div>
             <div class="top-menu-item icon right" data-menuitem="github">
-                <a class="linkback" href="https://github.com/MrBrax/TwitchAutomator" target="_blank" rel="noreferrer" title="GitHub">
+                <a class="linkback" :href="homepageLink" target="_blank" rel="noreferrer" title="GitHub">
                     <span class="icon"><fa :icon="['fab', 'github']"></fa></span>
                 </a>
             </div>
@@ -55,6 +55,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import pack from "../../package.json";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
@@ -84,6 +85,9 @@ export default defineComponent({
         },
         verboseClientVersion() {
             return `${process.env.VUE_APP_VERSION} (${process.env.VUE_APP_BUILDDATE} / ${process.env.VUE_APP_GIT_HASH})`; // injected
+        },
+        homepageLink() {
+            return pack.homepage;
         },
     },
 });
