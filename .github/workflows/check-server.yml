@@ -28,4 +28,5 @@ jobs:
           cd ./server
           yarn 
           yarn lint:ts
+          yarn test
           yarn build
