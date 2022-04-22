@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { format, parse, parseISO } from "date-fns";
 import fs from "fs";
-import { replaceAll } from "Helpers/ReplaceAll";
+import { replaceAll } from "../Helpers/ReplaceAll";
 import path from "path";
 import { ApiVod } from "../../../common/Api/Client";
 import type { TwitchComment, TwitchCommentDump } from "../../../common/Comments";
