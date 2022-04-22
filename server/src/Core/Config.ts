@@ -139,6 +139,10 @@ export class Config {
         return new Config();
     }
 
+    static destroyInstance() {
+        this.instance = undefined;
+    }
+
     cfg<T>(key: string, defaultValue?: T): T {
 
         if (this.config === undefined) {

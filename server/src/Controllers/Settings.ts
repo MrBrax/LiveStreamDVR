@@ -6,7 +6,7 @@ import { TwitchChannel } from "../Core/TwitchChannel";
 import { Config } from "../Core/Config";
 import { TwitchGame } from "../Core/TwitchGame";
 import { Helper } from "../Core/Helper";
-import { AppName } from "Core/BaseConfig";
+import { AppName } from "../Core/BaseConfig";
 
 export function GetSettings(req: express.Request, res: express.Response): void {
 

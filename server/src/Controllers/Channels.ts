@@ -6,12 +6,12 @@ import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse } from "
 import { VideoQualityArray } from "../../../common/Defs";
 import { LOGLEVEL, Log } from "../Core/Log";
 import { TwitchVOD } from "../Core/TwitchVOD";
-import { replaceAll } from "Helpers/ReplaceAll";
-import { Helper } from "Core/Helper";
-import { Config } from "Core/Config";
+import { replaceAll } from "../Helpers/ReplaceAll";
+import { Helper } from "../Core/Helper";
+import { Config } from "../Core/Config";
 import path from "path";
 import { parse } from "date-fns";
-import { Webhook } from "Core/Webhook";
+import { Webhook } from "../Core/Webhook";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 

@@ -1,5 +1,5 @@
-import { BaseConfigDataFolder } from "Core/BaseConfig";
-import { Helper } from "Core/Helper";
+import { BaseConfigDataFolder } from "../Core/BaseConfig";
+import { Helper } from "../Core/Helper";
 import express from "express";
 import path from "path";
 import { ApiErrorResponse, ApiResponse, ApiVodResponse } from "../../../common/Api/Api";

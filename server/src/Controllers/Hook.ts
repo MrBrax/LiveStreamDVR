@@ -11,7 +11,7 @@ import { ChallengeResponse } from "../../../common/TwitchAPI/Challenge";
 import { LOGLEVEL, Log } from "../Core/Log";
 import { KeyValue } from "../Core/KeyValue";
 import { SubStatus } from "../../../common/Defs";
-import { replaceAll } from "Helpers/ReplaceAll";
+import { replaceAll } from "../Helpers/ReplaceAll";
 
 const verifySignature = (request: express.Request): boolean => {
 

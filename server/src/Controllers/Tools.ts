@@ -1,9 +1,9 @@
 import express from "express";
-import { Config } from "Core/Config";
+import { Config } from "../Core/Config";
 import { VideoQuality } from "../../../common/Config";
 import path from "path";
-import { BaseConfigDataFolder } from "Core/BaseConfig";
-import { TwitchVOD } from "Core/TwitchVOD";
+import { BaseConfigDataFolder } from "../Core/BaseConfig";
+import { TwitchVOD } from "../Core/TwitchVOD";
 
 export async function ResetChannels(req: express.Request, res: express.Response): Promise<void> {
 

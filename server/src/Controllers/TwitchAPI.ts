@@ -2,7 +2,7 @@ import { TwitchChannel } from "../Core/TwitchChannel";
 import { TwitchVOD } from "../Core/TwitchVOD";
 import express from "express";
 import { ApiErrorResponse } from "../../../common/Api/Api";
-import { LOGLEVEL, Log } from "Core/Log";
+import { LOGLEVEL, Log } from "../Core/Log";
 
 export async function TwitchAPIVideos(req: express.Request, res: express.Response): Promise<void> {
 
