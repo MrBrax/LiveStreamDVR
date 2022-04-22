@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
 import fs from "fs";
 import { SettingField } from "../../../common/Config";
-import { AppRoot, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot } from "./BaseConfig";
+import { AppRoot, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot, HomeRoot } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { TwitchChannel } from "./TwitchChannel";
@@ -443,6 +443,16 @@ export class Config {
         console.log(chalk.magenta(`Environment: ${process.env.NODE_ENV}`));
         console.log(chalk.magenta(`Running as user ${process.env.USER}`));
 
+        console.log(`AppRoot: ${AppRoot}`);
+        console.log(`DataRoot: ${DataRoot}`);
+
+        if (argv.home && !fs.existsSync(HomeRoot)) {
+            fs.mkdirSync(HomeRoot, { recursive: true });
+        } else if (!argv.home && !fs.existsSync(DataRoot)) { // create data root, is this a good idea?
+            // throw new Error(`DataRoot does not exist: ${DataRoot}`);
+            fs.mkdirSync(DataRoot, { recursive: true });
+        }
+
         // check that the app root is not outside of the root
         if (!fs.existsSync(path.join(BaseConfigFolder.server, "tsconfig.json"))) {
             console.error(chalk.red(`Could not find tsconfig.json in ${AppRoot}`));
@@ -530,24 +540,7 @@ export class Config {
 
         const url = test_url ?? Config.cfg<string>("app_url");
 
-        // no url
-        if (!url) {
-            throw new Error("App url not set");
-        }
-
-        if (url === "debug") {
-            throw new Error("App url is debug, can't validate");
-        }
-
-        // no port allowed, only https
-        if (url.includes(":") && !url.includes(":443")) {
-            throw new Error("App url cannot contain a port");
-        }
-
-        // https required
-        if (!url.startsWith("https://")) {
-            throw new Error("App url must start with https://");
-        }
+        this.validateExternalURLRules(url);
 
         let full_url = url + "/api/v0/hook";
 
@@ -588,6 +581,34 @@ export class Config {
 
         return true;
 
+    }
+
+    static validateExternalURLRules(url: string) {
+        // no url
+        if (!url) {
+            throw new Error("App url not set");
+        }
+
+        if (url === "debug") {
+            throw new Error("App url is debug, can't validate");
+        }
+
+        // no port allowed, only https
+        if (url.match(/:\d+/) && !url.match(":443")) {
+            throw new Error("App url cannot contain a port");
+        }
+
+        // https required
+        if (!url.startsWith("https://")) {
+            throw new Error("App url must start with https://");
+        }
+
+        // no trailing slash
+        if (url.endsWith("/")) {
+            throw new Error("App url cannot end with a slash");
+        }
+
+        return true;
     }
 
     static get debug(): boolean {

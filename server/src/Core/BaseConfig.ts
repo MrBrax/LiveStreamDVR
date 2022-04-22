@@ -18,7 +18,6 @@ export const AppName = "TwitchAutomatorTS";
  * The root directory of the application containing client-vue, public, etc.
  */
 export const AppRoot = process.env.NODE_ENV === "development" ? path.join(__dirname, "..", "..", "..") : path.join(__dirname, "..", "..");
-console.log(`AppRoot: ${AppRoot}`);
 
 // let appdata = process.env.APPDATA || (process.platform == "darwin" ? `${process.env.HOME}/Library/Preferences` : `${process.env.HOME}/.local/share`);
 /**
@@ -32,15 +31,6 @@ export const HomeRoot = path.join(os.homedir(), ".config", "twitch-automator"); 
 export const DataRoot = 
     argv.home ? HomeRoot :
         (argv.dataroot ? path.resolve(argv.dataroot) : path.join(AppRoot, "data"));
-
-if (argv.home && !fs.existsSync(HomeRoot)) {
-    fs.mkdirSync(HomeRoot, { recursive: true });
-} else if (!argv.home && !fs.existsSync(DataRoot)) { // create data root, is this a good idea?
-    // throw new Error(`DataRoot does not exist: ${DataRoot}`);
-    fs.mkdirSync(DataRoot, { recursive: true });
-}
-
-console.log(`DataRoot: ${DataRoot}`);
 
 export const BaseConfigFolder = {
     server: path.join(AppRoot, "server"),

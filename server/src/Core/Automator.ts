@@ -22,7 +22,7 @@ import { nonGameCategories, NotificationCategory } from "../../../common/Defs";
 import chalk from "chalk";
 import { Sleep } from "../Helpers/Sleep";
 import { ClientBroker } from "./ClientBroker";
-import { replaceAll } from "Helpers/ReplaceAll";
+import { replaceAll } from "../Helpers/ReplaceAll";
 import { ChapterUpdateData } from "../../../common/Webhook";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";

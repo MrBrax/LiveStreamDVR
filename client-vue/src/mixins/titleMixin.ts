@@ -1,4 +1,5 @@
 import { ComponentOptionsMixin } from "vue";
+import { useStore } from "../store";
 
 function getTitle(vm: ComponentOptionsMixin) {
     const { title } = vm.$options;
@@ -10,8 +11,9 @@ function getTitle(vm: ComponentOptionsMixin) {
 export default {
     created() {
         const title = getTitle(this);
+        const store = useStore();
         if (title) {
-            document.title = title + " - TwitchAutomator";
+            document.title = `${title} - ${store.app_name}`;
         }
     },
 };

@@ -851,7 +851,7 @@ export default defineComponent({
     },
     watch: {
         streamersOnline() {
-            document.title = this.streamersOnline > 0 ? `[${this.streamersOnline}] Dashboard - TwitchAutomator` : `Dashboard - TwitchAutomator`;
+            document.title = this.streamersOnline > 0 ? `[${this.streamersOnline}] Dashboard - ${this.store.app_name}` : `Dashboard - ${this.store.app_name}`;
         },
     },
 });

@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import events from "events";
 import fs from "fs";
-import { replaceAll } from "Helpers/ReplaceAll";
+import { replaceAll } from "../Helpers/ReplaceAll";
 import path from "path";
 import { BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
 

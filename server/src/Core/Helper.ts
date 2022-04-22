@@ -15,7 +15,7 @@ import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
 import { Config } from "./Config";
 import { LOGLEVEL, Log } from "./Log";
 import { TwitchCommentDump } from "../../../common/Comments";
-import { replaceAll } from "Helpers/ReplaceAll";
+import { replaceAll } from "../Helpers/ReplaceAll";
 import { TwitchChannel } from "./TwitchChannel";
 
 export interface ExecReturn {

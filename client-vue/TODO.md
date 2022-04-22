@@ -3,14 +3,14 @@
 - [x] Reimplement notifications
 - [ ] Reimplement that fancy scroll location thing
 - [x] Reimplement vod controls
-- [ ] Categories for settings
+- [x] Categories for settings
 - [ ] Reimplement missing function on vods
 - [x] Fix editor functions
 - [x] Fix 'single page'
-- [ ] Websockets?
+- [x] Websockets?
 
 ## Pages
-- [ ] Dashboard
+- [x] Dashboard
   - [x] Streamers
   - [ ] History
   - [x] Logs
@@ -21,15 +21,15 @@
 - [x] Tools
   - [x] Forms
   - [x] Jobs
-- [ ] Settings
+- [x] Settings
   - [x] Update streamer
   - [x] Add streamer
   - [x] Setting fields
-  - [ ] Category settings
+  - [x] Category settings
   - [x] Cron examples
   - [x] Favourite games
 - [x] Client settings [client only]
-- [ ] About
+- [x] About
   - [x] Binary versions
   - [x] Software stats
   - [ ] Environment variables
