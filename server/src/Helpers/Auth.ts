@@ -1,14 +1,14 @@
 import auth from "basic-auth";
 import chalk from "chalk";
 import express from "express";
-import { AppName } from "Core/BaseConfig";
-import { Config } from "Core/Config";
+import { AppName } from "../Core/BaseConfig";
+import { Config } from "../Core/Config";
 
 export function Auth(req: express.Request, res: express.Response, next: express.NextFunction): void {
 
     // password protect
-    const password = Config.cfg<string>("password");
-    const basepath = Config.cfg<string>("basepath", "");
+    const password = Config.getInstance().cfg<string>("password");
+    const basepath = Config.getInstance().cfg<string>("basepath", "");
 
     const ignored_paths = [
         `${basepath}/api/v0/hook`,
@@ -18,7 +18,7 @@ export function Auth(req: express.Request, res: express.Response, next: express.
         `${basepath}/api/v0/cron/playlist_dump`,
     ];
 
-    if (Config.cfg<string>("password", "") != "") {
+    if (Config.getInstance().cfg<string>("password", "") != "") {
 
         if (ignored_paths.includes(req.path)) {
             next();

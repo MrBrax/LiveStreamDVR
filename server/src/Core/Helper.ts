@@ -71,7 +71,7 @@ export class Helper {
 
         }
 
-        if (!Config.cfg("api_secret") || !Config.cfg("api_client_id")) {
+        if (!Config.getInstance().cfg("api_secret") || !Config.getInstance().cfg("api_client_id")) {
             Log.logAdvanced(LOGLEVEL.ERROR, "helper", "Missing either api secret or client id, aborting fetching of access token!");
             throw new Error("Missing either api secret or client id, aborting fetching of access token!");
         }
@@ -100,12 +100,12 @@ export class Helper {
         */
 
         const response = await axios.post(oauth_url, {
-            "client_id": Config.cfg("api_client_id"),
-            "client_secret": Config.cfg("api_secret"),
+            "client_id": Config.getInstance().cfg("api_client_id"),
+            "client_secret": Config.getInstance().cfg("api_secret"),
             "grant_type": "client_credentials",
         }, {
             headers: {
-                "Client-ID": Config.cfg("api_client_id"),
+                "Client-ID": Config.getInstance().cfg("api_client_id"),
             },
         });
 
@@ -133,7 +133,7 @@ export class Helper {
     }
 
     public static vodFolder(username = "") {
-        return BaseConfigDataFolder.vod + (Config.cfg("channel_folders") && username !== "" ? path.sep + username : "");
+        return BaseConfigDataFolder.vod + (Config.getInstance().cfg("channel_folders") && username !== "" ? path.sep + username : "");
     }
 
     public static JSDateToPHPDate(date: Date) {
@@ -219,9 +219,13 @@ export class Helper {
         return process.platform === "win32";
     }
 
+    public static is_docker() {
+        return process.env.TCD_DOCKER !== undefined;
+    }
+
     public static path_mediainfo(): string | false {
 
-        if (Config.cfg("mediainfo_path")) return Config.cfg<string>("mediainfo_path");
+        if (Config.getInstance().cfg("mediainfo_path")) return Config.getInstance().cfg<string>("mediainfo_path");
 
         // const path = this.whereis("mediainfo", "mediainfo.exe");
         // if (path) {
@@ -234,7 +238,7 @@ export class Helper {
     }
 
     public static path_ffmpeg(): string | false {
-        if (Config.cfg("ffmpeg_path")) return Config.cfg<string>("ffmpeg_path");
+        if (Config.getInstance().cfg("ffmpeg_path")) return Config.getInstance().cfg<string>("ffmpeg_path");
 
         // const path = this.whereis("ffmpeg", "ffmpeg.exe");
         // if (path) {
@@ -254,8 +258,8 @@ export class Helper {
     }
 
     public static path_streamlink(): string | false {
-        if (!Config.cfg("bin_dir")) return false;
-        const full_path = path.join(Config.cfg("bin_dir"), `streamlink${this.is_windows() ? ".exe" : ""}`);
+        if (!Config.getInstance().cfg("bin_dir")) return false;
+        const full_path = path.join(Config.getInstance().cfg("bin_dir"), `streamlink${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
         if (!exists) {
@@ -267,8 +271,8 @@ export class Helper {
     }
 
     public static path_youtubedl(): string | false {
-        if (!Config.cfg("bin_dir")) return false;
-        const full_path = path.join(Config.cfg("bin_dir"), `yt-dlp${this.is_windows() ? ".exe" : ""}`);
+        if (!Config.getInstance().cfg("bin_dir")) return false;
+        const full_path = path.join(Config.getInstance().cfg("bin_dir"), `yt-dlp${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
         if (!exists) {
@@ -280,8 +284,8 @@ export class Helper {
     }
 
     public static path_tcd(): string | false {
-        if (!Config.cfg("bin_dir")) return false;
-        const full_path = path.join(Config.cfg("bin_dir"), `tcd${this.is_windows() ? ".exe" : ""}`);
+        if (!Config.getInstance().cfg("bin_dir")) return false;
+        const full_path = path.join(Config.getInstance().cfg("bin_dir"), `tcd${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
         if (!exists) {
@@ -293,8 +297,8 @@ export class Helper {
     }
 
     public static path_pipenv(): string | false {
-        if (!Config.cfg("bin_dir")) return false;
-        const full_path = path.join(Config.cfg("bin_dir"), `pipenv${this.is_windows() ? ".exe" : ""}`);
+        if (!Config.getInstance().cfg("bin_dir")) return false;
+        const full_path = path.join(Config.getInstance().cfg("bin_dir"), `pipenv${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
         if (!exists) {
@@ -306,7 +310,7 @@ export class Helper {
     }
 
     public static path_twitchdownloader(): string | false {
-        if (Config.cfg("twitchdownloader_path")) return Config.cfg<string>("twitchdownloader_path");
+        if (Config.getInstance().cfg("twitchdownloader_path")) return Config.getInstance().cfg<string>("twitchdownloader_path");
         return false;
     }
 
@@ -595,7 +599,7 @@ export class Helper {
                 opts.push("-y");
             }
 
-            if (Config.cfg("debug") || Config.cfg("app_verbose")) {
+            if (Config.getInstance().cfg("debug") || Config.getInstance().cfg("app_verbose")) {
                 opts.push("-loglevel", "repeat+level+verbose");
             }
 
@@ -691,7 +695,7 @@ export class Helper {
             // ...ffmpeg_options,
             // output,
 
-            if (Config.debug || Config.cfg("app_verbose")) {
+            if (Config.debug || Config.getInstance().cfg("app_verbose")) {
                 opts.push("-loglevel", "repeat+level+verbose");
             }
 
@@ -921,9 +925,9 @@ export class Helper {
     public static getErrors(): string[] {
         const errors = [];
         if (!this.axios) errors.push("Axios is not initialized. Make sure the client id and secret are set in the config.");
-        if (!Config.cfg("app_url") && Config.cfg("app_url") !== "debug") errors.push("No app url set in the config.");
-        if (!Config.cfg("api_client_id")) errors.push("No client id set in the config.");
-        if (!Config.cfg("api_secret")) errors.push("No client secret set in the config.");
+        if (!Config.getInstance().cfg("app_url") && Config.getInstance().cfg("app_url") !== "debug") errors.push("No app url set in the config.");
+        if (!Config.getInstance().cfg("api_client_id")) errors.push("No client id set in the config.");
+        if (!Config.getInstance().cfg("api_secret")) errors.push("No client secret set in the config.");
         if (TwitchChannel.channels.length == 0) errors.push("No channels set in the config.");
 
         if (!this.path_ffmpeg()) errors.push("Failed to find ffmpeg");

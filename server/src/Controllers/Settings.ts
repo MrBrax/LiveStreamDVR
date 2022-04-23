@@ -6,13 +6,13 @@ import { TwitchChannel } from "../Core/TwitchChannel";
 import { Config } from "../Core/Config";
 import { TwitchGame } from "../Core/TwitchGame";
 import { Helper } from "../Core/Helper";
-import { AppName } from "Core/BaseConfig";
+import { AppName } from "../Core/BaseConfig";
 
 export function GetSettings(req: express.Request, res: express.Response): void {
 
     const config: Record<string, any> = {};
-    for (const key in Config.config) {
-        config[key] = Config.cfg(key);
+    for (const field of Config.settingsFields) {
+        config[field.key] = Config.getInstance().cfg(field.key);
     }
 
     res.send({
@@ -24,7 +24,7 @@ export function GetSettings(req: express.Request, res: express.Response): void {
             fields: Config.settingsFields,
             version: version,
             server: "ts-server",
-            websocket_url: Config.getWebsocketClientUrl(),
+            websocket_url: Config.getInstance().getWebsocketClientUrl(),
             errors: Helper.getErrors(),
         },
         status: "OK",
@@ -34,7 +34,7 @@ export function GetSettings(req: express.Request, res: express.Response): void {
 export async function SaveSettings(req: express.Request, res: express.Response): Promise<void> {
 
     let force_new_token = false;
-    if (Config.cfg("api_client_id") !== req.body.api_client_id) {
+    if (Config.getInstance().cfg("api_client_id") !== req.body.api_client_id) {
         force_new_token = true;
     }
 
@@ -68,9 +68,8 @@ export async function SaveSettings(req: express.Request, res: express.Response):
 
         const test_url = req.body.app_url;
 
-        let url_ok;
         try {
-            url_ok = await Config.validateExternalURL(test_url);
+            await Config.getInstance().validateExternalURL(test_url);
         } catch (error) {
             res.send({
                 status: "ERROR",
@@ -84,19 +83,19 @@ export async function SaveSettings(req: express.Request, res: express.Response):
     for(const setting of Config.settingsFields) {
         const key = setting.key;
         if (setting.type === "boolean") {
-            Config.setConfig<boolean>(key, req.body[key] !== undefined);
+            Config.getInstance().setConfig<boolean>(key, req.body[key] !== undefined);
         } else if (setting.type === "number") {
             if (req.body[key] !== undefined) {
-                Config.setConfig<number>(key, parseInt(req.body[key]));
+                Config.getInstance().setConfig<number>(key, parseInt(req.body[key]));
             }
         } else {
             if (req.body[key] !== undefined) {
-                Config.setConfig(key, req.body[key]);
+                Config.getInstance().setConfig(key, req.body[key]);
             }
         }
     }
 
-    Config.saveConfig("settings form saved");
+    Config.getInstance().saveConfig("settings form saved");
 
     if (force_new_token) {
         Helper.getAccessToken(true);

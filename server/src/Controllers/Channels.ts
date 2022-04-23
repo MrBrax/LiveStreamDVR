@@ -6,12 +6,12 @@ import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse } from "
 import { VideoQualityArray } from "../../../common/Defs";
 import { LOGLEVEL, Log } from "../Core/Log";
 import { TwitchVOD } from "../Core/TwitchVOD";
-import { replaceAll } from "Helpers/ReplaceAll";
-import { Helper } from "Core/Helper";
-import { Config } from "Core/Config";
+import { replaceAll } from "../Helpers/ReplaceAll";
+import { Helper } from "../Core/Helper";
+import { Config } from "../Core/Config";
 import path from "path";
 import { parse } from "date-fns";
-import { Webhook } from "Core/Webhook";
+import { Webhook } from "../Core/Webhook";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -243,7 +243,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
 
     const basename = `${channel.login}_${replaceAll(video.created_at, ":", "-")}_${video.stream_id}`;
 
-    const filepath = path.join(Helper.vodFolder(channel.login), `${basename}.${Config.cfg("vod_container", "mp4")}`);
+    const filepath = path.join(Helper.vodFolder(channel.login), `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
 
     let status = false;
 

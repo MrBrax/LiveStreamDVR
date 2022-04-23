@@ -1,4 +1,8 @@
 import { Config } from "../src/Core/Config";
+import { Log } from "../src/Core/Log";
+
+jest.mock("../src/Core/Log");
+const mockLog = jest.mocked(Log, true);
 
 describe("Config", () => {
 
@@ -11,6 +15,55 @@ describe("Config", () => {
         expect(Config.validateExternalURLRules("https://sub.example.com")).toBe(true);
         expect(() => Config.validateExternalURLRules("https://sub.example.com/folder/")).toThrow();
         expect(Config.validateExternalURLRules("https://sub.example.com/folder")).toBe(true);
+    });
+
+    it("config value set", () => {
+        mockLog.logAdvanced.mockImplementation((level, message, data) => { console.log(level, message, data); });
+        const config = Config.getCleanInstance();
+        config.config = {};
+        config.setConfig("app_url", "https://example.com");
+        expect(config.cfg("app_url")).toBe("https://example.com");
+        expect(config.cfg("app_url1")).toBeUndefined();
+
+        // automatic type casting
+        config.setConfig("trust_proxy", "1");
+        expect(config.cfg("trust_proxy")).toBe(true);
+        config.setConfig("trust_proxy", "0");
+        expect(config.cfg("trust_proxy")).toBe(false);
+        config.setConfig("server_port", "1234");
+        expect(config.cfg("server_port")).toBe(1234);
+    });
+
+    it("config value set with default", () => {
+        mockLog.logAdvanced.mockImplementation((level, message, data) => { console.log(level, message, data); });
+        const config = Config.getCleanInstance();
+        config.config = {};
+        expect(config.cfg("app_url", "https://example.com")).toBe("https://example.com");
+        expect(config.cfg("app_url", "")).toBe("");
+        expect(config.cfg("app_url")).toBeUndefined();
+    });
+
+    it("generate config", () => {
+        mockLog.logAdvanced.mockImplementation((level, message, data) => { console.log(level, message, data); });
+        const config = Config.getCleanInstance();
+
+        const spy = jest.spyOn(config, "saveConfig").mockImplementation((source) => { console.log("save config", source); return true; });
+
+        config.generateConfig();
+        expect(config.saveConfig).toHaveBeenCalled();
+
+        expect(config.cfg("server_port")).toBe(8080);
+        expect(config.cfg("trust_proxy")).toBe(false);
+        expect(config.cfg("channel_folders")).toBe(true);
+
+        spy.mockRestore();
+    });
+
+    it("setting exists", () => {
+        expect(Config.settingExists("app_url")).toBe(true);
+        expect(Config.settingExists("app_url1")).toBe(false);
+        expect(Config.getSettingField("app_url")).toHaveProperty("key");
+        expect(Config.getSettingField("app_url1")).toBeUndefined();
     });
 
 });

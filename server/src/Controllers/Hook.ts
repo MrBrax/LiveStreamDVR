@@ -11,7 +11,7 @@ import { ChallengeResponse } from "../../../common/TwitchAPI/Challenge";
 import { LOGLEVEL, Log } from "../Core/Log";
 import { KeyValue } from "../Core/KeyValue";
 import { SubStatus } from "../../../common/Defs";
-import { replaceAll } from "Helpers/ReplaceAll";
+import { replaceAll } from "../Helpers/ReplaceAll";
 
 const verifySignature = (request: express.Request): boolean => {
 
@@ -25,7 +25,7 @@ const verifySignature = (request: express.Request): boolean => {
                 return 403
         */
 
-    if (!Config.cfg("eventsub_secret")) {
+    if (!Config.getInstance().cfg("eventsub_secret")) {
         Log.logAdvanced(LOGLEVEL.ERROR, "hook", "No eventsub secret in config.");
         return false;
     }
@@ -58,7 +58,7 @@ const verifySignature = (request: express.Request): boolean => {
 
     const hmac_message = twitch_message_id + twitch_message_timestamp + body;
 
-    const signature = crypto.createHmac("sha256", Config.cfg("eventsub_secret"))
+    const signature = crypto.createHmac("sha256", Config.getInstance().cfg("eventsub_secret"))
         .update(hmac_message)
         .digest("hex");
 
@@ -84,8 +84,8 @@ export function Hook(req: express.Request, res: express.Response): void {
 
     Log.logAdvanced(LOGLEVEL.INFO, "hook", "Hook called", debugMeta);
 
-    if (Config.cfg("instance_id")) {
-        if (!req.query.instance || req.query.instance != Config.cfg("instance_id")) {
+    if (Config.getInstance().cfg("instance_id")) {
+        if (!req.query.instance || req.query.instance != Config.getInstance().cfg("instance_id")) {
             Log.logAdvanced(LOGLEVEL.ERROR, "hook", `Hook called with the wrong instance (${req.query.instance})`);
             res.send("Invalid instance");
             return;
@@ -152,7 +152,7 @@ export function Hook(req: express.Request, res: express.Response): void {
                 return;
             }
 
-            if (Config.debug || Config.cfg<boolean>("dump_payloads")) {
+            if (Config.debug || Config.getInstance().cfg<boolean>("dump_payloads")) {
                 let payload_filename = replaceAll(new Date().toISOString(), /[-:.]/g, "_"); // @todo: replaceAll
                 if (data_json.subscription.type) payload_filename += `_${data_json.subscription.type}`;
                 payload_filename += ".json";

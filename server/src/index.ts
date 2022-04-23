@@ -1,8 +1,9 @@
 import chalk from "chalk";
-import { Webhook } from "Core/Webhook";
+import { Webhook } from "./Core/Webhook";
 import express from "express";
 import fs from "fs";
-import { Auth } from "Helpers/Auth";
+import { Auth } from "./Helpers/Auth";
+import minimist from "minimist";
 import morgan from "morgan";
 import path from "path";
 import { WebSocketServer } from "ws";
@@ -10,7 +11,6 @@ import { AppName, BaseConfigDataFolder, BaseConfigFolder } from "./Core/BaseConf
 import { ClientBroker } from "./Core/ClientBroker";
 import { Config } from "./Core/Config";
 import ApiRouter from "./Routes/Api";
-import minimist from "minimist";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -36,12 +36,12 @@ const override_port = argv.port ? parseInt(argv.port as string) : undefined;
 Config.init().then(() => {
 
     const app = express();
-    const port = override_port || Config.cfg<number>("server_port", 8080);
+    const port = override_port || Config.getInstance().cfg<number>("server_port", 8080);
 
-    const basepath = Config.cfg<string>("basepath", "");
+    const basepath = Config.getInstance().cfg<string>("basepath", "");
 
     // https://github.com/expressjs/morgan/issues/76#issuecomment-450552807
-    if (Config.cfg<boolean>("trust_proxy", false)) {
+    if (Config.getInstance().cfg<boolean>("trust_proxy", false)) {
         app.set("trust proxy", true);
         console.log(chalk.yellow("Setting trust proxy to true."));
     }
@@ -58,7 +58,7 @@ Config.init().then(() => {
             (req as any).rawBody = buf;
         },
     }));
-    
+
     // logging
     if (process.env.NODE_ENV == "development") {
         app.use(morgan("dev"));
@@ -90,7 +90,7 @@ Config.init().then(() => {
 
     const server = app.listen(port, () => {
         console.log(chalk.bgBlue.greenBright(`🥞 ${AppName} listening on port ${port}, mode ${process.env.NODE_ENV}. Base path: ${basepath || "/"} 🥞`));
-        if (process.env.npm_lifecycle_script?.includes("index.ts")){
+        if (process.env.npm_lifecycle_script?.includes("index.ts")) {
             console.log(chalk.greenBright("~ Running with TypeScript ~"));
         } else {
             console.log(chalk.greenBright("~ Running with plain JS ~"));
@@ -107,12 +107,12 @@ Config.init().then(() => {
         }
     });
 
-    if (Config.cfg<boolean>("websocket_enabled")) {
+    if (Config.getInstance().cfg<boolean>("websocket_enabled")) {
 
         // start websocket server and attach broker
         const websocketServer = new WebSocketServer({ server, path: `${basepath}/socket/` });
         ClientBroker.attach(websocketServer);
-        
+
         Webhook.dispatch("init", {
             "hello": "world",
         });

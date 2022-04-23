@@ -17,7 +17,9 @@ export const AppName = "TwitchAutomatorTS";
 /**
  * The root directory of the application containing client-vue, public, etc.
  */
-export const AppRoot = process.env.NODE_ENV === "development" ? path.join(__dirname, "..", "..", "..") : path.join(__dirname, "..", "..");
+export const AppRoot = 
+    process.env.NODE_ENV === "test" ? path.join(__dirname, "..", "..", "..") :
+        process.env.NODE_ENV === "development" ? path.join(__dirname, "..", "..", "..") : path.join(__dirname, "..", "..");
 
 // let appdata = process.env.APPDATA || (process.platform == "darwin" ? `${process.env.HOME}/Library/Preferences` : `${process.env.HOME}/.local/share`);
 /**
@@ -29,8 +31,9 @@ export const HomeRoot = path.join(os.homedir(), ".config", "twitch-automator"); 
  * The data directory of the application.
  */
 export const DataRoot = 
-    argv.home ? HomeRoot :
-        (argv.dataroot ? path.resolve(argv.dataroot) : path.join(AppRoot, "data"));
+    process.env.NODE_ENV === "test" ? path.join(__dirname, "..", "..", "tests", "data") :
+        argv.home ? HomeRoot :
+            (argv.dataroot ? path.resolve(argv.dataroot) : path.join(AppRoot, "data"));
 
 export const BaseConfigFolder = {
     server: path.join(AppRoot, "server"),
