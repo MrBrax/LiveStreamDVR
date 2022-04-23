@@ -2011,6 +2011,10 @@ export class TwitchVOD {
 
     public startWatching() {
         if (this.fileWatcher) this.stopWatching();
+
+        // no blocks in testing
+        if (process.env.NODE_ENV === "test") return;
+
         console.log(`Watching ${this.basename}`);
         this.fileWatcher = fs.watch(this.filename, (eventType, filename) => {
             // if (eventType === "rename") {

@@ -426,6 +426,9 @@ export class Config {
 
         if (this.watcher) this.stopWatchingConfig();
 
+        // no blocks in testing
+        if (process.env.NODE_ENV === "test") return;
+
         // monitor config for external changes
         this.watcher = fs.watch(BaseConfigPath.config, (eventType, filename) => {
             if (this._writeConfig) return;
