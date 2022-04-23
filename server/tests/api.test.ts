@@ -1,5 +1,6 @@
 import express, { Express } from "express";
 import fs from "fs";
+import { Auth } from "../src/Helpers/Auth";
 import request from "supertest";
 import { ChannelData } from "../../common/Channel";
 import { User } from "../../common/TwitchAPI/Users";
@@ -24,6 +25,8 @@ beforeAll(async () => {
             (req as any).rawBody = buf;
         },
     }));
+
+    app.use(Auth);
 
     const baserouter = express.Router();
     baserouter.use("/api/v0", ApiRouter);
@@ -178,6 +181,36 @@ describe("channels", () => {
     });
 
 });
+
+describe("auth", () => {
+
+    const ignored_paths = [
+        "/api/v0/hook",
+        "/api/v0/cron/sub",
+        "/api/v0/cron/check_muted_vods",
+        "/api/v0/cron/check_deleted_vods",
+        "/api/v0/cron/playlist_dump",
+    ];
+
+    it("should be properly password protected", async () => {
+        // const res = await request(app).get("/api/v0/settings");
+        Config.getInstance().setConfig("password", "test");
+
+        for (const path of ignored_paths) {
+            const res = await request(app).get(path);
+            expect(res.status).not.toBe(401);
+        }
+
+        const res = await request(app).get("/api/v0/settings");
+        expect(res.status).toBe(401);
+        // expect(res.body).toBe("Access denied");
+
+        Config.getInstance().setConfig("password", "");
+
+    });
+
+});
+
 
 // describe("Routes", () => {
 //     it("all get routes should return 200", async () => {

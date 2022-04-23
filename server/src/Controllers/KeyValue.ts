@@ -4,7 +4,7 @@ import { KeyValue } from "../Core/KeyValue";
 
 export function GetKeyValue(req: express.Request, res: express.Response): void {
 
-    if (!KeyValue.has(req.params.key)){
+    if (!KeyValue.getInstance().has(req.params.key)){
         res.status(404).send({
             status: "ERROR",
             message: "Key not found.",
@@ -14,7 +14,7 @@ export function GetKeyValue(req: express.Request, res: express.Response): void {
     
     res.send({
         status: "OK",
-        data: KeyValue.get(req.params.key),
+        data: KeyValue.getInstance().get(req.params.key),
     });
 
 }
@@ -29,7 +29,7 @@ export function SetKeyValue(req: express.Request, res: express.Response): void {
         return;
     }
 
-    KeyValue.set(req.params.key, req.body.value);
+    KeyValue.getInstance().set(req.params.key, req.body.value);
 
     res.send({
         status: "OK",
@@ -39,7 +39,7 @@ export function SetKeyValue(req: express.Request, res: express.Response): void {
 
 export function DeleteKeyValue(req: express.Request, res: express.Response): void {
 
-    if (!KeyValue.has(req.params.key)){
+    if (!KeyValue.getInstance().has(req.params.key)){
         res.status(404).send({
             status: "ERROR",
             message: "Key not found.",
@@ -47,7 +47,7 @@ export function DeleteKeyValue(req: express.Request, res: express.Response): voi
         return;
     }
 
-    KeyValue.delete(req.params.key);
+    KeyValue.getInstance().delete(req.params.key);
 
     res.send({
         status: "OK",

@@ -53,9 +53,9 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
                 created_at: sub.created_at,
             };
 
-            if (!KeyValue.get(`${entry.user_id}.sub.${entry.type}`)) {
-                KeyValue.set(`${entry.user_id}.sub.${entry.type}`, entry.id);
-                KeyValue.set(`${entry.user_id}.substatus.${entry.type}`, entry.status == "enabled" ? SubStatus.SUBSCRIBED : SubStatus.NONE);
+            if (!KeyValue.getInstance().get(`${entry.user_id}.sub.${entry.type}`)) {
+                KeyValue.getInstance().set(`${entry.user_id}.sub.${entry.type}`, entry.id);
+                KeyValue.getInstance().set(`${entry.user_id}.substatus.${entry.type}`, entry.status == "enabled" ? SubStatus.SUBSCRIBED : SubStatus.NONE);
                 Log.logAdvanced(LOGLEVEL.INFO, "route.subscriptions.list", `Added missing keyvalue subs for ${entry.user_id}`);
             }
 

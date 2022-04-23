@@ -503,7 +503,7 @@ export class Config {
 
         Config.createFolders();
 
-        KeyValue.load();
+        KeyValue.getInstance().load();
 
         Config.getInstance().loadConfig();
 
@@ -575,6 +575,7 @@ export class Config {
 
         let req: AxiosResponse | undefined;
         let response_body = "";
+        let response_status = 0;
 
         try {
             req = await axios.get(full_url, {
@@ -583,6 +584,7 @@ export class Config {
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 response_body = error.response?.data ?? "";
+                response_status = error.response?.status ?? 0;
             } else {
                 console.error("app url check error", error);
                 // res.status(400).send({
@@ -594,14 +596,17 @@ export class Config {
             }
         }
 
-        if (req) response_body = req.data;
+        if (req){
+            response_body = req.data;
+            response_status = req.status;
+        }
 
         if (response_body !== "No data supplied") {
             // res.status(400).send({
             //     status: "ERROR",
             //     message: `External app url responded with an unexpected response: ${response_body}`,
             // });
-            throw new Error(`External app url responded with an unexpected response: ${response_body}`);
+            throw new Error(`External app url '${full_url}' responded with an unexpected response: ${response_body} (status: ${response_status})`);
         }
 
         return true;

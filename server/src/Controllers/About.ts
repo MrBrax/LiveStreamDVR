@@ -160,7 +160,7 @@ export async function About(req: express.Request, res: express.Response) {
             pip: pip_requirements,
             cron_lastrun: cron_lastrun,
             is_docker: Helper.is_docker(),
-            keyvalue: KeyValue.data,
+            keyvalue: KeyValue.getInstance().data,
         },
         status: "OK",
     });
