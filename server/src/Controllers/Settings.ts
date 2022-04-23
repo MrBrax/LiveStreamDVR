@@ -11,8 +11,8 @@ import { AppName } from "../Core/BaseConfig";
 export function GetSettings(req: express.Request, res: express.Response): void {
 
     const config: Record<string, any> = {};
-    for (const key in Config.getInstance().config) {
-        config[key] = Config.getInstance().cfg(key);
+    for (const field of Config.settingsFields) {
+        config[field.key] = Config.getInstance().cfg(field.key);
     }
 
     res.send({

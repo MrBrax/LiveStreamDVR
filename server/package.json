@@ -1,6 +1,6 @@
 {
   "name": "twitchautomator-server",
-  "version": "0.0.4",
+  "version": "0.0.4a",
   "description": "",
   "main": "index.ts",
   "scripts": {

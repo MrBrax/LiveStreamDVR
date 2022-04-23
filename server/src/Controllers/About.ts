@@ -159,7 +159,7 @@ export async function About(req: express.Request, res: express.Response) {
             bins: bins,
             pip: pip_requirements,
             cron_lastrun: cron_lastrun,
-            is_docker: process.env.TCD_DOCKER == "1",
+            is_docker: Helper.is_docker(),
             keyvalue: KeyValue.data,
         },
         status: "OK",

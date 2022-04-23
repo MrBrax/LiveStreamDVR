@@ -219,6 +219,10 @@ export class Helper {
         return process.platform === "win32";
     }
 
+    public static is_docker() {
+        return process.env.TCD_DOCKER !== undefined;
+    }
+
     public static path_mediainfo(): string | false {
 
         if (Config.getInstance().cfg("mediainfo_path")) return Config.getInstance().cfg<string>("mediainfo_path");
