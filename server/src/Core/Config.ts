@@ -482,7 +482,7 @@ export class Config {
         }
 
         // check if the client is built before starting the server
-        if (!fs.existsSync(path.join(BaseConfigFolder.client, "index.html"))) {
+        if (!fs.existsSync(path.join(BaseConfigFolder.client, "index.html")) && process.env.NODE_ENV !== "test") {
             console.error(chalk.red("Client is not built. Please run yarn build inside the client-vue folder."));
             console.error(chalk.red(`Expected path: ${path.join(BaseConfigFolder.client, "index.html")}`));
             // process.exit(1);
