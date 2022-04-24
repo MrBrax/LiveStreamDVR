@@ -73,6 +73,13 @@
             </button>
             <span :class="formStatusClass">{{ formStatusText }}</span>
         </div>
+
+        <div class="control">
+            <hr />
+            <button class="button is-confirm" type="button" @click="doValidateExternalURL">
+                <span class="icon"><fa icon="globe"></fa></span> Validate external URL
+            </button>
+        </div>
     </form>
 </template>
 
@@ -82,6 +89,10 @@ import { ApiResponse } from "@common/Api/Api";
 import { SettingField } from "@common/Config";
 import { AxiosError } from "axios";
 import { defineComponent, PropType } from "vue";
+
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faGlobe } from "@fortawesome/free-solid-svg-icons";
+library.add(faGlobe);
 
 interface SettingsGroup {
     name: string;
@@ -158,6 +169,22 @@ export default defineComponent({
             // const k: keyof ApiConfig = key as keyof ApiConfig;
             // return this.settingsData[k] as unknown as T;
             return this.settingsData[key];
+        },
+        doValidateExternalURL() {
+            this.$http
+                .post(`/api/v0/settings/validate_url`)
+                .then((response) => {
+                    const json: ApiResponse = response.data;
+                    if (json.message) alert(json.message);
+                })
+                .catch((err: AxiosError) => {
+                    console.error("form error", err.response);
+                    if (err.response?.data) {
+                        alert(err.response.data.message);
+                    } else {
+                        alert("Fatal error");
+                    }
+                });
         },
     },
     computed: {

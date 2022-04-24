@@ -563,7 +563,7 @@ export class Config {
 
     async validateExternalURL(test_url = ""): Promise<boolean> {
 
-        const url = test_url ?? this.cfg<string>("app_url");
+        const url = test_url !== "" ? test_url : this.cfg<string>("app_url");
 
         Config.validateExternalURLRules(url);
 
@@ -614,6 +614,9 @@ export class Config {
     }
 
     static validateExternalURLRules(url: string) {
+
+        console.debug(`Validating external url: ${url}`);
+
         // no url
         if (!url) {
             throw new Error("App url not set");
