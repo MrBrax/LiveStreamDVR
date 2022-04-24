@@ -21,6 +21,9 @@ export class Scheduler {
         // 0 */12 * * * curl http://localhost:8080/api/v0/cron/check_muted_vods
         // 10 */12 * * * curl http://localhost:8080/api/v0/cron/check_deleted_vods
 
+        // no blocks in testing
+        if (process.env.NODE_ENV === "test") return;
+
         this.schedule("check_muted_vods", "0 */12 * * *", () => {
             if (!Config.getInstance().cfg<boolean>("schedule_muted_vods")) return;
             CronController.fCheckMutedVods();

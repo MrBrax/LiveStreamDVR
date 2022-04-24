@@ -139,13 +139,13 @@ export function Hook(req: express.Request, res: express.Response): void {
                         "hook",
                         "Invalid signature check for challenge!"
                     );
-                    KeyValue.set(`${channel_id}.substatus.${sub_type}`, SubStatus.FAILED);
+                    KeyValue.getInstance().set(`${channel_id}.substatus.${sub_type}`, SubStatus.FAILED);
                     res.status(400).send("Invalid signature check for challenge");
                 }
 
                 Log.logAdvanced(LOGLEVEL.SUCCESS, "hook", `Challenge completed, subscription active for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}), retry ${message_retry}.`, debugMeta);
 
-                KeyValue.set(`${channel_id}.substatus.${sub_type}`, SubStatus.SUBSCRIBED);
+                KeyValue.getInstance().set(`${channel_id}.substatus.${sub_type}`, SubStatus.SUBSCRIBED);
 
                 // return the challenge string to twitch if signature matches
                 res.status(202).send(challenge);

@@ -158,12 +158,12 @@ export class TwitchChannel {
 
     public getSubscriptionStatus(): boolean {
         // for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
-        //     if (KeyValue.get(`${this.userid}.substatus.${sub_type}`) != SubStatus.SUBSCRIBED) {
+        //     if (KeyValue.getInstance().get(`${this.userid}.substatus.${sub_type}`) != SubStatus.SUBSCRIBED) {
         //         return false;
         //     }
         // }
         // return true;
-        return Helper.CHANNEL_SUB_TYPES.every(sub_type => KeyValue.get(`${this.userid}.substatus.${sub_type}`) === SubStatus.SUBSCRIBED);
+        return Helper.CHANNEL_SUB_TYPES.every(sub_type => KeyValue.getInstance().get(`${this.userid}.substatus.${sub_type}`) === SubStatus.SUBSCRIBED);
     }
 
     public async toAPI(): Promise<ApiChannel> {
@@ -396,7 +396,7 @@ export class TwitchChannel {
      * @returns {TwitchVODChapterJSON|undefined} Chapter data
      */
     public getChapterData(): TwitchVODChapterJSON | undefined {
-        const cd = KeyValue.get(`${this.login}.chapterdata`);
+        const cd = KeyValue.getInstance().get(`${this.login}.chapterdata`);
         return cd ? JSON.parse(cd) as TwitchVODChapterJSON : undefined;
     }
 
@@ -554,11 +554,11 @@ export class TwitchChannel {
         channel.broadcaster_type = channel_data.broadcaster_type;
         channel.applyConfig(channel_config);
 
-        if (KeyValue.getBool(`${channel.login}.online`)) {
+        if (KeyValue.getInstance().getBool(`${channel.login}.online`)) {
             Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel.login} is online, stale?`);
         }
 
-        if (KeyValue.get(`${channel.login}.channeldata`)) {
+        if (KeyValue.getInstance().get(`${channel.login}.channeldata`)) {
             Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel.login} has stale chapter data.`);
         }
 
@@ -867,7 +867,7 @@ export class TwitchChannel {
      * @throws
      * @returns 
      */
-    private static async getChannelDataProxy(method: "id" | "login", identifier: string, force: boolean): Promise<ChannelData | false> {
+    static async getChannelDataProxy(method: "id" | "login", identifier: string, force: boolean): Promise<ChannelData | false> {
 
         Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Fetching channel data for ${method} ${identifier}, force: ${force}`);
 
@@ -886,7 +886,7 @@ export class TwitchChannel {
                 Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Channel data not found in memory cache for ${method} ${identifier}, continue fetching`);
             }
 
-            if (KeyValue.get(`${identifier}.deleted`)) {
+            if (KeyValue.getInstance().get(`${identifier}.deleted`)) {
                 Log.logAdvanced(LOGLEVEL.WARNING, "helper", `Channel ${identifier} is deleted, ignore. Delete kv file to force update.`);
                 return false;
             }
@@ -977,7 +977,7 @@ export class TwitchChannel {
 
         for (const sub_type of Helper.CHANNEL_SUB_TYPES) {
 
-            if (KeyValue.get(`${channel_id}.sub.${sub_type}`)) {
+            if (KeyValue.getInstance().get(`${channel_id}.sub.${sub_type}`)) {
                 Log.logAdvanced(LOGLEVEL.INFO, "helper", `Skip subscription to ${channel_id}:${sub_type} (${streamer_login}), in cache.`);
                 continue; // todo: alert
             }
@@ -1011,7 +1011,7 @@ export class TwitchChannel {
 
                     if (err.response?.data.status == 409) { // duplicate
                         const sub_id = await TwitchChannel.getSubscriptionId(channel_id, sub_type);
-                        if (sub_id) KeyValue.set(`${channel_id}.sub.${sub_type}`, sub_id);
+                        if (sub_id) KeyValue.getInstance().set(`${channel_id}.sub.${sub_type}`, sub_id);
                         continue;
                     }
 
@@ -1034,8 +1034,8 @@ export class TwitchChannel {
                     // continue;
                 }
 
-                KeyValue.set(`${channel_id}.sub.${sub_type}`, json.data[0].id);
-                KeyValue.set(`${channel_id}.substatus.${sub_type}`, SubStatus.WAITING);
+                KeyValue.getInstance().set(`${channel_id}.sub.${sub_type}`, json.data[0].id);
+                KeyValue.getInstance().set(`${channel_id}.substatus.${sub_type}`, SubStatus.WAITING);
 
                 Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) sent. Check logs for a 'subscription active' message.`);
             } else if (http_code == 409) {
@@ -1074,8 +1074,8 @@ export class TwitchChannel {
             if (unsub) {
                 Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Unsubscribed from ${channel_id}:${sub.type} (${streamer_login})`);
                 unsubbed++;
-                KeyValue.delete(`${channel_id}.sub.${sub.type}`);
-                KeyValue.delete(`${channel_id}.substatus.${sub.type}`);
+                KeyValue.getInstance().delete(`${channel_id}.sub.${sub.type}`);
+                KeyValue.getInstance().delete(`${channel_id}.substatus.${sub.type}`);
             } else {
                 Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to unsubscribe from ${channel_id}:${sub.type} (${streamer_login})`);
             }

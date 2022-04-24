@@ -41,7 +41,7 @@ export async function SaveSettings(req: express.Request, res: express.Response):
     // @todo: don't set config values unless everything is valid, like the http check
 
     let fields = 0;
-    for(const setting of Config.settingsFields) {
+    for (const setting of Config.settingsFields) {
         const key = setting.key;
         if (setting.required && !req.body[key]) {
             res.status(400).send({
@@ -63,24 +63,7 @@ export async function SaveSettings(req: express.Request, res: express.Response):
         return;
     }
 
-    // verify app_url
-    if (req.body.app_url !== undefined && req.body.app_url !== "debug") {
-
-        const test_url = req.body.app_url;
-
-        try {
-            await Config.getInstance().validateExternalURL(test_url);
-        } catch (error) {
-            res.send({
-                status: "ERROR",
-                message: `External URL is invalid: ${(error as Error).message}`,
-            });
-            return;
-        }
-
-    }
-
-    for(const setting of Config.settingsFields) {
+    for (const setting of Config.settingsFields) {
         const key = setting.key;
         if (setting.type === "boolean") {
             Config.getInstance().setConfig<boolean>(key, req.body[key] !== undefined);
@@ -107,4 +90,46 @@ export async function SaveSettings(req: express.Request, res: express.Response):
     });
 
     return;
+}
+
+export async function ValidateExternalURL(req: express.Request, res: express.Response): Promise<void> {
+
+    // const test_url = req.body.url;
+
+    /*
+    // verify app_url
+    if (req.body.app_url !== undefined && req.body.app_url !== "debug") {
+
+        const test_url = req.body.app_url;
+
+        try {
+            await Config.getInstance().validateExternalURL(test_url);
+        } catch (error) {
+            res.send({
+                status: "ERROR",
+                message: `External URL is invalid: ${(error as Error).message}`,
+            });
+            return;
+        }
+
+    }
+    */
+
+    try {
+        await Config.getInstance().validateExternalURL();
+    } catch (error) {
+        res.send({
+            status: "ERROR",
+            message: `External URL is invalid: ${(error as Error).message}`,
+        });
+        return;
+    }
+
+    res.send({
+        status: "OK",
+        message: "External URL is valid",
+    });
+
+    return;
+
 }

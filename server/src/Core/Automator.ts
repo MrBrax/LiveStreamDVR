@@ -59,7 +59,7 @@ export class Automator {
     }
 
     public getVodID() {
-        return KeyValue.get(`${this.getLogin()}.vod.id`);
+        return KeyValue.getInstance().get(`${this.getLogin()}.vod.id`);
         // return $this->payload['id'];
     }
 
@@ -76,7 +76,7 @@ export class Automator {
     }
 
     public getStartDate() {
-        return KeyValue.get(`${this.getLogin()}.vod.started_at`) || "";
+        return KeyValue.getInstance().get(`${this.getLogin()}.vod.started_at`) || "";
     }
 
     public getDateTime() {
@@ -129,14 +129,14 @@ export class Automator {
                 return false;
             }
 
-            // KeyValue.set("${this.broadcaster_user_login}.last.update", (new DateTime())->format(DateTime::ATOM));
-            KeyValue.set(`${this.broadcaster_user_login}.last.update`, new Date().toISOString());
+            // KeyValue.getInstance().set("${this.broadcaster_user_login}.last.update", (new DateTime())->format(DateTime::ATOM));
+            KeyValue.getInstance().set(`${this.broadcaster_user_login}.last.update`, new Date().toISOString());
             Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel update for ${this.broadcaster_user_login}`);
 
             await this.updateGame();
         } else if (subscription_type == "stream.online" && "id" in event) {
 
-            KeyValue.set(`${this.broadcaster_user_login}.last.online`, new Date().toISOString());
+            KeyValue.getInstance().set(`${this.broadcaster_user_login}.last.online`, new Date().toISOString());
             Log.logAdvanced(LOGLEVEL.INFO, "automator", `Stream online for ${this.broadcaster_user_login} (retry ${message_retry})`);
 
             // const channel_obj = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
@@ -156,9 +156,9 @@ export class Automator {
                 return false;
             }
 
-            KeyValue.setBool(`${this.broadcaster_user_login}.online`, true);
-            KeyValue.set(`${this.broadcaster_user_login}.vod.id`, event.id);
-            KeyValue.set(`${this.broadcaster_user_login}.vod.started_at`, event.started_at);
+            KeyValue.getInstance().setBool(`${this.broadcaster_user_login}.online`, true);
+            KeyValue.getInstance().set(`${this.broadcaster_user_login}.vod.id`, event.id);
+            KeyValue.getInstance().set(`${this.broadcaster_user_login}.vod.started_at`, event.started_at);
 
             // $this->payload = $data['data'][0];
 
@@ -190,7 +190,7 @@ export class Automator {
 
         } else if (subscription_type == "stream.offline") {
 
-            KeyValue.set(`${this.broadcaster_user_login}.last.offline`, new Date().toISOString());
+            KeyValue.getInstance().set(`${this.broadcaster_user_login}.last.offline`, new Date().toISOString());
             Log.logAdvanced(LOGLEVEL.INFO, "automator", `Stream offline for ${this.broadcaster_user_login}`);
 
             // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
@@ -205,10 +205,10 @@ export class Automator {
                 );
             }
 
-            // KeyValue.set("${this.broadcaster_user_login}.online", "0");
-            KeyValue.delete(`${this.broadcaster_user_login}.online`);
-            // KeyValue.set("${this.broadcaster_user_login}.vod.id", null);
-            // KeyValue.set("${this.broadcaster_user_login}.vod.started_at", null);
+            // KeyValue.getInstance().set("${this.broadcaster_user_login}.online", "0");
+            KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
+            // KeyValue.getInstance().set("${this.broadcaster_user_login}.vod.id", null);
+            // KeyValue.getInstance().set("${this.broadcaster_user_login}.vod.started_at", null);
 
             await this.end();
         } else {
@@ -223,7 +223,7 @@ export class Automator {
         const basename = this.basename();
 
         // if online
-        if (KeyValue.getBool(`${this.getLogin()}.online`)) {
+        if (KeyValue.getInstance().getBool(`${this.getLogin()}.online`)) {
 
             // const folder_base = TwitchHelper.vodFolder(this.getLogin());
 
@@ -232,13 +232,13 @@ export class Automator {
             if (!vod) {
                 Log.logAdvanced(LOGLEVEL.FATAL, "automator", `Tried to load VOD ${basename} for chapter update but errored.`);
                 Log.logAdvanced(LOGLEVEL.INFO, "automator", `Resetting online status on ${this.getLogin()}.`);
-                KeyValue.delete(`${this.broadcaster_user_login}.online`);
+                KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
                 return false;
             }
 
             if (!no_run_check && !await vod.getCapturingStatus(true)) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "automator", `VOD ${basename} is not capturing, skipping chapter update. Removing online status.`);
-                KeyValue.delete(`${this.broadcaster_user_login}.online`);
+                KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
                 return false;
             }
 
@@ -307,8 +307,8 @@ export class Automator {
             if (from_cache) {
                 if (this.channel) {
                     chapter_data = this.channel.getChapterData();
-                } else if (KeyValue.has(`${this.getLogin()}.chapterdata`)) {
-                    chapter_data = KeyValue.getObject<TwitchVODChapterJSON>(`${this.getLogin()}.chapterdata`) as TwitchVODChapterJSON; // type guard not working
+                } else if (KeyValue.getInstance().has(`${this.getLogin()}.chapterdata`)) {
+                    chapter_data = KeyValue.getInstance().getObject<TwitchVODChapterJSON>(`${this.getLogin()}.chapterdata`) as TwitchVODChapterJSON; // type guard not working
                 } else {
                     Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No chapter data for ${this.broadcaster_user_login} found in cache.`);
                     return false;
@@ -334,7 +334,7 @@ export class Automator {
 
             const chapter = await TwitchVODChapter.fromJSON(chapter_data);
 
-            KeyValue.setObject(`${this.broadcaster_user_login}.chapterdata`, chapter_data);
+            KeyValue.getInstance().setObject(`${this.broadcaster_user_login}.chapterdata`, chapter_data);
 
             vod.addChapter(chapter);
             vod.saveJSON("game update");
@@ -390,7 +390,7 @@ export class Automator {
             chapter_data.online = false;
 
             Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, saving channel data to cache: ${event.category_name} (${event.title})`);
-            KeyValue.setObject(`${this.broadcaster_user_login}.chapterdata`, chapter_data);
+            KeyValue.getInstance().setObject(`${this.broadcaster_user_login}.chapterdata`, chapter_data);
 
             if (chapter_data.viewer_count) {
                 Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, but managed to get viewer count, so it's online? 🤔`);
@@ -469,7 +469,7 @@ export class Automator {
 
             if (streams && streams.length > 0) {
 
-                KeyValue.setBool(`${this.broadcaster_user_login}.online`, true); // if status has somehow been set to false, set it back to true
+                KeyValue.getInstance().setBool(`${this.broadcaster_user_login}.online`, true); // if status has somehow been set to false, set it back to true
 
                 const stream = streams[0];
 
@@ -596,7 +596,7 @@ export class Automator {
 
         // update the game + title if it wasn't updated already
         Log.logAdvanced(LOGLEVEL.INFO, "automator", `Update game for ${basename}`);
-        if (KeyValue.has(`${this.getLogin()}.chapterdata`)) {
+        if (KeyValue.getInstance().has(`${this.getLogin()}.chapterdata`)) {
             this.updateGame(true, true);
             // KeyValue.delete(`${this.getLogin()}.channeldata`);
         }

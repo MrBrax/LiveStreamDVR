@@ -1,23 +1,39 @@
 import chalk from "chalk";
-import events from "events";
 import fs from "fs";
 import { replaceAll } from "../Helpers/ReplaceAll";
 import path from "path";
 import { BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
+import EventEmitter from "events";
 
-export class KeyValue {
+export class KeyValue extends EventEmitter {
 
-    public static data: Record<string, string> = {};
+    public data: Record<string, string> = {};
+    // public static events = new EventEmitter();
 
-    public static events = new events.EventEmitter();
+    public static instance: KeyValue | undefined;
+
+    static getInstance(): KeyValue {
+        if (!this.instance) {
+            this.instance = new KeyValue();
+        }
+        return this.instance;
+    }
+
+    static getCleanInstance() {
+        return new KeyValue();
+    }
+
+    static destroyInstance() {
+        this.instance = undefined;
+    }
 
     /**
      * Check if a key exists in the key-value store.
      * @param key 
      * @returns 
      */
-    static has(key: string): boolean {
-        return key in KeyValue.data;
+    has(key: string): boolean {
+        return key in this.data;
     }
 
     /**
@@ -25,7 +41,7 @@ export class KeyValue {
      * @param key
      * @returns {string|false} The value or false if the key does not exist.
      */
-    static get(key: string): string | false {
+    get(key: string): string | false {
 
         key = replaceAll(key, /\//g, ""); // @todo: replaceAll
 
@@ -38,7 +54,7 @@ export class KeyValue {
      * @param key 
      * @returns 
      */
-    static getObject<T>(key: string): T | false {
+    getObject<T>(key: string): T | false {
 
         key = replaceAll(key, /\//g, ""); // @todo: replaceAll
 
@@ -54,7 +70,7 @@ export class KeyValue {
 
     }
 
-    static getBool(key: string): boolean {
+    getBool(key: string): boolean {
         return this.get(key) === "true";
     }
 
@@ -63,7 +79,7 @@ export class KeyValue {
      * @param key
      * @param value
      */
-    static set(key: string, value: string): void {
+    set(key: string, value: string): void {
 
         key = replaceAll(key, /\//g, ""); // @todo: replaceAll
 
@@ -71,7 +87,7 @@ export class KeyValue {
         //     this.delete(key);
         // } else {
         this.data[key] = value;
-        this.events.emit("set", key, value);
+        this.emit("set", key, value);
         // }
 
         this.save();
@@ -83,7 +99,7 @@ export class KeyValue {
      * @param key
      * @param value
      */
-    static setObject<T>(key: string, value: T | null): void {
+    setObject<T>(key: string, value: T | null): void {
 
         key = replaceAll(key, /\//g, ""); // @todo: replaceAll
 
@@ -91,14 +107,14 @@ export class KeyValue {
             this.delete(key);
         } else {
             this.data[key] = JSON.stringify(value);
-            this.events.emit("set", key, value);
+            this.emit("set", key, value);
         }
 
         this.save();
 
     }
 
-    static setBool(key: string, value: boolean) {
+    setBool(key: string, value: boolean) {
         this.set(key, value ? "true" : "false");
     }
 
@@ -106,10 +122,10 @@ export class KeyValue {
      * Delete a value from the key-value store.
      * @param key
      */
-    static delete(key: string) {
+    delete(key: string) {
         if (this.data[key]) {
             delete this.data[key];
-            this.events.emit("delete", key);
+            this.emit("delete", key);
             this.save();
         }
     }
@@ -117,20 +133,20 @@ export class KeyValue {
     /**
      * Delete all values from the key-value store.
      */
-    static deleteAll() {
+    deleteAll() {
         this.data = {};
-        this.events.emit("delete_all");
+        this.emit("delete_all");
         this.save();
     }
 
     /**
      * Save the key-value store to disk.
      */
-    static save() {
+    save() {
         fs.writeFileSync(BaseConfigPath.keyvalue, JSON.stringify(this.data, null, 4));
     }
 
-    static load() {
+    load() {
         console.log(chalk.blue("Loading key-value pairs..."));
         if (fs.existsSync(BaseConfigPath.keyvalue)) {
             this.data = JSON.parse(fs.readFileSync(BaseConfigPath.keyvalue, "utf8"));
@@ -141,7 +157,7 @@ export class KeyValue {
         }
     }
 
-    static migrateFromFileBasedKeyValue() {
+    migrateFromFileBasedKeyValue() {
         console.log(chalk.blue("Migrating key-value pairs..."));
         const files = fs.readdirSync(BaseConfigDataFolder.keyvalue).filter(file => !file.endsWith(".json"));
         let migrated = 0;
