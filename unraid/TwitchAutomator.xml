@@ -41,7 +41,10 @@
   <DonateLink/>
   <Requires/>
   <Config Name="Webinterface" Target="8080" Default="8080" Mode="tcp" Description="WebUI Port" Type="Port" Display="always" Required="true" Mask="false">8146</Config>
-  <Config Name="Host Path 1" Target="/usr/local/share/twitchautomator/data" Default="/mnt/user/" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/twitch_vods/</Config>
+  <Config Name="Host Path 1" Target="/usr/local/share/twitchautomator/data/storage" Default="/mnt/user/" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/twitch_vods/</Config>
+  <Config Name="Host Path 1" Target="/usr/local/share/twitchautomator/data/cache" Default="/mnt/user/" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/TwitchAutomator/cache</Config>
+  <Config Name="Host Path 1" Target="/usr/local/share/twitchautomator/data/config" Default="/mnt/user/" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/TwitchAutomator/config</Config>
+  <Config Name="Host Path 1" Target="/usr/local/share/twitchautomator/data/logs" Default="/mnt/user/" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/TwitchAutomator/logs</Config>
   <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">1000</Config>
   <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">1000</Config>
   <Config Name="UMASK" Target="UMASK" Default="022" Mode="" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">022</Config>
