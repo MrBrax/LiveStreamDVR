@@ -5,7 +5,7 @@
             <div v-if="errors" class="big-error">
                 <div v-for="error in errors" :key="error" class="big-error-item">Error</div>
             </div>
-            <router-view v-if="store.config !== null && store.favourite_games !== null" />
+            <router-view v-if="store.config !== null && store.favourite_games !== null" ref="view" />
             <div v-else>
                 <div class="container">
                     <section class="section">
@@ -45,6 +45,9 @@ export default defineComponent({
         this.store.fetchClientConfig();
         this.fetchData();
     },
+    mounted() {
+
+    },
     methods: {
         async fetchData() {
             // clear config
@@ -65,7 +68,7 @@ export default defineComponent({
             }
 
             if (!response.data || !response.data.data) {
-                alert("No data received");
+                alert("No data received for settings");
                 return;
             }
 
@@ -87,4 +90,5 @@ export default defineComponent({
         JobStatus
     },
 });
+
 </script>
