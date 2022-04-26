@@ -268,13 +268,13 @@ export default defineComponent({
     },
     computed: {
         clientVersion() {
-            return process.env.VUE_APP_VERSION; // injected
+            return import.meta.env.VITE_APP_VERSION; // injected
         },
         clientMode() {
-            return process.env.NODE_ENV; // injected
+            return import.meta.env.MODE; // injected
         },
         verboseClientVersion() {
-            return `${process.env.VUE_APP_VERSION} (${process.env.VUE_APP_BUILDDATE} / ${process.env.VUE_APP_GIT_HASH})`; // injected
+            return `${import.meta.env.VITE_APP_VERSION} (${import.meta.env.VITE_APP_BUILDDATE} / ${import.meta.env.VITE_APP_GIT_HASH})`; // injected
         },
     },
     methods: {

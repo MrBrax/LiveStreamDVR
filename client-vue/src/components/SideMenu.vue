@@ -81,10 +81,10 @@ export default defineComponent({
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
         },
         clientVersion() {
-            return process.env.VUE_APP_VERSION; // injected
+            return import.meta.env.VITE_APP_VERSION; // injected
         },
         verboseClientVersion() {
-            return `${process.env.VUE_APP_VERSION} (${process.env.VUE_APP_BUILDDATE} / ${process.env.VUE_APP_GIT_HASH})`; // injected
+            return `${import.meta.env.VITE_APP_VERSION} (${import.meta.env.VITE_APP_BUILDDATE} / ${import.meta.env.VITE_APP_GIT_HASH})`; // injected
         },
         homepageLink() {
             return pack.homepage;

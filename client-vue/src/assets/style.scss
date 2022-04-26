@@ -1,17 +1,9 @@
-/*
-$fa-font-path: "./fontawesome/webfonts";
-@import "./fontawesome/scss/fontawesome.scss";
-@import "./fontawesome/scss/solid.scss";
-@import "./fontawesome/scss/regular.scss";
-@import "./fontawesome/scss/brands.scss";
-*/
-
-@import "~normalize.css/normalize";
+@import "normalize.css/normalize";
 // @import "~@fontsource/roboto/scss/mixins";
 
 // @import "~@fontsource/roboto/500.css";
-@import "~@fontsource/roboto/latin.css";
-@import "~@fontsource/roboto-condensed/latin.css";
+@import "@fontsource/roboto/latin.css";
+@import "@fontsource/roboto-condensed/latin.css";
 
 $favourite-base: #356e35;
 $converting-base: #bb15ca;

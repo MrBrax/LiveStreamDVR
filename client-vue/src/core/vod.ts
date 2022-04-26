@@ -1,4 +1,4 @@
-import { useStore } from "@/store";
+import { useStore } from "../store";
 import { ApiVod } from "../../../common/Api/Client";
 import { MuteStatus } from "../../../common/Defs";
 import { VideoMetadata } from "../../../common/MediaInfo";
