@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { format, parse, parseISO } from "date-fns";
+import { parse, parseISO } from "date-fns";
 import fs from "fs";
 import { replaceAll } from "../Helpers/ReplaceAll";
 import path from "path";
@@ -641,9 +641,14 @@ export class TwitchVOD {
                 !fs.existsSync(this.path_vttchapters)
             )
         ) {
-            this.saveLosslessCut();
-            this.saveFFMPEGChapters();
-            this.saveVTTChapters();
+            try {
+                this.saveLosslessCut();
+                this.saveFFMPEGChapters();
+                this.saveVTTChapters();
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Could not save associated files for ${this.basename}: ${(error as Error).message}`);
+            }
+            
         }
 
     }
@@ -1007,9 +1012,23 @@ export class TwitchVOD {
         await this.getMediainfo();
 
         // generate chapter related files
-        this.saveLosslessCut();
-        this.saveFFMPEGChapters();
-        this.saveVTTChapters();
+        try {
+            this.saveLosslessCut();
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to save lossless cut for ${this.basename}: ${error}`);
+        }
+        
+        try {
+            this.saveFFMPEGChapters();
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to save ffmpeg chapters for ${this.basename}: ${error}`);
+        }
+
+        try {
+            this.saveVTTChapters();
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to save vtt chapters for ${this.basename}: ${error}`);
+        }
 
         // match stored vod to online vod
         await this.matchProviderVod();
