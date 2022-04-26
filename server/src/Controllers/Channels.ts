@@ -301,7 +301,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
 
 export async function SubscribeToChannel(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel_login = req.params.channel;
+    const channel_login = req.params.login;
 
     const channel = TwitchChannel.getChannelByLogin(channel_login);
 
