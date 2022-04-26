@@ -16,6 +16,7 @@
                 </div>
             </div>
         </div>
+        <job-status ref="jobstatus" />
     </div>
 </template>
 
@@ -27,6 +28,7 @@ import { defineComponent } from "vue";
 import SideMenu from "@/components/SideMenu.vue";
 import { useStore } from "./store";
 import type { ApiSettingsResponse } from "@common/Api/Api";
+import JobStatus from "./components/JobStatus.vue";
 
 export default defineComponent({
     name: "App",
@@ -82,6 +84,7 @@ export default defineComponent({
     },
     components: {
         SideMenu,
+        JobStatus
     },
 });
 </script>

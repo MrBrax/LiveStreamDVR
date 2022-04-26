@@ -37,9 +37,6 @@
             </div>
         </section>
     </div>
-
-    <job-status ref="jobstatus" />
-
     <div id="js-status" :class="{ disconnected: ws && !wsConnected }" ref="js-status" @click="timer = 0">
         <template v-if="ws">
             {{ wsConnected ? "Connected" : wsConnecting ? "Connecting..." : "Disconnected" }}
@@ -61,7 +58,6 @@ import { useStore } from "@/store";
 import TwitchChannel from "@/core/channel";
 import { ApiLogResponse, ApiResponse } from "@common/Api/Api";
 import LogViewer from "@/components/LogViewer.vue";
-import JobStatus from "../components/JobStatus.vue";
 
 interface DashboardData {
     loading: boolean;
@@ -106,8 +102,7 @@ export default defineComponent({
     setup() {
         const store = useStore();
         const logviewer = ref<InstanceType<typeof LogViewer>>();
-        const jobstatus = ref<InstanceType<typeof JobStatus>>();
-        return { store, logviewer, jobstatus };
+        return { store, logviewer };
     },
     title(): string {
         if (this.streamersOnline > 0) return `[${this.streamersOnline}] Dashboard`;
@@ -152,7 +147,7 @@ export default defineComponent({
                 this.logviewer?.fetchLog();
             })
             .then(() => {
-                this.jobstatus?.fetchJobs();
+                this.store.fetchAndUpdateJobs();
             });
     },
     mounted() {
@@ -508,7 +503,7 @@ export default defineComponent({
                     this.store.updateStreamerList(streamerResult.streamer_list);
 
                     this.logviewer?.fetchLog();
-                    this.jobstatus?.fetchJobs();
+                    this.store.fetchAndUpdateJobs();
                 }
 
                 this.loading = false;
@@ -592,10 +587,9 @@ export default defineComponent({
         },
     },
     components: {
-    Streamer,
-    LogViewer,
-    JobStatus
-},
+        Streamer,
+        LogViewer,
+    },
     watch: {
         streamersOnline() {
             document.title = this.streamersOnline > 0 ? `[${this.streamersOnline}] Dashboard - ${this.store.app_name}` : `Dashboard - ${this.store.app_name}`;

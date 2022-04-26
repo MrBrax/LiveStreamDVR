@@ -1,5 +1,5 @@
 import { ApiChannel, ApiJob, ApiLogLine, ApiVod } from "../../../common/Api/Client";
-import { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiVodResponse } from "../../../common/Api/Api";
+import { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiJobsResponse, ApiVodResponse } from "../../../common/Api/Api";
 import axios from "axios";
 import { defineStore } from "pinia";
 import { ClientSettings } from "@/twitchautomator";
@@ -168,6 +168,19 @@ export const useStore = defineStore("twitchAutomator", {
         },
         updateErrors(data: string[]) {
             this.errors = data;
+        },
+        async fetchAndUpdateJobs() {
+            let response;
+
+            try {
+                response = await axios.get(`/api/v0/jobs`);
+            } catch (error) {
+                console.error(error);
+                return;
+            }
+
+            const json: ApiJobsResponse = response.data;
+            this.updateJobList(json.data);
         },
         updateJobList(data: ApiJob[]) {
             this.jobList = data;

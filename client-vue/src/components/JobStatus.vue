@@ -14,7 +14,7 @@
             </tr>
         </table>
 
-        <em v-if="store.jobList.length == 0">None</em>
+        <em v-if="store.jobList.length == 0">No jobs running</em>
     </div>
 </template>
 
@@ -27,22 +27,6 @@ export default defineComponent({
     setup() {
         const store = useStore();
         return { store };
-    },
-    methods: {
-        async fetchJobs() {
-            let response;
-
-            try {
-                response = await this.$http.get(`/api/v0/jobs`);
-            } catch (error) {
-                console.error(error);
-                return;
-            }
-
-            const json = response.data;
-            // console.debug("Update jobs list", json.data);
-            this.store.updateJobList(json.data);
-        },
     },
 });
 </script>
