@@ -38,6 +38,8 @@
         </section>
     </div>
 
+    <job-status ref="jobstatus" />
+
     <div id="js-status" :class="{ disconnected: ws && !wsConnected }" ref="js-status" @click="timer = 0">
         <template v-if="ws">
             {{ wsConnected ? "Connected" : wsConnecting ? "Connecting..." : "Disconnected" }}
@@ -46,23 +48,6 @@
             {{ loading ? "Loading..." : `Refreshing in ${timer} seconds.` }}
         </template>
         <template v-else>Disabled</template>
-    </div>
-    <div id="jobs-status" v-if="store.jobList !== undefined">
-        <table>
-            <tr v-for="job in store.jobList" :key="job.name">
-                <td>
-                    <span class="icon">
-                        <fa icon="sync" spin v-if="job.status"></fa>
-                        <fa icon="exclamation-triangle" v-else></fa>
-                    </span>
-                    <span class="text-overflow px-1">{{ job.name }}</span>
-                </td>
-                <td>{{ job.pid }}</td>
-                <td><!-- {{ job.status }}-->{{ job.status ? "Running" : "Unexpected exit" }}</td>
-            </tr>
-        </table>
-
-        <em v-if="store.jobList.length == 0">None</em>
     </div>
 </template>
 
@@ -76,6 +61,7 @@ import { useStore } from "@/store";
 import TwitchChannel from "@/core/channel";
 import { ApiLogResponse, ApiResponse } from "@common/Api/Api";
 import LogViewer from "@/components/LogViewer.vue";
+import JobStatus from "../components/JobStatus.vue";
 
 interface DashboardData {
     loading: boolean;
@@ -120,7 +106,8 @@ export default defineComponent({
     setup() {
         const store = useStore();
         const logviewer = ref<InstanceType<typeof LogViewer>>();
-        return { store, logviewer };
+        const jobstatus = ref<InstanceType<typeof JobStatus>>();
+        return { store, logviewer, jobstatus };
     },
     title(): string {
         if (this.streamersOnline > 0) return `[${this.streamersOnline}] Dashboard`;
@@ -165,7 +152,7 @@ export default defineComponent({
                 this.logviewer?.fetchLog();
             })
             .then(() => {
-                this.fetchJobs();
+                this.jobstatus?.fetchJobs();
             });
     },
     mounted() {
@@ -502,20 +489,6 @@ export default defineComponent({
             }
             return [];
         },
-        async fetchJobs() {
-            let response;
-
-            try {
-                response = await this.$http.get(`/api/v0/jobs`);
-            } catch (error) {
-                console.error(error);
-                return;
-            }
-
-            const json = response.data;
-            // console.debug("Update jobs list", json.data);
-            this.store.updateJobList(json.data);
-        },
         async fetchTicker() {
             if (this.timer <= 0 && !this.loading) {
                 this.loading = true;
@@ -535,8 +508,7 @@ export default defineComponent({
                     this.store.updateStreamerList(streamerResult.streamer_list);
 
                     this.logviewer?.fetchLog();
-
-                    this.fetchJobs();
+                    this.jobstatus?.fetchJobs();
                 }
 
                 this.loading = false;
@@ -620,9 +592,10 @@ export default defineComponent({
         },
     },
     components: {
-        Streamer,
-        LogViewer
-    },
+    Streamer,
+    LogViewer,
+    JobStatus
+},
     watch: {
         streamersOnline() {
             document.title = this.streamersOnline > 0 ? `[${this.streamersOnline}] Dashboard - ${this.store.app_name}` : `Dashboard - ${this.store.app_name}`;
