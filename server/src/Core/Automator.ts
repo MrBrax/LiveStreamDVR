@@ -81,7 +81,8 @@ export class Automator {
 
     public getDateTime() {
         // return date(TwitchHelper::DATE_FORMAT);
-        return format(new Date(), Helper.TWITCH_DATE_FORMAT);
+        // return format(new Date(), Helper.TWITCH_DATE_FORMAT);
+        return JSON.stringify(new Date());
     }
 
     public streamURL() {
@@ -579,7 +580,7 @@ export class Automator {
         this.vod.meta = this.payload_eventsub;
         // this.vod.json.meta = $this.payload_eventsub; // what
         this.vod.capture_id = this.getVodID() || "1";
-        this.vod.started_at = parseJSON(data_started); // parse(data_started, Helper.TWITCH_DATE_FORMAT, new Date());
+        this.vod.started_at = parseJSON(data_started);
 
         if (this.force_record) this.vod.force_record = true;
 

@@ -136,14 +136,6 @@ export class Helper {
         return BaseConfigDataFolder.vod + (Config.getInstance().cfg("channel_folders") && username !== "" ? path.sep + username : "");
     }
 
-    public static JSDateToPHPDate(date: Date) {
-        return {
-            date: format(date, this.PHP_DATE_FORMAT),
-            timezone_type: 3,
-            timezone: "UTC",
-        };
-    }
-
     /**
      * For some reason, twitch uses "1h1m1s" for durations, not seconds
      * thanks copilot
@@ -283,6 +275,10 @@ export class Helper {
         return exists ? full_path : false;
     }
 
+    /**
+     * As of 2022, tcd does no longer work due to the Twitch API being shut down
+     * @deprecated
+     */
     public static path_tcd(): string | false {
         if (!Config.getInstance().cfg("bin_dir")) return false;
         const full_path = path.join(Config.getInstance().cfg("bin_dir"), `tcd${this.is_windows() ? ".exe" : ""}`);

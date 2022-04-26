@@ -10,7 +10,7 @@ import { replaceAll } from "../Helpers/ReplaceAll";
 import { Helper } from "../Core/Helper";
 import { Config } from "../Core/Config";
 import path from "path";
-import { parse } from "date-fns";
+import { parse, parseJSON } from "date-fns";
 import { Webhook } from "../Core/Webhook";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
@@ -275,7 +275,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         // vod.streamer_name = channel.display_name || channel.login;
         // vod.streamer_login = channel.login;
         // vod.streamer_id = channel.userid || "";
-        vod.started_at = parse(video.created_at, Helper.TWITCH_DATE_FORMAT, new Date());
+        vod.started_at = parseJSON(video.created_at);
 
         const duration = Helper.parseTwitchDuration(video.duration);
         vod.ended_at = new Date(vod.started_at.getTime() + (duration * 1000));

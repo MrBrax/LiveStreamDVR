@@ -1060,7 +1060,7 @@ export class TwitchVOD {
         }
 
         for (const video of channel_videos) {
-            const video_time = parse(video.created_at, Helper.TWITCH_DATE_FORMAT, new Date());
+            const video_time = parseJSON(video.created_at);
             if (!video_time) continue;
 
             if (Math.abs(this.started_at.getTime() - video_time.getTime()) < 1000 * 60 * 5) { // 5 minutes
