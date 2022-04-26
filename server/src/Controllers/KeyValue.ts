@@ -2,6 +2,15 @@ import express from "express";
 import { ApiErrorResponse } from "../../../common/Api/Api";
 import { KeyValue } from "../Core/KeyValue";
 
+export function GetAllKeyValues(req: express.Request, res: express.Response) {
+
+    res.send({
+        status: "OK",
+        data: KeyValue.getInstance().getAll(),
+    });
+
+}
+
 export function GetKeyValue(req: express.Request, res: express.Response): void {
 
     if (!KeyValue.getInstance().has(req.params.key)){
@@ -11,7 +20,7 @@ export function GetKeyValue(req: express.Request, res: express.Response): void {
         } as ApiErrorResponse);
         return;
     }
-    
+
     res.send({
         status: "OK",
         data: KeyValue.getInstance().get(req.params.key),
@@ -48,6 +57,16 @@ export function DeleteKeyValue(req: express.Request, res: express.Response): voi
     }
 
     KeyValue.getInstance().delete(req.params.key);
+
+    res.send({
+        status: "OK",
+    });
+
+}
+
+export function DeleteAllKeyValues(req: express.Request, res: express.Response): void {
+
+    KeyValue.getInstance().deleteAll();
 
     res.send({
         status: "OK",

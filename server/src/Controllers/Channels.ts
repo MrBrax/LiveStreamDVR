@@ -72,10 +72,10 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
 
     const quality = formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [];
     const match = formdata.match ? formdata.match.split(",").map(m => m.trim()) : [];
-    const download_chat = formdata.download_chat !== undefined;
-    const burn_chat = formdata.burn_chat !== undefined;
-    const no_capture = formdata.no_capture !== undefined;
-    const live_chat = formdata.live_chat !== undefined;
+    const download_chat = formdata.download_chat;
+    const burn_chat = formdata.burn_chat;
+    const no_capture = formdata.no_capture;
+    const live_chat = formdata.live_chat;
 
     const channel_config: ChannelConfig = {
         login: channel.login,
@@ -91,6 +91,7 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
 
     res.send({
         status: "OK",
+        message: `Channel '${channel.login}' updated`,
     });
 
 }
@@ -126,6 +127,7 @@ export function DeleteChannel(req: express.Request, res: express.Response): void
 
     res.send({
         status: "OK",
+        message: `Channel '${channel.login}' deleted`,
     });
 
 }
@@ -146,10 +148,10 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         login: formdata.login,
         quality: formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [],
         match: formdata.match ? formdata.match.split(",").map(m => m.trim()) : [],
-        download_chat: formdata.download_chat !== undefined,
-        burn_chat: formdata.burn_chat !== undefined,
-        no_capture: formdata.no_capture !== undefined,
-        live_chat: formdata.live_chat !== undefined,
+        download_chat: formdata.download_chat,
+        burn_chat: formdata.burn_chat,
+        no_capture: formdata.no_capture,
+        live_chat: formdata.live_chat,
     };
 
     if (!channel_config.login) {
@@ -178,12 +180,20 @@ export async function AddChannel(req: express.Request, res: express.Response): P
 
 
     const channel = TwitchChannel.getChannelByLogin(channel_config.login);
-
     if (channel) {
         Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, channel already exists: ${channel_config.login}`);
         res.status(400).send({
             status: "ERROR",
             message: "Channel already exists",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const api_channel_data = await TwitchChannel.getChannelDataByLogin(channel_config.login);
+    if (api_channel_data && api_channel_data.login !== channel_config.login) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel login does not match data fetched from API",
         } as ApiErrorResponse);
         return;
     }
@@ -205,6 +215,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
     res.send({
         data: new_channel,
         status: "OK",
+        message: `Channel '${new_channel.login}' created`,
     });
 
 }
@@ -290,7 +301,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
 
 export async function SubscribeToChannel(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel_login = req.params.channel;
+    const channel_login = req.params.login;
 
     const channel = TwitchChannel.getChannelByLogin(channel_login);
 

@@ -11,7 +11,7 @@
             <label class="label">Quality</label>
             <div class="control">
                 <select class="input input-required" name="quality">
-                    <option v-for="quality in twitchQuality" :key="quality">{{ quality }}</option>
+                    <option v-for="quality in VideoQualityArray" :key="quality">{{ quality }}</option>
                 </select>
             </div>
         </div>
@@ -29,10 +29,14 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { VideoQualityArray } from "@common/Defs";
 
 export default defineComponent({
     name: "ToolsBurnForm",
     emits: ["formSuccess"],
+    setup() {
+        return { VideoQualityArray };
+    },
     data() {
         return {
             formStatusText: "Ready",

@@ -114,9 +114,9 @@ describe("channels", () => {
             live_chat: true,
         });
 
-        expect(res.status).toBe(200);
-        expect(res.body.message).toBeUndefined();
+        expect(res.body.message).toContain("'test' created");
         expect(res.body.data).toHaveProperty("display_name");
+        expect(res.status).toBe(200);
 
         expect(spy1).toHaveBeenCalled();
         expect(spy2).toHaveBeenCalled();
@@ -175,7 +175,7 @@ describe("channels", () => {
     it("should remove a channel", async () => {
         const res = await request(app).delete("/api/v0/channels/test");
         expect(res.status).toBe(200);
-        expect(res.body.message).toBeUndefined();
+        expect(res.body.message).toContain("'test' deleted");
         expect(res.body.status).toBe("OK");
         expect(spy3).toHaveBeenCalled();
     });

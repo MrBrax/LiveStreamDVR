@@ -27,25 +27,25 @@
         </div>
         <div class="field">
             <label class="checkbox">
-                <input type="checkbox" name="download_chat" value="1" v-model="formData.download_chat" />
+                <input type="checkbox" name="download_chat" v-model="formData.download_chat" />
                 Download chat after video capture is complete
             </label>
         </div>
         <div class="field">
             <label class="checkbox">
-                <input type="checkbox" name="live_chat" value="1" v-model="formData.live_chat" />
+                <input type="checkbox" name="live_chat" v-model="formData.live_chat" />
                 Live chat download
             </label>
         </div>
         <div class="field">
             <label class="checkbox">
-                <input type="checkbox" name="burn_chat" value="1" v-model="formData.burn_chat" />
+                <input type="checkbox" name="burn_chat" v-model="formData.burn_chat" />
                 Burn chat after downloading
             </label>
         </div>
         <div class="field">
             <label class="checkbox">
-                <input type="checkbox" name="no_capture" value="1" v-model="formData.no_capture" />
+                <input type="checkbox" name="no_capture" v-model="formData.no_capture" />
                 Do not capture video
             </label>
         </div>
@@ -92,17 +92,9 @@ export default defineComponent({
     },
     methods: {
         submitForm(event: Event) {
-            // const form = event.target as HTMLFormElement;
-            // const inputs = new FormData(form);
 
             this.formStatusText = "Loading...";
             this.formStatus = "";
-
-            // console.log("form", form);
-            // console.log("entries", inputs, inputs.entries(), inputs.values());
-
-            // let data: Record<string, unknown> = {};
-            // inputs.forEach((value, key) => (data[key] = value));
 
             this.$http
                 .post(`/api/v0/channels`, this.formData)
@@ -112,21 +104,35 @@ export default defineComponent({
                     this.formStatus = json.status;
                     if (json.status == "OK") {
                         this.$emit("formSuccess", json);
+                        this.resetForm();
                     }
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
-                    if (err.response.data.status == "ERROR") {
-                        this.formStatusText = err.response.data.message;
-                        this.formStatus = err.response.data.status;
-                    } else {
-                        this.formStatusText = err.response.data;
-                        this.formStatus = "ERROR";
+                    if (this.axios.isAxiosError(err) && err.response) {
+                        if (err.response.data.status == "ERROR") {
+                            this.formStatusText = err.response.data.message;
+                            this.formStatus = err.response.data.status;
+                        } else {
+                            this.formStatusText = err.response.data;
+                            this.formStatus = "ERROR";
+                        }
                     }
                 });
 
             event.preventDefault();
             return false;
+        },
+        resetForm() {
+            this.formData = {
+                login: "",
+                quality: "",
+                match: "",
+                download_chat: false,
+                live_chat: false,
+                burn_chat: false,
+                no_capture: false,
+            };
         },
         checkLogin() {
             const match = this.formData.login.match(/^https?:\/\/www.twitch.tv\/(\w+)/);

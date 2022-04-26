@@ -542,7 +542,7 @@ export class TwitchChannel {
         const channel_login = channel_data.login;
 
         const channel_config = TwitchChannel.channels_config.find(c => c.login === channel_login);
-        if (!channel_config) throw new Error(`Could not find channel config for channel login: ${channel_login}`);
+        if (!channel_config) throw new Error(`Could not find channel config in memory for channel login: ${channel_login}`);
 
         channel.channel_data = channel_data;
         channel.config = channel_config;
@@ -611,12 +611,18 @@ export class TwitchChannel {
         TwitchChannel.saveChannelsConfig();
 
         const channel = await TwitchChannel.loadFromLogin(config.login, true);
-        if (!channel) throw new Error(`Channel ${config.login} could not be loaded`);
+        if (!channel || !channel.userid) throw new Error(`Channel ${config.login} could not be loaded`);
+
+        try {
+            await TwitchChannel.subscribe(channel.userid);
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`);
+            TwitchChannel.channels_config = TwitchChannel.channels_config.filter(ch => ch.login !== config.login); // remove channel from config
+            TwitchChannel.saveChannelsConfig();
+            throw error; // rethrow error
+        }
 
         TwitchChannel.channels.push(channel);
-
-        // @todo: subscribe
-        if (channel.userid) TwitchChannel.subscribe(channel.userid);
 
         return channel;
     }

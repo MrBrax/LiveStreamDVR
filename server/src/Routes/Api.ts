@@ -72,6 +72,8 @@ router.get("/twitchapi/videos/:login", TwitchAPI.TwitchAPIVideos);
 router.get("/twitchapi/video/:video_id", TwitchAPI.TwitchAPIVideo);
 router.get("/twitchapi/user/:login", TwitchAPI.TwitchAPIUser);
 
+router.get("/keyvalue", KeyValue.GetAllKeyValues);
+router.delete("/keyvalue", KeyValue.DeleteAllKeyValues);
 router.get("/keyvalue/:key", KeyValue.GetKeyValue);
 router.put("/keyvalue/:key", KeyValue.SetKeyValue);
 router.delete("/keyvalue/:key", KeyValue.DeleteKeyValue);
