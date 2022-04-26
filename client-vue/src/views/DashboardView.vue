@@ -32,29 +32,8 @@
 
         <section class="section">
             <div class="section-title" @click="logToggle"><h1>Logs</h1></div>
-            <div class="section-content" v-if="logVisible">
-                <div>
-                    <select v-model="logFilename">
-                        <option v-for="fn in logFilenames" :key="fn">{{ fn }}</option>
-                    </select>
-                    <button type="button" @click="fetchLog(true)">Fetch</button>
-                </div>
-
-                <div class="log_viewer" ref="logViewer">
-                    <table>
-                        <tr v-for="(line, lineIndex) in logFiltered" :key="lineIndex" :class="logLineClass(line)">
-                            <td v-if="line.date">{{ formatDate(line.date) }}</td>
-                            <td v-else-if="line.time">{{ formatTimestamp(line.time / 1000, "yyyy-MM-dd HH:ii:ss.SSS") }}</td>
-                            <td v-else-if="line.date_string">{{ line.date_string }}</td>
-                            <td v-else>(no date)</td>
-                            <td>
-                                <a @click="logSetFilter(line.module)">{{ line.module }}</a>
-                            </td>
-                            <td :title="'PID: ' + line.pid">{{ line.level || "UNKNOWN" }}</td>
-                            <td @click="expandLog(lineIndex)">{{ line.text }}</td>
-                        </tr>
-                    </table>
-                </div>
+            <div class="section-content" v-show="logVisible">
+                <log-viewer ref="logviewer" />
             </div>
         </section>
     </div>
@@ -88,13 +67,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
 import Streamer from "@/components/StreamerItem.vue";
 import type { ApiLogLine, ApiChannel } from "@common/Api/Client";
 import type { ChapterUpdateData, EndCaptureData, EndConvertData, JobClear, JobSave, NotifyData, VodRemoved, VodUpdated, WebhookAction } from "@common/Webhook";
 import { format, parseISO } from "date-fns";
 import { useStore } from "@/store";
 import TwitchChannel from "@/core/channel";
+import { ApiLogResponse, ApiResponse } from "@common/Api/Api";
+import LogViewer from "@/components/LogViewer.vue";
 
 interface DashboardData {
     loading: boolean;
@@ -104,12 +85,6 @@ interface DashboardData {
     vodUpdateInterval: number;
     totalSize: number;
     freeSize: number;
-    logFilename: string;
-    logFilenames: string[];
-    logLines: ApiLogLine[];
-    logVisible: boolean;
-    logModule: string;
-    logFromLine: number;
     ws: WebSocket | null;
     wsConnected: boolean;
     wsConnecting: boolean;
@@ -119,6 +94,7 @@ interface DashboardData {
     oldData: Record<string, ApiChannel>;
     notificationSub: () => void;
     faviconSub: () => void;
+    logVisible: boolean;
 }
 
 interface WebsocketJSON {
@@ -143,7 +119,8 @@ export default defineComponent({
     name: "DashboardView",
     setup() {
         const store = useStore();
-        return { store };
+        const logviewer = ref<InstanceType<typeof LogViewer>>();
+        return { store, logviewer };
     },
     title(): string {
         if (this.streamersOnline > 0) return `[${this.streamersOnline}] Dashboard`;
@@ -158,12 +135,6 @@ export default defineComponent({
             vodUpdateInterval: 0,
             totalSize: 0,
             freeSize: 0,
-            logFilename: "",
-            logFilenames: [],
-            logLines: [],
-            logFromLine: 0,
-            logVisible: false,
-            logModule: "",
             oldData: {},
             notificationSub: () => {
                 console.log("notificationSub");
@@ -177,9 +148,11 @@ export default defineComponent({
             wsKeepalive: 0,
             wsLastPing: 0,
             wsKeepaliveTime: 20000,
+            logVisible: false,
         };
     },
     created() {
+        console.debug("Dashboard created");
         this.loading = true;
         this.watchFaviconBadgeSub();
         this.fetchStreamers()
@@ -188,21 +161,23 @@ export default defineComponent({
                 this.loading = false;
             })
             .then(() => {
-                this.fetchLog();
+                console.debug(this.logviewer);
+                this.logviewer?.fetchLog();
             })
             .then(() => {
                 this.fetchJobs();
             });
     },
     mounted() {
-        // this.processNotifications();
+
+        console.debug("Dashboard mounted");
+
+        console.debug(this.logviewer);
 
         if (this.store.cfg("websocket_enabled") && this.store.clientConfig?.useWebsockets) {
-            // console.debug("Websockets enabled");
             this.connectWebsocket();
         } else {
             if (this.store.clientConfig?.useBackgroundTicker) {
-                // console.debug("Websockets disabled");
                 this.tickerInterval = setInterval(() => {
                     this.fetchTicker();
                 }, 1000);
@@ -380,14 +355,14 @@ export default defineComponent({
 
                     if (newLines.some((line) => line.date_string && parseISO(line.date_string).getDay() != new Date().getDay())) {
                         // new day, clear log
-                        this.logLines = json.data;
-                        // this.logFilename =
+                        this.store.clearLog();
+                        this.store.addLog(newLines);
                     } else {
-                        this.logLines = [...this.logLines, ...json.data];
+                        this.store.addLog(newLines);
                     }
 
                     setTimeout(() => {
-                        this.scrollLog();
+                        this.logviewer?.scrollLog();
                     }, 100);
                 } else if (action == "job_save" || action == "job_update") {
                     const data: JobSave = json.data;
@@ -541,50 +516,6 @@ export default defineComponent({
             // console.debug("Update jobs list", json.data);
             this.store.updateJobList(json.data);
         },
-        async fetchLog(clear = false) {
-            // today's log file
-            if (this.logFilename == "") {
-                this.logFilename = format(new Date(), "yyyy-MM-dd");
-            }
-
-            if (clear) {
-                this.logFromLine = 0;
-                this.logLines = [];
-            }
-
-            let response;
-            try {
-                response = await this.$http.get(`/api/v0/log/${this.logFilename}/${this.logFromLine}`);
-            } catch (error) {
-                console.error(error);
-                return;
-            }
-
-            // console.debug("log data", response.data);
-
-            if (!response.data.data) {
-                console.error("fetchLog invalid data", response.data);
-                return;
-            }
-
-            if (!response.data.data.lines) return;
-
-            this.logFromLine = response.data.data.last_line;
-
-            this.logFilenames = response.data.data.logs;
-
-            this.logLines = this.logLines.concat(response.data.data.lines);
-
-            // scroll to bottom
-            setTimeout(() => {
-                this.scrollLog();
-            }, 100);
-        },
-        scrollLog() {
-            const lv = this.$refs.logViewer as HTMLDivElement;
-            if (!lv) return;
-            lv.scrollTop = lv.scrollHeight;
-        },
         async fetchTicker() {
             if (this.timer <= 0 && !this.loading) {
                 this.loading = true;
@@ -603,7 +534,7 @@ export default defineComponent({
 
                     this.store.updateStreamerList(streamerResult.streamer_list);
 
-                    this.fetchLog();
+                    this.logviewer?.fetchLog();
 
                     this.fetchJobs();
                 }
@@ -658,166 +589,9 @@ export default defineComponent({
                 // document.body.appendChild(canvas);
             }
         },
-
-        /*
-        processNotifications() {
-            if (!this.store.clientConfig?.enableNotifications) {
-                return;
-            }
-
-            console.log("Notifications enabled");
-
-            this.notificationSub = this.store.$onAction(({ name, store, args, after, onError }) => {
-                // unsub if changed
-                if (!this.store.clientConfig?.enableNotifications) {
-                    console.log("Notification setting disabled, stopping subscription.");
-                    this.notificationSub();
-                    return;
-                }
-
-                if (!args) {
-                    // console.error("No payload for notification sub");
-                    return;
-                }
-
-                if (name !== "updateStreamerList") {
-                    // console.debug(`Streamer list notification check payload was ${name}, abort.`);
-                    return;
-                }
-
-                const payload = args[0] as ApiChannel[];
-
-                if (payload.length === 0) {
-                    console.debug("Streamer list notification check payload was empty, abort.");
-                    return;
-                }
-
-                // if (!("streamer_list" in args)) {
-                //     console.error("Streamer list notification payload is invalid", name, args);
-                //     return;
-                // }
-
-                // console.log("subscribe", mutation.payload, this.store.streamerList);
-                /*
-                if( mutation.payload[0].current_game !== state.streamerList[0].current_game ){
-                    alert( mutation.payload[0].display_name + ": " + mutation.payload[0].current_game );
-                }*
-                // console.log( "values", Object.(mutation.payload[0]));
-                const streamerPronounciation: { [key: string]: string } = {
-                    pokelawls: "pookelawls",
-                    xQcOW: "eckscueseeow",
-                };
-
-                console.debug("notification payload", name, args);
-
-                for (const streamer of payload) {
-                    const login = streamer.login;
-
-                    if (this.oldData && this.oldData[streamer.login]) {
-                        const oldStreamer = this.oldData[streamer.login];
-
-                        if (!streamer.channel_data) {
-                            console.warn(`No channel data for ${login}`);
-                            continue;
-                        }
-
-                        const opt = {
-                            icon: streamer.channel_data.profile_image_url,
-                            image: streamer.channel_data.profile_image_url,
-                            body: streamer.current_game ? streamer.current_game.game_name : "No game",
-                        };
-
-                        let text = "";
-
-                        if (!oldStreamer.is_live && streamer.is_live) {
-                            text = `${login} is live!`;
-                        }
-
-                        if (streamer.is_live) {
-                            // console.log("notification compare games", streamer.login, oldStreamer.current_game, streamer.current_game );
-
-                            if (
-                                (!oldStreamer.current_game && streamer.current_game) || // from no game to new game
-                                (oldStreamer.current_game && streamer.current_game && oldStreamer.current_game.game_name !== streamer.current_game.game_name) // from old game to new game
-                            ) {
-                                if (nonGameCategories.includes(streamer.current_game.game_name)) {
-                                    if (streamer.current_game.favourite) {
-                                        text = `${login} is online with one of your favourite categories: ${streamer.current_game.game_name}!`;
-                                    } else if (streamer.current_game.game_name) {
-                                        text = `${login} is now streaming ${streamer.current_game.game_name}!`;
-                                    } else {
-                                        text = `${login} is now streaming without a category!`;
-                                    }
-                                } else {
-                                    if (streamer.current_game.favourite) {
-                                        text = `${login} is now playing one of your favourite games: ${streamer.current_game.game_name}!`;
-                                    } else if (streamer.current_game.game_name) {
-                                        text = `${login} is now playing ${streamer.current_game.game_name}!`;
-                                    } else {
-                                        text = `${login} is now streaming without a category!`;
-                                    }
-                                }
-                            }
-                        }
-
-                        if (oldStreamer.is_live && !streamer.is_live) {
-                            text = `${login} has gone offline!`;
-                        }
-
-                        if (text !== "") {
-                            console.log(`Notify: ${text}`);
-
-                            if (Notification.permission === "granted") {
-                                const toast = new Notification(text, opt);
-                                console.log(`Granted notification`, toast);
-                            }
-
-                            const useSpeech = true;
-                            if (useSpeech) {
-                                let speakText = text;
-
-                                if (streamerPronounciation[login]) {
-                                    console.debug(`Using pronounciation for ${login}`);
-                                    speakText = speakText.replace(login, streamerPronounciation[login]);
-                                }
-                                const utterance = new SpeechSynthesisUtterance(speakText);
-                                window.speechSynthesis.speak(utterance);
-                            }
-                        } else {
-                            // console.debug(`No notification text for ${streamer.login}`);
-                        }
-                    }
-
-                    this.oldData[streamer.login] = streamer;
-                }
-            });
-        },
-        */
-        logSetFilter(val: string) {
-            this.logModule = this.logModule ? "" : val;
-            console.log(`Log filter set to ${this.logModule}`);
-        },
         logToggle() {
             this.logVisible = !this.logVisible;
-            setTimeout(() => {
-                const lv = this.$refs.logViewer as HTMLDivElement;
-                if (!lv) return;
-                lv.scrollTop = lv.scrollHeight;
-            }, 100);
-        },
-        logLineClass(line: ApiLogLine): Record<string, boolean> {
-            return {
-                "log-line": true,
-                [`log-line-${line.level.toLowerCase()}`]: true,
-                "log-line-interactive": line.metadata !== undefined,
-            };
-        },
-        expandLog(lineNumber: number) {
-            if (!this.logLines[lineNumber]) return;
-            if (this.logLines[lineNumber].metadata) {
-                alert(JSON.stringify(this.logLines[lineNumber].metadata, undefined, 2));
-                console.log(this.logLines[lineNumber].metadata);
-            }
+            this.logviewer?.scrollLog();
         },
     },
     computed: {
@@ -825,10 +599,10 @@ export default defineComponent({
             const streamers: TwitchChannel[] = [...this.store.streamerList];
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
         },
-        logFiltered(): ApiLogLine[] {
-            if (!this.logModule) return this.logLines;
-            return this.logLines.filter((val) => val.module == this.logModule);
-        },
+        // logFiltered(): ApiLogLine[] {
+        //     if (!this.logModule) return this.store.log;
+        //     return this.store.log.filter((val) => val.module == this.logModule);
+        // },
         streamersOnline(): number {
             if (!this.store.streamerList) return 0;
             return this.store.streamerList.filter((a) => a.is_live).length;
@@ -847,7 +621,7 @@ export default defineComponent({
     },
     components: {
         Streamer,
-        // HelloWorld
+        LogViewer
     },
     watch: {
         streamersOnline() {
