@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { format, parse, parseISO } from "date-fns";
+import { parse, parseISO } from "date-fns";
 import fs from "fs";
 import { replaceAll } from "../Helpers/ReplaceAll";
 import path from "path";
@@ -15,7 +15,7 @@ import { Video, VideosResponse } from "../../../common/TwitchAPI/Video";
 import { VodUpdated } from "../../../common/Webhook";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../Storage/JSON";
 import { AppName, BaseConfigDataFolder } from "./BaseConfig";
-import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
+import { Job } from "./Job";
 import { TwitchChannel } from "./TwitchChannel";
 import { Config } from "./Config";
 import { TwitchGame } from "./TwitchGame";
@@ -641,9 +641,14 @@ export class TwitchVOD {
                 !fs.existsSync(this.path_vttchapters)
             )
         ) {
-            this.saveLosslessCut();
-            this.saveFFMPEGChapters();
-            this.saveVTTChapters();
+            try {
+                this.saveLosslessCut();
+                this.saveFFMPEGChapters();
+                this.saveVTTChapters();
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Could not save associated files for ${this.basename}: ${(error as Error).message}`);
+            }
+            
         }
 
     }
@@ -1007,9 +1012,23 @@ export class TwitchVOD {
         await this.getMediainfo();
 
         // generate chapter related files
-        this.saveLosslessCut();
-        this.saveFFMPEGChapters();
-        this.saveVTTChapters();
+        try {
+            this.saveLosslessCut();
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to save lossless cut for ${this.basename}: ${error}`);
+        }
+        
+        try {
+            this.saveFFMPEGChapters();
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to save ffmpeg chapters for ${this.basename}: ${error}`);
+        }
+
+        try {
+            this.saveVTTChapters();
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to save vtt chapters for ${this.basename}: ${error}`);
+        }
 
         // match stored vod to online vod
         await this.matchProviderVod();
@@ -1320,17 +1339,17 @@ export class TwitchVOD {
     }
 
     public async getChatDumpStatus(): Promise<number | false> {
-        const job = TwitchAutomatorJob.findJob(`chatdump_${this.basename}`);
+        const job = Job.findJob(`chatdump_${this.basename}`);
         return job ? await job.getStatus() : false;
     }
 
     public async getCapturingStatus(use_command = false): Promise<number | false> {
-        const job = TwitchAutomatorJob.findJob(`capture_${this.basename}`);
+        const job = Job.findJob(`capture_${this.basename}`);
         return job ? await job.getStatus(use_command) : false;
     }
 
     public async getConvertingStatus(): Promise<number | false> {
-        const job = TwitchAutomatorJob.findJob(`convert_${this.basename}`);
+        const job = Job.findJob(`convert_${this.basename}`);
         return job ? await job.getStatus() : false;
     }
 

@@ -11,7 +11,7 @@ import { FFProbe } from "../../../common/FFProbe";
 import { EventSubTypes } from "../../../common/TwitchAPI/Shared";
 import { Subscriptions } from "../../../common/TwitchAPI/Subscriptions";
 import { BaseConfigDataFolder } from "./BaseConfig";
-import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
+import { Job } from "./Job";
 import { Config } from "./Config";
 import { LOGLEVEL, Log } from "./Log";
 import { TwitchCommentDump } from "../../../common/Comments";
@@ -158,15 +158,15 @@ export class Helper {
             const num = parseInt(match[1]);
             const unit = match[2];
             switch (unit) {
-                case "h":
-                    seconds += num * 3600;
-                    break;
-                case "m":
-                    seconds += num * 60;
-                    break;
-                case "s":
-                    seconds += num;
-                    break;
+            case "h":
+                seconds += num * 3600;
+                break;
+            case "m":
+                seconds += num * 60;
+                break;
+            case "s":
+                seconds += num;
+                break;
             }
         }
         return seconds;
@@ -413,11 +413,11 @@ export class Helper {
 
             Log.logAdvanced(LOGLEVEL.INFO, jobName, `Executing ${bin} ${args.join(" ")}`);
 
-            let job: TwitchAutomatorJob;
+            let job: Job;
 
             if (process.pid) {
                 Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Spawned process ${process.pid} for ${jobName}`);
-                job = TwitchAutomatorJob.create(jobName);
+                job = Job.create(jobName);
                 job.setPid(process.pid);
                 job.setProcess(process);
                 job.startLog(jobName, `$ ${bin} ${args.join(" ")}\n`);
@@ -464,7 +464,7 @@ export class Helper {
         });
     }
 
-    static startJob(jobName: string, bin: string, args: string[], env: Record<string, string> = {}): TwitchAutomatorJob | false {
+    static startJob(jobName: string, bin: string, args: string[], env: Record<string, string> = {}): Job | false {
 
         const process = spawn(bin, args || [], {
             // detached: true,
@@ -474,11 +474,11 @@ export class Helper {
 
         Log.logAdvanced(LOGLEVEL.INFO, "helper", `Executing ${bin} ${args.join(" ")}`);
 
-        let job: TwitchAutomatorJob | false = false;
+        let job: Job | false = false;
 
         if (process.pid) {
             Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Spawned process ${process.pid} for ${jobName}`);
-            job = TwitchAutomatorJob.create(jobName);
+            job = Job.create(jobName);
             job.setPid(process.pid);
             job.setProcess(process);
             job.setMetadata({
