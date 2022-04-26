@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { parseISO } from "date-fns";
+import { parseJSON } from "date-fns";
 import { ApiVodChapter } from "../../../common/Api/Client";
 import { TwitchVODChapterJSON } from "../Storage/JSON";
 import { TwitchGame } from "./TwitchGame";
@@ -136,7 +136,7 @@ export class TwitchVODChapter {
         chapter.title = data.title;
         chapter.is_mature = data.is_mature;
         chapter.online = data.online;
-        chapter.started_at = parseISO(data.started_at);
+        chapter.started_at = parseJSON(data.started_at);
         chapter.viewer_count = data.viewer_count;
 
         if (data.game_id) {

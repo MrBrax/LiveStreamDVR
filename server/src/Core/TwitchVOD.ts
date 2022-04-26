@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { parse, parseISO } from "date-fns";
+import { parse, parseJSON } from "date-fns";
 import fs from "fs";
 import { replaceAll } from "../Helpers/ReplaceAll";
 import path from "path";
@@ -166,15 +166,15 @@ export class TwitchVOD {
             throw new Error("No JSON loaded for date setup!");
         }
 
-        if (this.json.created_at) this.created_at = parseISO(this.json.created_at);
-        if (this.json.started_at) this.started_at = parseISO(this.json.started_at);
+        if (this.json.created_at) this.created_at = parseJSON(this.json.created_at);
+        if (this.json.started_at) this.started_at = parseJSON(this.json.started_at);
 
-        if (this.json.ended_at) this.ended_at = parseISO(this.json.ended_at);
-        if (this.json.saved_at) this.saved_at = parseISO(this.json.saved_at);
+        if (this.json.ended_at) this.ended_at = parseJSON(this.json.ended_at);
+        if (this.json.saved_at) this.saved_at = parseJSON(this.json.saved_at);
 
-        if (this.json.capture_started) this.capture_started = parseISO(this.json.capture_started);
-        if (this.json.capture_started2) this.capture_started2 = parseISO(this.json.capture_started2);
-        if (this.json.conversion_started) this.conversion_started = parseISO(this.json.conversion_started);
+        if (this.json.capture_started) this.capture_started = parseJSON(this.json.capture_started);
+        if (this.json.capture_started2) this.capture_started2 = parseJSON(this.json.capture_started2);
+        if (this.json.conversion_started) this.conversion_started = parseJSON(this.json.conversion_started);
 
     }
 

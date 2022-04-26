@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-import { format, formatDistanceToNow, parse } from "date-fns";
+import { format, formatDistanceToNow, parse, parseJSON } from "date-fns";
 import express from "express";
 import fs from "fs";
 import { IncomingHttpHeaders } from "http";
@@ -579,7 +579,7 @@ export class Automator {
         this.vod.meta = this.payload_eventsub;
         // this.vod.json.meta = $this.payload_eventsub; // what
         this.vod.capture_id = this.getVodID() || "1";
-        this.vod.started_at = parse(data_started, Helper.TWITCH_DATE_FORMAT, new Date());
+        this.vod.started_at = parseJSON(data_started); // parse(data_started, Helper.TWITCH_DATE_FORMAT, new Date());
 
         if (this.force_record) this.vod.force_record = true;
 

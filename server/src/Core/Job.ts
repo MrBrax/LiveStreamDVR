@@ -3,7 +3,7 @@ import fs from "fs";
 import { BaseConfigDataFolder } from "./BaseConfig";
 import { LOGLEVEL, Log } from "./Log";
 import { ExecReturn, Helper } from "./Helper";
-import { parseISO } from "date-fns";
+import { parseJSON } from "date-fns";
 import { ChildProcessWithoutNullStreams } from "child_process";
 import { EventEmitter } from "events";
 import { Webhook } from "./Webhook";
@@ -145,7 +145,7 @@ export class Job extends EventEmitter {
 
         job.pid = data.pid;
 
-        job.dt_started_at = data.dt_started_at ? parseISO(data.dt_started_at) : undefined;
+        job.dt_started_at = data.dt_started_at ? parseJSON(data.dt_started_at) : undefined;
 
         // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", "Job {$this->name} loaded, proceed to get status.", $this->metadata);
 
