@@ -607,16 +607,14 @@ export class TwitchChannel {
         const data = await TwitchChannel.getChannelDataByLogin(config.login, true);
         if (!data) throw new Error(`Could not get channel data for channel login: ${config.login}`);
 
-        TwitchChannel.channels_config.push(config);
-        TwitchChannel.saveChannelsConfig();
-
         const channel = await TwitchChannel.loadFromLogin(config.login, true);
         if (!channel) throw new Error(`Channel ${config.login} could not be loaded`);
 
-        TwitchChannel.channels.push(channel);
+        if (channel.userid) await TwitchChannel.subscribe(channel.userid);
 
-        // @todo: subscribe
-        if (channel.userid) TwitchChannel.subscribe(channel.userid);
+        TwitchChannel.channels_config.push(config);
+        TwitchChannel.saveChannelsConfig();
+        TwitchChannel.channels.push(channel);
 
         return channel;
     }

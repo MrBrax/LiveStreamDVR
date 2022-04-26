@@ -1,17 +1,14 @@
 <template>
     <div>
-        <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
-            <input type="hidden" name="login" :value="channel.login" />
-
+        <form method="POST" enctype="multipart/form-data" action="#" @submit.prevent="submitForm">
             <div class="field">
-                <label class="label" :for="'input_' + channel.login + '_quality'">Quality</label>
+                <label class="label" for="input_quality">Quality</label>
                 <div class="control">
                     <input
                         class="input input-required"
                         type="text"
-                        name="quality"
-                        :id="'input_' + channel.login + '_quality'"
-                        :value="channel.quality.join(' ')"
+                        id="input_quality"
+                        v-model="formData.quality"
                         required
                     />
                     <p class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</p>
@@ -20,37 +17,37 @@
             </div>
 
             <div class="field">
-                <label class="label" :for="'input_' + channel.login + '_match'">Match keywords</label>
+                <label class="label" for="input_match">Match keywords</label>
                 <div class="control">
-                    <input class="input" type="text" name="match" :id="'input_' + channel.login + '_match'" :value="channel.match?.join(', ')" />
+                    <input class="input" type="text" id="input_match" v-model="formData.match" />
                     <p class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</p>
                 </div>
             </div>
 
             <div class="field">
                 <label class="checkbox">
-                    <input class="input" type="checkbox" name="download_chat" value="1" :checked="channel.download_chat" />
+                    <input class="input" type="checkbox" v-model="formData.download_chat" />
                     Download chat after video capture is complete
                 </label>
             </div>
 
             <div class="field">
                 <label class="checkbox">
-                    <input class="input" type="checkbox" name="live_chat" value="1" :checked="channel.live_chat" />
+                    <input class="input" type="checkbox" v-model="formData.live_chat" />
                     Live chat download
                 </label>
             </div>
 
             <div class="field">
                 <label class="checkbox">
-                    <input class="input" type="checkbox" name="burn_chat" value="1" :checked="channel.burn_chat" />
+                    <input class="input" type="checkbox" v-model="formData.burn_chat" />
                     Burn chat after downloading
                 </label>
             </div>
 
             <div class="field">
                 <label class="checkbox">
-                    <input class="input" type="checkbox" name="no_capture" value="1" :checked="channel.no_capture" />
+                    <input class="input" type="checkbox" v-model="formData.no_capture" />
                     No capture
                 </label>
             </div>
@@ -84,6 +81,7 @@ import { VideoQualityArray } from "../../../../common/Defs";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSave } from "@fortawesome/free-solid-svg-icons";
 import { ApiChannelConfig } from "@common/Api/Client";
+import { AxiosError } from "axios";
 library.add(faSave);
 
 export default defineComponent({
@@ -99,27 +97,28 @@ export default defineComponent({
         return { VideoQualityArray };
     },
     data() {
+        console.debug("match", this.channel, this.channel.match);
         return {
             formStatusText: "Ready",
             formStatus: "",
+            formData: {
+                quality: this.channel.quality ? this.channel.quality.join(" ") : "",
+                match: this.channel.match ? this.channel.match.join(",") : "",
+                download_chat: this.channel.download_chat || false,
+                live_chat: this.channel.live_chat || false,
+                burn_chat: this.channel.burn_chat || false,
+                no_capture: this.channel.no_capture || false,
+            },
         };
     },
     methods: {
         submitForm(event: Event) {
-            const form = event.target as HTMLFormElement;
-            const inputs = new FormData(form);
 
             this.formStatusText = "Loading...";
             this.formStatus = "";
 
-            // console.log("form", form);
-            // console.log("entries", inputs, inputs.entries(), inputs.values());
-
-            let data: Record<string, unknown> = {};
-            inputs.forEach((value, key) => (data[key] = value));
-
             this.$http
-                .put(`/api/v0/channels/${this.channel.login}`, data)
+                .put(`/api/v0/channels/${this.channel.login}`, this.formData)
                 .then((response) => {
                     const json = response.data;
                     this.formStatusText = json.message;
@@ -128,8 +127,15 @@ export default defineComponent({
                         this.$emit("formSuccess", json);
                     }
                 })
-                .catch((err) => {
-                    console.error("form error", err.response);
+                .catch((err: Error | AxiosError) => {
+                    if (this.axios.isAxiosError(err) && err.response) {
+                        console.error("channel update form error", err.response);
+                        this.formStatusText = err.response.data.message;
+                        this.formStatus = err.response.data.status;
+                    } else {
+                        console.error("channel update form error", err);
+                        alert(`Error: ${err.message}`);
+                    }
                 });
 
             event.preventDefault();
