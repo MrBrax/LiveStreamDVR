@@ -16,9 +16,9 @@ export interface TwitchAutomatorJobJSON {
     dt_started_at: string;
 }
 
-export class TwitchAutomatorJob extends EventEmitter {
+export class Job extends EventEmitter {
 
-    static jobs: TwitchAutomatorJob[] = [];
+    static jobs: Job[] = [];
     static pidstatus: Record<number, boolean> = {};
 
     static readonly NO_FILE = 1;
@@ -64,7 +64,7 @@ export class TwitchAutomatorJob extends EventEmitter {
     public static loadJobsFromCache() {
         const jobs = fs.readdirSync(BaseConfigDataFolder.pids).filter(f => f.endsWith(".json"));
         for (const job_data of jobs) {
-            TwitchAutomatorJob.load(job_data.replace(".json", ""));
+            Job.load(job_data.replace(".json", ""));
         }
         Log.logAdvanced(LOGLEVEL.INFO, "job", `Loaded ${jobs.length} jobs from cache`);
 
@@ -86,7 +86,7 @@ export class TwitchAutomatorJob extends EventEmitter {
         }
     }
 
-    public static create(name: string): TwitchAutomatorJob {
+    public static create(name: string): Job {
 
         const basepath = BaseConfigDataFolder.pids;
 
@@ -107,7 +107,7 @@ export class TwitchAutomatorJob extends EventEmitter {
         return job;
     }
 
-    public static load(name: string): TwitchAutomatorJob | false {
+    public static load(name: string): Job | false {
 
         Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Loading job ${name}`);
 
@@ -149,8 +149,8 @@ export class TwitchAutomatorJob extends EventEmitter {
 
         // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", "Job {$this->name} loaded, proceed to get status.", $this->metadata);
 
-        if (!TwitchAutomatorJob.jobs.includes(job)) {
-            TwitchAutomatorJob.jobs.push(job);
+        if (!Job.jobs.includes(job)) {
+            Job.jobs.push(job);
             Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Loaded job ${job.name} added to jobs list`, job.metadata);
         }
 
@@ -163,7 +163,7 @@ export class TwitchAutomatorJob extends EventEmitter {
         return this.jobs.some(job => job.name === name);
     }
 
-    public static findJob(search: string): TwitchAutomatorJob | false {
+    public static findJob(search: string): Job | false {
         const job = this.jobs.find(job => job.name?.includes(search));
         if (job) {
             return job;
@@ -209,8 +209,8 @@ export class TwitchAutomatorJob extends EventEmitter {
 
         Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Job ${this.name} ${exists ? "saved" : "failed to save"}`, this.metadata);
 
-        if (exists && !TwitchAutomatorJob.jobs.includes(this)) {
-            TwitchAutomatorJob.jobs.push(this);
+        if (exists && !Job.jobs.includes(this)) {
+            Job.jobs.push(this);
             Log.logAdvanced(LOGLEVEL.DEBUG, "job", `New job ${this.name} added to jobs list`, this.metadata);
         }
 
@@ -247,8 +247,8 @@ export class TwitchAutomatorJob extends EventEmitter {
             // return !fs.existsSync(this.pidfile);
         }
 
-        if (TwitchAutomatorJob.hasJob(this.name || "")) {
-            TwitchAutomatorJob.jobs = TwitchAutomatorJob.jobs.filter(job => job.name !== this.name);
+        if (Job.hasJob(this.name || "")) {
+            Job.jobs = Job.jobs.filter(job => job.name !== this.name);
             Log.logAdvanced(LOGLEVEL.SUCCESS, "job", `Job ${this.name} removed from jobs list`, this.metadata);
         } else {
             Log.logAdvanced(LOGLEVEL.WARNING, "job", `Job ${this.name} not found in jobs list`, this.metadata);
@@ -533,7 +533,7 @@ export class TwitchAutomatorJob extends EventEmitter {
             console.debug(`Broadcasting job update for ${this.name}`);
             this.emit("update", this.toAPI());
             this._updateTimer = undefined;
-            Webhook.dispatch(TwitchAutomatorJob.hasJob(this.name || "") ? "job_update" : "job_clear", {
+            Webhook.dispatch(Job.hasJob(this.name || "") ? "job_update" : "job_clear", {
                 "job_name": this.name || "",
                 "job": this.toAPI(),
             });

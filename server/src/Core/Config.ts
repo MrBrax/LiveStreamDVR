@@ -11,7 +11,7 @@ import { Helper } from "./Helper";
 import { KeyValue } from "./KeyValue";
 import { Log, LOGLEVEL } from "./Log";
 import { Scheduler } from "./Scheduler";
-import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
+import { Job } from "./Job";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
@@ -528,7 +528,7 @@ export class Config {
         TwitchChannel.loadChannelsConfig();
         TwitchChannel.loadChannelsCache();
         await TwitchChannel.loadChannels();
-        TwitchAutomatorJob.loadJobsFromCache();
+        Job.loadJobsFromCache();
 
         Config.getInstance().startWatchingConfig();
 

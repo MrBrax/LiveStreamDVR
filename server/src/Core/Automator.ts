@@ -10,7 +10,7 @@ import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { ChannelUpdateEvent } from "../../../common/TwitchAPI/EventSub/ChannelUpdate";
 import { AppRoot, BaseConfigDataFolder } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
-import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
+import { Job } from "./Job";
 import { TwitchChannel } from "./TwitchChannel";
 import { Config } from "./Config";
 import { Helper } from "./Helper";
@@ -51,8 +51,8 @@ export class Automator {
     converted_filename = "";
     chat_filename = "";
 
-    captureJob: TwitchAutomatorJob | undefined;
-    chatJob: TwitchAutomatorJob | undefined;
+    captureJob: Job | undefined;
+    chatJob: Job | undefined;
 
     public basename() {
         return `${this.getLogin()}_${replaceAll(this.getStartDate(), ":", "_")}_${this.getVodID()}`; // @todo: replaceAll
@@ -538,7 +538,7 @@ export class Automator {
         }
 
         // if running
-        const job = TwitchAutomatorJob.findJob(`capture_${basename}`);
+        const job = Job.findJob(`capture_${basename}`);
         if (job && job.getStatus()) {
             const meta = job.metadata as {
                 login: string;
@@ -860,12 +860,12 @@ export class Automator {
             });
 
             // make job for capture
-            let capture_job: TwitchAutomatorJob;
+            let capture_job: Job;
             const jobName = `capture_${basename}`;
 
             if (capture_process.pid) {
                 Log.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Spawned process ${capture_process.pid} for ${jobName}`);
-                capture_job = TwitchAutomatorJob.create(jobName);
+                capture_job = Job.create(jobName);
                 capture_job.setPid(capture_process.pid);
                 capture_job.setProcess(capture_process);
                 capture_job.startLog(jobName, `$ ${bin} ${cmd.join(" ")}\n`);

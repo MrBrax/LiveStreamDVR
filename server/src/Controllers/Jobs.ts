@@ -1,10 +1,10 @@
-import { TwitchAutomatorJob } from "../Core/TwitchAutomatorJob";
+import { Job } from "../Core/Job";
 import express from "express";
 import { ApiErrorResponse, ApiJobsResponse } from "../../../common/Api/Api";
 
 export async function ListJobs(req: express.Request, res: express.Response): Promise<void> {
 
-    const jobs = TwitchAutomatorJob.jobs;
+    const jobs = Job.jobs;
 
     for (const job of jobs) {
         await job.getStatus();
@@ -19,7 +19,7 @@ export async function ListJobs(req: express.Request, res: express.Response): Pro
 
 export async function KillJob(req: express.Request, res: express.Response): Promise<void> {
 
-    const job = TwitchAutomatorJob.jobs.find(j => j.name === req.params.name);
+    const job = Job.jobs.find(j => j.name === req.params.name);
     const clear = req.query.clear;
 
     if (!job) {

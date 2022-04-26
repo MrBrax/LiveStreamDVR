@@ -15,7 +15,7 @@ import { Video, VideosResponse } from "../../../common/TwitchAPI/Video";
 import { VodUpdated } from "../../../common/Webhook";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../Storage/JSON";
 import { AppName, BaseConfigDataFolder } from "./BaseConfig";
-import { TwitchAutomatorJob } from "./TwitchAutomatorJob";
+import { Job } from "./Job";
 import { TwitchChannel } from "./TwitchChannel";
 import { Config } from "./Config";
 import { TwitchGame } from "./TwitchGame";
@@ -1320,17 +1320,17 @@ export class TwitchVOD {
     }
 
     public async getChatDumpStatus(): Promise<number | false> {
-        const job = TwitchAutomatorJob.findJob(`chatdump_${this.basename}`);
+        const job = Job.findJob(`chatdump_${this.basename}`);
         return job ? await job.getStatus() : false;
     }
 
     public async getCapturingStatus(use_command = false): Promise<number | false> {
-        const job = TwitchAutomatorJob.findJob(`capture_${this.basename}`);
+        const job = Job.findJob(`capture_${this.basename}`);
         return job ? await job.getStatus(use_command) : false;
     }
 
     public async getConvertingStatus(): Promise<number | false> {
-        const job = TwitchAutomatorJob.findJob(`convert_${this.basename}`);
+        const job = Job.findJob(`convert_${this.basename}`);
         return job ? await job.getStatus() : false;
     }
 
