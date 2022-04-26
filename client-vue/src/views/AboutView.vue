@@ -168,6 +168,9 @@
                                 <td>{{ value }}</td>
                                 <td><button class="button is-danger is-small" @click="deleteKeyValue(key)">Delete</button></td>
                             </tr>
+                            <tr>
+                                <td colspan="999"><button class="button is-danger is-small" @click="deleteAllKeyValues">Delete all</button></td>
+                            </tr>
                         </table>
                         <p v-else>No key-value data found.</p>
                     </div>
@@ -303,6 +306,24 @@ export default defineComponent({
             });
             */
         },
+        fetchKeyValues() {
+            if (!this.aboutData) return;
+
+            this.aboutData.keyvalue = undefined;
+
+            this.$http
+                .get(`/api/v0/keyvalue`)
+                .then((response) => {
+                    if (!this.aboutData) return;
+                    const json = response.data;
+                    const kv = json.data;
+                    console.debug("kv", kv);
+                    this.aboutData.keyvalue = kv;
+                })
+                .catch((err) => {
+                    console.error("about error", err.response);
+                });
+        },
         runCron(type: string) {
             this.$http
                 .get(`/api/v0/cron/${type}`)
@@ -367,7 +388,20 @@ export default defineComponent({
                     const json = response.data;
                     console.debug("deleteKeyValue", json);
                     alert(`Deleted key ${key}`);
-                    // this.fetchData();
+                    this.fetchKeyValues();
+                })
+                .catch((err) => {
+                    console.error("about error", err.response);
+                });
+        },
+        deleteAllKeyValues() {
+            this.$http
+                .delete(`/api/v0/keyvalue`)
+                .then((response) => {
+                    const json = response.data;
+                    console.debug("deleteAllKeyValues", json);
+                    alert(`Deleted all key values`);
+                    this.fetchKeyValues();
                 })
                 .catch((err) => {
                     console.error("about error", err.response);

@@ -27,6 +27,10 @@ export class KeyValue extends EventEmitter {
         this.instance = undefined;
     }
 
+    getAll(): Record<string, string> {
+        return this.data;
+    }
+
     /**
      * Check if a key exists in the key-value store.
      * @param key 
