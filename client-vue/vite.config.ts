@@ -21,6 +21,9 @@ export default defineConfig({
     port: 8081,
     proxy: {
       '/api': 'http://localhost:8080',
+      '/saved_clips': 'http://localhost:8080',
+      '/saved_vods': 'http://localhost:8080',
+      '/vods': 'http://localhost:8080',
     },
   },
 })
