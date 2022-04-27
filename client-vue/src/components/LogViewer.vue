@@ -42,6 +42,7 @@ export default defineComponent({
         logFromLine: number;
         logVisible: boolean;
         logModule: string;
+        watcher: () => void;
     } {
         return {
             logFilename: "",
@@ -49,7 +50,27 @@ export default defineComponent({
             logFromLine: 0,
             logVisible: false,
             logModule: "",
+            watcher: () => {},
         };
+    },
+    mounted() {
+        this.watcher = this.store.$onAction(({ name, store, args, after, onError }) => {
+            if (!args) return;
+            if (name !== "addLog" && name !== "clearLog") return;
+            console.debug("log added, scroll");
+            after(() => {
+                console.debug("log added, scroll after");
+                setTimeout(() => {
+                    this.scrollLog();
+                }, 100);
+            })
+        });
+        setTimeout(() => {
+            this.scrollLog();
+        }, 100);
+    },
+    unmounted() {
+        this.watcher(); // remove listener
     },
     methods: {
         async fetchLog(clear = false) {

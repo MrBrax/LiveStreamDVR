@@ -7,6 +7,9 @@
                     <span class="is-gray">{{ formatDate(game.added) }}</span>
                 </label>
             </div>
+            <div v-if="!favouritesData || favouritesData.length == 0">
+                <p>No games in cache. When streamers change games, they will be added to the cache.</p>
+            </div>                
         </div>
         <br />
         <div class="control">

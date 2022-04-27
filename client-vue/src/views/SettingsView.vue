@@ -30,7 +30,7 @@
                         <channel-update-form :channel="channel" @formSuccess="fetchData" />
                     </div>
                 </div>
-                <div class="card" v-if="!formChannels">No channels added. Use the tab above.</div>
+                <span v-if="!formChannels || formChannels.length == 0">No channels added. Use the tab "New channel" above.</span>
             </div>
         </section>
 
@@ -46,7 +46,7 @@
         <section class="section" v-if="$route.params.tab == 'config'">
             <div class="section-title"><h1>Config</h1></div>
             <div class="section-content" v-if="!loading">
-                <settings-form :settingsData="settingsData" :settingsFields="settingsFields" @formSuccess="fetchData" />
+                <settings-form />
             </div>
             <div class="section-content" v-else>
                 <span class="icon"><fa icon="sync" spin></fa></span> Loading...
@@ -124,10 +124,8 @@ export default defineComponent({
     },
     methods: {
         fetchData() {
-            // this.settingsData = [];
-            // this.settingsFields = [] as any;
+            console.debug("Fetching settings and games data");
             this.loading = true;
-
             this.$http
                 .all([
                     this.$http

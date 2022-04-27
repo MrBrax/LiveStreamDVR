@@ -142,6 +142,8 @@ export class ClientBroker {
             this.clients = this.clients.filter((c) => c.id != client.id);
         });
 
+        ws.send(JSON.stringify({ action: "connected" }));
+
     }
 
     static broadcast(data: any) {

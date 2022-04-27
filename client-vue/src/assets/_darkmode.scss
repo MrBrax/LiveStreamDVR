@@ -163,4 +163,28 @@
     .input-help {
         color: #bbb;
     }
+
+    .table {
+        &.is-striped {
+            tr {
+                &:nth-child(even) {
+                    background: rgba(255, 255, 255, 0.1);
+                }
+            }
+        }
+        &.is-hoverable {
+            tr {
+                &:hover {
+                    background: rgba(255, 255, 255, 0.05);
+                }
+            }
+            &.is-striped {
+                tr:hover {
+                    &:nth-child(even) {
+                        background: rgba(255, 255, 255, 0.15);
+                    }
+                }
+            }
+        }
+    }
 }

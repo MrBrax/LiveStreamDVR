@@ -53,7 +53,7 @@ export class Config {
         // { "key": "password_secure", "group": "Interface", "text": "Force HTTPS for password", "type": "boolean", "default": true },
 
         { "key": "webhook_url", "group": "Notifications", "text": "Webhook URL", "type": "string", "help": "For external scripting" },
-        { "key": "websocket_enabled", "group": "Notifications", "text": "Websockets enabled", "type": "boolean" },
+        { "key": "websocket_enabled", "group": "Notifications", "text": "Websockets enabled", "type": "boolean", "default": true, "help": "Requires a restart." },
         // { "key": "websocket_server_address", "group": "Notifications", "text": "Websocket server address override", "type": "string" },
         { "key": "websocket_client_address", "group": "Notifications", "text": "Websocket client address override", "type": "string" },
         { "key": "websocket_log", "group": "Notifications", "text": "Send logs over websocket", "type": "boolean" },
