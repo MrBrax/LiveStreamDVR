@@ -3,11 +3,12 @@ import fs from "fs";
 import { BaseConfigDataFolder } from "./BaseConfig";
 import { LOGLEVEL, Log } from "./Log";
 import { ExecReturn, Helper } from "./Helper";
-import { parseISO } from "date-fns";
+import { parseJSON } from "date-fns";
 import { ChildProcessWithoutNullStreams } from "child_process";
 import { EventEmitter } from "events";
 import { Webhook } from "./Webhook";
 import { ApiJob } from "../../../common/Api/Client";
+import { JobStatus } from "../../../common/Defs";
 
 export interface TwitchAutomatorJobJSON {
     name: string;
@@ -41,7 +42,7 @@ export class Job extends EventEmitter {
     public pidfile: string | undefined;
     public pidfile_simple: string | undefined;
     public metadata: unknown | undefined;
-    public status: number | false = false;
+    public status: JobStatus = JobStatus.NONE;
     public error: number | undefined;
 
     public process: ChildProcessWithoutNullStreams | undefined;
@@ -74,7 +75,8 @@ export class Job extends EventEmitter {
     public static async checkStaleJobs() {
         // const now = new Date();
         for (const job of this.jobs) {
-            if (await job.getStatus(true) == false) {
+            const status = await job.getStatus(true);
+            if (status == JobStatus.STOPPED || status == JobStatus.ERROR) {
                 Log.logAdvanced(LOGLEVEL.WARNING, "job", `Job ${job.name} is stale, no process found. Clearing.`);
                 job.clear();
             } else {
@@ -145,7 +147,7 @@ export class Job extends EventEmitter {
 
         job.pid = data.pid;
 
-        job.dt_started_at = data.dt_started_at ? parseISO(data.dt_started_at) : undefined;
+        job.dt_started_at = data.dt_started_at ? parseJSON(data.dt_started_at) : undefined;
 
         // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", "Job {$this->name} loaded, proceed to get status.", $this->metadata);
 
@@ -296,19 +298,41 @@ export class Job extends EventEmitter {
 
         this.process_running = process.pid !== undefined; // @todo: check if process is running
 
+        this.process.on("spawn", () => {
+            Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Spawned process for job ${this.name}`, this.metadata);
+            this.status = JobStatus.RUNNING;
+            this.emit("process_start");
+            this.process_running = true;
+        });
+
         this.process.on("exit", (code, signal) => {
+            if (code === 1) this.status = JobStatus.ERROR;
             this.emit("process_exit", code, signal);
             this.process_running = false;
         });
 
         this.process.on("error", (err) => {
+            this.status = JobStatus.ERROR;
             this.emit("process_error", err);
             this.process_running = false;
         });
 
         this.process.on("close", (code, signal) => {
+            if (code === 1) this.status = JobStatus.ERROR;
             this.emit("process_close", code, signal);
             this.process_running = false;
+        });
+
+        this.on("process_start", () => {
+            this.broadcastUpdate();
+        });
+
+        this.on("process_exit", () => {
+            this.broadcastUpdate();
+        });
+
+        this.on("process_error", () => {
+            this.broadcastUpdate();
         });
 
         this.broadcastUpdate();
@@ -340,9 +364,11 @@ export class Job extends EventEmitter {
      * @throws {Error}
      * @returns {(int|false)} PID if running, false if not.
      */
-    public async getStatus(use_command = false): Promise<number | false> {
+    public async getStatus(use_command = false): Promise<JobStatus> {
 
         Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Check status for job ${this.name}`, this.metadata);
+
+        // console.debug("get job status", this.name);
 
         if (!this.pid) {
             throw new Error("No pid set on job");
@@ -353,9 +379,10 @@ export class Job extends EventEmitter {
 
         // @todo: check if this works
         if (this.process && !use_command) {
-            this.status = this.process_running && this.process.pid ? this.process.pid : false;
+            this.status = this.process_running && this.process.pid ? JobStatus.RUNNING : JobStatus.STOPPED;
             if (currentStatus !== this.status) this.broadcastUpdate();
-            return this.process_running && this.process.pid ? this.process.pid : false;
+            // console.debug("get job status without command", this.name, this.status);
+            return this.process_running && this.process.pid ? JobStatus.RUNNING : JobStatus.STOPPED;
         }
 
         let output = "";
@@ -365,11 +392,12 @@ export class Job extends EventEmitter {
             try {
                 proc = await Helper.execSimple("tasklist", ["/FI", `PID eq ${this.pid}`], `windows process status (${this.name})`);
             } catch (e) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for job ${this.name} (${this.process_running})`, this.metadata);
-                console.debug(`Error checking status for job ${this.name} (${this.process_running})`);
-                this.status = false;
+                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for windows job ${this.name} (${this.process_running})`, this.metadata);
+                // console.debug(`Error checking status for job ${this.name} (${this.process_running})`);
+                this.status = JobStatus.STOPPED;
                 if (currentStatus !== this.status) this.broadcastUpdate();
-                return false;
+                // console.debug("get job status with windows command caught", this.name, this.status);
+                return JobStatus.STOPPED;
             }
 
             output = proc.stdout.join("\n");
@@ -380,40 +408,32 @@ export class Job extends EventEmitter {
             try {
                 proc = await Helper.execSimple("ps", ["-p", this.pid.toString()], `linux process status (${this.name})`);
             } catch (e) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for job ${this.name} (${this.process_running})`, this.metadata);
-                console.debug(`Error checking status for job ${this.name} (${this.process_running})`);
-                this.status = false;
+                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for linux job ${this.name} (${this.process_running})`, this.metadata);
+                // console.debug(`Error checking status for job ${this.name} (${this.process_running})`);
+                this.status = JobStatus.STOPPED;
                 if (currentStatus !== this.status) this.broadcastUpdate();
-                return false;
+                // console.debug("get job status with linux command caught", this.name, this.status);
+                return JobStatus.STOPPED;
             }
 
             output = proc.stdout.join("\n");
 
         }
 
-        /*
-        if (mb_strpos($output, (string)$this->pid) !== false) {
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", "PID file check for '{$this->name}', process is running");
-            $this->status = $this->pid;
-            return $this->pid;
-        } else {
-            TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", "PID file check for '{$this->name}', process does not exist");
-            $this->status = false;
-            return false;
-        }
-        */
-        if (output.indexOf(this.pid.toString()) !== -1) {
+        if (output.includes(this.pid.toString())) {
             Log.logAdvanced(LOGLEVEL.DEBUG, "job", `PID file check for '${this.name}', process is running (${this.process_running})`);
             // console.debug(`PID file check for '${this.name}', process is running (${this.process_running})`);
-            this.status = this.pid;
+            this.status = JobStatus.RUNNING;
             if (currentStatus !== this.status) this.broadcastUpdate();
-            return this.pid;
+            // console.debug("get job status with command includes", this.name, this.status);
+            return JobStatus.RUNNING;
         } else {
             Log.logAdvanced(LOGLEVEL.DEBUG, "job", `PID file check for '${this.name}', process does not exist (${this.process_running})`);
             // console.debug(`PID file check for '${this.name}', process does not exist (${this.process_running})`);
-            this.status = false;
+            this.status = JobStatus.STOPPED;
             if (currentStatus !== this.status) this.broadcastUpdate();
-            return false;
+            // console.debug("get job status with command does not include", this.name, this.status);
+            return JobStatus.STOPPED;
         }
     }
 
@@ -529,8 +549,9 @@ export class Job extends EventEmitter {
 
     public broadcastUpdate() {
         if (this._updateTimer) clearTimeout(this._updateTimer);
-        this._updateTimer = setTimeout(() => {
-            console.debug(`Broadcasting job update for ${this.name}`);
+        this._updateTimer = setTimeout(async () => {
+            // console.debug(`Broadcasting job update for ${this.name}: ${this.status}`);
+            await this.getStatus();
             this.emit("update", this.toAPI());
             this._updateTimer = undefined;
             Webhook.dispatch(Job.hasJob(this.name || "") ? "job_update" : "job_clear", {

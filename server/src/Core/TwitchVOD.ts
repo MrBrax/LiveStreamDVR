@@ -1,12 +1,12 @@
 import chalk from "chalk";
-import { parse, parseISO } from "date-fns";
+import { parse, parseJSON } from "date-fns";
 import fs from "fs";
 import { replaceAll } from "../Helpers/ReplaceAll";
 import path from "path";
 import { ApiVod } from "../../../common/Api/Client";
 import type { TwitchComment, TwitchCommentDump } from "../../../common/Comments";
 import { VideoQuality } from "../../../common/Config";
-import { MuteStatus } from "../../../common/Defs";
+import { JobStatus, MuteStatus } from "../../../common/Defs";
 import { AudioStream, FFProbe, VideoStream } from "../../../common/FFProbe";
 import { VideoMetadata } from "../../../common/MediaInfo";
 import { MediaInfo } from "../../../common/mediainfofield";
@@ -166,15 +166,15 @@ export class TwitchVOD {
             throw new Error("No JSON loaded for date setup!");
         }
 
-        if (this.json.created_at) this.created_at = parseISO(this.json.created_at);
-        if (this.json.started_at) this.started_at = parseISO(this.json.started_at);
+        if (this.json.created_at) this.created_at = parseJSON(this.json.created_at);
+        if (this.json.started_at) this.started_at = parseJSON(this.json.started_at);
 
-        if (this.json.ended_at) this.ended_at = parseISO(this.json.ended_at);
-        if (this.json.saved_at) this.saved_at = parseISO(this.json.saved_at);
+        if (this.json.ended_at) this.ended_at = parseJSON(this.json.ended_at);
+        if (this.json.saved_at) this.saved_at = parseJSON(this.json.saved_at);
 
-        if (this.json.capture_started) this.capture_started = parseISO(this.json.capture_started);
-        if (this.json.capture_started2) this.capture_started2 = parseISO(this.json.capture_started2);
-        if (this.json.conversion_started) this.conversion_started = parseISO(this.json.conversion_started);
+        if (this.json.capture_started) this.capture_started = parseJSON(this.json.capture_started);
+        if (this.json.capture_started2) this.capture_started2 = parseJSON(this.json.capture_started2);
+        if (this.json.conversion_started) this.conversion_started = parseJSON(this.json.conversion_started);
 
     }
 
@@ -1060,7 +1060,7 @@ export class TwitchVOD {
         }
 
         for (const video of channel_videos) {
-            const video_time = parse(video.created_at, Helper.TWITCH_DATE_FORMAT, new Date());
+            const video_time = parseJSON(video.created_at);
             if (!video_time) continue;
 
             if (Math.abs(this.started_at.getTime() - video_time.getTime()) < 1000 * 60 * 5) { // 5 minutes
@@ -1338,19 +1338,19 @@ export class TwitchVOD {
         };
     }
 
-    public async getChatDumpStatus(): Promise<number | false> {
+    public async getChatDumpStatus(): Promise<JobStatus> {
         const job = Job.findJob(`chatdump_${this.basename}`);
-        return job ? await job.getStatus() : false;
+        return job ? await job.getStatus() : JobStatus.STOPPED;
     }
 
-    public async getCapturingStatus(use_command = false): Promise<number | false> {
+    public async getCapturingStatus(use_command = false): Promise<JobStatus> {
         const job = Job.findJob(`capture_${this.basename}`);
-        return job ? await job.getStatus(use_command) : false;
+        return job ? await job.getStatus(use_command) : JobStatus.STOPPED;
     }
 
-    public async getConvertingStatus(): Promise<number | false> {
+    public async getConvertingStatus(): Promise<JobStatus> {
         const job = Job.findJob(`convert_${this.basename}`);
-        return job ? await job.getStatus() : false;
+        return job ? await job.getStatus() : JobStatus.STOPPED;
     }
 
     public getRecordingSize(): number | false {

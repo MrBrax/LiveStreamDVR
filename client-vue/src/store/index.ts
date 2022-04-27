@@ -1,5 +1,5 @@
-import { ApiChannel, ApiJob, ApiVod } from "../../../common/Api/Client";
-import { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiVodResponse } from "../../../common/Api/Api";
+import { ApiChannel, ApiJob, ApiLogLine, ApiVod } from "../../../common/Api/Client";
+import { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiJobsResponse, ApiVodResponse } from "../../../common/Api/Api";
 import axios from "axios";
 import { defineStore } from "pinia";
 import { ClientSettings } from "@/twitchautomator";
@@ -10,6 +10,7 @@ export const useStore = defineStore("twitchAutomator", {
     state: function (): {
         app_name: string;
         streamerList: TwitchChannel[];
+        streamerListLoaded: boolean;
         jobList: ApiJob[];
         config: Record<string, any> | null;
         favourite_games: string[];
@@ -18,10 +19,12 @@ export const useStore = defineStore("twitchAutomator", {
         serverType: string;
         websocketUrl: string;
         errors: string[];
+        log: ApiLogLine[];
     } {
         return {
             app_name: "",
             streamerList: [],
+            streamerListLoaded: false,
             jobList: [],
             config: {},
             favourite_games: [],
@@ -30,16 +33,10 @@ export const useStore = defineStore("twitchAutomator", {
             serverType: "",
             websocketUrl: "",
             errors: [],
+            log: [],
         };
     },
     actions: {
-        // cfg<T>(key: string, def: T | null = null): T | null {
-        //     const k: keyof ApiConfig = key as keyof ApiConfig;
-        //     if (!this.config) return null;
-        //     // if (!key in this.config) return def;
-        //     if (this.config[k] === undefined || this.config[k] === null) return def;
-        //     return this.config[k] as unknown as T;
-        // },
         cfg(key: string, def: any = null): any {
             if (!this.config) return null;
             if (this.config[key] === undefined || this.config[key] === null) return def;
@@ -83,7 +80,7 @@ export const useStore = defineStore("twitchAutomator", {
 
             return data.data;
         },
-        async updateVodApi(basename: string) {
+        async fetchAndUpdateVod(basename: string) {
             const vod_data = await this.fetchVod(basename);
             if (!vod_data) return false;
 
@@ -92,20 +89,6 @@ export const useStore = defineStore("twitchAutomator", {
             if (index === -1) return false;
 
             const vod = TwitchVOD.makeFromApiResponse(vod_data);
-
-            /*
-            // check if vod is already in the streamer's vods
-            const vodIndex = this.streamerList[index].vods_list.findIndex((v) => basename === v.basename);
-
-            if (vodIndex === -1) {
-                this.streamerList[index].vods_list.push(vod);
-                console.debug("inserted vod", vod);
-            } else {
-                this.streamerList[index].vods_list[vodIndex] = vod;
-                console.debug("updated vod", vod);
-            }
-            return true;
-            */
 
             return this.updateVod(vod);
         },
@@ -142,7 +125,7 @@ export const useStore = defineStore("twitchAutomator", {
                 streamer.vods_list.forEach((vod) => {
                     if (vod.is_capturing) {
                         // console.debug("updateCapturingVods", vod.basename);
-                        this.updateVodApi(vod.basename);
+                        this.fetchAndUpdateVod(vod.basename);
                     }
                 });
             });
@@ -167,7 +150,7 @@ export const useStore = defineStore("twitchAutomator", {
 
             return streamer;
         },
-        async updateStreamer(login: string) {
+        async fetchAndUpdateStreamer(login: string) {
             const streamer_data = await this.fetchStreamer(login);
             if (!streamer_data) return false;
 
@@ -184,32 +167,30 @@ export const useStore = defineStore("twitchAutomator", {
             // console.debug("updateStreamerList", data);
             const channels = data.map((channel) => TwitchChannel.makeFromApiResponse(channel));
             this.streamerList = channels;
+            this.streamerListLoaded = true;
         },
         updateErrors(data: string[]) {
             this.errors = data;
         },
-        /*
-        updateVod(vod: ApiVod) {
-            const streamer_login = vod.streamer_login;
-            const vod_basename = vod.basename;
-            console.log("updateVod", this.streamerList);
-            for (const streamer of this.streamerList as ApiChannel[]) {
-                if (streamer.login === streamer_login) {
-                    for (let streamer_vod of streamer.vods_list) {
-                        if (streamer_vod.basename === vod_basename) {
-                            streamer_vod = vod;
-                            console.log("replaced");
-                        }
-                    }
-                    break;
-                }
+        async fetchAndUpdateJobs() {
+            let response;
+
+            try {
+                response = await axios.get(`/api/v0/jobs`);
+            } catch (error) {
+                console.error(error);
+                return;
             }
+
+            const json: ApiJobsResponse = response.data;
+            this.updateJobList(json.data);
         },
-        */
         updateJobList(data: ApiJob[]) {
+            console.debug(`Update job list with ${data.length} jobs`);
             this.jobList = data;
         },
         updateJob(job: ApiJob) {
+            console.debug(`Update job '${job.name}', status: ${job.status}`);
             const index = this.jobList.findIndex((j) => j.name === job.name);
             if (index === -1) {
                 this.jobList.push(job);
@@ -218,6 +199,7 @@ export const useStore = defineStore("twitchAutomator", {
             }
         },
         removeJob(name: string) {
+            console.debug(`Delete job '${name}'`);
             const index = this.jobList.findIndex((j) => j.name === name);
             if (index !== -1) {
                 this.jobList.splice(index, 1);
@@ -249,5 +231,11 @@ export const useStore = defineStore("twitchAutomator", {
         getStreamers(): TwitchChannel[] {
             return this.streamerList;
         },
+        addLog(lines: ApiLogLine[]) {
+            this.log.push(...lines);
+        },
+        clearLog() {
+            this.log = [];
+        }
     },
 });

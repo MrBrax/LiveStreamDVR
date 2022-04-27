@@ -58,12 +58,18 @@
             <div class="section-title"><h1>Current jobs</h1></div>
             <div class="section-content">
                 <table>
-                    <tr v-for="job in jobsData" :key="job.name">
+                    <tr v-for="job in store.jobList" :key="job.name">
                         <td>
                             <span class="text-overflow">{{ job.name }}</span>
                         </td>
                         <td>{{ job.pid }}</td>
-                        <td><!-- {{ job.status }}-->{{ job.status ? "Running" : "Unexpected exit" }}</td>
+                        <td>
+                            <span v-if="job.status == JobStatus.RUNNING">Running</span>
+                            <span v-else-if="job.status == JobStatus.STOPPED">Stopped</span>
+                            <span v-else-if="job.status == JobStatus.ERROR">Error</span>
+                            <span v-else-if="job.status == JobStatus.WAITING">Waiting</span>
+                            <span v-else-if="job.status == JobStatus.NONE">None</span>
+                        </td>
                         <td>
                             <a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name)" title="Kill job">
                                 <span class="icon"><fa icon="skull"></fa></span>
@@ -92,6 +98,8 @@ import type { ApiJob } from "@common/Api/Client";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSkull, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { useStore } from "@/store";
+import { JobStatus } from "@common/Defs";
 library.add(faSkull, faTrash);
 
 interface PayloadDump {
@@ -104,28 +112,18 @@ interface PayloadDump {
 export default defineComponent({
     name: "ToolsView",
     title: "Tools",
+    setup() {
+        const store = useStore();
+        return { store, JobStatus };
+    },
     data() {
         return {
             jobsData: [] as ApiJob[],
         };
     },
     created() {
-        this.fetchData();
     },
     methods: {
-        fetchData() {
-            // this.settingsData = [];
-            // this.settingsFields = [] as any;
-            this.$http
-                .get(`api/v0/jobs`)
-                .then((response) => {
-                    const json = response.data;
-                    this.jobsData = json.data;
-                })
-                .catch((err) => {
-                    console.error("about error", err.response);
-                });
-        },
         killJob(name: string) {
             if (!confirm(`Kill job "${name}?"`)) return;
 

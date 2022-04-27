@@ -1,21 +1,19 @@
 <template>
-    <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm" v-if="settingsFields && settingsData">
+    <form method="POST" enctype="multipart/form-data" action="#" @submit.prevent="submitForm" v-if="!loading && settingsFields && formData">
         <details class="settings-details" v-for="groupData in settingsGroups" v-bind:key="groupData.name">
             <summary>{{ groupData.name }}</summary>
             <div class="field" v-for="(data, index) in groupData.fields" v-bind:key="index">
                 <label v-if="data.type != 'boolean'" class="label" :for="'input_' + data.key">
-                    {{ data.text }}
+                    {{ data.text }} <span v-if="data.required" class="required">*</span>
                     <span v-if="data.deprecated" class="is-small is-error">Deprecated</span>
                 </label>
 
                 <!-- boolean -->
-                <div v-if="data.type == 'boolean' && settingsData" class="control">
+                <div v-if="data.type == 'boolean' && formData" class="control">
                     <label class="checkbox">
                         <input
                             type="checkbox"
-                            :name="data.key"
-                            :id="'input_' + data.key"
-                            :checked="configValue(data.key) !== undefined ? configValue(data.key) as boolean : data.default as boolean"
+                            v-model="(formData[data.key] as boolean)"
                         />
                         {{ data.text }}
                     </label>
@@ -27,10 +25,9 @@
                         class="input"
                         type="text"
                         :name="data.key"
-                        :id="'input_' + data.key"
-                        :value="configValue(data.key) !== undefined ? configValue(data.key) : data.default"
                         :title="data.help"
                         :pattern="data.pattern"
+                        v-model="(formData[data.key] as string)"
                     />
                 </div>
 
@@ -40,21 +37,20 @@
                         class="input"
                         type="number"
                         :name="data.key"
-                        :id="'input_' + data.key"
-                        :value="configValue(data.key) !== undefined ? configValue(data.key) : data.default"
+                        v-model.number="(formData[data.key] as number)"
                     />
                 </div>
 
                 <!-- array -->
                 <div v-if="data.type == 'array'" class="control">
                     <!--<input class="input" :name="key" :id="key" :value="settings[key]" />-->
-                    <select class="input" :name="data.key" :id="'input_' + data.key" v-if="data.choices">
+                    <select class="input" v-if="data.choices" v-model="formData[data.key]">
                         <option
                             v-for="(item, ix) in data.choices"
                             :key="ix"
                             :selected="
-                                (configValue(data.key) !== undefined && configValue(data.key) === item) ||
-                                (configValue(data.key) === undefined && item === data.default)
+                                (formData[data.key] !== undefined && formData[data.key] === item) ||
+                                (formData[data.key] === undefined && item === data.default)
                             "
                         >
                             {{ item }}
@@ -81,11 +77,14 @@
             </button>
         </div>
     </form>
+    <div v-if="loading">
+        <span class="icon"><fa icon="sync" spin></fa></span> Loading...
+    </div>
 </template>
 
 <script lang="ts">
 import { useStore } from "@/store";
-import { ApiResponse } from "@common/Api/Api";
+import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import { SettingField } from "@common/Config";
 import { AxiosError } from "axios";
 import { defineComponent, PropType } from "vue";
@@ -101,28 +100,36 @@ interface SettingsGroup {
 
 export default defineComponent({
     name: "SettingsForm",
-    props: {
-        settingsData: {
-            type: Object as PropType<Record<string, string | number | boolean>>,
-        },
-        settingsFields: {
-            type: Array as PropType<SettingField<string | number | boolean>[]>,
-        },
-    },
+    // props: {
+    //     settingsData: {
+    //         type: Object as PropType<Record<string, string | number | boolean>>,
+    //     },
+    //     settingsFields: {
+    //         type: Array as PropType<SettingField<string | number | boolean>[]>,
+    //     },
+    // },
     setup() {
         const store = useStore();
         return { store };
     },
     emits: ["formSuccess"],
-    data() {
+    data(): {
+        formStatusText: string;
+        formStatus: string;
+        formData: Record<string, string | number | boolean>;
+        settingsFields: SettingField<string | number | boolean>[];
+        loading: boolean;
+    } {
         return {
             formStatusText: "Ready",
             formStatus: "",
             formData: {},
+            settingsFields: [],
+            loading: false,
         };
     },
     mounted(): void {
-        // this.settingsCopy = JSON.parse(JSON.stringify(this.store.config));
+        this.fetchData();
     },
     /*
     created: {
@@ -130,20 +137,31 @@ export default defineComponent({
     },
     */
     methods: {
+        fetchData(): void {
+            this.loading = true;
+            this.$http.get("/api/v0/settings").then((response) => {
+                const data: ApiSettingsResponse = response.data;
+                this.formData = data.data.config;
+                this.settingsFields = data.data.fields;
+
+                // set defaults
+                for (const field of this.settingsFields) {
+                    if (field.default !== undefined && this.formData[field.key] === undefined) {
+                        this.formData[field.key] = field.default;
+                    }
+                }
+
+            }).finally(() => {
+                this.loading = false;
+            });
+        },
         submitForm(event: Event) {
-            const form = event.target as HTMLFormElement;
-            const inputs = new FormData(form);
 
             this.formStatusText = "Loading...";
             this.formStatus = "";
 
-            // console.log("form", form);
-            // console.log("entries", inputs, inputs.entries(), inputs.values());
-            let data: Record<string, unknown> = {};
-            inputs.forEach((value, key) => (data[key] = value));
-
             this.$http
-                .put(`/api/v0/settings`, data)
+                .put(`/api/v0/settings`, this.formData)
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     this.formStatusText = json.message || "No message";
@@ -151,6 +169,7 @@ export default defineComponent({
                     if (json.message) alert(json.message);
                     if (json.status == "OK") {
                         this.$emit("formSuccess", json);
+                        window.location.reload();
                     }
                     console.debug("settings save response", response);
                 })
@@ -165,10 +184,10 @@ export default defineComponent({
             return false;
         },
         configValue(key: string): string | number | boolean | undefined {
-            if (!this.settingsData) return undefined;
+            if (!this.formData) return undefined;
             // const k: keyof ApiConfig = key as keyof ApiConfig;
-            // return this.settingsData[k] as unknown as T;
-            return this.settingsData[key];
+            // return this.formData[k] as unknown as T;
+            return this.formData[key];
         },
         doValidateExternalURL() {
             this.$http

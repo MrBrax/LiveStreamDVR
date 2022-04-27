@@ -24,6 +24,11 @@
                     <span class="icon"><fa icon="tachometer-alt"></fa></span>
                 </router-link>
             </div>
+            <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Files' }" data-menuitem="files">
+                <router-link to="/files" title="Files">
+                    <span class="icon"><fa icon="archive"></fa></span>
+                </router-link>
+            </div>
             <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Tools' }" data-menuitem="tools">
                 <router-link to="/tools" title="Tools">
                     <span class="icon"><fa icon="wrench"></fa></span>
@@ -32,11 +37,6 @@
             <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Settings' }" data-menuitem="settings">
                 <router-link to="/settings" title="Settings">
                     <span class="icon"><fa icon="cog"></fa></span>
-                </router-link>
-            </div>
-            <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'ClientSettings' }" data-menuitem="clientsettings">
-                <router-link to="/clientsettings" title="Client Settings">
-                    <span class="icon"><fa icon="user-cog"></fa></span>
                 </router-link>
             </div>
             <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'About' }" data-menuitem="github">
@@ -59,14 +59,14 @@ import pack from "../../package.json";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
-import { faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync } from "@fortawesome/free-solid-svg-icons";
+import { faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faArchive } from "@fortawesome/free-solid-svg-icons";
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import SideMenuStreamer from "./SideMenuStreamer.vue";
 
 import { useStore } from "@/store";
 import TwitchChannel from "@/core/channel";
 
-library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass);
+library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faArchive);
 
 export default defineComponent({
     components: { SideMenuStreamer },

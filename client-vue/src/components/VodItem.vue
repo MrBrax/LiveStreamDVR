@@ -382,7 +382,7 @@
                         vod.getRecordingSize() ? formatBytes(vod.getRecordingSize() as number) : "unknown"
                     }}</strong
                     >)
-                    <span class="icon clickable" title="Refresh" @click="vod && store.updateVodApi(vod.basename)"><fa icon="sync"></fa></span>
+                    <span class="icon clickable" title="Refresh" @click="vod && store.fetchAndUpdateVod(vod.basename)"><fa icon="sync"></fa></span>
                 </em>
 
                 <br />
@@ -931,7 +931,7 @@ export default defineComponent({
                     console.log(json);
                     this.taskStatus.downloadChat = false;
                     this.$emit("refresh");
-                    if (this.vod) this.store.updateVodApi(this.vod.basename);
+                    if (this.vod) this.store.fetchAndUpdateVod(this.vod.basename);
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
@@ -1011,7 +1011,7 @@ export default defineComponent({
                     console.log(json);
                     this.taskStatus.delete = false;
                     this.$emit("refresh");
-                    if (this.vod) this.store.updateStreamer(this.vod.streamer_login);
+                    if (this.vod) this.store.fetchAndUpdateStreamer(this.vod.streamer_login);
                 })
                 .catch((err) => {
                     console.error("form error", err.response);

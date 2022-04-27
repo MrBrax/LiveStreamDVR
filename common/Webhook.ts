@@ -19,6 +19,19 @@ export type WebhookAction =
     "log"
 ;
 
+export type WebhookData =
+    ChapterUpdateData |
+    StartDownloadData |
+    EndCaptureData |
+    VideoDownloadData |
+    JobSave |
+    JobClear |
+    JobUpdate |
+    VodRemoved |
+    VodUpdated |
+    Init
+    ;
+
 export interface StartDownloadData {
     vod: ApiVod;
 }

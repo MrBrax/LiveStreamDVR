@@ -97,7 +97,6 @@ export default defineComponent({
         return { VideoQualityArray };
     },
     data() {
-        console.debug("match", this.channel, this.channel.match);
         return {
             formStatusText: "Ready",
             formStatus: "",

@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-import { format, formatDistanceToNow, parse } from "date-fns";
+import { format, formatDistanceToNow, parse, parseJSON } from "date-fns";
 import express from "express";
 import fs from "fs";
 import { IncomingHttpHeaders } from "http";
@@ -81,7 +81,8 @@ export class Automator {
 
     public getDateTime() {
         // return date(TwitchHelper::DATE_FORMAT);
-        return format(new Date(), Helper.TWITCH_DATE_FORMAT);
+        // return format(new Date(), Helper.TWITCH_DATE_FORMAT);
+        return JSON.stringify(new Date());
     }
 
     public streamURL() {
@@ -579,7 +580,7 @@ export class Automator {
         this.vod.meta = this.payload_eventsub;
         // this.vod.json.meta = $this.payload_eventsub; // what
         this.vod.capture_id = this.getVodID() || "1";
-        this.vod.started_at = parse(data_started, Helper.TWITCH_DATE_FORMAT, new Date());
+        this.vod.started_at = parseJSON(data_started);
 
         if (this.force_record) this.vod.force_record = true;
 
@@ -726,7 +727,12 @@ export class Automator {
         // download chat and optionally burn it
         if (this.channel.download_chat && this.vod.twitch_vod_id) {
             Log.logAdvanced(LOGLEVEL.INFO, "automator", `Auto download chat on ${basename}`);
-            this.vod.downloadChat();
+
+            try {
+                await this.vod.downloadChat();
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to download chat for ${basename}: ${(error as Error).message}`);
+            }
 
             if (this.channel.burn_chat) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "automator", "Automatic chat burning has been disabled until settings have been implemented.");
@@ -1005,7 +1011,7 @@ export class Automator {
 
                 if (data.includes("Writing output to")) {
                     Log.logAdvanced(LOGLEVEL.INFO, "automator", "Writing output");
-                    if (this.vod){ 
+                    if (this.vod) {
                         this.vod.capture_started2 = new Date();
                         this.vod.broadcastUpdate();
                     }
