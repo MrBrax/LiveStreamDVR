@@ -85,25 +85,6 @@ export default defineComponent({
         }).catch((error) => {
             console.error("fetchData error", error);
         });
-
-        // this.websocket = connectWebsocket();
-
-        // websocket messages
-        // const ev = eventListener();
-        // ev.addEventListener("message", this.handleWebsocketMessage);
-        // ev.addEventListener("message", this.handleWebsocketMessage as unknown as EventListener);
-        // console.debug("Added websocket event listener");
-
-    },
-    unmounted() {
-        // eventListener().removeEventListener("message", this.handleWebsocketMessage as unknown as EventListener);
-        console.debug("Removed websocket listener");
-    },
-    mounted() {
-        console.log("wsObject", this.websocket);
-        setTimeout(() => {
-            console.log("wsObject", this.websocket);
-        }, 1000);
     },
     methods: {
         async fetchData() {
@@ -161,7 +142,7 @@ export default defineComponent({
             this.websocket = new WebSocket(websocket_url);
 
             this.websocket.addEventListener("open", (ev: Event) => {
-                console.log(`Connected to websocket!`, ev);
+                console.log("Connected to websocket!");
                 if (!this.websocket) return;
                 this.websocket.send(JSON.stringify({ action: "helloworld" }));
                 this.websocketConnected = true;
@@ -215,6 +196,11 @@ export default defineComponent({
 
             return this.websocket;
 
+        },
+        disconnectWebsocket() {
+            if (!this.websocket) return;
+            this.websocket.close();
+            this.websocket = undefined;
         },
         handleWebsocketMessage(action: string, data: any) {
 

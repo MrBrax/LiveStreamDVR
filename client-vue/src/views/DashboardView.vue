@@ -11,7 +11,7 @@
         </section>
         <section class="section" data-section="vods">
             <div class="section-title"><h1>Recorded VODs</h1></div>
-            <div class="section-content" v-if="store.streamerList && store.streamerList.length > 0">
+            <div class="section-content" v-if="store.streamerListLoaded && store.streamerList.length > 0">
                 <template v-if="!store.clientConfig?.singlePage">
                     <streamer v-for="streamer in sortedStreamers" v-bind:key="streamer.userid" v-bind:streamer="streamer" />
                 </template>
@@ -25,8 +25,12 @@
                     <strong>Free space: {{ formatBytes(freeSize) }}</strong>
                 </div>
             </div>
-            <div class="section-content" v-else>
+            <div class="section-content" v-else-if="!store.streamerListLoaded">
                 <span class="icon"><fa icon="sync" spin></fa></span> Loading...
+            </div>
+            <div class="section-content" v-else>
+                <span class="icon"><fa icon="exclamation-triangle"></fa></span>
+                No channels found. Add some at <router-link :to="{ name: 'Settings', params: { tab: 'newchannel' } }">New Channel</router-link> to start.
             </div>
         </section>
 
@@ -49,7 +53,6 @@ import { useStore } from "@/store";
 import TwitchChannel from "@/core/channel";
 import { ApiLogResponse, ApiResponse } from "@common/Api/Api";
 import LogViewer from "@/components/LogViewer.vue";
-import { eventListener } from "@/websocket";
 
 interface DashboardData {
     loading: boolean;

@@ -6,7 +6,6 @@ import VueAxios from "vue-axios";
 import titleMixin from "./mixins/titleMixin";
 import helpers from "./mixins/helpers";
 import { createPinia } from "pinia";
-import websocket from "./plugins/websocket";
 // import "./registerServiceWorker";
 
 // font-awesome
@@ -18,4 +17,4 @@ if (import.meta.env.BASE_URL !== undefined) {
     axios.defaults.baseURL = import.meta.env.BASE_URL;
 }
 
-createApp(App).use(router).use(createPinia()).use(VueAxios, axios).use(websocket).component("fa", FontAwesomeIcon).mixin(titleMixin).mixin(helpers).mount("#app");
+createApp(App).use(router).use(createPinia()).use(VueAxios, axios).component("fa", FontAwesomeIcon).mixin(titleMixin).mixin(helpers).mount("#app");

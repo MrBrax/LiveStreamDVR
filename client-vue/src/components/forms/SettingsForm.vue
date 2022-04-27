@@ -1,5 +1,5 @@
 <template>
-    <form method="POST" enctype="multipart/form-data" action="#" @submit.prevent="submitForm" v-if="settingsFields && formData">
+    <form method="POST" enctype="multipart/form-data" action="#" @submit.prevent="submitForm" v-if="!loading && settingsFields && formData">
         <details class="settings-details" v-for="groupData in settingsGroups" v-bind:key="groupData.name">
             <summary>{{ groupData.name }}</summary>
             <div class="field" v-for="(data, index) in groupData.fields" v-bind:key="index">
@@ -77,6 +77,9 @@
             </button>
         </div>
     </form>
+    <div v-if="loading">
+        <span class="icon"><fa icon="sync" spin></fa></span> Loading...
+    </div>
 </template>
 
 <script lang="ts">
@@ -115,12 +118,14 @@ export default defineComponent({
         formStatus: string;
         formData: Record<string, string | number | boolean>;
         settingsFields: SettingField<string | number | boolean>[];
+        loading: boolean;
     } {
         return {
             formStatusText: "Ready",
             formStatus: "",
             formData: {},
             settingsFields: [],
+            loading: false,
         };
     },
     mounted(): void {
@@ -133,6 +138,7 @@ export default defineComponent({
     */
     methods: {
         fetchData(): void {
+            this.loading = true;
             this.$http.get("/api/v0/settings").then((response) => {
                 const data: ApiSettingsResponse = response.data;
                 this.formData = data.data.config;
@@ -145,6 +151,8 @@ export default defineComponent({
                     }
                 }
 
+            }).finally(() => {
+                this.loading = false;
             });
         },
         submitForm(event: Event) {

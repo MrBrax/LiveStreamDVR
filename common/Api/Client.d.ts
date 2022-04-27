@@ -1,7 +1,7 @@
 import { MediaInfo, MediaInfoPublic } from "../mediainfofield";
 import { VideoQuality } from "../Config";
 import { ChannelData } from "../Channel";
-import { MuteStatus, ExistStatus} from "../../common/Defs";
+import { MuteStatus, ExistStatus, JobStatus} from "../../common/Defs";
 import { VideoMetadata } from "../MediaInfo";
 import { BroadcasterType } from "../TwitchAPI/Users";
 
@@ -89,10 +89,10 @@ export type ApiVod = {
     api_getUniqueGames: ApiGame[];
     api_getWebhookDuration?: string;
     api_getDuration: number | null;
-    api_getCapturingStatus: number | false;
-    api_getConvertingStatus: number | false;
+    api_getCapturingStatus: JobStatus;
+    api_getConvertingStatus: JobStatus;
     api_getRecordingSize: number | false;
-    api_getChatDumpStatus: number | false;
+    api_getChatDumpStatus: JobStatus;
     api_getDurationLive: number | false;
 
     path_chat: string;
@@ -248,7 +248,7 @@ export type ApiChannelConfig = {
 export type ApiJob = {
     name: string;
     pid?: number;
-    status: number | false;
+    status: JobStatus;
     process_running: boolean;
 };
 

@@ -104,15 +104,15 @@ export default defineComponent({
     data(): {
         loading: boolean;
         formChannels: ApiChannelConfig[];
-        settingsData: Record<string, string | number | boolean>;
-        settingsFields: SettingField<string | number | boolean>[];
+        // settingsData: Record<string, string | number | boolean>;
+        // settingsFields: SettingField<string | number | boolean>[];
         favouritesData: string[];
         gamesData: Record<string, ApiGame>;
     } {
         return {
             loading: false,
-            settingsData: {},
-            settingsFields: [],
+            // settingsData: {},
+            // settingsFields: [],
             gamesData: {},
             favouritesData: [],
             formChannels: [],
@@ -127,47 +127,19 @@ export default defineComponent({
             console.debug("Fetching settings and games data");
             this.loading = true;
             this.$http
-                .all([
-                    this.$http
-                        .get(`api/v0/settings`)
-                        .then((response) => {
-                            const json: ApiSettingsResponse = response.data;
-                            if (json.message) alert(json.message);
-                            console.log("settings list", json);
-
-                            const config = json.data.config;
-                            const channels: ApiChannelConfig[] = json.data.channels;
-                            const favourites = json.data.favourite_games;
-
-                            this.favouritesData = favourites;
-                            // this.gamesData = games;
-
-                            this.formChannels = channels.sort((a, b) => a.login.localeCompare(b.login));
-                            console.log("formChannels", this.formChannels);
-
-                            this.settingsData = config;
-                            this.settingsFields = json.data.fields;
-                        })
-                        .catch((err) => {
-                            console.error("settings fetch error", err.response);
-                        }),
-
-                    this.$http
-                        .get(`api/v0/games`)
-                        .then((response) => {
-                            const json: ApiGamesResponse = response.data;
-                            if (json.message) alert(json.message);
-                            console.log("games list", json);
-                            const games = json.data;
-                            this.gamesData = games;
-                        })
-                        .catch((err) => {
-                            console.error("settings fetch error", err.response);
-                        }),
-                ])
-                .then(() => {
+                .get(`api/v0/games`)
+                .then((response) => {
+                    const json: ApiGamesResponse = response.data;
+                    if (json.message) alert(json.message);
+                    const games = json.data;
+                    this.gamesData = games;
+                })
+                .catch((err) => {
+                    console.error("settings fetch error", err.response);
+                }).finally(() => {
                     this.loading = false;
                 });
+                
         },
     },
     computed: {

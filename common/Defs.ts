@@ -71,3 +71,11 @@ export const NotificationCategories = [
 ];
 
 export type NotificationCategory = "offlineStatusChange" | "streamOnline" | "streamOffline" | "streamStatusChange" | "streamStatusChangeFavourite" | "vodMuted" | "vodDeleted" | "debug";
+
+export enum JobStatus {
+    NONE = "NONE",
+    WAITING = "WAITING",
+    RUNNING = "RUNNING",
+    STOPPED = "STOPPED",
+    ERROR = "ERROR",
+}

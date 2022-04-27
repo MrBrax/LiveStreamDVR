@@ -6,7 +6,7 @@ import path from "path";
 import { ApiVod } from "../../../common/Api/Client";
 import type { TwitchComment, TwitchCommentDump } from "../../../common/Comments";
 import { VideoQuality } from "../../../common/Config";
-import { MuteStatus } from "../../../common/Defs";
+import { JobStatus, MuteStatus } from "../../../common/Defs";
 import { AudioStream, FFProbe, VideoStream } from "../../../common/FFProbe";
 import { VideoMetadata } from "../../../common/MediaInfo";
 import { MediaInfo } from "../../../common/mediainfofield";
@@ -1338,19 +1338,19 @@ export class TwitchVOD {
         };
     }
 
-    public async getChatDumpStatus(): Promise<number | false> {
+    public async getChatDumpStatus(): Promise<JobStatus> {
         const job = Job.findJob(`chatdump_${this.basename}`);
-        return job ? await job.getStatus() : false;
+        return job ? await job.getStatus() : JobStatus.STOPPED;
     }
 
-    public async getCapturingStatus(use_command = false): Promise<number | false> {
+    public async getCapturingStatus(use_command = false): Promise<JobStatus> {
         const job = Job.findJob(`capture_${this.basename}`);
-        return job ? await job.getStatus(use_command) : false;
+        return job ? await job.getStatus(use_command) : JobStatus.STOPPED;
     }
 
-    public async getConvertingStatus(): Promise<number | false> {
+    public async getConvertingStatus(): Promise<JobStatus> {
         const job = Job.findJob(`convert_${this.basename}`);
-        return job ? await job.getStatus() : false;
+        return job ? await job.getStatus() : JobStatus.STOPPED;
     }
 
     public getRecordingSize(): number | false {

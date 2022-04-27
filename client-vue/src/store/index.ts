@@ -10,6 +10,7 @@ export const useStore = defineStore("twitchAutomator", {
     state: function (): {
         app_name: string;
         streamerList: TwitchChannel[];
+        streamerListLoaded: boolean;
         jobList: ApiJob[];
         config: Record<string, any> | null;
         favourite_games: string[];
@@ -23,6 +24,7 @@ export const useStore = defineStore("twitchAutomator", {
         return {
             app_name: "",
             streamerList: [],
+            streamerListLoaded: false,
             jobList: [],
             config: {},
             favourite_games: [],
@@ -165,6 +167,7 @@ export const useStore = defineStore("twitchAutomator", {
             // console.debug("updateStreamerList", data);
             const channels = data.map((channel) => TwitchChannel.makeFromApiResponse(channel));
             this.streamerList = channels;
+            this.streamerListLoaded = true;
         },
         updateErrors(data: string[]) {
             this.errors = data;
@@ -183,9 +186,11 @@ export const useStore = defineStore("twitchAutomator", {
             this.updateJobList(json.data);
         },
         updateJobList(data: ApiJob[]) {
+            console.debug(`Update job list with ${data.length} jobs`);
             this.jobList = data;
         },
         updateJob(job: ApiJob) {
+            console.debug(`Update job '${job.name}', status: ${job.status}`);
             const index = this.jobList.findIndex((j) => j.name === job.name);
             if (index === -1) {
                 this.jobList.push(job);
@@ -194,6 +199,7 @@ export const useStore = defineStore("twitchAutomator", {
             }
         },
         removeJob(name: string) {
+            console.debug(`Delete job '${name}'`);
             const index = this.jobList.findIndex((j) => j.name === name);
             if (index !== -1) {
                 this.jobList.splice(index, 1);

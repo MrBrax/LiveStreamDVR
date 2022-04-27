@@ -1,6 +1,6 @@
 import { useStore } from "../store";
 import { ApiVod } from "../../../common/Api/Client";
-import { MuteStatus } from "../../../common/Defs";
+import { JobStatus, MuteStatus } from "../../../common/Defs";
 import { VideoMetadata } from "../../../common/MediaInfo";
 import TwitchChannel from "./channel";
 import { TwitchVODChapter } from "./chapter";
@@ -56,9 +56,9 @@ export default class TwitchVOD {
 
     webpath = "";
 
-    convertingStatus: number | false = false;
-    capturingStatus: number | false = false;
-    chatDumpStatus: number | false = false;
+    convertingStatus: JobStatus = JobStatus.NONE;
+    capturingStatus: JobStatus = JobStatus.NONE;
+    chatDumpStatus: JobStatus = JobStatus.NONE;
     recordingSize: number | false = 0;
 
     total_size = 0;
