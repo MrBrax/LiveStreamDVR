@@ -1,15 +1,27 @@
 <template>
-    <div class="container">
-        <section class="section">
+    <div class="container vertical">
+        <section class="section is-fullwidth">
             <div class="section-title"><h1>Clips</h1></div>
             <div class="section-content">
                 <FileManager path="storage/saved_clips" web="saved_clips" />
             </div>
         </section>
-        <section class="section">
+        <section class="section is-fullwidth">
             <div class="section-title"><h1>VODs</h1></div>
             <div class="section-content">
                 <FileManager path="storage/saved_vods" web="saved_vods" />
+            </div>
+        </section>
+        <section class="section is-fullwidth">
+            <div class="section-title"><h1>Application logs</h1></div>
+            <div class="section-content">
+                <FileManager path="logs" />
+            </div>
+        </section>
+        <section class="section is-fullwidth">
+            <div class="section-title"><h1>Software logs</h1></div>
+            <div class="section-content">
+                <FileManager path="logs/software" />
             </div>
         </section>
     </div>

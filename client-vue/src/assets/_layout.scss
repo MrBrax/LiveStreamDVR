@@ -14,6 +14,9 @@ hr {
     &[data-collapsed="1"] .section-content {
         display: none;
     }
+    &.is-fullwidth {
+        flex: 1;
+    }
 }
 
 .section-title {

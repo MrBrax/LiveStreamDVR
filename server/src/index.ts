@@ -11,6 +11,9 @@ import { AppName, BaseConfigDataFolder, BaseConfigFolder } from "./Core/BaseConf
 import { ClientBroker } from "./Core/ClientBroker";
 import { Config } from "./Core/Config";
 import ApiRouter from "./Routes/Api";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const argv = minimist(process.argv.slice(2));
 

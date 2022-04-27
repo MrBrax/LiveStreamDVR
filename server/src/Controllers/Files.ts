@@ -11,7 +11,7 @@ const allowedDataPaths = [
     "logs",
 ];
 
-const validatePath = (nastyPath: string) => {
+export function validatePath(nastyPath: string): string | boolean {
 
     // sanitize user path
     nastyPath = nastyPath.normalize();
@@ -44,27 +44,21 @@ const validatePath = (nastyPath: string) => {
 
     return true;
 
-};
-
-// console.debug("C:\\", validatePath("C:\\"));
-// console.debug("C:\\storage", validatePath("C:\\storage"));
-// console.debug("/", validatePath("/"));
-// console.debug("/storage", validatePath("/storage"));
-// console.debug(path.join(DataRoot, ".."), validatePath(path.join(DataRoot, "..")));
-// console.debug(path.join(DataRoot, "\u0000"), validatePath(path.join(DataRoot, "\u0000")));
-// console.debug(path.join(DataRoot, "CON1"), validatePath(path.join(DataRoot, "CON1")));
-// console.debug(path.join(DataRoot, "storage", "saved_vods"), validatePath(path.join(DataRoot, "storage", "saved_vods")));
-// console.debug(path.join(DataRoot, "cache"), validatePath(path.join(DataRoot, "cache")));
-// console.debug(path.join(DataRoot, "logs"), validatePath(path.join(DataRoot, "logs")));
+}
 
 export function ListFiles(req: express.Request, res: express.Response): void {
+
+    if (!process.env.TCD_ENABLE_FILES_API) {
+        res.status(404).send({ status: "ERROR", message: "Files API is disabled on this server. Enable with the TCD_ENABLE_FILES_API environment variable." });
+        return;
+    }
 
     const user_path = req.query.path as string;
 
     if (user_path == undefined) {
         res.status(400).send({
             status: "ERROR",
-            message: "Path is not defined"
+            message: "Path is not defined",
         });
         return;
     }
@@ -101,6 +95,11 @@ export function ListFiles(req: express.Request, res: express.Response): void {
 }
 
 export function DeleteFile(req: express.Request, res: express.Response): void {
+
+    if (!process.env.TCD_ENABLE_FILES_API) {
+        res.status(404).send({ status: "ERROR", message: "Files API is disabled on this server. Enable with the TCD_ENABLE_FILES_API environment variable." });
+        return;
+    }
 
     const user_path = req.query.path as string;
     const file_name = req.query.name as string;

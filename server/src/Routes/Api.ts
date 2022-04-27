@@ -91,18 +91,8 @@ router.post("/tools/reset_channels", Tools.ResetChannels);
 router.post("/tools/vod_download", Tools.DownloadVod);
 router.post("/tools/chat_download", Tools.DownloadChat);
 
-if (process.env.TCD_ENABLE_FILES_API) {
-    router.get("/files", Files.ListFiles);
-    router.delete("/files", Files.DeleteFile);
-    console.log(chalk.bgRedBright.whiteBright("Files API enabled"));
-} else {
-    router.get("/files", (req, res) => {
-        res.status(404).send({ status: "ERROR", message: "Files API is disabled on this server. Enable with the TCD_ENABLE_FILES_API environment variable." });
-    });
-    router.delete("/files", (req, res) => {
-        res.status(404).send({ status: "ERROR", message: "Files API is disabled on this server. Enable with the TCD_ENABLE_FILES_API environment variable." });
-    });
-}
+router.get("/files", Files.ListFiles);
+router.delete("/files", Files.DeleteFile);
 
 router.get("/test_video_download", (req, res) => {
     if (!req.query.video_id) {
