@@ -727,7 +727,12 @@ export class Automator {
         // download chat and optionally burn it
         if (this.channel.download_chat && this.vod.twitch_vod_id) {
             Log.logAdvanced(LOGLEVEL.INFO, "automator", `Auto download chat on ${basename}`);
-            this.vod.downloadChat();
+
+            try {
+                await this.vod.downloadChat();
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to download chat for ${basename}: ${(error as Error).message}`);
+            }
 
             if (this.channel.burn_chat) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "automator", "Automatic chat burning has been disabled until settings have been implemented.");
@@ -1006,7 +1011,7 @@ export class Automator {
 
                 if (data.includes("Writing output to")) {
                     Log.logAdvanced(LOGLEVEL.INFO, "automator", "Writing output");
-                    if (this.vod){ 
+                    if (this.vod) {
                         this.vod.capture_started2 = new Date();
                         this.vod.broadcastUpdate();
                     }

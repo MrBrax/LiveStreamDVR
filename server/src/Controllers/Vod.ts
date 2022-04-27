@@ -101,7 +101,17 @@ export async function DownloadChat(req: express.Request, res: express.Response):
         return;
     }
 
-    const success = await vod.downloadChat();
+    let success;
+
+    try {
+        success = await vod.downloadChat();
+    } catch (error) {
+        res.status(500).send({
+            status: "ERROR",
+            message: `Chat download error: ${(error as Error).message}`,
+        });
+        return;
+    }
 
     res.send({
         status: success ? "OK" : "ERROR",

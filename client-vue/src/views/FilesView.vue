@@ -3,11 +3,13 @@
         <section class="section">
             <div class="section-title"><h1>Clips</h1></div>
             <div class="section-content">
+                WIP
             </div>
         </section>
         <section class="section">
             <div class="section-title"><h1>VODs</h1></div>
             <div class="section-content">
+                WIP
             </div>
         </section>
     </div>
