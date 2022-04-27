@@ -15,6 +15,9 @@
         <router-link :to="{ name: 'Settings', params: { tab: 'favourites' } }">
             <span class="icon"><fa icon="star"></fa></span> Favourites
         </router-link>
+        <router-link :to="{ name: 'Settings', params: { tab: 'clientsettings' } }">
+            <span class="icon"><fa icon="user-cog"></fa></span> Client settings
+        </router-link>
     </div>
 
     <div class="container">
@@ -71,6 +74,13 @@
                 <span class="icon"><fa icon="sync" spin></fa></span> Loading...
             </div>
         </section>
+
+        <!-- client settings -->
+        <section class="section" v-if="$route.params.tab == 'clientsettings'">
+            <div class="section-title"><h1>Client settings</h1></div>
+            <client-settings-form />
+        </section>
+ 
     </div>
 </template>
 
@@ -87,10 +97,10 @@ import type { ApiGame, ApiChannelConfig } from "@common/Api/Client";
 import type { ApiSettingsResponse, ApiGamesResponse } from "@common/Api/Api";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faUser, faCalendarCheck, faStar, faBell } from "@fortawesome/free-solid-svg-icons";
+import { faUser, faCalendarCheck, faStar, faBell, faUserCog } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
-import { SettingField } from "@common/Config";
-library.add(faUser, faCalendarCheck, faStar, faBell);
+import ClientSettingsForm from "@/components/forms/ClientSettingsForm.vue";
+library.add(faUser, faCalendarCheck, faStar, faBell, faUserCog);
 
 export default defineComponent({
     name: "SettingsView",
@@ -155,6 +165,7 @@ export default defineComponent({
         SettingsForm,
         FavouritesForm,
         NotificationsForm,
+        ClientSettingsForm
     },
 });
 </script>
