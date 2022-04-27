@@ -7,18 +7,18 @@ import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { Log } from "../Core/Log";
 
 export function GetLog(req: express.Request, res: express.Response) {
-    
+
     const filename = req.params.filename;
-    
+
     const start_from = req.params.start_from ? parseInt(req.params.start_from) : 0;
 
     if (!filename) {
         res.status(400).send("Missing filename");
         return;
     }
-    
+
     let log_lines: ApiLogLine[] = [];
-    
+
     try {
         log_lines = Log.fetchLog(filename, start_from) as ApiLogLine[];
     } catch (error) {
@@ -34,7 +34,7 @@ export function GetLog(req: express.Request, res: express.Response) {
     }
 
     const line_num = log_lines.length;
-    
+
     const logfiles = fs.readdirSync(BaseConfigDataFolder.logs).filter(f => f.endsWith(".jsonline")).map(f => f.replace(".log.jsonline", ""));
 
     res.send({

@@ -1,6 +1,6 @@
 {
   "name": "twitchautomator-server",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "",
   "main": "index.ts",
   "scripts": {
@@ -49,6 +49,7 @@
     "express": "^4.17.3",
     "minimist": "^1.2.6",
     "morgan": "^1.10.0",
+    "sanitize-filename": "^1.6.3",
     "ws": "^8.5.0"
   }
 }
