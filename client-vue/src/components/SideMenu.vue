@@ -12,7 +12,7 @@
             </div>
         </div>
 
-        <div class="menu-middle" v-if="$route.name == 'Dashboard' && store.streamerList && store.streamerList.length > 0">
+        <div class="menu-middle" v-if="store.streamerList && store.streamerList.length > 0">
             <side-menu-streamer v-for="streamer in sortedStreamers" :key="streamer.login" v-bind:streamer="streamer"></side-menu-streamer>
         </div>
 

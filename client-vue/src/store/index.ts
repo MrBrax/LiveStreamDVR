@@ -6,21 +6,25 @@ import { ClientSettings } from "@/twitchautomator";
 import TwitchChannel from "@/core/channel";
 import TwitchVOD from "@/core/vod";
 
+interface StoreType {
+    app_name: string;
+    streamerList: TwitchChannel[];
+    streamerListLoaded: boolean;
+    jobList: ApiJob[];
+    config: Record<string, any> | null;
+    favourite_games: string[];
+    version: string;
+    clientConfig: ClientSettings | null;
+    serverType: string;
+    websocketUrl: string;
+    errors: string[];
+    log: ApiLogLine[];
+    diskTotalSize: number;
+    diskFreeSize: number;
+}
+
 export const useStore = defineStore("twitchAutomator", {
-    state: function (): {
-        app_name: string;
-        streamerList: TwitchChannel[];
-        streamerListLoaded: boolean;
-        jobList: ApiJob[];
-        config: Record<string, any> | null;
-        favourite_games: string[];
-        version: string;
-        clientConfig: ClientSettings | null;
-        serverType: string;
-        websocketUrl: string;
-        errors: string[];
-        log: ApiLogLine[];
-    } {
+    state: function (): StoreType {
         return {
             app_name: "",
             streamerList: [],
@@ -34,6 +38,8 @@ export const useStore = defineStore("twitchAutomator", {
             websocketUrl: "",
             errors: [],
             log: [],
+            diskTotalSize: 0,
+            diskFreeSize: 0,
         };
     },
     actions: {
@@ -42,8 +48,17 @@ export const useStore = defineStore("twitchAutomator", {
             if (this.config[key] === undefined || this.config[key] === null) return def;
             return this.config[key];
         },
+        async fetchAndUpdateStreamerList() {
+            const data = await this.fetchStreamerList();
+            if (data){
+                const channels = data.streamer_list.map((channel) => TwitchChannel.makeFromApiResponse(channel));
+                this.streamerList = channels;
+                this.streamerListLoaded = true;
+                this.diskFreeSize = data.free_size;
+                this.diskTotalSize = data.total_size;
+            }
+        },
         async fetchStreamerList() {
-            // console.debug("fetchStreamerList");
             let response;
             try {
                 response = await axios.get(`/api/v0/channels`);
@@ -58,8 +73,6 @@ export const useStore = defineStore("twitchAutomator", {
                 // console.error("fetchStreamerList", data.message);
                 return false;
             }
-
-            // this.streamerList = data.streamer_list;
             return data.data;
         },
         async fetchVod(basename: string) {
@@ -238,4 +251,9 @@ export const useStore = defineStore("twitchAutomator", {
             this.log = [];
         }
     },
+    getters: {
+        isAnyoneLive(state: StoreType): boolean {
+            return state.streamerList.some((streamer) => streamer.is_live);
+        }
+    }
 });

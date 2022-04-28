@@ -137,9 +137,18 @@
         font-size: 80%;
     }
 
-    &.icon a {
-        padding-left: 16px;
-        padding-right: 16px;
+    &.icon {
+
+        &.is-live:not(.is-active) a {
+            color: #ec2f2f;
+            // animation: 0.5s vibrate linear infinite;
+        }
+
+        a {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+
     }
 
     &.streamer {
