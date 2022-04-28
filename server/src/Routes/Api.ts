@@ -17,7 +17,6 @@ import * as Notifications from "../Controllers/Notifications";
 import * as Tools from "../Controllers/Tools";
 import * as Files from "../Controllers/Files";
 import { TwitchVOD } from "../Core/TwitchVOD";
-import chalk from "chalk";
 
 const router = express.Router();
 
@@ -46,7 +45,7 @@ router.post("/vod/:basename/download", Vod.DownloadVod);
 router.post("/vod/:basename/check_mute", Vod.CheckMute);
 router.post("/vod/:basename/match", Vod.MatchVod);
 router.post("/vod/:basename/cut", Vod.CutVod);
-// router.post("/vod/:basename/delete", Vod.DeleteVod); // old endpoint
+router.post("/vod/:basename/save", Vod.ArchiveVod);
 
 router.get("/games", Games.ListGames);
 
@@ -91,18 +90,8 @@ router.post("/tools/reset_channels", Tools.ResetChannels);
 router.post("/tools/vod_download", Tools.DownloadVod);
 router.post("/tools/chat_download", Tools.DownloadChat);
 
-if (process.env.TCD_ENABLE_FILES_API) {
-    router.get("/files", Files.ListFiles);
-    router.delete("/files", Files.DeleteFile);
-    console.log(chalk.bgRedBright.whiteBright("Files API enabled"));
-} else {
-    router.get("/files", (req, res) => {
-        res.status(404).send({ status: "ERROR", message: "Files API is disabled on this server. Enable with the TCD_ENABLE_FILES_API environment variable." });
-    });
-    router.delete("/files", (req, res) => {
-        res.status(404).send({ status: "ERROR", message: "Files API is disabled on this server. Enable with the TCD_ENABLE_FILES_API environment variable." });
-    });
-}
+router.get("/files", Files.ListFiles);
+router.delete("/files", Files.DeleteFile);
 
 router.get("/test_video_download", (req, res) => {
     if (!req.query.video_id) {
