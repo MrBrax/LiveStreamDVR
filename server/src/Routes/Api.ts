@@ -17,7 +17,6 @@ import * as Notifications from "../Controllers/Notifications";
 import * as Tools from "../Controllers/Tools";
 import * as Files from "../Controllers/Files";
 import { TwitchVOD } from "../Core/TwitchVOD";
-import chalk from "chalk";
 
 const router = express.Router();
 
@@ -46,7 +45,7 @@ router.post("/vod/:basename/download", Vod.DownloadVod);
 router.post("/vod/:basename/check_mute", Vod.CheckMute);
 router.post("/vod/:basename/match", Vod.MatchVod);
 router.post("/vod/:basename/cut", Vod.CutVod);
-// router.post("/vod/:basename/delete", Vod.DeleteVod); // old endpoint
+router.post("/vod/:basename/save", Vod.ArchiveVod);
 
 router.get("/games", Games.ListGames);
 

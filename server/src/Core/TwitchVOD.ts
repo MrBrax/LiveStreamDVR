@@ -681,9 +681,11 @@ export class TwitchVOD {
         const base = [
             `${this.basename}.json`,
             `${this.basename}.chat`,
+            `${this.basename}_chat.json`,
             `${this.basename}_vod.mp4`,
             `${this.basename}-llc-edl.csv`,
             `${this.basename}_chat.mp4`,
+            `${this.basename}_chat_mask.mp4`,
             `${this.basename}_burned.mp4`,
             `${this.basename}.chatdump`,
             `${this.basename}.chatdump.txt`,
