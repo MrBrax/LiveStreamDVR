@@ -16,7 +16,7 @@
                     <streamer v-for="streamer in sortedStreamers" v-bind:key="streamer.userid" v-bind:streamer="streamer" />
                 </template>
                 <template v-else>
-                    <streamer v-bind:streamer="singleStreamer" @refresh="fetchStreamers" />
+                    <streamer v-bind:streamer="singleStreamer" @refresh="store.fetchAndUpdateStreamerList" />
                 </template>
                 <hr />
                 <div class="dashboard-stats">
@@ -130,20 +130,10 @@ export default defineComponent({
     },
     created() {
         console.debug("Dashboard created");
-        this.loading = true;
+        // this.loading = true;
         this.watchFaviconBadgeSub();
-        this.fetchStreamers()
-            .then((sl) => {
-                if ("streamer_list" in sl) this.store.updateStreamerList(sl.streamer_list);
-                this.loading = false;
-            })
-            .then(() => {
-                console.debug(this.logviewer);
-                this.logviewer?.fetchLog();
-            })
-            .then(() => {
-                this.store.fetchAndUpdateJobs();
-            });
+        this.logviewer?.fetchLog();
+        // this.store.fetchAndUpdateJobs();
     },
     mounted() {
 
@@ -306,6 +296,7 @@ export default defineComponent({
                 if (this.wsKeepalive) clearInterval(this.wsKeepalive);
             }
         },
+        /*
         async fetchStreamers() {
             const rest = await this.store.fetchStreamerList();
             if (rest) {
@@ -317,10 +308,11 @@ export default defineComponent({
             }
             return [];
         },
+        */
         async fetchTicker() {
             if (this.timer <= 0 && !this.loading) {
                 this.loading = true;
-                const streamerResult = await this.fetchStreamers();
+                const streamerResult = await this.store.fetchStreamerList();
 
                 if (streamerResult && "streamer_list" in streamerResult) {
                     const isAnyoneLive = streamerResult.streamer_list.find((el) => el.is_live == true) !== undefined;
@@ -360,8 +352,9 @@ export default defineComponent({
 
                 // console.debug(`Favicon update check got ${name}`);
                 after(() => {
-                    const isAnyoneLive = this.store.streamerList.some((el) => el.is_live == true);
-                    this.setFaviconBadgeState(isAnyoneLive);
+                    // const isAnyoneLive = this.store.streamerList.some((el) => el.is_live == true);
+                    // this.setFaviconBadgeState(isAnyoneLive);
+                    this.setFaviconBadgeState(this.store.isAnyoneLive);
                 });
             });
         },

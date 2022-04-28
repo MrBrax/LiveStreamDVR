@@ -121,6 +121,10 @@ export default defineComponent({
             this.store.updateErrors(data.data.errors ?? []);
             this.store.websocketUrl = data.data.websocket_url;
             this.store.app_name = data.data.app_name;
+
+            await this.store.fetchAndUpdateStreamerList();
+            await this.store.fetchAndUpdateJobs();
+
         },
         connectWebsocket(): WebSocket | undefined {
 

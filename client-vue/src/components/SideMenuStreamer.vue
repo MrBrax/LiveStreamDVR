@@ -11,7 +11,9 @@
         :data-streamer="streamer.login"
         v-if="streamer"
     >
-        <router-link :to="store.clientConfig?.singlePage ? { path: 'dashboard', query: { channel: streamer.login } } : '#streamer_' + streamer.login">
+        <router-link
+            :to="store.clientConfig?.singlePage ? { path: 'dashboard', query: { channel: streamer.login } } : { path: 'dashboard', hash: '#streamer_' + streamer.login }"
+        >
             <span class="avatar" @click.prevent="streamer && store.fetchAndUpdateStreamer(streamer.login)">
                 <img :src="streamer.profile_image_url" :alt="streamer.login" />
             </span>
@@ -56,7 +58,7 @@
                     :to="
                         store.clientConfig?.singlePage
                             ? { path: 'dashboard', query: { channel: streamer.login }, hash: '#vod_' + vod.basename }
-                            : '#vod_' + vod.basename
+                            : { path: 'dashboard', hash: '#vod_' + vod.basename }
                     "
                     :class="{
                         'is-favourite': vod.hasFavouriteGame(),
