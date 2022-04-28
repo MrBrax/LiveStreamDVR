@@ -189,7 +189,19 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         return;
     }
 
-    const api_channel_data = await TwitchChannel.getChannelDataByLogin(channel_config.login);
+    let api_channel_data;
+    
+    try {
+        api_channel_data = await TwitchChannel.getChannelDataByLogin(channel_config.login);
+    } catch (error) {
+        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, API error: ${(error as Error).message}`);
+        res.status(400).send({
+            status: "ERROR",
+            message: `API error: ${(error as Error).message}`,
+        } as ApiErrorResponse);
+        return;
+    }
+
     if (api_channel_data && api_channel_data.login !== channel_config.login) {
         res.status(400).send({
             status: "ERROR",
