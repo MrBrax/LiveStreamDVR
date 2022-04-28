@@ -136,8 +136,8 @@ export default defineComponent({
         fetchData() {
             console.debug("Fetching settings and games data");
             this.loading = true;
-            this.$http
-                .get(`api/v0/games`)
+            this.$http.all([
+                this.$http.get(`api/v0/games`)
                 .then((response) => {
                     const json: ApiGamesResponse = response.data;
                     if (json.message) alert(json.message);
@@ -148,7 +148,24 @@ export default defineComponent({
                     console.error("settings fetch error", err.response);
                 }).finally(() => {
                     this.loading = false;
-                });
+                }),
+                this.$http
+                        .get(`api/v0/settings`)
+                        .then((response) => {
+                            const json: ApiSettingsResponse = response.data;
+                            if (json.message) alert(json.message);
+                            const config = json.data.config;
+                            const channels: ApiChannelConfig[] = json.data.channels;
+                            const favourites = json.data.favourite_games;
+                            this.favouritesData = favourites;
+                            this.formChannels = channels.sort((a, b) => a.login.localeCompare(b.login));
+                        })
+                        .catch((err) => {
+                            console.error("settings fetch error", err.response);
+                        }),
+            ]).finally(() => {
+                this.loading = false;
+            });
                 
         },
     },
