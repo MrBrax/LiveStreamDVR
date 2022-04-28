@@ -1,6 +1,6 @@
 {
   "name": "twitchautomator-client",
-  "version": "0.7.4",
+  "version": "0.7.4a",
   "private": true,
   "homepage": "https://github.com/MrBrax/TwitchAutomator",
   "scripts": {
