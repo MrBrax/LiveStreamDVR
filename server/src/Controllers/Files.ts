@@ -48,7 +48,7 @@ export function validatePath(nastyPath: string): string | boolean {
 
 export function ListFiles(req: express.Request, res: express.Response): void {
 
-    if (!process.env.TCD_ENABLE_FILES_API) {
+    if (process.env.TCD_ENABLE_FILES_API !== "1") {
         res.status(404).send({ status: "ERROR", message: "Files API is disabled on this server. Enable with the TCD_ENABLE_FILES_API environment variable." });
         return;
     }
@@ -76,12 +76,15 @@ export function ListFiles(req: express.Request, res: express.Response): void {
 
     const raw_files = fs.readdirSync(full_path);
 
-    const files = raw_files.map((file) => {
+    const files = raw_files.filter((file) => {
+        return !file.startsWith(".");
+    }).map((file) => {
         return {
             name: file,
             size: fs.statSync(path.join(full_path, file)).size,
             date: fs.statSync(path.join(full_path, file)).mtime,
             is_dir: fs.lstatSync(path.join(full_path, file)).isDirectory(),
+            extension: path.extname(file).substring(1),
         };
     });
 
@@ -96,7 +99,7 @@ export function ListFiles(req: express.Request, res: express.Response): void {
 
 export function DeleteFile(req: express.Request, res: express.Response): void {
 
-    if (!process.env.TCD_ENABLE_FILES_API) {
+    if (process.env.TCD_ENABLE_FILES_API !== "1") {
         res.status(404).send({ status: "ERROR", message: "Files API is disabled on this server. Enable with the TCD_ENABLE_FILES_API environment variable." });
         return;
     }

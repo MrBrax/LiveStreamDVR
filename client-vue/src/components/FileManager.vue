@@ -3,6 +3,7 @@
         <table class="table is-fullwidth is-striped" v-if="!error">
             <thead>
                 <tr>
+                    <th></th>
                     <th style="cursor: pointer;" @click="setSort('name')">
                         Name
                         <span v-if="sortBy == 'name'" class="icon is-small">
@@ -28,6 +29,9 @@
                 </tr>
             </thead>
             <tr class="file-manager-item" v-for="(item, index) in sortedFiles">
+                <td class="file-manager-item-icon">
+                    <fa :icon="getIconName(item.extension)" />
+                </td>
                 <td class="file-manager-item-name">{{ item.name }}</td>
                 <td class="file-manager-item-size">{{ formatBytes(item.size) }}</td>
                 <td class="file-manager-item-date">{{ item.date }}</td>
@@ -49,16 +53,15 @@ import { AxiosError } from "axios";
 import { defineComponent } from "vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faSortUp, faSortDown } from "@fortawesome/free-solid-svg-icons";
-// import { useStore } from "@/store";
-// import { JobStatus } from "@common/Defs";
-library.add(faSortUp, faSortDown);
+import { faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode } from "@fortawesome/free-solid-svg-icons";
+library.add(faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode);
 
 interface ApiFile {
     name: string;
     size: number;
     date: string;
     is_dir: boolean;
+    extension: string;
 }
 
 export default defineComponent({
@@ -120,6 +123,22 @@ export default defineComponent({
             this.sortBy = sortBy;
             this.sortOrder = this.sortOrder === "asc" ? "desc" : "asc";
         },
+        getIconName(extension: string) {
+            switch (extension) {
+                case "mp4":
+                    return "file-video";
+                case "mkv":
+                    return "file-video";
+                case "ts":
+                    return "file-video";
+                case "csv":
+                    return "file-csv";
+                case "json":
+                    return "file-code";
+                default:
+                    return "file";
+            }
+        }
     },
     components: {
     },

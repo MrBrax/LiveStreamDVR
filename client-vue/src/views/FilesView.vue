@@ -7,7 +7,7 @@
             </div>
         </section>
         <section class="section is-fullwidth">
-            <div class="section-title"><h1>VODs</h1></div>
+            <div class="section-title"><h1>Archived VODs</h1></div>
             <div class="section-content">
                 <FileManager path="storage/saved_vods" web="saved_vods" />
             </div>
