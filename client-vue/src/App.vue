@@ -17,12 +17,11 @@
             </div>
         </div>
         <job-status ref="jobstatus" />
-        <div id="js-status" :class="{ disconnected: websocket && !websocketConnected }" ref="js-status">
-            <template v-if="websocket">
-                {{ websocketConnected ? "Connected" : websocketConnecting ? "Connecting..." : "Disconnected" }}
-            </template>
-            <template v-else>Disabled</template>
-        </div>
+        <websocket-status
+            :websocket="websocket"
+            :websocketConnected="websocketConnected"
+            :websocketConnecting="websocketConnecting"
+        />
     </div>
 </template>
 
@@ -40,6 +39,7 @@ import { ChapterUpdateData, EndCaptureData, EndConvertData, JobClear, JobSave, N
 import { ApiLogLine } from "@common/Api/Client";
 import { parseISO } from "date-fns";
 import { WebsocketJSON } from "./websocket";
+import WebsocketStatus from "./components/WebsocketStatus.vue";
 // import websocket from "./websocket";
 
 export default defineComponent({
@@ -379,7 +379,8 @@ export default defineComponent({
     },
     components: {
         SideMenu,
-        JobStatus
+        JobStatus,
+        WebsocketStatus
     },
 });
 

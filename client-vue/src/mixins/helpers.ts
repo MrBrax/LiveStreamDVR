@@ -112,11 +112,6 @@ export default {
             return formatDistanceToNow(o, { addSuffix: true });
         },
     },
-    data() {
-        return {
-            twitchQuality: ["best", "1080p60", "1080p", "720p60", "720p", "480p", "360p", "160p", "140p", "worst"],
-        };
-    },
 };
 
 declare module "@vue/runtime-core" {
