@@ -46,12 +46,9 @@
 <script lang="ts">
 import { defineComponent, ref } from "vue";
 import Streamer from "@/components/StreamerItem.vue";
-import type { ApiLogLine, ApiChannel } from "@common/Api/Client";
-import type { ChapterUpdateData, EndCaptureData, EndConvertData, JobClear, JobSave, NotifyData, VodRemoved, VodUpdated, WebhookAction } from "@common/Webhook";
-import { format, parseISO } from "date-fns";
+import type { ApiChannel } from "@common/Api/Client";
 import { useStore } from "@/store";
 import TwitchChannel from "@/core/channel";
-import { ApiLogResponse, ApiResponse } from "@common/Api/Api";
 import LogViewer from "@/components/LogViewer.vue";
 
 interface DashboardData {

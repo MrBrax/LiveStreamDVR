@@ -94,6 +94,7 @@ export default defineComponent({
         this.store.fetchClientConfig();
         this.watchFaviconBadgeSub();
         this.fetchData().then(() => {
+            this.updateTitle();
             if (this.store.cfg("websocket_enabled") && this.store.clientConfig?.useWebsockets) {
                 console.debug("Connecting websocket...");
                 this.connectWebsocket();
@@ -430,11 +431,34 @@ export default defineComponent({
                 faviconElement.href = canvas.toDataURL();
             }
         },
+        updateTitle() {
+            const channelsOnline = this.store.channelsOnline;
+            const title = this.$route.meta.title || this.$route.name;
+            const app_name = this.store.app_name;
+            if (channelsOnline > 0) {
+                document.title = `[${channelsOnline}] ${title} - ${app_name}`;
+                this.setFaviconBadgeState(true);
+            } else{
+                document.title = `${title} - ${app_name}`;
+                this.setFaviconBadgeState(false);
+            }
+        }
     },
     components: {
         SideMenu,
         JobStatus,
         WebsocketStatus
+    },
+    watch: {
+        // watch for title changes
+        $route(to, from) {
+            console.debug("app route changed", to.name);
+            this.updateTitle();
+        },
+        "store.channelsOnline"(v) {
+            console.debug("channelsOnline changed", v);
+            this.updateTitle();
+        },
     },
 });
 

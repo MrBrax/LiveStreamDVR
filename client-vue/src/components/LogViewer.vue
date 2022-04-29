@@ -57,9 +57,7 @@ export default defineComponent({
         this.watcher = this.store.$onAction(({ name, store, args, after, onError }) => {
             if (!args) return;
             if (name !== "addLog" && name !== "clearLog") return;
-            console.debug("log added, scroll");
             after(() => {
-                console.debug("log added, scroll after");
                 setTimeout(() => {
                     this.scrollLog();
                 }, 100);
