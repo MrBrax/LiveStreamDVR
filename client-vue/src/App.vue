@@ -42,6 +42,19 @@ import { WebsocketJSON } from "./websocket";
 import WebsocketStatus from "./components/WebsocketStatus.vue";
 // import websocket from "./websocket";
 
+const faviconCanvas = document.createElement("canvas");
+faviconCanvas.width = 32;
+faviconCanvas.height = 32;
+const faviconCtx = faviconCanvas.getContext("2d");
+
+const faviconElement = document.querySelector("link[rel='icon']") as HTMLLinkElement;
+const faviconTempImage = new Image();
+faviconTempImage.src = faviconElement.href;
+faviconTempImage.onload = () => {
+    if (!faviconCtx) return;
+    faviconCtx.drawImage(faviconTempImage, 0, 0, 32, 32);
+};
+
 export default defineComponent({
     name: "App",
     setup() {
@@ -56,6 +69,7 @@ export default defineComponent({
         websocketKeepalive: number;
         websocketKeepaliveTime: number;
         websocketLastPing: number;
+        faviconSub: () => void;
     } {
         return {
             errors: [],
@@ -65,6 +79,9 @@ export default defineComponent({
             websocketKeepalive: 0,
             websocketKeepaliveTime: 20 * 1000,
             websocketLastPing: 0,
+            faviconSub: () => {
+                console.log("faviconSub");
+            },
         };
     },
     provide() {
@@ -75,6 +92,7 @@ export default defineComponent({
     created() {
         console.debug("App created");
         this.store.fetchClientConfig();
+        this.watchFaviconBadgeSub();
         this.fetchData().then(() => {
             if (this.store.cfg("websocket_enabled") && this.store.clientConfig?.useWebsockets) {
                 console.debug("Connecting websocket...");
@@ -85,6 +103,11 @@ export default defineComponent({
         }).catch((error) => {
             console.error("fetchData error", error);
         });
+    },
+    unmounted() {
+        console.debug("App unmounted");
+        this.disconnectWebsocket();
+        if (this.faviconSub) this.faviconSub();
     },
     methods: {
         async fetchData() {
@@ -205,6 +228,7 @@ export default defineComponent({
             if (!this.websocket) return;
             this.websocket.close();
             this.websocket = undefined;
+            if (this.websocketKeepalive) clearInterval(this.websocketKeepalive);
         },
         handleWebsocketMessage(action: string, data: any) {
 
@@ -375,6 +399,36 @@ export default defineComponent({
             */
 
             console.log(`Notify: ${title}: ${body}`);
+        },
+        watchFaviconBadgeSub() {
+            this.faviconSub = this.store.$onAction(({ name, store, args, after, onError }) => {
+                if (!args) return;
+                if (name !== "updateStreamerList" && name !== "updateVod") return;
+                after(() => {
+                    this.setFaviconBadgeState(this.store.isAnyoneLive);
+                });
+            });
+        },
+        setFaviconBadgeState(state: boolean) {
+            // draw favicon into canvas and add badge
+            const canvas = document.createElement("canvas");
+            canvas.width = 32;
+            canvas.height = 32;
+
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+                ctx.drawImage(faviconCanvas, 0, 0);
+                if (state) {
+                    ctx.fillStyle = "red";
+
+                    // draw circle badge
+                    ctx.beginPath();
+                    ctx.arc(26, 26, 6, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+
+                faviconElement.href = canvas.toDataURL();
+            }
         },
     },
     components: {

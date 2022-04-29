@@ -3,7 +3,7 @@
         <div v-if="isPrivate" class="error">
             These files are not downloadable due to a config setting.
         </div>
-        <table class="table is-fullwidth is-striped" v-if="!error">
+        <table class="table is-fullwidth is-striped" v-if="!error && files.length > 0">
             <thead>
                 <tr>
                     <th></th>
@@ -51,6 +51,9 @@
                 </td>
             </tr> 
         </table>
+        <div v-else-if="!error">
+            No files found.
+        </div>
         <div class="notification is-danger error" v-if="error">
             {{ error }}
         </div>
@@ -63,8 +66,8 @@ import { AxiosError } from "axios";
 import { defineComponent } from "vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode } from "@fortawesome/free-solid-svg-icons";
-library.add(faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode);
+import { faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFileLines } from "@fortawesome/free-solid-svg-icons";
+library.add(faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFileLines);
 
 interface ApiFile {
     name: string;
@@ -85,6 +88,14 @@ export default defineComponent({
         web: {
             type: String,
         },
+        defaultSortBy: {
+            type: String,
+            default: "name",
+        },
+        defaultSortOrder: {
+            type: String,
+            default: "asc",
+        },
     },
     setup() {
         const store = useStore();
@@ -99,8 +110,8 @@ export default defineComponent({
         return {
             files: [],
             error: "",
-            sortBy: "name",
-            sortOrder: "asc",
+            sortBy: this.defaultSortBy as "name" | "size" | "date",
+            sortOrder: this.defaultSortOrder as "asc" | "desc",
         };
     },
     created() {
@@ -146,6 +157,18 @@ export default defineComponent({
                     return "file-csv";
                 case "json":
                     return "file-code";
+                case "jsonline":
+                    return "file-code";
+                case "log":
+                    return "file-lines";
+                case "txt":
+                    return "file-lines";
+                case "vtt":
+                    return "file-lines";
+                case "chatdump":
+                    return "file-lines";
+                case "line":
+                    return "file-lines";
                 default:
                     return "file";
             }

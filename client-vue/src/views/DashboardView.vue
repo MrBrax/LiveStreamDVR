@@ -62,15 +62,8 @@ interface DashboardData {
     vodUpdateInterval: number;
     totalSize: number;
     freeSize: number;
-    ws: WebSocket | null;
-    wsConnected: boolean;
-    wsConnecting: boolean;
-    wsKeepalive: number;
-    wsKeepaliveTime: number;
-    wsLastPing: number;
     oldData: Record<string, ApiChannel>;
     notificationSub: () => void;
-    faviconSub: () => void;
     logVisible: boolean;
 }
 
@@ -78,19 +71,6 @@ interface WebsocketJSON {
     action: string;
     data: any;
 }
-
-const faviconCanvas = document.createElement("canvas");
-faviconCanvas.width = 32;
-faviconCanvas.height = 32;
-const faviconCtx = faviconCanvas.getContext("2d");
-
-const faviconElement = document.querySelector("link[rel='icon']") as HTMLLinkElement;
-const faviconTempImage = new Image();
-faviconTempImage.src = faviconElement.href;
-faviconTempImage.onload = () => {
-    if (!faviconCtx) return;
-    faviconCtx.drawImage(faviconTempImage, 0, 0, 32, 32);
-};
 
 export default defineComponent({
     name: "DashboardView",
@@ -116,22 +96,13 @@ export default defineComponent({
             notificationSub: () => {
                 console.log("notificationSub");
             },
-            faviconSub: () => {
-                console.log("faviconSub");
-            },
-            ws: null,
-            wsConnected: false,
-            wsConnecting: false,
-            wsKeepalive: 0,
-            wsLastPing: 0,
-            wsKeepaliveTime: 20000,
             logVisible: false,
         };
     },
     created() {
         console.debug("Dashboard created");
         // this.loading = true;
-        this.watchFaviconBadgeSub();
+        // this.watchFaviconBadgeSub();
         this.logviewer?.fetchLog();
         // this.store.fetchAndUpdateJobs();
     },
@@ -185,129 +156,10 @@ export default defineComponent({
     unmounted() {
         if (this.tickerInterval) clearTimeout(this.tickerInterval);
         if (this.vodUpdateInterval) clearTimeout(this.vodUpdateInterval);
-
-        // unsub
-        // if (this.notificationSub) {
-        //     console.log("unsubscribing from notifications, unmounted");
-        //     this.notificationSub();
-        // }
-
-        if (this.faviconSub) {
-            // console.log("unsubscribing from favicon, unmounted");
-            this.faviconSub();
-        }
-
-        this.setFaviconBadgeState(false);
-
-        if (this.ws) {
-            this.disconnectWebsocket();
-        }
     },
     methods: {
-        // addWebsocketMessageListener() {
-        //     const ev = eventListener();
-        // 
-        //     ev.addEventListener("message", ()
-        // }
-        /*
-        connectWebsocket() {
-            if (this.ws) this.disconnectWebsocket();
-            if (!this.store.config) return;
-
-            let websocket_url = "";
-
-            if (this.store.clientConfig?.websocketAddressOverride) {
-                websocket_url = this.store.clientConfig.websocketAddressOverride;
-                console.debug(`Overriding generated websocket URL with client config '${this.store.clientConfig.websocketAddressOverride}'`);
-            } else {
-                if (!this.store.websocketUrl || this.store.websocketUrl == "") {
-                    console.error("No websocket URL found");
-                    return;
-                }
-                websocket_url = this.store.websocketUrl;
-            }
-
-            console.log(`Connecting to ${websocket_url}`);
-            this.wsConnecting = true;
-            this.ws = new WebSocket(websocket_url);
-
-            this.ws.addEventListener("open", (ev: Event) => {
-                console.log(`Connected to websocket!`, ev);
-                if (!this.ws) return;
-                this.ws.send(JSON.stringify({ action: "helloworld" }));
-                this.wsConnected = true;
-                this.wsConnecting = false;
-                this.wsKeepalive = setInterval(() => {
-                    if (!this.ws) return;
-                    this.ws.send("ping");
-                }, this.wsKeepaliveTime);
-            });
-
-            this.ws.addEventListener("message", (ev: MessageEvent) => {
-                // console.log("ws message", ev);
-                let text = ev.data;
-
-                if (text == "pong") {
-                    // console.log("pong recieved");
-                    this.wsLastPing = Date.now();
-                    return;
-                }
-
-                let json: WebsocketJSON;
-
-                try {
-                    json = JSON.parse(text);
-                } catch (error) {
-                    console.error("Couldn't parse json", text);
-                    return;
-                }
-
-                this.handleWebsocketMessage(json);
-            });
-
-            this.ws.addEventListener("error", (ev: Event) => {
-                console.error(`Websocket error!`, ev);
-                this.wsConnected = false;
-                this.wsConnecting = false;
-                clearInterval(this.wsKeepalive);
-            });
-
-            this.ws.addEventListener("close", (ev: CloseEvent) => {
-                console.log(`Disconnected from websocket! (${ev.code}/${ev.reason})`);
-                this.wsConnecting = false;
-                setTimeout(() => {
-                    if (!ev.wasClean) {
-                        this.connectWebsocket();
-                    }
-                }, 10000);
-                this.wsConnected = false;
-                clearInterval(this.wsKeepalive);
-            });
-
-            return this.ws;
-        },
-        
-        */
-        disconnectWebsocket() {
-            if (this.ws && this.ws.close) {
-                console.log("Closing websocket...");
-                this.wsConnecting = false;
-                this.ws.close(undefined, "pageleave");
-                if (this.wsKeepalive) clearInterval(this.wsKeepalive);
-            }
-        },
-        /*
-        async fetchStreamers() {
-            const rest = await this.store.fetchStreamerList();
-            if (rest) {
-                this.totalSize = rest.total_size;
-                this.freeSize = rest.free_size;
-                return rest;
-            } else {
-                console.warn("No data returned from fetchStreamerList");
-            }
-            return [];
-        },
+       /**
+        * @todo: reimplement ticker
         */
         async fetchTicker() {
             if (this.timer <= 0 && !this.loading) {
@@ -338,50 +190,6 @@ export default defineComponent({
                 this.timer -= 1;
             }
         },
-        watchFaviconBadgeSub() {
-            this.faviconSub = this.store.$onAction(({ name, store, args, after, onError }) => {
-                if (!args) {
-                    // console.error("No payload for notification sub");
-                    return;
-                }
-
-                if (name !== "updateStreamerList" && name !== "updateVod") {
-                    // console.debug(`Favicon update check got ${name}, abort.`);
-                    return;
-                }
-
-                // console.debug(`Favicon update check got ${name}`);
-                after(() => {
-                    // const isAnyoneLive = this.store.streamerList.some((el) => el.is_live == true);
-                    // this.setFaviconBadgeState(isAnyoneLive);
-                    this.setFaviconBadgeState(this.store.isAnyoneLive);
-                });
-            });
-        },
-        setFaviconBadgeState(state: boolean) {
-            // console.log("Set favicon badge state", state);
-            // draw favicon into canvas and add badge
-            const canvas = document.createElement("canvas");
-            canvas.width = 32;
-            canvas.height = 32;
-
-            const ctx = canvas.getContext("2d");
-            if (ctx) {
-                ctx.drawImage(faviconCanvas, 0, 0);
-                if (state) {
-                    ctx.fillStyle = "red";
-
-                    // draw circle badge
-                    ctx.beginPath();
-                    ctx.arc(26, 26, 6, 0, 2 * Math.PI);
-                    ctx.fill();
-                }
-
-                faviconElement.href = canvas.toDataURL();
-                // console.log("favicon updated", faviconElement);
-                // document.body.appendChild(canvas);
-            }
-        },
         logToggle() {
             this.logVisible = !this.logVisible;
             this.logviewer?.scrollLog();
@@ -392,10 +200,6 @@ export default defineComponent({
             const streamers: TwitchChannel[] = [...this.store.streamerList];
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
         },
-        // logFiltered(): ApiLogLine[] {
-        //     if (!this.logModule) return this.store.log;
-        //     return this.store.log.filter((val) => val.module == this.logModule);
-        // },
         streamersOnline(): number {
             if (!this.store.streamerList) return 0;
             return this.store.streamerList.filter((a) => a.is_live).length;
