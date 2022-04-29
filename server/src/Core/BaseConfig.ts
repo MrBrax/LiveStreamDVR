@@ -37,23 +37,8 @@ export const DataRoot =
 
 export const BaseConfigFolder = {
     server: path.join(AppRoot, "server"),
-    // config: path.join(AppRoot, "config"),
-    // cache: path.join(AppRoot, "cache"),
-    // cron: path.join(AppRoot, "cache", "cron"),
-    // pids: path.join(AppRoot, "cache", "pids"),
-    // playlist: path.join(AppRoot, "cache", "playlist"),
-    // keyvalue: path.join(AppRoot, "cache", "kv"),
-    // history: path.join(AppRoot, "cache", "history"),
-    // dotnet: path.join(AppRoot, "dotnet"),
-    // logs: path.join(AppRoot, "logs"),
-    // logs_software: path.join(AppRoot, "logs", "software"),
-    // payloads: path.join(AppRoot, "payloads"),
     public: path.join(AppRoot, "public"),
-
     client: path.join(AppRoot, "client-vue", "dist"),
-    // vod: path.join(AppRoot, "storage", "vods"),
-    // saved_vods: path.join(AppRoot, "storage", "saved_vods"),
-    // saved_clips: path.join(AppRoot, "storage", "saved_clips"),
     vodplayer: path.join(AppRoot, "vodplayer"),
 };
 
