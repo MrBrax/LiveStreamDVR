@@ -6,9 +6,10 @@ import { TwitchChannel } from "../Core/TwitchChannel";
 import { Config } from "../Core/Config";
 import { Helper } from "../Core/Helper";
 import { LOGLEVEL, Log } from "../Core/Log";
+import { EventSubTypes } from "../../../common/TwitchAPI/Shared";
 
 interface ChannelSub {
-    type: string;
+    type: EventSubTypes;
     id: string;
     username: string;
     user_id: string;
@@ -53,7 +54,7 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
                 created_at: sub.created_at,
             };
 
-            if (!KeyValue.getInstance().get(`${entry.user_id}.sub.${entry.type}`)) {
+            if (!KeyValue.getInstance().has(`${entry.user_id}.sub.${entry.type}`) || !KeyValue.getInstance().has(`${entry.user_id}.substatus.${entry.type}`)) {
                 KeyValue.getInstance().set(`${entry.user_id}.sub.${entry.type}`, entry.id);
                 KeyValue.getInstance().set(`${entry.user_id}.substatus.${entry.type}`, entry.status == "enabled" ? SubStatus.SUBSCRIBED : SubStatus.NONE);
                 Log.logAdvanced(LOGLEVEL.INFO, "route.subscriptions.list", `Added missing keyvalue subs for ${entry.user_id}`);
