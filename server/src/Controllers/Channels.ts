@@ -10,7 +10,7 @@ import { replaceAll } from "../Helpers/ReplaceAll";
 import { Helper } from "../Core/Helper";
 import { Config } from "../Core/Config";
 import path from "path";
-import { parse, parseJSON } from "date-fns";
+import { parseJSON } from "date-fns";
 import { Webhook } from "../Core/Webhook";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {

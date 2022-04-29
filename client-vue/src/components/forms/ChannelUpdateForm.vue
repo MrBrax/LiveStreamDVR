@@ -10,6 +10,8 @@
                         id="input_quality"
                         v-model="formData.quality"
                         required
+                        ref="quality"
+                        @blur="validateQuality"
                     />
                     <p class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</p>
                     <p class="input-help">Valid choices: {{ VideoQualityArray.join(", ") }}</p>
@@ -172,6 +174,17 @@ export default defineComponent({
                         alert(err.response.data.message);
                     }
                 });
+        },
+        validateQuality() {
+            const input = this.formData.quality.split(" ");
+            const valid = input.every((quality) => VideoQualityArray.includes(quality));
+            const field = this.$refs.quality as HTMLInputElement;
+            if (!valid) {
+                field.setCustomValidity("Invalid quality");
+                field.reportValidity();
+            } else {
+                field.setCustomValidity("");
+            }
         },
     },
     computed: {

@@ -1017,7 +1017,10 @@ export class TwitchChannel {
 
                     if (err.response?.data.status == 409) { // duplicate
                         const sub_id = await TwitchChannel.getSubscriptionId(channel_id, sub_type);
-                        if (sub_id) KeyValue.getInstance().set(`${channel_id}.sub.${sub_type}`, sub_id);
+                        if (sub_id) {
+                            KeyValue.getInstance().set(`${channel_id}.sub.${sub_type}`, sub_id);
+                            KeyValue.getInstance().set(`${channel_id}.substatus.${sub_type}`, SubStatus.SUBSCRIBED);
+                        }
                         continue;
                     }
 

@@ -460,12 +460,26 @@ export class Job extends EventEmitter {
         }
 
         if (Helper.is_windows()) {
-            const exec = await Helper.execSimple("taskkill", ["/F", "/PID", `${pid}`], "windows process kill");
+            let exec;
+            try {
+                exec = await Helper.execSimple("taskkill", ["/F", "/PID", `${pid}`], "windows process kill");
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Error killing process for job ${this.name}: ${(error as Error).message}`, this.metadata);
+                this.broadcastUpdate();
+                return false;
+            } 
             this.clear();
             this.broadcastUpdate();
             return exec;
         } else {
-            const exec = await Helper.execSimple("kill", [pid.toString()], "linux process kill");
+            let exec;
+            try {
+                exec = await Helper.execSimple("kill", [pid.toString()], "linux process kill");
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Error killing process for job ${this.name}: ${(error as Error).message}`, this.metadata);
+                this.broadcastUpdate();
+                return false;
+            } 
             this.clear();
             this.broadcastUpdate();
             return exec;

@@ -15,13 +15,13 @@
         <section class="section is-fullwidth">
             <div class="section-title"><h1>Application logs</h1></div>
             <div class="section-content">
-                <FileManager path="logs" />
+                <FileManager path="logs" web="logs" />
             </div>
         </section>
         <section class="section is-fullwidth">
             <div class="section-title"><h1>Software logs</h1></div>
             <div class="section-content">
-                <FileManager path="logs/software" />
+                <FileManager path="logs/software" web="logs/software" />
             </div>
         </section>
     </div>

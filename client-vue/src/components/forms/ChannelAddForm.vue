@@ -3,7 +3,15 @@
         <div class="field">
             <label class="label">Login <span class="required">*</span></label>
             <div class="control">
-                <input class="input input-required" type="text" name="login" v-model="formData.login" @keyup="checkLogin" required />
+                <input
+                    class="input input-required"
+                    type="text"
+                    name="login"
+                    v-model="formData.login"
+                    @keyup="checkLogin"
+                    required
+                    pattern="^[a-z0-9_]$"
+                />
                 <p class="input-help">
                     Channel login, lowercase. This is the part that comes after the domain name, not the display name.<br />
                     You can paste a link to a channel page here to get the login.
@@ -13,8 +21,17 @@
         <div class="field">
             <label class="label">Quality <span class="required">*</span></label>
             <div class="control">
-                <input class="input input-required" type="text" name="quality" v-model="formData.quality" required />
-                <p class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</p>
+                <input
+                    class="input input-required"
+                    type="text"
+                    name="quality"
+                    v-model="formData.quality"
+                    required
+                    ref="quality"
+                    @blur="validateQuality"
+                />
+                <p class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only.</p>
+                <p class="input-help"><strong>If the stream does not use any of these, it will not be recorded.</strong></p>
                 <p class="input-help">Valid choices: {{ VideoQualityArray.join(", ") }}</p>
             </div>
         </div>
@@ -138,6 +155,17 @@ export default defineComponent({
             const match = this.formData.login.match(/^https?:\/\/www.twitch.tv\/(\w+)/);
             if (match) {
                 this.formData.login = match[1];
+            }
+        },
+        validateQuality() {
+            const input = this.formData.quality.split(" ");
+            const valid = input.every((quality) => VideoQualityArray.includes(quality));
+            const field = this.$refs.quality as HTMLInputElement;
+            if (!valid) {
+                field.setCustomValidity("Invalid quality");
+                field.reportValidity();
+            } else {
+                field.setCustomValidity("");
             }
         },
     },

@@ -1,5 +1,5 @@
 
-import { DataRoot } from "../Core/BaseConfig";
+import { BaseConfigDataFolder, DataRoot } from "../Core/BaseConfig";
 import express from "express";
 import path from "path";
 import fs from "fs";
@@ -46,6 +46,13 @@ export function validatePath(nastyPath: string): string | boolean {
 
 }
 
+function isPublic(file_path: string): boolean {
+    if (file_path.startsWith(BaseConfigDataFolder.logs)){
+        return process.env.TCD_EXPOSE_LOGS_TO_PUBLIC === "1";
+    }
+    return true;
+}
+
 export function ListFiles(req: express.Request, res: express.Response): void {
 
     if (process.env.TCD_ENABLE_FILES_API !== "1") {
@@ -84,6 +91,7 @@ export function ListFiles(req: express.Request, res: express.Response): void {
             size: fs.statSync(path.join(full_path, file)).size,
             date: fs.statSync(path.join(full_path, file)).mtime,
             is_dir: fs.lstatSync(path.join(full_path, file)).isDirectory(),
+            is_public: isPublic(path.join(full_path, file)),
             extension: path.extname(file).substring(1),
         };
     });

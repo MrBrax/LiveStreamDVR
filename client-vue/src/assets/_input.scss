@@ -11,6 +11,13 @@
     color: #333;
     border: 1px solid #ccc;
 
+    &:invalid {
+        border-color: #f00;
+        &:hover {
+            border-color: #cc0303;
+        }
+    }
+
     &:hover {
         border-color: #aaa;
     }
