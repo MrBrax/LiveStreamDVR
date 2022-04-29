@@ -574,8 +574,12 @@ export class Helper {
 
             // write metadata to file
             if (metadata_file) {
-                opts.push("-i", metadata_file);
-                opts.push("-map_metadata", "1");
+                if (fs.existsSync(metadata_file)) {
+                    opts.push("-i", metadata_file);
+                    opts.push("-map_metadata", "1");
+                } else {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Metadata file ${metadata_file} does not exist for remuxing ${input}`);
+                }
             }
 
             // "-map", "0",

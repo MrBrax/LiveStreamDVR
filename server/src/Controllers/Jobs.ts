@@ -19,13 +19,13 @@ export async function ListJobs(req: express.Request, res: express.Response): Pro
 
 export async function KillJob(req: express.Request, res: express.Response): Promise<void> {
 
-    const job = Job.jobs.find(j => j.name === req.params.name);
+    const job = Job.getJob(req.params.name);
     const clear = req.query.clear;
 
     if (!job) {
-        res.status(400).send({
+        res.status(404).send({
             status: "ERROR",
-            message: "Job not found",
+            message: `Job '${req.params.name}' not found`,
         } as ApiErrorResponse);
         return;
     }
@@ -40,7 +40,7 @@ export async function KillJob(req: express.Request, res: express.Response): Prom
                 message: "Job cleared",
             });
         } else {
-            res.status(400).send({
+            res.status(500).send({
                 status: "ERROR",
                 message: "Job could not be cleared.",
             } as ApiErrorResponse);

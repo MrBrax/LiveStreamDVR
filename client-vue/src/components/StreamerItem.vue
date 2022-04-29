@@ -32,7 +32,7 @@
                         <span v-else>Free</span>
                     </span>
                     <span class="streamer-title-tools">
-                        <span v-if="streamer.is_live">
+                        <span v-if="canAbortCapture">
                             &middot;
                             <!-- abort recording -->
                             <button class="icon-button" @click="abortCapture" title="Abort record">
@@ -349,6 +349,10 @@ export default defineComponent({
             }, 0);
             return total / vods.length;
         },
+        canAbortCapture(): boolean {
+            if (!this.streamer) return false;
+            return this.streamer.is_live && this.store.jobList.some((job) => this.streamer && job.name.startsWith(`capture_${this.streamer.login}`));
+        }
     },
     components: {
         VodItem,

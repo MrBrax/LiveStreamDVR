@@ -24,6 +24,7 @@ import { LOGLEVEL, Log } from "./Log";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchVODSegment } from "./TwitchVODSegment";
 import { Webhook } from "./Webhook";
+import { FFmpegMetadata } from "./FFmpegMetadata";
 
 /*
 export interface TwitchVODSegmentJSON {
@@ -648,7 +649,7 @@ export class TwitchVOD {
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Could not save associated files for ${this.basename}: ${(error as Error).message}`);
             }
-            
+
         }
 
     }
@@ -1019,7 +1020,7 @@ export class TwitchVOD {
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to save lossless cut for ${this.basename}: ${error}`);
         }
-        
+
         try {
             this.saveFFMPEGChapters();
         } catch (error) {
@@ -1161,8 +1162,8 @@ export class TwitchVOD {
 
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Saving FFMPEG chapters file for ${this.basename} to ${this.path_ffmpegchapters}`);
 
+        /*
         let data = "";
-
         data += ";FFMETADATA1\n";
         data += `artist=${this.streamer_name}\n`;
         data += `title=${this.twitch_vod_title ?? this.chapters[0].title}\n`;
@@ -1193,8 +1194,30 @@ export class TwitchVOD {
             data += `TITLE=${chapter.title} (${chapter.game_name})\n\n`;
 
         });
+        */
 
-        fs.writeFileSync(this.path_ffmpegchapters, data, { encoding: "utf8" });
+        const meta = new FFmpegMetadata()
+            .setArtist(this.streamer_name)
+            .setTitle(this.twitch_vod_title ?? this.chapters[0].title);
+
+        this.chapters.forEach((chapter) => {
+            const offset = chapter.offset || 0;
+            const duration = chapter.duration || 0;
+            const start = Math.floor(offset * 1000);
+            const end = Math.floor((offset + duration) * 1000);
+            const title = `${chapter.title} (${chapter.game_name})`;
+            meta.addChapter(start, end, title, "1/1000", [
+                `Game ID: ${chapter.game_id}`,
+                `Game Name: ${chapter.game_name}`,
+                `Title: ${chapter.title}`,
+                `Offset: ${offset}`,
+                `Duration: ${duration}`,
+                `Viewer count: ${chapter.viewer_count}`,
+                `Started at: ${chapter.started_at.toISOString()}`,
+            ]);
+        });
+
+        fs.writeFileSync(this.path_ffmpegchapters, meta.getString(), { encoding: "utf8" });
 
         this.setPermissions();
 
@@ -1758,7 +1781,7 @@ export class TwitchVOD {
         }
 
         // if capturing but process not running
-        if (this.is_capturing && !await this.getCapturingStatus()) {
+        if (this.is_capturing && await this.getCapturingStatus(true) !== JobStatus.RUNNING) {
             console.log(chalk.bgRed.whiteBright(`${this.basename} is capturing but process not running. Setting to false for fixing.`));
             this.is_capturing = false;
             this.saveJSON("fix set capturing to false");
@@ -2123,7 +2146,7 @@ export class TwitchVOD {
         return TwitchVOD.downloadChatTD(this.twitch_vod_id, this.path_chat);
     }
 
-    
+
 
     public compareDumpedChatAndDownloadedChat(): void {
 
@@ -2400,12 +2423,24 @@ export class TwitchVOD {
 
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Starting remux of ${basename}`);
 
+            let chapters_file = "";
+            if (Config.getInstance().cfg("create_video_chapters")) {
+                chapters_file = path.join(BaseConfigDataFolder.cache, `${video_id}.ffmpeg.txt`);
+                const end = Helper.parseTwitchDuration(video.duration);
+                const meta = new FFmpegMetadata().setArtist(video.user_name).setTitle(video.title).addChapter(0, end, video.title, "1/1000");
+                fs.writeFileSync(chapters_file, meta.getString());
+            }
+
             let ret;
             try {
-                ret = await Helper.remuxFile(capture_filename, converted_filename);
+                ret = await Helper.remuxFile(capture_filename, converted_filename, undefined, chapters_file);
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to remux ${basename}: ${(error as Error).message}`);
                 throw new Error(`Failed to remux ${basename}: ${(error as Error).message}`);
+            }
+
+            if (chapters_file) {
+                fs.unlinkSync(chapters_file);
             }
 
             if (ret.success) {

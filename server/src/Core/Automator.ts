@@ -1171,7 +1171,7 @@ export class Automator {
         });
 
         let mf;
-        if (this.vod.saveFFMPEGChapters()) {
+        if (Config.getInstance().cfg("create_video_chapters") && this.vod.saveFFMPEGChapters()) {
             mf = this.vod.path_ffmpegchapters;
         }
 
