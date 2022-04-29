@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-import { format, formatDistanceToNow, parse, parseJSON } from "date-fns";
+import { formatDistanceToNow, parseJSON } from "date-fns";
 import express from "express";
 import fs from "fs";
 import { IncomingHttpHeaders } from "http";
@@ -873,6 +873,7 @@ export class Automator {
                 Log.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Spawned process ${capture_process.pid} for ${jobName}`);
                 capture_job = Job.create(jobName);
                 capture_job.setPid(capture_process.pid);
+                capture_job.setExec(bin, cmd);
                 capture_job.setProcess(capture_process);
                 capture_job.startLog(jobName, `$ ${bin} ${cmd.join(" ")}\n`);
                 capture_job.setMetadata({

@@ -15,6 +15,8 @@ export interface TwitchAutomatorJobJSON {
     pid: number;
     metadata: unknown;
     dt_started_at: string;
+    bin?: string;
+    args?: string[];
 }
 
 export class Job extends EventEmitter {
@@ -53,6 +55,9 @@ export class Job extends EventEmitter {
     public stdout: string[] = [];
     public stderr: string[] = [];
     public code: number | null = null;
+
+    public bin?: string;
+    public args?: string[];
 
     logfile = "";
 
@@ -146,8 +151,10 @@ export class Job extends EventEmitter {
         const data: TwitchAutomatorJobJSON = JSON.parse(raw);
 
         job.pid = data.pid;
-
         job.dt_started_at = data.dt_started_at ? parseJSON(data.dt_started_at) : undefined;
+        job.metadata = data.metadata;
+        job.bin = data.bin;
+        job.args = data.args;
 
         // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", "Job {$this->name} loaded, proceed to get status.", $this->metadata);
 
@@ -293,6 +300,12 @@ export class Job extends EventEmitter {
         return this.pid;
     }
 
+    public setExec(bin: string, args: string[]): void {
+        this.bin = bin;
+        this.args = args;
+        this.broadcastUpdate();
+    }
+
     /**
      * Attach process to job, possibly avoiding the need to check running processes
      *
@@ -398,7 +411,7 @@ export class Job extends EventEmitter {
 
             let proc;
             try {
-                proc = await Helper.execSimple("tasklist", ["/FI", `PID eq ${this.pid}`], `windows process status (${this.name})`);
+                proc = await Helper.execSimple("tasklist", ["/FI", `"PID eq ${this.pid}"`], `windows process status (${this.name})`);
             } catch (e) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for windows job ${this.name} (${this.process_running})`, this.metadata);
                 // console.debug(`Error checking status for job ${this.name} (${this.process_running})`);
@@ -430,17 +443,18 @@ export class Job extends EventEmitter {
 
         if (output.includes(this.pid.toString())) {
             Log.logAdvanced(LOGLEVEL.DEBUG, "job", `PID file check for '${this.name}', process is running (${this.process_running})`);
-            // console.debug(`PID file check for '${this.name}', process is running (${this.process_running})`);
             this.status = JobStatus.RUNNING;
             if (currentStatus !== this.status) this.broadcastUpdate();
-            // console.debug("get job status with command includes", this.name, this.status);
+
+            if (this.bin && !output.includes(path.basename(this.bin))) {
+                Log.logAdvanced(LOGLEVEL.WARNING, "job", `PID file check for '${this.name}', process is running but binary does not match (${this.bin})`);
+            }
+
             return JobStatus.RUNNING;
         } else {
             Log.logAdvanced(LOGLEVEL.DEBUG, "job", `PID file check for '${this.name}', process does not exist (${this.process_running})`);
-            // console.debug(`PID file check for '${this.name}', process does not exist (${this.process_running})`);
             this.status = JobStatus.STOPPED;
             if (currentStatus !== this.status) this.broadcastUpdate();
-            // console.debug("get job status with command does not include", this.name, this.status);
             return JobStatus.STOPPED;
         }
     }
@@ -475,7 +489,7 @@ export class Job extends EventEmitter {
                 Log.logAdvanced(LOGLEVEL.ERROR, "job", `Error killing process for job ${this.name}: ${(error as Error).message}`, this.metadata);
                 this.broadcastUpdate();
                 return false;
-            } 
+            }
             this.clear();
             this.broadcastUpdate();
             return exec;
@@ -487,7 +501,7 @@ export class Job extends EventEmitter {
                 Log.logAdvanced(LOGLEVEL.ERROR, "job", `Error killing process for job ${this.name}: ${(error as Error).message}`, this.metadata);
                 this.broadcastUpdate();
                 return false;
-            } 
+            }
             this.clear();
             this.broadcastUpdate();
             return exec;
@@ -566,6 +580,8 @@ export class Job extends EventEmitter {
             pid: this.pid || 0,
             metadata: this.metadata,
             dt_started_at: this.dt_started_at?.toISOString() || "",
+            bin: this.bin,
+            args: this.args,
         };
     }
 
