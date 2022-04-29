@@ -1,15 +1,19 @@
 <template>
    <div id="js-status" :class="{ disconnected: websocket && !websocketConnected }" ref="js-status">
-        <template v-if="websocket">
+        <div v-if="store.clientCfg('useWebsockets') && websocket">
             {{ websocketConnected ? "Connected" : websocketConnecting ? "Connecting..." : "Disconnected" }}
-        </template>
-        <template v-else>Disabled</template>
+        </div>
+        <div v-else-if="tickerInterval && store.clientCfg('useBackgroundTicker')">
+            {{ loading ? "Loading..." : `Refreshing in ${timer} seconds.` }}
+        </div>
+        <div v-else>
+            Disabled
+        </div>
     </div>
 </template>
 
 <script lang="ts">
 import { useStore } from "@/store";
-import { JobStatus } from "@common/Defs";
 import { defineComponent } from "vue";
 import { faTimes, faSync, faExclamationTriangle, faClock, faCircle } from "@fortawesome/free-solid-svg-icons";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -28,6 +32,15 @@ export default defineComponent({
         websocketConnecting: {
             type: Boolean,
             required: true,
+        },
+        timer: {
+            type: Number,
+        },
+        tickerInterval: {
+            type: Number,
+        },
+        loading: {
+            type: Boolean,
         },
     },
     setup() {

@@ -16,6 +16,7 @@ export type WebhookAction =
     "vod_updated" |
     "init" |
     "notify" |
+    "connected" |
     "log"
 ;
 
