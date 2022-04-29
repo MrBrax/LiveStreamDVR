@@ -14,6 +14,8 @@ import { parseJSON } from "date-fns";
 import { Webhook } from "../Core/Webhook";
 import { EventSubStreamOnline } from "../../../common/TwitchAPI/EventSub/StreamOnline";
 import { Automator } from "../Core/Automator";
+import { TwitchVODChapterJSON } from "Storage/JSON";
+import { KeyValue } from "Core/KeyValue";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -460,6 +462,17 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
             req.headers["twitch-eventsub-message-id"] = "fake";
             req.headers["twitch-eventsub-signature"] = "fake";
             req.headers["twitch-eventsub-message-retry"] = "0";
+
+            const chapter_data = {
+                started_at: JSON.stringify(parseJSON(stream.started_at)),
+                game_id: stream.game_id,
+                game_name: stream.game_name,
+                viewer_count: stream.viewer_count,
+                title: stream.title,
+                is_mature: stream.is_mature,
+                online: true,
+            } as TwitchVODChapterJSON;
+            KeyValue.getInstance().setObject(`${stream.user_login}.chapterdata`, chapter_data);
 
             const TA = new Automator();
             TA.handle(mock_data, req);
