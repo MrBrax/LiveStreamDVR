@@ -3,7 +3,7 @@
         :class="{
             'top-menu-item': true,
             'is-live': streamer.is_live,
-            'is-animated': store.clientConfig?.animationsEnabled,
+            'is-animated': store.clientCfg('animationsEnabled'),
             'is-active': $route.query.channel == streamer.login,
             'is-converting': streamer.is_converting,
             streamer: true,
@@ -12,7 +12,7 @@
         v-if="streamer"
     >
         <router-link
-            :to="store.clientConfig?.singlePage ? { path: 'dashboard', query: { channel: streamer.login } } : { path: 'dashboard', hash: '#streamer_' + streamer.login }"
+            :to="store.clientCfg('singlePage') ? { path: 'dashboard', query: { channel: streamer.login } } : { path: 'dashboard', hash: '#streamer_' + streamer.login }"
         >
             <span class="avatar" @click.prevent="streamer && store.fetchAndUpdateStreamer(streamer.login)">
                 <img :src="streamer.profile_image_url" :alt="streamer.login" />
@@ -35,11 +35,11 @@
                     for
                     <duration-display
                         :startDate="streamer.current_vod?.current_chapter?.started_at"
-                        :outputStyle="store.clientConfig?.useRelativeTime ? 'human' : 'numbers'"
+                        :outputStyle="store.clientCfg('useRelativeTime') ? 'human' : 'numbers'"
                     ></duration-display>
                     (<duration-display
                         :startDate="streamer.current_vod?.started_at"
-                        :outputStyle="store.clientConfig?.useRelativeTime ? 'human' : 'numbers'"
+                        :outputStyle="store.clientCfg('useRelativeTime') ? 'human' : 'numbers'"
                     ></duration-display
                     >)
                 </template>
@@ -52,7 +52,7 @@
     </div>
 
     <div class="top-menu-item streamer-jumpto" v-if="streamer">
-        <a v-if="!store.clientConfig?.expandVodList && streamer.vods_list.length > store.clientCfg('vodsToShowInMenu', 4)" @click="toggleExpand" class="streamer-expand">
+        <a v-if="!store.clientCfg('expandVodList') && streamer.vods_list.length > store.clientCfg('vodsToShowInMenu', 4)" @click="toggleExpand" class="streamer-expand">
             <span class="icon">
                 <fa :icon="expanded ? 'chevron-up' : 'chevron-down'" />
             </span>
@@ -66,14 +66,14 @@
             <li v-for="vod in filteredVodsList" :key="vod.basename">
                 <router-link
                     :to="
-                        store.clientConfig?.singlePage
+                        store.clientCfg('singlePage')
                             ? { path: 'dashboard', query: { channel: streamer.login }, hash: '#vod_' + vod.basename }
                             : { path: 'dashboard', hash: '#vod_' + vod.basename }
                     "
                     :class="{
                         'is-favourite': vod.hasFavouriteGame(),
                         'is-live': vod.is_capturing,
-                        'is-animated': store.clientConfig?.animationsEnabled,
+                        'is-animated': store.clientCfg('animationsEnabled'),
                         'is-converting': vod.is_converting,
                         'is-waiting': !vod.is_capturing && !vod.is_converting && !vod.is_finalized,
                         'streamer-jumpto-vod': true,
@@ -99,17 +99,17 @@
                     <!-- started at -->
 
                     <!-- absolute time -->
-                    <span v-if="!store.clientConfig?.useRelativeTime && vod.started_at">{{ formatDate(vod.started_at) }}</span>
+                    <span v-if="!store.clientCfg('useRelativeTime') && vod.started_at">{{ formatDate(vod.started_at) }}</span>
 
                     <!-- relative time -->
-                    <span v-if="store.clientConfig?.useRelativeTime && vod.started_at">{{ humanDate(vod.started_at, true) }}</span>
+                    <span v-if="store.clientCfg('useRelativeTime') && vod.started_at">{{ humanDate(vod.started_at, true) }}</span>
 
                     <!-- when capturing -->
                     <template v-if="vod.is_capturing">
                         <span>
                             &middot; (<duration-display
                                 :startDate="streamer.current_vod?.started_at"
-                                :outputStyle="store.clientConfig?.useRelativeTime ? 'human' : 'numbers'"
+                                :outputStyle="store.clientCfg('useRelativeTime') ? 'human' : 'numbers'"
                             ></duration-display
                             >)</span
                         ><!-- duration -->
@@ -121,7 +121,7 @@
                     <template v-else>
                         <!-- duration -->
                         <span v-if="vod.duration">
-                            &middot; ({{ store.clientConfig?.useRelativeTime ? niceDuration(vod.duration) : humanDuration(vod.duration) }})
+                            &middot; ({{ store.clientCfg('useRelativeTime') ? niceDuration(vod.duration) : humanDuration(vod.duration) }})
                         </span>
 
                         <!-- filesize -->
@@ -146,7 +146,7 @@
                     </template>
 
                     <!-- tooltip -->
-                    <div :class="{ tooltip: true, 'is-static': store.clientConfig?.tooltipStatic }">
+                    <div :class="{ tooltip: true, 'is-static': store.clientCfg('tooltipStatic') }">
                         <div class="stream-channel">
                             {{ streamer.display_name }}
                             <template v-if="streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }})</template>
@@ -228,7 +228,7 @@ export default defineComponent({
     computed: {
         filteredVodsList(): TwitchVOD[] {
             if (!this.streamer) return [];
-            if (this.expanded || this.store.clientConfig?.expandVodList) return this.streamer.vods_list;
+            if (this.expanded || this.store.clientCfg('expandVodList')) return this.streamer.vods_list;
             const vodsToShow = this.store.clientCfg('vodsToShowInMenu', 4);
             if (vodsToShow === 0) return [];
             // return last 4 vods

@@ -56,7 +56,7 @@ export const useStore = defineStore("twitchAutomator", {
         },
         async fetchAndUpdateStreamerList() {
             const data = await this.fetchStreamerList();
-            if (data){
+            if (data) {
                 const channels = data.streamer_list.map((channel) => TwitchChannel.makeFromApiResponse(channel));
                 this.streamerList = channels;
                 this.streamerListLoaded = true;
@@ -240,12 +240,33 @@ export const useStore = defineStore("twitchAutomator", {
             this.favourite_games = data;
         },
         fetchClientConfig() {
-            // client config
-            // console.debug("fetchClientConfig");
-            const currentClientConfig = localStorage.getItem("twitchautomator_config")
+
+            let init = false;
+            if (!localStorage.getItem("twitchautomator_config")) {
+                console.debug("No config found, using default");
+                init = true;
+            }
+
+            const currentClientConfig: ClientSettings = localStorage.getItem("twitchautomator_config")
                 ? JSON.parse(localStorage.getItem("twitchautomator_config") as string)
-                : {...defaultConfig};
+                : { ...defaultConfig };
+
+            // set default values, useful if new settings are added
+            for (const key of Object.keys(defaultConfig)) {
+                const k = key as keyof ClientSettings;
+                if (currentClientConfig[k] === undefined) {
+                    const defaultValue = defaultConfig[k];
+                    console.debug(`Setting default value for ${k}: ${defaultValue}`);
+                    currentClientConfig[k] = defaultValue as never; // no solution for type shit
+                }
+            }
+
             this.updateClientConfig(currentClientConfig);
+            if (init) this.saveClientConfig();
+        },
+        saveClientConfig() {
+            localStorage.setItem("twitchautomator_config", JSON.stringify(this.clientConfig));
+            console.log("Saved client config");
         },
         getStreamers(): TwitchChannel[] {
             return this.streamerList;

@@ -12,6 +12,8 @@ import { Config } from "../Core/Config";
 import path from "path";
 import { parseJSON } from "date-fns";
 import { Webhook } from "../Core/Webhook";
+import { EventSubStreamOnline } from "../../../common/TwitchAPI/EventSub/StreamOnline";
+import { Automator } from "../Core/Automator";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -404,6 +406,85 @@ export async function RefreshChannel(req: express.Request, res: express.Response
             status: "ERROR",
             message: "Failed to refresh channel",
         } as ApiErrorResponse);
+    }
+
+}
+
+export async function ForceRecord(req: express.Request, res: express.Response): Promise<void> {
+
+    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+
+    if (!channel || !channel.userid) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const streams = await TwitchChannel.getStreams(channel.userid);
+
+    if (streams) {
+        const stream = streams.find((s) => s.type === "live");
+        if (stream) {
+            const mock_data: EventSubStreamOnline = {
+                "subscription": {
+                    "id": "fake",
+                    "type": "stream.online",
+                    "condition": {
+                        "broadcaster_user_id": stream.user_id,
+                    },
+                    "version": "1",
+                    "status": "enabled",
+                    "created_at": new Date().toISOString(),
+                    "cost": 0,
+                    "transport": {
+                        "method": "webhook",
+                        "callback": "https://example.com/webhook",
+                    },
+                },
+                "event": {
+                    "type": "live",
+                    "id": stream.id,
+                    "broadcaster_user_id": stream.user_id,
+                    "broadcaster_user_login": stream.user_login,
+                    "broadcaster_user_name": stream.user_name,
+                    // "title": stream.title,
+                    // "category_id": stream.game_id,
+                    // "category_name": stream.game_name,
+                    "started_at": stream.started_at,
+                    // "is_mature": stream.is_mature,
+                },
+            };
+
+            req.headers["twitch-eventsub-message-id"] = "fake";
+            req.headers["twitch-eventsub-signature"] = "fake";
+            req.headers["twitch-eventsub-message-retry"] = "0";
+
+            const TA = new Automator();
+            TA.handle(mock_data, req);
+
+            res.send({
+                status: "OK",
+                message: `Forced recording of channel: ${channel.login}`,
+            });
+
+            return;
+
+        } else {
+            res.status(400).send({
+                status: "ERROR",
+                message: "No live stream found",
+            } as ApiErrorResponse);
+            return;
+        }
+
+    } else {
+        res.status(400).send({
+            status: "ERROR",
+            message: "No streams found",
+        } as ApiErrorResponse);
+        return;
     }
 
 }

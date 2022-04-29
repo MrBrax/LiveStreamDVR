@@ -204,6 +204,11 @@
         font-family: "Roboto Condensed";
         $base-bg: #163155;
         background-color: $base-bg;
+
+        // drag surface. neat but probably doesn't fit
+        // background-image: repeating-linear-gradient(to bottom, $base-bg 0px, lighten($base-bg, 10%) 2px);
+        // text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.5);
+
         // border-color: darken($base-bg, 5%);
         // color: #ddd;
         color: rgba(255, 255, 255, 0.5);

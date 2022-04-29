@@ -95,7 +95,7 @@ export default defineComponent({
         this.watchFaviconBadgeSub();
         this.fetchData().then(() => {
             this.updateTitle();
-            if (this.store.cfg("websocket_enabled") && this.store.clientConfig?.useWebsockets) {
+            if (this.store.cfg("websocket_enabled") && this.store.clientCfg('useWebsockets')) {
                 console.debug("Connecting websocket...");
                 this.connectWebsocket();
             } else {
@@ -154,9 +154,9 @@ export default defineComponent({
 
             let websocket_url = "";
 
-            if (this.store.clientConfig?.websocketAddressOverride) {
-                websocket_url = this.store.clientConfig.websocketAddressOverride;
-                console.debug(`Overriding generated websocket URL with client config '${this.store.clientConfig.websocketAddressOverride}'`);
+            if (this.store.clientCfg('websocketAddressOverride')) {
+                websocket_url = this.store.clientCfg('websocketAddressOverride');
+                console.debug(`Overriding generated websocket URL with client config '${this.store.clientCfg('websocketAddressOverride')}'`);
             } else {
                 if (!this.store.websocketUrl || this.store.websocketUrl == "") {
                     console.error("No websocket URL found");
@@ -361,7 +361,7 @@ export default defineComponent({
                 };
             }
 
-            if (tts || this.store.clientConfig?.useSpeech) {
+            if (tts || this.store.clientCfg('useSpeech')) {
                 const utterance = new SpeechSynthesisUtterance(`${title} ${body}`);
                 utterance.lang = "en-US";
                 speechSynthesis.speak(utterance);
@@ -452,11 +452,9 @@ export default defineComponent({
     watch: {
         // watch for title changes
         $route(to, from) {
-            console.debug("app route changed", to.name);
             this.updateTitle();
         },
         "store.channelsOnline"(v) {
-            console.debug("channelsOnline changed", v);
             this.updateTitle();
         },
     },

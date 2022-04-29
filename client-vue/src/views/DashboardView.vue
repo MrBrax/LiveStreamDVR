@@ -12,7 +12,7 @@
         <section class="section" data-section="vods">
             <div class="section-title"><h1>Recorded VODs</h1></div>
             <div class="section-content" v-if="store.streamerListLoaded && store.streamerList.length > 0">
-                <template v-if="!store.clientConfig?.singlePage">
+                <template v-if="!store.clientCfg('singlePage')">
                     <streamer v-for="streamer in sortedStreamers" v-bind:key="streamer.userid" v-bind:streamer="streamer" />
                 </template>
                 <template v-else>
@@ -106,10 +106,10 @@ export default defineComponent({
     mounted() {
 
         /*
-        if (this.store.cfg("websocket_enabled") && this.store.clientConfig?.useWebsockets) {
+        if (this.store.cfg("websocket_enabled") && this.store.clientCfg('useWebsockets')) {
             this.connectWebsocket();
         } else {
-            if (this.store.clientConfig?.useBackgroundTicker) {
+            if (this.store.clientCfg('useBackgroundTicker')) {
                 this.tickerInterval = setInterval(() => {
                     this.fetchTicker();
                 }, 1000);
@@ -118,7 +118,7 @@ export default defineComponent({
         */
 
         // update vods every 15 minutes
-        if (this.store.clientConfig?.useBackgroundRefresh) {
+        if (this.store.clientCfg('useBackgroundRefresh')) {
             this.vodUpdateInterval = setInterval(() => {
                 this.store.updateCapturingVods();
             }, 1000 * 60 * 15);
