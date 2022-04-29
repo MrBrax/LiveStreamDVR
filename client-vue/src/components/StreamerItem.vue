@@ -186,7 +186,7 @@ export default defineComponent({
             let response;
 
             try {
-                response = await this.$http.get(`/api/v0/channels/${this.streamer?.login}/force_record`);
+                response = await this.$http.post(`/api/v0/channels/${this.streamer?.login}/force_record`);
             } catch (error) {
                 if (this.$http.isAxiosError(error)) {
                     console.error("forceRecord error", error.response);
