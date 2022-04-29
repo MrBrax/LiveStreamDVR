@@ -109,6 +109,9 @@ export default defineComponent({
         return { store };
     },
     title() {
+        if (this.$route.params.tab) {
+            return `Settings (${this.$route.params.tab})`;
+        }
         return `Settings`;
     },
     data(): {

@@ -253,7 +253,11 @@ export const useStore = defineStore("twitchAutomator", {
     },
     getters: {
         isAnyoneLive(state: StoreType): boolean {
-            return state.streamerList.some((streamer) => streamer.is_live);
-        }
-    }
+            return this.channelsOnline > 0;
+        },
+        channelsOnline(): number {
+            if (!this.streamerList) return 0;
+            return this.streamerList.filter((a) => a.is_live).length;
+        },
+    },
 });
