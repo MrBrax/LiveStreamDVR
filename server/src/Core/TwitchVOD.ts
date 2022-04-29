@@ -1856,7 +1856,6 @@ export class TwitchVOD {
 
         const env = {
             DOTNET_BUNDLE_EXTRACT_BASE_DIR: BaseConfigDataFolder.dotnet,
-            // PATH: path.dirname(TwitchHelper.path_ffmpeg()),
             TEMP: BaseConfigDataFolder.cache,
         };
 
@@ -2434,6 +2433,12 @@ export class TwitchVOD {
         return converted_filename;
     }
 
+    /**
+     * Get video information from Twitch
+     * @param video_id 
+     * @throws
+     * @returns 
+     */
     static async getVideo(video_id: string): Promise<false | Video> {
         if (!video_id) throw new Error("No video id");
 
@@ -2527,12 +2532,19 @@ export class TwitchVOD {
             const args: string[] = [];
             args.push("--mode", "ChatDownload");
             args.push("--temp-path", BaseConfigDataFolder.cache);
+            args.push("--ffmpeg-path", Helper.path_ffmpeg() || "");
             args.push("--id", vod_id);
             args.push("-o", output);
 
+            const env = {
+                DOTNET_BUNDLE_EXTRACT_BASE_DIR: BaseConfigDataFolder.dotnet,
+                TEMP: BaseConfigDataFolder.cache,
+                PWD: BaseConfigDataFolder.dotnet,
+            };
+
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Downloading chat for ${vod_id}`);
 
-            const job = Helper.startJob(`chatdownload_${vod_id}`, bin, args);
+            const job = Helper.startJob(`chatdownload_${vod_id}`, bin, args, env);
             if (!job) {
                 reject(new Error("Job failed"));
                 return;

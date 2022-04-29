@@ -4,6 +4,7 @@ import { VideoQuality } from "../../../common/Config";
 import path from "path";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { TwitchVOD } from "../Core/TwitchVOD";
+import { ApiErrorResponse } from "../../../common/Api/Api";
 
 export async function ResetChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -104,7 +105,17 @@ export async function DownloadChat(req: express.Request, res: express.Response):
 
     const id = id_match[1];
 
-    const metadata = await TwitchVOD.getVideo(id);
+    let metadata;
+    
+    try {
+        metadata = await TwitchVOD.getVideo(id);
+    } catch (error) {
+        res.status(400).send({
+            status: "ERROR",
+            message: `Error while fetching video data: ${(error as Error).message}`,
+        } as ApiErrorResponse);
+        return;
+    }
 
     if (!metadata) {
         res.status(400).send({

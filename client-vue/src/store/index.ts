@@ -5,6 +5,7 @@ import { defineStore } from "pinia";
 import { ClientSettings } from "@/twitchautomator";
 import TwitchChannel from "@/core/channel";
 import TwitchVOD from "@/core/vod";
+import { defaultConfig } from "@/defs";
 
 interface StoreType {
     app_name: string;
@@ -238,7 +239,7 @@ export const useStore = defineStore("twitchAutomator", {
             // console.debug("fetchClientConfig");
             const currentClientConfig = localStorage.getItem("twitchautomator_config")
                 ? JSON.parse(localStorage.getItem("twitchautomator_config") as string)
-                : {};
+                : {...defaultConfig};
             this.updateClientConfig(currentClientConfig);
         },
         getStreamers(): TwitchChannel[] {
