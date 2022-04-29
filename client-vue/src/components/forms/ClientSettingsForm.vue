@@ -57,6 +57,7 @@
 import { useStore } from "@/store";
 import { defineComponent } from "vue";
 import { defaultConfig } from "@/defs";
+import { ClientSettings } from "@/twitchautomator";
 
 export default defineComponent({
     name: "ClientSettingsForm",
@@ -65,27 +66,29 @@ export default defineComponent({
         const store = useStore();
         return { store };
     },
-    data() {
+    data(): {
+        currentConfig: ClientSettings;
+        updateConfig: ClientSettings;
+    } {
         return {
-            currentConfig: Object.assign({}, defaultConfig),
-            updateConfig: Object.assign({}, defaultConfig),
+            currentConfig: {...defaultConfig},
+            updateConfig: {...defaultConfig},
         };
     },
     created() {
-        const crConf = Object.assign({}, defaultConfig);
-
-        const currentConfig = localStorage.getItem("twitchautomator_config") ? JSON.parse(localStorage.getItem("twitchautomator_config") as string) : crConf;
-
+        if (!this.store.clientConfig) return;
+        const crConf = {...defaultConfig};
+        const currentConfig: ClientSettings = {...this.store.clientConfig};
         this.updateConfig = currentConfig;
         this.currentConfig = currentConfig;
     },
     methods: {
         saveClientConfig() {
-            localStorage.setItem("twitchautomator_config", JSON.stringify(this.updateConfig));
+            this.store.updateClientConfig(this.updateConfig);
+            this.store.saveClientConfig();
             if (this.currentConfig.enableNotifications !== this.updateConfig.enableNotifications && this.updateConfig.enableNotifications) {
                 this.requestNotifications();
             }
-            this.store.updateClientConfig(this.updateConfig);
             alert("Settings saved, reloading...");
             window.location.reload();
         },

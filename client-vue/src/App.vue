@@ -452,11 +452,9 @@ export default defineComponent({
     watch: {
         // watch for title changes
         $route(to, from) {
-            console.debug("app route changed", to.name);
             this.updateTitle();
         },
         "store.channelsOnline"(v) {
-            console.debug("channelsOnline changed", v);
             this.updateTitle();
         },
     },
