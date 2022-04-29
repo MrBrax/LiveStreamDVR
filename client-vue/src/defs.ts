@@ -12,4 +12,7 @@ export const defaultConfig: ClientSettings = {
     useBackgroundRefresh: true,
     useBackgroundTicker: true,
     websocketAddressOverride: "",
+    expandVodList: true,
+    vodsToShowInMenu: 4,
+    alwaysShowCapturingVodInMenu: false
 };

@@ -52,8 +52,18 @@
     </div>
 
     <div class="top-menu-item streamer-jumpto" v-if="streamer">
-        <ul>
-            <li v-for="vod in streamer.vods_list" :key="vod.basename">
+        <a v-if="!store.clientConfig?.expandVodList && streamer.vods_list.length > store.clientCfg('vodsToShowInMenu', 4)" @click="toggleExpand" class="streamer-expand">
+            <span class="icon">
+                <fa :icon="expanded ? 'chevron-up' : 'chevron-down'" />
+            </span>
+            <transition>
+                <span class="text" v-if="!expanded">
+                    {{ streamer.vods_list.length - store.clientCfg('vodsToShowInMenu', 4) }} more
+                </span>
+            </transition>
+        </a>
+        <transition-group name="list" tag="ul">
+            <li v-for="vod in filteredVodsList" :key="vod.basename">
                 <router-link
                     :to="
                         store.clientConfig?.singlePage
@@ -156,7 +166,7 @@
                     </div>
                 </router-link>
             </li>
-        </ul>
+        </transition-group>
     </div>
 </template>
 
@@ -167,10 +177,10 @@ import DurationDisplay from "@/components/DurationDisplay.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
-import { faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faTrashArrowUp } from "@fortawesome/free-solid-svg-icons";
+import { faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faTrashArrowUp, faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import { useStore } from "@/store";
-library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp);
+library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp, faChevronDown, faChevronUp);
 
 import { MuteStatus, nonGameCategories, TwitchVodAge } from "../../../common/Defs";
 import TwitchChannel from "@/core/channel";
@@ -182,6 +192,11 @@ export default defineComponent({
         streamer: {
             type: Object as () => TwitchChannel,
         },
+    },
+    data() {
+        return {
+            expanded: false,
+        };
     },
     setup() {
         const store = useStore();
@@ -205,6 +220,20 @@ export default defineComponent({
             // if the vod is older than 12 days, it is considered risky
             return Date.now() - vod.started_at.getTime() >= maxVodAge;
         },
+        toggleExpand() {
+            this.expanded = !this.expanded;
+            console.debug("expanded", this.expanded);
+        }
     },
+    computed: {
+        filteredVodsList(): TwitchVOD[] {
+            if (!this.streamer) return [];
+            if (this.expanded || this.store.clientConfig?.expandVodList) return this.streamer.vods_list;
+            const vodsToShow = this.store.clientCfg('vodsToShowInMenu', 4);
+            if (vodsToShow === 0) return [];
+            // return last 4 vods
+            return this.streamer.vods_list.slice(-vodsToShow);
+        }
+    }
 });
 </script>

@@ -248,8 +248,9 @@ export class TwitchChannel {
             TwitchChannel.channels.splice(index_channel, 1);
         }
 
-        // @todo: unsubscribe
         if (userid) TwitchChannel.unsubscribe(userid);
+
+        TwitchChannel.saveChannelsConfig();
 
         return TwitchChannel.getChannelByLogin(login) == undefined;
     }
@@ -1069,7 +1070,7 @@ export class TwitchChannel {
             return false;
         }
 
-        const streamer_login = TwitchChannel.channelLoginFromId(channel_id);
+        const streamer_login = await TwitchChannel.channelLoginFromId(channel_id);
 
         let unsubbed = 0;
         for (const sub of subscriptions.data) {

@@ -15,7 +15,7 @@ interface StoreType {
     config: Record<string, any> | null;
     favourite_games: string[];
     version: string;
-    clientConfig: ClientSettings | null;
+    clientConfig: ClientSettings | undefined;
     serverType: string;
     websocketUrl: string;
     errors: string[];
@@ -34,7 +34,7 @@ export const useStore = defineStore("twitchAutomator", {
             config: {},
             favourite_games: [],
             version: "",
-            clientConfig: null,
+            clientConfig: undefined,
             serverType: "",
             websocketUrl: "",
             errors: [],
@@ -48,6 +48,11 @@ export const useStore = defineStore("twitchAutomator", {
             if (!this.config) return null;
             if (this.config[key] === undefined || this.config[key] === null) return def;
             return this.config[key];
+        },
+        clientCfg(key: keyof ClientSettings, def: any = undefined): any {
+            if (!this.clientConfig) return undefined;
+            if (this.clientConfig[key] === undefined || this.clientConfig[key] === null) return def;
+            return this.clientConfig[key];
         },
         async fetchAndUpdateStreamerList() {
             const data = await this.fetchStreamerList();
