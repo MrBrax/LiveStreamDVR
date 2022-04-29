@@ -58,8 +58,15 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
-                    this.formStatusText = err;
-                    this.formStatus = "ERROR";
+                    if (this.axios.isAxiosError(err) && err.response) {
+                        if (err.response.data.status == "ERROR") {
+                            this.formStatusText = err.response.data.message;
+                            this.formStatus = err.response.data.status;
+                        } else {
+                            this.formStatusText = err.response.data;
+                            this.formStatus = "ERROR";
+                        }
+                    }
                 });
 
             /*

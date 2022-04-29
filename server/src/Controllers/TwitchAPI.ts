@@ -39,7 +39,16 @@ export async function TwitchAPIVideo(req: express.Request, res: express.Response
         return;
     }
 
-    const video = await TwitchVOD.getVideo(video_id);
+    let video;
+    try {
+        video = await TwitchVOD.getVideo(video_id);
+    } catch (error) {
+        res.status(400).send({
+            status: "ERROR",
+            message: `Error while fetching video data: ${(error as Error).message}`,
+        } as ApiErrorResponse);
+        return;
+    }
 
     if (!video) {
         res.status(400).send({
