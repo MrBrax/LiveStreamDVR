@@ -82,6 +82,9 @@ Config.init().then(() => {
     baserouter.use("/vods", express.static(BaseConfigDataFolder.vod));
     baserouter.use("/saved_vods", express.static(BaseConfigDataFolder.saved_vods));
     baserouter.use("/saved_clips", express.static(BaseConfigDataFolder.saved_clips));
+    if (process.env.TCD_EXPOSE_LOGS_TO_PUBLIC == "1") {
+        baserouter.use("/logs", express.static(BaseConfigDataFolder.logs));
+    }
 
     // send index.html for all other routes, so that SPA routes are handled correctly
     baserouter.use("*", (req, res) => {

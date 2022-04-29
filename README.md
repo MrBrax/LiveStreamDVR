@@ -85,6 +85,17 @@ Specify the data directory to use.
 Store the data in the home directory.
 
 ---
+## Security environment variables
+### `TCD_ENABLE_FILES_API=1`
+
+Enable the files api, making it possible to download and delete files in storage.
+*This might open up filesystem exploits.*
+
+### `TCD_EXPOSE_LOGS_TO_PUBLIC=1`
+
+Make viewing logs in the file manager possible. Requires the above environment variable to be set.
+
+---
 
 ### Main requirements
 - [node.js](https://nodejs.org/) 14+

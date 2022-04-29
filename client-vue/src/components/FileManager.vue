@@ -1,5 +1,8 @@
 <template>
     <div class="file-manager">
+        <div v-if="isPrivate" class="error">
+            These files are not downloadable due to a config setting.
+        </div>
         <table class="table is-fullwidth is-striped" v-if="!error">
             <thead>
                 <tr>
@@ -29,14 +32,21 @@
                 </tr>
             </thead>
             <tr class="file-manager-item" v-for="(item, index) in sortedFiles">
-                <td class="file-manager-item-icon">
+                <td width="16" class="file-manager-item-icon">
                     <fa :icon="getIconName(item.extension)" />
                 </td>
-                <td class="file-manager-item-name">{{ item.name }}</td>
+                <td class="file-manager-item-name">
+                    <a v-if="web && item.is_public" :href="downloadLink(item)" target="_blank">
+                        {{ item.name }}
+                    </a>
+                    <span v-else>
+                        {{ item.name }}
+                    </span>
+                </td>
                 <td class="file-manager-item-size">{{ formatBytes(item.size) }}</td>
                 <td class="file-manager-item-date">{{ item.date }}</td>
                 <td class="file-manager-item-actions">
-                    <a v-if="web" class="button is-small is-confirm" :href="downloadLink(item)" target="_blank" download><fa icon="download"></fa></a>
+                    <a v-if="web && item.is_public" class="button is-small is-confirm" :href="downloadLink(item)" target="_blank" download><fa icon="download"></fa></a>
                     <button class="button is-small is-danger" @click="deleteFile(item)"><fa icon="trash"></fa></button>
                 </td>
             </tr> 
@@ -62,6 +72,7 @@ interface ApiFile {
     date: string;
     is_dir: boolean;
     extension: string;
+    is_public: boolean;
 }
 
 export default defineComponent({
@@ -159,6 +170,9 @@ export default defineComponent({
                     }
                 }
             });
+        },
+        isPrivate() {
+            return this.files.some(file => file.is_public === false);
         },
     },
 });

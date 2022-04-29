@@ -24,6 +24,7 @@ export default defineConfig({
       '/saved_clips': 'http://localhost:8080',
       '/saved_vods': 'http://localhost:8080',
       '/vods': 'http://localhost:8080',
+      '/logs': 'http://localhost:8080',
     },
   },
 })
