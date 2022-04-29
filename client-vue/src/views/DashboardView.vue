@@ -80,7 +80,7 @@ export default defineComponent({
         return { store, logviewer };
     },
     title(): string {
-        if (this.streamersOnline > 0) return `[${this.streamersOnline}] Dashboard`;
+        // if (this.store.channelsOnline > 0) return `[${this.store.channelsOnline}] Dashboard`;
         return "Dashboard";
     },
     data(): DashboardData {
@@ -200,10 +200,6 @@ export default defineComponent({
             const streamers: TwitchChannel[] = [...this.store.streamerList];
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
         },
-        streamersOnline(): number {
-            if (!this.store.streamerList) return 0;
-            return this.store.streamerList.filter((a) => a.is_live).length;
-        },
         singleStreamer(): TwitchChannel | undefined {
             if (!this.store.streamerList) return undefined;
 
@@ -220,10 +216,10 @@ export default defineComponent({
         Streamer,
         LogViewer,
     },
-    watch: {
-        streamersOnline() {
-            document.title = this.streamersOnline > 0 ? `[${this.streamersOnline}] Dashboard - ${this.store.app_name}` : `Dashboard - ${this.store.app_name}`;
-        },
-    },
+    // watch: {
+    //     streamersOnline() {
+    //         document.title = this.streamersOnline > 0 ? `[${this.streamersOnline}] Dashboard - ${this.store.app_name}` : `Dashboard - ${this.store.app_name}`;
+    //     },
+    // },
 });
 </script>
