@@ -1781,7 +1781,7 @@ export class TwitchVOD {
         }
 
         // if capturing but process not running
-        if (this.is_capturing && !await this.getCapturingStatus()) {
+        if (this.is_capturing && await this.getCapturingStatus(true) !== JobStatus.RUNNING) {
             console.log(chalk.bgRed.whiteBright(`${this.basename} is capturing but process not running. Setting to false for fixing.`));
             this.is_capturing = false;
             this.saveJSON("fix set capturing to false");
