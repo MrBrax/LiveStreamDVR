@@ -1,40 +1,53 @@
 <template>
     <div class="section-content">
-        <div class="control">
+        <div class="field">
             <label class="checkbox"><input type="checkbox" v-model="updateConfig.enableNotifications" /> Notifications</label>
         </div>
-        <div class="control">
+        <div class="field">
             <label class="checkbox"><input type="checkbox" v-model="updateConfig.useSpeech" /> Use speech</label>
         </div>
-        <div class="control">
+        <div class="field">
             <label class="checkbox"><input type="checkbox" v-model="updateConfig.singlePage" /> Separate channels to their own page</label>
         </div>
-        <div class="control">
+        <div class="field">
             <label class="checkbox"><input type="checkbox" v-model="updateConfig.animationsEnabled" /> Enable animations</label>
         </div>
-        <div class="control">
+        <div class="field">
             <label class="checkbox"><input type="checkbox" v-model="updateConfig.tooltipStatic" /> Static side menu tooltip</label>
         </div>
-        <div class="control">
+        <div class="field">
             <label class="checkbox"><input type="checkbox" v-model="updateConfig.useRelativeTime" /> Use relative time</label>
         </div>
-        <div class="control">
+        <div class="field">
             <label class="checkbox"><input type="checkbox" v-model="updateConfig.useWebsockets" /> Use websockets</label>
         </div>
-        <div class="control">
+        <div class="field">
             <label class="checkbox"><input type="checkbox" v-model="updateConfig.useBackgroundRefresh" /> Background capturing vod refresh</label>
         </div>
-        <div class="control">
+        <div class="field">
             <label class="checkbox"><input type="checkbox" v-model="updateConfig.useBackgroundTicker" /> Background ticker</label>
         </div>
-        <div class="control">
-            <input type="text" class="input" v-model="updateConfig.websocketAddressOverride" placeholder="Websocket address override" />
+        <div class="field">
+            <label class="checkbox"><input type="checkbox" v-model="updateConfig.expandVodList" /> Always expand VOD list</label>
         </div>
-        <div class="control">
+        <div class="field">
+            <input type="number" class="input" v-model.number="updateConfig.vodsToShowInMenu" />
+            <p class="input-help">Number of VODs to show in menu</p>
+        </div>
+        <!--
+        <div class="field">
+            <label class="checkbox"><input type="checkbox" v-model="updateConfig.alwaysShowCapturingVodInMenu" /> Always show capturing VOD in menu</label>
+        </div>
+        -->
+        <div class="field">
+            <input type="text" class="input" v-model="updateConfig.websocketAddressOverride" />
+            <p class="input-help">Websocket address override</p>
+        </div>
+        <div class="field">
             <button class="button is-primary" @click="saveClientConfig">Save</button>
         </div>
         <br />
-        <div class="control">
+        <div class="field">
             <button class="button is-small" @click="requestNotifications">Request notification permissions</button>
         </div>
     </div>

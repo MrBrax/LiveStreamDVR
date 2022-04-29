@@ -16,6 +16,9 @@ export type ClientSettings = {
     useBackgroundRefresh: boolean;
     useBackgroundTicker: boolean;
     websocketAddressOverride: string;
+    expandVodList: boolean;
+    vodsToShowInMenu: number;
+    alwaysShowCapturingVodInMenu: boolean;
 };
 
 export const phpDateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000

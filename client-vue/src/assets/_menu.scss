@@ -199,6 +199,24 @@
         }
     }
 
+    .streamer-expand {
+        text-align: center;
+        font-family: "Roboto Condensed";
+        $base-bg: #163155;
+        background-color: $base-bg;
+        // border-color: darken($base-bg, 5%);
+        // color: #ddd;
+        color: rgba(255, 255, 255, 0.5);
+        display: block;
+        text-decoration: none;
+        padding: 3px 5px;
+        font-size: 0.8em;
+        &:hover {
+            background-color: lighten($base-bg, 5%);
+            color: #fff;
+        }
+    }
+
     &.streamer.is-live {
         a {
             background-color: #2b0e0e;

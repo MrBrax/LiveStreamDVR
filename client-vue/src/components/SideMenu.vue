@@ -16,7 +16,8 @@
             <side-menu-streamer v-for="streamer in sortedStreamers" :key="streamer.login" v-bind:streamer="streamer"></side-menu-streamer>
         </div>
 
-        <div class="top-menu-item divider"></div>
+        <!-- what was the point of this divider? -->
+        <!--<div class="top-menu-item divider"></div>-->
 
         <div class="menu-bottom">
             <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Dashboard' }" data-menuitem="dashboard">
