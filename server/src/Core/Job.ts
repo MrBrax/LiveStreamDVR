@@ -173,6 +173,14 @@ export class Job extends EventEmitter {
         return false;
     }
 
+    public static findJobByPid(pid: number): Job | undefined {
+        return this.jobs.find(job => job.pid === pid);
+    }
+
+    public static getJob(name: string): Job | undefined {
+        return this.jobs.find(job => job.name === name);
+    }
+
     /**
      * Save to disk, like when the process starts
      *
