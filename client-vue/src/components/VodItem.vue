@@ -4,7 +4,7 @@
         ref="vod"
         :class="{
             video: true,
-            'is-animated': store.clientConfig?.animationsEnabled,
+            'is-animated': store.clientCfg('animationsEnabled'),
             'is-recording': vod.is_capturing,
             'is-converting': vod.is_converting,
             'is-finalized': vod.is_finalized,
@@ -18,7 +18,7 @@
             <h3>
                 <span class="icon"><fa icon="file-video"></fa></span>
                 <span class="video-date" :title="formatDate(vod?.started_at)" v-if="vod?.started_at">{{
-                    store.clientConfig?.useRelativeTime ? humanDate(vod?.started_at, true) : formatDate(vod?.started_at)
+                    store.clientCfg('useRelativeTime') ? humanDate(vod?.started_at, true) : formatDate(vod?.started_at)
                 }}</span>
                 <span class="video-filename">{{ vod?.basename }}</span>
             </h3>
@@ -474,7 +474,7 @@
 
                         <!-- start time -->
                         <td data-contents="started_at" :title="chapter.started_at.toISOString()">
-                            <span v-if="store.clientConfig?.useRelativeTime">
+                            <span v-if="store.clientCfg('useRelativeTime')">
                                 <duration-display :start-date="chapter.started_at" output-style="human" /> ago
                             </span>
                             <span v-else>{{ formatDate(chapter.started_at, "HH:mm:ss") }}</span>

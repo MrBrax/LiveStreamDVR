@@ -84,6 +84,7 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSave } from "@fortawesome/free-solid-svg-icons";
 import { ApiChannelConfig } from "@common/Api/Client";
 import { AxiosError } from "axios";
+import { useStore } from "@/store";
 library.add(faSave);
 
 export default defineComponent({
@@ -96,7 +97,8 @@ export default defineComponent({
     },
     emits: ["formSuccess"],
     setup() {
-        return { VideoQualityArray };
+        const store = useStore();
+        return { VideoQualityArray, store };
     },
     data() {
         return {
@@ -126,6 +128,7 @@ export default defineComponent({
                     this.formStatus = json.status;
                     if (json.status == "OK") {
                         this.$emit("formSuccess", json);
+                        this.store.fetchAndUpdateStreamerList();
                     }
                 })
                 .catch((err: Error | AxiosError) => {

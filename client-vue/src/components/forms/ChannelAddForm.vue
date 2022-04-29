@@ -10,7 +10,7 @@
                     v-model="formData.login"
                     @keyup="checkLogin"
                     required
-                    pattern="^[a-z0-9_]$"
+                    pattern="^[a-z0-9_]{4,25}$"
                 />
                 <p class="input-help">
                     Channel login, lowercase. This is the part that comes after the domain name, not the display name.<br />
