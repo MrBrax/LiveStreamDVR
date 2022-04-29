@@ -14,8 +14,8 @@ import { parseJSON } from "date-fns";
 import { Webhook } from "../Core/Webhook";
 import { EventSubStreamOnline } from "../../../common/TwitchAPI/EventSub/StreamOnline";
 import { Automator } from "../Core/Automator";
-import { TwitchVODChapterJSON } from "Storage/JSON";
-import { KeyValue } from "Core/KeyValue";
+import { TwitchVODChapterJSON } from "../Storage/JSON";
+import { KeyValue } from "../Core/KeyValue";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
