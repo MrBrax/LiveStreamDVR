@@ -88,6 +88,13 @@ select.input {
 }
 */
 
+.control-label {
+    display: block;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
 .field-group {
     &:not(:last-child) {
         margin-bottom: 5px;

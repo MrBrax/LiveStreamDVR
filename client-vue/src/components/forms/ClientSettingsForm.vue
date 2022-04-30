@@ -1,5 +1,6 @@
 <template>
     <div class="section-content">
+        <!--
         <div class="field">
             <label class="checkbox"><input type="checkbox" v-model="updateConfig.enableNotifications" /> Notifications</label>
         </div>
@@ -34,14 +35,33 @@
             <input type="number" class="input" v-model.number="updateConfig.vodsToShowInMenu" />
             <p class="input-help">Number of VODs to show in menu</p>
         </div>
-        <!--
+        !--
         <div class="field">
             <label class="checkbox"><input type="checkbox" v-model="updateConfig.alwaysShowCapturingVodInMenu" /> Always show capturing VOD in menu</label>
         </div>
-        -->
+        --
         <div class="field">
             <input type="text" class="input" v-model="updateConfig.websocketAddressOverride" />
             <p class="input-help">Websocket address override</p>
+        </div>-->
+        <div class="field" v-for="(value, key) in defaultConfigFields">
+            <label v-if="value.type != 'boolean'" class="label" :for="'input_' + key">
+                {{ value.name }} <!--<span v-if="value.required" class="required">*</span>-->
+            </label>
+            <div class="control" v-if="value.type === 'boolean'">
+                <label class="checkbox">
+                    <input type="checkbox" v-model="(updateConfig[key] as boolean)" /> {{ value.name }}
+                </label>
+                <p class="input-help" v-if="value.help">{{ value.help }}</p>
+            </div>
+            <div class="control" v-if="value.type === 'number'">
+                <input type="number" class="input" v-model.number="(updateConfig[key] as number)" :id="'input_' + key" />
+                <p class="input-help" v-if="value.help">{{ value.help }}</p>
+            </div>
+            <div class="control" v-if="value.type === 'string'">
+                <input type="text" class="input" v-model="(updateConfig[key] as string)" :id="'input_' + key" />
+                <p class="input-help" v-if="value.help">{{ value.help }}</p>
+            </div>
         </div>
         <div class="field">
             <button class="button is-primary" @click="saveClientConfig">Save</button>
@@ -56,7 +76,7 @@
 <script lang="ts">
 import { useStore } from "@/store";
 import { defineComponent } from "vue";
-import { defaultConfig } from "@/defs";
+import { defaultConfig, defaultConfigFields } from "@/defs";
 import { ClientSettings } from "@/twitchautomator";
 
 export default defineComponent({
@@ -64,7 +84,7 @@ export default defineComponent({
     title: "Client settings",
     setup() {
         const store = useStore();
-        return { store };
+        return { store, defaultConfigFields };
     },
     data(): {
         currentConfig: ClientSettings;
@@ -96,7 +116,7 @@ export default defineComponent({
             if (!("Notification" in window)) {
                 alert("This browser does not support desktop notification");
             } else if (Notification.permission === "granted") {
-                // const notification = new Notification("Notifications already granted.");
+                new Notification("Notifications already granted.");
             } else if (Notification.permission !== "denied") {
                 Notification.requestPermission().then(function (permission) {
                     if (permission === "granted") {

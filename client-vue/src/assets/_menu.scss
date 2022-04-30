@@ -120,6 +120,9 @@
         &:hover {
             color: #fff;
             background: #111;
+            .avatar {
+                transform: scale(110%);
+            }
         }
     }
 
@@ -171,6 +174,8 @@
 
             overflow: hidden;
             border-radius: 100%;
+
+            transition: ease-in-out 0.2s transform;
 
             img {
                 opacity: 0.7;
