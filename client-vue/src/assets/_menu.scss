@@ -105,6 +105,10 @@
         &:hover .favicon {
             animation: 1s speen linear infinite;
         }
+
+        span.dev {
+            color: #ff0;
+        }
     }
 
     a {
@@ -124,7 +128,6 @@
     }
 
     &.right {
-
         // flex-grow: 1;
         // text-align: right;
         a {
@@ -138,7 +141,6 @@
     }
 
     &.icon {
-
         &.is-live:not(.is-active) a {
             color: #ec2f2f;
             // animation: 0.5s vibrate linear infinite;
@@ -148,16 +150,17 @@
             padding-left: 16px;
             padding-right: 16px;
         }
-
     }
 
     &.streamer {
-
         /*
 		a {
 			padding: 5px 8px 12px 8px;
 		}
 		*/
+
+        flex-direction: row;
+
         .avatar {
             // height: 100%;
             display: inline-block;
@@ -197,29 +200,56 @@
                 display: none;
             }
         }
+
+        .streamer-link {
+            flex-grow: 1;
+        }
+
+        .streamer-expand-container {
+            display: flex;
+
+            // center contents
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .streamer-expand-main {
+            color: #8096be;
+            display: flex;
+            flex-grow: 1;
+
+            // center contents
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 0.2em 0.5em 0em 0.5em;
+            line-height: 0.3em;
+
+            cursor: pointer;
+
+            .amount {
+                font-size: 80%;
+            }
+
+            &:hover {
+                background-color: #0c1e35;
+                color: #fff;
+            }
+
+            transition: 0.1s ease-in-out;
+
+            border-radius: 3px;
+
+            margin: 2px;
+        }
     }
 
-    .streamer-expand {
-        text-align: center;
-        font-family: "Roboto Condensed";
-        $base-bg: #163155;
-        background-color: $base-bg;
-
-        // drag surface. neat but probably doesn't fit
-        // background-image: repeating-linear-gradient(to bottom, $base-bg 0px, lighten($base-bg, 10%) 2px);
-        // text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.5);
-
-        // border-color: darken($base-bg, 5%);
-        // color: #ddd;
-        color: rgba(255, 255, 255, 0.5);
-        display: block;
-        text-decoration: none;
-        padding: 3px 5px;
-        font-size: 0.8em;
-        &:hover {
-            background-color: lighten($base-bg, 5%);
-            color: #fff;
-        }
+    .streamer-expand-hide {
+        height: 3px;
+        // #000 to #09182c
+        background-image: linear-gradient(to bottom, darken(#09182c, 5%), #09182c);
+        // border-top: 1px dotted #2d5589;
     }
 
     &.streamer.is-live {
@@ -239,6 +269,16 @@
         .subtitle,
         .vodcount {
             color: #b30000;
+        }
+
+        .streamer-expand-container {
+            background-color: #2b0e0e;
+            .streamer-expand-main {
+                color: #f34d4d;
+                &:hover {
+                    background-color: #4d0b0b;
+                }
+            }
         }
     }
 
@@ -377,7 +417,6 @@ a.linkback {
                 }
 
                 .tooltip {
-
                     position: absolute;
                     left: $sidemenu-width + 10px;
 
@@ -414,7 +453,7 @@ a.linkback {
                     */
                 }
 
-                &:hover>.tooltip {
+                &:hover > .tooltip {
                     display: block;
                 }
             }

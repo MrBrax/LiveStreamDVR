@@ -415,6 +415,7 @@ export class Helper {
                 Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Spawned process ${process.pid} for ${jobName}`);
                 job = Job.create(jobName);
                 job.setPid(process.pid);
+                job.setExec(bin, args);
                 job.setProcess(process);
                 job.startLog(jobName, `$ ${bin} ${args.join(" ")}\n`);
                 if (!job.save()) {
@@ -476,6 +477,7 @@ export class Helper {
             Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Spawned process ${process.pid} for ${jobName}`);
             job = Job.create(jobName);
             job.setPid(process.pid);
+            job.setExec(bin, args);
             job.setProcess(process);
             job.setMetadata({
                 bin: bin,

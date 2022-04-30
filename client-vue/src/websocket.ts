@@ -1,4 +1,6 @@
+import type { WebhookAction } from "@common/Webhook";
+
 export interface WebsocketJSON {
-    action: string;
+    action: WebhookAction;
     data: any;
 }

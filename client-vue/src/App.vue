@@ -21,6 +21,9 @@
             :websocket="websocket"
             :websocketConnected="websocketConnected"
             :websocketConnecting="websocketConnecting"
+            :timer="timer"
+            :tickerInterval="tickerInterval"
+            :loading="loading"
         />
     </div>
 </template>
@@ -35,7 +38,7 @@ import { useStore } from "./store";
 import type { ApiSettingsResponse } from "@common/Api/Api";
 import JobStatus from "./components/JobStatus.vue";
 // import { connectWebsocket, eventListener, WebsocketJSON } from "./websocket";
-import { ChapterUpdateData, EndCaptureData, EndConvertData, JobClear, JobSave, NotifyData, VodRemoved, VodUpdated } from "@common/Webhook";
+import { ChapterUpdateData, EndCaptureData, EndConvertData, JobClear, JobSave, NotifyData, VodRemoved, VodUpdated, WebhookAction } from "@common/Webhook";
 import { ApiLogLine } from "@common/Api/Client";
 import { parseISO } from "date-fns";
 import { WebsocketJSON } from "./websocket";
@@ -62,6 +65,7 @@ export default defineComponent({
         return { store };
     },
     data(): {
+        loading: boolean;
         errors: string[];
         websocket: WebSocket | undefined;
         websocketConnected: boolean;
@@ -69,9 +73,14 @@ export default defineComponent({
         websocketKeepalive: number;
         websocketKeepaliveTime: number;
         websocketLastPing: number;
+        vodUpdateInterval: number; // interval
+        timer: number;
+        timerMax: number;
+        tickerInterval: number; // interval
         faviconSub: () => void;
     } {
         return {
+            loading: false,
             errors: [],
             websocket: undefined,
             websocketConnected: false,
@@ -79,6 +88,10 @@ export default defineComponent({
             websocketKeepalive: 0,
             websocketKeepaliveTime: 20 * 1000,
             websocketLastPing: 0,
+            vodUpdateInterval: 0,
+            timer: 120,
+            timerMax: 120,
+            tickerInterval: 0,
             faviconSub: () => {
                 console.log("faviconSub");
             },
@@ -100,7 +113,21 @@ export default defineComponent({
                 this.connectWebsocket();
             } else {
                 console.debug("Websocket disabled");
+                if (this.store.clientCfg('useBackgroundTicker')) {
+                    console.debug("Starting background ticker...");
+                    this.tickerInterval = setInterval(() => {
+                        this.tickTicker();
+                    }, 1000);
+                }
             }
+
+            // update vods every 15 minutes
+            if (this.store.clientCfg('useBackgroundRefresh')) {
+                this.vodUpdateInterval = setInterval(() => {
+                    this.store.updateCapturingVods();
+                }, 1000 * 60 * 15);
+            }
+
         }).catch((error) => {
             console.error("fetchData error", error);
         });
@@ -109,6 +136,8 @@ export default defineComponent({
         console.debug("App unmounted");
         this.disconnectWebsocket();
         if (this.faviconSub) this.faviconSub();
+        if (this.vodUpdateInterval) clearTimeout(this.vodUpdateInterval);
+        if (this.tickerInterval) clearTimeout(this.tickerInterval);
     },
     methods: {
         async fetchData() {
@@ -173,7 +202,7 @@ export default defineComponent({
                 console.log("Connected to websocket!");
                 if (!this.websocket) return;
                 this.websocket.send(JSON.stringify({ action: "helloworld" }));
-                this.websocketConnected = true;
+                // this.websocketConnected = true;
                 this.websocketConnecting = false;
                 this.websocketKeepalive = setInterval(() => {
                     if (!this.websocket) return;
@@ -231,7 +260,7 @@ export default defineComponent({
             this.websocket = undefined;
             if (this.websocketKeepalive) clearInterval(this.websocketKeepalive);
         },
-        handleWebsocketMessage(action: string, data: any) {
+        handleWebsocketMessage(action: WebhookAction, data: any) {
 
             // const { action, data } = event.detail;
 
@@ -290,6 +319,9 @@ export default defineComponent({
                     const _data: ChapterUpdateData = data;
                     console.log("chapter_update", data);
                     this.store.updateVodFromData(_data.vod);
+                } else if (action == "connected") {
+                    this.websocketConnected = true;
+                    console.log("Got connection event");
                 } else {
                     console.warn("Unknown action", action, data);
                 }
@@ -442,7 +474,35 @@ export default defineComponent({
                 document.title = `${title} - ${app_name}`;
                 this.setFaviconBadgeState(false);
             }
-        }
+        },
+        async tickTicker() {
+            if (this.timer <= 0 && !this.loading) {
+                this.loading = true;
+                const streamerResult = await this.store.fetchStreamerList();
+
+                if (streamerResult && "streamer_list" in streamerResult) {
+                    if (!this.store.isAnyoneLive) {
+                        if (this.timerMax < 1800 /* 30 minutes */) {
+                            this.timerMax += 10;
+                        }
+                    } else {
+                        this.timerMax = 120;
+                    }
+
+                    this.store.updateStreamerList(streamerResult.streamer_list);
+
+                    // this.logviewer?.fetchLog(); // can't do this in app, logviewer can't be accessed here
+                    this.store.fetchAndUpdateJobs();
+                }
+
+                this.loading = false;
+
+                this.timer = this.timerMax;
+            } else {
+                this.timer -= 1;
+            }
+            console.debug(`Ticker: ${this.timer}/${this.timerMax}`);
+        },
     },
     components: {
         SideMenu,

@@ -13,6 +13,7 @@
     >
         <router-link
             :to="store.clientCfg('singlePage') ? { path: 'dashboard', query: { channel: streamer.login } } : { path: 'dashboard', hash: '#streamer_' + streamer.login }"
+            class="streamer-link"
         >
             <span class="avatar" @click.prevent="streamer && store.fetchAndUpdateStreamer(streamer.login)">
                 <img :src="streamer.profile_image_url" :alt="streamer.login" />
@@ -49,20 +50,17 @@
                 </template>
             </span>
         </router-link>
+        <div class="streamer-expand-container">
+            <div class="streamer-expand-main" v-if="!store.clientCfg('expandVodList') && streamer.vods_list.length > store.clientCfg('vodsToShowInMenu', 4)" @click="toggleExpand">
+                <transition><span class="amount" v-if="!expanded">{{ streamer.vods_list.length - store.clientCfg('vodsToShowInMenu', 4) }}</span></transition>
+                <fa :icon="expanded ? 'chevron-up' : 'chevron-down'" />
+            </div>
+        </div>
     </div>
 
     <div class="top-menu-item streamer-jumpto" v-if="streamer">
-        <a v-if="!store.clientCfg('expandVodList') && streamer.vods_list.length > store.clientCfg('vodsToShowInMenu', 4)" @click="toggleExpand" class="streamer-expand">
-            <span class="icon">
-                <fa :icon="expanded ? 'chevron-up' : 'chevron-down'" />
-            </span>
-            <transition>
-                <span class="text" v-if="!expanded">
-                    {{ streamer.vods_list.length - store.clientCfg('vodsToShowInMenu', 4) }} more
-                </span>
-            </transition>
-        </a>
         <transition-group name="list" tag="ul">
+            <!--<li v-if="!expanded && !store.clientCfg('expandVodList') && streamer.vods_list.length > store.clientCfg('vodsToShowInMenu', 4)" class="streamer-expand-hide"></li>-->
             <li v-for="vod in filteredVodsList" :key="vod.basename">
                 <router-link
                     :to="
@@ -222,7 +220,6 @@ export default defineComponent({
         },
         toggleExpand() {
             this.expanded = !this.expanded;
-            console.debug("expanded", this.expanded);
         }
     },
     computed: {

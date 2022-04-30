@@ -301,7 +301,7 @@
             <a class="button" @click="doArchive">
                 <span class="icon">
                     <fa icon="archive" type="fa" v-if="!taskStatus.archive"></fa>
-                    <fa icon="sync" type="fa" spin="true" v-else></fa>
+                    <fa icon="sync" type="fa" spin v-else></fa>
                 </span>
                 Archive
             </a>
@@ -310,7 +310,7 @@
             <a v-if="vod?.twitch_vod_id && !vod?.is_chat_downloaded" class="button" @click="chatDownloadMenu ? (chatDownloadMenu.show = true) : ''">
                 <span class="icon">
                     <fa icon="comments" type="fa" v-if="!taskStatus.downloadChat && !compDownloadChat"></fa>
-                    <fa icon="sync" type="fa" spin="true" v-else></fa>
+                    <fa icon="sync" type="fa" spin v-else></fa>
                 </span>
                 Download chat
             </a>
@@ -319,14 +319,14 @@
                 <a v-if="!vod?.is_vod_downloaded" class="button" @click="doDownloadVod">
                     <span class="icon">
                         <fa icon="download" type="fa" v-if="!taskStatus.downloadVod"></fa>
-                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                        <fa icon="sync" type="fa" spin v-else></fa>
                     </span>
                     Download{{ vod?.twitch_vod_muted === MuteStatus.MUTED ? " muted" : "" }} VOD
                 </a>
                 <a v-if="showAdvanced" class="button" @click="doCheckMute">
                     <span class="icon">
                         <fa icon="volume-mute" type="fa" v-if="!taskStatus.vodMuteCheck"></fa>
-                        <fa icon="sync" type="fa" spin="true" v-else></fa>
+                        <fa icon="sync" type="fa" spin v-else></fa>
                     </span>
                     Check mute
                 </a>
@@ -349,7 +349,7 @@
             <a class="button is-danger" @click="doDelete">
                 <span class="icon">
                     <fa icon="trash" type="fa" v-if="!taskStatus.delete"></fa>
-                    <fa icon="sync" type="fa" spin="true" v-else></fa>
+                    <fa icon="sync" type="fa" spin v-else></fa>
                 </span>
                 Delete
             </a>

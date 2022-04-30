@@ -20,9 +20,9 @@
                 </template>
                 <hr />
                 <div class="dashboard-stats">
-                    <strong>Total size: {{ formatBytes(totalSize) }}</strong>
+                    <strong>Total size: {{ formatBytes(store.diskTotalSize) }}</strong>
                     <br />
-                    <strong>Free space: {{ formatBytes(freeSize) }}</strong>
+                    <strong>Free space: {{ formatBytes(store.diskFreeSize) }}</strong>
                 </div>
             </div>
             <div class="section-content" v-else-if="!store.streamerListLoaded">
@@ -36,7 +36,7 @@
 
         <section class="section">
             <div class="section-title" @click="logToggle"><h1>Logs</h1></div>
-            <div class="section-content" v-show="logVisible">
+            <div class="section-content" v-if="logVisible">
                 <log-viewer ref="logviewer" />
             </div>
         </section>
@@ -53,14 +53,9 @@ import LogViewer from "@/components/LogViewer.vue";
 
 interface DashboardData {
     loading: boolean;
-    timer: number;
-    timerMax: number;
-    tickerInterval: number; // interval?
-    vodUpdateInterval: number;
-    totalSize: number;
-    freeSize: number;
+    // vodUpdateInterval: number;
     oldData: Record<string, ApiChannel>;
-    notificationSub: () => void;
+    // notificationSub: () => void;
     logVisible: boolean;
 }
 
@@ -83,46 +78,15 @@ export default defineComponent({
     data(): DashboardData {
         return {
             loading: false,
-            timer: 120,
-            timerMax: 120,
-            tickerInterval: 0,
-            vodUpdateInterval: 0,
-            totalSize: 0,
-            freeSize: 0,
             oldData: {},
-            notificationSub: () => {
-                console.log("notificationSub");
-            },
             logVisible: false,
         };
     },
     created() {
         console.debug("Dashboard created");
-        // this.loading = true;
-        // this.watchFaviconBadgeSub();
-        this.logviewer?.fetchLog();
-        // this.store.fetchAndUpdateJobs();
+        // this.logviewer?.fetchLog();
     },
     mounted() {
-
-        /*
-        if (this.store.cfg("websocket_enabled") && this.store.clientCfg('useWebsockets')) {
-            this.connectWebsocket();
-        } else {
-            if (this.store.clientCfg('useBackgroundTicker')) {
-                this.tickerInterval = setInterval(() => {
-                    this.fetchTicker();
-                }, 1000);
-            }
-        }
-        */
-
-        // update vods every 15 minutes
-        if (this.store.clientCfg('useBackgroundRefresh')) {
-            this.vodUpdateInterval = setInterval(() => {
-                this.store.updateCapturingVods();
-            }, 1000 * 60 * 15);
-        }
 
         /*
         let options = {
@@ -150,43 +114,7 @@ export default defineComponent({
 
         //observer.observe(this.$refs.vod as HTMLDivElement);
     },
-    unmounted() {
-        if (this.tickerInterval) clearTimeout(this.tickerInterval);
-        if (this.vodUpdateInterval) clearTimeout(this.vodUpdateInterval);
-    },
     methods: {
-       /**
-        * @todo: reimplement ticker
-        */
-        async fetchTicker() {
-            if (this.timer <= 0 && !this.loading) {
-                this.loading = true;
-                const streamerResult = await this.store.fetchStreamerList();
-
-                if (streamerResult && "streamer_list" in streamerResult) {
-                    const isAnyoneLive = streamerResult.streamer_list.find((el) => el.is_live == true) !== undefined;
-
-                    if (!isAnyoneLive) {
-                        if (this.timerMax < 1800 /* 30 minutes */) {
-                            this.timerMax += 10;
-                        }
-                    } else {
-                        this.timerMax = 120;
-                    }
-
-                    this.store.updateStreamerList(streamerResult.streamer_list);
-
-                    this.logviewer?.fetchLog();
-                    this.store.fetchAndUpdateJobs();
-                }
-
-                this.loading = false;
-
-                this.timer = this.timerMax;
-            } else {
-                this.timer -= 1;
-            }
-        },
         logToggle() {
             this.logVisible = !this.logVisible;
             this.logviewer?.scrollLog();
