@@ -89,6 +89,15 @@ export class Automator {
         return `twitch.tv/${this.broadcaster_user_login}`;
     }
 
+    public getCaptureFilename(segment_number: number) {
+        const folder_base = Helper.vodFolder(this.getLogin());
+        if (segment_number === 0) {
+            return path.join(folder_base, `${this.basename()}.ts`);
+        } else {
+            return path.join(folder_base, `${this.basename()}_${segment_number}.ts`);
+        }
+    }
+
     /**
      * Entrypoint for stream capture, this is where all Twitch EventSub (webhooks) end up.
      */
@@ -876,7 +885,7 @@ export class Automator {
                 capture_job.setExec(bin, cmd);
                 capture_job.setProcess(capture_process);
                 capture_job.startLog(jobName, `$ ${bin} ${cmd.join(" ")}\n`);
-                capture_job.setMetadata({
+                capture_job.addMetadata({
                     "login": this.getLogin(), // @todo: username?
                     "basename": this.basename(),
                     "capture_filename": this.capture_filename,
@@ -1080,17 +1089,6 @@ export class Automator {
             const chat_bin = "node";
             const chat_cmd: string[] = [];
 
-            // test
-            // $chat_cmd[] = 'screen';
-            // $chat_cmd[] = '-S';
-            // $chat_cmd[] = $basename;
-
-            // $chat_cmd[] = 'python';
-            // $chat_cmd[] = __DIR__ . '/Utilities/twitch-chat.py';
-
-            // $chat_cmd[] = 'node';
-            // $chat_cmd[] = __DIR__. '/../twitch-chat-dumper/index.js';
-
             // todo: execute directly in node?
             chat_cmd.push(path.join(AppRoot, "twitch-chat-dumper", "build", "index.js"));
             chat_cmd.push("--channel", data_login);
@@ -1100,40 +1098,19 @@ export class Automator {
 
             Log.logAdvanced(LOGLEVEL.INFO, "automator", `Starting chat dump with filename ${path.basename(this.chat_filename)}`);
 
-            /*
-            // start process
-            const chat_process = spawn(chat_bin, chat_cmd, {
-                windowsHide: true,
-            });
-
-            // $chat_process->start();
-
-            if (chat_process.pid) {
-                this.chatJob = TwitchAutomatorJob.create(`chatdump_${this.basename()}`);
-                this.chatJob.setPid(chat_process.pid);
-                this.chatJob.setProcess(chat_process);
-                this.chatJob.setMetadata([
-                    'username' => $data_username,
-                    'basename' => $basename,
-                    'chat_filename' => $chat_filename
-                ]);
-                $chatJob->save();
-            }
-            */
-
             const chat_job = Helper.startJob(`chatdump_${this.basename()}`, chat_bin, chat_cmd);
 
             if (chat_job && chat_job.pid) {
                 this.chatJob = chat_job;
+                this.chatJob.addMetadata({
+                    "username": data_login,
+                    "basename": this.basename(),
+                    "chat_filename": this.chat_filename,
+                });
             } else {
                 Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to start chat dump job with filename ${path.basename(this.chat_filename)}`);
                 return false;
             }
-
-            // TwitchHelper:: clearLog("chatdump_{$basename}_stdout.{$tries}");
-            // TwitchHelper:: clearLog("chatdump_{$basename}_stderr.{$tries}");
-            // TwitchHelper:: appendLog("chatdump_{$basename}_stdout.{$tries}", implode(" ", $chat_cmd));
-            // TwitchHelper:: appendLog("chatdump_{$basename}_stderr.{$tries}", implode(" ", $chat_cmd));
 
             return true;
         }

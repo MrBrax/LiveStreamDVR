@@ -12,6 +12,11 @@
         }
     }
 
+    hr {
+        background-color: #444;
+        border-top: 1px solid #111;
+    }
+
     .section {
         background-color: #222;
         box-shadow: none;
@@ -187,4 +192,14 @@
             }
         }
     }
+
+    details.settings-details {
+        summary {
+            color: #ccc;
+            &:hover {
+                color: #fff;
+            }
+        }
+    }
+
 }

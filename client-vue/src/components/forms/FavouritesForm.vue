@@ -4,12 +4,12 @@
             <div v-for="game in sortedGames" :key="game.id" class="checkbox">
                 <label v-if="favouritesData">
                     <input type="checkbox" :name="game.id" :checked="favouritesData.includes(game.id)" value="1" /> {{ game.name }}
-                    <span class="is-gray">{{ formatDate(game.added) }}</span>
+                    <span class="game-date">{{ formatDate(game.added) }}</span>
                 </label>
             </div>
             <div v-if="!favouritesData || favouritesData.length == 0">
                 <p>No games in cache. When streamers change games, they will be added to the cache.</p>
-            </div>                
+            </div>
         </div>
         <br />
         <div class="control">
@@ -93,3 +93,10 @@ export default defineComponent({
     },
 });
 </script>
+
+<style lang="scss">
+.game-date {
+    font-size: 0.8em;
+    color: #888;
+}
+</style>

@@ -393,7 +393,7 @@ export default defineComponent({
                 };
             }
 
-            if (tts || this.store.clientCfg('useSpeech')) {
+            if (tts && this.store.clientCfg('useSpeech')) {
                 const utterance = new SpeechSynthesisUtterance(`${title} ${body}`);
                 utterance.lang = "en-US";
                 speechSynthesis.speak(utterance);

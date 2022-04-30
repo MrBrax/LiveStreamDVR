@@ -479,7 +479,7 @@ export class Helper {
             job.setPid(process.pid);
             job.setExec(bin, args);
             job.setProcess(process);
-            job.setMetadata({
+            job.addMetadata({
                 bin: bin,
                 args: args,
                 env: env,
