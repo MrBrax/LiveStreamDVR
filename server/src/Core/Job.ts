@@ -13,7 +13,7 @@ import { JobStatus } from "../../../common/Defs";
 export interface TwitchAutomatorJobJSON {
     name: string;
     pid: number;
-    metadata: unknown;
+    metadata?: Record<string, any>;
     dt_started_at: string;
     bin?: string;
     args?: string[];
@@ -43,7 +43,7 @@ export class Job extends EventEmitter {
     public pid: number | undefined;
     public pidfile: string | undefined;
     public pidfile_simple: string | undefined;
-    public metadata: unknown | undefined;
+    public metadata: Record<string, any> | undefined;
     public status: JobStatus = JobStatus.NONE;
     public error: number | undefined;
 
@@ -372,9 +372,15 @@ export class Job extends EventEmitter {
      * @param {any} metadata An object or array or any other data to attach
      * @return {void}
      */
-    public setMetadata(metadata: unknown): void {
+    public setMetadata(metadata: Record<string, any>): void {
         this.emit("metadata_set", this.metadata, metadata);
         this.metadata = metadata;
+        this.broadcastUpdate();
+    }
+
+    public addMetadata(metadata: Record<string, any>): void {
+        this.emit("metadata_add", this.metadata, metadata);
+        this.metadata = { ...this.metadata, ...metadata };
         this.broadcastUpdate();
     }
 
