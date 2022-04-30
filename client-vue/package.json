@@ -1,6 +1,6 @@
 {
   "name": "twitchautomator-client",
-  "version": "0.7.8a",
+  "version": "0.7.9",
   "private": true,
   "homepage": "https://github.com/MrBrax/TwitchAutomator",
   "scripts": {
@@ -23,7 +23,7 @@
     "normalize.css": "^8.0.1",
     "pinia": "^2.0.13",
     "register-service-worker": "^1.7.1",
-    "vue": "^3.2.13",
+    "vue": "^3.2.33",
     "vue-axios": "^3.4.0",
     "vue-router": "4.0.3"
   },

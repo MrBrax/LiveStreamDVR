@@ -36,7 +36,7 @@
 
         <section class="section">
             <div class="section-title" @click="logToggle"><h1>Logs</h1></div>
-            <div class="section-content" v-show="logVisible">
+            <div class="section-content" v-if="logVisible">
                 <log-viewer ref="logviewer" />
             </div>
         </section>
@@ -84,7 +84,7 @@ export default defineComponent({
     },
     created() {
         console.debug("Dashboard created");
-        this.logviewer?.fetchLog();
+        // this.logviewer?.fetchLog();
     },
     mounted() {
 

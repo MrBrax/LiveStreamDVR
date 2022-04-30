@@ -63,17 +63,13 @@ export default defineComponent({
                 }, 100);
             })
         });
-        setTimeout(() => {
-            this.scrollLog();
-        }, 100);
+        this.fetchLog();
     },
     unmounted() {
-        this.watcher(); // remove listener
+        if (this.watcher) this.watcher(); // remove listener
     },
     methods: {
         async fetchLog(clear = false) {
-
-            console.debug("Fetching log");
 
             // today's log file
             if (this.logFilename == "") {
