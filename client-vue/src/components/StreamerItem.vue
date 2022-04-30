@@ -73,7 +73,7 @@
             <div class="streamer-clips-title"><h3>Clips</h3></div>
             <ul>
                 <li v-for="clip in streamer.clips_list" :key="clip">
-                    <a :href="clipLink(clip)" target="_blank">{{ clip }}</a>
+                    <a class="text-overflow" :href="clipLink(clip)" target="_blank">{{ clip }}</a>
                 </li>
             </ul>
         </div>

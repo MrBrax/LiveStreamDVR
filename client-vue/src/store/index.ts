@@ -54,7 +54,7 @@ export const useStore = defineStore("twitchAutomator", {
             if (this.clientConfig[key] === undefined || this.clientConfig[key] === null) return def;
             return this.clientConfig[key];
         },
-        async fetchAndUpdateStreamerList() {
+        async fetchAndUpdateStreamerList(): Promise<void> {
             const data = await this.fetchStreamerList();
             if (data) {
                 const channels = data.streamer_list.map((channel) => TwitchChannel.makeFromApiResponse(channel));
@@ -64,7 +64,7 @@ export const useStore = defineStore("twitchAutomator", {
                 this.diskTotalSize = data.total_size;
             }
         },
-        async fetchStreamerList() {
+        async fetchStreamerList(): Promise<false | { streamer_list: ApiChannel[]; total_size: number; free_size: number; }> {
             let response;
             try {
                 response = await axios.get(`/api/v0/channels`);
@@ -81,7 +81,7 @@ export const useStore = defineStore("twitchAutomator", {
             }
             return data.data;
         },
-        async fetchVod(basename: string) {
+        async fetchVod(basename: string): Promise<false | ApiVod> {
             let response;
             try {
                 response = await axios.get(`/api/v0/vod/${basename}`);
@@ -99,7 +99,7 @@ export const useStore = defineStore("twitchAutomator", {
 
             return data.data;
         },
-        async fetchAndUpdateVod(basename: string) {
+        async fetchAndUpdateVod(basename: string): Promise<boolean> {
             const vod_data = await this.fetchVod(basename);
             if (!vod_data) return false;
 
@@ -111,27 +111,29 @@ export const useStore = defineStore("twitchAutomator", {
 
             return this.updateVod(vod);
         },
-        updateVod(vod: TwitchVOD) {
+        updateVod(vod: TwitchVOD): boolean {
             const index = this.streamerList.findIndex((s) => s.userid === vod.streamer_id);
             if (index === -1) return false;
 
             // check if vod is already in the streamer's vods
             const vodIndex = this.streamerList[index].vods_list.findIndex((v) => v.basename === vod.basename);
 
+            console.debug("updateVod", vod.basename, vodIndex);
+
             if (vodIndex === -1) {
+                console.debug("inserting vod", vod);
                 this.streamerList[index].vods_list.push(vod);
-                // console.debug("inserted vod", vod);
             } else {
+                console.debug("updating vod", vod);
                 this.streamerList[index].vods_list[vodIndex] = vod;
-                // console.debug("updated vod", vod);
             }
             return true;
         },
-        updateVodFromData(vod_data: ApiVod) {
+        updateVodFromData(vod_data: ApiVod): boolean {
             const vod = TwitchVOD.makeFromApiResponse(vod_data);
             return this.updateVod(vod);
         },
-        removeVod(basename: string) {
+        removeVod(basename: string): void {
             this.streamerList.forEach((s) => {
                 const index = s.vods_list.findIndex((v) => v.basename === basename);
                 if (index !== -1) {
@@ -139,7 +141,7 @@ export const useStore = defineStore("twitchAutomator", {
                 }
             });
         },
-        async updateCapturingVods() {
+        async updateCapturingVods(): Promise<void> {
             this.streamerList.forEach((streamer) => {
                 streamer.vods_list.forEach((vod) => {
                     if (vod.is_capturing) {
@@ -149,7 +151,7 @@ export const useStore = defineStore("twitchAutomator", {
                 });
             });
         },
-        async fetchStreamer(login: string) {
+        async fetchStreamer(login: string): Promise<false | ApiChannel> {
             let response;
             try {
                 response = await axios.get(`/api/v0/channels/${login}`);
@@ -169,7 +171,7 @@ export const useStore = defineStore("twitchAutomator", {
 
             return streamer;
         },
-        async fetchAndUpdateStreamer(login: string) {
+        async fetchAndUpdateStreamer(login: string): Promise<boolean> {
             const streamer_data = await this.fetchStreamer(login);
             if (!streamer_data) return false;
 
@@ -182,16 +184,19 @@ export const useStore = defineStore("twitchAutomator", {
             console.debug("updated streamer", streamer);
             return true;
         },
-        updateStreamerList(data: ApiChannel[]) {
+        updateStreamerList(data: ApiChannel[]): void {
             // console.debug("updateStreamerList", data);
+            if (!data || typeof data !== "object") {
+                console.warn("updateStreamerList malformed data", typeof data, data);
+            }
             const channels = data.map((channel) => TwitchChannel.makeFromApiResponse(channel));
             this.streamerList = channels;
             this.streamerListLoaded = true;
         },
-        updateErrors(data: string[]) {
+        updateErrors(data: string[]): void {
             this.errors = data;
         },
-        async fetchAndUpdateJobs() {
+        async fetchAndUpdateJobs(): Promise<void> {
             let response;
 
             try {

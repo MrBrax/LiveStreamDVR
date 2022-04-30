@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 // @ts-nocheck
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
@@ -27,4 +28,8 @@ export default defineConfig({
       '/logs': 'http://localhost:8080',
     },
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+  }
 })

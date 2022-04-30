@@ -45,14 +45,8 @@ export default defineComponent({
         const store = useStore();
         return { store };
     },
-    data() {
-    },
-    created() {
-    },
-    methods: {
-    },
     components: {
-    FileManager
-},
+        FileManager
+    },
 });
 </script>

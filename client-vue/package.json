@@ -7,7 +7,8 @@
     "lint": "vue-tsc --noEmit",
     "serve": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "buildwatch": "vite preview"
+    "buildwatch": "vite preview",
+    "test": "vitest"
   },
   "dependencies": {
     "@fontsource/roboto": "^4.5.1",
@@ -31,16 +32,19 @@
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
     "@vitejs/plugin-vue": "^2.3.1",
+    "@vue/test-utils": "2.0.0-rc.21",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-vue": "^8.0.3",
     "git-describe": "^4.1.0",
+    "jsdom": "^19.0.0",
     "prettier": "^2.5.0",
     "sass": "^1.32.7",
     "sass-loader": "^12.0.0",
     "typescript": "^4.6.3",
     "vite": "^2.9.5",
+    "vitest": "^0.10.0",
     "vue-tsc": "^0.34.10"
   }
 }
