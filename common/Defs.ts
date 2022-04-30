@@ -18,7 +18,7 @@ export enum ExistStatus {
     UNKNOWN = 4,
 }
 
-export const VideoQualityArray: string[] = ["best", "1080p60", "1080p", "720p60", "720p", "480p", "360p", "160p", "140p", "worst"];
+export const VideoQualityArray: string[] = ["best", "1080p60", "1080p", "720p60", "720p", "480p", "360p", "160p", "140p", "worst", "audio_only"];
 
 export const nonGameCategories = [
     "Just Chatting",
