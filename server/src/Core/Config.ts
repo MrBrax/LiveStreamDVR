@@ -175,14 +175,18 @@ export class Config {
 
         // return default value if not set
         if (this.config[key] === undefined) {
+            const field = Config.getSettingField(key);
             if (defaultValue !== undefined) {
-                return defaultValue;
+                return defaultValue; // user defined default
+            } else if (field && field.default !== undefined) {
+                return <T><unknown>field.default; // field default value
             } else {
-                return <T><unknown>undefined;
+                return <T><unknown>undefined; // last resort
             }
         }
 
-        return <T><unknown>this.config[key];
+        return <T><unknown>this.config[key]; // return value
+
     }
 
     loadConfig() {
@@ -598,7 +602,7 @@ export class Config {
             }
         }
 
-        if (req){
+        if (req) {
             response_body = req.data;
             response_status = req.status;
         }
