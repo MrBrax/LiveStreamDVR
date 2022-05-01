@@ -11,6 +11,7 @@
                         v-model="formData.quality"
                         required
                         ref="quality"
+                        name="quality"
                         @blur="validateQuality"
                     />
                     <p class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</p>
@@ -21,35 +22,35 @@
             <div class="field">
                 <label class="label" for="input_match">Match keywords</label>
                 <div class="control">
-                    <input class="input" type="text" id="input_match" v-model="formData.match" />
+                    <input class="input" type="text" id="input_match" name="match" v-model="formData.match" />
                     <p class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</p>
                 </div>
             </div>
 
             <div class="field">
                 <label class="checkbox">
-                    <input class="input" type="checkbox" v-model="formData.download_chat" />
+                    <input class="input" type="checkbox" name="download_chat" v-model="formData.download_chat" />
                     Download chat after video capture is complete
                 </label>
             </div>
 
             <div class="field">
                 <label class="checkbox">
-                    <input class="input" type="checkbox" v-model="formData.live_chat" />
+                    <input class="input" type="checkbox" name="live_chat" v-model="formData.live_chat" />
                     Live chat download
                 </label>
             </div>
 
             <div class="field">
                 <label class="checkbox">
-                    <input class="input" type="checkbox" v-model="formData.burn_chat" />
+                    <input class="input" type="checkbox" name="burn_chat" v-model="formData.burn_chat" />
                     Burn chat after downloading
                 </label>
             </div>
 
             <div class="field">
                 <label class="checkbox">
-                    <input class="input" type="checkbox" v-model="formData.no_capture" />
+                    <input class="input" type="checkbox" name="no_capture" v-model="formData.no_capture" />
                     No capture
                 </label>
             </div>

@@ -1,44 +1,59 @@
 import { mount } from '@vue/test-utils'
-import ChannelAddForm from '../src/components/forms/ChannelAddForm.vue'
+import ChannelUpdateForm from './ChannelUpdateForm.vue'
 import { assert, describe, expect, it, test, vitest } from 'vitest'
 
 import axios from "axios";
 import VueAxios from "vue-axios";
 import { VideoQualityArray } from '@common/Defs';
+import { createPinia } from 'pinia';
+import { ApiChannelConfig } from '@common/Api/Client';
 
 // mock $http on vue
 
-test('ChannelAddForm', async () => {
-    expect(ChannelAddForm).toBeTruthy();
+test('ChannelUpdateForm', async () => {
+    expect(ChannelUpdateForm).toBeTruthy();
 
-    const wrapper = mount(ChannelAddForm, {
+    const wrapper = mount(ChannelUpdateForm, {
         global: {
             mocks: {
                 $http: {
-                    post: vitest.fn((url, data) => {
-                        console.log('mock $http.post', url, data);
+                    put: vitest.fn((url, data) => {
+                        console.log('mock $http.put', url, data);
                         return new Promise((resolve, reject) => {
                             resolve({
                                 data: {
                                     status: "OK",
-                                    message: "Channel added successfully"
+                                    message: "Channel updated successfully"
                                 }
                             });
                         });
                     }),
                 }
-            }
+            },
+            plugins: [createPinia()],
         },
-    });
-
-    // mock resetForm on vue
-    wrapper.vm.resetForm = vitest.fn(() => {
-        return;
+        props: {
+            channel: {
+                login: "test123",
+                match: ["match"],
+                quality: ["best", "720p"],
+                download_chat: true,
+                no_capture: false,
+                burn_chat: true,
+                live_chat: false,
+            } as ApiChannelConfig,
+        }
     });
 
     // vitest.mock(wrapper.vm.$http, 'post', (url, data) => {
 
-    expect(wrapper.text()).toContain('Channel login, lowercase.');
+    // vitest.fn(wrapper.vm.store, 'fetchAndUpdateStreamerList', (a: any, b: any) => {
+    //     return;
+    // });
+
+    vitest.spyOn(wrapper.vm.store, 'fetchAndUpdateStreamerList');
+
+    expect(wrapper.text()).toContain('Separate by spaces, e.g. best 1080p 720p audio_only');
 
     // wrapper.vm.$http.post.mockResolvedValue(wrapper.vm.formData);
 
@@ -51,18 +66,6 @@ test('ChannelAddForm', async () => {
         name="burn_chat"
         name="no_capture"
     */
-
-    // validate login
-    await wrapper.get('input[name="login"]').setValue('testABC');
-    expect(wrapper.get<HTMLInputElement>('input[name="login"]').element.checkValidity()).toBe(false);
-
-    await wrapper.get('input[name="login"]').setValue('test abc');
-    expect(wrapper.get<HTMLInputElement>('input[name="login"]').element.checkValidity()).toBe(false);
-
-    await wrapper.get('input[name="login"]').setValue('test');
-    expect(wrapper.vm.formData.login).toBe('test');
-    expect(wrapper.get<HTMLInputElement>('input[name="login"]').element.checkValidity()).toBe(true);
-
 
     // validate quality
     const input_quality = wrapper.get<HTMLInputElement>('input[name="quality"]');
@@ -101,9 +104,10 @@ test('ChannelAddForm', async () => {
     await wrapper.find('form').trigger('submit');
     // await wrapper.find('button[type="submit"]').trigger('click');
 
-    // check if post was called
-    expect(wrapper.vm.$http.post).toHaveBeenCalled();
-    expect(wrapper.vm.$http.post).toHaveBeenCalledWith('/api/v0/channels', wrapper.vm.formData);
-    expect(wrapper.vm.resetForm).toHaveBeenCalled();
+    // check if put was called
+    expect(wrapper.vm.$http.put).toHaveBeenCalled();
+    expect(wrapper.vm.$http.put).toHaveBeenCalledWith('/api/v0/channels/test123', wrapper.vm.formData);
+    // expect(wrapper.vm.resetForm).toHaveBeenCalled();
+    expect(wrapper.vm.store.fetchAndUpdateStreamerList).toHaveBeenCalled();
 
 });
