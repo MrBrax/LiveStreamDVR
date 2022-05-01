@@ -164,6 +164,12 @@
 
         flex-direction: row;
 
+        &.no-capture {
+            .username {
+                text-decoration: line-through;
+            }
+        }
+
         .avatar {
             // height: 100%;
             display: inline-block;

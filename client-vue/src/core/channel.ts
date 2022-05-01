@@ -11,6 +11,7 @@ export default class TwitchChannel {
     login = "";
     description = "";
     quality: VideoQuality[] = [];
+    no_capture = false;
     broadcaster_type: BroadcasterType = "";
 
     profile_image_url = "";
@@ -35,6 +36,7 @@ export default class TwitchChannel {
         channel.api_getSubscriptionStatus = apiResponse.api_getSubscriptionStatus;
         channel.clips_list = apiResponse.clips_list;
         channel.broadcaster_type = apiResponse.broadcaster_type;
+        channel.no_capture = apiResponse.no_capture;
         return channel;
     }
 
