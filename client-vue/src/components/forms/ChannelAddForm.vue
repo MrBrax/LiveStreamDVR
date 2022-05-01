@@ -84,6 +84,7 @@ import { VideoQualityArray } from "../../../../common/Defs";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
+import axios from "axios";
 library.add(faUserPlus);
 
 export default defineComponent({
@@ -110,6 +111,8 @@ export default defineComponent({
     methods: {
         submitForm(event: Event) {
 
+            console.log("submitForm", this.formData);
+
             this.formStatusText = "Loading...";
             this.formStatus = "";
 
@@ -126,7 +129,7 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
-                    if (this.axios.isAxiosError(err) && err.response) {
+                    if (axios.isAxiosError(err) && err.response) {
                         if (err.response.data.status == "ERROR") {
                             this.formStatusText = err.response.data.message;
                             this.formStatus = err.response.data.status;
