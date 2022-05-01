@@ -28,4 +28,5 @@ jobs:
           cd ./client-vue
           yarn 
           yarn lint
+          yarn test
           yarn build
