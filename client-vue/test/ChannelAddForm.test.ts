@@ -54,18 +54,18 @@ test('ChannelAddForm', async () => {
 
     // validate login
     await wrapper.get('input[name="login"]').setValue('testABC');
-    expect(wrapper.get('input[name="login"]').element.checkValidity()).toBe(false);
+    expect(wrapper.get<HTMLInputElement>('input[name="login"]').element.checkValidity()).toBe(false);
 
     await wrapper.get('input[name="login"]').setValue('test abc');
-    expect(wrapper.get('input[name="login"]').element.checkValidity()).toBe(false);
+    expect(wrapper.get<HTMLInputElement>('input[name="login"]').element.checkValidity()).toBe(false);
 
     await wrapper.get('input[name="login"]').setValue('test');
     expect(wrapper.vm.formData.login).toBe('test');
-    expect(wrapper.get('input[name="login"]').element.checkValidity()).toBe(true);
+    expect(wrapper.get<HTMLInputElement>('input[name="login"]').element.checkValidity()).toBe(true);
 
 
     // validate quality
-    const input_quality = wrapper.get('input[name="quality"]');
+    const input_quality = wrapper.get<HTMLInputElement>('input[name="quality"]');
     await input_quality.setValue('721p');
     await input_quality.trigger('blur');
     expect(wrapper.vm.formData.quality).toBe('721p');
