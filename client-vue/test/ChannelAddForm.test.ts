@@ -4,6 +4,7 @@ import { assert, describe, expect, it, test, vitest } from 'vitest'
 
 import axios from "axios";
 import VueAxios from "vue-axios";
+import { VideoQualityArray } from '@common/Defs';
 
 // mock $http on vue
 
@@ -70,9 +71,10 @@ test('ChannelAddForm', async () => {
     expect(wrapper.vm.formData.quality).toBe('721p');
     expect(input_quality.element.checkValidity()).toBe(false);
 
-    await input_quality.setValue('720p');
+    const v = VideoQualityArray.join(' ');
+    await input_quality.setValue(v);
     await input_quality.trigger('blur');
-    expect(wrapper.vm.formData.quality).toBe('720p');
+    expect(wrapper.vm.formData.quality).toBe(v);
     expect(input_quality.element.checkValidity()).toBe(true);
 
     // validate match
