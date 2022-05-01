@@ -13,6 +13,7 @@
                     <label class="checkbox">
                         <input
                             type="checkbox"
+                            :name="data.key"
                             v-model="(formData[data.key] as boolean)"
                         />
                         {{ data.text }}
@@ -100,14 +101,6 @@ interface SettingsGroup {
 
 export default defineComponent({
     name: "SettingsForm",
-    // props: {
-    //     settingsData: {
-    //         type: Object as PropType<Record<string, string | number | boolean>>,
-    //     },
-    //     settingsFields: {
-    //         type: Array as PropType<SettingField<string | number | boolean>[]>,
-    //     },
-    // },
     setup() {
         const store = useStore();
         return { store };

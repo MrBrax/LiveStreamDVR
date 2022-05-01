@@ -471,12 +471,14 @@ export class Job extends EventEmitter {
      * @param {NodeJS.Signals} method Method to use to quit process
      * @returns {Promise<false|ExecReturn>} False if no PID set, otherwise the result of the quit command
      */
-    public async kill(method: NodeJS.Signals = "SIGTERM"): Promise<false | ExecReturn> {
+    public async kill(method: NodeJS.Signals = "SIGTERM"): Promise<boolean> {
         if (this.process) {
             this.process.kill(method);
         }
 
         const pid = this.getPid();
+
+        Log.logAdvanced(LOGLEVEL.INFO, "job", `Killing job ${this.name} (${pid})`, this.metadata);
 
         this.emit("pre_kill", method);
 
@@ -498,7 +500,13 @@ export class Job extends EventEmitter {
             }
             this.clear();
             this.broadcastUpdate();
-            return exec;
+            if (await this.getStatus() === JobStatus.STOPPED) {
+                Log.logAdvanced(LOGLEVEL.INFO, "job", `Killed job ${this.name} (${pid}) (windows)`, this.metadata);
+                return true;
+            } else {
+                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Failed to kill job ${this.name} (${pid}) (windows)`, this.metadata);
+                return false;
+            }
         } else {
             let exec;
             try {
@@ -510,7 +518,13 @@ export class Job extends EventEmitter {
             }
             this.clear();
             this.broadcastUpdate();
-            return exec;
+            if (await this.getStatus() === JobStatus.STOPPED) {
+                Log.logAdvanced(LOGLEVEL.INFO, "job", `Killed job ${this.name} (${pid}) (linux)`, this.metadata);
+                return true;
+            } else {
+                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Failed to kill job ${this.name} (${pid}) (linux)`, this.metadata);
+                return false;
+            }
         }
     }
 

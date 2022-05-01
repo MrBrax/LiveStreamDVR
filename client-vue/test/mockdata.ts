@@ -127,3 +127,8 @@ export const MockApiChapterData: ApiVodChapter = {
     game_name: undefined,
     game: undefined,
 };
+
+export const MockApiSettingsConfig = {
+    "debug": false,
+    "app_verbose": false,
+};

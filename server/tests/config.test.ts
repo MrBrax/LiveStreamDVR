@@ -41,6 +41,13 @@ describe("Config", () => {
         expect(config.cfg("app_url", "https://example.com")).toBe("https://example.com");
         expect(config.cfg("app_url", "")).toBe("");
         expect(config.cfg("app_url")).toBeUndefined();
+
+        expect(config.cfg("file_permissions")).toBe(false);
+        expect(config.cfg("file_permissions", true)).toBe(true);
+
+        expect(config.cfg("low_latency")).toBe(undefined);
+        expect(config.cfg("low_latency", true)).toBe(true);
+        expect(config.cfg("low_latency", false)).toBe(false);
     });
 
     it("generate config", () => {
