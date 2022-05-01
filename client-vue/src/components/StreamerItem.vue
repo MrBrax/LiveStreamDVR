@@ -17,7 +17,7 @@
                     <span class="streamer-vods-amount" title="Total vod amount">{{ streamer.vods_list.length }} vods</span
                     ><!-- vods -->
                     &middot;
-                    <span class="streamer-vods-size" title="Total vod size">{{ formatBytes(streamer?.vods_size) }}</span
+                    <span class="streamer-vods-size" title="Total vod size">{{ formatBytes(streamer.vods_size) }}</span
                     ><!-- total size -->
                     &middot;
                     <span class="streamer-subbed-status">
@@ -31,9 +31,15 @@
                         <span v-if="streamer.broadcaster_type">{{ streamer.broadcaster_type }}</span>
                         <span v-else>Free</span>
                     </span>
+                    &middot;
                     <span class="streamer-title-tools">
+
+                        <!-- edit -->
+                        <router-link class="icon-button" :to="{ name: 'Settings', params: { tab: 'channels' }, hash: '#channel_' + streamer.login }">
+                            <span class="icon"><fa icon="pencil"></fa></span>
+                        </router-link>
+
                         <span v-if="canAbortCapture">
-                            &middot;
                             <!-- abort recording -->
                             <button class="icon-button" @click="abortCapture" title="Abort record">
                                 <span class="icon"><fa icon="video-slash"></fa></span>
@@ -41,7 +47,6 @@
                         </span>
 
                         <span v-else>
-                            &middot;
                             <!-- force recording -->
                             <button class="icon-button" @click="forceRecord" title="Force record">
                                 <span class="icon"><fa icon="video"></fa></span>
@@ -53,14 +58,17 @@
                             <span class="icon"><fa icon="play-circle"></fa></span>
                         </button>
 
+                        <!-- download stuff -->
                         <button class="icon-button" @click="videoDownloadMenu ? (videoDownloadMenu.show = true) : ''" title="Video download">
                             <span class="icon"><fa icon="download"></fa></span>
                         </button>
 
+                        <!-- run cleanup -->
                         <button class="icon-button" title="Clean up" @click="doChannelCleanup">
                             <span class="icon"><fa icon="trash"></fa></span>
                         </button>
 
+                        <!-- refresh channel data -->
                         <button class="icon-button" title="Refresh data" @click="doChannelRefresh">
                             <span class="icon"><fa icon="sync"></fa></span>
                         </button>
@@ -125,13 +133,13 @@ import VodItem from "@/components/VodItem.vue";
 import ModalBox from "@/components/ModalBox.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faVideo, faPlayCircle, faVideoSlash, faDownload, faSync } from "@fortawesome/free-solid-svg-icons";
+import { faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil } from "@fortawesome/free-solid-svg-icons";
 // import { TwitchAPI } from "@/twitchapi";
 import { Video } from "@common/TwitchAPI/Video";
 import TwitchChannel from "@/core/channel";
 import { useStore } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
-library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync);
+library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil);
 
 export default defineComponent({
     name: "StreamerItem",

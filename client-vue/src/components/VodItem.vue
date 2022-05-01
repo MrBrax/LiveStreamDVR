@@ -247,6 +247,9 @@
                     <span v-if="segment.deleted">
                         <strong class="is-error">&nbsp;(deleted)</strong>
                     </span>
+                    <span v-else-if="!segment.filesize">
+                        <strong class="is-error">&nbsp;(filesize missing)</strong>
+                    </span>
                 </li>
 
                 <li v-if="vod?.is_vod_downloaded">

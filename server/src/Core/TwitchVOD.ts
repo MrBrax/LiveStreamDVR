@@ -944,6 +944,8 @@ export class TwitchVOD {
             if (segment.filename && fs.existsSync(segment.filename) && fs.statSync(segment.filename).size > 0) {
                 segment.filesize = fs.statSync(segment.filename).size;
                 this.total_size += segment.filesize;
+            } else {
+                segment.deleted = true;
             }
 
             segment.strings = {};

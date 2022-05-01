@@ -11,7 +11,9 @@
 
     height: 50px;
 
-    background-color: #243e94;
+    $bg-color: #243e94;
+
+    background-color: $bg-color;
 
     // margin-bottom: 5px;
     margin-bottom: 1px;
@@ -82,6 +84,12 @@
         font-weight: 700;
         display: inline-block;
         margin-left: 5px;
+    }
+
+    .streamer-title-tools {
+        .icon-button {
+            margin-left: 0.3em;
+        }
     }
 }
 

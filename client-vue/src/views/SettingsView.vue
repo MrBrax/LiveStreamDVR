@@ -25,7 +25,7 @@
         <section class="section" v-if="!$route.params.tab || $route.params.tab == 'channels'">
             <div class="section-title"><h1>Channels</h1></div>
             <div class="section-content">
-                <div class="card" v-for="channel in formChannels" :key="channel.login">
+                <div class="card" v-for="channel in formChannels" :key="channel.login" :id="'channel_' + channel.login">
                     <div class="card-title">
                         <h2>{{ channel.login }}</h2>
                     </div>

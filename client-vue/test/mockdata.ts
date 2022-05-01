@@ -1,4 +1,4 @@
-import { ApiChannel, ApiGame, ApiVod, ApiVodChapter } from "@common/Api/Client";
+import { ApiChannel, ApiGame, ApiVod, ApiVodChapter, ApiVodSegment } from "@common/Api/Client";
 import { ChannelData } from "@common/Channel";
 import { JobStatus } from "@common/Defs";
 
@@ -126,6 +126,12 @@ export const MockApiChapterData: ApiVodChapter = {
     game_id: undefined,
     game_name: undefined,
     game: undefined,
+};
+
+export const MockApiVODSegmentData: ApiVodSegment = {
+    basename: "",
+    filesize: 0,
+    deleted: false
 };
 
 export const MockApiSettingsConfig = {

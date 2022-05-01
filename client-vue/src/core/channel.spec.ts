@@ -1,10 +1,11 @@
 import { ApiChannel } from '@common/Api/Client';
-import { MockApiChannelData, MockApiChapterData, MockApiGameData, MockApiVODData } from '@/../test/mockdata';
+import { MockApiChannelData, MockApiChapterData, MockApiGameData, MockApiVODData, MockApiVODSegmentData } from '@/../test/mockdata';
 import { assert, describe, expect, it, test, vitest } from 'vitest'
 import TwitchChannel from "./channel";
 import TwitchVOD from './vod';
 import { TwitchGame } from './game';
 import { TwitchVODChapter } from './chapter';
+import { TwitchVODSegment } from './segment';
 
 test("makeFromApiResponse", () => {
 
@@ -82,6 +83,23 @@ test("current_game getter", () => {
     expect(gaming_channel.current_game).toBe(mock_game);
 
 });
+
+test("vods_size getter", () => {
+
+    const channel = TwitchChannel.makeFromApiResponse(MockApiChannelData);
+    expect(channel.vods_size).toBe(0);
+
+    const vod_channel = TwitchChannel.makeFromApiResponse(MockApiChannelData);
+    const mock_vod = TwitchVOD.makeFromApiResponse(MockApiVODData);
+    const mock_segment = TwitchVODSegment.makeFromApiResponse(MockApiVODSegmentData);
+    mock_segment.filesize = 1024;
+    mock_vod.segments.push(mock_segment);
+    vod_channel.vods_list.push(mock_vod);
+
+    expect(vod_channel.vods_size).toBe(1024);
+
+});
+
 
 /*
 test("current_game getter", () => {
