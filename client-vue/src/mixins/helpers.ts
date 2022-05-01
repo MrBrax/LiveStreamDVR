@@ -3,7 +3,7 @@ import { format, formatDistance, formatDistanceToNow, parseISO, parseJSON } from
 
 export default {
     methods: {
-        formatDate(date: string | Date, fmt = "yyyy-MM-dd HH:mm:ss") {
+        formatDate(date: string | Date, fmt = "yyyy-MM-dd HH:mm:ss"): string {
             if (!date) return "";
 
             if (date instanceof Date) {
@@ -13,11 +13,11 @@ export default {
             const o = parseJSON(date);
             return format(o, fmt);
         },
-        formatTimestamp(timestamp: number, fmt = "yyyy-MM-dd HH:mm:ss") {
+        formatTimestamp(timestamp: number, fmt = "yyyy-MM-dd HH:mm:ss"): string {
             const o = new Date(timestamp * 1000);
             return format(o, fmt);
         },
-        humanDuration(duration: number) {
+        humanDuration(duration: number): string {
             if (duration < 0) {
                 return "(NEGATIVE DURATION)";
             }
@@ -26,7 +26,7 @@ export default {
             const seconds = Math.floor(duration % 60);
             return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
         },
-        formatBytes(bytes: number, precision = 2) {
+        formatBytes(bytes: number, precision = 2): string {
             const units = ["B", "KB", "MB", "GB", "TB"];
             bytes = Math.max(bytes, 0);
             let pow = Math.floor((bytes ? Math.log(bytes) : 0) / Math.log(1024));
@@ -65,10 +65,10 @@ export default {
             return this.niceDuration(seconds).replaceAll(" ", "").trim();
             // return trim(str_replace(" ", "", self::getNiceDuration($seconds)));
         },
-        formatNumber(num: number, decimals = 0) {
+        formatNumber(num: number, decimals = 0): string {
             return num.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
         },
-        humanDate(date: string | Date, suffix = false) {
+        humanDate(date: string | Date, suffix = false): string {
             if (!date) return "";
             let d;
             if (date instanceof Date) {
@@ -78,7 +78,7 @@ export default {
             }
             return formatDistance(d, new Date(), { addSuffix: suffix });
         },
-        parseTwitchDuration(duration: string) {
+        parseTwitchDuration(duration: string): number {
             const regex = /(\d+)([hdms])/g;
             let match;
             let total = 0;
@@ -107,7 +107,7 @@ export default {
         //         return (a as any)[value] - (b as any)[value];
         //     });
         // },
-        formatDurationSince(date: string) {
+        formatDurationSince(date: string): string {
             const o = parseISO(date);
             return formatDistanceToNow(o, { addSuffix: true });
         },

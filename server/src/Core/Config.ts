@@ -108,10 +108,10 @@ export class Config {
 
         // { "key": "error_handler", "group": "Advanced", "text": "Use app logging to catch PHP errors", "type": "boolean" },
 
-        { "key": "file_permissions", "group": "Advanced", "text": "Set file permissions", "type": "boolean", "help": "Warning, can mess up permissions real bad." },
+        { "key": "file_permissions", "group": "Advanced", "text": "Set file permissions", "type": "boolean", "help": "Warning, can mess up permissions real bad.", "default": false },
         { "key": "file_chmod", "group": "Advanced", "text": "File chmod", "type": "number", "default": 775 },
-        { "key": "file_chown_user", "group": "Advanced", "text": "File chown user", "type": "string", "default": "nobody" },
-        { "key": "file_chown_group", "group": "Advanced", "text": "File chown group", "type": "string", "default": "nobody" },
+        { "key": "file_chown_uid", "group": "Advanced", "text": "File chown uid", "type": "number", "default": 100 },
+        { "key": "file_chown_gid", "group": "Advanced", "text": "File chown gid", "type": "number", "default": 100 },
 
         { "key": "checkmute_method", "group": "Basic", "text": "Method to use when checking for muted vods", "type": "array", "default": "streamlink", "choices": ["api", "streamlink"], "help": "Bugged as of 2022-03-29: https://github.com/twitchdev/issues/issues/501" },
 
@@ -128,7 +128,7 @@ export class Config {
 
     ];
 
-
+    static readonly AudioContainer = "aac";
     static instance: Config | undefined;
     static getInstance(): Config {
         if (this.instance === undefined) {
@@ -175,14 +175,18 @@ export class Config {
 
         // return default value if not set
         if (this.config[key] === undefined) {
+            const field = Config.getSettingField(key);
             if (defaultValue !== undefined) {
-                return defaultValue;
+                return defaultValue; // user defined default
+            } else if (field && field.default !== undefined) {
+                return <T><unknown>field.default; // field default value
             } else {
-                return <T><unknown>undefined;
+                return <T><unknown>undefined; // last resort
             }
         }
 
-        return <T><unknown>this.config[key];
+        return <T><unknown>this.config[key]; // return value
+
     }
 
     loadConfig() {
@@ -598,7 +602,7 @@ export class Config {
             }
         }
 
-        if (req){
+        if (req) {
             response_body = req.data;
             response_status = req.status;
         }

@@ -978,7 +978,10 @@ export class TwitchVOD {
         const files = fs.readdirSync(this.directory)
             .filter(file =>
                 file.startsWith(this.basename) &&
-                file.endsWith(`.${Config.getInstance().cfg("vod_container", "mp4")}`) &&
+                (
+                    file.endsWith(`.${Config.getInstance().cfg("vod_container", "mp4")}`) ||
+                    file.endsWith(Config.AudioContainer)
+                ) &&
                 !file.includes("_vod") && !file.includes("_chat") && !file.includes("_chat_mask") && !file.includes("_burned")
             );
 
@@ -1498,8 +1501,8 @@ export class TwitchVOD {
 
         if (
             !Config.getInstance().cfg("file_permissions") ||
-            !Config.getInstance().cfg("file_chown_user") ||
-            !Config.getInstance().cfg("file_chown_group") ||
+            !Config.getInstance().cfg("file_chown_uid") ||
+            !Config.getInstance().cfg("file_chown_gid") ||
             !Config.getInstance().cfg("file_chmod")
         ) {
             return;
@@ -1508,7 +1511,7 @@ export class TwitchVOD {
         for (const file of this.associatedFiles) {
             const fullpath = path.join(this.directory, file);
             if (fs.existsSync(fullpath)) {
-                fs.chownSync(fullpath, Config.getInstance().cfg("file_chown_user"), Config.getInstance().cfg("file_chown_group"));
+                fs.chownSync(fullpath, Config.getInstance().cfg("file_chown_uid"), Config.getInstance().cfg("file_chown_gid"));
                 fs.chmodSync(fullpath, Config.getInstance().cfg("file_chmod"));
             }
         }
@@ -1792,9 +1795,16 @@ export class TwitchVOD {
             if (fs.existsSync(path.join(this.directory, `${this.basename}.ts`))) {
                 console.log(chalk.bgBlue.whiteBright(`${this.basename} is not yet remuxed, remuxing now!`));
                 this.is_converting = true;
-                const status = await Helper.remuxFile(path.join(this.directory, `${this.basename}.ts`), path.join(this.directory, `${this.basename}.mp4`));
+
+                const channel = this.getChannel();
+                const container_ext =
+                    channel && channel.quality && channel.quality[0] === "audio_only" ?
+                        Config.AudioContainer :
+                        Config.getInstance().cfg("vod_container", "mp4");
+
+                const status = await Helper.remuxFile(path.join(this.directory, `${this.basename}.ts`), path.join(this.directory, `${this.basename}.${container_ext}`));
                 console.log(chalk.bgBlue.whiteBright(`${this.basename} remux status: ${status.success}`));
-                this.addSegment(`${this.basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
+                this.addSegment(`${this.basename}.${container_ext}`);
                 this.is_converting = false;
                 await this.finalize();
                 this.saveJSON("fix remux");

@@ -31,19 +31,17 @@ export function GetSettings(req: express.Request, res: express.Response): void {
     } as ApiSettingsResponse);
 }
 
-export async function SaveSettings(req: express.Request, res: express.Response): Promise<void> {
+export function SaveSettings(req: express.Request, res: express.Response): void {
 
     let force_new_token = false;
     if (Config.getInstance().cfg("api_client_id") !== req.body.api_client_id) {
         force_new_token = true;
     }
 
-    // @todo: don't set config values unless everything is valid, like the http check
-
     let fields = 0;
     for (const setting of Config.settingsFields) {
         const key = setting.key;
-        if (setting.required && !req.body[key]) {
+        if (setting.required && req.body[key] === undefined) {
             res.status(400).send({
                 status: "ERROR",
                 message: `Missing required setting: ${key}`,
@@ -66,7 +64,7 @@ export async function SaveSettings(req: express.Request, res: express.Response):
     for (const setting of Config.settingsFields) {
         const key = setting.key;
         if (setting.type === "boolean") {
-            Config.getInstance().setConfig<boolean>(key, req.body[key] !== undefined);
+            Config.getInstance().setConfig<boolean>(key, req.body[key]);
         } else if (setting.type === "number") {
             if (req.body[key] !== undefined) {
                 Config.getInstance().setConfig<number>(key, parseInt(req.body[key]));

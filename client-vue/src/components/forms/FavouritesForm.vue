@@ -1,13 +1,19 @@
 <template>
-    <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
+    <form method="POST" enctype="multipart/form-data" action="#" @submit.prevent="submitForm">
         <div class="favourites_list" v-if="gamesData && favouritesData">
             <div v-for="game in sortedGames" :key="game.id" class="checkbox">
-                <label v-if="favouritesData">
-                    <input type="checkbox" :name="game.id" :checked="favouritesData.includes(game.id)" value="1" /> {{ game.name }}
+                <label>
+                    <input
+                        type="checkbox"
+                        :name="game.id"
+                        :value="game.id"
+                        :id="game.id"
+                        v-model="formData"
+                    /> {{ game.name }}
                     <span class="game-date">{{ formatDate(game.added) }}</span>
                 </label>
             </div>
-            <div v-if="!favouritesData || favouritesData.length == 0">
+            <div v-if="!gamesData || gamesData.length == 0">
                 <p>No games in cache. When streamers change games, they will be added to the cache.</p>
             </div>
         </div>
@@ -40,26 +46,16 @@ export default defineComponent({
         return {
             formStatusText: "Ready",
             formStatus: "",
-            formData: {},
+            formData: this.favouritesData?.slice() ?? [],
         };
     },
     methods: {
         submitForm(event: Event) {
-            const form = event.target as HTMLFormElement;
-            const inputs = new FormData(form);
-
             this.formStatusText = "Loading...";
             this.formStatus = "";
 
-            // console.log("form", form);
-            // console.log("entries", inputs, inputs.entries(), inputs.values());
-            let data: { games: Record<number, boolean> } = {
-                games: {},
-            };
-            inputs.forEach((value, key) => (data.games[parseInt(key)] = value == "1"));
-
             this.$http
-                .put(`/api/v0/favourites`, data)
+                .put(`/api/v0/favourites`, this.formData)
                 .then((response) => {
                     const json = response.data;
                     this.formStatusText = json.message;

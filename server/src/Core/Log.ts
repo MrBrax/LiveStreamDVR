@@ -13,6 +13,7 @@ export enum LOGLEVEL {
     DEBUG = "DEBUG",
     FATAL = "FATAL",
     SUCCESS = "SUCCESS",
+    EXEC = "EXEC",
 }
 
 export interface LogLine {
@@ -39,6 +40,7 @@ export class Log {
         [LOGLEVEL.DEBUG]: chalk.gray,
         [LOGLEVEL.FATAL]: chalk.red,
         [LOGLEVEL.SUCCESS]: chalk.green,
+        [LOGLEVEL.EXEC]: chalk.redBright,
     };
 
     static readTodaysLog() {

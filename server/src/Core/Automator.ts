@@ -611,7 +611,11 @@ export class Automator {
             // KeyValue.delete(`${this.getLogin()}.channeldata`);
         }
 
-        const container_ext = Config.getInstance().cfg("vod_container", "mp4");
+        const container_ext =
+            this.channel.quality && this.channel.quality[0] === "audio_only" ?
+                Config.AudioContainer :
+                Config.getInstance().cfg("vod_container", "mp4");
+
         this.capture_filename = path.join(folder_base, `${basename}.ts`);
         this.converted_filename = path.join(folder_base, `${basename}.${container_ext}`);
         this.chat_filename = path.join(folder_base, `${basename}.chatdump`);

@@ -356,7 +356,9 @@ export class Helper {
                 windowsHide: true,
             });
 
-            Log.logAdvanced(LOGLEVEL.INFO, "exec", `Executing ${what}: ${bin} ${args.join(" ")}`);
+            const pid = process.pid;
+
+            Log.logAdvanced(LOGLEVEL.EXEC, "helper.execSimple", `Executing '${what}': $ ${bin} ${args.join(" ")}`);
 
             const stdout: string[] = [];
             const stderr: string[] = [];
@@ -372,7 +374,7 @@ export class Helper {
             });
 
             process.on("close", (code) => {
-                Log.logAdvanced(LOGLEVEL.INFO, "helper", `Process ${process.pid} for ${what} exited with code ${code}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "helper.execSimple", `Process ${pid} for '${what}' exited with code ${code}`);
 
                 if (code == 0) {
                     resolve({ code, stdout, stderr });
@@ -382,7 +384,7 @@ export class Helper {
             });
 
             process.on("error", (err) => {
-                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} for ${what} error: ${err}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper.execSimple", `Process ${pid} for '${what}' error: ${err}`);
                 reject({ code: -1, stdout, stderr });
             });
 
@@ -407,22 +409,22 @@ export class Helper {
                 windowsHide: true,
             });
 
-            Log.logAdvanced(LOGLEVEL.INFO, jobName, `Executing ${bin} ${args.join(" ")}`);
+            Log.logAdvanced(LOGLEVEL.EXEC, "helper.execAdvanced", `Executing job '${jobName}': $ ${bin} ${args.join(" ")}`);
 
             let job: Job;
 
             if (process.pid) {
-                Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Spawned process ${process.pid} for ${jobName}`);
+                Log.logAdvanced(LOGLEVEL.SUCCESS, "helper.execAdvanced", `Spawned process ${process.pid} for ${jobName}`);
                 job = Job.create(jobName);
                 job.setPid(process.pid);
                 job.setExec(bin, args);
                 job.setProcess(process);
                 job.startLog(jobName, `$ ${bin} ${args.join(" ")}\n`);
                 if (!job.save()) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to save job ${jobName}`);
+                    Log.logAdvanced(LOGLEVEL.ERROR, "helper.execAdvanced", `Failed to save job ${jobName}`);
                 }
             } else {
-                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to spawn process for ${jobName}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper.execAdvanced", `Failed to spawn process for ${jobName}`);
                 // reject(new Error(`Failed to spawn process for ${jobName}`));
             }
 
@@ -438,7 +440,7 @@ export class Helper {
             });
 
             process.on("close", (code) => {
-                Log.logAdvanced(LOGLEVEL.INFO, "helper", `Process ${process.pid} for ${jobName} exited with code ${code}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "helper.execAdvanced", `Process ${process.pid} for ${jobName} exited with code ${code}`);
                 if (job) {
                     job.clear();
                 }
@@ -452,11 +454,11 @@ export class Helper {
             });
 
             process.on("error", (err) => {
-                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper.execAdvanced", `Process ${process.pid} error: ${err}`);
                 reject({ code: -1, stdout, stderr });
             });
 
-            Log.logAdvanced(LOGLEVEL.INFO, "helper", `Attached to all streams for process ${process.pid} for ${jobName}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "helper.execAdvanced", `Attached to all streams for process ${process.pid} for ${jobName}`);
 
         });
     }
