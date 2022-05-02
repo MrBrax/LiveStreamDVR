@@ -843,6 +843,7 @@ import ModalBox from "./ModalBox.vue";
 import { MuteStatus, VideoQualityArray } from "../../../common/Defs";
 import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import TwitchVOD from "@/core/vod";
+import { AudioMetadata } from "@common/MediaInfo";
 library.add(
     faFileVideo,
     faCut,
@@ -1181,6 +1182,11 @@ export default defineComponent({
                 fontFamily: this.burnSettings.chatFont,
             };
         },
+        audioOnly(): boolean {
+            if (!this.vod) return false;
+            if (!this.vod.video_metadata) return false;
+            return this.vod.video_metadata.type == 'audio';
+        }
     },
     components: {
         DurationDisplay,
