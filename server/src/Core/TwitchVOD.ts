@@ -8,7 +8,7 @@ import type { TwitchComment, TwitchCommentDump } from "../../../common/Comments"
 import { VideoQuality } from "../../../common/Config";
 import { JobStatus, MuteStatus } from "../../../common/Defs";
 import { AudioStream, FFProbe, VideoStream } from "../../../common/FFProbe";
-import { VideoMetadata } from "../../../common/MediaInfo";
+import { AudioMetadata, VideoMetadata } from "../../../common/MediaInfo";
 import { MediaInfo } from "../../../common/mediainfofield";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { Video, VideosResponse } from "../../../common/TwitchAPI/Video";
@@ -106,7 +106,7 @@ export class TwitchVOD {
     twitch_vod_exists?: boolean;
     twitch_vod_attempted?: boolean;
 
-    video_metadata: VideoMetadata | undefined;
+    video_metadata: VideoMetadata | AudioMetadata | undefined;
 
     is_capturing = false;
     is_converting = false;
@@ -434,7 +434,7 @@ export class TwitchVOD {
         Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Reached end of getDuration for {this.basename}, this shouldn't happen!");
     }
 
-    public async getMediainfo(segment_num = 0): Promise<false | VideoMetadata> {
+    public async getMediainfo(segment_num = 0): Promise<false | VideoMetadata | AudioMetadata> {
 
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Fetching mediainfo of ${this.basename}, segment #${segment_num}`);
 
@@ -467,41 +467,79 @@ export class TwitchVOD {
             // console.debug(`Got mediainfo of ${this.basename}`);
 
             if (!data.general.Format || !data.general.Duration) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Invalid mediainfo for ${this.basename}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Invalid mediainfo for ${this.basename} (missing ${!data.general.Format ? "Format" : ""} ${!data.general.Duration ? "Duration" : ""})`);
                 return false;
             }
 
             // check if even framerate
-            if (parseInt(data.video.FrameRate) % 2 != 0) {
+            if (data.video && parseInt(data.video.FrameRate) % 2 != 0) {
                 Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Strange framerate for ${this.basename}: ${data.video.FrameRate}`);
                 console.debug("mediainfo", data);
             }
 
+            const isAudio = data.video === undefined;
+
             // use proxy type for mediainfo, can switch to ffprobe if needed
-            this.video_metadata = {
+            if (isAudio) {
 
-                container: data.general.Format,
+                if (data.audio) {
+                    this.video_metadata = {
 
-                size: parseInt(data.general.FileSize),
-                duration: parseInt(data.general.Duration),
-                bitrate: parseInt(data.general.OverallBitRate),
+                        type: "audio",
 
-                width: parseInt(data.video.Width),
-                height: parseInt(data.video.Height),
+                        container: data.general.Format,
 
-                fps: parseInt(data.video.FrameRate), // TODO: check if this is correct, seems to be variable
-                fps_mode: data.video.FrameRate_Mode as "VFR" | "CFR",
+                        size: parseInt(data.general.FileSize),
+                        duration: parseInt(data.general.Duration),
+                        bitrate: parseInt(data.general.OverallBitRate),
 
-                audio_codec: data.audio.Format,
-                audio_bitrate: parseInt(data.audio.BitRate),
-                audio_bitrate_mode: data.audio.BitRate_Mode as "VBR" | "CBR",
-                audio_sample_rate: parseInt(data.audio.SamplingRate),
-                audio_channels: parseInt(data.audio.Channels),
+                        audio_codec: data.audio.Format,
+                        audio_bitrate: parseInt(data.audio.BitRate),
+                        audio_bitrate_mode: data.audio.BitRate_Mode as "VBR" | "CBR",
+                        audio_sample_rate: parseInt(data.audio.SamplingRate),
+                        audio_channels: parseInt(data.audio.Channels),
 
-                video_codec: data.video.Format,
-                video_bitrate: parseInt(data.video.BitRate),
-                video_bitrate_mode: data.video.BitRate_Mode as "VBR" | "CBR",
-            };
+                    } as AudioMetadata;
+                } else {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Invalid mediainfo for ${this.basename} (missing audio)`);
+                    return false;
+                }
+            
+            } else {
+
+                if (data.video && data.audio) {
+                    this.video_metadata = {
+
+                        type: "video",
+
+                        container: data.general.Format,
+
+                        size: parseInt(data.general.FileSize),
+                        duration: parseInt(data.general.Duration),
+                        bitrate: parseInt(data.general.OverallBitRate),
+
+                        width: parseInt(data.video.Width),
+                        height: parseInt(data.video.Height),
+
+                        fps: parseInt(data.video.FrameRate), // TODO: check if this is correct, seems to be variable
+                        fps_mode: data.video.FrameRate_Mode as "VFR" | "CFR",
+
+                        audio_codec: data.audio.Format,
+                        audio_bitrate: parseInt(data.audio.BitRate),
+                        audio_bitrate_mode: data.audio.BitRate_Mode as "VBR" | "CBR",
+                        audio_sample_rate: parseInt(data.audio.SamplingRate),
+                        audio_channels: parseInt(data.audio.Channels),
+
+                        video_codec: data.video.Format,
+                        video_bitrate: parseInt(data.video.BitRate),
+                        video_bitrate_mode: data.video.BitRate_Mode as "VBR" | "CBR",
+
+                    } as VideoMetadata;
+                } else {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Invalid mediainfo for ${this.basename} (missing video/audio)`);
+                    return false;
+                }
+            }
 
             return this.video_metadata;
         }
@@ -1017,7 +1055,11 @@ export class TwitchVOD {
         }
 
         // generate mediainfo, like duration, size, resolution, etc
-        await this.getMediainfo();
+        try {
+            await this.getMediainfo();
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to get mediainfo for ${this.basename}: ${error}`);
+        }
 
         // generate chapter related files
         try {
@@ -1849,6 +1891,11 @@ export class TwitchVOD {
         if (!this.video_metadata) {
             console.error(chalk.redBright("No video metadata"));
             throw new Error("No video metadata");
+        }
+
+        if (!("height" in this.video_metadata)) {
+            console.error(chalk.redBright("No video metadata height"));
+            throw new Error("No video metadata height");
         }
 
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Render chat for ${this.basename}`);

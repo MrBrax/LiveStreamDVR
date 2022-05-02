@@ -2,7 +2,7 @@ import { MediaInfo, MediaInfoPublic } from "../mediainfofield";
 import { VideoQuality } from "../Config";
 import { ChannelData } from "../Channel";
 import { MuteStatus, ExistStatus, JobStatus} from "../../common/Defs";
-import { VideoMetadata } from "../MediaInfo";
+import { AudioMetadata, VideoMetadata } from "../MediaInfo";
 import { BroadcasterType } from "../TwitchAPI/Users";
 
 export type ApiVodSegment = {
@@ -114,7 +114,7 @@ export type ApiVod = {
 
     // video_metadata: MediaInfo;
     // video_metadata_public?: MediaInfoPublic;
-    video_metadata?: VideoMetadata;
+    video_metadata?: VideoMetadata | AudioMetadata;
 
     chapters: ApiVodChapter[];
 
