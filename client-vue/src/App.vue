@@ -131,6 +131,18 @@ export default defineComponent({
         }).catch((error) => {
             console.error("fetchData error", error);
         });
+
+        const wantsReducedMotion = this.prefersReducedMotion();
+        const hasSeenPopup = localStorage.getItem("hasSeenReducedMotionPopup") === "true";
+        if (!hasSeenPopup && wantsReducedMotion && this.store.clientConfig) {
+            const choice = window.confirm("You have enabled reduced motion in your browser/OS.\nDo you want to disable animations in the app?");
+            if (choice) {
+                localStorage.setItem("hasSeenReducedMotionPopup", "true");
+                this.store.clientConfig.animationsEnabled = false;
+                this.store.saveClientConfig();
+                alert("Animations have been disabled.\nYou can enable them in the client settings.");
+            }
+        }
     },
     unmounted() {
         console.debug("App unmounted");
