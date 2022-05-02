@@ -14,15 +14,23 @@
         <div :id="'vod_' + vod?.basename" class="anchor"></div>
 
         <!-- title -->
-        <div class="video-title">
-            <h3>
-                <span class="icon"><fa icon="file-video"></fa></span>
-                <span class="video-date" :title="formatDate(vod?.started_at)" v-if="vod?.started_at">{{
-                    store.clientCfg('useRelativeTime') ? humanDate(vod?.started_at, true) : formatDate(vod?.started_at)
-                }}</span>
-                <span class="video-filename">{{ vod?.basename }}</span>
-            </h3>
+        <div class="video-title" @click="minimized = !minimized">
+            <div class="video-title-text">
+                <h3>
+                    <span class="icon"><fa icon="file-video"></fa></span>
+                    <span class="video-date" :title="formatDate(vod?.started_at)" v-if="vod?.started_at">{{
+                        store.clientCfg('useRelativeTime') ? humanDate(vod?.started_at, true) : formatDate(vod?.started_at)
+                    }}</span>
+                    <span class="video-filename">{{ vod?.basename }}</span>
+                </h3>
+            </div>
+            <div class="video-title-actions">
+                <fa :icon="!minimized ? 'chevron-up' : 'chevron-down'"></fa>
+            </div>
         </div>
+
+        <transition name="fadeHeight">
+    <div class="video-content" v-if="!minimized">
 
         <!-- description -->
         <div class="video-description">
@@ -582,6 +590,9 @@
                 <span class="is-error">No chapters found</span>
             </div>
         </div>
+
+    </div>
+        </transition>
     </div>
     <modal-box ref="burnMenu" title="Render Menu" v-if="vod && vod.is_finalized && vod.video_metadata">
         <div>
@@ -888,6 +899,7 @@ export default defineComponent({
             },
             chatDownloadMethod: "tcd",
             showAdvanced: false,
+            minimized: this.getDefaultMinimized(),
         };
     },
     mounted() {
@@ -1123,6 +1135,12 @@ export default defineComponent({
                     if (err.response.data && err.response.data.message) alert(err.response.data.message);
                 });
         },
+        getDefaultMinimized() {
+            if (this.store.clientCfg("minimizeVodsByDefault")) {
+                return !this.vod?.is_capturing;
+            }
+            return false;
+        }
     },
     computed: {
         compDownloadChat(): boolean {
@@ -1169,6 +1187,15 @@ export default defineComponent({
         DurationDisplay,
         ModalBox,
     },
+    watch: {
+        // watch hash
+        $route(to, from) {
+            if (to.hash !== from.hash) {
+                const basename = to.hash.substr(5);
+                if (basename == this.vod?.basename) this.minimized = false;
+            }
+        },
+    }
 });
 </script>
 
