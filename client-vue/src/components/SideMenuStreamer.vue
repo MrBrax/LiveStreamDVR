@@ -13,7 +13,7 @@
         v-if="streamer"
     >
         <router-link
-            :to="store.clientCfg('singlePage') ? { path: 'dashboard', query: { channel: streamer.login } } : { path: 'dashboard', hash: '#streamer_' + streamer.login }"
+            :to="store.clientCfg('singlePage') ? { name: 'Dashboard', query: { channel: streamer.login } } : { name: 'Dashboard', hash: '#streamer_' + streamer.login }"
             class="streamer-link"
         >
             <span class="avatar" @click.prevent="streamer && store.fetchAndUpdateStreamer(streamer.login)">
@@ -66,8 +66,8 @@
                 <router-link
                     :to="
                         store.clientCfg('singlePage')
-                            ? { path: 'dashboard', query: { channel: streamer.login }, hash: '#vod_' + vod.basename }
-                            : { path: 'dashboard', hash: '#vod_' + vod.basename }
+                            ? { name: 'Dashboard', query: { channel: streamer.login }, hash: '#vod_' + vod.basename }
+                            : { name: 'Dashboard', hash: '#vod_' + vod.basename }
                     "
                     :class="{
                         'is-favourite': vod.hasFavouriteGame(),

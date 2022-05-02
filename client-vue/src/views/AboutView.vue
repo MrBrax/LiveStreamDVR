@@ -162,7 +162,12 @@
 
                     <div class="block" v-if="aboutData.keyvalue">
                         <h3>KeyValue store</h3>
-                        <table class="table is-fullwidth is-striped" v-if="Object.keys(aboutData.keyvalue).length > 0">
+                        <transition-group
+                            name="list"
+                            tag="table"
+                            class="table is-fullwidth is-striped is-hoverable"
+                            v-if="Object.keys(aboutData.keyvalue).length > 0"
+                        >
                             <tr v-for="(value, key) in aboutData.keyvalue" :key="key">
                                 <td>{{ key }}</td>
                                 <td>{{ value }}</td>
@@ -171,7 +176,7 @@
                             <tr>
                                 <td colspan="999"><button class="button is-danger is-small" @click="deleteAllKeyValues">Delete all</button></td>
                             </tr>
-                        </table>
+                        </transition-group>
                         <p v-else>No key-value data found.</p>
                     </div>
 
@@ -308,9 +313,7 @@ export default defineComponent({
         },
         fetchKeyValues() {
             if (!this.aboutData) return;
-
-            this.aboutData.keyvalue = undefined;
-
+            // this.aboutData.keyvalue = undefined;
             this.$http
                 .get(`/api/v0/keyvalue`)
                 .then((response) => {
@@ -387,7 +390,7 @@ export default defineComponent({
                 .then((response) => {
                     const json = response.data;
                     console.debug("deleteKeyValue", json);
-                    alert(`Deleted key ${key}`);
+                    // alert(`Deleted key ${key}`);
                     this.fetchKeyValues();
                 })
                 .catch((err) => {

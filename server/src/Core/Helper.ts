@@ -565,10 +565,6 @@ export class Helper {
                 fs.unlinkSync(output);
             }
 
-            // this.mediainfo(input).then((info) => {
-
-            // console.log("remux mediainfo", info);
-
             // ffmpeg seems to make ts cfr into vfr, don't know why
 
             const opts: string[] = [];
@@ -588,16 +584,21 @@ export class Helper {
 
             // "-map", "0",
             // "-analyzeduration", 
+            
             opts.push("-c", "copy"); // copy all streams
-            opts.push("-bsf:a", "aac_adtstoasc"); // audio bitstream filter?
 
-            opts.push("-movflags", "faststart"); // make streaming possible, not sure if this is a good idea
+            if (!output.endsWith(Config.AudioContainer)){
+                opts.push("-bsf:a", "aac_adtstoasc"); // audio bitstream filter?
+            }
+
+            if (output.endsWith(".mp4")) {
+                opts.push("-movflags", "faststart"); // make streaming possible, not sure if this is a good idea
+            }
+
             // "-r", parseInt(info.video.FrameRate).toString(),
             // "-vsync", "cfr",
             // ...ffmpeg_options,
             // output,
-
-
 
             if (overwrite || emptyFile) {
                 opts.push("-y");

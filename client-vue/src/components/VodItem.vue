@@ -121,7 +121,19 @@
                             <strong>Size:</strong>
                             {{ formatBytes(vod.segments[0].filesize) }}
                         </li>
-                        <template v-if="vod.video_metadata">
+                        <template v-if="vod.video_metadata && vod.video_metadata.type == 'audio'">
+                            <li>
+                                <strong>Total:</strong>
+                                {{ Math.round(vod.video_metadata.bitrate / 1000) }}kbps
+                            </li>
+                            <li>
+                                <strong>Audio:</strong>
+                                {{ vod?.video_metadata.audio_codec }}
+                                {{ vod?.video_metadata.audio_bitrate_mode }}
+                                {{ Math.round(vod.video_metadata.audio_bitrate / 1000) }}kbps
+                            </li>
+                        </template>
+                        <template v-else-if="vod.video_metadata">
                             <li>
                                 <strong>Dimensions:</strong>
                                 {{ vod.video_metadata.width }}x{{ vod.video_metadata.height }}
@@ -286,18 +298,18 @@
                 <fa v-else icon="plus"></fa>
             </a>
             <!-- Editor -->
-            <router-link class="button is-blue" :to="{ name: 'Editor', params: { vod: vod?.basename } }">
+            <router-link v-if="vod.video_metadata && vod.video_metadata.type !== 'audio'" class="button is-blue" :to="{ name: 'Editor', params: { vod: vod?.basename } }">
                 <span class="icon"><fa icon="cut" type="fa"></fa></span>
                 Editor
             </router-link>
 
             <!-- Player -->
-            <a v-if="vod?.is_chat_downloaded" class="button is-blue" :href="playerLink(0, true)" target="_blank">
+            <a v-if="vod.is_chat_downloaded && vod.video_metadata && vod.video_metadata.type !== 'audio'" class="button is-blue" :href="playerLink(0, true)" target="_blank">
                 <span class="icon"><fa icon="play" type="fa"></fa></span>
                 Player (chat dl)
             </a>
 
-            <a v-if="vod?.is_chatdump_captured" class="button is-blue" :href="playerLink()" target="_blank">
+            <a v-if="vod.is_chatdump_captured && vod.video_metadata && vod.video_metadata.type !== 'audio'" class="button is-blue" :href="playerLink()" target="_blank">
                 <span class="icon"><fa icon="play" type="fa"></fa></span>
                 Player (chat dump)
             </a>
@@ -343,7 +355,11 @@
                 </a>
             </template>
 
-            <a class="button" @click="burnMenu ? (burnMenu.show = true) : ''">
+            <a
+                class="button"
+                @click="burnMenu ? (burnMenu.show = true) : ''"
+                v-if="vod.video_metadata && vod.video_metadata.type !== 'audio'"
+            >
                 <span class="icon">
                     <fa icon="burn" type="fa"></fa>
                 </span>
@@ -461,7 +477,7 @@
                 <thead>
                     <tr>
                         <th>Offset</th>
-                        <th>Started</th>
+                        <th v-if="showAdvanced">Started</th>
                         <th>Duration</th>
                         <th>Category</th>
                         <th>Title</th>
@@ -484,7 +500,7 @@
                         </td>
 
                         <!-- start time -->
-                        <td data-contents="started_at" :title="chapter.started_at.toISOString()">
+                        <td data-contents="started_at" :title="chapter.started_at.toISOString()" v-if="showAdvanced">
                             <span v-if="store.clientCfg('useRelativeTime')">
                                 <duration-display :start-date="chapter.started_at" output-style="human" /> ago
                             </span>
@@ -594,7 +610,7 @@
     </div>
         </transition>
     </div>
-    <modal-box ref="burnMenu" title="Render Menu" v-if="vod && vod.is_finalized && vod.video_metadata">
+    <modal-box ref="burnMenu" title="Render Menu" v-if="vod && vod.is_finalized && vod.video_metadata && vod.video_metadata.type !== 'audio'">
         <div>
             <pre>{{ vod.basename }}</pre>
             <ul class="list" v-if="vod.video_metadata">
@@ -838,6 +854,7 @@ import ModalBox from "./ModalBox.vue";
 import { MuteStatus, VideoQualityArray } from "../../../common/Defs";
 import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import TwitchVOD from "@/core/vod";
+import { AudioMetadata } from "@common/MediaInfo";
 library.add(
     faFileVideo,
     faCut,
@@ -903,7 +920,8 @@ export default defineComponent({
         };
     },
     mounted() {
-        if (this.vod && this.vod.video_metadata) this.burnSettings.chatHeight = this.vod.video_metadata.height;
+        if (this.vod && this.vod.video_metadata && this.vod.video_metadata.type !== 'audio')
+            this.burnSettings.chatHeight = this.vod.video_metadata.height;
 
         if (this.vod) {
             if (!this.vod.chapters) {
@@ -1170,7 +1188,7 @@ export default defineComponent({
             return jobs;
         },
         burnPreviewChat(): Record<string, string> {
-            if (!this.vod || !this.vod.video_metadata) return {};
+            if (!this.vod || !this.vod.video_metadata || this.vod.video_metadata.type == 'audio') return {};
             return {
                 width: `${(this.burnSettings.chatWidth / this.vod.video_metadata.width) * 100}%`,
                 height: `${(this.burnSettings.chatHeight / this.vod.video_metadata.height) * 100}%`,
@@ -1182,6 +1200,11 @@ export default defineComponent({
                 fontFamily: this.burnSettings.chatFont,
             };
         },
+        audioOnly(): boolean {
+            if (!this.vod) return false;
+            if (!this.vod.video_metadata) return false;
+            return this.vod.video_metadata.type == 'audio';
+        }
     },
     components: {
         DurationDisplay,

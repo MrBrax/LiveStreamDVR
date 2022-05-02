@@ -262,8 +262,8 @@ export interface Audio {
 
 export interface MediaInfo {
     general: General;
-    video: Video;
-    audio: Audio;
+    video?: Video;
+    audio?: Audio;
 }
 
 interface GeneralPublic {

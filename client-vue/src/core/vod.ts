@@ -1,7 +1,7 @@
 import { useStore } from "../store";
 import { ApiVod } from "../../../common/Api/Client";
 import { JobStatus, MuteStatus } from "../../../common/Defs";
-import { VideoMetadata } from "../../../common/MediaInfo";
+import { AudioMetadata, VideoMetadata } from "../../../common/MediaInfo";
 import TwitchChannel from "./channel";
 import { TwitchVODChapter } from "./chapter";
 // import { useStore } from "../store";
@@ -29,7 +29,7 @@ export default class TwitchVOD {
     segments: TwitchVODSegment[] = [];
     chapters: TwitchVODChapter[] = [];
 
-    video_metadata: VideoMetadata | undefined;
+    video_metadata: VideoMetadata | AudioMetadata | undefined;
 
     duration = 0;
 

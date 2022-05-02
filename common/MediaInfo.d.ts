@@ -235,6 +235,8 @@ export interface MediaInfoJSONOutput {
 
 export interface VideoMetadata {
 
+    type: "video";
+
     container: string;
 
     size: number;
@@ -256,5 +258,23 @@ export interface VideoMetadata {
     video_codec: string;
     video_bitrate: number;
     video_bitrate_mode: "VBR" | "CBR";
+
+}
+
+export interface AudioMetadata {
+
+    type: "audio";
+
+    container: string;
+
+    size: number;
+    duration: number;
+    bitrate: number;
+
+    audio_codec: string;
+    audio_bitrate: number;
+    audio_bitrate_mode: "VBR" | "CBR";
+    audio_sample_rate: number;
+    audio_channels: number;
 
 }

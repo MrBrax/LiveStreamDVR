@@ -244,7 +244,7 @@ export default defineComponent({
             };
         },
         cutSegmentlength(): number {
-            if (!this.vodData.video_metadata) return 0;
+            if (!this.vodData.video_metadata || this.vodData.video_metadata.type == "audio") return 0;
             const fps = this.vodData.video_metadata?.fps;
             return (this.frameOut - this.frameIn) / fps;
         },
