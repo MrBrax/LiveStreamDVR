@@ -25,12 +25,12 @@
         <section class="section" v-if="!$route.params.tab || $route.params.tab == 'channels'">
             <div class="section-title"><h1>Channels</h1></div>
             <div class="section-content">
-                <div class="card" v-for="channel in formChannels" :key="channel.login">
+                <div class="card" v-for="channel in formChannels" :key="channel.login" :id="'channel_' + channel.login">
                     <div class="card-title">
                         <h2>{{ channel.login }}</h2>
                     </div>
                     <div class="card-content">
-                        <channel-update-form :channel="channel" @formSuccess="fetchData" />
+                        <channel-update-form :channel="channel" @formSuccess="updateUsers" />
                     </div>
                 </div>
                 <span v-if="!formChannels || formChannels.length == 0">No channels added. Use the tab "New channel" above.</span>
@@ -41,7 +41,7 @@
         <section class="section" v-if="$route.params.tab == 'newchannel'">
             <div class="section-title"><h1>New channel</h1></div>
             <div class="section-content">
-                <channel-add-form @formSuccess="fetchData" />
+                <channel-add-form @formSuccess="updateUsers" />
             </div>
         </section>
 
@@ -170,6 +170,9 @@ export default defineComponent({
                 this.loading = false;
             });
                 
+        },
+        updateUsers() {
+            this.store.fetchAndUpdateStreamerList();
         },
     },
     computed: {

@@ -681,8 +681,8 @@ export class Automator {
             // it doesn't seem to get fixed, so we'll just warn the user
         }
 
-        // wait for one minute in case something didn't finish
-        await Sleep(60 * 1000);
+        // wait for 30 seconds in case something didn't finish
+        await Sleep(30 * 1000);
 
         this.vod.is_converting = true;
         this.vod.saveJSON("is_converting set");
@@ -725,13 +725,22 @@ export class Automator {
         this.vod.saveJSON("add segment");
 
         // finalize
-        Log.logAdvanced(LOGLEVEL.INFO, "automator", `Sleep 2 minutes for ${basename}`);
-        await Sleep(60 * 1000 * 2);
+        Log.logAdvanced(LOGLEVEL.INFO, "automator", `Sleep 30 seconds for ${basename}`);
+        await Sleep(30 * 1000);
 
         Log.logAdvanced(LOGLEVEL.INFO, "automator", `Do metadata on ${basename}`);
 
-        await this.vod.finalize();
-        this.vod.saveJSON("finalized");
+        let finalized = false;
+        try {
+            finalized = await this.vod.finalize();
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.FATAL, "automator", `Failed to finalize ${basename}: ${error}`);
+            this.vod.saveJSON("failed to finalize");
+        }
+
+        if (finalized){
+            this.vod.saveJSON("finalized");
+        }
 
         // remove old vods for the streamer
         Log.logAdvanced(LOGLEVEL.INFO, "automator", `Cleanup old VODs for ${data_username}`);

@@ -5,12 +5,13 @@ export class TwitchVODSegment {
     basename: string | undefined;
     strings: Record<string, string> = {};
     filesize: number | undefined;
+    deleted = false;
 
     toAPI(): ApiVodSegment {
         return {
             basename: this.basename || "",
             filesize: this.filesize || 0,
-            deleted: false,
+            deleted: this.deleted,
         };
     }
 

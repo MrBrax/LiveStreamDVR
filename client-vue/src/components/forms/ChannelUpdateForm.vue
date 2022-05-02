@@ -1,6 +1,6 @@
 <template>
     <div>
-        <form method="POST" enctype="multipart/form-data" action="#" @submit.prevent="submitForm">
+        <form @submit.prevent="submitForm">
             <div class="field">
                 <label class="label" for="input_quality">Quality</label>
                 <div class="control">
@@ -51,7 +51,7 @@
             <div class="field">
                 <label class="checkbox">
                     <input class="input" type="checkbox" name="no_capture" v-model="formData.no_capture" />
-                    No capture
+                    Don't record streams (disable capture completely)
                 </label>
             </div>
 
@@ -72,7 +72,9 @@
             (no undo)
         </span>
         <span>
-            <button class="button is-small is-confirm" type="submit" @click="subscribeChannel">Subscribe</button>
+            <button class="button is-small is-confirm" type="submit" @click="subscribeChannel">
+                <span class="icon"><fa icon="sync"></fa></span> Subscribe
+            </button>
         </span>
     </div>
 </template>
@@ -164,6 +166,12 @@ export default defineComponent({
                 });
         },
         subscribeChannel() {
+
+            if (!this.store.cfg("app_url") || this.store.cfg("app_url") == "debug") {
+                alert("Please set the app url in the settings");
+                return;
+            }
+
             this.$http
                 .post(`/api/v0/channels/${this.channel.login}/subscribe`)
                 .then((response) => {

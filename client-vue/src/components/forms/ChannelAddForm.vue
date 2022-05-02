@@ -63,7 +63,7 @@
         <div class="field">
             <label class="checkbox">
                 <input type="checkbox" name="no_capture" v-model="formData.no_capture" />
-                Do not capture video
+                Don't record streams (disable capture completely)
             </label>
         </div>
         <p><em>Live channels will not be recorded until they are live the next time.</em></p>

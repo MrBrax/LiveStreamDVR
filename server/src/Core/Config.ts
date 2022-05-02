@@ -128,7 +128,8 @@ export class Config {
 
     ];
 
-    static readonly AudioContainer = "aac";
+    static readonly AudioContainer = "m4a";
+
     static instance: Config | undefined;
     static getInstance(): Config {
         if (this.instance === undefined) {
