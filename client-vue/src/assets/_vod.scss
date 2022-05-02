@@ -107,9 +107,10 @@
         .video-title {
             background-color: $recording-base;
 
-            h3 {
-                // text-shadow: 0 2px 0 darken($recording-base, 10%);
+            &:hover {
+                background-color: lighten($favourite-base, 5%);
             }
+
         }
     }
 
@@ -117,9 +118,10 @@
         .video-title {
             background-color: $converting-base;
 
-            h3 {
-                // text-shadow: 0 2px 0 darken($converting-base, 10%);
+            &:hover {
+                background-color: lighten($favourite-base, 5%);
             }
+
         }
     }
 
@@ -127,16 +129,18 @@
         .video-title {
             background-color: $favourite-base;
 
-            h3 {
-                // text-shadow: 0 2px 0 darken($favourite-base, 10%);
+            &:hover {
+                background-color: lighten($favourite-base, 5%);
             }
+
         }
     }
 }
 
 .video-title {
     padding: 10px;
-    background: #2b61d6;
+    $bg-color: #2b61d6;
+    background: $bg-color;
     color: #fff;
 
     // good idea?
@@ -144,7 +148,15 @@
     top: 50px;
     z-index: 1;
 
+    display: flex;
+
     word-break: break-all;
+
+    cursor: pointer;
+
+    &:hover {
+        background-color: lighten($bg-color, 5%);
+    }
 
     .icon {
         margin-right: 0.3em;
@@ -156,6 +168,21 @@
         // text-shadow: 0 2px 0 #1e4599;
         // text-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
     }
+
+    .video-title-text {
+        flex-grow: 1;
+    }
+
+    .video-title-actions {
+        display: flex;
+        // center horizontal and vertical
+        justify-content: center;
+        align-items: center;
+    }
+}
+
+.video-content {
+    overflow: hidden;
 }
 
 .video-filename {

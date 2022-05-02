@@ -157,6 +157,7 @@ export default defineComponent({
                     if (json.message) alert(json.message);
                     console.log(json);
                     this.$emit("formSuccess", json);
+                    this.store.fetchAndUpdateStreamerList();
                 })
                 .catch((err) => {
                     console.error("form error", err.response);

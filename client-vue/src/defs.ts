@@ -15,6 +15,7 @@ export const defaultConfig: ClientSettings = {
     expandVodList: true,
     vodsToShowInMenu: 4,
     // alwaysShowCapturingVodInMenu: false
+    minimizeVodsByDefault: false
 };
 
 interface ClientSettingField {
@@ -39,4 +40,5 @@ export const defaultConfigFields: Record<keyof ClientSettings, ClientSettingFiel
     expandVodList: { type: "boolean", default: true, name: "Always expand the VOD list in the menu" },
     vodsToShowInMenu: { type: "number", default: 4, name: "Number of VODs to show in the menu" },
     // alwaysShowCapturingVodInMenu: { type: "boolean", default: false, name: "Always show the capturing VOD in the menu" },
+    minimizeVodsByDefault: { type: "boolean", default: false, name: "Minimize VODs by default" }
 };
