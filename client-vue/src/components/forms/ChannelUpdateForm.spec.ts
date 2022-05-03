@@ -74,10 +74,16 @@ test('ChannelUpdateForm', async () => {
     expect(wrapper.vm.formData.quality).toBe('721p');
     expect(input_quality.element.checkValidity()).toBe(false);
 
-    const v = VideoQualityArray.join(' ');
-    await input_quality.setValue(v);
+    let quality_list = VideoQualityArray.join(' ');
+    await input_quality.setValue(quality_list);
     await input_quality.trigger('blur');
-    expect(wrapper.vm.formData.quality).toBe(v);
+    expect(wrapper.vm.formData.quality).toBe(quality_list);
+    expect(input_quality.element.checkValidity()).toBe(false); // audio included
+
+    quality_list = VideoQualityArray.filter(val => val !== 'audio_only').join(' ');
+    await input_quality.setValue(quality_list);
+    await input_quality.trigger('blur');
+    expect(wrapper.vm.formData.quality).toBe(quality_list);
     expect(input_quality.element.checkValidity()).toBe(true);
 
     // validate match

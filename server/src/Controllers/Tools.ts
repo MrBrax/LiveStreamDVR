@@ -5,7 +5,7 @@ import path from "path";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { TwitchVOD } from "../Core/TwitchVOD";
 import { ApiErrorResponse } from "../../../common/Api/Api";
-import { TwitchChannel } from "Core/TwitchChannel";
+import { TwitchChannel } from "../Core/TwitchChannel";
 
 export async function ResetChannels(req: express.Request, res: express.Response): Promise<void> {
 
