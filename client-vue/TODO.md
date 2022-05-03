@@ -1,4 +1,4 @@
-# TwitchAutomator Client
+# LiveStreamDVR Client
 
 - [x] Reimplement notifications
 - [ ] Reimplement that fancy scroll location thing
