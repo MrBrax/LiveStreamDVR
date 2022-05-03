@@ -214,6 +214,23 @@ export class Config {
             }
         }
 
+        if (!this.config) {
+            throw new Error("Config is empty even after reading it");
+        }
+
+        let changed = false;
+        for (const setting of Config.settingsFields) {
+            if (this.config[setting.key] === undefined) {
+                this.config[setting.key] = setting.default as any;
+                console.log(chalk.yellow(`Setting '${setting.key}' not configured, using default value '${setting.default}'.`));
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            this.saveConfig("missing default values");
+        }
+
         if (!this.config) throw new Error("Config is empty");
 
         console.log(chalk.green(`✔ ${Object.keys(this.config).length} settings loaded.`));

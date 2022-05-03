@@ -1595,7 +1595,13 @@ export class TwitchVOD {
 
         this._writeJSON = true;
 
-        fs.writeFileSync(this.filename, JSON.stringify(generated, null, 4));
+        try {
+            fs.writeFileSync(this.filename, JSON.stringify(generated, null, 4));
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.FATAL, "vodclass", `Failed to save JSON of ${this.basename}: ${(error as Error).message}`);
+            console.log(chalk.bgRedBright.whiteBright(`Failed to save JSON of ${this.basename}: ${(error as Error).message}`));
+            return false; 
+        }
 
         this._writeJSON = false;
 
