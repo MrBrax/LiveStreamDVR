@@ -1,7 +1,7 @@
 import chalk from "chalk";
-import { parse, parseJSON } from "date-fns";
+import { format, parseJSON } from "date-fns";
 import fs from "fs";
-import { replaceAll } from "../Helpers/ReplaceAll";
+import { encode as htmlentities } from "html-entities";
 import path from "path";
 import { ApiVod } from "../../../common/Api/Client";
 import type { TwitchComment, TwitchCommentDump } from "../../../common/Comments";
@@ -13,18 +13,20 @@ import { MediaInfo } from "../../../common/mediainfofield";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { Video, VideosResponse } from "../../../common/TwitchAPI/Video";
 import { VodUpdated } from "../../../common/Webhook";
+import { replaceAll } from "../Helpers/ReplaceAll";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../Storage/JSON";
 import { AppName, BaseConfigDataFolder } from "./BaseConfig";
-import { Job } from "./Job";
-import { TwitchChannel } from "./TwitchChannel";
 import { Config } from "./Config";
-import { TwitchGame } from "./TwitchGame";
+import { FFmpegMetadata } from "./FFmpegMetadata";
 import { Helper } from "./Helper";
-import { LOGLEVEL, Log } from "./Log";
+import { Job } from "./Job";
+import { KeyValue } from "./KeyValue";
+import { Log, LOGLEVEL } from "./Log";
+import { TwitchChannel } from "./TwitchChannel";
+import { TwitchGame } from "./TwitchGame";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchVODSegment } from "./TwitchVODSegment";
 import { Webhook } from "./Webhook";
-import { FFmpegMetadata } from "./FFmpegMetadata";
 
 /*
 export interface TwitchVODSegmentJSON {
@@ -128,6 +130,7 @@ export class TwitchVOD {
     path_playlist = "";
     path_ffmpegchapters = "";
     path_vttchapters = "";
+    path_kodinfo = "";
 
     force_record = false;
 
@@ -139,6 +142,8 @@ export class TwitchVOD {
     not_started = false;
 
     webpath = "";
+
+    stream_number: number | undefined;
 
     /*
     public ?bool $api_hasFavouriteGame = null;
@@ -332,6 +337,9 @@ export class TwitchVOD {
                 this.saveJSON("fix mediainfo");
             }
         }
+
+        this.stream_number = this.json.stream_number !== undefined ? this.json.stream_number : undefined;
+
     }
 
 
@@ -662,6 +670,7 @@ export class TwitchVOD {
         this.path_playlist = this.realpath(path.join(this.directory, `${this.basename}.m3u8`));
         this.path_ffmpegchapters = this.realpath(path.join(this.directory, `${this.basename}-ffmpeg-chapters.txt`));
         this.path_vttchapters = this.realpath(path.join(this.directory, `${this.basename}.chapters.vtt`));
+        this.path_kodinfo = this.realpath(path.join(this.directory, `${this.basename}.nfo`));
 
         // this.is_chat_downloaded 			= file_exists(this.path_chat);
         // this.is_vod_downloaded 			= file_exists(this.path_downloaded_vod);
@@ -677,13 +686,15 @@ export class TwitchVOD {
             (
                 !fs.existsSync(this.path_losslesscut) ||
                 !fs.existsSync(this.path_ffmpegchapters) ||
-                !fs.existsSync(this.path_vttchapters)
+                !fs.existsSync(this.path_vttchapters) ||
+                !fs.existsSync(this.path_kodinfo)
             )
         ) {
             try {
                 this.saveLosslessCut();
                 this.saveFFMPEGChapters();
                 this.saveVTTChapters();
+                this.saveKodiNfo();
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Could not save associated files for ${this.basename}: ${(error as Error).message}`);
             }
@@ -1310,6 +1321,59 @@ export class TwitchVOD {
 
     }
 
+    public saveKodiNfo(): boolean {
+
+        if (!Config.getInstance().cfg("create_kodi_nfo")) return false;
+
+        if (!this.directory) {
+            throw new Error("TwitchVOD.saveKodiNfo: directory is not set");
+        }
+
+        if (!this.started_at) {
+            throw new Error("TwitchVOD.saveKodiNfo: started_at is not set");
+        }
+
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Saving Kodi NFO file for ${this.basename} to ${this.path_kodinfo}`);
+
+        const title = this.twitch_vod_title ?? this.chapters[0].title;
+
+        let data = "";
+        data += "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\n";
+        data += "<episodedetails>\n";
+        data += `\t<title>${htmlentities(title)}</title>\n`;
+        data += `\t<showtitle>${this.streamer_name}</showtitle>\n`;
+        data += `\t<uniqueid type="twitch">${this.twitch_vod_id}</uniqueid>\n`;
+
+        data += `\t<season>${format(this.started_at, "yyyyMM")}</season>\n`;
+        data += `\t<episode>${(this.stream_number || 0) + 1}</episode>\n`;
+        
+        if (this.chapters && this.chapters.length > 0) {
+            data += `\t<plot>${htmlentities(this.chapters[0].title)}</plot>\n`;
+        }
+
+        data += "\t<actor>\n";
+        data += `\t\t<name>${this.streamer_name}</name>\n`;
+        data += "\t\t<role>Themselves</role>\n";
+        data += "\t</actor>\n";
+
+        data += `\t<premiered>${format(this.started_at, "yyyy-MM-dd")}</premiered>\n`;
+        data += `\t<aired>${format(this.started_at, "yyyy-MM-dd")}</aired>\n`;
+        data += `\t<dateadded>${format(this.started_at, "yyyy-MM-dd")}</dateadded>\n`;
+        data += `\t<year>${format(this.started_at, "yyyy")}</year>\n`;
+        data += `\t<studio>${this.streamer_name}</studio>\n`;
+
+        data += `\t<id>${this.twitch_vod_id}</id>\n`;
+
+        data += "</episodedetails>\n";
+
+        fs.writeFileSync(this.path_kodinfo, data, { encoding: "utf8" });
+
+        this.setPermissions();
+
+        return fs.existsSync(this.path_kodinfo);
+
+    }
+
     public getUniqueGames(): TwitchGame[] {
         const games: TwitchGame[] = [];
         this.chapters.forEach((chapter) => { if (chapter.game && !games.includes(chapter.game)) games.push(chapter.game); });
@@ -1509,6 +1573,8 @@ export class TwitchVOD {
 
         generated.not_started = this.not_started;
 
+        generated.stream_number = this.stream_number;
+
         // generated.twitch_vod_status = this.twitch_vod_status;        
 
         // generated.video_fail2 = this.video_fail2;
@@ -1529,7 +1595,13 @@ export class TwitchVOD {
 
         this._writeJSON = true;
 
-        fs.writeFileSync(this.filename, JSON.stringify(generated, null, 4));
+        try {
+            fs.writeFileSync(this.filename, JSON.stringify(generated, null, 4));
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.FATAL, "vodclass", `Failed to save JSON of ${this.basename}: ${(error as Error).message}`);
+            console.log(chalk.bgRedBright.whiteBright(`Failed to save JSON of ${this.basename}: ${(error as Error).message}`));
+            return false; 
+        }
 
         this._writeJSON = false;
 
@@ -1566,11 +1638,9 @@ export class TwitchVOD {
         if (this._updateTimer) {
             clearTimeout(this._updateTimer);
             this._updateTimer = undefined;
-            console.debug(`Cleared update timer for ${this.basename}`);
         }
         this._updateTimer = setTimeout(async () => {
             const vod = await this.toAPI();
-            // console.debug(`[${Date.now()}] Broadcasting VOD update for ${this.basename}`);
             Webhook.dispatch("vod_updated", {
                 vod: vod,
             } as VodUpdated);
@@ -2197,12 +2267,12 @@ export class TwitchVOD {
         return TwitchChannel.getChannelByLogin(this.streamer_login);
     }
 
-    public downloadChat(): Promise<boolean> {
+    public downloadChat(method: "td" | "tcd" = "td"): Promise<boolean> {
         // since tcd does not work anymore, twitchdownloadercli is used instead
         if (!this.twitch_vod_id) {
             throw new Error("No twitch_vod_id for chat download");
         }
-        return TwitchVOD.downloadChatTD(this.twitch_vod_id, this.path_chat);
+        return TwitchVOD.downloadChat(method, this.twitch_vod_id, this.path_chat);
     }
 
 
@@ -2257,6 +2327,20 @@ export class TwitchVOD {
         }
         */
 
+    }
+
+    public setupStreamNumber() {
+        const channel = this.getChannel();
+        if (channel && channel.current_stream_number !== undefined && this.stream_number === undefined) {
+            this.stream_number = channel.current_stream_number;
+            channel.current_stream_number++;
+            this.saveJSON("default stream_number set");
+            KeyValue.getInstance().setInt(`${channel.login}.stream_number`, channel.current_stream_number);
+        }
+    }
+
+    public postLoad() {
+        this.setupStreamNumber();
     }
 
     /**
@@ -2598,8 +2682,8 @@ export class TwitchVOD {
         });
     }
 
-    public static async downloadChat(vod_id: string, output: string): Promise<boolean> {
-        return await this.downloadChatTD(vod_id, output);
+    public static async downloadChat(method: "td" | "tcd" = "td", vod_id: string, output: string): Promise<boolean> {
+        return method == "td" ? await this.downloadChatTD(vod_id, output) : await this.downloadChatTCD(vod_id, output);
     }
 
     public static downloadChatTD(vod_id: string, output: string): Promise<boolean> {
@@ -2668,6 +2752,71 @@ export class TwitchVOD {
             });
 
         });
+    }
+
+    public static downloadChatTCD(vod_id: string, output: string): Promise<boolean> {
+
+        return new Promise((resolve, reject) => {
+
+            const bin = Helper.path_tcd();
+
+            if (!bin || !fs.existsSync(bin)) {
+                reject(new Error("tcd not found"));
+                return;
+            }
+
+            if (!vod_id) {
+                reject(new Error("No VOD ID"));
+                return;
+            }
+
+            if (fs.existsSync(output)) {
+                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat already exists for ${vod_id}`);
+                resolve(true);
+                return;
+            }
+
+            const temp_filepath = path.join(BaseConfigDataFolder.cache, `${vod_id}.json`);
+
+            if (fs.existsSync(temp_filepath)) {
+                fs.renameSync(temp_filepath, output);
+                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat renamed for ${vod_id}`);
+                resolve(true);
+            }
+
+            const args: string[] = [];
+            args.push("--settings-file", path.join(BaseConfigDataFolder.config, "tcd_settings.json"));
+            args.push("--video", vod_id);
+            args.push("--client-id", Config.getInstance().cfg("api_client_id"));
+            args.push("--client-secret", Config.getInstance().cfg("api_secret"));
+            args.push("--format", "json");
+            if (Config.debug || Config.getInstance().cfg("app_verbose")) {
+                args.push("--verbose");
+                args.push("--debug");
+            }
+            args.push("--output", BaseConfigDataFolder.cache);
+
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Downloading chat for ${vod_id}`);
+
+            const job = Helper.startJob(`chatdownload_${vod_id}`, bin, args);
+            if (!job) {
+                reject(new Error("Job failed"));
+                return;
+            }
+
+            job.on("close", (code, signal) => {
+                if (fs.existsSync(temp_filepath) && fs.statSync(temp_filepath).size > 0) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat downloaded for ${vod_id}`);
+                    fs.renameSync(temp_filepath, output);
+                    resolve(true);
+                } else {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Chat couldn't be downloaded for ${vod_id}`);
+                    reject(false);
+                }
+            });
+
+        });
+
     }
 
 }

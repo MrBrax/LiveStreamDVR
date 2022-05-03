@@ -1,6 +1,7 @@
 import { Job } from "../Core/Job";
 import express from "express";
 import { ApiErrorResponse, ApiJobsResponse } from "../../../common/Api/Api";
+import { Log, LOGLEVEL } from "../Core/Log";
 
 export async function ListJobs(req: express.Request, res: express.Response): Promise<void> {
 
@@ -21,6 +22,7 @@ export async function KillJob(req: express.Request, res: express.Response): Prom
 
     const job = Job.getJob(req.params.name);
     const clear = req.query.clear;
+    const method: NodeJS.Signals = req.query.method !== undefined && req.query.method !== "" ? req.query.method as NodeJS.Signals : "SIGTERM";
 
     if (!job) {
         res.status(404).send({
@@ -29,6 +31,8 @@ export async function KillJob(req: express.Request, res: express.Response): Prom
         } as ApiErrorResponse);
         return;
     }
+
+    Log.logAdvanced(LOGLEVEL.INFO, "route.jobs.kill", `Killing job ${job.name} with clear=${clear} and method=${method}`);
 
     if (clear) {
 
@@ -50,7 +54,7 @@ export async function KillJob(req: express.Request, res: express.Response): Prom
 
     }
 
-    const success = await job.kill();
+    const success = await job.kill(method);
 
     if (success) {
         res.send({

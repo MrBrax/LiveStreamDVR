@@ -111,6 +111,9 @@ export default {
             const o = parseISO(date);
             return formatDistanceToNow(o, { addSuffix: true });
         },
+        prefersReducedMotion(): boolean {
+            return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        }
     },
 };
 
@@ -127,5 +130,6 @@ declare module "@vue/runtime-core" {
         parseTwitchDuration: (duration: string) => number;
         formatDurationSince: (date: string) => string;
         // sortObject: (game: Record<string, any>, value: string) => any;
+        prefersReducedMotion: () => boolean;
     }
 }

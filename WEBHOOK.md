@@ -1,4 +1,4 @@
-# TwitchAutomator Webhooks
+# LiveStreamDVR Webhooks
 
 JSON format. `action` key contains the action (headers below).
 

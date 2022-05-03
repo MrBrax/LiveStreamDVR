@@ -168,7 +168,12 @@ export default defineComponent({
                 field.setCustomValidity("Invalid quality");
                 field.reportValidity();
             } else {
-                field.setCustomValidity("");
+                if (input.includes("audio_only") && input.length > 1) {
+                    field.setCustomValidity("Audio only cannot be combined with other qualities");
+                    field.reportValidity();
+                } else {
+                    field.setCustomValidity("");
+                }
             }
         },
     },

@@ -125,6 +125,7 @@ export class Config {
         { "key": "schedule_deleted_vods", "group": "Schedules", "text": "Check deleted vods", "type": "boolean", "default": true },
 
         { "key": "create_video_chapters", "group": "Video", "text": "Create video chapters", "type": "boolean", "default": true },
+        { "key": "create_kodi_nfo", "group": "Video", "text": "Create kodi nfo", "type": "boolean", "default": false },
 
     ];
 
@@ -211,6 +212,23 @@ export class Config {
                 console.warn(chalk.yellow(`Saved setting '${key}' does not exist, deprecated? Discarding.`));
                 delete this.config[key];
             }
+        }
+
+        if (!this.config) {
+            throw new Error("Config is empty even after reading it");
+        }
+
+        let changed = false;
+        for (const setting of Config.settingsFields) {
+            if (this.config[setting.key] === undefined) {
+                this.config[setting.key] = setting.default as any;
+                console.log(chalk.yellow(`Setting '${setting.key}' not configured, using default value '${setting.default}'.`));
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            this.saveConfig("missing default values");
         }
 
         if (!this.config) throw new Error("Config is empty");

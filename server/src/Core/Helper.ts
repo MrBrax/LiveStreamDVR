@@ -275,10 +275,6 @@ export class Helper {
         return exists ? full_path : false;
     }
 
-    /**
-     * As of 2022, tcd does no longer work due to the Twitch API being shut down
-     * @deprecated
-     */
     public static path_tcd(): string | false {
         if (!Config.getInstance().cfg("bin_dir")) return false;
         const full_path = path.join(Config.getInstance().cfg("bin_dir"), `tcd${this.is_windows() ? ".exe" : ""}`);
@@ -526,7 +522,11 @@ export class Helper {
         });
 
         process.on("error", (err) => {
-            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} on job ${jobName} error: ${err}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Process '${process.pid}' on job '${jobName}' error: ${err}`, {
+                jobName,
+                stdout,
+                stderr,
+            });
         });
 
         Log.logAdvanced(LOGLEVEL.INFO, "helper", `Attached to all streams for process ${process.pid} for ${jobName}`);

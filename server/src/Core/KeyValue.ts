@@ -78,6 +78,10 @@ export class KeyValue extends EventEmitter {
         return this.get(key) === "true";
     }
 
+    getInt(key: string): number {
+        return parseInt(this.get(key) || "0");
+    }
+
     /**
      * Set a value in the key-value store.
      * @param key
@@ -120,6 +124,10 @@ export class KeyValue extends EventEmitter {
 
     setBool(key: string, value: boolean) {
         this.set(key, value ? "true" : "false");
+    }
+
+    setInt(key: string, value: number) {
+        this.set(key, value.toString());
     }
 
     /**

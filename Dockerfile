@@ -38,6 +38,7 @@ COPY --chown=node:node --chmod=775 . /usr/local/share/twitchautomator/
 # server
 RUN cd /usr/local/share/twitchautomator/server \
     && yarn install --frozen-lockfile \
+    && yarn lint:ts \
     && yarn build \
     && rm -rf node_modules \
     && yarn cache clean --all

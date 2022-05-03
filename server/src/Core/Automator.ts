@@ -8,7 +8,7 @@ import { TwitchVODChapterJSON } from "Storage/JSON";
 import { VideoQuality } from "../../../common/Config";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { ChannelUpdateEvent } from "../../../common/TwitchAPI/EventSub/ChannelUpdate";
-import { AppRoot, BaseConfigDataFolder } from "./BaseConfig";
+import { BaseConfigDataFolder } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { Job } from "./Job";
 import { TwitchChannel } from "./TwitchChannel";
@@ -591,6 +591,10 @@ export class Automator {
         this.vod.capture_id = this.getVodID() || "1";
         this.vod.started_at = parseJSON(data_started);
 
+        this.vod.stream_number = this.channel.current_stream_number;
+        this.channel.current_stream_number++;
+        KeyValue.getInstance().setInt(`${this.broadcaster_user_login}.stream_number`, this.channel.current_stream_number);
+
         if (this.force_record) this.vod.force_record = true;
 
         this.vod.not_started = false;
@@ -908,7 +912,7 @@ export class Automator {
                     Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to save job ${jobName}`);
                 }
             } else {
-                Log.logAdvanced(LOGLEVEL.FATAL, "automator", `Failed to spawn process for ${jobName}`);
+                Log.logAdvanced(LOGLEVEL.FATAL, "automator", `Failed to spawn capture process for ${jobName}`);
                 reject(false);
                 return;
             }
@@ -1099,6 +1103,7 @@ export class Automator {
             // const data_username = this.getUsername();
             const data_userid = this.getUserID();
 
+            /*
             const chat_bin = "node";
             const chat_cmd: string[] = [];
 
@@ -1112,6 +1117,9 @@ export class Automator {
             Log.logAdvanced(LOGLEVEL.INFO, "automator", `Starting chat dump with filename ${path.basename(this.chat_filename)}`);
 
             const chat_job = Helper.startJob(`chatdump_${this.basename()}`, chat_bin, chat_cmd);
+            */
+
+            const chat_job = TwitchChannel.startChatDump(this.basename(), data_login, data_userid, parseJSON(data_started), this.chat_filename);
 
             if (chat_job && chat_job.pid) {
                 this.chatJob = chat_job;

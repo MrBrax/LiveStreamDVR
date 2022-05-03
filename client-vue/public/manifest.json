@@ -1,6 +1,6 @@
 {
-    "name": "TwitchAutomator",
-    "short_name": "TwitchAutomator",
+    "name": "LiveStreamDVR",
+    "short_name": "LiveStreamDVR",
     "icons": [
         {
             "src": "manifest/android-chrome-192x192.png",

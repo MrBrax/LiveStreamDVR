@@ -5,6 +5,7 @@ import path from "path";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { TwitchVOD } from "../Core/TwitchVOD";
 import { ApiErrorResponse } from "../../../common/Api/Api";
+import { TwitchChannel } from "../Core/TwitchChannel";
 
 export async function ResetChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -85,10 +86,20 @@ export async function DownloadChat(req: express.Request, res: express.Response):
 
     const url = req.body.url as string | undefined;
 
+    const method = req.body.method as string | undefined || "td";
+
     if (!url) {
         res.status(400).send({
             status: "ERROR",
             message: "No url provided",
+        });
+        return;
+    }
+
+    if (method !== "td" && method !== "tcd") {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Invalid method. Must be 'td' or 'tcd'",
         });
         return;
     }
@@ -131,7 +142,7 @@ export async function DownloadChat(req: express.Request, res: express.Response):
     let success;
 
     try {
-        success = await TwitchVOD.downloadChat(id, file_path);
+        success = await TwitchVOD.downloadChat(method, id, file_path);
     } catch (e) {
         res.status(400).send({
             status: "ERROR",
@@ -151,5 +162,46 @@ export async function DownloadChat(req: express.Request, res: express.Response):
             message: "Failed to download",
         });
     }
+
+}
+
+export async function ChatDump(req: express.Request, res: express.Response): Promise<void> {
+
+    const login = req.body.login as string | undefined;
+    if (!login) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "No login provided",
+        });
+        return;
+    }
+
+    const channel_data = await TwitchChannel.getChannelDataByLogin(login);
+    if (!channel_data) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "No channel data found",
+        });
+        return;
+    }
+
+    const name = `${channel_data.login}-${new Date().toISOString().replace(/:/g, "-")}.json`;
+    const started = new Date();
+    const output = path.join(BaseConfigDataFolder.saved_vods, name);
+
+    const job = TwitchChannel.startChatDump(name, login, channel_data.id, started, output);
+
+    if (!job) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Failed to start chat dump",
+        });
+        return;
+    }
+
+    res.send({
+        status: "OK",
+        message: `Started chat dump for ${login}. It does not end by itself.`,
+    });
 
 }

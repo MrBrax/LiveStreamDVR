@@ -12,7 +12,7 @@ const argv = minimist(process.argv.slice(2));
  */
 
 // export const AppRoot = path.join(__dirname, "..", "..", "..");
-export const AppName = "TwitchAutomatorTS";
+export const AppName = "LiveStreamDVR";
 
 /**
  * The root directory of the application containing client-vue, public, etc.

@@ -72,6 +72,11 @@
                         <button class="icon-button" title="Refresh data" @click="doChannelRefresh">
                             <span class="icon"><fa icon="sync"></fa></span>
                         </button>
+
+                        <!-- expand/collapse all vods -->
+                        <button class="icon-button" title="Expand/collapse all vods" @click="doToggleExpandVods">
+                            <span class="icon"><fa :icon="toggleAllVodsExpanded ? 'chevron-up' : 'chevron-down'"></fa></span>
+                        </button>
                     </span>
                 </span>
             </div>
@@ -88,7 +93,13 @@
 
         <div v-if="streamer.vods_list.length == 0" class="notice">None</div>
         <div v-else>
-            <vod-item v-for="vod in streamer.vods_list" :key="vod.basename" v-bind:vod="vod" @refresh="refresh" />
+            <vod-item
+                v-for="vod in streamer.vods_list"
+                :key="vod.basename"
+                v-bind:vod="vod"
+                @refresh="refresh"
+                ref="vodItem"
+            />
         </div>
         <modal-box ref="videoDownloadMenu" title="Video download">
             <div class="video-download-menu">
@@ -149,11 +160,13 @@ export default defineComponent({
     },
     data: () => ({
         twitchVods: [] as Video[],
+        toggleAllVodsExpanded: false,
     }),
     setup() {
         const videoDownloadMenu = ref<InstanceType<typeof ModalBox>>();
+        const vodItem = ref<InstanceType<typeof VodItem>>();
         const store = useStore();
-        return { videoDownloadMenu, store };
+        return { videoDownloadMenu, store, vodItem };
     },
     methods: {
         refresh() {
@@ -342,6 +355,16 @@ export default defineComponent({
         clipLink(name: string): string {
             return `${this.store.cfg("basepath")}/saved_clips/${name}`;
         },
+        doToggleExpandVods() {
+            // loop through all vods and set the expanded state
+            const vods = this.vodItem as unknown as typeof VodItem[];
+            if (vods){
+                for(const vod of vods) {
+                    vod.minimized = this.toggleAllVodsExpanded;
+                }
+            }
+            this.toggleAllVodsExpanded = !this.toggleAllVodsExpanded;
+        }
     },
     computed: {
         quality(): string | undefined {

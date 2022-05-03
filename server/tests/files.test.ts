@@ -1,8 +1,10 @@
 import { DataRoot } from "../src/Core/BaseConfig";
 import path from "path";
 import { validatePath } from "../src/Controllers/Files";
+import { Config } from "../src/Core/Config";
 describe("files controller", () => {
     it("should sanitize path", () => {
+        Config.createFolders();
         expect(validatePath("C:\\")).not.toBe(true);
         expect(validatePath("C:\\storage")).not.toBe(true);
         expect(validatePath("/")).not.toBe(true);
