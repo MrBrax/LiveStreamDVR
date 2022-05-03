@@ -591,6 +591,10 @@ export class Automator {
         this.vod.capture_id = this.getVodID() || "1";
         this.vod.started_at = parseJSON(data_started);
 
+        this.vod.stream_number = this.channel.current_stream_number;
+        this.channel.current_stream_number++;
+        KeyValue.getInstance().setInt(`${this.broadcaster_user_login}.stream_number`, this.channel.current_stream_number);
+
         if (this.force_record) this.vod.force_record = true;
 
         this.vod.not_started = false;
