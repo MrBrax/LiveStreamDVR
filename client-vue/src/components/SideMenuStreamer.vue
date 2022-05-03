@@ -93,7 +93,7 @@
                     <span class="icon" v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized"><fa :icon="['far', 'hourglass']"></fa></span>
 
                     <!-- video -->
-                    <span class="icon" v-else-if="vod.is_finalized"><fa icon="film"></fa></span>
+                    <span class="icon" v-else-if="vod.is_finalized"><fa :icon="fileIcon(vod)"></fa></span>
 
                     <!-- started at -->
 
@@ -176,10 +176,10 @@ import DurationDisplay from "@/components/DurationDisplay.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
-import { faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faTrashArrowUp, faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
+import { faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faTrashArrowUp, faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import { useStore } from "@/store";
-library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp, faChevronDown, faChevronUp);
+library.add(faGithub, faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp, faChevronDown, faChevronUp);
 
 import { MuteStatus, nonGameCategories, TwitchVodAge } from "../../../common/Defs";
 import TwitchChannel from "@/core/channel";
@@ -221,6 +221,11 @@ export default defineComponent({
         },
         toggleExpand() {
             this.expanded = !this.expanded;
+        },
+        fileIcon(vod: TwitchVOD): string {
+            if (!this.streamer) return "";
+            if (vod.video_metadata?.type === "audio") return "headphones";
+            return "film";
         }
     },
     computed: {
@@ -231,7 +236,7 @@ export default defineComponent({
             if (vodsToShow === 0) return [];
             // return last 4 vods
             return this.streamer.vods_list.slice(-vodsToShow);
-        }
+        },
     }
 });
 </script>
