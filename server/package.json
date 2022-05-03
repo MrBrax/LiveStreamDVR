@@ -48,6 +48,7 @@
     "date-fns": "^2.28.0",
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
+    "html-entities": "^2.3.3",
     "minimist": "^1.2.6",
     "morgan": "^1.10.0",
     "sanitize-filename": "^1.6.3",

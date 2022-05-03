@@ -1,7 +1,7 @@
 import chalk from "chalk";
-import { format, parse, parseJSON } from "date-fns";
+import { format, parseJSON } from "date-fns";
 import fs from "fs";
-import { replaceAll } from "../Helpers/ReplaceAll";
+import { encode as htmlentities } from "html-entities";
 import path from "path";
 import { ApiVod } from "../../../common/Api/Client";
 import type { TwitchComment, TwitchCommentDump } from "../../../common/Comments";
@@ -13,19 +13,20 @@ import { MediaInfo } from "../../../common/mediainfofield";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { Video, VideosResponse } from "../../../common/TwitchAPI/Video";
 import { VodUpdated } from "../../../common/Webhook";
+import { replaceAll } from "../Helpers/ReplaceAll";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../Storage/JSON";
 import { AppName, BaseConfigDataFolder } from "./BaseConfig";
-import { Job } from "./Job";
-import { TwitchChannel } from "./TwitchChannel";
 import { Config } from "./Config";
-import { TwitchGame } from "./TwitchGame";
+import { FFmpegMetadata } from "./FFmpegMetadata";
 import { Helper } from "./Helper";
-import { LOGLEVEL, Log } from "./Log";
+import { Job } from "./Job";
+import { KeyValue } from "./KeyValue";
+import { Log, LOGLEVEL } from "./Log";
+import { TwitchChannel } from "./TwitchChannel";
+import { TwitchGame } from "./TwitchGame";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchVODSegment } from "./TwitchVODSegment";
 import { Webhook } from "./Webhook";
-import { FFmpegMetadata } from "./FFmpegMetadata";
-import { KeyValue } from "./KeyValue";
 
 /*
 export interface TwitchVODSegmentJSON {
@@ -1322,6 +1323,8 @@ export class TwitchVOD {
 
     public saveKodiNfo(): boolean {
 
+        if (!Config.getInstance().cfg("create_kodi_nfo")) return false;
+
         if (!this.directory) {
             throw new Error("TwitchVOD.saveKodiNfo: directory is not set");
         }
@@ -1332,18 +1335,20 @@ export class TwitchVOD {
 
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Saving Kodi NFO file for ${this.basename} to ${this.path_kodinfo}`);
 
+        const title = this.twitch_vod_title ?? this.chapters[0].title;
+
         let data = "";
         data += "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\n";
         data += "<episodedetails>\n";
-        data += `\t<title>${this.twitch_vod_title ?? this.chapters[0].title}</title>\n`;
+        data += `\t<title>${htmlentities(title)}</title>\n`;
         data += `\t<showtitle>${this.streamer_name}</showtitle>\n`;
         data += `\t<uniqueid type="twitch">${this.twitch_vod_id}</uniqueid>\n`;
 
-        data += `\t<season>${format(this.started_at, "yyyy")}</season>\n`;
+        data += `\t<season>${format(this.started_at, "yyyyMM")}</season>\n`;
         data += `\t<episode>${(this.stream_number || 0) + 1}</episode>\n`;
         
         if (this.chapters && this.chapters.length > 0) {
-            data += `\t<plot>${this.chapters[0].title}</plot>\n`;
+            data += `\t<plot>${htmlentities(this.chapters[0].title)}</plot>\n`;
         }
 
         data += "\t<actor>\n";
@@ -1627,11 +1632,9 @@ export class TwitchVOD {
         if (this._updateTimer) {
             clearTimeout(this._updateTimer);
             this._updateTimer = undefined;
-            console.debug(`Cleared update timer for ${this.basename}`);
         }
         this._updateTimer = setTimeout(async () => {
             const vod = await this.toAPI();
-            // console.debug(`[${Date.now()}] Broadcasting VOD update for ${this.basename}`);
             Webhook.dispatch("vod_updated", {
                 vod: vod,
             } as VodUpdated);
@@ -2327,9 +2330,6 @@ export class TwitchVOD {
             channel.current_stream_number++;
             this.saveJSON("default stream_number set");
             KeyValue.getInstance().setInt(`${channel.login}.stream_number`, channel.current_stream_number);
-            console.log(`Stream number for ${this.basename} set to ${channel.current_stream_number} as a default!`);
-        } else {
-            console.log(`Stream number for ${this.basename} is ${this.stream_number}!`, channel, channel?.current_stream_number, this.stream_number);
         }
     }
 

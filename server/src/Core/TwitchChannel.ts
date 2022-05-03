@@ -1,6 +1,7 @@
 import axios from "axios";
 import chalk from "chalk";
 import fs from "fs";
+import { encode as htmlentities } from "html-entities";
 import path from "path";
 import { TwitchVODChapterJSON } from "Storage/JSON";
 import type { ApiChannel } from "../../../common/Api/Client";
@@ -12,11 +13,11 @@ import type { Stream, StreamsResponse } from "../../../common/TwitchAPI/Streams"
 import type { SubscriptionRequest, SubscriptionResponse } from "../../../common/TwitchAPI/Subscriptions";
 import type { BroadcasterType, UsersResponse } from "../../../common/TwitchAPI/Users";
 import { BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
-import { KeyValue } from "./KeyValue";
 import { Config } from "./Config";
-import { TwitchGame } from "./TwitchGame";
 import { Helper } from "./Helper";
-import { LOGLEVEL, Log } from "./Log";
+import { KeyValue } from "./KeyValue";
+import { Log, LOGLEVEL } from "./Log";
+import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 
@@ -523,6 +524,7 @@ export class TwitchChannel {
     public saveKodiNfo(): boolean {
 
         if (!this.channel_data) return false;
+        if (!Config.getInstance().cfg("create_kodi_nfo")) return false;
 
         const nfo_file = path.join(Helper.vodFolder(this.channel_data.login), "tvshow.nfo");
 
@@ -533,7 +535,7 @@ export class TwitchChannel {
         nfo_content += `<thumb aspect="poster">${this.channel_data.profile_image_url}</thumb>\n`;
         // nfo_content += `<thumb aspect="fanart">${this.channel_data.profile_banner_url}</thumb>\n`;
         nfo_content += `<episode>${this.vods_list.length}</episode>\n`;
-        nfo_content += `<plot>${this.channel_data.description}</plot>\n`;
+        nfo_content += `<plot>${htmlentities(this.channel_data.description)}</plot>\n`;
         nfo_content += "<actor>\n";
         nfo_content += `\t<name>${this.channel_data.display_name}</name>\n`;
         nfo_content += "\t<role>Themselves</role>\n";
@@ -549,7 +551,6 @@ export class TwitchChannel {
     public setupStreamNumber() {
         if (KeyValue.getInstance().has(`${this.login}.stream_number`)) {
             this.current_stream_number = KeyValue.getInstance().getInt(`${this.login}.stream_number`);
-            console.log(`Channel ${this.login} has stream number ${this.current_stream_number}`);
         } else {
             this.current_stream_number = 0;
             console.log(`Channel ${this.login} has no stream number, setting to 0`);
