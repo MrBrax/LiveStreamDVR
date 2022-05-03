@@ -1,4 +1,4 @@
-# TwitchAutomator
+# LiveStreamDVR
 
 [![Check Server](https://github.com/MrBrax/TwitchAutomator/actions/workflows/check-server.yml/badge.svg)](https://github.com/MrBrax/TwitchAutomator/actions/workflows/check-server.yml) [![Check Client](https://github.com/MrBrax/TwitchAutomator/actions/workflows/check-client.yml/badge.svg)](https://github.com/MrBrax/TwitchAutomator/actions/workflows/check-client.yml) [![Publish Docker image](https://github.com/MrBrax/TwitchAutomator/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/MrBrax/TwitchAutomator/actions/workflows/docker-publish.yml)
 ![Docker Pulls](https://img.shields.io/docker/pulls/mrbrax/twitchautomator) ![Server version](https://img.shields.io/badge/dynamic/json?color=darkgreen&url=https://raw.githubusercontent.com/MrBrax/TwitchAutomator/master/server/package.json&query=$.version&label=Server) ![Client version](https://img.shields.io/badge/dynamic/json?color=darkgreen&url=https://raw.githubusercontent.com/MrBrax/TwitchAutomator/master/client-vue/package.json&query=$.version&label=Client)
@@ -86,6 +86,24 @@ Specify the data directory to use.
 Store the data in the home directory.
 
 ---
+
+## Main requirements
+- [node.js](https://nodejs.org/) 14+
+- npm and yarn
+- HTTPS enabled with a valid certificate on the default port 443
+- Python 3.7+
+- [pip](https://pypi.org/project/pip/)
+- [FFmpeg](https://ffmpeg.org/download.html)
+- [MediaInfo](https://mediaarea.net/en/MediaInfo)
+- [TwitchDownloader](https://github.com/lay295/TwitchDownloader) (optional for chat downloading and burning)
+- Public facing webserver (nginx, apache, etc) for reverse proxy (optional)
+
+
+## pip packages
+- [streamlink](https://github.com/streamlink/streamlink) (required)
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) (recommended)
+- [pipenv](https://github.com/pypa/pipenv) (optional, experimental)
+---
 ## Security environment variables
 ### `TCD_ENABLE_FILES_API=1`
 
@@ -97,19 +115,3 @@ Enable the files api, making it possible to download and delete files in storage
 Make viewing logs in the file manager possible. Requires the above environment variable to be set.
 
 ---
-
-### Main requirements
-- [node.js](https://nodejs.org/) 14+
-- npm and yarn
-- HTTPS enabled with a valid certificate on the default port 443
-- Python 3.7+
-- [pip](https://pypi.org/project/pip/)
-- [FFmpeg](https://ffmpeg.org/download.html)
-- [MediaInfo](https://mediaarea.net/en/MediaInfo)
-- [TwitchDownloader](https://github.com/lay295/TwitchDownloader) (optional for chat downloading and burning)
-- Public facing webserver (nginx, apache, etc) for reverse proxy (optional)
-
-### pip packages
-- [streamlink](https://github.com/streamlink/streamlink) (required)
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) (recommended)
-- [pipenv](https://github.com/pypa/pipenv) (optional, experimental)
