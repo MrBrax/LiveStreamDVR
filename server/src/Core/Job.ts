@@ -9,6 +9,7 @@ import { EventEmitter } from "events";
 import { Webhook } from "./Webhook";
 import { ApiJob } from "../../../common/Api/Client";
 import { JobStatus } from "../../../common/Defs";
+import { Sleep } from "Helpers/Sleep";
 
 export interface TwitchAutomatorJobJSON {
     name: string;
@@ -494,17 +495,19 @@ export class Job extends EventEmitter {
             try {
                 exec = await Helper.execSimple("taskkill", ["/F", "/PID", `${pid}`], "windows process kill");
             } catch (error) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Error killing process for job ${this.name}: ${(error as Error).message}`, this.metadata);
+                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Exception killing process for job ${this.name}: ${(error as Error).message}`, this.metadata);
                 this.broadcastUpdate();
                 return false;
             }
+            await Sleep(1000);
+            const status = await this.getStatus();
             this.clear();
             this.broadcastUpdate();
-            if (await this.getStatus() === JobStatus.STOPPED) {
+            if (status === JobStatus.STOPPED) {
                 Log.logAdvanced(LOGLEVEL.INFO, "job", `Killed job ${this.name} (${pid}) (windows)`, this.metadata);
                 return true;
             } else {
-                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Failed to kill job ${this.name} (${pid}) (windows)`, this.metadata);
+                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Failed to kill job ${this.name} (${pid}) (windows) (${status})`, this.metadata);
                 return false;
             }
         } else {
@@ -512,17 +515,19 @@ export class Job extends EventEmitter {
             try {
                 exec = await Helper.execSimple("kill", [pid.toString()], "linux process kill");
             } catch (error) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Error killing process for job ${this.name}: ${(error as Error).message}`, this.metadata);
+                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Exception killing process for job ${this.name}: ${(error as Error).message}`, this.metadata);
                 this.broadcastUpdate();
                 return false;
             }
+            await Sleep(1000);
+            const status = await this.getStatus();
             this.clear();
             this.broadcastUpdate();
-            if (await this.getStatus() === JobStatus.STOPPED) {
+            if (status === JobStatus.STOPPED) {
                 Log.logAdvanced(LOGLEVEL.INFO, "job", `Killed job ${this.name} (${pid}) (linux)`, this.metadata);
                 return true;
             } else {
-                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Failed to kill job ${this.name} (${pid}) (linux)`, this.metadata);
+                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Failed to kill job ${this.name} (${pid}) (linux) (${status})`, this.metadata);
                 return false;
             }
         }
