@@ -912,7 +912,7 @@ export class Automator {
                     Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to save job ${jobName}`);
                 }
             } else {
-                Log.logAdvanced(LOGLEVEL.FATAL, "automator", `Failed to spawn process for ${jobName}`);
+                Log.logAdvanced(LOGLEVEL.FATAL, "automator", `Failed to spawn capture process for ${jobName}`);
                 reject(false);
                 return;
             }

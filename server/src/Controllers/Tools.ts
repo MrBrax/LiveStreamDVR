@@ -85,10 +85,20 @@ export async function DownloadChat(req: express.Request, res: express.Response):
 
     const url = req.body.url as string | undefined;
 
+    const method = req.body.method as string | undefined || "td";
+
     if (!url) {
         res.status(400).send({
             status: "ERROR",
             message: "No url provided",
+        });
+        return;
+    }
+
+    if (method !== "td" && method !== "tcd") {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Invalid method. Must be 'td' or 'tcd'",
         });
         return;
     }
@@ -131,7 +141,7 @@ export async function DownloadChat(req: express.Request, res: express.Response):
     let success;
 
     try {
-        success = await TwitchVOD.downloadChat(id, file_path);
+        success = await TwitchVOD.downloadChat(method, id, file_path);
     } catch (e) {
         res.status(400).send({
             status: "ERROR",

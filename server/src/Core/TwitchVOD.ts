@@ -2261,12 +2261,12 @@ export class TwitchVOD {
         return TwitchChannel.getChannelByLogin(this.streamer_login);
     }
 
-    public downloadChat(): Promise<boolean> {
+    public downloadChat(method: "td" | "tcd" = "td"): Promise<boolean> {
         // since tcd does not work anymore, twitchdownloadercli is used instead
         if (!this.twitch_vod_id) {
             throw new Error("No twitch_vod_id for chat download");
         }
-        return TwitchVOD.downloadChatTD(this.twitch_vod_id, this.path_chat);
+        return TwitchVOD.downloadChat(method, this.twitch_vod_id, this.path_chat);
     }
 
 
@@ -2676,8 +2676,8 @@ export class TwitchVOD {
         });
     }
 
-    public static async downloadChat(vod_id: string, output: string): Promise<boolean> {
-        return await this.downloadChatTD(vod_id, output);
+    public static async downloadChat(method: "td" | "tcd" = "td", vod_id: string, output: string): Promise<boolean> {
+        return method == "td" ? await this.downloadChatTD(vod_id, output) : await this.downloadChatTCD(vod_id, output);
     }
 
     public static downloadChatTD(vod_id: string, output: string): Promise<boolean> {
@@ -2746,6 +2746,71 @@ export class TwitchVOD {
             });
 
         });
+    }
+
+    public static downloadChatTCD(vod_id: string, output: string): Promise<boolean> {
+
+        return new Promise((resolve, reject) => {
+
+            const bin = Helper.path_tcd();
+
+            if (!bin || !fs.existsSync(bin)) {
+                reject(new Error("tcd not found"));
+                return;
+            }
+
+            if (!vod_id) {
+                reject(new Error("No VOD ID"));
+                return;
+            }
+
+            if (fs.existsSync(output)) {
+                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat already exists for ${vod_id}`);
+                resolve(true);
+                return;
+            }
+
+            const temp_filepath = path.join(BaseConfigDataFolder.cache, `${vod_id}.json`);
+
+            if (fs.existsSync(temp_filepath)) {
+                fs.renameSync(temp_filepath, output);
+                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat renamed for ${vod_id}`);
+                resolve(true);
+            }
+
+            const args: string[] = [];
+            args.push("--settings-file", path.join(BaseConfigDataFolder.config, "tcd_settings.json"));
+            args.push("--video", vod_id);
+            args.push("--client-id", Config.getInstance().cfg("api_client_id"));
+            args.push("--client-secret", Config.getInstance().cfg("api_secret"));
+            args.push("--format", "json");
+            if (Config.debug || Config.getInstance().cfg("app_verbose")) {
+                args.push("--verbose");
+                args.push("--debug");
+            }
+            args.push("--output", BaseConfigDataFolder.cache);
+
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Downloading chat for ${vod_id}`);
+
+            const job = Helper.startJob(`chatdownload_${vod_id}`, bin, args);
+            if (!job) {
+                reject(new Error("Job failed"));
+                return;
+            }
+
+            job.on("close", (code, signal) => {
+                if (fs.existsSync(temp_filepath) && fs.statSync(temp_filepath).size > 0) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat downloaded for ${vod_id}`);
+                    fs.renameSync(temp_filepath, output);
+                    resolve(true);
+                } else {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Chat couldn't be downloaded for ${vod_id}`);
+                    reject(false);
+                }
+            });
+
+        });
+
     }
 
 }
