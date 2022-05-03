@@ -22,6 +22,13 @@
         </section>
 
         <section class="section">
+            <div class="section-title"><h1>Chat dump</h1></div>
+            <div class="section-content">
+                <tools-chat-dump-form />
+            </div>
+        </section>
+
+        <section class="section">
             <div class="section-title"><h1>Hook debug</h1></div>
             <div class="section-content">
                 <input type="file" @change="sendHookDebug" accept=".json" />
@@ -71,7 +78,13 @@
                             <span v-else-if="job.status == JobStatus.NONE">None</span>
                         </td>
                         <td>
-                            <a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name)" title="Kill job">
+                            <a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name, 'SIGHUP')" title="Gracefully kill job (SIGHUP)">
+                                <span class="icon"><fa icon="heart"></fa></span>
+                            </a>
+                            <a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name, 'SIGINT')" title="Gracefully kill job (SIGINT)">
+                                <span class="icon"><fa icon="stop"></fa></span>
+                            </a>
+                            <a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name)" title="Kill job (SIGTERM)">
                                 <span class="icon"><fa icon="skull"></fa></span>
                             </a>
                             <a class="button is-danger is-small" v-if="job.status" @click="clearJob(job.name)" title="Clear job">
@@ -93,14 +106,15 @@ import { defineComponent } from "vue";
 import ToolsBurnForm from "@/components/forms/ToolsBurnForm.vue";
 import ToolsVodDownloadForm from "@/components/forms/ToolsVodDownloadForm.vue";
 import ToolsChatDownloadForm from "@/components/forms/ToolsChatDownloadForm.vue";
+import ToolsChatDumpForm from "@/components/forms/ToolsChatDumpForm.vue";
 
 import type { ApiJob } from "@common/Api/Client";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faSkull, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faHeart, faStop, faSkull, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
 import { JobStatus } from "@common/Defs";
-library.add(faSkull, faTrash);
+library.add(faHeart, faStop, faSkull, faTrash);
 
 interface PayloadDump {
     headers: Record<string, string>;
@@ -124,11 +138,15 @@ export default defineComponent({
     created() {
     },
     methods: {
-        killJob(name: string) {
+        killJob(name: string, method: string = "") {
             if (!confirm(`Kill job "${name}?"`)) return;
 
             this.$http
-                .delete(`/api/v0/jobs/${name}`)
+                .delete(`/api/v0/jobs/${name}`, {
+                    params: {
+                        method: method,
+                    }
+                })
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);
@@ -202,6 +220,7 @@ export default defineComponent({
         ToolsBurnForm,
         ToolsVodDownloadForm,
         ToolsChatDownloadForm,
+        ToolsChatDumpForm,
     },
 });
 </script>

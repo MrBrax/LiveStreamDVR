@@ -12,9 +12,10 @@ import type { ErrorResponse, EventSubTypes } from "../../../common/TwitchAPI/Sha
 import type { Stream, StreamsResponse } from "../../../common/TwitchAPI/Streams";
 import type { SubscriptionRequest, SubscriptionResponse } from "../../../common/TwitchAPI/Subscriptions";
 import type { BroadcasterType, UsersResponse } from "../../../common/TwitchAPI/Users";
-import { BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
+import { AppRoot, BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
 import { Config } from "./Config";
 import { Helper } from "./Helper";
+import { Job } from "./Job";
 import { KeyValue } from "./KeyValue";
 import { Log, LOGLEVEL } from "./Log";
 import { TwitchGame } from "./TwitchGame";
@@ -1152,5 +1153,30 @@ export class TwitchChannel {
         } else {
             return false;
         }
+    }
+
+    public static startChatDump(name: string, channel_login: string, channel_id: string, started: Date, output: string): Job | false {
+
+        const chat_bin = "node";
+        const chat_cmd: string[] = [];
+        const jsfile = path.join(AppRoot, "twitch-chat-dumper", "build", "index.js");
+
+        if (!fs.existsSync(jsfile)) {
+            throw new Error("Could not find chat dumper build");
+        }
+
+        // todo: execute directly in node?
+        chat_cmd.push(jsfile);
+        chat_cmd.push("--channel", channel_login);
+        chat_cmd.push("--userid", channel_id);
+        chat_cmd.push("--date", JSON.stringify(started));
+        chat_cmd.push("--output", output);
+
+        Log.logAdvanced(LOGLEVEL.INFO, "automator", `Starting chat dump with filename ${path.basename(output)}`);
+
+        const chat_job = Helper.startJob(`chatdump_${name}`, chat_bin, chat_cmd);
+
+        return chat_job;
+
     }
 }

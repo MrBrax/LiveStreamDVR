@@ -473,8 +473,25 @@ export class Job extends EventEmitter {
      * @returns {Promise<false|ExecReturn>} False if no PID set, otherwise the result of the quit command
      */
     public async kill(method: NodeJS.Signals = "SIGTERM"): Promise<boolean> {
+
         if (this.process) {
-            this.process.kill(method);
+            let success;
+            try {
+                success = this.process.kill(method);
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Exception killing process for job ${this.name} with internal process (${method})`, this.metadata);
+                return false;
+            }
+
+            if (success) {
+                this.status = JobStatus.STOPPED;
+                this.broadcastUpdate();
+                Log.logAdvanced(LOGLEVEL.INFO, "job", `Killed job ${this.name} with internal process (${method})`, this.metadata);
+                return true;
+            } else {
+                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Error killing internal process for job ${this.name}, continuing to other methods.`, this.metadata);
+            }
+
         }
 
         const pid = this.getPid();
@@ -492,14 +509,18 @@ export class Job extends EventEmitter {
 
         if (Helper.is_windows()) {
             let exec;
+            const args: string[] = [];
+            if (method === "SIGKILL") {
+                args.push("/F");
+            }
+            args.push("/PID", pid.toString());
             try {
-                exec = await Helper.execSimple("taskkill", ["/F", "/PID", `${pid}`], "windows process kill");
+                exec = await Helper.execSimple("taskkill", args, "windows process kill");
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "job", `Exception killing process for job ${this.name}: ${(error as Error).message}`, this.metadata);
                 this.broadcastUpdate();
                 return false;
             }
-            await Sleep(1000);
             const status = await this.getStatus();
             this.clear();
             this.broadcastUpdate();
@@ -512,14 +533,16 @@ export class Job extends EventEmitter {
             }
         } else {
             let exec;
+
+            const signalFlag = `-${method.substring(3).toLocaleLowerCase()}`;
+
             try {
-                exec = await Helper.execSimple("kill", [pid.toString()], "linux process kill");
+                exec = await Helper.execSimple("kill", [signalFlag, pid.toString()], "linux process kill");
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "job", `Exception killing process for job ${this.name}: ${(error as Error).message}`, this.metadata);
                 this.broadcastUpdate();
                 return false;
             }
-            await Sleep(1000);
             const status = await this.getStatus();
             this.clear();
             this.broadcastUpdate();

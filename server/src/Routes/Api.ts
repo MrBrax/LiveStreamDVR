@@ -90,6 +90,7 @@ router.put("/notifications", Notifications.SaveNotificationSettings);
 router.post("/tools/reset_channels", Tools.ResetChannels);
 router.post("/tools/vod_download", Tools.DownloadVod);
 router.post("/tools/chat_download", Tools.DownloadChat);
+router.post("/tools/chat_dump", Tools.ChatDump);
 
 router.get("/files", Files.ListFiles);
 router.delete("/files", Files.DeleteFile);
