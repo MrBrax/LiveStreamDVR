@@ -524,7 +524,7 @@ export class TwitchChannel {
 
         if (!this.channel_data) return false;
 
-        const nfo_file = path.join(Helper.vodFolder(this.channel_data.login), `${this.channel_data.login}.nfo`);
+        const nfo_file = path.join(Helper.vodFolder(this.channel_data.login), "tvshow.nfo");
 
         let nfo_content = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n";
         nfo_content += "<tvshow>\n";
