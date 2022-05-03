@@ -32,6 +32,8 @@ export interface VODJSON {
 
     not_started: boolean;
 
+    stream_number?: number;
+
 }
 export interface TwitchVODJSON extends VODJSON {
 

@@ -85,6 +85,8 @@ export class TwitchChannel {
 
     public deactivated = false;
 
+    public current_stream_number = 0;
+
     applyConfig(channel_config: ChannelConfig): void {
         this.quality = channel_config.quality !== undefined ? channel_config.quality : ["best"];
         this.match = channel_config.match !== undefined ? channel_config.match : [];
@@ -518,6 +520,47 @@ export class TwitchChannel {
 
     }
 
+    public saveKodiNfo(): boolean {
+
+        if (!this.channel_data) return false;
+
+        const nfo_file = path.join(Helper.vodFolder(this.channel_data.login), `${this.channel_data.login}.nfo`);
+
+        let nfo_content = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n";
+        nfo_content += "<tvshow>\n";
+        nfo_content += `<title>${this.channel_data.display_name}</title>\n`;
+        nfo_content += `<uniqueid type="twitch>${this.userid}</uniqueid>\n`;
+        nfo_content += `<thumb aspect="poster">${this.channel_data.profile_image_url}</thumb>\n`;
+        // nfo_content += `<thumb aspect="fanart">${this.channel_data.profile_banner_url}</thumb>\n`;
+        nfo_content += `<episode>${this.vods_list.length}</episode>\n`;
+        nfo_content += `<plot>${this.channel_data.description}</plot>\n`;
+        nfo_content += "<actor>\n";
+        nfo_content += `\t<name>${this.channel_data.display_name}</name>\n`;
+        nfo_content += "\t<role>Themselves</role>\n";
+        nfo_content += "</actor>\n";
+        nfo_content += "</tvshow>";
+
+        fs.writeFileSync(nfo_file, nfo_content);
+
+        return fs.existsSync(nfo_file);
+
+    }
+
+    public setupStreamNumber() {
+        if (KeyValue.getInstance().has(`${this.login}.stream_number`)) {
+            this.current_stream_number = KeyValue.getInstance().getInt(`${this.login}.stream_number`);
+            console.log(`Channel ${this.login} has stream number ${this.current_stream_number}`);
+        } else {
+            this.current_stream_number = 0;
+            console.log(`Channel ${this.login} has no stream number, setting to 0`);
+            KeyValue.getInstance().setInt(`${this.login}.stream_number`, 0);
+        }
+    }
+
+    public postLoad() {
+        this.setupStreamNumber();
+    }
+
     /**
      * 
      * STATIC
@@ -586,6 +629,8 @@ export class TwitchChannel {
         await channel.parseVODs(api);
 
         channel.findClips();
+
+        channel.saveKodiNfo();
 
         return channel;
 
@@ -712,6 +757,8 @@ export class TwitchChannel {
 
                 if (ch) {
                     this.channels.push(ch);
+                    ch.postLoad();
+                    ch.vods_list.forEach(vod => vod.postLoad());
                     Log.logAdvanced(LOGLEVEL.SUCCESS, "config", `Loaded channel ${channel.login} with ${ch.vods_list?.length} vods`);
                 } else {
                     Log.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be added, please check logs.`);

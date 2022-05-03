@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { parse, parseJSON } from "date-fns";
+import { format, parse, parseJSON } from "date-fns";
 import fs from "fs";
 import { replaceAll } from "../Helpers/ReplaceAll";
 import path from "path";
@@ -25,6 +25,7 @@ import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchVODSegment } from "./TwitchVODSegment";
 import { Webhook } from "./Webhook";
 import { FFmpegMetadata } from "./FFmpegMetadata";
+import { KeyValue } from "./KeyValue";
 
 /*
 export interface TwitchVODSegmentJSON {
@@ -128,6 +129,7 @@ export class TwitchVOD {
     path_playlist = "";
     path_ffmpegchapters = "";
     path_vttchapters = "";
+    path_kodinfo = "";
 
     force_record = false;
 
@@ -139,6 +141,8 @@ export class TwitchVOD {
     not_started = false;
 
     webpath = "";
+
+    stream_number: number | undefined;
 
     /*
     public ?bool $api_hasFavouriteGame = null;
@@ -332,6 +336,9 @@ export class TwitchVOD {
                 this.saveJSON("fix mediainfo");
             }
         }
+
+        this.stream_number = this.json.stream_number !== undefined ? this.json.stream_number : undefined;
+
     }
 
 
@@ -662,6 +669,7 @@ export class TwitchVOD {
         this.path_playlist = this.realpath(path.join(this.directory, `${this.basename}.m3u8`));
         this.path_ffmpegchapters = this.realpath(path.join(this.directory, `${this.basename}-ffmpeg-chapters.txt`));
         this.path_vttchapters = this.realpath(path.join(this.directory, `${this.basename}.chapters.vtt`));
+        this.path_kodinfo = this.realpath(path.join(this.directory, `${this.basename}.nfo`));
 
         // this.is_chat_downloaded 			= file_exists(this.path_chat);
         // this.is_vod_downloaded 			= file_exists(this.path_downloaded_vod);
@@ -677,13 +685,15 @@ export class TwitchVOD {
             (
                 !fs.existsSync(this.path_losslesscut) ||
                 !fs.existsSync(this.path_ffmpegchapters) ||
-                !fs.existsSync(this.path_vttchapters)
+                !fs.existsSync(this.path_vttchapters) ||
+                !fs.existsSync(this.path_kodinfo)
             )
         ) {
             try {
                 this.saveLosslessCut();
                 this.saveFFMPEGChapters();
                 this.saveVTTChapters();
+                this.saveKodiNfo();
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Could not save associated files for ${this.basename}: ${(error as Error).message}`);
             }
@@ -1310,6 +1320,55 @@ export class TwitchVOD {
 
     }
 
+    public saveKodiNfo(): boolean {
+
+        if (!this.directory) {
+            throw new Error("TwitchVOD.saveKodiNfo: directory is not set");
+        }
+
+        if (!this.started_at) {
+            throw new Error("TwitchVOD.saveKodiNfo: started_at is not set");
+        }
+
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Saving Kodi NFO file for ${this.basename} to ${this.path_kodinfo}`);
+
+        let data = "";
+        data += "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\n";
+        data += "<episodedetails>\n";
+        data += `\t<title>${this.twitch_vod_title ?? this.chapters[0].title}</title>\n`;
+        data += `\t<showtitle>${this.streamer_name}</showtitle>\n`;
+        data += `\t<uniqueid type="twitch">${this.twitch_vod_id}</uniqueid>\n`;
+
+        data += `\t<season>${format(this.started_at, "yyyy")}</season>\n`;
+        data += `\t<episode>${(this.stream_number || 0) + 1}</episode>\n`;
+        
+        if (this.chapters && this.chapters.length > 0) {
+            data += `\t<plot>${this.chapters[0].title}</plot>\n`;
+        }
+
+        data += "\t<actor>\n";
+        data += `\t\t<name>${this.streamer_name}</name>\n`;
+        data += "\t\t<role>Themselves</role>\n";
+        data += "\t</actor>\n";
+
+        data += `\t<premiered>${format(this.started_at, "yyyy-MM-dd")}</premiered>\n`;
+        data += `\t<aired>${format(this.started_at, "yyyy-MM-dd")}</aired>\n`;
+        data += `\t<dateadded>${format(this.started_at, "yyyy-MM-dd")}</dateadded>\n`;
+        data += `\t<year>${format(this.started_at, "yyyy")}</year>\n`;
+        data += `\t<studio>${this.streamer_name}</studio>\n`;
+
+        data += `\t<id>${this.twitch_vod_id}</id>\n`;
+
+        data += "</episodedetails>\n";
+
+        fs.writeFileSync(this.path_kodinfo, data, { encoding: "utf8" });
+
+        this.setPermissions();
+
+        return fs.existsSync(this.path_kodinfo);
+
+    }
+
     public getUniqueGames(): TwitchGame[] {
         const games: TwitchGame[] = [];
         this.chapters.forEach((chapter) => { if (chapter.game && !games.includes(chapter.game)) games.push(chapter.game); });
@@ -1508,6 +1567,8 @@ export class TwitchVOD {
         generated.twitch_vod_muted = this.twitch_vod_muted;
 
         generated.not_started = this.not_started;
+
+        generated.stream_number = this.stream_number;
 
         // generated.twitch_vod_status = this.twitch_vod_status;        
 
@@ -2257,6 +2318,23 @@ export class TwitchVOD {
         }
         */
 
+    }
+
+    public setupStreamNumber() {
+        const channel = this.getChannel();
+        if (channel && channel.current_stream_number !== undefined && this.stream_number === undefined) {
+            this.stream_number = channel.current_stream_number;
+            channel.current_stream_number++;
+            this.saveJSON("default stream_number set");
+            KeyValue.getInstance().setInt(`${channel.login}.stream_number`, channel.current_stream_number);
+            console.log(`Stream number for ${this.basename} set to ${channel.current_stream_number} as a default!`);
+        } else {
+            console.log(`Stream number for ${this.basename} is ${this.stream_number}!`, channel, channel?.current_stream_number, this.stream_number);
+        }
+    }
+
+    public postLoad() {
+        this.setupStreamNumber();
     }
 
     /**
