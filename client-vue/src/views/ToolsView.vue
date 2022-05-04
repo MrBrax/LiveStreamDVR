@@ -1,11 +1,13 @@
 <template>
     <div class="container">
+        <!--
         <section class="section">
             <div class="section-title"><h1>Full VOD fetch and burn chat</h1></div>
             <div class="section-content">
                 <tools-burn-form />
             </div>
         </section>
+        -->
 
         <section class="section">
             <div class="section-title"><h1>VOD download</h1></div>
@@ -20,7 +22,8 @@
                 <tools-chat-download-form />
             </div>
         </section>
-
+    </div>
+    <div class="container">
         <section class="section">
             <div class="section-title"><h1>Chat dump</h1></div>
             <div class="section-content">
@@ -32,6 +35,10 @@
             <div class="section-title"><h1>Hook debug</h1></div>
             <div class="section-content">
                 <input type="file" @change="sendHookDebug" accept=".json" />
+                <p>
+                    Fakes a hook call from a JSON payload. Useful for debugging.<br />
+                    Payloads are stored in <code>/data/payloads/</code>
+                </p>
             </div>
         </section>
 
@@ -39,6 +46,9 @@
             <div class="section-title"><h1>Reset channels</h1></div>
             <div class="section-content">
                 <button type="button" class="button" @click="resetChannels">Reset</button>
+                <p>
+                    This is a bad idea if any of your channels are live.
+                </p>
             </div>
         </section>
 
@@ -61,6 +71,8 @@
         </section>
         -->
 
+    </div>
+    <div class="container">
         <section class="section">
             <div class="section-title"><h1>Current jobs</h1></div>
             <div class="section-content">

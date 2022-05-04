@@ -4,8 +4,16 @@
             <label class="label">Login</label>
             <div class="control">
                 <input class="input input-required" type="text" v-model="formData.login" required />
+                <p class="input-help">
+                    Does not need to exist in your channels list.
+                </p>
             </div>
         </div>
+
+        <p>
+            The chat dumper will continue to run in the background until you manually stop it.<br />
+            Keeping it running for a very long time can use up a large amount of disk space.
+        </p>
 
         <div class="field">
             <div class="control">
