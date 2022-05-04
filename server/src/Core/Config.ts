@@ -32,6 +32,7 @@ export class Config {
         { "key": "ffmpeg_path", "group": "Binaries", "text": "FFmpeg path", "type": "string", "required": true },
         { "key": "mediainfo_path", "group": "Binaries", "text": "Mediainfo path", "type": "string", "required": true },
         { "key": "twitchdownloader_path", "group": "Binaries", "text": "TwitchDownloaderCLI path", "type": "string" },
+        { "key": "node_path", "group": "Binaries", "text": "NodeJS path", "type": "string" },
 
         { "key": "server_port", "group": "Basic", "text": "Server port", "type": "number", "default": 8080 },
         { "key": "basepath", "group": "Basic", "text": "Base path", "type": "string", "help": "No trailing slash. For reverse proxy etc", "stripslash": true },

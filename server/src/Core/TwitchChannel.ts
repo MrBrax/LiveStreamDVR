@@ -1157,12 +1157,16 @@ export class TwitchChannel {
 
     public static startChatDump(name: string, channel_login: string, channel_id: string, started: Date, output: string): Job | false {
 
-        const chat_bin = "node";
+        const chat_bin = Helper.path_node();
         const chat_cmd: string[] = [];
         const jsfile = path.join(AppRoot, "twitch-chat-dumper", "build", "index.js");
 
         if (!fs.existsSync(jsfile)) {
             throw new Error("Could not find chat dumper build");
+        }
+
+        if (!chat_bin) {
+            throw new Error("Could not find Node binary");
         }
 
         // todo: execute directly in node?
