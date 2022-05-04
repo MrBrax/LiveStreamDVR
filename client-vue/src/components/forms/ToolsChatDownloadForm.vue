@@ -8,6 +8,16 @@
         </div>
 
         <div class="field">
+            <label class="label">Method</label>
+            <div class="control">
+                <select class="input" v-model="formData.method">
+                    <option value="td">TwitchDownloaderCLI</option>
+                    <option value="tcd">Twitch Chat Downloader</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="field">
             <div class="control">
                 <button class="button is-confirm" type="submit">
                     <span class="icon"><fa icon="download"></fa></span> Execute
@@ -34,6 +44,7 @@ export default defineComponent({
             formStatus: "",
             formData: {
                 url: "",
+                method: "td",
             },
             fileLink: "",
         };

@@ -51,7 +51,7 @@ export default defineComponent({
             formStatus: "",
             formData: {
                 url: "",
-                quality: "",
+                quality: "best",
             },
             fileLink: "",
         };

@@ -183,7 +183,7 @@
                     <!-- pip update -->
                     <div class="block" v-if="!aboutData.is_docker">
                         <h3>Pip update</h3>
-                        <code>pip install --user --upgrade yt-dlp streamlink pipenv</code>
+                        <code class="code">pip install --user --upgrade yt-dlp streamlink pipenv</code>
                         <br />You might want to install without the --user switch depending on environment.
                     </div>
                     <div class="block">

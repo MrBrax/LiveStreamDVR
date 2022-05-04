@@ -1,6 +1,6 @@
 {
   "name": "livestreamdvr-client",
-  "version": "0.8.1",
+  "version": "0.8.1a",
   "private": true,
   "homepage": "https://github.com/MrBrax/TwitchAutomator",
   "scripts": {
