@@ -94,7 +94,7 @@
                     </tr>
                 </table>
 
-                <em v-if="jobsData.length == 0">None</em>
+                <em v-if="!store.jobList || store.jobList && store.jobList.length == 0">None</em>
             </div>
         </section>
     </div>
@@ -129,11 +129,6 @@ export default defineComponent({
     setup() {
         const store = useStore();
         return { store, JobStatus };
-    },
-    data() {
-        return {
-            jobsData: [] as ApiJob[],
-        };
     },
     created() {
     },
