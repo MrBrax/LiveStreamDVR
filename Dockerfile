@@ -88,6 +88,7 @@ COPY ./docker/fonts /home/node/.fonts
 ENV TCD_BIN_DIR=/usr/local/bin
 ENV TCD_FFMPEG_PATH=/usr/bin/ffmpeg
 ENV TCD_MEDIAINFO_PATH=/usr/bin/mediainfo
+ENV TCD_NODE_PATH=/usr/local/bin/node
 ENV TCD_DOCKER=1
 ENV TCD_WEBSOCKET_ENABLED=1
 # ENV TCD_CA_PATH=/tmp/cacert.pem

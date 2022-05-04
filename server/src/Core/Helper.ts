@@ -215,6 +215,16 @@ export class Helper {
         return process.env.TCD_DOCKER !== undefined;
     }
 
+    public static path_node(): string | false {
+        if (Config.getInstance().cfg("node_path")) return Config.getInstance().cfg<string>("node_path");
+
+        if (this.is_windows()) {
+            return "C:\\Program Files\\nodejs\\node.exe";
+        } else {
+            return "/usr/local/bin/node";
+        }
+    }
+
     public static path_mediainfo(): string | false {
 
         if (Config.getInstance().cfg("mediainfo_path")) return Config.getInstance().cfg<string>("mediainfo_path");
@@ -523,6 +533,8 @@ export class Helper {
 
         process.on("error", (err) => {
             Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Process '${process.pid}' on job '${jobName}' error: ${err}`, {
+                bin,
+                args,
                 jobName,
                 stdout,
                 stderr,
@@ -584,10 +596,10 @@ export class Helper {
 
             // "-map", "0",
             // "-analyzeduration", 
-            
+
             opts.push("-c", "copy"); // copy all streams
 
-            if (!output.endsWith(Config.AudioContainer)){
+            if (!output.endsWith(Config.AudioContainer)) {
                 opts.push("-bsf:a", "aac_adtstoasc"); // audio bitstream filter?
             }
 
