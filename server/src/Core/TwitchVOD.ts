@@ -12,6 +12,7 @@ import { AudioMetadata, VideoMetadata } from "../../../common/MediaInfo";
 import { MediaInfo } from "../../../common/mediainfofield";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { Video, VideosResponse } from "../../../common/TwitchAPI/Video";
+import { Clip, ClipsResponse } from "../../../common/TwitchAPI/Clips";
 import { VodUpdated } from "../../../common/Webhook";
 import { replaceAll } from "../Helpers/ReplaceAll";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../Storage/JSON";
@@ -27,6 +28,7 @@ import { TwitchGame } from "./TwitchGame";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchVODSegment } from "./TwitchVODSegment";
 import { Webhook } from "./Webhook";
+import axios from "axios";
 
 /*
 export interface TwitchVODSegmentJSON {
@@ -2611,6 +2613,110 @@ export class TwitchVOD {
         return converted_filename;
     }
 
+    public static async downloadClip(clip_id: string, filename: string, quality: VideoQuality = "best"): Promise<string> {
+
+        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Download clip ${clip_id}`);
+
+        const clips = await TwitchVOD.getClips({ id: clip_id });
+
+        if (!clips) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to get clip ${clip_id}`);
+            throw new Error(`Failed to get clip ${clip_id}`);
+        }
+
+        const clip = clips[0];
+
+        const basename = path.basename(filename);
+
+        const capture_filename = path.join(BaseConfigDataFolder.cache, `${clip_id}.ts`);
+        const converted_filename = filename;
+
+        // download vod
+        if (!fs.existsSync(capture_filename) && !fs.existsSync(converted_filename)) {
+
+            const video_url = clip.url;
+
+            const streamlink_bin = Helper.path_streamlink();
+            const ffmpeg_bin = Helper.path_ffmpeg();
+
+            if (!streamlink_bin) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "channel", "Failed to find streamlink binary!");
+                throw new Error("Failed to find streamlink binary!");
+            }
+
+            if (!ffmpeg_bin) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "channel", "Failed to find ffmpeg binary!");
+                throw new Error("Failed to find ffmpeg binary!");
+            }
+
+            const cmd = [];
+
+            cmd.push("--ffmpeg-ffmpeg", ffmpeg_bin);
+
+            cmd.push("-o", capture_filename); // output file
+
+            cmd.push("--hls-segment-threads", "10");
+
+            cmd.push("--url", video_url); // stream url
+
+            cmd.push("--default-stream", quality); // twitch url and quality
+
+            // logging level
+            if (Config.debug) {
+                cmd.push("--loglevel", "debug");
+            } else if (Config.getInstance().cfg("app_verbose", false)) {
+                cmd.push("--loglevel", "info");
+            }
+
+            Log.logAdvanced(LOGLEVEL.INFO, "channel", `Downloading clip ${clip_id}...`);
+
+            const ret = await Helper.execAdvanced(streamlink_bin, cmd, `download_clip_${clip_id}`);
+
+            Log.logAdvanced(LOGLEVEL.INFO, "channel", `Downloaded clip ${clip_id}...}`);
+
+            if (ret.stdout.join("\n").includes("error: Unable to find video:") || ret.stderr.join("\n").includes("error: Unable to find video:")) {
+                throw new Error("Clip on Twitch not found, is it deleted?");
+            }
+        }
+
+        if (!fs.existsSync(converted_filename)) {
+
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Starting remux of ${basename}`);
+
+            let ret;
+            try {
+                ret = await Helper.remuxFile(capture_filename, converted_filename);
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to remux ${basename}: ${(error as Error).message}`);
+                throw new Error(`Failed to remux ${basename}: ${(error as Error).message}`);
+            }
+
+            if (ret.success) {
+                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Successfully remuxed ${basename}, removing ${capture_filename}`);
+                fs.unlinkSync(capture_filename);
+            } else {
+                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Failed to remux ${basename}`);
+            }
+        }
+
+        const successful = fs.existsSync(converted_filename) && fs.statSync(converted_filename).size > 0;
+
+        if (!successful) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to download ${basename}, no file found!`);
+            throw new Error(`Failed to download ${basename}, no file found!`);
+        }
+
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Download of ${basename} successful`);
+
+        Webhook.dispatch("video_download", {
+            "success": true,
+            "path": converted_filename,
+        });
+
+        return converted_filename;
+
+    }
+
     /**
      * Get video information from Twitch
      * @param video_id 
@@ -2668,6 +2774,47 @@ export class TwitchVOD {
         }
 
         return json.data;
+    }
+
+    static async getClips({ broadcaster_id, game_id, id }: { broadcaster_id?: string; game_id?: string; id?: string[] | string; }): Promise<false | Clip[]> {
+
+        if (!broadcaster_id && !game_id && !id) throw new Error("No broadcaster id, game id or id provided");
+
+        if (!Helper.axios) {
+            throw new Error("Axios is not initialized");
+        }
+
+        let response;
+        const params = new URLSearchParams();
+        if (broadcaster_id) params.append("broadcaster_id", broadcaster_id);
+        if (game_id) params.append("game_id", game_id);
+        if (id && typeof id === "string") params.append("id", id);
+        if (id && Array.isArray(id) && id.length > 0) {
+            id.forEach((id) => {
+                params.append("id", id);
+            });
+        }
+
+        try {
+            response = await Helper.axios.get("/helix/clips", {
+                params: params,
+            });
+        } catch (e) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Tried to get clips but got error: ${(e as Error).message}`);
+            if (axios.isAxiosError(e) && e.response) {
+                console.debug("data", e.response.data);
+            }
+            return false;
+        }
+
+        const json: ClipsResponse = response.data;
+
+        if (json.data.length === 0) {
+            return false;
+        }
+
+        return json.data;
+
     }
 
     static cleanLingeringVODs(): void {

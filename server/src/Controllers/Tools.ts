@@ -6,6 +6,7 @@ import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { TwitchVOD } from "../Core/TwitchVOD";
 import { ApiErrorResponse } from "../../../common/Api/Api";
 import { TwitchChannel } from "../Core/TwitchChannel";
+import sanitize from "sanitize-filename";
 
 export async function ResetChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -203,5 +204,80 @@ export async function ChatDump(req: express.Request, res: express.Response): Pro
         status: "OK",
         message: `Started chat dump for ${login}. It does not end by itself.`,
     });
+
+}
+
+export async function DownloadClip(req: express.Request, res: express.Response): Promise<void> {
+
+    const url = req.body.url as string | undefined;
+    const quality = req.body.quality as VideoQuality | undefined || "best";
+
+    if (!url) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "No url provided",
+        });
+        return;
+    }
+
+    const id_match1 = url.match(/\/clip\/([0-9a-zA-Z_-]+)/);
+    const id_match2 = url.match(/clip=([0-9a-zA-Z_-]+)/);
+
+    if (!id_match1 && !id_match2) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "No id found in url",
+        });
+        return;
+    }
+
+    const id = id_match1 ? id_match1[1] : (id_match2 ? id_match2[1] : "");
+
+    if (!id) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "No id found in url (2)",
+        });
+        return;
+    }
+
+    const clips = await TwitchVOD.getClips({ id: id });
+
+    if (!clips) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "No metadata found",
+        });
+        return;
+    }
+
+    const metadata = clips[0];
+
+    const basename = sanitize(`${metadata.broadcaster_name}.${metadata.title}.${metadata.id}.${quality}.mp4`); // new filename?
+    const file_path = path.join(BaseConfigDataFolder.saved_clips, basename);
+
+    let success;
+
+    try {
+        success = await TwitchVOD.downloadClip(id, file_path, quality);
+    } catch (e) {
+        res.status(400).send({
+            status: "ERROR",
+            message: `Error downloading video: ${(e as Error).message}`,
+        });
+        return;
+    }
+
+    if (success) {
+        res.send({
+            status: "OK",
+            message: `Downloaded to ${file_path}`,
+        });
+    } else {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Failed to download",
+        });
+    }
 
 }

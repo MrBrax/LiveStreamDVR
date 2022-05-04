@@ -22,6 +22,13 @@
                 <tools-chat-download-form />
             </div>
         </section>
+
+        <section class="section">
+            <div class="section-title"><h1>Clip download</h1></div>
+            <div class="section-content">
+                <tools-clip-download-form />
+            </div>
+        </section>
     </div>
     <div class="container">
         <section class="section">
@@ -119,13 +126,13 @@ import ToolsBurnForm from "@/components/forms/ToolsBurnForm.vue";
 import ToolsVodDownloadForm from "@/components/forms/ToolsVodDownloadForm.vue";
 import ToolsChatDownloadForm from "@/components/forms/ToolsChatDownloadForm.vue";
 import ToolsChatDumpForm from "@/components/forms/ToolsChatDumpForm.vue";
-
-import type { ApiJob } from "@common/Api/Client";
+import ToolsClipDownloadForm from "../components/forms/ToolsClipDownloadForm.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faHeart, faStop, faSkull, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
 import { JobStatus } from "@common/Defs";
+
 library.add(faHeart, faStop, faSkull, faTrash);
 
 interface PayloadDump {
@@ -228,6 +235,7 @@ export default defineComponent({
         ToolsVodDownloadForm,
         ToolsChatDownloadForm,
         ToolsChatDumpForm,
+        ToolsClipDownloadForm
     },
 });
 </script>

@@ -73,6 +73,7 @@ router.get("/cron/check_muted_vods", Cron.CheckMutedVods);
 router.get("/twitchapi/videos/:login", TwitchAPI.TwitchAPIVideos);
 router.get("/twitchapi/video/:video_id", TwitchAPI.TwitchAPIVideo);
 router.get("/twitchapi/user/:login", TwitchAPI.TwitchAPIUser);
+router.get("/twitchapi/clips", TwitchAPI.TwitchAPIClips);
 
 router.get("/keyvalue", KeyValue.GetAllKeyValues);
 router.delete("/keyvalue", KeyValue.DeleteAllKeyValues);
@@ -91,6 +92,7 @@ router.post("/tools/reset_channels", Tools.ResetChannels);
 router.post("/tools/vod_download", Tools.DownloadVod);
 router.post("/tools/chat_download", Tools.DownloadChat);
 router.post("/tools/chat_dump", Tools.ChatDump);
+router.post("/tools/clip_download", Tools.DownloadClip);
 
 router.get("/files", Files.ListFiles);
 router.delete("/files", Files.DeleteFile);

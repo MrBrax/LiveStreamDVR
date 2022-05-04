@@ -100,3 +100,40 @@ export async function TwitchAPIUser(req: express.Request, res: express.Response)
     });
 
 }
+
+export async function TwitchAPIClips(req: express.Request, res: express.Response): Promise<void> {
+
+    const broadcaster_id = req.query.broadcaster_id as string | undefined;
+    const game_id = req.query.game_id as string | undefined;
+    const id = req.query.id as string | undefined;
+
+    if (!broadcaster_id && !game_id && !id) {
+        res.status(400).send({ status: "ERROR", message: "Invalid clip id" });
+        return;
+    }
+
+    let data;
+    try {
+        data = await TwitchVOD.getClips({ broadcaster_id, game_id, id });
+    } catch (error) {
+        res.status(400).send({
+            status: "ERROR",
+            message: `Error while fetching clip data: ${(error as Error).message}`,
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (!data) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Clips not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    res.send({
+        data,
+        status: "OK",
+    });
+
+}
