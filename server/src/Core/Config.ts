@@ -128,6 +128,24 @@ export class Config {
         { "key": "create_video_chapters", "group": "Video", "text": "Create video chapters", "type": "boolean", "default": true },
         { "key": "create_kodi_nfo", "group": "Video", "text": "Create kodi nfo", "type": "boolean", "default": false, "help": "Requires server restart or channels reset." },
 
+        {
+            "key": "filename_clip",
+            "group": "Video",
+            "text": "Clip filename",
+            "type": "template",
+            "default": "{broadcaster} - {title} [{id}] [{quality}]",
+            "help": "Clip filename",
+            "replacements": {
+                id: { "display": "MinimalMooseOtterCatcher1234" },
+                quality: { "display": "720p" },
+                clip_date: { "display": "2020-01-01" },
+                title: { "display": "Moose crosses river" },
+                creator: { "display": "MooseClipper" },
+                broadcaster: { "display": "MooseStreamer" },
+            },
+            "context": "{template}.mp4",
+        },
+
     ];
 
     static readonly AudioContainer = "m4a";
