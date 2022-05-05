@@ -1,6 +1,5 @@
 import axios from "axios";
 import chalk from "chalk";
-import download from "download";
 import fs from "fs";
 import { encode as htmlentities } from "html-entities";
 import path from "path";
@@ -528,7 +527,7 @@ export class TwitchChannel {
         const nfo_file = path.join(Helper.vodFolder(this.channel_data.login), "tvshow.nfo");
 
         let avatar;
-        if (this.channel_data.cache_avatar) {
+        if (this.channel_data.cache_avatar && fs.existsSync(path.join(BaseConfigDataFolder.public_cache_avatars, this.channel_data.cache_avatar))) {
             fs.copyFileSync(
                 path.join(BaseConfigDataFolder.public_cache_avatars, this.channel_data.cache_avatar),
                 path.join(Helper.vodFolder(this.channel_data.login), `poster${path.extname(this.channel_data.cache_avatar)}`)
@@ -1029,8 +1028,20 @@ export class TwitchChannel {
             if (fs.existsSync(logo_path)) {
                 fs.unlinkSync(logo_path);
             }
-            await download(userData.profile_image_url, BaseConfigDataFolder.public_cache_avatars, { filename: logo_filename });
-            userData.cache_avatar = logo_filename;
+            let avatar_response;
+            try {
+                avatar_response = await axios({
+                    url: userData.profile_image_url,
+                    method: "GET",
+                    responseType: "stream",
+                });
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not download channel logo for ${userData.id}: ${(error as Error).message}`, error);                
+            }
+            if (avatar_response) {
+                avatar_response.data.pipe(fs.createWriteStream(logo_path));
+                userData.cache_avatar = logo_filename;
+            }
         }
 
         // insert into memory and save to file
