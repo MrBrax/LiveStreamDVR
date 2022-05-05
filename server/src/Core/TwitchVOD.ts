@@ -1649,6 +1649,7 @@ export class TwitchVOD {
     }
 
     public broadcastUpdate(): void {
+        if (process.env.NODE_ENV === "test") return;
         if (this._updateTimer) {
             clearTimeout(this._updateTimer);
             this._updateTimer = undefined;

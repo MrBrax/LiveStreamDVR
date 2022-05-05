@@ -672,6 +672,7 @@ export class Config {
 
     static get debug(): boolean {
         if (argv.debug) return true;
+        if (!Config.getInstance().initialised) return false;
         return Config.getInstance().cfg("debug");
     }
 

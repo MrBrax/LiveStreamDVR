@@ -571,6 +571,7 @@ export class TwitchChannel {
     }
 
     public broadcastUpdate() {
+        if (process.env.NODE_ENV === "test") return;
         if (this._updateTimer) {
             clearTimeout(this._updateTimer);
             this._updateTimer = undefined;
