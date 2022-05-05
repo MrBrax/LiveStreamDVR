@@ -527,11 +527,20 @@ export class TwitchChannel {
 
         const nfo_file = path.join(Helper.vodFolder(this.channel_data.login), "tvshow.nfo");
 
+        let avatar;
+        if (this.channel_data.cache_avatar) {
+            fs.copyFileSync(
+                path.join(BaseConfigDataFolder.public_cache_avatars, this.channel_data.cache_avatar),
+                path.join(Helper.vodFolder(this.channel_data.login), `poster${path.extname(this.channel_data.cache_avatar)}`)
+            );
+            avatar = `poster${path.extname(this.channel_data.cache_avatar)}`;
+        }
+
         let nfo_content = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n";
         nfo_content += "<tvshow>\n";
         nfo_content += `<title>${this.channel_data.display_name}</title>\n`;
         nfo_content += `<uniqueid type="twitch>${this.userid}</uniqueid>\n`;
-        nfo_content += `<thumb aspect="poster">${this.channel_data.profile_image_url}</thumb>\n`;
+        if (avatar) nfo_content += `<thumb aspect="poster">${avatar}</thumb>\n`;
         // nfo_content += `<thumb aspect="fanart">${this.channel_data.profile_banner_url}</thumb>\n`;
         nfo_content += `<episode>${this.vods_list.length}</episode>\n`;
         nfo_content += `<plot>${htmlentities(this.channel_data.description)}</plot>\n`;

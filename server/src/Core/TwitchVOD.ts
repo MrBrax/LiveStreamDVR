@@ -1350,13 +1350,25 @@ export class TwitchVOD {
         data += `\t<episode>${(this.stream_number || 0) + 1}</episode>\n`;
         
         if (this.chapters && this.chapters.length > 0) {
-            data += `\t<plot>${htmlentities(this.chapters[0].title)}</plot>\n`;
+            let plot = "";
+            this.chapters.forEach((chapter, index) => {
+                plot += `${index+1}. ${chapter.title} (${chapter.game_name})\n`;
+            });
+            data += `\t<plot>${htmlentities(plot)}</plot>\n`;
         }
+
+        if (this.duration) data += `\t<runtime>${Math.ceil(this.duration / 60)}</runtime>\n`;
 
         data += "\t<actor>\n";
         data += `\t\t<name>${this.streamer_name}</name>\n`;
         data += "\t\t<role>Themselves</role>\n";
         data += "\t</actor>\n";
+
+        if (this.getUniqueGames()) {
+            this.getUniqueGames().forEach((game) => {
+                data += `\t<tag>${game.name}</tag>\n`;
+            });
+        }
 
         data += `\t<premiered>${format(this.started_at, "yyyy-MM-dd")}</premiered>\n`;
         data += `\t<aired>${format(this.started_at, "yyyy-MM-dd")}</aired>\n`;
