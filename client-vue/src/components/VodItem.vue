@@ -1222,23 +1222,22 @@ export default defineComponent({
             return false;
         },
         openPlayer() {
-            const url = new URL(window.location.href);
-            url.pathname = `${this.store.cfg("basepath")}/vodplayer/index.html`;
-            url.searchParams.set("source", "file_http");
+            let url = `${this.store.cfg("basepath")}/vodplayer/index.html#&`;
+            url += "source=file_http";
             if (this.playerSettings.vodSource == "captured"){
-                url.searchParams.set("video_path", `${this.vod?.webpath}/${this.vod?.basename}.mp4`);
+                url += `&video_path=${this.vod?.webpath}/${this.vod?.basename}.mp4`;
             } else {
-                url.searchParams.set("video_path", `${this.vod?.webpath}/${this.vod?.basename}_vod.mp4`);
+                url += `&video_path=${this.vod?.webpath}/${this.vod?.basename}_vod.mp4`;
             }
 
             if (this.playerSettings.chatSource == "captured"){
-                url.searchParams.set("chatfile", `${this.vod?.webpath}/${this.vod?.basename}.chatdump`);
+                url += `&chatfile=${this.vod?.webpath}/${this.vod?.basename}.chatdump`;
             } else {
-                url.searchParams.set("chatfile", `${this.vod?.webpath}/${this.vod?.basename}_chat.json`);
+                url += `&chatfile=${this.vod?.webpath}/${this.vod?.basename}_chat.json`;
             }
 
             // url.searchParams.set("offset", this.playerSettings.offset.toString());
-            window.open(url.toString().replace("?", "#"), "_blank");
+            window.open(url.toString(), "_blank");
 
         },
     },

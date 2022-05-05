@@ -56,6 +56,12 @@ RUN cd /usr/local/share/twitchautomator/twitch-chat-dumper \
     && yarn build \
     && rm -rf node_modules && yarn cache clean --all
 
+# vod player
+RUN cd /usr/local/share/twitchautomator/twitch-vod-chat \
+    && yarn install --frozen-lockfile \
+    && yarn build \
+    && rm -rf node_modules && yarn cache clean --all
+
 # install dotnet for twitchdownloader
 # ADD https://dot.net/v1/dotnet-install.sh /tmp/dotnet-install.sh
 # RUN chmod +x /tmp/dotnet-install.sh && /tmp/dotnet-install.sh --channel 3.1 --verbose --install-dir /usr/share/dotnet
