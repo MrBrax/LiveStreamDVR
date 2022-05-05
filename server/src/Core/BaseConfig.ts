@@ -38,7 +38,7 @@ export const BaseConfigFolder = {
     server: path.join(AppRoot, "server"),
     public: path.join(AppRoot, "public"),
     client: path.join(AppRoot, "client-vue", "dist"),
-    vodplayer: path.join(AppRoot, "vodplayer"),
+    vodplayer: path.join(AppRoot, "twitch-vod-chat", "dist"),
 };
 
 export const BaseConfigDataFolder = {

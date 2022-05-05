@@ -1,0 +1,3 @@
+[submodule "twitch-vod-chat"]
+	path = twitch-vod-chat
+	url = https://github.com/MrBrax/twitch-vod-chat
