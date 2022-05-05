@@ -38,7 +38,7 @@ import { useStore } from "./store";
 import type { ApiSettingsResponse } from "@common/Api/Api";
 import JobStatus from "./components/JobStatus.vue";
 // import { connectWebsocket, eventListener, WebsocketJSON } from "./websocket";
-import { ChapterUpdateData, EndCaptureData, EndConvertData, JobClear, JobSave, NotifyData, VodRemoved, VodUpdated, WebhookAction } from "@common/Webhook";
+import { ChannelUpdated, ChapterUpdateData, EndCaptureData, EndConvertData, JobClear, JobSave, NotifyData, VodRemoved, VodUpdated, WebhookAction } from "@common/Webhook";
 import { ApiLogLine } from "@common/Api/Client";
 import { parseISO } from "date-fns";
 import { WebsocketJSON } from "./websocket";
@@ -288,6 +288,9 @@ export default defineComponent({
                 ) {
                     const _data: VodUpdated = data;
                     this.store.updateVodFromData(_data.vod);
+                } else if (action == "channel_updated") {
+                    const _data: ChannelUpdated = data;
+                    this.store.updateStreamerFromData(_data.channel);
                 } else if (action == "vod_removed") {
                     const _data: VodRemoved = data;
                     this.store.removeVod(_data.basename);

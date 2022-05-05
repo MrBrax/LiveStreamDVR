@@ -93,6 +93,8 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
 
     channel.update(channel_config);
 
+    channel.broadcastUpdate();
+
     res.send({
         status: "OK",
         message: `Channel '${channel.login}' updated`,
@@ -233,6 +235,8 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         status: "OK",
         message: `Channel '${new_channel.login}' created`,
     });
+
+    new_channel.broadcastUpdate();
 
 }
 
@@ -402,6 +406,7 @@ export async function RefreshChannel(req: express.Request, res: express.Response
             status: "OK",
             message: `Refreshed channel: ${channel.login}`,
         });
+        channel.broadcastUpdate();
     } else {
         Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.refresh", `Failed to refresh channel: ${channel.login}`);
         res.status(400).send({

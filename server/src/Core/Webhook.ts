@@ -3,20 +3,7 @@ import chalk from "chalk";
 import { ClientBroker } from "./ClientBroker";
 import axios from "axios";
 import { LOGLEVEL, Log } from "./Log";
-import { ChapterUpdateData, EndCaptureData, Init, JobClear, JobSave, JobUpdate, StartDownloadData, VideoDownloadData, VodRemoved, VodUpdated, WebhookAction } from "../../../common/Webhook";
-
-export type WebhookData =
-    ChapterUpdateData |
-    StartDownloadData |
-    EndCaptureData |
-    VideoDownloadData |
-    JobSave |
-    JobClear |
-    JobUpdate |
-    VodRemoved |
-    VodUpdated |
-    Init
-    ;
+import { WebhookData, WebhookAction } from "../../../common/Webhook";
 
 export class Webhook {
 

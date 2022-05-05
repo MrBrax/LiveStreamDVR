@@ -126,7 +126,7 @@ export class Config {
         { "key": "schedule_deleted_vods", "group": "Schedules", "text": "Check deleted vods", "type": "boolean", "default": true },
 
         { "key": "create_video_chapters", "group": "Video", "text": "Create video chapters", "type": "boolean", "default": true },
-        { "key": "create_kodi_nfo", "group": "Video", "text": "Create kodi nfo", "type": "boolean", "default": false },
+        { "key": "create_kodi_nfo", "group": "Video", "text": "Create kodi nfo", "type": "boolean", "default": false, "help": "Requires server restart or channels reset." },
 
     ];
 
@@ -672,6 +672,7 @@ export class Config {
 
     static get debug(): boolean {
         if (argv.debug) return true;
+        if (!Config.getInstance().initialised) return false;
         return Config.getInstance().cfg("debug");
     }
 

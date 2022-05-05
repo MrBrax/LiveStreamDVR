@@ -26,6 +26,7 @@ export default defineConfig({
       '/saved_vods': 'http://localhost:8080',
       '/vods': 'http://localhost:8080',
       '/logs': 'http://localhost:8080',
+      '/cache': 'http://localhost:8080',
     },
   },
   test: {

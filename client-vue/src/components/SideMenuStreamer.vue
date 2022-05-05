@@ -17,7 +17,7 @@
             class="streamer-link"
         >
             <span class="avatar" @click.prevent="streamer && store.fetchAndUpdateStreamer(streamer.login)">
-                <img :src="streamer.profile_image_url" :alt="streamer.login" />
+                <img :src="avatarUrl" :alt="streamer.login" />
             </span>
             <span class="username">
                 {{ streamer.display_name }}
@@ -236,6 +236,11 @@ export default defineComponent({
             if (vodsToShow === 0) return [];
             // return last 4 vods
             return this.streamer.vods_list.slice(-vodsToShow);
+        },
+        avatarUrl() {
+            if (!this.streamer) return;
+            if (this.streamer.channel_data?.cache_avatar) return `${this.store.cfg("base_path", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
+            return this.streamer.profile_image_url;
         },
     }
 });

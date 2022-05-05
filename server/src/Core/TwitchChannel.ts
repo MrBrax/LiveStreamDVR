@@ -12,6 +12,7 @@ import type { ErrorResponse, EventSubTypes } from "../../../common/TwitchAPI/Sha
 import type { Stream, StreamsResponse } from "../../../common/TwitchAPI/Streams";
 import type { SubscriptionRequest, SubscriptionResponse } from "../../../common/TwitchAPI/Subscriptions";
 import type { BroadcasterType, UsersResponse } from "../../../common/TwitchAPI/Users";
+import { ChannelUpdated } from "../../../common/Webhook";
 import { AppRoot, BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
 import { Config } from "./Config";
 import { Helper } from "./Helper";
@@ -21,6 +22,7 @@ import { Log, LOGLEVEL } from "./Log";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
+import { Webhook } from "./Webhook";
 
 export class TwitchChannel {
 
@@ -88,6 +90,8 @@ export class TwitchChannel {
     public deactivated = false;
 
     public current_stream_number = 0;
+
+    private _updateTimer: NodeJS.Timeout | undefined;
 
     applyConfig(channel_config: ChannelConfig): void {
         this.quality = channel_config.quality !== undefined ? channel_config.quality : ["best"];
@@ -513,13 +517,6 @@ export class TwitchChannel {
 
         return false;
 
-        // try {
-        //     channel_data = TwitchChannel.getChannelDataById(this.userid);
-        // } catch (error) {
-        //     TwitchLog.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to get channel data for ${this.login}`);
-        //     return;
-        // }
-
     }
 
     public saveKodiNfo(): boolean {
@@ -529,11 +526,20 @@ export class TwitchChannel {
 
         const nfo_file = path.join(Helper.vodFolder(this.channel_data.login), "tvshow.nfo");
 
+        let avatar;
+        if (this.channel_data.cache_avatar && fs.existsSync(path.join(BaseConfigDataFolder.public_cache_avatars, this.channel_data.cache_avatar))) {
+            fs.copyFileSync(
+                path.join(BaseConfigDataFolder.public_cache_avatars, this.channel_data.cache_avatar),
+                path.join(Helper.vodFolder(this.channel_data.login), `poster${path.extname(this.channel_data.cache_avatar)}`)
+            );
+            avatar = `poster${path.extname(this.channel_data.cache_avatar)}`;
+        }
+
         let nfo_content = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n";
         nfo_content += "<tvshow>\n";
         nfo_content += `<title>${this.channel_data.display_name}</title>\n`;
         nfo_content += `<uniqueid type="twitch>${this.userid}</uniqueid>\n`;
-        nfo_content += `<thumb aspect="poster">${this.channel_data.profile_image_url}</thumb>\n`;
+        if (avatar) nfo_content += `<thumb aspect="poster">${avatar}</thumb>\n`;
         // nfo_content += `<thumb aspect="fanart">${this.channel_data.profile_banner_url}</thumb>\n`;
         nfo_content += `<episode>${this.vods_list.length}</episode>\n`;
         nfo_content += `<plot>${htmlentities(this.channel_data.description)}</plot>\n`;
@@ -561,6 +567,21 @@ export class TwitchChannel {
 
     public postLoad() {
         this.setupStreamNumber();
+    }
+
+    public broadcastUpdate() {
+        if (process.env.NODE_ENV === "test") return;
+        if (this._updateTimer) {
+            clearTimeout(this._updateTimer);
+            this._updateTimer = undefined;
+        }
+        this._updateTimer = setTimeout(async () => {
+            const channel = await this.toAPI();
+            Webhook.dispatch("channel_updated", {
+                channel: channel,
+            } as ChannelUpdated);
+            this._updateTimer = undefined;
+        }, 3000);
     }
 
     /**
@@ -999,6 +1020,29 @@ export class TwitchChannel {
         const userData = data as unknown as ChannelData;
 
         userData._updated = Date.now();
+
+        // download channel logo
+        if (userData.profile_image_url) {
+            const logo_filename = `${userData.id}${path.extname(userData.profile_image_url)}`;
+            const logo_path = path.join(BaseConfigDataFolder.public_cache_avatars, logo_filename);
+            if (fs.existsSync(logo_path)) {
+                fs.unlinkSync(logo_path);
+            }
+            let avatar_response;
+            try {
+                avatar_response = await axios({
+                    url: userData.profile_image_url,
+                    method: "GET",
+                    responseType: "stream",
+                });
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not download channel logo for ${userData.id}: ${(error as Error).message}`, error);                
+            }
+            if (avatar_response) {
+                avatar_response.data.pipe(fs.createWriteStream(logo_path));
+                userData.cache_avatar = logo_filename;
+            }
+        }
 
         // insert into memory and save to file
         console.debug(`Inserting channel data for ${method} ${identifier} into cache and file`);
