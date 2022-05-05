@@ -1,6 +1,9 @@
 <template>
     <form method="POST" enctype="multipart/form-data" action="#" @submit.prevent="submitForm" v-if="!loading && settingsFields && formData">
-        <details class="settings-details" v-for="groupData in settingsGroups" v-bind:key="groupData.name">
+        <div class="field">
+            <input class="input" type="text" v-model="searchText" placeholder="Search..." />
+        </div>
+        <details class="settings-details" v-for="groupData in settingsGroups" v-bind:key="groupData.name" :open="searchText !== ''">
             <summary>{{ groupData.name }}</summary>
             <div class="field" v-for="(data, index) in groupData.fields" v-bind:key="index">
                 <label v-if="data.type != 'boolean'" class="label" :for="'input_' + data.key">
@@ -125,6 +128,7 @@ export default defineComponent({
         formData: Record<string, string | number | boolean>;
         settingsFields: SettingField<string | number | boolean>[];
         loading: boolean;
+        searchText: string;
     } {
         return {
             formStatusText: "Ready",
@@ -132,6 +136,7 @@ export default defineComponent({
             formData: {},
             settingsFields: [],
             loading: false,
+            searchText: "",
         };
     },
     mounted(): void {
@@ -228,10 +233,26 @@ export default defineComponent({
             const groups: Record<string, SettingsGroup> = {};
             for (const field of this.settingsFields) {
                 if (!field.group) continue;
+                if (this.searchText) {
+                    if (
+                        !field.key.toLowerCase().includes(this.searchText.toLowerCase()) &&
+                        !field.help?.toLowerCase().includes(this.searchText.toLowerCase()) &&
+                        !field.text?.toLowerCase().includes(this.searchText.toLowerCase())
+                    ) continue;
+                }
                 if (!groups[field.group]) groups[field.group] = { name: field.group, fields: [] };
                 groups[field.group].fields.push(field);
             }
-            return Object.values(groups);
+           return Object.values(groups).filter((group) => group.fields.length > 0);
+
+           /*
+           return Object.values(groups).filter((group) => {
+                if (!this.searchText) return true;
+                return group.fields.some((field) => {
+                    return field.key.toLowerCase().includes(this.searchText.toLowerCase());
+                });
+            });
+            */
         },
         /*
         settingsGroups(): Record<string, ApiSettingsField[]> {
