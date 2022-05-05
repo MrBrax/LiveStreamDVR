@@ -1093,6 +1093,12 @@ export class TwitchVOD {
             Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to save vtt chapters for ${this.basename}: ${error}`);
         }
 
+        try {
+            this.saveKodiNfo();
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to save kodi nfo for ${this.basename}: ${error}`);
+        }
+
         // match stored vod to online vod
         await this.matchProviderVod();
 
