@@ -168,6 +168,9 @@ export default defineComponent({
         const store = useStore();
         return { videoDownloadMenu, store, vodItem };
     },
+    mounted() {
+        this.toggleAllVodsExpanded = this.areMostVodsExpanded;
+    },
     methods: {
         refresh() {
             this.$emit("refresh");
@@ -386,8 +389,14 @@ export default defineComponent({
         },
         avatarUrl() {
             if (!this.streamer) return;
-            if (this.streamer.channel_data?.cache_avatar) return `${this.store.cfg("base_path", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
+            if (this.streamer.channel_data?.cache_avatar) return `${this.store.cfg("basepath", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
             return this.streamer.profile_image_url;
+        },
+        areMostVodsExpanded(): boolean {
+            if (!this.streamer) return false;
+            const vods = this.vodItem as unknown as typeof VodItem[];
+            if (!vods) return false;
+            return vods.filter((vod) => vod.minimized === false).length >= this.streamer.vods_list.length / 2;
         }
     },
     components: {

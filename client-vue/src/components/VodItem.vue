@@ -304,14 +304,9 @@
                     </router-link>
 
                     <!-- Player -->
-                    <a v-if="vod.is_chat_downloaded && vod.video_metadata && vod.video_metadata.type !== 'audio'" class="button is-blue" :href="playerLink(0, true)" target="_blank">
+                    <a v-if="vod.is_chat_downloaded || vod.is_chatdump_captured" class="button is-blue" target="_blank" @click="playerMenu ? (playerMenu.show = true) : ''">
                         <span class="icon"><fa icon="play" type="fa"></fa></span>
-                        Player (chat dl)
-                    </a>
-
-                    <a v-if="vod.is_chatdump_captured && vod.video_metadata && vod.video_metadata.type !== 'audio'" class="button is-blue" :href="playerLink()" target="_blank">
-                        <span class="icon"><fa icon="play" type="fa"></fa></span>
-                        Player (chat dump)
+                        Player
                     </a>
 
                     <!-- JSON -->
@@ -339,13 +334,15 @@
                     </a>
 
                     <template v-if="vod?.twitch_vod_id">
-                        <a v-if="!vod?.is_vod_downloaded" class="button" @click="doDownloadVod">
+                        <!-- Download VOD -->
+                        <a v-if="!vod?.is_vod_downloaded" class="button" @click="vodDownloadMenu ? (vodDownloadMenu.show = true) : ''">
                             <span class="icon">
                                 <fa icon="download" type="fa" v-if="!taskStatus.downloadVod"></fa>
                                 <fa icon="sync" type="fa" spin v-else></fa>
                             </span>
                             Download{{ vod?.twitch_vod_muted === MuteStatus.MUTED ? " muted" : "" }} VOD
                         </a>
+                        <!-- Check mute -->
                         <a v-if="showAdvanced" class="button" @click="doCheckMute">
                             <span class="icon">
                                 <fa icon="volume-mute" type="fa" v-if="!taskStatus.vodMuteCheck"></fa>
@@ -818,8 +815,66 @@
         </div>
     </modal-box>
     <modal-box ref="chatDownloadMenu" title="Chat download">
-        <!--<button class="button" @click="doDownloadChat('tcd')">Download with TCD</button> -->
-        <button class="button" @click="doDownloadChat('td')">Download with TwitchDownloader</button>
+        <div class="is-centered">
+            <div class="field">
+                <button class="button" @click="doDownloadChat('tcd')">
+                    <fa icon="download" />
+                    Download with TCD
+                </button>
+            </div>
+            <div class="field">
+                <button class="button" @click="doDownloadChat('td')">
+                    <fa icon="download" />
+                    Download with TwitchDownloader
+                </button>
+            </div>
+        </div>
+    </modal-box>
+    <modal-box ref="vodDownloadMenu" title="VOD download">
+        <div class="is-centered">
+            <div class="field">
+                <select class="input" v-model="vodDownloadSettings.quality">
+                    <option v-for="quality in VideoQualityArray" :key="quality" :value="quality">{{ quality }}</option>
+                </select>
+            </div>
+            <div class="field">
+                <button class="button" @click="doDownloadVod">
+                    <fa icon="download" />
+                    Download
+                </button>
+            </div>
+        </div>
+    </modal-box>
+    <modal-box ref="playerMenu" title="Player">
+        <div class="columns">
+            <div class="column">
+                <h3>VOD source</h3>
+                <label>
+                    <input type="radio" v-model="playerSettings.vodSource" value="captured" /> Captured
+                </label>
+                <br />
+                <label>
+                    <input type="radio" v-model="playerSettings.vodSource" value="downloaded" :disabled="!vod?.is_vod_downloaded" /> Downloaded
+                </label>
+            </div>
+            <div class="column">
+                <h3>Chat source</h3>
+                <label>
+                    <input type="radio" v-model="playerSettings.chatSource" value="captured" /> Captured
+                </label>
+                <br />
+                <label>
+                    <input type="radio" v-model="playerSettings.chatSource" value="downloaded" :disabled="!vod?.is_chat_downloaded" /> Downloaded
+                </label>
+            </div>
+        </div>
+        <br />
+        <div class="field">
+            <button class="button" @click="openPlayer">
+                <fa icon="play" />
+                Play
+            </button>
+        </div>
     </modal-box>
 </template>
 
@@ -882,7 +937,9 @@ export default defineComponent({
         const store = useStore();
         const burnMenu = ref<InstanceType<typeof ModalBox>>();
         const chatDownloadMenu = ref<InstanceType<typeof ModalBox>>();
-        return { store, burnMenu, chatDownloadMenu, MuteStatus };
+        const vodDownloadMenu = ref<InstanceType<typeof ModalBox>>();
+        const playerMenu = ref<InstanceType<typeof ModalBox>>();
+        return { store, burnMenu, chatDownloadMenu, vodDownloadMenu, playerMenu, MuteStatus, VideoQualityArray };
     },
     data() {
         return {
@@ -917,6 +974,13 @@ export default defineComponent({
             chatDownloadMethod: "tcd",
             showAdvanced: false,
             minimized: this.getDefaultMinimized(),
+            vodDownloadSettings: {
+                quality: "best",
+            },
+            playerSettings: {
+                vodSource: "captured",
+                chatSource: "captured",
+            },
         };
     },
     mounted() {
@@ -977,16 +1041,14 @@ export default defineComponent({
         //     alert(`RenderChat not implemented: ${useVod}`);
         // },
         doDownloadVod() {
-            const quality = prompt(`What quality do you want to download "${this.vod?.basename}" in?\nValid options are: ${VideoQualityArray.join(" ")}`);
-            if (!quality) return;
-            if (!VideoQualityArray.includes(quality)) {
-                alert(`Invalid quality: ${quality}`);
+            if (!VideoQualityArray.includes(this.vodDownloadSettings.quality)) {
+                alert(`Invalid quality: ${this.vodDownloadSettings.quality}`);
                 return;
             }
 
             this.taskStatus.downloadVod = true;
             this.$http
-                .post(`/api/v0/vod/${this.vod?.basename}/download?quality=${quality}`)
+                .post(`/api/v0/vod/${this.vod?.basename}/download?quality=${this.vodDownloadSettings.quality}`)
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
@@ -1158,7 +1220,26 @@ export default defineComponent({
                 return !this.vod?.is_capturing;
             }
             return false;
-        }
+        },
+        openPlayer() {
+            let url = `${this.store.cfg("basepath")}/vodplayer/index.html#&`;
+            url += "source=file_http";
+            if (this.playerSettings.vodSource == "captured"){
+                url += `&video_path=${this.vod?.webpath}/${this.vod?.basename}.mp4`;
+            } else {
+                url += `&video_path=${this.vod?.webpath}/${this.vod?.basename}_vod.mp4`;
+            }
+
+            if (this.playerSettings.chatSource == "captured"){
+                url += `&chatfile=${this.vod?.webpath}/${this.vod?.basename}.chatdump`;
+            } else {
+                url += `&chatfile=${this.vod?.webpath}/${this.vod?.basename}_chat.json`;
+            }
+
+            // url.searchParams.set("offset", this.playerSettings.offset.toString());
+            window.open(url.toString(), "_blank");
+
+        },
     },
     computed: {
         compDownloadChat(): boolean {

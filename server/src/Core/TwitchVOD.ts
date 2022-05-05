@@ -1093,6 +1093,12 @@ export class TwitchVOD {
             Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to save vtt chapters for ${this.basename}: ${error}`);
         }
 
+        try {
+            this.saveKodiNfo();
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to save kodi nfo for ${this.basename}: ${error}`);
+        }
+
         // match stored vod to online vod
         await this.matchProviderVod();
 
@@ -1259,6 +1265,8 @@ export class TwitchVOD {
         const meta = new FFmpegMetadata()
             .setArtist(this.streamer_name)
             .setTitle(this.twitch_vod_title ?? this.chapters[0].title);
+
+        if (this.started_at) meta.setDate(this.started_at);
 
         this.chapters.forEach((chapter) => {
             const offset = chapter.offset || 0;
@@ -2626,6 +2634,18 @@ export class TwitchVOD {
         return converted_filename;
     }
 
+    public static getClipId(clip_url: string): string | false {
+        const id_match1 = clip_url.match(/\/clip\/([0-9a-zA-Z_-]+)/);
+        const id_match2 = clip_url.match(/clip=([0-9a-zA-Z_-]+)/);
+        const id_match3 = clip_url.match(/clips\.twitch\.tv\/([0-9a-zA-Z_-]+)/);
+        const id_match4 = clip_url.match(/clips\.twitch\.tv\/embed\/([0-9a-zA-Z_-]+)/);
+        if (id_match1) return id_match1[1];
+        if (id_match2) return id_match2[1];
+        if (id_match3) return id_match3[1];
+        if (id_match4) return id_match4[1];
+        return false;
+    }
+
     public static async downloadClip(clip_id: string, filename: string, quality: VideoQuality = "best"): Promise<string> {
 
         Log.logAdvanced(LOGLEVEL.INFO, "channel", `Download clip ${clip_id}`);
@@ -2696,9 +2716,17 @@ export class TwitchVOD {
 
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Starting remux of ${basename}`);
 
+            const metadata = new FFmpegMetadata()
+                .setAlbumArtist(clip.creator_name)
+                .setArtist(clip.broadcaster_name)
+                .setTitle(clip.title)
+                .setComment(`Clipped by ${clip.creator_name}.\nSource: ${clip.url}\nClip ID: ${clip.id}`)
+                .setDate(parseJSON(clip.created_at))
+                .writeToFile(path.join(BaseConfigDataFolder.cache, `${clip_id}.ffmpeg.txt`));            
+
             let ret;
             try {
-                ret = await Helper.remuxFile(capture_filename, converted_filename);
+                ret = await Helper.remuxFile(capture_filename, converted_filename, undefined, metadata);
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to remux ${basename}: ${(error as Error).message}`);
                 throw new Error(`Failed to remux ${basename}: ${(error as Error).message}`);
