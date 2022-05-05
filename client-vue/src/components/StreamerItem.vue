@@ -1,7 +1,7 @@
 <template>
     <div class="streamer-box" v-if="streamer" :id="'streamer_' + streamer.login">
         <div :class="{ 'streamer-title': true, 'is-live': streamer.is_live }">
-            <div class="streamer-title-avatar" :style="'background-image: url(' + streamer.profile_image_url + ')'"></div>
+            <div class="streamer-title-avatar" :style="'background-image: url(' + avatarUrl + ')'"></div>
             <div class="streamer-title-text">
                 <h2>
                     <a :href="'https://twitch.tv/' + streamer.login" rel="noreferrer" target="_blank">
@@ -383,6 +383,11 @@ export default defineComponent({
         canAbortCapture(): boolean {
             if (!this.streamer) return false;
             return this.streamer.is_live && this.store.jobList.some((job) => this.streamer && job.name.startsWith(`capture_${this.streamer.login}`));
+        },
+        avatarUrl() {
+            if (!this.streamer) return;
+            if (this.streamer.channel_data?.cache_avatar) return `${this.store.cfg("base_path", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
+            return this.streamer.profile_image_url;
         }
     },
     components: {

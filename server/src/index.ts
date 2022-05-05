@@ -82,6 +82,7 @@ Config.init().then(() => {
     baserouter.use("/vods", express.static(BaseConfigDataFolder.vod));
     baserouter.use("/saved_vods", express.static(BaseConfigDataFolder.saved_vods));
     baserouter.use("/saved_clips", express.static(BaseConfigDataFolder.saved_clips));
+    baserouter.use("/cache", express.static(BaseConfigDataFolder.public_cache));
     if (process.env.TCD_EXPOSE_LOGS_TO_PUBLIC == "1") {
         baserouter.use("/logs", express.static(BaseConfigDataFolder.logs));
     }

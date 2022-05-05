@@ -1,4 +1,4 @@
-import { ApiJob, ApiVod, ApiVodChapter } from "./Api/Client";
+import { ApiChannel, ApiJob, ApiVod, ApiVodChapter } from "./Api/Client";
 
 export type WebhookAction =
     "chapter_update" |
@@ -14,6 +14,7 @@ export type WebhookAction =
     "video_download" |
     "vod_removed" |
     "vod_updated" |
+    "channel_updated" |
     "init" |
     "notify" |
     "connected" |
@@ -30,6 +31,7 @@ export type WebhookData =
     JobUpdate |
     VodRemoved |
     VodUpdated |
+    ChannelUpdated |
     Init
     ;
 
@@ -58,6 +60,10 @@ export interface VodRemoved {
 
 export interface VodUpdated {
     vod: ApiVod;
+}
+
+export interface ChannelUpdated {
+    channel: ApiChannel;
 }
 
 export interface Init {

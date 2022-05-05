@@ -1,5 +1,4 @@
 import path from "path";
-import fs from "fs";
 import minimist from "minimist";
 import os from "os";
 
@@ -57,6 +56,8 @@ export const BaseConfigDataFolder = {
     vod: path.join(DataRoot, "storage", "vods"),
     saved_vods: path.join(DataRoot, "storage", "saved_vods"),
     saved_clips: path.join(DataRoot, "storage", "saved_clips"),
+    public_cache: path.join(DataRoot, "cache", "public"),
+    public_cache_avatars: path.join(DataRoot, "cache", "public", "avatars"),
 };
 
 export const BaseConfigPath = {

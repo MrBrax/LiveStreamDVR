@@ -180,9 +180,26 @@ export const useStore = defineStore("twitchAutomator", {
 
             const streamer = TwitchChannel.makeFromApiResponse(streamer_data);
 
-            this.streamerList[index] = streamer;
+            this.updateStreamer(streamer);
             console.debug("updated streamer", streamer);
             return true;
+        },
+        updateStreamer(streamer: TwitchChannel): boolean {
+            const index = this.streamerList.findIndex((s) => s.login === streamer.login);
+
+            console.debug("updateStreamer", streamer.login, index);
+
+            if (index === -1) {
+                this.streamerList.push(streamer);
+            } else {
+                this.streamerList[index] = streamer;
+            }
+
+            return true;
+        },
+        updateStreamerFromData(streamer_data: ApiChannel): boolean {
+            const streamer = TwitchChannel.makeFromApiResponse(streamer_data);
+            return this.updateStreamer(streamer);
         },
         updateStreamerList(data: ApiChannel[]): void {
             // console.debug("updateStreamerList", data);

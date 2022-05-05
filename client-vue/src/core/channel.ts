@@ -1,4 +1,5 @@
 import { ApiChannel } from "@common/Api/Client";
+import { ChannelData } from "@common/Channel";
 import { VideoQuality } from "@common/Config";
 import { BroadcasterType } from "@common/TwitchAPI/Users";
 import { TwitchVODChapter } from "./chapter";
@@ -23,6 +24,8 @@ export default class TwitchChannel {
 
     api_getSubscriptionStatus = false;
 
+    channel_data: ChannelData | undefined;
+
     public static makeFromApiResponse(apiResponse: ApiChannel): TwitchChannel {
         const channel = new TwitchChannel();
         channel.userid = apiResponse.userid;
@@ -37,6 +40,7 @@ export default class TwitchChannel {
         channel.clips_list = apiResponse.clips_list;
         channel.broadcaster_type = apiResponse.broadcaster_type;
         channel.no_capture = apiResponse.no_capture;
+        channel.channel_data = apiResponse.channel_data;
         return channel;
     }
 
