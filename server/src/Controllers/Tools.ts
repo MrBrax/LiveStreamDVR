@@ -7,6 +7,7 @@ import { TwitchVOD } from "../Core/TwitchVOD";
 import { ApiErrorResponse } from "../../../common/Api/Api";
 import { TwitchChannel } from "../Core/TwitchChannel";
 import sanitize from "sanitize-filename";
+import { format, parseJSON } from "date-fns";
 
 export async function ResetChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -220,23 +221,12 @@ export async function DownloadClip(req: express.Request, res: express.Response):
         return;
     }
 
-    const id_match1 = url.match(/\/clip\/([0-9a-zA-Z_-]+)/);
-    const id_match2 = url.match(/clip=([0-9a-zA-Z_-]+)/);
-
-    if (!id_match1 && !id_match2) {
-        res.status(400).send({
-            status: "ERROR",
-            message: "No id found in url",
-        });
-        return;
-    }
-
-    const id = id_match1 ? id_match1[1] : (id_match2 ? id_match2[1] : "");
+    const id = TwitchVOD.getClipId(url);
 
     if (!id) {
         res.status(400).send({
             status: "ERROR",
-            message: "No id found in url (2)",
+            message: "No id found in url",
         });
         return;
     }
@@ -253,7 +243,9 @@ export async function DownloadClip(req: express.Request, res: express.Response):
 
     const metadata = clips[0];
 
-    const basename = sanitize(`${metadata.broadcaster_name}.${metadata.title}.${metadata.id}.${quality}.mp4`); // new filename?
+    const clip_date = parseJSON(metadata.created_at);
+
+    const basename = sanitize(`[${format(clip_date, "yyyy-MM-dd")}] ${metadata.broadcaster_name} - ${metadata.title} [${metadata.id}] [${quality}].mp4`); // new filename? sanitize(`${metadata.broadcaster_name}.${metadata.title}.${metadata.id}.${quality}.mp4`);
     const file_path = path.join(BaseConfigDataFolder.saved_clips, basename);
 
     let success;

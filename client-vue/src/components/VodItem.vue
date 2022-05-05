@@ -339,13 +339,15 @@
                     </a>
 
                     <template v-if="vod?.twitch_vod_id">
-                        <a v-if="!vod?.is_vod_downloaded" class="button" @click="doDownloadVod">
+                        <!-- Download VOD -->
+                        <a v-if="!vod?.is_vod_downloaded" class="button" @click="vodDownloadMenu ? (vodDownloadMenu.show = true) : ''">
                             <span class="icon">
                                 <fa icon="download" type="fa" v-if="!taskStatus.downloadVod"></fa>
                                 <fa icon="sync" type="fa" spin v-else></fa>
                             </span>
                             Download{{ vod?.twitch_vod_muted === MuteStatus.MUTED ? " muted" : "" }} VOD
                         </a>
+                        <!-- Check mute -->
                         <a v-if="showAdvanced" class="button" @click="doCheckMute">
                             <span class="icon">
                                 <fa icon="volume-mute" type="fa" v-if="!taskStatus.vodMuteCheck"></fa>
@@ -818,8 +820,35 @@
         </div>
     </modal-box>
     <modal-box ref="chatDownloadMenu" title="Chat download">
-        <!--<button class="button" @click="doDownloadChat('tcd')">Download with TCD</button> -->
-        <button class="button" @click="doDownloadChat('td')">Download with TwitchDownloader</button>
+        <div class="is-centered">
+            <div class="field">
+                <button class="button" @click="doDownloadChat('tcd')">
+                    <fa icon="download" />
+                    Download with TCD
+                </button>
+            </div>
+            <div class="field">
+                <button class="button" @click="doDownloadChat('td')">
+                    <fa icon="download" />
+                    Download with TwitchDownloader
+                </button>
+            </div>
+        </div>
+    </modal-box>
+    <modal-box ref="vodDownloadMenu" title="VOD download">
+        <div class="is-centered">
+            <div class="field">
+                <select class="input" v-model="vodDownloadSettings.quality">
+                    <option v-for="quality in VideoQualityArray" :key="quality" :value="quality">{{ quality }}</option>
+                </select>
+            </div>
+            <div class="field">
+                <button class="button" @click="doDownloadVod">
+                    <fa icon="download" />
+                    Download
+                </button>
+            </div>
+        </div>
     </modal-box>
 </template>
 
@@ -882,7 +911,8 @@ export default defineComponent({
         const store = useStore();
         const burnMenu = ref<InstanceType<typeof ModalBox>>();
         const chatDownloadMenu = ref<InstanceType<typeof ModalBox>>();
-        return { store, burnMenu, chatDownloadMenu, MuteStatus };
+        const vodDownloadMenu = ref<InstanceType<typeof ModalBox>>();
+        return { store, burnMenu, chatDownloadMenu, vodDownloadMenu, MuteStatus, VideoQualityArray };
     },
     data() {
         return {
@@ -917,6 +947,9 @@ export default defineComponent({
             chatDownloadMethod: "tcd",
             showAdvanced: false,
             minimized: this.getDefaultMinimized(),
+            vodDownloadSettings: {
+                quality: "best",
+            },
         };
     },
     mounted() {
@@ -977,16 +1010,14 @@ export default defineComponent({
         //     alert(`RenderChat not implemented: ${useVod}`);
         // },
         doDownloadVod() {
-            const quality = prompt(`What quality do you want to download "${this.vod?.basename}" in?\nValid options are: ${VideoQualityArray.join(" ")}`);
-            if (!quality) return;
-            if (!VideoQualityArray.includes(quality)) {
-                alert(`Invalid quality: ${quality}`);
+            if (!VideoQualityArray.includes(this.vodDownloadSettings.quality)) {
+                alert(`Invalid quality: ${this.vodDownloadSettings.quality}`);
                 return;
             }
 
             this.taskStatus.downloadVod = true;
             this.$http
-                .post(`/api/v0/vod/${this.vod?.basename}/download?quality=${quality}`)
+                .post(`/api/v0/vod/${this.vod?.basename}/download?quality=${this.vodDownloadSettings.quality}`)
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
