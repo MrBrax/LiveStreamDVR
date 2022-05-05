@@ -304,14 +304,9 @@
                     </router-link>
 
                     <!-- Player -->
-                    <a v-if="vod.is_chat_downloaded && vod.video_metadata && vod.video_metadata.type !== 'audio'" class="button is-blue" :href="playerLink(0, true)" target="_blank">
+                    <a v-if="vod.is_chat_downloaded || vod.is_chatdump_captured" class="button is-blue" target="_blank" @click="playerMenu ? (playerMenu.show = true) : ''">
                         <span class="icon"><fa icon="play" type="fa"></fa></span>
-                        Player (chat dl)
-                    </a>
-
-                    <a v-if="vod.is_chatdump_captured && vod.video_metadata && vod.video_metadata.type !== 'audio'" class="button is-blue" :href="playerLink()" target="_blank">
-                        <span class="icon"><fa icon="play" type="fa"></fa></span>
-                        Player (chat dump)
+                        Player
                     </a>
 
                     <!-- JSON -->
@@ -850,6 +845,37 @@
             </div>
         </div>
     </modal-box>
+    <modal-box ref="playerMenu" title="Player">
+        <div class="columns">
+            <div class="column">
+                <h3>VOD source</h3>
+                <label>
+                    <input type="radio" v-model="playerSettings.vodSource" value="captured" /> Captured
+                </label>
+                <br />
+                <label>
+                    <input type="radio" v-model="playerSettings.vodSource" value="downloaded" :disabled="!vod?.is_vod_downloaded" /> Downloaded
+                </label>
+            </div>
+            <div class="column">
+                <h3>Chat source</h3>
+                <label>
+                    <input type="radio" v-model="playerSettings.chatSource" value="captured" /> Captured
+                </label>
+                <br />
+                <label>
+                    <input type="radio" v-model="playerSettings.chatSource" value="downloaded" :disabled="!vod?.is_chat_downloaded" /> Downloaded
+                </label>
+            </div>
+        </div>
+        <br />
+        <div class="field">
+            <button class="button" @click="openPlayer">
+                <fa icon="play" />
+                Play
+            </button>
+        </div>
+    </modal-box>
 </template>
 
 <script lang="ts">
@@ -912,7 +938,8 @@ export default defineComponent({
         const burnMenu = ref<InstanceType<typeof ModalBox>>();
         const chatDownloadMenu = ref<InstanceType<typeof ModalBox>>();
         const vodDownloadMenu = ref<InstanceType<typeof ModalBox>>();
-        return { store, burnMenu, chatDownloadMenu, vodDownloadMenu, MuteStatus, VideoQualityArray };
+        const playerMenu = ref<InstanceType<typeof ModalBox>>();
+        return { store, burnMenu, chatDownloadMenu, vodDownloadMenu, playerMenu, MuteStatus, VideoQualityArray };
     },
     data() {
         return {
@@ -949,6 +976,10 @@ export default defineComponent({
             minimized: this.getDefaultMinimized(),
             vodDownloadSettings: {
                 quality: "best",
+            },
+            playerSettings: {
+                vodSource: "captured",
+                chatSource: "captured",
             },
         };
     },
@@ -1189,7 +1220,27 @@ export default defineComponent({
                 return !this.vod?.is_capturing;
             }
             return false;
-        }
+        },
+        openPlayer() {
+            const url = new URL(window.location.href);
+            url.pathname = `${this.store.cfg("basepath")}/vodplayer/index.html`;
+            url.searchParams.set("source", "file_http");
+            if (this.playerSettings.vodSource == "captured"){
+                url.searchParams.set("video_path", `${this.vod?.webpath}/${this.vod?.basename}.mp4`);
+            } else {
+                url.searchParams.set("video_path", `${this.vod?.webpath}/${this.vod?.basename}_vod.mp4`);
+            }
+
+            if (this.playerSettings.chatSource == "captured"){
+                url.searchParams.set("chatfile", `${this.vod?.webpath}/${this.vod?.basename}.chatdump`);
+            } else {
+                url.searchParams.set("chatfile", `${this.vod?.webpath}/${this.vod?.basename}_chat.json`);
+            }
+
+            // url.searchParams.set("offset", this.playerSettings.offset.toString());
+            window.open(url.toString().replace("?", "#"), "_blank");
+
+        },
     },
     computed: {
         compDownloadChat(): boolean {

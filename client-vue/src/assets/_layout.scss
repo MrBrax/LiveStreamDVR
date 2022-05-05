@@ -52,6 +52,17 @@ hr {
     }
 }
 
+.columns {
+    display: flex;
+    gap: 1em;
+    &.is-multiline {
+        flex-wrap: wrap;
+    }
+    .column {
+        flex-grow: 1;
+    }
+}
+
 .block {
     padding-bottom: 1rem;
 }

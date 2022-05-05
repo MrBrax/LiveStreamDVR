@@ -27,6 +27,7 @@ export default defineConfig({
       '/vods': 'http://localhost:8080',
       '/logs': 'http://localhost:8080',
       '/cache': 'http://localhost:8080',
+      '/vodplayer': 'http://localhost:8080',
     },
   },
   test: {

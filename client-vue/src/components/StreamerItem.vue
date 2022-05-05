@@ -389,7 +389,7 @@ export default defineComponent({
         },
         avatarUrl() {
             if (!this.streamer) return;
-            if (this.streamer.channel_data?.cache_avatar) return `${this.store.cfg("base_path", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
+            if (this.streamer.channel_data?.cache_avatar) return `${this.store.cfg("basepath", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
             return this.streamer.profile_image_url;
         },
         areMostVodsExpanded(): boolean {
