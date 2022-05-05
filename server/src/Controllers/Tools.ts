@@ -8,6 +8,7 @@ import { ApiErrorResponse } from "../../../common/Api/Api";
 import { TwitchChannel } from "../Core/TwitchChannel";
 import sanitize from "sanitize-filename";
 import { format, parseJSON } from "date-fns";
+import { formatString } from "../../../common/Format";
 
 export async function ResetChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -119,7 +120,7 @@ export async function DownloadChat(req: express.Request, res: express.Response):
     const id = id_match[1];
 
     let metadata;
-    
+
     try {
         metadata = await TwitchVOD.getVideo(id);
     } catch (error) {
@@ -245,7 +246,17 @@ export async function DownloadClip(req: express.Request, res: express.Response):
 
     const clip_date = parseJSON(metadata.created_at);
 
-    const basename = sanitize(`[${format(clip_date, "yyyy-MM-dd")}] ${metadata.broadcaster_name} - ${metadata.title} [${metadata.id}] [${quality}].mp4`); // new filename? sanitize(`${metadata.broadcaster_name}.${metadata.title}.${metadata.id}.${quality}.mp4`);
+    const variables = {
+        id: metadata.id,
+        quality: quality,
+        clip_date: format(clip_date, "yyyy-MM-dd"),
+        title: metadata.title,
+        creator: metadata.creator_name,
+        broadcaster: metadata.broadcaster_name,
+    };
+
+    const basename = sanitize(formatString(Config.getInstance().cfg("filename_clip", "{broadcaster} - {title} [{id}] [{quality}]"), variables) + ".mp4");
+    // const basename = sanitize(`[${format(clip_date, "yyyy-MM-dd")}] ${metadata.broadcaster_name} - ${metadata.title} [${metadata.id}] [${quality}].mp4`); // new filename? sanitize(`${metadata.broadcaster_name}.${metadata.title}.${metadata.id}.${quality}.mp4`);
     const file_path = path.join(BaseConfigDataFolder.saved_clips, basename);
 
     let success;

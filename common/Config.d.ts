@@ -7,7 +7,7 @@ export interface SettingField<T> {
     /**
      * Value type
      */
-    type: "string" | "number" | "boolean" | "array";
+    type: "string" | "number" | "boolean" | "array" | "template";
     // type: T;
 
     /** Default value */
@@ -33,6 +33,11 @@ export interface SettingField<T> {
     pattern?: string;
 
     restart_required?: boolean;
+
+    replacements?: Record<string, {
+        display: string;
+    }>;
+    context?: string;
 
 }
 

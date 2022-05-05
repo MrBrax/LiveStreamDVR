@@ -58,6 +58,18 @@
                         </option>
                     </select>
                 </div>
+
+                <!-- template -->
+                <div v-if="data.type == 'template'" class="control">
+                    <input class="input" type="text" :name="data.key" v-model="formData[data.key]" />
+                    <ul class="template-replacements">
+                        <li v-for="(item, ix) in data.replacements" :key="ix">
+                            &lbrace;{{ ix }}&rbrace;
+                        </li>
+                    </ul>
+                    <p class="template-preview">{{ templatePreview(data, formData[data.key]) }}</p>
+                </div>
+
                 <p v-if="data.help" class="input-help">{{ data.help }}</p>
                 <p v-if="data.default" class="input-help">Default: {{ data.default }}</p>
             </div>
@@ -89,6 +101,7 @@ import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import { SettingField } from "@common/Config";
 import { AxiosError } from "axios";
 import { defineComponent, PropType } from "vue";
+import { formatString } from "@common/Format";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGlobe } from "@fortawesome/free-solid-svg-icons";
@@ -197,6 +210,16 @@ export default defineComponent({
                         alert("Fatal error");
                     }
                 });
+        },
+        templatePreview(data: SettingField<any>, template: string): string {
+            console.debug("templatePreview", data, template);
+            if (!data.replacements) return "";
+            const replaced_string = formatString(template, Object.fromEntries(Object.entries(data.replacements).map(([key, value]) => [key, value.display])));
+            if (data.context) {
+                return data.context.replace("{template}", replaced_string);
+            } else {
+                return replaced_string;
+            }
         },
     },
     computed: {
