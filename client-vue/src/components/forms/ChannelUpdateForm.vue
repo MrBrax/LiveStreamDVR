@@ -39,6 +39,7 @@
                     <input class="input" type="checkbox" name="live_chat" v-model="formData.live_chat" />
                     Live chat download
                 </label>
+                <p class="input-help">Requires Node binary path to be set in the settings</p>
             </div>
 
             <div class="field">
@@ -46,6 +47,7 @@
                     <input class="input" type="checkbox" name="burn_chat" v-model="formData.burn_chat" />
                     Burn chat after downloading
                 </label>
+                <p class="input-help">Currently disabled</p>
             </div>
 
             <div class="field">
