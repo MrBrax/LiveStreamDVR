@@ -26,11 +26,8 @@
             <span class="vodcount" :data-count="streamer.vods_list.length">{{ streamer.vods_list.length }}</span>
             <span class="subtitle">
                 <template v-if="streamer.is_live">
-                    <template v-if="streamer.current_game && nonGameCategories.includes(streamer.current_game.name)">
-                        Streaming <strong>{{ streamer.current_game.name }}</strong>
-                    </template>
-                    <template v-else-if="streamer.current_game && streamer.current_game.name != ''">
-                        Playing
+                    <template v-if="streamer.current_game && streamer.current_game.name != ''">
+                        {{ gameVerb }}
                         <strong>{{ streamer.current_game.name }}</strong>
                     </template>
                     <template v-else>Streaming</template>
@@ -242,6 +239,13 @@ export default defineComponent({
             if (this.streamer.channel_data?.cache_avatar) return `${this.store.cfg("basepath", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
             return this.streamer.profile_image_url;
         },
+        gameVerb(): string {
+            if (!this.streamer) return "";
+            if (!this.streamer.current_game) return "";
+            if (nonGameCategories.includes(this.streamer.current_game.name)) return "Streaming";
+            if (this.streamer.current_game.name === "Among Us") return "Sussing"; // lol
+            return "Playing";
+        }
     }
 });
 </script>

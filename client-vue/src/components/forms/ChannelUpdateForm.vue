@@ -15,6 +15,7 @@
                         @blur="validateQuality"
                     />
                     <p class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</p>
+                    <p class="input-help"><strong>If the stream does not use any of these, it will not be recorded.</strong></p>
                     <p class="input-help">Valid choices: {{ VideoQualityArray.join(", ") }}</p>
                 </div>
             </div>

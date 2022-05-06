@@ -835,6 +835,9 @@ export class Automator {
             // The size of the thread pool used to download HLS segments.
             cmd.push("--hls-segment-threads", "5");
 
+            // Output container format
+            cmd.push("--ffmpeg-fout", "mpegts"); // default is apparently matroska?
+
             // disable channel hosting
             cmd.push("--twitch-disable-hosting");
 
@@ -1054,6 +1057,10 @@ export class Automator {
 
                 if (data.includes("Closing currently open stream...")) {
                     Log.logAdvanced(LOGLEVEL.INFO, "automator", `Closing currently open stream for ${basename}!`);
+                }
+
+                if (data.includes("error: The specified stream(s)")) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Capturing of ${basename} failed, selected quality not available!`);
                 }
 
             };
