@@ -2335,14 +2335,17 @@ export class TwitchVOD {
         let json: TwitchVODJSON = JSON.parse(data);
 
         if (!("version" in json) || json.version < 2) {
-            // throw new Error(`Invalid VOD JSON version: ${filename}`);
-            Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Invalid VOD JSON version: ${filename}, trying to migrate...`);
-            const { newJson, newBasename } = TwitchVOD.migrateOldJSON(json, path.dirname(filename), path.basename(filename));
-            json = newJson;
-            if (path.basename(filename) != newBasename) {
-                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `New basename for ${filename}: ${newBasename}`);
-                fs.renameSync(filename, path.join(path.dirname(filename), newBasename));
-                filename = path.join(path.dirname(filename), newBasename);
+            if (process.env.TCD_MIGRATE_OLD_VOD_JSON == "1") {
+                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Invalid VOD JSON version: ${filename}, trying to migrate...`);
+                const { newJson, newBasename } = TwitchVOD.migrateOldJSON(json, path.dirname(filename), path.basename(filename));
+                json = newJson;
+                if (path.basename(filename) != newBasename) {
+                    Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `New basename for ${filename}: ${newBasename}`);
+                    fs.renameSync(filename, path.join(path.dirname(filename), newBasename));
+                    filename = path.join(path.dirname(filename), newBasename);
+                }
+            } else {
+                throw new Error(`Invalid VOD JSON version for ${filename}, set TCD_MIGRATE_OLD_VOD_JSON to 1 to migrate on load.`);
             }
         }
 
