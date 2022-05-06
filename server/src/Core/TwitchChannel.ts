@@ -134,7 +134,7 @@ export class TwitchChannel {
             try {
                 vodclass = await TwitchVOD.load(vod_full_path, api);
             } catch (e) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not load VOD ${vod}: ${(e as Error).message}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not load VOD ${vod}: ${(e as Error).message}`, e);
                 continue;
             }
 

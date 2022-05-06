@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { format, parseJSON } from "date-fns";
+import { format, parse, parseJSON } from "date-fns";
 import fs from "fs";
 import { encode as htmlentities } from "html-entities";
 import path from "path";
@@ -2394,10 +2394,12 @@ export class TwitchVOD {
         }
 
         // parse file
-        const json: TwitchVODJSON = JSON.parse(data);
+        let json: TwitchVODJSON = JSON.parse(data);
 
-        if (!("version" in json) || json.version != 2) {
-            throw new Error(`Invalid VOD JSON version: ${filename}`);
+        if (!("version" in json) || json.version < 2) {
+            // throw new Error(`Invalid VOD JSON version: ${filename}`);
+            Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Invalid VOD JSON version: ${filename}, trying to migrate...`);
+            json = TwitchVOD.migrateOldJSON(json);
         }
 
         // create object
@@ -2451,12 +2453,39 @@ export class TwitchVOD {
     }
 
     // too much work
-    /*
-    private static migrateOldJSON(json: any): TwitchVODJSON {
+    static migrateOldJSON(json: any): TwitchVODJSON {
+
+        const chapters: TwitchVODChapterJSON[] = [];
+        const segments: string[] = json.segments.map((s: string | { filename: string; basename: string; filesize: number; strings: string[]; }) => {
+            if (typeof s === "string") {
+                return path.basename(s);
+            } else {
+                return s.basename;
+            }
+        });
+
+        for (const chapter of json.chapters) {
+            const new_chapter: TwitchVODChapterJSON = {
+                started_at: chapter.time,
+                game_id: chapter.game_id,
+                game_name: chapter.game_name,
+                viewer_count: chapter.viewer_count,
+                title: chapter.title,
+                // offset: chapter.offset,
+                box_art_url: chapter.box_art_url,
+                is_mature: false,
+                online: true,
+            };
+            chapters.push(new_chapter);
+        }
 
         const new_json: TwitchVODJSON = {
             "version": 2,
-            meta: json.meta,
+            meta: undefined,
+            twitch_vod_id: json.twitch_vod_id,
+            twitch_vod_duration: json.twitch_vod_duration,
+            twitch_vod_title: json.twitch_vod_title,
+            twitch_vod_date: json.twitch_vod_date,
             twitch_vod_exists: json.twitch_vod_exists,
             twitch_vod_attempted: json.twitch_vod_attempted,
             twitch_vod_neversaved: json.twitch_vod_neversaved,
@@ -2465,13 +2494,22 @@ export class TwitchVOD {
             streamer_name: json.streamer_name,
             streamer_id: json.streamer_id,
             streamer_login: json.streamer_login,
-            chapters: json.chapters,
+            chapters: chapters,
+            type: "twitch",
+            segments: segments,
+            is_capturing: json.is_capturing,
+            is_converting: json.is_converting,
+            is_finalized: json.is_finalized,
+            duration: typeof json.duration === "number" ? json.duration : undefined,
+            saved_at: JSON.stringify(parse(json.saved_at.date, Helper.PHP_DATE_FORMAT, new Date())),
+            started_at: JSON.stringify(parse(json.started_at.date, Helper.PHP_DATE_FORMAT, new Date())),
+            ended_at: JSON.stringify(parse(json.ended_at.date, Helper.PHP_DATE_FORMAT, new Date())),
+            not_started: false,
         };
 
         return new_json;
 
     }
-    */
 
     public static addVod(vod: TwitchVOD): boolean {
 
