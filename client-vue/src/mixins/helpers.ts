@@ -39,6 +39,9 @@ export default {
             return `${finalAmount} ${units[pow]}`;
         },
         niceDuration(durationInSeconds: number): string {
+            if (durationInSeconds < 0) {
+                return "(NEGATIVE DURATION)";
+            }
             let duration = "";
             const days = Math.floor(durationInSeconds / 86400);
             durationInSeconds -= days * 86400;

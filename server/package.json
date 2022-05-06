@@ -1,6 +1,6 @@
 {
   "name": "livestreamdvr-server",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "",
   "main": "index.ts",
   "scripts": {
@@ -52,6 +52,7 @@
     "minimist": "^1.2.6",
     "morgan": "^1.10.0",
     "sanitize-filename": "^1.6.3",
+    "true-case-path": "^2.2.1",
     "ws": "^8.5.0"
   }
 }

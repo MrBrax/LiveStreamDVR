@@ -47,7 +47,7 @@ export class KeyValue extends EventEmitter {
      */
     get(key: string): string | false {
 
-        key = replaceAll(key, /\//g, ""); // @todo: replaceAll
+        key = replaceAll(key, /\//g, ""); // TODO: replaceAll
 
         return this.data[key] !== undefined ? this.data[key] : false;
 
@@ -60,7 +60,7 @@ export class KeyValue extends EventEmitter {
      */
     getObject<T>(key: string): T | false {
 
-        key = replaceAll(key, /\//g, ""); // @todo: replaceAll
+        key = replaceAll(key, /\//g, ""); // TODO: replaceAll
 
         if (this.data[key] === undefined) {
             return false;
@@ -89,7 +89,7 @@ export class KeyValue extends EventEmitter {
      */
     set(key: string, value: string): void {
 
-        key = replaceAll(key, /\//g, ""); // @todo: replaceAll
+        key = replaceAll(key, /\//g, ""); // TODO: replaceAll
 
         // if (value === null) {
         //     this.delete(key);
@@ -109,7 +109,7 @@ export class KeyValue extends EventEmitter {
      */
     setObject<T>(key: string, value: T | null): void {
 
-        key = replaceAll(key, /\//g, ""); // @todo: replaceAll
+        key = replaceAll(key, /\//g, ""); // TODO: replaceAll
 
         if (value === null) {
             this.delete(key);

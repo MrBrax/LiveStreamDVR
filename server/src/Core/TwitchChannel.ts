@@ -116,7 +116,10 @@ export class TwitchChannel {
         // $this->vods_raw = glob($this->getFolder() . DIRECTORY_SEPARATOR . $this->login . "_*.json");
         this.vods_raw = fs.readdirSync(this.getFolder())
             .filter(file =>
-                file.startsWith(this.login + "_") &&
+                (
+                    file.startsWith(`${this.login}_`) ||
+                    file.startsWith(`${this.display_name}_`) // for backwards compatibility
+                ) &&
                 file.endsWith(".json") &&
                 !file.endsWith("_chat.json") // bad workaround
             );
@@ -134,7 +137,7 @@ export class TwitchChannel {
             try {
                 vodclass = await TwitchVOD.load(vod_full_path, api);
             } catch (e) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not load VOD ${vod}: ${(e as Error).message}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not load VOD ${vod}: ${(e as Error).message}`, e);
                 continue;
             }
 

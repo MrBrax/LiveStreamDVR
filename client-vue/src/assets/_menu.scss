@@ -207,7 +207,7 @@
 
             &:empty,
             &:-moz-only-whitespace {
-                // @todo: multiplatform
+                // TODO: multiplatform
                 display: none;
             }
         }
@@ -365,7 +365,7 @@ a.linkback {
 
                     // text-shadow: 1px 1px 2px darken($recording-base, 10%);
                     &.is-animated {
-                        animation: 1s ease-in-out infinite recording; // @todo: keep?
+                        animation: 1s ease-in-out infinite recording; // TODO: keep?
                     }
 
                     &:hover {

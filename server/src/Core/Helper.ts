@@ -631,7 +631,7 @@ export class Helper {
                 return;
             }
 
-            // @todo: progress log
+            // TODO: progress log
             // job.on("log", (data: string) => {
             //     const progress_match = data.match(/time=([0-9\.\:]+)/);
             //     if (progress_match) {
@@ -950,6 +950,12 @@ export class Helper {
         if (!this.path_ffmpeg()) errors.push("Failed to find ffmpeg");
         if (!this.path_streamlink()) errors.push("Failed to find streamlink");
         if (!this.path_mediainfo()) errors.push("Failed to find mediainfo");
+
+        for (const field of Config.settingsFields) {
+            if (field.deprecated && Config.getInstance().cfg(field.key) !== field.default) {
+                errors.push(`'${field.key}' is deprecated and will be removed in the future.`);
+            }
+        }
 
         return errors;
     }

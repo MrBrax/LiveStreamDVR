@@ -15,6 +15,7 @@
                         @blur="validateQuality"
                     />
                     <p class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</p>
+                    <p class="input-help"><strong>If the stream does not use any of these, it will not be recorded.</strong></p>
                     <p class="input-help">Valid choices: {{ VideoQualityArray.join(", ") }}</p>
                 </div>
             </div>
@@ -39,6 +40,7 @@
                     <input class="input" type="checkbox" name="live_chat" v-model="formData.live_chat" />
                     Live chat download
                 </label>
+                <p class="input-help">Requires Node binary path to be set in the settings</p>
             </div>
 
             <div class="field">
@@ -46,6 +48,7 @@
                     <input class="input" type="checkbox" name="burn_chat" v-model="formData.burn_chat" />
                     Burn chat after downloading
                 </label>
+                <p class="input-help">Currently disabled</p>
             </div>
 
             <div class="field">

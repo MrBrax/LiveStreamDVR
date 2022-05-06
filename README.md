@@ -114,4 +114,9 @@ Enable the files api, making it possible to download and delete files in storage
 
 Make viewing logs in the file manager possible. Requires the above environment variable to be set.
 
+### `TCD_MIGRATE_OLD_VOD_JSON=1`
+
+Migrate old vod json files to the new format. This is automatically done when the server starts.
+Make sure to back up your data before doing this, as it will overwrite the old files and can't be undone. Bugs might occur, so use with caution.
+
 ---
