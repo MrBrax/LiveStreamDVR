@@ -110,7 +110,7 @@ export default defineComponent({
     methods: {
         fetchData() {
             // this.vodData = [];
-            /** @todo: axios */
+            /** TODO: axios */
             this.$http
                 .get(`/api/v0/vod/${this.vod}`)
                 .then((response) => {
@@ -140,7 +140,7 @@ export default defineComponent({
             (this.$refs.player as HTMLVideoElement).pause();
         },
         scrub(tIn: number, tOut: number) {
-            // const gameOffset = this.vodData.game_offset; // @todo: why
+            // const gameOffset = this.vodData.game_offset; // TODO: why
             const gameOffset = 0;
             this.frameIn = Math.round(tIn - gameOffset);
             this.frameOut = Math.round(tIn + tOut - gameOffset);

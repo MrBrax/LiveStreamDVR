@@ -1037,7 +1037,7 @@ export default defineComponent({
                 });
         },
         // doRenderChat(useVod = false) {
-        //     /** @todo: implement */
+        //     /** TODO: implement */
         //     alert(`RenderChat not implemented: ${useVod}`);
         // },
         doDownloadVod() {
@@ -1091,7 +1091,7 @@ export default defineComponent({
                 });
         },
         // doFullBurn() {
-        //     /** @todo: implement */
+        //     /** TODO: implement */
         //     alert("FullBurn");
         // },
         doDelete() {

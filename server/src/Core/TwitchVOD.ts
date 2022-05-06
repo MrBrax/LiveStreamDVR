@@ -220,7 +220,7 @@ export class TwitchVOD {
 
         this.duration = this.json.duration ?? undefined;
 
-        // @todo: what
+        // TODO: what
         // const dur = this.getDurationLive();
         // this.duration_live = dur === false ? -1 : dur;
 
@@ -561,7 +561,7 @@ export class TwitchVOD {
         return false;
     }
 
-    /** @todo: implement ffprobe for mediainfo */
+    /** TODO: implement ffprobe for mediainfo */
     public async getFFProbe(segment_num = 0): Promise<false | VideoMetadata> {
 
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Fetching ffprobe of ${this.basename}, segment #${segment_num}`);
@@ -787,68 +787,6 @@ export class TwitchVOD {
         }
 
         /*
-        for (const chapter_data of raw_chapters) {
-
-            const new_chapter = TwitchVODChapter.fromJSON(chapter_data);
-
-            /*
-            let game_data;
-            if (chapter_data.game_id) {
-                game_data = await TwitchGame.getGameDataAsync(chapter_data.game_id);
-                if (game_data) new_chapter.game = game_data;
-            } else {
-                game_data = null;
-            }
-
-            // $entry = array_merge($game_data, $entry); // is this a good idea?
-
-            new_chapter.datetime = parse(chapter_data.time, TwitchHelper.TWITCH_DATE_FORMAT, new Date());
-
-            // @todo: fix
-            // if (null !== TwitchConfig.getInstance().cfg('favourites') && TwitchConfig.getInstance().cfg('favourites').length) > 0) {
-            // 	$entry['favourite'] = isset(TwitchConfig.getInstance().cfg('favourites')[$entry['game_id']]);
-            // }
-
-            // offset
-            if (this.dt_started_at) {
-                new_chapter.offset = (new_chapter.datetime.getTime() - this.dt_started_at.getTime()) / 1000;
-            }
-
-            // if (this.is_finalized && this.getDuration() !== false && this.getDuration() > 0 && chapter_data.duration) {
-            // 	$entry['width'] = ($entry['duration'] / this.getDuration()) * 100; // temp
-            // }
-
-            // strings for templates
-            new_chapter.strings = {};
-            if (this.dt_started_at) {
-                // $diff = $entry['datetime'].diff(this.dt_started_at);
-                // $entry['strings']['started_at'] = $diff.format('%H:%I:%S');
-
-                // diff datetime and dt_started at with date-fns
-                let diff = differenceInSeconds(new_chapter.datetime, this.dt_started_at);
-                new_chapter.strings.started_at = format(new_chapter.datetime, 'HH:mm:ss');
-
-            } else {
-                // $entry['strings']['started_at'] = $entry['datetime'].format("Y-m-d H:i:s");
-                new_chapter.strings.started_at = format(new_chapter.datetime, 'yyyy-MM-dd HH:mm:ss');
-            }
-
-            if (chapter_data.duration) {
-                new_chapter.strings.duration = TwitchHelper.getNiceDuration(chapter_data.duration);
-            }
-
-            // box art
-            if (game_data && game_data.box_art_url) {
-                let box_art_width = Math.round(140 * 0.5); // 14
-                let box_art_height = Math.round(190 * 0.5); // 19
-                new_chapter.box_art_url = game_data.getBoxArtUrl(box_art_width, box_art_height);
-            }
-            *
-            chapters.push(new_chapter);
-        }
-        */
-
-        /*
         this.chapters.forEach((chapter, index) => {
 
             const nextChapter = this.chapters[index + 1];
@@ -861,7 +799,7 @@ export class TwitchVOD {
             }
 
             // can't remember why this is here
-            // @todo: investigate
+            // TODO: investigate
             // if (index == 0) {
             //     this.game_offset = chapter.offset;
             // }
@@ -1012,7 +950,7 @@ export class TwitchVOD {
 
     /**
      * Add segment
-     * @todo basename or full path?
+     * TODO basename or full path?
      * @param segment 
      */
     public addSegment(segment: string): void {
@@ -1058,7 +996,7 @@ export class TwitchVOD {
 
     /**
      * Finalize the video. Does **NOT** save.
-     * @todo save?
+     * TODO save?
      * @returns 
      */
     public async finalize(): Promise<boolean> {
@@ -2037,7 +1975,6 @@ export class TwitchVOD {
 
         return new Promise((resolve, reject) => {
 
-            // @todo: env support
             const job = Helper.startJob(`tdrender_${this.basename}`, bin, args, env);
 
             if (!job) {
@@ -2514,8 +2451,16 @@ export class TwitchVOD {
         Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Migrated chapters: ${json.chapters.length}`);
 
         for (const chapter of json.chapters) {
+            let started_at = "";
+
+            if (chapter.dt_started_at) {
+                started_at = JSON.stringify(parse(chapter.dt_started_at.date, Helper.PHP_DATE_FORMAT, new Date()));
+            } else if (chapter.time) {
+                started_at = JSON.stringify(parseJSON(chapter.time));
+            }
+
             const new_chapter: TwitchVODChapterJSON = {
-                started_at: chapter.time,
+                started_at: started_at,
                 game_id: chapter.game_id,
                 game_name: chapter.game_name,
                 viewer_count: chapter.viewer_count,
@@ -2527,6 +2472,40 @@ export class TwitchVOD {
             };
             chapters.push(new_chapter);
         }
+
+        let saved_at = "";
+        // json.saved_at ? JSON.stringify(parse(json.saved_at.date, Helper.PHP_DATE_FORMAT, new Date())) : JSON.stringify(new Date())
+        let started_at = "";
+        let ended_at = "";
+
+        if (json.saved_at) {
+            saved_at = JSON.stringify(parse(json.saved_at.date, Helper.PHP_DATE_FORMAT, new Date()));
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Migrated saved_at: ${saved_at}`);
+        }
+
+        if (json.started_at) {
+            started_at = JSON.stringify(parse(json.started_at.date, Helper.PHP_DATE_FORMAT, new Date()));
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Migrated started_at with json.started_at: ${started_at}`);
+        } else if (json.dt_started_at) {
+            started_at = JSON.stringify(parse(json.dt_started_at.date, Helper.PHP_DATE_FORMAT, new Date()));
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Migrated started_at with json.dt_started_at: ${started_at}`);
+        }
+
+        if (json.ended_at) {
+            ended_at = JSON.stringify(parse(json.ended_at.date, Helper.PHP_DATE_FORMAT, new Date()));
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Migrated ended_at with json.ended_at: ${ended_at}`);
+        } else if (json.dt_ended_at) {
+            ended_at = JSON.stringify(parse(json.dt_ended_at.date, Helper.PHP_DATE_FORMAT, new Date()));
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Migrated ended_at with json.dt_ended_at: ${ended_at}`);
+        }
+
+        if (!saved_at || !started_at || !ended_at) {
+            throw new Error(`Could not migrate dates for ${basename}`);
+        }
+
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Migrated date saved_at: ${saved_at}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Migrated date started_at: ${started_at}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Migrated date ended_at: ${ended_at}`);
 
         const new_json: TwitchVODJSON = {
             "version": 2,
@@ -2550,9 +2529,9 @@ export class TwitchVOD {
             is_converting: json.is_converting,
             is_finalized: json.is_finalized,
             duration: typeof json.duration === "number" ? json.duration : undefined,
-            saved_at: JSON.stringify(parse(json.saved_at.date, Helper.PHP_DATE_FORMAT, new Date())),
-            started_at: JSON.stringify(parse(json.started_at.date, Helper.PHP_DATE_FORMAT, new Date())),
-            ended_at: JSON.stringify(parse(json.ended_at.date, Helper.PHP_DATE_FORMAT, new Date())),
+            saved_at: saved_at,
+            started_at: started_at,
+            ended_at: ended_at,
             not_started: false,
         };
 

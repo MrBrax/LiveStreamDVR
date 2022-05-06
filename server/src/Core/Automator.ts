@@ -55,7 +55,7 @@ export class Automator {
     chatJob: Job | undefined;
 
     public basename() {
-        return `${this.getLogin()}_${replaceAll(this.getStartDate(), ":", "_")}_${this.getVodID()}`; // @todo: replaceAll
+        return `${this.getLogin()}_${replaceAll(this.getStartDate(), ":", "_")}_${this.getVodID()}`; // TODO: replaceAll
     }
 
     public getVodID() {
@@ -252,64 +252,6 @@ export class Automator {
                 return false;
             }
 
-            /*
-
-            let event: ChannelUpdateEvent;
-
-            // fetch from cache
-            if (from_cache) {
-                const cdj = KeyValue.getObject<ChannelUpdateEvent>(`${this.getLogin()}.channeldata`);
-                if (!cdj) {
-                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Tried to parse channel cache json for ${this.broadcaster_user_login} but it errored.`);
-                    return false;
-                }
-                event = cdj;
-            } else if (this.payload_eventsub && "title" in this.payload_eventsub.event) {
-                if (!this.payload_eventsub || !this.payload_eventsub.event) {
-                    TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `Tried to get event for ${this.broadcaster_user_login} but it was not available.`);
-                    return false;
-                }
-                event = this.payload_eventsub.event as ChannelUpdateEvent;
-            } else {
-                TwitchLog.logAdvanced(LOGLEVEL.ERROR, "automator", `No last resort event for ${this.broadcaster_user_login} not available.`);
-                return false;
-            }
-
-            TwitchLog.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Channel data for ${this.broadcaster_user_login} fetched from ${from_cache ? "cache" : "notification"}.`);
-
-
-            const chapter_data = await this.getChapterData(event);
-
-            const chapter = await TwitchVODChapter.fromJSON(chapter_data);
-
-            KeyValue.setObject(`${this.broadcaster_user_login}.chapterdata`, chapter_data);
-
-            vod.addChapter(chapter);
-            vod.saveJSON("game update");
-
-            TwitchWebhook.dispatch("chapter_update", {
-                "chapter": chapter,
-                "vod": vod,
-            });
-
-            // append chapter to history
-            fs.writeFileSync(path.join(BaseConfigFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify(chapter) + "\n", { flag: "a" });
-
-            TwitchLog.logAdvanced(
-                LOGLEVEL.SUCCESS,
-                "automator",
-                `Stream updated on '${this.broadcaster_user_login}' to '${event.category_name}' (${event.title}) using ${from_cache ? "cache" : "eventsub"}.`
-            );
-
-            // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
-            if (TwitchConfig.notificationCategories.streamStatusChange && this.channel) {
-                // ClientBroker.notify(); // @todo: compose message from previous and current game, favorite, etc.
-                this.notifyChapterChange(this.channel);
-            }
-
-            return true;
-            */
-
             let event: ChannelUpdateEvent;
             let chapter_data: TwitchVODChapterJSON | undefined;
 
@@ -363,9 +305,7 @@ export class Automator {
                 `Stream updated on '${this.broadcaster_user_login}' to '${chapter_data.game_name}' (${chapter_data.title}) using ${from_cache ? "cache" : "eventsub"}.`
             );
 
-            // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
             if (this.channel) {
-                // ClientBroker.notify(); // @todo: compose message from previous and current game, favorite, etc.
                 this.notifyChapterChange(this.channel);
             }
 
@@ -656,7 +596,7 @@ export class Automator {
                 Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Giving up on downloading, too many tries for ${basename}`);
                 fs.renameSync(path.join(folder_base, `${basename}.json`), path.join(folder_base, `${basename}.json.broken`));
                 throw new Error("Too many tries");
-                // @TODO: fatal error
+                // TODO: fatal error
             }
 
             Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Error when downloading, retrying ${basename}`);
@@ -886,7 +826,7 @@ export class Automator {
 
             Log.logAdvanced(LOGLEVEL.INFO, "automator", `Starting capture with filename ${path.basename(this.capture_filename)}`);
 
-            // @todo: use TwitchHelper.startJob instead
+            // TODO: use TwitchHelper.startJob instead
 
             // spawn process
             const capture_process = spawn(bin, cmd, {
@@ -906,7 +846,7 @@ export class Automator {
                 capture_job.setProcess(capture_process);
                 capture_job.startLog(jobName, `$ ${bin} ${cmd.join(" ")}\n`);
                 capture_job.addMetadata({
-                    "login": this.getLogin(), // @todo: username?
+                    "login": this.getLogin(), // TODO: username?
                     "basename": this.basename(),
                     "capture_filename": this.capture_filename,
                     "stream_id": this.getVodID(),

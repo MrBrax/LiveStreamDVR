@@ -318,7 +318,7 @@ export class Job extends EventEmitter {
         this.process = process;
         Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Set process for job ${this.name}`, this.metadata);
 
-        this.process_running = process.pid !== undefined; // @todo: check if process is running
+        this.process_running = process.pid !== undefined;
 
         this.process.on("spawn", () => {
             Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Spawned process for job ${this.name}`, this.metadata);
@@ -405,11 +405,9 @@ export class Job extends EventEmitter {
         // broadcast only if changed status
         const currentStatus = this.status;
 
-        // @todo: check if this works
         if (this.process && !use_command) {
             this.status = this.process_running && this.process.pid ? JobStatus.RUNNING : JobStatus.STOPPED;
             if (currentStatus !== this.status) this.broadcastUpdate();
-            // console.debug("get job status without command", this.name, this.status);
             return this.process_running && this.process.pid ? JobStatus.RUNNING : JobStatus.STOPPED;
         }
 

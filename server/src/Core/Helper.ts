@@ -631,7 +631,7 @@ export class Helper {
                 return;
             }
 
-            // @todo: progress log
+            // TODO: progress log
             // job.on("log", (data: string) => {
             //     const progress_match = data.match(/time=([0-9\.\:]+)/);
             //     if (progress_match) {

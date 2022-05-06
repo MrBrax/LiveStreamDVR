@@ -14,7 +14,7 @@ export default {
         const store = useStore();
         if (title) {
             /**
-             * @todo: make this reactive, how?
+             * TODO: make this reactive, how?
              */
             if (store.isAnyoneLive) {
                 document.title = `[${store.channelsOnline}] ${title} - ${store.app_name}`;
