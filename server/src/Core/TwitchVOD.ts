@@ -29,6 +29,7 @@ import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchVODSegment } from "./TwitchVODSegment";
 import { Webhook } from "./Webhook";
 import axios from "axios";
+import { trueCasePathSync } from "true-case-path";
 
 /*
 export interface TwitchVODSegmentJSON {
@@ -2399,7 +2400,13 @@ export class TwitchVOD {
         if (!("version" in json) || json.version < 2) {
             // throw new Error(`Invalid VOD JSON version: ${filename}`);
             Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Invalid VOD JSON version: ${filename}, trying to migrate...`);
-            json = TwitchVOD.migrateOldJSON(json);
+            const { newJson, newBasename } = TwitchVOD.migrateOldJSON(json, path.dirname(filename), path.basename(filename));
+            json = newJson;
+            if (path.basename(filename) != newBasename) {
+                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `New basename for ${filename}: ${newBasename}`);
+                fs.renameSync(filename, path.join(path.dirname(filename), newBasename));
+                filename = path.join(path.dirname(filename), newBasename);
+            }
         }
 
         // create object
@@ -2453,16 +2460,58 @@ export class TwitchVOD {
     }
 
     // too much work
-    static migrateOldJSON(json: any): TwitchVODJSON {
+    static migrateOldJSON(json: any, basepath: string, basename: string): { newJson: TwitchVODJSON, newBasename: string } {
+
+        Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Migrating old VOD JSON ${basename}`);
 
         const chapters: TwitchVODChapterJSON[] = [];
-        const segments: string[] = json.segments.map((s: string | { filename: string; basename: string; filesize: number; strings: string[]; }) => {
+        const segments: string[] = (json.segments || json.segments_raw).map((s: string | { filename: string; basename: string; filesize: number; strings: string[]; }) => {
+            let name = "";
             if (typeof s === "string") {
-                return path.basename(s);
+                name = path.basename(s);
             } else {
-                return s.basename;
+                name = s.basename;
             }
-        });
+
+            let newName = "";
+            try {
+                newName = path.basename(trueCasePathSync(path.join(basepath, name)));
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Could not find segment ${name} in ${basepath}`);
+                return undefined;                
+            }
+
+            if (newName != name) {
+                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Renaming segment ${name} to ${newName}`);
+                fs.renameSync(path.join(basepath, name), path.join(basepath, newName));
+            } else {
+                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Segment ${name} is already named correctly`);
+            }
+
+            return newName;
+
+            /*
+            // check if case sensitive file exists
+            if (fileExistsWithCaseSync(path.join(basepath, name))) {
+                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Found default file: ${name}`);
+                return name;
+            } else if (fileExistsWithCaseSync(path.join(basepath, name.toLocaleLowerCase()))) {
+                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Found lowercase file: ${name.toLocaleLowerCase()}`);
+                fs.renameSync(path.join(basepath, name), path.join(basepath, name.toLocaleLowerCase())); // rename to lowercase
+                return name.toLocaleLowerCase(); // new format uses lowercase logins
+            } else {
+                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Could not find file: ${name} at ${path.join(basepath, name)} or ${path.join(basepath, name.toLocaleLowerCase())}`);
+                return undefined;
+            }
+            */
+        }).filter((s: string | undefined) => s !== undefined);
+
+        if (segments.length == 0) {
+            throw new Error(`No segments found in ${basename}`);
+        }
+
+        Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Migrated segments: ${segments.length}`);
+        Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Migrated chapters: ${json.chapters.length}`);
 
         for (const chapter of json.chapters) {
             const new_chapter: TwitchVODChapterJSON = {
@@ -2507,8 +2556,10 @@ export class TwitchVOD {
             not_started: false,
         };
 
-        return new_json;
-
+        return {
+            newJson: new_json,
+            newBasename: basename.toLocaleLowerCase(),
+        };
     }
 
     public static addVod(vod: TwitchVOD): boolean {
