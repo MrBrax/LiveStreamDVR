@@ -1102,7 +1102,7 @@ export class Automator {
         // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
 
         // chat capture
-        if ((Config.getInstance().cfg<boolean>("chat_dump") || (this.channel && this.channel.live_chat)) && this.realm == "twitch") {
+        if (this.channel && this.channel.live_chat && this.realm == "twitch") {
 
             const data_started = this.getStartDate();
             // const data_id = this.getVodID();
