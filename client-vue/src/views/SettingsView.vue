@@ -30,7 +30,7 @@
                         <h2>{{ channel.login }}</h2>
                     </div>
                     <div class="card-content">
-                        <channel-update-form :channel="channel" @formSuccess="updateUsers" />
+                        <channel-update-form :channel="channel" @formSuccess="updateAll" />
                     </div>
                 </div>
                 <span v-if="!formChannels || formChannels.length == 0">No channels added. Use the tab "New channel" above.</span>
@@ -117,19 +117,14 @@ export default defineComponent({
     data(): {
         loading: boolean;
         formChannels: ApiChannelConfig[];
-        // settingsData: Record<string, string | number | boolean>;
-        // settingsFields: SettingField<string | number | boolean>[];
         favouritesData: string[];
         gamesData: Record<string, ApiGame>;
     } {
         return {
             loading: false,
-            // settingsData: {},
-            // settingsFields: [],
             gamesData: {},
             favouritesData: [],
             formChannels: [],
-            // games: Object as () => [key: string]: ApiGame
         };
     },
     created() {
@@ -169,10 +164,14 @@ export default defineComponent({
             ]).finally(() => {
                 this.loading = false;
             });
-                
+
         },
         updateUsers() {
             this.store.fetchAndUpdateStreamerList();
+        },
+        updateAll() {
+            this.fetchData();
+            this.updateUsers();
         },
     },
     computed: {
