@@ -526,6 +526,7 @@ export class TwitchChannel {
 
         if (!this.channel_data) return false;
         if (!Config.getInstance().cfg("create_kodi_nfo")) return false;
+        if (!Config.getInstance().cfg("channel_folders")) return false; // only create nfo if we have channel folders
 
         const nfo_file = path.join(Helper.vodFolder(this.channel_data.login), "tvshow.nfo");
 
