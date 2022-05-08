@@ -588,6 +588,12 @@ export class TwitchChannel {
         }, 3000);
     }
 
+    public deleteAllVods() {
+        for (const vod of this.vods_list) {
+            vod.delete();
+        }
+    }
+
     /**
      * 
      * STATIC
