@@ -123,6 +123,8 @@ export type ApiVod = {
     stream_number?: number;
     stream_season?: string;
 
+    comment?: string;
+
 };
 
 export type ApiSettingsField = {

@@ -170,7 +170,12 @@
                         >
                             <tr v-for="(value, key) in aboutData.keyvalue" :key="key">
                                 <td>{{ key }}</td>
-                                <td>{{ value }}</td>
+                                <td>
+                                    {{ value }}
+                                    <button class="icon-button" @click="editKeyValue(key, value)">
+                                        <fa icon="pencil" />
+                                    </button>
+                                </td>
                                 <td><button class="button is-danger is-small" @click="deleteKeyValue(key)">Delete</button></td>
                             </tr>
                             <tr>
@@ -408,6 +413,23 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("about error", err.response);
+                });
+        },
+        editKeyValue(key: string, value: string) {
+            const new_value = prompt(`Edit value for key ${key}`, value);
+            if (!new_value || new_value == value) return;
+            this.$http
+                .put(`/api/v0/keyvalue/${key}`, { value: new_value })
+                .then((response) => {
+                    const json = response.data;
+                    console.debug("editKeyValue", json);
+                    this.fetchKeyValues();
+                })
+                .catch((err) => {
+                    console.error("about error", err.response);
+                    if (err.response && err.response.data && err.response.data.message) {
+                        alert(err.response.data.message);
+                    }
                 });
         },
         /*

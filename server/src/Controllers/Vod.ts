@@ -27,6 +27,33 @@ export async function GetVod(req: express.Request, res: express.Response): Promi
 
 }
 
+export function EditVod(req: express.Request, res: express.Response): void {
+
+    const vod = TwitchVOD.getVod(req.params.basename);
+
+    if (!vod) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const stream_number = req.body.stream_number;
+    const comment = req.body.comment;
+    
+    vod.stream_number = stream_number;
+    vod.comment = comment;
+
+    vod.saveJSON("edit vod form");
+
+    res.send({
+        status: "OK",
+        message: "Vod edited",
+    } as ApiResponse);
+
+}
+
 export function ArchiveVod(req: express.Request, res: express.Response): void {
 
     const vod = TwitchVOD.getVod(req.params.basename);

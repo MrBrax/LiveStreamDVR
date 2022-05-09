@@ -45,6 +45,11 @@
                         </div>
                     </div>
 
+                    <!-- comment -->
+                    <div class="video-comment" v-if="vod.comment">
+                        <p>{{ vod.comment }}</p>
+                    </div>
+
                     <!-- video info -->
                     <div v-if="vod?.is_finalized" class="info-columns">
                         <div class="info-column">
@@ -372,6 +377,13 @@
                         </span>
                         Fix issues
                     </a>
+
+                    <button v-if="showAdvanced" class="button is-confirm" @click="editVodMenu ? (editVodMenu.show = true) : ''">
+                        <span class="icon">
+                            <fa icon="pencil" type="fa"></fa>
+                        </span>
+                        Edit
+                    </button>
 
                     <a class="button is-danger" @click="doDelete">
                         <span class="icon">
@@ -879,6 +891,26 @@
             </button>
         </div>
     </modal-box>
+    <modal-box ref="editVodMenu" title="Edit VOD">
+        <div class="field">
+            <label class="label">Stream number</label>
+            <div class="control">
+                <input class="input" type="number" v-model="editVodSettings.stream_number" />
+            </div>
+        </div>
+        <div class="field">
+            <label class="label">Comment</label>
+            <div class="control">
+                <textarea class="input textarea" v-model="editVodSettings.comment" />
+            </div>
+        </div>
+        <div class="field">
+            <button class="button" @click="doEditVod">
+                <fa icon="save" />
+                Save
+            </button>
+        </div>
+    </modal-box>
 </template>
 
 <script lang="ts">
@@ -942,7 +974,8 @@ export default defineComponent({
         const chatDownloadMenu = ref<InstanceType<typeof ModalBox>>();
         const vodDownloadMenu = ref<InstanceType<typeof ModalBox>>();
         const playerMenu = ref<InstanceType<typeof ModalBox>>();
-        return { store, burnMenu, chatDownloadMenu, vodDownloadMenu, playerMenu, MuteStatus, VideoQualityArray };
+        const editVodMenu = ref<InstanceType<typeof ModalBox>>();
+        return { store, burnMenu, chatDownloadMenu, vodDownloadMenu, playerMenu, MuteStatus, VideoQualityArray, editVodMenu };
     },
     data() {
         return {
@@ -984,6 +1017,10 @@ export default defineComponent({
                 vodSource: "captured",
                 chatSource: "captured",
             },
+            editVodSettings: {
+                stream_number: 0,
+                comment: "",
+            }
         };
     },
     mounted() {
@@ -996,6 +1033,10 @@ export default defineComponent({
             } else if (this.vod.chapters && this.vod.chapters.length == 0) {
                 console.error("Chapters array found but empty for vod", this.vod.basename, this.vod);
             }
+            this.editVodSettings = {
+                stream_number: this.vod.stream_number ?? 0,
+                comment: this.vod.comment ?? "",
+            };
         }
     },
     props: {
@@ -1241,6 +1282,20 @@ export default defineComponent({
 
             // url.searchParams.set("offset", this.playerSettings.offset.toString());
             window.open(url.toString(), "_blank");
+
+        },
+        doEditVod() {
+            
+            this.$http.post(`/api/v0/vod/${this.vod?.basename}`, this.editVodSettings).then((response) => {
+                const json: ApiResponse = response.data;
+                if (json.message) alert(json.message);
+                console.log(json);
+                if (this.vod) this.store.fetchAndUpdateVod(this.vod.basename);
+                if (this.editVodMenu) this.editVodMenu.show = false;
+            }).catch((err) => {
+                console.error("form error", err.response);
+                if (err.response.data && err.response.data.message) alert(err.response.data.message);
+            });
 
         },
     },

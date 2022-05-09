@@ -69,6 +69,11 @@
         }
     }
 
+    &.textarea {
+        font-family: inherit;
+        width: 100%;
+    }
+
     /*
 	&.required {
 		border-color: #f00;
@@ -271,13 +276,20 @@ select.input {
     border: none;
     background: none;
     cursor: pointer;
-    // color: #999;
-    color: #fff;
+    color: #111;
     padding: 0;
     margin: 0;
+
     &:hover {
-        color: #ccc;
-        // color: #2f6d68;
+        color: #222;
+    }
+
+    &.white {
+        color: #fff;
+        &:hover {
+            color: #ccc;
+            // color: #2f6d68;
+        }
     }
 }
 

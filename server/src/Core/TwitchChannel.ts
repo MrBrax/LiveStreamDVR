@@ -570,6 +570,7 @@ export class TwitchChannel {
         if (!KeyValue.getInstance().has(`${this.login}.season_identifier`)) {
             KeyValue.getInstance().set(`${this.login}.season_identifier`, format(new Date(), Config.SeasonFormat));
             this.current_season = format(new Date(), Config.SeasonFormat);
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Setting season for ${this.login} to ${this.current_season} as it is not set`);
         } else {
             this.current_season = KeyValue.getInstance().get(`${this.login}.season_identifier`) as string;
         }
@@ -578,7 +579,7 @@ export class TwitchChannel {
             this.current_stream_number = KeyValue.getInstance().getInt(`${this.login}.stream_number`);
         } else {
             this.current_stream_number = 1;
-            console.log(`Channel ${this.login} has no stream number, setting to 1`);
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Channel ${this.login} has no stream number, setting to 1`);
             KeyValue.getInstance().setInt(`${this.login}.stream_number`, 1);
         }
     }
@@ -590,6 +591,7 @@ export class TwitchChannel {
             KeyValue.getInstance().setInt(`${this.login}.stream_number`, 1);
             KeyValue.getInstance().set(`${this.login}.season_identifier`, format(new Date(), Config.SeasonFormat));
             this.current_season = format(new Date(), Config.SeasonFormat);
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Season changed for ${this.login} to ${this.current_season}`);
         } else {
             this.current_stream_number += 1;
             KeyValue.getInstance().setInt(`${this.login}.stream_number`, this.current_stream_number);

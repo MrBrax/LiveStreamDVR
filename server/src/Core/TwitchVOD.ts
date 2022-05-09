@@ -21,7 +21,6 @@ import { Config } from "./Config";
 import { FFmpegMetadata } from "./FFmpegMetadata";
 import { Helper } from "./Helper";
 import { Job } from "./Job";
-import { KeyValue } from "./KeyValue";
 import { Log, LOGLEVEL } from "./Log";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
@@ -30,24 +29,6 @@ import { TwitchVODSegment } from "./TwitchVODSegment";
 import { Webhook } from "./Webhook";
 import axios from "axios";
 import { trueCasePathSync } from "true-case-path";
-
-/*
-export interface TwitchVODSegmentJSON {
-    filename: string;
-    basename: string;
-    filesize: number;
-    strings: Record<string, string>;
-}
-*/
-
-/*
-export interface TwitchVODSegment {
-    filename: string;
-    basename: string;
-    filesize: number;
-    deleted: boolean;
-}
-*/
 
 export class TwitchVOD {
 
@@ -146,7 +127,9 @@ export class TwitchVOD {
 
     webpath = "";
 
-    stream_number: number | undefined;
+    stream_number?: number;
+
+    comment?: string;
 
     /*
     public ?bool $api_hasFavouriteGame = null;
@@ -1428,6 +1411,8 @@ export class TwitchVOD {
             stream_number: this.stream_number,
             stream_season: this.stream_season,
 
+            comment: this.comment,
+
             // game_offset: this.game_offset || 0,
             // twitch_vod_url: this.twitch_vod_url,
             // twitch_vod_exists: this.twitch_vod_exists,
@@ -1543,6 +1528,8 @@ export class TwitchVOD {
         generated.not_started = this.not_started;
 
         generated.stream_number = this.stream_number;
+
+        generated.comment = this.comment;
 
         // generated.twitch_vod_status = this.twitch_vod_status;        
 
