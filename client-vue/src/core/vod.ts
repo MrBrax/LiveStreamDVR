@@ -67,6 +67,7 @@ export default class TwitchVOD {
     stream_season?: string;
 
     comment?: string;
+    prevent_deletion = false;
 
     public static makeFromApiResponse(apiResponse: ApiVod): TwitchVOD {
         const vod = new TwitchVOD();
@@ -111,6 +112,7 @@ export default class TwitchVOD {
         vod.stream_number = apiResponse.stream_number;
         vod.stream_season = apiResponse.stream_season;
         vod.comment = apiResponse.comment;
+        vod.prevent_deletion = apiResponse.prevent_deletion;
         return vod;
     }
 

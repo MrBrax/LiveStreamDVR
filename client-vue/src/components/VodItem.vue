@@ -49,6 +49,14 @@
                     <div class="video-comment" v-if="vod.comment">
                         <p>{{ vod.comment }}</p>
                     </div>
+                    <div v-else>
+                        <p>
+                            <a href="#" @click.prevent="editVodMenu ? (editVodMenu.show = true) : ''">
+                                <fa icon="comment-dots"></fa>
+                                Add a comment
+                            </a>
+                        </p>
+                    </div>
 
                     <!-- video info -->
                     <div v-if="vod?.is_finalized" class="info-columns">
@@ -371,6 +379,7 @@
                         Render menu
                     </a>
 
+                    <!-- Fix issues -->
                     <a v-if="showAdvanced" class="button" @click="doFixIssues">
                         <span class="icon">
                             <fa icon="wrench" type="fa"></fa>
@@ -378,6 +387,7 @@
                         Fix issues
                     </a>
 
+                    <!-- Vod edit menu -->
                     <button v-if="showAdvanced" class="button is-confirm" @click="editVodMenu ? (editVodMenu.show = true) : ''">
                         <span class="icon">
                             <fa icon="pencil" type="fa"></fa>
@@ -385,13 +395,14 @@
                         Edit
                     </button>
 
-                    <a class="button is-danger" @click="doDelete">
+                    <!-- Delete -->
+                    <button class="button is-danger" @click="doDelete" :disabled="vod.prevent_deletion">
                         <span class="icon">
                             <fa icon="trash" type="fa" v-if="!taskStatus.delete"></fa>
                             <fa icon="sync" type="fa" spin v-else></fa>
                         </span>
                         Delete
-                    </a>
+                    </button>
                 </div>
 
                 <div class="video-status" v-if="!vod.is_finalized">
@@ -895,13 +906,21 @@
         <div class="field">
             <label class="label">Stream number</label>
             <div class="control">
-                <input class="input" type="number" v-model="editVodSettings.stream_number" />
+                <input class="input" type="number" v-model.number="editVodSettings.stream_number" />
             </div>
         </div>
         <div class="field">
             <label class="label">Comment</label>
             <div class="control">
                 <textarea class="input textarea" v-model="editVodSettings.comment" />
+            </div>
+        </div>
+        <div class="field">
+            <div class="control">
+                <label class="checkbox">
+                    <input type="checkbox" v-model="editVodSettings.prevent_deletion" />
+                    Prevent deletion
+                </label>
             </div>
         </div>
         <div class="field">
@@ -938,6 +957,7 @@ import {
     faSync,
     faMinus,
     faPlus,
+    faCommentDots
 } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
 import ModalBox from "./ModalBox.vue";
@@ -962,7 +982,8 @@ library.add(
     faWrench,
     faSync,
     faMinus,
-    faPlus
+    faPlus,
+    faCommentDots
 );
 
 export default defineComponent({
@@ -1020,6 +1041,7 @@ export default defineComponent({
             editVodSettings: {
                 stream_number: 0,
                 comment: "",
+                prevent_deletion: false,
             }
         };
     },
@@ -1036,6 +1058,7 @@ export default defineComponent({
             this.editVodSettings = {
                 stream_number: this.vod.stream_number ?? 0,
                 comment: this.vod.comment ?? "",
+                prevent_deletion: this.vod.prevent_deletion ?? false,
             };
         }
     },
