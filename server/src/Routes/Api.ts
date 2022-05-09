@@ -38,6 +38,7 @@ router.post("/channels/:login/refresh", Channels.RefreshChannel);
 router.post("/channels/:login/force_record", Channels.ForceRecord);
 
 router.get("/vod/:basename", Vod.GetVod);
+router.post("/vod/:basename", Vod.EditVod);
 router.delete("/vod/:basename", Vod.DeleteVod);
 router.post("/vod/:basename/archive", Vod.ArchiveVod);
 router.post("/vod/:basename/renderwizard", Vod.RenderWizard);

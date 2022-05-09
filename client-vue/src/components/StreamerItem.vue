@@ -32,49 +32,52 @@
                         <span v-else>Free</span>
                     </span>
                     &middot;
+                    <span class="streamer-sxe" title="Season and episode">
+                        {{ streamer.current_season }}/{{ streamer.current_stream_number }}
+                    </span>
                     <span class="streamer-title-tools">
 
                         <!-- edit -->
-                        <router-link class="icon-button" :to="{ name: 'Settings', params: { tab: 'channels' }, hash: '#channel_' + streamer.login }">
+                        <router-link class="icon-button white" :to="{ name: 'Settings', params: { tab: 'channels' }, hash: '#channel_' + streamer.login }">
                             <span class="icon"><fa icon="pencil"></fa></span>
                         </router-link>
 
                         <span v-if="canAbortCapture">
                             <!-- abort recording -->
-                            <button class="icon-button" @click="abortCapture" title="Abort record">
+                            <button class="icon-button white" @click="abortCapture" title="Abort record">
                                 <span class="icon"><fa icon="video-slash"></fa></span>
                             </button>
                         </span>
 
                         <span v-else>
                             <!-- force recording -->
-                            <button class="icon-button" @click="forceRecord" title="Force record">
+                            <button class="icon-button white" @click="forceRecord" title="Force record">
                                 <span class="icon"><fa icon="video"></fa></span>
                             </button>
                         </span>
 
                         <!-- dump playlist -->
-                        <button class="icon-button" @click="playlistRecord" title="Playlist record">
+                        <button class="icon-button white" @click="playlistRecord" title="Playlist record">
                             <span class="icon"><fa icon="play-circle"></fa></span>
                         </button>
 
                         <!-- download stuff -->
-                        <button class="icon-button" @click="videoDownloadMenu ? (videoDownloadMenu.show = true) : ''" title="Video download">
+                        <button class="icon-button white" @click="videoDownloadMenu ? (videoDownloadMenu.show = true) : ''" title="Video download">
                             <span class="icon"><fa icon="download"></fa></span>
                         </button>
 
                         <!-- run cleanup -->
-                        <button class="icon-button" title="Clean up" @click="doChannelCleanup">
+                        <button class="icon-button white" title="Clean up" @click="doChannelCleanup">
                             <span class="icon"><fa icon="trash"></fa></span>
                         </button>
 
                         <!-- refresh channel data -->
-                        <button class="icon-button" title="Refresh data" @click="doChannelRefresh">
+                        <button class="icon-button white" title="Refresh data" @click="doChannelRefresh">
                             <span class="icon"><fa icon="sync"></fa></span>
                         </button>
 
                         <!-- expand/collapse all vods -->
-                        <button class="icon-button" title="Expand/collapse all vods" @click="doToggleExpandVods">
+                        <button class="icon-button white" title="Expand/collapse all vods" @click="doToggleExpandVods">
                             <span class="icon"><fa :icon="toggleAllVodsExpanded ? 'chevron-up' : 'chevron-down'"></fa></span>
                         </button>
                     </span>

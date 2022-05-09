@@ -26,6 +26,9 @@ export default class TwitchChannel {
 
     channel_data: ChannelData | undefined;
 
+    current_stream_number: number = 0;
+    current_season = "";
+
     public static makeFromApiResponse(apiResponse: ApiChannel): TwitchChannel {
         const channel = new TwitchChannel();
         channel.userid = apiResponse.userid;
@@ -41,6 +44,8 @@ export default class TwitchChannel {
         channel.broadcaster_type = apiResponse.broadcaster_type;
         channel.no_capture = apiResponse.no_capture;
         channel.channel_data = apiResponse.channel_data;
+        channel.current_stream_number = apiResponse.current_stream_number ?? 0;
+        channel.current_season = apiResponse.current_season ?? "";
         return channel;
     }
 

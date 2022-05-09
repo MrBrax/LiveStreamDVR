@@ -34,6 +34,8 @@ export interface VODJSON {
 
     stream_number?: number;
 
+    comment?: string;
+
 }
 export interface TwitchVODJSON extends VODJSON {
 

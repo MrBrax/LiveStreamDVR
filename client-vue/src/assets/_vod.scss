@@ -185,6 +185,15 @@
     overflow: hidden;
 }
 
+.video-sxe {
+    font-family: "Roboto Condensed";
+    color: rgba(255, 255, 255, 0.5);
+
+    &:before {
+        content: " · ";
+    }
+}
+
 .video-filename {
     font-family: "Roboto Condensed";
     color: rgba(255, 255, 255, 0.5);
@@ -249,6 +258,38 @@
         &:hover {
             color: #fff;
         }
+    }
+}
+
+.video-comment {
+    padding: 1em;
+    background-color: #fff;
+    border-radius: 1em;
+    width: max-content;
+    p {
+        margin: 0;
+        padding: 0;
+        white-space: pre;
+    }
+
+    position: relative;
+
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+
+    margin: 1em 0 1.5em 0;
+
+    // comment bubble tip
+    &:before {
+        content: "";
+        position: absolute;
+        bottom: -10px;
+        left: 15px;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 10px 10px 0 10px;
+        border-color: #fff transparent transparent transparent;
+
     }
 }
 

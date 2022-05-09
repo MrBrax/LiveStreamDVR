@@ -953,7 +953,11 @@ export class Helper {
 
         for (const field of Config.settingsFields) {
             if (field.deprecated && Config.getInstance().cfg(field.key) !== field.default) {
-                errors.push(`'${field.key}' is deprecated and will be removed in the future.`);
+                if (typeof field.deprecated === "string") {
+                    errors.push(`${field.key} is deprecated: ${field.deprecated}`);
+                } else {
+                    errors.push(`'${field.key}' is deprecated and will be removed in the future.`);
+                }
             }
         }
 

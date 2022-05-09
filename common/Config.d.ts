@@ -28,7 +28,7 @@ export interface SettingField<T> {
     /** Send to client? */
     secret?: boolean;
 
-    deprecated?: boolean;
+    deprecated?: boolean | string;
 
     pattern?: string;
 

@@ -1,5 +1,6 @@
 import axios from "axios";
 import chalk from "chalk";
+import { format } from "date-fns";
 import fs from "fs";
 import { encode as htmlentities } from "html-entities";
 import path from "path";
@@ -90,6 +91,7 @@ export class TwitchChannel {
     public deactivated = false;
 
     public current_stream_number = 0;
+    public current_season = "";
 
     private _updateTimer: NodeJS.Timeout | undefined;
 
@@ -218,6 +220,9 @@ export class TwitchChannel {
             expires_at: this.expires_at ? this.expires_at.toISOString() : undefined,
             last_online: this.last_online ? this.last_online.toISOString() : undefined,
             clips_list: this.clips_list,
+
+            current_stream_number: this.current_stream_number,
+            current_season: this.current_season,
         };
     }
 
@@ -526,6 +531,7 @@ export class TwitchChannel {
 
         if (!this.channel_data) return false;
         if (!Config.getInstance().cfg("create_kodi_nfo")) return false;
+        if (!Config.getInstance().cfg("channel_folders")) return false; // only create nfo if we have channel folders
 
         const nfo_file = path.join(Helper.vodFolder(this.channel_data.login), "tvshow.nfo");
 
@@ -559,13 +565,38 @@ export class TwitchChannel {
     }
 
     public setupStreamNumber() {
+
+        // set season
+        if (!KeyValue.getInstance().has(`${this.login}.season_identifier`)) {
+            KeyValue.getInstance().set(`${this.login}.season_identifier`, format(new Date(), Config.SeasonFormat));
+            this.current_season = format(new Date(), Config.SeasonFormat);
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Setting season for ${this.login} to ${this.current_season} as it is not set`);
+        } else {
+            this.current_season = KeyValue.getInstance().get(`${this.login}.season_identifier`) as string;
+        }
+        
         if (KeyValue.getInstance().has(`${this.login}.stream_number`)) {
             this.current_stream_number = KeyValue.getInstance().getInt(`${this.login}.stream_number`);
         } else {
-            this.current_stream_number = 0;
-            console.log(`Channel ${this.login} has no stream number, setting to 0`);
-            KeyValue.getInstance().setInt(`${this.login}.stream_number`, 0);
+            this.current_stream_number = 1;
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Channel ${this.login} has no stream number, setting to 1`);
+            KeyValue.getInstance().setInt(`${this.login}.stream_number`, 1);
         }
+    }
+
+    public incrementStreamNumber() {
+        const seasonIdentifier = KeyValue.getInstance().get(`${this.login}.season_identifier`);
+        if (seasonIdentifier && seasonIdentifier !== format(new Date(), Config.SeasonFormat)) {
+            this.current_stream_number = 1;
+            KeyValue.getInstance().setInt(`${this.login}.stream_number`, 1);
+            KeyValue.getInstance().set(`${this.login}.season_identifier`, format(new Date(), Config.SeasonFormat));
+            this.current_season = format(new Date(), Config.SeasonFormat);
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Season changed for ${this.login} to ${this.current_season}`);
+        } else {
+            this.current_stream_number += 1;
+            KeyValue.getInstance().setInt(`${this.login}.stream_number`, this.current_stream_number);
+        }
+        return this.current_stream_number;
     }
 
     public postLoad() {
@@ -585,6 +616,12 @@ export class TwitchChannel {
             } as ChannelUpdated);
             this._updateTimer = undefined;
         }, 3000);
+    }
+
+    public deleteAllVods() {
+        for (const vod of this.vods_list) {
+            vod.delete();
+        }
     }
 
     /**
