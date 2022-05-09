@@ -760,6 +760,11 @@ export class TwitchVOD {
 
     }
 
+    get stream_season(): string | undefined {
+        if (!this.started_at) return undefined;
+        return format(this.started_at, Config.SeasonFormat);
+    }
+
     public setupApiHelper() {
         throw new Error("Method apihelper not implemented.");
     }
@@ -1293,7 +1298,7 @@ export class TwitchVOD {
         data += `\t<showtitle>${this.streamer_name}</showtitle>\n`;
         data += `\t<uniqueid type="twitch">${this.twitch_vod_id}</uniqueid>\n`;
 
-        data += `\t<season>${format(this.started_at, "yyyyMM")}</season>\n`;
+        data += `\t<season>${format(this.started_at, Config.SeasonFormat)}</season>\n`;
         data += `\t<episode>${(this.stream_number || 0) + 1}</episode>\n`;
         
         if (this.chapters && this.chapters.length > 0) {
@@ -1419,6 +1424,9 @@ export class TwitchVOD {
             webpath: this.webpath,
 
             video_metadata: this.video_metadata,
+
+            stream_number: this.stream_number,
+            stream_season: this.stream_season,
 
             // game_offset: this.game_offset || 0,
             // twitch_vod_url: this.twitch_vod_url,
@@ -2293,10 +2301,11 @@ export class TwitchVOD {
     public setupStreamNumber() {
         const channel = this.getChannel();
         if (channel && channel.current_stream_number !== undefined && this.stream_number === undefined) {
-            this.stream_number = channel.current_stream_number;
-            channel.current_stream_number++;
+            this.stream_number = channel.incrementStreamNumber();
+            // this.stream_number = channel.current_stream_number;
+            // channel.current_stream_number++;
             this.saveJSON("default stream_number set");
-            KeyValue.getInstance().setInt(`${channel.login}.stream_number`, channel.current_stream_number);
+            // KeyValue.getInstance().setInt(`${channel.login}.stream_number`, channel.current_stream_number);
         }
     }
 

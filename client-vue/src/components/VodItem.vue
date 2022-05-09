@@ -21,6 +21,9 @@
                     <span class="video-date" :title="formatDate(vod?.started_at)" v-if="vod?.started_at">{{
                         store.clientCfg('useRelativeTime') ? humanDate(vod?.started_at, true) : formatDate(vod?.started_at)
                     }}</span>
+                    <span class="video-sxe">
+                        {{ vod.stream_season }}x{{ vod.stream_number }}
+                    </span>
                     <span class="video-filename">{{ vod?.basename }}</span>
                 </h3>
             </div>

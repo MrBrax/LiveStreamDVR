@@ -185,6 +185,15 @@
     overflow: hidden;
 }
 
+.video-sxe {
+    font-family: "Roboto Condensed";
+    color: rgba(255, 255, 255, 0.5);
+
+    &:before {
+        content: " · ";
+    }
+}
+
 .video-filename {
     font-family: "Roboto Condensed";
     color: rgba(255, 255, 255, 0.5);

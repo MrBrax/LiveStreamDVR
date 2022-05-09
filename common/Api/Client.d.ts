@@ -119,6 +119,10 @@ export type ApiVod = {
     chapters: ApiVodChapter[];
 
     webpath: string;
+
+    stream_number?: number;
+    stream_season?: string;
+
 };
 
 export type ApiSettingsField = {
@@ -221,6 +225,9 @@ export type ApiChannel = {
     api_getSubscriptionStatus: boolean;
 
     clips_list: string[];
+
+    current_stream_number?: number;
+    current_season?: string;
 
 };
 

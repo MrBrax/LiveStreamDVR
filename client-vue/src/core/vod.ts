@@ -63,6 +63,9 @@ export default class TwitchVOD {
 
     total_size = 0;
 
+    stream_number: number | undefined;
+    stream_season: string | undefined;
+
     public static makeFromApiResponse(apiResponse: ApiVod): TwitchVOD {
         const vod = new TwitchVOD();
         vod.basename = apiResponse.basename;
@@ -103,6 +106,8 @@ export default class TwitchVOD {
         vod.capturingStatus = apiResponse.api_getCapturingStatus;
         vod.chatDumpStatus = apiResponse.api_getChatDumpStatus;
         vod.total_size = apiResponse.total_size;
+        vod.stream_number = apiResponse.stream_number;
+        vod.stream_season = apiResponse.stream_season;
         return vod;
     }
 

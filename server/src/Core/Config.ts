@@ -150,6 +150,8 @@ export class Config {
 
     static readonly AudioContainer = "m4a";
 
+    static readonly SeasonFormat = "yyyyMM";
+
     static instance: Config | undefined;
     static getInstance(): Config {
         if (this.instance === undefined) {
