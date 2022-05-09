@@ -131,6 +131,8 @@ export class TwitchVOD {
 
     comment?: string;
 
+    prevent_deletion = false;
+
     /*
     public ?bool $api_hasFavouriteGame = null;
     public ?array $api_getUniqueGames = null;
@@ -208,6 +210,9 @@ export class TwitchVOD {
         // this.duration_live = dur === false ? -1 : dur;
 
         this.webpath = `${Config.getInstance().cfg<string>("basepath")}/vods/${Config.getInstance().cfg<boolean>("channel_folders") && this.streamer_login ? this.streamer_login : ""}`;
+
+        this.comment = this.json.comment;
+        this.prevent_deletion = this.json.prevent_deletion ?? false;
 
     }
 
@@ -1413,6 +1418,8 @@ export class TwitchVOD {
 
             comment: this.comment,
 
+            prevent_deletion: this.prevent_deletion,
+
             // game_offset: this.game_offset || 0,
             // twitch_vod_url: this.twitch_vod_url,
             // twitch_vod_exists: this.twitch_vod_exists,
@@ -1531,6 +1538,8 @@ export class TwitchVOD {
 
         generated.comment = this.comment;
 
+        generated.prevent_deletion = this.prevent_deletion;
+
         // generated.twitch_vod_status = this.twitch_vod_status;        
 
         // generated.video_fail2 = this.video_fail2;
@@ -1616,6 +1625,11 @@ export class TwitchVOD {
 
         if (!this.directory) {
             throw new Error("No directory set for deletion");
+        }
+
+        if (this.prevent_deletion) {
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Deletion of ${this.basename} prevented`);
+            throw new Error("Vod has been marked with prevent_deletion");
         }
 
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Delete ${this.basename}`);
@@ -2532,6 +2546,7 @@ export class TwitchVOD {
             started_at: started_at,
             ended_at: ended_at,
             not_started: false,
+            prevent_deletion: false,
         };
 
         return {

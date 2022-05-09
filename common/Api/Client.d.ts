@@ -124,6 +124,7 @@ export type ApiVod = {
     stream_season?: string;
 
     comment?: string;
+    prevent_deletion: boolean;
 
 };
 

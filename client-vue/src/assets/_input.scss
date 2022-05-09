@@ -253,6 +253,18 @@ select.input {
         }
     }
 
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        &:hover {
+            background-color: $base-bg;
+            border-color: darken($base-bg, 5%);
+        }
+        &:active {
+            transform: none;
+        }
+    }
+
 }
 
 .details-toggle {

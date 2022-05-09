@@ -206,4 +206,12 @@
         background-color: #444;
     }
 
+    .video-comment {
+        background-color: #222;
+
+        // comment bubble tip
+        &:before {
+            border-color: #222 transparent transparent transparent;
+        }
+    }
 }

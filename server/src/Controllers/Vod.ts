@@ -39,11 +39,13 @@ export function EditVod(req: express.Request, res: express.Response): void {
         return;
     }
 
-    const stream_number = req.body.stream_number;
-    const comment = req.body.comment;
-    
+    const stream_number = req.body.stream_number as number;
+    const comment = req.body.comment as string;
+    const prevent_deletion = req.body.prevent_deletion as boolean;
+
     vod.stream_number = stream_number;
     vod.comment = comment;
+    vod.prevent_deletion = prevent_deletion;
 
     vod.saveJSON("edit vod form");
 
@@ -86,7 +88,15 @@ export function DeleteVod(req: express.Request, res: express.Response): void {
         return;
     }
 
-    vod.delete();
+    try {
+        vod.delete();
+    } catch (error) {
+        res.status(400).send({
+            status: "ERROR",
+            message: `Vod could not be deleted: ${(error as Error).message}`,
+        } as ApiErrorResponse);
+        return;
+    }
 
     res.send({
         status: "OK",

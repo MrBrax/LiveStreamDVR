@@ -481,12 +481,21 @@ export class TwitchChannel {
 
         if (Config.getInstance().cfg("delete_only_one_vod")) {
             Log.logAdvanced(LOGLEVEL.INFO, "automator", `Deleting only one vod for ${this.login}`);
-            vod_candidates[0].delete();
+            try {
+                vod_candidates[0].delete();
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to delete ${vod_candidates[0].basename} for ${this.login}: ${(error as Error).message}`);
+                return false;
+            }
             return 1;
         } else {
             for (const vodclass of vod_candidates) {
                 Log.logAdvanced(LOGLEVEL.INFO, "automator", `Cleanup ${vodclass.basename}`);
-                vodclass.delete();
+                try {
+                    vodclass.delete();
+                } catch (error) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to delete ${vodclass.basename} for ${this.login}: ${(error as Error).message}`);
+                }
             }
         }
 
@@ -620,7 +629,11 @@ export class TwitchChannel {
 
     public deleteAllVods() {
         for (const vod of this.vods_list) {
-            vod.delete();
+            try {
+                vod.delete();
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to delete vod ${vod.basename}: ${(error as Error).message}`);
+            }            
         }
     }
 
