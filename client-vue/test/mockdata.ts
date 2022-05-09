@@ -113,7 +113,8 @@ export const MockApiVODData: ApiVod = {
     duration: 0,
     total_size: 0,
     chapters: [],
-    webpath: ""
+    webpath: "",
+    prevent_deletion: false
 };
 
 export const MockApiChapterData: ApiVodChapter = {
