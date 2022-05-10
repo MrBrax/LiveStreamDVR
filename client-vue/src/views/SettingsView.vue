@@ -71,7 +71,7 @@
         <section class="section" v-if="$route.params.tab == 'favourites'">
             <div class="section-title"><h1>Favourite games</h1></div>
             <div class="section-content" v-if="!loading">
-                <favourites-form :favouritesData="favouritesData" :gamesData="gamesData" @formSuccess="fetchData" />
+                <favourites-form />
             </div>
             <div class="section-content" v-else>
                 <span class="icon"><fa icon="sync" spin></fa></span> Loading...
@@ -130,13 +130,9 @@ export default defineComponent({
     data(): {
         loading: boolean;
         formChannels: ApiChannelConfig[];
-        favouritesData: string[];
-        gamesData: Record<string, ApiGame>;
     } {
         return {
             loading: false,
-            gamesData: {},
-            favouritesData: [],
             formChannels: [],
         };
     },
@@ -147,36 +143,19 @@ export default defineComponent({
         fetchData() {
             console.debug("Fetching settings and games data");
             this.loading = true;
-            this.$http.all([
-                this.$http.get(`api/v0/games`)
+            this.$http
+                .get(`api/v0/settings`)
                 .then((response) => {
-                    const json: ApiGamesResponse = response.data;
+                    const json: ApiSettingsResponse = response.data;
                     if (json.message) alert(json.message);
-                    const games = json.data;
-                    this.gamesData = games;
+                    const channels: ApiChannelConfig[] = json.data.channels;
+                    this.formChannels = channels.sort((a, b) => a.login.localeCompare(b.login));
                 })
                 .catch((err) => {
                     console.error("settings fetch error", err.response);
                 }).finally(() => {
                     this.loading = false;
-                }),
-                this.$http
-                        .get(`api/v0/settings`)
-                        .then((response) => {
-                            const json: ApiSettingsResponse = response.data;
-                            if (json.message) alert(json.message);
-                            const config = json.data.config;
-                            const channels: ApiChannelConfig[] = json.data.channels;
-                            const favourites = json.data.favourite_games;
-                            this.favouritesData = favourites;
-                            this.formChannels = channels.sort((a, b) => a.login.localeCompare(b.login));
-                        })
-                        .catch((err) => {
-                            console.error("settings fetch error", err.response);
-                        }),
-            ]).finally(() => {
-                this.loading = false;
-            });
+                });
 
         },
         updateUsers() {
