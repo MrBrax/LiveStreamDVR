@@ -28,6 +28,7 @@
 </template>
 
 <script lang="ts">
+import { useStore } from "@/store";
 import { ApiGamesResponse, ApiSettingsResponse } from "@common/Api/Api";
 import { ApiChannelConfig, ApiGame } from "@common/Api/Client";
 import { defineComponent } from "vue";
@@ -35,6 +36,10 @@ import { defineComponent } from "vue";
 export default defineComponent({
     name: "FavouritesForm",
     emits: ["formSuccess"],
+    setup() {
+        const store = useStore();
+        return { store };
+    },
     data(): {
         loading: boolean;
         formStatusText: string;
@@ -75,6 +80,7 @@ export default defineComponent({
                     // if (json.message) alert(json.message);
                     if (json.status == "OK") {
                         this.$emit("formSuccess", json);
+                        this.fetchData();
                     }
                 })
                 .catch((err) => {
@@ -106,6 +112,7 @@ export default defineComponent({
                         const favourites = json.data.favourite_games;
                         this.favouritesData = favourites;
                         this.formData.games = favourites;
+                        this.store.updateFavouriteGames(favourites);
                     })
                     .catch((err) => {
                         console.error("settings fetch error", err.response);
