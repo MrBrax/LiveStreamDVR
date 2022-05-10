@@ -233,16 +233,16 @@ export default defineComponent({
         this.fetchData();
     },
     computed: {
-        clientVersion() {
+        clientVersion(): string {
             return import.meta.env.VITE_APP_VERSION; // injected
         },
-        clientMode() {
+        clientMode(): string {
             return import.meta.env.MODE; // injected
         },
-        verboseClientVersion() {
+        verboseClientVersion(): string {
             return `${import.meta.env.VITE_APP_VERSION} (${import.meta.env.VITE_APP_BUILDDATE} / ${import.meta.env.VITE_APP_GIT_HASH})`; // injected
         },
-        pipKeys() {
+        pipKeys(): string {
             if (!this.aboutData) {
                 return "";
             }
