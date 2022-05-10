@@ -1,5 +1,8 @@
 <template>
     <div v-if="!loading">
+        <p class="error">
+            Changing values here will most likely require a restart.
+        </p>
         <transition-group
             name="list"
             tag="table"
@@ -31,7 +34,7 @@
             </tr>
         </transition-group>
         <p v-else>No key-value data found.</p>
-        
+
         <hr />
 
         <form @submit.prevent="doAdd">
