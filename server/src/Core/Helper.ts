@@ -17,6 +17,8 @@ import { LOGLEVEL, Log } from "./Log";
 import { TwitchCommentDump } from "../../../common/Comments";
 import { replaceAll } from "../Helpers/ReplaceAll";
 import { TwitchChannel } from "./TwitchChannel";
+import { KeyValue } from "./KeyValue";
+import { SubStatus } from "../../../common/Defs";
 
 export interface ExecReturn {
     stdout: string[];
@@ -957,6 +959,18 @@ export class Helper {
                     errors.push(`${field.key} is deprecated: ${field.deprecated}`);
                 } else {
                     errors.push(`'${field.key}' is deprecated and will be removed in the future.`);
+                }
+            }
+        }
+
+        for (const channel of TwitchChannel.channels) {
+            for (const sub_type of Helper.CHANNEL_SUB_TYPES) {
+                if (KeyValue.getInstance().get(`${channel.userid}.substatus.${sub_type}`) === SubStatus.WAITING) {
+                    errors.push(`${channel.login} is waiting for subscription ${sub_type}. Please check the config.`);
+                } else if (KeyValue.getInstance().get(`${channel.userid}.substatus.${sub_type}`) === SubStatus.FAILED) {
+                    errors.push(`${channel.login} failed to subscribe ${sub_type}. Please check the config.`);
+                } else if (KeyValue.getInstance().get(`${channel.userid}.substatus.${sub_type}`) === SubStatus.NONE || !KeyValue.getInstance().has(`${channel.userid}.substatus.${sub_type}`)) {
+                    errors.push(`${channel.login} is not subscribed to ${sub_type}. Please check the config and subscribe.`);
                 }
             }
         }
