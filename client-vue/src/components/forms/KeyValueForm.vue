@@ -6,7 +6,7 @@
             class="table is-fullwidth is-striped is-hoverable"
             v-if="keyvalue && Object.keys(keyvalue).length > 0"
         >
-            <tr v-for="(value, key) in keyvalue" :key="key">
+            <tr v-for="(value, key) in sortedKeyValues" :key="key">
                 <td>{{ key }}</td>
                 <td>
                     {{ value }}
@@ -36,21 +36,22 @@
 
         <form @submit.prevent="doAdd">
             <div class="field">
-                <label class="label">Key</label>
+                <label for="key" class="label">Key</label>
                 <div class="control">
-                    <input class="input" type="text" v-model="addForm.key" />
+                    <input class="input" type="text" id="key" v-model="addForm.key" />
                 </div>
             </div>
             <div class="field">
-                <label class="label">Value</label>
+                <label for="value" class="label">Value</label>
                 <div class="control">
-                    <input class="input" type="text" v-model="addForm.value" />
+                    <input class="input" type="text" id="value" v-model="addForm.value" />
                 </div>
+                <p class="input-help">The value will be stored as a string, and depending on how it is used, it might be converted to another type.</p>
             </div>
             <div class="field">
                 <div class="control">
                     <button class="button is-confirm" type="submit">
-                        <span class="icon"><fa icon="save"></fa></span> Create
+                        <span class="icon"><fa icon="plus"></fa></span> Create
                     </button>
                 </div>
             </div>
@@ -66,8 +67,8 @@ import { useStore } from "@/store";
 import { defineComponent, PropType } from "vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faPencil, faSync, faTrash } from "@fortawesome/free-solid-svg-icons";
-library.add(faPencil, faSync, faTrash);
+import { faPencil, faSync, faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
+library.add(faPencil, faSync, faTrash, faPlus);
 
 export default defineComponent({
     name: "KeyValueForm",
@@ -177,7 +178,10 @@ export default defineComponent({
         },       
     },
     computed: {
-       
+        sortedKeyValues(): Record<string, string> {
+            if (!this.keyvalue) return {};
+            return Object.fromEntries(Object.entries(this.keyvalue).sort());
+        }       
     },
 });
 </script>
