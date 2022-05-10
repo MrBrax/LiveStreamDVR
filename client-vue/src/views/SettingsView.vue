@@ -9,6 +9,9 @@
         <router-link :to="{ name: 'Settings', params: { tab: 'config' } }">
             <span class="icon"><fa icon="cog"></fa></span> Config
         </router-link>
+        <router-link :to="{ name: 'Settings', params: { tab: 'keyvalue' } }">
+            <span class="icon"><fa icon="database"></fa></span> KeyValue
+        </router-link>
         <router-link :to="{ name: 'Settings', params: { tab: 'notifications' } }">
             <span class="icon"><fa icon="bell"></fa></span> Notifications
         </router-link>
@@ -80,6 +83,14 @@
             <div class="section-title"><h1>Client settings</h1></div>
             <client-settings-form />
         </section>
+
+        <!-- keyvalue -->
+        <section class="section" v-if="$route.params.tab == 'keyvalue'">
+            <div class="section-title"><h1>KeyValue</h1></div>
+            <div class="section-content">
+                <key-value-form />
+            </div>
+        </section>
  
     </div>
 </template>
@@ -92,15 +103,17 @@ import ChannelUpdateForm from "@/components/forms/ChannelUpdateForm.vue";
 import SettingsForm from "@/components/forms/SettingsForm.vue";
 import FavouritesForm from "@/components/forms/FavouritesForm.vue";
 import NotificationsForm from "@/components/forms/NotificationsForm.vue";
+import ClientSettingsForm from "@/components/forms/ClientSettingsForm.vue";
+import KeyValueForm from "@/components/forms/KeyValueForm.vue";
 
 import type { ApiGame, ApiChannelConfig } from "@common/Api/Client";
 import type { ApiSettingsResponse, ApiGamesResponse } from "@common/Api/Api";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faUser, faCalendarCheck, faStar, faBell, faUserCog } from "@fortawesome/free-solid-svg-icons";
+import { faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
-import ClientSettingsForm from "@/components/forms/ClientSettingsForm.vue";
-library.add(faUser, faCalendarCheck, faStar, faBell, faUserCog);
+
+library.add(faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase);
 
 export default defineComponent({
     name: "SettingsView",
@@ -187,7 +200,8 @@ export default defineComponent({
         SettingsForm,
         FavouritesForm,
         NotificationsForm,
-        ClientSettingsForm
+        ClientSettingsForm,
+        KeyValueForm,
     },
 });
 </script>
