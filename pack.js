@@ -7,7 +7,7 @@ const server_version = require("./server/package.json").version;
 console.log(`Client version: ${client_version}`);
 console.log(`Server version: ${server_version}`);
 
-const release_name = `TwitchAutomator-s${server_version}-c${client_version}`;
+const release_name = `LiveStreamDVR-s${server_version}-c${client_version}`;
 
 if (fs.existsSync(`./release/${release_name}.zip`)) {
     fs.unlinkSync(`./release/${release_name}.zip`);

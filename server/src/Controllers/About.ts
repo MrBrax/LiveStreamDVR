@@ -143,22 +143,10 @@ export async function About(req: express.Request, res: express.Response) {
         }
     }
 
-    const cron_lastrun: Record<string, string> = {};
-    for (const cron of ["check_deleted_vods", "check_muted_vods", "dump_playlists"]) {
-        const fp = path.join(BaseConfigDataFolder.cron, cron);
-        if (fs.existsSync(fp)) {
-            const t = fs.readFileSync(fp, "utf8");
-            cron_lastrun[cron] = new Date(parseInt(t)).toISOString();
-        } else {
-            cron_lastrun[cron] = "Never run";
-        }
-    }
-
     res.send({
         data: {
             bins: bins,
             pip: pip_requirements,
-            cron_lastrun: cron_lastrun,
             is_docker: Helper.is_docker(),
             keyvalue: KeyValue.getInstance().data,
         },

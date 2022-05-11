@@ -8,12 +8,18 @@ import { VideoQualityArray } from '@common/Defs';
 import { createPinia } from 'pinia';
 import { ApiChannelConfig, ApiGame } from '@common/Api/Client';
 import helpers from '@/mixins/helpers';
-import { GamesData } from '@/../test/mockdata';
+import { MockApiGamesData } from '@/../test/mockdata';
 
 // mock $http on vue
 
 test('FavouritesForm', async () => {
     expect(FavouritesForm).toBeTruthy();
+
+    // mock fetchData on FavouritesForm
+    const fetchDataSpy = vitest.spyOn(FavouritesForm.methods, "fetchData" as never);
+    fetchDataSpy.mockImplementation(() => {
+        return;
+    });
 
     const wrapper = mount(FavouritesForm, {
         global: {
@@ -33,13 +39,24 @@ test('FavouritesForm', async () => {
                 }
             },
             mixins: [helpers],
-            // plugins: [VueAxios, [axios]],
+            plugins: [createPinia()],
         },
         props: {
             favouritesData: [],
-            gamesData: GamesData
+            gamesData: MockApiGamesData
         }
     });
+
+    wrapper.vm.gamesData = {...MockApiGamesData};
+    wrapper.vm.favouritesData = [];
+
+    await wrapper.vm.$nextTick();
+
+    console.debug('wrapper.vm.gamesData', Object.keys(wrapper.vm.gamesData).length);
+
+    // const fetchDataSpy = vitest.spyOn(wrapper.vm, "fetchData");
+    // console.log('fetchDataSpy', fetchDataSpy);
+
 
     // expect favourites list to have two items
     expect(wrapper.findAll(".favourites_list .checkbox")).toHaveLength(2);
@@ -48,11 +65,11 @@ test('FavouritesForm', async () => {
     expect(wrapper.findAll(".favourites_list .checkbox input")[0].attributes('name')).toBe('123');
 
     await wrapper.get('input[name="123"]').setValue();
-    expect(wrapper.vm.formData).toEqual(["123"]);
+    expect(wrapper.vm.formData).toEqual({ games: ["123"] });
 
     await wrapper.get('input[name="123"]').setValue(false);
     await wrapper.get('input[name="456"]').setValue();
-    expect(wrapper.vm.formData).toEqual(["456"]);
+    expect(wrapper.vm.formData).toEqual({ games: ["456"] });
 
     // submit
     await wrapper.find('form').trigger('submit');

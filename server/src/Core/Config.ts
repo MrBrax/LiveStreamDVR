@@ -45,7 +45,7 @@ export class Config {
             "text": "App URL",
             "type": "string",
             "required": true,
-            "help": "Must use HTTPS on port 443 (aka no port visible). No trailing slash. E.g. https://twitchautomator.example.com . Enter 'debug' to not use, no recordings can be made.",
+            "help": "Must use HTTPS on port 443 (aka no port visible). No trailing slash. E.g. https://livestreamdvr.example.com . Enter 'debug' to not use, no recordings can be made.",
             // 'pattern': '^https:\/\/',
             "stripslash": true,
         },

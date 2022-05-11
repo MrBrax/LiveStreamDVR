@@ -1,4 +1,4 @@
-# TwitchAutomator API
+# LiveStreamDVR API
 ## Vod
 
 ### `GET /api/v0/vod/{basename}`

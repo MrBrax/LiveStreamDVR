@@ -8,7 +8,7 @@
                         :name="game.id"
                         :value="game.id"
                         :id="game.id"
-                        v-model="formData"
+                        v-model="formData.games"
                     /> {{ game.name }}
                     <span class="game-date">{{ formatDate(game.added) }}</span>
                 </label>
@@ -28,26 +28,43 @@
 </template>
 
 <script lang="ts">
-import { ApiGame } from "@common/Api/Client";
+import { useStore } from "@/store";
+import { ApiGamesResponse, ApiSettingsResponse } from "@common/Api/Api";
+import { ApiChannelConfig, ApiGame } from "@common/Api/Client";
 import { defineComponent } from "vue";
 
 export default defineComponent({
     name: "FavouritesForm",
-    props: {
-        favouritesData: {
-            type: Array as () => string[],
-        },
-        gamesData: {
-            type: Object as () => Record<string, ApiGame>,
-        },
-    },
     emits: ["formSuccess"],
-    data() {
+    setup() {
+        const store = useStore();
+        return { store };
+    },
+    data(): {
+        loading: boolean;
+        formStatusText: string;
+        formStatus: string;
+        formData: {
+            games: string[];
+        },
+        favouritesData: string[];
+        gamesData: Record<string, ApiGame>;
+    } {
         return {
+            loading: false,
             formStatusText: "Ready",
             formStatus: "",
-            formData: this.favouritesData?.slice() ?? [],
+            formData: {
+                games: [],
+            },
+            favouritesData: [],
+            gamesData: {},
         };
+    },
+    mounted() {
+        // this.formData.games = this.favouritesData ? [...this.favouritesData] : [];
+        console.debug("FavouritesForm mounted", this.favouritesData, this.formData);
+        this.fetchData();
     },
     methods: {
         submitForm(event: Event) {
@@ -60,9 +77,10 @@ export default defineComponent({
                     const json = response.data;
                     this.formStatusText = json.message;
                     this.formStatus = json.status;
-                    if (json.message) alert(json.message);
+                    // if (json.message) alert(json.message);
                     if (json.status == "OK") {
                         this.$emit("formSuccess", json);
+                        this.fetchData();
                     }
                 })
                 .catch((err) => {
@@ -72,6 +90,38 @@ export default defineComponent({
             event.preventDefault();
             return false;
         },
+        fetchData() {
+            console.debug("FavouritesForm fetchData");
+            this.$http.all([
+                this.$http.get(`api/v0/games`)
+                .then((response) => {
+                    const json: ApiGamesResponse = response.data;
+                    if (json.message) alert(json.message);
+                    const games = json.data;
+                    this.gamesData = games;
+                })
+                .catch((err) => {
+                    console.error("settings fetch error", err.response);
+                }).finally(() => {
+                    this.loading = false;
+                }),
+                this.$http
+                    .get(`api/v0/settings`)
+                    .then((response) => {
+                        const json: ApiSettingsResponse = response.data;
+                        if (json.message) alert(json.message);
+                        const favourites = json.data.favourite_games;
+                        this.favouritesData = favourites;
+                        this.formData.games = favourites;
+                        this.store.updateFavouriteGames(favourites);
+                    })
+                    .catch((err) => {
+                        console.error("settings fetch error", err.response);
+                    }),
+            ]).finally(() => {
+                this.loading = false;
+            });
+        }
     },
 
     computed: {

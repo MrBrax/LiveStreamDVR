@@ -288,12 +288,12 @@ select.input {
     border: none;
     background: none;
     cursor: pointer;
-    color: #111;
+    color: inherit;
     padding: 0;
     margin: 0;
 
     &:hover {
-        color: #222;
+        color: #6598f8;
     }
 
     &.white {

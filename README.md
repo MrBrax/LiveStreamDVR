@@ -1,13 +1,26 @@
 # LiveStreamDVR
 
-[![Check Server](https://github.com/MrBrax/TwitchAutomator/actions/workflows/check-server.yml/badge.svg)](https://github.com/MrBrax/TwitchAutomator/actions/workflows/check-server.yml) [![Check Client](https://github.com/MrBrax/TwitchAutomator/actions/workflows/check-client.yml/badge.svg)](https://github.com/MrBrax/TwitchAutomator/actions/workflows/check-client.yml) [![Publish Docker image](https://github.com/MrBrax/TwitchAutomator/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/MrBrax/TwitchAutomator/actions/workflows/docker-publish.yml)
-![Docker Pulls](https://img.shields.io/docker/pulls/mrbrax/twitchautomator) ![Server version](https://img.shields.io/badge/dynamic/json?color=darkgreen&url=https://raw.githubusercontent.com/MrBrax/TwitchAutomator/master/server/package.json&query=$.version&label=Server) ![Client version](https://img.shields.io/badge/dynamic/json?color=darkgreen&url=https://raw.githubusercontent.com/MrBrax/TwitchAutomator/master/client-vue/package.json&query=$.version&label=Client)
+[![Check Server](https://github.com/MrBrax/LiveStreamDVR/actions/workflows/check-server.yml/badge.svg)](https://github.com/MrBrax/LiveStreamDVR/actions/workflows/check-server.yml) [![Check Client](https://github.com/MrBrax/LiveStreamDVR/actions/workflows/check-client.yml/badge.svg)](https://github.com/MrBrax/LiveStreamDVR/actions/workflows/check-client.yml) [![Publish Docker image](https://github.com/MrBrax/LiveStreamDVR/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/MrBrax/LiveStreamDVR/actions/workflows/docker-publish.yml)
+![Docker Pulls](https://img.shields.io/docker/pulls/mrbrax/twitchautomator) ![Server version](https://img.shields.io/badge/dynamic/json?color=darkgreen&url=https://raw.githubusercontent.com/MrBrax/LiveStreamDVR/master/server/package.json&query=$.version&label=Server) ![Client version](https://img.shields.io/badge/dynamic/json?color=darkgreen&url=https://raw.githubusercontent.com/MrBrax/LiveStreamDVR/master/client-vue/package.json&query=$.version&label=Client)
 
 ![1603661434863-wc](https://user-images.githubusercontent.com/1517911/97119662-fe1b0a80-1711-11eb-8f40-20c1690a01c9.png)
 
-***⚠️ SINCE MID 2021, A DOMAIN WITH HTTPS IS REQUIRED ⚠️***
 
-***⚠️ SINCE THE NEW TYPESCRIPT SERVER, ALL USER DATA IS STORED IN /data/ ⚠️***
+⚠️⚠️⚠️
+
+*Until Twitch implements websocket eventsub, a public facing HTTPS server is required for this application to function.*
+
+A reverse proxy is a good way to get around this:
+- [Nginx](https://www.nginx.com/)
+- [Apache](https://httpd.apache.org/)
+- [Caddy](https://caddyserver.com/)
+- [Traefik](https://traefik.io/)
+
+etc. I have only tested this with Nginx and letsencrypt.
+
+⚠️⚠️⚠️
+
+
 
 ## Features
 - Automatic VOD recording pretty much the second the stream goes live, instead of checking it every minute like many other scripts do.
@@ -42,7 +55,7 @@ Reminder that i don't use docker myself on my capturing setup, so any specific e
 
 ### Docker hub
 
-1. Download the [docker-compose.yml](https://raw.githubusercontent.com/MrBrax/TwitchAutomator/master/docker-compose.yml) file and place it in a directory.
+1. Download the [docker-compose.yml](https://raw.githubusercontent.com/MrBrax/LiveStreamDVR/master/docker-compose.yml) file and place it in a directory.
 2. Run `docker-compose pull` and `docker-compose up -d` to start it.
 3. Visit the webapp at `localhost:8082`
 4. Check stored vods in the `/data/storage` directory. Permissions might be an issue.
@@ -60,15 +73,36 @@ If you want the public webapp to have a custom base folder, you must provide `BA
 
 ## Standalone setup
 
-1. Place the downloaded files in a separate folder from your www directory.
+### Main requirements
+- [node.js](https://nodejs.org/) 14+
+- npm and yarn
+- HTTPS enabled with a valid certificate on the default port 443
+- Python 3.7+
+- [pip](https://pypi.org/project/pip/)
+- [FFmpeg](https://ffmpeg.org/download.html)
+- [MediaInfo](https://mediaarea.net/en/MediaInfo)
+- [TwitchDownloader](https://github.com/lay295/TwitchDownloader) (optional for chat downloading and burning)
+- Public facing webserver (nginx, apache, etc) for reverse proxy (optional)
+
+
+### pip packages
+- [streamlink](https://github.com/streamlink/streamlink) (required)
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) (recommended)
+- [pipenv](https://github.com/pypa/pipenv) (optional, experimental)
+
+### Steps
+
+1. Place the downloaded files in a folder with good permissions.
 2. Enter the root folder and run `pip install -r requirements.txt`
-3. Enter the `/client-vue` folder and run `yarn install` and `yarn run build`.
-4. Enter the `/server` folder and run `yarn install` and `yarn run build`.
-5. In the `/server` folder, run `yarn run start` to start the server in production mode.
-6. Go to the settings page and set up basic stuff, get api key from twitch dev site.
-7. Check the About page for subscription status.
-8. Optionally add cronjobs shown on the settings page.
-9. Check stored vods in the `/data/storage` directory. Permissions might be an issue.
+3. Build the packages
+    - Enter the `/client-vue` folder and run `yarn install` and `yarn run build`.
+    - Enter the `/server` folder and run `yarn install` and `yarn run build`.
+    - Enter the `/twitch-chat-dumper` folder and run `yarn install` and `yarn run build`.
+    - Enter the `/twitch-vod-chat` folder and run `yarn install` and `yarn run build`.
+4. In the `/server` folder, run `yarn run start` to start the server in production mode.
+5. Go to the settings page and set up basic stuff, get api key from twitch dev site.
+6. Check the About page for subscription status.
+7. Check stored vods in the `/data/storage` directory. Permissions might be an issue.
 
 Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in-subdirectory
 
@@ -87,24 +121,7 @@ Store the data in the home directory.
 
 ---
 
-## Main requirements
-- [node.js](https://nodejs.org/) 14+
-- npm and yarn
-- HTTPS enabled with a valid certificate on the default port 443
-- Python 3.7+
-- [pip](https://pypi.org/project/pip/)
-- [FFmpeg](https://ffmpeg.org/download.html)
-- [MediaInfo](https://mediaarea.net/en/MediaInfo)
-- [TwitchDownloader](https://github.com/lay295/TwitchDownloader) (optional for chat downloading and burning)
-- Public facing webserver (nginx, apache, etc) for reverse proxy (optional)
-
-
-## pip packages
-- [streamlink](https://github.com/streamlink/streamlink) (required)
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) (recommended)
-- [pipenv](https://github.com/pypa/pipenv) (optional, experimental)
----
-## Security environment variables
+## Environment variables
 ### `TCD_ENABLE_FILES_API=1`
 
 Enable the files api, making it possible to download and delete files in storage.
@@ -118,5 +135,3 @@ Make viewing logs in the file manager possible. Requires the above environment v
 
 Migrate old vod json files to the new format. This is automatically done when the server starts.
 Make sure to back up your data before doing this, as it will overwrite the old files and can't be undone. Bugs might occur, so use with caution.
-
----
