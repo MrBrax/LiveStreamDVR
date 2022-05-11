@@ -33,6 +33,7 @@ test('FavouritesForm', async () => {
                 }
             },
             mixins: [helpers],
+            plugins: [createPinia()],
             // plugins: [VueAxios, [axios]],
         },
         props: {
