@@ -15,6 +15,7 @@ import type { SubscriptionRequest, SubscriptionResponse } from "../../../common/
 import type { BroadcasterType, UsersResponse } from "../../../common/TwitchAPI/Users";
 import { ChannelUpdated } from "../../../common/Webhook";
 import { AppRoot, BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
+import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
 import { Helper } from "./Helper";
 import { Job } from "./Job";
@@ -341,7 +342,7 @@ export class TwitchChannel {
 
         vod.created_at = new Date();
 
-        vod.saveJSON("create json");
+        await vod.saveJSON("create json");
 
         // reload
         const load_vod = await TwitchVOD.load(vod.filename);
@@ -391,14 +392,35 @@ export class TwitchChannel {
 
         if (vods_on_disk.length !== vods_in_channel_memory.length) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Vod on disk and vod in memory are not the same for ${this.login}`);
+            const removedVods = vods_in_channel_memory.filter(v => !vods_on_disk.includes(v.basename));
+            ClientBroker.notify(
+                "VOD changed externally",
+                `Please do not delete or rename VOD files manually.\nRemoved VODs: ${removedVods.map(v => v.basename).join(", ")}`,
+                undefined,
+                "system"
+            );
         }
 
         if (vods_on_disk.length !== vods_in_main_memory.length) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Vod on disk and vod in main memory are not the same for ${this.login}`);
+            const removedVods = vods_in_main_memory.filter(v => !vods_on_disk.includes(v.basename));
+            ClientBroker.notify(
+                "VOD changed externally",
+                `Please do not delete or rename VOD files manually.\nRemoved VODs: ${removedVods.map(v => v.basename).join(", ")}`,
+                undefined,
+                "system"
+            );
         }
 
         if (vods_in_channel_memory.length !== vods_in_main_memory.length) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Vod in memory and vod in main memory are not the same for ${this.login}`);
+            const removedVods = vods_in_main_memory.filter(v => !vods_in_channel_memory.includes(v));
+            ClientBroker.notify(
+                "VOD changed externally",
+                `Please do not delete or rename VOD files manually.\nRemoved VODs: ${removedVods.map(v => v.basename).join(", ")}`,
+                undefined,
+                "system"
+            );
         }
 
     }

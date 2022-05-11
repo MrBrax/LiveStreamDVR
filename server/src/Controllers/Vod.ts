@@ -27,7 +27,7 @@ export async function GetVod(req: express.Request, res: express.Response): Promi
 
 }
 
-export function EditVod(req: express.Request, res: express.Response): void {
+export async function EditVod(req: express.Request, res: express.Response): Promise<void> {
 
     const vod = TwitchVOD.getVod(req.params.basename);
 
@@ -47,7 +47,7 @@ export function EditVod(req: express.Request, res: express.Response): void {
     vod.comment = comment;
     vod.prevent_deletion = prevent_deletion;
 
-    vod.saveJSON("edit vod form");
+    await vod.saveJSON("edit vod form");
 
     res.send({
         status: "OK",
@@ -303,7 +303,7 @@ export async function MatchVod(req: express.Request, res: express.Response): Pro
         return;
     }
 
-    vod.saveJSON("matched provider vod");
+    await vod.saveJSON("matched provider vod");
 
     res.send({
         status: "OK",

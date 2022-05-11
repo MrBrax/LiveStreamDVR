@@ -309,11 +309,11 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
 
         const duration = Helper.parseTwitchDuration(video.duration);
         vod.ended_at = new Date(vod.started_at.getTime() + (duration * 1000));
-        vod.saveJSON("manual creation");
+        await vod.saveJSON("manual creation");
 
         vod.addSegment(path.basename(filepath));
         vod.finalize();
-        vod.saveJSON("manual finalize");
+        await vod.saveJSON("manual finalize");
 
         Webhook.dispatch("end_download", {
             vod: await vod.toAPI(),

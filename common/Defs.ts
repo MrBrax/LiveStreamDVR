@@ -68,9 +68,10 @@ export const NotificationCategories = [
     { "id": "vodMuted", name: "VOD muted" },
     { "id": "vodDeleted", name: "VOD deleted" },
     { "id": "debug", name: "Debug" },
+    { "id": "system", name: "System" },
 ];
 
-export type NotificationCategory = "offlineStatusChange" | "streamOnline" | "streamOffline" | "streamStatusChange" | "streamStatusChangeFavourite" | "vodMuted" | "vodDeleted" | "debug";
+export type NotificationCategory = "offlineStatusChange" | "streamOnline" | "streamOffline" | "streamStatusChange" | "streamStatusChangeFavourite" | "vodMuted" | "vodDeleted" | "debug" | "system";
 
 export enum JobStatus {
     NONE = "NONE",
