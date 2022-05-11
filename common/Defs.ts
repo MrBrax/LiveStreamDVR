@@ -1,3 +1,5 @@
+export type ChannelProvider = "base" | "twitch" | "youtube";
+
 export enum SubStatus {
     NONE = "0",
     WAITING = "1",

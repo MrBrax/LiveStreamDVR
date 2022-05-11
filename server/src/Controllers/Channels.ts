@@ -16,6 +16,7 @@ import { EventSubStreamOnline } from "../../../common/TwitchAPI/EventSub/StreamO
 import { Automator } from "../Core/Automator";
 import { TwitchVODChapterJSON } from "../Storage/JSON";
 import { KeyValue } from "../Core/KeyValue";
+import { Channel } from "../Core/Channel";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -82,6 +83,7 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
     const live_chat = formdata.live_chat;
 
     const channel_config: ChannelConfig = {
+        provider: "twitch",
         login: channel.login,
         quality: quality,
         match: match,
@@ -108,9 +110,9 @@ export function DeleteChannel(req: express.Request, res: express.Response): void
 
     if (!channel || !channel.login) {
 
-        if (TwitchChannel.channels_config.find(c => c.login === req.params.login)) {
-            TwitchChannel.channels_config = TwitchChannel.channels_config.filter(c => c.login !== req.params.login);
-            TwitchChannel.saveChannelsConfig();
+        if (Channel.channels_config.find(c => c.login === req.params.login)) {
+            Channel.channels_config = Channel.channels_config.filter(c => c.login !== req.params.login);
+            Channel.saveChannelsConfig();
 
             res.send({
                 status: "OK",
@@ -151,6 +153,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
     } = req.body;
 
     const channel_config: ChannelConfig = {
+        provider: "twitch",
         login: formdata.login,
         quality: formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [],
         match: formdata.match ? formdata.match.split(",").map(m => m.trim()) : [],
