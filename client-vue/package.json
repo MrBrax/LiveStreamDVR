@@ -2,7 +2,7 @@
   "name": "livestreamdvr-client",
   "version": "0.8.7",
   "private": true,
-  "homepage": "https://github.com/MrBrax/TwitchAutomator",
+  "homepage": "https://github.com/MrBrax/LiveStreamDVR",
   "scripts": {
     "lint": "vue-tsc --noEmit",
     "serve": "vite",

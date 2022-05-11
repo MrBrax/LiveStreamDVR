@@ -1,7 +1,7 @@
 # LiveStreamDVR
 
-[![Check Server](https://github.com/MrBrax/TwitchAutomator/actions/workflows/check-server.yml/badge.svg)](https://github.com/MrBrax/TwitchAutomator/actions/workflows/check-server.yml) [![Check Client](https://github.com/MrBrax/TwitchAutomator/actions/workflows/check-client.yml/badge.svg)](https://github.com/MrBrax/TwitchAutomator/actions/workflows/check-client.yml) [![Publish Docker image](https://github.com/MrBrax/TwitchAutomator/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/MrBrax/TwitchAutomator/actions/workflows/docker-publish.yml)
-![Docker Pulls](https://img.shields.io/docker/pulls/mrbrax/twitchautomator) ![Server version](https://img.shields.io/badge/dynamic/json?color=darkgreen&url=https://raw.githubusercontent.com/MrBrax/TwitchAutomator/master/server/package.json&query=$.version&label=Server) ![Client version](https://img.shields.io/badge/dynamic/json?color=darkgreen&url=https://raw.githubusercontent.com/MrBrax/TwitchAutomator/master/client-vue/package.json&query=$.version&label=Client)
+[![Check Server](https://github.com/MrBrax/LiveStreamDVR/actions/workflows/check-server.yml/badge.svg)](https://github.com/MrBrax/LiveStreamDVR/actions/workflows/check-server.yml) [![Check Client](https://github.com/MrBrax/LiveStreamDVR/actions/workflows/check-client.yml/badge.svg)](https://github.com/MrBrax/LiveStreamDVR/actions/workflows/check-client.yml) [![Publish Docker image](https://github.com/MrBrax/LiveStreamDVR/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/MrBrax/LiveStreamDVR/actions/workflows/docker-publish.yml)
+![Docker Pulls](https://img.shields.io/docker/pulls/mrbrax/twitchautomator) ![Server version](https://img.shields.io/badge/dynamic/json?color=darkgreen&url=https://raw.githubusercontent.com/MrBrax/LiveStreamDVR/master/server/package.json&query=$.version&label=Server) ![Client version](https://img.shields.io/badge/dynamic/json?color=darkgreen&url=https://raw.githubusercontent.com/MrBrax/LiveStreamDVR/master/client-vue/package.json&query=$.version&label=Client)
 
 ![1603661434863-wc](https://user-images.githubusercontent.com/1517911/97119662-fe1b0a80-1711-11eb-8f40-20c1690a01c9.png)
 
@@ -55,7 +55,7 @@ Reminder that i don't use docker myself on my capturing setup, so any specific e
 
 ### Docker hub
 
-1. Download the [docker-compose.yml](https://raw.githubusercontent.com/MrBrax/TwitchAutomator/master/docker-compose.yml) file and place it in a directory.
+1. Download the [docker-compose.yml](https://raw.githubusercontent.com/MrBrax/LiveStreamDVR/master/docker-compose.yml) file and place it in a directory.
 2. Run `docker-compose pull` and `docker-compose up -d` to start it.
 3. Visit the webapp at `localhost:8082`
 4. Check stored vods in the `/data/storage` directory. Permissions might be an issue.
