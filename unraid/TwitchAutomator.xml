@@ -1,34 +1,46 @@
 <?xml version="1.0"?>
 <Container version="2">
-  <Name>twitchautomator</Name>
+  <Name>LiveStreamDVR</Name>
   <Repository>mrbrax/twitchautomator:master</Repository>
   <Registry>https://hub.docker.com/r/mrbrax/twitchautomator/</Registry>
   <Network>bridge</Network>
   <MyIP/>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>
-  <Support>https://github.com/MrBrax/TwitchAutomator/issues</Support>
-  <Project>https://github.com/MrBrax/TwitchAutomator</Project>
+  <Support>https://github.com/MrBrax/LiveStreamDVR/issues</Support>
+  <Project>https://github.com/MrBrax/LiveStreamDVR</Project>
   <Overview>An automatic twitch recorder.&#xD;
-    ***⚠️ SINCE MID 2021, A DOMAIN WITH HTTPS IS REQUIRED ⚠️***
-    ***⚠️ SINCE THE NEW TYPESCRIPT SERVER, ALL USER DATA IS STORED IN /data/ ⚠️***
-## Features&#xD;
-- Automatic VOD recording pretty much the second the stream goes live, instead of checking it every minute like many other scripts do.&#xD;
-- Cyclic recording, as in when a specified amount or storage per streamer is reached, the oldest stream gets deleted.&#xD;
-- Tons of metadata, maybe too much. Stores info about games played, stream titles, duration, if the stream got muted from copyrighted music, etc.&#xD;
-- Chapters (titles and games) are written to the final video file.&#xD;
-- [Video player](https://github.com/MrBrax/twitch-vod-chat) with chat playback.&#xD;
-- Video cutter with chapter display for easy exporting, also cuts the downloaded chat for synced rendering.&#xD;
-- Notifications with optional speech when the website is open, get stream live notifications far earlier than the mobile app does.&#xD;
-- Writes a [losslesscut](https://github.com/mifi/lossless-cut/) compatible csv file for the full VOD so you don't have to find all the games.&#xD;
-- Uses `ts` instead of `mp4` so if the stream or program crashes, the file won't be corrupted.&#xD;
-- Optionally either dumps chat while capturing or downloads the chat file after it's done.&#xD;
-- Basic tools for downloading any VOD or chat.&#xD;
-- Can be set to automatically download the whole stream chat to a JSON file, to be used in my [twitch-vod-chat](https://github.com/MrBrax/twitch-vod-chat) webapp or automatically burned in with [TwitchDownloader](https://github.com/lay295/TwitchDownloader).&#xD;
-- Basic webhook support for external scripting.&#xD;
-- Notifications over the browser, telegram, and discord.&#xD;
-&#xD;
-*One high-profile streamer VOD of 10 hours at 1080p60 is about 30-50GB.*</Overview>
+    ⚠️⚠️⚠️
+
+Until Twitch implements websocket eventsub, a public facing HTTPS server is required for this application to function.
+
+A reverse proxy is a good way to get around this:
+
+Nginx
+Apache
+Caddy
+Traefik
+etc. I have only tested this with Nginx and letsencrypt.
+
+⚠️⚠️⚠️
+
+Features
+Automatic VOD recording pretty much the second the stream goes live, instead of checking it every minute like many other scripts do.
+Cyclic recording, as in when a specified amount or storage per streamer is reached, the oldest stream gets deleted.
+Tons of metadata, maybe too much. Stores info about games played, stream titles, duration, if the stream got muted from copyrighted music, etc.
+Chapters (titles and games) are written to the final video file.
+Video player with chat playback.
+Video cutter with chapter display for easy exporting, also cuts the downloaded chat for synced rendering.
+Notifications with optional speech when the website is open, get stream live notifications far earlier than the mobile app does.
+Writes a losslesscut compatible csv file for the full VOD so you don't have to find all the games.
+Uses ts instead of mp4 so if the stream or program crashes, the file won't be corrupted.
+Audio only support.
+Optionally either dumps chat while capturing or downloads the chat file after it's done.
+Basic tools for downloading any VOD or chat.
+Can be set to automatically download the whole stream chat to a JSON file, to be used in my twitch-vod-chat webapp or automatically burned in with TwitchDownloader.
+Basic webhook support for external scripting.
+Notifications over the browser, telegram, and discord.
+One high-profile streamer VOD of 10 hours at 1080p60 is about 30-50GB.</Overview>
   <Category>MediaApp:Video</Category>
   <WebUI/>
   <TemplateURL/>
