@@ -93,7 +93,7 @@ export class Config {
 
         // {'key': 'youtube_dlc', 			'group': 'Advanced',	'text': 'Use youtube-dlc instead of the regular one', 	        'type': 'boolean'},
         // {'key': 'youtube_dl_alternative', 'group': 'Advanced',	'text': 'The alternative to youtube-dl to use', 			    'type': 'string'},
-        { "key": "pipenv_enabled", "group": "Advanced", "text": "Use pipenv", "type": "boolean", "default": false },
+        { "key": "pipenv_enabled", "group": "Advanced", "text": "Use pipenv", "type": "boolean", "default": false, deprecated: true },
         { "key": "chat_dump", "group": "Basic", "text": "Dump chat during capture for all channels", "type": "boolean", "default": false, "help": "Dump chat from IRC, forgoing saved vod chat.", "deprecated": "Use the setting per channel instead" },
         { "key": "ts_sync", "group": "Video", "text": "Try to force sync remuxing (not recommended)", "type": "boolean", "default": false },
         { "key": "encode_audio", "group": "Video", "text": "Encode audio stream", "type": "boolean", "default": false, "help": "This may help with audio syncing." },
