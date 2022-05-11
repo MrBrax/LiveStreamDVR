@@ -2,13 +2,13 @@
 <Container version="2">
   <Name>LiveStreamDVR</Name>
   <Repository>mrbrax/twitchautomator:master</Repository>
-  <Registry>https://github.com/MrBrax/LiveStreamDVR</Registry>
+  <Registry>https://hub.docker.com/r/mrbrax/twitchautomator/</Registry>
   <Network>bridge</Network>
   <MyIP/>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>
-  <Support>https://github.com/MrBrax/TwitchAutomator/issues</Support>
-  <Project>https://github.com/MrBrax/TwitchAutomator</Project>
+  <Support>https://github.com/MrBrax/LiveStreamDVR/issues</Support>
+  <Project>https://github.com/MrBrax/LiveStreamDVR</Project>
   <Overview>An automatic twitch recorder.&#xD;
     ⚠️⚠️⚠️
 
