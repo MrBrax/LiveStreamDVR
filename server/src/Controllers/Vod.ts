@@ -76,7 +76,7 @@ export function ArchiveVod(req: express.Request, res: express.Response): void {
 
 }
 
-export function DeleteVod(req: express.Request, res: express.Response): void {
+export async function DeleteVod(req: express.Request, res: express.Response): Promise<void> {
 
     const vod = TwitchVOD.getVod(req.params.basename);
 
@@ -89,7 +89,7 @@ export function DeleteVod(req: express.Request, res: express.Response): void {
     }
 
     try {
-        vod.delete();
+        await vod.delete();
     } catch (error) {
         res.status(400).send({
             status: "ERROR",

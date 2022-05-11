@@ -961,7 +961,7 @@ export class TwitchVOD {
      * Rebuild segment list from video files named as basename and parse it
      * @returns 
      */
-    public rebuildSegmentList(): boolean {
+    public async rebuildSegmentList(): Promise<boolean> {
 
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Rebuilding segment list for ${this.basename}`);
 
@@ -986,7 +986,7 @@ export class TwitchVOD {
         files.forEach(file => this.addSegment(path.basename(file)));
 
         // this.parseSegments(this.segments_raw);
-        this.saveJSON("segments rebuild");
+        await this.saveJSON("segments rebuild");
 
         return true;
 
@@ -1626,7 +1626,7 @@ export class TwitchVOD {
         return this.chapters.some(chapter => chapter.game?.isFavourite());
     }
 
-    public delete(): void {
+    public async delete(): Promise<void> {
 
         if (!this.directory) {
             throw new Error("No directory set for deletion");
@@ -1638,6 +1638,8 @@ export class TwitchVOD {
         }
 
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Delete ${this.basename}`);
+
+        await this.stopWatching();
 
         for (const file of this.associatedFiles) {
             if (fs.existsSync(path.join(this.directory, file))) {
@@ -1859,7 +1861,7 @@ export class TwitchVOD {
         // if finalized but no segments
         if (this.is_finalized && (!this.segments || this.segments.length === 0)) {
             console.log(chalk.bgRed.whiteBright(`${this.basename} is finalized but no segments found, rebuilding!`));
-            if (this.rebuildSegmentList()) {
+            if (await this.rebuildSegmentList()) {
                 await this.saveJSON("fix rebuild segment list");
             } else {
                 console.log(chalk.bgRed.whiteBright(`${this.basename} could not be rebuilt!`));

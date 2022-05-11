@@ -490,7 +490,7 @@ export class TwitchChannel {
 
     }
 
-    public cleanupVods(ignore_basename = ""): number | false {
+    public async cleanupVods(ignore_basename = ""): Promise<number | false> {
 
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Cleanup VODs for ${this.login}, ignore ${ignore_basename}`);
 
@@ -504,7 +504,7 @@ export class TwitchChannel {
         if (Config.getInstance().cfg("delete_only_one_vod")) {
             Log.logAdvanced(LOGLEVEL.INFO, "automator", `Deleting only one vod for ${this.login}`);
             try {
-                vod_candidates[0].delete();
+                await vod_candidates[0].delete();
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to delete ${vod_candidates[0].basename} for ${this.login}: ${(error as Error).message}`);
                 return false;
@@ -514,7 +514,7 @@ export class TwitchChannel {
             for (const vodclass of vod_candidates) {
                 Log.logAdvanced(LOGLEVEL.INFO, "automator", `Cleanup ${vodclass.basename}`);
                 try {
-                    vodclass.delete();
+                    await vodclass.delete();
                 } catch (error) {
                     Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to delete ${vodclass.basename} for ${this.login}: ${(error as Error).message}`);
                 }
@@ -649,10 +649,10 @@ export class TwitchChannel {
         }, 3000);
     }
 
-    public deleteAllVods() {
+    public async deleteAllVods() {
         for (const vod of this.vods_list) {
             try {
-                vod.delete();
+                await vod.delete();
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to delete vod ${vod.basename}: ${(error as Error).message}`);
             }            

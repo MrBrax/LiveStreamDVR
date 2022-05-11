@@ -444,7 +444,7 @@ export class Automator {
 
     }
 
-    private cleanup() {
+    private async cleanup() {
         // const vods = fs.readdirSync(TwitchHelper.vodFolder(this.getLogin())).filter(f => f.startsWith(`${this.getLogin()}_`) && f.endsWith(".json"));
 
         if (!this.channel) {
@@ -452,7 +452,7 @@ export class Automator {
             return;
         }
 
-        this.channel.cleanupVods(this.basename());
+        await this.channel.cleanupVods(this.basename());
 
     }
 
@@ -686,7 +686,7 @@ export class Automator {
 
         // remove old vods for the streamer
         Log.logAdvanced(LOGLEVEL.INFO, "automator", `Cleanup old VODs for ${data_username}`);
-        this.cleanup();
+        await this.cleanup();
 
         // download chat and optionally burn it
         if (this.channel.download_chat && this.vod.twitch_vod_id) {

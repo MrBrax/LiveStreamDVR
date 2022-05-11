@@ -355,7 +355,7 @@ export async function SubscribeToChannel(req: express.Request, res: express.Resp
 
 }
 
-export function CleanupChannelVods(req: express.Request, res: express.Response): void {
+export async function CleanupChannelVods(req: express.Request, res: express.Response): Promise<void> {
 
     const channel = TwitchChannel.getChannelByLogin(req.params.login);
 
@@ -367,7 +367,7 @@ export function CleanupChannelVods(req: express.Request, res: express.Response):
         return;
     }
 
-    const deleted = channel.cleanupVods();
+    const deleted = await channel.cleanupVods();
 
     res.send({
         status: "OK",
