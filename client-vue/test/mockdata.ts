@@ -12,7 +12,7 @@ export const MockApiGameData = {
     added: "2020-11-03 02:48:01.000000",
 };
 
-export const GamesData: Record<string, ApiGame> = {
+export const MockApiGamesData: Record<string, ApiGame> = {
     "123": {
         id: "123",
         name: "Test Game 1",

@@ -91,6 +91,7 @@ export default defineComponent({
             return false;
         },
         fetchData() {
+            console.debug("FavouritesForm fetchData");
             this.$http.all([
                 this.$http.get(`api/v0/games`)
                 .then((response) => {
