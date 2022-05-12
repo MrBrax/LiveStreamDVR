@@ -7,7 +7,6 @@ import { Config } from "../Core/Config";
 import { TwitchGame } from "../Core/TwitchGame";
 import { Helper } from "../Core/Helper";
 import { AppName } from "../Core/BaseConfig";
-import { Channel } from "../Core/Channel";
 
 export function GetSettings(req: express.Request, res: express.Response): void {
 
@@ -20,7 +19,7 @@ export function GetSettings(req: express.Request, res: express.Response): void {
         data: {
             app_name: AppName,
             config: config,
-            channels: Channel.channels_config,
+            channels: TwitchChannel.channels_config,
             favourite_games: TwitchGame.favourite_games,
             fields: Config.settingsFields,
             version: version,

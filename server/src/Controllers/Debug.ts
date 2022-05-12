@@ -1,4 +1,3 @@
-import { Channel } from "../Core/Channel";
 import express from "express";
 import { ClientBroker } from "../Core/ClientBroker";
 import { TwitchChannel } from "../Core/TwitchChannel";
@@ -14,7 +13,7 @@ export function ListVodsInMemory(req: express.Request, res: express.Response): v
 export function ListChannelsInMemory(req: express.Request, res: express.Response): void {
     res.send({
         status: "OK",
-        data: Channel.channels,
+        data: TwitchChannel.channels,
     });
 }
 

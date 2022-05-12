@@ -16,7 +16,6 @@ import * as Favourites from "../Controllers/Favourites";
 import * as Notifications from "../Controllers/Notifications";
 import * as Tools from "../Controllers/Tools";
 import * as Files from "../Controllers/Files";
-import * as YouTubeAPI from "../Controllers/YouTubeAPI";
 import { TwitchVOD } from "../Core/TwitchVOD";
 
 const router = express.Router();
@@ -76,8 +75,6 @@ router.get("/twitchapi/videos/:login", TwitchAPI.TwitchAPIVideos);
 router.get("/twitchapi/video/:video_id", TwitchAPI.TwitchAPIVideo);
 router.get("/twitchapi/user/:login", TwitchAPI.TwitchAPIUser);
 router.get("/twitchapi/clips", TwitchAPI.TwitchAPIClips);
-
-router.get("/youtubeapi/channels/:id", YouTubeAPI.YouTubeAPIChannel);
 
 router.get("/keyvalue", KeyValue.GetAllKeyValues);
 router.delete("/keyvalue", KeyValue.DeleteAllKeyValues);

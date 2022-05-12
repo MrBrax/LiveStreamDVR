@@ -1,5 +1,3 @@
-import { ChannelProvider } from "./Defs";
-
 export type VideoQuality = "best" | "1080p60" | "1080p" | "720p60" | "720p" | "480p" | "360p" | "160p" | "140p" | "worst" | "audio_only";
 export interface SettingField<T> {
     key: string;
@@ -44,7 +42,7 @@ export interface SettingField<T> {
 }
 
 export interface ChannelConfig {
-    provider: ChannelProvider;
+    login: string;
     quality: VideoQuality[];
     match: string[];
     download_chat: boolean;
@@ -52,16 +50,3 @@ export interface ChannelConfig {
     no_capture: boolean;
     live_chat: boolean;
 }
-
-export interface TwitchChannelConfig extends ChannelConfig {
-    provider: "twitch";
-    login: string;
-}
-
-
-export interface YouTubeChannelConfig extends ChannelConfig {
-    provider: "youtube";
-    id: string;
-}
-
-export type ChannelConfigs = TwitchChannelConfig | YouTubeChannelConfig;

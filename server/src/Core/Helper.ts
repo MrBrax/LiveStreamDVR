@@ -19,7 +19,6 @@ import { replaceAll } from "../Helpers/ReplaceAll";
 import { TwitchChannel } from "./TwitchChannel";
 import { KeyValue } from "./KeyValue";
 import { SubStatus } from "../../../common/Defs";
-import { Channel } from "./Channel";
 
 export interface ExecReturn {
     stdout: string[];
@@ -948,7 +947,7 @@ export class Helper {
         if (!Config.getInstance().cfg("app_url") && Config.getInstance().cfg("app_url") !== "debug") errors.push("No app url set in the config.");
         if (!Config.getInstance().cfg("api_client_id")) errors.push("No client id set in the config.");
         if (!Config.getInstance().cfg("api_secret")) errors.push("No client secret set in the config.");
-        if (Channel.channels.length == 0) errors.push("No channels set in the config.");
+        if (TwitchChannel.channels.length == 0) errors.push("No channels set in the config.");
 
         if (!this.path_ffmpeg()) errors.push("Failed to find ffmpeg");
         if (!this.path_streamlink()) errors.push("Failed to find streamlink");
@@ -964,16 +963,14 @@ export class Helper {
             }
         }
 
-        for (const channel of Channel.channels) {
-            if (channel instanceof TwitchChannel) {
-                for (const sub_type of Helper.CHANNEL_SUB_TYPES) {
-                    if (KeyValue.getInstance().get(`${channel.userid}.substatus.${sub_type}`) === SubStatus.WAITING) {
-                        errors.push(`${channel.login} is waiting for subscription ${sub_type}. Please check the config.`);
-                    } else if (KeyValue.getInstance().get(`${channel.userid}.substatus.${sub_type}`) === SubStatus.FAILED) {
-                        errors.push(`${channel.login} failed to subscribe ${sub_type}. Please check the config.`);
-                    } else if (KeyValue.getInstance().get(`${channel.userid}.substatus.${sub_type}`) === SubStatus.NONE || !KeyValue.getInstance().has(`${channel.userid}.substatus.${sub_type}`)) {
-                        errors.push(`${channel.login} is not subscribed to ${sub_type}. Please check the config and subscribe.`);
-                    }
+        for (const channel of TwitchChannel.channels) {
+            for (const sub_type of Helper.CHANNEL_SUB_TYPES) {
+                if (KeyValue.getInstance().get(`${channel.userid}.substatus.${sub_type}`) === SubStatus.WAITING) {
+                    errors.push(`${channel.login} is waiting for subscription ${sub_type}. Please check the config.`);
+                } else if (KeyValue.getInstance().get(`${channel.userid}.substatus.${sub_type}`) === SubStatus.FAILED) {
+                    errors.push(`${channel.login} failed to subscribe ${sub_type}. Please check the config.`);
+                } else if (KeyValue.getInstance().get(`${channel.userid}.substatus.${sub_type}`) === SubStatus.NONE || !KeyValue.getInstance().has(`${channel.userid}.substatus.${sub_type}`)) {
+                    errors.push(`${channel.login} is not subscribed to ${sub_type}. Please check the config and subscribe.`);
                 }
             }
         }

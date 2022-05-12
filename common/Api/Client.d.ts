@@ -1,7 +1,7 @@
 import { MediaInfo, MediaInfoPublic } from "../mediainfofield";
 import { VideoQuality } from "../Config";
-import { AllChannelData, TwitchChannelData } from "../Channel";
-import { MuteStatus, ExistStatus, JobStatus, ChannelProvider} from "../../common/Defs";
+import { ChannelData } from "../Channel";
+import { MuteStatus, ExistStatus, JobStatus} from "../../common/Defs";
 import { AudioMetadata, VideoMetadata } from "../MediaInfo";
 import { BroadcasterType } from "../TwitchAPI/Users";
 
@@ -142,18 +142,17 @@ export type ApiSettingsField = {
 };
 
 export type ApiChannel = {
-    provider: ChannelProvider;
-
     userid: string;
     display_name: string;
     login: string;
     description: string;
     quality: VideoQuality[] | undefined;
-
+    
     vods_raw: string[];
     vods_list: ApiVod[];
     vods_size: number;
 
+    
     is_live: boolean;
     is_converting: boolean;
     profile_image_url: string;
@@ -176,7 +175,7 @@ export type ApiChannel = {
     // channel_data: {
     //     profile_image_url: string;
     // };
-    channel_data: AllChannelData | undefined;
+    channel_data: ChannelData | undefined;
 
     // api_getSubscriptionStatus: SubStatus;
     api_getSubscriptionStatus: boolean;

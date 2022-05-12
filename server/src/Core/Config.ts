@@ -15,8 +15,6 @@ import { Job } from "./Job";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
-import { Channel } from "./Channel";
-import { YouTubeChannel } from "./YouTubeChannel";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -555,15 +553,11 @@ export class Config {
 
         Config.getInstance().loadConfig();
 
-        // CONFIG LOADED BELOW HERE
-
         ClientBroker.loadNotificationSettings();
 
         Config.getInstance().generateEventSubSecret();
 
         await Config.getInstance().setupAxios();
-
-        YouTubeChannel.setupAxios();
 
         Log.readTodaysLog();
 
@@ -577,10 +571,9 @@ export class Config {
 
         TwitchGame.populateGameDatabase();
         TwitchGame.populateFavouriteGames();
-
-        Channel.loadChannelsConfig();
+        TwitchChannel.loadChannelsConfig();
         TwitchChannel.loadChannelsCache();
-        await Channel.loadChannels();
+        await TwitchChannel.loadChannels();
         Job.loadJobsFromCache();
 
         Config.getInstance().startWatchingConfig();
@@ -606,12 +599,12 @@ export class Config {
 
     static async resetChannels() {
         TwitchChannel.channels_cache = {};
-        Channel.channels_config = [];
-        Channel.channels = [];
+        TwitchChannel.channels_config = [];
+        TwitchChannel.channels = [];
         TwitchVOD.vods = [];
-        Channel.loadChannelsConfig();
+        TwitchChannel.loadChannelsConfig();
         TwitchChannel.loadChannelsCache();
-        await Channel.loadChannels();
+        await TwitchChannel.loadChannels();
     }
 
     async validateExternalURL(test_url = ""): Promise<boolean> {
@@ -704,8 +697,8 @@ export class Config {
     }
 
     static get can_shutdown(): boolean {
-        if (!Channel.channels || Channel.channels.length === 0) return true;
-        return !Channel.channels.some(c => c.is_live);
+        if (!TwitchChannel.channels || TwitchChannel.channels.length === 0) return true;
+        return !TwitchChannel.channels.some(c => c.is_live);
     }
 
 }
