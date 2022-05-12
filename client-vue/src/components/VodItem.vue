@@ -227,11 +227,11 @@
                                 <template v-else-if="vod?.twitch_vod_exists === false">
                                     <li>
                                         <strong class="is-error">VOD is deleted</strong>
+                                        &nbsp;<a href="javascript:void(0)" @click="matchVod()" title="Retry VOD match"><fa icon="sync"></fa></a>
                                     </li>
                                     <li>
                                         <span v-if="vod?.twitch_vod_id">
-                                            The ID was <a :href="twitchVideoLink(vod.twitch_vod_id)" rel="noreferrer" target="_blank">{{ vod.twitch_vod_id }}</a
-                                            >.
+                                            The ID was <a :href="twitchVideoLink(vod.twitch_vod_id)" rel="noreferrer" target="_blank">{{ vod.twitch_vod_id }}</a>.
                                         </span>
                                         <span v-else>The VOD probably never got saved.</span>
                                     </li>
