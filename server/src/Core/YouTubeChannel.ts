@@ -9,7 +9,6 @@ import { KeyValue } from "./KeyValue";
 import { Log, LOGLEVEL } from "./Log";
 import fs from "fs";
 import { Helper } from "./Helper";
-import { ChannelFactory } from "./ChannelFactory";
 
 export class YouTubeChannel extends Channel {
     static axios: Axios | undefined;
@@ -102,7 +101,7 @@ export class YouTubeChannel extends Channel {
     }
 
     public static getChannels(): YouTubeChannel[] {
-        return ChannelFactory.channels.filter((ch): ch is YouTubeChannel => ch instanceof YouTubeChannel) ?? [];
+        return YouTubeChannel.channels.filter((ch): ch is YouTubeChannel => ch instanceof YouTubeChannel) ?? [];
         // return Channel.channels.find((ch: AllChannels): ch is TwitchChannel => ch instanceof TwitchChannel);
     }
 
@@ -143,7 +142,7 @@ export class YouTubeChannel extends Channel {
 
         // const channel_login = channel_data.login;
 
-        const channel_config = ChannelFactory.channels_config.find((c: ChannelConfigs) => c.provider == "youtube" && c.id === channel_id);
+        const channel_config = Channel.channels_config.find((c: ChannelConfigs) => c.provider == "youtube" && c.id === channel_id);
         if (!channel_config) throw new Error(`Could not find channel config in memory for channel id: ${channel_id}`);
 
         channel.channel_data = channel_data;

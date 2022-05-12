@@ -20,7 +20,6 @@ import { TwitchChannel } from "./TwitchChannel";
 import { KeyValue } from "./KeyValue";
 import { SubStatus } from "../../../common/Defs";
 import { Channel } from "./Channel";
-import { ChannelFactory } from "./ChannelFactory";
 
 export interface ExecReturn {
     stdout: string[];
@@ -949,7 +948,7 @@ export class Helper {
         if (!Config.getInstance().cfg("app_url") && Config.getInstance().cfg("app_url") !== "debug") errors.push("No app url set in the config.");
         if (!Config.getInstance().cfg("api_client_id")) errors.push("No client id set in the config.");
         if (!Config.getInstance().cfg("api_secret")) errors.push("No client secret set in the config.");
-        if (ChannelFactory.channels.length == 0) errors.push("No channels set in the config.");
+        if (Channel.channels.length == 0) errors.push("No channels set in the config.");
 
         if (!this.path_ffmpeg()) errors.push("Failed to find ffmpeg");
         if (!this.path_streamlink()) errors.push("Failed to find streamlink");
@@ -965,7 +964,7 @@ export class Helper {
             }
         }
 
-        for (const channel of ChannelFactory.channels) {
+        for (const channel of Channel.channels) {
             if (channel instanceof TwitchChannel) {
                 for (const sub_type of Helper.CHANNEL_SUB_TYPES) {
                     if (KeyValue.getInstance().get(`${channel.userid}.substatus.${sub_type}`) === SubStatus.WAITING) {

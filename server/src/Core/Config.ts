@@ -17,7 +17,6 @@ import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
 import { Channel } from "./Channel";
 import { YouTubeChannel } from "./YouTubeChannel";
-import { ChannelFactory } from "./ChannelFactory";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -579,9 +578,9 @@ export class Config {
         TwitchGame.populateGameDatabase();
         TwitchGame.populateFavouriteGames();
 
-        ChannelFactory.loadChannelsConfig();
+        Channel.loadChannelsConfig();
         TwitchChannel.loadChannelsCache();
-        await ChannelFactory.loadChannels();
+        await Channel.loadChannels();
         Job.loadJobsFromCache();
 
         Config.getInstance().startWatchingConfig();
@@ -607,12 +606,12 @@ export class Config {
 
     static async resetChannels() {
         TwitchChannel.channels_cache = {};
-        ChannelFactory.channels_config = [];
-        ChannelFactory.channels = [];
+        Channel.channels_config = [];
+        Channel.channels = [];
         TwitchVOD.vods = [];
-        ChannelFactory.loadChannelsConfig();
+        Channel.loadChannelsConfig();
         TwitchChannel.loadChannelsCache();
-        await ChannelFactory.loadChannels();
+        await Channel.loadChannels();
     }
 
     async validateExternalURL(test_url = ""): Promise<boolean> {
@@ -705,8 +704,8 @@ export class Config {
     }
 
     static get can_shutdown(): boolean {
-        if (!ChannelFactory.channels || ChannelFactory.channels.length === 0) return true;
-        return !ChannelFactory.channels.some(c => c.is_live);
+        if (!Channel.channels || Channel.channels.length === 0) return true;
+        return !Channel.channels.some(c => c.is_live);
     }
 
 }

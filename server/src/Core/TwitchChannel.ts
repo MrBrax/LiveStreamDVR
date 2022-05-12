@@ -16,7 +16,6 @@ import type { BroadcasterType, UsersResponse } from "../../../common/TwitchAPI/U
 import { ChannelUpdated } from "../../../common/Webhook";
 import { AppRoot, BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
 import { Channel } from "./Channel";
-import { ChannelFactory } from "./ChannelFactory";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
 import { Helper } from "./Helper";
@@ -194,13 +193,13 @@ export class TwitchChannel extends Channel {
      * @param config 
      */
     public update(config: TwitchChannelConfig): boolean {
-        const i = ChannelFactory.channels_config.findIndex(ch => ch.provider == "twitch" && ch.login === this.login);
+        const i = Channel.channels_config.findIndex(ch => ch.provider == "twitch" && ch.login === this.login);
         if (i !== -1) {
             this.config = config;
             this.applyConfig(config);
             Log.logAdvanced(LOGLEVEL.INFO, "channel", `Replacing channel config for ${this.login}`);
-            ChannelFactory.channels_config[i] = config;
-            ChannelFactory.saveChannelsConfig();
+            Channel.channels_config[i] = config;
+            Channel.saveChannelsConfig();
             return true;
         } else {
             Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not update channel ${this.login}`);
@@ -216,19 +215,19 @@ export class TwitchChannel extends Channel {
         const userid = this.userid;
 
         Log.logAdvanced(LOGLEVEL.INFO, "channel", `Deleting channel ${login}`);
-        const index_config = ChannelFactory.channels_config.findIndex(ch => ch.provider == "twitch" && ch.login === login);
+        const index_config = Channel.channels_config.findIndex(ch => ch.provider == "twitch" && ch.login === login);
         if (index_config !== -1) {
-            ChannelFactory.channels_config.splice(index_config, 1);
+            Channel.channels_config.splice(index_config, 1);
         }
 
-        const index_channel = ChannelFactory.channels.findIndex(ch => ch instanceof TwitchChannel && ch.login === login);
+        const index_channel = TwitchChannel.getChannels().findIndex(ch => ch.login === login);
         if (index_channel !== -1) {
-            ChannelFactory.channels.splice(index_channel, 1);
+            TwitchChannel.channels.splice(index_channel, 1);
         }
 
         if (userid) TwitchChannel.unsubscribe(userid);
 
-        ChannelFactory.saveChannelsConfig();
+        Channel.saveChannelsConfig();
 
         return TwitchChannel.getChannelByLogin(login) == undefined;
     }
@@ -606,7 +605,7 @@ export class TwitchChannel extends Channel {
 
         const channel_login = channel_data.login;
 
-        const channel_config = ChannelFactory.channels_config.find((c: ChannelConfigs) => c.provider == "twitch" && c.login === channel_login);
+        const channel_config = Channel.channels_config.find((c: ChannelConfigs) => c.provider == "twitch" && c.login === channel_login);
         if (!channel_config) throw new Error(`Could not find channel config in memory for channel login: ${channel_login}`);
 
         channel.channel_data = channel_data;
@@ -665,7 +664,7 @@ export class TwitchChannel extends Channel {
      */
     public static async create(config: TwitchChannelConfig): Promise<TwitchChannel> {
 
-        const exists_config = ChannelFactory.channels_config.find(ch => ch.provider == "twitch" && ch.login === config.login);
+        const exists_config = Channel.channels_config.find(ch => ch.provider == "twitch" && ch.login === config.login);
         if (exists_config) throw new Error(`Channel ${config.login} already exists in config`);
 
         const exists_channel = TwitchChannel.getChannels().find(ch => ch.login === config.login);
@@ -674,8 +673,8 @@ export class TwitchChannel extends Channel {
         const data = await TwitchChannel.getChannelDataByLogin(config.login, true);
         if (!data) throw new Error(`Could not get channel data for channel login: ${config.login}`);
 
-        ChannelFactory.channels_config.push(config);
-        ChannelFactory.saveChannelsConfig();
+        Channel.channels_config.push(config);
+        Channel.saveChannelsConfig();
 
         const channel = await TwitchChannel.loadFromLogin(config.login, true);
         if (!channel || !channel.userid) throw new Error(`Channel ${config.login} could not be loaded`);
@@ -684,17 +683,17 @@ export class TwitchChannel extends Channel {
             await TwitchChannel.subscribe(channel.userid);
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`);
-            ChannelFactory.channels_config = ChannelFactory.channels_config.filter(ch => ch.provider == "twitch" && ch.login !== config.login); // FIXME: don't filter other providers
-            ChannelFactory.saveChannelsConfig();
+            Channel.channels_config = Channel.channels_config.filter(ch => ch.provider == "twitch" && ch.login !== config.login); // remove channel from config
+            Channel.saveChannelsConfig();
             throw error; // rethrow error
         }
 
-        ChannelFactory.channels.push(channel);
+        Channel.channels.push(channel);
 
         return channel;
     }
     public static getChannels(): TwitchChannel[] {
-        return ChannelFactory.channels.filter((ch): ch is TwitchChannel => ch instanceof TwitchChannel) ?? [];
+        return TwitchChannel.channels.filter((ch): ch is TwitchChannel => ch instanceof TwitchChannel) ?? [];
         // return Channel.channels.find((ch: AllChannels): ch is TwitchChannel => ch instanceof TwitchChannel);
     }
 
