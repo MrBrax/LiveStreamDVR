@@ -1,9 +1,16 @@
 <template>
     <div>
-        <select v-model="logFilename">
-            <option v-for="fn in logFilenames" :key="fn">{{ fn }}</option>
-        </select>
-        <button type="button" @click="fetchLog(true)">Fetch</button>
+        <div class="field is-horizontal">
+            <div class="select is-small">
+                <select v-model="logFilename">
+                    <option v-for="fn in logFilenames" :key="fn">{{ fn }}</option>
+                </select>
+            </div>
+            <button class="button is-small" type="button" @click="fetchLog(true)">
+                <span class="icon"><fa icon="sync" /></span>
+                <span>Fetch</span>
+            </button>
+        </div>
     </div>
 
     <div class="log_viewer" ref="logViewer">

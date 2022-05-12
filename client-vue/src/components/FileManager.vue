@@ -1,8 +1,8 @@
 <template>
     <div class="file-manager">
-        <div v-if="isPrivate" class="error">
+        <p v-if="isPrivate" class="error">
             These files are not downloadable due to a config setting.
-        </div>
+        </p>
         <table class="table is-fullwidth is-striped" v-if="!error && files.length > 0">
             <thead>
                 <tr>
@@ -46,8 +46,14 @@
                 <td class="file-manager-item-size">{{ formatBytes(item.size) }}</td>
                 <td class="file-manager-item-date">{{ item.date }}</td>
                 <td class="file-manager-item-actions">
-                    <a v-if="web && item.is_public" class="button is-small is-confirm" :href="downloadLink(item)" target="_blank" download><fa icon="download"></fa></a>
-                    <button class="button is-small is-danger" @click="deleteFile(item)"><fa icon="trash"></fa></button>
+                    <div class="buttons">
+                        <a v-if="web && item.is_public" class="button is-small is-confirm" :href="downloadLink(item)" target="_blank" download>
+                            <span><fa icon="download"></fa></span>
+                        </a>
+                        <button class="button is-small is-danger" @click="deleteFile(item)">
+                            <span><fa icon="trash"></fa></span>
+                        </button>
+                    </div>
                 </td>
             </tr> 
         </table>

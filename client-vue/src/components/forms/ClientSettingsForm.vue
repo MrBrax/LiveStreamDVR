@@ -64,11 +64,17 @@
             </div>
         </div>
         <div class="field">
-            <button class="button is-primary" @click="saveClientConfig">Save</button>
+            <button class="button is-confirm" @click="saveClientConfig">
+                <span class="icon"><fa icon="save" /></span>
+                <span>Save</span>
+            </button>
         </div>
         <br />
         <div class="field">
-            <button class="button is-small" @click="requestNotifications">Request notification permissions</button>
+            <button class="button is-small" @click="requestNotifications">
+                <span class="icon"><fa icon="bell" /></span>
+                <span>Request notification permissions</span>
+            </button>
         </div>
     </div>
 </template>
@@ -78,6 +84,10 @@ import { useStore } from "@/store";
 import { defineComponent } from "vue";
 import { defaultConfig, defaultConfigFields } from "@/defs";
 import { ClientSettings } from "@/twitchautomator";
+
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faBell } from "@fortawesome/free-solid-svg-icons";
+library.add(faBell);
 
 export default defineComponent({
     name: "ClientSettingsForm",
