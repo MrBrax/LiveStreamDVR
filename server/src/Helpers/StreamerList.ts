@@ -1,9 +1,11 @@
 import { TwitchChannel } from "../Core/TwitchChannel";
 import { LOGLEVEL, Log } from "../Core/Log";
+import { ChannelFactory } from "Core/ChannelFactory";
+import { AllChannels } from "Core/Channel";
 
-export function generateStreamerList(): { channels: TwitchChannel[], total_size: number } {
+export function generateStreamerList(): { channels: AllChannels[], total_size: number } {
 
-    const channels = TwitchChannel.getChannels();
+    const channels = ChannelFactory.getChannels();
 
     if (channels.length == 0) Log.logAdvanced(LOGLEVEL.WARNING, "api", "No channels in channel list");
 

@@ -1,6 +1,13 @@
 <template>
     <form method="POST" enctype="multipart/form-data" action="#" ref="form" @submit="submitForm">
         <div class="field">
+            <label for="provider">Provider</label>
+            <select name="provider" id="provider" v-model="formData.provider">
+                <option value="twitch">Twitch</option>
+                <option value="youtube">Youtube</option>
+            </select>
+        </div>
+        <div class="field">
             <label class="label">Login <span class="required">*</span></label>
             <div class="control">
                 <input
@@ -100,6 +107,7 @@ export default defineComponent({
             formStatusText: "Ready",
             formStatus: "",
             formData: {
+                provider: "twitch",
                 login: "",
                 quality: "",
                 match: "",
