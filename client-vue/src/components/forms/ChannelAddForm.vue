@@ -69,13 +69,14 @@
             </label>
         </div>
         <p><em>Live channels will not be recorded until they are live the next time.</em></p>
-        <div class="field">
+        <div class="field form-submit">
             <div class="control">
                 <button class="button is-confirm" type="submit">
-                    <span class="icon"><fa icon="user-plus"></fa></span> Add
+                    <span class="icon"><fa icon="user-plus"></fa></span>
+                    <span>Add channel</span>
                 </button>
-                <span :class="formStatusClass">{{ formStatusText }}</span>
             </div>
+            <div :class="formStatusClass">{{ formStatusText }}</div>
         </div>
     </form>
 </template>

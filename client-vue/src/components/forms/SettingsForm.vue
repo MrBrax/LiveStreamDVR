@@ -48,18 +48,21 @@
                 <!-- array -->
                 <div v-if="data.type == 'array'" class="control">
                     <!--<input class="input" :name="key" :id="key" :value="settings[key]" />-->
-                    <select class="input" v-if="data.choices" v-model="formData[data.key]">
-                        <option
-                            v-for="(item, ix) in data.choices"
-                            :key="ix"
-                            :selected="
-                                (formData[data.key] !== undefined && formData[data.key] === item) ||
-                                (formData[data.key] === undefined && item === data.default)
-                            "
-                        >
-                            {{ item }}
-                        </option>
-                    </select>
+                    <div class="select">
+                        <select class="input" v-if="data.choices" v-model="formData[data.key]">
+                            <option
+                                v-for="(item, ix) in data.choices"
+                                :key="ix"
+                                :id="data.key"
+                                :selected="
+                                    (formData[data.key] !== undefined && formData[data.key] === item) ||
+                                    (formData[data.key] === undefined && item === data.default)
+                                "
+                            >
+                                {{ item }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- template -->

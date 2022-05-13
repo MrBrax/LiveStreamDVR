@@ -309,11 +309,11 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
 
         const duration = Helper.parseTwitchDuration(video.duration);
         vod.ended_at = new Date(vod.started_at.getTime() + (duration * 1000));
-        vod.saveJSON("manual creation");
+        await vod.saveJSON("manual creation");
 
         vod.addSegment(path.basename(filepath));
         vod.finalize();
-        vod.saveJSON("manual finalize");
+        await vod.saveJSON("manual finalize");
 
         Webhook.dispatch("end_download", {
             vod: await vod.toAPI(),
@@ -355,7 +355,7 @@ export async function SubscribeToChannel(req: express.Request, res: express.Resp
 
 }
 
-export function CleanupChannelVods(req: express.Request, res: express.Response): void {
+export async function CleanupChannelVods(req: express.Request, res: express.Response): Promise<void> {
 
     const channel = TwitchChannel.getChannelByLogin(req.params.login);
 
@@ -367,7 +367,7 @@ export function CleanupChannelVods(req: express.Request, res: express.Response):
         return;
     }
 
-    const deleted = channel.cleanupVods();
+    const deleted = await channel.cleanupVods();
 
     res.send({
         status: "OK",

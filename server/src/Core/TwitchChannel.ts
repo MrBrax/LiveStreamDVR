@@ -15,6 +15,7 @@ import type { SubscriptionRequest, SubscriptionResponse } from "../../../common/
 import type { BroadcasterType, UsersResponse } from "../../../common/TwitchAPI/Users";
 import { ChannelUpdated } from "../../../common/Webhook";
 import { AppRoot, BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
+import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
 import { Helper } from "./Helper";
 import { Job } from "./Job";
@@ -341,7 +342,7 @@ export class TwitchChannel {
 
         vod.created_at = new Date();
 
-        vod.saveJSON("create json");
+        await vod.saveJSON("create json");
 
         // reload
         const load_vod = await TwitchVOD.load(vod.filename);
@@ -391,14 +392,35 @@ export class TwitchChannel {
 
         if (vods_on_disk.length !== vods_in_channel_memory.length) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Vod on disk and vod in memory are not the same for ${this.login}`);
+            const removedVods = vods_in_channel_memory.filter(v => !vods_on_disk.includes(v.basename));
+            ClientBroker.notify(
+                "VOD changed externally",
+                `Please do not delete or rename VOD files manually.\nRemoved VODs: ${removedVods.map(v => v.basename).join(", ")}`,
+                undefined,
+                "system"
+            );
         }
 
         if (vods_on_disk.length !== vods_in_main_memory.length) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Vod on disk and vod in main memory are not the same for ${this.login}`);
+            const removedVods = vods_in_main_memory.filter(v => !vods_on_disk.includes(v.basename));
+            ClientBroker.notify(
+                "VOD changed externally",
+                `Please do not delete or rename VOD files manually.\nRemoved VODs: ${removedVods.map(v => v.basename).join(", ")}`,
+                undefined,
+                "system"
+            );
         }
 
         if (vods_in_channel_memory.length !== vods_in_main_memory.length) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Vod in memory and vod in main memory are not the same for ${this.login}`);
+            const removedVods = vods_in_main_memory.filter(v => !vods_in_channel_memory.includes(v));
+            ClientBroker.notify(
+                "VOD changed externally",
+                `Please do not delete or rename VOD files manually.\nRemoved VODs: ${removedVods.map(v => v.basename).join(", ")}`,
+                undefined,
+                "system"
+            );
         }
 
     }
@@ -468,7 +490,7 @@ export class TwitchChannel {
 
     }
 
-    public cleanupVods(ignore_basename = ""): number | false {
+    public async cleanupVods(ignore_basename = ""): Promise<number | false> {
 
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Cleanup VODs for ${this.login}, ignore ${ignore_basename}`);
 
@@ -482,7 +504,7 @@ export class TwitchChannel {
         if (Config.getInstance().cfg("delete_only_one_vod")) {
             Log.logAdvanced(LOGLEVEL.INFO, "automator", `Deleting only one vod for ${this.login}`);
             try {
-                vod_candidates[0].delete();
+                await vod_candidates[0].delete();
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to delete ${vod_candidates[0].basename} for ${this.login}: ${(error as Error).message}`);
                 return false;
@@ -492,7 +514,7 @@ export class TwitchChannel {
             for (const vodclass of vod_candidates) {
                 Log.logAdvanced(LOGLEVEL.INFO, "automator", `Cleanup ${vodclass.basename}`);
                 try {
-                    vodclass.delete();
+                    await vodclass.delete();
                 } catch (error) {
                     Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to delete ${vodclass.basename} for ${this.login}: ${(error as Error).message}`);
                 }
@@ -627,10 +649,10 @@ export class TwitchChannel {
         }, 3000);
     }
 
-    public deleteAllVods() {
+    public async deleteAllVods() {
         for (const vod of this.vods_list) {
             try {
-                vod.delete();
+                await vod.delete();
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to delete vod ${vod.basename}: ${(error as Error).message}`);
             }            

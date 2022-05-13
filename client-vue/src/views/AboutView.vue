@@ -110,39 +110,50 @@
 
             <div class="block">
                 <h3>Subscriptions</h3>
-                <button class="button is-confirm is-small" @click="fetchSubscriptions" :disabled="subscriptionsLoading">Fetch</button>
-                <button class="button is-confirm is-small" @click="subscribeAll" :disabled="subscriptionsLoading">Subscribe</button>
+                <p class="buttons">
+                    <button class="button is-confirm is-small" @click="fetchSubscriptions" :disabled="subscriptionsLoading">
+                        <span class="icon"><fa icon="sync" /></span>
+                        <span>Fetch</span>
+                    </button>
+                    <button class="button is-confirm is-small" @click="subscribeAll" :disabled="subscriptionsLoading">
+                        <span class="icon"><fa icon="rss" /></span>
+                        <span>Subscribe</span>
+                    </button>
+                </p>
                 <!--<button class="button is-confirm is-small" @click="unsubscribeAll" :disabled="subscriptionsLoading">Unsubscribe</button>-->
                 <span v-if="subscriptionsLoading">Loading...</span>
-                <table>
-                    <!--
-                    <tr>
-                        <th>ID</th>
-                        <th>Created</th>
-                        <th>Username</th>
-                        <th>Type</th>
-                        <th>Status</th>
-                        <th>Instance match</th>
-                    </tr>
-                    -->
-                    <tr v-for="subscription in subscriptions" :key="subscription.id">
-                        <td>{{ subscription.id }}</td>
-                        <td>{{ subscription.created_at }}</td>
-                        <td>
-                            {{ subscription.username }}<br />
-                            <small class="is-dark-gray">{{ subscription.type }}</small>
-                        </td>
-                        <td>{{ subscription.status }}</td>
-                        <td>
-                            {{ subscription.instance_match }}<br />
-                            <small class="is-dark-gray">{{ subscription.callback }}</small>
-                        </td>
-                        <td>
-                            <button class="button is-confirm is-small" @click="unsubscribe(subscription.id)" :disabled="subscriptionsLoading">
-                                Unsubscribe
-                            </button>
-                        </td>
-                    </tr>
+                <table class="table is-fullwidth is-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Created</th>
+                            <th>Username/Type</th>
+                            <th>Status</th>
+                            <th>Instance match</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="subscription in subscriptions" :key="subscription.id">
+                            <td>{{ subscription.id }}</td>
+                            <td>{{ subscription.created_at }}</td>
+                            <td>
+                                {{ subscription.username }}<br />
+                                <small class="is-dark-gray">{{ subscription.type }}</small>
+                            </td>
+                            <td>{{ subscription.status }}</td>
+                            <td>
+                                {{ subscription.instance_match }}<br />
+                                <small class="is-dark-gray">{{ subscription.callback }}</small>
+                            </td>
+                            <td>
+                                <button class="button is-confirm is-small" @click="unsubscribe(subscription.id)" :disabled="subscriptionsLoading">
+                                    <span class="icon"><fa icon="ban" /></span>
+                                    <span>Unsubscribe</span>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
 
@@ -173,6 +184,10 @@
 import { useStore } from "@/store";
 import { ApiSubscription } from "@common/Api/Client";
 import { defineComponent } from "vue";
+
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faRss, faBan } from "@fortawesome/free-solid-svg-icons";
+library.add(faRss, faBan);
 
 interface SoftwareCallback {
     path: string;

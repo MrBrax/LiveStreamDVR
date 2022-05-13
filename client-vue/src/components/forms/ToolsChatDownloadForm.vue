@@ -3,27 +3,30 @@
         <div class="field">
             <label class="label">VOD URL</label>
             <div class="control">
-                <input class="input input-required" type="text" v-model="formData.url" required />
+                <input class="input" type="text" v-model="formData.url" required />
             </div>
         </div>
 
         <div class="field">
             <label class="label">Method</label>
             <div class="control">
-                <select class="input" v-model="formData.method">
-                    <option value="td">TwitchDownloaderCLI</option>
-                    <option value="tcd">Twitch Chat Downloader</option>
-                </select>
+                <div class="select">
+                    <select v-model="formData.method">
+                        <option value="td">TwitchDownloaderCLI</option>
+                        <option value="tcd">Twitch Chat Downloader</option>
+                    </select>
+                </div>
             </div>
         </div>
 
-        <div class="field">
+        <div class="field form-submit">
             <div class="control">
                 <button class="button is-confirm" type="submit">
-                    <span class="icon"><fa icon="download"></fa></span> Execute
+                    <span class="icon"><fa icon="download"></fa></span>
+                    <span>Execute</span>
                 </button>
-                <span :class="formStatusClass">{{ formStatusText }}</span>
             </div>
+            <div :class="formStatusClass">{{ formStatusText }}</div>
         </div>
 
         <div class="field" v-if="fileLink">

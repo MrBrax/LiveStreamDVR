@@ -5,6 +5,10 @@
 @import "@fontsource/roboto/latin.css";
 @import "@fontsource/roboto-condensed/latin.css";
 
+// @import "bulma/sass/utilities/_all";
+// @import "bulma/sass/elements/button";
+// @import "bulma/sass/forms/_all";
+
 $favourite-base: #356e35;
 $converting-base: #bb15ca;
 $recording-base: #ca1515;
@@ -66,47 +70,7 @@ a {
     cursor: pointer;
 }
 
-.table {
-    font-family: Roboto, Helvetica, Arial;
-    font-size: 14px;
-    text-align: left;
-    border-collapse: collapse;
-    td {
-        padding: 0.5em;
-    }
-    &.is-slim {
-        td {
-            padding: 2px 4px;
-        }
-    } 
-    th {
-        text-align: left;
-    }
-    &.is-fullwidth {
-        width: 100%;
-    }
-    &.is-striped {
-        tr {
-            &:nth-child(even) {
-                background: rgba(0, 0, 0, 0.05);
-            }
-        }
-    }
-    &.is-hoverable {
-        tr {
-            &:hover {
-                background: rgba(0, 0, 0, 0.03);
-            }
-        }
-        &.is-striped {
-            tr:hover {
-                &:nth-child(even) {
-                    background: rgba(0, 0, 0, 0.15);
-                }
-            }
-        }
-    }
-}
+
 
 @import "animations";
 @import "layout";
@@ -116,6 +80,9 @@ a {
 @import "videoplayer";
 @import "components";
 @import "modal";
+@import "button";
+@import "form";
+@import "table";
 
 .icon {
     align-items: center;
@@ -214,6 +181,9 @@ svg[data-icon] {
 .favourites_list {
     max-height: 600px;
     overflow-y: scroll;
+    .checkbox {
+        padding: 0.2em 0;
+    }
 }
 
 .is-shade {

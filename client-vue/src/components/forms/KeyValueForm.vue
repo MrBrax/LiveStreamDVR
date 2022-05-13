@@ -9,18 +9,25 @@
             class="table is-fullwidth is-striped is-hoverable"
             v-if="keyvalue && Object.keys(keyvalue).length > 0"
         >
+            <thead key="header">
+                <tr>
+                    <th>Key</th>
+                    <th>Value</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
             <tr v-for="(value, key) in sortedKeyValues" :key="key">
                 <td>{{ key }}</td>
                 <td>
                     {{ value }}
                     <button class="icon-button" @click="editKeyValue(key, value)">
-                        <fa icon="pencil" />
+                        <span><fa icon="pencil" /></span>
                     </button>
                 </td>
                 <td>
                     <button class="button is-danger is-small" @click="deleteKeyValue(key)">
                         <span class="icon"><fa icon="trash" /></span>
-                        Delete
+                        <span>Delete</span>
                     </button>
                 </td>
             </tr>
@@ -28,7 +35,7 @@
                 <td colspan="999">
                     <button class="button is-danger" @click="deleteAllKeyValues">
                         <span class="icon"><fa icon="trash" /></span>
-                        Delete all
+                        <span>Delete all</span>
                     </button>
                 </td>
             </tr>

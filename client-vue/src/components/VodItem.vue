@@ -227,11 +227,11 @@
                                 <template v-else-if="vod?.twitch_vod_exists === false">
                                     <li>
                                         <strong class="is-error">VOD is deleted</strong>
+                                        &nbsp;<a href="javascript:void(0)" @click="matchVod()" title="Retry VOD match"><fa icon="sync"></fa></a>
                                     </li>
                                     <li>
                                         <span v-if="vod?.twitch_vod_id">
-                                            The ID was <a :href="twitchVideoLink(vod.twitch_vod_id)" rel="noreferrer" target="_blank">{{ vod.twitch_vod_id }}</a
-                                            >.
+                                            The ID was <a :href="twitchVideoLink(vod.twitch_vod_id)" rel="noreferrer" target="_blank">{{ vod.twitch_vod_id }}</a>.
                                         </span>
                                         <span v-else>The VOD probably never got saved.</span>
                                     </li>
@@ -308,27 +308,29 @@
                 </div>
 
                 <!-- controls -->
-                <div class="video-controls" v-if="vod?.is_finalized">
-                    <a :class="{ 'details-toggle': true, 'is-active': showAdvanced }" @click="showAdvanced = !showAdvanced">
-                        <fa v-if="showAdvanced" icon="minus"></fa>
-                        <fa v-else icon="plus"></fa>
-                    </a>
+                <div class="video-controls buttons" v-if="vod?.is_finalized">
+                    <button :class="{ 'button': true, 'details-toggle': true, 'is-active': showAdvanced }" @click="showAdvanced = !showAdvanced">
+                        <span class="icon">
+                            <fa v-if="showAdvanced" icon="minus"></fa>
+                            <fa v-else icon="plus"></fa>
+                        </span>
+                    </button>
                     <!-- Editor -->
                     <router-link v-if="vod.video_metadata && vod.video_metadata.type !== 'audio'" class="button is-blue" :to="{ name: 'Editor', params: { vod: vod?.basename } }">
                         <span class="icon"><fa icon="cut" type="fa"></fa></span>
-                        Editor
+                        <span>Editor</span>
                     </router-link>
 
                     <!-- Player -->
                     <a v-if="vod.is_chat_downloaded || vod.is_chatdump_captured" class="button is-blue" target="_blank" @click="playerMenu ? (playerMenu.show = true) : ''">
                         <span class="icon"><fa icon="play" type="fa"></fa></span>
-                        Player
+                        <span>Player</span>
                     </a>
 
                     <!-- JSON -->
                     <a v-if="showAdvanced" class="button" :href="vod?.webpath + '/' + vod?.basename + '.json'" target="_blank">
                         <span class="icon"><fa icon="database" type="fa"></fa></span>
-                        JSON
+                        <span>JSON</span>
                     </a>
 
                     <!-- Archive -->
@@ -337,7 +339,7 @@
                             <fa icon="archive" type="fa" v-if="!taskStatus.archive"></fa>
                             <fa icon="sync" type="fa" spin v-else></fa>
                         </span>
-                        Archive
+                        <span>Archive</span>
                     </a>
 
                     <!-- Download chat-->
@@ -346,7 +348,7 @@
                             <fa icon="comments" type="fa" v-if="!taskStatus.downloadChat && !compDownloadChat"></fa>
                             <fa icon="sync" type="fa" spin v-else></fa>
                         </span>
-                        Download chat
+                        <span>Download chat</span>
                     </a>
 
                     <template v-if="vod?.twitch_vod_id">
@@ -356,7 +358,7 @@
                                 <fa icon="download" type="fa" v-if="!taskStatus.downloadVod"></fa>
                                 <fa icon="sync" type="fa" spin v-else></fa>
                             </span>
-                            Download{{ vod?.twitch_vod_muted === MuteStatus.MUTED ? " muted" : "" }} VOD
+                            <span>Download{{ vod?.twitch_vod_muted === MuteStatus.MUTED ? " muted" : "" }} VOD</span>
                         </a>
                         <!-- Check mute -->
                         <a v-if="showAdvanced" class="button" @click="doCheckMute">
@@ -364,7 +366,7 @@
                                 <fa icon="volume-mute" type="fa" v-if="!taskStatus.vodMuteCheck"></fa>
                                 <fa icon="sync" type="fa" spin v-else></fa>
                             </span>
-                            Check mute
+                            <span>Check mute</span>
                         </a>
                     </template>
 
@@ -376,7 +378,7 @@
                         <span class="icon">
                             <fa icon="burn" type="fa"></fa>
                         </span>
-                        Render menu
+                        <span>Render menu</span>
                     </a>
 
                     <!-- Fix issues -->
@@ -384,7 +386,7 @@
                         <span class="icon">
                             <fa icon="wrench" type="fa"></fa>
                         </span>
-                        Fix issues
+                        <span>Fix issues</span>
                     </a>
 
                     <!-- Vod edit menu -->
@@ -392,7 +394,7 @@
                         <span class="icon">
                             <fa icon="pencil" type="fa"></fa>
                         </span>
-                        Edit
+                        <span>Edit</span>
                     </button>
 
                     <!-- Delete -->
@@ -401,7 +403,7 @@
                             <fa icon="trash" type="fa" v-if="!taskStatus.delete"></fa>
                             <fa icon="sync" type="fa" spin v-else></fa>
                         </span>
-                        Delete
+                        <span>Delete</span>
                     </button>
                 </div>
 
@@ -505,6 +507,7 @@
                                 <th>Category</th>
                                 <th>Title</th>
                                 <th v-if="hasViewerCount">Viewers</th>
+                                <th></th>
                             </tr>
                         </thead>
 

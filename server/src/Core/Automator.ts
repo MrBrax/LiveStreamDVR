@@ -289,7 +289,7 @@ export class Automator {
             KeyValue.getInstance().setObject(`${this.broadcaster_user_login}.chapterdata`, chapter_data);
 
             vod.addChapter(chapter);
-            vod.saveJSON("game update");
+            await vod.saveJSON("game update");
 
             Webhook.dispatch("chapter_update", {
                 "chapter": chapter.toAPI(),
@@ -444,7 +444,7 @@ export class Automator {
 
     }
 
-    private cleanup() {
+    private async cleanup() {
         // const vods = fs.readdirSync(TwitchHelper.vodFolder(this.getLogin())).filter(f => f.startsWith(`${this.getLogin()}_`) && f.endsWith(".json"));
 
         if (!this.channel) {
@@ -452,7 +452,7 @@ export class Automator {
             return;
         }
 
-        this.channel.cleanupVods(this.basename());
+        await this.channel.cleanupVods(this.basename());
 
     }
 
@@ -544,7 +544,7 @@ export class Automator {
         });
 
         this.vod.is_capturing = true;
-        this.vod.saveJSON("is_capturing set");
+        await this.vod.saveJSON("is_capturing set");
 
         // update the game + title if it wasn't updated already
         Log.logAdvanced(LOGLEVEL.INFO, "automator", `Update game for ${basename}`);
@@ -613,7 +613,7 @@ export class Automator {
         this.vod.ended_at = new Date();
         this.vod.is_capturing = false;
         if (this.stream_resolution) this.vod.stream_resolution = this.stream_resolution;
-        this.vod.saveJSON("stream capture end");
+        await this.vod.saveJSON("stream capture end");
 
         const duration = this.vod.getDurationLive();
         if (duration && duration > (86400 - (60 * 10))) { // 24 hours - 10 minutes
@@ -627,7 +627,7 @@ export class Automator {
         await Sleep(30 * 1000);
 
         this.vod.is_converting = true;
-        this.vod.saveJSON("is_converting set");
+        await this.vod.saveJSON("is_converting set");
 
         // convert with ffmpeg
         await this.convertVideo();
@@ -655,7 +655,7 @@ export class Automator {
             Log.logAdvanced(LOGLEVEL.FATAL, "automator", `Missing conversion files for ${basename}`);
             // this.vod.automator_fail = true;
             this.vod.is_converting = false;
-            this.vod.saveJSON("automator fail");
+            await this.vod.saveJSON("automator fail");
             return false;
         }
 
@@ -664,7 +664,7 @@ export class Automator {
 
         this.vod.is_converting = false;
         this.vod.addSegment(path.basename(this.converted_filename));
-        this.vod.saveJSON("add segment");
+        await this.vod.saveJSON("add segment");
 
         // finalize
         Log.logAdvanced(LOGLEVEL.INFO, "automator", `Sleep 30 seconds for ${basename}`);
@@ -677,16 +677,16 @@ export class Automator {
             finalized = await this.vod.finalize();
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.FATAL, "automator", `Failed to finalize ${basename}: ${error}`);
-            this.vod.saveJSON("failed to finalize");
+            await this.vod.saveJSON("failed to finalize");
         }
 
         if (finalized){
-            this.vod.saveJSON("finalized");
+            await this.vod.saveJSON("finalized");
         }
 
         // remove old vods for the streamer
         Log.logAdvanced(LOGLEVEL.INFO, "automator", `Cleanup old VODs for ${data_username}`);
-        this.cleanup();
+        await this.cleanup();
 
         // download chat and optionally burn it
         if (this.channel.download_chat && this.vod.twitch_vod_id) {

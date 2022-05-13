@@ -3,26 +3,29 @@
         <div class="field">
             <label class="label">Clip URL</label>
             <div class="control">
-                <input class="input input-required" type="text" v-model="formData.url" required />
+                <input class="input" type="text" v-model="formData.url" required />
             </div>
         </div>
 
         <div class="field">
             <label class="label">Quality</label>
             <div class="control">
-                <select class="input input-required" v-model="formData.quality">
-                    <option v-for="quality of VideoQualityArray" :key="quality">{{ quality }}</option>
-                </select>
+                <div class="select">
+                    <select required v-model="formData.quality">
+                        <option v-for="quality of VideoQualityArray" :key="quality">{{ quality }}</option>
+                    </select>
+                </div>
             </div>
         </div>
 
-        <div class="field">
+        <div class="field form-submit">
             <div class="control">
                 <button class="button is-confirm" type="submit">
-                    <span class="icon"><fa icon="download"></fa></span> Execute
+                    <span class="icon"><fa icon="download"></fa></span>
+                    <span>Execute</span>
                 </button>
-                <span :class="formStatusClass">{{ formStatusText }}</span>
             </div>
+            <div :class="formStatusClass">{{ formStatusText }}</div>
         </div>
 
         <div class="field" v-if="fileLink">

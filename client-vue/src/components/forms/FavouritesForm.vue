@@ -1,6 +1,6 @@
 <template>
     <form method="POST" enctype="multipart/form-data" action="#" @submit.prevent="submitForm">
-        <div class="favourites_list" v-if="gamesData && favouritesData">
+        <div class="field favourites_list" v-if="gamesData && favouritesData">
             <div v-for="game in sortedGames" :key="game.id" class="checkbox">
                 <label>
                     <input
@@ -17,12 +17,14 @@
                 <p>No games in cache. When streamers change games, they will be added to the cache.</p>
             </div>
         </div>
-        <br />
-        <div class="control">
-            <button class="button is-confirm" type="submit">
-                <span class="icon"><fa icon="save"></fa></span> Save
-            </button>
-            <span :class="formStatusClass">{{ formStatusText }}</span>
+        <div class="field form-submit">
+            <div class="control">
+                <button class="button is-confirm" type="submit">
+                    <span class="icon"><fa icon="save"></fa></span>
+                    <span>Save Favourites</span>
+                </button>
+            </div>
+            <div :class="formStatusClass">{{ formStatusText }}</div>
         </div>
     </form>
 </template>

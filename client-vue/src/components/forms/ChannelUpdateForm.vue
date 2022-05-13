@@ -58,25 +58,28 @@
                 </label>
             </div>
 
-            <div class="field">
+            <div class="field form-submit">
                 <div class="control">
                     <button class="button is-confirm" type="submit">
-                        <span class="icon"><fa icon="save"></fa></span> Save
+                        <span class="icon"><fa icon="save"></fa></span>
+                        <span>Save</span>
                     </button>
-                    <span :class="formStatusClass">{{ formStatusText }}</span>
                 </div>
+                <div :class="formStatusClass">{{ formStatusText }}</div>
             </div>
         </form>
         <hr />
         <span>
             <button class="button is-small is-danger" type="submit" @click="deleteChannel">
-                <span class="icon"><fa icon="trash"></fa></span> Delete
+                <span class="icon"><fa icon="trash"></fa></span>
+                <span>Delete</span>
             </button>
             (no undo)
         </span>
         <span>
             <button class="button is-small is-confirm" type="submit" @click="subscribeChannel">
-                <span class="icon"><fa icon="sync"></fa></span> Subscribe
+                <span class="icon"><fa icon="sync"></fa></span>
+                <span>Subscribe</span>
             </button>
         </span>
     </div>

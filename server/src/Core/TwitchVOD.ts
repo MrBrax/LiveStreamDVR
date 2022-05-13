@@ -1,8 +1,11 @@
+import axios from "axios";
 import chalk from "chalk";
+import chokidar from "chokidar";
 import { format, parse, parseJSON } from "date-fns";
 import fs from "fs";
 import { encode as htmlentities } from "html-entities";
 import path from "path";
+import { trueCasePathSync } from "true-case-path";
 import { ApiVod } from "../../../common/Api/Client";
 import type { TwitchComment, TwitchCommentDump } from "../../../common/Comments";
 import { VideoQuality } from "../../../common/Config";
@@ -10,13 +13,14 @@ import { JobStatus, MuteStatus } from "../../../common/Defs";
 import { AudioStream, FFProbe, VideoStream } from "../../../common/FFProbe";
 import { AudioMetadata, VideoMetadata } from "../../../common/MediaInfo";
 import { MediaInfo } from "../../../common/mediainfofield";
+import { Clip, ClipsResponse } from "../../../common/TwitchAPI/Clips";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { Video, VideosResponse } from "../../../common/TwitchAPI/Video";
-import { Clip, ClipsResponse } from "../../../common/TwitchAPI/Clips";
 import { VodUpdated } from "../../../common/Webhook";
 import { replaceAll } from "../Helpers/ReplaceAll";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../Storage/JSON";
 import { AppName, BaseConfigDataFolder } from "./BaseConfig";
+import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
 import { FFmpegMetadata } from "./FFmpegMetadata";
 import { Helper } from "./Helper";
@@ -27,8 +31,6 @@ import { TwitchGame } from "./TwitchGame";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchVODSegment } from "./TwitchVODSegment";
 import { Webhook } from "./Webhook";
-import axios from "axios";
-import { trueCasePathSync } from "true-case-path";
 
 export class TwitchVOD {
 
@@ -37,6 +39,8 @@ export class TwitchVOD {
     static filenameIllegalChars = /[:*?"<>|]/g;
 
     // vod_path = "vods";
+
+    loaded = false;
 
     capture_id = "";
     filename = "";
@@ -146,7 +150,7 @@ export class TwitchVOD {
 
     /*private*/ public _writeJSON = false;
 
-    fileWatcher?: fs.FSWatcher;
+    fileWatcher?: chokidar.FSWatcher;
 
     private _updateTimer: NodeJS.Timeout | undefined;
 
@@ -325,7 +329,7 @@ export class TwitchVOD {
         if (!this.video_metadata && this.is_finalized && this.segments_raw.length > 0 && Helper.path_mediainfo()) {
             Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `VOD ${this.basename} finalized but no metadata, trying to fix`);
             if (await this.getMediainfo()) {
-                this.saveJSON("fix mediainfo");
+                await this.saveJSON("fix mediainfo");
             }
         }
 
@@ -422,7 +426,7 @@ export class TwitchVOD {
 
             if (save) {
                 Log.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `Saved duration for ${this.basename}`);
-                this.saveJSON("duration save");
+                await this.saveJSON("duration save");
             }
 
             Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Duration fetched for ${this.basename}: ${this.duration}`);
@@ -735,6 +739,7 @@ export class TwitchVOD {
             `${this.basename}.adbreak`,
             `${this.basename}-ffmpeg-chapters.txt`,
             `${this.basename}.chapters.vtt`,
+            `${this.basename}.nfo`,
         ];
 
         if (this.segments_raw) {
@@ -956,7 +961,7 @@ export class TwitchVOD {
      * Rebuild segment list from video files named as basename and parse it
      * @returns 
      */
-    public rebuildSegmentList(): boolean {
+    public async rebuildSegmentList(): Promise<boolean> {
 
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Rebuilding segment list for ${this.basename}`);
 
@@ -981,7 +986,7 @@ export class TwitchVOD {
         files.forEach(file => this.addSegment(path.basename(file)));
 
         // this.parseSegments(this.segments_raw);
-        this.saveJSON("segments rebuild");
+        await this.saveJSON("segments rebuild");
 
         return true;
 
@@ -1457,7 +1462,7 @@ export class TwitchVOD {
         return fs.statSync(filename).size;
     }
 
-    public saveJSON(reason = ""): false | TwitchVODJSON {
+    public async saveJSON(reason = ""): Promise<false | TwitchVODJSON> {
 
         if (!this.filename) {
             throw new Error("Filename not set.");
@@ -1556,7 +1561,7 @@ export class TwitchVOD {
         //file_put_contents(this.filename, json_encode(generated));
         this.setPermissions();
 
-        this.stopWatching();
+        await this.stopWatching();
 
         this._writeJSON = true;
 
@@ -1570,7 +1575,7 @@ export class TwitchVOD {
 
         this._writeJSON = false;
 
-        this.startWatching();
+        await this.startWatching();
 
         this.broadcastUpdate(); // should this be here?
 
@@ -1621,7 +1626,7 @@ export class TwitchVOD {
         return this.chapters.some(chapter => chapter.game?.isFavourite());
     }
 
-    public delete(): void {
+    public async delete(): Promise<void> {
 
         if (!this.directory) {
             throw new Error("No directory set for deletion");
@@ -1633,6 +1638,8 @@ export class TwitchVOD {
         }
 
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Delete ${this.basename}`);
+
+        await this.stopWatching();
 
         for (const file of this.associatedFiles) {
             if (fs.existsSync(path.join(this.directory, file))) {
@@ -1691,7 +1698,7 @@ export class TwitchVOD {
             if (this.twitch_vod_neversaved) {
                 if (save && current_status !== false) {
                     this.twitch_vod_exists = false;
-                    this.saveJSON("vod check neversaved");
+                    await this.saveJSON("vod check neversaved");
                 }
             }
             return false;
@@ -1705,7 +1712,7 @@ export class TwitchVOD {
             Log.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `VOD exists for ${this.basename}`);
             this.twitch_vod_exists = true;
             if (save && current_status !== this.twitch_vod_exists) {
-                this.saveJSON("vod check true");
+                await this.saveJSON("vod check true");
             }
             return true;
         }
@@ -1715,7 +1722,7 @@ export class TwitchVOD {
         this.twitch_vod_exists = false;
 
         if (save && current_status !== this.twitch_vod_exists) {
-            this.saveJSON("vod check false");
+            await this.saveJSON("vod check false");
         }
 
         return false;
@@ -1767,14 +1774,14 @@ export class TwitchVOD {
                 this.twitch_vod_muted = MuteStatus.MUTED;
                 Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${this.basename} is muted!`, data);
                 if (previous !== this.twitch_vod_muted && save) {
-                    this.saveJSON("vod mute true");
+                    await this.saveJSON("vod mute true");
                 }
                 return MuteStatus.MUTED;
             } else {
                 this.twitch_vod_muted = MuteStatus.UNMUTED;
                 Log.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `VOD ${this.basename} is not muted!`, data);
                 if (previous !== this.twitch_vod_muted && save) {
-                    this.saveJSON("vod mute false");
+                    await this.saveJSON("vod mute false");
                 }
                 return MuteStatus.UNMUTED;
             }
@@ -1801,7 +1808,7 @@ export class TwitchVOD {
             this.twitch_vod_muted = MuteStatus.MUTED;
             Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${this.basename} is muted!`);
             if (previous !== this.twitch_vod_muted && save) {
-                this.saveJSON("vod mute true");
+                await this.saveJSON("vod mute true");
             }
             return MuteStatus.MUTED;
         } else if (output.includes("Unable to find video")) {
@@ -1811,7 +1818,7 @@ export class TwitchVOD {
             this.twitch_vod_muted = MuteStatus.UNMUTED;
             Log.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `VOD ${this.basename} is not muted!`);
             if (previous !== this.twitch_vod_muted && save) {
-                this.saveJSON("vod mute false");
+                await this.saveJSON("vod mute false");
             }
             return MuteStatus.UNMUTED;
         }
@@ -1854,8 +1861,8 @@ export class TwitchVOD {
         // if finalized but no segments
         if (this.is_finalized && (!this.segments || this.segments.length === 0)) {
             console.log(chalk.bgRed.whiteBright(`${this.basename} is finalized but no segments found, rebuilding!`));
-            if (this.rebuildSegmentList()) {
-                this.saveJSON("fix rebuild segment list");
+            if (await this.rebuildSegmentList()) {
+                await this.saveJSON("fix rebuild segment list");
             } else {
                 console.log(chalk.bgRed.whiteBright(`${this.basename} could not be rebuilt!`));
             }
@@ -1865,14 +1872,14 @@ export class TwitchVOD {
         if (this.is_converted && !this.is_finalized && this.segments.length > 0) {
             console.log(chalk.bgBlue.whiteBright(`${this.basename} is finished converting but not finalized, finalizing now!`));
             await this.finalize();
-            this.saveJSON("fix finalize");
+            await this.saveJSON("fix finalize");
         }
 
         // if capturing but process not running
         if (this.is_capturing && await this.getCapturingStatus(true) !== JobStatus.RUNNING) {
             console.log(chalk.bgRed.whiteBright(`${this.basename} is capturing but process not running. Setting to false for fixing.`));
             this.is_capturing = false;
-            this.saveJSON("fix set capturing to false");
+            await this.saveJSON("fix set capturing to false");
         }
 
         // remux if not yet remuxed
@@ -1892,7 +1899,7 @@ export class TwitchVOD {
                 this.addSegment(`${this.basename}.${container_ext}`);
                 this.is_converting = false;
                 await this.finalize();
-                this.saveJSON("fix remux");
+                await this.saveJSON("fix remux");
             } else {
                 console.log(chalk.bgRed.whiteBright(`${this.basename} is not yet remuxed but no ts file found, skipping!`));
             }
@@ -1904,7 +1911,7 @@ export class TwitchVOD {
             const duration = await this.getDuration();
             if (duration && this.started_at) {
                 this.ended_at = new Date(this.started_at.getTime() + (duration * 1000));
-                this.saveJSON("fix set ended_at");
+                await this.saveJSON("fix set ended_at");
             } else {
                 console.log(chalk.bgRed.whiteBright(`${this.basename} has no duration or started_at, skipping!`));
             }
@@ -1914,7 +1921,7 @@ export class TwitchVOD {
         if (this.is_finalized && (!this.chapters || this.chapters.length === 0)) {
             console.log(chalk.bgBlue.whiteBright(`${this.basename} is finalized but no chapters found, fixing now!`));
             await this.generateDefaultChapter();
-            this.saveJSON("fix chapters");
+            await this.saveJSON("fix chapters");
         }
 
     }
@@ -2151,48 +2158,68 @@ export class TwitchVOD {
         return this.twitch_vod_duration - this.duration;
     }
 
-    public startWatching() {
-        if (this.fileWatcher) this.stopWatching();
+    public async startWatching() {
+        if (this.fileWatcher) await this.stopWatching();
 
         // no blocks in testing
         if (process.env.NODE_ENV === "test") return;
 
-        console.log(`Watching ${this.basename}`);
-        this.fileWatcher = fs.watch(this.filename, (eventType, filename) => {
-            // if (eventType === "rename") {
+        const files = this.associatedFiles.map((f) => path.join(this.directory, f));
 
-            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD JSON ${this.basename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})!`);
+        this.fileWatcher = chokidar.watch(files, {
+            ignoreInitial: true,
+        }).on("all", (eventType, filename) => {
+
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD file ${filename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})!`);
 
             setTimeout(() => {
                 TwitchVOD.cleanLingeringVODs();
             }, 4000);
 
-            if (!fs.existsSync(this.filename)) {
-                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD JSON ${this.basename} deleted!`);
-                if (TwitchVOD.vods.find(v => v.basename == this.basename)) {
-                    Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${this.basename} still in memory!`);
+            if (filename === this.filename){
+                if (!fs.existsSync(this.filename)) {
+                    Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD JSON ${this.basename} deleted!`);
+                    if (TwitchVOD.vods.find(v => v.basename == this.basename)) {
+                        Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${this.basename} still in memory!`);
 
-                    // const channel = TwitchChannel.getChannelByLogin(this.streamer_login);
-                    // if (channel) channel.removeVod(this.basename);
+                        // const channel = TwitchChannel.getChannelByLogin(this.streamer_login);
+                        // if (channel) channel.removeVod(this.basename);
+                    }
+                    const channel = this.getChannel();
+                    if (channel) {
+                        setTimeout(() => {
+                            if (!channel) return;
+                            channel.checkStaleVodsInMemory();
+                        }, 5000);
+                    }
+                } else {
+                    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD JSON ${this.basename} exists (again?) ${eventType}`);
                 }
-                const channel = this.getChannel();
-                if (channel) {
-                    setTimeout(() => {
-                        if (!channel) return;
-                        channel.checkStaleVodsInMemory();
-                    }, 5000);
-                }
+            } else if (this.segments.some(s => s.filename === filename)) {
+                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD segment ${filename} changed (${eventType})!`);
+                ClientBroker.notify(
+                    "Segment changed externally",
+                    path.basename(filename),
+                    undefined,
+                    "system"
+                );
             } else {
-                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD JSON ${this.basename} exists (again?) ${eventType}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD file ${filename} changed (${eventType})!`);
+                ClientBroker.notify(
+                    "VOD file changed externally",
+                    path.basename(filename),
+                    undefined,
+                    "system"
+                );
             }
 
         });
     }
 
-    public stopWatching() {
-        if (this.fileWatcher) this.fileWatcher.close();
+    public async stopWatching() {
+        if (this.fileWatcher) await this.fileWatcher.close();
         this.fileWatcher = undefined;
-        console.log(`Stopped watching ${this.basename}`);
+        // console.log(`Stopped watching ${this.basename}`);
     }
 
     public changeBaseName(new_basename: string) {
@@ -2389,7 +2416,7 @@ export class TwitchVOD {
         // add to cache
         this.addVod(vod);
 
-        vod.startWatching();
+        await vod.startWatching();
 
         // fs.unwatchFile(vod.filename);
 
@@ -2404,6 +2431,8 @@ export class TwitchVOD {
         // vod.compareDumpedChatAndDownloadedChat();
 
         // vod.getFFProbe();
+
+        vod.loaded = true;
 
         return vod;
 

@@ -8,9 +8,11 @@ hr {
     /* border: 1px solid #ccc; */
     background: #fff;
     box-shadow: 0 5px 10px #ddd;
-    margin: 10px;
-    // border-radius: 5px;
-    /* overflow: hidden; */
+    margin: 0.5em;
+
+    border-radius: 0.5em;
+    overflow: hidden;
+
     &[data-collapsed="1"] .section-content {
         display: none;
     }

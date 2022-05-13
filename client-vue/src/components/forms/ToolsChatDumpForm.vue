@@ -3,7 +3,7 @@
         <div class="field">
             <label class="label">Login</label>
             <div class="control">
-                <input class="input input-required" type="text" v-model="formData.login" required />
+                <input class="input" type="text" v-model="formData.login" required />
                 <p class="input-help">
                     Does not need to exist in your channels list.
                 </p>
@@ -15,13 +15,14 @@
             Keeping it running for a very long time can use up a large amount of disk space.
         </p>
 
-        <div class="field">
+        <div class="field form-submit">
             <div class="control">
                 <button class="button is-confirm" type="submit">
-                    <span class="icon"><fa icon="download"></fa></span> Execute
+                    <span class="icon"><fa icon="download"></fa></span>
+                    <span>Execute</span>
                 </button>
-                <span :class="formStatusClass">{{ formStatusText }}</span>
             </div>
+            <div :class="formStatusClass">{{ formStatusText }}</div>
         </div>
     </form>
 </template>

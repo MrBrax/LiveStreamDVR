@@ -141,53 +141,6 @@ export type ApiSettingsField = {
     pattern?: string;
 };
 
-/*
-export interface ApiConfig {
-    api_client_id: string;
-    api_secret: string;
-    app_name: string;
-    app_url: string;
-    app_verbose: boolean;
-    basepath: string;
-    bin_dir: string;
-    burn_crf: number;
-    burn_preset: string[];
-    channel_folders: boolean;
-    chat_compress: boolean;
-    chat_dump: boolean;
-    debug: boolean;
-    disable_ads: boolean;
-    download_retries: number;
-    encode_audio: boolean;
-    favourites: Record<string, string>;
-    ffmpeg_path: string;
-    fix_corruption: boolean;
-    hls_timeout: number;
-    hook_callback: string;
-    instance_id: string;
-    low_latency: boolean;
-    mediainfo_path: string;
-    password_secure: boolean;
-    password: string;
-    pipenv_enabled: boolean;
-    playlist_dump: boolean;
-    process_wait_method: number;
-    relative_time: boolean;
-    storage_per_streamer: number;
-    sub_lease: number;
-    timezone: string[];
-    ts_sync: boolean;
-    twitchdownloader_path: string;
-    vod_container: string[];
-    vods_to_keep: number;
-    webhook_url: string;
-    websocket_client_address: string;
-    websocket_enabled: boolean;
-    websocket_server_address: string;
-    youtube_api_client_id: string;
-}
-*/
-
 export type ApiChannel = {
     userid: string;
     display_name: string;

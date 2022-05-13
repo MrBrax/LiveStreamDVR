@@ -1,30 +1,35 @@
 <template>
     <form @submit.prevent="submitForm">
-        <table class="table is-fullwidth is-striped is-hoverable">
-            <thead>
-                <tr>
-                    <th>Category</th>
-                    <th colspan="999">Providers</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="cat in NotificationCategories" :key="cat.id">
-                    <td>{{ cat.name }}</td>
-                    <td v-for="provider in NotificationProvidersList" :key="provider.id">
-                        <label class="checkbox" v-if="formData[cat.id] !== undefined">
-                            <input type="checkbox" v-model="formData[cat.id][provider.id]" :value="provider.id" />
-                            {{ provider.name }}
-                        </label>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
 
-        <div class="control">
-            <button class="button is-confirm" type="submit">
-                <span class="icon"><fa icon="save"></fa></span> Save
-            </button>
-            <span :class="formStatusClass">{{ formStatusText }}</span>
+        <div class="field">
+            <table class="table is-fullwidth is-striped is-hoverable">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th colspan="999">Providers</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="cat in NotificationCategories" :key="cat.id">
+                        <td>{{ cat.name }}</td>
+                        <td v-for="provider in NotificationProvidersList" :key="provider.id">
+                            <label class="checkbox" v-if="formData[cat.id] !== undefined">
+                                <input type="checkbox" v-model="formData[cat.id][provider.id]" :value="provider.id" />
+                                {{ provider.name }}
+                            </label>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="field form-submit">
+            <div class="control">
+                <button class="button is-confirm" type="submit">
+                    <span class="icon"><fa icon="save"></fa></span> Save
+                </button>
+            </div>
+            <div :class="formStatusClass">{{ formStatusText }}</div>
         </div>
     </form>
 </template>
