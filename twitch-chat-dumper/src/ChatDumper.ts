@@ -247,7 +247,7 @@ export class ChatDumper {
         // var sec_num = parseInt(duration_seconds, 10)
         var hours = Math.floor(duration_seconds / 3600)
         var minutes = Math.floor(duration_seconds / 60) % 60
-        var seconds = duration_seconds % 60;
+        var seconds = Math.floor(duration_seconds % 60);
         let duration = `${hours}h${minutes}m${seconds}s`;
 
         let jsondata = {
