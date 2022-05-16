@@ -2886,8 +2886,14 @@ export class TwitchVOD {
 
         try {
             response = await Helper.axios.get(`/helix/videos/?id=${video_id}`);
-        } catch (e) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Tried to get video id ${video_id} but got error ${e}`);
+        } catch (err) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Tried to get video id ${video_id} but got error ${(err as Error).message}`);
+            if (axios.isAxiosError(err)) {
+                if (err.response && err.response.status === 404) {
+                    return false;
+                }
+                throw new Error(`Tried to get video id ${video_id} but got error: ${(err as Error).message}`);
+            }
             return false;
         }
 

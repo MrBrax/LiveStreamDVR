@@ -1061,8 +1061,14 @@ export class TwitchChannel {
             response = await Helper.axios.get(`/helix/users?${method}=${identifier}`);
         } catch (err) {
             if (axios.isAxiosError(err)) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`, err);
-                return false;
+                // Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`, err);
+                // return false;
+                if (err.response && err.response.status === 404) {
+                    // throw new Error(`Could not find channel data for ${method} ${identifier}, server responded with 404`);
+                    Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not find channel data for ${method} ${identifier}, server responded with 404`);
+                    return false;
+                }
+                throw new Error(`Could not get channel data for ${method} ${identifier} axios error: ${(err as Error).message}`);
             }
 
             Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Channel data request for ${identifier} exceptioned: ${err}`, err);
