@@ -24,6 +24,8 @@ export class Scheduler {
         // no blocks in testing
         if (process.env.NODE_ENV === "test") return;
 
+        console.log("Scheduler: default jobs");
+
         this.schedule("check_muted_vods", "0 */12 * * *", () => {
             if (!Config.getInstance().cfg<boolean>("schedule_muted_vods")) return;
             CronController.fCheckMutedVods();
@@ -32,6 +34,11 @@ export class Scheduler {
         this.schedule("check_deleted_vods", "10 */12 * * *", () => {
             if (!Config.getInstance().cfg<boolean>("schedule_deleted_vods")) return;
             CronController.fCheckDeletedVods();
+        });
+
+        this.schedule("match_vods", "30 */12 * * *", () => {
+            if (!Config.getInstance().cfg<boolean>("schedule_match_vods")) return;
+            CronController.fMatchVods();
         });
 
         // this.schedule("* * * * *", () => {
@@ -49,6 +56,17 @@ export class Scheduler {
             this.jobs[name].stop();
             delete this.jobs[name];
         }
+    }
+
+    public static removeAllJobs() {
+        for (const job in this.jobs) {
+            this.removeJob(job);
+        }
+    }
+
+    public static restartScheduler() {
+        this.removeAllJobs();
+        this.defaultJobs();
     }
 
 }
