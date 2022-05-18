@@ -147,6 +147,8 @@ export class Config {
             "context": "{template}.mp4",
         },
 
+        { "key": "min_chapter_duration", "group": "Video", "text": "Minimum chapter duration", "type": "number", "default": 0, "help": "Minimum duration in seconds for a chapter. Shorter chapters will be removed." },
+
     ];
 
     static readonly AudioContainer = "m4a";
