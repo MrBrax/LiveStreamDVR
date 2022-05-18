@@ -22,6 +22,7 @@ interface StoreType {
     log: ApiLogLine[];
     diskTotalSize: number;
     diskFreeSize: number;
+    loading: boolean;
 }
 
 export const useStore = defineStore("twitchAutomator", {
@@ -41,6 +42,7 @@ export const useStore = defineStore("twitchAutomator", {
             log: [],
             diskTotalSize: 0,
             diskFreeSize: 0,
+            loading: false,
         };
     },
     actions: {
@@ -65,11 +67,13 @@ export const useStore = defineStore("twitchAutomator", {
             }
         },
         async fetchStreamerList(): Promise<false | { streamer_list: ApiChannel[]; total_size: number; free_size: number; }> {
+            this.loading = true;
             let response;
             try {
                 response = await axios.get(`/api/v0/channels`);
             } catch (error) {
                 console.error(error);
+                this.loading = false;
                 return false;
             }
 
@@ -77,16 +81,20 @@ export const useStore = defineStore("twitchAutomator", {
 
             if (data.status === "ERROR") {
                 // console.error("fetchStreamerList", data.message);
+                this.loading = false;
                 return false;
             }
+            this.loading = false;
             return data.data;
         },
         async fetchVod(basename: string): Promise<false | ApiVod> {
+            this.loading = true;
             let response;
             try {
                 response = await axios.get(`/api/v0/vod/${basename}`);
             } catch (error) {
                 console.error("fetchVod error", error);
+                this.loading = false;
                 return false;
             }
 
@@ -94,9 +102,11 @@ export const useStore = defineStore("twitchAutomator", {
 
             if (data.status === "ERROR") {
                 console.error("fetchVod", data.message);
+                this.loading = false;
                 return false;
             }
 
+            this.loading = false;
             return data.data;
         },
         async fetchAndUpdateVod(basename: string): Promise<boolean> {
@@ -152,23 +162,30 @@ export const useStore = defineStore("twitchAutomator", {
             });
         },
         async fetchStreamer(login: string): Promise<false | ApiChannel> {
+            this.loading = true;
             let response;
             try {
                 response = await axios.get(`/api/v0/channels/${login}`);
             } catch (error) {
                 console.error("fetchStreamer error", error);
+                this.loading = false;
                 return false;
             }
-            if (!response.data) return false;
+            if (!response.data) {
+                this.loading = false;
+                return false;
+            }
             const data: ApiChannelResponse | ApiErrorResponse = response.data;
 
             if (data.status === "ERROR") {
                 console.error("fetchVod", data.message);
+                this.loading = false;
                 return false;
             }
 
             const streamer: ApiChannel = data.data;
 
+            this.loading = true;
             return streamer;
         },
         async fetchAndUpdateStreamer(login: string): Promise<boolean> {
@@ -214,14 +231,18 @@ export const useStore = defineStore("twitchAutomator", {
             this.errors = data;
         },
         async fetchAndUpdateJobs(): Promise<void> {
+            this.loading = true;
             let response;
 
             try {
                 response = await axios.get(`/api/v0/jobs`);
             } catch (error) {
                 console.error(error);
+                this.loading = false;
                 return;
             }
+
+            this.loading = false;
 
             const json: ApiJobsResponse = response.data;
             this.updateJobList(json.data);

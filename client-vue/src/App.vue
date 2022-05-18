@@ -143,6 +143,13 @@ export default defineComponent({
                 alert("Animations have been disabled.\nYou can enable them in the client settings.");
             }
         }
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") {
+                console.debug("Visibility change: visible");
+                this.store.fetchAndUpdateStreamerList();
+            }
+        });
     },
     unmounted() {
         console.debug("App unmounted");

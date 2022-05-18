@@ -59,7 +59,7 @@ RUN cd /usr/local/share/twitchautomator/twitch-chat-dumper \
 # vod player
 RUN cd /usr/local/share/twitchautomator/twitch-vod-chat \
     && yarn install --frozen-lockfile \
-    && yarn build \
+    && yarn build --base=/vodplayer \
     && rm -rf node_modules && yarn cache clean --all
 
 # install dotnet for twitchdownloader

@@ -623,6 +623,8 @@ export class Automator {
             // it doesn't seem to get fixed, so we'll just warn the user
         }
 
+        await this.vod.removeShortChapters();
+
         // wait for 30 seconds in case something didn't finish
         await Sleep(30 * 1000);
 

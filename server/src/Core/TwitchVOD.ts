@@ -869,6 +869,26 @@ export class TwitchVOD {
 
     }
 
+    /**
+     * Remove short chapters and change duration of chapters to match the duration of the VOD.
+     * @returns 
+     */
+    public async removeShortChapters(): Promise<void> {
+
+        if (!this.chapters || this.chapters.length == 0) return;
+
+        const minDuration = Config.getInstance().cfg("min_chapter_duration", 0);
+
+        if (minDuration <= 0) return;
+
+        this.chapters = this.chapters.filter(chapter => chapter.duration && chapter.duration > minDuration);
+
+        this.calculateChapters();
+
+        await this.saveJSON("remove short chapters");
+
+    }
+
     public async generateDefaultChapter(): Promise<void> {
         if (!this.started_at) return;
         const chapter = await TwitchVODChapter.fromJSON({
@@ -2886,8 +2906,14 @@ export class TwitchVOD {
 
         try {
             response = await Helper.axios.get(`/helix/videos/?id=${video_id}`);
-        } catch (e) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Tried to get video id ${video_id} but got error ${e}`);
+        } catch (err) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Tried to get video id ${video_id} but got error ${(err as Error).message}`);
+            if (axios.isAxiosError(err)) {
+                if (err.response && err.response.status === 404) {
+                    return false;
+                }
+                throw new Error(`Tried to get video id ${video_id} but got error: ${(err as Error).message}`);
+            }
             return false;
         }
 

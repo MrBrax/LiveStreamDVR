@@ -124,6 +124,7 @@ export class Config {
 
         { "key": "schedule_muted_vods", "group": "Schedules", "text": "Check muted vods", "type": "boolean", "default": true },
         { "key": "schedule_deleted_vods", "group": "Schedules", "text": "Check deleted vods", "type": "boolean", "default": true },
+        { "key": "schedule_match_vods", "group": "Schedules", "text": "Match vods", "type": "boolean", "default": false },
 
         { "key": "create_video_chapters", "group": "Video", "text": "Create video chapters", "type": "boolean", "default": true },
         { "key": "create_kodi_nfo", "group": "Video", "text": "Create kodi nfo", "type": "boolean", "default": false, "help": "Requires server restart or channels reset." },
@@ -145,6 +146,8 @@ export class Config {
             },
             "context": "{template}.mp4",
         },
+
+        { "key": "min_chapter_duration", "group": "Video", "text": "Minimum chapter duration", "type": "number", "default": 0, "help": "Minimum duration in seconds for a chapter. Shorter chapters will be removed." },
 
     ];
 
@@ -361,10 +364,15 @@ export class Config {
 
         this.startWatchingConfig();
 
-        this.setupAxios();
+        this.postSaveConfig();
 
         return success;
 
+    }
+
+    postSaveConfig() {
+        this.setupAxios();
+        Scheduler.restartScheduler();
     }
 
     backupConfig() {
