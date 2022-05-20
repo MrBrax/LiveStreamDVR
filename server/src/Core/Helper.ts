@@ -19,6 +19,7 @@ import { replaceAll } from "../Helpers/ReplaceAll";
 import { TwitchChannel } from "./TwitchChannel";
 import { KeyValue } from "./KeyValue";
 import { SubStatus } from "../../../common/Defs";
+import { TwitchVOD } from "./TwitchVOD";
 
 export interface ExecReturn {
     stdout: string[];
@@ -972,6 +973,14 @@ export class Helper {
                 } else if (KeyValue.getInstance().get(`${channel.userid}.substatus.${sub_type}`) === SubStatus.NONE || !KeyValue.getInstance().has(`${channel.userid}.substatus.${sub_type}`)) {
                     errors.push(`${channel.login} is not subscribed to ${sub_type}. Please check the config and subscribe.`);
                 }
+            }
+        }
+
+        for (const vod of TwitchVOD.vods) {
+            if (!vod.duration) continue;
+            const chaptersDuration = vod.chapters.reduce((prev, val) => prev + (val.duration || 0), 0);
+            if (vod.duration - chaptersDuration > 0) {
+                errors.push(`${vod.basename} has a duration of ${vod.duration} but the chapters are not aligned (${chaptersDuration}).`);
             }
         }
 

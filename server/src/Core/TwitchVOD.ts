@@ -682,7 +682,7 @@ export class TwitchVOD {
                 !fs.existsSync(this.path_losslesscut) ||
                 !fs.existsSync(this.path_ffmpegchapters) ||
                 !fs.existsSync(this.path_vttchapters) ||
-                !fs.existsSync(this.path_kodinfo)
+                !(fs.existsSync(this.path_kodinfo) && Config.getInstance().cfg("create_kodi_nfo"))
             )
         ) {
             try {
@@ -881,7 +881,19 @@ export class TwitchVOD {
 
         if (minDuration <= 0) return;
 
-        this.chapters = this.chapters.filter(chapter => chapter.duration && chapter.duration > minDuration);
+        const longChapters = this.chapters.filter(chapter => {
+            if (chapter.duration && chapter.duration > minDuration) {
+                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Keeping chapter ${chapter.title} with duration ${chapter.duration} on ${this.basename}`);
+                return true;
+            } else {
+                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Removing chapter ${chapter.title} with duration ${chapter.duration} on ${this.basename}`);
+                return false;
+            }
+        });
+
+        console.debug(`Removed ${this.chapters.length - longChapters.length} chapters on ${this.basename}`);
+
+        this.chapters = longChapters;
 
         this.calculateChapters();
 
@@ -2251,20 +2263,20 @@ export class TwitchVOD {
         for (const file of this.associatedFiles) {
             const file_path = path.join(this.directory, file);
             if (fs.existsSync(file_path)) {
-                console.log("rename", file_path, replaceAll(file_path, old_basename, new_basename));
+                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Rename assoc ${file_path} to ${replaceAll(file_path, old_basename, new_basename)}`);
                 fs.renameSync(file_path, replaceAll(file_path, old_basename, new_basename));
             } else {
-                console.log("file not found", file_path);
+                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `File assoc ${file_path} not found!`);
             }
         }
 
         for (const segment of this.segments_raw) {
             const file_path = path.join(this.directory, path.basename(segment));
             if (fs.existsSync(file_path)) {
-                console.log("rename", file_path, replaceAll(file_path, old_basename, new_basename));
+                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Rename segment ${file_path} to ${replaceAll(file_path, old_basename, new_basename)}`);
                 fs.renameSync(file_path, replaceAll(file_path, old_basename, new_basename));
             } else {
-                console.log("segment not found", file_path);
+                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Segment ${file_path} not found!`);
             }
         }
 

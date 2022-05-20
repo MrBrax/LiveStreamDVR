@@ -605,7 +605,7 @@ export class TwitchChannel {
         } else {
             this.current_season = KeyValue.getInstance().get(`${this.login}.season_identifier`) as string;
         }
-        
+
         if (KeyValue.getInstance().has(`${this.login}.stream_number`)) {
             this.current_stream_number = KeyValue.getInstance().getInt(`${this.login}.stream_number`);
         } else {
@@ -655,8 +655,62 @@ export class TwitchChannel {
                 await vod.delete();
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to delete vod ${vod.basename}: ${(error as Error).message}`);
-            }            
+            }
         }
+    }
+
+    /**
+     * Rename a channel.
+     * Resets all channels and vods.
+     * 
+     * @resets
+     * @param new_login 
+     * @returns 
+     */
+    public async rename(new_login: string): Promise<boolean> {
+
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Renaming channel ${this.login} to ${new_login}`);
+
+        if (this.login === new_login) {
+            throw new Error("Cannot rename channel to same name");
+        }
+        const old_login = this.login;
+        if (!old_login) {
+            throw new Error("Cannot rename channel without login");
+        }
+
+        // update config
+        const channelConfigIndex = TwitchChannel.channels_config.findIndex((c) => c.login === old_login);
+        if (channelConfigIndex !== -1) {
+            TwitchChannel.channels_config[channelConfigIndex].login = new_login;
+            TwitchChannel.saveChannelsConfig();
+        } else {
+            throw new Error(`Could not find channel config for ${old_login}`);
+        }
+
+        // rename vods
+        for (const vod of this.vods_list) {
+            vod.changeBaseName(vod.basename.replace(old_login, new_login));
+        }
+
+        // rename channel folder
+        const old_channel_folder = Helper.vodFolder(old_login);
+        const new_channel_folder = Helper.vodFolder(new_login);
+        if (fs.existsSync(old_channel_folder)) {
+            fs.renameSync(old_channel_folder, new_channel_folder);
+        }
+
+        await Config.resetChannels();
+
+        const newChannel = TwitchChannel.getChannelByLogin(new_login);
+        if (!newChannel) {
+            throw new Error("Failed to get new channel.");
+        }
+
+        newChannel.refreshData(); // refresh data for new login
+
+        return true;
+
     }
 
     /**
@@ -1117,7 +1171,7 @@ export class TwitchChannel {
                     responseType: "stream",
                 });
             } catch (error) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not download channel logo for ${userData.id}: ${(error as Error).message}`, error);                
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not download channel logo for ${userData.id}: ${(error as Error).message}`, error);
             }
             if (avatar_response) {
                 avatar_response.data.pipe(fs.createWriteStream(logo_path));
