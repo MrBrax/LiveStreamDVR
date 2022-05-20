@@ -69,19 +69,21 @@
             </div>
         </form>
         <hr />
-        <span>
-            <button class="button is-small is-danger" type="submit" @click="deleteChannel">
+
+        <div class="buttons">
+            <button class="button is-small is-danger" @click="deleteChannel">
                 <span class="icon"><fa icon="trash"></fa></span>
                 <span>Delete</span>
             </button>
-            (no undo)
-        </span>
-        <span>
-            <button class="button is-small is-confirm" type="submit" @click="subscribeChannel">
+            <button class="button is-small is-confirm" @click="subscribeChannel">
                 <span class="icon"><fa icon="sync"></fa></span>
                 <span>Subscribe</span>
             </button>
-        </span>
+            <button class="button is-small is-confirm" @click="renameChannel">
+                <span class="icon"><fa icon="pencil"></fa></span>
+                <span>Rename</span>
+            </button>
+        </div>
     </div>
 </template>
 
@@ -155,7 +157,7 @@ export default defineComponent({
             return false;
         },
         deleteChannel() {
-            if (!confirm(`Do you want to delete "${this.channel.login}"?`)) return;
+            if (!confirm(`Do you want to delete "${this.channel.login}"? This cannot be undone.`)) return;
             this.$http
                 .delete(`/api/v0/channels/${this.channel.login}`)
                 .then((response) => {
@@ -209,6 +211,27 @@ export default defineComponent({
                     field.setCustomValidity("");
                 }
             }
+        },
+        renameChannel() {
+            const newLogin = prompt("Enter new channel login. If channel has not changed login, this will fail in the future.\n", this.channel.login);
+            if (!newLogin || newLogin == this.channel.login) return;
+            this.$http
+                .post(`/api/v0/channels/${this.channel.login}/rename`, {
+                    new_login: newLogin,
+                })
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.$emit("formSuccess", json);
+                    this.store.fetchAndUpdateStreamerList();
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) {
+                        alert(err.response.data.message);
+                    }
+                });
         },
     },
     computed: {

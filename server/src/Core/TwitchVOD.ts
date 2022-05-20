@@ -682,7 +682,7 @@ export class TwitchVOD {
                 !fs.existsSync(this.path_losslesscut) ||
                 !fs.existsSync(this.path_ffmpegchapters) ||
                 !fs.existsSync(this.path_vttchapters) ||
-                !fs.existsSync(this.path_kodinfo)
+                !(fs.existsSync(this.path_kodinfo) && Config.getInstance().cfg("create_kodi_nfo"))
             )
         ) {
             try {

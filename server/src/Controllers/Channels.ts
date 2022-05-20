@@ -506,3 +506,34 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
     }
 
 }
+
+export async function RenameChannel(req: express.Request, res: express.Response): Promise<void> {
+
+    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+
+    if (!channel || !channel.userid) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const success = await channel.rename(req.body.new_login);
+
+    if (success) {
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.rename", `Renamed channel: ${channel.login} to ${req.body.new_login}`);
+        res.send({
+            status: "OK",
+            message: `Renamed channel: ${channel.login} to ${req.body.new_login}`,
+        });
+        channel.broadcastUpdate();
+    } else {
+        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.rename", `Failed to rename channel: ${channel.login} to ${req.body.new_login}`);
+        res.status(400).send({
+            status: "ERROR",
+            message: "Failed to rename channel",
+        } as ApiErrorResponse);
+    }
+
+}
