@@ -4,13 +4,13 @@
             <span class="icon"><fa icon="sync" spin /></span> Store...
         </span>
         <div v-if="store.clientCfg('useWebsockets') && websocket">
-            {{ websocketConnected ? "Connected" : websocketConnecting ? "Connecting..." : "Disconnected" }}
+            {{ websocketConnected ? $t('components.status.connected') : websocketConnecting ? $t('components.status.connecting') : $t('components.status.disconnected') }}
         </div>
         <div v-else-if="tickerInterval && store.clientCfg('useBackgroundTicker')">
-            {{ loading ? "Loading..." : `Refreshing in ${timer} seconds.` }}
+            {{ loading ? $t('messages.loading') : $t('components.status.refreshing-in-x-seconds', [timer]) }}
         </div>
         <div v-else>
-            Disabled
+            {{ $t('components.status.disabled') }}
         </div>
     </div>
 </template>

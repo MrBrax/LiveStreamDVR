@@ -2202,7 +2202,7 @@ export class TwitchVOD {
             ignoreInitial: true,
         }).on("all", (eventType, filename) => {
 
-            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD file ${filename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})!`);
+            console.log(`VOD file ${filename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})!`);
 
             setTimeout(() => {
                 TwitchVOD.cleanLingeringVODs();

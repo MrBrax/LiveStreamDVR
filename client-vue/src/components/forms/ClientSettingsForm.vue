@@ -62,11 +62,17 @@
                 <input type="text" class="input" v-model="(updateConfig[key] as string)" :id="'input_' + key" />
                 <p class="input-help" v-if="value.help">{{ value.help }}</p>
             </div>
+            <div class="control" v-if="value.type === 'choice'">
+                <select class="input" v-model="(updateConfig[key] as string)" :id="'input_' + key">
+                    <option v-for="(option, optionKey) in value.choices" :value="optionKey">{{ option }}</option>
+                </select>
+                <p class="input-help" v-if="value.help">{{ value.help }}</p>
+            </div>
         </div>
         <div class="field">
             <button class="button is-confirm" @click="saveClientConfig">
                 <span class="icon"><fa icon="save" /></span>
-                <span>Save</span>
+                <span>{{ $t('buttons.save') }}</span>
             </button>
         </div>
         <br />
@@ -116,6 +122,7 @@ export default defineComponent({
         saveClientConfig() {
             this.store.updateClientConfig(this.updateConfig);
             this.store.saveClientConfig();
+            this.$i18n.locale = this.updateConfig.language;
             if (this.currentConfig.enableNotifications !== this.updateConfig.enableNotifications && this.updateConfig.enableNotifications) {
                 this.requestNotifications();
             }

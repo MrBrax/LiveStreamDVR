@@ -1,6 +1,6 @@
 <template>
     <div class="container vertical">
-        <section class="section" v-if="store.errors && store.errors.length > 0">
+        <section class="section" v-if="store.errors && store.errors.length > 0" aria-label="Errors">
             <div class="errors">
                 <ul>
                     <li v-for="error in store.errors" :key="error">
@@ -10,7 +10,7 @@
             </div>
         </section>
         <section class="section" data-section="vods">
-            <div class="section-title"><h1>Recorded VODs</h1></div>
+            <div class="section-title"><h1>{{ $t("dashboard.recorded_vods") }}</h1></div>
             <div class="section-content" v-if="store.streamerListLoaded && store.streamerList.length > 0">
                 <template v-if="!store.clientCfg('singlePage')">
                     <streamer v-for="streamer in sortedStreamers" v-bind:key="streamer.userid" v-bind:streamer="streamer" />
@@ -20,9 +20,9 @@
                 </template>
                 <hr />
                 <div class="dashboard-stats">
-                    <strong>Total size: {{ formatBytes(store.diskTotalSize) }}</strong>
+                    <strong>{{ $t('views.dashboard.total-size', [formatBytes(store.diskTotalSize)]) }}</strong>
                     <br />
-                    <strong>Free space: {{ formatBytes(store.diskFreeSize) }}</strong>
+                    <strong>{{ $t('views.dashboard.free-space', [formatBytes(store.diskFreeSize)]) }}</strong>
                 </div>
             </div>
             <div class="section-content" v-else-if="!store.streamerListLoaded">

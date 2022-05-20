@@ -16,14 +16,19 @@
             :to="store.clientCfg('singlePage') ? { name: 'Dashboard', query: { channel: streamer.login } } : { name: 'Dashboard', hash: '#streamer_' + streamer.login }"
             class="streamer-link"
         >
-            <span class="avatar" @click.prevent="streamer && store.fetchAndUpdateStreamer(streamer.login)">
+            <span class="avatar" @click.prevent="streamer && store.fetchAndUpdateStreamer(streamer.login)" aria-label="Streamer Avatar">
                 <img :src="avatarUrl" :alt="streamer.login" />
             </span>
             <span class="username">
                 {{ streamer.display_name }}
                 <template v-if="streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }})</template>
             </span>
-            <span class="vodcount" :data-count="streamer.vods_list.length">{{ streamer.vods_list.length }}</span>
+            <span
+                class="vodcount"
+                :data-count="streamer.vods_list.length"
+                title="VOD count"
+                :aria-valuenow="streamer.vods_list.length"
+            >{{ streamer.vods_list.length }}</span>
             <span class="subtitle">
                 <template v-if="streamer.is_live">
                     <template v-if="streamer.current_game && streamer.current_game.name != ''">
@@ -49,15 +54,20 @@
             </span>
         </router-link>
         <div class="streamer-expand-container">
-            <div class="streamer-expand-main" v-if="!store.clientCfg('expandVodList') && streamer.vods_list.length > store.clientCfg('vodsToShowInMenu', 4)" @click="toggleExpand">
+            <button
+                class="streamer-expand-main"
+                v-if="!store.clientCfg('expandVodList') && streamer.vods_list.length > store.clientCfg('vodsToShowInMenu', 4)"
+                @click="toggleExpand"
+                title="Click to toggle VOD list"
+            >
                 <transition><span class="amount" v-if="!expanded">{{ streamer.vods_list.length - store.clientCfg('vodsToShowInMenu', 4) }}</span></transition>
                 <fa :icon="expanded ? 'chevron-up' : 'chevron-down'" />
-            </div>
+            </button>
         </div>
     </div>
 
     <div class="top-menu-item streamer-jumpto" v-if="streamer">
-        <transition-group name="list" tag="ul">
+        <transition-group name="list" tag="ul" v-if="streamer.vods_list.length > 0">
             <!--<li v-if="!expanded && !store.clientCfg('expandVodList') && streamer.vods_list.length > store.clientCfg('vodsToShowInMenu', 4)" class="streamer-expand-hide"></li>-->
             <li v-for="vod in filteredVodsList" :key="vod.basename">
                 <router-link

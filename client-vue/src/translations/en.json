@@ -1,0 +1,124 @@
+{
+  "dashboard": {
+    "recorded_vods": "Recorded VODs"
+  },
+  "vods": "{count} VOD | {count} VODs",
+  "messages": {
+    "subscribed": "Subscribed",
+    "no_vods": "No VODs",
+    "clips": "Clips",
+    "video_download_help": "Videos downloaded with this tool will be cleaned up the same way as captured vods do when a stream is finished.\n They are treated the same way as captured vods in its entirety.",
+    "loading": "Loading..."
+  },
+  "vod": {
+    "add_comment": "Add a comment",
+    "video-info": {
+      "general": "General",
+      "capture": "Capture"
+    },
+    "segments": "Segments",
+    "controls": {
+      "editor": "Editor",
+      "player": "Player",
+      "archive": "Archive",
+      "download-chat": "Download chat",
+      "download-vod": "Download{0} VOD",
+      "check-mute": "Check mute",
+      "render-menu": "Render menu",
+      "fix-issues": "Fix issues"
+    },
+    "chapters": {
+      "offset": "Offset",
+      "started": "Started",
+      "duration": "Duration",
+      "category": "Category",
+      "title": "Title",
+      "viewers": "Viewers",
+      "end": "END",
+      "ongoing": "ONGOING"
+    }
+  },
+  "buttons": {
+    "save": "Save",
+    "save-favourites": "Save Favourites",
+    "delete": "Delete",
+    "subscribe": "Subscribe",
+    "rename": "Rename",
+    "delete-all": "Delete all",
+    "create": "Create",
+    "edit": "Edit",
+    "reset": "Reset",
+    "execute": "Execute"
+  },
+  "pages": {
+    "favourite-games": "Favourite games",
+    "channels": "Channels",
+    "new-channel": "New channel",
+    "config": "Config",
+    "keyvalue": "KeyValue",
+    "notifications": "Notifications",
+    "client-settings": "Client settings"
+  },
+  "forms": {
+    "channel": {
+      "login": "Login",
+      "login_help": "Channel login, lowercase. This is the part that comes after the domain name, not the display name.\n You can paste a link to a channel page here to get the login.",
+      "quality": "Quality",
+      "match-keywords": "Match keywords",
+      "add-channel": "Add channel",
+      "download-chat": "Download chat after video capture is complete",
+      "live-chat-download": "Live chat download",
+      "burn-chat": "Burn chat after downloading",
+      "no-capture": "Don't record streams (disable capture completely)",
+      "live-channels-warning": "Live channels will not be recorded until they are live the next time."
+    },
+    "config": {
+      "validate-external-url": "Validate external URL"
+    },
+    "keyvalue": {
+      "key": "Key",
+      "value": "Value"
+    }
+  },
+  "views": {
+    "dashboard": {
+      "total-size": "Total size: {0}",
+      "free-space": "Free space: {0}"
+    },
+    "files": {
+      "folders": {
+        "clips": "Clips",
+        "archived-vods": "Archived VODs",
+        "application-logs": "Application logs",
+        "software-logs": "Software logs"
+      }
+    },
+    "tools": {
+      "vod-download": "VOD download",
+      "chat-download": "Chat download",
+      "clip-download": "Clip download",
+      "chat-dump": "Chat dump",
+      "current-jobs": "Current jobs",
+      "reset-channels": "Reset channels"
+    }
+  },
+  "components": {
+    "filemanager": {
+      "these-files-are-not-downloadable-due-to-a-config-setting": "These files are not downloadable due to a config setting.",
+      "name": "Name",
+      "size": "Size",
+      "last-modified": "Last modified",
+      "actions": "Actions"
+    },
+    "status": {
+      "connected": "Connected",
+      "connecting": "Connecting...",
+      "disconnected": "Disconnected",
+      "disabled": "Disabled",
+      "refreshing-in-x-seconds": "Refreshing in {0} seconds."
+    }
+  },
+  "jobs": {
+    "no-jobs-running": "No jobs running"
+  }
+}

@@ -10,21 +10,21 @@
         -->
 
         <section class="section">
-            <div class="section-title"><h1>VOD download</h1></div>
+            <div class="section-title"><h1>{{ $t('views.tools.vod-download') }}</h1></div>
             <div class="section-content">
                 <tools-vod-download-form />
             </div>
         </section>
 
         <section class="section">
-            <div class="section-title"><h1>Chat download</h1></div>
+            <div class="section-title"><h1>{{ $t('views.tools.chat-download') }}</h1></div>
             <div class="section-content">
                 <tools-chat-download-form />
             </div>
         </section>
 
         <section class="section">
-            <div class="section-title"><h1>Clip download</h1></div>
+            <div class="section-title"><h1>{{ $t('views.tools.clip-download') }}</h1></div>
             <div class="section-content">
                 <tools-clip-download-form />
             </div>
@@ -32,7 +32,7 @@
     </div>
     <div class="container">
         <section class="section">
-            <div class="section-title"><h1>Chat dump</h1></div>
+            <div class="section-title"><h1>{{ $t('views.tools.chat-dump') }}</h1></div>
             <div class="section-content">
                 <tools-chat-dump-form />
             </div>
@@ -50,9 +50,12 @@
         </section>
 
         <section class="section">
-            <div class="section-title"><h1>Reset channels</h1></div>
+            <div class="section-title"><h1>{{ $t('views.tools.reset-channels') }}</h1></div>
             <div class="section-content">
-                <button type="button" class="button" @click="resetChannels">Reset</button>
+                <button type="button" class="button is-danger" @click="resetChannels">
+                    <span class="icon"><fa icon="sync"></fa></span>
+                    <span>{{ $t('buttons.reset') }}</span>
+                </button>
                 <p>
                     This is a bad idea if any of your channels are live.
                 </p>
@@ -81,7 +84,7 @@
     </div>
     <div class="container">
         <section class="section">
-            <div class="section-title"><h1>Current jobs</h1></div>
+            <div class="section-title"><h1>{{ $t('views.tools.current-jobs') }}</h1></div>
             <div class="section-content">
                 <table>
                     <tr v-for="job in store.jobList" :key="job.name">
@@ -113,7 +116,7 @@
                     </tr>
                 </table>
 
-                <em v-if="!store.jobList || store.jobList && store.jobList.length == 0">None</em>
+                <em v-if="!store.jobList || store.jobList && store.jobList.length == 0">{{ $t('jobs.no-jobs-running') }}</em>
             </div>
         </section>
     </div>

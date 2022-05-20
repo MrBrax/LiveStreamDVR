@@ -166,6 +166,10 @@ export class Automator {
                 return false;
             }
 
+            if (this.channel.is_live) {
+                Log.logAdvanced(LOGLEVEL.INFO, "automator", `${this.broadcaster_user_login} is already live, yet another stream online event received.`);
+            }
+
             KeyValue.getInstance().setBool(`${this.broadcaster_user_login}.online`, true);
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.vod.id`, event.id);
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.vod.started_at`, event.started_at);

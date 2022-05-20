@@ -14,14 +14,14 @@
                     <span class="streamer-vods-quality help" title="Quality">{{ quality }}</span
                     ><!-- quality -->
                     &middot;
-                    <span class="streamer-vods-amount" title="Total vod amount">{{ streamer.vods_list.length }} vods</span
+                    <span class="streamer-vods-amount" title="Total vod amount">{{ $tc("vods", streamer.vods_list.length) }}</span
                     ><!-- vods -->
                     &middot;
                     <span class="streamer-vods-size" title="Total vod size">{{ formatBytes(streamer.vods_size) }}</span
                     ><!-- total size -->
                     &middot;
                     <span class="streamer-subbed-status">
-                        <span v-if="streamer.api_getSubscriptionStatus">Subscribed</span>
+                        <span v-if="streamer.api_getSubscriptionStatus">{{ $t("messages.subscribed") }}</span>
                         <span class="is-error" title="Could just be that subscriptions were made before this feature was implemented." v-else>
                             One or more subscriptions missing
                         </span></span
@@ -86,7 +86,7 @@
         </div>
 
         <div class="streamer-clips" v-if="streamer.clips_list && streamer.clips_list.length > 0">
-            <div class="streamer-clips-title"><h3>Clips</h3></div>
+            <div class="streamer-clips-title"><h3>{{ $t("messages.clips") }}</h3></div>
             <ul>
                 <li v-for="clip in streamer.clips_list" :key="clip">
                     <a class="text-overflow" :href="clipLink(clip)" target="_blank">{{ clip }}</a>
@@ -94,7 +94,7 @@
             </ul>
         </div>
 
-        <div v-if="streamer.vods_list.length == 0" class="notice">None</div>
+        <div v-if="streamer.vods_list.length == 0" class="notice">{{ $t("messages.no_vods") }}</div>
         <div v-else>
             <vod-item
                 v-for="vod in streamer.vods_list"
@@ -107,8 +107,7 @@
         <modal-box ref="videoDownloadMenu" title="Video download">
             <div class="video-download-menu">
                 <p>
-                    Videos downloaded with this tool will be cleaned up the same way as captured vods do when a stream is finished.<br />
-                    They are treated the same way as captured vods in its entirety.<br />
+                    {{ $t('messages.video_download_help') }}<br />
                     <span v-if="averageVodBitrate">Average bitrate: {{ averageVodBitrate / 1000 }} kbps</span>
                 </p>
                 <button class="button is-confirm" @click="fetchTwitchVods">

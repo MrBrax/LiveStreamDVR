@@ -19,7 +19,7 @@
             <div class="control">
                 <button class="button is-confirm" type="submit">
                     <span class="icon"><fa icon="download"></fa></span>
-                    <span>Execute</span>
+                    <span>{{ $t('buttons.execute') }}</span>
                 </button>
             </div>
             <div :class="formStatusClass">{{ formStatusText }}</div>

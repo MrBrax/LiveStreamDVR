@@ -53,7 +53,7 @@
                         <p>
                             <a href="#" @click.prevent="editVodMenu ? (editVodMenu.show = true) : ''">
                                 <fa icon="comment-dots"></fa>
-                                Add a comment
+                                {{ $t("vod.add_comment") }}
                             </a>
                         </p>
                     </div>
@@ -61,7 +61,7 @@
                     <!-- video info -->
                     <div v-if="vod?.is_finalized" class="info-columns">
                         <div class="info-column">
-                            <h4>General</h4>
+                            <h4>{{ $t('vod.video-info.general') }}</h4>
                             <ul class="video-info">
                                 <li>
                                     <strong>Webhook duration:</strong>
@@ -127,7 +127,7 @@
                         </div>
 
                         <div class="info-column">
-                            <h4>Capture</h4>
+                            <h4>{{ $t('vod.video-info.capture') }}</h4>
                             <ul class="video-info">
                                 <li v-if="vod.getDuration()">
                                     <strong>File duration:</strong>
@@ -273,8 +273,8 @@
 
                 <!-- segment list -->
                 <div v-if="vod?.is_finalized" class="video-segments">
-                    <strong>Segments</strong>
-                    <ul class="list-segments" v-if="vod && vod.segments">
+                    <strong>{{ $t('vod.segments') }}</strong>
+                    <ul class="list-segments">
                         <li v-for="segment in vod.segments" :key="segment.basename">
                             <a :href="vod?.webpath + '/' + segment.basename">
                                 <span class="text-overflow">{{ segment.basename }}</span>
@@ -305,6 +305,9 @@
                             <a :href="vod?.webpath + '/' + vod?.basename + '_burned.mp4'">Burned chat</a>
                         </li>
                     </ul>
+                    <span v-if="vod.segments.length === 0">
+                        <strong class="is-error">No segments found</strong>
+                    </span>
                 </div>
 
                 <!-- controls -->
@@ -318,13 +321,13 @@
                     <!-- Editor -->
                     <router-link v-if="vod.video_metadata && vod.video_metadata.type !== 'audio'" class="button is-blue" :to="{ name: 'Editor', params: { vod: vod?.basename } }">
                         <span class="icon"><fa icon="cut" type="fa"></fa></span>
-                        <span>Editor</span>
+                        <span>{{ $t('vod.controls.editor') }}</span>
                     </router-link>
 
                     <!-- Player -->
                     <a v-if="vod.is_chat_downloaded || vod.is_chatdump_captured" class="button is-blue" target="_blank" @click="playerMenu ? (playerMenu.show = true) : ''">
                         <span class="icon"><fa icon="play" type="fa"></fa></span>
-                        <span>Player</span>
+                        <span>{{ $t('vod.controls.player') }}</span>
                     </a>
 
                     <!-- JSON -->
@@ -339,7 +342,7 @@
                             <fa icon="archive" type="fa" v-if="!taskStatus.archive"></fa>
                             <fa icon="sync" type="fa" spin v-else></fa>
                         </span>
-                        <span>Archive</span>
+                        <span>{{ $t('vod.controls.archive') }}</span>
                     </a>
 
                     <!-- Download chat-->
@@ -348,7 +351,7 @@
                             <fa icon="comments" type="fa" v-if="!taskStatus.downloadChat && !compDownloadChat"></fa>
                             <fa icon="sync" type="fa" spin v-else></fa>
                         </span>
-                        <span>Download chat</span>
+                        <span>{{ $t('vod.controls.download-chat') }}</span>
                     </a>
 
                     <template v-if="vod?.twitch_vod_id">
@@ -358,7 +361,7 @@
                                 <fa icon="download" type="fa" v-if="!taskStatus.downloadVod"></fa>
                                 <fa icon="sync" type="fa" spin v-else></fa>
                             </span>
-                            <span>Download{{ vod?.twitch_vod_muted === MuteStatus.MUTED ? " muted" : "" }} VOD</span>
+                            <span>{{ $t('vod.controls.download-vod', [vod?.twitch_vod_muted === MuteStatus.MUTED ? " muted" : ""]) }}</span>
                         </a>
                         <!-- Check mute -->
                         <a v-if="showAdvanced" class="button" @click="doCheckMute">
@@ -366,7 +369,7 @@
                                 <fa icon="volume-mute" type="fa" v-if="!taskStatus.vodMuteCheck"></fa>
                                 <fa icon="sync" type="fa" spin v-else></fa>
                             </span>
-                            <span>Check mute</span>
+                            <span>{{ $t('vod.controls.check-mute') }}</span>
                         </a>
                     </template>
 
@@ -378,7 +381,7 @@
                         <span class="icon">
                             <fa icon="burn" type="fa"></fa>
                         </span>
-                        <span>Render menu</span>
+                        <span>{{ $t('vod.controls.render-menu') }}</span>
                     </a>
 
                     <!-- Fix issues -->
@@ -386,7 +389,7 @@
                         <span class="icon">
                             <fa icon="wrench" type="fa"></fa>
                         </span>
-                        <span>Fix issues</span>
+                        <span>{{ $t('vod.controls.fix-issues') }}</span>
                     </a>
 
                     <!-- Vod edit menu -->
@@ -394,7 +397,7 @@
                         <span class="icon">
                             <fa icon="pencil" type="fa"></fa>
                         </span>
-                        <span>Edit</span>
+                        <span>{{ $t('buttons.edit') }}</span>
                     </button>
 
                     <!-- Delete -->
@@ -403,7 +406,7 @@
                             <fa icon="trash" type="fa" v-if="!taskStatus.delete"></fa>
                             <fa icon="sync" type="fa" spin v-else></fa>
                         </span>
-                        <span>Delete</span>
+                        <span>{{ $t('buttons.delete') }}</span>
                     </button>
                 </div>
 
@@ -501,12 +504,12 @@
                     <table class="table game-list is-slim" v-if="vod && vod.chapters && vod.chapters.length > 0">
                         <thead>
                             <tr>
-                                <th>Offset</th>
-                                <th v-if="showAdvanced">Started</th>
-                                <th>Duration</th>
-                                <th>Category</th>
-                                <th>Title</th>
-                                <th v-if="hasViewerCount">Viewers</th>
+                                <th>{{ $t('vod.chapters.offset') }}</th>
+                                <th v-if="showAdvanced">{{ $t('vod.chapters.started') }}</th>
+                                <th>{{ $t('vod.chapters.duration') }}</th>
+                                <th>{{ $t('vod.chapters.category') }}</th>
+                                <th>{{ $t('vod.chapters.title') }}</th>
+                                <th v-if="hasViewerCount">{{ $t('vod.chapters.viewers') }}</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -517,7 +520,7 @@
                                 :key="chapterIndex"
                                 :class="{
                                     favourite: store.config && chapter.game_id && store.favourite_games.includes(chapter.game_id.toString()),
-                                    current: chapterIndex === vod.chapters.length - 1 && vod.is_capturing,
+                                    current: vod && chapterIndex === vod.chapters.length - 1 && vod.is_capturing,
                                 }"
                             >
                                 <!-- start timestamp -->
@@ -613,7 +616,7 @@
                                     {{ vod.getWebhookDuration() }}
                                 </td>
                                 <td colspan="10">
-                                    <em>END</em>
+                                    <em>{{ $t('vod.chapters.end') }}</em>
                                 </td>
                             </tr>
 
@@ -623,7 +626,7 @@
                                     <duration-display :startDate="vod.started_at"></duration-display>
                                 </td>
                                 <td colspan="10">
-                                    <em><strong>ONGOING</strong></em>
+                                    <em><strong>{{ $t('vod.chapters.ongoing') }}</strong></em>
                                 </td>
                             </tr>
                         </tbody>

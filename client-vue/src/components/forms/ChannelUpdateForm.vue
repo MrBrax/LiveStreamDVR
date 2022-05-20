@@ -2,7 +2,7 @@
     <div>
         <form @submit.prevent="submitForm">
             <div class="field">
-                <label class="label" for="input_quality">Quality</label>
+                <label class="label" for="input_quality">{{ $t('forms.channel.quality') }} <span class="required">*</span></label>
                 <div class="control">
                     <input
                         class="input input-required"
@@ -21,7 +21,7 @@
             </div>
 
             <div class="field">
-                <label class="label" for="input_match">Match keywords</label>
+                <label class="label" for="input_match">{{ $t('forms.channel.match-keywords') }}</label>
                 <div class="control">
                     <input class="input" type="text" id="input_match" name="match" v-model="formData.match" />
                     <p class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</p>
@@ -31,14 +31,14 @@
             <div class="field">
                 <label class="checkbox">
                     <input class="input" type="checkbox" name="download_chat" v-model="formData.download_chat" />
-                    Download chat after video capture is complete
+                    {{ $t('forms.channel.download-chat') }}
                 </label>
             </div>
 
             <div class="field">
                 <label class="checkbox">
                     <input class="input" type="checkbox" name="live_chat" v-model="formData.live_chat" />
-                    Live chat download
+                    {{ $t('forms.channel.live-chat-download') }}
                 </label>
                 <p class="input-help">Requires Node binary path to be set in the settings</p>
             </div>
@@ -46,7 +46,7 @@
             <div class="field">
                 <label class="checkbox">
                     <input class="input" type="checkbox" name="burn_chat" v-model="formData.burn_chat" />
-                    Burn chat after downloading
+                    {{ $t('forms.channel.burn-chat') }}
                 </label>
                 <p class="input-help">Currently disabled</p>
             </div>
@@ -54,7 +54,7 @@
             <div class="field">
                 <label class="checkbox">
                     <input class="input" type="checkbox" name="no_capture" v-model="formData.no_capture" />
-                    Don't record streams (disable capture completely)
+                    {{ $t('forms.channel.no-capture') }}
                 </label>
             </div>
 
@@ -62,7 +62,7 @@
                 <div class="control">
                     <button class="button is-confirm" type="submit">
                         <span class="icon"><fa icon="save"></fa></span>
-                        <span>Save</span>
+                        <span>{{ $t('buttons.save') }}</span>
                     </button>
                 </div>
                 <div :class="formStatusClass">{{ formStatusText }}</div>
@@ -73,15 +73,15 @@
         <div class="buttons">
             <button class="button is-small is-danger" @click="deleteChannel">
                 <span class="icon"><fa icon="trash"></fa></span>
-                <span>Delete</span>
+                <span>{{ $t('buttons.delete') }}</span>
             </button>
             <button class="button is-small is-confirm" @click="subscribeChannel">
                 <span class="icon"><fa icon="sync"></fa></span>
-                <span>Subscribe</span>
+                <span>{{ $t('buttons.subscribe') }}</span>
             </button>
             <button class="button is-small is-confirm" @click="renameChannel">
                 <span class="icon"><fa icon="pencil"></fa></span>
-                <span>Rename</span>
+                <span>{{ $t('buttons.rename') }}</span>
             </button>
         </div>
     </div>

@@ -1,0 +1,37 @@
+{
+  "dashboard": {
+    "recorded_vods": "Inspelade VODs"
+  },
+  "vods": "{count} VOD | {count} VODs",
+  "messages": {
+    "subscribed": "Prenumererar",
+    "no_vods": "Inga VODs",
+    "clips": "Klipp"
+  },
+  "buttons": {
+    "save": "Spara",
+    "delete": "Radera",
+    "delete-all": "Ta bort alla",
+    "create": "Skapa",
+    "subscribe": "Prenumerera",
+    "rename": "Byt namn"
+  },
+  "pages": {
+    "channels": "Kanaler",
+    "new-channel": "Ny kanal",
+    "config": "Konfiguration",
+    "notifications": "Notifikationer",
+    "favourite-games": "Favoritspel",
+    "client-settings": "Klientinställningar"
+  },
+  "forms": {
+    "channel": {
+      "login": "Inloggning",
+      "quality": "Kvalitet",
+      "download-chat": "Ladda hem chatt efter inspelningen är klar",
+      "live-chat-download": "Live chatt-sparning",
+      "no-capture": "Spela inte in något (stäng av helt)",
+      "add-channel": "Lägg till kanal"
+    }
+  }
+}

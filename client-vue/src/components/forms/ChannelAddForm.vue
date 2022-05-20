@@ -1,7 +1,7 @@
 <template>
     <form method="POST" enctype="multipart/form-data" action="#" ref="form" @submit="submitForm">
         <div class="field">
-            <label class="label">Login <span class="required">*</span></label>
+            <label class="label">{{ $t('forms.channel.login') }} <span class="required">*</span></label>
             <div class="control">
                 <input
                     class="input input-required"
@@ -13,13 +13,12 @@
                     pattern="^[a-z0-9_]{4,25}$"
                 />
                 <p class="input-help">
-                    Channel login, lowercase. This is the part that comes after the domain name, not the display name.<br />
-                    You can paste a link to a channel page here to get the login.
+                    {{ $t('forms.channel.login_help') }}
                 </p>
             </div>
         </div>
         <div class="field">
-            <label class="label">Quality <span class="required">*</span></label>
+            <label class="label">{{ $t('forms.channel.quality') }} <span class="required">*</span></label>
             <div class="control">
                 <input
                     class="input input-required"
@@ -36,7 +35,7 @@
             </div>
         </div>
         <div class="field">
-            <label class="label">Match keywords</label>
+            <label class="label">{{ $t('forms.channel.match-keywords') }}</label>
             <div class="control">
                 <input class="input" type="text" name="match" v-model="formData.match" />
                 <p class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</p>
@@ -45,35 +44,35 @@
         <div class="field">
             <label class="checkbox">
                 <input type="checkbox" name="download_chat" v-model="formData.download_chat" />
-                Download chat after video capture is complete
+                {{ $t('forms.channel.download-chat') }}
             </label>
         </div>
         <div class="field">
             <label class="checkbox">
                 <input type="checkbox" name="live_chat" v-model="formData.live_chat" />
-                Live chat download
+                {{ $t('forms.channel.live-chat-download') }}
             </label>
             <p class="input-help">Requires Node binary path to be set in the settings</p>
         </div>
         <div class="field">
             <label class="checkbox">
                 <input type="checkbox" name="burn_chat" v-model="formData.burn_chat" />
-                Burn chat after downloading
+                {{ $t('forms.channel.burn-chat') }}
             </label>
             <p class="input-help">Currently disabled</p>
         </div>
         <div class="field">
             <label class="checkbox">
                 <input type="checkbox" name="no_capture" v-model="formData.no_capture" />
-                Don't record streams (disable capture completely)
+                {{ $t('forms.channel.no-capture') }}
             </label>
         </div>
-        <p><em>Live channels will not be recorded until they are live the next time.</em></p>
+        <p><em>{{ $t('forms.channel.live-channels-warning') }}</em></p>
         <div class="field form-submit">
             <div class="control">
                 <button class="button is-confirm" type="submit">
                     <span class="icon"><fa icon="user-plus"></fa></span>
-                    <span>Add channel</span>
+                    <span>{{ $t('forms.channel.add-channel') }}</span>
                 </button>
             </div>
             <div :class="formStatusClass">{{ formStatusText }}</div>
