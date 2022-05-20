@@ -1,6 +1,6 @@
 {
   "name": "livestreamdvr-server",
-  "version": "0.2.4",
+  "version": "0.2.4a",
   "description": "",
   "main": "index.ts",
   "scripts": {

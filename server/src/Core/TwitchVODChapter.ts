@@ -2,6 +2,7 @@ import chalk from "chalk";
 import { parseJSON } from "date-fns";
 import { ApiVodChapter } from "../../../common/Api/Client";
 import { TwitchVODChapterJSON } from "../Storage/JSON";
+import { Log, LOGLEVEL } from "./Log";
 import { TwitchGame } from "./TwitchGame";
 
 /*
@@ -168,6 +169,8 @@ export class TwitchVODChapter {
                 this.duration = (next_chapter_started_at.getTime() - started_at.getTime()) / 1000;
             } else if (vod_ended_at) {
                 this.duration = (vod_ended_at.getTime() - started_at.getTime()) / 1000;
+            } else {
+                Log.logAdvanced(LOGLEVEL.WARNING, "chapter", `No next chapter or vod end time for chapter ${this.title} (${this.started_at.toISOString()}), duration will probably be 0.`);
             }
 
             this.offset = 0;
@@ -178,6 +181,8 @@ export class TwitchVODChapter {
                 this.duration = (next_chapter_started_at.getTime() - this.started_at.getTime()) / 1000;
             } else if (vod_ended_at) {
                 this.duration = (vod_ended_at.getTime() - this.started_at.getTime()) / 1000;
+            } else {
+                Log.logAdvanced(LOGLEVEL.WARNING, "chapter", `No next chapter or vod end time for chapter ${this.title} (${this.started_at.toISOString()}), duration will probably be 0.`);
             }
 
             this.offset = (this.started_at.getTime() - vod_started_at.getTime()) / 1000;
