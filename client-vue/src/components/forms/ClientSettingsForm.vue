@@ -44,13 +44,13 @@
             <input type="text" class="input" v-model="updateConfig.websocketAddressOverride" />
             <p class="input-help">Websocket address override</p>
         </div>-->
-        <div class="field" v-for="(value, key) in defaultConfigFields">
+        <div class="field" v-for="(value, key) in defaultConfigFields" :key="key" :title="key">
             <label v-if="value.type != 'boolean'" class="label" :for="'input_' + key">
-                {{ value.name }} <!--<span v-if="value.required" class="required">*</span>-->
+                {{ $te('clientsetting.' + key) ? $te('clientsetting.' + key) : value.name }} <!--<span v-if="value.required" class="required">*</span>-->
             </label>
             <div class="control" v-if="value.type === 'boolean'">
                 <label class="checkbox">
-                    <input type="checkbox" v-model="(updateConfig[key] as boolean)" /> {{ value.name }}
+                    <input type="checkbox" v-model="(updateConfig[key] as boolean)" /> {{ $te('clientsetting.' + key) ? $t('clientsetting.' + key) : value.name }}
                 </label>
                 <p class="input-help" v-if="value.help">{{ value.help }}</p>
             </div>

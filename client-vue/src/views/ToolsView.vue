@@ -57,7 +57,7 @@
                     <span>{{ $t('buttons.reset') }}</span>
                 </button>
                 <p>
-                    This is a bad idea if any of your channels are live.
+                    {{ $t('messages.this-is-a-bad-idea-if-any-of-your-channels-are-live') }}
                 </p>
             </div>
         </section>

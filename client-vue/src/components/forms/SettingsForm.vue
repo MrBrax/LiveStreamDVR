@@ -1,13 +1,13 @@
 <template>
     <form method="POST" enctype="multipart/form-data" action="#" @submit.prevent="submitForm" v-if="!loading && settingsFields && formData">
         <div class="field">
-            <input class="input" type="text" v-model="searchText" placeholder="Search..." />
+            <input class="input" type="text" v-model="searchText" :placeholder="$t('input.search')" />
         </div>
         <details class="settings-details" v-for="groupData in settingsGroups" v-bind:key="groupData.name" :open="searchText !== ''">
-            <summary>{{ groupData.name }}</summary>
+            <summary>{{ $te('configgroup.' + groupData.name) ? $t('configgroup.' + groupData.name) : groupData.name }}</summary>
             <div class="field" v-for="(data, index) in groupData.fields" v-bind:key="index">
                 <label v-if="data.type != 'boolean'" class="label" :for="'input_' + data.key">
-                    {{ data.text }} <span v-if="data.required" class="required">*</span>
+                    {{ $te('config.' + data.key) ? $t('config.' + data.key) : data.text }} <span v-if="data.required" class="required">*</span>
                     <span v-if="data.deprecated" class="is-small is-error">Deprecated</span>
                 </label>
 

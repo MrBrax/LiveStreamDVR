@@ -14,7 +14,8 @@
     "delete-all": "Ta bort alla",
     "create": "Skapa",
     "subscribe": "Prenumerera",
-    "rename": "Byt namn"
+    "rename": "Byt namn",
+    "reset": "Återställ"
   },
   "pages": {
     "channels": "Kanaler",
@@ -31,7 +32,47 @@
       "download-chat": "Ladda hem chatt efter inspelningen är klar",
       "live-chat-download": "Live chatt-sparning",
       "no-capture": "Spela inte in något (stäng av helt)",
-      "add-channel": "Lägg till kanal"
+      "add-channel": "Lägg till kanal",
+      "match-keywords": "Matchande ord"
+    },
+    "config": {
+      "validate-external-url": "Validera extern URL"
+    }
+  },
+  "clientsetting": {
+    "useSpeech": "Använd röst",
+    "singlePage": "Använd en sida per kanal",
+    "enableNotifications": "Aktivera notifikationer",
+    "animationsEnabled": "Aktivera animeringar",
+    "tooltipStatic": "Statiska tooltips",
+    "useRelativeTime": "Använd relativ tid",
+    "useWebsockets": "Använd websockets"
+  },
+  "input": {
+    "search": "Sök..."
+  },
+  "configgroup": {
+    "Binaries": "Program",
+    "Basic": "Grundläggande",
+    "Interface": "Gränssnitt",
+    "Notifications": "Notifikationer",
+    "Storage": "Lagring",
+    "Capture": "Inspelning",
+    "Video": "Video",
+    "Developer": "Utvecklare",
+    "Advanced": "Avancerat",
+    "Schedules": "Schemaläggning"
+  },
+  "config": {
+    "password": "Lösenord"
+  },
+  "views": {
+    "tools": {
+      "chat-dump": "Chattdump",
+      "clip-download": "Klippnedladdning",
+      "chat-download": "Chattnedladdning",
+      "vod-download": "Videonedladdning",
+      "reset-channels": "Återställ kanaler"
     }
   }
 }
