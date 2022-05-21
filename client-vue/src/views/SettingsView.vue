@@ -1,32 +1,32 @@
 <template>
     <div class="top-tabs">
         <router-link :to="{ name: 'Settings', params: { tab: 'channels' } }">
-            <span class="icon"><fa icon="user"></fa></span> Channels
+            <span class="icon"><fa icon="user"></fa></span> {{ $t('pages.channels') }}
         </router-link>
         <router-link :to="{ name: 'Settings', params: { tab: 'newchannel' } }">
-            <span class="icon"><fa icon="user-plus"></fa></span> New channel
+            <span class="icon"><fa icon="user-plus"></fa></span> {{ $t('pages.new-channel') }}
         </router-link>
         <router-link :to="{ name: 'Settings', params: { tab: 'config' } }">
-            <span class="icon"><fa icon="cog"></fa></span> Config
+            <span class="icon"><fa icon="cog"></fa></span> {{ $t('pages.config') }}
         </router-link>
         <router-link :to="{ name: 'Settings', params: { tab: 'keyvalue' } }">
-            <span class="icon"><fa icon="database"></fa></span> KeyValue
+            <span class="icon"><fa icon="database"></fa></span> {{ $t('pages.keyvalue') }}
         </router-link>
         <router-link :to="{ name: 'Settings', params: { tab: 'notifications' } }">
-            <span class="icon"><fa icon="bell"></fa></span> Notifications
+            <span class="icon"><fa icon="bell"></fa></span> {{ $t('pages.notifications') }}
         </router-link>
         <router-link :to="{ name: 'Settings', params: { tab: 'favourites' } }">
-            <span class="icon"><fa icon="star"></fa></span> Favourites
+            <span class="icon"><fa icon="star"></fa></span> {{ $t('pages.favourite-games') }}
         </router-link>
         <router-link :to="{ name: 'Settings', params: { tab: 'clientsettings' } }">
-            <span class="icon"><fa icon="user-cog"></fa></span> Client settings
+            <span class="icon"><fa icon="user-cog"></fa></span> {{ $t('pages.client-settings') }}
         </router-link>
     </div>
 
     <div class="container">
         <!-- channels -->
         <section class="section" v-if="!$route.params.tab || $route.params.tab == 'channels'">
-            <div class="section-title"><h1>Channels</h1></div>
+            <div class="section-title"><h1>{{ $t('pages.channels') }}</h1></div>
             <div class="section-content">
                 <div class="card" v-for="channel in formChannels" :key="channel.login" :id="'channel_' + channel.login">
                     <div class="card-title">
@@ -42,7 +42,7 @@
 
         <!-- new channel -->
         <section class="section" v-if="$route.params.tab == 'newchannel'">
-            <div class="section-title"><h1>New channel</h1></div>
+            <div class="section-title"><h1>{{ $t('pages.new-channel') }}</h1></div>
             <div class="section-content">
                 <channel-add-form @formSuccess="updateUsers" />
             </div>
@@ -50,7 +50,7 @@
 
         <!-- settings -->
         <section class="section" v-if="$route.params.tab == 'config'">
-            <div class="section-title"><h1>Config</h1></div>
+            <div class="section-title"><h1>{{ $t('pages.config') }}</h1></div>
             <div class="section-content" v-if="!loading">
                 <settings-form />
             </div>
@@ -61,7 +61,7 @@
 
         <!-- notifications -->
         <section class="section" v-if="$route.params.tab == 'notifications'">
-            <div class="section-title"><h1>Notifications</h1></div>
+            <div class="section-title"><h1>{{ $t('pages.notifications') }}</h1></div>
             <div class="section-content">
                 <notifications-form @formSuccess="fetchData" />
             </div>
@@ -69,7 +69,7 @@
 
         <!-- favourites -->
         <section class="section" v-if="$route.params.tab == 'favourites'">
-            <div class="section-title"><h1>Favourite games</h1></div>
+            <div class="section-title"><h1>{{ $t('pages.favourite-games') }}</h1></div>
             <div class="section-content" v-if="!loading">
                 <favourites-form />
             </div>
@@ -80,13 +80,13 @@
 
         <!-- client settings -->
         <section class="section" v-if="$route.params.tab == 'clientsettings'">
-            <div class="section-title"><h1>Client settings</h1></div>
+            <div class="section-title"><h1>{{ $t('pages.client-settings') }}</h1></div>
             <client-settings-form />
         </section>
 
         <!-- keyvalue -->
         <section class="section" v-if="$route.params.tab == 'keyvalue'">
-            <div class="section-title"><h1>KeyValue</h1></div>
+            <div class="section-title"><h1>{{ $t('pages.keyvalue') }}</h1></div>
             <div class="section-content">
                 <key-value-form />
             </div>

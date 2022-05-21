@@ -6,6 +6,11 @@ import VueAxios from "vue-axios";
 import titleMixin from "./mixins/titleMixin";
 import helpers from "./mixins/helpers";
 import { createPinia } from "pinia";
+import { createI18n } from "vue-i18n";
+import messages_en from "./translations/en.json";
+import messages_sv from "./translations/sv.json";
+import messages_kr from "./translations/kr.json";
+import messages_de from "./translations/de.json";
 // import "./registerServiceWorker";
 
 // font-awesome
@@ -13,8 +18,20 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 import "./assets/style.scss";
 
+
 if (import.meta.env.BASE_URL !== undefined) {
     axios.defaults.baseURL = import.meta.env.BASE_URL;
 }
 
-createApp(App).use(router).use(createPinia()).use(VueAxios, axios).component("fa", FontAwesomeIcon).mixin(titleMixin).mixin(helpers).mount("#app");
+const i18n = createI18n({
+    locale: "en",
+    fallbackLocale: "en",
+    messages: {
+        en: messages_en,
+        sv: messages_sv,
+        kr: messages_kr,
+        de: messages_de
+    },
+});
+
+createApp(App).use(router).use(createPinia()).use(VueAxios, axios).use(i18n).component("fa", FontAwesomeIcon).mixin(titleMixin).mixin(helpers).mount("#app");

@@ -105,6 +105,7 @@ export default defineComponent({
     created() {
         console.debug("App created");
         this.store.fetchClientConfig();
+        this.$i18n.locale = this.store.clientConfig?.language ?? "en";
         this.watchFaviconBadgeSub();
         this.fetchData().then(() => {
             this.updateTitle();

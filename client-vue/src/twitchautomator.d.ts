@@ -20,6 +20,7 @@ export type ClientSettings = {
     vodsToShowInMenu: number;
     // alwaysShowCapturingVodInMenu: boolean;
     minimizeVodsByDefault: boolean;
+    language: string;
 };
 
 export const phpDateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000

@@ -1,34 +1,34 @@
 <template>
     <div class="file-manager">
         <p v-if="isPrivate" class="error">
-            These files are not downloadable due to a config setting.
+            {{ $t('components.filemanager.these-files-are-not-downloadable-due-to-a-config-setting') }}
         </p>
         <table class="table is-fullwidth is-striped" v-if="!error && files.length > 0">
             <thead>
                 <tr>
                     <th></th>
                     <th style="cursor: pointer;" @click="setSort('name')">
-                        Name
+                        <span>{{ $t('components.filemanager.name') }}</span>
                         <span v-if="sortBy == 'name'" class="icon is-small">
                             <fa icon="sort-down" v-if="sortOrder === 'asc'" />
                             <fa icon="sort-up" v-if="sortOrder === 'desc'" />
                         </span>
                     </th>
                     <th style="cursor: pointer;" @click="setSort('size')">
-                        Size
+                        <span>{{ $t('components.filemanager.size') }}</span>
                         <span v-if="sortBy == 'size'" class="icon is-small">
                             <fa icon="sort-down" v-if="sortOrder === 'asc'" />
                             <fa icon="sort-up" v-if="sortOrder === 'desc'" />
                         </span>
                     </th>
                     <th style="cursor: pointer;" @click="setSort('date')">
-                        Last modified
+                        <span>{{ $t('components.filemanager.last-modified') }}</span>
                         <span v-if="sortBy == 'date'" class="icon is-small">
                             <fa icon="sort-down" v-if="sortOrder === 'asc'" />
                             <fa icon="sort-up" v-if="sortOrder === 'desc'" />
                         </span>
                     </th>
-                    <th>Actions</th>
+                    <th>{{ $t('components.filemanager.actions') }}</th>
                 </tr>
             </thead>
             <tr class="file-manager-item" v-for="(item, index) in sortedFiles">

@@ -1,25 +1,25 @@
 <template>
     <div class="container vertical">
         <section class="section is-fullwidth">
-            <div class="section-title"><h1>Clips</h1></div>
+            <div class="section-title"><h1>{{ $t('views.files.folders.clips') }}</h1></div>
             <div class="section-content">
                 <FileManager path="storage/saved_clips" web="saved_clips" />
             </div>
         </section>
         <section class="section is-fullwidth">
-            <div class="section-title"><h1>Archived VODs</h1></div>
+            <div class="section-title"><h1>{{ $t('views.files.folders.archived-vods') }}</h1></div>
             <div class="section-content">
                 <FileManager path="storage/saved_vods" web="saved_vods" />
             </div>
         </section>
         <section class="section is-fullwidth">
-            <div class="section-title"><h1>Application logs</h1></div>
+            <div class="section-title"><h1>{{ $t('views.files.folders.application-logs') }}</h1></div>
             <div class="section-content">
                 <FileManager path="logs" web="logs" default-sort-by="date" default-sort-order="desc" />
             </div>
         </section>
         <section class="section is-fullwidth">
-            <div class="section-title"><h1>Software logs</h1></div>
+            <div class="section-title"><h1>{{ $t('views.files.folders.software-logs') }}</h1></div>
             <div class="section-content">
                 <FileManager path="logs/software" web="logs/software" default-sort-by="date" default-sort-order="desc" />
             </div>

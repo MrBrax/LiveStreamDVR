@@ -73,7 +73,7 @@
                             &lbrace;{{ ix }}&rbrace;
                         </li>
                     </ul>
-                    <p class="template-preview">{{ templatePreview(data, formData[data.key]) }}</p>
+                    <p class="template-preview">{{ templatePreview(data, formData[data.key] as string) }}</p>
                 </div>
 
                 <p v-if="data.help" class="input-help">{{ data.help }}</p>
@@ -84,7 +84,8 @@
         <div class="control">
             <hr />
             <button class="button is-confirm" type="submit">
-                <span class="icon"><fa icon="save"></fa></span> Save
+                <span class="icon"><fa icon="save"></fa></span>
+                <span>{{ $t('buttons.save') }}</span>
             </button>
             <span :class="formStatusClass">{{ formStatusText }}</span>
         </div>
@@ -92,7 +93,8 @@
         <div class="control">
             <hr />
             <button class="button is-confirm" type="button" @click="doValidateExternalURL">
-                <span class="icon"><fa icon="globe"></fa></span> Validate external URL
+                <span class="icon"><fa icon="globe"></fa></span>
+                <span>{{ $t('forms.config.validate-external-url') }}</span>
             </button>
         </div>
     </form>

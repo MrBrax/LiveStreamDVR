@@ -13,7 +13,7 @@
                     <span class="game-date">{{ formatDate(game.added) }}</span>
                 </label>
             </div>
-            <div v-if="!gamesData || gamesData.length == 0">
+            <div v-if="!gamesData || Object.keys(gamesData).length == 0">
                 <p>No games in cache. When streamers change games, they will be added to the cache.</p>
             </div>
         </div>
@@ -21,7 +21,7 @@
             <div class="control">
                 <button class="button is-confirm" type="submit">
                     <span class="icon"><fa icon="save"></fa></span>
-                    <span>Save Favourites</span>
+                    <span>{{ $t('buttons.save-favourites') }}</span>
                 </button>
             </div>
             <div :class="formStatusClass">{{ formStatusText }}</div>

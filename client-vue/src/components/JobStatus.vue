@@ -23,7 +23,7 @@
             </tr>
         </table>
 
-        <em v-if="store.jobList.length == 0">No jobs running</em>
+        <em v-if="store.jobList.length == 0">{{ $t('jobs.no-jobs-running') }}</em>
     </div>
 </template>
 

@@ -166,6 +166,10 @@ export class Automator {
                 return false;
             }
 
+            if (this.channel.is_live) {
+                Log.logAdvanced(LOGLEVEL.INFO, "automator", `${this.broadcaster_user_login} is already live, yet another stream online event received.`);
+            }
+
             KeyValue.getInstance().setBool(`${this.broadcaster_user_login}.online`, true);
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.vod.id`, event.id);
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.vod.started_at`, event.started_at);
@@ -623,6 +627,8 @@ export class Automator {
             // it doesn't seem to get fixed, so we'll just warn the user
         }
 
+        this.vod.calculateChapters();
+
         await this.vod.removeShortChapters();
 
         // wait for 30 seconds in case something didn't finish
@@ -682,7 +688,7 @@ export class Automator {
             await this.vod.saveJSON("failed to finalize");
         }
 
-        if (finalized){
+        if (finalized) {
             await this.vod.saveJSON("finalized");
         }
 

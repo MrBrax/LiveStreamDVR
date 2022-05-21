@@ -830,6 +830,7 @@ export class TwitchVOD {
     // }
 
     public addChapter(chapter: TwitchVODChapter): void {
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Adding chapter ${chapter.title} (${chapter.game_name}) to ${this.basename}`);
         this.chapters.push(chapter);
         this.chapters_raw.push(chapter.toJSON()); // needed?
         this.calculateChapters();
@@ -884,6 +885,9 @@ export class TwitchVOD {
         const longChapters = this.chapters.filter(chapter => {
             if (chapter.duration && chapter.duration > minDuration) {
                 Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Keeping chapter ${chapter.title} with duration ${chapter.duration} on ${this.basename}`);
+                return true;
+            } else if (chapter.duration === undefined) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Chapter ${chapter.title} has undefined duration on ${this.basename}`);
                 return true;
             } else {
                 Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Removing chapter ${chapter.title} with duration ${chapter.duration} on ${this.basename}`);
@@ -2202,7 +2206,7 @@ export class TwitchVOD {
             ignoreInitial: true,
         }).on("all", (eventType, filename) => {
 
-            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD file ${filename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})!`);
+            console.log(`VOD file ${filename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})!`);
 
             setTimeout(() => {
                 TwitchVOD.cleanLingeringVODs();

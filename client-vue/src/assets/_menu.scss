@@ -230,6 +230,9 @@
             display: flex;
             flex-grow: 1;
 
+            background-color: transparent;
+            border: none;
+
             // center contents
             align-items: center;
             justify-content: center;

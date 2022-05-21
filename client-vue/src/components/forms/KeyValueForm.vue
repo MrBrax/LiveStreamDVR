@@ -27,7 +27,7 @@
                 <td>
                     <button class="button is-danger is-small" @click="deleteKeyValue(key)">
                         <span class="icon"><fa icon="trash" /></span>
-                        <span>Delete</span>
+                        <span>{{ $t('buttons.delete') }}</span>
                     </button>
                 </td>
             </tr>
@@ -35,7 +35,7 @@
                 <td colspan="999">
                     <button class="button is-danger" @click="deleteAllKeyValues">
                         <span class="icon"><fa icon="trash" /></span>
-                        <span>Delete all</span>
+                        <span>{{ $t('buttons.delete-all') }}</span>
                     </button>
                 </td>
             </tr>
@@ -46,13 +46,13 @@
 
         <form @submit.prevent="doAdd">
             <div class="field">
-                <label for="key" class="label">Key</label>
+                <label for="key" class="label">{{ $t('forms.keyvalue.key') }}</label>
                 <div class="control">
                     <input class="input" type="text" id="key" v-model="addForm.key" />
                 </div>
             </div>
             <div class="field">
-                <label for="value" class="label">Value</label>
+                <label for="value" class="label">{{ $t('forms.keyvalue.value') }}</label>
                 <div class="control">
                     <input class="input" type="text" id="value" v-model="addForm.value" />
                 </div>
@@ -61,7 +61,8 @@
             <div class="field">
                 <div class="control">
                     <button class="button is-confirm" type="submit">
-                        <span class="icon"><fa icon="plus"></fa></span> Create
+                        <span class="icon"><fa icon="plus"></fa></span>
+                        <span>{{ $t('buttons.create') }}</span>
                     </button>
                 </div>
             </div>

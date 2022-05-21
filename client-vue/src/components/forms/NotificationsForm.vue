@@ -26,7 +26,8 @@
         <div class="field form-submit">
             <div class="control">
                 <button class="button is-confirm" type="submit">
-                    <span class="icon"><fa icon="save"></fa></span> Save
+                    <span class="icon"><fa icon="save"></fa></span>
+                    <span>{{ $t('buttons.save') }}</span>
                 </button>
             </div>
             <div :class="formStatusClass">{{ formStatusText }}</div>

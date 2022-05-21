@@ -3,9 +3,9 @@
         <div class="menu-top">
             <div class="top-menu-item title" v-if="store.config">
                 <router-link to="/dashboard">
-                    <img src="../assets/logo.png" class="favicon" width="24" height="24" :alt="store.cfg('app_name', 'TA') ?? 'TA'" />
+                    <img src="../assets/logo.png" class="favicon" width="24" height="24" :alt="store.cfg('app_name', 'TA') ?? 'TA'" aria-hidden="true">
                     <span class="title" :title="verboseClientVersion">
-                        {{ store.app_name }} <span>{{ store.version }}</span>/<span :class="{ dev: isDev }">{{ clientVersion }}</span>
+                        <span>{{ store.app_name }}</span> <span>{{ store.version }}</span>/<span :class="{ dev: isDev }">{{ clientVersion }}</span>
                         <span class="debug-mode" v-if="store.cfg('debug')" title="Debug">👽</span>
                     </span>
                 </router-link>
