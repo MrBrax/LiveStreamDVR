@@ -627,6 +627,8 @@ export class Automator {
             // it doesn't seem to get fixed, so we'll just warn the user
         }
 
+        this.vod.calculateChapters();
+
         await this.vod.removeShortChapters();
 
         // wait for 30 seconds in case something didn't finish
@@ -686,7 +688,7 @@ export class Automator {
             await this.vod.saveJSON("failed to finalize");
         }
 
-        if (finalized){
+        if (finalized) {
             await this.vod.saveJSON("finalized");
         }
 
