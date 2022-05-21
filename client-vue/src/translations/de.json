@@ -7,8 +7,10 @@
     "subscribed": "Abonniert",
     "no_vods": "Keine VODs",
     "clips": "Clips",
-    "video_download_help": "Mit diesem Tool heruntergeladene Videos werden auf die gleiche Weise bereinigt wie aufgenommene Vods, wenn ein Stream beendet ist.\n Sie werden insgesamt genauso behandelt wie erfasste Vods.",
-    "loading": "Lade..."
+    "video_download_help": "Mit diesem Tool heruntergeladene Videos werden auf die gleiche Art bereinigt wie aufgenommene Vods, wenn ein Stream beendet ist.\n Sie werden insgesamt genauso behandelt wie aufgenommene Vods.",
+    "loading": "Lade...",
+    "changing-values-here-will-most-likely-require-a-restart": "Änderungen der Werte machen in der Regel einen Neustart notwendig.",
+    "this-is-a-bad-idea-if-any-of-your-channels-are-live": "Dies ist eine schlechte Idee, sollte einer deiner Kanäle live sein."
   },
   "vod": {
     "add_comment": "Kommentar hinzufügen",
@@ -24,7 +26,7 @@
       "download-chat": "Chat herunterladen",
       "download-vod": "Download{0} VOD",
       "check-mute": "Prüfe Stummschaltung",
-      "render-menu": "Render Menü",
+      "render-menu": "Render-Menü",
       "fix-issues": "Probleme beheben"
     },
     "chapters": {
@@ -47,7 +49,7 @@
     "delete-all": "Alle löschen",
     "create": "Erstellen",
     "edit": "Editieren",
-    "reset": "Resetten",
+    "reset": "Zurücksetzen",
     "execute": "Ausführen"
   },
   "pages": {
@@ -70,7 +72,7 @@
       "live-chat-download": "Live-Chat herunterladen",
       "burn-chat": "Chats nach dem Herunterladen einbrennen",
       "no-capture": "Streams nicht aufnehmen (Deaktiviert Aufnahmen vollständig)",
-      "live-channels-warning": "Live-Kanäle werden erst aufgezeichnet, wenn sie das nächste Mal live sind."
+      "live-channels-warning": "Live-Kanäle werden erst aufgenommen, wenn sie das nächste Mal live sind."
     },
     "config": {
       "validate-external-url": "Externe URL validieren"
@@ -120,5 +122,8 @@
   },
   "jobs": {
     "no-jobs-running": "Keine laufenden Jobs"
+  },
+  "input": {
+    "search": "Suche..."  
   }
 }
