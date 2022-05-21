@@ -28,7 +28,9 @@ test('ChannelUpdateForm', async () => {
                             });
                         });
                     }),
-                }
+                },
+                $t: vitest.fn((key) => { return key; }),
+                $tc: vitest.fn((key, count) => { return key; }),
             },
             plugins: [createPinia()],
         },

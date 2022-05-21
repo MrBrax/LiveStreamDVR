@@ -26,8 +26,10 @@ test('ChannelAddForm', async () => {
                             });
                         });
                     }),
-                }
-            }
+                },
+                $t: vitest.fn((key) => { return key; }),
+                $tc: vitest.fn((key, count) => { return key; }),
+            },
         },
     });
 
@@ -38,7 +40,7 @@ test('ChannelAddForm', async () => {
 
     // vitest.mock(wrapper.vm.$http, 'post', (url, data) => {
 
-    expect(wrapper.text()).toContain('Channel login, lowercase.');
+    expect(wrapper.text()).toContain('forms.channel.login_help');
 
     // wrapper.vm.$http.post.mockResolvedValue(wrapper.vm.formData);
 

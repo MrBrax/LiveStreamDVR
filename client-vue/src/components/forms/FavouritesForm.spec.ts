@@ -36,7 +36,9 @@ test('FavouritesForm', async () => {
                             });
                         });
                     }),
-                }
+                },
+                $t: vitest.fn((key) => { return key; }),
+                $tc: vitest.fn((key, count) => { return key; }),
             },
             mixins: [helpers],
             plugins: [createPinia()],
