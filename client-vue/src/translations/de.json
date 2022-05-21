@@ -7,7 +7,7 @@
     "subscribed": "Abonniert",
     "no_vods": "Keine VODs",
     "clips": "Clips",
-    "video_download_help": "Mit diesem Tool heruntergeladene Videos werden auf die gleiche Art bereinigt wie aufgenommene Vods, wenn ein Stream beendet ist.\n Sie werden insgesamt genauso behandelt wie aufgenommene Vods.",
+    "video_download_help": "Mit diesem Tool heruntergeladene Videos werden auf die gleiche Art bereinigt wie aufgenommene VODs, wenn ein Stream beendet ist.\n Sie werden insgesamt genauso behandelt wie aufgenommene VODs.",
     "loading": "Lade...",
     "changing-values-here-will-most-likely-require-a-restart": "Änderungen der Werte machen in der Regel einen Neustart notwendig.",
     "this-is-a-bad-idea-if-any-of-your-channels-are-live": "Dies ist eine schlechte Idee, sollte einer deiner Kanäle live sein."
@@ -16,7 +16,7 @@
     "add_comment": "Kommentar hinzufügen",
     "video-info": {
       "general": "Allgemein",
-      "capture": "Capture"
+      "capture": "Aufnahme"
     },
     "segments": "Segmente",
     "controls": {
@@ -81,6 +81,30 @@
       "key": "Schlüssel",
       "value": "Wert"
     }
+  },
+  "clientsetting": {
+    "useSpeech": "Benutze Sprache um neue Streams anzukündigen",
+    "singlePage": "Jeder Kanal nutzt eine eigene Seite",
+    "enableNotifications": "Aktiviere Desktop-Benachrichtigungen",
+    "animationsEnabled": "Aktiviere Animationen",
+    "tooltipStatic": "Statische Tooltips",
+    "useRelativeTime": "Benutze relative Zeiten",
+    "useWebsockets": "Benutze Websockets um die grafische Oberfläche zu aktualisieren"
+  },
+    "configgroup": {
+    "Binaries": "Anwendungen",
+    "Basic": "Basis",
+    "Interface": "Benutzeroberfläche",
+    "Notifications": "Benachrichtigungen",
+    "Storage": "Speicher",
+    "Capture": "Aufnahmen",
+    "Video": "Video",
+    "Developer": "Entwickler",
+    "Advanced": "Erweitert",
+    "Schedules": "Pläne"
+  },
+  "config": {
+    "password": "Passwort"
   },
   "views": {
     "dashboard": {
