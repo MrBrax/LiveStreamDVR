@@ -43,5 +43,5 @@ export const defaultConfigFields: Record<keyof ClientSettings, ClientSettingFiel
     vodsToShowInMenu: { type: "number", default: 4, name: "Number of VODs to show in the menu" },
     // alwaysShowCapturingVodInMenu: { type: "boolean", default: false, name: "Always show the capturing VOD in the menu" },
     minimizeVodsByDefault: { type: "boolean", default: false, name: "Minimize VODs by default" },
-    language: { type: "choice", default: "en", name: "Language", choices: {"en": "English", "sv": "Swedish", "kr": "Korean"} }
+    language: { type: "choice", default: "en", name: "Language", choices: {"en": "English","de": "German", "kr": "Korean", "sv": "Swedish"} }
 };
