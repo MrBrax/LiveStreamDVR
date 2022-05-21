@@ -1,7 +1,7 @@
 <template>
     <div v-if="!loading">
         <p class="error">
-            Changing values here will most likely require a restart.
+            {{ $t('messages.changing-values-here-will-most-likely-require-a-restart') }}
         </p>
         <transition-group
             name="list"

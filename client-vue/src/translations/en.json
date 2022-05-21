@@ -8,7 +8,9 @@
     "no_vods": "No VODs",
     "clips": "Clips",
     "video_download_help": "Videos downloaded with this tool will be cleaned up the same way as captured vods do when a stream is finished.\n They are treated the same way as captured vods in its entirety.",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "changing-values-here-will-most-likely-require-a-restart": "Changing values here will most likely require a restart.",
+    "this-is-a-bad-idea-if-any-of-your-channels-are-live": "This is a bad idea if any of your channels are live."
   },
   "vod": {
     "add_comment": "Add a comment",
@@ -120,5 +122,8 @@
   },
   "jobs": {
     "no-jobs-running": "No jobs running"
+  },
+  "input": {
+    "search": "Search..."
   }
 }

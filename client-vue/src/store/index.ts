@@ -304,6 +304,11 @@ export const useStore = defineStore("twitchAutomator", {
                 }
             }
 
+            if (currentClientConfig.language) {
+                axios.defaults.headers.common["X-Language"] = currentClientConfig.language;
+                console.debug(`Setting axios language to ${currentClientConfig.language}`);
+            }
+
             this.updateClientConfig(currentClientConfig);
             if (init) this.saveClientConfig();
         },
