@@ -1,1 +1,124 @@
-{}
+{
+  "dashboard": {
+    "recorded_vods": "Aufgenommene VODs"
+  },
+  "vods": "{count} VOD | {count} VODs",
+  "messages": {
+    "subscribed": "Abonniert",
+    "no_vods": "Keine VODs",
+    "clips": "Clips",
+    "video_download_help": "Mit diesem Tool heruntergeladene Videos werden auf die gleiche Weise bereinigt wie aufgenommene Vods, wenn ein Stream beendet ist.\n Sie werden insgesamt genauso behandelt wie erfasste Vods.",
+    "loading": "Lade..."
+  },
+  "vod": {
+    "add_comment": "Kommentar hinzufügen",
+    "video-info": {
+      "general": "Allgemein",
+      "capture": "Capture"
+    },
+    "segments": "Segmente",
+    "controls": {
+      "editor": "Editor",
+      "player": "Player",
+      "archive": "Archiv",
+      "download-chat": "Chat herunterladen",
+      "download-vod": "Download{0} VOD",
+      "check-mute": "Prüfe Stummschaltung",
+      "render-menu": "Render Menü",
+      "fix-issues": "Probleme beheben"
+    },
+    "chapters": {
+      "offset": "Abweichung",
+      "started": "Gestartet",
+      "duration": "Dauer",
+      "category": "Kategorie",
+      "title": "Titel",
+      "viewers": "Zuschauer",
+      "end": "ENDE",
+      "ongoing": "FORTLAUFEND"
+    }
+  },
+  "buttons": {
+    "save": "Speichern",
+    "save-favourites": "Speichere Favoriten",
+    "delete": "Löschen",
+    "subscribe": "Abonnieren",
+    "rename": "Umbenennen",
+    "delete-all": "Alle löschen",
+    "create": "Erstellen",
+    "edit": "Editieren",
+    "reset": "Resetten",
+    "execute": "Ausführen"
+  },
+  "pages": {
+    "favourite-games": "Favorisierte Spiele",
+    "channels": "Kanäle",
+    "new-channel": "Neue Kanäle",
+    "config": "Konfiguration",
+    "keyvalue": "Schlüsselwert",
+    "notifications": "Benachrichtigungen",
+    "client-settings": "Client-Einstellungen"
+  },
+  "forms": {
+    "channel": {
+      "login": "Login",
+      "login_help": "Kanal-Login, kleingeschrieben. Dies ist der Teil, der nach dem Domänennamen kommt, und nicht der Anzeigename.\n Du kannst hier einen Link zu einer Kanalseite einfügen, um den Login zu setzen.",
+      "quality": "Qualität",
+      "match-keywords": "Passende Schlüsselwörter",
+      "add-channel": "Kanal hinzufügen",
+      "download-chat": "Chat nach dem vollständigen Erfassen des Videos herunterladen",
+      "live-chat-download": "Live-Chat herunterladen",
+      "burn-chat": "Chats nach dem Herunterladen einbrennen",
+      "no-capture": "Streams nicht aufnehmen (Deaktiviert Aufnahmen vollständig)",
+      "live-channels-warning": "Live-Kanäle werden erst aufgezeichnet, wenn sie das nächste Mal live sind."
+    },
+    "config": {
+      "validate-external-url": "Externe URL validieren"
+    },
+    "keyvalue": {
+      "key": "Schlüssel",
+      "value": "Wert"
+    }
+  },
+  "views": {
+    "dashboard": {
+      "total-size": "Gesamtgröße: {0}",
+      "free-space": "Freier Speicher: {0}"
+    },
+    "files": {
+      "folders": {
+        "clips": "Clips",
+        "archived-vods": "Archivierte VODs",
+        "application-logs": "Anwendungs-Logs",
+        "software-logs": "Software-Logs"
+      }
+    },
+    "tools": {
+      "vod-download": "VOD herunterladen",
+      "chat-download": "Chat herunterladen",
+      "clip-download": "Clip herunterladen",
+      "chat-dump": "Chat dump",
+      "current-jobs": "Aktuelle Jobs",
+      "reset-channels": "Kanäle zurücksetzen"
+    }
+  },
+  "components": {
+    "filemanager": {
+      "these-files-are-not-downloadable-due-to-a-config-setting": "Die Dateien können wegen einer Einstellung in der Konfiguration nicht heruntergeladen werden.",
+      "name": "Name",
+      "size": "Größe",
+      "last-modified": "Zuletzt geändert",
+      "actions": "Aktionen"
+    },
+    "status": {
+      "connected": "Verbunden",
+      "connecting": "Verbinden...",
+      "disconnected": "Getrennt",
+      "disabled": "Deaktiviert",
+      "refreshing-in-x-seconds": "Aktualiserung in {0} Sekunden."
+    }
+  },
+  "jobs": {
+    "no-jobs-running": "Keine laufenden Jobs"
+  }
+}
