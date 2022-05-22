@@ -72,7 +72,7 @@ const verifySignature = (request: express.Request): boolean => {
 
 };
 
-export function Hook(req: express.Request, res: express.Response): void {
+export async function Hook(req: express.Request, res: express.Response): Promise<void> {
 
     const source = req.query.source ?? "twitch";
 
@@ -124,7 +124,7 @@ export function Hook(req: express.Request, res: express.Response): void {
                 const sub_type = subscription.type;
 
                 const channel_id = subscription["condition"]["broadcaster_user_id"];
-                const channel_login = TwitchChannel.channelLoginFromId(subscription.condition.broadcaster_user_id);
+                const channel_login = await TwitchChannel.channelLoginFromId(subscription.condition.broadcaster_user_id);
 
                 // $username = TwitchHelper::getChannelUsername($subscription["condition"]["broadcaster_user_id"]);
 
