@@ -44,7 +44,7 @@
             <input type="text" class="input" v-model="updateConfig.websocketAddressOverride" />
             <p class="input-help">Websocket address override</p>
         </div>-->
-        <div class="field" v-for="(value, key) in defaultConfigFields" :key="key" :title="key">
+        <div class="field" v-for="(value, key) in defaultConfigFields" :key="key" :title="key" v-show="!value.hidden">
             <label v-if="value.type != 'boolean'" class="label" :for="'input_' + key">
                 {{ $te('clientsetting.' + key) ? $te('clientsetting.' + key) : value.name }} <!--<span v-if="value.required" class="required">*</span>-->
             </label>
@@ -67,6 +67,16 @@
                     <option v-for="(option, optionKey) in value.choices" :value="optionKey">{{ option }}</option>
                 </select>
                 <p class="input-help" v-if="value.help">{{ value.help }}</p>
+            </div>
+        </div>
+        <div class="field">
+            <label class="label">Language</label>
+            <div class="control">
+                <div class="select">
+                    <select v-model="updateConfig.language">
+                        <option v-for="language in $i18n.availableLocales" :value="language">{{ language }}</option>
+                    </select>
+                </div>
             </div>
         </div>
         <div class="field">
