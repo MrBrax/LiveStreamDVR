@@ -91,7 +91,7 @@
     "useRelativeTime": "Benutze relative Zeiten",
     "useWebsockets": "Benutze Websockets um die grafische Oberfläche zu aktualisieren"
   },
-    "configgroup": {
+  "configgroup": {
     "Binaries": "Anwendungen",
     "Basic": "Basis",
     "Interface": "Benutzeroberfläche",
