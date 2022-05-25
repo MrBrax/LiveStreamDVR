@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>LiveStreamDVR</Name>
+  <Repository>mrbrax/twitchautomator:master</Repository>
+  <Registry>https://hub.docker.com/r/mrbrax/twitchautomator/</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/MrBrax/LiveStreamDVR/issues</Support>
+  <Project>https://github.com/MrBrax/LiveStreamDVR</Project>
+  <Overview>An automatic twitch recorder.&#xD;
+    ⚠️⚠️⚠️
+
+Until Twitch implements websocket eventsub, a public facing HTTPS server is required for this application to function.
+
+A reverse proxy is a good way to get around this:
+
+Nginx
+Apache
+Caddy
+Traefik
+etc. I have only tested this with Nginx and letsencrypt.
+
+⚠️⚠️⚠️
+
+Features
+Automatic VOD recording pretty much the second the stream goes live, instead of checking it every minute like many other scripts do.
+Cyclic recording, as in when a specified amount or storage per streamer is reached, the oldest stream gets deleted.
+Tons of metadata, maybe too much. Stores info about games played, stream titles, duration, if the stream got muted from copyrighted music, etc.
+Chapters (titles and games) are written to the final video file.
+Video player with chat playback.
+Video cutter with chapter display for easy exporting, also cuts the downloaded chat for synced rendering.
+Notifications with optional speech when the website is open, get stream live notifications far earlier than the mobile app does.
+Writes a losslesscut compatible csv file for the full VOD so you don't have to find all the games.
+Uses ts instead of mp4 so if the stream or program crashes, the file won't be corrupted.
+Audio only support.
+Optionally either dumps chat while capturing or downloads the chat file after it's done.
+Basic tools for downloading any VOD or chat.
+Can be set to automatically download the whole stream chat to a JSON file, to be used in my twitch-vod-chat webapp or automatically burned in with TwitchDownloader.
+Basic webhook support for external scripting.
+Notifications over the browser, telegram, and discord.
+One high-profile streamer VOD of 10 hours at 1080p60 is about 30-50GB.</Overview>
+  <Category>MediaApp:Video</Category>
+  <WebUI/>
+  <TemplateURL/>
+  <Icon>https://i.postimg.cc/Bb15Mq8g/favicon-unraid.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1650543797</DateInstalled>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="Webinterface" Target="8080" Default="8080" Mode="tcp" Description="WebUI Port" Type="Port" Display="always" Required="true" Mask="false">8146</Config>
+  <Config Name="Host Path 1" Target="/usr/local/share/twitchautomator/data/storage" Default="/mnt/user/" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/twitch_vods/</Config>
+  <Config Name="Host Path 2" Target="/usr/local/share/twitchautomator/data/cache" Default="/mnt/user/" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/TwitchAutomator/cache</Config>
+  <Config Name="Host Path 3" Target="/usr/local/share/twitchautomator/data/config" Default="/mnt/user/" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/TwitchAutomator/config</Config>
+  <Config Name="Host Path 4" Target="/usr/local/share/twitchautomator/data/logs" Default="/mnt/user/" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/TwitchAutomator/logs</Config>
+  <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">1000</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">1000</Config>
+  <Config Name="UMASK" Target="UMASK" Default="022" Mode="" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">022</Config>
+  <Config Name="Enable file manager" Description="May enable exploits." Type="Variable" Target="TCD_ENABLE_FILES_API">0</Config>
+</Container>
