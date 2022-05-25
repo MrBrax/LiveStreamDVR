@@ -410,7 +410,10 @@
                     </button>
                 </div>
 
-                <div class="video-status" v-if="!vod.is_finalized">
+                <div :class="{
+                    'video-status': true,
+                    'is-error': vod.failed
+                }" v-if="!vod.is_finalized">
                     <template v-if="vod?.is_converting">
                         <em>
                             <span class="icon"><fa icon="file-signature"></fa></span>
@@ -424,8 +427,7 @@
                             </span>
                             <span v-else>
                                 <strong class="is-error flashing">
-                                    <span class="icon"><fa icon="exclamation-triangle"></fa></span>
-                                    Not running, did it crash?
+                                    <span class="icon"><fa icon="exclamation-triangle"></fa></span> Not running, did it crash?
                                 </strong>
                             </span>
                         </em>
@@ -472,6 +474,19 @@
                                 </em>
                             </template>
                         </template>
+                    </template>
+                    <template v-else-if="vod.failed">
+                        <strong class="is-error">
+                            <span class="icon"><fa icon="exclamation-triangle"></fa></span> {{ $t('vod.failed') }}
+                        </strong>&nbsp;
+                        <!-- Delete -->
+                        <button class="button is-danger is-small" @click="doDelete" :disabled="vod.prevent_deletion">
+                            <span class="icon">
+                                <fa icon="trash" type="fa" v-if="!taskStatus.delete"></fa>
+                                <fa icon="sync" type="fa" spin v-else></fa>
+                            </span>
+                            <span>{{ $t('buttons.delete') }}</span>
+                        </button>
                     </template>
                     <template v-else-if="!vod?.is_capturing && !vod?.is_converting && !vod?.is_finalized">
                         <em>Waiting to finalize video (since {{ vod?.ended_at ? formatDate(vod?.ended_at, "yyyy-MM-dd HH:mm:ss") : "(unknown)" }})</em>

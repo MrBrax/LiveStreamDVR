@@ -59,7 +59,7 @@ export type ApiVod = {
     twitch_vod_id?: string;
     twitch_vod_date?: string;
     twitch_vod_title?: string;
-    
+
     twitch_vod_neversaved?: boolean;
     twitch_vod_exists?: boolean;
     twitch_vod_attempted?: boolean;
@@ -125,6 +125,8 @@ export type ApiVod = {
 
     comment?: string;
     prevent_deletion: boolean;
+
+    failed?: boolean;
 
 };
 

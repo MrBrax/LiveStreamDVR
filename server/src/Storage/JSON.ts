@@ -37,6 +37,7 @@ export interface VODJSON {
     comment?: string;
 
     prevent_deletion: boolean;
+    failed?: boolean;
 
 }
 export interface TwitchVODJSON extends VODJSON {

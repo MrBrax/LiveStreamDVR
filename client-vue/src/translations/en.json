@@ -38,7 +38,8 @@
       "viewers": "Viewers",
       "end": "END",
       "ongoing": "ONGOING"
-    }
+    },
+    "failed": "Capturing failed"
   },
   "buttons": {
     "save": "Save",
