@@ -1292,7 +1292,7 @@ export class TwitchChannel {
 
     public static async unsubscribe(channel_id: string): Promise<boolean> {
 
-        const subscriptions = await Helper.getSubs();
+        const subscriptions = await Helper.getSubsList();
 
         if (!subscriptions) {
             return false;
@@ -1301,7 +1301,7 @@ export class TwitchChannel {
         const streamer_login = await TwitchChannel.channelLoginFromId(channel_id);
 
         let unsubbed = 0;
-        for (const sub of subscriptions.data) {
+        for (const sub of subscriptions) {
 
             if (sub.condition.broadcaster_user_id !== channel_id) {
                 continue;
@@ -1320,14 +1320,14 @@ export class TwitchChannel {
 
         }
 
-        return unsubbed === subscriptions.data.length;
+        return unsubbed === subscriptions.length;
 
     }
 
     public static async getSubscriptionId(channel_id: string, sub_type: EventSubTypes): Promise<string | false> {
-        const all_subs = await Helper.getSubs();
+        const all_subs = await Helper.getSubsList();
         if (all_subs) {
-            const sub_id = all_subs.data.find(sub => sub.condition.broadcaster_user_id == channel_id && sub.type == sub_type);
+            const sub_id = all_subs.find(sub => sub.condition.broadcaster_user_id == channel_id && sub.type == sub_type);
             return sub_id ? sub_id.id : false;
         } else {
             return false;

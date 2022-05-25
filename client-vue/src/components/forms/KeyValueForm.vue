@@ -1,5 +1,5 @@
 <template>
-    <div v-if="!loading">
+    <div v-if="!initialLoad">
         <p class="error">
             {{ $t('messages.changing-values-here-will-most-likely-require-a-restart') }}
         </p>
@@ -68,7 +68,7 @@
             </div>
         </form>
     </div>
-    <div v-if="loading">
+    <div v-if="initialLoad">
         <span class="icon"><fa icon="sync" spin></fa></span> Loading...
     </div>
 </template>
@@ -90,7 +90,7 @@ export default defineComponent({
     emits: ["formSuccess"],
     data(): {
         keyvalue?: Record<string, string>;
-        loading: boolean;
+        initialLoad: boolean;
         addForm: {
             key: string;
             value: string;
@@ -98,7 +98,7 @@ export default defineComponent({
     } {
         return {
             keyvalue: undefined,
-            loading: false,
+            initialLoad: true,
             addForm: {
                 key: "",
                 value: ""
@@ -111,7 +111,6 @@ export default defineComponent({
 
     methods: {
         fetchData(): void {
-            this.loading = true;
             this.$http
                 .get(`/api/v0/keyvalue`)
                 .then((response) => {
@@ -124,7 +123,7 @@ export default defineComponent({
                     console.error("fetch data error", err.response);
                 })
                 .finally(() => {
-                    this.loading = false;
+                    this.initialLoad = false;
                 });
         },
         deleteKeyValue(key: string) {

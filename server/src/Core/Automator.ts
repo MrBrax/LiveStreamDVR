@@ -575,6 +575,8 @@ export class Automator {
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.FATAL, "automator", `Failed to capture video: ${error}`);
             this.endCaptureChat();
+            this.vod.is_capturing = false;
+            await this.vod.saveJSON("capture fail");
             // this.vod.delete();
             return false;
         }
@@ -976,7 +978,7 @@ export class Automator {
 
                 // stream error
                 if (data.includes("403 Client Error")) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Chunk 403'd for ${basename}!`);
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Chunk 403'd for ${basename}! Private stream?`);
                 }
 
                 // ad removal
@@ -1007,6 +1009,10 @@ export class Automator {
 
                 if (data.includes("error: The specified stream(s)")) {
                     Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Capturing of ${basename} failed, selected quality not available!`);
+                }
+
+                if (data.includes("error: No playable streams found on this URL:")) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Capturing of ${basename} failed, no streams available!`);
                 }
 
             };
