@@ -8,7 +8,7 @@ import { Stream } from "stream";
 import { MediaInfoJSONOutput } from "../../../common/MediaInfo";
 import { MediaInfo } from "../../../common/mediainfofield";
 import { FFProbe } from "../../../common/FFProbe";
-import { EventSubTypes } from "../../../common/TwitchAPI/Shared";
+import { EventSubTypes, Subscription } from "../../../common/TwitchAPI/Shared";
 import { Subscriptions } from "../../../common/TwitchAPI/Subscriptions";
 import { BaseConfigDataFolder } from "./BaseConfig";
 import { Job } from "./Job";
@@ -917,6 +917,9 @@ export class Helper {
 
     }
 
+    /**
+     * @deprecated use getSubsList instead
+     */
     public static async getSubs(): Promise<Subscriptions | false> {
 
         Log.logAdvanced(LOGLEVEL.INFO, "helper", "Requesting subscriptions list");
@@ -939,6 +942,50 @@ export class Helper {
         Log.logAdvanced(LOGLEVEL.INFO, "helper", `${json.total} subscriptions`);
 
         return json;
+
+    }
+
+    public static async getSubsList(): Promise<Subscription[] | false> {
+
+        Log.logAdvanced(LOGLEVEL.INFO, "helper", "Requesting subscriptions list");
+
+        if (!this.axios) {
+            throw new Error("Axios is not initialized");
+        }
+
+        let subscriptions: Subscription[] = [];
+        let cursor = "";
+        const maxpages = 5;
+        let page = 0;
+
+        do {
+
+            Log.logAdvanced(LOGLEVEL.INFO, "helper", `Fetch subs page ${page}`);
+                
+            let response;
+    
+            try {
+                response = await this.axios.get("/helix/eventsub/subscriptions", {
+                    params: {
+                        after: cursor,
+                    },
+                });
+            } catch (err) {
+                Log.logAdvanced(LOGLEVEL.FATAL, "helper", `Subs return: ${err}`);
+                return false;
+            }
+    
+            const json: Subscriptions = response.data;
+    
+            subscriptions = subscriptions.concat(json.data);
+    
+            cursor = json.pagination.cursor || "";
+    
+        } while (cursor && page++ < maxpages);
+
+        Log.logAdvanced(LOGLEVEL.INFO, "helper", `${subscriptions.length} subscriptions`);
+
+        return subscriptions;
 
     }
 

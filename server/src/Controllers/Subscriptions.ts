@@ -21,20 +21,20 @@ interface ChannelSub {
 
 export async function ListSubscriptions(req: express.Request, res: express.Response): Promise<void> {
 
-    const subs = await Helper.getSubs();
+    const subs = await Helper.getSubsList();
 
-    if (subs && subs.total > 0) {
+    if (subs && subs.length > 0) {
 
         const payload_data: { channels: ChannelSub[]; total: number; all_usernames: Set<string>; } = {
             channels: [],
-            total: subs.total,
+            total: subs.length,
             all_usernames: new Set(),
         };
 
         let callback = `${Config.getInstance().cfg("app_url")}/api/v0/hook`;
         if (Config.getInstance().cfg("instance_id")) callback += "?instance=" + Config.getInstance().cfg("instance_id");
 
-        for (const sub of subs.data) {
+        for (const sub of subs) {
 
             const username = await TwitchChannel.channelLoginFromId(sub.condition.broadcaster_user_id);
 
