@@ -510,7 +510,7 @@ export class TwitchVOD {
                     Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Invalid mediainfo for ${this.basename} (missing audio)`);
                     return false;
                 }
-            
+
             } else {
 
                 if (data.video && data.audio) {
@@ -670,35 +670,25 @@ export class TwitchVOD {
         this.path_vttchapters = this.realpath(path.join(this.directory, `${this.basename}.chapters.vtt`));
         this.path_kodinfo = this.realpath(path.join(this.directory, `${this.basename}.nfo`));
 
-        // this.is_chat_downloaded 			= file_exists(this.path_chat);
-        // this.is_vod_downloaded 			= file_exists(this.path_downloaded_vod);
-        // this.is_lossless_cut_generated 	= file_exists(this.path_losslesscut);
-        // this.is_chatdump_captured 		= file_exists(this.path_chatdump);
-        // this.is_capture_paused 			= file_exists(this.path_adbreak);
-        // this.is_chat_rendered 			= file_exists(this.path_chatrender);
-        // this.is_chat_burned 				= file_exists(this.path_chatburn);
-
         // just to be sure, remake these
-        if (
-            this.is_finalized &&
-            (
-                !fs.existsSync(this.path_losslesscut) ||
-                !fs.existsSync(this.path_ffmpegchapters) ||
-                !fs.existsSync(this.path_vttchapters) ||
-                !(fs.existsSync(this.path_kodinfo) && Config.getInstance().cfg("create_kodi_nfo"))
-            )
-        ) {
+        if (this.is_finalized) {
             try {
-                this.saveLosslessCut();
-                this.saveFFMPEGChapters();
-                this.saveVTTChapters();
-                this.saveKodiNfo();
+                if (!fs.existsSync(this.path_losslesscut)) {
+                    this.saveLosslessCut();
+                }
+                if (!fs.existsSync(this.path_ffmpegchapters)) {
+                    this.saveFFMPEGChapters();
+                }
+                if (!fs.existsSync(this.path_vttchapters)) {
+                    this.saveVTTChapters();
+                }
+                if (!fs.existsSync(this.path_kodinfo) && Config.getInstance().cfg("create_kodi_nfo")) {
+                    this.saveKodiNfo();
+                }
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Could not save associated files for ${this.basename}: ${(error as Error).message}`);
             }
-
         }
-
     }
 
     get is_converted(): boolean {
@@ -1332,11 +1322,11 @@ export class TwitchVOD {
 
         data += `\t<season>${format(this.started_at, Config.SeasonFormat)}</season>\n`;
         data += `\t<episode>${(this.stream_number || 0) + 1}</episode>\n`;
-        
+
         if (this.chapters && this.chapters.length > 0) {
             let plot = "";
             this.chapters.forEach((chapter, index) => {
-                plot += `${index+1}. ${chapter.title} (${chapter.game_name})\n`;
+                plot += `${index + 1}. ${chapter.title} (${chapter.game_name})\n`;
             });
             data += `\t<plot>${htmlentities(plot)}</plot>\n`;
         }
@@ -1613,7 +1603,7 @@ export class TwitchVOD {
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.FATAL, "vodclass", `Failed to save JSON of ${this.basename}: ${(error as Error).message}`);
             console.log(chalk.bgRedBright.whiteBright(`Failed to save JSON of ${this.basename}: ${(error as Error).message}`));
-            return false; 
+            return false;
         }
 
         this._writeJSON = false;
@@ -1972,7 +1962,14 @@ export class TwitchVOD {
         if (!this.is_finalized && !this.is_converted && !this.is_capturing && !this.is_converting && this.segments.length === 0 && !this.failed) {
             console.log(chalk.bgRed.whiteBright(`${this.basename} is not finalized, converting, capturing or converting, failed recording?`));
             this.failed = true;
-            await this.saveJSON("fix set failed");
+            await this.saveJSON("fix set failed true");
+        }
+
+        // if failed but actually not
+        if (this.failed && this.is_finalized && this.segments.length > 0) {
+            console.log(chalk.bgRed.whiteBright(`${this.basename} is failed but is finalized, fixing!`));
+            this.failed = false;
+            await this.saveJSON("fix set failed false");
         }
 
     }
@@ -2221,13 +2218,16 @@ export class TwitchVOD {
             ignoreInitial: true,
         }).on("all", (eventType, filename) => {
 
+            const channel = this.getChannel();
+            if (channel) {
+                if (channel.live_chat && (filename.endsWith(".chatdump.line") || filename.endsWith(".chatdump.txt"))) {
+                    return;
+                }
+            }
+
             console.log(`VOD file ${filename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})!`);
 
-            setTimeout(() => {
-                TwitchVOD.cleanLingeringVODs();
-            }, 4000);
-
-            if (filename === this.filename){
+            if (filename === this.filename) {
                 if (!fs.existsSync(this.filename)) {
                     Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD JSON ${this.basename} deleted!`);
                     if (TwitchVOD.vods.find(v => v.basename == this.basename)) {
@@ -2236,6 +2236,11 @@ export class TwitchVOD {
                         // const channel = TwitchChannel.getChannelByLogin(this.streamer_login);
                         // if (channel) channel.removeVod(this.basename);
                     }
+
+                    setTimeout(() => {
+                        TwitchVOD.cleanLingeringVODs();
+                    }, 4000);
+
                     const channel = this.getChannel();
                     if (channel) {
                         setTimeout(() => {
@@ -2255,7 +2260,7 @@ export class TwitchVOD {
                     "system"
                 );
             } else {
-                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD file ${filename} changed (${eventType})!`);
+                console.log(LOGLEVEL.INFO, "vodclass", `VOD file ${filename} changed (${eventType})!`);
                 ClientBroker.notify(
                     "VOD file changed externally",
                     path.basename(filename),
@@ -2508,7 +2513,7 @@ export class TwitchVOD {
                 newName = path.basename(trueCasePathSync(path.join(basepath, name)));
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Could not find segment ${name} in ${basepath}`);
-                return undefined;                
+                return undefined;
             }
 
             if (newName != name) {
@@ -2884,7 +2889,7 @@ export class TwitchVOD {
                 .setTitle(clip.title)
                 .setComment(`Clipped by ${clip.creator_name}.\nSource: ${clip.url}\nClip ID: ${clip.id}`)
                 .setDate(parseJSON(clip.created_at))
-                .writeToFile(path.join(BaseConfigDataFolder.cache, `${clip_id}.ffmpeg.txt`));            
+                .writeToFile(path.join(BaseConfigDataFolder.cache, `${clip_id}.ffmpeg.txt`));
 
             let ret;
             try {
