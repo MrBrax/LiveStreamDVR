@@ -38,7 +38,8 @@
       "viewers": "Zuschauer",
       "end": "ENDE",
       "ongoing": "FORTLAUFEND"
-    }
+    },
+    "failed": "Aufnahme fehlgeschlagen"
   },
   "buttons": {
     "save": "Speichern",
