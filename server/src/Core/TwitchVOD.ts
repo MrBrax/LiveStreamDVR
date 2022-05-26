@@ -1959,7 +1959,7 @@ export class TwitchVOD {
         }
 
         // if all else fails
-        if (!this.is_finalized && !this.is_converted && !this.is_capturing && !this.is_converting && this.segments.length === 0 && !this.failed) {
+        if (!this.not_started && !this.is_finalized && !this.is_converted && !this.is_capturing && !this.is_converting && this.segments.length === 0 && !this.failed) {
             console.log(chalk.bgRed.whiteBright(`${this.basename} is not finalized, converting, capturing or converting, failed recording?`));
             this.failed = true;
             await this.saveJSON("fix set failed true");

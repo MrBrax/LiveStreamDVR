@@ -410,10 +410,20 @@
                     </button>
                 </div>
 
-                <div :class="{
-                    'video-status': true,
-                    'is-error': vod.failed
-                }" v-if="!vod.is_finalized">
+                <div class="video-error" v-if="vod.failed && !vod.is_finalized && !vod.is_capturing">
+                    <strong>
+                        <span class="icon"><fa icon="exclamation-triangle"></fa></span> {{ $t('vod.failed') }}
+                    </strong>&nbsp;
+                    <!-- Delete -->
+                    <button class="button is-danger is-small" @click="doDelete" :disabled="vod.prevent_deletion">
+                        <span class="icon">
+                            <fa icon="trash" type="fa" v-if="!taskStatus.delete"></fa>
+                            <fa icon="sync" type="fa" spin v-else></fa>
+                        </span>
+                        <span>{{ $t('buttons.delete') }}</span>
+                    </button>
+                </div>
+                <div class="video-status" v-else-if="!vod.is_finalized">
                     <template v-if="vod?.is_converting">
                         <em>
                             <span class="icon"><fa icon="file-signature"></fa></span>
@@ -474,19 +484,6 @@
                                 </em>
                             </template>
                         </template>
-                    </template>
-                    <template v-else-if="vod.failed">
-                        <strong class="is-error">
-                            <span class="icon"><fa icon="exclamation-triangle"></fa></span> {{ $t('vod.failed') }}
-                        </strong>&nbsp;
-                        <!-- Delete -->
-                        <button class="button is-danger is-small" @click="doDelete" :disabled="vod.prevent_deletion">
-                            <span class="icon">
-                                <fa icon="trash" type="fa" v-if="!taskStatus.delete"></fa>
-                                <fa icon="sync" type="fa" spin v-else></fa>
-                            </span>
-                            <span>{{ $t('buttons.delete') }}</span>
-                        </button>
                     </template>
                     <template v-else-if="!vod?.is_capturing && !vod?.is_converting && !vod?.is_finalized">
                         <em>Waiting to finalize video (since {{ vod?.ended_at ? formatDate(vod?.ended_at, "yyyy-MM-dd HH:mm:ss") : "(unknown)" }})</em>
@@ -647,7 +644,7 @@
                         </tbody>
                     </table>
                     <div v-else>
-                        <span class="is-error">No chapters found</span>
+                        <div class="is-error padding-1">No chapters found</div>
                     </div>
                 </div>
 

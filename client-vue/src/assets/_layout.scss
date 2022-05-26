@@ -101,3 +101,10 @@ hr {
         margin: 0;
     }
 }
+
+// padding loop
+@for $i from 1 through 10 {
+    .padding-#{$i} {
+        padding: #{$i}em;
+    }
+}
