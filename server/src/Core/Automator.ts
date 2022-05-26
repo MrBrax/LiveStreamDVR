@@ -576,6 +576,7 @@ export class Automator {
             Log.logAdvanced(LOGLEVEL.FATAL, "automator", `Failed to capture video: ${error}`);
             this.endCaptureChat();
             this.vod.is_capturing = false;
+            this.vod.failed = true;
             await this.vod.saveJSON("capture fail");
             // this.vod.delete();
             return false;

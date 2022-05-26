@@ -137,6 +137,8 @@ export class TwitchVOD {
 
     prevent_deletion = false;
 
+    failed = false;
+
     /*
     public ?bool $api_hasFavouriteGame = null;
     public ?array $api_getUniqueGames = null;
@@ -217,6 +219,7 @@ export class TwitchVOD {
 
         this.comment = this.json.comment;
         this.prevent_deletion = this.json.prevent_deletion ?? false;
+        this.failed = this.json.failed ?? false;
 
     }
 
@@ -1461,6 +1464,8 @@ export class TwitchVOD {
 
             prevent_deletion: this.prevent_deletion,
 
+            failed: this.failed,
+
             // game_offset: this.game_offset || 0,
             // twitch_vod_url: this.twitch_vod_url,
             // twitch_vod_exists: this.twitch_vod_exists,
@@ -1581,7 +1586,9 @@ export class TwitchVOD {
 
         generated.prevent_deletion = this.prevent_deletion;
 
-        // generated.twitch_vod_status = this.twitch_vod_status;        
+        generated.failed = this.failed;
+
+        // generated.twitch_vod_status = this.twitch_vod_status;
 
         // generated.video_fail2 = this.video_fail2;
         // generated.force_record = this.force_record;
@@ -1888,6 +1895,7 @@ export class TwitchVOD {
             return;
         }
 
+        // fix illegal characters
         if (this.basename.match(TwitchVOD.filenameIllegalChars)) {
             console.log(chalk.bgRed.whiteBright(`${this.basename} contains invalid characters!`));
             const new_basename = replaceAll(this.basename, TwitchVOD.filenameIllegalChars, "_");
@@ -1958,6 +1966,13 @@ export class TwitchVOD {
             console.log(chalk.bgBlue.whiteBright(`${this.basename} is finalized but no chapters found, fixing now!`));
             await this.generateDefaultChapter();
             await this.saveJSON("fix chapters");
+        }
+
+        // if all else fails
+        if (!this.is_finalized && !this.is_converted && !this.is_capturing && !this.is_converting && this.segments.length === 0 && !this.failed) {
+            console.log(chalk.bgRed.whiteBright(`${this.basename} is not finalized, converting, capturing or converting, failed recording?`));
+            this.failed = true;
+            await this.saveJSON("fix set failed");
         }
 
     }

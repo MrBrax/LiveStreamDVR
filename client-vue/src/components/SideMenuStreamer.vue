@@ -96,6 +96,8 @@
                     <!-- favourite -->
                     <span class="icon" v-else-if="vod.hasFavouriteGame()"><fa icon="star"></fa></span>
 
+                    <span class="icon is-error" v-else-if="vod.failed"><fa icon="exclamation-triangle" /></span>
+
                     <!-- waiting after capture -->
                     <span class="icon" v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized"><fa :icon="['far', 'hourglass']"></fa></span>
 
