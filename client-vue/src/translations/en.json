@@ -73,7 +73,8 @@
       "live-chat-download": "Live chat download",
       "burn-chat": "Burn chat after downloading",
       "no-capture": "Don't record streams (disable capture completely)",
-      "live-channels-warning": "Live channels will not be recorded until they are live the next time."
+      "live-channels-warning": "Live channels will not be recorded until they are live the next time.",
+      "no-cleanup": "Don't clean up VODs after recording is finished"
     },
     "config": {
       "validate-external-url": "Validate external URL"

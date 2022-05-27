@@ -72,6 +72,7 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
         burn_chat: boolean;
         no_capture: boolean;
         live_chat: boolean;
+        no_cleanup: boolean;
     } = req.body;
 
     const quality = formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [];
@@ -80,6 +81,7 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
     const burn_chat = formdata.burn_chat;
     const no_capture = formdata.no_capture;
     const live_chat = formdata.live_chat;
+    const no_cleanup = formdata.no_cleanup;
 
     const channel_config: ChannelConfig = {
         login: channel.login,
@@ -89,6 +91,7 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
         burn_chat: burn_chat,
         no_capture: no_capture,
         live_chat: live_chat,
+        no_cleanup: no_cleanup,
     };
 
     channel.update(channel_config);
@@ -148,6 +151,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         burn_chat: boolean;
         no_capture: boolean;
         live_chat: boolean;
+        no_cleanup: boolean;
     } = req.body;
 
     const channel_config: ChannelConfig = {
@@ -158,6 +162,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         burn_chat: formdata.burn_chat,
         no_capture: formdata.no_capture,
         live_chat: formdata.live_chat,
+        no_cleanup: formdata.no_cleanup,
     };
 
     if (!channel_config.login) {

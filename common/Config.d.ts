@@ -49,4 +49,5 @@ export interface ChannelConfig {
     burn_chat: boolean;
     no_capture: boolean;
     live_chat: boolean;
+    no_cleanup: boolean;
 }

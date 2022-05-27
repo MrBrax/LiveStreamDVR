@@ -988,6 +988,7 @@ export class TwitchVOD {
 
     /**
      * Rebuild segment list from video files named as basename and parse it
+     * @saves
      * @returns 
      */
     public async rebuildSegmentList(): Promise<boolean> {
@@ -1970,6 +1971,22 @@ export class TwitchVOD {
             console.log(chalk.bgRed.whiteBright(`${this.basename} is failed but is finalized, fixing!`));
             this.failed = false;
             await this.saveJSON("fix set failed false");
+        }
+
+        // if segments don't begin with login
+        if (this.is_finalized && this.segments.length > 0) {
+            let error_segments = 0;
+            for (const seg of this.segments_raw) {
+                if (!path.basename(seg).startsWith(`${this.streamer_login}_`)) {
+                    console.log(chalk.bgRed.whiteBright(`${this.basename} segment ${seg} does not start with login ${this.streamer_login}!`));
+                    error_segments++;
+                    // this.segments_raw[index] = replaceAll(segment, `${this.streamer_login}_`, `${this.streamer_login}_${this.streamer_login}_`);
+                }
+            }
+            if (error_segments == this.segments_raw.length) {
+                console.log(chalk.bgRed.whiteBright(`${this.basename} has no segments starting with login ${this.streamer_login}, fixing!`));
+                this.rebuildSegmentList();
+            }
         }
 
     }

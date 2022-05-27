@@ -58,6 +58,13 @@
                 </label>
             </div>
 
+            <div class="field">
+                <label class="checkbox">
+                    <input type="checkbox" name="no_cleanup" v-model="formData.no_cleanup" />
+                    {{ $t('forms.channel.no-cleanup') }}
+                </label>
+            </div>
+
             <div class="field form-submit">
                 <div class="control">
                     <button class="button is-confirm" type="submit">
@@ -122,6 +129,7 @@ export default defineComponent({
                 live_chat: this.channel.live_chat || false,
                 burn_chat: this.channel.burn_chat || false,
                 no_capture: this.channel.no_capture || false,
+                no_cleanup: this.channel.no_cleanup || false,
             },
         };
     },

@@ -71,6 +71,8 @@ export class TwitchChannel {
     /** Don't capture, just exist */
     public no_capture = false;
 
+    public no_cleanup = false;
+
     /** 
      * Burn chat after capturing.
      * Currently not used.
@@ -103,6 +105,7 @@ export class TwitchChannel {
         this.no_capture = channel_config.no_capture !== undefined ? channel_config.no_capture : false;
         this.burn_chat = channel_config.burn_chat !== undefined ? channel_config.burn_chat : false;
         this.live_chat = channel_config.live_chat !== undefined ? channel_config.live_chat : false;
+        this.no_cleanup = channel_config.no_cleanup !== undefined ? channel_config.no_cleanup : false;
     }
 
     /**
@@ -206,6 +209,7 @@ export class TwitchChannel {
             no_capture: this.no_capture,
             burn_chat: this.burn_chat,
             live_chat: this.live_chat,
+            no_cleanup: this.no_cleanup,
             // subbed_at: this.subbed_at,
             // expires_at: this.expires_at,
             // last_online: this.last_online,
@@ -491,6 +495,11 @@ export class TwitchChannel {
     }
 
     public async cleanupVods(ignore_basename = ""): Promise<number | false> {
+
+        if (this.no_cleanup) {
+            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Skipping cleanup for ${this.login} due to no_cleanup flag`);
+            return false;
+        }
 
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Cleanup VODs for ${this.login}, ignore ${ignore_basename}`);
 
