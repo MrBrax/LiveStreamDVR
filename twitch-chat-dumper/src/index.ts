@@ -3,7 +3,7 @@ import { ChatDumper } from './ChatDumper.js';
 
 const argv = minimist(process.argv.slice(2));
 
-const dumper = new ChatDumper(argv.channel, argv.output, argv.overwrite);
+const dumper = new ChatDumper(argv.channel, argv.output, argv.overwrite, argv.notext);
 
 process.on('exit', function () {
     console.log('Exit fired, save JSON before shutting down');

@@ -1363,6 +1363,9 @@ export class TwitchChannel {
         chat_cmd.push("--userid", channel_id);
         chat_cmd.push("--date", JSON.stringify(started));
         chat_cmd.push("--output", output);
+        if (Config.getInstance().cfg("chatdump_notext")) {
+            chat_cmd.push("--notext"); // don't output plain text chat
+        }
 
         Log.logAdvanced(LOGLEVEL.INFO, "automator", `Starting chat dump with filename ${path.basename(output)}`);
 
