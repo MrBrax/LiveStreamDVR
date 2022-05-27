@@ -67,6 +67,12 @@
                 {{ $t('forms.channel.no-capture') }}
             </label>
         </div>
+        <div class="field">
+            <label class="checkbox">
+                <input type="checkbox" name="no_cleanup" v-model="formData.no_cleanup" />
+                {{ $t('forms.channel.no-cleanup') }}
+            </label>
+        </div>
         <p><em>{{ $t('forms.channel.live-channels-warning') }}</em></p>
         <div class="field form-submit">
             <div class="control">
@@ -107,6 +113,7 @@ export default defineComponent({
                 live_chat: false,
                 burn_chat: false,
                 no_capture: false,
+                no_cleanup: false,
             },
         };
     },
@@ -154,6 +161,7 @@ export default defineComponent({
                 live_chat: false,
                 burn_chat: false,
                 no_capture: false,
+                no_cleanup: false,
             };
         },
         checkLogin() {

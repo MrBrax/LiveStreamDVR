@@ -1,7 +1,7 @@
 import { MediaInfo, MediaInfoPublic } from "../mediainfofield";
 import { VideoQuality } from "../Config";
 import { ChannelData } from "../Channel";
-import { MuteStatus, ExistStatus, JobStatus} from "../../common/Defs";
+import { MuteStatus, ExistStatus, JobStatus } from "../../common/Defs";
 import { AudioMetadata, VideoMetadata } from "../MediaInfo";
 import { BroadcasterType } from "../TwitchAPI/Users";
 
@@ -13,7 +13,7 @@ export type ApiVodSegment = {
 
 export type ApiVodChapter = {
     title: string;
-    
+
     game_id?: string;
     game_name?: string;
     game?: ApiGame;
@@ -21,7 +21,7 @@ export type ApiVodChapter = {
 
     strings: Record<string, string>;
     duration: number;
-    
+
     started_at: string;
     // datetime: PHPDateTimeJSON;
     offset: number;
@@ -149,12 +149,12 @@ export type ApiChannel = {
     login: string;
     description: string;
     quality: VideoQuality[] | undefined;
-    
+
     vods_raw: string[];
     vods_list: ApiVod[];
     vods_size: number;
 
-    
+
     is_live: boolean;
     is_converting: boolean;
     profile_image_url: string;
@@ -170,6 +170,7 @@ export type ApiChannel = {
     no_capture: boolean;
     burn_chat: boolean;
     live_chat: boolean;
+    no_cleanup: boolean;
 
     current_chapter?: ApiVodChapter;
     current_game?: ApiGame;
@@ -208,6 +209,7 @@ export type ApiChannelConfig = {
     no_capture: boolean;
     burn_chat: boolean;
     live_chat: boolean;
+    no_cleanup: boolean;
 };
 
 export type ApiJob = {

@@ -19,7 +19,7 @@ export default {
         },
         humanDuration(duration: number): string {
             if (duration < 0) {
-                return "(NEGATIVE DURATION)";
+                return `(NEGATIVE DURATION: ${duration})`;
             }
             const hours = Math.floor(duration / 3600);
             const minutes = Math.floor((duration / 60) % 60);
@@ -40,7 +40,7 @@ export default {
         },
         niceDuration(durationInSeconds: number): string {
             if (durationInSeconds < 0) {
-                return "(NEGATIVE DURATION)";
+                return `(NEGATIVE DURATION: ${durationInSeconds})`;
             }
             let duration = "";
             const days = Math.floor(durationInSeconds / 86400);
