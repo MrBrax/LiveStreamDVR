@@ -209,6 +209,7 @@ export type ApiChannelConfig = {
     no_capture: boolean;
     burn_chat: boolean;
     live_chat: boolean;
+    no_cleanup: boolean;
 };
 
 export type ApiJob = {

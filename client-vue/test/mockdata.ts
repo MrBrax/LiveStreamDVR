@@ -70,6 +70,7 @@ export const MockApiChannelData: ApiChannel = {
     burn_chat: true,
     live_chat: false,
     channel_data: TwitchChannelData,
+    no_cleanup: false,
 };
 
 export const MockApiVODData: ApiVod = {
