@@ -28,6 +28,11 @@
         <section class="section" v-if="!$route.params.tab || $route.params.tab == 'channels'">
             <div class="section-title"><h1>{{ $t('pages.channels') }}</h1></div>
             <div class="section-content">
+                <ul class="list">
+                    <li v-for="channel in formChannels" :key="channel.login">
+                        <router-link :to="{ hash: '#channel_' + channel.login }">{{ channel.login }}</router-link>
+                    </li>
+                </ul>
                 <div class="card" v-for="channel in formChannels" :key="channel.login" :id="'channel_' + channel.login">
                     <div class="card-title">
                         <h2>{{ channel.login }}</h2>

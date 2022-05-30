@@ -1,17 +1,17 @@
 <template>
     <form method="POST" @submit.prevent="submitForm">
         <div class="field">
-            <label class="label">VOD URL</label>
+            <label class="label" for="voddownload_url">VOD URL</label>
             <div class="control">
-                <input class="input" type="text" v-model="formData.url" required />
+                <input class="input" type="text" v-model="formData.url" required id="voddownload_url" />
             </div>
         </div>
 
         <div class="field">
-            <label class="label">Quality</label>
+            <label class="label" for="voddownload_quality">Quality</label>
             <div class="control">
                 <div class="select">
-                    <select required v-model="formData.quality">
+                    <select required v-model="formData.quality" id="voddownload_quality">
                         <option v-for="quality of VideoQualityArray" :key="quality">{{ quality }}</option>
                     </select>
                 </div>

@@ -20,7 +20,7 @@
                 <td>{{ key }}</td>
                 <td>
                     {{ value }}
-                    <button class="icon-button" @click="editKeyValue(key, value)">
+                    <button class="icon-button" @click="editKeyValue(key, value)" title="Edit">
                         <span><fa icon="pencil" /></span>
                     </button>
                 </td>

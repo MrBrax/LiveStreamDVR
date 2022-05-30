@@ -9,15 +9,17 @@ export class ChatDumper {
     input_username: string;
     file_output: string;
     overwrite: boolean;
+    no_text: boolean;
     comments: TwitchComment[];
     chatStream: fs.WriteStream | undefined;
     textStream: fs.WriteStream | undefined;
-    
-    constructor(input_username: string, file_output: string, overwrite = false) {
+
+    constructor(input_username: string, file_output: string, overwrite = false, no_text = false) {
         this.client = new ChatClient();
         this.input_username = input_username;
         this.file_output = file_output;
         this.overwrite = overwrite;
+        this.no_text = no_text;
         this.comments = [];
         this.setup();
     }
@@ -39,7 +41,9 @@ export class ChatDumper {
         }
 
         this.chatStream = fs.createWriteStream(`${this.file_output}.line`, { flags: 'a' });
-        this.textStream = fs.createWriteStream(`${this.file_output}.txt`, { flags: 'a' });
+        if (!this.no_text) {
+            this.textStream = fs.createWriteStream(`${this.file_output}.txt`, { flags: 'a' });
+        }
 
         this.client.on("ready", () => console.debug("Successfully connected to chat"));
 
@@ -53,7 +57,7 @@ export class ChatDumper {
 
         this.client.on("PRIVMSG", (msg) => {
 
-            if (!this.chatStream || !this.textStream) return;
+            if (!this.chatStream) return;
 
             // 2021-11-14T03:38:58.626Z
             let thetime = format(msg.serverTimestamp, date_format);
@@ -67,7 +71,7 @@ export class ChatDumper {
                 fmt_offset = diff;
             }
 
-            if(fmt_offset == 0) console.error("Comment offset at 0");
+            if (fmt_offset == 0) console.error("Comment offset at 0");
 
             // parse emotes
             let fmt_emotes: { _id: string, begin: number; end: number; }[] = [];
@@ -182,7 +186,7 @@ export class ChatDumper {
 
             console.debug(`[#${msg.channelName}] <${thetime} (${delay}d, ${fmt_offset}s)> ${msg.displayName}: ${msg.messageText}`);
 
-            this.textStream.write(`<${thetime},${fmt_offset}> ${msg.displayName}: ${msg.messageText}\n`);
+            if (this.textStream) this.textStream.write(`<${thetime},${fmt_offset}> ${msg.displayName}: ${msg.messageText}\n`);
             // console.debug(`\t ${JSON.stringify(msg.emotes)}`);
         });
 
@@ -215,7 +219,7 @@ export class ChatDumper {
             console.log("connect error", reason);
         });
 
-        this.client.join(this.input_username).catch( reason => {
+        this.client.join(this.input_username).catch(reason => {
             console.log("join error", reason);
         });
 
@@ -242,7 +246,6 @@ export class ChatDumper {
         let input_userid = this.comments[0]['channel_id'];
 
         let duration_seconds = this.comments[this.comments.length - 1].content_offset_seconds;
-
 
         // var sec_num = parseInt(duration_seconds, 10)
         var hours = Math.floor(duration_seconds / 3600)
@@ -273,32 +276,14 @@ export class ChatDumper {
             }
         }
 
-        fs.writeFileSync(`${this.file_output}`, JSON.stringify(jsondata));
+        fs.writeFileSync(this.file_output, JSON.stringify(jsondata));
 
-        /*
-        // let file = fs.readFileSync(`${this.input_username}.jsonline`);
-        const fileStream = fs.createReadStream(`${this.input_username}.jsonline`);
-
-        const rl = readline.createInterface({
-            input: fileStream,
-            crlfDelay: Infinity
-        });
-        // Note: we use the crlfDelay option to recognize all instances of CR LF
-        // ('\r\n') in input.txt as a single line break.
-        
-        for await (const line of rl) {
-            // Each line in input.txt will be successively available here as `line`.
-            // console.log(`Line from file: ${line}`);
-            if(!line) continue;
-
-            const jsonline = JSON.parse(line);
-
-            jsondata['comments'].push(jsonline);
-
+        if (fs.existsSync(this.file_output) && fs.statSync(this.file_output).size > 0) {
+            console.log(`Saved JSON to ${this.file_output}, delete temp files`);
+            if (fs.existsSync(`${this.file_output}.line`)) {
+                fs.unlinkSync(`${this.file_output}.line`);
+            }
         }
-        
-        console.log("save json");
-        */
 
         console.log("JSON saved, hopefully.");
     }

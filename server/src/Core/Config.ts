@@ -149,6 +149,8 @@ export class Config {
 
         { "key": "min_chapter_duration", "group": "Video", "text": "Minimum chapter duration", "type": "number", "default": 0, "help": "Minimum duration in seconds for a chapter. Shorter chapters will be removed." },
 
+        { "key": "chatdump_notext", "group": "Basic", "text": "Don't write plain text chat file when dumping chat", "type": "boolean", "default": false },
+
     ];
 
     static readonly AudioContainer = "m4a";
