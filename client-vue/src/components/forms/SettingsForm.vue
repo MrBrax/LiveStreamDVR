@@ -16,6 +16,7 @@
                     <label class="checkbox">
                         <input
                             type="checkbox"
+                            :id="'input_' + data.key"
                             :name="data.key"
                             v-model="(formData[data.key] as boolean)"
                         />
@@ -28,6 +29,7 @@
                     <input
                         class="input"
                         type="text"
+                        :id="'input_' + data.key"
                         :name="data.key"
                         :title="data.help"
                         :pattern="data.pattern"
@@ -40,6 +42,7 @@
                     <input
                         class="input"
                         type="number"
+                        :id="'input_' + data.key"
                         :name="data.key"
                         v-model.number="(formData[data.key] as number)"
                     />
@@ -49,7 +52,13 @@
                 <div v-if="data.type == 'array'" class="control">
                     <!--<input class="input" :name="key" :id="key" :value="settings[key]" />-->
                     <div class="select">
-                        <select class="input" v-if="data.choices" v-model="formData[data.key]">
+                        <select
+                            class="input"
+                            v-if="data.choices"
+                            v-model="formData[data.key]"
+                            :name="data.key"
+                            :id="'input_' + data.key"
+                        >
                             <option
                                 v-for="(item, ix) in data.choices"
                                 :key="ix"
@@ -67,7 +76,13 @@
 
                 <!-- template -->
                 <div v-if="data.type == 'template'" class="control">
-                    <input class="input" type="text" :name="data.key" v-model="formData[data.key]" />
+                    <input
+                        class="input"
+                        type="text"
+                        :name="data.key"
+                        :id="'input_' + data.key"
+                        v-model="formData[data.key]"
+                    />
                     <ul class="template-replacements">
                         <li v-for="(item, ix) in data.replacements" :key="ix">
                             &lbrace;{{ ix }}&rbrace;
