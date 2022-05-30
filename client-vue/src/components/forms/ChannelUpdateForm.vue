@@ -2,12 +2,12 @@
     <div>
         <form @submit.prevent="submitForm">
             <div class="field">
-                <label class="label" for="input_quality">{{ $t('forms.channel.quality') }} <span class="required">*</span></label>
+                <label class="label" :for="`input_${channel.login}_quality`">{{ $t('forms.channel.quality') }} <span class="required">*</span></label>
                 <div class="control">
                     <input
                         class="input input-required"
                         type="text"
-                        id="input_quality"
+                        :id="`input_${channel.login}_quality`"
                         v-model="formData.quality"
                         required
                         ref="quality"
@@ -21,23 +21,39 @@
             </div>
 
             <div class="field">
-                <label class="label" for="input_match">{{ $t('forms.channel.match-keywords') }}</label>
+                <label class="label" :for="`input_${channel.login}_match`">{{ $t('forms.channel.match-keywords') }}</label>
                 <div class="control">
-                    <input class="input" type="text" id="input_match" name="match" v-model="formData.match" />
+                    <input
+                        class="input"
+                        type="text"
+                        :id="`input_${channel.login}_match`"
+                        name="match"
+                        v-model="formData.match"
+                    />
                     <p class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</p>
                 </div>
             </div>
 
             <div class="field">
                 <label class="checkbox">
-                    <input class="input" type="checkbox" name="download_chat" v-model="formData.download_chat" />
+                    <input
+                        class="input"
+                        type="checkbox"
+                        name="download_chat"
+                        v-model="formData.download_chat"
+                    />
                     {{ $t('forms.channel.download-chat') }}
                 </label>
             </div>
 
             <div class="field">
                 <label class="checkbox">
-                    <input class="input" type="checkbox" name="live_chat" v-model="formData.live_chat" />
+                    <input
+                        class="input"
+                        type="checkbox"
+                        name="live_chat"
+                        v-model="formData.live_chat"
+                    />
                     {{ $t('forms.channel.live-chat-download') }}
                 </label>
                 <p class="input-help">Requires Node binary path to be set in the settings</p>
@@ -45,7 +61,12 @@
 
             <div class="field">
                 <label class="checkbox">
-                    <input class="input" type="checkbox" name="burn_chat" v-model="formData.burn_chat" />
+                    <input
+                        class="input"
+                        type="checkbox"
+                        name="burn_chat"
+                        v-model="formData.burn_chat"
+                    />
                     {{ $t('forms.channel.burn-chat') }}
                 </label>
                 <p class="input-help">Currently disabled</p>
@@ -53,14 +74,23 @@
 
             <div class="field">
                 <label class="checkbox">
-                    <input class="input" type="checkbox" name="no_capture" v-model="formData.no_capture" />
+                    <input
+                        class="input"
+                        type="checkbox"
+                        name="no_capture"
+                        v-model="formData.no_capture"
+                    />
                     {{ $t('forms.channel.no-capture') }}
                 </label>
             </div>
 
             <div class="field">
                 <label class="checkbox">
-                    <input type="checkbox" name="no_cleanup" v-model="formData.no_cleanup" />
+                    <input
+                        type="checkbox"
+                        name="no_cleanup"
+                        v-model="formData.no_cleanup"
+                    />
                     {{ $t('forms.channel.no-cleanup') }}
                 </label>
             </div>

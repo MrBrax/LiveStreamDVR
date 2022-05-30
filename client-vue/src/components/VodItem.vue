@@ -312,7 +312,7 @@
 
                 <!-- controls -->
                 <div class="video-controls buttons" v-if="vod?.is_finalized">
-                    <button :class="{ 'button': true, 'details-toggle': true, 'is-active': showAdvanced }" @click="showAdvanced = !showAdvanced">
+                    <button :class="{ 'button': true, 'details-toggle': true, 'is-active': showAdvanced }" @click="showAdvanced = !showAdvanced" title="Show advanced">
                         <span class="icon">
                             <fa v-if="showAdvanced" icon="minus"></fa>
                             <fa v-else icon="plus"></fa>

@@ -38,7 +38,7 @@
                     <span class="streamer-title-tools">
 
                         <!-- edit -->
-                        <router-link class="icon-button white" :to="{ name: 'Settings', params: { tab: 'channels' }, hash: '#channel_' + streamer.login }">
+                        <router-link class="icon-button white" :to="{ name: 'Settings', params: { tab: 'channels' }, hash: '#channel_' + streamer.login }" title="Edit channel">
                             <span class="icon"><fa icon="pencil"></fa></span>
                         </router-link>
 
