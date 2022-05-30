@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div :id="'channelupdate_' + channel.login">
         <form @submit.prevent="submitForm">
             <div class="field">
                 <label class="label" for="input_quality">{{ $t('forms.channel.quality') }} <span class="required">*</span></label>
