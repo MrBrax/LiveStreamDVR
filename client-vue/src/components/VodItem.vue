@@ -916,7 +916,7 @@
         <div class="field">
             <button class="button" @click="openPlayer">
                 <fa icon="play" />
-                Play
+                <span>Play</span>
             </button>
         </div>
     </modal-box>
