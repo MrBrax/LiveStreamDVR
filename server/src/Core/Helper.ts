@@ -635,7 +635,21 @@ export class Helper {
             }
 
             // TODO: progress log
-            // job.on("log", (data: string) => {
+            let currentSeconds = 0;
+            let totalSeconds = 0;
+            job.on("log", (data: string) => {
+                const totalDurationMatch = data.match(/Duration: (\d+):(\d+):(\d+)/);
+                if (totalDurationMatch) {
+                    totalSeconds = parseInt(totalDurationMatch[1]) * 3600 + parseInt(totalDurationMatch[2]) * 60 + parseInt(totalDurationMatch[3]);
+                }
+                const currentTimeMatch = data.match(/time=(\d+):(\d+):(\d+)/);
+                if (currentTimeMatch) {
+                    currentSeconds = parseInt(currentTimeMatch[1]) * 3600 + parseInt(currentTimeMatch[2]) * 60 + parseInt(currentTimeMatch[3]);
+                    if (totalSeconds > 0 && currentSeconds % 5 == 0) {
+                        job.setProgress(currentSeconds / totalSeconds);
+                    }
+                }
+            });
             //     const progress_match = data.match(/time=([0-9\.\:]+)/);
             //     if (progress_match) {
             //         const progress = progress_match[1];

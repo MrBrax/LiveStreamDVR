@@ -20,6 +20,7 @@
                     <span v-else-if="job.status == JobStatus.WAITING">Waiting</span>
                     <span v-else-if="job.status == JobStatus.NONE">None</span>
                 </td>
+                <td v-if="job.progress && job.progress > 0">{{ Math.round(job.progress * 100) }}%</td>
             </tr>
         </table>
 

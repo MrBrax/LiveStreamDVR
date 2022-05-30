@@ -217,6 +217,7 @@ export type ApiJob = {
     pid?: number;
     status: JobStatus;
     process_running: boolean;
+    progress: number;
 };
 
 export type ApiLogLine = {

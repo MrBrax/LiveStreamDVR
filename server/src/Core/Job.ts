@@ -60,6 +60,8 @@ export class Job extends EventEmitter {
     public bin?: string;
     public args?: string[];
 
+    public progress = 0;
+
     logfile = "";
 
     private _updateTimer: NodeJS.Timeout | undefined;
@@ -594,6 +596,11 @@ export class Job extends EventEmitter {
         }
     }
 
+    public setProgress(progress: number): void {
+        this.progress = progress;
+        this.broadcastUpdate();
+    }
+
     /**
      * Stop logging to file from the attached process
      */
@@ -617,6 +624,7 @@ export class Job extends EventEmitter {
             pid: this.pid,
             process_running: this.process_running,
             status: this.status,
+            progress: this.progress,
         };
     }
 

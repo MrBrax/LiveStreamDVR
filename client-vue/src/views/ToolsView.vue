@@ -100,6 +100,9 @@
                             <span v-else-if="job.status == JobStatus.NONE">None</span>
                         </td>
                         <td>
+                            <span v-if="job.progress">{{ Math.round(job.progress * 100) }}%</span>
+                        </td>
+                        <td>
                             <a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name, 'SIGHUP')" title="Gracefully kill job (SIGHUP)">
                                 <span class="icon"><fa icon="heart"></fa></span>
                             </a>

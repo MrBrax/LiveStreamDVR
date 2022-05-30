@@ -39,7 +39,8 @@
       "end": "END",
       "ongoing": "ONGOING"
     },
-    "failed": "Capturing failed"
+    "failed": "Capturing failed",
+    "fetch-vod-list": "Fetch vod list"
   },
   "buttons": {
     "save": "Save",
@@ -51,7 +52,8 @@
     "create": "Create",
     "edit": "Edit",
     "reset": "Reset",
-    "execute": "Execute"
+    "execute": "Execute",
+    "download": "Download"
   },
   "pages": {
     "favourite-games": "Favourite games",
