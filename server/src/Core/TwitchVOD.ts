@@ -3106,16 +3106,21 @@ export class TwitchVOD {
                 return;
             }
 
-            let lastPercent = -1;
+            // let lastPercent = -1;
             // [STATUS] - Downloading 10%
-            job.on("log", (text: string) => {
+            job.on("log", (stream: string, text: string) => {
                 const match = text.match(/\[STATUS\] - Downloading (\d+)%/);
                 if (match) {
                     const percent = parseInt(match[1]);
+                    /*
                     if (percent != lastPercent && percent % 10 == 0) {
                         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Downloading chat for ${vod_id} (${percent}%)`);
                         lastPercent = percent;
                     }
+                    */
+                    job.setProgress(percent / 100);
+                } else {
+                    console.debug("chat download log text", text);
                 }
             });
 

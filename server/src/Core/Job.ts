@@ -597,8 +597,15 @@ export class Job extends EventEmitter {
     }
 
     public setProgress(progress: number): void {
-        this.progress = progress;
-        this.broadcastUpdate();
+        if (this.progress !== progress) {
+            // console.debug(`Job ${this.name} progress: ${progress}`);
+            if (progress > this.progress + 0.05) {
+                this.progress = progress;
+                this.broadcastUpdate(true); // only send update if progress has changed by more than 5%
+            } else {
+                this.progress = progress;
+            }
+        }
     }
 
     /**
@@ -639,18 +646,30 @@ export class Job extends EventEmitter {
         };
     }
 
-    public broadcastUpdate() {
+    public broadcastUpdate(noTimer = false) {
         if (this._updateTimer) clearTimeout(this._updateTimer);
-        this._updateTimer = setTimeout(async () => {
-            // console.debug(`Broadcasting job update for ${this.name}: ${this.status}`);
-            await this.getStatus();
+        if (!noTimer) {
+            this._updateTimer = setTimeout(async () => {
+                // console.debug(`Broadcasting job update for ${this.name}: ${this.status}`);
+                await this.getStatus();
+                this.emit("update", this.toAPI());
+                this._updateTimer = undefined;
+                Webhook.dispatch(Job.hasJob(this.name || "") ? "job_update" : "job_clear", {
+                    "job_name": this.name || "",
+                    "job": this.toAPI(),
+                });
+            }, 2000);
+        } else {
+            // (async () => {
+            // await this.getStatus();
             this.emit("update", this.toAPI());
-            this._updateTimer = undefined;
             Webhook.dispatch(Job.hasJob(this.name || "") ? "job_update" : "job_clear", {
                 "job_name": this.name || "",
                 "job": this.toAPI(),
             });
-        }, 2000);
+            // }
+            // )(); // ugly hack
+        }
     }
 
 }

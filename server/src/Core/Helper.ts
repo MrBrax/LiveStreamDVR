@@ -410,7 +410,7 @@ export class Helper {
      * @param jobName 
      * @returns 
      */
-    static execAdvanced(bin: string, args: string[], jobName: string): Promise<ExecReturn> {
+    static execAdvanced(bin: string, args: string[], jobName: string, progressFunction?: (log: string) => number): Promise<ExecReturn> {
         return new Promise((resolve, reject) => {
 
             const process = spawn(bin, args || [], {
@@ -442,10 +442,16 @@ export class Helper {
 
             process.stdout.on("data", (data: Stream) => {
                 stdout.push(data.toString());
+                if (progressFunction) {
+                    job.setProgress(progressFunction(data.toString()));
+                }
             });
 
             process.stderr.on("data", (data: Stream) => {
                 stderr.push(data.toString());
+                if (progressFunction) {
+                    job.setProgress(progressFunction(data.toString()));
+                }
             });
 
             process.on("close", (code) => {
@@ -975,9 +981,9 @@ export class Helper {
         do {
 
             Log.logAdvanced(LOGLEVEL.INFO, "helper", `Fetch subs page ${page}`);
-                
+
             let response;
-    
+
             try {
                 response = await this.axios.get("/helix/eventsub/subscriptions", {
                     params: {
@@ -988,13 +994,13 @@ export class Helper {
                 Log.logAdvanced(LOGLEVEL.FATAL, "helper", `Subs return: ${err}`);
                 return false;
             }
-    
+
             const json: Subscriptions = response.data;
-    
+
             subscriptions = subscriptions.concat(json.data);
-    
+
             cursor = json.pagination.cursor || "";
-    
+
         } while (cursor && page++ < maxpages);
 
         Log.logAdvanced(LOGLEVEL.INFO, "helper", `${subscriptions.length} subscriptions`);
