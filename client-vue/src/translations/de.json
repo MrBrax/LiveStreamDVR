@@ -9,8 +9,8 @@
     "clips": "Clips",
     "video_download_help": "Mit diesem Tool heruntergeladene Videos werden auf die gleiche Art bereinigt wie aufgenommene VODs, wenn ein Stream beendet ist.\n Sie werden insgesamt genauso behandelt wie aufgenommene VODs.",
     "loading": "Lade...",
-    "changing-values-here-will-most-likely-require-a-restart": "Änderungen der Werte machen in der Regel einen Neustart notwendig.",
-    "this-is-a-bad-idea-if-any-of-your-channels-are-live": "Dies ist eine schlechte Idee, sollte einer deiner Kanäle live sein."
+    "changing-values-here-will-most-likely-require-a-restart": "Neustart nach Änderung der Werte in der Regel notwendig.",
+    "this-is-a-bad-idea-if-any-of-your-channels-are-live": "Sollte einer deiner Kanäle live sein, ist dies eine schlechte Idee."
   },
   "vod": {
     "add_comment": "Kommentar hinzufügen",
@@ -30,7 +30,7 @@
       "fix-issues": "Probleme beheben"
     },
     "chapters": {
-      "offset": "Abweichung",
+      "offset": "Versatz",
       "started": "Gestartet",
       "duration": "Dauer",
       "category": "Kategorie",
@@ -58,22 +58,23 @@
     "channels": "Kanäle",
     "new-channel": "Neue Kanäle",
     "config": "Konfiguration",
-    "keyvalue": "Schlüsselwert",
+    "keyvalue": "Schlüsselwerte",
     "notifications": "Benachrichtigungen",
     "client-settings": "Client-Einstellungen"
   },
   "forms": {
     "channel": {
       "login": "Login",
-      "login_help": "Kanal-Login, kleingeschrieben. Dies ist der Teil, der nach dem Domänennamen kommt, und nicht der Anzeigename.\n Du kannst hier einen Link zu einer Kanalseite einfügen, um den Login zu setzen.",
+      "login_help": "Kanal-Login, kleingeschrieben. Der Teil, der in der URL nach dem Domänennamen und dem Slash kommt (nicht der Anzeigename).\n Alternativ Link zu einer Kanalseite einfügen, um den Login zu setzen.",
       "quality": "Qualität",
       "match-keywords": "Passende Schlüsselwörter",
       "add-channel": "Kanal hinzufügen",
-      "download-chat": "Chat nach dem vollständigen Erfassen des Videos herunterladen",
+      "download-chat": "Chat nach abgeschlossener Aufnahme des Videos herunterladen",
       "live-chat-download": "Live-Chat herunterladen",
-      "burn-chat": "Chats nach dem Herunterladen einbrennen",
+      "burn-chat": "Chats nach dem Herunterladen in Video einbetten",
       "no-capture": "Streams nicht aufnehmen (Deaktiviert Aufnahmen vollständig)",
-      "live-channels-warning": "Live-Kanäle werden erst aufgenommen, wenn sie das nächste Mal live sind."
+      "live-channels-warning": "Live-Kanäle werden erst aufgenommen, wenn sie das nächste Mal live sind.",
+      "no-cleanup": "Keine Bereinigung der VODs nach beendeter Aufnahme"
     },
     "config": {
       "validate-external-url": "Externe URL validieren"
@@ -84,13 +85,13 @@
     }
   },
   "clientsetting": {
-    "useSpeech": "Benutze Sprache um neue Streams anzukündigen",
-    "singlePage": "Jeder Kanal nutzt eine eigene Seite",
-    "enableNotifications": "Aktiviere Desktop-Benachrichtigungen",
-    "animationsEnabled": "Aktiviere Animationen",
-    "tooltipStatic": "Statische Tooltips",
-    "useRelativeTime": "Benutze relative Zeiten",
-    "useWebsockets": "Benutze Websockets um die grafische Oberfläche zu aktualisieren"
+    "useSpeech": "Sprache benutzen um neue Streams anzukündigen",
+    "singlePage": "Eigene Seite pro Kanal zeigen",
+    "enableNotifications": "Desktop-Benachrichtigungen aktivieren",
+    "animationsEnabled": "Animationen aktivieren",
+    "tooltipStatic": "Tooltips statisch",
+    "useRelativeTime": "Relative Zeitangaben benutzen",
+    "useWebsockets": "Websockets benutzen um die grafische Oberfläche zu aktualisieren"
   },
   "configgroup": {
     "Binaries": "Anwendungen",
@@ -102,7 +103,7 @@
     "Video": "Video",
     "Developer": "Entwickler",
     "Advanced": "Erweitert",
-    "Schedules": "Pläne"
+    "Schedules": "Planungen"
   },
   "config": {
     "password": "Passwort"
@@ -124,14 +125,14 @@
       "vod-download": "VOD herunterladen",
       "chat-download": "Chat herunterladen",
       "clip-download": "Clip herunterladen",
-      "chat-dump": "Chat dump",
-      "current-jobs": "Aktuelle Jobs",
+      "chat-dump": "Chat-Dump",
+      "current-jobs": "Aktuelle Aufgaben",
       "reset-channels": "Kanäle zurücksetzen"
     }
   },
   "components": {
     "filemanager": {
-      "these-files-are-not-downloadable-due-to-a-config-setting": "Die Dateien können wegen einer Einstellung in der Konfiguration nicht heruntergeladen werden.",
+      "these-files-are-not-downloadable-due-to-a-config-setting": "Eine Einstellung in der Konfiguration lässt das Herunterladen der Dateien nicht zu.",
       "name": "Name",
       "size": "Größe",
       "last-modified": "Zuletzt geändert",
@@ -146,9 +147,9 @@
     }
   },
   "jobs": {
-    "no-jobs-running": "Keine laufenden Jobs"
+    "no-jobs-running": "Es werden keine Aufgaben ausgeführt"
   },
   "input": {
-    "search": "Suche..."  
+    "search": "Suche..."
   }
 }
