@@ -21,6 +21,14 @@ $anchor-height: 60px;
 $boxart-width: 140px;
 $boxart-height: 190px;
 
+:root {
+    --body-background: #fdfdfd;
+    --body-color: #111;
+    --section-background-color: #fdfdfd;
+    --section-title-background-color: #277dec;
+    --card-background-color: #fdfdfd;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -32,8 +40,8 @@ html {
 */
 
 body {
-    background: #fdfdfd;
-    color: #111;
+    background: var(--body-background);
+    color: var(--body-color);
     font-family: Roboto, Helvetica, Arial;
     font-size: 14px;
     margin: 0;

@@ -152,12 +152,16 @@ export default defineComponent({
             }
         });
     },
+    mounted() {
+        document.body.classList.add("is-dark");
+    },
     unmounted() {
         console.debug("App unmounted");
         this.disconnectWebsocket();
         if (this.faviconSub) this.faviconSub();
         if (this.vodUpdateInterval) clearTimeout(this.vodUpdateInterval);
         if (this.tickerInterval) clearTimeout(this.tickerInterval);
+        document.body.classList.remove("is-dark");
     },
     methods: {
         async fetchData() {

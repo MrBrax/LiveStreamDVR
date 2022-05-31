@@ -208,7 +208,7 @@
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
 
     .card-title {
-        background: #3261c7;
+        background: var(--section-title-background-color);
         color: #fff;
         padding: 4px 6px;
         h2 {
@@ -220,7 +220,7 @@
 
     .card-content {
         padding: 8px;
-        background: #fff;
+        background: var(--card-background-color);
     }
 
     &:not(:last-child) {

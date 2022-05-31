@@ -6,8 +6,8 @@ hr {
 
 .section {
     /* border: 1px solid #ccc; */
-    background: #fff;
-    box-shadow: 0 5px 10px #ddd;
+    background: var(--section-background-color);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
     margin: 0.5em;
 
     border-radius: 0.5em;
@@ -23,7 +23,7 @@ hr {
 
 .section-title {
     font-weight: 700;
-    background: #277dec;
+    background: var(--section-title-background-color);
     color: #fff;
     padding: 5px 10px;
 

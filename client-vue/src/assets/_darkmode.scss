@@ -1,9 +1,10 @@
 /** Black theme **/
 @media (prefers-color-scheme: dark) {
-    body {
-        background-color: #111;
-        color: #e6e6e6;
-    }
+    
+    // body {
+    //     background-color: #111;
+    //     color: #e6e6e6;
+    // }
 
     a {
         color: #75ccee;
@@ -17,15 +18,15 @@
         border-top: 1px solid #111;
     }
 
-    .section {
-        background-color: #222;
-        box-shadow: none;
-        //box-shadow: 0 5px 10px #131313;
-    }
+    // .section {
+    //     background-color: #222;
+    //     box-shadow: none;
+    //     // box-shadow: 0 5px 10px #131313;
+    // }
 
-    .section-title {
-        background-color: #184279;
-    }
+    // .section-title {
+    //     background-color: #184279;
+    // }
 
     .streamer-title {
         background-color: #2b375b;
@@ -124,11 +125,11 @@
         }
     }
 
-    .card {
-        .card-content {
-            background-color: #3e3e3e;
-        }
-    }
+    // .card {
+    //     .card-content {
+    //         background-color: #3e3e3e;
+    //     }
+    // }
 
     .log_viewer {
         color: #888;
@@ -215,4 +216,12 @@
         }
     }
 
+}
+
+body.is-dark {
+    --body-background: #111;
+    --body-color: #e6e6e6;
+    --section-background-color: #222;
+    --section-title-background-color: #184279;
+    --card-background-color: #3e3e3e;
 }
