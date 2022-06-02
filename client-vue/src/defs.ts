@@ -16,7 +16,8 @@ export const defaultConfig: ClientSettings = {
     vodsToShowInMenu: 4,
     // alwaysShowCapturingVodInMenu: false
     minimizeVodsByDefault: false,
-    language: "en"
+    language: "en",
+    theme: "auto",
 };
 
 interface ClientSettingField {
@@ -45,5 +46,5 @@ export const defaultConfigFields: Record<keyof ClientSettings, ClientSettingFiel
     // alwaysShowCapturingVodInMenu: { type: "boolean", default: false, name: "Always show the capturing VOD in the menu" },
     minimizeVodsByDefault: { type: "boolean", default: false, name: "Minimize VODs by default" },
     language: { type: "string", default: "en", name: "Language", hidden: true },
-    theme: { type: "choice", default: "auto", name: "Theme", choices: { auto: "Auto", default: "Default", dark: "Dark", hotdogstand: "Hot dog stand" } }
+    theme: { type: "choice", default: "auto", name: "Theme", choices: { auto: "Auto", default: "Default", dark: "Dark", hotdogstand: "Hot dog stand", windows95: "Windows 95", basalt: "Basalt", } },
 };

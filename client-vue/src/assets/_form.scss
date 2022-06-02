@@ -51,7 +51,7 @@
 
 .input-help {
     font-size: 85%;
-    color: #777;
+    color: var(--input-help);
     font-style: italic;
     margin: 0;
     padding: 0.2em 0 0 0;
@@ -71,7 +71,7 @@
 }
 
 .label {
-    color: #363636;
+    color: var(--label-color);
     display: block;
     font-weight: 700;
     font-size: 1rem;

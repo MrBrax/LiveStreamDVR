@@ -31,12 +31,34 @@ $boxart-height: 190px;
     --section-background-color: #fdfdfd;
     --section-title-background-color: #277dec;
     --card-background-color: #fdfdfd;
+    --card-title-background-color: #3261c7;;
     --video-description-background-color: #f2f2f2;
     --video-controls-background-color: #e2e9f9;
     --video-segments-background-color: #fff1fa;
 
     --link-color: #277dec;
     --link-hover-color: #184279;
+
+    --input-background-color: #fff;
+    --input-border-color: #ccc;
+    --input-color: #333;
+    --input-help: #777;
+    --input-focus-color: #000;
+    --input-focus-border-color: #555;
+    --input-focus-background-color: #eff6ff;
+
+    --label-color: #363636;
+
+    --statustab-background: #eee;
+    --statustab-border: #ccc;
+    --statustab-color: #333;
+
+    --hr-color: #ccc;
+
+    --notice-background-color: #eee;
+    --notice-color: #555;
+
+    --border-radius: 0;
 }
 
 * {
@@ -173,9 +195,9 @@ svg[data-icon] {
 
 .notice {
     // font-size: 0.9em;
-    background: #eee;
-    padding: 10px;
-    color: #555;
+    background: var(--notice-background-color);
+    padding: 0.8em;
+    color: var(--notice-color);
 }
 
 .anchor {

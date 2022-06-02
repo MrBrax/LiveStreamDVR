@@ -1,5 +1,5 @@
 <template>
-    <div id="jobs-status" v-if="store.jobList !== undefined">
+    <div class="statustab statustab-jobs" v-if="store.jobList !== undefined">
         <table>
             <tr v-for="job in store.jobList" :key="job.name">
                 <td>

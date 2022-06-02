@@ -153,10 +153,9 @@ export default defineComponent({
         });
     },
     mounted() {
-        if (this.store.clientCfg("theme") === "dark") {
-            document.body.classList.add("is-dark");
-        } else if (this.store.clientCfg("theme") === "hotdogstand") {
-            document.body.classList.add("is-hotdogstand");
+        const theme = this.store.clientCfg("theme");
+        if (theme !== "" && theme !== "auto"){
+            document.body.classList.add(`is-${theme}`);
         }
     },
     unmounted() {
@@ -165,7 +164,10 @@ export default defineComponent({
         if (this.faviconSub) this.faviconSub();
         if (this.vodUpdateInterval) clearTimeout(this.vodUpdateInterval);
         if (this.tickerInterval) clearTimeout(this.tickerInterval);
-        document.body.classList.remove("is-dark");
+        const theme = this.store.clientCfg("theme");
+        if (theme !== "" && theme !== "auto"){
+            document.body.classList.remove(`is-${theme}`);
+        }
     },
     methods: {
         async fetchData() {
