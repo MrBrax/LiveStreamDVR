@@ -4,6 +4,8 @@
 // @import "~@fontsource/roboto/500.css";
 @import "@fontsource/roboto/latin.css";
 @import "@fontsource/roboto-condensed/latin.css";
+@import "@fontsource/poppins";
+@import "@fontsource/poppins/600";
 
 // @import "bulma/sass/utilities/_all";
 // @import "bulma/sass/elements/button";
@@ -24,9 +26,17 @@ $boxart-height: 190px;
 :root {
     --body-background: #fdfdfd;
     --body-color: #111;
+    --body-font: Roboto, Helvetica, Arial;
+    --text-darker: #3d3d3d;
     --section-background-color: #fdfdfd;
     --section-title-background-color: #277dec;
     --card-background-color: #fdfdfd;
+    --video-description-background-color: #f2f2f2;
+    --video-controls-background-color: #e2e9f9;
+    --video-segments-background-color: #fff1fa;
+
+    --link-color: #277dec;
+    --link-hover-color: #184279;
 }
 
 * {
@@ -42,7 +52,8 @@ html {
 body {
     background: var(--body-background);
     color: var(--body-color);
-    font-family: Roboto, Helvetica, Arial;
+    // font-family: /* Poppins, */ Roboto, Helvetica, Arial;
+    font-family: var(--body-font);
     font-size: 14px;
     margin: 0;
     padding: 0;
@@ -76,9 +87,11 @@ h3 {
 
 a {
     cursor: pointer;
+    color: var(--link-color);
+    &:hover {
+        color: var(--link-hover-color);
+    }
 }
-
-
 
 @import "animations";
 @import "layout";

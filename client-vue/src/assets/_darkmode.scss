@@ -6,12 +6,12 @@
     //     color: #e6e6e6;
     // }
 
-    a {
-        color: #75ccee;
-        &:hover {
-            color: #fff;
-        }
-    }
+    // a {
+    //     color: #75ccee;
+    //     &:hover {
+    //         color: #fff;
+    //     }
+    // }
 
     hr {
         background-color: #444;
@@ -42,21 +42,21 @@
         color: #d7d7d7;
     }
 
-    .video-description {
-        background-color: #484848;
-    }
+    // .video-description {
+    //     background-color: #484848;
+    // }
 
     .video-chapters {
         background-color: #333;
     }
 
-    .video-controls {
-        background-color: #384d7d;
-    }
+    // .video-controls {
+    //     background-color: #384d7d;
+    // }
 
-    .video-segments {
-        background-color: #4c5884;
-    }
+    // .video-segments {
+    //     background-color: #4c5884;
+    // }
 
     .video-status {
         background-color: #44683f;
@@ -94,11 +94,11 @@
         }
     }
 
-    .info-columns {
-        .video-info {
-            color: #c8c8c8;
-        }
-    }
+    // .info-columns {
+    //     .video-info {
+    //         color: #c8c8c8;
+    //     }
+    // }
 
     #js-status,
     #jobs-status {
@@ -221,7 +221,24 @@
 body.is-dark {
     --body-background: #111;
     --body-color: #e6e6e6;
+    --text-darker: #c8c8c8;
     --section-background-color: #222;
     --section-title-background-color: #184279;
     --card-background-color: #3e3e3e;
+    --video-description-background-color: #484848;
+    --video-controls-background-color: #384d7d;
+    --video-segments-background-color: #4c5884;
+
+    --link-color: #75ccee;
+    --link-hover-color: #fff;
+}
+
+body.is-hotdogstand {
+    --body-background: #ff0;
+    --body-color: #000;
+    --text-darker: #222;
+    --section-background-color: #f00;
+    --section-title-background-color: #000;
+    --card-background-color: #f00;
+    --body-font: 'Courier New', monospace;
 }

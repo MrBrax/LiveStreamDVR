@@ -44,5 +44,6 @@ export const defaultConfigFields: Record<keyof ClientSettings, ClientSettingFiel
     vodsToShowInMenu: { type: "number", default: 4, name: "Number of VODs to show in the menu" },
     // alwaysShowCapturingVodInMenu: { type: "boolean", default: false, name: "Always show the capturing VOD in the menu" },
     minimizeVodsByDefault: { type: "boolean", default: false, name: "Minimize VODs by default" },
-    language: { type: "string", default: "en", name: "Language", hidden: true }
+    language: { type: "string", default: "en", name: "Language", hidden: true },
+    theme: { type: "choice", default: "auto", name: "Theme", choices: { auto: "Auto", default: "Default", dark: "Dark", hotdogstand: "Hot dog stand" } }
 };

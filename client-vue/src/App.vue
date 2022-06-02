@@ -153,7 +153,11 @@ export default defineComponent({
         });
     },
     mounted() {
-        document.body.classList.add("is-dark");
+        if (this.store.clientCfg("theme") === "dark") {
+            document.body.classList.add("is-dark");
+        } else if (this.store.clientCfg("theme") === "hotdogstand") {
+            document.body.classList.add("is-hotdogstand");
+        }
     },
     unmounted() {
         console.debug("App unmounted");
