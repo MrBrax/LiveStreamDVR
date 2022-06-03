@@ -28,6 +28,7 @@ $boxart-height: 190px;
     --body-color: #111;
     --body-font: Roboto, Helvetica, Arial;
     --text-darker: #3d3d3d;
+
     --section-background-color: #fdfdfd;
     --section-title-background-color: #277dec;
     --card-background-color: #fdfdfd;
@@ -59,6 +60,8 @@ $boxart-height: 190px;
     --notice-color: #555;
 
     --border-radius: 0;
+
+    --gamelist-favourite: #7acc92;
 }
 
 * {
@@ -239,3 +242,7 @@ svg[data-icon] {
 
 @import "darkmode";
 @import "mobile";
+
+.is-text-darker {
+    color: var(--text-darker);
+}

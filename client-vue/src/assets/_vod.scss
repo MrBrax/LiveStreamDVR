@@ -326,7 +326,6 @@
 }
 
 .game-list {
-    $favourite-bg: #7acc92;
 
     width: 100%;
     border-collapse: collapse;
@@ -346,10 +345,10 @@
     }
 
     tr.favourite {
-        background-color: $favourite-bg;
+        background-color: var(--gamelist-favourite);
 
         td {
-            background-color: $favourite-bg;
+            background-color: var(--gamelist-favourite);
         }
     }
 
@@ -358,15 +357,15 @@
     }
 
     a {
-        color: blue;
+        // color: blue;
         text-decoration: none;
 
-        &:hover {
-            color: #4481d1;
-        }
-
-        &:visited {
-            color: purple;
-        }
+        // &:hover {
+        //     color: #4481d1;
+        // }
+        // 
+        // &:visited {
+        //     color: purple;
+        // }
     }
 }
