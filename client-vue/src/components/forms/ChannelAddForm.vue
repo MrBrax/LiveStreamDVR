@@ -2,9 +2,9 @@
     <form method="POST" enctype="multipart/form-data" action="#" ref="form" @submit="submitForm">
         <div class="field">
             <label class="label">{{ $t('forms.channel.login') }} <span class="required">*</span></label>
-            <div class="control">
+            <div class="control has-addon">
                 <input
-                    class="input input-required"
+                    class="input"
                     type="text"
                     name="login"
                     v-model="formData.login"
@@ -12,16 +12,28 @@
                     required
                     pattern="^[a-z0-9_]{4,25}$"
                 />
-                <p class="input-help">
-                    {{ $t('forms.channel.login_help') }}
-                </p>
+                <button class="button is-confirm" type="button" @click="fetchLogin" :disabled="!formData.login">
+                    <span class="icon"><fa icon="sync" /></span>
+                    <span>{{ $t('forms.channel.check') }}</span>
+                </button>
             </div>
+            <p class="input-help">
+                {{ $t('forms.channel.login_help') }}
+            </p>
+        </div>
+        <div class="field" v-if="channelData && channelData.login">
+            <ul>
+                <li>Login: <strong>{{ channelData.login }}</strong></li>
+                <li>Display name: <strong>{{ channelData.display_name }}</strong></li>
+                <li>Description: <strong>{{ channelData.description }}</strong></li>
+                <li>Avatar: <img :src="channelData.profile_image_url" rel="nofollow" width="64" height="64" /></li>
+            </ul>
         </div>
         <div class="field">
             <label class="label">{{ $t('forms.channel.quality') }} <span class="required">*</span></label>
             <div class="control">
                 <input
-                    class="input input-required"
+                    class="input"
                     type="text"
                     name="quality"
                     v-model="formData.quality"
@@ -93,6 +105,7 @@ import { VideoQualityArray } from "../../../../common/Defs";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
+import { ChannelData } from "@common/Channel";
 library.add(faUserPlus);
 
 export default defineComponent({
@@ -115,6 +128,7 @@ export default defineComponent({
                 no_capture: false,
                 no_cleanup: false,
             },
+            channelData: {} as ChannelData,
         };
     },
     methods: {
@@ -186,6 +200,14 @@ export default defineComponent({
                 }
             }
         },
+        fetchLogin() {
+            this.$http.get(`/api/v0/twitchapi/user/${this.formData.login}`).then((response) => {
+                const json = response.data;
+                if (json.status == "OK") {
+                    this.channelData = json.data;
+                }
+            });
+        }
     },
     computed: {
         formStatusClass(): Record<string, boolean> {

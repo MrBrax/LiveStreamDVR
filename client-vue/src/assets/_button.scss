@@ -118,12 +118,15 @@
     }
 
     &:disabled {
-        opacity: 0.5;
+        // opacity: 0.5;
         cursor: not-allowed;
 
+        background-color: #848484;
+        color: #ddd;
+
         &:hover {
-            background-color: $base-bg;
-            border-color: darken($base-bg, 5%);
+            background-color: #848484;
+            // border-color: darken($base-bg, 5%);
         }
 
         &:active {
