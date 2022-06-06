@@ -112,6 +112,10 @@
                 <span class="icon"><fa icon="trash"></fa></span>
                 <span>{{ $t('buttons.delete') }}</span>
             </button>
+            <button class="button is-small is-danger" @click="deleteAllVods">
+                <span class="icon"><fa icon="video-slash"></fa></span>
+                <span>{{ $t('buttons.delete-all-vods') }}</span>
+            </button>
             <button class="button is-small is-confirm" @click="subscribeChannel">
                 <span class="icon"><fa icon="sync"></fa></span>
                 <span>{{ $t('buttons.subscribe') }}</span>
@@ -166,7 +170,7 @@ export default defineComponent({
     methods: {
         submitForm(event: Event) {
 
-            this.formStatusText = "Loading...";
+            this.formStatusText = this.$t('messages.loading');
             this.formStatus = "";
 
             this.$http
@@ -196,8 +200,18 @@ export default defineComponent({
         },
         deleteChannel() {
             if (!confirm(`Do you want to delete "${this.channel.login}"? This cannot be undone.`)) return;
+
+            const deleteVodsToo = confirm(
+                `Do you also want to delete all VODs for "${this.channel.login}"? OK to delete all VODs and channel, Cancel to delete only the channel.`
+            );
+
             this.$http
-                .delete(`/api/v0/channels/${this.channel.login}`)
+                .delete(`/api/v0/channels/${this.channel.login}`,
+                    {
+                        params: {
+                            deletevods: deleteVodsToo ? "1" : "0",
+                        },
+                    })
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);
@@ -257,6 +271,24 @@ export default defineComponent({
                 .post(`/api/v0/channels/${this.channel.login}/rename`, {
                     new_login: newLogin,
                 })
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.$emit("formSuccess", json);
+                    this.store.fetchAndUpdateStreamerList();
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) {
+                        alert(err.response.data.message);
+                    }
+                });
+        },
+        deleteAllVods() {
+            if (!confirm(`Do you want to delete all VODs for "${this.channel.login}"? This cannot be undone.`)) return;
+            this.$http
+                .post(`/api/v0/channels/${this.channel.login}/deleteallvods`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);

@@ -1,5 +1,5 @@
 .input {
-    background-color: #fff;
+    background-color: var(--input-background-color);
 
     font-family: inherit;
     font-size: 1.1em;
@@ -8,11 +8,11 @@
     margin: 0.2em 0;
     border-radius: 0.4em;
 
-    color: #333;
-    border: 1px solid #ccc;
+    color: var(--input-color);
+    border: 1px solid var(--input-border-color);
 
     &:invalid {
-        border-color: #f00;
+        border-color: #c10b0b;
 
         &:hover {
             border-color: #cc0303;
@@ -24,11 +24,11 @@
     }
 
     &:focus {
-        color: #000;
         // box-shadow: 0 0 3px inset #eee;
         border-width: 2px;
-        border-color: #555;
-        background-color: #eff6ff;
+        color: var(--input-focus-color);
+        border-color: var(--input-focus-border-color);
+        background-color: var(--input-focus-background-color);
         padding: calc(0.5em - 1px) calc(0.8em - 1px);
         outline: none;
     }
@@ -86,20 +86,20 @@
 
 .select {
     select {
-        background-color: #fff;
+        background-color: var(--input-background-color);
 
         min-width: 200px;
         width: 100%;
 
-        font-family: inherit;
+        font-family: var(--body-font);
         font-size: 1.1em;
 
         padding: 0.6em 0.6em;
         margin: 0.2em 0;
         border-radius: 0.4em;
 
-        color: #333;
-        border: 1px solid #ccc;
+        color: var(--input-color);
+        border: 1px solid var(--input-border-color);
 
         box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.08);
 
@@ -116,13 +116,19 @@
         }
 
         &:focus {
-            color: #000;
+            color: var(--input-focus-color);
             // box-shadow: 0 0 3px inset #eee;
             border-width: 2px;
-            border-color: #555;
-            background-color: #eff6ff;
+            border-color: var(--input-focus-border-color);
+            background-color: var(--input-focus-background-color);
             padding: calc(0.6em - 1px);
             outline: none;
+        }
+
+        option {
+            background-color: var(--input-background-color);
+            color: var(--input-color);
+            font-family: var(--body-font);
         }
     }
 }

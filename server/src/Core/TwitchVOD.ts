@@ -215,7 +215,7 @@ export class TwitchVOD {
         // const dur = this.getDurationLive();
         // this.duration_live = dur === false ? -1 : dur;
 
-        this.webpath = `${Config.getInstance().cfg<string>("basepath")}/vods/${Config.getInstance().cfg<boolean>("channel_folders") && this.streamer_login ? this.streamer_login : ""}`;
+        this.webpath = `${Config.getInstance().cfg<string>("basepath", "")}/vods/${Config.getInstance().cfg<boolean>("channel_folders") && this.streamer_login ? this.streamer_login : ""}`;
 
         this.comment = this.json.comment;
         this.prevent_deletion = this.json.prevent_deletion ?? false;
@@ -1660,7 +1660,7 @@ export class TwitchVOD {
         return this.chapters.some(chapter => chapter.game?.isFavourite());
     }
 
-    public async delete(): Promise<void> {
+    public async delete(): Promise<boolean> {
 
         if (!this.directory) {
             throw new Error("No directory set for deletion");
@@ -1684,6 +1684,8 @@ export class TwitchVOD {
 
         const channel = this.getChannel();
         if (channel) channel.removeVod(this.basename);
+
+        return fs.existsSync(this.filename);
 
     }
 
@@ -2242,7 +2244,7 @@ export class TwitchVOD {
                 }
             }
 
-            console.log(`VOD file ${filename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})!`);
+            if (Config.debug) console.log(`VOD file ${filename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})!`);
 
             if (filename === this.filename) {
                 if (!fs.existsSync(this.filename)) {
@@ -2266,10 +2268,10 @@ export class TwitchVOD {
                         }, 5000);
                     }
                 } else {
-                    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD JSON ${this.basename} exists (again?) ${eventType}`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `VOD JSON ${this.basename} exists (again?) ${eventType}`);
                 }
             } else if (this.segments.some(s => s.filename === filename)) {
-                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD segment ${filename} changed (${eventType})!`);
+                if (Config.debug) console.debug(`VOD segment ${filename} changed (${eventType})!`);
                 ClientBroker.notify(
                     "Segment changed externally",
                     path.basename(filename),
@@ -2277,7 +2279,7 @@ export class TwitchVOD {
                     "system"
                 );
             } else {
-                console.log(LOGLEVEL.INFO, "vodclass", `VOD file ${filename} changed (${eventType})!`);
+                if (Config.debug) console.debug(`VOD file ${filename} changed (${eventType})!`);
                 ClientBroker.notify(
                     "VOD file changed externally",
                     path.basename(filename),
@@ -3106,16 +3108,21 @@ export class TwitchVOD {
                 return;
             }
 
-            let lastPercent = -1;
+            // let lastPercent = -1;
             // [STATUS] - Downloading 10%
-            job.on("log", (text: string) => {
+            job.on("log", (stream: string, text: string) => {
                 const match = text.match(/\[STATUS\] - Downloading (\d+)%/);
                 if (match) {
                     const percent = parseInt(match[1]);
+                    /*
                     if (percent != lastPercent && percent % 10 == 0) {
                         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Downloading chat for ${vod_id} (${percent}%)`);
                         lastPercent = percent;
                     }
+                    */
+                    job.setProgress(percent / 100);
+                } else {
+                    console.debug("chat download log text", text);
                 }
             });
 

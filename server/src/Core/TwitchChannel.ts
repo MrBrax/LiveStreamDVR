@@ -658,14 +658,30 @@ export class TwitchChannel {
         }, 3000);
     }
 
-    public async deleteAllVods() {
+    /**
+     * Delete all VODs for channel without deleting the channel
+     * @throws
+     * @returns 
+     */
+    public async deleteAllVods(): Promise<boolean> {
+        const total_vods = this.vods_list.length;
+
+        if (total_vods === 0) {
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `No vods to delete for ${this.login}`);
+            throw new Error(`No vods to delete for ${this.login}`);
+        }
+
+        let deleted_vods = 0;
         for (const vod of this.vods_list) {
             try {
                 await vod.delete();
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to delete vod ${vod.basename}: ${(error as Error).message}`);
+                continue;
             }
+            deleted_vods++;
         }
+        return deleted_vods == total_vods;
     }
 
     /**
@@ -1197,7 +1213,7 @@ export class TwitchChannel {
 
     }
 
-    public static async subscribe(channel_id: string): Promise<boolean> {
+    public static async subscribe(channel_id: string, force = false): Promise<boolean> {
 
         if (!Config.getInstance().cfg("app_url")) {
             throw new Error("app_url is not set");
@@ -1221,7 +1237,7 @@ export class TwitchChannel {
 
         for (const sub_type of Helper.CHANNEL_SUB_TYPES) {
 
-            if (KeyValue.getInstance().get(`${channel_id}.sub.${sub_type}`)) {
+            if (KeyValue.getInstance().get(`${channel_id}.sub.${sub_type}`) && !force) {
                 Log.logAdvanced(LOGLEVEL.INFO, "helper", `Skip subscription to ${channel_id}:${sub_type} (${streamer_login}), in cache.`);
                 continue; // todo: alert
             }

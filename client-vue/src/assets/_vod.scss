@@ -205,18 +205,18 @@
 
 .video-description {
     padding: 10px;
-    background: #f2f2f2;
-    border-left: 1px solid #e3e3e3;
-    border-right: 1px solid #e3e3e3;
+    background: var(--video-description-background-color);
+    // border-left: 1px solid #e3e3e3;
+    // border-right: 1px solid #e3e3e3;
 }
 
 .video-controls {
     padding: 10px;
-    background-color: #e2e9f9;
-    border-top: 1px solid #d6dbf2;
-    border-bottom: 1px solid #d6dbf2;
-    border-left: 1px solid #e3e3e3;
-    border-right: 1px solid #e3e3e3;
+    background-color: var(--video-controls-background-color);
+    // border-top: 1px solid #d6dbf2;
+    // border-bottom: 1px solid #d6dbf2;
+    // border-left: 1px solid #e3e3e3;
+    // border-right: 1px solid #e3e3e3;
 
     .icon {
         margin-right: 0.3em;
@@ -226,24 +226,24 @@
 .video-status {
     padding: 10px;
     background-color: #b3ddad;
-    border-top: 1px solid #a1bd9b;
-    border-bottom: 1px solid #a1bd9b;
-    border-left: 1px solid #e3e3e3;
-    border-right: 1px solid #e3e3e3;
+    // border-top: 1px solid #a1bd9b;
+    // border-bottom: 1px solid #a1bd9b;
+    // border-left: 1px solid #e3e3e3;
+    // border-right: 1px solid #e3e3e3;
 }
 
 .video-segments {
     padding: 10px;
-    background-color: #fff1fa;
-    border-top: 1px solid #d6dbf2;
-    border-left: 1px solid #e3e3e3;
-    border-right: 1px solid #e3e3e3;
+    background-color: var(--video-segments-background-color);
+    // border-top: 1px solid #d6dbf2;
+    // border-left: 1px solid #e3e3e3;
+    // border-right: 1px solid #e3e3e3;
 }
 
 .video-chapters {
-    border-left: 1px solid #e3e3e3;
-    border-right: 1px solid #e3e3e3;
-    border-bottom: 1px solid #e3e3e3;
+    // border-left: 1px solid #e3e3e3;
+    // border-right: 1px solid #e3e3e3;
+    // border-bottom: 1px solid #e3e3e3;
 }
 
 .video-error {
@@ -313,7 +313,7 @@
     }
 
     .video-info {
-        color: #3d3d3d;
+        color: var(--text-darker);
         margin: 0;
         padding: 0;
         list-style: none;
@@ -326,7 +326,6 @@
 }
 
 .game-list {
-    $favourite-bg: #7acc92;
 
     width: 100%;
     border-collapse: collapse;
@@ -346,10 +345,10 @@
     }
 
     tr.favourite {
-        background-color: $favourite-bg;
+        background-color: var(--gamelist-favourite);
 
         td {
-            background-color: $favourite-bg;
+            background-color: var(--gamelist-favourite);
         }
     }
 
@@ -358,15 +357,15 @@
     }
 
     a {
-        color: blue;
+        // color: blue;
         text-decoration: none;
 
-        &:hover {
-            color: #4481d1;
-        }
-
-        &:visited {
-            color: purple;
-        }
+        // &:hover {
+        //     color: #4481d1;
+        // }
+        // 
+        // &:visited {
+        //     color: purple;
+        // }
     }
 }

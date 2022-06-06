@@ -571,7 +571,8 @@
                                             <!-- video editor -->
                                             <router-link
                                                 rel="noreferrer"
-                                                aria-label="Open on Twitch"
+                                                aria-label="Open in editor"
+                                                title="Open in editor"
                                                 :to="{
                                                     name: 'Editor',
                                                     params: { vod: vod?.basename },
@@ -588,6 +589,7 @@
                                                 target="_blank"
                                                 rel="noreferrer"
                                                 aria-label="Open on Twitch"
+                                                title="Open on Twitch"
                                             >
                                                 <span class="icon"><fa icon="external-link-alt"></fa></span>
                                             </a>
@@ -609,7 +611,7 @@
 
                                 <!-- title -->
                                 <td>
-                                    <span class="text-overflow">{{ chapter.title }}</span>
+                                    <span class="text-overflow is-text-darker">{{ chapter.title }}</span>
                                 </td>
 
                                 <!-- viewer count -->

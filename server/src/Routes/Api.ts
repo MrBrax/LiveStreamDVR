@@ -25,6 +25,7 @@ router.all("/hook", Hook.Hook);
 router.get("/settings", Settings.GetSettings);
 router.put("/settings", Settings.SaveSettings);
 router.post("/settings/validate_url", Settings.ValidateExternalURL);
+router.get("/settings/debug", Settings.SetDebug);
 
 router.get("/channels", Channels.ListChannels);
 router.post("/channels", Channels.AddChannel);
@@ -37,6 +38,7 @@ router.post("/channels/:login/cleanup", Channels.CleanupChannelVods);
 router.post("/channels/:login/refresh", Channels.RefreshChannel);
 router.post("/channels/:login/force_record", Channels.ForceRecord);
 router.post("/channels/:login/rename", Channels.RenameChannel);
+router.post("/channels/:login/deleteallvods", Channels.DeleteAllChannelVods);
 
 router.get("/vod/:basename", Vod.GetVod);
 router.post("/vod/:basename", Vod.EditVod);

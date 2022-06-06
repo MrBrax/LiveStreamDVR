@@ -152,12 +152,22 @@ export default defineComponent({
             }
         });
     },
+    mounted() {
+        const theme = this.store.clientCfg("theme");
+        if (theme !== "" && theme !== "auto"){
+            document.body.classList.add(`is-${theme}`);
+        }
+    },
     unmounted() {
         console.debug("App unmounted");
         this.disconnectWebsocket();
         if (this.faviconSub) this.faviconSub();
         if (this.vodUpdateInterval) clearTimeout(this.vodUpdateInterval);
         if (this.tickerInterval) clearTimeout(this.tickerInterval);
+        const theme = this.store.clientCfg("theme");
+        if (theme !== "" && theme !== "auto"){
+            document.body.classList.remove(`is-${theme}`);
+        }
     },
     methods: {
         async fetchData() {

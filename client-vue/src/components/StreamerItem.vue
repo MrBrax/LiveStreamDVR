@@ -111,7 +111,8 @@
                     <span v-if="averageVodBitrate">Average bitrate: {{ averageVodBitrate / 1000 }} kbps</span>
                 </p>
                 <button class="button is-confirm" @click="fetchTwitchVods">
-                    <span class="icon"><fa icon="download"></fa></span> Fetch vod list
+                    <span class="icon"><fa icon="download"></fa></span>
+                    <span>{{ $t('vod.fetch-vod-list') }}</span>
                 </button>
                 <hr />
                 <div class="video-download-menu-item" v-for="vod in twitchVods" :key="vod.id">
@@ -130,7 +131,8 @@
                     </ul>
                     <br />
                     <button class="button is-small is-confirm" @click="downloadVideo(vod.id.toString())">
-                        <span class="icon"><fa icon="download"></fa></span> Download
+                        <span class="icon"><fa icon="download"></fa></span>
+                        <span>{{ $t("buttons.download") }}</span>
                     </button>
                 </div>
             </div>

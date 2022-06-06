@@ -25,6 +25,8 @@ export class Config {
     private _writeConfig = false;
     watcher: fs.FSWatcher | undefined;
 
+    forceDebug = false;
+
 
     static readonly streamerCacheTime = 2592000 * 1000; // 30 days
     static readonly settingsFields: Array<SettingField<string> | SettingField<number> | SettingField<boolean>> = [
@@ -703,6 +705,7 @@ export class Config {
     static get debug(): boolean {
         if (argv.debug) return true;
         if (!Config.getInstance().initialised) return false;
+        if (Config.getInstance().forceDebug) return true;
         return Config.getInstance().cfg("debug");
     }
 

@@ -410,7 +410,7 @@ export class Helper {
      * @param jobName 
      * @returns 
      */
-    static execAdvanced(bin: string, args: string[], jobName: string): Promise<ExecReturn> {
+    static execAdvanced(bin: string, args: string[], jobName: string, progressFunction?: (log: string) => number): Promise<ExecReturn> {
         return new Promise((resolve, reject) => {
 
             const process = spawn(bin, args || [], {
@@ -442,10 +442,16 @@ export class Helper {
 
             process.stdout.on("data", (data: Stream) => {
                 stdout.push(data.toString());
+                if (progressFunction) {
+                    job.setProgress(progressFunction(data.toString()));
+                }
             });
 
             process.stderr.on("data", (data: Stream) => {
                 stderr.push(data.toString());
+                if (progressFunction) {
+                    job.setProgress(progressFunction(data.toString()));
+                }
             });
 
             process.on("close", (code) => {
@@ -635,7 +641,21 @@ export class Helper {
             }
 
             // TODO: progress log
-            // job.on("log", (data: string) => {
+            let currentSeconds = 0;
+            let totalSeconds = 0;
+            job.on("log", (data: string) => {
+                const totalDurationMatch = data.match(/Duration: (\d+):(\d+):(\d+)/);
+                if (totalDurationMatch) {
+                    totalSeconds = parseInt(totalDurationMatch[1]) * 3600 + parseInt(totalDurationMatch[2]) * 60 + parseInt(totalDurationMatch[3]);
+                }
+                const currentTimeMatch = data.match(/time=(\d+):(\d+):(\d+)/);
+                if (currentTimeMatch) {
+                    currentSeconds = parseInt(currentTimeMatch[1]) * 3600 + parseInt(currentTimeMatch[2]) * 60 + parseInt(currentTimeMatch[3]);
+                    if (totalSeconds > 0 && currentSeconds % 5 == 0) {
+                        job.setProgress(currentSeconds / totalSeconds);
+                    }
+                }
+            });
             //     const progress_match = data.match(/time=([0-9\.\:]+)/);
             //     if (progress_match) {
             //         const progress = progress_match[1];
@@ -961,9 +981,9 @@ export class Helper {
         do {
 
             Log.logAdvanced(LOGLEVEL.INFO, "helper", `Fetch subs page ${page}`);
-                
+
             let response;
-    
+
             try {
                 response = await this.axios.get("/helix/eventsub/subscriptions", {
                     params: {
@@ -974,13 +994,13 @@ export class Helper {
                 Log.logAdvanced(LOGLEVEL.FATAL, "helper", `Subs return: ${err}`);
                 return false;
             }
-    
+
             const json: Subscriptions = response.data;
-    
+
             subscriptions = subscriptions.concat(json.data);
-    
+
             cursor = json.pagination.cursor || "";
-    
+
         } while (cursor && page++ < maxpages);
 
         Log.logAdvanced(LOGLEVEL.INFO, "helper", `${subscriptions.length} subscriptions`);

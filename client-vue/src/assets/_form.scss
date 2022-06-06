@@ -5,6 +5,27 @@
 }
 */
 
+.control {
+
+    &.has-addon {
+        display: flex;
+        align-items: stretch;
+
+        .button {
+            margin-left: 0;
+            border-radius: 0 0.5em 0.5em 0;
+            // padding: 0;
+            // flex height auto
+        }
+
+        .input {
+            border-radius: 0.5em 0 0 0.5em;
+            margin: 0;
+        }
+    }
+
+}
+
 .control-label {
     display: block;
     font-size: 1.2em;
@@ -51,7 +72,7 @@
 
 .input-help {
     font-size: 85%;
-    color: #777;
+    color: var(--input-help);
     font-style: italic;
     margin: 0;
     padding: 0.2em 0 0 0;
@@ -71,7 +92,7 @@
 }
 
 .label {
-    color: #363636;
+    color: var(--label-color);
     display: block;
     font-weight: 700;
     font-size: 1rem;

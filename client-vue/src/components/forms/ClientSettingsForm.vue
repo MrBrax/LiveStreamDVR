@@ -63,9 +63,11 @@
                 <p class="input-help" v-if="value.help">{{ value.help }}</p>
             </div>
             <div class="control" v-if="value.type === 'choice'">
-                <select class="input" v-model="(updateConfig[key] as string)" :id="'input_' + key">
-                    <option v-for="(option, optionKey) in value.choices" :value="optionKey">{{ option }}</option>
-                </select>
+                <div class="select">
+                    <select v-model="(updateConfig[key] as string)" :id="'input_' + key">
+                        <option v-for="(option, optionKey) in value.choices" :value="optionKey">{{ option }}</option>
+                    </select>
+                </div>
                 <p class="input-help" v-if="value.help">{{ value.help }}</p>
             </div>
         </div>

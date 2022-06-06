@@ -1,5 +1,5 @@
 <template>
-   <div id="js-status" :class="{ disconnected: websocket && !websocketConnected }" ref="js-status">
+   <div :class="{ 'statustab': true, 'statustab-update': true, disconnected: websocket && !websocketConnected }" ref="js-status">
         <span v-if="store.loading">
             <span class="icon"><fa icon="sync" spin /></span> Store...
         </span>

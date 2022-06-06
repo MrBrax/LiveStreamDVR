@@ -4,6 +4,8 @@
 // @import "~@fontsource/roboto/500.css";
 @import "@fontsource/roboto/latin.css";
 @import "@fontsource/roboto-condensed/latin.css";
+@import "@fontsource/poppins";
+@import "@fontsource/poppins/600";
 
 // @import "bulma/sass/utilities/_all";
 // @import "bulma/sass/elements/button";
@@ -21,6 +23,47 @@ $anchor-height: 60px;
 $boxart-width: 140px;
 $boxart-height: 190px;
 
+:root {
+    --body-background: #fdfdfd;
+    --body-color: #111;
+    --body-font: Roboto, Helvetica, Arial;
+    --text-darker: #3d3d3d;
+
+    --section-background-color: #fdfdfd;
+    --section-title-background-color: #277dec;
+    --card-background-color: #fdfdfd;
+    --card-title-background-color: #3261c7;;
+    --video-description-background-color: #f2f2f2;
+    --video-controls-background-color: #e2e9f9;
+    --video-segments-background-color: #fff1fa;
+
+    --link-color: #277dec;
+    --link-hover-color: #184279;
+
+    --input-background-color: #fff;
+    --input-border-color: #ccc;
+    --input-color: #333;
+    --input-help: #777;
+    --input-focus-color: #000;
+    --input-focus-border-color: #555;
+    --input-focus-background-color: #eff6ff;
+
+    --label-color: #363636;
+
+    --statustab-background: #eee;
+    --statustab-border: #ccc;
+    --statustab-color: #333;
+
+    --hr-color: #ccc;
+
+    --notice-background-color: #eee;
+    --notice-color: #555;
+
+    --border-radius: 0;
+
+    --gamelist-favourite: #7acc92;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -32,9 +75,10 @@ html {
 */
 
 body {
-    background: #fdfdfd;
-    color: #111;
-    font-family: Roboto, Helvetica, Arial;
+    background: var(--body-background);
+    color: var(--body-color);
+    // font-family: /* Poppins, */ Roboto, Helvetica, Arial;
+    font-family: var(--body-font);
     font-size: 14px;
     margin: 0;
     padding: 0;
@@ -68,9 +112,11 @@ h3 {
 
 a {
     cursor: pointer;
+    color: var(--link-color);
+    &:hover {
+        color: var(--link-hover-color);
+    }
 }
-
-
 
 @import "animations";
 @import "layout";
@@ -152,9 +198,9 @@ svg[data-icon] {
 
 .notice {
     // font-size: 0.9em;
-    background: #eee;
-    padding: 10px;
-    color: #555;
+    background: var(--notice-background-color);
+    padding: 0.8em;
+    color: var(--notice-color);
 }
 
 .anchor {
@@ -196,3 +242,7 @@ svg[data-icon] {
 
 @import "darkmode";
 @import "mobile";
+
+.is-text-darker {
+    color: var(--text-darker);
+}

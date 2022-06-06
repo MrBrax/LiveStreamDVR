@@ -105,7 +105,7 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
 
 }
 
-export function DeleteChannel(req: express.Request, res: express.Response): void {
+export async function DeleteChannel(req: express.Request, res: express.Response): Promise<void> {
 
     const channel = TwitchChannel.getChannelByLogin(req.params.login);
 
@@ -128,6 +128,19 @@ export function DeleteChannel(req: express.Request, res: express.Response): void
             message: "Channel not found",
         } as ApiErrorResponse);
         return;
+    }
+
+    if (req.query.deletevods == "1") {
+        try {
+            await channel.deleteAllVods();
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.deleteAllVods", `Failed to delete all VODs of channel: ${(error as Error).message}`);
+            res.status(400).send({
+                status: "ERROR",
+                message: (error as Error).message,
+            } as ApiErrorResponse);
+            return;
+        }
     }
 
     channel.delete();
@@ -348,7 +361,7 @@ export async function SubscribeToChannel(req: express.Request, res: express.Resp
         return;
     }
 
-    const sub = await TwitchChannel.subscribe(channel.userid);
+    const sub = await TwitchChannel.subscribe(channel.userid, true);
 
     res.send({
         data: {
@@ -538,6 +551,48 @@ export async function RenameChannel(req: express.Request, res: express.Response)
         res.status(400).send({
             status: "ERROR",
             message: "Failed to rename channel",
+        } as ApiErrorResponse);
+    }
+
+}
+
+export async function DeleteAllChannelVods(req: express.Request, res: express.Response): Promise<void> {
+
+    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+
+    if (!channel || !channel.userid) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    let success;
+
+    try {
+        success = await channel.deleteAllVods();
+    } catch (error) {
+        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.deleteAllVods", `Failed to delete all VODs of channel: ${(error as Error).message}`);
+        res.status(400).send({
+            status: "ERROR",
+            message: (error as Error).message,
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (success) {
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.deleteallvods", `Deleted all VODs of channel: ${channel.login}`);
+        res.send({
+            status: "OK",
+            message: `Deleted all VODs of channel: ${channel.login}`,
+        });
+        channel.broadcastUpdate();
+    } else {
+        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.deleteallvods", `Failed to delete all VODs of channel: ${channel.login}`);
+        res.status(400).send({
+            status: "ERROR",
+            message: "Failed to delete all VODs",
         } as ApiErrorResponse);
     }
 

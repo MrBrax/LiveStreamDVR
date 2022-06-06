@@ -1,31 +1,32 @@
 /** Black theme **/
 @media (prefers-color-scheme: dark) {
-    body {
-        background-color: #111;
-        color: #e6e6e6;
-    }
 
-    a {
-        color: #75ccee;
-        &:hover {
-            color: #fff;
-        }
-    }
+    // body {
+    //     background-color: #111;
+    //     color: #e6e6e6;
+    // }
 
-    hr {
-        background-color: #444;
-        border-top: 1px solid #111;
-    }
+    // a {
+    //     color: #75ccee;
+    //     &:hover {
+    //         color: #fff;
+    //     }
+    // }
 
-    .section {
-        background-color: #222;
-        box-shadow: none;
-        //box-shadow: 0 5px 10px #131313;
-    }
+    // hr {
+    //     background-color: #444;
+    //     border-top: 1px solid #111;
+    // }
 
-    .section-title {
-        background-color: #184279;
-    }
+    // .section {
+    //     background-color: #222;
+    //     box-shadow: none;
+    //     // box-shadow: 0 5px 10px #131313;
+    // }
+
+    // .section-title {
+    //     background-color: #184279;
+    // }
 
     .streamer-title {
         background-color: #2b375b;
@@ -41,21 +42,21 @@
         color: #d7d7d7;
     }
 
-    .video-description {
-        background-color: #484848;
-    }
+    // .video-description {
+    //     background-color: #484848;
+    // }
 
     .video-chapters {
         background-color: #333;
     }
 
-    .video-controls {
-        background-color: #384d7d;
-    }
+    // .video-controls {
+    //     background-color: #384d7d;
+    // }
 
-    .video-segments {
-        background-color: #4c5884;
-    }
+    // .video-segments {
+    //     background-color: #4c5884;
+    // }
 
     .video-status {
         background-color: #44683f;
@@ -72,80 +73,92 @@
     .game-list {
         tr.favourite {
             background-color: #278242;
+
             td {
                 background-color: #278242;
             }
+
             .grey {
                 color: #b0b0b0;
             }
         }
+
         tr.current {
             background-color: #732828;
         }
+
         td:nth-child(4) {
             color: #aaa;
         }
+
         a {
             color: #75ccee;
+
             &:hover {
                 color: #fff;
             }
         }
     }
 
-    .info-columns {
-        .video-info {
-            color: #c8c8c8;
-        }
-    }
+    // .info-columns {
+    //     .video-info {
+    //         color: #c8c8c8;
+    //     }
+    // }
 
-    #js-status,
-    #jobs-status {
-        color: #eee;
-        background-color: #333;
-        border-color: #111;
-    }
+    // #js-status,
+    // #jobs-status {
+    //     color: #eee;
+    //     background-color: #333;
+    //     border-color: #111;
+    // }
 
-    .label {
-        color: #6eb4ff;
-    }
+    // .label {
+    //     color: #6eb4ff;
+    // }
 
-    .input, .select select {
-        color: #aaa;
-        background-color: #333;
-        border-color: #666;
-        &:focus {
-            color: #eee;
-            border-color: #777;
-            background-color: #353535;
-        }
-        &[type="range"] {
-            background-color: #444;
-        }
-    }
+    // .input, .select select {
+    //     color: #aaa;
+    //     background-color: #333;
+    //     border-color: #666;
+    //     &:focus {
+    //         color: #eee;
+    //         border-color: #777;
+    //         background-color: #353535;
+    //     }
+    //     &[type="range"] {
+    //         background-color: #444;
+    //     }
+    // }
 
-    .card {
-        .card-content {
-            background-color: #3e3e3e;
-        }
-    }
+    // .card {
+    //     .card-content {
+    //         background-color: #3e3e3e;
+    //     }
+    // }
 
     .log_viewer {
         color: #888;
+
         .log-line {
             color: #6f6f6f;
+
             &.log-line-success {
                 color: #5bd250;
             }
+
             &.log-line-fatal {
                 color: #ff0000;
             }
+
             &.log-line-warning {
                 color: #ff7300;
             }
+
             &.log-line-error {
                 color: #db4d4d;
             }
+
             &.log-line-debug {
                 color: #9c9c9c;
             }
@@ -153,6 +166,7 @@
     }
 
     .modal-box {
+
         // .modal-box__header {
         //     background-color: #666;
         // }
@@ -165,9 +179,9 @@
         background-color: #525252;
     }
 
-    .input-help {
-        color: #bbb;
-    }
+    // .input-help {
+    //     color: #bbb;
+    // }
 
     .table {
         &.is-striped {
@@ -177,12 +191,14 @@
                 }
             }
         }
+
         &.is-hoverable {
             tr {
                 &:hover {
                     background: rgba(255, 255, 255, 0.05);
                 }
             }
+
             &.is-striped {
                 tr:hover {
                     &:nth-child(even) {
@@ -196,6 +212,7 @@
     details.settings-details {
         summary {
             color: #ccc;
+
             &:hover {
                 color: #fff;
             }
@@ -215,4 +232,105 @@
         }
     }
 
+}
+
+body.is-dark {
+    --body-background: #111;
+    --body-color: #e6e6e6;
+    --text-darker: #c8c8c8;
+    --section-background-color: #222;
+    --section-title-background-color: #184279;
+    --card-background-color: #3e3e3e;
+    --video-description-background-color: #484848;
+    --video-controls-background-color: #384d7d;
+    --video-segments-background-color: #4c5884;
+
+    --link-color: #75ccee;
+    --link-hover-color: #fff;
+
+    --input-background-color: #333;
+    --input-border-color: #666;
+    --input-color: #aaa;
+    --input-help: #bbb;
+
+    --input-focus-background-color: #353535;
+    --input-focus-border-color: #777;
+    --input-focus-color: #eee;
+
+    --label-color: #6eb4ff;
+
+    --statustab-background: #333;
+    --statustab-border: #111;
+    --statustab-color: #eee;
+
+    --hr-color: #444;
+
+    // --body-font: Poppins, Roboto, sans-serif;
+
+    --notice-background-color: #484848;
+    --notice-color: #d7d7d7;
+
+    --gamelist-favourite: #278242;
+}
+
+body.is-hotdogstand {
+    --body-background: #ff0;
+    --body-color: #000;
+    --text-darker: #222;
+    --section-background-color: #f00;
+    --section-title-background-color: #000;
+    --card-background-color: #f00;
+    --body-font: 'MS Sans Serif', 'System', 'Consolas', 'Courier New', monospace;
+
+    --input-background-color: #ff0;
+    --input-border-color: #000;
+    --input-color: #000;
+}
+
+body.is-windows95 {
+    --body-background: #008080;
+    --body-color: #000;
+    --section-background-color: #bfbfbf;
+    --section-title-background-color: linear-gradient(to right, #000181, #0984ce);
+    --card-background-color: #bfbfbf;
+    --card-title-background-color: linear-gradient(to right, #000181, #0984ce);
+    --body-font: 'MS Sans Serif', 'System', 'Consolas', 'Courier New', monospace;
+}
+
+body.is-basalt {
+    --body-background: #111;
+    --body-color: #e6e6e6;
+    --text-darker: #c8c8c8;
+    --section-background-color: #222;
+    --section-title-background-color: linear-gradient(to right, #c25337, #904e95);
+    --card-background-color: #3e3e3e;
+    --card-title-background-color: linear-gradient(to right, #b62182, #7b1282);
+    --video-description-background-color: #484848;
+    --video-controls-background-color: #384d7d;
+    --video-segments-background-color: #4c5884;
+
+    --link-color: #75ccee;
+    --link-hover-color: #fff;
+
+    --input-background-color: #333;
+    --input-border-color: #666;
+    --input-color: #aaa;
+    --input-help: #bbb;
+
+    --input-focus-background-color: #353535;
+    --input-focus-border-color: #777;
+    --input-focus-color: #eee;
+
+    --label-color: #ff846e;
+
+    --statustab-background: #333;
+    --statustab-border: #111;
+    --statustab-color: #eee;
+
+    --hr-color: #444;
+
+    --body-font: Poppins, Roboto, sans-serif;
+
+    --notice-background-color: #484848;
+    --notice-color: #d7d7d7;
 }

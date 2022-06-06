@@ -1,5 +1,5 @@
 <template>
-    <div id="jobs-status" v-if="store.jobList !== undefined">
+    <div class="statustab statustab-jobs" v-if="store.jobList !== undefined">
         <table>
             <tr v-for="job in store.jobList" :key="job.name">
                 <td>
@@ -20,6 +20,7 @@
                     <span v-else-if="job.status == JobStatus.WAITING">Waiting</span>
                     <span v-else-if="job.status == JobStatus.NONE">None</span>
                 </td>
+                <td v-if="job.progress && job.progress > 0">{{ Math.round(job.progress * 100) }}%</td>
             </tr>
         </table>
 
