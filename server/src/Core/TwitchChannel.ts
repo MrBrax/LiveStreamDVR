@@ -658,14 +658,30 @@ export class TwitchChannel {
         }, 3000);
     }
 
-    public async deleteAllVods() {
+    /**
+     * Delete all VODs for channel without deleting the channel
+     * @throws
+     * @returns 
+     */
+    public async deleteAllVods(): Promise<boolean> {
+        const total_vods = this.vods_list.length;
+
+        if (total_vods === 0) {
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `No vods to delete for ${this.login}`);
+            throw new Error(`No vods to delete for ${this.login}`);
+        }
+
+        let deleted_vods = 0;
         for (const vod of this.vods_list) {
             try {
                 await vod.delete();
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to delete vod ${vod.basename}: ${(error as Error).message}`);
+                continue;
             }
+            deleted_vods++;
         }
+        return deleted_vods == total_vods;
     }
 
     /**

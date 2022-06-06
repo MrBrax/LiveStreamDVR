@@ -53,7 +53,8 @@
     "edit": "Edit",
     "reset": "Reset",
     "execute": "Execute",
-    "download": "Download"
+    "download": "Download",
+    "delete-all-vods": "Delete all VODs"
   },
   "pages": {
     "favourite-games": "Favourite games",

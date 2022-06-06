@@ -103,18 +103,20 @@
                             <span v-if="job.progress">{{ Math.round(job.progress * 100) }}%</span>
                         </td>
                         <td>
-                            <a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name, 'SIGHUP')" title="Gracefully kill job (SIGHUP)">
-                                <span class="icon"><fa icon="heart"></fa></span>
-                            </a>
-                            <a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name, 'SIGINT')" title="Gracefully kill job (SIGINT)">
-                                <span class="icon"><fa icon="stop"></fa></span>
-                            </a>
-                            <a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name)" title="Kill job (SIGTERM)">
-                                <span class="icon"><fa icon="skull"></fa></span>
-                            </a>
-                            <a class="button is-danger is-small" v-if="job.status" @click="clearJob(job.name)" title="Clear job">
-                                <span class="icon"><fa icon="trash"></fa></span>
-                            </a>
+                            <div class="buttons">
+                                <a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name, 'SIGHUP')" title="Gracefully kill job (SIGHUP)">
+                                    <span class="icon"><fa icon="heart"></fa></span>
+                                </a>
+                                <a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name, 'SIGINT')" title="Gracefully kill job (SIGINT)">
+                                    <span class="icon"><fa icon="stop"></fa></span>
+                                </a>
+                                <a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name)" title="Kill job (SIGTERM)">
+                                    <span class="icon"><fa icon="skull"></fa></span>
+                                </a>
+                                <a class="button is-danger is-small" v-if="job.status" @click="clearJob(job.name)" title="Clear job">
+                                    <span class="icon"><fa icon="trash"></fa></span>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 </table>
