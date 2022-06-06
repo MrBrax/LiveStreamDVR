@@ -25,6 +25,7 @@ router.all("/hook", Hook.Hook);
 router.get("/settings", Settings.GetSettings);
 router.put("/settings", Settings.SaveSettings);
 router.post("/settings/validate_url", Settings.ValidateExternalURL);
+router.get("/settings/debug", Settings.SetDebug);
 
 router.get("/channels", Channels.ListChannels);
 router.post("/channels", Channels.AddChannel);

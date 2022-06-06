@@ -4,6 +4,7 @@ import { replaceAll } from "../Helpers/ReplaceAll";
 import path from "path";
 import { BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
 import EventEmitter from "events";
+import { Config } from "./Config";
 
 export class KeyValue extends EventEmitter {
 
@@ -91,12 +92,9 @@ export class KeyValue extends EventEmitter {
 
         key = replaceAll(key, /\//g, ""); // TODO: replaceAll
 
-        // if (value === null) {
-        //     this.delete(key);
-        // } else {
+        if (Config.debug) console.debug(`Setting key-value pair: ${key} = ${value}`);
         this.data[key] = value;
         this.emit("set", key, value);
-        // }
 
         this.save();
 
@@ -114,11 +112,13 @@ export class KeyValue extends EventEmitter {
         if (value === null) {
             this.delete(key);
         } else {
-            this.data[key] = JSON.stringify(value);
-            this.emit("set", key, value);
+            // if (Config.debug) console.debug(`Setting key-value pair object: ${key} = ${JSON.stringify(value)}`);
+            // this.data[key] = JSON.stringify(value);
+            // this.emit("set", key, value);
+            this.set(key, JSON.stringify(value));
         }
 
-        this.save();
+        // this.save();
 
     }
 
@@ -136,6 +136,7 @@ export class KeyValue extends EventEmitter {
      */
     delete(key: string) {
         if (this.data[key]) {
+            if (Config.debug) console.debug(`Deleting key-value pair: ${key}`);
             delete this.data[key];
             this.emit("delete", key);
             this.save();
@@ -146,6 +147,7 @@ export class KeyValue extends EventEmitter {
      * Delete all values from the key-value store.
      */
     deleteAll() {
+        if (Config.debug) console.debug("Deleting all key-value pairs");
         this.data = {};
         this.emit("delete_all");
         this.save();

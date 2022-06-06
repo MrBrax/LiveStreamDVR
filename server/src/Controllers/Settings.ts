@@ -131,3 +131,22 @@ export async function ValidateExternalURL(req: express.Request, res: express.Res
     return;
 
 }
+
+export function SetDebug(req: express.Request, res: express.Response): void {
+
+    if (req.query.enable === undefined) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Missing enable parameter",
+        });
+        return;
+    }
+
+    Config.getInstance().forceDebug = req.query.enable === "1";
+
+    res.send({
+        status: "OK",
+        message: `Debug mode set to ${Config.getInstance().forceDebug}`,
+    });
+
+}

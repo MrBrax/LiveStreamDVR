@@ -1213,7 +1213,7 @@ export class TwitchChannel {
 
     }
 
-    public static async subscribe(channel_id: string): Promise<boolean> {
+    public static async subscribe(channel_id: string, force = false): Promise<boolean> {
 
         if (!Config.getInstance().cfg("app_url")) {
             throw new Error("app_url is not set");
@@ -1237,7 +1237,7 @@ export class TwitchChannel {
 
         for (const sub_type of Helper.CHANNEL_SUB_TYPES) {
 
-            if (KeyValue.getInstance().get(`${channel_id}.sub.${sub_type}`)) {
+            if (KeyValue.getInstance().get(`${channel_id}.sub.${sub_type}`) && !force) {
                 Log.logAdvanced(LOGLEVEL.INFO, "helper", `Skip subscription to ${channel_id}:${sub_type} (${streamer_login}), in cache.`);
                 continue; // todo: alert
             }

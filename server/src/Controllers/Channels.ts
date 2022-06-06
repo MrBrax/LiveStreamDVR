@@ -361,7 +361,7 @@ export async function SubscribeToChannel(req: express.Request, res: express.Resp
         return;
     }
 
-    const sub = await TwitchChannel.subscribe(channel.userid);
+    const sub = await TwitchChannel.subscribe(channel.userid, true);
 
     res.send({
         data: {
