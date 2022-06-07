@@ -10,7 +10,8 @@
                     v-model="formData.login"
                     @keyup="checkLogin"
                     required
-                    pattern="^[a-z0-9_]{4,25}$"
+                    pattern="^[a-z0-9_]{3,25}$"
+                    ref="login"
                 />
                 <button class="button is-confirm" type="button" @click="fetchLogin" :disabled="!formData.login">
                     <span class="icon"><fa icon="sync" /></span>
@@ -28,6 +29,11 @@
                 <li>Description: <strong>{{ channelData.description }}</strong></li>
                 <li>Avatar: <img :src="channelData.profile_image_url" rel="nofollow" width="64" height="64" /></li>
             </ul>
+        </div>
+        <div class="field" v-if="userExists === false">
+            <div class="is-error">
+                The channel {{ formData.login }} does not exist.
+            </div>
         </div>
         <div class="field">
             <label class="label">{{ $t('forms.channel.quality') }} <span class="required">*</span></label>
@@ -104,7 +110,7 @@ import { VideoQualityArray } from "../../../../common/Defs";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { ChannelData } from "@common/Channel";
 library.add(faUserPlus);
 
@@ -114,7 +120,22 @@ export default defineComponent({
     setup() {
         return { VideoQualityArray };
     },
-    data() {
+    data(): {
+        formStatusText: string;
+        formStatus: string;
+        formData: {
+            login: string;
+            quality: string;
+            match: string;
+            download_chat: boolean;
+            live_chat: boolean;
+            burn_chat: boolean;
+            no_capture: boolean;
+            no_cleanup: boolean;
+        },
+        channelData: ChannelData | undefined;
+        userExists: boolean | undefined;
+    } {
         return {
             formStatusText: "Ready",
             formStatus: "",
@@ -128,7 +149,8 @@ export default defineComponent({
                 no_capture: false,
                 no_cleanup: false,
             },
-            channelData: {} as ChannelData,
+            channelData: undefined,
+            userExists: undefined,
         };
     },
     methods: {
@@ -183,6 +205,7 @@ export default defineComponent({
             if (match) {
                 this.formData.login = match[1];
             }
+            this.userExists = undefined;
         },
         validateQuality() {
             const input = this.formData.quality.split(" ");
@@ -203,8 +226,30 @@ export default defineComponent({
         fetchLogin() {
             this.$http.get(`/api/v0/twitchapi/user/${this.formData.login}`).then((response) => {
                 const json = response.data;
+                const field = this.$refs.login as HTMLInputElement;
+                if (!field) {
+                    return;
+                }
                 if (json.status == "OK") {
                     this.channelData = json.data;
+                    field.setCustomValidity("");
+                    field.reportValidity();
+                    this.userExists = true;
+                } else {
+                    this.channelData = undefined;
+                    field.setCustomValidity(json.message);
+                    field.reportValidity();
+                    this.userExists = false;
+                }
+            }).catch((err: AxiosError) => {
+                console.error("form error", err.response);
+                const field = this.$refs.login as HTMLInputElement;
+                if (field && err.response && err.response.data && err.response.data.message) {
+                    field.setCustomValidity(err.response.data.message);
+                    field.reportValidity();
+                    this.userExists = false;
+                } else {
+                    console.error("no field or no response", field, err.response);
                 }
             });
         }
