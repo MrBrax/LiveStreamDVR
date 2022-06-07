@@ -6,7 +6,9 @@ on:
     paths:
       - "client-vue/**"
   pull_request:
-    branches: [ master ]
+    branches: 
+      - master
+      - develop-ts
     paths:
       - "client-vue/**"
   
