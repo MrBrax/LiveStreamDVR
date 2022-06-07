@@ -46,12 +46,14 @@
     "save-favourites": "Speichere Favoriten",
     "delete": "Löschen",
     "subscribe": "Abonnieren",
+    "delete-all-vods": "Alle VODs löschen",
     "rename": "Umbenennen",
     "delete-all": "Alle löschen",
     "create": "Erstellen",
     "edit": "Editieren",
     "reset": "Zurücksetzen",
-    "execute": "Ausführen"
+    "execute": "Ausführen",
+    "download": "Herunterladen",
   },
   "pages": {
     "favourite-games": "Favorisierte Spiele",
@@ -66,6 +68,7 @@
     "channel": {
       "login": "Login",
       "login_help": "Kanal-Login, kleingeschrieben. Der Teil, der in der URL nach dem Domänennamen und dem Slash kommt (nicht der Anzeigename).\n Alternativ Link zu einer Kanalseite einfügen, um den Login zu setzen.",
+      "check": "Überprüfen",
       "quality": "Qualität",
       "match-keywords": "Passende Schlüsselwörter",
       "add-channel": "Kanal hinzufügen",
@@ -95,7 +98,7 @@
   },
   "configgroup": {
     "Binaries": "Anwendungen",
-    "Basic": "Basis",
+    "Basic": "Basiseinstellungen",
     "Interface": "Benutzeroberfläche",
     "Notifications": "Benachrichtigungen",
     "Storage": "Speicher",
