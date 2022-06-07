@@ -839,7 +839,10 @@
             </template>
         </div>
         <div class="field">
-            <button class="button" @click="doRenderWizard">Execute</button>
+            <button class="button is-confirm" @click="doRenderWizard">
+                <span class="icon"><fa icon="burn" /></span>
+                <span>Execute</span>
+            </button>
             <span v-if="burnLoading">Running...</span>
         </div>
         <div class="job-status">
