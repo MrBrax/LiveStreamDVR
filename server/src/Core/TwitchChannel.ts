@@ -738,6 +738,12 @@ export class TwitchChannel {
 
     }
 
+    public async isLiveApi(): Promise<boolean> {
+        if (!this.userid) return false;
+        const streams = await TwitchChannel.getStreams(this.userid);
+        return streams && streams.length > 0;
+    }
+
     /**
      * 
      * STATIC

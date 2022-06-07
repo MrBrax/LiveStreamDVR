@@ -346,13 +346,22 @@ export class Automator {
             Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, saving channel data to cache: ${event.category_name} (${event.title})`);
             KeyValue.getInstance().setObject(`${this.broadcaster_user_login}.chapterdata`, chapter_data);
 
-            if (chapter_data.viewer_count) {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, but managed to get viewer count, so it's online? 🤔`);
-            }
+            // if (chapter_data.viewer_count) {
+            //     Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, but managed to get viewer count, so it's online? 🤔`);
+            // }
 
             // $fp = fopen(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "history" . DIRECTORY_SEPARATOR . this.broadcaster_user_login . ".jsonline", 'a');
             // fwrite($fp, json_encode($chapter) . "\n");
             // fclose($fp);
+
+            setTimeout(async () => {
+                const isLive = await this.channel?.isLiveApi();
+                if (isLive) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} is now online, timeout check.`);
+                } else {
+                    Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} is still offline, timeout check.`);
+                }
+            }, 30 * 1000); // remove in future, just for testing
 
             return true;
         }
@@ -422,6 +431,10 @@ export class Automator {
             const streams = await TwitchChannel.getStreams(this.getUserID());
 
             if (streams && streams.length > 0) {
+
+                if (KeyValue.getInstance().getBool(`${this.broadcaster_user_login}.online`) === false) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} is offline but we managed to get stream data, so it's online? 🤔`);
+                }
 
                 KeyValue.getInstance().setBool(`${this.broadcaster_user_login}.online`, true); // if status has somehow been set to false, set it back to true
 

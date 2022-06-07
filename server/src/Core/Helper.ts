@@ -651,9 +651,7 @@ export class Helper {
                 const currentTimeMatch = data.match(/time=(\d+):(\d+):(\d+)/);
                 if (currentTimeMatch) {
                     currentSeconds = parseInt(currentTimeMatch[1]) * 3600 + parseInt(currentTimeMatch[2]) * 60 + parseInt(currentTimeMatch[3]);
-                    if (totalSeconds > 0 && currentSeconds % 5 == 0) {
-                        job.setProgress(currentSeconds / totalSeconds);
-                    }
+                    job.setProgress(currentSeconds / totalSeconds);
                 }
             });
             //     const progress_match = data.match(/time=([0-9\.\:]+)/);
