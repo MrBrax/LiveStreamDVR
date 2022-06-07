@@ -21,27 +21,27 @@
 
         <div class="menu-bottom">
             <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Dashboard' }" data-menuitem="dashboard">
-                <router-link to="/dashboard" title="Dashboard">
+                <router-link to="/dashboard" :title="$t('pages.dashboard')">
                     <span class="icon"><fa icon="tachometer-alt"></fa></span>
                 </router-link>
             </div>
             <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Files' }" data-menuitem="files">
-                <router-link to="/files" title="Files">
+                <router-link to="/files" :title="$t('pages.files')">
                     <span class="icon"><fa icon="archive"></fa></span>
                 </router-link>
             </div>
             <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Tools' }" data-menuitem="tools">
-                <router-link to="/tools" title="Tools">
+                <router-link to="/tools" :title="$t('pages.tools')">
                     <span class="icon"><fa icon="wrench"></fa></span>
                 </router-link>
             </div>
             <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Settings' }" data-menuitem="settings">
-                <router-link to="/settings" title="Settings">
+                <router-link to="/settings" :title="$t('pages.settings')">
                     <span class="icon"><fa icon="cog"></fa></span>
                 </router-link>
             </div>
             <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'About' }" data-menuitem="github">
-                <router-link to="/about" title="About">
+                <router-link to="/about" :title="$t('pages.about')">
                     <span class="icon"><fa icon="info-circle"></fa></span>
                 </router-link>
             </div>

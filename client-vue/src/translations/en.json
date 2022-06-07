@@ -1,6 +1,7 @@
 {
   "dashboard": {
-    "recorded_vods": "Recorded VODs"
+    "recorded_vods": "Recorded VODs",
+    "logs": "Logs"
   },
   "vods": "{count} VOD | {count} VODs",
   "messages": {
@@ -40,7 +41,8 @@
       "ongoing": "ONGOING"
     },
     "failed": "Capturing failed",
-    "fetch-vod-list": "Fetch vod list"
+    "fetch-vod-list": "Fetch vod list",
+    "capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck": "Capture has been running for over 24 hours, streamlink does not support this. Is the capture stuck?"
   },
   "buttons": {
     "save": "Save",
@@ -54,7 +56,8 @@
     "reset": "Reset",
     "execute": "Execute",
     "download": "Download",
-    "delete-all-vods": "Delete all VODs"
+    "delete-all-vods": "Delete all VODs",
+    "fetch": "Fetch"
   },
   "pages": {
     "favourite-games": "Favourite games",
@@ -63,7 +66,12 @@
     "config": "Config",
     "keyvalue": "KeyValue",
     "notifications": "Notifications",
-    "client-settings": "Client settings"
+    "client-settings": "Client settings",
+    "about": "About",
+    "dashboard": "Dashboard",
+    "files": "Files",
+    "tools": "Tools",
+    "settings": "Settings"
   },
   "forms": {
     "channel": {
@@ -78,7 +86,11 @@
       "no-capture": "Don't record streams (disable capture completely)",
       "live-channels-warning": "Live channels will not be recorded until they are live the next time.",
       "no-cleanup": "Don't clean up VODs after recording is finished",
-      "check": "Check"
+      "check": "Check",
+      "quality-help-example": "Separate by spaces, e.g. best 1080p 720p audio_only",
+      "quality-help-warning": "If the stream does not use any of these, it will not be recorded.",
+      "quality-help-choices": "Valid choices: {0}",
+      "login-does-not-exist": "The channel {0} does not exist."
     },
     "config": {
       "validate-external-url": "Validate external URL"
@@ -86,6 +98,9 @@
     "keyvalue": {
       "key": "Key",
       "value": "Value"
+    },
+    "favourites": {
+      "no-games-in-cache-when-streamers-change-games-they-will-be-added-to-the-cache": "No games in cache. When streamers change games, they will be added to the cache."
     }
   },
   "views": {
@@ -131,5 +146,14 @@
   },
   "input": {
     "search": "Search..."
+  },
+  "streamer": {
+    "one-or-more-subscriptions-missing": "One or more subscriptions missing"
+  },
+  "about": {
+    "installed-utilities": "Installed utilities",
+    "software": "Software",
+    "subscriptions": "Subscriptions",
+    "links": "Links"
   }
 }

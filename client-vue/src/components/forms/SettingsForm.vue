@@ -114,7 +114,7 @@
         </div>
     </form>
     <div v-if="loading">
-        <span class="icon"><fa icon="sync" spin></fa></span> Loading...
+        <span class="icon"><fa icon="sync" spin></fa></span> {{ $t("messages.loading") }}
     </div>
 </template>
 
@@ -188,7 +188,7 @@ export default defineComponent({
         },
         submitForm(event: Event) {
 
-            this.formStatusText = "Loading...";
+            this.formStatusText = this.$t("messages.loading");
             this.formStatus = "";
 
             this.$http

@@ -1,12 +1,15 @@
 {
   "dashboard": {
-    "recorded_vods": "Inspelade VODs"
+    "recorded_vods": "Inspelade VODs",
+    "logs": "Loggar"
   },
   "vods": "{count} VOD | {count} VODs",
   "messages": {
     "subscribed": "Prenumererar",
     "no_vods": "Inga VODs",
-    "clips": "Klipp"
+    "clips": "Klipp",
+    "changing-values-here-will-most-likely-require-a-restart": "Ändring av värden här kommer sannolikt att kräva en omstart.",
+    "loading": "Läser in..."
   },
   "buttons": {
     "save": "Spara",
@@ -15,7 +18,11 @@
     "create": "Skapa",
     "subscribe": "Prenumerera",
     "rename": "Byt namn",
-    "reset": "Återställ"
+    "reset": "Återställ",
+    "delete-all-vods": "Ta bort alla VOD:er",
+    "save-favourites": "Spara favoriter",
+    "edit": "Redigera",
+    "fetch": "Hämta"
   },
   "pages": {
     "channels": "Kanaler",
@@ -23,7 +30,12 @@
     "config": "Konfiguration",
     "notifications": "Notifikationer",
     "favourite-games": "Favoritspel",
-    "client-settings": "Klientinställningar"
+    "client-settings": "Klientinställningar",
+    "dashboard": "Instrumentpanelen",
+    "files": "Filer",
+    "tools": "Verktyg",
+    "settings": "Inställningar",
+    "about": "Om"
   },
   "forms": {
     "channel": {
@@ -33,10 +45,19 @@
       "live-chat-download": "Live chatt-sparning",
       "no-capture": "Spela inte in något (stäng av helt)",
       "add-channel": "Lägg till kanal",
-      "match-keywords": "Matchande ord"
+      "match-keywords": "Matchande ord",
+      "quality-help-example": "Separera med mellanslag, t.ex. \nbästa 1080p 720p audio_only",
+      "quality-help-choices": "Giltiga val: {0}",
+      "quality-help-warning": "Om streamen inte använder någon av dessa kommer den inte att spelas in.",
+      "login-does-not-exist": "Kanalen {0} finns inte.",
+      "login_help": "Kanalinloggning, gemener. \nDetta är den del som kommer efter domännamnet, inte visningsnamnet.\n \nDu kan klistra in en länk till en kanalsida här för att få inloggningen.",
+      "check": "Kolla upp"
     },
     "config": {
       "validate-external-url": "Validera extern URL"
+    },
+    "favourites": {
+      "no-games-in-cache-when-streamers-change-games-they-will-be-added-to-the-cache": "Inga spel i cachen. \nNär streamers byter spel läggs de till i cachen."
     }
   },
   "clientsetting": {
@@ -73,6 +94,48 @@
       "chat-download": "Chattnedladdning",
       "vod-download": "Videonedladdning",
       "reset-channels": "Återställ kanaler"
+    },
+    "dashboard": {
+      "total-size": "Total storlek: {0}",
+      "free-space": "Ledigt utrymme: {0}"
     }
+  },
+  "vod": {
+    "video-info": {
+      "general": "Allmänt",
+      "capture": "Inspelning"
+    },
+    "add_comment": "Lägg till en kommentar",
+    "controls": {
+      "editor": "Redigerare",
+      "player": "Spelare",
+      "archive": "Arkivera",
+      "download-chat": "Ladda ner chatt",
+      "check-mute": "Kolla avstängt ljud",
+      "render-menu": "Inbränning",
+      "fix-issues": "Fixa problem"
+    },
+    "capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck": "Inspelningen har körts i över 24 timmar, streamlink stöder inte detta. \nHar den fastnat?"
+  },
+  "streamer": {
+    "one-or-more-subscriptions-missing": "En eller flera prenumerationer saknas"
+  },
+  "components": {
+    "status": {
+      "disabled": "Inaktiverad",
+      "connected": "Ansluten",
+      "connecting": "Ansluter...",
+      "disconnected": "Frånkopplad",
+      "refreshing-in-x-seconds": "Uppdaterar om {0} sekunder."
+    }
+  },
+  "jobs": {
+    "no-jobs-running": "Inga jobb igång"
+  },
+  "about": {
+    "installed-utilities": "Installerade verktyg",
+    "software": "Mjukvara",
+    "subscriptions": "Prenumerationer",
+    "links": "Länkar"
   }
 }

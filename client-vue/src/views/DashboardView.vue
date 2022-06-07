@@ -26,7 +26,7 @@
                 </div>
             </div>
             <div class="section-content" v-else-if="!store.streamerListLoaded">
-                <span class="icon"><fa icon="sync" spin></fa></span> Loading...
+                <span class="icon"><fa icon="sync" spin></fa></span> {{ $t("messages.loading") }}
             </div>
             <div class="section-content" v-else>
                 <span class="icon"><fa icon="exclamation-triangle"></fa></span>
@@ -35,7 +35,7 @@
         </section>
 
         <section class="section">
-            <div class="section-title" @click="logToggle"><h1>Logs</h1></div>
+            <div class="section-title" @click="logToggle"><h1>{{ $t('dashboard.logs') }}</h1></div>
             <div class="section-content" v-if="logVisible">
                 <log-viewer ref="logviewer" />
             </div>

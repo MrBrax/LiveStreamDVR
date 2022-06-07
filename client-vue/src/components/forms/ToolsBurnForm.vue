@@ -49,7 +49,7 @@ export default defineComponent({
             const form = event.target as HTMLFormElement;
             const inputs = new FormData(form);
 
-            this.formStatusText = "Loading...";
+            this.formStatusText = this.$t("messages.loading");
             this.formStatus = "";
 
             console.log("form", form);

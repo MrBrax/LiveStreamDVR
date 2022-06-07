@@ -1,6 +1,7 @@
 {
   "dashboard": {
-    "recorded_vods": "Aufgenommene VODs"
+    "recorded_vods": "Aufgenommene VODs",
+    "logs": "Protokolle"
   },
   "vods": "{count} VOD | {count} VODs",
   "messages": {
@@ -39,7 +40,8 @@
       "end": "ENDE",
       "ongoing": "FORTLAUFEND"
     },
-    "failed": "Aufnahme fehlgeschlagen"
+    "failed": "Aufnahme fehlgeschlagen",
+    "capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck": "Capture läuft seit über 24 Stunden, streamlink unterstützt dies nicht. \nHängt die Aufnahme?"
   },
   "buttons": {
     "save": "Speichern",
@@ -53,7 +55,8 @@
     "edit": "Editieren",
     "reset": "Zurücksetzen",
     "execute": "Ausführen",
-    "download": "Herunterladen"
+    "download": "Herunterladen",
+    "fetch": "Bringen"
   },
   "pages": {
     "favourite-games": "Favorisierte Spiele",
@@ -62,7 +65,12 @@
     "config": "Konfiguration",
     "keyvalue": "Schlüsselwerte",
     "notifications": "Benachrichtigungen",
-    "client-settings": "Client-Einstellungen"
+    "client-settings": "Client-Einstellungen",
+    "dashboard": "Armaturenbrett",
+    "files": "Dateien",
+    "tools": "Werkzeug",
+    "settings": "Einstellungen",
+    "about": "Um"
   },
   "forms": {
     "channel": {
@@ -77,7 +85,11 @@
       "burn-chat": "Chats nach dem Herunterladen in Video einbetten",
       "no-capture": "Streams nicht aufnehmen (Deaktiviert Aufnahmen vollständig)",
       "live-channels-warning": "Live-Kanäle werden erst aufgenommen, wenn sie das nächste Mal live sind.",
-      "no-cleanup": "Keine Bereinigung der VODs nach beendeter Aufnahme"
+      "no-cleanup": "Keine Bereinigung der VODs nach beendeter Aufnahme",
+      "quality-help-example": "Trennen Sie durch Leerzeichen, z. \nbeste 1080p 720p audio_only",
+      "quality-help-choices": "Gültige Auswahlmöglichkeiten: {0}",
+      "quality-help-warning": "Wenn der Stream keine davon verwendet, wird er nicht aufgezeichnet.",
+      "login-does-not-exist": "Der Kanal {0} existiert nicht."
     },
     "config": {
       "validate-external-url": "Externe URL validieren"
@@ -85,6 +97,9 @@
     "keyvalue": {
       "key": "Schlüssel",
       "value": "Wert"
+    },
+    "favourites": {
+      "no-games-in-cache-when-streamers-change-games-they-will-be-added-to-the-cache": "Keine Spiele im Cache. \nWenn Streamer das Spiel wechseln, werden sie dem Cache hinzugefügt."
     }
   },
   "clientsetting": {
@@ -154,5 +169,14 @@
   },
   "input": {
     "search": "Suche..."
+  },
+  "streamer": {
+    "one-or-more-subscriptions-missing": "Mindestens ein Abonnement fehlt"
+  },
+  "about": {
+    "installed-utilities": "Installierte Dienstprogramme",
+    "software": "Software",
+    "subscriptions": "Abonnements",
+    "links": "Verknüpfungen"
   }
 }

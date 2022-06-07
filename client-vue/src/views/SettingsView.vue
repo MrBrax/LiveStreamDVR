@@ -60,7 +60,7 @@
                 <settings-form />
             </div>
             <div class="section-content" v-else>
-                <span class="icon"><fa icon="sync" spin></fa></span> Loading...
+                <span class="icon"><fa icon="sync" spin></fa></span> {{ $t("messages.loading") }}
             </div>
         </section>
 
@@ -79,7 +79,7 @@
                 <favourites-form />
             </div>
             <div class="section-content" v-else>
-                <span class="icon"><fa icon="sync" spin></fa></span> Loading...
+                <span class="icon"><fa icon="sync" spin></fa></span> {{ $t("messages.loading") }}
             </div>
         </section>
 

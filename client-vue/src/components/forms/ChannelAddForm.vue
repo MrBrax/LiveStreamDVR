@@ -32,7 +32,7 @@
         </div>
         <div class="field" v-if="userExists === false">
             <div class="is-error">
-                The channel {{ formData.login }} does not exist.
+                {{ $t('forms.channel.login-does-not-exist', [formData.login]) }}
             </div>
         </div>
         <div class="field">
@@ -47,9 +47,9 @@
                     ref="quality"
                     @blur="validateQuality"
                 />
-                <p class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only.</p>
-                <p class="input-help"><strong>If the stream does not use any of these, it will not be recorded.</strong></p>
-                <p class="input-help">Valid choices: {{ VideoQualityArray.join(", ") }}</p>
+                <p class="input-help">{{ $t('forms.channel.quality-help-example') }}</p>
+                <p class="input-help"><strong>{{ $t('forms.channel.quality-help-warning') }}</strong></p>
+                <p class="input-help">{{ $t('forms.channel.quality-help-choices', [VideoQualityArray.join(", ")]) }}</p>
             </div>
         </div>
         <div class="field">
@@ -158,7 +158,7 @@ export default defineComponent({
 
             console.log("submitForm", this.formData);
 
-            this.formStatusText = "Loading...";
+            this.formStatusText = this.$t("messages.loading");
             this.formStatus = "";
 
             this.$http

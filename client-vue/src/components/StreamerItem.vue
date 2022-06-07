@@ -23,7 +23,7 @@
                     <span class="streamer-subbed-status">
                         <span v-if="streamer.api_getSubscriptionStatus">{{ $t("messages.subscribed") }}</span>
                         <span class="is-error" title="Could just be that subscriptions were made before this feature was implemented." v-else>
-                            One or more subscriptions missing
+                            {{ $t('streamer.one-or-more-subscriptions-missing') }}
                         </span></span
                     ><!-- sub status -->
                     &middot;

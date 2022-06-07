@@ -495,7 +495,7 @@
 
                 <!-- capture length warning -->
                 <div v-if="vod?.is_capturing && vod.getDurationLive() > 86400" class="video-error">
-                    Capture has been running for over 24 hours, streamlink does not support this. Is the capture stuck?
+                    {{ $t('vod.capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck') }}
                 </div>
 
                 <!-- no chapters error -->

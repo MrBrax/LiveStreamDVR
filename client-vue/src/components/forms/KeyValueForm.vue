@@ -69,7 +69,7 @@
         </form>
     </div>
     <div v-if="initialLoad">
-        <span class="icon"><fa icon="sync" spin></fa></span> Loading...
+        <span class="icon"><fa icon="sync" spin></fa></span> {{ $t("messages.loading") }}
     </div>
 </template>
 

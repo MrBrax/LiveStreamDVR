@@ -44,7 +44,7 @@ export default defineComponent({
     },
     methods: {
         submitForm(event: Event) {
-            this.formStatusText = "Loading...";
+            this.formStatusText = this.$t("messages.loading");
             this.formStatus = "";
 
             this.$http
