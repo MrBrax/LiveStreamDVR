@@ -6,7 +6,9 @@ on:
     paths:
       - "server/**"
   pull_request:
-    branches: [ master ]
+    branches: 
+      - master
+      - develop-ts
     paths:
       - "server/**"
 
