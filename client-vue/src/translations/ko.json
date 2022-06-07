@@ -27,7 +27,10 @@
   "vod": {
     "video-info": {
       "general": "일반적인",
-      "capture": "포착"
+      "capture": "포착",
+      "duration": "지속",
+      "id": "ID",
+      "date": "날짜"
     },
     "add_comment": "코멘트를 추가하다",
     "controls": {
@@ -39,7 +42,14 @@
       "render-menu": "렌더링 메뉴",
       "fix-issues": "문제를 해결하다"
     },
-    "capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck": "캡처가 24시간 이상 실행되었으며 streamlink는 이를 지원하지 않습니다. \n캡쳐가 막혔나요?"
+    "capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck": "캡처가 24시간 이상 실행되었으며 streamlink는 이를 지원하지 않습니다. \n캡쳐가 막혔나요?",
+    "edit": {
+      "edit-vod": "VOD 편집",
+      "comment": "논평",
+      "prevent-deletion": "삭제 방지",
+      "stream-number": "스트림 번호"
+    },
+    "segments": "세그먼트"
   },
   "streamer": {
     "one-or-more-subscriptions-missing": "하나 이상의 구독 누락"
@@ -77,5 +87,13 @@
     "software": "소프트웨어",
     "subscriptions": "구독",
     "links": "연결"
+  },
+  "metadata": {
+    "file-duration": "파일 길이",
+    "dimensions": "치수",
+    "framerate": "프레임 속도",
+    "total": "총",
+    "video": "동영상",
+    "audio": "오디오"
   }
 }

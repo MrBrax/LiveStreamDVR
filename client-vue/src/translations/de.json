@@ -17,7 +17,10 @@
     "add_comment": "Kommentar hinzufügen",
     "video-info": {
       "general": "Allgemein",
-      "capture": "Aufnahme"
+      "capture": "Aufnahme",
+      "duration": "Dauer",
+      "id": "ID",
+      "date": "Datum"
     },
     "segments": "Segmente",
     "controls": {
@@ -41,7 +44,13 @@
       "ongoing": "FORTLAUFEND"
     },
     "failed": "Aufnahme fehlgeschlagen",
-    "capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck": "Capture läuft seit über 24 Stunden, streamlink unterstützt dies nicht. \nHängt die Aufnahme?"
+    "capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck": "Capture läuft seit über 24 Stunden, streamlink unterstützt dies nicht. \nHängt die Aufnahme?",
+    "edit": {
+      "edit-vod": "VOD bearbeiten",
+      "comment": "Kommentar",
+      "prevent-deletion": "Löschen verhindern",
+      "stream-number": "Streamnummer"
+    }
   },
   "buttons": {
     "save": "Speichern",
@@ -178,5 +187,13 @@
     "software": "Software",
     "subscriptions": "Abonnements",
     "links": "Verknüpfungen"
+  },
+  "metadata": {
+    "file-duration": "Dateidauer",
+    "dimensions": "Maße",
+    "framerate": "Framerate",
+    "total": "Gesamt",
+    "video": "Video",
+    "audio": "Audio"
   }
 }

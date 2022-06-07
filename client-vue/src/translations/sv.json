@@ -103,7 +103,22 @@
   "vod": {
     "video-info": {
       "general": "Allmänt",
-      "capture": "Inspelning"
+      "capture": "Inspelning",
+      "duration": "Varaktighet",
+      "id": "ID",
+      "date": "Datum",
+      "title": "Titel",
+      "is-muted": "Ljud avstängt",
+      "downloaded": "Nedladdad",
+      "chat-burned": "Chatt inbränd",
+      "chat-rendered": "Chatt renderad",
+      "chat-dumped": "Chatt dumpad",
+      "chat-downloaded": "Chatt nedladdad",
+      "stream-end": "Strömmens slut",
+      "created": "Skapad",
+      "went-live": "Gick live",
+      "capture-launched": "Inspelning startad",
+      "wrote-file": "Skrev till fil"
     },
     "add_comment": "Lägg till en kommentar",
     "controls": {
@@ -115,7 +130,21 @@
       "render-menu": "Inbränning",
       "fix-issues": "Fixa problem"
     },
-    "capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck": "Inspelningen har körts i över 24 timmar, streamlink stöder inte detta. \nHar den fastnat?"
+    "capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck": "Inspelningen har körts i över 24 timmar, streamlink stöder inte detta. \nHar den fastnat?",
+    "edit": {
+      "edit-vod": "Redigera VOD",
+      "comment": "Kommentar",
+      "prevent-deletion": "Förhindra radering",
+      "stream-number": "Strömningsnummer"
+    },
+    "segments": "Segment",
+    "chapters": {
+      "duration": "Längd",
+      "title": "Titel",
+      "category": "Kategori",
+      "started": "Startat",
+      "viewers": "Tittare"
+    }
   },
   "streamer": {
     "one-or-more-subscriptions-missing": "En eller flera prenumerationer saknas"
@@ -137,5 +166,18 @@
     "software": "Mjukvara",
     "subscriptions": "Prenumerationer",
     "links": "Länkar"
+  },
+  "metadata": {
+    "file-duration": "Filens varaktighet",
+    "dimensions": "Dimensioner",
+    "framerate": "Bildhastighet",
+    "total": "Totalt",
+    "video": "Video",
+    "audio": "Ljud"
+  },
+  "boolean": {
+    "no": "Nej",
+    "yes": "Ja",
+    "no-data": "Ingen data"
   }
 }
