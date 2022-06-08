@@ -35,6 +35,22 @@
             </div>
 
             <div class="field">
+                <label class="label">{{ $t('forms.channel.max-storage') }}</label>
+                <div class="control">
+                    <input class="input" type="number" name="max_storage" v-model="formData.max_storage" />
+                    <p class="input-help">{{ $t('forms.channel.max-storage-help') }}</p>
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="label">{{ $t('forms.channel.max-vods') }}</label>
+                <div class="control">
+                    <input class="input" type="number" name="max_vods" v-model="formData.max_vods" />
+                    <p class="input-help">{{ $t('forms.channel.max-vods-help') }}</p>
+                </div>
+            </div>
+
+            <div class="field">
                 <label class="checkbox">
                     <input
                         class="input"
@@ -164,6 +180,8 @@ export default defineComponent({
                 burn_chat: this.channel.burn_chat || false,
                 no_capture: this.channel.no_capture || false,
                 no_cleanup: this.channel.no_cleanup || false,
+                max_storage: this.channel.max_storage || 0,
+                max_vods: this.channel.max_vods || 0,
             },
         };
     },

@@ -60,6 +60,20 @@
             </div>
         </div>
         <div class="field">
+            <label class="label">{{ $t('forms.channel.max-storage') }}</label>
+            <div class="control">
+                <input class="input" type="number" name="max_storage" v-model="formData.max_storage" />
+                <p class="input-help">{{ $t('forms.channel.max-storage-help') }}</p>
+            </div>
+        </div>
+        <div class="field">
+            <label class="label">{{ $t('forms.channel.max-vods') }}</label>
+            <div class="control">
+                <input class="input" type="number" name="max_vods" v-model="formData.max_vods" />
+                <p class="input-help">{{ $t('forms.channel.max-vods-help') }}</p>
+            </div>
+        </div>
+        <div class="field">
             <label class="checkbox">
                 <input type="checkbox" name="download_chat" v-model="formData.download_chat" />
                 {{ $t('forms.channel.download-chat') }}
@@ -132,6 +146,8 @@ export default defineComponent({
             burn_chat: boolean;
             no_capture: boolean;
             no_cleanup: boolean;
+            max_storage: number;
+            max_vods: number;
         },
         channelData: ChannelData | undefined;
         userExists: boolean | undefined;
@@ -148,6 +164,8 @@ export default defineComponent({
                 burn_chat: false,
                 no_capture: false,
                 no_cleanup: false,
+                max_storage: 0,
+                max_vods: 0,
             },
             channelData: undefined,
             userExists: undefined,
@@ -198,6 +216,8 @@ export default defineComponent({
                 burn_chat: false,
                 no_capture: false,
                 no_cleanup: false,
+                max_storage: 0,
+                max_vods: 0,
             };
         },
         checkLogin() {

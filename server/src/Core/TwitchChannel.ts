@@ -73,6 +73,9 @@ export class TwitchChannel {
 
     public no_cleanup = false;
 
+    public max_storage = 0;
+    public max_vods = 0;
+
     /** 
      * Burn chat after capturing.
      * Currently not used.
@@ -106,6 +109,8 @@ export class TwitchChannel {
         this.burn_chat = channel_config.burn_chat !== undefined ? channel_config.burn_chat : false;
         this.live_chat = channel_config.live_chat !== undefined ? channel_config.live_chat : false;
         this.no_cleanup = channel_config.no_cleanup !== undefined ? channel_config.no_cleanup : false;
+        this.max_storage = channel_config.max_storage !== undefined ? channel_config.max_storage : 0;
+        this.max_vods = channel_config.max_vods !== undefined ? channel_config.max_vods : 0;
     }
 
     /**
@@ -210,6 +215,8 @@ export class TwitchChannel {
             burn_chat: this.burn_chat,
             live_chat: this.live_chat,
             no_cleanup: this.no_cleanup,
+            max_storage: this.max_storage,
+            max_vods: this.max_vods,
             // subbed_at: this.subbed_at,
             // expires_at: this.expires_at,
             // last_online: this.last_online,
@@ -450,9 +457,11 @@ export class TwitchChannel {
 
         const vod_candidates: TwitchVOD[] = [];
 
-        const sps_bytes = Config.getInstance().cfg<number>("storage_per_streamer", 100) * 1024 * 1024 * 1024;
+        const max_storage = this.max_storage > 0 ? this.max_storage : Config.getInstance().cfg<number>("storage_per_streamer", 100);
+        const max_vods = this.max_vods > 0 ? this.max_vods : Config.getInstance().cfg<number>("vods_to_keep", 5);
 
-        const vods_to_keep = Config.getInstance().cfg<number>("vods_to_keep", 5);
+        const sps_bytes = max_storage * 1024 * 1024 * 1024;
+        const vods_to_keep = max_vods;
 
         if (this.vods_list) {
             for (const vodclass of [...this.vods_list].reverse()) { // reverse so we can delete the oldest ones first

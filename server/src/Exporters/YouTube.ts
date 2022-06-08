@@ -14,6 +14,9 @@ export class YouTubeExporter extends BaseExporter {
 
         const final_title = this.getFormattedTitle();
 
+        throw new Error("Not implemented");
+
+        return false;
 
     }
 }

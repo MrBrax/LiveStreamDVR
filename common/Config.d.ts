@@ -50,4 +50,6 @@ export interface ChannelConfig {
     no_capture: boolean;
     live_chat: boolean;
     no_cleanup: boolean;
+    max_storage: number;
+    max_vods: number;
 }

@@ -126,7 +126,11 @@
       "quality-help-example": "Separate by spaces, e.g. best 1080p 720p audio_only",
       "quality-help-warning": "If the stream does not use any of these, it will not be recorded.",
       "quality-help-choices": "Valid choices: {0}",
-      "login-does-not-exist": "The channel {0} does not exist."
+      "login-does-not-exist": "The channel {0} does not exist.",
+      "max-storage": "Max storage",
+      "max-storage-help": "In gigabytes, how many will be kept when cleaning up. 0 to inherit from settings.",
+      "max-vods": "Max VODs",
+      "max-vods-help": "Amount of VODs to keep when cleaning up. 0 to inherit from settings."
     },
     "config": {
       "validate-external-url": "Validate external URL"
