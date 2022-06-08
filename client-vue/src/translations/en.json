@@ -70,6 +70,13 @@
       "stream-number": "Stream number",
       "prevent-deletion": "Prevent deletion",
       "edit-vod": "Edit VOD"
+    },
+    "export": {
+      "title-template": "Title template",
+      "export-type": "Exporter",
+      "directory": "Directory",
+      "host": "Host",
+      "username": "Username"
     }
   },
   "buttons": {
@@ -85,7 +92,8 @@
     "execute": "Execute",
     "download": "Download",
     "delete-all-vods": "Delete all VODs",
-    "fetch": "Fetch"
+    "fetch": "Fetch",
+    "export": "Export"
   },
   "pages": {
     "favourite-games": "Favourite games",

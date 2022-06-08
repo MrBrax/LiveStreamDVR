@@ -51,6 +51,7 @@ router.post("/vod/:basename/check_mute", Vod.CheckMute);
 router.post("/vod/:basename/match", Vod.MatchVod);
 router.post("/vod/:basename/cut", Vod.CutVod);
 router.post("/vod/:basename/save", Vod.ArchiveVod);
+router.post("/vod/:basename/export", Vod.ExportVod);
 
 router.get("/games", Games.ListGames);
 

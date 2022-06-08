@@ -7,6 +7,10 @@ import { VideoQuality } from "../../../common/Config";
 import { VideoQualityArray } from "../../../common/Defs";
 import { LOGLEVEL, Log } from "../Core/Log";
 import { TwitchVOD } from "../Core/TwitchVOD";
+import { FileExporter } from "Exporters/File";
+import { BaseExporter } from "Exporters/Base";
+import { YouTubeExporter } from "Exporters/YouTube";
+import { SFTPExporter } from "Exporters/SFTP";
 
 export async function GetVod(req: express.Request, res: express.Response): Promise<void> {
 
@@ -432,5 +436,91 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
     } as ApiResponse);
 
     return;
+
+}
+
+
+type Exporter = FileExporter | YouTubeExporter;
+
+export async function ExportVod(req: express.Request, res: express.Response): Promise<void> {
+
+    const vod = TwitchVOD.getVod(req.params.basename);
+
+    if (!vod) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (!vod.is_finalized) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod is not finalized",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (!vod.segments || vod.segments.length == 0) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod has no segments",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    let exporter: Exporter | undefined;
+    
+    if (req.body.exporter == "file") {
+        exporter = new FileExporter();
+        if (exporter instanceof FileExporter) { // why does typescript need this??
+            exporter.load(vod);
+            exporter.setDirectory(BaseConfigDataFolder.saved_clips);
+        }
+    } else if (req.body.exporter == "sftp") {
+        exporter = new SFTPExporter();
+        if (exporter instanceof SFTPExporter) { // why does typescript need this??
+            exporter.load(vod);
+            exporter.setDirectory(req.body.directory);
+            exporter.setHost(req.body.host);
+            exporter.setUsername(req.body.username);
+        }
+    }
+
+    if (!exporter) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Unknown exporter",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    exporter.setTemplate(req.body.title_template);
+    
+    let success;
+    try {
+        success = await exporter.export();
+    } catch (error) {
+        res.status(400).send({
+            status: "ERROR",
+            message: (error as Error).message || "Unknown error occurred while exporting vod",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (!success) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Export failed",
+        } as ApiErrorResponse);
+        return;
+    } else {
+        res.send({
+            status: "OK",
+            message: "Export successful",
+        } as ApiResponse);
+        return;
+    }
 
 }

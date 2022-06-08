@@ -392,6 +392,14 @@
                         <span>{{ $t('vod.controls.fix-issues') }}</span>
                     </a>
 
+                    <!-- Vod export menu -->
+                    <button v-if="showAdvanced" class="button is-confirm" @click="exportVodMenu ? (exportVodMenu.show = true) : ''">
+                        <span class="icon">
+                            <fa icon="upload" type="fa"></fa>
+                        </span>
+                        <span>{{ $t('buttons.export') }}</span>
+                    </button>
+
                     <!-- Vod edit menu -->
                     <button v-if="showAdvanced" class="button is-confirm" @click="editVodMenu ? (editVodMenu.show = true) : ''">
                         <span class="icon">
@@ -952,6 +960,63 @@
                 <span>{{ $t("buttons.save") }}</span>
             </button>
         </div>
+    </modal-box> 
+    <modal-box ref="exportVodMenu" title="Export VOD">
+        <div class="field">
+            <label class="label">{{ $t('vod.export.export-type') }}</label>
+            <div class="control">
+                <select class="input" v-model="exportVodSettings.exporter">
+                    <option value="file">File</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="sftp">SFTP</option>
+                </select>
+            </div>
+        </div>
+        <div class="field">
+            <label class="label">{{ $t('vod.export.title-template') }}</label>
+            <div class="control">
+                <input class="input" type="text" v-model="exportVodSettings.title_template" />
+            </div>
+            <div class="control">
+                <ul>
+                    <li v-for="v in exporterTemplateVariables">{{ v }}</li>
+                </ul>
+            </div>
+            <div class="control" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp'">
+                {{ templatePreview(exportVodSettings.title_template) }}.mp4
+            </div>
+            <div class="control" v-else-if="exportVodSettings.exporter == 'youtube'">
+                {{ templatePreview(exportVodSettings.title_template) }}
+            </div>
+        </div>
+
+        <div class="field" v-if="exportVodSettings.exporter == 'sftp'">
+            <label class="label">{{ $t('vod.export.directory') }}</label>
+            <div class="control">
+                <input class="input" type="text" v-model="exportVodSettings.directory" />
+            </div>
+        </div>
+        <div class="field" v-if="exportVodSettings.exporter == 'sftp'">
+            <label class="label">{{ $t('vod.export.host') }}</label>
+            <div class="control">
+                <input class="input" type="text" v-model="exportVodSettings.host" />
+            </div>
+        </div>
+        <div class="field" v-if="exportVodSettings.exporter == 'sftp'">
+            <label class="label">{{ $t('vod.export.username') }}</label>
+            <div class="control">
+                <input class="input" type="text" v-model="exportVodSettings.username" />
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="control">
+                <button class="button is-confirm" @click="doExportVod">
+                    <span class="icon"><fa icon="upload" /></span>
+                    <span>{{ $t("buttons.export") }}</span>
+                </button>
+            </div>
+        </div>
     </modal-box>
 </template>
 
@@ -981,7 +1046,8 @@ import {
     faMinus,
     faPlus,
     faCommentDots,
-    faSave
+    faSave,
+    faUpload,
 } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
 import ModalBox from "./ModalBox.vue";
@@ -989,6 +1055,7 @@ import { MuteStatus, VideoQualityArray } from "../../../common/Defs";
 import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import TwitchVOD from "@/core/vod";
 import { AudioMetadata } from "@common/MediaInfo";
+import { formatString } from "@common/Format";
 library.add(
     faFileVideo,
     faCut,
@@ -1008,7 +1075,8 @@ library.add(
     faMinus,
     faPlus,
     faCommentDots,
-    faSave
+    faSave,
+    faUpload,
 );
 
 export default defineComponent({
@@ -1021,7 +1089,18 @@ export default defineComponent({
         const vodDownloadMenu = ref<InstanceType<typeof ModalBox>>();
         const playerMenu = ref<InstanceType<typeof ModalBox>>();
         const editVodMenu = ref<InstanceType<typeof ModalBox>>();
-        return { store, burnMenu, chatDownloadMenu, vodDownloadMenu, playerMenu, MuteStatus, VideoQualityArray, editVodMenu };
+        const exportVodMenu = ref<InstanceType<typeof ModalBox>>();
+        return {
+            store,
+            burnMenu,
+            chatDownloadMenu,
+            vodDownloadMenu,
+            playerMenu,
+            MuteStatus,
+            VideoQualityArray,
+            editVodMenu,
+            exportVodMenu
+        };
     },
     data() {
         return {
@@ -1067,7 +1146,22 @@ export default defineComponent({
                 stream_number: 0,
                 comment: "",
                 prevent_deletion: false,
-            }
+            },
+            exportVodSettings: {
+                exporter: "file",
+                title_template: "[{login}] {title} ({date})",
+                directory: "",
+                host: "",
+                username: "",
+            },
+            exporterTemplateVariables: [
+                "login",
+                "title",
+                "stream_number",
+                "comment",
+                "date",
+                "resolution",
+            ],
         };
     },
     mounted() {
@@ -1345,6 +1439,31 @@ export default defineComponent({
                 if (err.response.data && err.response.data.message) alert(err.response.data.message);
             });
 
+        },
+        templatePreview(template: string): string {
+            const replacements = {
+                login: "TestLogin",
+                title: "TestTitle",
+                date: "2020-01-01",
+                resolution: "1080p",
+                stream_number: "102",
+                comment: "TestComment", 
+            };
+            const replaced_string = formatString(template, replacements);
+            return replaced_string;
+        },
+        doExportVod() {
+            if (!this.vod) return;
+            this.$http.post(`/api/v0/vod/${this.vod.basename}/export`, this.exportVodSettings).then((response) => {
+                const json: ApiResponse = response.data;
+                if (json.message) alert(json.message);
+                console.log(json);
+                if (this.vod) this.store.fetchAndUpdateVod(this.vod.basename);
+                if (this.editVodMenu) this.editVodMenu.show = false;
+            }).catch((err) => {
+                console.error("form error", err.response);
+                if (err.response.data && err.response.data.message) alert(err.response.data.message);
+            });
         },
     },
     computed: {
