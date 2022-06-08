@@ -274,7 +274,7 @@ export class Job extends EventEmitter {
             Log.logAdvanced(LOGLEVEL.WARNING, "job", `Job ${this.name} not found in jobs list`, this.metadata);
         }
 
-        this.emit("clear");
+        this.emit("clear", this.code);
 
         this.broadcastUpdate();
 
@@ -333,6 +333,7 @@ export class Job extends EventEmitter {
             if (code === 1) this.status = JobStatus.ERROR;
             this.emit("process_exit", code, signal);
             this.process_running = false;
+            this.onClose(code);
         });
 
         this.process.on("error", (err) => {
@@ -345,6 +346,7 @@ export class Job extends EventEmitter {
             if (code === 1) this.status = JobStatus.ERROR;
             this.emit("process_close", code, signal);
             this.process_running = false;
+            this.onClose(code);
         });
 
         this.on("process_start", () => {

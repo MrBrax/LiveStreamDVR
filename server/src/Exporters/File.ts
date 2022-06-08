@@ -11,6 +11,8 @@ export class FileExporter extends BaseExporter {
 
     public directory = "";
 
+    private final_path = "";
+
     setDirectory(directory: string): void {
         this.directory = directory;
     }
@@ -25,10 +27,17 @@ export class FileExporter extends BaseExporter {
 
         const final_filename = sanitize(this.getFormattedTitle()) + "." + this.extension;
 
-        const final_path = path.join(this.directory, final_filename);
+        this.final_path = path.join(this.directory, final_filename);
 
-        await fs.promises.copyFile(this.filename, final_path);
-        return fs.existsSync(final_path);
+        await fs.promises.copyFile(this.filename, this.final_path);
+        return fs.existsSync(this.final_path);
+    }
+
+    async verify(): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            const exists = fs.existsSync(this.final_path);
+            resolve(exists);
+        });
     }
 
 }

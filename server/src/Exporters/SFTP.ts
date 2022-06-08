@@ -12,6 +12,8 @@ export class SFTPExporter extends BaseExporter {
     public host = "";
     public username = "";
 
+    public remote_file = "";
+
     setDirectory(directory: string): void {
         this.directory = directory;
     }
@@ -39,17 +41,19 @@ export class SFTPExporter extends BaseExporter {
             const final_filename = sanitize(this.getFormattedTitle()) + "." + this.extension;
 
             const filesystem_path = path.join(this.directory, final_filename);
-            const linux_path = filesystem_path.replace(/\\/g, "/"); //.replace(/\s/g, "\\ ");
-            let remote_path = `${this.host}:"'${linux_path}'"`;
+            const linux_path = filesystem_path.replace(/\\/g, "/");
+            let remote_path = `${this.host}:'${linux_path}'`;
             if (this.username) {
                 remote_path = `${this.username}@${remote_path}`;
             }
 
-            // const local_path = `"${this.filename.replace(/\\/g, "/").replace(/^C:/, "/C")}"`;
-            const local_path = `"${this.filename.replace(/^C:/, "\\C")}"`;
+            this.remote_file = linux_path;
+
+            const local_name = this.filename.replace(/\\/g, "/").replace(/^C:/, "");
+            const local_path = local_name.includes(" ") ? `'${local_name}'` : local_name;
 
             const bin = "scp";
-            // const bin = "C:\\Windows\\System32\\OpenSSH\\scp.exe";
+
             const args = [
                 "-p",
                 "-v",
@@ -71,7 +75,7 @@ export class SFTPExporter extends BaseExporter {
 
             job.on("clear", (code: number) => {
                 if (code !== 0) {
-                    reject(new Error("Failed to clear"));
+                    reject(new Error(`Failed to clear, code ${code}`));
                 } else {
                     resolve(true);
                 }
@@ -79,6 +83,35 @@ export class SFTPExporter extends BaseExporter {
 
         });
         
+    }
+
+    async verify(): Promise<boolean> {
+
+        return true; // no way to verify over ssh
+    
+        /*
+        if (!this.remote_file) return false;
+
+        const bin = "ssh";
+
+        const args = [
+            "-q",
+            `${this.username}@${this.host}`,
+            `"test -e ${this.remote_file} && echo FOUND"`,
+        ];
+
+        const job = await Helper.execSimple(bin, args, "ssh file check");
+        
+        console.log("ssh result", job);
+
+        if (job.stdout.includes("FOUND") || job.stderr.includes("FOUND")) {
+            return true;
+        } else {
+            return false;
+        }
+        */
+
+        // return job.code === 0;
     }
 
 }

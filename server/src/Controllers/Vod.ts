@@ -515,12 +515,22 @@ export async function ExportVod(req: express.Request, res: express.Response): Pr
             message: "Export failed",
         } as ApiErrorResponse);
         return;
-    } else {
-        res.send({
-            status: "OK",
-            message: "Export successful",
-        } as ApiResponse);
+    }
+
+    let verify;
+    try {
+        verify = await exporter.verify();
+    } catch (error) {
+        res.status(400).send({
+            status: "ERROR",
+            message: (error as Error).message || "Unknown error occurred while verifying export",
+        } as ApiErrorResponse);
         return;
     }
+
+    res.send({
+        status: "OK",
+        message: "Export successful",
+    } as ApiResponse);
 
 }

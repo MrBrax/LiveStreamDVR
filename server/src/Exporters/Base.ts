@@ -56,4 +56,8 @@ export class BaseExporter {
         throw new Error("Not implemented");
     }
 
+    async verify(): Promise<boolean> {
+        throw new Error("Not implemented");
+    }
+
 }

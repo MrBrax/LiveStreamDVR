@@ -489,6 +489,8 @@ export class Helper {
             env: envs,
         });
 
+        console.log("startJob process", jobProcess.spawnfile, jobProcess.spawnargs);
+
         jobProcess.on("error", (err) => {
             Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Process '${jobProcess.pid}' on job '${jobName}' error: ${err}`, {
                 bin,
