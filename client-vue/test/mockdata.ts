@@ -71,6 +71,8 @@ export const MockApiChannelData: ApiChannel = {
     live_chat: false,
     channel_data: TwitchChannelData,
     no_cleanup: false,
+    max_storage: 0,
+    max_vods: 0,
 };
 
 export const MockApiVODData: ApiVod = {

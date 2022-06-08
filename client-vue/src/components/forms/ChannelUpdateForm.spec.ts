@@ -55,7 +55,7 @@ test('ChannelUpdateForm', async () => {
 
     vitest.spyOn(wrapper.vm.store, 'fetchAndUpdateStreamerList');
 
-    expect(wrapper.text()).toContain('Separate by spaces, e.g. best 1080p 720p audio_only');
+    // expect(wrapper.text()).toContain('Separate by spaces, e.g. best 1080p 720p audio_only');
 
     // wrapper.vm.$http.post.mockResolvedValue(wrapper.vm.formData);
 
