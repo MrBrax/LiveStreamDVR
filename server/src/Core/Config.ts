@@ -381,6 +381,7 @@ export class Config {
     postSaveConfig() {
         this.setupAxios();
         Scheduler.restartScheduler();
+        YouTubeHelper.setupClient();
     }
 
     backupConfig() {

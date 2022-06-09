@@ -23,6 +23,7 @@ export class YouTubeHelper {
     static setupClient() {
         const client_id = Config.getInstance().cfg<string>("youtube_client_id");
         const client_secret = Config.getInstance().cfg<string>("youtube_client_secret");
+        const app_url = Config.getInstance().cfg<string>("app_url");
 
         this.authenticated = false;
         this.oAuth2Client = undefined;
@@ -35,7 +36,8 @@ export class YouTubeHelper {
         this.oAuth2Client = new google.auth.OAuth2(
             client_id,
             client_secret,
-            "http://localhost:8081/api/v0/youtube/callback"
+            // "http://localhost:8081/api/v0/youtube/callback"
+            `${app_url}/api/v0/youtube/callback`
         );
 
         const token = this.loadToken();
