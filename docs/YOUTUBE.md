@@ -2,6 +2,8 @@
 
 Create an app on [Google Developers Console](https://console.cloud.google.com) and enable the *YouTube Data API v3*.
 
+Open the API overview.
+
 In *Credentials*, click *Create Credentials* and select *OAuth client ID*.
 
 * **Application type:** Web application

@@ -11,6 +11,7 @@ export class YouTubeHelper {
 
     public static readonly SCOPES = [
         "https://www.googleapis.com/auth/youtube.upload",
+        "https://www.googleapis.com/auth/userinfo.profile",
     ];
 
     static readonly accessTokenFile = path.join(BaseConfigDataFolder.cache, "youtube_oauth.json");
@@ -19,11 +20,17 @@ export class YouTubeHelper {
 
     static oAuth2Client?: OAuth2Client;
     static authenticated = false;
-    
+    static username = "";
+    static username_file = path.join(BaseConfigDataFolder.cache, "youtube_username.txt");
+
     static setupClient() {
         const client_id = Config.getInstance().cfg<string>("youtube_client_id");
         const client_secret = Config.getInstance().cfg<string>("youtube_client_secret");
-        const app_url = Config.getInstance().cfg<string>("app_url");
+        let app_url = Config.getInstance().cfg<string>("app_url");
+
+        if (app_url == "debug") {
+            app_url = "http://localhost:8081";
+        }
 
         this.authenticated = false;
         this.oAuth2Client = undefined;
@@ -32,7 +39,7 @@ export class YouTubeHelper {
             Log.logAdvanced(LOGLEVEL.WARNING, "YouTubeHelper", "No client_id or client_secret set up. YouTube uploads will not work.");
             return;
         }
-        
+
         this.oAuth2Client = new google.auth.OAuth2(
             client_id,
             client_secret,
@@ -44,6 +51,7 @@ export class YouTubeHelper {
         if (token) {
             this.oAuth2Client.setCredentials(token);
             this.authenticated = true;
+            this.fetchUsername();
         }
     }
 
@@ -66,6 +74,36 @@ export class YouTubeHelper {
         }
         Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `Loaded token from ${this.accessTokenFile}`);
         return token;
+    }
+
+    static async fetchUsername(force = false): Promise<void> {
+
+        if (this.username && !force) {
+            return;
+        }
+
+        if (!force) {
+            if (fs.existsSync(this.username_file)) {
+                this.username = fs.readFileSync(this.username_file, "utf8");
+                return;
+            }
+        }
+
+        if (!this.oAuth2Client) {
+            return;
+        }
+
+        const oauth2 = google.oauth2({
+            version: "v2",
+            auth: this.oAuth2Client,
+        });
+
+        const res = await oauth2.userinfo.v2.me.get();
+        this.username = res.data.name || "";
+        fs.writeFileSync(this.username_file, this.username);
+
+        Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `Username is ${this.username}`);
+
     }
 
 }

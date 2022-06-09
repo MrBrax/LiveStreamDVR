@@ -48,10 +48,12 @@ export function Callback(req: express.Request, res: express.Response): Promise<v
                 } else if (token && YouTubeHelper.oAuth2Client) {
                     Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", "Authenticated with YouTube");
                     YouTubeHelper.oAuth2Client.setCredentials(token);
-                    res.redirect("/", 302);
+                    res.redirect(302, "/");
                     YouTubeHelper.authenticated = true;
                     YouTubeHelper.storeToken(token);
-                    resolve();
+                    YouTubeHelper.fetchUsername().then(() => {
+                        resolve();
+                    });
                     return;
                 } else {
                     Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", "Could not get token, unknown error");
@@ -72,6 +74,14 @@ export function Callback(req: express.Request, res: express.Response): Promise<v
 
 export function Status(req: express.Request, res: express.Response): void {
 
+    if (!YouTubeHelper.oAuth2Client) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "YouTube client not configured",
+        });
+        return;
+    }
+
     if (!YouTubeHelper.authenticated) {
         res.status(400).send({
             status: "ERROR",
@@ -82,7 +92,7 @@ export function Status(req: express.Request, res: express.Response): void {
 
     res.send({
         status: "OK",
-        message: "YouTube authenticated",
+        message: `YouTube authenticated with user: ${YouTubeHelper.username}`,
     });
 
 }

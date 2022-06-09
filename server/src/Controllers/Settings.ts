@@ -12,6 +12,7 @@ export function GetSettings(req: express.Request, res: express.Response): void {
 
     const config: Record<string, any> = {};
     for (const field of Config.settingsFields) {
+        // if (field.secret) continue;
         config[field.key] = Config.getInstance().cfg(field.key);
     }
 

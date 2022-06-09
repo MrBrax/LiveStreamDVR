@@ -93,6 +93,7 @@
 
                 <p v-if="data.help" class="input-help">{{ data.help }}</p>
                 <p v-if="data.default" class="input-help">Default: {{ data.default }}</p>
+                <!--<p v-if="data.secret" class="input-secret">This is a secret field, keep blank to keep current value.</p>-->
             </div>
         </details>
 
