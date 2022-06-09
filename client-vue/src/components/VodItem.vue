@@ -1008,6 +1008,45 @@
                 <input class="input" type="text" v-model="exportVodSettings.username" />
             </div>
         </div>
+        <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+            <div class="buttons">
+                <button class="button is-confirm" @click="doCheckYouTubeStatus">
+                    <span class="icon"><fa icon="sync" /></span>
+                    <span>{{ $t("buttons.checkstatus") }}</span>
+                </button>
+                <button class="button is-confirm" @click="doAuthenticateYouTube">
+                    <span class="icon"><fa icon="key" /></span>
+                    <span>{{ $t("buttons.authenticate") }}</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+            <label class="label">{{ $t('vod.export.description') }}</label>
+            <div class="control">
+                <textarea class="input textarea" v-model="exportVodSettings.description" />
+            </div>
+        </div>
+
+        <!-- Category -->
+        <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+            <label class="label">{{ $t('vod.export.category') }}</label>
+            <div class="control">
+                <select class="input" v-model="exportVodSettings.category">
+                    <option v-for="(c, i) in YouTubeCategories" :value="i">{{ c }}</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Tags -->
+        <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+            <label class="label">{{ $t('vod.export.tags') }}</label>
+            <div class="control">
+                <input class="input" type="text" v-model="exportVodSettings.tags" />
+            </div>
+            <p class="help">{{ $t('vod.export.tags-help') }}</p>
+        </div>
 
         <div class="field">
             <div class="control">
@@ -1048,6 +1087,7 @@ import {
     faCommentDots,
     faSave,
     faUpload,
+    faKey,
 } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
 import ModalBox from "./ModalBox.vue";
@@ -1056,6 +1096,7 @@ import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import TwitchVOD from "@/core/vod";
 import { AudioMetadata } from "@common/MediaInfo";
 import { formatString } from "@common/Format";
+import { YouTubeCategories } from "@/defs";
 library.add(
     faFileVideo,
     faCut,
@@ -1077,6 +1118,7 @@ library.add(
     faCommentDots,
     faSave,
     faUpload,
+    faKey
 );
 
 export default defineComponent({
@@ -1099,7 +1141,8 @@ export default defineComponent({
             MuteStatus,
             VideoQualityArray,
             editVodMenu,
-            exportVodMenu
+            exportVodMenu,
+            YouTubeCategories,
         };
     },
     data() {
@@ -1153,6 +1196,9 @@ export default defineComponent({
                 directory: "",
                 host: "",
                 username: "",
+                description: "",
+                tags: "",
+                category: "",
             },
             exporterTemplateVariables: [
                 "login",
@@ -1465,6 +1511,20 @@ export default defineComponent({
                 if (err.response.data && err.response.data.message) alert(err.response.data.message);
             });
         },
+        doCheckYouTubeStatus() {
+            this.$http.get(`/api/v0/youtube/status`).then((response) => {
+                const json: ApiResponse = response.data;
+                if (json.message) alert(json.message);
+                console.log(json);
+            }).catch((err) => {
+                console.error("youtube check error", err.response);
+                if (err.response.data && err.response.data.message) alert(err.response.data.message);
+            });
+        },
+        doAuthenticateYouTube() {
+            const url = `${this.store.cfg("basepath")}/api/v0/youtube/authenticate`;
+            window.open(url, "_blank");
+        }
     },
     computed: {
         compDownloadChat(): boolean {

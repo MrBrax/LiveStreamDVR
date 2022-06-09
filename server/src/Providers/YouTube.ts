@@ -1,11 +1,11 @@
-
-import { youtube_v3 } from "@googleapis/youtube/v3";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
-import { auth } from "google-auth-library";
+import { OAuth2Client } from "google-auth-library";
 import path from "path";
-import fs from "fs";
-import { format } from "date-fns";
+import { google } from "googleapis";
+import { Config } from "../Core/Config";
 import { Log, LOGLEVEL } from "../Core/Log";
+import fs from "fs";
+
 
 export class YouTubeHelper {
 
@@ -17,43 +17,53 @@ export class YouTubeHelper {
     static readonly accessTokenExpire = 60 * 60 * 24 * 60 * 1000; // 60 days
     static readonly accessTokenRefresh = 60 * 60 * 24 * 30 * 1000; // 30 days
 
-    static async getAccessToken(force = false): Promise<string> {
+    static oAuth2Client?: OAuth2Client;
+    static authenticated = false;
+    
+    static setupClient() {
+        const client_id = Config.getInstance().cfg<string>("youtube_client_id");
+        const client_secret = Config.getInstance().cfg<string>("youtube_client_secret");
 
-        // token should last 60 days, delete it after 30 just to be sure
-        if (fs.existsSync(this.accessTokenFile)) {
+        this.authenticated = false;
+        this.oAuth2Client = undefined;
 
-            if (Date.now() > fs.statSync(this.accessTokenFile).mtimeMs + this.accessTokenRefresh) {
-                Log.logAdvanced(LOGLEVEL.INFO, "helper", `Deleting old access token, too old: ${format(fs.statSync(this.accessTokenFile).mtimeMs, this.PHP_DATE_FORMAT)}`);
-                fs.unlinkSync(this.accessTokenFile);
-            } else if (!force) {
-                Log.logAdvanced(LOGLEVEL.DEBUG, "helper", "Fetched access token from cache");
-                return fs.readFileSync(this.accessTokenFile, "utf8");
-            }
-
+        if (!client_id || !client_secret) {
+            Log.logAdvanced(LOGLEVEL.WARNING, "YouTubeHelper", "No client_id or client_secret set up. YouTube uploads will not work.");
+            return;
         }
+        
+        this.oAuth2Client = new google.auth.OAuth2(
+            client_id,
+            client_secret,
+            "http://localhost:8081/api/v0/youtube/callback"
+        );
 
-        const authUrl = oauth2Client.generateAuthUrl({
-
+        const token = this.loadToken();
+        if (token) {
+            this.oAuth2Client.setCredentials(token);
+            this.authenticated = true;
+        }
     }
 
-    static async authorize(credentials: any) {
-        const client_secret = credentials.installed.client_secret;
-        const client_id = credentials.installed.client_id;
-        const redirect_uris = credentials.installed.redirect_uris;
-        const oauth2Client = new auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+    static storeToken(token: any) {
+        const json = JSON.stringify(token);
+        Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `Storing token in ${this.accessTokenFile}`);
+        fs.writeFileSync(this.accessTokenFile, json);
+    }
 
-        const token = await this.getAccessToken();
-        if (token) {
-            // oauth2Client.setCredentials({
-            //     access_token: token,
-            //     refresh_token: credentials.installed.refresh_token,
-            //     expiry_date: Date.now() + this.accessTokenExpire,
-            // });
-            oauth2Client.credentials = credentials;
-            return oauth2Client;
-        } else {
-            throw new Error("No access token");
+    static loadToken() {
+        if (!fs.existsSync(this.accessTokenFile)) {
+            Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `No token found in ${this.accessTokenFile}`);
+            return null;
         }
+        const json = fs.readFileSync(this.accessTokenFile, "utf8");
+        const token = JSON.parse(json);
+        if (token.expiry_date < new Date().getTime()) {
+            Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `Token expired at ${token.expiry_date}`);
+            return null;
+        }
+        Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `Loaded token from ${this.accessTokenFile}`);
+        return token;
     }
 
 }

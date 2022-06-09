@@ -8,7 +8,6 @@ import { VideoQualityArray } from "../../../common/Defs";
 import { LOGLEVEL, Log } from "../Core/Log";
 import { TwitchVOD } from "../Core/TwitchVOD";
 import { FileExporter } from "Exporters/File";
-import { BaseExporter } from "Exporters/Base";
 import { YouTubeExporter } from "Exporters/YouTube";
 import { SFTPExporter } from "Exporters/SFTP";
 
@@ -440,7 +439,7 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
 }
 
 
-type Exporter = FileExporter | YouTubeExporter;
+type Exporter = FileExporter | YouTubeExporter | SFTPExporter;
 
 export async function ExportVod(req: express.Request, res: express.Response): Promise<void> {
 
@@ -485,6 +484,14 @@ export async function ExportVod(req: express.Request, res: express.Response): Pr
             exporter.setDirectory(req.body.directory);
             exporter.setHost(req.body.host);
             exporter.setUsername(req.body.username);
+        }
+    } else if (req.body.exporter == "youtube") {
+        exporter = new YouTubeExporter();
+        if (exporter instanceof YouTubeExporter) { // why does typescript need this??
+            exporter.load(vod);
+            exporter.setDescription(req.body.description);
+            exporter.setTags(req.body.tags ? (req.body.tags as string).split(",").map(tag => tag.trim()) : []);
+            exporter.setCategory(req.body.category);
         }
     }
 

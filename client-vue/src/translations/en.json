@@ -76,7 +76,11 @@
       "export-type": "Exporter",
       "directory": "Directory",
       "host": "Host",
-      "username": "Username"
+      "username": "Username",
+      "description": "Description",
+      "category": "Category",
+      "tags": "Tags",
+      "tags-help": "Separate by commas"
     }
   },
   "buttons": {
@@ -93,7 +97,9 @@
     "download": "Download",
     "delete-all-vods": "Delete all VODs",
     "fetch": "Fetch",
-    "export": "Export"
+    "export": "Export",
+    "checkstatus": "Check status",
+    "authenticate": "Authenticate"
   },
   "pages": {
     "favourite-games": "Favourite games",

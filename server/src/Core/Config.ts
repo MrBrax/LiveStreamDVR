@@ -15,6 +15,7 @@ import { Job } from "./Job";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
+import { YouTubeHelper } from "Providers/YouTube";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -77,6 +78,9 @@ export class Config {
         // { "key": "sub_lease", "group": "Advanced", "text": "Subscription lease", "type": "number", "default": 604800 },
         { "key": "api_client_id", "group": "Basic", "text": "Twitch client ID", "type": "string", "required": true },
         { "key": "api_secret", "group": "Basic", "text": "Twitch secret", "type": "string", "secret": true, "required": true, "help": "Keep blank to not change" },
+
+        { "key": "youtube_client_id", "group": "Basic", "text": "YouTube client ID", "type": "string" },
+        { "key": "youtube_client_secret", "group": "Basic", "text": "YouTube secret", "type": "string", "secret": true },
 
         // { 'key': 'hook_callback', 		'text': 'Hook callback', 									'type': 'string', 'required': true },
         // {'key': 'timezone', 				'group': 'Interface',	'text': 'Timezone', 										'type': 'array',		'default': 'UTC', 'help': 'This only affects the GUI, not the values stored', 'deprecated': true},
@@ -563,7 +567,9 @@ export class Config {
 
         KeyValue.getInstance().load();
 
-        Config.getInstance().loadConfig();
+        Config.getInstance().loadConfig(); // load config, calls after this will work if config is required
+
+        YouTubeHelper.setupClient();
 
         ClientBroker.loadNotificationSettings();
 
