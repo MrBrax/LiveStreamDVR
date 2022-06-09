@@ -2,11 +2,14 @@
     <div class="container vertical">
         <section class="section" v-if="store.errors && store.errors.length > 0" aria-label="Errors">
             <div class="errors">
-                <ul>
-                    <li v-for="error in store.errors" :key="error">
-                        {{ error }}
-                    </li>
-                </ul>
+                <details class="details">
+                    <summary>Errors ({{store.errors.length}})</summary>
+                    <ul>
+                        <li v-for="error in store.errors" :key="error">
+                            {{ error }}
+                        </li>
+                    </ul>
+                </details>
             </div>
         </section>
         <section class="section" data-section="vods">

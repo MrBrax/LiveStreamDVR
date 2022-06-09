@@ -526,6 +526,7 @@
                             <tr>
                                 <th>{{ $t('vod.chapters.offset') }}</th>
                                 <th v-if="showAdvanced">{{ $t('vod.chapters.started') }}</th>
+                                <th v-if="showAdvanced">{{ $t('vod.chapters.ended') }}</th>
                                 <th>{{ $t('vod.chapters.duration') }}</th>
                                 <th>{{ $t('vod.chapters.category') }}</th>
                                 <th>{{ $t('vod.chapters.title') }}</th>
@@ -554,6 +555,13 @@
                                         <duration-display :start-date="chapter.started_at" output-style="human" /> ago
                                     </span>
                                     <span v-else>{{ formatDate(chapter.started_at, "HH:mm:ss") }}</span>
+                                </td>
+
+                                <!-- end time -->
+                                <td data-contents="ended_at" v-if="showAdvanced">
+                                    <span v-if="chapter.offset !== undefined && chapter.duration !== undefined">
+                                        {{ humanDuration(chapter.offset + chapter.duration) }}
+                                    </span>
                                 </td>
 
                                 <!-- duration -->

@@ -54,13 +54,14 @@
     },
     "chapters": {
       "offset": "Offset",
-      "started": "Started",
+      "started": "Time started",
       "duration": "Duration",
       "category": "Category",
       "title": "Title",
       "viewers": "Viewers",
       "end": "END",
-      "ongoing": "ONGOING"
+      "ongoing": "ONGOING",
+      "ended": "Ended"
     },
     "failed": "Capturing failed",
     "fetch-vod-list": "Fetch vod list",
