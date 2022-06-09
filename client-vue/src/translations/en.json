@@ -80,7 +80,9 @@
       "description": "Description",
       "category": "Category",
       "tags": "Tags",
-      "tags-help": "Separate by commas"
+      "tags-help": "Separate by commas",
+      "file-name": "File name",
+      "file-source": "File source"
     }
   },
   "buttons": {

@@ -962,6 +962,8 @@
         </div>
     </modal-box> 
     <modal-box ref="exportVodMenu" title="Export VOD">
+
+        <!-- Exporter -->
         <div class="field">
             <label class="label">{{ $t('vod.export.export-type') }}</label>
             <div class="control">
@@ -972,6 +974,22 @@
                 </select>
             </div>
         </div>
+
+        <!-- File -->
+        <div class="field">
+            <label class="label">{{ $t('vod.export.file-source') }}</label>
+            <div class="control">
+                <div class="select">
+                    <select v-model="exportVodSettings.file_source">
+                        <option value="segment">First captured segment</option>
+                        <option value="downloaded" :disabled="!vod?.is_vod_downloaded">Downloaded</option>
+                        <option value="burned" :disabled="!vod?.is_chat_burned">Burned</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Title / Filename -->
         <div class="field">
             <label class="label">{{ $t('vod.export.title-template') }}</label>
             <div class="control">
@@ -990,24 +1008,31 @@
             </div>
         </div>
 
-        <div class="field" v-if="exportVodSettings.exporter == 'sftp'">
+        <!-- Directory -->
+        <div class="field" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp'">
             <label class="label">{{ $t('vod.export.directory') }}</label>
             <div class="control">
                 <input class="input" type="text" v-model="exportVodSettings.directory" />
             </div>
         </div>
+
+        <!-- Host -->
         <div class="field" v-if="exportVodSettings.exporter == 'sftp'">
             <label class="label">{{ $t('vod.export.host') }}</label>
             <div class="control">
                 <input class="input" type="text" v-model="exportVodSettings.host" />
             </div>
         </div>
+
+        <!-- Username -->
         <div class="field" v-if="exportVodSettings.exporter == 'sftp'">
             <label class="label">{{ $t('vod.export.username') }}</label>
             <div class="control">
                 <input class="input" type="text" v-model="exportVodSettings.username" />
             </div>
         </div>
+
+        <!-- YouTube Authentication -->
         <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
             <div class="buttons">
                 <button class="button is-confirm" @click="doCheckYouTubeStatus">
@@ -1033,9 +1058,11 @@
         <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
             <label class="label">{{ $t('vod.export.category') }}</label>
             <div class="control">
-                <select class="input" v-model="exportVodSettings.category">
-                    <option v-for="(c, i) in YouTubeCategories" :value="i">{{ c }}</option>
-                </select>
+                <div class="select">
+                    <select v-model="exportVodSettings.category">
+                        <option v-for="(c, i) in YouTubeCategories" :value="i">{{ c }}</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -1045,7 +1072,7 @@
             <div class="control">
                 <input class="input" type="text" v-model="exportVodSettings.tags" />
             </div>
-            <p class="help">{{ $t('vod.export.tags-help') }}</p>
+            <p class="input-help">{{ $t('vod.export.tags-help') }}</p>
         </div>
 
         <div class="field">
@@ -1199,6 +1226,7 @@ export default defineComponent({
                 description: "",
                 tags: "",
                 category: "",
+                file_source: "segment",
             },
             exporterTemplateVariables: [
                 "login",

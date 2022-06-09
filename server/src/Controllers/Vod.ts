@@ -470,35 +470,55 @@ export async function ExportVod(req: express.Request, res: express.Response): Pr
     }
 
     let exporter: Exporter | undefined;
-    
-    if (req.body.exporter == "file") {
-        exporter = new FileExporter();
-        if (exporter instanceof FileExporter) { // why does typescript need this??
-            exporter.load(vod);
-            exporter.setDirectory(BaseConfigDataFolder.saved_clips);
+
+    try {
+        if (req.body.exporter == "file") {
+            exporter = new FileExporter();
+            if (exporter instanceof FileExporter) { // why does typescript need this??
+                exporter.loadVOD(vod);
+                exporter.setDirectory(req.body.directory || BaseConfigDataFolder.saved_vods);
+            }
+        } else if (req.body.exporter == "sftp") {
+            exporter = new SFTPExporter();
+            if (exporter instanceof SFTPExporter) { // why does typescript need this??
+                exporter.loadVOD(vod);
+                exporter.setDirectory(req.body.directory);
+                exporter.setHost(req.body.host);
+                exporter.setUsername(req.body.username);
+            }
+        } else if (req.body.exporter == "youtube") {
+            exporter = new YouTubeExporter();
+            if (exporter instanceof YouTubeExporter) { // why does typescript need this??
+                exporter.loadVOD(vod);
+                exporter.setDescription(req.body.description);
+                exporter.setTags(req.body.tags ? (req.body.tags as string).split(",").map(tag => tag.trim()) : []);
+                exporter.setCategory(req.body.category);
+            }
         }
-    } else if (req.body.exporter == "sftp") {
-        exporter = new SFTPExporter();
-        if (exporter instanceof SFTPExporter) { // why does typescript need this??
-            exporter.load(vod);
-            exporter.setDirectory(req.body.directory);
-            exporter.setHost(req.body.host);
-            exporter.setUsername(req.body.username);
-        }
-    } else if (req.body.exporter == "youtube") {
-        exporter = new YouTubeExporter();
-        if (exporter instanceof YouTubeExporter) { // why does typescript need this??
-            exporter.load(vod);
-            exporter.setDescription(req.body.description);
-            exporter.setTags(req.body.tags ? (req.body.tags as string).split(",").map(tag => tag.trim()) : []);
-            exporter.setCategory(req.body.category);
-        }
+    } catch (error) {
+        res.status(400).send({
+            status: "ERROR",
+            message: (error as Error).message || "Unknown error occurred while creating exporter",
+        } as ApiErrorResponse);
+        return;        
     }
+    
+    
 
     if (!exporter) {
         res.status(400).send({
             status: "ERROR",
             message: "Unknown exporter",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    try {
+        exporter.setSource(req.body.file_source);
+    } catch (error) {
+        res.status(400).send({
+            status: "ERROR",
+            message: (error as Error).message || "Unknown error occurred while setting exporter source",
         } as ApiErrorResponse);
         return;
     }

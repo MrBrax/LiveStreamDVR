@@ -1,5 +1,4 @@
 import { Helper } from "Core/Helper";
-import fs from "fs";
 import path from "path";
 import sanitize from "sanitize-filename";
 import { BaseExporter } from "./Base";
@@ -29,14 +28,11 @@ export class SFTPExporter extends BaseExporter {
     export(): Promise<boolean> {
 
         return new Promise<boolean>((resolve, reject) => {
-            if (!this.vod) throw new Error("No VOD loaded");
             if (!this.filename) throw new Error("No filename");
-            if (!this.template_filename) throw new Error("No template filename");
             if (!this.extension) throw new Error("No extension");
-            if (!this.vod.started_at) throw new Error("No started_at");
-            if (!this.vod.video_metadata) throw new Error("No video_metadata");
             if (!this.host) throw new Error("No host");
             if (!this.directory) throw new Error("No directory");
+            if (!this.getFormattedTitle()) throw new Error("No title");
 
             const final_filename = sanitize(this.getFormattedTitle()) + "." + this.extension;
 
@@ -63,7 +59,7 @@ export class SFTPExporter extends BaseExporter {
                 remote_path,
             ];
 
-            const job = Helper.startJob("SFTPExporter_" + this.vod.basename, bin, args);
+            const job = Helper.startJob("SFTPExporter_" + path.basename(this.filename), bin, args);
             if (!job) {
                 throw new Error("Failed to start job");
             }
