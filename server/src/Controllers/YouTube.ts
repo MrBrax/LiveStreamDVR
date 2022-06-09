@@ -1,6 +1,7 @@
 import express from "express";
 import { YouTubeHelper } from "../Providers/YouTube";
 import { Log, LOGLEVEL } from "../Core/Log";
+import { formatISO9075 } from "date-fns";
 
 export function Authenticate(req: express.Request, res: express.Response): void {
 
@@ -90,9 +91,11 @@ export function Status(req: express.Request, res: express.Response): void {
         return;
     }
 
+    const end_date = new Date(YouTubeHelper.accessTokenTime);
+
     res.send({
         status: "OK",
-        message: `YouTube authenticated with user: ${YouTubeHelper.username}`,
+        message: `YouTube authenticated with user: ${YouTubeHelper.username}, expires at ${formatISO9075(end_date)}`,
     });
 
 }

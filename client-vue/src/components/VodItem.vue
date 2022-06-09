@@ -963,6 +963,8 @@
     </modal-box> 
     <modal-box ref="exportVodMenu" title="Export VOD">
 
+        <div class="notification is-error" v-if="!vod?.segments || vod.segments.length == 0">{{ $t('vod.export.no-segments') }}</div>
+
         <!-- Exporter -->
         <div class="field">
             <label class="label">{{ $t('vod.export.export-type') }}</label>

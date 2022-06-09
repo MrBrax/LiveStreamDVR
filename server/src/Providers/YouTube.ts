@@ -12,6 +12,7 @@ export class YouTubeHelper {
     public static readonly SCOPES = [
         "https://www.googleapis.com/auth/youtube.upload",
         "https://www.googleapis.com/auth/userinfo.profile",
+        "https://www.googleapis.com/auth/youtube.readonly",
     ];
 
     static readonly accessTokenFile = path.join(BaseConfigDataFolder.cache, "youtube_oauth.json");
@@ -22,6 +23,7 @@ export class YouTubeHelper {
     static authenticated = false;
     static username = "";
     static username_file = path.join(BaseConfigDataFolder.cache, "youtube_username.txt");
+    static accessTokenTime = 0;
 
     static setupClient() {
         const client_id = Config.getInstance().cfg<string>("youtube_client_id");
@@ -72,6 +74,7 @@ export class YouTubeHelper {
             Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `Token expired at ${token.expiry_date}`);
             return null;
         }
+        this.accessTokenTime = token.expiry_date;
         Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `Loaded token from ${this.accessTokenFile}`);
         return token;
     }

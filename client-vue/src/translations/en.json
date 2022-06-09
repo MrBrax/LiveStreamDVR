@@ -82,7 +82,8 @@
       "tags": "Tags",
       "tags-help": "Separate by commas",
       "file-name": "File name",
-      "file-source": "File source"
+      "file-source": "File source",
+      "no-segments": "The VOD does not have any segments"
     }
   },
   "buttons": {
