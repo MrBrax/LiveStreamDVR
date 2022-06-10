@@ -62,6 +62,8 @@ export class Job extends EventEmitter {
 
     public progress = 0;
 
+    public dummy = false;
+
     logfile = "";
 
     private _updateTimer: NodeJS.Timeout | undefined;
@@ -399,6 +401,11 @@ export class Job extends EventEmitter {
     public async getStatus(use_command = false): Promise<JobStatus> {
 
         Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Check status for job ${this.name}`, this.metadata);
+
+        if (this.dummy) {
+            this.status = JobStatus.RUNNING;
+            return JobStatus.RUNNING;
+        }
 
         // console.debug("get job status", this.name);
 

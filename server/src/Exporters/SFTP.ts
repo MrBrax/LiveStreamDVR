@@ -25,9 +25,9 @@ export class SFTPExporter extends BaseExporter {
         this.username = username;
     }
 
-    export(): Promise<boolean> {
+    export(): Promise<boolean | string> {
 
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<boolean | string>((resolve, reject) => {
             if (!this.filename) throw new Error("No filename");
             if (!this.extension) throw new Error("No extension");
             if (!this.host) throw new Error("No host");
@@ -73,7 +73,7 @@ export class SFTPExporter extends BaseExporter {
                 if (code !== 0) {
                     reject(new Error(`Failed to clear, code ${code}`));
                 } else {
-                    resolve(true);
+                    resolve(linux_path);
                 }
             });
 

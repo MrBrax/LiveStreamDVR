@@ -78,7 +78,7 @@ export class BaseExporter {
         return formatString(this.template_filename, replacements);
     }
 
-    async export(): Promise<boolean> {
+    async export(): Promise<boolean | string> {
         throw new Error("Export not implemented");
     }
 

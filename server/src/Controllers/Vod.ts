@@ -493,6 +493,7 @@ export async function ExportVod(req: express.Request, res: express.Response): Pr
                 exporter.setDescription(req.body.description);
                 exporter.setTags(req.body.tags ? (req.body.tags as string).split(",").map(tag => tag.trim()) : []);
                 exporter.setCategory(req.body.category);
+                exporter.setPrivacy(req.body.privacy);
             }
         }
     } catch (error) {
@@ -557,7 +558,9 @@ export async function ExportVod(req: express.Request, res: express.Response): Pr
 
     res.send({
         status: "OK",
-        message: "Export successful",
+        message: typeof success == "string" ? `Export successful: ${success}` : "Export successful",
     } as ApiResponse);
+
+    return;
 
 }

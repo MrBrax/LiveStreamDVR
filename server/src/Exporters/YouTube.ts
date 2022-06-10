@@ -2,7 +2,9 @@ import { BaseExporter } from "./Base";
 import { google } from "googleapis";
 import { YouTubeHelper } from "../Providers/YouTube";
 import fs from "fs";
-import { Log, LOGLEVEL } from "Core/Log";
+import { Log, LOGLEVEL } from "../Core/Log";
+import { Job } from "../Core/Job";
+import path from "path";
 
 export class YouTubeExporter extends BaseExporter {
 
@@ -13,6 +15,7 @@ export class YouTubeExporter extends BaseExporter {
     public description = "";
     public tags: string[] = [];
     public category = "";
+    public privacy: "private" | "unlisted" | "public" = "private";
 
     setDescription(description: string): void {
         this.description = description;
@@ -26,8 +29,12 @@ export class YouTubeExporter extends BaseExporter {
         this.category = category;
     }
 
-    export(): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
+    setPrivacy(value: "private" | "unlisted" | "public"): void {
+        this.privacy = value;
+    }
+
+    export(): Promise<boolean | string> {
+        return new Promise<boolean | string>((resolve, reject) => {
             if (!this.vod) throw new Error("No VOD loaded");
             if (!this.filename) throw new Error("No filename");
             if (!this.template_filename) throw new Error("No template filename");
@@ -42,6 +49,10 @@ export class YouTubeExporter extends BaseExporter {
 
             Log.logAdvanced(LOGLEVEL.INFO, "YouTubeExporter", `Uploading ${this.filename} to YouTube...`);
 
+            const job = Job.create(`YouTubeExporter_${path.basename(this.filename)}`);
+            job.dummy = true;
+            job.save();
+
             service.videos.insert({
                 auth: YouTubeHelper.oAuth2Client,
                 part: ["snippet", "status"],
@@ -53,7 +64,7 @@ export class YouTubeExporter extends BaseExporter {
                         categoryId: this.category,
                     },
                     status: {
-                        privacyStatus: "private",
+                        privacyStatus: this.privacy,
                     },
                 },
                 media: {
@@ -63,12 +74,14 @@ export class YouTubeExporter extends BaseExporter {
             }, (err, response): void => {
                 if (err) {
                     Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", `Could not upload video: ${err}`);
+                    job.clear();
                     reject(err);
                     return;
                 } else if (response) {
                     Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", `Video uploaded: ${response.data.id}`);
                     this.video_id = response.data.id || "";
-                    resolve(true);
+                    job.clear();
+                    resolve(this.video_id);
                 }
             });
 

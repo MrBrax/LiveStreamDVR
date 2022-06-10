@@ -1085,6 +1085,20 @@
             <p class="input-help">{{ $t('vod.export.tags-help') }}</p>
         </div>
 
+        <!-- Privacy -->
+        <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+            <label class="label">{{ $t('vod.export.privacy') }}</label>
+            <div class="control">
+                <div class="select">
+                    <select v-model="exportVodSettings.privacy">
+                        <option value="public">{{ $t('vod.export.privacy-public') }}</option>
+                        <option value="unlisted">{{ $t('vod.export.privacy-unlisted') }}</option>
+                        <option value="private">{{ $t('vod.export.privacy-private') }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <div class="field">
             <div class="control">
                 <button class="button is-confirm" @click="doExportVod">
@@ -1237,6 +1251,7 @@ export default defineComponent({
                 tags: "",
                 category: "",
                 file_source: "segment",
+                privacy: "private",
             },
             exporterTemplateVariables: [
                 "login",
