@@ -18,9 +18,28 @@
     "video-info": {
       "general": "Allgemein",
       "capture": "Aufnahme",
+      "webhook-duration": "Webhook Dauer",
+      "created": "Erstellt",
+      "went-live": "Live gegangen",
+      "capture-launched": "Aufnahme ausgelöst",
+      "wrote-file": "Datei geschrieben",
+      "stream-end": "Stream beendet",
+      "capture-start": "Aufnahme gestartet",
+      "conversion-start": "Umwandlung gestartet",
+      "missing-from-captured-file": "Fehlend in aufgenommener Datei",
+      "chat-downloaded": "Chat heruntergeladen",
+      "chat-dumped": "Chat dumped",
+      "chat-rendered": "Chat gerendert",
+      "chat-burned": "Chat eingebettet",
       "duration": "Dauer",
       "id": "ID",
-      "date": "Datum"
+      "date": "Datum",
+      "title": "Titel",
+      "is-muted": "Ist stummgeschaltet",
+      "downloaded": "Heruntergeladen",
+      "vod-is-deleted": "VOD wurde gelöscht.",
+      "the-vod-probably-never-got-saved": "Das VOD wurde wahrscheinlich nie gespeichert.",
+      "vod-has-not-been-checked": "VOD wurde nicht überprüft."
     },
     "segments": "Segmente",
     "controls": {
@@ -40,16 +59,36 @@
       "category": "Kategorie",
       "title": "Titel",
       "viewers": "Zuschauer",
+      "ended": "Beendet",
       "end": "ENDE",
       "ongoing": "FORTLAUFEND"
     },
     "failed": "Aufnahme fehlgeschlagen",
+    "fetch-vod-list": "VOD-Liste abrufen",
     "capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck": "Aufnahme läuft seit über 24 Stunden, jedoch unterstützt Streamlink dies nicht. \nHängt die Aufnahme?",
     "edit": {
       "edit-vod": "VOD bearbeiten",
       "comment": "Kommentar",
       "prevent-deletion": "Löschen verhindern",
       "stream-number": "Streamnummer"
+    },
+    "export": {
+      "title-template": "Vorlagen Titel",
+      "export-type": "Exporter",
+      "directory": "Verzeichnis",
+      "host": "Host",
+      "username": "Benutzername",
+      "description": "Beschreibung",
+      "category": "Kategorie",
+      "tags": "Tags",
+      "tags-help": "Trennen durch Komma",
+      "file-name": "Dateiname",
+      "file-source": "Quelldatei",
+      "no-segments": "Das VOD hat keine Segmente",
+      "privacy": "Privatsphäre",
+      "privacy-public": "Öffentlich",
+      "privacy-unlisted": "Ungelistet",
+      "privacy-private": "Privat"
     }
   },
   "buttons": {
@@ -65,7 +104,10 @@
     "reset": "Zurücksetzen",
     "execute": "Ausführen",
     "download": "Herunterladen",
-    "fetch": "Abrufen"
+    "fetch": "Abrufen",
+    "export": "Exportieren",
+    "checkstatus": "Status prüfen",
+    "authenticate": "Authentifizieren"
   },
   "pages": {
     "favourite-games": "Favorisierte Spiele",
@@ -98,7 +140,11 @@
       "quality-help-example": "Trennen durch Leerzeichen, z. B. \nbest 1080p 720p audio_only",
       "quality-help-choices": "Gültige Werte: {0}",
       "quality-help-warning": "Wenn der Stream keine der konfigurierten Werte verwendet, wird er nicht aufgezeichnet.",
-      "login-does-not-exist": "Der Kanal {0} existiert nicht."
+      "login-does-not-exist": "Der Kanal {0} existiert nicht.",
+      "max-storage": "Max Speicher",
+      "max-storage-help": "Zu behaltenden VOD's in Gigabyte beim Bereinigen. 0 um den globalen Wert zu übernehmen.",
+      "max-vods": "Max VODs",
+      "max-vods-help": "Anzahl der zu behaltenden VOD's beim Bereinigen. 0 um den globalen Wert zu übernehmen."
     },
     "config": {
       "validate-external-url": "Externe URL validieren"
@@ -194,6 +240,13 @@
     "framerate": "Framerate",
     "total": "Gesamt",
     "video": "Video",
-    "audio": "Audio"
+    "audio": "Audio",
+    "format": "Format",
+    "general": "Allgemein"
+  },
+  "boolean": {
+    "yes": "Ja",
+    "no": "Nein",
+    "no-data": "Kein Wert"
   }
 }
