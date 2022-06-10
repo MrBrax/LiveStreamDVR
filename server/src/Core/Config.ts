@@ -15,7 +15,7 @@ import { Job } from "./Job";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
-import { YouTubeHelper } from "Providers/YouTube";
+import { YouTubeHelper } from "../Providers/YouTube";
 
 const argv = minimist(process.argv.slice(2));
 

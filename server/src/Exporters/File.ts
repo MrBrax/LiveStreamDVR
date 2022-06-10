@@ -1,5 +1,5 @@
-import { Job } from "Core/Job";
-import { Log, LOGLEVEL } from "Core/Log";
+import { Job } from "../Core/Job";
+import { Log, LOGLEVEL } from "../Core/Log";
 import fs from "fs";
 import path from "path";
 import sanitize from "sanitize-filename";

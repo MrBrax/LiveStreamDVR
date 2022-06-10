@@ -1,4 +1,4 @@
-import { Helper } from "Core/Helper";
+import { Helper } from "../Core/Helper";
 import path from "path";
 import sanitize from "sanitize-filename";
 import { BaseExporter } from "./Base";

@@ -7,9 +7,9 @@ import { VideoQuality } from "../../../common/Config";
 import { VideoQualityArray } from "../../../common/Defs";
 import { LOGLEVEL, Log } from "../Core/Log";
 import { TwitchVOD } from "../Core/TwitchVOD";
-import { FileExporter } from "Exporters/File";
-import { YouTubeExporter } from "Exporters/YouTube";
-import { SFTPExporter } from "Exporters/SFTP";
+import { FileExporter } from "../Exporters/File";
+import { YouTubeExporter } from "../Exporters/YouTube";
+import { SFTPExporter } from "../Exporters/SFTP";
 
 export async function GetVod(req: express.Request, res: express.Response): Promise<void> {
 
@@ -532,7 +532,7 @@ export async function ExportVod(req: express.Request, res: express.Response): Pr
     } catch (error) {
         res.status(400).send({
             status: "ERROR",
-            message: (error as Error).message || "Unknown error occurred while exporting vod",
+            message: (error as Error).message ? `Export error: ${(error as Error).message}` : "Unknown error occurred while exporting vod",
         } as ApiErrorResponse);
         return;
     }
@@ -551,7 +551,7 @@ export async function ExportVod(req: express.Request, res: express.Response): Pr
     } catch (error) {
         res.status(400).send({
             status: "ERROR",
-            message: (error as Error).message || "Unknown error occurred while verifying export",
+            message: (error as Error).message ? `Verify error: ${(error as Error).message}` : "Unknown error occurred while verifying export",
         } as ApiErrorResponse);
         return;
     }
