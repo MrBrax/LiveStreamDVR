@@ -179,7 +179,7 @@ export async function ChatDump(req: express.Request, res: express.Response): Pro
         return;
     }
 
-    const channel_data = await TwitchChannel.getChannelDataByLogin(login);
+    const channel_data = await TwitchChannel.getUserDataByLogin(login);
     if (!channel_data) {
         res.status(400).send({
             status: "ERROR",

@@ -1,5 +1,5 @@
 import { ApiChannel, ApiGame, ApiVod, ApiVodChapter, ApiVodSegment } from "@common/Api/Client";
-import { ChannelData } from "@common/Channel";
+import { UserData } from "@common/User";
 import { JobStatus } from "@common/Defs";
 
 export const MockApiGameData = {
@@ -33,7 +33,7 @@ export const MockApiGamesData: Record<string, ApiGame> = {
     }
 };
 
-export const TwitchChannelData: ChannelData = {
+export const TwitchChannelData: UserData = {
     id: "",
     login: "",
     display_name: "",

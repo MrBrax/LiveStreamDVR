@@ -1,5 +1,5 @@
 import { ApiChannel } from "@common/Api/Client";
-import { ChannelData } from "@common/Channel";
+import { UserData } from "@common/User";
 import { VideoQuality } from "@common/Config";
 import { BroadcasterType } from "@common/TwitchAPI/Users";
 import { TwitchVODChapter } from "./chapter";
@@ -24,7 +24,7 @@ export default class TwitchChannel {
 
     api_getSubscriptionStatus = false;
 
-    channel_data: ChannelData | undefined;
+    channel_data: UserData | undefined;
 
     current_stream_number: number = 0;
     current_season = "";

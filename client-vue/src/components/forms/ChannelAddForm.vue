@@ -125,7 +125,7 @@ import { VideoQualityArray } from "../../../../common/Defs";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import axios, { AxiosError } from "axios";
-import { ChannelData } from "@common/Channel";
+import { UserData } from "@common/User";
 library.add(faUserPlus);
 
 export default defineComponent({
@@ -149,7 +149,7 @@ export default defineComponent({
             max_storage: number;
             max_vods: number;
         },
-        channelData: ChannelData | undefined;
+        channelData: UserData | undefined;
         userExists: boolean | undefined;
     } {
         return {

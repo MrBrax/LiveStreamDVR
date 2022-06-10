@@ -1,6 +1,6 @@
 import { MediaInfo, MediaInfoPublic } from "../mediainfofield";
 import { VideoQuality } from "../Config";
-import { ChannelData } from "../Channel";
+import { UserData } from "../User";
 import { MuteStatus, ExistStatus, JobStatus } from "../../common/Defs";
 import { AudioMetadata, VideoMetadata } from "../MediaInfo";
 import { BroadcasterType } from "../TwitchAPI/Users";
@@ -180,7 +180,7 @@ export type ApiChannel = {
     // channel_data: {
     //     profile_image_url: string;
     // };
-    channel_data: ChannelData | undefined;
+    channel_data: UserData | undefined;
 
     // api_getSubscriptionStatus: SubStatus;
     api_getSubscriptionStatus: boolean;

@@ -2,7 +2,7 @@ import express, { Express } from "express";
 import fs from "fs";
 import { Auth } from "../src/Helpers/Auth";
 import request from "supertest";
-import { ChannelData } from "../../common/Channel";
+import { UserData } from "../../common/User";
 import { User } from "../../common/TwitchAPI/Users";
 import { AppName, DataRoot } from "../src/Core/BaseConfig";
 import { Config } from "../src/Core/Config";
@@ -33,7 +33,7 @@ beforeAll(async () => {
     app.use("", baserouter);
 
     // TwitchChannel.getChannelDataProxy
-    spy1 = jest.spyOn(TwitchChannel, "getChannelDataProxy").mockImplementation(() => {
+    spy1 = jest.spyOn(TwitchChannel, "getUserDataProxy").mockImplementation(() => {
         return Promise.resolve({
             id: "12345",
             login: "test",
@@ -47,7 +47,7 @@ beforeAll(async () => {
             created_at: "test",
             _updated: 1234,
             cache_avatar: "test",
-        } as ChannelData);
+        } as UserData);
     });
 
     // TwitchChannel.subscribe
@@ -109,9 +109,12 @@ describe("channels", () => {
             quality: "best 1080p60",
             match: "",
             download_chat: true,
+            live_chat: false,
             burn_chat: false,
             no_capture: false,
-            live_chat: true,
+            no_cleanup: true,
+            max_storage: 2,
+            max_vods: 5,
         });
 
         expect(res.body.message).toContain("'test' created");
