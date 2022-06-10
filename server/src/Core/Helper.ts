@@ -365,6 +365,11 @@ export class Helper {
                 windowsHide: true,
             });
 
+            process.on("error", (err) => {
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper.execSimple", `Process ${pid} for '${what}' error: ${err}`);
+                reject({ code: -1, stdout, stderr });
+            });
+
             const pid = process.pid;
 
             Log.logAdvanced(LOGLEVEL.EXEC, "helper.execSimple", `Executing '${what}': $ ${bin} ${args.join(" ")}`);
@@ -392,11 +397,6 @@ export class Helper {
                 }
             });
 
-            process.on("error", (err) => {
-                Log.logAdvanced(LOGLEVEL.ERROR, "helper.execSimple", `Process ${pid} for '${what}' error: ${err}`);
-                reject({ code: -1, stdout, stderr });
-            });
-
         });
 
     }
@@ -415,7 +415,12 @@ export class Helper {
 
             const process = spawn(bin, args || [], {
                 // detached: true,
-                windowsHide: true,
+                // windowsHide: true,
+            });
+
+            process.on("error", (err) => {
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper.execAdvanced", `Process ${process.pid} error: ${err}`);
+                reject({ code: -1, stdout, stderr });
             });
 
             Log.logAdvanced(LOGLEVEL.EXEC, "helper.execAdvanced", `Executing job '${jobName}': $ ${bin} ${args.join(" ")}`);
@@ -455,22 +460,18 @@ export class Helper {
             });
 
             process.on("close", (code) => {
-                Log.logAdvanced(LOGLEVEL.INFO, "helper.execAdvanced", `Process ${process.pid} for ${jobName} exited with code ${code}`);
                 if (job) {
                     job.clear();
                 }
                 // const out_log = ffmpeg.stdout.read();
                 // const success = fs.existsSync(output) && fs.statSync(output).size > 0;
                 if (code == 0) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "helper.execAdvanced", `Process ${process.pid} for ${jobName} exited with code 0`);
                     resolve({ code, stdout, stderr });
                 } else {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "helper.execAdvanced", `Process ${process.pid} for ${jobName} exited with code ${code}`);
                     reject({ code, stdout, stderr });
                 }
-            });
-
-            process.on("error", (err) => {
-                Log.logAdvanced(LOGLEVEL.ERROR, "helper.execAdvanced", `Process ${process.pid} error: ${err}`);
-                reject({ code: -1, stdout, stderr });
             });
 
             Log.logAdvanced(LOGLEVEL.INFO, "helper.execAdvanced", `Attached to all streams for process ${process.pid} for ${jobName}`);
@@ -480,22 +481,36 @@ export class Helper {
 
     static startJob(jobName: string, bin: string, args: string[], env: Record<string, string> = {}): Job | false {
 
-        const process = spawn(bin, args || [], {
+        const envs = Object.keys(env).length > 0 ? env : process.env;
+
+        const jobProcess = spawn(bin, args || [], {
             // detached: true,
             windowsHide: true,
-            env: env ?? undefined,
+            env: envs,
+        });
+
+        console.log("startJob process", jobProcess.spawnfile, jobProcess.spawnargs);
+
+        jobProcess.on("error", (err) => {
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Process '${jobProcess.pid}' on job '${jobName}' error: ${err}`, {
+                bin,
+                args,
+                jobName,
+                stdout,
+                stderr,
+            });
         });
 
         Log.logAdvanced(LOGLEVEL.INFO, "helper", `Executing ${bin} ${args.join(" ")}`);
 
         let job: Job | false = false;
 
-        if (process.pid) {
-            Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Spawned process ${process.pid} for ${jobName}`);
+        if (jobProcess.pid) {
+            Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Spawned process ${jobProcess.pid} for ${jobName}`);
             job = Job.create(jobName);
-            job.setPid(process.pid);
+            job.setPid(jobProcess.pid);
             job.setExec(bin, args);
-            job.setProcess(process);
+            job.setProcess(jobProcess);
             job.addMetadata({
                 bin: bin,
                 args: args,
@@ -513,44 +528,29 @@ export class Helper {
         const stdout: string[] = [];
         const stderr: string[] = [];
 
-        process.stdout.on("data", (data: Stream) => {
+        jobProcess.stdout.on("data", (data: Stream) => {
             stdout.push(data.toString());
         });
 
-        process.stderr.on("data", (data: Stream) => {
+        jobProcess.stderr.on("data", (data: Stream) => {
             stderr.push(data.toString());
         });
 
-        process.on("close", (code) => {
-            Log.logAdvanced(LOGLEVEL.INFO, "helper", `Process ${process.pid} for ${jobName} exited with code ${code}`);
+        jobProcess.on("close", (code) => {
+            if (code == 0) {
+                Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Process ${jobProcess.pid} for ${jobName} closed with code 0`);
+            } else {
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${jobProcess.pid} for ${jobName} closed with code ${code}`);
+            }
 
             if (typeof job !== "boolean") {
                 job.onClose(code);
                 job.clear(); // ?
             }
 
-            // const out_log = ffmpeg.stdout.read();
-            // const success = fs.existsSync(output) && fs.statSync(output).size > 0;
-            /*
-            if (code == 0) {
-                resolve({ code, stdout, stderr });
-            } else {
-                reject({ code, stdout, stderr });
-            }
-            */
         });
 
-        process.on("error", (err) => {
-            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Process '${process.pid}' on job '${jobName}' error: ${err}`, {
-                bin,
-                args,
-                jobName,
-                stdout,
-                stderr,
-            });
-        });
-
-        Log.logAdvanced(LOGLEVEL.INFO, "helper", `Attached to all streams for process ${process.pid} for ${jobName}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "helper", `Attached to all streams for process ${jobProcess.pid} for ${jobName}`);
 
         return job;
 
@@ -651,9 +651,7 @@ export class Helper {
                 const currentTimeMatch = data.match(/time=(\d+):(\d+):(\d+)/);
                 if (currentTimeMatch) {
                     currentSeconds = parseInt(currentTimeMatch[1]) * 3600 + parseInt(currentTimeMatch[2]) * 60 + parseInt(currentTimeMatch[3]);
-                    if (totalSeconds > 0 && currentSeconds % 5 == 0) {
-                        job.setProgress(currentSeconds / totalSeconds);
-                    }
+                    job.setProgress(currentSeconds / totalSeconds);
                 }
             });
             //     const progress_match = data.match(/time=([0-9\.\:]+)/);
@@ -1044,11 +1042,36 @@ export class Helper {
         }
 
         for (const vod of TwitchVOD.vods) {
+
+            if (!vod.is_finalized) continue;
+
             if (!vod.duration) continue;
+
+            if (!vod.chapters || vod.chapters.length == 0) continue;
+
+            const firstChapter = vod.chapters[0];
+            const lastChapter = vod.chapters[vod.chapters.length - 1];
+
+            if (firstChapter.offset && firstChapter.offset > 0) {
+                errors.push(`${vod.basename} first chapter starts at ${firstChapter.offset} seconds. Missing pre-stream chapter update?`);
+            }
+
+            if (lastChapter.offset && lastChapter.duration && Math.round(lastChapter.offset + lastChapter.duration) != vod.duration) {
+                errors.push(`${vod.basename} last chapter ends at ${Math.round(lastChapter.offset + lastChapter.duration)} seconds but the VOD duration is ${vod.duration} seconds.`);
+            }
+
             const chaptersDuration = vod.chapters.reduce((prev, val) => prev + (val.duration || 0), 0);
+
             if (vod.duration - chaptersDuration > 0) {
                 errors.push(`${vod.basename} has a duration of ${vod.duration} but the chapters are not aligned (${chaptersDuration}).`);
             }
+
+            for (const chapter of vod.chapters) {
+                if (!chapter.duration || chapter.duration == 0) {
+                    errors.push(`${vod.basename} chapter ${chapter.title} has no duration.`);
+                }
+            }
+
         }
 
         return errors;

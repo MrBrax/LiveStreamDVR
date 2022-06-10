@@ -10,11 +10,11 @@
                         :id="game.id"
                         v-model="formData.games"
                     /> {{ game.name }}
-                    <span class="game-date">{{ formatDate(game.added) }}</span>
+                    <span class="game-date" v-if="game.added">{{ formatDate(game.added) }}</span>
                 </label>
             </div>
             <div v-if="!gamesData || Object.keys(gamesData).length == 0">
-                <p>No games in cache. When streamers change games, they will be added to the cache.</p>
+                <p>{{ $t('forms.favourites.no-games-in-cache-when-streamers-change-games-they-will-be-added-to-the-cache') }}</p>
             </div>
         </div>
         <div class="field form-submit">
@@ -70,7 +70,7 @@ export default defineComponent({
     },
     methods: {
         submitForm(event: Event) {
-            this.formStatusText = "Loading...";
+            this.formStatusText = this.$t("messages.loading");
             this.formStatus = "";
 
             this.$http

@@ -10,7 +10,8 @@
                     v-model="formData.login"
                     @keyup="checkLogin"
                     required
-                    pattern="^[a-z0-9_]{4,25}$"
+                    pattern="^[a-z0-9_]{3,25}$"
+                    ref="login"
                 />
                 <button class="button is-confirm" type="button" @click="fetchLogin" :disabled="!formData.login">
                     <span class="icon"><fa icon="sync" /></span>
@@ -29,6 +30,11 @@
                 <li>Avatar: <img :src="channelData.profile_image_url" rel="nofollow" width="64" height="64" /></li>
             </ul>
         </div>
+        <div class="field" v-if="userExists === false">
+            <div class="is-error">
+                {{ $t('forms.channel.login-does-not-exist', [formData.login]) }}
+            </div>
+        </div>
         <div class="field">
             <label class="label">{{ $t('forms.channel.quality') }} <span class="required">*</span></label>
             <div class="control">
@@ -41,9 +47,9 @@
                     ref="quality"
                     @blur="validateQuality"
                 />
-                <p class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only.</p>
-                <p class="input-help"><strong>If the stream does not use any of these, it will not be recorded.</strong></p>
-                <p class="input-help">Valid choices: {{ VideoQualityArray.join(", ") }}</p>
+                <p class="input-help">{{ $t('forms.channel.quality-help-example') }}</p>
+                <p class="input-help"><strong>{{ $t('forms.channel.quality-help-warning') }}</strong></p>
+                <p class="input-help">{{ $t('forms.channel.quality-help-choices', [VideoQualityArray.join(", ")]) }}</p>
             </div>
         </div>
         <div class="field">
@@ -51,6 +57,20 @@
             <div class="control">
                 <input class="input" type="text" name="match" v-model="formData.match" />
                 <p class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</p>
+            </div>
+        </div>
+        <div class="field">
+            <label class="label">{{ $t('forms.channel.max-storage') }}</label>
+            <div class="control">
+                <input class="input" type="number" name="max_storage" v-model="formData.max_storage" />
+                <p class="input-help">{{ $t('forms.channel.max-storage-help') }}</p>
+            </div>
+        </div>
+        <div class="field">
+            <label class="label">{{ $t('forms.channel.max-vods') }}</label>
+            <div class="control">
+                <input class="input" type="number" name="max_vods" v-model="formData.max_vods" />
+                <p class="input-help">{{ $t('forms.channel.max-vods-help') }}</p>
             </div>
         </div>
         <div class="field">
@@ -104,7 +124,7 @@ import { VideoQualityArray } from "../../../../common/Defs";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { ChannelData } from "@common/Channel";
 library.add(faUserPlus);
 
@@ -114,7 +134,24 @@ export default defineComponent({
     setup() {
         return { VideoQualityArray };
     },
-    data() {
+    data(): {
+        formStatusText: string;
+        formStatus: string;
+        formData: {
+            login: string;
+            quality: string;
+            match: string;
+            download_chat: boolean;
+            live_chat: boolean;
+            burn_chat: boolean;
+            no_capture: boolean;
+            no_cleanup: boolean;
+            max_storage: number;
+            max_vods: number;
+        },
+        channelData: ChannelData | undefined;
+        userExists: boolean | undefined;
+    } {
         return {
             formStatusText: "Ready",
             formStatus: "",
@@ -127,8 +164,11 @@ export default defineComponent({
                 burn_chat: false,
                 no_capture: false,
                 no_cleanup: false,
+                max_storage: 0,
+                max_vods: 0,
             },
-            channelData: {} as ChannelData,
+            channelData: undefined,
+            userExists: undefined,
         };
     },
     methods: {
@@ -136,7 +176,7 @@ export default defineComponent({
 
             console.log("submitForm", this.formData);
 
-            this.formStatusText = "Loading...";
+            this.formStatusText = this.$t("messages.loading");
             this.formStatus = "";
 
             this.$http
@@ -176,6 +216,8 @@ export default defineComponent({
                 burn_chat: false,
                 no_capture: false,
                 no_cleanup: false,
+                max_storage: 0,
+                max_vods: 0,
             };
         },
         checkLogin() {
@@ -183,6 +225,7 @@ export default defineComponent({
             if (match) {
                 this.formData.login = match[1];
             }
+            this.userExists = undefined;
         },
         validateQuality() {
             const input = this.formData.quality.split(" ");
@@ -203,8 +246,30 @@ export default defineComponent({
         fetchLogin() {
             this.$http.get(`/api/v0/twitchapi/user/${this.formData.login}`).then((response) => {
                 const json = response.data;
+                const field = this.$refs.login as HTMLInputElement;
+                if (!field) {
+                    return;
+                }
                 if (json.status == "OK") {
                     this.channelData = json.data;
+                    field.setCustomValidity("");
+                    field.reportValidity();
+                    this.userExists = true;
+                } else {
+                    this.channelData = undefined;
+                    field.setCustomValidity(json.message);
+                    field.reportValidity();
+                    this.userExists = false;
+                }
+            }).catch((err: AxiosError) => {
+                console.error("form error", err.response);
+                const field = this.$refs.login as HTMLInputElement;
+                if (field && err.response && err.response.data && err.response.data.message) {
+                    field.setCustomValidity(err.response.data.message);
+                    field.reportValidity();
+                    this.userExists = false;
+                } else {
+                    console.error("no field or no response", field, err.response);
                 }
             });
         }

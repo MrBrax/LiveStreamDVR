@@ -171,6 +171,8 @@ export type ApiChannel = {
     burn_chat: boolean;
     live_chat: boolean;
     no_cleanup: boolean;
+    max_storage: number;
+    max_vods: number;
 
     current_chapter?: ApiVodChapter;
     current_game?: ApiGame;
@@ -210,6 +212,8 @@ export type ApiChannelConfig = {
     burn_chat: boolean;
     live_chat: boolean;
     no_cleanup: boolean;
+    max_storage: number;
+    max_vods: number;
 };
 
 export type ApiJob = {

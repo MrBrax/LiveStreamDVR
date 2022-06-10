@@ -15,7 +15,7 @@
         width: 100%;
         max-width: 800px;
         max-height: 90vh;
-        background: #fff;
+        background: var(--modal-background-color);
         border-radius: 5px;
         overflow: hidden;
         display: flex;

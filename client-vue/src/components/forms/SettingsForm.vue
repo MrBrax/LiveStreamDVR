@@ -93,6 +93,7 @@
 
                 <p v-if="data.help" class="input-help">{{ data.help }}</p>
                 <p v-if="data.default" class="input-help">Default: {{ data.default }}</p>
+                <!--<p v-if="data.secret" class="input-secret">This is a secret field, keep blank to keep current value.</p>-->
             </div>
         </details>
 
@@ -114,7 +115,7 @@
         </div>
     </form>
     <div v-if="loading">
-        <span class="icon"><fa icon="sync" spin></fa></span> Loading...
+        <span class="icon"><fa icon="sync" spin></fa></span> {{ $t("messages.loading") }}
     </div>
 </template>
 
@@ -188,7 +189,7 @@ export default defineComponent({
         },
         submitForm(event: Event) {
 
-            this.formStatusText = "Loading...";
+            this.formStatusText = this.$t("messages.loading");
             this.formStatus = "";
 
             this.$http

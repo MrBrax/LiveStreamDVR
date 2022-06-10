@@ -16,6 +16,7 @@ import * as Favourites from "../Controllers/Favourites";
 import * as Notifications from "../Controllers/Notifications";
 import * as Tools from "../Controllers/Tools";
 import * as Files from "../Controllers/Files";
+import * as YouTube from "../Controllers/YouTube";
 import { TwitchVOD } from "../Core/TwitchVOD";
 
 const router = express.Router();
@@ -51,6 +52,7 @@ router.post("/vod/:basename/check_mute", Vod.CheckMute);
 router.post("/vod/:basename/match", Vod.MatchVod);
 router.post("/vod/:basename/cut", Vod.CutVod);
 router.post("/vod/:basename/save", Vod.ArchiveVod);
+router.post("/vod/:basename/export", Vod.ExportVod);
 
 router.get("/games", Games.ListGames);
 
@@ -100,6 +102,10 @@ router.post("/tools/clip_download", Tools.DownloadClip);
 
 router.get("/files", Files.ListFiles);
 router.delete("/files", Files.DeleteFile);
+
+router.get("/youtube/authenticate", YouTube.Authenticate);
+router.get("/youtube/callback", YouTube.Callback);
+router.get("/youtube/status", YouTube.Status);
 
 router.get("/test_video_download", (req, res) => {
     if (!req.query.video_id) {

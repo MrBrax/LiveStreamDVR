@@ -1,6 +1,7 @@
 {
   "dashboard": {
-    "recorded_vods": "Recorded VODs"
+    "recorded_vods": "Recorded VODs",
+    "logs": "Logs"
   },
   "vods": "{count} VOD | {count} VODs",
   "messages": {
@@ -16,7 +17,29 @@
     "add_comment": "Add a comment",
     "video-info": {
       "general": "General",
-      "capture": "Capture"
+      "capture": "Capture",
+      "webhook-duration": "Webhook duration",
+      "created": "Created",
+      "went-live": "Went live",
+      "capture-launched": "Capture launched",
+      "wrote-file": "Wrote file",
+      "stream-end": "Stream end",
+      "capture-start": "Capture start",
+      "conversion-start": "Conversion start",
+      "missing-from-captured-file": "Missing from captured file",
+      "chat-downloaded": "Chat downloaded",
+      "chat-dumped": "Chat dumped",
+      "chat-rendered": "Chat rendered",
+      "chat-burned": "Chat burned",
+      "duration": "Duration",
+      "id": "ID",
+      "date": "Date",
+      "title": "Title",
+      "is-muted": "Is muted",
+      "downloaded": "Downloaded",
+      "vod-is-deleted": "VOD is deleted",
+      "the-vod-probably-never-got-saved": "The VOD probably never got saved.",
+      "vod-has-not-been-checked": "VOD has not been checked"
     },
     "segments": "Segments",
     "controls": {
@@ -31,16 +54,42 @@
     },
     "chapters": {
       "offset": "Offset",
-      "started": "Started",
+      "started": "Time started",
       "duration": "Duration",
       "category": "Category",
       "title": "Title",
       "viewers": "Viewers",
       "end": "END",
-      "ongoing": "ONGOING"
+      "ongoing": "ONGOING",
+      "ended": "Ended"
     },
     "failed": "Capturing failed",
-    "fetch-vod-list": "Fetch vod list"
+    "fetch-vod-list": "Fetch vod list",
+    "capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck": "Capture has been running for over 24 hours, streamlink does not support this. Is the capture stuck?",
+    "edit": {
+      "comment": "Comment",
+      "stream-number": "Stream number",
+      "prevent-deletion": "Prevent deletion",
+      "edit-vod": "Edit VOD"
+    },
+    "export": {
+      "title-template": "Title template",
+      "export-type": "Exporter",
+      "directory": "Directory",
+      "host": "Host",
+      "username": "Username",
+      "description": "Description",
+      "category": "Category",
+      "tags": "Tags",
+      "tags-help": "Separate by commas",
+      "file-name": "File name",
+      "file-source": "File source",
+      "no-segments": "The VOD does not have any segments",
+      "privacy": "Privacy",
+      "privacy-public": "Public",
+      "privacy-unlisted": "Unlisted",
+      "privacy-private": "Private"
+    }
   },
   "buttons": {
     "save": "Save",
@@ -54,7 +103,11 @@
     "reset": "Reset",
     "execute": "Execute",
     "download": "Download",
-    "delete-all-vods": "Delete all VODs"
+    "delete-all-vods": "Delete all VODs",
+    "fetch": "Fetch",
+    "export": "Export",
+    "checkstatus": "Check status",
+    "authenticate": "Authenticate"
   },
   "pages": {
     "favourite-games": "Favourite games",
@@ -63,7 +116,12 @@
     "config": "Config",
     "keyvalue": "KeyValue",
     "notifications": "Notifications",
-    "client-settings": "Client settings"
+    "client-settings": "Client settings",
+    "about": "About",
+    "dashboard": "Dashboard",
+    "files": "Files",
+    "tools": "Tools",
+    "settings": "Settings"
   },
   "forms": {
     "channel": {
@@ -78,7 +136,15 @@
       "no-capture": "Don't record streams (disable capture completely)",
       "live-channels-warning": "Live channels will not be recorded until they are live the next time.",
       "no-cleanup": "Don't clean up VODs after recording is finished",
-      "check": "Check"
+      "check": "Check",
+      "quality-help-example": "Separate by spaces, e.g. best 1080p 720p audio_only",
+      "quality-help-warning": "If the stream does not use any of these, it will not be recorded.",
+      "quality-help-choices": "Valid choices: {0}",
+      "login-does-not-exist": "The channel {0} does not exist.",
+      "max-storage": "Max storage",
+      "max-storage-help": "In gigabytes, how many will be kept when cleaning up. 0 to inherit from settings.",
+      "max-vods": "Max VODs",
+      "max-vods-help": "Amount of VODs to keep when cleaning up. 0 to inherit from settings."
     },
     "config": {
       "validate-external-url": "Validate external URL"
@@ -86,6 +152,9 @@
     "keyvalue": {
       "key": "Key",
       "value": "Value"
+    },
+    "favourites": {
+      "no-games-in-cache-when-streamers-change-games-they-will-be-added-to-the-cache": "No games in cache. When streamers change games, they will be added to the cache."
     }
   },
   "views": {
@@ -131,5 +200,29 @@
   },
   "input": {
     "search": "Search..."
+  },
+  "streamer": {
+    "one-or-more-subscriptions-missing": "One or more subscriptions missing"
+  },
+  "about": {
+    "installed-utilities": "Installed utilities",
+    "software": "Software",
+    "subscriptions": "Subscriptions",
+    "links": "Links"
+  },
+  "metadata": {
+    "file-duration": "File duration",
+    "dimensions": "Dimensions",
+    "framerate": "Framerate",
+    "total": "Total",
+    "video": "Video",
+    "audio": "Audio",
+    "format": "Format",
+    "general": "General"
+  },
+  "boolean": {
+    "yes": "Yes",
+    "no": "No",
+    "no-data": "No data"
   }
 }

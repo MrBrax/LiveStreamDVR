@@ -363,3 +363,23 @@ details.settings-details {
         }
     }
 }
+
+.notification {
+    padding: 1em;
+    background: #333;
+    color: #fff;
+    border-radius: 1em;
+    margin-bottom: 1em;
+    &.is-error {
+        background: #d11515;
+        color: #fff;
+    }
+}
+
+.details {
+    summary {
+        font-size: 1.1em;
+        font-weight: 700;
+        cursor: pointer;
+    }
+}

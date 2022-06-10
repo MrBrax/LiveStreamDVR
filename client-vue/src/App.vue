@@ -10,7 +10,7 @@
                 <div class="container">
                     <section class="section">
                         <div class="section-content">
-                            <span class="icon"><fa icon="sync" spin></fa></span> Loading...
+                            <span class="icon"><fa icon="sync" spin></fa></span> {{ $t("messages.loading") }}
                         </div>
                     </section>
                 </div>

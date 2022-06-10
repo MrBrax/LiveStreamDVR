@@ -1,13 +1,14 @@
 {
   "dashboard": {
-    "recorded_vods": "Aufgenommene VODs"
+    "recorded_vods": "Aufgenommene VODs",
+    "logs": "Protokolle"
   },
   "vods": "{count} VOD | {count} VODs",
   "messages": {
     "subscribed": "Abonniert",
     "no_vods": "Keine VODs",
     "clips": "Clips",
-    "video_download_help": "Mit diesem Tool heruntergeladene Videos werden auf die gleiche Art bereinigt wie aufgenommene VODs, wenn ein Stream beendet ist.\n Sie werden insgesamt genauso behandelt wie aufgenommene VODs.",
+    "video_download_help": "Mit diesem Tool heruntergeladene Videos werden auf die gleiche Weise bereinigt wie aufgenommene VODs, wenn ein Stream beendet ist.\n Sie werden insgesamt genauso behandelt wie aufgenommene VODs.",
     "loading": "Lade...",
     "changing-values-here-will-most-likely-require-a-restart": "Neustart nach Änderung der Werte in der Regel notwendig.",
     "this-is-a-bad-idea-if-any-of-your-channels-are-live": "Sollte einer deiner Kanäle live sein, ist dies eine schlechte Idee."
@@ -16,7 +17,10 @@
     "add_comment": "Kommentar hinzufügen",
     "video-info": {
       "general": "Allgemein",
-      "capture": "Aufnahme"
+      "capture": "Aufnahme",
+      "duration": "Dauer",
+      "id": "ID",
+      "date": "Datum"
     },
     "segments": "Segmente",
     "controls": {
@@ -39,7 +43,14 @@
       "end": "ENDE",
       "ongoing": "FORTLAUFEND"
     },
-    "failed": "Aufnahme fehlgeschlagen"
+    "failed": "Aufnahme fehlgeschlagen",
+    "capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck": "Aufnahme läuft seit über 24 Stunden, jedoch unterstützt Streamlink dies nicht. \nHängt die Aufnahme?",
+    "edit": {
+      "edit-vod": "VOD bearbeiten",
+      "comment": "Kommentar",
+      "prevent-deletion": "Löschen verhindern",
+      "stream-number": "Streamnummer"
+    }
   },
   "buttons": {
     "save": "Speichern",
@@ -53,7 +64,8 @@
     "edit": "Editieren",
     "reset": "Zurücksetzen",
     "execute": "Ausführen",
-    "download": "Herunterladen"
+    "download": "Herunterladen",
+    "fetch": "Abrufen"
   },
   "pages": {
     "favourite-games": "Favorisierte Spiele",
@@ -62,7 +74,12 @@
     "config": "Konfiguration",
     "keyvalue": "Schlüsselwerte",
     "notifications": "Benachrichtigungen",
-    "client-settings": "Client-Einstellungen"
+    "client-settings": "Client-Einstellungen",
+    "dashboard": "Dashboard",
+    "files": "Dateien",
+    "tools": "Werkzeuge",
+    "settings": "Einstellungen",
+    "about": "Über"
   },
   "forms": {
     "channel": {
@@ -77,7 +94,11 @@
       "burn-chat": "Chats nach dem Herunterladen in Video einbetten",
       "no-capture": "Streams nicht aufnehmen (Deaktiviert Aufnahmen vollständig)",
       "live-channels-warning": "Live-Kanäle werden erst aufgenommen, wenn sie das nächste Mal live sind.",
-      "no-cleanup": "Keine Bereinigung der VODs nach beendeter Aufnahme"
+      "no-cleanup": "Keine Bereinigung der VODs nach beendeter Aufnahme",
+      "quality-help-example": "Trennen durch Leerzeichen, z. B. \nbest 1080p 720p audio_only",
+      "quality-help-choices": "Gültige Werte: {0}",
+      "quality-help-warning": "Wenn der Stream keine der konfigurierten Werte verwendet, wird er nicht aufgezeichnet.",
+      "login-does-not-exist": "Der Kanal {0} existiert nicht."
     },
     "config": {
       "validate-external-url": "Externe URL validieren"
@@ -85,6 +106,9 @@
     "keyvalue": {
       "key": "Schlüssel",
       "value": "Wert"
+    },
+    "favourites": {
+      "no-games-in-cache-when-streamers-change-games-they-will-be-added-to-the-cache": "Keine Spiele im Cache. \nSobald Streamer das Spiel wechseln, werden sie dem Cache hinzugefügt."
     }
   },
   "clientsetting": {
@@ -120,8 +144,8 @@
       "folders": {
         "clips": "Clips",
         "archived-vods": "Archivierte VODs",
-        "application-logs": "Anwendungs-Logs",
-        "software-logs": "Software-Logs"
+        "application-logs": "Anwendungs-Protokolle",
+        "software-logs": "Software-Protokolle"
       }
     },
     "tools": {
@@ -154,5 +178,22 @@
   },
   "input": {
     "search": "Suche..."
+  },
+  "streamer": {
+    "one-or-more-subscriptions-missing": "Mindestens ein Abonnement fehlt"
+  },
+  "about": {
+    "installed-utilities": "Installierte Dienstprogramme",
+    "software": "Software",
+    "subscriptions": "Abonnements",
+    "links": "Verknüpfungen"
+  },
+  "metadata": {
+    "file-duration": "Dateidauer",
+    "dimensions": "Auflösung",
+    "framerate": "Framerate",
+    "total": "Gesamt",
+    "video": "Video",
+    "audio": "Audio"
   }
 }

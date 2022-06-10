@@ -282,6 +282,9 @@ export class ChatDumper {
             console.log(`Saved JSON to ${this.file_output}, delete temp files`);
             if (fs.existsSync(`${this.file_output}.line`)) {
                 fs.unlinkSync(`${this.file_output}.line`);
+                console.log(`Deleted ${this.file_output}.line`);
+            } else {
+                console.log(`${this.file_output}.line does not exist`);
             }
         }
 

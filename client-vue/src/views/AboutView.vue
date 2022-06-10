@@ -1,9 +1,9 @@
 <template>
     <section class="section">
-        <div class="section-title"><h1>About</h1></div>
+        <div class="section-title"><h1>{{ $t('pages.about') }}</h1></div>
         <div class="section-content" v-if="aboutData && aboutData.bins">
             <div class="block">
-                <h3>Installed utilities</h3>
+                <h3>{{ $t('about.installed-utilities') }}</h3>
                 <table class="table">
                     <tr>
                         <th>Name</th>
@@ -62,7 +62,7 @@
 
             <!-- software -->
             <div class="block">
-                <h3>Software</h3>
+                <h3>{{ $t('about.software') }}</h3>
                 <ul>
                     <li><strong>Python version:</strong> {{ aboutData.bins.python.version ? aboutData.bins.python.version : "(no output)" }}</li>
                     <li><strong>Python3 version:</strong> {{ aboutData.bins.python3.version ? aboutData.bins.python3.version : "(no output)" }}</li>
@@ -109,19 +109,19 @@
             -->
 
             <div class="block">
-                <h3>Subscriptions</h3>
+                <h3>{{ $t('about.subscriptions') }}</h3>
                 <p class="buttons">
                     <button class="button is-confirm is-small" @click="fetchSubscriptions" :disabled="subscriptionsLoading">
                         <span class="icon"><fa icon="sync" /></span>
-                        <span>Fetch</span>
+                        <span>{{ $t("buttons.fetch") }}</span>
                     </button>
                     <button class="button is-confirm is-small" @click="subscribeAll" :disabled="subscriptionsLoading">
                         <span class="icon"><fa icon="rss" /></span>
-                        <span>Subscribe</span>
+                        <span>{{ $t("buttons.subscribe")}} </span>
                     </button>
                 </p>
                 <!--<button class="button is-confirm is-small" @click="unsubscribeAll" :disabled="subscriptionsLoading">Unsubscribe</button>-->
-                <span v-if="subscriptionsLoading">Loading...</span>
+                <span v-if="subscriptionsLoading">{{ $t("messages.loading") }}</span>
                 <table class="table is-fullwidth is-striped">
                     <thead>
                         <tr>
@@ -165,7 +165,7 @@
             </div>
             <div class="block">
                 <!-- links -->
-                <h3>Links</h3>
+                <h3>{{ $t('about.links') }}</h3>
                 <ul>
                     <li><a href="https://www.python.org/downloads/" target="_blank" rel="noreferrer">Python</a></li>
                     <li><a href="https://www.gyan.dev/ffmpeg/builds/" target="_blank" rel="noreferrer">FFmpeg builds for Windows</a> (rip zeranoe)</li>
@@ -175,7 +175,7 @@
             </div>
         </div>
         <div class="section-content" v-else>
-            <span class="icon"><fa icon="sync" spin></fa></span> Loading...
+            <span class="icon"><fa icon="sync" spin></fa></span> {{ $t("messages.loading") }}
         </div>
     </section>
 </template>

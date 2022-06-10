@@ -76,7 +76,7 @@
             </div>
         </div>
         <div v-else>
-            <span class="icon"><fa icon="sync" spin></fa></span> Loading...
+            <span class="icon"><fa icon="sync" spin></fa></span> {{ $t("messages.loading") }}
         </div>
     </div>
 </template>
@@ -161,20 +161,8 @@ export default defineComponent({
             this.currentVideoTime = (event.target as HTMLVideoElement).currentTime;
         },
         submitForm(event: Event) {
-            /*
-            console.log("submit", this.timeIn, this.timeOut, this.cutName);
 
-            const form = event.target as HTMLFormElement;
-            const inputs = new FormData(form);
-
-            this.formStatusText = "Loading...";
-            this.formStatus = "";
-
-            console.log("form", form);
-            console.log("entries", inputs, inputs.entries(), inputs.values());
-            */
-
-            this.formStatusText = "Loading...";
+            this.formStatusText = this.$t("messages.loading");
             this.formStatus = "";
 
             const inputs = {

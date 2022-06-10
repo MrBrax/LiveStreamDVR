@@ -129,7 +129,18 @@
             background-color: var(--input-background-color);
             color: var(--input-color);
             font-family: var(--body-font);
+            &:disabled {
+                color: var(--input-disabled-color);
+            }
         }
+
+        &:disabled {
+            color: var(--input-disabled-color);
+            background-color: var(--input-disabled-background-color);
+            border-color: var(--input-disabled-border-color);
+            box-shadow: none;
+        }
+
     }
 }
 

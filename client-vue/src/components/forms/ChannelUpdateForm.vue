@@ -14,9 +14,9 @@
                         name="quality"
                         @blur="validateQuality"
                     />
-                    <p class="input-help">Separate by spaces, e.g. best 1080p 720p audio_only</p>
-                    <p class="input-help"><strong>If the stream does not use any of these, it will not be recorded.</strong></p>
-                    <p class="input-help">Valid choices: {{ VideoQualityArray.join(", ") }}</p>
+                    <p class="input-help">{{ $t('forms.channel.quality-help-example') }}</p>
+                    <p class="input-help"><strong>{{ $t('forms.channel.quality-help-warning') }}</strong></p>
+                    <p class="input-help">{{ $t('forms.channel.quality-help-choices', [VideoQualityArray.join(", ")]) }}</p>
                 </div>
             </div>
 
@@ -31,6 +31,22 @@
                         v-model="formData.match"
                     />
                     <p class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</p>
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="label">{{ $t('forms.channel.max-storage') }}</label>
+                <div class="control">
+                    <input class="input" type="number" name="max_storage" v-model="formData.max_storage" />
+                    <p class="input-help">{{ $t('forms.channel.max-storage-help') }}</p>
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="label">{{ $t('forms.channel.max-vods') }}</label>
+                <div class="control">
+                    <input class="input" type="number" name="max_vods" v-model="formData.max_vods" />
+                    <p class="input-help">{{ $t('forms.channel.max-vods-help') }}</p>
                 </div>
             </div>
 
@@ -164,6 +180,8 @@ export default defineComponent({
                 burn_chat: this.channel.burn_chat || false,
                 no_capture: this.channel.no_capture || false,
                 no_cleanup: this.channel.no_cleanup || false,
+                max_storage: this.channel.max_storage || 0,
+                max_vods: this.channel.max_vods || 0,
             },
         };
     },

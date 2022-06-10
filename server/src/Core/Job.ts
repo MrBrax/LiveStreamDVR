@@ -62,6 +62,8 @@ export class Job extends EventEmitter {
 
     public progress = 0;
 
+    public dummy = false;
+
     logfile = "";
 
     private _updateTimer: NodeJS.Timeout | undefined;
@@ -274,7 +276,7 @@ export class Job extends EventEmitter {
             Log.logAdvanced(LOGLEVEL.WARNING, "job", `Job ${this.name} not found in jobs list`, this.metadata);
         }
 
-        this.emit("clear");
+        this.emit("clear", this.code);
 
         this.broadcastUpdate();
 
@@ -333,6 +335,7 @@ export class Job extends EventEmitter {
             if (code === 1) this.status = JobStatus.ERROR;
             this.emit("process_exit", code, signal);
             this.process_running = false;
+            this.onClose(code);
         });
 
         this.process.on("error", (err) => {
@@ -345,6 +348,7 @@ export class Job extends EventEmitter {
             if (code === 1) this.status = JobStatus.ERROR;
             this.emit("process_close", code, signal);
             this.process_running = false;
+            this.onClose(code);
         });
 
         this.on("process_start", () => {
@@ -397,6 +401,11 @@ export class Job extends EventEmitter {
     public async getStatus(use_command = false): Promise<JobStatus> {
 
         Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Check status for job ${this.name}`, this.metadata);
+
+        if (this.dummy) {
+            this.status = JobStatus.RUNNING;
+            return JobStatus.RUNNING;
+        }
 
         // console.debug("get job status", this.name);
 

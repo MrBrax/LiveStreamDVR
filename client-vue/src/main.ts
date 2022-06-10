@@ -9,7 +9,7 @@ import { createPinia } from "pinia";
 import { createI18n } from "vue-i18n";
 import messages_en from "./translations/en.json";
 import messages_sv from "./translations/sv.json";
-import messages_kr from "./translations/kr.json";
+import messages_ko from "./translations/ko.json";
 import messages_de from "./translations/de.json";
 // import "./registerServiceWorker";
 
@@ -29,7 +29,7 @@ const i18n = createI18n({
     messages: {
         en: messages_en,
         sv: messages_sv,
-        kr: messages_kr,
+        ko: messages_ko,
         de: messages_de
     },
 });

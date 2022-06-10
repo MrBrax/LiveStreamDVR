@@ -1,6 +1,6 @@
 {
   "name": "livestreamdvr-server",
-  "version": "0.2.8",
+  "version": "0.3.0",
   "description": "",
   "main": "index.ts",
   "scripts": {
@@ -49,6 +49,7 @@
     "date-fns": "^2.28.0",
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
+    "googleapis": "^101.0.0",
     "html-entities": "^2.3.3",
     "minimist": "^1.2.6",
     "morgan": "^1.10.0",

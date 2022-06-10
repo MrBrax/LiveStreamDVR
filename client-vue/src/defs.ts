@@ -48,3 +48,21 @@ export const defaultConfigFields: Record<keyof ClientSettings, ClientSettingFiel
     language: { type: "string", default: "en", name: "Language", hidden: true },
     theme: { type: "choice", default: "auto", name: "Theme", choices: { auto: "Auto", default: "Default", dark: "Dark", hotdogstand: "Hot dog stand", windows95: "Windows 95", basalt: "Basalt", } },
 };
+
+export const YouTubeCategories = {
+    "1": "Film & Animation",
+    "2": "Cars & Vehicles",
+    "10": "Music",
+    "15": "Pets & Animals",
+    "17": "Sport",
+    "19": "Travel & Events",
+    "20": "Gaming",
+    "22": "People & Blogs",
+    "23": "Comedy",
+    "24": "Entertainment",
+    "25": "News & Politics",
+    "26": "How-to & Style",
+    "27": "Education",
+    "28": "Science & Technology",
+    "29": "Non-profits & Activism",
+}

@@ -64,41 +64,41 @@
                             <h4>{{ $t('vod.video-info.general') }}</h4>
                             <ul class="video-info">
                                 <li>
-                                    <strong>Webhook duration:</strong>
+                                    <strong>{{ $t('vod.video-info.webhook-duration') }}:</strong>
                                     {{ vod?.getWebhookDuration() }}
                                 </li>
                                 <li v-if="vod.created_at">
-                                    <strong>Created:</strong>
+                                    <strong>{{ $t('vod.video-info.created') }}:</strong>
                                     {{ formatDate(vod.created_at, "yyyy-MM-dd HH:mm:ss") }}
                                 </li>
                                 <li v-if="vod.started_at && showAdvanced">
-                                    <strong>Went live:</strong>
+                                    <strong>{{ $t('vod.video-info.went-live') }}:</strong>
                                     {{ formatDate(vod.started_at, "yyyy-MM-dd HH:mm:ss") }}
                                 </li>
                                 <li v-if="vod.capture_started && showAdvanced">
-                                    <strong>Capture launched:</strong>
+                                    <strong>{{ $t('vod.video-info.capture-launched') }}:</strong>
                                     {{ formatDate(vod.capture_started, "yyyy-MM-dd HH:mm:ss") }}
                                 </li>
                                 <li v-if="vod.capture_started2 && showAdvanced">
-                                    <strong>Wrote file:</strong>
+                                    <strong>{{ $t('vod.video-info.wrote-file') }}:</strong>
                                     {{ formatDate(vod.capture_started2, "yyyy-MM-dd HH:mm:ss") }}
                                 </li>
                                 <li v-if="vod.ended_at">
-                                    <strong>Stream end:</strong>
+                                    <strong>{{ $t('vod.video-info.stream-end') }}:</strong>
                                     {{ formatDate(vod.ended_at, "yyyy-MM-dd HH:mm:ss") }}
                                 </li>
                                 <template v-if="vod?.capture_started && vod?.conversion_started">
                                     <li>
-                                        <strong>Capture start:</strong>
+                                        <strong>{{ $t('vod.video-info.capture-start') }}:</strong>
                                         {{ formatDate(vod?.capture_started, "yyyy-MM-dd HH:mm:ss") }}
                                     </li>
                                     <li>
-                                        <strong>Conversion start:</strong>
+                                        <strong>{{ $t('vod.video-info.conversion-start') }}:</strong>
                                         {{ formatDate(vod?.conversion_started, "yyyy-MM-dd HH:mm:ss") }}
                                     </li>
                                 </template>
                                 <li v-if="vod.getDuration() && showAdvanced">
-                                    <strong>Missing from captured file:</strong>
+                                    <strong>{{ $t('vod.video-info.missing-from-captured-file') }}:</strong>
                                     <span class="px-1" v-if="vod.twitch_vod_duration">
                                         {{ humanDuration(vod.twitch_vod_duration - vod.getDuration()) }}
                                         <strong v-if="vod.twitch_vod_duration - vod.getDuration() > 600" class="is-error"><br />A lot missing!</strong>
@@ -108,20 +108,20 @@
                                     </span>
                                 </li>
                                 <li>
-                                    <strong>Chat downloaded:</strong>
-                                    {{ vod?.is_chat_downloaded ? "Yes" : "No" }}
+                                    <strong>{{ $t('vod.video-info.chat-downloaded') }}:</strong>
+                                    {{ vod?.is_chat_downloaded ? $t('boolean.yes') : $t('boolean.no') }}
                                 </li>
                                 <li>
-                                    <strong>Chat dumped:</strong>
-                                    {{ vod?.is_chatdump_captured ? "Yes" : "No" }}
+                                    <strong>{{ $t('vod.video-info.chat-dumped') }}:</strong>
+                                    {{ vod?.is_chatdump_captured ? $t('boolean.yes') : $t('boolean.no') }}
                                 </li>
                                 <li>
-                                    <strong>Chat rendered:</strong>
-                                    {{ vod?.is_chat_rendered ? "Yes" : "No" }}
+                                    <strong>{{ $t('vod.video-info.chat-rendered') }}:</strong>
+                                    {{ vod?.is_chat_rendered ? $t('boolean.yes') : $t('boolean.no') }}
                                 </li>
                                 <li>
-                                    <strong>Chat burned:</strong>
-                                    {{ vod?.is_chat_burned ? "Yes" : "No" }}
+                                    <strong>{{ $t('vod.video-info.chat-burned') }}:</strong>
+                                    {{ vod?.is_chat_burned ? $t('boolean.yes') : $t('boolean.no') }}
                                 </li>
                             </ul>
                         </div>
@@ -130,7 +130,7 @@
                             <h4>{{ $t('vod.video-info.capture') }}</h4>
                             <ul class="video-info">
                                 <li v-if="vod.getDuration()">
-                                    <strong>File duration:</strong>
+                                    <strong>{{ $t('metadata.file-duration') }}:</strong>
                                     {{ humanDuration(vod.getDuration()) }}
                                 </li>
                                 <li v-if="vod.segments && vod.segments.length > 0 && vod.segments[0].filesize">
@@ -151,26 +151,26 @@
                                 </template>
                                 <template v-else-if="vod.video_metadata">
                                     <li>
-                                        <strong>Dimensions:</strong>
+                                        <strong>{{ $t('metadata.dimensions') }}:</strong>
                                         {{ vod.video_metadata.width }}x{{ vod.video_metadata.height }}
                                     </li>
                                     <li>
-                                        <strong>Framerate:</strong>
+                                        <strong>{{ $t('metadata.framerate') }}:</strong>
                                         {{ vod.video_metadata.fps_mode }}
                                         {{ vod.video_metadata.fps }}
                                     </li>
                                     <li>
-                                        <strong>Total:</strong>
+                                        <strong>{{ $t('metadata.total') }}:</strong>
                                         {{ Math.round(vod.video_metadata.bitrate / 1000) }}kbps
                                     </li>
                                     <li>
-                                        <strong>Video:</strong>
+                                        <strong>{{ $t('metadata.video') }}:</strong>
                                         {{ vod.video_metadata.video_codec }}
                                         {{ vod.video_metadata.video_bitrate_mode }}
                                         {{ Math.round(vod.video_metadata.video_bitrate / 1000) }}kbps
                                     </li>
                                     <li>
-                                        <strong>Audio:</strong>
+                                        <strong>{{ $t('metadata.audio') }}:</strong>
                                         {{ vod?.video_metadata.audio_codec }}
                                         {{ vod?.video_metadata.audio_bitrate_mode }}
                                         {{ Math.round(vod.video_metadata.audio_bitrate / 1000) }}kbps
@@ -185,14 +185,14 @@
                             <ul class="video-info">
                                 <template v-if="vod?.twitch_vod_exists === true">
                                     <li>
-                                        <strong>Duration:</strong>
+                                        <strong>{{ $t('vod.video-info.duration') }}:</strong>
                                         <span class="px-1" v-if="vod?.twitch_vod_duration">{{ humanDuration(vod?.twitch_vod_duration) }}</span>
                                         <span class="px-1" v-else>
                                             <strong><em>No data</em></strong>
                                         </span>
                                     </li>
                                     <li>
-                                        <strong>ID:</strong>
+                                        <strong>{{ $t('vod.video-info.id') }}:</strong>
                                         <span class="px-1" v-if="vod.twitch_vod_id">
                                             <a :href="twitchVideoLink(vod.twitch_vod_id)" rel="noreferrer" target="_blank">{{ vod.twitch_vod_id }}</a>
                                             &nbsp;<a href="javascript:void(0)" @click="matchVod()"><fa icon="sync"></fa></a>
@@ -202,14 +202,14 @@
                                         </span>
                                     </li>
                                     <li>
-                                        <strong>Date:</strong>&#32;
+                                        <strong>{{ $t('vod.video-info.date') }}:</strong>&#32;
                                         <span class="px-1" v-if="vod.twitch_vod_date">{{ formatDate(vod.twitch_vod_date) }}</span>
                                         <span class="px-1" v-else>
                                             <strong><em>No data</em></strong>
                                         </span>
                                     </li>
                                     <li>
-                                        <strong>Title:</strong>
+                                        <strong>{{ $t('vod.video-info.title') }}:</strong>
                                         <span class="px-1 text-overflow" v-if="vod.twitch_vod_title">
                                             {{ vod.twitch_vod_title }}
                                         </span>
@@ -218,32 +218,32 @@
                                         </span>
                                     </li>
                                     <li>
-                                        <strong>Is muted:</strong>
-                                        <span class="px-1" v-if="vod.twitch_vod_muted === MuteStatus.MUTED"><strong class="is-error">Yes</strong></span>
-                                        <span class="px-1" v-else-if="vod.twitch_vod_muted === MuteStatus.UNMUTED">No</span>
-                                        <span class="px-1" v-else><em>No data</em></span>
+                                        <strong>{{ $t('vod.video-info.is-muted') }}:</strong>
+                                        <span class="px-1" v-if="vod.twitch_vod_muted === MuteStatus.MUTED"><strong class="is-error">{{ $t('boolean.yes') }}</strong></span>
+                                        <span class="px-1" v-else-if="vod.twitch_vod_muted === MuteStatus.UNMUTED">{{ $t('boolean.no') }}</span>
+                                        <span class="px-1" v-else><em>{{ $t('boolean.no-data') }}</em></span>
                                     </li>
                                 </template>
                                 <template v-else-if="vod?.twitch_vod_exists === false">
                                     <li>
-                                        <strong class="is-error">VOD is deleted</strong>
+                                        <strong class="is-error">{{ $t('vod.video-info.vod-is-deleted') }}</strong>
                                         &nbsp;<a href="javascript:void(0)" @click="matchVod()" title="Retry VOD match"><fa icon="sync"></fa></a>
                                     </li>
                                     <li>
                                         <span v-if="vod?.twitch_vod_id">
                                             The ID was <a :href="twitchVideoLink(vod.twitch_vod_id)" rel="noreferrer" target="_blank">{{ vod.twitch_vod_id }}</a>.
                                         </span>
-                                        <span v-else>The VOD probably never got saved.</span>
+                                        <span v-else>{{ $t('vod.video-info.the-vod-probably-never-got-saved') }}</span>
                                     </li>
                                 </template>
                                 <template v-else>
                                     <li>
-                                        <em>VOD has not been checked</em>
+                                        <em>{{ $t('vod.video-info.vod-has-not-been-checked') }}</em>
                                     </li>
                                 </template>
                                 <li>
-                                    <strong>Downloaded:</strong>
-                                    {{ vod?.is_vod_downloaded ? "Yes" : "No" }}
+                                    <strong>{{ $t('vod.video-info.downloaded') }}:</strong>
+                                    {{ vod?.is_vod_downloaded ? $t('boolean.yes') : $t('boolean.no') }}
                                 </li>
                             </ul>
                         </div>
@@ -392,6 +392,14 @@
                         <span>{{ $t('vod.controls.fix-issues') }}</span>
                     </a>
 
+                    <!-- Vod export menu -->
+                    <button v-if="showAdvanced" class="button is-confirm" @click="exportVodMenu ? (exportVodMenu.show = true) : ''">
+                        <span class="icon">
+                            <fa icon="upload" type="fa"></fa>
+                        </span>
+                        <span>{{ $t('buttons.export') }}</span>
+                    </button>
+
                     <!-- Vod edit menu -->
                     <button v-if="showAdvanced" class="button is-confirm" @click="editVodMenu ? (editVodMenu.show = true) : ''">
                         <span class="icon">
@@ -495,7 +503,7 @@
 
                 <!-- capture length warning -->
                 <div v-if="vod?.is_capturing && vod.getDurationLive() > 86400" class="video-error">
-                    Capture has been running for over 24 hours, streamlink does not support this. Is the capture stuck?
+                    {{ $t('vod.capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck') }}
                 </div>
 
                 <!-- no chapters error -->
@@ -518,6 +526,7 @@
                             <tr>
                                 <th>{{ $t('vod.chapters.offset') }}</th>
                                 <th v-if="showAdvanced">{{ $t('vod.chapters.started') }}</th>
+                                <th v-if="showAdvanced">{{ $t('vod.chapters.ended') }}</th>
                                 <th>{{ $t('vod.chapters.duration') }}</th>
                                 <th>{{ $t('vod.chapters.category') }}</th>
                                 <th>{{ $t('vod.chapters.title') }}</th>
@@ -546,6 +555,13 @@
                                         <duration-display :start-date="chapter.started_at" output-style="human" /> ago
                                     </span>
                                     <span v-else>{{ formatDate(chapter.started_at, "HH:mm:ss") }}</span>
+                                </td>
+
+                                <!-- end time -->
+                                <td data-contents="ended_at" v-if="showAdvanced">
+                                    <span v-if="chapter.offset !== undefined && chapter.duration !== undefined">
+                                        {{ humanDuration(chapter.offset + chapter.duration) }}
+                                    </span>
                                 </td>
 
                                 <!-- duration -->
@@ -658,27 +674,27 @@
             <pre>{{ vod.basename }}</pre>
             <ul class="list" v-if="vod.video_metadata">
                 <li>
-                    <strong>Format</strong>
+                    <strong>{{ $t('metadata.format') }}</strong>
                     {{ vod.video_metadata.width }}x{{ vod.video_metadata.height }}@
                     {{ vod.video_metadata.fps }}
                 </li>
 
                 <li>
-                    <strong>Video</strong>
+                    <strong>{{ $t('metadata.video') }}</strong>
                     {{ vod.video_metadata.video_codec }}
                     {{ vod.video_metadata.video_bitrate_mode }}
                     {{ Math.round(vod.video_metadata.video_bitrate / 1000) }}kbps
                 </li>
 
                 <li>
-                    <strong>Audio</strong>
+                    <strong>{{ $t('metadata.audio') }}</strong>
                     {{ vod.video_metadata.audio_codec }}
                     {{ vod.video_metadata.audio_bitrate_mode }}
                     {{ Math.round(vod.video_metadata.audio_bitrate / 1000) }}kbps
                 </li>
 
                 <li>
-                    <strong>General</strong>
+                    <strong>{{ $t('metadata.general') }}</strong>
                     {{ formatBytes(vod.video_metadata.size) }} / {{ vod.video_metadata.duration }}
                 </li>
             </ul>
@@ -839,7 +855,10 @@
             </template>
         </div>
         <div class="field">
-            <button class="button" @click="doRenderWizard">Execute</button>
+            <button class="button is-confirm" @click="doRenderWizard">
+                <span class="icon"><fa icon="burn" /></span>
+                <span>Execute</span>
+            </button>
             <span v-if="burnLoading">Running...</span>
         </div>
         <div class="job-status">
@@ -922,15 +941,15 @@
             </button>
         </div>
     </modal-box>
-    <modal-box ref="editVodMenu" title="Edit VOD">
+    <modal-box ref="editVodMenu" :title="$t('vod.edit.edit-vod')">
         <div class="field">
-            <label class="label">Stream number</label>
+            <label class="label">{{ $t('vod.edit.stream-number') }}</label>
             <div class="control">
                 <input class="input" type="number" v-model.number="editVodSettings.stream_number" />
             </div>
         </div>
         <div class="field">
-            <label class="label">Comment</label>
+            <label class="label">{{ $t('vod.edit.comment') }}</label>
             <div class="control">
                 <textarea class="input textarea" v-model="editVodSettings.comment" />
             </div>
@@ -939,15 +958,154 @@
             <div class="control">
                 <label class="checkbox">
                     <input type="checkbox" v-model="editVodSettings.prevent_deletion" />
-                    Prevent deletion
+                    {{ $t('vod.edit.prevent-deletion') }}
                 </label>
             </div>
         </div>
         <div class="field">
-            <button class="button" @click="doEditVod">
-                <fa icon="save" />
-                Save
+            <button class="button is-confirm" @click="doEditVod">
+                <span class="icon"><fa icon="save" /></span>
+                <span>{{ $t("buttons.save") }}</span>
             </button>
+        </div>
+    </modal-box> 
+    <modal-box ref="exportVodMenu" title="Export VOD">
+
+        <div class="notification is-error" v-if="!vod?.segments || vod.segments.length == 0">{{ $t('vod.export.no-segments') }}</div>
+
+        <!-- Exporter -->
+        <div class="field">
+            <label class="label">{{ $t('vod.export.export-type') }}</label>
+            <div class="control">
+                <select class="input" v-model="exportVodSettings.exporter">
+                    <option value="file">File</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="sftp">SFTP</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- File -->
+        <div class="field">
+            <label class="label">{{ $t('vod.export.file-source') }}</label>
+            <div class="control">
+                <div class="select">
+                    <select v-model="exportVodSettings.file_source">
+                        <option value="segment">First captured segment</option>
+                        <option value="downloaded" :disabled="!vod?.is_vod_downloaded">Downloaded</option>
+                        <option value="burned" :disabled="!vod?.is_chat_burned">Burned</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Title / Filename -->
+        <div class="field">
+            <label class="label">{{ $t('vod.export.title-template') }}</label>
+            <div class="control">
+                <input class="input" type="text" v-model="exportVodSettings.title_template" />
+            </div>
+            <div class="control">
+                <ul>
+                    <li v-for="v in exporterTemplateVariables">{{ v }}</li>
+                </ul>
+            </div>
+            <div class="control" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp'">
+                {{ templatePreview(exportVodSettings.title_template) }}.mp4
+            </div>
+            <div class="control" v-else-if="exportVodSettings.exporter == 'youtube'">
+                {{ templatePreview(exportVodSettings.title_template) }}
+            </div>
+        </div>
+
+        <!-- Directory -->
+        <div class="field" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp'">
+            <label class="label">{{ $t('vod.export.directory') }}</label>
+            <div class="control">
+                <input class="input" type="text" v-model="exportVodSettings.directory" />
+            </div>
+        </div>
+
+        <!-- Host -->
+        <div class="field" v-if="exportVodSettings.exporter == 'sftp'">
+            <label class="label">{{ $t('vod.export.host') }}</label>
+            <div class="control">
+                <input class="input" type="text" v-model="exportVodSettings.host" />
+            </div>
+        </div>
+
+        <!-- Username -->
+        <div class="field" v-if="exportVodSettings.exporter == 'sftp'">
+            <label class="label">{{ $t('vod.export.username') }}</label>
+            <div class="control">
+                <input class="input" type="text" v-model="exportVodSettings.username" />
+            </div>
+        </div>
+
+        <!-- YouTube Authentication -->
+        <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+            <div class="buttons">
+                <button class="button is-confirm" @click="doCheckYouTubeStatus">
+                    <span class="icon"><fa icon="sync" /></span>
+                    <span>{{ $t("buttons.checkstatus") }}</span>
+                </button>
+                <button class="button is-confirm" @click="doAuthenticateYouTube">
+                    <span class="icon"><fa icon="key" /></span>
+                    <span>{{ $t("buttons.authenticate") }}</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+            <label class="label">{{ $t('vod.export.description') }}</label>
+            <div class="control">
+                <textarea class="input textarea" v-model="exportVodSettings.description" />
+            </div>
+        </div>
+
+        <!-- Category -->
+        <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+            <label class="label">{{ $t('vod.export.category') }}</label>
+            <div class="control">
+                <div class="select">
+                    <select v-model="exportVodSettings.category">
+                        <option v-for="(c, i) in YouTubeCategories" :value="i">{{ c }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tags -->
+        <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+            <label class="label">{{ $t('vod.export.tags') }}</label>
+            <div class="control">
+                <input class="input" type="text" v-model="exportVodSettings.tags" />
+            </div>
+            <p class="input-help">{{ $t('vod.export.tags-help') }}</p>
+        </div>
+
+        <!-- Privacy -->
+        <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+            <label class="label">{{ $t('vod.export.privacy') }}</label>
+            <div class="control">
+                <div class="select">
+                    <select v-model="exportVodSettings.privacy">
+                        <option value="public">{{ $t('vod.export.privacy-public') }}</option>
+                        <option value="unlisted">{{ $t('vod.export.privacy-unlisted') }}</option>
+                        <option value="private">{{ $t('vod.export.privacy-private') }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="control">
+                <button class="button is-confirm" @click="doExportVod">
+                    <span class="icon"><fa icon="upload" /></span>
+                    <span>{{ $t("buttons.export") }}</span>
+                </button>
+            </div>
         </div>
     </modal-box>
 </template>
@@ -977,7 +1135,10 @@ import {
     faSync,
     faMinus,
     faPlus,
-    faCommentDots
+    faCommentDots,
+    faSave,
+    faUpload,
+    faKey,
 } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
 import ModalBox from "./ModalBox.vue";
@@ -985,6 +1146,8 @@ import { MuteStatus, VideoQualityArray } from "../../../common/Defs";
 import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import TwitchVOD from "@/core/vod";
 import { AudioMetadata } from "@common/MediaInfo";
+import { formatString } from "@common/Format";
+import { YouTubeCategories } from "@/defs";
 library.add(
     faFileVideo,
     faCut,
@@ -1003,7 +1166,10 @@ library.add(
     faSync,
     faMinus,
     faPlus,
-    faCommentDots
+    faCommentDots,
+    faSave,
+    faUpload,
+    faKey
 );
 
 export default defineComponent({
@@ -1016,7 +1182,19 @@ export default defineComponent({
         const vodDownloadMenu = ref<InstanceType<typeof ModalBox>>();
         const playerMenu = ref<InstanceType<typeof ModalBox>>();
         const editVodMenu = ref<InstanceType<typeof ModalBox>>();
-        return { store, burnMenu, chatDownloadMenu, vodDownloadMenu, playerMenu, MuteStatus, VideoQualityArray, editVodMenu };
+        const exportVodMenu = ref<InstanceType<typeof ModalBox>>();
+        return {
+            store,
+            burnMenu,
+            chatDownloadMenu,
+            vodDownloadMenu,
+            playerMenu,
+            MuteStatus,
+            VideoQualityArray,
+            editVodMenu,
+            exportVodMenu,
+            YouTubeCategories,
+        };
     },
     data() {
         return {
@@ -1062,7 +1240,27 @@ export default defineComponent({
                 stream_number: 0,
                 comment: "",
                 prevent_deletion: false,
-            }
+            },
+            exportVodSettings: {
+                exporter: "file",
+                title_template: "[{login}] {title} ({date})",
+                directory: "",
+                host: "",
+                username: "",
+                description: "",
+                tags: "",
+                category: "",
+                file_source: "segment",
+                privacy: "private",
+            },
+            exporterTemplateVariables: [
+                "login",
+                "title",
+                "stream_number",
+                "comment",
+                "date",
+                "resolution",
+            ],
         };
     },
     mounted() {
@@ -1341,6 +1539,45 @@ export default defineComponent({
             });
 
         },
+        templatePreview(template: string): string {
+            const replacements = {
+                login: "TestLogin",
+                title: "TestTitle",
+                date: "2020-01-01",
+                resolution: "1080p",
+                stream_number: "102",
+                comment: "TestComment", 
+            };
+            const replaced_string = formatString(template, replacements);
+            return replaced_string;
+        },
+        doExportVod() {
+            if (!this.vod) return;
+            this.$http.post(`/api/v0/vod/${this.vod.basename}/export`, this.exportVodSettings).then((response) => {
+                const json: ApiResponse = response.data;
+                if (json.message) alert(json.message);
+                console.log(json);
+                if (this.vod) this.store.fetchAndUpdateVod(this.vod.basename);
+                if (this.editVodMenu) this.editVodMenu.show = false;
+            }).catch((err) => {
+                console.error("form error", err.response);
+                if (err.response.data && err.response.data.message) alert(err.response.data.message);
+            });
+        },
+        doCheckYouTubeStatus() {
+            this.$http.get(`/api/v0/youtube/status`).then((response) => {
+                const json: ApiResponse = response.data;
+                if (json.message) alert(json.message);
+                console.log(json);
+            }).catch((err) => {
+                console.error("youtube check error", err.response);
+                if (err.response.data && err.response.data.message) alert(err.response.data.message);
+            });
+        },
+        doAuthenticateYouTube() {
+            const url = `${this.store.cfg("basepath")}/api/v0/youtube/authenticate`;
+            window.open(url, "_blank");
+        }
     },
     computed: {
         compDownloadChat(): boolean {
