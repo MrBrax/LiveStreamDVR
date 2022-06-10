@@ -33,7 +33,7 @@ beforeAll(async () => {
     app.use("", baserouter);
 
     // TwitchChannel.getChannelDataProxy
-    spy1 = jest.spyOn(TwitchChannel, "getChannelDataProxy").mockImplementation(() => {
+    spy1 = jest.spyOn(TwitchChannel, "getUserDataProxy").mockImplementation(() => {
         return Promise.resolve({
             id: "12345",
             login: "test",
