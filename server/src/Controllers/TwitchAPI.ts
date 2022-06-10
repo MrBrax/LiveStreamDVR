@@ -76,7 +76,7 @@ export async function TwitchAPIUser(req: express.Request, res: express.Response)
 
     let user;
     try {
-        user = await TwitchChannel.getChannelDataByLogin(login, true);
+        user = await TwitchChannel.getUserDataByLogin(login, true);
     } catch (error) {
         Log.logAdvanced(LOGLEVEL.FATAL, "route.twitchapi.user", `Error getting channel data: ${(error as Error).message}`, error);
         res.status(400).send({
@@ -133,6 +133,78 @@ export async function TwitchAPIClips(req: express.Request, res: express.Response
 
     res.send({
         data,
+        status: "OK",
+    });
+
+}
+
+export async function TwitchAPIStreams(req: express.Request, res: express.Response): Promise<void> {
+
+    const login = req.params.login;
+
+    if (!login) {
+        res.status(400).send({ status: "ERROR", message: "Invalid login" });
+        return;
+    }
+
+    const channel_id = await TwitchChannel.channelIdFromLogin(login);
+
+    if (!channel_id) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Invalid channel login",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const streams = await TwitchChannel.getStreams(channel_id);
+
+    if (!streams) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Streams not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    res.send({
+        data: streams,
+        status: "OK",
+    });
+
+}
+
+export async function TwitchAPIChannel(req: express.Request, res: express.Response): Promise<void> {
+
+    const login = req.params.login;
+
+    if (!login) {
+        res.status(400).send({ status: "ERROR", message: "Invalid login" });
+        return;
+    }
+
+    const channel_id = await TwitchChannel.channelIdFromLogin(login);
+
+    if (!channel_id) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Invalid channel login",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const channel = await TwitchChannel.getChannelDataById(channel_id);
+
+    if (!channel) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    res.send({
+        data: channel,
         status: "OK",
     });
 

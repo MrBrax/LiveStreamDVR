@@ -2,7 +2,7 @@ import express, { Express } from "express";
 import fs from "fs";
 import { Auth } from "../src/Helpers/Auth";
 import request from "supertest";
-import { ChannelData } from "../../common/Channel";
+import { UserData } from "../../common/User";
 import { User } from "../../common/TwitchAPI/Users";
 import { AppName, DataRoot } from "../src/Core/BaseConfig";
 import { Config } from "../src/Core/Config";
@@ -47,7 +47,7 @@ beforeAll(async () => {
             created_at: "test",
             _updated: 1234,
             cache_avatar: "test",
-        } as ChannelData);
+        } as UserData);
     });
 
     // TwitchChannel.subscribe
