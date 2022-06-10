@@ -109,9 +109,12 @@ describe("channels", () => {
             quality: "best 1080p60",
             match: "",
             download_chat: true,
+            live_chat: false,
             burn_chat: false,
             no_capture: false,
-            live_chat: true,
+            no_cleanup: true,
+            max_storage: 2,
+            max_vods: 5,
         });
 
         expect(res.body.message).toContain("'test' created");

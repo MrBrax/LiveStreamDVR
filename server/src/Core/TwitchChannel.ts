@@ -835,7 +835,11 @@ export class TwitchChannel {
 
         channel.saveKodiNfo();
 
-        channel.updateChapterData();
+        try {
+            await channel.updateChapterData();
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to update chapter data for channel ${channel.login}: ${(error as Error).message}`);
+        }
 
         return channel;
 
