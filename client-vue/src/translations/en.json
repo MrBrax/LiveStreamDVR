@@ -47,10 +47,11 @@
       "player": "Player",
       "archive": "Archive",
       "download-chat": "Download chat",
-      "download-vod": "Download{0} VOD",
+      "download-vod": "Download VOD",
       "check-mute": "Check mute",
       "render-menu": "Render menu",
-      "fix-issues": "Fix issues"
+      "fix-issues": "Fix issues",
+      "download-vod-muted": "Download muted VOD"
     },
     "chapters": {
       "offset": "Offset",

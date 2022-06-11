@@ -1041,35 +1041,39 @@ export class Helper {
             }
         }
 
-        for (const vod of TwitchVOD.vods) {
+        if (Config.debug) {
 
-            if (!vod.is_finalized) continue;
+            for (const vod of TwitchVOD.vods) {
 
-            if (!vod.duration) continue;
+                if (!vod.is_finalized) continue;
 
-            if (!vod.chapters || vod.chapters.length == 0) continue;
+                if (!vod.duration) continue;
 
-            const firstChapter = vod.chapters[0];
-            const lastChapter = vod.chapters[vod.chapters.length - 1];
+                if (!vod.chapters || vod.chapters.length == 0) continue;
 
-            if (firstChapter.offset && firstChapter.offset > 0) {
-                errors.push(`${vod.basename} first chapter starts at ${firstChapter.offset} seconds. Missing pre-stream chapter update?`);
-            }
+                const firstChapter = vod.chapters[0];
+                const lastChapter = vod.chapters[vod.chapters.length - 1];
 
-            if (lastChapter.offset && lastChapter.duration && Math.round(lastChapter.offset + lastChapter.duration) != vod.duration) {
-                errors.push(`${vod.basename} last chapter ends at ${Math.round(lastChapter.offset + lastChapter.duration)} seconds but the VOD duration is ${vod.duration} seconds.`);
-            }
-
-            const chaptersDuration = vod.chapters.reduce((prev, val) => prev + (val.duration || 0), 0);
-
-            if (vod.duration - chaptersDuration > 0) {
-                errors.push(`${vod.basename} has a duration of ${vod.duration} but the chapters are not aligned (${chaptersDuration}).`);
-            }
-
-            for (const chapter of vod.chapters) {
-                if (!chapter.duration || chapter.duration == 0) {
-                    errors.push(`${vod.basename} chapter ${chapter.title} has no duration.`);
+                if (firstChapter.offset && firstChapter.offset > 0) {
+                    errors.push(`${vod.basename} first chapter starts at ${firstChapter.offset} seconds. Missing pre-stream chapter update?`);
                 }
+
+                // This check does not work since the start/end time of the livestream is not the same as the duration of the VOD
+                // if (lastChapter.offset && lastChapter.duration && Math.round(lastChapter.offset + lastChapter.duration) != vod.duration) {
+                //     errors.push(`${vod.basename} last chapter ends at ${Math.round(lastChapter.offset + lastChapter.duration)} seconds but the VOD duration is ${vod.duration} seconds.`);
+                // }
+
+                const chaptersDuration = vod.chapters.reduce((prev, val) => prev + (val.duration || 0), 0);
+                if (vod.duration - chaptersDuration > 0) {
+                    errors.push(`${vod.basename} has a duration of ${vod.duration} but the chapters are not aligned (${chaptersDuration}).`);
+                }
+
+                for (const chapter of vod.chapters) {
+                    if (!chapter.duration || chapter.duration == 0) {
+                        errors.push(`${vod.basename} chapter ${chapter.title} has no duration.`);
+                    }
+                }
+
             }
 
         }

@@ -11,20 +11,20 @@
             'is-favourite': vod.hasFavouriteGame(),
         }"
     >
-        <div :id="'vod_' + vod?.basename" class="anchor"></div>
+        <div :id="'vod_' + vod.basename" class="anchor"></div>
 
         <!-- title -->
         <div class="video-title" @click="minimized = !minimized">
             <div class="video-title-text">
                 <h3>
                     <span class="icon"><fa icon="file-video"></fa></span>
-                    <span class="video-date" :title="formatDate(vod?.started_at)" v-if="vod?.started_at">{{
-                        store.clientCfg('useRelativeTime') ? humanDate(vod?.started_at, true) : formatDate(vod?.started_at)
+                    <span class="video-date" :title="formatDate(vod.started_at)" v-if="vod.started_at">{{
+                        store.clientCfg('useRelativeTime') ? humanDate(vod.started_at, true) : formatDate(vod.started_at)
                     }}</span>
                     <span class="video-sxe">
                         {{ vod.stream_season }}x{{ vod.stream_number }}
                     </span>
-                    <span class="video-filename">{{ vod?.basename }}</span>
+                    <span class="video-filename">{{ vod.basename }}</span>
                 </h3>
             </div>
             <div class="video-title-actions">
@@ -59,13 +59,13 @@
                     </div>
 
                     <!-- video info -->
-                    <div v-if="vod?.is_finalized" class="info-columns">
+                    <div v-if="vod.is_finalized" class="info-columns">
                         <div class="info-column">
                             <h4>{{ $t('vod.video-info.general') }}</h4>
                             <ul class="video-info">
                                 <li>
                                     <strong>{{ $t('vod.video-info.webhook-duration') }}:</strong>
-                                    {{ vod?.getWebhookDuration() }}
+                                    {{ vod.getWebhookDuration() }}
                                 </li>
                                 <li v-if="vod.created_at">
                                     <strong>{{ $t('vod.video-info.created') }}:</strong>
@@ -87,14 +87,14 @@
                                     <strong>{{ $t('vod.video-info.stream-end') }}:</strong>
                                     {{ formatDate(vod.ended_at, "yyyy-MM-dd HH:mm:ss") }}
                                 </li>
-                                <template v-if="vod?.capture_started && vod?.conversion_started">
+                                <template v-if="vod.capture_started && vod.conversion_started">
                                     <li>
                                         <strong>{{ $t('vod.video-info.capture-start') }}:</strong>
-                                        {{ formatDate(vod?.capture_started, "yyyy-MM-dd HH:mm:ss") }}
+                                        {{ formatDate(vod.capture_started, "yyyy-MM-dd HH:mm:ss") }}
                                     </li>
                                     <li>
                                         <strong>{{ $t('vod.video-info.conversion-start') }}:</strong>
-                                        {{ formatDate(vod?.conversion_started, "yyyy-MM-dd HH:mm:ss") }}
+                                        {{ formatDate(vod.conversion_started, "yyyy-MM-dd HH:mm:ss") }}
                                     </li>
                                 </template>
                                 <li v-if="vod.getDuration() && showAdvanced">
@@ -109,19 +109,19 @@
                                 </li>
                                 <li>
                                     <strong>{{ $t('vod.video-info.chat-downloaded') }}:</strong>
-                                    {{ vod?.is_chat_downloaded ? $t('boolean.yes') : $t('boolean.no') }}
+                                    {{ vod.is_chat_downloaded ? $t('boolean.yes') : $t('boolean.no') }}
                                 </li>
                                 <li>
                                     <strong>{{ $t('vod.video-info.chat-dumped') }}:</strong>
-                                    {{ vod?.is_chatdump_captured ? $t('boolean.yes') : $t('boolean.no') }}
+                                    {{ vod.is_chatdump_captured ? $t('boolean.yes') : $t('boolean.no') }}
                                 </li>
                                 <li>
                                     <strong>{{ $t('vod.video-info.chat-rendered') }}:</strong>
-                                    {{ vod?.is_chat_rendered ? $t('boolean.yes') : $t('boolean.no') }}
+                                    {{ vod.is_chat_rendered ? $t('boolean.yes') : $t('boolean.no') }}
                                 </li>
                                 <li>
                                     <strong>{{ $t('vod.video-info.chat-burned') }}:</strong>
-                                    {{ vod?.is_chat_burned ? $t('boolean.yes') : $t('boolean.no') }}
+                                    {{ vod.is_chat_burned ? $t('boolean.yes') : $t('boolean.no') }}
                                 </li>
                             </ul>
                         </div>
@@ -144,8 +144,8 @@
                                     </li>
                                     <li>
                                         <strong>Audio:</strong>
-                                        {{ vod?.video_metadata.audio_codec }}
-                                        {{ vod?.video_metadata.audio_bitrate_mode }}
+                                        {{ vod.video_metadata.audio_codec }}
+                                        {{ vod.video_metadata.audio_bitrate_mode }}
                                         {{ Math.round(vod.video_metadata.audio_bitrate / 1000) }}kbps
                                     </li>
                                 </template>
@@ -171,8 +171,8 @@
                                     </li>
                                     <li>
                                         <strong>{{ $t('metadata.audio') }}:</strong>
-                                        {{ vod?.video_metadata.audio_codec }}
-                                        {{ vod?.video_metadata.audio_bitrate_mode }}
+                                        {{ vod.video_metadata.audio_codec }}
+                                        {{ vod.video_metadata.audio_bitrate_mode }}
                                         {{ Math.round(vod.video_metadata.audio_bitrate / 1000) }}kbps
                                     </li>
                                 </template>
@@ -183,10 +183,10 @@
                         <div class="info-column">
                             <h4>Twitch VOD</h4>
                             <ul class="video-info">
-                                <template v-if="vod?.twitch_vod_exists === true">
+                                <template v-if="vod.twitch_vod_exists === true">
                                     <li>
                                         <strong>{{ $t('vod.video-info.duration') }}:</strong>
-                                        <span class="px-1" v-if="vod?.twitch_vod_duration">{{ humanDuration(vod?.twitch_vod_duration) }}</span>
+                                        <span class="px-1" v-if="vod.twitch_vod_duration">{{ humanDuration(vod.twitch_vod_duration) }}</span>
                                         <span class="px-1" v-else>
                                             <strong><em>No data</em></strong>
                                         </span>
@@ -224,13 +224,13 @@
                                         <span class="px-1" v-else><em>{{ $t('boolean.no-data') }}</em></span>
                                     </li>
                                 </template>
-                                <template v-else-if="vod?.twitch_vod_exists === false">
+                                <template v-else-if="vod.twitch_vod_exists === false">
                                     <li>
                                         <strong class="is-error">{{ $t('vod.video-info.vod-is-deleted') }}</strong>
                                         &nbsp;<a href="javascript:void(0)" @click="matchVod()" title="Retry VOD match"><fa icon="sync"></fa></a>
                                     </li>
                                     <li>
-                                        <span v-if="vod?.twitch_vod_id">
+                                        <span v-if="vod.twitch_vod_id">
                                             The ID was <a :href="twitchVideoLink(vod.twitch_vod_id)" rel="noreferrer" target="_blank">{{ vod.twitch_vod_id }}</a>.
                                         </span>
                                         <span v-else>{{ $t('vod.video-info.the-vod-probably-never-got-saved') }}</span>
@@ -243,13 +243,13 @@
                                 </template>
                                 <li>
                                     <strong>{{ $t('vod.video-info.downloaded') }}:</strong>
-                                    {{ vod?.is_vod_downloaded ? $t('boolean.yes') : $t('boolean.no') }}
+                                    {{ vod.is_vod_downloaded ? $t('boolean.yes') : $t('boolean.no') }}
                                 </li>
                             </ul>
                         </div>
                     </div>
 
-                    <div v-if="vod?.is_capturing" class="info-columns">
+                    <div v-if="vod.is_capturing" class="info-columns">
                         <div class="info-column">
                             <h4>Recording</h4>
                             <ul class="video-info">
@@ -272,7 +272,7 @@
                 </div>
 
                 <!-- segment list -->
-                <div v-if="vod?.is_finalized" class="video-segments">
+                <div v-if="vod.is_finalized" class="video-segments">
                     <strong>{{ $t('vod.segments') }}</strong>
                     <ul class="list-segments">
                         <li v-for="segment in vod.segments" :key="segment.basename">
@@ -288,20 +288,20 @@
                             </span>
                         </li>
 
-                        <li v-if="vod?.is_vod_downloaded">
-                            <a :href="vod?.webpath + '/' + vod?.basename + '_vod.mp4'">Downloaded VOD</a>
+                        <li v-if="vod.is_vod_downloaded">
+                            <a :href="vod.webpath + '/' + vod.basename + '_vod.mp4'">Downloaded VOD</a>
                         </li>
 
-                        <template v-if="vod?.is_chat_rendered">
+                        <template v-if="vod.is_chat_rendered">
                             <li>
-                                <a :href="vod?.webpath + '/' + vod?.basename + '_chat.mp4'">Rendered chat</a>
+                                <a :href="vod.webpath + '/' + vod?.basename + '_chat.mp4'">Rendered chat</a>
                             </li>
                             <li>
-                                <a :href="vod?.webpath + '/' + vod?.basename + '_chat_mask.mp4'">Rendered chat mask</a>
+                                <a :href="vod.webpath + '/' + vod?.basename + '_chat_mask.mp4'">Rendered chat mask</a>
                             </li>
                         </template>
 
-                        <li v-if="vod?.is_chat_burned">
+                        <li v-if="vod.is_chat_burned">
                             <a :href="vod?.webpath + '/' + vod?.basename + '_burned.mp4'">Burned chat</a>
                         </li>
                     </ul>
@@ -311,7 +311,7 @@
                 </div>
 
                 <!-- controls -->
-                <div class="video-controls buttons" v-if="vod?.is_finalized">
+                <div class="video-controls buttons" v-if="vod.is_finalized">
                     <button :class="{ 'button': true, 'details-toggle': true, 'is-active': showAdvanced }" @click="showAdvanced = !showAdvanced" title="Show advanced">
                         <span class="icon">
                             <fa v-if="showAdvanced" icon="minus"></fa>
@@ -346,7 +346,7 @@
                     </a>
 
                     <!-- Download chat-->
-                    <a v-if="vod?.twitch_vod_id && !vod?.is_chat_downloaded" class="button" @click="chatDownloadMenu ? (chatDownloadMenu.show = true) : ''">
+                    <a v-if="vod.twitch_vod_id && !vod?.is_chat_downloaded" class="button" @click="chatDownloadMenu ? (chatDownloadMenu.show = true) : ''">
                         <span class="icon">
                             <fa icon="comments" type="fa" v-if="!taskStatus.downloadChat && !compDownloadChat"></fa>
                             <fa icon="sync" type="fa" spin v-else></fa>
@@ -354,14 +354,15 @@
                         <span>{{ $t('vod.controls.download-chat') }}</span>
                     </a>
 
-                    <template v-if="vod?.twitch_vod_id">
+                    <template v-if="vod.twitch_vod_id">
                         <!-- Download VOD -->
-                        <a v-if="!vod?.is_vod_downloaded" class="button" @click="vodDownloadMenu ? (vodDownloadMenu.show = true) : ''">
+                        <a v-if="!vod.is_vod_downloaded" class="button" @click="vodDownloadMenu ? (vodDownloadMenu.show = true) : ''">
                             <span class="icon">
                                 <fa icon="download" type="fa" v-if="!taskStatus.downloadVod"></fa>
                                 <fa icon="sync" type="fa" spin v-else></fa>
                             </span>
-                            <span>{{ $t('vod.controls.download-vod', [vod?.twitch_vod_muted === MuteStatus.MUTED ? " muted" : ""]) }}</span>
+                            <span v-if="vod.twitch_vod_muted == MuteStatus.MUTED">{{ $t('vod.controls.download-vod-muted') }}</span>
+                            <span v-else>{{ $t('vod.controls.download-vod') }}</span>
                         </a>
                         <!-- Check mute -->
                         <a v-if="showAdvanced" class="button" @click="doCheckMute">
@@ -432,10 +433,10 @@
                     </button>
                 </div>
                 <div class="video-status" v-else-if="!vod.is_finalized">
-                    <template v-if="vod?.is_converting">
+                    <template v-if="vod.is_converting">
                         <em>
                             <span class="icon"><fa icon="file-signature"></fa></span>
-                            Converting <strong>{{ vod?.basename }}.ts</strong> to <strong>{{ vod?.basename }}.mp4</strong>
+                            Converting <strong>{{ vod.basename }}.ts</strong> to <strong>{{ vod.basename }}.mp4</strong>
                         </em>
                         <br />
                         <em>
@@ -453,7 +454,7 @@
                     <template v-else-if="vod && vod.is_capturing">
                         <em class="text-overflow">
                             <span class="icon"><fa icon="video"></fa></span>
-                            Capturing to <strong>{{ vod?.basename }}.ts</strong> (<strong>{{
+                            Capturing to <strong>{{ vod.basename }}.ts</strong> (<strong>{{
                                 vod.getRecordingSize() ? formatBytes(vod.getRecordingSize() as number) : "unknown"
                             }}</strong
                             >)
@@ -493,8 +494,8 @@
                             </template>
                         </template>
                     </template>
-                    <template v-else-if="!vod?.is_capturing && !vod?.is_converting && !vod?.is_finalized">
-                        <em>Waiting to finalize video (since {{ vod?.ended_at ? formatDate(vod?.ended_at, "yyyy-MM-dd HH:mm:ss") : "(unknown)" }})</em>
+                    <template v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized">
+                        <em>Waiting to finalize video (since {{ vod.ended_at ? formatDate(vod.ended_at, "yyyy-MM-dd HH:mm:ss") : "(unknown)" }})</em>
                     </template>
                     <template v-else>
                         <em>No video file or error</em>
@@ -502,12 +503,12 @@
                 </div>
 
                 <!-- capture length warning -->
-                <div v-if="vod?.is_capturing && vod.getDurationLive() > 86400" class="video-error">
+                <div v-if="vod.is_capturing && vod.getDurationLive() > 86400" class="video-error">
                     {{ $t('vod.capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck') }}
                 </div>
 
                 <!-- no chapters error -->
-                <div v-if="!vod?.chapters" class="video-error">No chapter data!?</div>
+                <div v-if="!vod.chapters" class="video-error">No chapter data!?</div>
 
                 <!-- troubleshoot error -->
                 <!--
@@ -591,7 +592,7 @@
                                                 title="Open in editor"
                                                 :to="{
                                                     name: 'Editor',
-                                                    params: { vod: vod?.basename },
+                                                    params: { vod: vod.basename },
                                                     query: { start: chapter.offset, end: (chapter.offset || 0) + (chapter.duration || 0), chapter: chapterIndex },
                                                 }"
                                             >
@@ -769,7 +770,7 @@
                         <p>Video source</p>
                         <select class="input" v-model="burnSettings.vodSource">
                             <option value="captured">Captured</option>
-                            <option value="downloaded" :disabled="!vod?.is_vod_downloaded">Downloaded</option>
+                            <option value="downloaded" :disabled="!vod.is_vod_downloaded">Downloaded</option>
                         </select>
                     </label>
                 </div>
@@ -778,7 +779,7 @@
                         <p>Chat source</p>
                         <select class="input" v-model="burnSettings.chatSource">
                             <option value="captured">Captured</option>
-                            <option value="downloaded" :disabled="!vod?.is_chat_downloaded">Downloaded</option>
+                            <option value="downloaded" :disabled="!vod.is_chat_downloaded">Downloaded</option>
                         </select>
                     </label>
                 </div>
@@ -803,7 +804,7 @@
         <div class="field-group">
             <div class="field">
                 <label>
-                    <input type="checkbox" v-model="burnSettings.burnChat" :disabled="!burnSettings.renderChat && !vod?.is_chat_rendered" />
+                    <input type="checkbox" v-model="burnSettings.burnChat" :disabled="!burnSettings.renderChat && !vod.is_chat_rendered" />
                     Burn chat <strong v-if="vod.is_chat_burned">(Exists)</strong>
                 </label>
             </div>

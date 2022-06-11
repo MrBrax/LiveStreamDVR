@@ -1,7 +1,9 @@
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
-import { OAuth2Client } from "google-auth-library";
+// import { OAuth2Client } from "google-auth-library";
+import { OAuth2Client } from "googleapis-common";
 import path from "path";
-import { google } from "googleapis";
+// import { oauth2_v2 } from "@googleapis/oauth2/v2";
+// import { youtube_v3 } from "@googleapis/youtube";
 import { Config } from "../Core/Config";
 import { Log, LOGLEVEL } from "../Core/Log";
 import fs from "fs";
@@ -24,6 +26,7 @@ export class YouTubeHelper {
     static username = "";
     static username_file = path.join(BaseConfigDataFolder.cache, "youtube_username.txt");
     static accessTokenTime = 0;
+    private static accessToken: any;
 
     static setupClient() {
         const client_id = Config.getInstance().cfg<string>("youtube_client_id");
@@ -42,7 +45,7 @@ export class YouTubeHelper {
             return;
         }
 
-        this.oAuth2Client = new google.auth.OAuth2(
+        this.oAuth2Client = new OAuth2Client(
             client_id,
             client_secret,
             // "http://localhost:8081/api/v0/youtube/callback"
@@ -71,10 +74,13 @@ export class YouTubeHelper {
         const json = fs.readFileSync(this.accessTokenFile, "utf8");
         const token = JSON.parse(json);
         if (token.expiry_date < new Date().getTime()) {
-            Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `Token expired at ${token.expiry_date}`);
+            Log.logAdvanced(LOGLEVEL.WARNING, "YouTubeHelper", `Token expired at ${token.expiry_date}`);
+            fs.unlinkSync(this.accessTokenFile);
+            this.accessToken = undefined;
             return null;
         }
         this.accessTokenTime = token.expiry_date;
+        this.accessToken = token;
         Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `Loaded token from ${this.accessTokenFile}`);
         return token;
     }
@@ -96,7 +102,12 @@ export class YouTubeHelper {
             return;
         }
 
-        const oauth2 = google.oauth2({
+        const info = await this.oAuth2Client.getTokenInfo(this.accessToken);
+
+        console.log("access token", info);
+
+        /*
+        const oauth2 = oauth2({
             version: "v2",
             auth: this.oAuth2Client,
         });
@@ -106,6 +117,7 @@ export class YouTubeHelper {
         fs.writeFileSync(this.username_file, this.username);
 
         Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `Username is ${this.username}`);
+        */
 
     }
 

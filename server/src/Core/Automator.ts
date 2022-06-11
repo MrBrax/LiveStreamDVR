@@ -354,14 +354,16 @@ export class Automator {
             // fwrite($fp, json_encode($chapter) . "\n");
             // fclose($fp);
 
-            setTimeout(async () => {
-                const isLive = await this.channel?.isLiveApi();
-                if (isLive) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} is now online, timeout check.`);
-                } else {
-                    Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} is still offline, timeout check.`);
-                }
-            }, 30 * 1000); // remove in future, just for testing
+            if (Config.debug) {
+                setTimeout(async () => {
+                    const isLive = await this.channel?.isLiveApi();
+                    if (isLive) {
+                        Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} is now online, timeout check.`);
+                    } else {
+                        Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} is still offline, timeout check.`);
+                    }
+                }, 30 * 1000); // remove in future, just for testing
+            }
 
             return true;
         }

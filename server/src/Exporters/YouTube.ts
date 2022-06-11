@@ -1,5 +1,6 @@
 import { BaseExporter } from "./Base";
-import { google } from "googleapis"; // FIXME: don't import the whole module
+// import { google } from "googleapis"; // FIXME: don't import the whole module
+import { youtube_v3 } from "@googleapis/youtube";
 import { YouTubeHelper } from "../Providers/YouTube";
 import fs from "fs";
 import { Log, LOGLEVEL } from "../Core/Log";
@@ -45,7 +46,8 @@ export class YouTubeExporter extends BaseExporter {
 
             const final_title = this.getFormattedTitle();
 
-            const service = google.youtube("v3");
+            // const service = google.youtube("v3");
+            const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
 
             Log.logAdvanced(LOGLEVEL.INFO, "YouTubeExporter", `Uploading ${this.filename} to YouTube...`);
 
@@ -99,7 +101,9 @@ export class YouTubeExporter extends BaseExporter {
             if (!this.vod.video_metadata) throw new Error("No video_metadata");
             if (!YouTubeHelper.oAuth2Client) throw new Error("No YouTube client");
 
-            const service = google.youtube("v3");
+            const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
+
+            // const service = google.youtube("v3");
 
             Log.logAdvanced(LOGLEVEL.INFO, "YouTubeExporter", `Verifying ${this.filename} on YouTube...`);
 
