@@ -128,7 +128,9 @@
       "download-chat": "Ladda ner chatt",
       "check-mute": "Kolla avstängt ljud",
       "render-menu": "Inbränning",
-      "fix-issues": "Fixa problem"
+      "fix-issues": "Fixa problem",
+      "download-vod-muted": "Ladda ner tystad VOD",
+      "download-vod": "Ladda ner VOD"
     },
     "capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck": "Inspelningen har körts i över 24 timmar, streamlink stöder inte detta. \nHar den fastnat?",
     "edit": {

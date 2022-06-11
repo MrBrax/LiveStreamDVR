@@ -40,7 +40,9 @@
       "download-chat": "채팅 다운로드",
       "check-mute": "음소거 확인",
       "render-menu": "렌더링 메뉴",
-      "fix-issues": "문제를 해결하다"
+      "fix-issues": "문제를 해결하다",
+      "download-vod-muted": "음소거된 VOD 다운로드",
+      "download-vod": "VOD 다운로드"
     },
     "capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck": "캡처가 24시간 이상 실행되었으며 streamlink는 이를 지원하지 않습니다. \n캡쳐가 막혔나요?",
     "edit": {

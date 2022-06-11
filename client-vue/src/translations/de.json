@@ -47,10 +47,11 @@
       "player": "Player",
       "archive": "Archiv",
       "download-chat": "Chat herunterladen",
-      "download-vod": "Download{0} VOD",
+      "download-vod": "Download VOD",
       "check-mute": "Prüfe Stummschaltung",
       "render-menu": "Render-Menü",
-      "fix-issues": "Probleme beheben"
+      "fix-issues": "Probleme beheben",
+      "download-vod-muted": "Laden Sie stummgeschaltetes VOD herunter"
     },
     "chapters": {
       "offset": "Versatz",
