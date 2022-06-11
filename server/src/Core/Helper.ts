@@ -1056,12 +1056,12 @@ export class Helper {
                 errors.push(`${vod.basename} first chapter starts at ${firstChapter.offset} seconds. Missing pre-stream chapter update?`);
             }
 
-            if (lastChapter.offset && lastChapter.duration && Math.round(lastChapter.offset + lastChapter.duration) != vod.duration) {
-                errors.push(`${vod.basename} last chapter ends at ${Math.round(lastChapter.offset + lastChapter.duration)} seconds but the VOD duration is ${vod.duration} seconds.`);
-            }
+            // This check does not work since the start/end time of the livestream is not the same as the duration of the VOD
+            // if (lastChapter.offset && lastChapter.duration && Math.round(lastChapter.offset + lastChapter.duration) != vod.duration) {
+            //     errors.push(`${vod.basename} last chapter ends at ${Math.round(lastChapter.offset + lastChapter.duration)} seconds but the VOD duration is ${vod.duration} seconds.`);
+            // }
 
             const chaptersDuration = vod.chapters.reduce((prev, val) => prev + (val.duration || 0), 0);
-
             if (vod.duration - chaptersDuration > 0) {
                 errors.push(`${vod.basename} has a duration of ${vod.duration} but the chapters are not aligned (${chaptersDuration}).`);
             }
