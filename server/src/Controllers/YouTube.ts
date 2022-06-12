@@ -1,7 +1,7 @@
 import express from "express";
 import { YouTubeHelper } from "../Providers/YouTube";
 import { Log, LOGLEVEL } from "../Core/Log";
-import { formatISO9075 } from "date-fns";
+import { formatDistanceToNow, formatISO9075 } from "date-fns";
 
 export function Authenticate(req: express.Request, res: express.Response): void {
 
@@ -33,7 +33,7 @@ export function Callback(req: express.Request, res: express.Response): Promise<v
             });
             return;
         }
-        
+
         const code = req.query.code as string | undefined;
 
         if (code) {
@@ -93,9 +93,11 @@ export function Status(req: express.Request, res: express.Response): void {
 
     const end_date = new Date(YouTubeHelper.accessTokenTime);
 
+    const expires_in = formatDistanceToNow(end_date);
+
     res.send({
         status: "OK",
-        message: `YouTube authenticated with user: ${YouTubeHelper.username}, expires at ${formatISO9075(end_date)}`,
+        message: `YouTube authenticated with user: ${YouTubeHelper.username}, expires in ${expires_in} (${formatISO9075(end_date)})`,
     });
 
 }

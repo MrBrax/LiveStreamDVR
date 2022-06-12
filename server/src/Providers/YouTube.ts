@@ -1,13 +1,13 @@
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 // import { OAuth2Client } from "google-auth-library";
 import { OAuth2Client } from "googleapis-common";
+import type { Credentials } from "google-auth-library";
 import path from "path";
 // import { oauth2_v2 } from "@googleapis/oauth2/v2";
 // import { youtube_v3 } from "@googleapis/youtube";
 import { Config } from "../Core/Config";
 import { Log, LOGLEVEL } from "../Core/Log";
 import fs from "fs";
-
 
 export class YouTubeHelper {
 
@@ -26,9 +26,9 @@ export class YouTubeHelper {
     static username = "";
     static username_file = path.join(BaseConfigDataFolder.cache, "youtube_username.txt");
     static accessTokenTime = 0;
-    private static accessToken: any;
+    private static accessToken?: Credentials;
 
-    static setupClient() {
+    static async setupClient() {
         const client_id = Config.getInstance().cfg<string>("youtube_client_id");
         const client_secret = Config.getInstance().cfg<string>("youtube_client_secret");
         let app_url = Config.getInstance().cfg<string>("app_url");
@@ -45,6 +45,10 @@ export class YouTubeHelper {
             return;
         }
 
+        if (fs.existsSync(this.username_file)) {
+            fs.unlinkSync(this.username_file);
+        }
+
         this.oAuth2Client = new OAuth2Client(
             client_id,
             client_secret,
@@ -56,20 +60,24 @@ export class YouTubeHelper {
         if (token) {
             this.oAuth2Client.setCredentials(token);
             this.authenticated = true;
-            this.fetchUsername();
+            try {
+                await this.fetchUsername();
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeHelper", `Failed to fetch username: ${(error as Error).message}`);
+            }
         }
     }
 
-    static storeToken(token: any) {
+    static storeToken(token: Credentials) {
         const json = JSON.stringify(token);
         Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `Storing token in ${this.accessTokenFile}`);
         fs.writeFileSync(this.accessTokenFile, json);
     }
 
-    static loadToken() {
+    static loadToken(): Credentials | undefined {
         if (!fs.existsSync(this.accessTokenFile)) {
             Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `No token found in ${this.accessTokenFile}`);
-            return null;
+            return undefined;
         }
         const json = fs.readFileSync(this.accessTokenFile, "utf8");
         const token = JSON.parse(json);
@@ -77,7 +85,7 @@ export class YouTubeHelper {
             Log.logAdvanced(LOGLEVEL.WARNING, "YouTubeHelper", `Token expired at ${token.expiry_date}`);
             fs.unlinkSync(this.accessTokenFile);
             this.accessToken = undefined;
-            return null;
+            return undefined;
         }
         this.accessTokenTime = token.expiry_date;
         this.accessToken = token;
@@ -99,25 +107,27 @@ export class YouTubeHelper {
         }
 
         if (!this.oAuth2Client) {
-            return;
+            throw new Error("No oAuth2Client set up");
         }
 
-        const info = await this.oAuth2Client.getTokenInfo(this.accessToken);
+        if (!this.accessToken || !this.accessToken.access_token) {
+            throw new Error("No access token found");
+        }
 
-        console.log("access token", info);
-
-        /*
-        const oauth2 = oauth2({
-            version: "v2",
-            auth: this.oAuth2Client,
+        await this.oAuth2Client.request({
+            url: "https://www.googleapis.com/oauth2/v3/userinfo",
+        }).then((response) => {
+            if (response && response.data && typeof response.data === "object" && "name" in response.data) {
+                const data: { sub: string; name: string; given_name: string; family_name: string; picture: string; locale: string; } = response.data as never;
+                this.username = data.name;
+                fs.writeFileSync(this.username_file, this.username);
+            } else {
+                Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeHelper", `Failed to fetch username: ${response.statusText}`);
+            }
+        }).catch((error) => {
+            Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeHelper", `Failed to fetch username: ${(error as Error).message}`);
+            throw error; // not pretty
         });
-
-        const res = await oauth2.userinfo.v2.me.get();
-        this.username = res.data.name || "";
-        fs.writeFileSync(this.username_file, this.username);
-
-        Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `Username is ${this.username}`);
-        */
 
     }
 

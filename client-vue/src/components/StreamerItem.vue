@@ -360,7 +360,7 @@ export default defineComponent({
             return url.replace(/%\{width\}/g, width.toString()).replace(/%\{height\}/g, height.toString());
         },
         clipLink(name: string): string {
-            return `${this.store.cfg("basepath")}/saved_clips/${name}`;
+            return `${this.store.cfg<string>("basepath", "")}/saved_clips/${name}`;
         },
         doToggleExpandVods() {
             // loop through all vods and set the expanded state
@@ -393,7 +393,7 @@ export default defineComponent({
         },
         avatarUrl() {
             if (!this.streamer) return;
-            if (this.streamer.channel_data?.cache_avatar) return `${this.store.cfg("basepath", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
+            if (this.streamer.channel_data?.cache_avatar) return `${this.store.cfg<string>("basepath", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
             return this.streamer.profile_image_url;
         },
         areMostVodsExpanded(): boolean {

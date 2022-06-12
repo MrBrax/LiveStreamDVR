@@ -46,9 +46,12 @@ export const useStore = defineStore("twitchAutomator", {
         };
     },
     actions: {
-        cfg(key: string, def: any = null): any {
-            if (!this.config) return null;
-            if (this.config[key] === undefined || this.config[key] === null) return def;
+        cfg<T>(key: string, def?: T): T {
+            if (!this.config) {
+                console.error(`Config is not loaded, tried to get key: ${key}`);
+                return <T><unknown>undefined;
+            }
+            if (this.config[key] === undefined || this.config[key] === null) return <T>def;
             return this.config[key];
         },
         clientCfg(key: keyof ClientSettings, def: any = undefined): any {
