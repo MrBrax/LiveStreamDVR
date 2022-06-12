@@ -62,6 +62,7 @@ $boxart-height: 190px;
     --border-radius: 0;
 
     --gamelist-favourite: #7acc92;
+    --gamelist-current: #f0a6a6;
 
     --modal-background-color: #ffffff;
 
@@ -70,6 +71,8 @@ $boxart-height: 190px;
     --input-disabled-color: #777;
     --input-disabled-border-color: #ccc;
     --input-disabled-background-color: #f5f5f5;
+
+    --template-preview-background-color: #eeeeee;
 }
 
 * {

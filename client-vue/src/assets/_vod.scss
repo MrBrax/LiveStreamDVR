@@ -226,6 +226,7 @@
 .video-status {
     padding: 10px;
     background-color: #b3ddad;
+    color: #222;
     // border-top: 1px solid #a1bd9b;
     // border-bottom: 1px solid #a1bd9b;
     // border-left: 1px solid #e3e3e3;
@@ -353,7 +354,7 @@
     }
 
     tr.current {
-        background-color: #f0a6a6;
+        background-color: var(--gamelist-current);
     }
 
     a {
