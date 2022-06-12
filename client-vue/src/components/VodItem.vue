@@ -1481,7 +1481,7 @@ export default defineComponent({
             if (!this.store.config) return "#";
             let video_path = `${this.vod?.webpath}/${this.vod?.basename}.mp4`;
             let chat_path = `${this.vod?.webpath}/${this.vod?.basename}.${chatdownload ? "chat" : "chatdump"}`;
-            return `${this.store.cfg("basepath")}/vodplayer/index.html#source=file_http&video_path=${video_path}&chatfile=${chat_path}&offset=${offset}`;
+            return `${this.store.cfg<string>("basepath", "")}/vodplayer/index.html#source=file_http&video_path=${video_path}&chatfile=${chat_path}&offset=${offset}`;
         },
         twitchVideoLink(video_id: string): string {
             return `https://www.twitch.tv/videos/${video_id}`;
@@ -1508,7 +1508,7 @@ export default defineComponent({
             return false;
         },
         openPlayer() {
-            let url = `${this.store.cfg("basepath")}/vodplayer/index.html#&`;
+            let url = `${this.store.cfg<string>("basepath", "")}/vodplayer/index.html#&`;
             url += "source=file_http";
             if (this.playerSettings.vodSource == "captured"){
                 url += `&video_path=${this.vod?.webpath}/${this.vod?.basename}.mp4`;
@@ -1576,7 +1576,7 @@ export default defineComponent({
             });
         },
         doAuthenticateYouTube() {
-            const url = `${this.store.cfg("basepath")}/api/v0/youtube/authenticate`;
+            const url = `${this.store.cfg<string>("basepath", "")}/api/v0/youtube/authenticate`;
             window.open(url, "_blank");
         }
     },
