@@ -263,6 +263,15 @@ export const useStore = defineStore("twitchAutomator", {
                 this.jobList[index] = job;
             }
         },
+        updateJobProgress(job_name: string, progress: number) {
+            const index = this.jobList.findIndex((j) => j.name === job_name);
+            if (index === -1) {
+                console.warn(`Job '${job_name}' not found in job list (progress: ${progress})`);
+                return;
+            }
+            this.jobList[index].progress = progress;
+            console.debug(`Update job '${job_name}', progress: ${progress}`);
+        },
         removeJob(name: string) {
             console.debug(`Delete job '${name}'`);
             const index = this.jobList.findIndex((j) => j.name === name);

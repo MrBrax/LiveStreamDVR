@@ -2762,7 +2762,21 @@ export class TwitchVOD {
 
             Log.logAdvanced(LOGLEVEL.INFO, "channel", `Downloading VOD ${video_id}...`);
 
-            const ret = await Helper.execAdvanced(streamlink_bin, cmd, `download_vod_${video_id}`);
+            let totalSegments = 0;
+            let currentSegment = 0;
+            const ret = await Helper.execAdvanced(streamlink_bin, cmd, `download_vod_${video_id}`, (log: string) => {
+                const totalSegmentMatch = log.match(/Last Sequence: (\d+)/);
+                if (totalSegmentMatch && !totalSegments) {
+                    // console.debug(`Total segments: ${totalSegmentMatch[1]}`, totalSegmentMatch);
+                    totalSegments = parseInt(totalSegmentMatch[1]);
+                }
+                const currentSegmentMatch = log.match(/Segment (\d+) complete/);
+                if (currentSegmentMatch && totalSegments > 0) {
+                    currentSegment = parseInt(currentSegmentMatch[1]);
+                    // console.debug(`Current segment: ${currentSegment}`);
+                    return currentSegment / totalSegments;
+                }
+            });
 
             Log.logAdvanced(LOGLEVEL.INFO, "channel", `Downloaded VOD ${video_id}...}`);
 
@@ -2889,7 +2903,19 @@ export class TwitchVOD {
 
             Log.logAdvanced(LOGLEVEL.INFO, "channel", `Downloading clip ${clip_id}...`);
 
-            const ret = await Helper.execAdvanced(streamlink_bin, cmd, `download_clip_${clip_id}`);
+            let totalSegments = 0;
+            let currentSegment = 0;
+            const ret = await Helper.execAdvanced(streamlink_bin, cmd, `download_clip_${clip_id}`, (log: string) => {
+                const totalSegmentMatch = log.match(/Last Sequence: (\d+)/);
+                if (totalSegmentMatch && !totalSegments) {
+                    totalSegments = parseInt(totalSegmentMatch[1]);
+                }
+                const currentSegmentMatch = log.match(/Segment (\d+) complete/);
+                if (currentSegmentMatch && totalSegments > 0) {
+                    currentSegment = parseInt(currentSegmentMatch[1]);
+                    return currentSegment / totalSegments;
+                }
+            });
 
             Log.logAdvanced(LOGLEVEL.INFO, "channel", `Downloaded clip ${clip_id}...}`);
 

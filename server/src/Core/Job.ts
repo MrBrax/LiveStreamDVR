@@ -605,15 +605,28 @@ export class Job extends EventEmitter {
         }
     }
 
+    private progressAccumulator = 0; // FIXME: i hate this implementation
     public setProgress(progress: number): void {
-        if (this.progress !== progress) {
+        if (progress > this.progress) {
             // console.debug(`Job ${this.name} progress: ${progress}`);
-            if (progress > this.progress + 0.05) {
+
+            this.progressAccumulator += Math.abs(progress - this.progress);
+
+            // only update if progress has changed by at least 2%
+            if (this.progressAccumulator > 0.02) {
                 this.progress = progress;
-                this.broadcastUpdate(true); // only send update if progress has changed by more than 5%
+                // this.broadcastUpdate(true); // only send update if progress has changed by more than 5%
+                Webhook.dispatch("job_progress", {
+                    "job_name": this.name || "",
+                    "progress": progress,
+                });
+                this.progressAccumulator = 0;
             } else {
                 this.progress = progress;
+                // console.debug(`Job ${this.name} did not change progress by more than 2%`);
             }
+        } else {
+            // console.debug(`Job ${this.name} less progress: ${progress} / ${this.progress}`);
         }
     }
 
