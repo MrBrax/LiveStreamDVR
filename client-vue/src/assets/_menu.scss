@@ -157,6 +157,9 @@
         }
     }
 
+    /**
+    * Side menu channel with avatar, name, and status
+    */
     &.streamer {
         /*
 		a {
@@ -231,6 +234,7 @@
             .username {
                 text-decoration: line-through;
             }
+
             // &.is-live {
             //     a {
             //         background-color: #0e361e;
@@ -271,7 +275,7 @@
             font-size: 80%;
             line-height: 1em;
             color: #444;
-            padding-bottom: 5px;
+            padding-bottom: 0.1em;
 
             &:empty,
             &:-moz-only-whitespace {
@@ -349,176 +353,179 @@
         }
     }
 
-}
+    /**
+    * Side menu channel vod list
+    */
+    &.streamer-jumpto {
+        .icon {
+            margin-right: 0.2em;
+        }
 
-.favicon {
-    width: 24px;
-    height: 24px;
-    vertical-align: -5px;
-    margin: 0 8px 0 3px;
-}
+        ul {
+            list-style: none;
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
 
-a.linkback {
-    font-weight: 700;
-    color: #e0e00d;
-
-    /* forgive me padre for i have sinned */
-    &:hover {
-        color: #fff;
-    }
-}
-
-.streamer-jumpto {
-    .icon {
-        margin-right: 0.2em;
-    }
-
-    ul {
-        list-style: none;
-        list-style-type: none;
-        margin: 0;
-        padding: 0;
-
-        li {
-            a {
-                font-family: "Roboto Condensed";
-                $base-bg: #09182c;
-                background-color: $base-bg;
-                // border-color: darken($base-bg, 5%);
-                // color: #ddd;
-                color: rgba(255, 255, 255, 0.5);
-                display: block;
-                text-decoration: none;
-                padding: 3px 5px;
-                font-size: 0.8em;
-                transition: 0.1s border-width ease-in-out;
-
-                &:hover {
-                    color: #fff;
-                    background-color: lighten($base-bg, 5%);
-                }
-
-                &.is-favourite {
-                    background-color: $favourite-base;
+            li {
+                a {
+                    font-family: "Roboto Condensed";
+                    $base-bg: #09182c;
+                    background-color: $base-bg;
+                    // border-color: darken($base-bg, 5%);
+                    // color: #ddd;
+                    color: rgba(255, 255, 255, 0.5);
+                    display: block;
+                    text-decoration: none;
+                    padding: 3px 5px;
+                    font-size: 0.8em;
+                    transition: 0.1s border-width ease-in-out;
 
                     &:hover {
-                        background-color: lighten($favourite-base, 5%);
+                        color: #fff;
+                        background-color: lighten($base-bg, 5%);
                     }
 
-                    .tooltip {
-                        background-color: rgba(darken($favourite-base, 15%), 0.98);
-                    }
-                }
-
-                &.is-live {
-                    background-color: $recording-base;
-                    color: #eee;
-
-                    // text-shadow: 1px 1px 2px darken($recording-base, 10%);
-                    &.is-animated {
-                        animation: 1s ease-in-out infinite recording; // TODO: keep?
-                    }
-
-                    &:hover {
-                        background-color: lighten($recording-base, 5%);
-                    }
-
-                    .tooltip {
-                        background-color: rgba($recording-base, 0.95);
-                    }
-                }
-
-                &.is-converting {
-                    background-color: $converting-base;
-
-                    &:hover {
-                        background-color: lighten($converting-base, 5%);
-                    }
-
-                    .tooltip {
-                        background-color: rgba($converting-base, 0.95);
-                    }
-                }
-
-                &.is-waiting {
-                    background-color: $waiting-base;
-
-                    &:hover {
-                        background-color: lighten($waiting-base, 5%);
-                    }
-
-                    .tooltip {
-                        background-color: rgba($waiting-base, 0.95);
-                    }
-                }
-
-                &.is-active {
                     &.is-favourite {
-                        border-color: lighten($favourite-base, 60%);
+                        background-color: $favourite-base;
+
+                        &:hover {
+                            background-color: lighten($favourite-base, 5%);
+                        }
+
+                        .tooltip {
+                            background-color: rgba(darken($favourite-base, 15%), 0.98);
+                        }
                     }
 
                     &.is-live {
-                        border-color: lighten($recording-base, 60%);
+                        background-color: $recording-base;
+                        color: #eee;
+
+                        // text-shadow: 1px 1px 2px darken($recording-base, 10%);
+                        &.is-animated {
+                            animation: 1s ease-in-out infinite recording; // TODO: keep?
+                        }
+
+                        &:hover {
+                            background-color: lighten($recording-base, 5%);
+                        }
+
+                        .tooltip {
+                            background-color: rgba($recording-base, 0.95);
+                        }
                     }
 
                     &.is-converting {
-                        border-color: lighten($converting-base, 60%);
+                        background-color: $converting-base;
+
+                        &:hover {
+                            background-color: lighten($converting-base, 5%);
+                        }
+
+                        .tooltip {
+                            background-color: rgba($converting-base, 0.95);
+                        }
                     }
 
-                    border-left: 2px solid lighten($base-bg, 60%);
-                    color: #fff;
-                }
+                    &.is-waiting {
+                        background-color: $waiting-base;
 
-                .flags {
-                    float: right;
+                        &:hover {
+                            background-color: lighten($waiting-base, 5%);
+                        }
 
-                    .icon {
-                        margin: 0;
-                        padding: 0;
-                    }
-                }
-
-                .tooltip {
-                    position: absolute;
-                    left: $sidemenu-width + 10px;
-
-                    &.is-static {
-                        position: fixed;
-                        top: 10px;
+                        .tooltip {
+                            background-color: rgba($waiting-base, 0.95);
+                        }
                     }
 
-                    background-color: rgba(0, 0, 0, 0.98);
-                    border-radius: 3px;
-                    padding: 8px;
-                    display: none;
-                    word-wrap: none;
-                    width: max-content;
+                    &.is-active {
+                        &.is-favourite {
+                            border-color: lighten($favourite-base, 60%);
+                        }
 
-                    .boxart-carousel {
-                        margin: 5px 0;
+                        &.is-live {
+                            border-color: lighten($recording-base, 60%);
+                        }
+
+                        &.is-converting {
+                            border-color: lighten($converting-base, 60%);
+                        }
+
+                        border-left: 2px solid lighten($base-bg, 60%);
+                        color: #fff;
                     }
 
-                    .stream-channel {
-                        font-size: 1.1em;
-                        font-weight: 700;
+                    .flags {
+                        float: right;
+
+                        .icon {
+                            margin: 0;
+                            padding: 0;
+                        }
                     }
 
-                    .stream-name {
-                        font-size: 0.9em;
-                        color: rgba(255, 255, 255, 0.6);
+                    .tooltip {
+                        position: absolute;
+                        left: $sidemenu-width + 10px;
+
+                        &.is-static {
+                            position: fixed;
+                            top: 10px;
+                        }
+
+                        background-color: rgba(0, 0, 0, 0.98);
+                        border-radius: 3px;
+                        padding: 8px;
+                        display: none;
+                        word-wrap: none;
+                        width: max-content;
+
+                        .boxart-carousel {
+                            margin: 5px 0;
+                        }
+
+                        .stream-channel {
+                            font-size: 1.1em;
+                            font-weight: 700;
+                        }
+
+                        .stream-name {
+                            font-size: 0.9em;
+                            color: rgba(255, 255, 255, 0.6);
+                        }
+
+                        /*
+                        .stream-title {
+                            
+                        }
+                        */
                     }
 
-                    /*
-                    .stream-title {
-                        
+                    &:hover>.tooltip {
+                        display: block;
                     }
-                    */
-                }
-
-                &:hover>.tooltip {
-                    display: block;
                 }
             }
         }
     }
+
+    .favicon {
+        width: 24px;
+        height: 24px;
+        vertical-align: -5px;
+        margin: 0 8px 0 3px;
+    }
+
+    a.linkback {
+        font-weight: 700;
+        color: #e0e00d;
+
+        /* forgive me padre for i have sinned */
+        &:hover {
+            color: #fff;
+        }
+    }
+
 }

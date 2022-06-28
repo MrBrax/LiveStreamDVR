@@ -145,19 +145,14 @@
                     <!-- flags -->
                     <template v-if="vod.is_finalized">
                         <span class="flags">
-                            <span v-if="vod.twitch_vod_exists === false" class="icon is-error" title="Deleted"><fa icon="trash"></fa></span
-                            ><!-- vod deleted -->
+                            <span v-if="vod.twitch_vod_exists === false" class="icon is-error" title="Deleted from provider"><fa icon="trash"></fa></span><!-- vod deleted -->
                             <span v-if="vod.twitch_vod_exists === true && isRiskOfBeingDeleted(vod)" class="icon is-warning" title="Is risking deletion">
-                                <fa icon="trash-arrow-up"></fa></span
-                            ><!-- vod deleted -->
-                            <span v-if="vod.twitch_vod_exists === null" class="icon is-error" title="Not checked"><fa icon="question"></fa></span
-                            ><!-- vod not checked -->
-                            <span v-if="vod.twitch_vod_muted === MuteStatus.MUTED" class="icon is-error" title="Muted"><fa icon="volume-mute"></fa></span
-                            ><!-- vod muted -->
-                            <span v-if="vod.is_capture_paused" class="icon is-error" title="Paused"><fa icon="pause"></fa></span
-                            ><!-- capturing paused -->
-                            <span v-if="vod.prevent_deletion" class="icon is-success" title="Preventing deletion"><fa icon="lock"></fa></span>
-                            <!-- prevent deletion -->
+                                <fa icon="trash-arrow-up"></fa>
+                            </span><!-- vod deleted -->
+                            <span v-if="vod.twitch_vod_exists === null" class="icon is-error" title="Not checked"><fa icon="question"></fa></span><!-- vod not checked -->
+                            <span v-if="vod.twitch_vod_muted === MuteStatus.MUTED" class="icon is-error" title="Muted"><fa icon="volume-mute"></fa></span><!-- vod muted -->
+                            <span v-if="vod.is_capture_paused" class="icon is-error" title="Paused"><fa icon="pause"></fa></span><!-- capturing paused -->
+                            <span v-if="vod.prevent_deletion" class="icon is-success" title="Preventing deletion"><fa icon="lock"></fa></span><!-- prevent deletion -->
                         </span>
                     </template>
 

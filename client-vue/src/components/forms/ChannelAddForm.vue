@@ -252,6 +252,10 @@ export default defineComponent({
                 }
                 if (json.status == "OK") {
                     this.channelData = json.data;
+                    if (this.channelData && this.channelData.login !== this.formData.login) {
+                        alert(this.$t('messages.login-mismatch-fixing'));
+                        this.formData.login = this.channelData.login;
+                    }
                     field.setCustomValidity("");
                     field.reportValidity();
                     this.userExists = true;

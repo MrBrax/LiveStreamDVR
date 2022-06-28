@@ -264,7 +264,7 @@
 
 .video-comment {
     padding: 1em;
-    background-color: #fff;
+    background-color: var(--video-comment-background-color);
     border-radius: 1em;
     width: max-content;
     p {
@@ -289,7 +289,7 @@
         height: 0;
         border-style: solid;
         border-width: 10px 10px 0 10px;
-        border-color: #fff transparent transparent transparent;
+        border-color: var(--video-comment-background-color) transparent transparent transparent;
 
     }
 }

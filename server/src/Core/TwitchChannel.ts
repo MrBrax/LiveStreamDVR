@@ -323,7 +323,7 @@ export class TwitchChannel {
      */
     get is_live(): boolean {
         // return this.current_vod != undefined && this.current_vod.is_capturing;
-        return KeyValue.getInstance().getBool(`${this.userid}.online`);
+        return KeyValue.getInstance().getBool(`${this.login}.online`);
     }
 
     /**
@@ -901,6 +901,11 @@ export class TwitchChannel {
         }
 
         TwitchChannel.channels.push(channel);
+
+        const streams = await TwitchChannel.getStreams(channel.userid);
+        if (streams && streams.length > 0) {
+            KeyValue.getInstance().setBool(`${channel.login}.online`, true);
+        }
 
         return channel;
     }

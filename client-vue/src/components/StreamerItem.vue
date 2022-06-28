@@ -94,7 +94,10 @@
             </ul>
         </div>
 
-        <div v-if="streamer.vods_list.length == 0" class="notice">{{ $t("messages.no_vods") }}</div>
+        <div v-if="streamer.vods_list.length == 0" class="notice">
+            <span v-if="streamer.no_capture">{{ $t("streamer.no-vods-not-capturing") }}</span>
+            <span v-else>{{ $t("messages.no_vods") }}</span>
+        </div>
         <div v-else>
             <vod-item
                 v-for="vod in streamer.vods_list"

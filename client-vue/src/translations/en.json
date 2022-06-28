@@ -11,7 +11,8 @@
     "video_download_help": "Videos downloaded with this tool will be cleaned up the same way as captured vods do when a stream is finished.\n They are treated the same way as captured vods in its entirety.",
     "loading": "Loading...",
     "changing-values-here-will-most-likely-require-a-restart": "Changing values here will most likely require a restart.",
-    "this-is-a-bad-idea-if-any-of-your-channels-are-live": "This is a bad idea if any of your channels are live."
+    "this-is-a-bad-idea-if-any-of-your-channels-are-live": "This is a bad idea if any of your channels are live.",
+    "login-mismatch-fixing": "Login mismatch, fixing"
   },
   "vod": {
     "add_comment": "Add a comment",
@@ -203,7 +204,8 @@
     "search": "Search..."
   },
   "streamer": {
-    "one-or-more-subscriptions-missing": "One or more subscriptions missing"
+    "one-or-more-subscriptions-missing": "One or more subscriptions missing",
+    "no-vods-not-capturing": "No VODs, not capturing"
   },
   "about": {
     "installed-utilities": "Installed utilities",
