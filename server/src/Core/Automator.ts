@@ -18,12 +18,14 @@ import { LOGLEVEL, Log } from "./Log";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import { Webhook } from "./Webhook";
-import { nonGameCategories, NotificationCategory } from "../../../common/Defs";
+import { JobStatus, nonGameCategories, NotificationCategory } from "../../../common/Defs";
 import chalk from "chalk";
 import { Sleep } from "../Helpers/Sleep";
 import { ClientBroker } from "./ClientBroker";
 import { replaceAll } from "../Helpers/ReplaceAll";
 import { ChapterUpdateData } from "../../../common/Webhook";
+import sanitize from "sanitize-filename";
+import { formatString } from "../../../common/Format";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
@@ -54,8 +56,20 @@ export class Automator {
     captureJob: Job | undefined;
     chatJob: Job | undefined;
 
+    private vod_season?: string; // why is this a string
+    private vod_episode?: number;
+
     public basename() {
-        return `${this.getLogin()}_${replaceAll(this.getStartDate(), ":", "_")}_${this.getVodID()}`; // TODO: replaceAll
+        // return `${this.getLogin()}_${replaceAll(this.getStartDate(), ":", "_")}_${this.getVodID()}`; // TODO: replaceAll
+        const variables: Record<string, string> = {
+            login: this.getLogin(),
+            date: replaceAll(this.getStartDate(), ":", "_"),
+            id: this.getVodID().toString(),
+            season: this.vod_season || "",
+            episode: this.vod_episode ? this.vod_episode.toString() : "",
+        };
+        const basename = sanitize(formatString(Config.getInstance().cfg("filename_vod"), variables));
+        return basename;
     }
 
     public getVodID() {
@@ -97,6 +111,18 @@ export class Automator {
             return path.join(folder_base, `${this.basename()}_${segment_number}.ts`);
         }
     }
+
+    /*
+    public convertUpdateEventToOnlineEvent(event: EventSubChannelUpdate) {
+
+        let sub: StreamOnlineSubscription = Object.assign({}, event.subscription);
+        sub.type = "channel.online";
+
+        const mock_data: EventSubStreamOnline = {
+
+
+    }
+    */
 
     /**
      * Entrypoint for stream capture, this is where all Twitch EventSub (webhooks) end up.
@@ -161,11 +187,6 @@ export class Automator {
                 return false;
             }
 
-            if (this.channel.no_capture) {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Skip capture for ${this.broadcaster_user_login} because no-capture is set`);
-                return false;
-            }
-
             if (this.channel.is_live) {
                 Log.logAdvanced(LOGLEVEL.INFO, "automator", `${this.broadcaster_user_login} is already live, yet another stream online event received.`);
             }
@@ -173,6 +194,12 @@ export class Automator {
             KeyValue.getInstance().setBool(`${this.broadcaster_user_login}.online`, true);
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.vod.id`, event.id);
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.vod.started_at`, event.started_at);
+
+            if (this.channel.no_capture) {
+                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Skip capture for ${this.broadcaster_user_login} because no-capture is set`);
+                if (this.channel) this.channel.broadcastUpdate();
+                return false;
+            }
 
             // $this->payload = $data['data'][0];
 
@@ -345,6 +372,9 @@ export class Automator {
 
             Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, saving channel data to cache: ${event.category_name} (${event.title})`);
             KeyValue.getInstance().setObject(`${this.broadcaster_user_login}.chapterdata`, chapter_data);
+            if (this.channel) {
+                this.channel.broadcastUpdate();
+            }
 
             // if (chapter_data.viewer_count) {
             //     Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, but managed to get viewer count, so it's online? 🤔`);
@@ -497,7 +527,7 @@ export class Automator {
             throw new Error("No data supplied");
         }
 
-        const basename = this.basename();
+        const temp_basename = this.basename();
         const folder_base = Helper.vodFolder(this.getLogin());
 
         // make a folder for the streamer if it for some reason doesn't exist, but it should get created in the config
@@ -507,8 +537,8 @@ export class Automator {
         }
 
         // if running
-        const job = Job.findJob(`capture_${basename}`);
-        if (job && job.getStatus()) {
+        const job = Job.findJob(`capture_${temp_basename}`);
+        if (job && await job.getStatus() === JobStatus.RUNNING) {
             const meta = job.metadata as {
                 login: string;
                 basename: string;
@@ -528,7 +558,7 @@ export class Automator {
 
             let match = false;
 
-            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Check keyword matches for ${basename}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Check keyword matches for ${temp_basename}`);
 
             for (const m of this.channel.match) {
                 if (this.channel.getChapterData()?.title.includes(m)) {
@@ -538,10 +568,16 @@ export class Automator {
             }
 
             if (!match) {
-                Log.logAdvanced(LOGLEVEL.WARNING, "automator", `Cancel download of ${basename} due to missing keywords`);
+                Log.logAdvanced(LOGLEVEL.WARNING, "automator", `Cancel download of ${temp_basename} due to missing keywords`);
                 return false;
             }
         }
+
+        // pre-calculate season and episode
+        this.vod_season = this.channel.current_season;
+        this.vod_episode = this.channel.incrementStreamNumber();
+
+        const basename = this.basename();
 
         // create the vod and put it inside this class
         this.vod = await this.channel.createVOD(path.join(folder_base, `${basename}.json`));

@@ -95,8 +95,26 @@
 
 .template-replacements {
     font-size: 0.8em;
-    padding: 0.2em 1.5em;
+    padding: 0.2em;
     margin: 0;
+    display: block;
+    li {
+        display: inline-block;
+        list-style: none;
+        list-style-type: none;
+        margin-right: 1em;
+        button {
+            padding: 0.4em 0.5em;
+            background-color: rgba(128, 128, 128, 0.5);
+            border-radius: 0.5em;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            &:hover {
+                background-color: rgba(128, 128, 128, 0.8);
+            }
+        }
+    }
 }
 
 .label {

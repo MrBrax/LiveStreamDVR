@@ -4,6 +4,7 @@ import { UserData } from "../User";
 import { MuteStatus, ExistStatus, JobStatus } from "../../common/Defs";
 import { AudioMetadata, VideoMetadata } from "../MediaInfo";
 import { BroadcasterType } from "../TwitchAPI/Users";
+import { TwitchVODChapterJSON } from "../../server/src/Storage/JSON";
 
 export type ApiVodSegment = {
     basename: string;
@@ -156,6 +157,7 @@ export type ApiChannel = {
 
 
     is_live: boolean;
+    is_capturing: boolean;
     is_converting: boolean;
     profile_image_url: string;
     broadcaster_type: BroadcasterType;
@@ -189,6 +191,8 @@ export type ApiChannel = {
 
     current_stream_number?: number;
     current_season?: string;
+
+    chapter_data?: TwitchVODChapterJSON;
 
 };
 

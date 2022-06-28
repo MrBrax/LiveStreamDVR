@@ -32,6 +32,11 @@ import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchVODSegment } from "./TwitchVODSegment";
 import { Webhook } from "./Webhook";
 
+/**
+ * Twitch VOD
+ * 
+ * @warning **Do NOT create this class directly. Use TwitchChannel.createVOD() instead.**
+ */
 export class TwitchVOD {
 
     static vods: TwitchVOD[] = [];
@@ -1671,7 +1676,7 @@ export class TwitchVOD {
             throw new Error("Vod has been marked with prevent_deletion");
         }
 
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Delete ${this.basename}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Delete ${this.basename}`, this.associatedFiles);
 
         await this.stopWatching();
 

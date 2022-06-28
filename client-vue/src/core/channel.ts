@@ -5,6 +5,7 @@ import { BroadcasterType } from "@common/TwitchAPI/Users";
 import { TwitchVODChapter } from "./chapter";
 import { TwitchGame } from "./game";
 import TwitchVOD from "./vod";
+import { TwitchVODChapterJSON } from "../../../server/src/Storage/JSON";
 
 export default class TwitchChannel {
     userid = "";
@@ -28,6 +29,10 @@ export default class TwitchChannel {
 
     current_stream_number: number = 0;
     current_season = "";
+    is_live = false;
+    is_capturing = false;
+
+    chapter_data?: TwitchVODChapterJSON;
 
     public static makeFromApiResponse(apiResponse: ApiChannel): TwitchChannel {
         const channel = new TwitchChannel();
@@ -46,6 +51,9 @@ export default class TwitchChannel {
         channel.channel_data = apiResponse.channel_data;
         channel.current_stream_number = apiResponse.current_stream_number ?? 0;
         channel.current_season = apiResponse.current_season ?? "";
+        channel.is_capturing = apiResponse.is_capturing ?? false;
+        channel.is_live = apiResponse.is_live ?? false;
+        channel.chapter_data = apiResponse.chapter_data;
         return channel;
     }
 
@@ -53,9 +61,9 @@ export default class TwitchChannel {
         return this.vods_list?.find((vod) => vod.is_capturing);
     }
 
-    get is_live() {
-        return this.current_vod != undefined && this.current_vod.is_capturing;
-    }
+    // get is_live() {
+    //     return this.current_vod != undefined && this.current_vod.is_capturing;
+    // }
 
     get current_game(): TwitchGame | undefined {
         return this.current_vod?.current_game;

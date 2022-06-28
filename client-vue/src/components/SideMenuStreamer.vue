@@ -3,6 +3,7 @@
         :class="{
             'top-menu-item': true,
             'is-live': streamer.is_live,
+            'is-capturing': streamer.is_capturing,
             'is-animated': store.clientCfg('animationsEnabled'),
             'is-active': $route.query.channel == streamer.login,
             'is-converting': streamer.is_converting,
@@ -30,7 +31,7 @@
                 :aria-valuenow="streamer.vods_list.length"
             >{{ streamer.vods_list.length }}</span>
             <span class="subtitle">
-                <template v-if="streamer.is_live">
+                <template v-if="streamer.is_live && streamer.is_capturing">
                     <template v-if="streamer.current_game && streamer.current_game.name != ''">
                         {{ gameVerb }}
                         <strong>{{ streamer.current_game.name }}</strong>
@@ -48,6 +49,11 @@
                     >)
                 </template>
                 <template v-else-if="streamer.is_converting"> Converting... </template>
+                <template v-else-if="streamer.chapter_data && store.clientCfg('showOfflineCategoryInSidebar')">
+                    <span :title="streamer.chapter_data.title">
+                        <span class="icon is-small"><fa icon="bed" title="Offline category" /></span> {{ streamer.chapter_data.game_name }}
+                    </span>
+                </template>
                 <template v-else>
                     <!-- Offline -->
                 </template>
@@ -187,10 +193,10 @@ import DurationDisplay from "@/components/DurationDisplay.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
-import { faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faTrashArrowUp, faChevronDown, faChevronUp, faLock } from "@fortawesome/free-solid-svg-icons";
+import { faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faTrashArrowUp, faChevronDown, faChevronUp, faLock, faGamepad, faBed } from "@fortawesome/free-solid-svg-icons";
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import { useStore } from "@/store";
-library.add(faGithub, faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp, faChevronDown, faChevronUp, faLock);
+library.add(faGithub, faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp, faChevronDown, faChevronUp, faLock, faGamepad, faBed);
 
 import { MuteStatus, nonGameCategories, TwitchVodAge } from "../../../common/Defs";
 import TwitchChannel from "@/core/channel";

@@ -120,6 +120,7 @@
         &:hover {
             color: #fff;
             background: #111;
+
             .avatar {
                 transform: scale(110%);
             }
@@ -131,6 +132,7 @@
     }
 
     &.right {
+
         // flex-grow: 1;
         // text-align: right;
         a {
@@ -164,10 +166,76 @@
 
         flex-direction: row;
 
+        &.is-live {
+            a {
+                background-color: #0e361e;
+            }
+
+            .username {
+                color: #1dd14a;
+                font-weight: 700;
+            }
+
+            .subtitle,
+            .vodcount {
+                color: #0aa44a;
+            }
+
+            .streamer-expand-container {
+                background-color: #0e361e;
+
+                .streamer-expand-main {
+                    color: #23c687;
+
+                    &:hover {
+                        background-color: #166c44;
+                    }
+                }
+            }
+        }
+
+        &.is-capturing {
+            a {
+                background-color: #2b0e0e;
+            }
+
+            .username {
+                color: #f00;
+                font-weight: 700;
+            }
+
+            &.is-animated a {
+                animation: live ease-in-out 1s infinite;
+            }
+
+            .subtitle,
+            .vodcount {
+                color: #b30000;
+            }
+
+            .streamer-expand-container {
+                background-color: #2b0e0e;
+
+                .streamer-expand-main {
+                    color: #f34d4d;
+
+                    &:hover {
+                        background-color: #4d0b0b;
+                    }
+                }
+            }
+
+        }
+
         &.no-capture {
             .username {
                 text-decoration: line-through;
             }
+            // &.is-live {
+            //     a {
+            //         background-color: #0e361e;
+            //     }
+            // }
         }
 
         .avatar {
@@ -218,7 +286,6 @@
 
         .streamer-expand-container {
             display: flex;
-
             // center contents
             align-items: center;
             justify-content: center;
@@ -257,50 +324,31 @@
 
             margin: 2px;
         }
-    }
 
-    .streamer-expand-hide {
-        height: 3px;
-        // #000 to #09182c
-        background-image: linear-gradient(to bottom, darken(#09182c, 5%), #09182c);
-        // border-top: 1px dotted #2d5589;
-    }
+        &.no-capture &.is-live {
+            .streamer-expand-container {
+                background-color: #0e2b14;
+            }
 
-    &.streamer.is-live {
-        a {
-            background-color: #2b0e0e;
+            .username {
+                color: #15b300;
+            }
         }
 
-        .username {
-            color: #f00;
-            font-weight: 700;
+        .streamer-expand-hide {
+            height: 3px;
+            // #000 to #09182c
+            background-image: linear-gradient(to bottom, darken(#09182c, 5%), #09182c);
+            // border-top: 1px dotted #2d5589;
         }
 
-        &.is-animated a {
-            animation: live ease-in-out 1s infinite;
-        }
-
-        .subtitle,
-        .vodcount {
-            color: #b30000;
-        }
-
-        .streamer-expand-container {
-            background-color: #2b0e0e;
-            .streamer-expand-main {
-                color: #f34d4d;
-                &:hover {
-                    background-color: #4d0b0b;
-                }
+        &.is-active {
+            a {
+                color: #fff;
             }
         }
     }
 
-    &.is-active {
-        a {
-            color: #fff;
-        }
-    }
 }
 
 .favicon {
@@ -467,7 +515,7 @@ a.linkback {
                     */
                 }
 
-                &:hover > .tooltip {
+                &:hover>.tooltip {
                     display: block;
                 }
             }

@@ -204,6 +204,7 @@ export class TwitchChannel {
             profile_image_url: this.profile_image_url || "",
             broadcaster_type: this.broadcaster_type || "",
             is_live: this.is_live,
+            is_capturing: this.is_capturing,
             is_converting: this.is_converting,
             current_vod: await this.current_vod?.toAPI(),
             current_game: this.current_game?.toAPI(),
@@ -236,6 +237,8 @@ export class TwitchChannel {
 
             current_stream_number: this.current_stream_number,
             current_season: this.current_season,
+
+            chapter_data: this.getChapterData(),
         };
     }
 
@@ -313,11 +316,29 @@ export class TwitchChannel {
         return this.current_vod?.duration;
     }
 
-    // a bit excessive since current_vod is already set with the capturing vod
+    /**
+     * Returns true if the channel is currently live, not necessarily if it is capturing.
+     * It is set when the hook is called with the channel.online event.
+     * @returns {boolean}
+     */
     get is_live(): boolean {
+        // return this.current_vod != undefined && this.current_vod.is_capturing;
+        return KeyValue.getInstance().getBool(`${this.userid}.online`);
+    }
+
+    /**
+     * Returns true if the channel is currently capturing, which also means it is live.
+     * It is dependent on the current vod being captured and the is_capturing flag that gets set after the initial capture process.
+     * @returns {boolean}
+     */
+    get is_capturing(): boolean {
         return this.current_vod != undefined && this.current_vod.is_capturing;
     }
 
+    /**
+     * Returns true if the channel is currently converting a vod (remuxing).
+     * @returns {boolean}
+     */
     get is_converting(): boolean {
         return this.vods_list?.some(vod => vod.is_converting) ?? false;
     }
@@ -327,8 +348,9 @@ export class TwitchChannel {
     }
 
     /**
-     * Create an empty VOD object
-     * @param filename 
+     * Create an empty VOD object. This is the only method to use to create a new VOD. Do NOT use the constructor of the VOD class.
+     *
+     * @param filename The filename of the vod including json extension.
      * @returns Empty VOD
      */
     public async createVOD(filename: string): Promise<TwitchVOD> {
@@ -874,6 +896,7 @@ export class TwitchChannel {
             Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`);
             TwitchChannel.channels_config = TwitchChannel.channels_config.filter(ch => ch.login !== config.login); // remove channel from config
             TwitchChannel.saveChannelsConfig();
+            // throw new Error(`Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`, { cause: error });
             throw error; // rethrow error
         }
 

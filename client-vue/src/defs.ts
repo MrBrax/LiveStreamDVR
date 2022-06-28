@@ -18,6 +18,7 @@ export const defaultConfig: ClientSettings = {
     minimizeVodsByDefault: false,
     language: "en",
     theme: "auto",
+    showOfflineCategoryInSidebar: true,
 };
 
 interface ClientSettingField {
@@ -47,6 +48,7 @@ export const defaultConfigFields: Record<keyof ClientSettings, ClientSettingFiel
     minimizeVodsByDefault: { type: "boolean", default: false, name: "Minimize VODs by default" },
     language: { type: "string", default: "en", name: "Language", hidden: true },
     theme: { type: "choice", default: "auto", name: "Theme", choices: { auto: "Auto", default: "Default", dark: "Dark", hotdogstand: "Hot dog stand", windows95: "Windows 95", basalt: "Basalt", } },
+    showOfflineCategoryInSidebar: { type: "boolean", default: true, name: "Show the offline category of channels in the sidebar" },
 };
 
 export const YouTubeCategories = {

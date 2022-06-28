@@ -2,14 +2,13 @@ import path from "path";
 import fs from "fs";
 import { BaseConfigDataFolder } from "./BaseConfig";
 import { LOGLEVEL, Log } from "./Log";
-import { ExecReturn, Helper } from "./Helper";
+import { Helper } from "./Helper";
 import { parseJSON } from "date-fns";
 import { ChildProcessWithoutNullStreams } from "child_process";
 import { EventEmitter } from "events";
 import { Webhook } from "./Webhook";
 import { ApiJob } from "../../../common/Api/Client";
 import { JobStatus } from "../../../common/Defs";
-import { Sleep } from "Helpers/Sleep";
 
 export interface TwitchAutomatorJobJSON {
     name: string;
@@ -67,6 +66,7 @@ export class Job extends EventEmitter {
     logfile = "";
 
     private _updateTimer: NodeJS.Timeout | undefined;
+    private _progressTimer: NodeJS.Timeout | undefined;
 
     private realpath(str: string): string {
         return path.normalize(str);
@@ -610,6 +610,7 @@ export class Job extends EventEmitter {
         if (progress > this.progress) {
             // console.debug(`Job ${this.name} progress: ${progress}`);
 
+            /*
             this.progressAccumulator += Math.abs(progress - this.progress);
 
             // only update if progress has changed by at least 2%
@@ -625,6 +626,16 @@ export class Job extends EventEmitter {
                 this.progress = progress;
                 // console.debug(`Job ${this.name} did not change progress by more than 2%`);
             }
+            */
+            if (this._progressTimer) clearTimeout(this._progressTimer);
+            this._progressTimer = setTimeout(() => {
+                if (!this || this.status !== JobStatus.RUNNING) return; 
+                this.progress = progress;
+                Webhook.dispatch("job_progress", {
+                    "job_name": this.name || "",
+                    "progress": progress,
+                });
+            }, 1000);
         } else {
             // console.debug(`Job ${this.name} less progress: ${progress} / ${this.progress}`);
         }

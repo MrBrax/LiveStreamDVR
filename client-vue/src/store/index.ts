@@ -344,7 +344,7 @@ export const useStore = defineStore("twitchAutomator", {
         },
         channelsOnline(): number {
             if (!this.streamerList) return 0;
-            return this.streamerList.filter((a) => a.is_live).length;
+            return this.streamerList.filter((a) => a.is_live || a.is_capturing).length;
         },
     },
 });

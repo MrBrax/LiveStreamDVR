@@ -85,7 +85,9 @@
                     />
                     <ul class="template-replacements">
                         <li v-for="(item, ix) in data.replacements" :key="ix">
-                            &lbrace;{{ ix }}&rbrace;
+                            <button type="button" @click="insertReplacement(data.key, ix)">
+                                &lbrace;{{ ix }}&rbrace;
+                            </button>
                         </li>
                     </ul>
                     <p class="template-preview">{{ templatePreview(data, formData[data.key] as string) }}</p>
@@ -242,9 +244,25 @@ export default defineComponent({
             if (!data.replacements) return "";
             const replaced_string = formatString(template, Object.fromEntries(Object.entries(data.replacements).map(([key, value]) => [key, value.display])));
             if (data.context) {
-                return data.context.replace("{template}", replaced_string);
+                return data.context.replace(/{template}/g, replaced_string);
             } else {
                 return replaced_string;
+            }
+        },
+        insertReplacement(key: string, value: string) {
+            const input = document.getElementById(`input_${key}`) as HTMLInputElement;
+            if (input) {
+                const caret = input.selectionStart;
+                if (caret !== null) {
+                    const rep = `{${value}}`;
+                    // input.value = input.value.substring(0, caret) + rep + input.value.substring(caret);
+                    this.formData[key] = input.value.substring(0, caret) + rep + input.value.substring(caret);
+                    input.selectionStart = caret + rep.length;
+                    input.selectionEnd = caret + rep.length;
+                    input.focus();
+                }
+                // const text = input.value;
+                // input.value = text.substring(0, caret) + value + text.substring(caret);
             }
         },
     },

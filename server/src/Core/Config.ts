@@ -153,6 +153,23 @@ export class Config {
             "context": "{template}.mp4",
         },
 
+        {
+            "key": "filename_vod",
+            "group": "Video",
+            "text": "Vod filename",
+            "type": "template",
+            "default": "{login}_{date}_{id}",
+            "help": "Vod filename. This will break automatic segment finding if changed from default.",
+            "replacements": {
+                login: { "display": "MooseStreamer" },
+                date: { "display": "2020-01-01T12_05_04Z" },
+                id: { "display": "123456789" },
+                season: { "display": "2022" },
+                episode: { "display": "3" },
+            },
+            "context": "{template}.json, {template}.mp4",
+        },
+
         { "key": "min_chapter_duration", "group": "Video", "text": "Minimum chapter duration", "type": "number", "default": 0, "help": "Minimum duration in seconds for a chapter. Shorter chapters will be removed." },
 
         { "key": "chatdump_notext", "group": "Basic", "text": "Don't write plain text chat file when dumping chat", "type": "boolean", "default": false },

@@ -73,6 +73,8 @@ export const MockApiChannelData: ApiChannel = {
     no_cleanup: false,
     max_storage: 0,
     max_vods: 0,
+    chapter_data: undefined,
+    is_capturing: false,
 };
 
 export const MockApiVODData: ApiVod = {

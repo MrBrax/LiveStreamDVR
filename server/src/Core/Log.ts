@@ -43,6 +43,16 @@ export class Log {
         [LOGLEVEL.EXEC]: chalk.redBright,
     };
 
+    static readonly LOG_LEVELS = {
+        [LOGLEVEL.INFO]: "INFO",
+        [LOGLEVEL.SUCCESS]: "INFO",
+        [LOGLEVEL.DEBUG]: "DEBUG",
+        [LOGLEVEL.WARNING]: "ERROR",
+        [LOGLEVEL.ERROR]: "ERROR",
+        [LOGLEVEL.FATAL]: "ERROR",
+        [LOGLEVEL.EXEC]: "EXEC",
+    };
+
     static readTodaysLog() {
         console.log(chalk.blue("Read today's log..."));
         const today = format(new Date(), "yyyy-MM-dd");
@@ -95,16 +105,31 @@ export class Log {
 
         // today's filename in Y-m-d format
         const date = new Date();
-        const filename = format(date, "yyyy-MM-dd") + ".log";
-        const filepath = path.join(BaseConfigDataFolder.logs, filename);
-        const jsonlinename = `${filepath}.jsonline`;
+
+        const loglevel_category = Log.LOG_LEVELS[level];
+
+        const filename_combined     = format(date, "yyyy-MM-dd") + ".log";
+        const filename_separate     = format(date, "yyyy-MM-dd") + "." + level + ".log";
+        const filename_level        = format(date, "yyyy-MM-dd") + "." + loglevel_category + ".jsonline";
+
+        const filepath_combined     = path.join(BaseConfigDataFolder.logs, filename_combined);
+        const filepath_separate     = path.join(BaseConfigDataFolder.logs, filename_separate);
+        const filepath_level        = path.join(BaseConfigDataFolder.logs, filename_level);
+
+        // console.debug(`Logging to ${filepath_separate}`);
+
+        const jsonlinename_combined = `${filepath_combined}.jsonline`;
+        const jsonlinename_separate = `${filepath_separate}.jsonline`;
+        const jsonlinename_level    = `${filepath_level}.jsonline`;
 
         const dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
         const dateString = format(date, dateFormat);
 
         // write cleartext
         const textOutput = `${dateString} ${process.pid} | ${module} <${level}> ${text}`;
-        fs.appendFileSync(filepath, textOutput + "\n");
+        fs.appendFileSync(filepath_combined, textOutput + "\n");
+        // fs.appendFileSync(filepath_separate, textOutput + "\n");
+        // fs.appendFileSync(filepath_level, textOutput + "\n");
 
         // if docker, output to stdout
         // if (TwitchConfig.getInstance().cfg("docker")) {
@@ -134,7 +159,9 @@ export class Log {
         }
 
         // write jsonline
-        fs.appendFileSync(jsonlinename, stringy_log_data + "\n");
+        fs.appendFileSync(jsonlinename_combined, stringy_log_data + "\n");
+        // fs.appendFileSync(jsonlinename_separate, stringy_log_data + "\n");
+        // fs.appendFileSync(jsonlinename_level, stringy_log_data + "\n");
         this.lines.push(log_data);
 
         // send over websocket, probably extremely slow
@@ -146,13 +173,14 @@ export class Log {
             Log.websocket_timer = setTimeout(() => {
                 // console.debug(`Sending ${this.websocket_buffer.length} lines over websocket`);
                 ClientBroker.broadcast({
+                    server: true,
                     action: "log",
                     data: this.websocket_buffer,
                 });
                 this.websocket_buffer = [];
                 Log.websocket_timer = undefined;
             }, 5000);
-            
+
         }
 
         /*
