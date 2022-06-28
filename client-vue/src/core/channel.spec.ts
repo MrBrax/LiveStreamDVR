@@ -25,16 +25,16 @@ test("makeFromApiResponse", () => {
 
 });
 
-test("is_live getter", () => {
+test("is_capturing getter", () => {
 
     const channel = TwitchChannel.makeFromApiResponse(MockApiChannelData);
-    expect(channel.is_live).toBe(false);
+    expect(channel.is_capturing).toBe(false);
 
     const live_channel = TwitchChannel.makeFromApiResponse(MockApiChannelData);
     const mock_vod = TwitchVOD.makeFromApiResponse(MockApiVODData);
     mock_vod.is_capturing = true;
     live_channel.vods_list.push(mock_vod);
-    expect(live_channel.is_live).toBe(true);
+    expect(live_channel.is_capturing).toBe(true);
 
 });
 

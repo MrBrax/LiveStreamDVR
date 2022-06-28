@@ -907,9 +907,11 @@ export class TwitchChannel {
 
         TwitchChannel.channels.push(channel);
 
-        const streams = await TwitchChannel.getStreams(channel.userid);
-        if (streams && streams.length > 0) {
-            KeyValue.getInstance().setBool(`${channel.login}.online`, true);
+        if (Helper.axios) { // bad hack?
+            const streams = await TwitchChannel.getStreams(channel.userid);
+            if (streams && streams.length > 0) {
+                KeyValue.getInstance().setBool(`${channel.login}.online`, true);
+            }
         }
 
         return channel;

@@ -32,7 +32,7 @@ export default class TwitchChannel {
     current_stream_number: number = 0;
     current_season = "";
     is_live = false;
-    is_capturing = false;
+    // is_capturing = false;
 
     chapter_data?: TwitchVODChapterJSON;
 
@@ -55,7 +55,7 @@ export default class TwitchChannel {
         channel.channel_data = apiResponse.channel_data;
         channel.current_stream_number = apiResponse.current_stream_number ?? 0;
         channel.current_season = apiResponse.current_season ?? "";
-        channel.is_capturing = apiResponse.is_capturing ?? false;
+        // channel.is_capturing = apiResponse.is_capturing ?? false;
         channel.is_live = apiResponse.is_live ?? false;
         channel.chapter_data = apiResponse.chapter_data;
         return channel;
@@ -75,6 +75,10 @@ export default class TwitchChannel {
 
     get current_chapter(): TwitchVODChapter | undefined {
         return this.current_vod?.current_chapter;
+    }
+
+    get is_capturing(): boolean {
+        return this.current_vod != undefined && this.current_vod.is_capturing;
     }
 
     get is_converting(): boolean {
