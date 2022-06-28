@@ -13,6 +13,10 @@
         :data-streamer="streamer.login"
         v-if="streamer"
     >
+    <!-- :style="{
+            'background-image': 'url(' + bannerUrl + ')',
+        }"
+    -->
         <router-link
             :to="store.clientCfg('singlePage') ? { name: 'Dashboard', query: { channel: streamer.login } } : { name: 'Dashboard', hash: '#streamer_' + streamer.login }"
             class="streamer-link"
@@ -51,7 +55,7 @@
                 <template v-else-if="streamer.is_converting"> Converting... </template>
                 <template v-else-if="streamer.chapter_data && store.clientCfg('showOfflineCategoryInSidebar')">
                     <span :title="streamer.chapter_data.title">
-                        <span class="icon is-small"><fa icon="bed" title="Offline category" /></span> {{ streamer.chapter_data.game_name }}
+                        <span class="icon is-small"><fa icon="bed" title="Offline category" /></span> {{ streamer.chapter_data.game_name }} @ {{ formatLogicalDate(streamer.chapter_data.started_at) }}
                     </span>
                 </template>
                 <template v-else>
@@ -253,6 +257,11 @@ export default defineComponent({
             if (!this.streamer) return;
             if (this.streamer.channel_data?.cache_avatar) return `${this.store.cfg<string>("basepath", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
             return this.streamer.profile_image_url;
+        },
+        bannerUrl() {
+            if (!this.streamer) return;
+            if (this.streamer.channel_data?.cache_offline_image) return `${this.store.cfg<string>("basepath", "")}/cache/banners/${this.streamer.channel_data.cache_offline_image}`;
+            return this.streamer.offline_image_url;
         },
         gameVerb(): string {
             if (!this.streamer) return "";

@@ -47,6 +47,7 @@ export const TwitchChannelData: UserData = {
 
     _updated: 1605849081,
     cache_avatar: "",
+    cache_offline_image: "",
 };
 
 export const MockApiChannelData: ApiChannel = {
@@ -58,6 +59,8 @@ export const MockApiChannelData: ApiChannel = {
     vods_raw: [],
     vods_list: [],
     profile_image_url: "",
+    offline_image_url: "",
+    banner_image_url: "",
     api_getSubscriptionStatus: false,
     broadcaster_type: "",
     clips_list: [],

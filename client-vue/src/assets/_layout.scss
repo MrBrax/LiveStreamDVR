@@ -76,7 +76,7 @@ hr {
 
 .content {
     flex-grow: 1;
-    margin-left: $sidemenu-width;
+    margin-left: var(--sidemenu-width);
 }
 
 .px-1 {

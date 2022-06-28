@@ -23,6 +23,7 @@ export type ClientSettings = {
     language: string;
     theme: string;
     showOfflineCategoryInSidebar: boolean;
+    sidemenuWidth: number;
 };
 
 export const phpDateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000

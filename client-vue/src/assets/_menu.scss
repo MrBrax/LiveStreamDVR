@@ -4,7 +4,7 @@
     top: 0;
     left: 0;
     bottom: 0;
-    width: $sidemenu-width;
+    width: var(--sidemenu-width);
 
     background-color: #000;
     color: #fff;
@@ -111,7 +111,7 @@
         }
     }
 
-    a {
+    a.link {
         color: #777;
         text-decoration: none;
         display: inline-block;
@@ -119,11 +119,7 @@
 
         &:hover {
             color: #fff;
-            background: #111;
-
-            .avatar {
-                transform: scale(110%);
-            }
+            background-color: #111;
         }
     }
 
@@ -166,8 +162,34 @@
 			padding: 5px 8px 12px 8px;
 		}
 		*/
+        a {
+            color: #777;
+            text-decoration: none;
+            display: inline-block;
+            padding: 5px 8px;
+        }
 
         flex-direction: row;
+
+        // background-size: cover;
+        // background-position: center;
+        // background-repeat: no-repeat;
+
+        .streamer-link {
+            flex-grow: 1;
+            // backdrop-filter: blur(5px) brightness(0.2);
+        }
+
+        &:hover {
+            .avatar {
+                transform: scale(110%);
+            }
+            .username { color: #fff; }
+            background-color: #111;
+            .subtitle {
+                color: #868686;
+            }
+        }
 
         &.is-live {
             a {
@@ -194,6 +216,13 @@
                         background-color: #166c44;
                     }
                 }
+            }
+
+            // main hover
+            .streamer-link:hover {
+                background-color: #0e361e;
+                .username { color: #fff; }
+                .subtitle { color: #2c8f64; }
             }
         }
 
@@ -226,6 +255,13 @@
                         background-color: #4d0b0b;
                     }
                 }
+            }
+
+            // main hover
+            .streamer-link:hover {
+                background-color: #3b1313;
+                .username { color: #ffc555; }
+                .subtitle { color: #9d8f1a; }
             }
 
         }
@@ -282,10 +318,6 @@
                 // TODO: multiplatform
                 display: none;
             }
-        }
-
-        .streamer-link {
-            flex-grow: 1;
         }
 
         .streamer-expand-container {
@@ -468,7 +500,8 @@
 
                     .tooltip {
                         position: absolute;
-                        left: $sidemenu-width + 10px;
+                        // left: $sidemenu-width + 10px;
+                        left: calc(var(--sidemenu-width) + 10px);
 
                         &.is-static {
                             position: fixed;

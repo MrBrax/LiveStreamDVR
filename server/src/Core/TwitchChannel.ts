@@ -62,6 +62,9 @@ export class TwitchChannel {
 
     public description: string | undefined;
     public profile_image_url: string | undefined;
+    public offline_image_url: string | undefined;
+    /** @todo: Not implemented */
+    public banner_image_url: string | undefined;
     public quality: VideoQuality[] | undefined;
     public match: string[] | undefined;
     public download_chat = false;
@@ -202,6 +205,8 @@ export class TwitchChannel {
             display_name: this.display_name || "",
             description: this.description || "",
             profile_image_url: this.profile_image_url || "",
+            offline_image_url: this.offline_image_url || "",
+            banner_image_url: this.banner_image_url || "",
             broadcaster_type: this.broadcaster_type || "",
             is_live: this.is_live,
             is_capturing: this.is_capturing,
@@ -1218,6 +1223,28 @@ export class TwitchChannel {
             if (avatar_response) {
                 avatar_response.data.pipe(fs.createWriteStream(logo_path));
                 userData.cache_avatar = logo_filename;
+            }
+        }
+
+        if (userData.offline_image_url) {
+            const offline_filename = `${userData.id}${path.extname(userData.offline_image_url)}`;
+            const offline_path = path.join(BaseConfigDataFolder.public_cache_banners, offline_filename);
+            if (fs.existsSync(offline_path)) {
+                fs.unlinkSync(offline_path);
+            }
+            let offline_response;
+            try {
+                offline_response = await axios({
+                    url: userData.offline_image_url,
+                    method: "GET",
+                    responseType: "stream",
+                });
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not download user offline image for ${userData.id}: ${(error as Error).message}`, error);
+            }
+            if (offline_response) {
+                offline_response.data.pipe(fs.createWriteStream(offline_path));
+                userData.cache_offline_image = offline_filename;
             }
         }
 

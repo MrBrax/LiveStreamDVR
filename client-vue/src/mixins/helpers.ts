@@ -13,6 +13,15 @@ export default {
             const o = parseJSON(date);
             return format(o, fmt);
         },
+        formatLogicalDate(date: string | Date) {
+            if (!date) return "";
+            // if older than 24 hours, show date with time
+            if (new Date().getTime() - new Date(date).getTime() > 24 * 60 * 60 * 1000) {
+                return this.formatDate(date, "yyyy-MM-dd HH:mm:ss");
+            } else {
+                return this.formatDate(date, "HH:mm:ss");
+            }
+        },
         formatTimestamp(timestamp: number, fmt = "yyyy-MM-dd HH:mm:ss"): string {
             const o = new Date(timestamp * 1000);
             return format(o, fmt);
@@ -123,6 +132,7 @@ export default {
 declare module "@vue/runtime-core" {
     export interface ComponentCustomProperties {
         formatDate: (date: string | Date, fmt?: string) => string;
+        formatLogicalDate: (date: Date | string) => string;
         formatTimestamp: (timestamp: number, fmt?: string) => string;
         humanDuration: (duration: number) => string;
         formatBytes: (bytes: number, precision?: number) => string;

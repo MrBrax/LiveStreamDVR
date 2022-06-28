@@ -155,11 +155,12 @@ export type ApiChannel = {
     vods_list: ApiVod[];
     vods_size: number;
 
-
     is_live: boolean;
     is_capturing: boolean;
     is_converting: boolean;
     profile_image_url: string;
+    offline_image_url: string;
+    banner_image_url: string;
     broadcaster_type: BroadcasterType;
 
     subbed_at?: string;

@@ -17,6 +17,8 @@ export default class TwitchChannel {
     broadcaster_type: BroadcasterType = "";
 
     profile_image_url = "";
+    offline_image_url = "";
+    banner_image_url = "";
 
     vods_raw: string[] = [];
     vods_list: TwitchVOD[] = [];
@@ -44,6 +46,8 @@ export default class TwitchChannel {
         channel.vods_raw = apiResponse.vods_raw;
         channel.vods_list = apiResponse.vods_list.map((vod) => TwitchVOD.makeFromApiResponse(vod));
         channel.profile_image_url = apiResponse.profile_image_url;
+        channel.offline_image_url = apiResponse.offline_image_url;
+        channel.banner_image_url = apiResponse.banner_image_url;
         channel.api_getSubscriptionStatus = apiResponse.api_getSubscriptionStatus;
         channel.clips_list = apiResponse.clips_list;
         channel.broadcaster_type = apiResponse.broadcaster_type;

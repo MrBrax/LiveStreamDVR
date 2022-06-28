@@ -151,6 +151,8 @@ export default defineComponent({
                 this.store.fetchAndUpdateStreamerList();
             }
         });
+
+        document.documentElement.style.setProperty("--sidemenu-width", `${this.store.clientCfg("sidemenuWidth", 330)}px`);
     },
     mounted() {
         const theme = this.store.clientCfg("theme");

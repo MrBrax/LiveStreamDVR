@@ -8,15 +8,12 @@
                 <label class="checkbox">
                     <input type="checkbox" v-model="(updateConfig[key] as boolean)" /> {{ $te('clientsetting.' + key) ? $t('clientsetting.' + key) : value.name }}
                 </label>
-                <p class="input-help" v-if="value.help">{{ value.help }}</p>
             </div>
             <div class="control" v-if="value.type === 'number'">
                 <input type="number" class="input" v-model.number="(updateConfig[key] as number)" :id="'input_' + key" />
-                <p class="input-help" v-if="value.help">{{ value.help }}</p>
             </div>
             <div class="control" v-if="value.type === 'string'">
                 <input type="text" class="input" v-model="(updateConfig[key] as string)" :id="'input_' + key" />
-                <p class="input-help" v-if="value.help">{{ value.help }}</p>
             </div>
             <div class="control" v-if="value.type === 'choice'">
                 <div class="select">
@@ -24,8 +21,9 @@
                         <option v-for="(option, optionKey) in value.choices" :value="optionKey">{{ option }}</option>
                     </select>
                 </div>
-                <p class="input-help" v-if="value.help">{{ value.help }}</p>
             </div>
+            <p class="input-help" v-if="value.help">{{ value.help }}</p>
+            <p class="input-default" v-if="value.default !== undefined">Default: {{ value.default }}</p>
         </div>
         <div class="field">
             <label class="label">Language</label>

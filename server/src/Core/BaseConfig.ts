@@ -58,6 +58,7 @@ export const BaseConfigDataFolder = {
     saved_clips: path.join(DataRoot, "storage", "saved_clips"),
     public_cache: path.join(DataRoot, "cache", "public"),
     public_cache_avatars: path.join(DataRoot, "cache", "public", "avatars"),
+    public_cache_banners: path.join(DataRoot, "cache", "public", "banners"),
 };
 
 export const BaseConfigPath = {

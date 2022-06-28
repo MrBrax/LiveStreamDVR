@@ -19,6 +19,7 @@ export const defaultConfig: ClientSettings = {
     language: "en",
     theme: "auto",
     showOfflineCategoryInSidebar: true,
+    sidemenuWidth: 330,
 };
 
 interface ClientSettingField {
@@ -49,6 +50,7 @@ export const defaultConfigFields: Record<keyof ClientSettings, ClientSettingFiel
     language: { type: "string", default: "en", name: "Language", hidden: true },
     theme: { type: "choice", default: "auto", name: "Theme", choices: { auto: "Auto", default: "Default", dark: "Dark", hotdogstand: "Hot dog stand", windows95: "Windows 95", basalt: "Basalt", } },
     showOfflineCategoryInSidebar: { type: "boolean", default: true, name: "Show the offline category of channels in the sidebar" },
+    sidemenuWidth: { type: "number", default: 330, name: "Width of the sidebar menu" },
 };
 
 export const YouTubeCategories = {
