@@ -16,6 +16,7 @@ import { MediaInfo } from "../../../common/mediainfofield";
 import { Clip, ClipsResponse } from "../../../common/TwitchAPI/Clips";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { Video, VideosResponse } from "../../../common/TwitchAPI/Video";
+import { TwitchVODBookmark } from "../../../common/Bookmark";
 import { VodUpdated } from "../../../common/Webhook";
 import { replaceAll } from "../Helpers/ReplaceAll";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../Storage/JSON";
@@ -67,6 +68,9 @@ export class TwitchVOD {
 
     chapters_raw: TwitchVODChapterJSON[] = [];
     chapters: TwitchVODChapter[] = [];
+
+
+    bookmarks: TwitchVODBookmark[] = [];
 
     /**
      * Date for when the VOD was created
@@ -225,6 +229,13 @@ export class TwitchVOD {
         this.comment = this.json.comment;
         this.prevent_deletion = this.json.prevent_deletion ?? false;
         this.failed = this.json.failed ?? false;
+
+        this.bookmarks = this.json.bookmarks ? this.json.bookmarks.map((b => {
+            return {
+                name: b.name,
+                date: parseJSON(b.date),
+            };
+        })) : [];
 
     }
 
@@ -868,6 +879,22 @@ export class TwitchVOD {
 
     }
 
+    public calculateBookmarks(): boolean {
+
+        if (!this.bookmarks || this.bookmarks.length == 0) return false;
+        if (!this.started_at) return false;
+
+        this.bookmarks.forEach((bookmark, index) => {
+            if (!this.started_at) return false;
+
+            const offset = (bookmark.date.getTime() - this.started_at.getTime()) / 1000;
+            bookmark.offset = offset;
+        });
+
+        return true;
+
+    }
+
     /**
      * Remove short chapters and change duration of chapters to match the duration of the VOD.
      * @returns 
@@ -1462,6 +1489,8 @@ export class TwitchVOD {
 
             failed: this.failed,
 
+            bookmarks: this.bookmarks,
+
             // game_offset: this.game_offset || 0,
             // twitch_vod_url: this.twitch_vod_url,
             // twitch_vod_exists: this.twitch_vod_exists,
@@ -1583,6 +1612,8 @@ export class TwitchVOD {
         generated.prevent_deletion = this.prevent_deletion;
 
         generated.failed = this.failed;
+
+        generated.bookmarks = this.bookmarks;
 
         // generated.twitch_vod_status = this.twitch_vod_status;
 
@@ -2419,6 +2450,7 @@ export class TwitchVOD {
 
     public postLoad() {
         this.setupStreamNumber();
+        this.calculateBookmarks();
     }
 
     /**
@@ -2656,6 +2688,7 @@ export class TwitchVOD {
             ended_at: ended_at,
             not_started: false,
             prevent_deletion: false,
+            bookmarks: [],
         };
 
         return {

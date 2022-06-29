@@ -91,6 +91,9 @@
                         <td>
                             <span class="text-overflow">{{ job.name }}</span>
                         </td>
+                        <td>
+                            {{ job.dt_started_at ? formatDate(job.dt_started_at) : "No date" }}
+                        </td>
                         <td>{{ job.pid }}</td>
                         <td>
                             <span v-if="job.status == JobStatus.RUNNING">Running</span>

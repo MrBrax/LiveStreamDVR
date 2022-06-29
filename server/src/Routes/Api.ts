@@ -53,6 +53,8 @@ router.post("/vod/:basename/match", Vod.MatchVod);
 router.post("/vod/:basename/cut", Vod.CutVod);
 router.post("/vod/:basename/save", Vod.ArchiveVod);
 router.post("/vod/:basename/export", Vod.ExportVod);
+router.post("/vod/:basename/bookmark", Vod.AddBookmark);
+router.delete("/vod/:basename/bookmark", Vod.RemoveBookmark);
 
 router.get("/games", Games.ListGames);
 

@@ -5,6 +5,7 @@ import { MuteStatus, ExistStatus, JobStatus } from "../../common/Defs";
 import { AudioMetadata, VideoMetadata } from "../MediaInfo";
 import { BroadcasterType } from "../TwitchAPI/Users";
 import { TwitchVODChapterJSON } from "../../server/src/Storage/JSON";
+import { TwitchVODBookmark } from "../Bookmark";
 
 export type ApiVodSegment = {
     basename: string;
@@ -129,6 +130,8 @@ export type ApiVod = {
 
     failed?: boolean;
 
+    bookmarks: TwitchVODBookmark[];
+
 };
 
 export type ApiSettingsField = {
@@ -229,6 +232,7 @@ export type ApiJob = {
     status: JobStatus;
     process_running: boolean;
     progress: number;
+    dt_started_at: string;
 };
 
 export type ApiLogLine = {

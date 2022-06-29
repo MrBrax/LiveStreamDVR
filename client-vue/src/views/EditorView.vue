@@ -5,8 +5,11 @@
                 <track kind="chapters" :src="vodData.webpath + '/' + vodData.basename + '.chapters.vtt'" label="Chapters" default />
             </video>
             <div id="videoplayer-controls">
-                <button class="button" @click="play">Play</button>
-                <button class="button" @click="pause">Pause</button>
+                <div class="buttons">
+                    <button class="button" @click="play"><span>Play</span></button>
+                    <button class="button" @click="pause"><span>Pause</span></button>
+                    <button class="button" @click="addBookmark"><span>Add Bookmark</span></button>
+                </div>
             </div>
             <div id="timeline" ref="timeline" @click="seek">
                 <div id="timeline-cut" v-bind:style="timelineCutStyle"></div>
@@ -85,10 +88,16 @@
 import { defineComponent } from "vue";
 import { TwitchVODChapter } from "@/core/chapter";
 import TwitchVOD from "@/core/vod";
+import { useStore } from "@/store";
+import { ApiResponse } from "@common/Api/Api";
 
 export default defineComponent({
     name: "EditorView",
     title: "Editor",
+    setup() {
+        const store = useStore();
+        return { store };
+    },
     data() {
         return {
             vodData: {} as TwitchVOD,
@@ -206,6 +215,22 @@ export default defineComponent({
         },
         setFrameOut(frameNum: number) {
             this.frameOut = Math.round(frameNum);
+        },
+        addBookmark() {
+            this.pause();
+            const offset = (this.$refs.player as HTMLVideoElement).currentTime;
+            const name = prompt("Bookmark name");
+            if (!name) return;
+            this.$http.post(`/api/v0/vod/${this.vodData.basename}/bookmark`, { name: name, offset: offset }).then((response) => {
+                const json: ApiResponse = response.data;
+                if (json.message) alert(json.message);
+                console.log(json);
+                if (this.vod) this.store.fetchAndUpdateVod(this.vodData.basename);
+                // if (this.editVodMenu) this.editVodMenu.show = false;
+            }).catch((err) => {
+                console.error("form error", err.response);
+                if (err.response.data && err.response.data.message) alert(err.response.data.message);
+            });
         },
     },
     computed: {

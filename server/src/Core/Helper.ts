@@ -663,6 +663,9 @@ export class Helper {
                     job.setProgress(currentSeconds / totalSeconds);
                     console.debug(`Remux current time: ${currentSeconds}`);
                 }
+                if (data.match(/moving the moov atom/)) {
+                    console.debug("Remux moov atom move");
+                }
             });
             //     const progress_match = data.match(/time=([0-9\.\:]+)/);
             //     if (progress_match) {

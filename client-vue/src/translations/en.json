@@ -91,7 +91,8 @@
       "privacy-public": "Public",
       "privacy-unlisted": "Unlisted",
       "privacy-private": "Private"
-    }
+    },
+    "bookmarks": "Bookmarks"
   },
   "buttons": {
     "save": "Save",

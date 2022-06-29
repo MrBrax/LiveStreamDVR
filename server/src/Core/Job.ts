@@ -665,6 +665,7 @@ export class Job extends EventEmitter {
             process_running: this.process_running,
             status: this.status,
             progress: this.progress,
+            dt_started_at: this.dt_started_at ? this.dt_started_at.toJSON() : "",
         };
     }
 
