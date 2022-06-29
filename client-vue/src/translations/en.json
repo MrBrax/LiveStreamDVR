@@ -205,7 +205,8 @@
   },
   "streamer": {
     "one-or-more-subscriptions-missing": "One or more subscriptions missing",
-    "no-vods-not-capturing": "No VODs, not capturing"
+    "no-vods-not-capturing": "No VODs, not capturing",
+    "no-save-vods": "Does not save VODs"
   },
   "about": {
     "installed-utilities": "Installed utilities",

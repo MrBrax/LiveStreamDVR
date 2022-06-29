@@ -9,6 +9,7 @@ export interface User {
     description: string;
     profile_image_url: string;
     offline_image_url: string;
+    /** @deprecated */
     view_count: number;
     email?: string;
     created_at: string;

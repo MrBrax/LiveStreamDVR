@@ -244,6 +244,8 @@ export class TwitchChannel {
             current_season: this.current_season,
 
             chapter_data: this.getChapterData(),
+
+            saves_vods: this.saves_vods,
         };
     }
 
@@ -688,6 +690,9 @@ export class TwitchChannel {
 
     public postLoad() {
         this.setupStreamNumber();
+        if (!KeyValue.getInstance().has(`${this.login}.saves_vods`)) {
+            this.checkIfChannelSavesVods();
+        }
     }
 
     public broadcastUpdate() {
@@ -789,6 +794,24 @@ export class TwitchChannel {
         if (!this.userid) return false;
         const streams = await TwitchChannel.getStreams(this.userid);
         return streams && streams.length > 0;
+    }
+
+    public async checkIfChannelSavesVods(): Promise<boolean> {
+        if (!this.userid) return false;
+        Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Checking if channel ${this.login} saves vods`);
+        const videos = await TwitchVOD.getVideos(this.userid);
+        const state = videos && videos.length > 0;
+        KeyValue.getInstance().setBool(`${this.login}.saves_vods`, state);
+        if (state) {
+            Log.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `Channel ${this.login} saves vods`);
+        } else {
+            Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Channel ${this.login} does not save vods`);
+        }
+        return state;
+    }
+
+    get saves_vods(): boolean {
+        return KeyValue.getInstance().getBool(`${this.login}.saves_vods`);
     }
 
     /**

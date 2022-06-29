@@ -195,6 +195,8 @@ export type ApiChannel = {
 
     chapter_data?: TwitchVODChapterJSON;
 
+    saves_vods: boolean;
+
 };
 
 export type ApiSubscription = {

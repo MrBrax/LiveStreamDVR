@@ -36,6 +36,8 @@ export default class TwitchChannel {
 
     chapter_data?: TwitchVODChapterJSON;
 
+    saves_vods = false;
+
     public static makeFromApiResponse(apiResponse: ApiChannel): TwitchChannel {
         const channel = new TwitchChannel();
         channel.userid = apiResponse.userid;
@@ -58,6 +60,7 @@ export default class TwitchChannel {
         // channel.is_capturing = apiResponse.is_capturing ?? false;
         channel.is_live = apiResponse.is_live ?? false;
         channel.chapter_data = apiResponse.chapter_data;
+        channel.saves_vods = apiResponse.saves_vods ?? false;
         return channel;
     }
 

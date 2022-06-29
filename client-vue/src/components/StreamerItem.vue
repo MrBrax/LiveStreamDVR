@@ -32,6 +32,10 @@
                         <span v-else>Free</span>
                     </span>
                     &middot;
+                    <span class="streamer-saves-vods">
+                        <span v-if="!streamer.saves_vods" class="is-error">{{ $t("streamer.no-save-vods") }}</span>
+                    </span>
+                    &middot;
                     <span class="streamer-sxe" title="Season and episode">
                         {{ streamer.current_season }}/{{ streamer.current_stream_number }}
                     </span>
