@@ -1,6 +1,6 @@
 <template>
     <div class="streamer-box" v-if="streamer" :id="'streamer_' + streamer.login">
-        <div :class="{ 'streamer-title': true, 'is-live': streamer.is_live }">
+        <div :class="{ 'streamer-title': true, 'is-live': streamer.is_live, 'is-capturing': streamer.is_capturing }">
             <div class="streamer-title-avatar" :style="'background-image: url(' + avatarUrl + ')'"></div>
             <div class="streamer-title-text">
                 <h2>
@@ -9,6 +9,7 @@
                         <template v-if="streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }})</template>
                     </a>
                     <span v-if="streamer.is_live" class="streamer-live">live</span>
+                    <span v-if="streamer.is_capturing" class="streamer-capturing">capturing</span>
                 </h2>
                 <span class="streamer-title-subtitle">
                     <span class="streamer-vods-quality help" title="Quality">{{ quality }}</span
@@ -396,7 +397,7 @@ export default defineComponent({
         },
         canAbortCapture(): boolean {
             if (!this.streamer) return false;
-            return this.streamer.is_live && this.store.jobList.some((job) => this.streamer && job.name.startsWith(`capture_${this.streamer.login}`));
+            return this.streamer.is_capturing && this.store.jobList.some((job) => this.streamer && job.name.startsWith(`capture_${this.streamer.login}`));
         },
         avatarUrl() {
             if (!this.streamer) return;

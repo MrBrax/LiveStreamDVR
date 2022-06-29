@@ -67,6 +67,18 @@
     }
 
     &.is-live {
+        background-color: #0b5e2b;
+
+        .streamer-title-subtitle {
+            color: #31db7e;
+        }
+
+        a:hover {
+            color: #7beb9d;
+        }
+    }
+
+    &.is-capturing {
         background-color: #5e0b0b;
 
         .streamer-title-subtitle {
@@ -78,7 +90,7 @@
         }
     }
 
-    .streamer-live {
+    .streamer-live, .streamer-capturing {
         color: #f00;
         animation: live ease-in-out 1s infinite;
         font-weight: 700;

@@ -78,6 +78,7 @@ export const MockApiChannelData: ApiChannel = {
     max_vods: 0,
     chapter_data: undefined,
     is_capturing: false,
+    saves_vods: false,
 };
 
 export const MockApiVODData: ApiVod = {
@@ -122,7 +123,8 @@ export const MockApiVODData: ApiVod = {
     total_size: 0,
     chapters: [],
     webpath: "",
-    prevent_deletion: false
+    prevent_deletion: false,
+    bookmarks: [],
 };
 
 export const MockApiChapterData: ApiVodChapter = {

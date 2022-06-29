@@ -648,7 +648,6 @@ export class Helper {
                 return;
             }
 
-            // TODO: progress log
             let currentSeconds = 0;
             let totalSeconds = 0;
             job.on("log", (stream: string, data: string) => {
@@ -667,13 +666,6 @@ export class Helper {
                     console.debug("Remux moov atom move");
                 }
             });
-            //     const progress_match = data.match(/time=([0-9\.\:]+)/);
-            //     if (progress_match) {
-            //         const progress = progress_match[1];
-            //         // TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Remuxing ${input} to ${output} progress: ${progress}`);
-            //         console.log(chalk.gray(`Remuxing ${input} to ${output} progress: ${progress}`));
-            //     }
-            // });
 
             job.process.on("error", (err) => {
                 Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
@@ -793,6 +785,25 @@ export class Helper {
                     // for (const err of errorSearch) {
                     //    message = err[1];
                     reject(new Error(`Failed to cut ${path.basename(input)} to ${path.basename(output)}: ${message}`));
+                }
+            });
+
+            let currentSeconds = 0;
+            let totalSeconds = 0;
+            job.on("log", (stream: string, data: string) => {
+                const totalDurationMatch = data.match(/Duration: (\d+):(\d+):(\d+)/);
+                if (totalDurationMatch && !totalSeconds) {
+                    totalSeconds = parseInt(totalDurationMatch[1]) * 3600 + parseInt(totalDurationMatch[2]) * 60 + parseInt(totalDurationMatch[3]);
+                    console.debug(`Cut total duration: ${totalSeconds}`);
+                }
+                const currentTimeMatch = data.match(/time=(\d+):(\d+):(\d+)/);
+                if (currentTimeMatch && totalSeconds > 0) {
+                    currentSeconds = parseInt(currentTimeMatch[1]) * 3600 + parseInt(currentTimeMatch[2]) * 60 + parseInt(currentTimeMatch[3]);
+                    job.setProgress(currentSeconds / totalSeconds);
+                    console.debug(`Cut current time: ${currentSeconds}`);
+                }
+                if (data.match(/moving the moov atom/)) {
+                    console.debug("Cut moov atom move");
                 }
             });
 
