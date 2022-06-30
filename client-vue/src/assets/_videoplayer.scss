@@ -23,9 +23,9 @@
     }
 }
 
-#videoplayer-controls {
+.videoplayer-controls {
     background-color: #222;
-    padding: 2px;
+    padding: 0.5em;
 }
 
 .videoplayer-chapters {
@@ -64,4 +64,9 @@
 .videoplayer-form {
     padding: 1em;
     margin-top: 1em;
+}
+
+.videoplayer-time {
+    font-size: 120%;
+    padding: 0.5em;
 }

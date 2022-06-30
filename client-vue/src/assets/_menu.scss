@@ -266,6 +266,41 @@
 
         }
 
+        &.is-converting {
+            a {
+                background-color: darken($converting-base, 30%);
+            }
+
+            .username {
+                color: lighten($converting-base, 30%);
+                font-weight: 700;
+            }
+
+            .subtitle,
+            .vodcount {
+                color: lighten($converting-base, 10%);
+            }
+
+            .streamer-expand-container {
+                background-color: darken($converting-base, 30%);
+
+                .streamer-expand-main {
+                    color: lighten($converting-base, 30%);
+
+                    &:hover {
+                        background-color: darken($converting-base, 20%);
+                    }
+                }
+            }
+
+            // main hover
+            .streamer-link:hover {
+                background-color: darken($converting-base, 25%);
+                .username { color: #fff; }
+                .subtitle { color: lighten($converting-base, 10%); }
+            }
+        }
+
         &.no-capture {
             .username {
                 text-decoration: line-through;

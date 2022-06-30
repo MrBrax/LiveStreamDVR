@@ -32,8 +32,8 @@
                         <span v-if="streamer.broadcaster_type">{{ streamer.broadcaster_type }}</span>
                         <span v-else>Free</span>
                     </span>
-                    &middot;
                     <span class="streamer-saves-vods">
+                        &middot;
                         <span v-if="!streamer.saves_vods" class="is-error">{{ $t("streamer.no-save-vods") }}</span>
                     </span>
                     &middot;

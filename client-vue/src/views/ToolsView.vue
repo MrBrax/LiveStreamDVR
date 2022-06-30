@@ -86,7 +86,17 @@
         <section class="section">
             <div class="section-title"><h1>{{ $t('views.tools.current-jobs') }}</h1></div>
             <div class="section-content">
-                <table>
+                <table class="table is-fullwidth is-striped" v-if="store.jobList && store.jobList.length > 0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <td>Started at</td>
+                            <td>PID</td>
+                            <td>Status</td>
+                            <td>Progress</td>
+                            <td>Action</td>
+                        </tr>
+                    </thead>
                     <tr v-for="job in store.jobList" :key="job.name">
                         <td>
                             <span class="text-overflow">{{ job.name }}</span>
@@ -123,8 +133,7 @@
                         </td>
                     </tr>
                 </table>
-
-                <em v-if="!store.jobList || store.jobList && store.jobList.length == 0">{{ $t('jobs.no-jobs-running') }}</em>
+                <em v-else>{{ $t('jobs.no-jobs-running') }}</em>
             </div>
         </section>
     </div>

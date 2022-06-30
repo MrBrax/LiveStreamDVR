@@ -15,12 +15,28 @@ export default {
         },
         formatLogicalDate(date: string | Date) {
             if (!date) return "";
+            const absDate = parseJSON(date);
+            const now = new Date();
+
+            console.log(absDate, now, now.getFullYear(), absDate.getFullYear());
+
+            if (now.getTime() - absDate.getTime() < 22 * 60 * 60 * 1000) {
+                return this.formatDate(date, "HH:mm:ss");
+            } else if (now.getFullYear() == absDate.getFullYear()) {
+                return this.formatDate(date, "dd/MM HH:mm:ss");
+            } else {
+                return this.formatDate(date, "yyyy-MM-dd HH:mm:ss");
+            }
             // if older than 24 hours, show date with time
+            /*
             if (new Date().getTime() - new Date(date).getTime() > 22 * 60 * 60 * 1000) {
                 return this.formatDate(date, "yyyy-MM-dd HH:mm:ss");
+            // if newer than current year, show date with time
+            } else if (new Date().getFullYear() == new Date(date).getFullYear()) {
+                return this.formatDate(date, "dd/MM HH:mm:ss");
             } else {
                 return this.formatDate(date, "HH:mm:ss");
-            }
+            }*/
         },
         formatTimestamp(timestamp: number, fmt = "yyyy-MM-dd HH:mm:ss"): string {
             const o = new Date(timestamp * 1000);
