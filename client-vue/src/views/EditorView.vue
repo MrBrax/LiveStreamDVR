@@ -13,7 +13,10 @@
                 <track kind="chapters" :src="vodData.webpath + '/' + vodData.basename + '.chapters.vtt'" label="Chapters" default />
             </video>
             <div class="videoplayer-time">
-                {{ formatDuration(currentVideoTime) }} / {{ videoDuration ? formatDuration(videoDuration) : '-' }}
+                <span v-if="videoDuration">
+                    {{ formatDuration(currentVideoTime) }} / {{ videoDuration ? formatDuration(videoDuration) : '-' }}
+                </span>
+                <span v-else>{{ $t("messages.loading")}}</span>
             </div>
             <div class="videoplayer-controls">
                 <div class="buttons">
@@ -24,6 +27,14 @@
                     <button class="button is-confirm" @click="pause">
                         <span class="icon"><fa icon="pause" /></span>
                         <span>Pause</span>
+                    </button>
+                    <button type="button" class="button is-confirm" @click="setFrameIn(currentVideoTime)">
+                        <span class="icon"><fa icon="fast-backward" /></span>
+                        <span>Mark in</span>
+                    </button>
+                    <button type="button" class="button is-confirm" @click="setFrameOut(currentVideoTime)">
+                        <span class="icon"><fa icon="fast-forward" /></span>
+                        <span>Mark out</span>
                     </button>
                     <button class="button is-confirm" @click="addBookmark">
                         <span class="icon"><fa icon="bookmark" /></span>
@@ -52,25 +63,36 @@
                 </div>
             </div>
 
+            <div>
+                <ul class="list">
+                    <li v-for="(chapter, i) in vodData.chapters" :key="i">
+                        <a v-if="chapter.offset !== undefined && chapter.duration !== undefined" @click="scrub(chapter.offset || 0, chapter.duration || 0)">
+                            {{ formatDuration(chapter.offset) }} - {{ formatDuration(chapter.offset + chapter.duration) }}: {{ chapter.title }}
+                        </a> 
+                    </li>
+                </ul>
+            </div>
+
             <div class="videoplayer-form">
                 <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
+
+                    <h2>Cut submit</h2>
+
                     <input type="hidden" name="vod" value="{{ vodData.basename }}" />
 
                     <div class="field">
+                        <label for="time_in" class="label">Time In</label>
                         <div class="control">
-                            <button type="button" class="button is-confirm" @click="setFrameIn(currentVideoTime)">
-                                <span>Mark in</span>
-                            </button><br />
-                            <input class="input" name="time_in" v-model="secondsIn" placeholder="In timestamp" /> (seconds)
+                            <input class="input" id="time_in" v-model="secondsIn" placeholder="In timestamp" />
+                            <p class="input-help">Timestamp in seconds</p>
                         </div>
                     </div>
 
                     <div class="field">
+                        <label for="time_out" class="label">Time Out</label>
                         <div class="control">
-                            <button type="button" class="button is-confirm" @click="setFrameOut(currentVideoTime)">
-                                <span>Mark out</span>
-                            </button><br />
-                            <input class="input" name="time_out" v-model="secondsOut" placeholder="Out timestamp" /> (seconds)
+                            <input class="input" id="time_out" v-model="secondsOut" placeholder="Out timestamp" />
+                            <p class="input-help">Timestamp in seconds</p>
                         </div>
                     </div>
 
@@ -124,8 +146,8 @@ import { ApiResponse } from "@common/Api/Api";
 
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faPause, faBookmark } from "@fortawesome/free-solid-svg-icons";
-library.add(faPause, faBookmark);
+import { faPause, faBookmark, faFastBackward, faFastForward } from "@fortawesome/free-solid-svg-icons";
+library.add(faPause, faBookmark, faFastBackward, faFastForward);
 
 export default defineComponent({
     name: "EditorView",
@@ -255,14 +277,16 @@ export default defineComponent({
         },
         setFrameIn(frameNum: number) {
             this.secondsIn = Math.round(frameNum);
+            if (this.secondsOut < this.secondsIn) this.secondsOut = this.secondsIn;
         },
         setFrameOut(frameNum: number) {
             this.secondsOut = Math.round(frameNum);
+            if (this.secondsIn > this.secondsOut) this.secondsIn = this.secondsOut;
         },
         addBookmark() {
             this.pause();
-            const offset = (this.$refs.player as HTMLVideoElement).currentTime;
-            const name = prompt("Bookmark name");
+            const offset = this.currentVideoTime;
+            const name = prompt(`Bookmark name for offset ${offset}:`);
             if (!name) return;
             this.$http.post(`/api/v0/vod/${this.vodData.basename}/bookmark`, { name: name, offset: offset }).then((response) => {
                 const json: ApiResponse = response.data;

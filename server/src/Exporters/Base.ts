@@ -10,6 +10,7 @@ export class BaseExporter {
     public vod?: TwitchVOD;
     public filename = "";
     public template_filename = "";
+    public output_filename = "";
     public extension = "";
 
     loadVOD(vod: TwitchVOD): boolean {
@@ -36,6 +37,10 @@ export class BaseExporter {
         this.template_filename = template_filename;
     }
 
+    setOutputFilename(filename: string): void {
+        this.output_filename = filename;
+    }
+
     setSource(source: "segment" | "downloaded" | "burned"): void {
         if (!this.vod) throw new Error("No vod loaded");
         if (source == "segment") {
@@ -53,6 +58,9 @@ export class BaseExporter {
     }
 
     getFormattedTitle() {
+        if (this.output_filename !== "") {
+            return this.output_filename; // override
+        }
         if (!this.vod) {
             return this.template_filename; // no vod loaded, return template filename instead
         }

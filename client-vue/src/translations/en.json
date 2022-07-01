@@ -90,7 +90,8 @@
       "privacy": "Privacy",
       "privacy-public": "Public",
       "privacy-unlisted": "Unlisted",
-      "privacy-private": "Private"
+      "privacy-private": "Private",
+      "title": "Title"
     },
     "bookmarks": "Bookmarks"
   },

@@ -1283,6 +1283,7 @@ export default defineComponent({
                 category: "",
                 file_source: "segment",
                 privacy: "private",
+                vod: "",
             },
             exporterTemplateVariables: [
                 "login",
@@ -1313,6 +1314,7 @@ export default defineComponent({
                 comment: this.vod.comment ?? "",
                 prevent_deletion: this.vod.prevent_deletion ?? false,
             };
+            this.exportVodSettings.vod = this.vod.basename;
         }
     },
     props: {
@@ -1588,7 +1590,7 @@ export default defineComponent({
         },
         doExportVod() {
             if (!this.vod) return;
-            this.$http.post(`/api/v0/vod/${this.vod.basename}/export`, this.exportVodSettings).then((response) => {
+            this.$http.post(`/api/v0/exporter?mode=vod`, this.exportVodSettings).then((response) => {
                 const json: ApiResponse = response.data;
                 if (json.message) alert(json.message);
                 console.log(json);

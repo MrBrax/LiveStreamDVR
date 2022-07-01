@@ -263,8 +263,10 @@ export class Automator {
 
         const basename = this.basename();
 
+        const is_live = KeyValue.getInstance().getBool(`${this.broadcaster_user_login}.online`);
+
         // if online
-        if (KeyValue.getInstance().getBool(`${this.getLogin()}.online`)) {
+        if (this.channel?.is_capturing) {
 
             // const folder_base = TwitchHelper.vodFolder(this.getLogin());
 
@@ -359,7 +361,7 @@ export class Automator {
 
             if (this.channel) {
                 ClientBroker.notify(
-                    `Offline channel ${this.broadcaster_user_login} changed status`,
+                    `${is_live ? "Live non-capturing" : "Offline"} channel ${this.broadcaster_user_login} changed status`,
                     `${event.category_name} (${event.title})`,
                     this.channel.profile_image_url,
                     "offlineStatusChange",
@@ -370,7 +372,7 @@ export class Automator {
             const chapter_data = await this.getChapterData(event);
             chapter_data.online = false;
 
-            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, saving channel data to cache: ${event.category_name} (${event.title})`);
+            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not capturing, saving channel data to cache: ${event.category_name} (${event.title})`);
             KeyValue.getInstance().setObject(`${this.broadcaster_user_login}.chapterdata`, chapter_data);
             if (this.channel) {
                 this.channel.broadcastUpdate();

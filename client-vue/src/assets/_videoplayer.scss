@@ -36,7 +36,7 @@
 .videoplayer-chapter {
     font-family: "Roboto Condensed", "Roboto", "Arial";
     padding: 5px;
-    background: #eee;
+    background: rgba(128, 128, 128, 0.3);
     border-right: 1px solid #aaa;
     //flex-shrink: 1;
     //flex-grow: 1;
@@ -46,7 +46,7 @@
     max-height: 100px;
 
     &:hover {
-        background: #d3eafa;
+        background: rgba(128, 128, 128, 0.5);
         cursor: pointer;
     }
 }
