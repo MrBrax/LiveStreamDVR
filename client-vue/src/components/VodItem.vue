@@ -911,32 +911,29 @@
         </div>
     </modal-box>
     <modal-box ref="chatDownloadMenu" title="Chat download">
-        <div class="is-centered">
-            <div class="field">
-                <button class="button" @click="doDownloadChat('tcd')">
-                    <fa icon="download" />
-                    Download with TCD
-                </button>
-            </div>
-            <div class="field">
-                <button class="button" @click="doDownloadChat('td')">
-                    <fa icon="download" />
-                    Download with TwitchDownloader
-                </button>
-            </div>
+        <div class="buttons is-centered">
+            <button class="button is-confirm" @click="doDownloadChat('tcd')">
+                <span class="icon"><fa icon="download" /></span>
+                <span>{{ $t('vod.buttons.download-with', ['tcd']) }}</span>
+            </button>
+            <button class="button is-confirm" @click="doDownloadChat('td')">
+                <span class="icon"><fa icon="download" /></span>
+                <span>{{ $t('vod.buttons.download-with', ['TwitchDownloader']) }}</span>
+            </button>
         </div>
     </modal-box>
     <modal-box ref="vodDownloadMenu" title="VOD download">
         <div class="is-centered">
             <div class="field">
+                <label class="label">Quality</label>
                 <select class="input" v-model="vodDownloadSettings.quality">
                     <option v-for="quality in VideoQualityArray" :key="quality" :value="quality">{{ quality }}</option>
                 </select>
             </div>
             <div class="field">
-                <button class="button" @click="doDownloadVod">
-                    <fa icon="download" />
-                    Download
+                <button class="button is-confirm" @click="doDownloadVod">
+                    <span class="icon"><fa icon="download" /></span>
+                    <span>Download</span>
                 </button>
             </div>
         </div>

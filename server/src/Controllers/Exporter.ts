@@ -14,7 +14,18 @@ type Exporter = FileExporter | YouTubeExporter | SFTPExporter;
 export async function ExportFile(req: express.Request, res: express.Response): Promise<void> {
 
     const mode = req.query.mode;
+    const input_exporter = req.body.exporter;
     let exporter: Exporter | undefined;
+
+    if (!input_exporter) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "No exporter specified",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    // FIXME: DRY this up, more sanitization of the input
 
     if (mode === "vod") {
 
@@ -45,13 +56,13 @@ export async function ExportFile(req: express.Request, res: express.Response): P
         }
 
         try {
-            if (req.body.exporter == "file") {
+            if (input_exporter == "file") {
                 exporter = new FileExporter();
                 if (exporter instanceof FileExporter) { // why does typescript need this??
                     exporter.loadVOD(vod);
                     exporter.setDirectory(req.body.directory || BaseConfigDataFolder.saved_vods);
                 }
-            } else if (req.body.exporter == "sftp") {
+            } else if (input_exporter == "sftp") {
                 exporter = new SFTPExporter();
                 if (exporter instanceof SFTPExporter) { // why does typescript need this??
                     exporter.loadVOD(vod);
@@ -59,7 +70,7 @@ export async function ExportFile(req: express.Request, res: express.Response): P
                     exporter.setHost(req.body.host);
                     exporter.setUsername(req.body.username);
                 }
-            } else if (req.body.exporter == "youtube") {
+            } else if (input_exporter == "youtube") {
                 exporter = new YouTubeExporter();
                 if (exporter instanceof YouTubeExporter) { // why does typescript need this??
                     exporter.loadVOD(vod);
@@ -123,13 +134,13 @@ export async function ExportFile(req: express.Request, res: express.Response): P
         }
 
         try {
-            if (req.body.exporter == "file") {
+            if (input_exporter == "file") {
                 exporter = new FileExporter();
                 if (exporter instanceof FileExporter) { // why does typescript need this??
                     exporter.loadFile(full_input_path);
                     exporter.setDirectory(output_directory || BaseConfigDataFolder.saved_vods);
                 }
-            } else if (req.body.exporter == "sftp") {
+            } else if (input_exporter == "sftp") {
                 exporter = new SFTPExporter();
                 if (exporter instanceof SFTPExporter) { // why does typescript need this??
                     exporter.loadFile(full_input_path);
@@ -137,7 +148,7 @@ export async function ExportFile(req: express.Request, res: express.Response): P
                     exporter.setHost(req.body.host);
                     exporter.setUsername(req.body.username);
                 }
-            } else if (req.body.exporter == "youtube") {
+            } else if (input_exporter == "youtube") {
                 exporter = new YouTubeExporter();
                 if (exporter instanceof YouTubeExporter) { // why does typescript need this??
                     exporter.loadFile(full_input_path);

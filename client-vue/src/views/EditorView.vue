@@ -9,6 +9,7 @@
                 width="1280"
                 @canplay="videoCanPlay"
                 @seeked="videoSeeked"
+                @error="videoError"
             >
                 <track kind="chapters" :src="vodData.webpath + '/' + vodData.basename + '.chapters.vtt'" label="Chapters" default />
             </video>
@@ -22,23 +23,23 @@
                 <div class="buttons">
                     <button class="button is-confirm" @click="play">
                         <span class="icon"><fa icon="play" /></span>
-                        <span>Play</span>
+                        <span>{{ $t('views.editor.buttons.play') }}</span>
                     </button>
                     <button class="button is-confirm" @click="pause">
                         <span class="icon"><fa icon="pause" /></span>
-                        <span>Pause</span>
+                        <span>{{ $t('views.editor.buttons.pause') }}</span>
                     </button>
                     <button type="button" class="button is-confirm" @click="setFrameIn(currentVideoTime)">
                         <span class="icon"><fa icon="fast-backward" /></span>
-                        <span>Mark in</span>
+                        <span>{{ $t('views.editor.buttons.mark-in') }}</span>
                     </button>
                     <button type="button" class="button is-confirm" @click="setFrameOut(currentVideoTime)">
                         <span class="icon"><fa icon="fast-forward" /></span>
-                        <span>Mark out</span>
+                        <span>{{ $t('views.editor.buttons.mark-out') }}</span>
                     </button>
                     <button class="button is-confirm" @click="addBookmark">
                         <span class="icon"><fa icon="bookmark" /></span>
-                        <span>Add Bookmark</span>
+                        <span>{{ $t('views.editor.buttons.add-bookmark') }}</span>
                     </button>
                 </div>
             </div>
@@ -76,12 +77,12 @@
             <div class="videoplayer-form">
                 <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
 
-                    <h2>Cut submit</h2>
+                    <h2>{{ $t('views.editor.edit-segment') }}</h2>
 
                     <input type="hidden" name="vod" value="{{ vodData.basename }}" />
 
                     <div class="field">
-                        <label for="time_in" class="label">Time In</label>
+                        <label for="time_in" class="label">{{ $t('views.editor.time-in') }}</label>
                         <div class="control">
                             <input class="input" id="time_in" v-model="secondsIn" placeholder="In timestamp" />
                             <p class="input-help">Timestamp in seconds</p>
@@ -89,7 +90,7 @@
                     </div>
 
                     <div class="field">
-                        <label for="time_out" class="label">Time Out</label>
+                        <label for="time_out" class="label">{{ $t('views.editor.time-out') }}</label>
                         <div class="control">
                             <input class="input" id="time_out" v-model="secondsOut" placeholder="Out timestamp" />
                             <p class="input-help">Timestamp in seconds</p>
@@ -97,11 +98,11 @@
                     </div>
 
                     <div class="field">
-                        <div class="control"><strong>Duration:</strong> {{ cutSegmentlength > 0 ? humanDuration(cutSegmentlength) : "None" }}</div>
+                        <div class="control"><strong>{{ $t('vod.video-info.duration') }}:</strong> {{ cutSegmentlength > 0 ? humanDuration(cutSegmentlength) : "None" }}</div>
                     </div>
 
                     <div class="field">
-                        <div class="control"><strong>Filesize:</strong> {{ exportSize ? "~" + formatBytes(exportSize) : "None" }}</div>
+                        <div class="control"><strong>{{ $t('views.editor.filesize') }}:</strong> {{ exportSize ? "~" + formatBytes(exportSize) : "None" }}</div>
                     </div>
 
                     <div class="field">
@@ -114,7 +115,7 @@
                         <div class="control">
                             <button type="submit" class="button is-confirm">
                                 <span class="icon"><fa icon="save" /></span>
-                                <span>Submit cut</span>
+                                <span>{{ $t('views.editor.buttons.submit-cut') }}</span>
                             </button>
                         </div>
                         <div :class="formStatusClass">{{ formStatusText }}</div>
@@ -233,6 +234,10 @@ export default defineComponent({
         },
         videoSeeked(event: Event) {
             console.log("seeked", event);
+        },
+        videoError(event: Event) {
+            console.error("video error", event);
+            alert("Video error, does the video exist?");
         },
         submitForm(event: Event) {
 
