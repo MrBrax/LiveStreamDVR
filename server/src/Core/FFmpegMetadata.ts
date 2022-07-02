@@ -146,8 +146,10 @@ export class FFmpegMetadata {
         if (this.chapters.length > 0) {
             for (const chapter of this.chapters) {
                 result += "[CHAPTER]\n";
-                for (const m in chapter.meta) {
-                    result += `# ${this.sanitize(m)}\n`;
+                if (chapter.meta) {
+                    for (const m of chapter.meta) {
+                        result += `# ${this.sanitize(m)}\n`;
+                    }
                 }
                 result += `TIMEBASE=${chapter.timebase}\n`;
                 result += `START=${chapter.start}\n`;

@@ -690,45 +690,53 @@ export class Automator {
         // wait for 30 seconds in case something didn't finish
         await Sleep(30 * 1000);
 
-        this.vod.is_converting = true;
-        await this.vod.saveJSON("is_converting set");
+        if (!Config.getInstance().cfg("no_vod_convert", false)) {
 
-        // convert with ffmpeg
-        await this.convertVideo();
+            this.vod.is_converting = true;
+            await this.vod.saveJSON("is_converting set");
 
-        // sleep(10);
-        await Sleep(10 * 1000);
+            // convert with ffmpeg
+            await this.convertVideo();
 
-        const convert_success =
-            fs.existsSync(this.capture_filename) &&
-            fs.existsSync(this.converted_filename) &&
-            fs.statSync(this.converted_filename).size > 0
-            ;
+            // sleep(10);
+            await Sleep(10 * 1000);
 
-        // send internal webhook for convert start
-        Webhook.dispatch("end_convert", {
-            "vod": await this.vod.toAPI(),
-            "success": convert_success,
-        });
+            const convert_success =
+                fs.existsSync(this.capture_filename) &&
+                fs.existsSync(this.converted_filename) &&
+                fs.statSync(this.converted_filename).size > 0
+                ;
 
-        // remove ts if both files exist
-        if (convert_success) {
-            Log.logAdvanced(LOGLEVEL.DEBUG, "automator", `Remove ts file for ${basename}`);
-            fs.unlinkSync(this.capture_filename);
-        } else {
-            Log.logAdvanced(LOGLEVEL.FATAL, "automator", `Missing conversion files for ${basename}`);
-            // this.vod.automator_fail = true;
+            // send internal webhook for convert start
+            Webhook.dispatch("end_convert", {
+                "vod": await this.vod.toAPI(),
+                "success": convert_success,
+            });
+
+            // remove ts if both files exist
+            if (convert_success) {
+                Log.logAdvanced(LOGLEVEL.DEBUG, "automator", `Remove ts file for ${basename}`);
+                fs.unlinkSync(this.capture_filename);
+            } else {
+                Log.logAdvanced(LOGLEVEL.FATAL, "automator", `Missing conversion files for ${basename}`);
+                // this.vod.automator_fail = true;
+                this.vod.is_converting = false;
+                await this.vod.saveJSON("automator fail");
+                return false;
+            }
+
+            // add the captured segment to the vod info
+            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Conversion done, add segments to ${basename}`);
+
             this.vod.is_converting = false;
-            await this.vod.saveJSON("automator fail");
-            return false;
+            this.vod.addSegment(path.basename(this.converted_filename));
+            await this.vod.saveJSON("add segment");
+
+        } else {
+            Log.logAdvanced(LOGLEVEL.INFO, "automator", `No conversion for ${basename}, just add segments`);
+            this.vod.addSegment(path.basename(this.capture_filename));
+            await this.vod.saveJSON("add segment");
         }
-
-        // add the captured segment to the vod info
-        Log.logAdvanced(LOGLEVEL.INFO, "automator", `Conversion done, add segments to ${basename}`);
-
-        this.vod.is_converting = false;
-        this.vod.addSegment(path.basename(this.converted_filename));
-        await this.vod.saveJSON("add segment");
 
         // finalize
         Log.logAdvanced(LOGLEVEL.INFO, "automator", `Sleep 30 seconds for ${basename}`);

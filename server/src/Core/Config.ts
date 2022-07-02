@@ -174,6 +174,8 @@ export class Config {
 
         { "key": "chatdump_notext", "group": "Basic", "text": "Don't write plain text chat file when dumping chat", "type": "boolean", "default": false },
 
+        { "key": "no_vod_convert", "group": "Video", "text": "Don't convert VODs", "type": "boolean", "default": false },
+
     ];
 
     static readonly AudioContainer = "m4a";
