@@ -13,7 +13,7 @@ import { KeyValue } from "./KeyValue";
 import { Job } from "./Job";
 import { TwitchChannel } from "./TwitchChannel";
 import { Config } from "./Config";
-import { Helper } from "./Helper";
+import { Helper, RemuxReturn } from "./Helper";
 import { LOGLEVEL, Log } from "./Log";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
@@ -1187,7 +1187,14 @@ export class Automator {
             mf = this.vod.path_ffmpegchapters;
         }
 
-        const result = await Helper.remuxFile(this.capture_filename, this.converted_filename, false, mf);
+        let result: RemuxReturn;
+
+        try {
+            result = await Helper.remuxFile(this.capture_filename, this.converted_filename, false, mf);
+        } catch (err) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to convert video: ${err}`);
+            return false;
+        }
 
         if (result && result.success) {
             Log.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Converted video ${this.capture_filename} to ${this.converted_filename}`);
