@@ -17,7 +17,7 @@ import { EventSubStreamOnline } from "../../../common/TwitchAPI/EventSub/StreamO
 import { Automator } from "../Core/Automator";
 import { TwitchVODChapterJSON } from "../Storage/JSON";
 import { KeyValue } from "../Core/KeyValue";
-import { BaseConfigDataFolder } from "Core/BaseConfig";
+import { BaseConfigDataFolder } from "../Core/BaseConfig";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
