@@ -195,6 +195,8 @@ export class Automator {
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.vod.id`, event.id);
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.vod.started_at`, event.started_at);
 
+            fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify({ time: new Date(), action: "online" }) + "\n", { flag: "a" });
+
             if (this.channel.no_capture) {
                 Log.logAdvanced(LOGLEVEL.INFO, "automator", `Skip capture for ${this.broadcaster_user_login} because no-capture is set`);
                 if (this.channel) this.channel.broadcastUpdate();
@@ -250,6 +252,8 @@ export class Automator {
             KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
             // KeyValue.getInstance().set("${this.broadcaster_user_login}.vod.id", null);
             // KeyValue.getInstance().set("${this.broadcaster_user_login}.vod.started_at", null);
+
+            fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify({ time: new Date(), action: "offline" }) + "\n", { flag: "a" });
 
             await this.end();
         } else {
