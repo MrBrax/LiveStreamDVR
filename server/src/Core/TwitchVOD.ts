@@ -2094,10 +2094,13 @@ export class TwitchVOD {
 
         return new Promise((resolve, reject) => {
 
+            this.stopWatching();
+
             const job = Helper.startJob(`tdrender_${this.basename}`, bin, args, env);
 
             if (!job) {
                 console.error(chalk.redBright("Couldn't start job"));
+                this.startWatching();
                 reject(new Error("Couldn't start job"));
                 throw new Error("Could not start job");
             }
@@ -2115,6 +2118,8 @@ export class TwitchVOD {
             });
 
             job.on("close", (code) => {
+
+                this.startWatching();
 
                 if (job.stdout.join("").includes("Option 'temp-path' is unknown")) {
                     console.error(chalk.redBright("The version of TwitchDownloaderCLI  is too old. Please update to the latest version."));
@@ -2236,10 +2241,14 @@ export class TwitchVOD {
 
         return new Promise((resolve, reject) => {
 
+            this.stopWatching();
+
             const job = Helper.startJob(`burnchat_${this.basename}`, bin, args);
             if (!job) throw new Error("Job failed");
 
             job.on("close", (code) => {
+
+                this.startWatching();
 
                 if (fs.existsSync(this.path_chatburn) && fs.statSync(this.path_chatburn).size > 0) {
                     Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat burned for ${this.basename} (code ${code})`);
