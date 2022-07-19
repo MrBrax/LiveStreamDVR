@@ -150,7 +150,7 @@
                     <template v-if="vod.is_finalized">
                         <span class="flags">
                             <span v-if="vod.twitch_vod_exists === false" class="icon is-error" title="Deleted from provider"><fa icon="trash"></fa></span><!-- vod deleted -->
-                            <span v-if="vod.twitch_vod_exists === true && isRiskOfBeingDeleted(vod)" class="icon is-warning" title="Is risking deletion">
+                            <span v-if="vod.twitch_vod_exists === true && isRiskOfBeingDeleted(vod)" class="icon is-warning" title="Is risking deletion from provider">
                                 <fa icon="trash-arrow-up"></fa>
                             </span><!-- vod deleted -->
                             <span v-if="vod.twitch_vod_exists === null" class="icon is-error" title="Not checked"><fa icon="question"></fa></span><!-- vod not checked -->
