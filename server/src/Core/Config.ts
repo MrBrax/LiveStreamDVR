@@ -572,6 +572,28 @@ export class Config {
             console.error(chalk.red(`Expected path: ${path.join(BaseConfigFolder.client, "index.html")}`));
             // process.exit(1);
             throw new Error("Client is not built. Please run yarn build inside the client-vue folder.");
+        } else {
+            console.log(chalk.green("Client is built: " + path.join(BaseConfigFolder.client, "index.html")));
+        }
+
+        // check if the vodplayer is built before starting the server
+        if (!fs.existsSync(path.join(BaseConfigFolder.vodplayer, "index.html")) && process.env.NODE_ENV !== "test") {
+            console.error(chalk.red("VOD player is not built. Please run yarn build inside the twitch-vod-chat folder."));
+            console.error(chalk.red(`Expected path: ${path.join(BaseConfigFolder.vodplayer, "index.html")}`));
+            // process.exit(1);
+            throw new Error("VOD player is not built. Please run yarn build inside the twitch-vod-chat folder.");
+        } else {
+            console.log(chalk.green("VOD player is built: " + path.join(BaseConfigFolder.vodplayer, "index.html")));
+        }
+
+        // check if the chat dumper is built before starting the server
+        if (!fs.existsSync(path.join(AppRoot, "twitch-chat-dumper", "build", "index.js")) && process.env.NODE_ENV !== "test") {
+            console.error(chalk.red("Chat dumper is not built. Please run yarn build inside the twitch-chat-dumper folder."));
+            console.error(chalk.red(`Expected path: ${path.join(AppRoot, "twitch-chat-dumper", "build", "index.js")}`));
+            // process.exit(1);
+            throw new Error("Chat dumper is not built. Please run yarn build inside the twitch-chat-dumper folder.");
+        } else {
+            console.log(chalk.green("Chat dumper is built: " + path.join(AppRoot, "twitch-chat-dumper", "build", "index.js")));
         }
 
         const config = Config.getInstance().config;
