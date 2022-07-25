@@ -36,7 +36,14 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
 
         for (const sub of subs) {
 
-            const username = await TwitchChannel.channelLoginFromId(sub.condition.broadcaster_user_id);
+            let username: boolean | string = "";
+
+            try {
+                username = await TwitchChannel.channelLoginFromId(sub.condition.broadcaster_user_id);
+            } catch (e) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "ListSubscriptions", "Failed to get username for channel " + sub.condition.broadcaster_user_id, e);
+                continue;
+            }
 
             if (!username) {
                 Log.logAdvanced(LOGLEVEL.WARNING, "ListSubscriptions", `Could not find username for channel ${sub.condition.broadcaster_user_id}`);
