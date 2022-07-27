@@ -1778,7 +1778,14 @@ export class TwitchVOD {
 
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Check valid VOD for ${this.basename}`);
 
-        const video = await TwitchVOD.getVideo(this.twitch_vod_id.toString());
+        let video;
+
+        try {
+            video = await TwitchVOD.getVideo(this.twitch_vod_id.toString());
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to check valid VOD for ${this.basename}: ${(error as Error).message}`);
+            return null;
+        }
 
         if (video) {
             Log.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `VOD exists for ${this.basename}`);
