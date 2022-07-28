@@ -123,13 +123,31 @@ export async function UnsubscribeFromId(req: express.Request, res: express.Respo
 
     const sub_id = req.params.sub_id;
 
-    const sub = await Helper.eventSubUnsubscribe(sub_id);
+    const sub = await Helper.getSubscription(sub_id);
 
-    if (sub === true) {
+    if (!sub) {
+        res.status(404).send({
+            status: "ERROR",
+            message: "Subscription not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const status = await Helper.eventSubUnsubscribe(sub_id);
+
+    if (status === true) {
         res.send({
             status: "OK",
-            message: `Could not unsubscribe from ${sub_id}.`,
+            message: `Unsubscribed from ${sub_id}.`,
         });
+
+        // clean up after unsubscribe
+        if (sub.condition && sub.condition.broadcaster_user_id) {
+            const userid = sub.condition.broadcaster_user_id;
+            const type = sub.type;
+            KeyValue.getInstance().delete(`${userid}.sub.${type}`);
+            // KeyValue.getInstance().delete(`${userid}.substatus.${sub.type}`);
+        }
     } else {
         res.status(400).send({
             status: "ERROR",

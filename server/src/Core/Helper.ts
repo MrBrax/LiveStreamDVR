@@ -1031,6 +1031,37 @@ export class Helper {
 
     }
 
+    /**
+     * Get subscription by ID, this is very hacky since it gets all subscriptions and filters by ID
+     * 
+     * @param id 
+     * @returns 
+     */
+    public static async getSubscription(id: string): Promise<Subscription | false> {
+
+        Log.logAdvanced(LOGLEVEL.INFO, "helper", `Requesting subscription ${id}`);
+
+        if (!this.axios) {
+            throw new Error("Axios is not initialized");
+        }
+
+        const subs = await this.getSubsList();
+
+        if (!subs) {
+            return false;
+        }
+
+        const sub = subs.find((s) => s.id == id);
+
+        if (!sub) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Subscription ${id} not found`);
+            return false;
+        }
+
+        return sub;
+
+    }
+
     public static getErrors(): string[] {
         const errors = [];
         if (!this.axios) errors.push("Axios is not initialized. Make sure the client id and secret are set in the config.");
