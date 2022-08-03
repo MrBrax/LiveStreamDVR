@@ -490,23 +490,31 @@ export class TwitchChannel {
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Updated chapter data for ${this.login}`);
     }
 
-    private roundupCleanupVodCandidates(ignore_basename = ""): TwitchVOD[] {
+    public roundupCleanupVodCandidates(ignore_basename = ""): TwitchVOD[] {
 
         let total_size = 0;
         let total_vods = 0;
 
-        const vod_candidates: TwitchVOD[] = [];
+        let vod_candidates: TwitchVOD[] = [];
 
         const max_storage = this.max_storage > 0 ? this.max_storage : Config.getInstance().cfg<number>("storage_per_streamer", 100);
         const max_vods = this.max_vods > 0 ? this.max_vods : Config.getInstance().cfg<number>("vods_to_keep", 5);
 
-        const sps_bytes = max_storage * 1024 * 1024 * 1024;
-        const vods_to_keep = max_vods;
+        const max_gigabytes = max_storage * 1024 * 1024 * 1024;
+        // const vods_to_keep = max_vods;
 
         if (this.vods_list) {
             for (const vodclass of [...this.vods_list].reverse()) { // reverse so we can delete the oldest ones first
-                if (!vodclass.is_finalized) continue;
-                if (vodclass.basename === ignore_basename) continue;
+
+                if (!vodclass.is_finalized) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to not being finalized`);
+                    continue;
+                }
+
+                if (vodclass.basename === ignore_basename) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to ignore_basename`);
+                    continue;
+                }
 
                 if (Config.getInstance().cfg<boolean>("keep_deleted_vods") && vodclass.twitch_vod_exists === false) {
                     Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to it being deleted on Twitch.`);
@@ -523,21 +531,30 @@ export class TwitchChannel {
                     continue;
                 }
 
-                if (total_size > sps_bytes) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Adding ${vodclass.basename} to vod_candidates due to storage limit (${Helper.formatBytes(vodclass.total_size)} of current total ${Helper.formatBytes(total_size)}, limit ${Helper.formatBytes(sps_bytes)})`);
-                    vod_candidates.push(vodclass);
-                } else if (total_vods >= vods_to_keep) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Adding ${vodclass.basename} to vod_candidates due to vod limit (${total_vods} of limit ${vods_to_keep})`);
-                    vod_candidates.push(vodclass);
-                } else {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to it not being over storage limit (${Helper.formatBytes(total_size)}/${Helper.formatBytes(sps_bytes)}) and not being over vod limit (${total_vods}/${vods_to_keep})`);
-                }
-
                 total_size += vodclass.total_size;
                 total_vods += 1;
 
+                if (total_size > max_gigabytes) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Adding ${vodclass.basename} to vod_candidates due to storage limit (${Helper.formatBytes(vodclass.total_size)} of current total ${Helper.formatBytes(total_size)}, limit ${Helper.formatBytes(max_gigabytes)})`);
+                    vod_candidates.push(vodclass);
+                }
+
+                if (total_vods > max_vods) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Adding ${vodclass.basename} to vod_candidates due to vod limit (${total_vods} of limit ${max_vods})`);
+                    vod_candidates.push(vodclass);
+                }
+
+                if (!vod_candidates.includes(vodclass)) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to it not being over storage limit (${Helper.formatBytes(total_size)}/${Helper.formatBytes(max_gigabytes)}) and not being over vod limit (${total_vods}/${max_vods})`);
+                }
+
             }
         }
+
+        // remove duplicates
+        vod_candidates = vod_candidates.filter((v, i, a) => a.findIndex(t => t.basename === v.basename) === i);
+
+        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Chose ${vod_candidates.length} vods to delete`, { vod_candidates: vod_candidates.map(v => v.basename) });
 
         return vod_candidates;
 
@@ -560,7 +577,7 @@ export class TwitchChannel {
         }
 
         if (Config.getInstance().cfg("delete_only_one_vod")) {
-            Log.logAdvanced(LOGLEVEL.INFO, "channel", `Deleting only one vod for ${this.login}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "channel", `Deleting only one vod for ${this.login}: ${vod_candidates[0].basename}`);
             try {
                 await vod_candidates[0].delete();
             } catch (error) {
@@ -570,7 +587,7 @@ export class TwitchChannel {
             return 1;
         } else {
             for (const vodclass of vod_candidates) {
-                Log.logAdvanced(LOGLEVEL.INFO, "channel", `Cleanup ${vodclass.basename}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "channel", `Cleanup delete: ${vodclass.basename}`);
                 try {
                     await vodclass.delete();
                 } catch (error) {

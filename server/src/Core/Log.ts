@@ -84,7 +84,10 @@ export class Log {
         if (!Config.debug && level == LOGLEVEL.DEBUG) return;
 
         // if testing, don't log
-        if (process.env.NODE_ENV == "test") return;
+        if (process.env.NODE_ENV == "test") {
+            console.log(chalk.yellow("[TEST]"), level, module, text);
+            return;
+        }
 
         // check if folder exists
         if (!fs.existsSync(BaseConfigDataFolder.logs)) {
