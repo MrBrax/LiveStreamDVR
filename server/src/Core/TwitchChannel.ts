@@ -531,6 +531,11 @@ export class TwitchChannel {
                     continue;
                 }
 
+                if (vodclass.prevent_deletion) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to prevent_deletion`);
+                    continue;
+                }
+
                 total_size += vodclass.total_size;
                 total_vods += 1;
 
