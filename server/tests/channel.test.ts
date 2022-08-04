@@ -136,6 +136,13 @@ describe("Channel", () => {
         // expect(spies[9].mock.calls.length).toBe(1);
         expect(spies[8].mock.calls.length).toBe(1); // FIXME: legacy mode does not delete the oldest vod (#9)
 
+        // 1 vod per streamer but one vod has protected flag (delete 8 vod)
+        Config.getInstance().setConfig("vods_to_keep", 1);
+        Config.getInstance().setConfig("storage_per_streamer", 1000);
+        channel.vods_list[0].prevent_deletion = true;
+        const candidates_12 = channel.roundupCleanupVodCandidates();
+        expect(candidates_12.length).toBe(8);
+
         // const vodsDeleted = await channel.cleanupVods();
         // expect(vodsDeleted).toBe(10);
         // console.log("vodsDeleted", vodsDeleted);

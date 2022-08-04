@@ -1974,12 +1974,14 @@ export class TwitchVOD {
                         Config.AudioContainer :
                         Config.getInstance().cfg("vod_container", "mp4");
 
-                const status = await Helper.remuxFile(path.join(this.directory, `${this.basename}.ts`), path.join(this.directory, `${this.basename}.${container_ext}`));
-                console.log(chalk.bgBlue.whiteBright(`${this.basename} remux status: ${status.success}`));
-                this.addSegment(`${this.basename}.${container_ext}`);
-                this.is_converting = false;
-                await this.finalize();
-                await this.saveJSON("fix remux");
+                Helper.remuxFile(path.join(this.directory, `${this.basename}.ts`), path.join(this.directory, `${this.basename}.${container_ext}`))
+                    .then(async status => {
+                        console.log(chalk.bgBlue.whiteBright(`${this.basename} remux status: ${status.success}`));
+                        this.addSegment(`${this.basename}.${container_ext}`);
+                        this.is_converting = false;
+                        await this.finalize();
+                        await this.saveJSON("fix remux");
+                    });
             } else {
                 console.log(chalk.bgRed.whiteBright(`${this.basename} is not yet remuxed but no ts file found, skipping!`));
             }

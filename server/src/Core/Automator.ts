@@ -401,6 +401,11 @@ export class Automator {
                 }, 30 * 1000); // remove in future, just for testing
             }
 
+            if (!this.channel?.no_capture && is_live && !this.channel?.is_capturing) {
+                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} status is online but not capturing, starting capture from chapter update.`);
+                this.download();
+            }
+
             return true;
         }
 
