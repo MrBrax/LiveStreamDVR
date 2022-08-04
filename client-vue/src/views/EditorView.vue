@@ -1,12 +1,47 @@
 <template>
     <div class="container">
         <div class="videoplayer" v-if="vodData && vodData.basename">
-            <video id="video" ref="player" :src="vodData.webpath + '/' + vodData.basename + '.mp4'" @timeupdate="updateVideoTime" width="1280">
+            <video
+                id="video"
+                ref="player"
+                :src="vodData.webpath + '/' + vodData.basename + '.mp4'"
+                @timeupdate="videoTimeUpdate"
+                width="1280"
+                @canplay="videoCanPlay"
+                @seeked="videoSeeked"
+                @error="videoError"
+            >
                 <track kind="chapters" :src="vodData.webpath + '/' + vodData.basename + '.chapters.vtt'" label="Chapters" default />
             </video>
-            <div id="videoplayer-controls">
-                <button class="button" @click="play">Play</button>
-                <button class="button" @click="pause">Pause</button>
+            <div class="videoplayer-time">
+                <span v-if="videoDuration">
+                    {{ formatDuration(currentVideoTime) }} / {{ videoDuration ? formatDuration(videoDuration) : '-' }}
+                </span>
+                <span v-else>{{ $t("messages.loading")}}</span>
+            </div>
+            <div class="videoplayer-controls">
+                <div class="buttons">
+                    <button class="button is-confirm" @click="play">
+                        <span class="icon"><fa icon="play" /></span>
+                        <span>{{ $t('views.editor.buttons.play') }}</span>
+                    </button>
+                    <button class="button is-confirm" @click="pause">
+                        <span class="icon"><fa icon="pause" /></span>
+                        <span>{{ $t('views.editor.buttons.pause') }}</span>
+                    </button>
+                    <button type="button" class="button is-confirm" @click="setFrameIn(currentVideoTime)">
+                        <span class="icon"><fa icon="fast-backward" /></span>
+                        <span>{{ $t('views.editor.buttons.mark-in') }}</span>
+                    </button>
+                    <button type="button" class="button is-confirm" @click="setFrameOut(currentVideoTime)">
+                        <span class="icon"><fa icon="fast-forward" /></span>
+                        <span>{{ $t('views.editor.buttons.mark-out') }}</span>
+                    </button>
+                    <button class="button is-confirm" @click="addBookmark">
+                        <span class="icon"><fa icon="bookmark" /></span>
+                        <span>{{ $t('views.editor.buttons.add-bookmark') }}</span>
+                    </button>
+                </div>
             </div>
             <div id="timeline" ref="timeline" @click="seek">
                 <div id="timeline-cut" v-bind:style="timelineCutStyle"></div>
@@ -29,26 +64,45 @@
                 </div>
             </div>
 
+            <div>
+                <ul class="list">
+                    <li v-for="(chapter, i) in vodData.chapters" :key="i">
+                        <a v-if="chapter.offset !== undefined && chapter.duration !== undefined" @click="scrub(chapter.offset || 0, chapter.duration || 0)">
+                            {{ formatDuration(chapter.offset) }} - {{ formatDuration(chapter.offset + chapter.duration) }}: {{ chapter.title }}
+                        </a> 
+                    </li>
+                </ul>
+            </div>
+
             <div class="videoplayer-form">
                 <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
+
+                    <h2>{{ $t('views.editor.edit-segment') }}</h2>
+
                     <input type="hidden" name="vod" value="{{ vodData.basename }}" />
 
                     <div class="field">
+                        <label for="time_in" class="label">{{ $t('views.editor.time-in') }}</label>
                         <div class="control">
-                            <button type="button" class="button" @click="setFrameIn(currentVideoTime)">Mark in</button>
-                            <input class="input" name="time_in" v-model="frameIn" placeholder="In timestamp" />
+                            <input class="input" id="time_in" v-model="secondsIn" placeholder="In timestamp" />
+                            <p class="input-help">Timestamp in seconds</p>
                         </div>
                     </div>
 
                     <div class="field">
+                        <label for="time_out" class="label">{{ $t('views.editor.time-out') }}</label>
                         <div class="control">
-                            <button type="button" class="button" @click="setFrameOut(currentVideoTime)">Mark out</button>
-                            <input class="input" name="time_out" v-model="frameOut" placeholder="Out timestamp" />
+                            <input class="input" id="time_out" v-model="secondsOut" placeholder="Out timestamp" />
+                            <p class="input-help">Timestamp in seconds</p>
                         </div>
                     </div>
 
                     <div class="field">
-                        <div class="control"><strong>Duration:</strong> {{ cutSegmentlength > 0 ? humanDuration(cutSegmentlength) : "Error" }}</div>
+                        <div class="control"><strong>{{ $t('vod.video-info.duration') }}:</strong> {{ cutSegmentlength > 0 ? humanDuration(cutSegmentlength) : "None" }}</div>
+                    </div>
+
+                    <div class="field">
+                        <div class="control"><strong>{{ $t('views.editor.filesize') }}:</strong> {{ exportSize ? "~" + formatBytes(exportSize) : "None" }}</div>
                     </div>
 
                     <div class="field">
@@ -57,11 +111,14 @@
                         </div>
                     </div>
 
-                    <div class="field">
+                    <div class="field form-submit">
                         <div class="control">
-                            <button type="submit" class="button">Submit cut</button>
-                            <span :class="formStatusClass">{{ formStatusText }}</span>
+                            <button type="submit" class="button is-confirm">
+                                <span class="icon"><fa icon="save" /></span>
+                                <span>{{ $t('views.editor.buttons.submit-cut') }}</span>
+                            </button>
                         </div>
+                        <div :class="formStatusClass">{{ formStatusText }}</div>
                     </div>
                 </form>
 
@@ -85,20 +142,31 @@
 import { defineComponent } from "vue";
 import { TwitchVODChapter } from "@/core/chapter";
 import TwitchVOD from "@/core/vod";
+import { useStore } from "@/store";
+import { ApiResponse } from "@common/Api/Api";
+
+
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faPause, faBookmark, faFastBackward, faFastForward } from "@fortawesome/free-solid-svg-icons";
+library.add(faPause, faBookmark, faFastBackward, faFastForward);
 
 export default defineComponent({
     name: "EditorView",
     title: "Editor",
+    setup() {
+        const store = useStore();
+        return { store };
+    },
     data() {
         return {
             vodData: {} as TwitchVOD,
-            frameIn: 0,
-            frameOut: 0,
+            secondsIn: 0,
+            secondsOut: 0,
             currentVideoTime: 0,
             cutName: "",
             formStatusText: "Ready",
             formStatus: "",
-            // videoDuration: 0,
+            videoDuration: 0,
         };
     },
     created() {
@@ -127,8 +195,8 @@ export default defineComponent({
         setupPlayer() {
             if (this.$route.query.start !== undefined) {
                 (this.$refs.player as HTMLVideoElement).currentTime = parseInt(this.$route.query.start as string);
-                if (this.$route.query.start !== undefined) this.frameIn = parseInt(this.$route.query.start as string);
-                if (this.$route.query.end !== undefined) this.frameOut = parseInt(this.$route.query.end as string);
+                if (this.$route.query.start !== undefined) this.secondsIn = parseInt(this.$route.query.start as string);
+                if (this.$route.query.end !== undefined) this.secondsOut = parseInt(this.$route.query.end as string);
             }
         },
         play() {
@@ -142,8 +210,8 @@ export default defineComponent({
         scrub(tIn: number, tOut: number) {
             // const gameOffset = this.vodData.game_offset; // TODO: why
             const gameOffset = 0;
-            this.frameIn = Math.round(tIn - gameOffset);
-            this.frameOut = Math.round(tIn + tOut - gameOffset);
+            this.secondsIn = Math.round(tIn - gameOffset);
+            this.secondsOut = Math.round(tIn + tOut - gameOffset);
             // this.$forceUpdate();
         },
         seek(event: MouseEvent) {
@@ -156,9 +224,20 @@ export default defineComponent({
 
             // this.$forceUpdate();
         },
-        updateVideoTime(event: Event) {
+        videoTimeUpdate(event: Event) {
             // console.log(v);
             this.currentVideoTime = (event.target as HTMLVideoElement).currentTime;
+        },
+        videoCanPlay(event: Event) {
+            console.log("can play", event);
+            this.videoDuration = (event.target as HTMLVideoElement).duration;
+        },
+        videoSeeked(event: Event) {
+            console.log("seeked", event);
+        },
+        videoError(event: Event) {
+            console.error("video error", event);
+            alert("Video error, does the video exist?");
         },
         submitForm(event: Event) {
 
@@ -167,8 +246,8 @@ export default defineComponent({
 
             const inputs = {
                 vod: this.vodData.basename,
-                time_in: this.frameIn,
-                time_out: this.frameOut,
+                time_in: this.secondsIn,
+                time_out: this.secondsOut,
                 name: this.cutName,
             };
 
@@ -202,10 +281,28 @@ export default defineComponent({
             return width;
         },
         setFrameIn(frameNum: number) {
-            this.frameIn = Math.round(frameNum);
+            this.secondsIn = Math.round(frameNum);
+            if (this.secondsOut < this.secondsIn) this.secondsOut = this.secondsIn;
         },
         setFrameOut(frameNum: number) {
-            this.frameOut = Math.round(frameNum);
+            this.secondsOut = Math.round(frameNum);
+            if (this.secondsIn > this.secondsOut) this.secondsIn = this.secondsOut;
+        },
+        addBookmark() {
+            this.pause();
+            const offset = this.currentVideoTime;
+            const name = prompt(`Bookmark name for offset ${offset}:`);
+            if (!name) return;
+            this.$http.post(`/api/v0/vod/${this.vodData.basename}/bookmark`, { name: name, offset: offset }).then((response) => {
+                const json: ApiResponse = response.data;
+                if (json.message) alert(json.message);
+                console.log(json);
+                if (this.vod) this.store.fetchAndUpdateVod(this.vodData.basename);
+                // if (this.editVodMenu) this.editVodMenu.show = false;
+            }).catch((err) => {
+                console.error("form error", err.response);
+                if (err.response.data && err.response.data.message) alert(err.response.data.message);
+            });
         },
     },
     computed: {
@@ -213,8 +310,8 @@ export default defineComponent({
             if (!this.currentVideoTime) return { left: "0%", right: "100%" };
             const dur = (this.$refs.player as HTMLVideoElement).duration;
             return {
-                left: (this.frameIn / dur) * 100 + "%",
-                right: 100 - (this.frameOut / dur) * 100 + "%",
+                left: (this.secondsIn / dur) * 100 + "%",
+                right: 100 - (this.secondsOut / dur) * 100 + "%",
             };
         },
         timelinePlayheadStyle(): Record<string, string> {
@@ -232,10 +329,22 @@ export default defineComponent({
             };
         },
         cutSegmentlength(): number {
-            if (!this.vodData.video_metadata || this.vodData.video_metadata.type == "audio") return 0;
-            const fps = this.vodData.video_metadata?.fps;
-            return (this.frameOut - this.frameIn) / fps;
+            if (this.secondsIn === undefined || this.secondsOut === undefined) return 0;
+            return (this.secondsOut - this.secondsIn);
         },
+        exportSize(): number {
+            if (this.secondsIn === undefined || this.secondsOut === undefined) return 0;
+            if (!this.vodData || this.vodData.segments.length == 0) return 0;
+            const duration = this.secondsOut - this.secondsIn;
+            const original_size = this.vodData.segments[0].filesize;
+            if (!original_size) return 0;
+            return Math.round(original_size * (duration / this.videoDuration));
+        },
+        // videoDuration(): number {
+        //     const player = this.$refs.player as HTMLVideoElement;
+        //     if (!player) return 0;
+        //     return player.duration;
+        // },
     },
 });
 </script>

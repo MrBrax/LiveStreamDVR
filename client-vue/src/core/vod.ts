@@ -8,6 +8,7 @@ import { TwitchVODChapter } from "./chapter";
 import { TwitchGame } from "./game";
 import { TwitchHelper } from "./helper";
 import { TwitchVODSegment } from "./segment";
+import { TwitchVODBookmark } from "@common/Bookmark";
 
 // const store = useStore();
 
@@ -28,6 +29,7 @@ export default class TwitchVOD {
 
     segments: TwitchVODSegment[] = [];
     chapters: TwitchVODChapter[] = [];
+    bookmarks: TwitchVODBookmark[] = [];
 
     video_metadata: VideoMetadata | AudioMetadata | undefined;
 
@@ -116,6 +118,7 @@ export default class TwitchVOD {
         vod.comment = apiResponse.comment;
         vod.prevent_deletion = apiResponse.prevent_deletion;
         vod.failed = apiResponse.failed || false;
+        vod.bookmarks = apiResponse.bookmarks || [];
         return vod;
     }
 

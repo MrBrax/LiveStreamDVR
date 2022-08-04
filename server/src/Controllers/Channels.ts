@@ -2,7 +2,7 @@ import express from "express";
 import { generateStreamerList } from "../Helpers/StreamerList";
 import { TwitchChannel } from "../Core/TwitchChannel";
 import { ChannelConfig, VideoQuality } from "../../../common/Config";
-import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse } from "../../../common/Api/Api";
+import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiResponse } from "../../../common/Api/Api";
 import { VideoQualityArray } from "../../../common/Defs";
 import { LOGLEVEL, Log } from "../Core/Log";
 import { TwitchVOD } from "../Core/TwitchVOD";
@@ -10,12 +10,14 @@ import { replaceAll } from "../Helpers/ReplaceAll";
 import { Helper } from "../Core/Helper";
 import { Config } from "../Core/Config";
 import path from "path";
+import fs from "fs";
 import { parseJSON } from "date-fns";
 import { Webhook } from "../Core/Webhook";
 import { EventSubStreamOnline } from "../../../common/TwitchAPI/EventSub/StreamOnline";
 import { Automator } from "../Core/Automator";
 import { TwitchVODChapterJSON } from "../Storage/JSON";
 import { KeyValue } from "../Core/KeyValue";
+import { BaseConfigDataFolder } from "../Core/BaseConfig";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -605,5 +607,53 @@ export async function DeleteAllChannelVods(req: express.Request, res: express.Re
             message: "Failed to delete all VODs",
         } as ApiErrorResponse);
     }
+
+}
+
+interface StreamEvent {
+    time: string;
+    action: string;
+}
+
+type HistoryEntry = TwitchVODChapterJSON | StreamEvent;
+
+export function GetHistory(req: express.Request, res: express.Response): void {
+
+    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+
+    if (!channel || !channel.userid) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const history: HistoryEntry[] = [];
+
+    const file = path.join(BaseConfigDataFolder.history, `${channel.login}.jsonline`);
+    if (!fs.existsSync(file)) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "No history found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const lines = fs.readFileSync(file, "utf8").split("\n");
+    for (const line of lines) {
+        if (line.length > 0) {
+            const chapter = JSON.parse(line) as HistoryEntry;
+            history.push(chapter);
+        }
+    }
+
+    res.send({
+        status: "OK",
+        // message: "History found",
+        data: history,
+    } as ApiResponse);
+
+    return;
 
 }

@@ -12,11 +12,10 @@
                         required
                         ref="quality"
                         name="quality"
-                        @blur="validateQuality"
                     />
                     <p class="input-help">{{ $t('forms.channel.quality-help-example') }}</p>
                     <p class="input-help"><strong>{{ $t('forms.channel.quality-help-warning') }}</strong></p>
-                    <p class="input-help">{{ $t('forms.channel.quality-help-choices', [VideoQualityArray.join(", ")]) }}</p>
+                    <!--<p class="input-help">{{ $t('forms.channel.quality-help-choices', [VideoQualityArray.join(", ")]) }}</p>-->
                 </div>
             </div>
 
@@ -266,6 +265,7 @@ export default defineComponent({
                     }
                 });
         },
+        /*
         validateQuality() {
             const input = this.formData.quality.split(" ");
             const valid = input.every((quality) => VideoQualityArray.includes(quality));
@@ -282,6 +282,7 @@ export default defineComponent({
                 }
             }
         },
+        */
         renameChannel() {
             const newLogin = prompt("Enter new channel login. If channel has not changed login, this will fail in the future.\n", this.channel.login);
             if (!newLogin || newLogin == this.channel.login) return;

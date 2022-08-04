@@ -2,14 +2,13 @@ import path from "path";
 import fs from "fs";
 import { BaseConfigDataFolder } from "./BaseConfig";
 import { LOGLEVEL, Log } from "./Log";
-import { ExecReturn, Helper } from "./Helper";
+import { Helper } from "./Helper";
 import { parseJSON } from "date-fns";
 import { ChildProcessWithoutNullStreams } from "child_process";
 import { EventEmitter } from "events";
 import { Webhook } from "./Webhook";
 import { ApiJob } from "../../../common/Api/Client";
 import { JobStatus } from "../../../common/Defs";
-import { Sleep } from "Helpers/Sleep";
 
 export interface TwitchAutomatorJobJSON {
     name: string;
@@ -67,6 +66,7 @@ export class Job extends EventEmitter {
     logfile = "";
 
     private _updateTimer: NodeJS.Timeout | undefined;
+    private _progressTimer: NodeJS.Timeout | undefined;
 
     private realpath(str: string): string {
         return path.normalize(str);
@@ -605,15 +605,39 @@ export class Job extends EventEmitter {
         }
     }
 
+    private progressAccumulator = 0; // FIXME: i hate this implementation
     public setProgress(progress: number): void {
-        if (this.progress !== progress) {
+        if (progress > this.progress) {
             // console.debug(`Job ${this.name} progress: ${progress}`);
-            if (progress > this.progress + 0.05) {
+
+            /*
+            this.progressAccumulator += Math.abs(progress - this.progress);
+
+            // only update if progress has changed by at least 2%
+            if (this.progressAccumulator > 0.02) {
                 this.progress = progress;
-                this.broadcastUpdate(true); // only send update if progress has changed by more than 5%
+                // this.broadcastUpdate(true); // only send update if progress has changed by more than 5%
+                Webhook.dispatch("job_progress", {
+                    "job_name": this.name || "",
+                    "progress": progress,
+                });
+                this.progressAccumulator = 0;
             } else {
                 this.progress = progress;
+                // console.debug(`Job ${this.name} did not change progress by more than 2%`);
             }
+            */
+            if (this._progressTimer) clearTimeout(this._progressTimer);
+            this._progressTimer = setTimeout(() => {
+                if (!this || this.status !== JobStatus.RUNNING) return; 
+                this.progress = progress;
+                Webhook.dispatch("job_progress", {
+                    "job_name": this.name || "",
+                    "progress": progress,
+                });
+            }, 1000);
+        } else {
+            // console.debug(`Job ${this.name} less progress: ${progress} / ${this.progress}`);
         }
     }
 
@@ -641,6 +665,7 @@ export class Job extends EventEmitter {
             process_running: this.process_running,
             status: this.status,
             progress: this.progress,
+            dt_started_at: this.dt_started_at ? this.dt_started_at.toJSON() : "",
         };
     }
 

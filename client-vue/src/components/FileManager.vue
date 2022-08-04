@@ -53,6 +53,9 @@
                         <button class="button is-small is-danger" @click="deleteFile(item)">
                             <span><fa icon="trash"></fa></span>
                         </button>
+                        <button v-if="['mp4'].includes(item.extension)" class="button is-small is-info" @click="showExportFileDialog(item)">
+                            <span><fa icon="upload"></fa></span>
+                        </button>
                     </div>
                 </td>
             </tr> 
@@ -64,15 +67,136 @@
             {{ error }}
         </div>
     </div>
+    <modal-box ref="exportFileMenu" title="Export File">
+
+        <pre>{{ exportVodSettings.file_folder }}/{{ exportVodSettings.file_name }}</pre>
+
+        <form @submit.prevent="doExportFile">
+
+            <!-- Exporter -->
+            <div class="field">
+                <label class="label">{{ $t('vod.export.export-type') }}</label>
+                <div class="control">
+                    <select class="input" v-model="exportVodSettings.exporter">
+                        <option value="file">File</option>
+                        <option value="youtube">YouTube</option>
+                        <option value="sftp">SFTP</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Title / Filename -->
+            <div class="field">
+                <label class="label">{{ $t('vod.export.title') }}</label>
+                <div class="control">
+                    <input class="input" type="text" v-model="exportVodSettings.title" required />
+                </div>
+            </div>
+
+            <!-- Directory -->
+            <div class="field" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp'">
+                <label class="label">{{ $t('vod.export.directory') }}</label>
+                <div class="control">
+                    <input class="input" type="text" v-model="exportVodSettings.directory" />
+                </div>
+            </div>
+
+            <!-- Host -->
+            <div class="field" v-if="exportVodSettings.exporter == 'sftp'">
+                <label class="label">{{ $t('vod.export.host') }}</label>
+                <div class="control">
+                    <input class="input" type="text" v-model="exportVodSettings.host" />
+                </div>
+            </div>
+
+            <!-- Username -->
+            <div class="field" v-if="exportVodSettings.exporter == 'sftp'">
+                <label class="label">{{ $t('vod.export.username') }}</label>
+                <div class="control">
+                    <input class="input" type="text" v-model="exportVodSettings.username" />
+                </div>
+            </div>
+
+            <!-- YouTube Authentication -->
+            <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+                <div class="buttons">
+                    <button class="button is-confirm" @click="doCheckYouTubeStatus">
+                        <span class="icon"><fa icon="sync" /></span>
+                        <span>{{ $t("buttons.checkstatus") }}</span>
+                    </button>
+                    <button class="button is-confirm" @click="doAuthenticateYouTube">
+                        <span class="icon"><fa icon="key" /></span>
+                        <span>{{ $t("buttons.authenticate") }}</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+                <label class="label">{{ $t('vod.export.description') }}</label>
+                <div class="control">
+                    <textarea class="input textarea" v-model="exportVodSettings.description" />
+                </div>
+            </div>
+
+            <!-- Category -->
+            <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+                <label class="label">{{ $t('vod.export.category') }}</label>
+                <div class="control">
+                    <div class="select">
+                        <select v-model="exportVodSettings.category">
+                            <option v-for="(c, i) in YouTubeCategories" :value="i">{{ c }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tags -->
+            <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+                <label class="label">{{ $t('vod.export.tags') }}</label>
+                <div class="control">
+                    <input class="input" type="text" v-model="exportVodSettings.tags" />
+                </div>
+                <p class="input-help">{{ $t('vod.export.tags-help') }}</p>
+            </div>
+
+            <!-- Privacy -->
+            <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+                <label class="label">{{ $t('vod.export.privacy') }}</label>
+                <div class="control">
+                    <div class="select">
+                        <select v-model="exportVodSettings.privacy">
+                            <option value="public">{{ $t('vod.export.privacy-public') }}</option>
+                            <option value="unlisted">{{ $t('vod.export.privacy-unlisted') }}</option>
+                            <option value="private">{{ $t('vod.export.privacy-private') }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="control">
+                    <button class="button is-confirm">
+                        <span class="icon"><fa icon="upload" /></span>
+                        <span>{{ $t("buttons.export") }}</span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </modal-box>
 </template>
 
 <script lang="ts">
 import { useStore } from "@/store";
 import { AxiosError } from "axios";
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
+import ModalBox from "./ModalBox.vue";
+import { formatString } from "@common/Format";
+import { YouTubeCategories } from "@/defs";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFileLines } from "@fortawesome/free-solid-svg-icons";
+import { ApiResponse } from "@common/Api/Api";
 library.add(faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFileLines);
 
 interface ApiFile {
@@ -105,19 +229,55 @@ export default defineComponent({
     },
     setup() {
         const store = useStore();
-        return { store };
+        const exportFileMenu = ref<InstanceType<typeof ModalBox>>();
+        return { store, exportFileMenu, YouTubeCategories };
     },
     data(): {
         files: ApiFile[];
         error: string;
         sortBy: "name" | "size" | "date";
         sortOrder: "asc" | "desc";
+        exportVodSettings: {
+            exporter: "file" | "sftp" | "youtube";
+            title: string;
+            directory: string;
+            host: string;
+            username: string;
+            description: string;
+            category: string;
+            tags: string;
+            file_folder: string;
+            file_name: string;
+            privacy: "public" | "unlisted" | "private";
+        };
+        exporterTemplateVariables: string[];
     } {
         return {
             files: [],
             error: "",
             sortBy: this.defaultSortBy as "name" | "size" | "date",
             sortOrder: this.defaultSortOrder as "asc" | "desc",
+            exportVodSettings: {
+                exporter: "file",
+                title: "",
+                directory: "",
+                host: "",
+                username: "",
+                description: "",
+                tags: "",
+                category: "",
+                file_folder: "",
+                file_name: "",
+                privacy: "private",
+            },
+            exporterTemplateVariables: [
+                "login",
+                "title",
+                "stream_number",
+                "comment",
+                "date",
+                "resolution",
+            ],
         };
     },
     created() {
@@ -178,9 +338,45 @@ export default defineComponent({
                 default:
                     return "file";
             }
-        }
+        },
+        showExportFileDialog(file: ApiFile) {
+            if (!this.exportFileMenu) return;
+            // this.exportFileMenu.value = this.$refs.exportFileMenu as InstanceType<typeof ModalBox>;
+            // this.exportFileMenu.value.show();
+            this.exportVodSettings.file_folder = this.path;
+            this.exportVodSettings.file_name = file.name;
+            this.exportFileMenu.show = true;
+        },
+        doExportFile() {
+            // if (!this.vod) return;
+            this.$http.post(`/api/v0/exporter?mode=file`, this.exportVodSettings).then((response) => {
+                const json: ApiResponse = response.data;
+                if (json.message) alert(json.message);
+                console.log(json);
+                // if (this.vod) this.store.fetchAndUpdateVod(this.vod.basename);
+                // if (this.editVodMenu) this.editVodMenu.show = false;
+            }).catch((err) => {
+                console.error("form error", err.response);
+                if (err.response.data && err.response.data.message) alert(err.response.data.message);
+            });
+        },
+        doCheckYouTubeStatus() {
+            this.$http.get(`/api/v0/youtube/status`).then((response) => {
+                const json: ApiResponse = response.data;
+                if (json.message) alert(json.message);
+                console.log(json);
+            }).catch((err) => {
+                console.error("youtube check error", err.response);
+                if (err.response.data && err.response.data.message) alert(err.response.data.message);
+            });
+        },
+        doAuthenticateYouTube() {
+            const url = `${this.store.cfg<string>("basepath", "")}/api/v0/youtube/authenticate`;
+            window.open(url, "_blank");
+        },
     },
     components: {
+        ModalBox,
     },
     computed: {
         sortedFiles() {

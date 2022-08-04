@@ -62,6 +62,9 @@ export class TwitchChannel {
 
     public description: string | undefined;
     public profile_image_url: string | undefined;
+    public offline_image_url: string | undefined;
+    /** @todo: Not implemented */
+    public banner_image_url: string | undefined;
     public quality: VideoQuality[] | undefined;
     public match: string[] | undefined;
     public download_chat = false;
@@ -202,8 +205,11 @@ export class TwitchChannel {
             display_name: this.display_name || "",
             description: this.description || "",
             profile_image_url: this.profile_image_url || "",
+            offline_image_url: this.offline_image_url || "",
+            banner_image_url: this.banner_image_url || "",
             broadcaster_type: this.broadcaster_type || "",
             is_live: this.is_live,
+            is_capturing: this.is_capturing,
             is_converting: this.is_converting,
             current_vod: await this.current_vod?.toAPI(),
             current_game: this.current_game?.toAPI(),
@@ -236,6 +242,10 @@ export class TwitchChannel {
 
             current_stream_number: this.current_stream_number,
             current_season: this.current_season,
+
+            chapter_data: this.getChapterData(),
+
+            saves_vods: this.saves_vods,
         };
     }
 
@@ -313,11 +323,29 @@ export class TwitchChannel {
         return this.current_vod?.duration;
     }
 
-    // a bit excessive since current_vod is already set with the capturing vod
+    /**
+     * Returns true if the channel is currently live, not necessarily if it is capturing.
+     * It is set when the hook is called with the channel.online event.
+     * @returns {boolean}
+     */
     get is_live(): boolean {
+        // return this.current_vod != undefined && this.current_vod.is_capturing;
+        return KeyValue.getInstance().getBool(`${this.login}.online`);
+    }
+
+    /**
+     * Returns true if the channel is currently capturing, which also means it is live.
+     * It is dependent on the current vod being captured and the is_capturing flag that gets set after the initial capture process.
+     * @returns {boolean}
+     */
+    get is_capturing(): boolean {
         return this.current_vod != undefined && this.current_vod.is_capturing;
     }
 
+    /**
+     * Returns true if the channel is currently converting a vod (remuxing).
+     * @returns {boolean}
+     */
     get is_converting(): boolean {
         return this.vods_list?.some(vod => vod.is_converting) ?? false;
     }
@@ -327,8 +355,9 @@ export class TwitchChannel {
     }
 
     /**
-     * Create an empty VOD object
-     * @param filename 
+     * Create an empty VOD object. This is the only method to use to create a new VOD. Do NOT use the constructor of the VOD class.
+     *
+     * @param filename The filename of the vod including json extension.
      * @returns Empty VOD
      */
     public async createVOD(filename: string): Promise<TwitchVOD> {
@@ -461,23 +490,31 @@ export class TwitchChannel {
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Updated chapter data for ${this.login}`);
     }
 
-    private roundupCleanupVodCandidates(ignore_basename = ""): TwitchVOD[] {
+    public roundupCleanupVodCandidates(ignore_basename = ""): TwitchVOD[] {
 
         let total_size = 0;
         let total_vods = 0;
 
-        const vod_candidates: TwitchVOD[] = [];
+        let vod_candidates: TwitchVOD[] = [];
 
         const max_storage = this.max_storage > 0 ? this.max_storage : Config.getInstance().cfg<number>("storage_per_streamer", 100);
         const max_vods = this.max_vods > 0 ? this.max_vods : Config.getInstance().cfg<number>("vods_to_keep", 5);
 
-        const sps_bytes = max_storage * 1024 * 1024 * 1024;
-        const vods_to_keep = max_vods;
+        const max_gigabytes = max_storage * 1024 * 1024 * 1024;
+        // const vods_to_keep = max_vods;
 
         if (this.vods_list) {
             for (const vodclass of [...this.vods_list].reverse()) { // reverse so we can delete the oldest ones first
-                if (!vodclass.is_finalized) continue;
-                if (vodclass.basename === ignore_basename) continue;
+
+                if (!vodclass.is_finalized) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to not being finalized`);
+                    continue;
+                }
+
+                if (vodclass.basename === ignore_basename) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to ignore_basename`);
+                    continue;
+                }
 
                 if (Config.getInstance().cfg<boolean>("keep_deleted_vods") && vodclass.twitch_vod_exists === false) {
                     Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to it being deleted on Twitch.`);
@@ -494,21 +531,30 @@ export class TwitchChannel {
                     continue;
                 }
 
-                if (total_size > sps_bytes) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Adding ${vodclass.basename} to vod_candidates due to storage limit (${Helper.formatBytes(vodclass.total_size)} of current total ${Helper.formatBytes(total_size)}, limit ${Helper.formatBytes(sps_bytes)})`);
-                    vod_candidates.push(vodclass);
-                } else if (total_vods >= vods_to_keep) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Adding ${vodclass.basename} to vod_candidates due to vod limit (${total_vods} of limit ${vods_to_keep})`);
-                    vod_candidates.push(vodclass);
-                } else {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to it not being over storage limit (${Helper.formatBytes(total_size)}/${Helper.formatBytes(sps_bytes)}) and not being over vod limit (${total_vods}/${vods_to_keep})`);
-                }
-
                 total_size += vodclass.total_size;
                 total_vods += 1;
 
+                if (total_size > max_gigabytes) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Adding ${vodclass.basename} to vod_candidates due to storage limit (${Helper.formatBytes(vodclass.total_size)} of current total ${Helper.formatBytes(total_size)}, limit ${Helper.formatBytes(max_gigabytes)})`);
+                    vod_candidates.push(vodclass);
+                }
+
+                if (total_vods > max_vods) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Adding ${vodclass.basename} to vod_candidates due to vod limit (${total_vods} of limit ${max_vods})`);
+                    vod_candidates.push(vodclass);
+                }
+
+                if (!vod_candidates.includes(vodclass)) {
+                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to it not being over storage limit (${Helper.formatBytes(total_size)}/${Helper.formatBytes(max_gigabytes)}) and not being over vod limit (${total_vods}/${max_vods})`);
+                }
+
             }
         }
+
+        // remove duplicates
+        vod_candidates = vod_candidates.filter((v, i, a) => a.findIndex(t => t.basename === v.basename) === i);
+
+        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Chose ${vod_candidates.length} vods to delete`, { vod_candidates: vod_candidates.map(v => v.basename) });
 
         return vod_candidates;
 
@@ -531,7 +577,7 @@ export class TwitchChannel {
         }
 
         if (Config.getInstance().cfg("delete_only_one_vod")) {
-            Log.logAdvanced(LOGLEVEL.INFO, "channel", `Deleting only one vod for ${this.login}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "channel", `Deleting only one vod for ${this.login}: ${vod_candidates[0].basename}`);
             try {
                 await vod_candidates[0].delete();
             } catch (error) {
@@ -541,7 +587,7 @@ export class TwitchChannel {
             return 1;
         } else {
             for (const vodclass of vod_candidates) {
-                Log.logAdvanced(LOGLEVEL.INFO, "channel", `Cleanup ${vodclass.basename}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "channel", `Cleanup delete: ${vodclass.basename}`);
                 try {
                     await vodclass.delete();
                 } catch (error) {
@@ -661,6 +707,9 @@ export class TwitchChannel {
 
     public postLoad() {
         this.setupStreamNumber();
+        if (!KeyValue.getInstance().has(`${this.login}.saves_vods`)) {
+            this.checkIfChannelSavesVods();
+        }
     }
 
     public broadcastUpdate() {
@@ -762,6 +811,24 @@ export class TwitchChannel {
         if (!this.userid) return false;
         const streams = await TwitchChannel.getStreams(this.userid);
         return streams && streams.length > 0;
+    }
+
+    public async checkIfChannelSavesVods(): Promise<boolean> {
+        if (!this.userid) return false;
+        Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Checking if channel ${this.login} saves vods`);
+        const videos = await TwitchVOD.getVideos(this.userid);
+        const state = videos && videos.length > 0;
+        KeyValue.getInstance().setBool(`${this.login}.saves_vods`, state);
+        if (state) {
+            Log.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `Channel ${this.login} saves vods`);
+        } else {
+            Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Channel ${this.login} does not save vods`);
+        }
+        return state;
+    }
+
+    get saves_vods(): boolean {
+        return KeyValue.getInstance().getBool(`${this.login}.saves_vods`);
     }
 
     /**
@@ -874,10 +941,18 @@ export class TwitchChannel {
             Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`);
             TwitchChannel.channels_config = TwitchChannel.channels_config.filter(ch => ch.login !== config.login); // remove channel from config
             TwitchChannel.saveChannelsConfig();
+            // throw new Error(`Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`, { cause: error });
             throw error; // rethrow error
         }
 
         TwitchChannel.channels.push(channel);
+
+        if (Helper.axios) { // bad hack?
+            const streams = await TwitchChannel.getStreams(channel.userid);
+            if (streams && streams.length > 0) {
+                KeyValue.getInstance().setBool(`${channel.login}.online`, true);
+            }
+        }
 
         return channel;
     }
@@ -1190,6 +1265,28 @@ export class TwitchChannel {
             if (avatar_response) {
                 avatar_response.data.pipe(fs.createWriteStream(logo_path));
                 userData.cache_avatar = logo_filename;
+            }
+        }
+
+        if (userData.offline_image_url) {
+            const offline_filename = `${userData.id}${path.extname(userData.offline_image_url)}`;
+            const offline_path = path.join(BaseConfigDataFolder.public_cache_banners, offline_filename);
+            if (fs.existsSync(offline_path)) {
+                fs.unlinkSync(offline_path);
+            }
+            let offline_response;
+            try {
+                offline_response = await axios({
+                    url: userData.offline_image_url,
+                    method: "GET",
+                    responseType: "stream",
+                });
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not download user offline image for ${userData.id}: ${(error as Error).message}`, error);
+            }
+            if (offline_response) {
+                offline_response.data.pipe(fs.createWriteStream(offline_path));
+                userData.cache_offline_image = offline_filename;
             }
         }
 

@@ -146,7 +146,7 @@ export class ClientBroker {
 
     }
 
-    static broadcast(data: any) {
+    static broadcast(data: unknown) {
         const d = JSON.stringify(data);
         if (!this.wss) {
             console.error(chalk.bgRed.whiteBright(`No WebSocket server attached to broker for data: ${d.length > 64 ? d.substring(0, 64) + "..." : d}`));

@@ -1,5 +1,6 @@
 import { formatString } from "../Helpers/Format";
 import path from "path";
+import fs from "fs";
 import { TwitchVOD } from "../Core/TwitchVOD";
 import { format } from "date-fns";
 
@@ -10,23 +11,26 @@ export class BaseExporter {
     public vod?: TwitchVOD;
     public filename = "";
     public template_filename = "";
+    public output_filename = "";
     public extension = "";
 
     loadVOD(vod: TwitchVOD): boolean {
-        if (!vod.filename) return false;
-        if (!vod.segments || vod.segments.length == 0) return false;
+        if (!vod.filename) throw new Error("No filename");
+        if (!vod.segments || vod.segments.length == 0) throw new Error("No segments");
         if (vod.segments[0].filename) {
+            if (!fs.existsSync(vod.segments[0].filename)) throw new Error("Segment file does not exist");
             this.filename = vod.segments[0].filename;
             this.extension = path.extname(this.filename).substring(1);
             this.vod = vod;
             return true;
         } else {
-            return false;
+            throw new Error("No segment filename");
         }
     }
 
     loadFile(filename: string): boolean {
-        if (!filename) return false;
+        if (!filename) throw new Error("No filename");
+        if (!fs.existsSync(filename)) throw new Error("File does not exist");
         this.filename = filename;
         this.extension = path.extname(this.filename).substring(1);
         return true;
@@ -34,6 +38,10 @@ export class BaseExporter {
 
     setTemplate(template_filename: string): void {
         this.template_filename = template_filename;
+    }
+
+    setOutputFilename(filename: string): void {
+        this.output_filename = filename;
     }
 
     setSource(source: "segment" | "downloaded" | "burned"): void {
@@ -53,6 +61,9 @@ export class BaseExporter {
     }
 
     getFormattedTitle() {
+        if (this.output_filename !== "") {
+            return this.output_filename; // override
+        }
         if (!this.vod) {
             return this.template_filename; // no vod loaded, return template filename instead
         }

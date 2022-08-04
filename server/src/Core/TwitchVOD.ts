@@ -16,6 +16,7 @@ import { MediaInfo } from "../../../common/mediainfofield";
 import { Clip, ClipsResponse } from "../../../common/TwitchAPI/Clips";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { Video, VideosResponse } from "../../../common/TwitchAPI/Video";
+import { TwitchVODBookmark } from "../../../common/Bookmark";
 import { VodUpdated } from "../../../common/Webhook";
 import { replaceAll } from "../Helpers/ReplaceAll";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../Storage/JSON";
@@ -32,6 +33,11 @@ import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchVODSegment } from "./TwitchVODSegment";
 import { Webhook } from "./Webhook";
 
+/**
+ * Twitch VOD
+ * 
+ * @warning **Do NOT create this class directly. Use TwitchChannel.createVOD() instead.**
+ */
 export class TwitchVOD {
 
     static vods: TwitchVOD[] = [];
@@ -62,6 +68,9 @@ export class TwitchVOD {
 
     chapters_raw: TwitchVODChapterJSON[] = [];
     chapters: TwitchVODChapter[] = [];
+
+
+    bookmarks: TwitchVODBookmark[] = [];
 
     /**
      * Date for when the VOD was created
@@ -220,6 +229,13 @@ export class TwitchVOD {
         this.comment = this.json.comment;
         this.prevent_deletion = this.json.prevent_deletion ?? false;
         this.failed = this.json.failed ?? false;
+
+        this.bookmarks = this.json.bookmarks ? this.json.bookmarks.map((b => {
+            return {
+                name: b.name,
+                date: parseJSON(b.date),
+            };
+        })) : [];
 
     }
 
@@ -863,6 +879,22 @@ export class TwitchVOD {
 
     }
 
+    public calculateBookmarks(): boolean {
+
+        if (!this.bookmarks || this.bookmarks.length == 0) return false;
+        if (!this.started_at) return false;
+
+        this.bookmarks.forEach((bookmark, index) => {
+            if (!this.started_at) return false;
+
+            const offset = (bookmark.date.getTime() - this.started_at.getTime()) / 1000;
+            bookmark.offset = offset;
+        });
+
+        return true;
+
+    }
+
     /**
      * Remove short chapters and change duration of chapters to match the duration of the VOD.
      * @returns 
@@ -1457,6 +1489,8 @@ export class TwitchVOD {
 
             failed: this.failed,
 
+            bookmarks: this.bookmarks,
+
             // game_offset: this.game_offset || 0,
             // twitch_vod_url: this.twitch_vod_url,
             // twitch_vod_exists: this.twitch_vod_exists,
@@ -1579,6 +1613,8 @@ export class TwitchVOD {
 
         generated.failed = this.failed;
 
+        generated.bookmarks = this.bookmarks;
+
         // generated.twitch_vod_status = this.twitch_vod_status;
 
         // generated.video_fail2 = this.video_fail2;
@@ -1671,7 +1707,7 @@ export class TwitchVOD {
             throw new Error("Vod has been marked with prevent_deletion");
         }
 
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Delete ${this.basename}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Delete ${this.basename}`, this.associatedFiles);
 
         await this.stopWatching();
 
@@ -1742,7 +1778,14 @@ export class TwitchVOD {
 
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Check valid VOD for ${this.basename}`);
 
-        const video = await TwitchVOD.getVideo(this.twitch_vod_id.toString());
+        let video;
+
+        try {
+            video = await TwitchVOD.getVideo(this.twitch_vod_id.toString());
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to check valid VOD for ${this.basename}: ${(error as Error).message}`);
+            return null;
+        }
 
         if (video) {
             Log.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `VOD exists for ${this.basename}`);
@@ -2058,10 +2101,13 @@ export class TwitchVOD {
 
         return new Promise((resolve, reject) => {
 
+            this.stopWatching();
+
             const job = Helper.startJob(`tdrender_${this.basename}`, bin, args, env);
 
             if (!job) {
                 console.error(chalk.redBright("Couldn't start job"));
+                this.startWatching();
                 reject(new Error("Couldn't start job"));
                 throw new Error("Could not start job");
             }
@@ -2079,6 +2125,8 @@ export class TwitchVOD {
             });
 
             job.on("close", (code) => {
+
+                this.startWatching();
 
                 if (job.stdout.join("").includes("Option 'temp-path' is unknown")) {
                     console.error(chalk.redBright("The version of TwitchDownloaderCLI  is too old. Please update to the latest version."));
@@ -2200,10 +2248,14 @@ export class TwitchVOD {
 
         return new Promise((resolve, reject) => {
 
+            this.stopWatching();
+
             const job = Helper.startJob(`burnchat_${this.basename}`, bin, args);
             if (!job) throw new Error("Job failed");
 
             job.on("close", (code) => {
+
+                this.startWatching();
 
                 if (fs.existsSync(this.path_chatburn) && fs.statSync(this.path_chatburn).size > 0) {
                     Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Chat burned for ${this.basename} (code ${code})`);
@@ -2414,6 +2466,7 @@ export class TwitchVOD {
 
     public postLoad() {
         this.setupStreamNumber();
+        this.calculateBookmarks();
     }
 
     /**
@@ -2651,6 +2704,7 @@ export class TwitchVOD {
             ended_at: ended_at,
             not_started: false,
             prevent_deletion: false,
+            bookmarks: [],
         };
 
         return {
@@ -2762,7 +2816,21 @@ export class TwitchVOD {
 
             Log.logAdvanced(LOGLEVEL.INFO, "channel", `Downloading VOD ${video_id}...`);
 
-            const ret = await Helper.execAdvanced(streamlink_bin, cmd, `download_vod_${video_id}`);
+            let totalSegments = 0;
+            let currentSegment = 0;
+            const ret = await Helper.execAdvanced(streamlink_bin, cmd, `download_vod_${video_id}`, (log: string) => {
+                const totalSegmentMatch = log.match(/Last Sequence: (\d+)/);
+                if (totalSegmentMatch && !totalSegments) {
+                    // console.debug(`Total segments: ${totalSegmentMatch[1]}`, totalSegmentMatch);
+                    totalSegments = parseInt(totalSegmentMatch[1]);
+                }
+                const currentSegmentMatch = log.match(/Segment (\d+) complete/);
+                if (currentSegmentMatch && totalSegments > 0) {
+                    currentSegment = parseInt(currentSegmentMatch[1]);
+                    // console.debug(`Current segment: ${currentSegment}`);
+                    return currentSegment / totalSegments;
+                }
+            });
 
             Log.logAdvanced(LOGLEVEL.INFO, "channel", `Downloaded VOD ${video_id}...}`);
 
@@ -2889,7 +2957,19 @@ export class TwitchVOD {
 
             Log.logAdvanced(LOGLEVEL.INFO, "channel", `Downloading clip ${clip_id}...`);
 
-            const ret = await Helper.execAdvanced(streamlink_bin, cmd, `download_clip_${clip_id}`);
+            let totalSegments = 0;
+            let currentSegment = 0;
+            const ret = await Helper.execAdvanced(streamlink_bin, cmd, `download_clip_${clip_id}`, (log: string) => {
+                const totalSegmentMatch = log.match(/Last Sequence: (\d+)/);
+                if (totalSegmentMatch && !totalSegments) {
+                    totalSegments = parseInt(totalSegmentMatch[1]);
+                }
+                const currentSegmentMatch = log.match(/Segment (\d+) complete/);
+                if (currentSegmentMatch && totalSegments > 0) {
+                    currentSegment = parseInt(currentSegmentMatch[1]);
+                    return currentSegment / totalSegments;
+                }
+            });
 
             Log.logAdvanced(LOGLEVEL.INFO, "channel", `Downloaded clip ${clip_id}...}`);
 

@@ -3,6 +3,7 @@
         :class="{
             'top-menu-item': true,
             'is-live': streamer.is_live,
+            'is-capturing': streamer.is_capturing,
             'is-animated': store.clientCfg('animationsEnabled'),
             'is-active': $route.query.channel == streamer.login,
             'is-converting': streamer.is_converting,
@@ -12,6 +13,10 @@
         :data-streamer="streamer.login"
         v-if="streamer"
     >
+    <!-- :style="{
+            'background-image': 'url(' + bannerUrl + ')',
+        }"
+    -->
         <router-link
             :to="store.clientCfg('singlePage') ? { name: 'Dashboard', query: { channel: streamer.login } } : { name: 'Dashboard', hash: '#streamer_' + streamer.login }"
             class="streamer-link"
@@ -30,7 +35,7 @@
                 :aria-valuenow="streamer.vods_list.length"
             >{{ streamer.vods_list.length }}</span>
             <span class="subtitle">
-                <template v-if="streamer.is_live">
+                <template v-if="streamer.is_live && streamer.is_capturing">
                     <template v-if="streamer.current_game && streamer.current_game.name != ''">
                         {{ gameVerb }}
                         <strong>{{ streamer.current_game.name }}</strong>
@@ -48,6 +53,11 @@
                     >)
                 </template>
                 <template v-else-if="streamer.is_converting"> Converting... </template>
+                <template v-else-if="streamer.chapter_data && store.clientCfg('showOfflineCategoryInSidebar')">
+                    <span :title="streamer.chapter_data.title">
+                        <span class="icon is-small"><fa icon="bed" title="Offline category" /></span> {{ streamer.chapter_data.game_name }} @ {{ formatLogicalDate(streamer.chapter_data.started_at) }}
+                    </span>
+                </template>
                 <template v-else>
                     <!-- Offline -->
                 </template>
@@ -139,19 +149,14 @@
                     <!-- flags -->
                     <template v-if="vod.is_finalized">
                         <span class="flags">
-                            <span v-if="vod.twitch_vod_exists === false" class="icon is-error" title="Deleted"><fa icon="trash"></fa></span
-                            ><!-- vod deleted -->
-                            <span v-if="vod.twitch_vod_exists === true && isRiskOfBeingDeleted(vod)" class="icon is-warning" title="Is risking deletion">
-                                <fa icon="trash-arrow-up"></fa></span
-                            ><!-- vod deleted -->
-                            <span v-if="vod.twitch_vod_exists === null" class="icon is-error" title="Not checked"><fa icon="question"></fa></span
-                            ><!-- vod not checked -->
-                            <span v-if="vod.twitch_vod_muted === MuteStatus.MUTED" class="icon is-error" title="Muted"><fa icon="volume-mute"></fa></span
-                            ><!-- vod muted -->
-                            <span v-if="vod.is_capture_paused" class="icon is-error" title="Paused"><fa icon="pause"></fa></span
-                            ><!-- capturing paused -->
-                            <span v-if="vod.prevent_deletion" class="icon is-success" title="Preventing deletion"><fa icon="lock"></fa></span>
-                            <!-- prevent deletion -->
+                            <span v-if="vod.twitch_vod_exists === false" class="icon is-error" title="Deleted from provider"><fa icon="trash"></fa></span><!-- vod deleted -->
+                            <span v-if="vod.twitch_vod_exists === true && isRiskOfBeingDeleted(vod)" class="icon is-warning" title="Is risking deletion from provider">
+                                <fa icon="trash-arrow-up"></fa>
+                            </span><!-- vod deleted -->
+                            <span v-if="vod.twitch_vod_exists === null" class="icon is-error" title="Not checked"><fa icon="question"></fa></span><!-- vod not checked -->
+                            <span v-if="vod.twitch_vod_muted === MuteStatus.MUTED" class="icon is-error" title="Muted"><fa icon="volume-mute"></fa></span><!-- vod muted -->
+                            <span v-if="vod.is_capture_paused" class="icon is-error" title="Paused"><fa icon="pause"></fa></span><!-- capturing paused -->
+                            <span v-if="vod.prevent_deletion" class="icon is-success" title="Preventing deletion"><fa icon="lock"></fa></span><!-- prevent deletion -->
                         </span>
                     </template>
 
@@ -187,10 +192,10 @@ import DurationDisplay from "@/components/DurationDisplay.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
-import { faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faTrashArrowUp, faChevronDown, faChevronUp, faLock } from "@fortawesome/free-solid-svg-icons";
+import { faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faTrashArrowUp, faChevronDown, faChevronUp, faLock, faGamepad, faBed } from "@fortawesome/free-solid-svg-icons";
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import { useStore } from "@/store";
-library.add(faGithub, faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp, faChevronDown, faChevronUp, faLock);
+library.add(faGithub, faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp, faChevronDown, faChevronUp, faLock, faGamepad, faBed);
 
 import { MuteStatus, nonGameCategories, TwitchVodAge } from "../../../common/Defs";
 import TwitchChannel from "@/core/channel";
@@ -252,6 +257,11 @@ export default defineComponent({
             if (!this.streamer) return;
             if (this.streamer.channel_data?.cache_avatar) return `${this.store.cfg<string>("basepath", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
             return this.streamer.profile_image_url;
+        },
+        bannerUrl() {
+            if (!this.streamer) return;
+            if (this.streamer.channel_data?.cache_offline_image) return `${this.store.cfg<string>("basepath", "")}/cache/banners/${this.streamer.channel_data.cache_offline_image}`;
+            return this.streamer.offline_image_url;
         },
         gameVerb(): string {
             if (!this.streamer) return "";

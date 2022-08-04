@@ -38,7 +38,7 @@ import { useStore } from "./store";
 import type { ApiSettingsResponse } from "@common/Api/Api";
 import JobStatus from "./components/JobStatus.vue";
 // import { connectWebsocket, eventListener, WebsocketJSON } from "./websocket";
-import { ChannelUpdated, ChapterUpdateData, EndCaptureData, EndConvertData, JobClear, JobSave, NotifyData, VodRemoved, VodUpdated, WebhookAction } from "@common/Webhook";
+import { ChannelUpdated, ChapterUpdateData, EndCaptureData, EndConvertData, JobClear, JobProgress, JobSave, NotifyData, VodRemoved, VodUpdated, WebhookAction } from "@common/Webhook";
 import { ApiLogLine } from "@common/Api/Client";
 import { parseISO } from "date-fns";
 import { WebsocketJSON } from "./websocket";
@@ -151,6 +151,8 @@ export default defineComponent({
                 this.store.fetchAndUpdateStreamerList();
             }
         });
+
+        document.documentElement.style.setProperty("--sidemenu-width", `${this.store.clientCfg("sidemenuWidth", 330)}px`);
     },
     mounted() {
         const theme = this.store.clientCfg("theme");
@@ -345,6 +347,9 @@ export default defineComponent({
                 } else if (action == "job_save" || action == "job_update") {
                     const _data: JobSave = data;
                     this.store.updateJob(_data.job);
+                } else if (action == "job_progress") {
+                    const _data: JobProgress = data;
+                    this.store.updateJobProgress(_data.job_name, _data.progress);
                 } else if (action == "job_clear") {
                     const _data: JobClear = data;
                     this.store.removeJob(_data.job_name);

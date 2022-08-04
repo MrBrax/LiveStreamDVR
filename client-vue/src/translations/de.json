@@ -89,7 +89,8 @@
       "privacy": "Privatsphäre",
       "privacy-public": "Öffentlich",
       "privacy-unlisted": "Ungelistet",
-      "privacy-private": "Privat"
+      "privacy-private": "Privat",
+      "title": "Titel"
     }
   },
   "buttons": {

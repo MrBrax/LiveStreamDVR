@@ -47,6 +47,7 @@ export const TwitchChannelData: UserData = {
 
     _updated: 1605849081,
     cache_avatar: "",
+    cache_offline_image: "",
 };
 
 export const MockApiChannelData: ApiChannel = {
@@ -58,6 +59,8 @@ export const MockApiChannelData: ApiChannel = {
     vods_raw: [],
     vods_list: [],
     profile_image_url: "",
+    offline_image_url: "",
+    banner_image_url: "",
     api_getSubscriptionStatus: false,
     broadcaster_type: "",
     clips_list: [],
@@ -73,6 +76,9 @@ export const MockApiChannelData: ApiChannel = {
     no_cleanup: false,
     max_storage: 0,
     max_vods: 0,
+    chapter_data: undefined,
+    is_capturing: false,
+    saves_vods: false,
 };
 
 export const MockApiVODData: ApiVod = {
@@ -117,7 +123,8 @@ export const MockApiVODData: ApiVod = {
     total_size: 0,
     chapters: [],
     webpath: "",
-    prevent_deletion: false
+    prevent_deletion: false,
+    bookmarks: [],
 };
 
 export const MockApiChapterData: ApiVodChapter = {

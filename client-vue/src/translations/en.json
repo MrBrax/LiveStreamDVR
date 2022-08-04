@@ -11,7 +11,8 @@
     "video_download_help": "Videos downloaded with this tool will be cleaned up the same way as captured vods do when a stream is finished.\n They are treated the same way as captured vods in its entirety.",
     "loading": "Loading...",
     "changing-values-here-will-most-likely-require-a-restart": "Changing values here will most likely require a restart.",
-    "this-is-a-bad-idea-if-any-of-your-channels-are-live": "This is a bad idea if any of your channels are live."
+    "this-is-a-bad-idea-if-any-of-your-channels-are-live": "This is a bad idea if any of your channels are live.",
+    "login-mismatch-fixing": "Login mismatch, fixing"
   },
   "vod": {
     "add_comment": "Add a comment",
@@ -89,7 +90,12 @@
       "privacy": "Privacy",
       "privacy-public": "Public",
       "privacy-unlisted": "Unlisted",
-      "privacy-private": "Private"
+      "privacy-private": "Private",
+      "title": "Title"
+    },
+    "bookmarks": "Bookmarks",
+    "buttons": {
+      "download-with": "Download with {0}"
     }
   },
   "buttons": {
@@ -138,8 +144,8 @@
       "live-channels-warning": "Live channels will not be recorded until they are live the next time.",
       "no-cleanup": "Don't clean up VODs after recording is finished",
       "check": "Check",
-      "quality-help-example": "Separate by spaces, e.g. best 1080p 720p audio_only",
-      "quality-help-warning": "If the stream does not use any of these, it will not be recorded.",
+      "quality-help-example": "Separate by spaces, e.g. best 1080p60 720p60 1080p 480p audio_only",
+      "quality-help-warning": "If the stream does not use any of these, it will not be recorded. Place \"best\" at the end to make sure.",
       "quality-help-choices": "Valid choices: {0}",
       "login-does-not-exist": "The channel {0} does not exist.",
       "max-storage": "Max storage",
@@ -178,6 +184,20 @@
       "chat-dump": "Chat dump",
       "current-jobs": "Current jobs",
       "reset-channels": "Reset channels"
+    },
+    "editor": {
+      "buttons": {
+        "play": "Play",
+        "pause": "Pause",
+        "mark-in": "Mark in",
+        "mark-out": "Mark out",
+        "add-bookmark": "Add Bookmark",
+        "submit-cut": "Submit cut"
+      },
+      "time-in": "Time In",
+      "time-out": "Time Out",
+      "filesize": "Filesize",
+      "edit-segment": "Edit segment"
     }
   },
   "components": {
@@ -203,7 +223,9 @@
     "search": "Search..."
   },
   "streamer": {
-    "one-or-more-subscriptions-missing": "One or more subscriptions missing"
+    "one-or-more-subscriptions-missing": "One or more subscriptions missing",
+    "no-vods-not-capturing": "No VODs, not capturing",
+    "no-save-vods": "Does not save VODs"
   },
   "about": {
     "installed-utilities": "Installed utilities",

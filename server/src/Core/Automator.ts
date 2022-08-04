@@ -13,17 +13,19 @@ import { KeyValue } from "./KeyValue";
 import { Job } from "./Job";
 import { TwitchChannel } from "./TwitchChannel";
 import { Config } from "./Config";
-import { Helper } from "./Helper";
+import { Helper, RemuxReturn } from "./Helper";
 import { LOGLEVEL, Log } from "./Log";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import { Webhook } from "./Webhook";
-import { nonGameCategories, NotificationCategory } from "../../../common/Defs";
+import { JobStatus, nonGameCategories, NotificationCategory } from "../../../common/Defs";
 import chalk from "chalk";
 import { Sleep } from "../Helpers/Sleep";
 import { ClientBroker } from "./ClientBroker";
 import { replaceAll } from "../Helpers/ReplaceAll";
 import { ChapterUpdateData } from "../../../common/Webhook";
+import sanitize from "sanitize-filename";
+import { formatString } from "../../../common/Format";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
@@ -54,8 +56,20 @@ export class Automator {
     captureJob: Job | undefined;
     chatJob: Job | undefined;
 
+    private vod_season?: string; // why is this a string
+    private vod_episode?: number;
+
     public basename() {
-        return `${this.getLogin()}_${replaceAll(this.getStartDate(), ":", "_")}_${this.getVodID()}`; // TODO: replaceAll
+        // return `${this.getLogin()}_${replaceAll(this.getStartDate(), ":", "_")}_${this.getVodID()}`; // TODO: replaceAll
+        const variables: Record<string, string> = {
+            login: this.getLogin(),
+            date: replaceAll(this.getStartDate(), ":", "_"),
+            id: this.getVodID().toString(),
+            season: this.vod_season || "",
+            episode: this.vod_episode ? this.vod_episode.toString() : "",
+        };
+        const basename = sanitize(formatString(Config.getInstance().cfg("filename_vod"), variables));
+        return basename;
     }
 
     public getVodID() {
@@ -97,6 +111,18 @@ export class Automator {
             return path.join(folder_base, `${this.basename()}_${segment_number}.ts`);
         }
     }
+
+    /*
+    public convertUpdateEventToOnlineEvent(event: EventSubChannelUpdate) {
+
+        let sub: StreamOnlineSubscription = Object.assign({}, event.subscription);
+        sub.type = "channel.online";
+
+        const mock_data: EventSubStreamOnline = {
+
+
+    }
+    */
 
     /**
      * Entrypoint for stream capture, this is where all Twitch EventSub (webhooks) end up.
@@ -161,11 +187,6 @@ export class Automator {
                 return false;
             }
 
-            if (this.channel.no_capture) {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Skip capture for ${this.broadcaster_user_login} because no-capture is set`);
-                return false;
-            }
-
             if (this.channel.is_live) {
                 Log.logAdvanced(LOGLEVEL.INFO, "automator", `${this.broadcaster_user_login} is already live, yet another stream online event received.`);
             }
@@ -173,6 +194,14 @@ export class Automator {
             KeyValue.getInstance().setBool(`${this.broadcaster_user_login}.online`, true);
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.vod.id`, event.id);
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.vod.started_at`, event.started_at);
+
+            fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify({ time: new Date(), action: "online" }) + "\n", { flag: "a" });
+
+            if (this.channel.no_capture) {
+                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Skip capture for ${this.broadcaster_user_login} because no-capture is set`);
+                if (this.channel) this.channel.broadcastUpdate();
+                return false;
+            }
 
             // $this->payload = $data['data'][0];
 
@@ -224,6 +253,8 @@ export class Automator {
             // KeyValue.getInstance().set("${this.broadcaster_user_login}.vod.id", null);
             // KeyValue.getInstance().set("${this.broadcaster_user_login}.vod.started_at", null);
 
+            fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify({ time: new Date(), action: "offline" }) + "\n", { flag: "a" });
+
             await this.end();
         } else {
 
@@ -236,8 +267,10 @@ export class Automator {
 
         const basename = this.basename();
 
+        const is_live = KeyValue.getInstance().getBool(`${this.broadcaster_user_login}.online`);
+
         // if online
-        if (KeyValue.getInstance().getBool(`${this.getLogin()}.online`)) {
+        if (this.channel?.is_capturing) {
 
             // const folder_base = TwitchHelper.vodFolder(this.getLogin());
 
@@ -332,7 +365,7 @@ export class Automator {
 
             if (this.channel) {
                 ClientBroker.notify(
-                    `Offline channel ${this.broadcaster_user_login} changed status`,
+                    `${is_live ? "Live non-capturing" : "Offline"} channel ${this.broadcaster_user_login} changed status`,
                     `${event.category_name} (${event.title})`,
                     this.channel.profile_image_url,
                     "offlineStatusChange",
@@ -343,8 +376,11 @@ export class Automator {
             const chapter_data = await this.getChapterData(event);
             chapter_data.online = false;
 
-            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, saving channel data to cache: ${event.category_name} (${event.title})`);
+            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not capturing, saving channel data to cache: ${event.category_name} (${event.title})`);
             KeyValue.getInstance().setObject(`${this.broadcaster_user_login}.chapterdata`, chapter_data);
+            if (this.channel) {
+                this.channel.broadcastUpdate();
+            }
 
             // if (chapter_data.viewer_count) {
             //     Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, but managed to get viewer count, so it's online? 🤔`);
@@ -497,7 +533,7 @@ export class Automator {
             throw new Error("No data supplied");
         }
 
-        const basename = this.basename();
+        const temp_basename = this.basename();
         const folder_base = Helper.vodFolder(this.getLogin());
 
         // make a folder for the streamer if it for some reason doesn't exist, but it should get created in the config
@@ -507,8 +543,8 @@ export class Automator {
         }
 
         // if running
-        const job = Job.findJob(`capture_${basename}`);
-        if (job && job.getStatus()) {
+        const job = Job.findJob(`capture_${temp_basename}`);
+        if (job && await job.getStatus() === JobStatus.RUNNING) {
             const meta = job.metadata as {
                 login: string;
                 basename: string;
@@ -528,7 +564,7 @@ export class Automator {
 
             let match = false;
 
-            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Check keyword matches for ${basename}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Check keyword matches for ${temp_basename}`);
 
             for (const m of this.channel.match) {
                 if (this.channel.getChapterData()?.title.includes(m)) {
@@ -538,10 +574,16 @@ export class Automator {
             }
 
             if (!match) {
-                Log.logAdvanced(LOGLEVEL.WARNING, "automator", `Cancel download of ${basename} due to missing keywords`);
+                Log.logAdvanced(LOGLEVEL.WARNING, "automator", `Cancel download of ${temp_basename} due to missing keywords`);
                 return false;
             }
         }
+
+        // pre-calculate season and episode
+        this.vod_season = this.channel.current_season;
+        this.vod_episode = this.channel.incrementStreamNumber();
+
+        const basename = this.basename();
 
         // create the vod and put it inside this class
         this.vod = await this.channel.createVOD(path.join(folder_base, `${basename}.json`));
@@ -652,45 +694,53 @@ export class Automator {
         // wait for 30 seconds in case something didn't finish
         await Sleep(30 * 1000);
 
-        this.vod.is_converting = true;
-        await this.vod.saveJSON("is_converting set");
+        if (!Config.getInstance().cfg("no_vod_convert", false)) {
 
-        // convert with ffmpeg
-        await this.convertVideo();
+            this.vod.is_converting = true;
+            await this.vod.saveJSON("is_converting set");
 
-        // sleep(10);
-        await Sleep(10 * 1000);
+            // convert with ffmpeg
+            await this.convertVideo();
 
-        const convert_success =
-            fs.existsSync(this.capture_filename) &&
-            fs.existsSync(this.converted_filename) &&
-            fs.statSync(this.converted_filename).size > 0
-            ;
+            // sleep(10);
+            await Sleep(10 * 1000);
 
-        // send internal webhook for convert start
-        Webhook.dispatch("end_convert", {
-            "vod": await this.vod.toAPI(),
-            "success": convert_success,
-        });
+            const convert_success =
+                fs.existsSync(this.capture_filename) &&
+                fs.existsSync(this.converted_filename) &&
+                fs.statSync(this.converted_filename).size > 0
+                ;
 
-        // remove ts if both files exist
-        if (convert_success) {
-            Log.logAdvanced(LOGLEVEL.DEBUG, "automator", `Remove ts file for ${basename}`);
-            fs.unlinkSync(this.capture_filename);
-        } else {
-            Log.logAdvanced(LOGLEVEL.FATAL, "automator", `Missing conversion files for ${basename}`);
-            // this.vod.automator_fail = true;
+            // send internal webhook for convert start
+            Webhook.dispatch("end_convert", {
+                "vod": await this.vod.toAPI(),
+                "success": convert_success,
+            });
+
+            // remove ts if both files exist
+            if (convert_success) {
+                Log.logAdvanced(LOGLEVEL.DEBUG, "automator", `Remove ts file for ${basename}`);
+                fs.unlinkSync(this.capture_filename);
+            } else {
+                Log.logAdvanced(LOGLEVEL.FATAL, "automator", `Missing conversion files for ${basename}`);
+                // this.vod.automator_fail = true;
+                this.vod.is_converting = false;
+                await this.vod.saveJSON("automator fail");
+                return false;
+            }
+
+            // add the captured segment to the vod info
+            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Conversion done, add segments to ${basename}`);
+
             this.vod.is_converting = false;
-            await this.vod.saveJSON("automator fail");
-            return false;
+            this.vod.addSegment(path.basename(this.converted_filename));
+            await this.vod.saveJSON("add segment");
+
+        } else {
+            Log.logAdvanced(LOGLEVEL.INFO, "automator", `No conversion for ${basename}, just add segments`);
+            this.vod.addSegment(path.basename(this.capture_filename));
+            await this.vod.saveJSON("add segment");
         }
-
-        // add the captured segment to the vod info
-        Log.logAdvanced(LOGLEVEL.INFO, "automator", `Conversion done, add segments to ${basename}`);
-
-        this.vod.is_converting = false;
-        this.vod.addSegment(path.basename(this.converted_filename));
-        await this.vod.saveJSON("add segment");
 
         // finalize
         Log.logAdvanced(LOGLEVEL.INFO, "automator", `Sleep 30 seconds for ${basename}`);
@@ -1149,7 +1199,14 @@ export class Automator {
             mf = this.vod.path_ffmpegchapters;
         }
 
-        const result = await Helper.remuxFile(this.capture_filename, this.converted_filename, false, mf);
+        let result: RemuxReturn;
+
+        try {
+            result = await Helper.remuxFile(this.capture_filename, this.converted_filename, false, mf);
+        } catch (err) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to convert video: ${err}`);
+            return false;
+        }
 
         if (result && result.success) {
             Log.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Converted video ${this.capture_filename} to ${this.converted_filename}`);

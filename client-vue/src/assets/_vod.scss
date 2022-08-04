@@ -67,6 +67,18 @@
     }
 
     &.is-live {
+        background-color: #0b5e2b;
+
+        .streamer-title-subtitle {
+            color: #31db7e;
+        }
+
+        a:hover {
+            color: #7beb9d;
+        }
+    }
+
+    &.is-capturing {
         background-color: #5e0b0b;
 
         .streamer-title-subtitle {
@@ -78,7 +90,7 @@
         }
     }
 
-    .streamer-live {
+    .streamer-live, .streamer-capturing {
         color: #f00;
         animation: live ease-in-out 1s infinite;
         font-weight: 700;
@@ -226,6 +238,7 @@
 .video-status {
     padding: 10px;
     background-color: #b3ddad;
+    color: #222;
     // border-top: 1px solid #a1bd9b;
     // border-bottom: 1px solid #a1bd9b;
     // border-left: 1px solid #e3e3e3;
@@ -235,6 +248,14 @@
 .video-segments {
     padding: 10px;
     background-color: var(--video-segments-background-color);
+    // border-top: 1px solid #d6dbf2;
+    // border-left: 1px solid #e3e3e3;
+    // border-right: 1px solid #e3e3e3;
+}
+
+.video-bookmarks {
+    padding: 10px;
+    background-color: var(--video-bookmarks-background-color);
     // border-top: 1px solid #d6dbf2;
     // border-left: 1px solid #e3e3e3;
     // border-right: 1px solid #e3e3e3;
@@ -263,7 +284,7 @@
 
 .video-comment {
     padding: 1em;
-    background-color: #fff;
+    background-color: var(--video-comment-background-color);
     border-radius: 1em;
     width: max-content;
     p {
@@ -288,7 +309,7 @@
         height: 0;
         border-style: solid;
         border-width: 10px 10px 0 10px;
-        border-color: #fff transparent transparent transparent;
+        border-color: var(--video-comment-background-color) transparent transparent transparent;
 
     }
 }
@@ -353,7 +374,7 @@
     }
 
     tr.current {
-        background-color: #f0a6a6;
+        background-color: var(--gamelist-current);
     }
 
     a {

@@ -88,11 +88,8 @@ Modify channel
 ### `DELETE /api/v0/channels/{login}`
 Delete channel
 
-### `GET /api/v0/channels/{login}/force_record`
+### `POST /api/v0/channels/{login}/force_record`
 Force record the current stream
-
-### `GET /api/v0/channels/{login}/dump_playlist`
-Dump the stream from the playlist (vod)
 
 ### `GET /api/v0/channels/{login}/subscription`
 Show the (webhook) subscription for the channel

@@ -11,6 +11,7 @@ export type WebhookAction =
     "job_save" |
     "job_clear" |
     "job_update" |
+    "job_progress" |
     "video_download" |
     "vod_removed" |
     "vod_updated" |
@@ -29,6 +30,7 @@ export type WebhookData =
     JobSave |
     JobClear |
     JobUpdate |
+    JobProgress |
     VodRemoved |
     VodUpdated |
     ChannelUpdated |
@@ -91,6 +93,11 @@ export interface JobClear {
 export interface JobUpdate {
     job_name: string;
     job: ApiJob;
+}
+
+export interface JobProgress {
+    job_name: string;
+    progress: number;
 }
 
 // export interface LogData {

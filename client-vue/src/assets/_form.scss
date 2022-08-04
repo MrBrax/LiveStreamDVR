@@ -86,17 +86,43 @@
     padding: 0.2em 0 0 0;
 }
 
+.input-default {
+    font-size: 85%;
+    color: #5d67a4;
+    font-style: italic;
+    margin: 0;
+    padding: 0.2em 0 0 0;
+}
+
 .template-preview {
     padding: 0.7em 1em;
     margin: 0.5em 0;
-    background-color: #eee;
+    background-color: var(--template-preview-background-color);
     border-radius: 0.5em;
 }
 
 .template-replacements {
     font-size: 0.8em;
-    padding: 0.2em 1.5em;
+    padding: 0.2em;
     margin: 0;
+    display: block;
+    li {
+        display: inline-block;
+        list-style: none;
+        list-style-type: none;
+        margin-right: 1em;
+        button {
+            padding: 0.4em 0.5em;
+            background-color: rgba(128, 128, 128, 0.5);
+            border-radius: 0.5em;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            &:hover {
+                background-color: rgba(128, 128, 128, 0.8);
+            }
+        }
+    }
 }
 
 .label {

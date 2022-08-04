@@ -10,6 +10,7 @@ import { TwitchVOD } from "../Core/TwitchVOD";
 import { FileExporter } from "../Exporters/File";
 import { YouTubeExporter } from "../Exporters/YouTube";
 import { SFTPExporter } from "../Exporters/SFTP";
+import { TwitchVODBookmark } from "../../../common/Bookmark";
 
 export async function GetVod(req: express.Request, res: express.Response): Promise<void> {
 
@@ -438,10 +439,7 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
 
 }
 
-
-type Exporter = FileExporter | YouTubeExporter | SFTPExporter;
-
-export async function ExportVod(req: express.Request, res: express.Response): Promise<void> {
+export function AddBookmark(req: express.Request, res: express.Response): void {
 
     const vod = TwitchVOD.getVod(req.params.basename);
 
@@ -453,112 +451,97 @@ export async function ExportVod(req: express.Request, res: express.Response): Pr
         return;
     }
 
-    if (!vod.is_finalized) {
+    const date = req.body.date ? new Date(req.body.date) : undefined;
+    const offset = req.body.offset ? parseInt(req.body.offset) : undefined;
+
+    if (!date && !offset) {
         res.status(400).send({
             status: "ERROR",
-            message: "Vod is not finalized",
+            message: "Date or offset is required",
         } as ApiErrorResponse);
         return;
     }
 
-    if (!vod.segments || vod.segments.length == 0) {
+    if (!vod.started_at) {
         res.status(400).send({
             status: "ERROR",
-            message: "Vod has no segments",
+            message: "Vod has not started yet",
         } as ApiErrorResponse);
         return;
     }
 
-    let exporter: Exporter | undefined;
-
-    try {
-        if (req.body.exporter == "file") {
-            exporter = new FileExporter();
-            if (exporter instanceof FileExporter) { // why does typescript need this??
-                exporter.loadVOD(vod);
-                exporter.setDirectory(req.body.directory || BaseConfigDataFolder.saved_vods);
-            }
-        } else if (req.body.exporter == "sftp") {
-            exporter = new SFTPExporter();
-            if (exporter instanceof SFTPExporter) { // why does typescript need this??
-                exporter.loadVOD(vod);
-                exporter.setDirectory(req.body.directory);
-                exporter.setHost(req.body.host);
-                exporter.setUsername(req.body.username);
-            }
-        } else if (req.body.exporter == "youtube") {
-            exporter = new YouTubeExporter();
-            if (exporter instanceof YouTubeExporter) { // why does typescript need this??
-                exporter.loadVOD(vod);
-                exporter.setDescription(req.body.description);
-                exporter.setTags(req.body.tags ? (req.body.tags as string).split(",").map(tag => tag.trim()) : []);
-                exporter.setCategory(req.body.category);
-                exporter.setPrivacy(req.body.privacy);
-            }
-        }
-    } catch (error) {
+    if (offset && !vod.is_finalized) {
         res.status(400).send({
             status: "ERROR",
-            message: (error as Error).message || "Unknown error occurred while creating exporter",
-        } as ApiErrorResponse);
-        return;        
-    }
-    
-    
-
-    if (!exporter) {
-        res.status(400).send({
-            status: "ERROR",
-            message: "Unknown exporter",
+            message: "Vod is not finalized, cannot add bookmark with offset",
         } as ApiErrorResponse);
         return;
     }
 
-    try {
-        exporter.setSource(req.body.file_source);
-    } catch (error) {
+    let absolute_date;
+
+    if (offset) {
+        const start_date = vod.started_at;
+        absolute_date = new Date(start_date.getTime() + offset * 1000);
+    } else {
+        absolute_date = date;
+    }
+
+    if (!absolute_date) {
         res.status(400).send({
             status: "ERROR",
-            message: (error as Error).message || "Unknown error occurred while setting exporter source",
+            message: "Invalid date returned from date or offset",
         } as ApiErrorResponse);
         return;
     }
 
-    exporter.setTemplate(req.body.title_template);
-    
-    let success;
-    try {
-        success = await exporter.export();
-    } catch (error) {
-        res.status(400).send({
-            status: "ERROR",
-            message: (error as Error).message ? `Export error: ${(error as Error).message}` : "Unknown error occurred while exporting vod",
-        } as ApiErrorResponse);
-        return;
-    }
+    const bookmark_data: TwitchVODBookmark = {
+        name: req.body.name,
+        date: absolute_date,
+    };
 
-    if (!success) {
-        res.status(400).send({
-            status: "ERROR",
-            message: "Export failed",
-        } as ApiErrorResponse);
-        return;
-    }
-
-    let verify;
-    try {
-        verify = await exporter.verify();
-    } catch (error) {
-        res.status(400).send({
-            status: "ERROR",
-            message: (error as Error).message ? `Verify error: ${(error as Error).message}` : "Unknown error occurred while verifying export",
-        } as ApiErrorResponse);
-        return;
-    }
+    vod.bookmarks.push(bookmark_data);
+    vod.calculateBookmarks();
+    vod.saveJSON("bookmark add");
 
     res.send({
         status: "OK",
-        message: typeof success == "string" ? `Export successful: ${success}` : "Export successful",
+        message: "Bookmark added",
+    } as ApiResponse);
+
+    return;
+
+}
+
+export function RemoveBookmark(req: express.Request, res: express.Response): void {
+
+    const vod = TwitchVOD.getVod(req.params.basename);
+
+    if (!vod) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const index = req.query.index !== undefined ? parseInt(req.query.index as string) : -1;
+
+    if (index < 0 || index >= vod.bookmarks.length) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Invalid bookmark index",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    vod.bookmarks.splice(index, 1);
+    vod.calculateBookmarks();
+    vod.saveJSON("bookmark remove");
+
+    res.send({
+        status: "OK",
+        message: "Bookmark removed",
     } as ApiResponse);
 
     return;

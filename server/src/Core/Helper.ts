@@ -410,7 +410,7 @@ export class Helper {
      * @param jobName 
      * @returns 
      */
-    static execAdvanced(bin: string, args: string[], jobName: string, progressFunction?: (log: string) => number): Promise<ExecReturn> {
+    static execAdvanced(bin: string, args: string[], jobName: string, progressFunction?: (log: string) => number | undefined): Promise<ExecReturn> {
         return new Promise((resolve, reject) => {
 
             const process = spawn(bin, args || [], {
@@ -448,14 +448,22 @@ export class Helper {
             process.stdout.on("data", (data: Stream) => {
                 stdout.push(data.toString());
                 if (progressFunction) {
-                    job.setProgress(progressFunction(data.toString()));
+                    const p = progressFunction(data.toString());
+                    if (p !== undefined && job) {
+                        job.setProgress(p);
+                        // console.debug(`Progress for ${jobName}: ${p}`);
+                    }
                 }
             });
 
             process.stderr.on("data", (data: Stream) => {
                 stderr.push(data.toString());
                 if (progressFunction) {
-                    job.setProgress(progressFunction(data.toString()));
+                    const p = progressFunction(data.toString());
+                    if (p !== undefined && job) {
+                        job.setProgress(p);
+                        // console.debug(`Progress for ${jobName}: ${p}`);
+                    }
                 }
             });
 
@@ -640,27 +648,24 @@ export class Helper {
                 return;
             }
 
-            // TODO: progress log
             let currentSeconds = 0;
             let totalSeconds = 0;
-            job.on("log", (data: string) => {
+            job.on("log", (stream: string, data: string) => {
                 const totalDurationMatch = data.match(/Duration: (\d+):(\d+):(\d+)/);
-                if (totalDurationMatch) {
+                if (totalDurationMatch && !totalSeconds) {
                     totalSeconds = parseInt(totalDurationMatch[1]) * 3600 + parseInt(totalDurationMatch[2]) * 60 + parseInt(totalDurationMatch[3]);
+                    console.debug(`Remux total duration: ${totalSeconds}`);
                 }
                 const currentTimeMatch = data.match(/time=(\d+):(\d+):(\d+)/);
-                if (currentTimeMatch) {
+                if (currentTimeMatch && totalSeconds > 0) {
                     currentSeconds = parseInt(currentTimeMatch[1]) * 3600 + parseInt(currentTimeMatch[2]) * 60 + parseInt(currentTimeMatch[3]);
                     job.setProgress(currentSeconds / totalSeconds);
+                    console.debug(`Remux current time: ${currentSeconds}`);
+                }
+                if (data.match(/moving the moov atom/)) {
+                    console.debug("Remux moov atom move");
                 }
             });
-            //     const progress_match = data.match(/time=([0-9\.\:]+)/);
-            //     if (progress_match) {
-            //         const progress = progress_match[1];
-            //         // TwitchLog.logAdvanced(LOGLEVEL.INFO, "helper", `Remuxing ${input} to ${output} progress: ${progress}`);
-            //         console.log(chalk.gray(`Remuxing ${input} to ${output} progress: ${progress}`));
-            //     }
-            // });
 
             job.process.on("error", (err) => {
                 Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
@@ -780,6 +785,25 @@ export class Helper {
                     // for (const err of errorSearch) {
                     //    message = err[1];
                     reject(new Error(`Failed to cut ${path.basename(input)} to ${path.basename(output)}: ${message}`));
+                }
+            });
+
+            let currentSeconds = 0;
+            let totalSeconds = 0;
+            job.on("log", (stream: string, data: string) => {
+                const totalDurationMatch = data.match(/Duration: (\d+):(\d+):(\d+)/);
+                if (totalDurationMatch && !totalSeconds) {
+                    totalSeconds = parseInt(totalDurationMatch[1]) * 3600 + parseInt(totalDurationMatch[2]) * 60 + parseInt(totalDurationMatch[3]);
+                    console.debug(`Cut total duration: ${totalSeconds}`);
+                }
+                const currentTimeMatch = data.match(/time=(\d+):(\d+):(\d+)/);
+                if (currentTimeMatch && totalSeconds > 0) {
+                    currentSeconds = parseInt(currentTimeMatch[1]) * 3600 + parseInt(currentTimeMatch[2]) * 60 + parseInt(currentTimeMatch[3]);
+                    job.setProgress(currentSeconds / totalSeconds);
+                    console.debug(`Cut current time: ${currentSeconds}`);
+                }
+                if (data.match(/moving the moov atom/)) {
+                    console.debug("Cut moov atom move");
                 }
             });
 
@@ -1004,6 +1028,37 @@ export class Helper {
         Log.logAdvanced(LOGLEVEL.INFO, "helper", `${subscriptions.length} subscriptions`);
 
         return subscriptions;
+
+    }
+
+    /**
+     * Get subscription by ID, this is very hacky since it gets all subscriptions and filters by ID
+     * 
+     * @param id 
+     * @returns 
+     */
+    public static async getSubscription(id: string): Promise<Subscription | false> {
+
+        Log.logAdvanced(LOGLEVEL.INFO, "helper", `Requesting subscription ${id}`);
+
+        if (!this.axios) {
+            throw new Error("Axios is not initialized");
+        }
+
+        const subs = await this.getSubsList();
+
+        if (!subs) {
+            return false;
+        }
+
+        const sub = subs.find((s) => s.id == id);
+
+        if (!sub) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Subscription ${id} not found`);
+            return false;
+        }
+
+        return sub;
 
     }
 

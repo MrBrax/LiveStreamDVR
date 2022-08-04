@@ -17,6 +17,7 @@ import * as Notifications from "../Controllers/Notifications";
 import * as Tools from "../Controllers/Tools";
 import * as Files from "../Controllers/Files";
 import * as YouTube from "../Controllers/YouTube";
+import * as Exporter from "../Controllers/Exporter";
 import { TwitchVOD } from "../Core/TwitchVOD";
 
 const router = express.Router();
@@ -40,6 +41,7 @@ router.post("/channels/:login/refresh", Channels.RefreshChannel);
 router.post("/channels/:login/force_record", Channels.ForceRecord);
 router.post("/channels/:login/rename", Channels.RenameChannel);
 router.post("/channels/:login/deleteallvods", Channels.DeleteAllChannelVods);
+router.get("/channels/:login/history", Channels.GetHistory);
 
 router.get("/vod/:basename", Vod.GetVod);
 router.post("/vod/:basename", Vod.EditVod);
@@ -52,9 +54,13 @@ router.post("/vod/:basename/check_mute", Vod.CheckMute);
 router.post("/vod/:basename/match", Vod.MatchVod);
 router.post("/vod/:basename/cut", Vod.CutVod);
 router.post("/vod/:basename/save", Vod.ArchiveVod);
-router.post("/vod/:basename/export", Vod.ExportVod);
+// router.post("/vod/:basename/export", Vod.ExportVod);
+router.post("/vod/:basename/bookmark", Vod.AddBookmark);
+router.delete("/vod/:basename/bookmark", Vod.RemoveBookmark);
 
 router.get("/games", Games.ListGames);
+
+router.post("/exporter", Exporter.ExportFile);
 
 router.get("/favourites", Favourites.ListFavourites);
 // router.post("/favourites", Favourites.AddFavourite);

@@ -4,6 +4,8 @@ import { UserData } from "../User";
 import { MuteStatus, ExistStatus, JobStatus } from "../../common/Defs";
 import { AudioMetadata, VideoMetadata } from "../MediaInfo";
 import { BroadcasterType } from "../TwitchAPI/Users";
+import { TwitchVODChapterJSON } from "../../server/src/Storage/JSON";
+import { TwitchVODBookmark } from "../Bookmark";
 
 export type ApiVodSegment = {
     basename: string;
@@ -128,6 +130,8 @@ export type ApiVod = {
 
     failed?: boolean;
 
+    bookmarks: TwitchVODBookmark[];
+
 };
 
 export type ApiSettingsField = {
@@ -154,10 +158,12 @@ export type ApiChannel = {
     vods_list: ApiVod[];
     vods_size: number;
 
-
     is_live: boolean;
+    is_capturing: boolean;
     is_converting: boolean;
     profile_image_url: string;
+    offline_image_url: string;
+    banner_image_url: string;
     broadcaster_type: BroadcasterType;
 
     subbed_at?: string;
@@ -189,6 +195,10 @@ export type ApiChannel = {
 
     current_stream_number?: number;
     current_season?: string;
+
+    chapter_data?: TwitchVODChapterJSON;
+
+    saves_vods: boolean;
 
 };
 
@@ -222,6 +232,7 @@ export type ApiJob = {
     status: JobStatus;
     process_running: boolean;
     progress: number;
+    dt_started_at: string;
 };
 
 export type ApiLogLine = {

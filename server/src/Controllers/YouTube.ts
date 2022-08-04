@@ -6,7 +6,7 @@ import { formatDistanceToNow, formatISO9075 } from "date-fns";
 export function Authenticate(req: express.Request, res: express.Response): void {
 
     if (!YouTubeHelper.oAuth2Client) {
-        res.status(400).send({
+        res.status(500).send({
             status: "ERROR",
             message: "YouTube client not configured",
         });
@@ -27,7 +27,7 @@ export function Callback(req: express.Request, res: express.Response): Promise<v
     return new Promise<void>((resolve, reject) => {
 
         if (!YouTubeHelper.oAuth2Client) {
-            res.status(400).send({
+            res.status(500).send({
                 status: "ERROR",
                 message: "YouTube client not configured",
             });
@@ -76,7 +76,7 @@ export function Callback(req: express.Request, res: express.Response): Promise<v
 export function Status(req: express.Request, res: express.Response): void {
 
     if (!YouTubeHelper.oAuth2Client) {
-        res.status(400).send({
+        res.status(500).send({
             status: "ERROR",
             message: "YouTube client not configured",
         });
@@ -84,7 +84,7 @@ export function Status(req: express.Request, res: express.Response): void {
     }
 
     if (!YouTubeHelper.authenticated) {
-        res.status(400).send({
+        res.status(403).send({
             status: "ERROR",
             message: "YouTube not authenticated",
         });

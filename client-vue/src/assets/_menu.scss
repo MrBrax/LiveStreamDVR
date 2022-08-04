@@ -4,7 +4,7 @@
     top: 0;
     left: 0;
     bottom: 0;
-    width: $sidemenu-width;
+    width: var(--sidemenu-width);
 
     background-color: #000;
     color: #fff;
@@ -92,7 +92,7 @@
     &.title {
         font-weight: 700;
 
-        a {
+        .link {
             color: #fff;
             padding: 13px 8px;
         }
@@ -111,7 +111,7 @@
         }
     }
 
-    a {
+    a.link {
         color: #777;
         text-decoration: none;
         display: inline-block;
@@ -119,10 +119,7 @@
 
         &:hover {
             color: #fff;
-            background: #111;
-            .avatar {
-                transform: scale(110%);
-            }
+            background-color: #111;
         }
     }
 
@@ -131,6 +128,7 @@
     }
 
     &.right {
+
         // flex-grow: 1;
         // text-align: right;
         a {
@@ -155,19 +153,164 @@
         }
     }
 
+    /**
+    * Side menu channel with avatar, name, and status
+    */
     &.streamer {
         /*
 		a {
 			padding: 5px 8px 12px 8px;
 		}
 		*/
+        a {
+            color: #777;
+            text-decoration: none;
+            display: inline-block;
+            padding: 5px 8px;
+        }
 
         flex-direction: row;
+
+        // background-size: cover;
+        // background-position: center;
+        // background-repeat: no-repeat;
+
+        .streamer-link {
+            flex-grow: 1;
+            // backdrop-filter: blur(5px) brightness(0.2);
+        }
+
+        &:hover {
+            .avatar {
+                transform: scale(110%);
+            }
+            .username { color: #fff; }
+            background-color: #111;
+            .subtitle {
+                color: #868686;
+            }
+        }
+
+        &.is-live {
+            a {
+                background-color: #0e361e;
+            }
+
+            .username {
+                color: #1dd14a;
+                font-weight: 700;
+            }
+
+            .subtitle,
+            .vodcount {
+                color: #0aa44a;
+            }
+
+            .streamer-expand-container {
+                background-color: #0e361e;
+
+                .streamer-expand-main {
+                    color: #23c687;
+
+                    &:hover {
+                        background-color: #166c44;
+                    }
+                }
+            }
+
+            // main hover
+            .streamer-link:hover {
+                background-color: #0e361e;
+                .username { color: #fff; }
+                .subtitle { color: #2c8f64; }
+            }
+        }
+
+        &.is-capturing {
+            a {
+                background-color: #2b0e0e;
+            }
+
+            .username {
+                color: #f00;
+                font-weight: 700;
+            }
+
+            &.is-animated a {
+                animation: live ease-in-out 1s infinite;
+            }
+
+            .subtitle,
+            .vodcount {
+                color: #b30000;
+            }
+
+            .streamer-expand-container {
+                background-color: #2b0e0e;
+
+                .streamer-expand-main {
+                    color: #f34d4d;
+
+                    &:hover {
+                        background-color: #4d0b0b;
+                    }
+                }
+            }
+
+            // main hover
+            .streamer-link:hover {
+                background-color: #3b1313;
+                .username { color: #ffc555; }
+                .subtitle { color: #9d8f1a; }
+            }
+
+        }
+
+        &.is-converting {
+            a {
+                background-color: darken($converting-base, 30%);
+            }
+
+            .username {
+                color: lighten($converting-base, 30%);
+                font-weight: 700;
+            }
+
+            .subtitle,
+            .vodcount {
+                color: lighten($converting-base, 10%);
+            }
+
+            .streamer-expand-container {
+                background-color: darken($converting-base, 30%);
+
+                .streamer-expand-main {
+                    color: lighten($converting-base, 30%);
+
+                    &:hover {
+                        background-color: darken($converting-base, 20%);
+                    }
+                }
+            }
+
+            // main hover
+            .streamer-link:hover {
+                background-color: darken($converting-base, 25%);
+                .username { color: #fff; }
+                .subtitle { color: lighten($converting-base, 10%); }
+            }
+        }
 
         &.no-capture {
             .username {
                 text-decoration: line-through;
             }
+
+            // &.is-live {
+            //     a {
+            //         background-color: #0e361e;
+            //     }
+            // }
         }
 
         .avatar {
@@ -203,7 +346,7 @@
             font-size: 80%;
             line-height: 1em;
             color: #444;
-            padding-bottom: 5px;
+            padding-bottom: 0.1em;
 
             &:empty,
             &:-moz-only-whitespace {
@@ -212,13 +355,8 @@
             }
         }
 
-        .streamer-link {
-            flex-grow: 1;
-        }
-
         .streamer-expand-container {
             display: flex;
-
             // center contents
             align-items: center;
             justify-content: center;
@@ -257,220 +395,205 @@
 
             margin: 2px;
         }
-    }
 
-    .streamer-expand-hide {
-        height: 3px;
-        // #000 to #09182c
-        background-image: linear-gradient(to bottom, darken(#09182c, 5%), #09182c);
-        // border-top: 1px dotted #2d5589;
-    }
+        &.no-capture &.is-live {
+            .streamer-expand-container {
+                background-color: #0e2b14;
+            }
 
-    &.streamer.is-live {
-        a {
-            background-color: #2b0e0e;
+            .username {
+                color: #15b300;
+            }
         }
 
-        .username {
-            color: #f00;
-            font-weight: 700;
+        .streamer-expand-hide {
+            height: 3px;
+            // #000 to #09182c
+            background-image: linear-gradient(to bottom, darken(#09182c, 5%), #09182c);
+            // border-top: 1px dotted #2d5589;
         }
 
-        &.is-animated a {
-            animation: live ease-in-out 1s infinite;
-        }
-
-        .subtitle,
-        .vodcount {
-            color: #b30000;
-        }
-
-        .streamer-expand-container {
-            background-color: #2b0e0e;
-            .streamer-expand-main {
-                color: #f34d4d;
-                &:hover {
-                    background-color: #4d0b0b;
-                }
+        &.is-active {
+            a {
+                color: #fff;
             }
         }
     }
 
-    &.is-active {
-        a {
-            color: #fff;
+    /**
+    * Side menu channel vod list
+    */
+    &.streamer-jumpto {
+        .icon {
+            margin-right: 0.2em;
         }
-    }
-}
 
-.favicon {
-    width: 24px;
-    height: 24px;
-    vertical-align: -5px;
-    margin: 0 8px 0 3px;
-}
+        ul {
+            list-style: none;
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
 
-a.linkback {
-    font-weight: 700;
-    color: #e0e00d;
-
-    /* forgive me padre for i have sinned */
-    &:hover {
-        color: #fff;
-    }
-}
-
-.streamer-jumpto {
-    .icon {
-        margin-right: 0.2em;
-    }
-
-    ul {
-        list-style: none;
-        list-style-type: none;
-        margin: 0;
-        padding: 0;
-
-        li {
-            a {
-                font-family: "Roboto Condensed";
-                $base-bg: #09182c;
-                background-color: $base-bg;
-                // border-color: darken($base-bg, 5%);
-                // color: #ddd;
-                color: rgba(255, 255, 255, 0.5);
-                display: block;
-                text-decoration: none;
-                padding: 3px 5px;
-                font-size: 0.8em;
-                transition: 0.1s border-width ease-in-out;
-
-                &:hover {
-                    color: #fff;
-                    background-color: lighten($base-bg, 5%);
-                }
-
-                &.is-favourite {
-                    background-color: $favourite-base;
+            li {
+                a {
+                    font-family: "Roboto Condensed";
+                    $base-bg: #09182c;
+                    background-color: $base-bg;
+                    // border-color: darken($base-bg, 5%);
+                    // color: #ddd;
+                    color: rgba(255, 255, 255, 0.5);
+                    display: block;
+                    text-decoration: none;
+                    padding: 3px 5px;
+                    font-size: 0.8em;
+                    transition: 0.1s border-width ease-in-out;
 
                     &:hover {
-                        background-color: lighten($favourite-base, 5%);
+                        color: #fff;
+                        background-color: lighten($base-bg, 5%);
                     }
 
-                    .tooltip {
-                        background-color: rgba(darken($favourite-base, 15%), 0.98);
-                    }
-                }
-
-                &.is-live {
-                    background-color: $recording-base;
-                    color: #eee;
-
-                    // text-shadow: 1px 1px 2px darken($recording-base, 10%);
-                    &.is-animated {
-                        animation: 1s ease-in-out infinite recording; // TODO: keep?
-                    }
-
-                    &:hover {
-                        background-color: lighten($recording-base, 5%);
-                    }
-
-                    .tooltip {
-                        background-color: rgba($recording-base, 0.95);
-                    }
-                }
-
-                &.is-converting {
-                    background-color: $converting-base;
-
-                    &:hover {
-                        background-color: lighten($converting-base, 5%);
-                    }
-
-                    .tooltip {
-                        background-color: rgba($converting-base, 0.95);
-                    }
-                }
-
-                &.is-waiting {
-                    background-color: $waiting-base;
-
-                    &:hover {
-                        background-color: lighten($waiting-base, 5%);
-                    }
-
-                    .tooltip {
-                        background-color: rgba($waiting-base, 0.95);
-                    }
-                }
-
-                &.is-active {
                     &.is-favourite {
-                        border-color: lighten($favourite-base, 60%);
+                        background-color: $favourite-base;
+
+                        &:hover {
+                            background-color: lighten($favourite-base, 5%);
+                        }
+
+                        .tooltip {
+                            background-color: rgba(darken($favourite-base, 15%), 0.98);
+                        }
                     }
 
                     &.is-live {
-                        border-color: lighten($recording-base, 60%);
+                        background-color: $recording-base;
+                        color: #eee;
+
+                        // text-shadow: 1px 1px 2px darken($recording-base, 10%);
+                        &.is-animated {
+                            animation: 1s ease-in-out infinite recording; // TODO: keep?
+                        }
+
+                        &:hover {
+                            background-color: lighten($recording-base, 5%);
+                        }
+
+                        .tooltip {
+                            background-color: rgba($recording-base, 0.95);
+                        }
                     }
 
                     &.is-converting {
-                        border-color: lighten($converting-base, 60%);
+                        background-color: $converting-base;
+
+                        &:hover {
+                            background-color: lighten($converting-base, 5%);
+                        }
+
+                        .tooltip {
+                            background-color: rgba($converting-base, 0.95);
+                        }
                     }
 
-                    border-left: 2px solid lighten($base-bg, 60%);
-                    color: #fff;
-                }
+                    &.is-waiting {
+                        background-color: $waiting-base;
 
-                .flags {
-                    float: right;
+                        &:hover {
+                            background-color: lighten($waiting-base, 5%);
+                        }
 
-                    .icon {
-                        margin: 0;
-                        padding: 0;
-                    }
-                }
-
-                .tooltip {
-                    position: absolute;
-                    left: $sidemenu-width + 10px;
-
-                    &.is-static {
-                        position: fixed;
-                        top: 10px;
+                        .tooltip {
+                            background-color: rgba($waiting-base, 0.95);
+                        }
                     }
 
-                    background-color: rgba(0, 0, 0, 0.98);
-                    border-radius: 3px;
-                    padding: 8px;
-                    display: none;
-                    word-wrap: none;
-                    width: max-content;
+                    &.is-active {
+                        &.is-favourite {
+                            border-color: lighten($favourite-base, 60%);
+                        }
 
-                    .boxart-carousel {
-                        margin: 5px 0;
+                        &.is-live {
+                            border-color: lighten($recording-base, 60%);
+                        }
+
+                        &.is-converting {
+                            border-color: lighten($converting-base, 60%);
+                        }
+
+                        border-left: 2px solid lighten($base-bg, 60%);
+                        color: #fff;
                     }
 
-                    .stream-channel {
-                        font-size: 1.1em;
-                        font-weight: 700;
+                    .flags {
+                        float: right;
+
+                        .icon {
+                            margin: 0;
+                            padding: 0;
+                        }
                     }
 
-                    .stream-name {
-                        font-size: 0.9em;
-                        color: rgba(255, 255, 255, 0.6);
+                    .tooltip {
+                        position: absolute;
+                        // left: $sidemenu-width + 10px;
+                        left: calc(var(--sidemenu-width) + 10px);
+
+                        &.is-static {
+                            position: fixed;
+                            top: 10px;
+                        }
+
+                        background-color: rgba(0, 0, 0, 0.98);
+                        border-radius: 3px;
+                        padding: 8px;
+                        display: none;
+                        word-wrap: none;
+                        width: max-content;
+
+                        .boxart-carousel {
+                            margin: 5px 0;
+                        }
+
+                        .stream-channel {
+                            font-size: 1.1em;
+                            font-weight: 700;
+                        }
+
+                        .stream-name {
+                            font-size: 0.9em;
+                            color: rgba(255, 255, 255, 0.6);
+                        }
+
+                        /*
+                        .stream-title {
+                            
+                        }
+                        */
                     }
 
-                    /*
-                    .stream-title {
-                        
+                    &:hover>.tooltip {
+                        display: block;
                     }
-                    */
-                }
-
-                &:hover > .tooltip {
-                    display: block;
                 }
             }
         }
     }
+
+    .favicon {
+        width: 24px;
+        height: 24px;
+        vertical-align: -5px;
+        margin: 0 8px 0 3px;
+    }
+
+    a.linkback {
+        font-weight: 700;
+        color: #e0e00d;
+
+        /* forgive me padre for i have sinned */
+        &:hover {
+            color: #fff;
+        }
+    }
+
 }

@@ -13,6 +13,31 @@ export default {
             const o = parseJSON(date);
             return format(o, fmt);
         },
+        formatLogicalDate(date: string | Date) {
+            if (!date) return "";
+            const absDate = parseJSON(date);
+            const now = new Date();
+
+            console.log(absDate, now, now.getFullYear(), absDate.getFullYear());
+
+            if (now.getTime() - absDate.getTime() < 22 * 60 * 60 * 1000) {
+                return this.formatDate(date, "HH:mm:ss");
+            } else if (now.getFullYear() == absDate.getFullYear()) {
+                return this.formatDate(date, "dd/MM HH:mm:ss");
+            } else {
+                return this.formatDate(date, "yyyy-MM-dd HH:mm:ss");
+            }
+            // if older than 24 hours, show date with time
+            /*
+            if (new Date().getTime() - new Date(date).getTime() > 22 * 60 * 60 * 1000) {
+                return this.formatDate(date, "yyyy-MM-dd HH:mm:ss");
+            // if newer than current year, show date with time
+            } else if (new Date().getFullYear() == new Date(date).getFullYear()) {
+                return this.formatDate(date, "dd/MM HH:mm:ss");
+            } else {
+                return this.formatDate(date, "HH:mm:ss");
+            }*/
+        },
         formatTimestamp(timestamp: number, fmt = "yyyy-MM-dd HH:mm:ss"): string {
             const o = new Date(timestamp * 1000);
             return format(o, fmt);
@@ -116,13 +141,20 @@ export default {
         },
         prefersReducedMotion(): boolean {
             return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        }
+        },
+        formatDuration(duration_seconds: number) {
+            const hours = Math.floor(duration_seconds / (60 * 60));
+            const minutes = Math.floor((duration_seconds - (hours * 60 * 60)) / 60);
+            const seconds = Math.floor(duration_seconds - (hours * 60 * 60) - (minutes * 60));
+            return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+        },
     },
 };
 
 declare module "@vue/runtime-core" {
     export interface ComponentCustomProperties {
         formatDate: (date: string | Date, fmt?: string) => string;
+        formatLogicalDate: (date: Date | string) => string;
         formatTimestamp: (timestamp: number, fmt?: string) => string;
         humanDuration: (duration: number) => string;
         formatBytes: (bytes: number, precision?: number) => string;
@@ -134,5 +166,6 @@ declare module "@vue/runtime-core" {
         formatDurationSince: (date: string) => string;
         // sortObject: (game: Record<string, any>, value: string) => any;
         prefersReducedMotion: () => boolean;
+        formatDuration: (duration_seconds: number) => string;
     }
 }

@@ -20,7 +20,7 @@ interface StoreType {
     websocketUrl: string;
     errors: string[];
     log: ApiLogLine[];
-    diskTotalSize: number;
+    // diskTotalSize: number;
     diskFreeSize: number;
     loading: boolean;
 }
@@ -40,7 +40,7 @@ export const useStore = defineStore("twitchAutomator", {
             websocketUrl: "",
             errors: [],
             log: [],
-            diskTotalSize: 0,
+            // diskTotalSize: 0,
             diskFreeSize: 0,
             loading: false,
         };
@@ -66,7 +66,7 @@ export const useStore = defineStore("twitchAutomator", {
                 this.streamerList = channels;
                 this.streamerListLoaded = true;
                 this.diskFreeSize = data.free_size;
-                this.diskTotalSize = data.total_size;
+                // this.diskTotalSize = data.total_size;
             }
         },
         async fetchStreamerList(): Promise<false | { streamer_list: ApiChannel[]; total_size: number; free_size: number; }> {
@@ -263,6 +263,15 @@ export const useStore = defineStore("twitchAutomator", {
                 this.jobList[index] = job;
             }
         },
+        updateJobProgress(job_name: string, progress: number) {
+            const index = this.jobList.findIndex((j) => j.name === job_name);
+            if (index === -1) {
+                console.warn(`Job '${job_name}' not found in job list (progress: ${progress})`);
+                return;
+            }
+            this.jobList[index].progress = progress;
+            console.debug(`Update job '${job_name}', progress: ${progress}`);
+        },
         removeJob(name: string) {
             console.debug(`Delete job '${name}'`);
             const index = this.jobList.findIndex((j) => j.name === name);
@@ -335,7 +344,11 @@ export const useStore = defineStore("twitchAutomator", {
         },
         channelsOnline(): number {
             if (!this.streamerList) return 0;
-            return this.streamerList.filter((a) => a.is_live).length;
+            return this.streamerList.filter((a) => a.is_live || a.is_capturing).length;
+        },
+        diskTotalSize(): number {
+            if (!this.streamerList) return 0;
+            return this.streamerList.reduce((acc, channel) => acc + (channel.vods_size || 0), 0);
         },
     },
 });

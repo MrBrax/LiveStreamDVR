@@ -53,11 +53,13 @@ export const BaseConfigDataFolder = {
     logs: path.join(DataRoot, "logs"),
     logs_software: path.join(DataRoot, "logs", "software"),
     payloads: path.join(DataRoot, "payloads"),
+    storage: path.join(DataRoot, "storage"),
     vod: path.join(DataRoot, "storage", "vods"),
     saved_vods: path.join(DataRoot, "storage", "saved_vods"),
     saved_clips: path.join(DataRoot, "storage", "saved_clips"),
     public_cache: path.join(DataRoot, "cache", "public"),
     public_cache_avatars: path.join(DataRoot, "cache", "public", "avatars"),
+    public_cache_banners: path.join(DataRoot, "cache", "public", "banners"),
 };
 
 export const BaseConfigPath = {

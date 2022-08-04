@@ -45,11 +45,10 @@
                     v-model="formData.quality"
                     required
                     ref="quality"
-                    @blur="validateQuality"
                 />
                 <p class="input-help">{{ $t('forms.channel.quality-help-example') }}</p>
                 <p class="input-help"><strong>{{ $t('forms.channel.quality-help-warning') }}</strong></p>
-                <p class="input-help">{{ $t('forms.channel.quality-help-choices', [VideoQualityArray.join(", ")]) }}</p>
+                <!--<p class="input-help">{{ $t('forms.channel.quality-help-choices', [VideoQualityArray.join(", ")]) }}</p>-->
             </div>
         </div>
         <div class="field">
@@ -227,6 +226,7 @@ export default defineComponent({
             }
             this.userExists = undefined;
         },
+        /*
         validateQuality() {
             const input = this.formData.quality.split(" ");
             const valid = input.every((quality) => VideoQualityArray.includes(quality));
@@ -243,6 +243,7 @@ export default defineComponent({
                 }
             }
         },
+        */
         fetchLogin() {
             this.$http.get(`/api/v0/twitchapi/user/${this.formData.login}`).then((response) => {
                 const json = response.data;
@@ -252,6 +253,10 @@ export default defineComponent({
                 }
                 if (json.status == "OK") {
                     this.channelData = json.data;
+                    if (this.channelData && this.channelData.login !== this.formData.login) {
+                        alert(this.$t('messages.login-mismatch-fixing'));
+                        this.formData.login = this.channelData.login;
+                    }
                     field.setCustomValidity("");
                     field.reportValidity();
                     this.userExists = true;

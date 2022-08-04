@@ -1,6 +1,6 @@
 <template>
     <div class="streamer-box" v-if="streamer" :id="'streamer_' + streamer.login">
-        <div :class="{ 'streamer-title': true, 'is-live': streamer.is_live }">
+        <div :class="{ 'streamer-title': true, 'is-live': streamer.is_live, 'is-capturing': streamer.is_capturing }">
             <div class="streamer-title-avatar" :style="'background-image: url(' + avatarUrl + ')'"></div>
             <div class="streamer-title-text">
                 <h2>
@@ -9,6 +9,7 @@
                         <template v-if="streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }})</template>
                     </a>
                     <span v-if="streamer.is_live" class="streamer-live">live</span>
+                    <span v-if="streamer.is_capturing" class="streamer-capturing">capturing</span>
                 </h2>
                 <span class="streamer-title-subtitle">
                     <span class="streamer-vods-quality help" title="Quality">{{ quality }}</span
@@ -30,6 +31,10 @@
                     <span class="streamer-type" title="Broadcaster type">
                         <span v-if="streamer.broadcaster_type">{{ streamer.broadcaster_type }}</span>
                         <span v-else>Free</span>
+                    </span>
+                    <span class="streamer-saves-vods">
+                        &middot;
+                        <span v-if="!streamer.saves_vods" class="is-error">{{ $t("streamer.no-save-vods") }}</span>
                     </span>
                     &middot;
                     <span class="streamer-sxe" title="Season and episode">
@@ -94,7 +99,10 @@
             </ul>
         </div>
 
-        <div v-if="streamer.vods_list.length == 0" class="notice">{{ $t("messages.no_vods") }}</div>
+        <div v-if="streamer.vods_list.length == 0" class="notice">
+            <span v-if="streamer.no_capture">{{ $t("streamer.no-vods-not-capturing") }}</span>
+            <span v-else>{{ $t("messages.no_vods") }}</span>
+        </div>
         <div v-else>
             <vod-item
                 v-for="vod in streamer.vods_list"
@@ -389,7 +397,7 @@ export default defineComponent({
         },
         canAbortCapture(): boolean {
             if (!this.streamer) return false;
-            return this.streamer.is_live && this.store.jobList.some((job) => this.streamer && job.name.startsWith(`capture_${this.streamer.login}`));
+            return this.streamer.is_capturing && this.store.jobList.some((job) => this.streamer && job.name.startsWith(`capture_${this.streamer.login}`));
         },
         avatarUrl() {
             if (!this.streamer) return;

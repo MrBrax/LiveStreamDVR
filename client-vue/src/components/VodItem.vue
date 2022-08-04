@@ -310,6 +310,36 @@
                     </span>
                 </div>
 
+                <!-- bookmark list -->
+                <div class="video-bookmarks">
+                    <strong>{{ $t('vod.bookmarks') }}</strong>
+                    <ul class="list-segments">
+                        <li v-for="(bookmark, i) in vod.bookmarks" :key="i">
+                            {{ formatDuration(bookmark.offset || 0) }} - {{ bookmark.name }}
+                            <button @click="doDeleteBookmark(i)" class="icon-button">
+                                <span class="icon"><fa icon="xmark" /></span>
+                            </button>
+                        </li>
+                    </ul>
+                    <!--
+                    <details class="details">
+                        <summary>Create</summary>
+                        <div class="field">
+                            <label class="label">Name</label>
+                            <input class="input" type="text" v-model="newBookmark.name">
+                        </div>
+                        <div class="field" v-if="vod.is_finalized">
+                            <label class="label">Offset</label>
+                            <input class="input" v-model="newBookmark.offset" type="number">
+                        </div>
+                        <button class="button is-small is-confirm" @click="doMakeBookmark">
+                            <span class="icon"><fa icon="plus" /></span>
+                            <span>Create</span>
+                        </button>
+                    </details>
+                    -->
+                </div>
+
                 <!-- controls -->
                 <div class="video-controls buttons" v-if="vod.is_finalized">
                     <button :class="{ 'button': true, 'details-toggle': true, 'is-active': showAdvanced }" @click="showAdvanced = !showAdvanced" title="Show advanced">
@@ -881,32 +911,29 @@
         </div>
     </modal-box>
     <modal-box ref="chatDownloadMenu" title="Chat download">
-        <div class="is-centered">
-            <div class="field">
-                <button class="button" @click="doDownloadChat('tcd')">
-                    <fa icon="download" />
-                    Download with TCD
-                </button>
-            </div>
-            <div class="field">
-                <button class="button" @click="doDownloadChat('td')">
-                    <fa icon="download" />
-                    Download with TwitchDownloader
-                </button>
-            </div>
+        <div class="buttons is-centered">
+            <button class="button is-confirm" @click="doDownloadChat('tcd')">
+                <span class="icon"><fa icon="download" /></span>
+                <span>{{ $t('vod.buttons.download-with', ['tcd']) }}</span>
+            </button>
+            <button class="button is-confirm" @click="doDownloadChat('td')">
+                <span class="icon"><fa icon="download" /></span>
+                <span>{{ $t('vod.buttons.download-with', ['TwitchDownloader']) }}</span>
+            </button>
         </div>
     </modal-box>
     <modal-box ref="vodDownloadMenu" title="VOD download">
         <div class="is-centered">
             <div class="field">
+                <label class="label">Quality</label>
                 <select class="input" v-model="vodDownloadSettings.quality">
                     <option v-for="quality in VideoQualityArray" :key="quality" :value="quality">{{ quality }}</option>
                 </select>
             </div>
             <div class="field">
-                <button class="button" @click="doDownloadVod">
-                    <fa icon="download" />
-                    Download
+                <button class="button is-confirm" @click="doDownloadVod">
+                    <span class="icon"><fa icon="download" /></span>
+                    <span>Download</span>
                 </button>
             </div>
         </div>
@@ -1253,6 +1280,7 @@ export default defineComponent({
                 category: "",
                 file_source: "segment",
                 privacy: "private",
+                vod: "",
             },
             exporterTemplateVariables: [
                 "login",
@@ -1262,6 +1290,10 @@ export default defineComponent({
                 "date",
                 "resolution",
             ],
+            newBookmark: {
+                name: "",
+                offset: 0,
+            }
         };
     },
     mounted() {
@@ -1279,6 +1311,7 @@ export default defineComponent({
                 comment: this.vod.comment ?? "",
                 prevent_deletion: this.vod.prevent_deletion ?? false,
             };
+            this.exportVodSettings.vod = this.vod.basename;
         }
     },
     props: {
@@ -1554,7 +1587,7 @@ export default defineComponent({
         },
         doExportVod() {
             if (!this.vod) return;
-            this.$http.post(`/api/v0/vod/${this.vod.basename}/export`, this.exportVodSettings).then((response) => {
+            this.$http.post(`/api/v0/exporter?mode=vod`, this.exportVodSettings).then((response) => {
                 const json: ApiResponse = response.data;
                 if (json.message) alert(json.message);
                 console.log(json);
@@ -1578,7 +1611,33 @@ export default defineComponent({
         doAuthenticateYouTube() {
             const url = `${this.store.cfg<string>("basepath", "")}/api/v0/youtube/authenticate`;
             window.open(url, "_blank");
-        }
+        },
+        doMakeBookmark() {
+            if (!this.vod) return;
+            this.$http.post(`/api/v0/vod/${this.vod.basename}/bookmark`, this.newBookmark).then((response) => {
+                const json: ApiResponse = response.data;
+                if (json.message) alert(json.message);
+                console.log(json);
+                if (this.vod) this.store.fetchAndUpdateVod(this.vod.basename);
+                // if (this.editVodMenu) this.editVodMenu.show = false;
+            }).catch((err) => {
+                console.error("form error", err.response);
+                if (err.response.data && err.response.data.message) alert(err.response.data.message);
+            });
+        },
+        doDeleteBookmark(i: number) {
+            if (!this.vod) return;
+            this.$http.delete(`/api/v0/vod/${this.vod.basename}/bookmark?index=${i}`).then((response) => {
+                const json: ApiResponse = response.data;
+                if (json.message) alert(json.message);
+                console.log(json);
+                if (this.vod) this.store.fetchAndUpdateVod(this.vod.basename);
+                // if (this.editVodMenu) this.editVodMenu.show = false;
+            }).catch((err) => {
+                console.error("form error", err.response);
+                if (err.response.data && err.response.data.message) alert(err.response.data.message);
+            });
+        },
     },
     computed: {
         compDownloadChat(): boolean {

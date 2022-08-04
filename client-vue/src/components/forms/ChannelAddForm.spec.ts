@@ -67,6 +67,7 @@ test('ChannelAddForm', async () => {
 
 
     // validate quality
+    /*
     const input_quality = wrapper.get<HTMLInputElement>('input[name="quality"]');
     await input_quality.setValue('721p');
     await input_quality.trigger('blur');
@@ -84,6 +85,7 @@ test('ChannelAddForm', async () => {
     await input_quality.trigger('blur');
     expect(wrapper.vm.formData.quality).toBe(quality_list);
     expect(input_quality.element.checkValidity()).toBe(true);
+    */
 
     // validate match
     await wrapper.get('input[name="match"]').setValue('test');

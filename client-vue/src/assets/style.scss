@@ -16,7 +16,7 @@ $converting-base: #bb15ca;
 $recording-base: #ca1515;
 $waiting-base: #2b2b2b;
 
-$sidemenu-width: 330px;
+// $sidemenu-width: 330px;
 $icon-dimensions: 1.2em !default;
 $anchor-height: 60px;
 
@@ -29,6 +29,8 @@ $boxart-height: 190px;
     --body-font: Roboto, Helvetica, Arial;
     --text-darker: #3d3d3d;
 
+    --sidemenu-width: 330px;
+
     --section-background-color: #fdfdfd;
     --section-title-background-color: #277dec;
     --card-background-color: #fdfdfd;
@@ -36,6 +38,8 @@ $boxart-height: 190px;
     --video-description-background-color: #f2f2f2;
     --video-controls-background-color: #e2e9f9;
     --video-segments-background-color: #fff1fa;
+
+    --video-bookmarks-background-color: #f2f2f2;
 
     --link-color: #277dec;
     --link-hover-color: #184279;
@@ -62,6 +66,7 @@ $boxart-height: 190px;
     --border-radius: 0;
 
     --gamelist-favourite: #7acc92;
+    --gamelist-current: #f0a6a6;
 
     --modal-background-color: #ffffff;
 
@@ -70,6 +75,10 @@ $boxart-height: 190px;
     --input-disabled-color: #777;
     --input-disabled-border-color: #ccc;
     --input-disabled-background-color: #f5f5f5;
+
+    --template-preview-background-color: #eeeeee;
+
+    --video-comment-background-color: #fff;
 }
 
 * {

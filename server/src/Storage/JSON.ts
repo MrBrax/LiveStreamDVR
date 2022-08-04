@@ -2,6 +2,7 @@ import { VideoQuality } from "../../../common/Config";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { MuteStatus } from "../../../common/Defs";
 import { AudioMetadata, VideoMetadata } from "../../../common/MediaInfo";
+import { TwitchVODBookmark } from "../../../common/Bookmark";
 
 export interface VODJSON {
 
@@ -54,6 +55,7 @@ export interface TwitchVODJSON extends VODJSON {
     streamer_login: string;
 
     chapters: TwitchVODChapterJSON[];
+    bookmarks: TwitchVODBookmark[];
 
     twitch_vod_id?: string;
     twitch_vod_duration?: number
