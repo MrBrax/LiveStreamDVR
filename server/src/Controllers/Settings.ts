@@ -10,12 +10,12 @@ import { AppName } from "../Core/BaseConfig";
 
 export function GetSettings(req: express.Request, res: express.Response): void {
 
-    const is_guest = (req as any).user == "guest";
+    // const is_guest = (req as any).user == "guest";
 
     const config: Record<string, any> = {};
     for (const field of Config.settingsFields) {
         // if (field.secret) continue;
-        if (is_guest && !field.guest) continue;
+        // if (is_guest && !field.guest) continue;
         config[field.key] = Config.getInstance().cfg(field.key);
     }
 
@@ -30,7 +30,7 @@ export function GetSettings(req: express.Request, res: express.Response): void {
             server: "ts-server",
             websocket_url: Config.getInstance().getWebsocketClientUrl(),
             errors: Helper.getErrors(),
-            guest: is_guest,
+            // guest: is_guest,
         },
         status: "OK",
     } as ApiSettingsResponse);

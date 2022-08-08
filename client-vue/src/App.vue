@@ -107,7 +107,7 @@ export default defineComponent({
         console.debug("App created");
         this.store.fetchClientConfig();
         this.$i18n.locale = this.store.clientConfig?.language ?? "en";
-        this.applyAuthentication();
+        // this.applyAuthentication();
         this.watchFaviconBadgeSub();
         this.fetchData().then(() => {
             this.updateTitle();
@@ -544,14 +544,14 @@ export default defineComponent({
             }
             console.debug(`Ticker: ${this.timer}/${this.timerMax}`);
         },
-        applyAuthentication() {
-            const password = this.store.clientCfg("password");
-            if (password) {
-                axios.defaults.headers.common["X-Password"] = password;
-            } else {
-                delete axios.defaults.headers.common["X-Password"];
-            }
-        }
+        // applyAuthentication() {
+        //     const password = this.store.clientCfg("password");
+        //     if (password) {
+        //         axios.defaults.headers.common["X-Password"] = password;
+        //     } else {
+        //         delete axios.defaults.headers.common["X-Password"];
+        //     }
+        // }
     },
     components: {
         SideMenu,

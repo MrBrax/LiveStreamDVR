@@ -4,6 +4,7 @@ import express from "express";
 import { AppName } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
 
+/* TODO: guest and admin roles
 export function Auth(req: express.Request, res: express.Response, next: express.NextFunction): void {
 
     // password protect
@@ -36,7 +37,6 @@ export function Auth(req: express.Request, res: express.Response, next: express.
             if (guest_mode && guest_paths.some(p => p[0] == req.path && p[1] == req.method)) {
                 next();
             } else {
-                /*
                 if (client_password == password) {
                     next();
                 } else if (client_password == "" || !client_password) {
@@ -50,17 +50,42 @@ export function Auth(req: express.Request, res: express.Response, next: express.
                         message: "Invalid password",
                     }).end();
                 }
-                */
-                
-                const credentials = auth(req);
-                if (credentials && credentials.name == "admin" && credentials.pass == password) {
-                    next();
-                } else {
-                    console.log(chalk.bgRed.whiteBright(`${req.ip} attempted to access ${req.path} without proper credentials`));
-                    res.statusCode = 401;
-                    res.setHeader("WWW-Authenticate", `Basic realm="${AppName}"`);
-                    res.end("Access denied");
-                }
+            }
+        }
+    } else {
+        next();
+    }
+
+}
+*/
+
+export function Auth(req: express.Request, res: express.Response, next: express.NextFunction): void {
+
+    // password protect
+    const password = Config.getInstance().cfg<string>("password");
+    const basepath = Config.getInstance().cfg<string>("basepath", "");
+
+    const ignored_paths = [
+        `${basepath}/api/v0/hook`,
+        `${basepath}/api/v0/cron/sub`,
+        `${basepath}/api/v0/cron/check_muted_vods`,
+        `${basepath}/api/v0/cron/check_deleted_vods`,
+        `${basepath}/api/v0/cron/playlist_dump`,
+    ];
+
+    if (Config.getInstance().cfg<string>("password", "") != "") {
+
+        if (ignored_paths.includes(req.path)) {
+            next();
+        } else {
+            const credentials = auth(req);
+            if (credentials && credentials.name == "admin" && credentials.pass == password) {
+                next();
+            } else {
+                console.log(chalk.bgRed.whiteBright(`${req.ip} attempted to access ${req.path} without proper credentials`));
+                res.statusCode = 401;
+                res.setHeader("WWW-Authenticate", `Basic realm="${AppName}"`);
+                res.end("Access denied");
             }
         }
     } else {
