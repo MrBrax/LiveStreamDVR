@@ -36,6 +36,12 @@
             </div>
         </div>
         <div class="field">
+            <label class="label">Password (sent unencrypted and stored in plain text)</label>
+            <div class="control">
+                <input type="password" class="input" v-model="updateConfig.password" />
+            </div>
+        </div>
+        <div class="field">
             <button class="button is-confirm" @click="saveClientConfig">
                 <span class="icon"><fa icon="save" /></span>
                 <span>{{ $t('buttons.save') }}</span>

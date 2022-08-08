@@ -23,6 +23,7 @@ interface StoreType {
     // diskTotalSize: number;
     diskFreeSize: number;
     loading: boolean;
+    guest: boolean;
 }
 
 export const useStore = defineStore("twitchAutomator", {
@@ -43,6 +44,7 @@ export const useStore = defineStore("twitchAutomator", {
             // diskTotalSize: 0,
             diskFreeSize: 0,
             loading: false,
+            guest: false,
         };
     },
     actions: {

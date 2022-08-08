@@ -25,6 +25,7 @@ export interface ApiSettingsResponse extends ApiResponse {
         server: string;
         websocket_url: string;
         errors?: string[];
+        guest: boolean;
     };
 }
 
