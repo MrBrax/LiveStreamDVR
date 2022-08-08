@@ -18,116 +18,101 @@ import * as Tools from "../Controllers/Tools";
 import * as Files from "../Controllers/Files";
 import * as YouTube from "../Controllers/YouTube";
 import * as Exporter from "../Controllers/Exporter";
-import { TwitchVOD } from "../Core/TwitchVOD";
+import { AuthGuest, AuthAdmin } from "../Helpers/Auth";
 
 const router = express.Router();
 
 router.all("/hook", Hook.Hook);
 
-router.get("/settings", Settings.GetSettings);
-router.put("/settings", Settings.SaveSettings);
-router.post("/settings/validate_url", Settings.ValidateExternalURL);
-router.get("/settings/debug", Settings.SetDebug);
+router.get("/settings", AuthGuest, Settings.GetSettings);
+router.put("/settings", AuthAdmin, Settings.SaveSettings);
+router.post("/settings/validate_url", AuthAdmin, Settings.ValidateExternalURL);
+router.get("/settings/debug", AuthAdmin, Settings.SetDebug);
 
-router.get("/channels", Channels.ListChannels);
-router.post("/channels", Channels.AddChannel);
-router.get("/channels/:login", Channels.GetChannel);
-router.put("/channels/:login", Channels.UpdateChannel);
-router.delete("/channels/:login", Channels.DeleteChannel);
-router.get("/channels/:login/download/:video_id", Channels.DownloadVideo);
-router.post("/channels/:login/subscribe", Channels.SubscribeToChannel);
-router.post("/channels/:login/cleanup", Channels.CleanupChannelVods);
-router.post("/channels/:login/refresh", Channels.RefreshChannel);
-router.post("/channels/:login/force_record", Channels.ForceRecord);
-router.post("/channels/:login/rename", Channels.RenameChannel);
-router.post("/channels/:login/deleteallvods", Channels.DeleteAllChannelVods);
-router.get("/channels/:login/history", Channels.GetHistory);
+router.get("/channels", AuthGuest, Channels.ListChannels);
+router.post("/channels", AuthAdmin, Channels.AddChannel);
+router.get("/channels/:login", AuthGuest, Channels.GetChannel);
+router.put("/channels/:login", AuthAdmin, Channels.UpdateChannel);
+router.delete("/channels/:login", AuthAdmin, Channels.DeleteChannel);
+router.get("/channels/:login/download/:video_id", AuthAdmin, Channels.DownloadVideo);
+router.post("/channels/:login/subscribe", AuthAdmin, Channels.SubscribeToChannel);
+router.post("/channels/:login/cleanup", AuthAdmin, Channels.CleanupChannelVods);
+router.post("/channels/:login/refresh", AuthAdmin, Channels.RefreshChannel);
+router.post("/channels/:login/force_record", AuthAdmin, Channels.ForceRecord);
+router.post("/channels/:login/rename", AuthAdmin, Channels.RenameChannel);
+router.post("/channels/:login/deleteallvods", AuthAdmin, Channels.DeleteAllChannelVods);
+router.get("/channels/:login/history", AuthGuest, Channels.GetHistory);
 
-router.get("/vod/:basename", Vod.GetVod);
-router.post("/vod/:basename", Vod.EditVod);
-router.delete("/vod/:basename", Vod.DeleteVod);
-router.post("/vod/:basename/archive", Vod.ArchiveVod);
-router.post("/vod/:basename/renderwizard", Vod.RenderWizard);
-router.post("/vod/:basename/download_chat", Vod.DownloadChat);
-router.post("/vod/:basename/download", Vod.DownloadVod);
-router.post("/vod/:basename/check_mute", Vod.CheckMute);
-router.post("/vod/:basename/match", Vod.MatchVod);
-router.post("/vod/:basename/cut", Vod.CutVod);
-router.post("/vod/:basename/save", Vod.ArchiveVod);
-// router.post("/vod/:basename/export", Vod.ExportVod);
-router.post("/vod/:basename/bookmark", Vod.AddBookmark);
-router.delete("/vod/:basename/bookmark", Vod.RemoveBookmark);
+router.get("/vod/:basename", AuthGuest, Vod.GetVod);
+router.post("/vod/:basename", AuthAdmin, Vod.EditVod);
+router.delete("/vod/:basename", AuthAdmin, Vod.DeleteVod);
+router.post("/vod/:basename/archive", AuthAdmin, Vod.ArchiveVod);
+router.post("/vod/:basename/renderwizard", AuthAdmin, Vod.RenderWizard);
+router.post("/vod/:basename/download_chat", AuthAdmin, Vod.DownloadChat);
+router.post("/vod/:basename/download", AuthAdmin, Vod.DownloadVod);
+router.post("/vod/:basename/check_mute", AuthAdmin, Vod.CheckMute);
+router.post("/vod/:basename/match", AuthAdmin, Vod.MatchVod);
+router.post("/vod/:basename/cut", AuthAdmin, Vod.CutVod);
+router.post("/vod/:basename/save", AuthAdmin, Vod.ArchiveVod);
+// router.post("/vod/:basename/export", AuthAdmin, Vod.ExportVod);
+router.post("/vod/:basename/bookmark", AuthAdmin, Vod.AddBookmark);
+router.delete("/vod/:basename/bookmark", AuthAdmin, Vod.RemoveBookmark);
 
-router.get("/games", Games.ListGames);
+router.get("/games", AuthGuest, Games.ListGames);
 
-router.post("/exporter", Exporter.ExportFile);
+router.post("/exporter", AuthAdmin, Exporter.ExportFile);
 
-router.get("/favourites", Favourites.ListFavourites);
-// router.post("/favourites", Favourites.AddFavourite);
-router.put("/favourites", Favourites.SaveFavourites);
-router.patch("/favourites", Favourites.AddFavourite);
+router.get("/favourites", AuthGuest, Favourites.ListFavourites);
+// router.post("/favourites", AuthAdmin, Favourites.AddFavourite);
+router.put("/favourites", AuthAdmin, Favourites.SaveFavourites);
+router.patch("/favourites", AuthAdmin, Favourites.AddFavourite);
 
-router.get("/about", About.About);
+router.get("/about", AuthAdmin, About.About);
 
-router.get("/log/:filename/:start_from?", Log.GetLog);
+router.get("/log/:filename/:start_from?", AuthAdmin, Log.GetLog);
 // router.get("/log/:filename/:start_from", Log.GetLog);
 
-router.get("/jobs", Jobs.ListJobs);
-router.delete("/jobs/:name", Jobs.KillJob);
+router.get("/jobs", AuthAdmin, Jobs.ListJobs);
+router.delete("/jobs/:name", AuthAdmin, Jobs.KillJob);
 
-router.get("/subscriptions", Subscriptions.ListSubscriptions);
-router.post("/subscriptions", Subscriptions.SubscribeToAllChannels);
-router.delete("/subscriptions/:sub_id", Subscriptions.UnsubscribeFromId);
+router.get("/subscriptions", AuthAdmin, Subscriptions.ListSubscriptions);
+router.post("/subscriptions", AuthAdmin, Subscriptions.SubscribeToAllChannels);
+router.delete("/subscriptions/:sub_id", AuthAdmin, Subscriptions.UnsubscribeFromId);
 
-router.get("/cron/check_deleted_vods", Cron.CheckDeletedVods);
-router.get("/cron/check_muted_vods", Cron.CheckMutedVods);
+router.get("/cron/check_deleted_vods", AuthAdmin, Cron.CheckDeletedVods);
+router.get("/cron/check_muted_vods", AuthAdmin, Cron.CheckMutedVods);
 
-router.get("/twitchapi/videos/:login", TwitchAPI.TwitchAPIVideos);
-router.get("/twitchapi/video/:video_id", TwitchAPI.TwitchAPIVideo);
-router.get("/twitchapi/user/:login", TwitchAPI.TwitchAPIUser);
-router.get("/twitchapi/streams/:login", TwitchAPI.TwitchAPIStreams);
-router.get("/twitchapi/channel/:login", TwitchAPI.TwitchAPIChannel);
-router.get("/twitchapi/clips", TwitchAPI.TwitchAPIClips);
+router.get("/twitchapi/videos/:login", AuthAdmin, TwitchAPI.TwitchAPIVideos);
+router.get("/twitchapi/video/:video_id", AuthAdmin, TwitchAPI.TwitchAPIVideo);
+router.get("/twitchapi/user/:login", AuthAdmin, TwitchAPI.TwitchAPIUser);
+router.get("/twitchapi/streams/:login", AuthAdmin, TwitchAPI.TwitchAPIStreams);
+router.get("/twitchapi/channel/:login", AuthAdmin, TwitchAPI.TwitchAPIChannel);
+router.get("/twitchapi/clips", AuthAdmin, TwitchAPI.TwitchAPIClips);
 
-router.get("/keyvalue", KeyValue.GetAllKeyValues);
-router.delete("/keyvalue", KeyValue.DeleteAllKeyValues);
-router.get("/keyvalue/:key", KeyValue.GetKeyValue);
-router.put("/keyvalue/:key", KeyValue.SetKeyValue);
-router.delete("/keyvalue/:key", KeyValue.DeleteKeyValue);
+router.get("/keyvalue", AuthAdmin, KeyValue.GetAllKeyValues);
+router.delete("/keyvalue", AuthAdmin, KeyValue.DeleteAllKeyValues);
+router.get("/keyvalue/:key", AuthAdmin, KeyValue.GetKeyValue);
+router.put("/keyvalue/:key", AuthAdmin, KeyValue.SetKeyValue);
+router.delete("/keyvalue/:key", AuthAdmin, KeyValue.DeleteKeyValue);
 
-router.get("/debug/vods", Debug.ListVodsInMemory);
-router.get("/debug/channels", Debug.ListChannelsInMemory);
-router.get("/debug/notify", Debug.NotifyTest);
+router.get("/debug/vods", AuthAdmin, Debug.ListVodsInMemory);
+router.get("/debug/channels", AuthAdmin, Debug.ListChannelsInMemory);
+router.get("/debug/notify", AuthAdmin, Debug.NotifyTest);
 
-router.get("/notifications", Notifications.GetNotificationSettings);
-router.put("/notifications", Notifications.SaveNotificationSettings);
+router.get("/notifications", AuthAdmin, Notifications.GetNotificationSettings);
+router.put("/notifications", AuthAdmin, Notifications.SaveNotificationSettings);
 
-router.post("/tools/reset_channels", Tools.ResetChannels);
-router.post("/tools/vod_download", Tools.DownloadVod);
-router.post("/tools/chat_download", Tools.DownloadChat);
-router.post("/tools/chat_dump", Tools.ChatDump);
-router.post("/tools/clip_download", Tools.DownloadClip);
+router.post("/tools/reset_channels", AuthAdmin, Tools.ResetChannels);
+router.post("/tools/vod_download", AuthAdmin, Tools.DownloadVod);
+router.post("/tools/chat_download", AuthAdmin, Tools.DownloadChat);
+router.post("/tools/chat_dump", AuthAdmin, Tools.ChatDump);
+router.post("/tools/clip_download", AuthAdmin, Tools.DownloadClip);
 
-router.get("/files", Files.ListFiles);
-router.delete("/files", Files.DeleteFile);
+router.get("/files", AuthAdmin, Files.ListFiles);
+router.delete("/files", AuthAdmin, Files.DeleteFile);
 
-router.get("/youtube/authenticate", YouTube.Authenticate);
-router.get("/youtube/callback", YouTube.Callback);
-router.get("/youtube/status", YouTube.Status);
-
-router.get("/test_video_download", (req, res) => {
-    if (!req.query.video_id) {
-        res.send("Missing video_id");
-        return;
-    }
-
-    TwitchVOD.downloadVideo(req.query.video_id as string, "best", req.query.video_id as string + ".mp4")
-        .then(() => {
-            res.send("OK");
-        })
-        .catch(() => {
-            res.send("FAIL");
-        });
-});
+router.get("/youtube/authenticate", AuthAdmin, YouTube.Authenticate);
+router.get("/youtube/callback", AuthAdmin, YouTube.Callback);
+router.get("/youtube/status", AuthAdmin, YouTube.Status);
 
 export default router;

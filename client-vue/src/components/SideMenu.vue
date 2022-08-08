@@ -25,12 +25,12 @@
                     <span class="icon"><fa icon="tachometer-alt"></fa></span>
                 </router-link>
             </div>
-            <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Files' }" data-menuitem="files">
+            <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Files' }" data-menuitem="files" v-if="!store.guest">
                 <router-link to="/files" :title="$t('pages.files')" class="link">
                     <span class="icon"><fa icon="archive"></fa></span>
                 </router-link>
             </div>
-            <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Tools' }" data-menuitem="tools">
+            <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Tools' }" data-menuitem="tools" v-if="!store.guest">
                 <router-link to="/tools" :title="$t('pages.tools')" class="link">
                     <span class="icon"><fa icon="wrench"></fa></span>
                 </router-link>
@@ -40,7 +40,7 @@
                     <span class="icon"><fa icon="cog"></fa></span>
                 </router-link>
             </div>
-            <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'About' }" data-menuitem="github">
+            <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'About' }" data-menuitem="github" v-if="!store.guest">
                 <router-link to="/about" :title="$t('pages.about')" class="link">
                     <span class="icon"><fa icon="info-circle"></fa></span>
                 </router-link>

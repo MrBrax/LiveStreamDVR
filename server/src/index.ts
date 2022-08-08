@@ -69,6 +69,7 @@ Config.init().then(() => {
         app.use(morgan("combined"));
     }
 
+    // authentication
     app.use(Auth);
 
     const baserouter = express.Router();

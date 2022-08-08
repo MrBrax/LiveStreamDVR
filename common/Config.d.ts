@@ -39,6 +39,8 @@ export interface SettingField<T> {
     }>;
     context?: string;
 
+    guest?: boolean;
+
 }
 
 export interface ChannelConfig {

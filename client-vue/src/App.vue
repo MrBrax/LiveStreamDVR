@@ -43,6 +43,7 @@ import { ApiLogLine } from "@common/Api/Client";
 import { parseISO } from "date-fns";
 import { WebsocketJSON } from "./websocket";
 import WebsocketStatus from "./components/WebsocketStatus.vue";
+import axios from "axios";
 // import websocket from "./websocket";
 
 const faviconCanvas = document.createElement("canvas");
@@ -106,6 +107,7 @@ export default defineComponent({
         console.debug("App created");
         this.store.fetchClientConfig();
         this.$i18n.locale = this.store.clientConfig?.language ?? "en";
+        // this.applyAuthentication();
         this.watchFaviconBadgeSub();
         this.fetchData().then(() => {
             this.updateTitle();
@@ -206,6 +208,7 @@ export default defineComponent({
             this.store.updateErrors(data.data.errors ?? []);
             this.store.websocketUrl = data.data.websocket_url;
             this.store.app_name = data.data.app_name;
+            this.store.guest = data.data.guest;
 
             await this.store.fetchAndUpdateStreamerList();
             await this.store.fetchAndUpdateJobs();
@@ -541,6 +544,14 @@ export default defineComponent({
             }
             console.debug(`Ticker: ${this.timer}/${this.timerMax}`);
         },
+        // applyAuthentication() {
+        //     const password = this.store.clientCfg("password");
+        //     if (password) {
+        //         axios.defaults.headers.common["X-Password"] = password;
+        //     } else {
+        //         delete axios.defaults.headers.common["X-Password"];
+        //     }
+        // }
     },
     components: {
         SideMenu,

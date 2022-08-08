@@ -1966,7 +1966,6 @@ export class TwitchVOD {
         if (!this.is_capturing && !this.is_converted && !this.is_finalized) {
             if (fs.existsSync(path.join(this.directory, `${this.basename}.ts`))) {
                 console.log(chalk.bgBlue.whiteBright(`${this.basename} is not yet remuxed, remuxing now!`));
-                this.is_converting = true;
 
                 const channel = this.getChannel();
                 const container_ext =
@@ -1974,14 +1973,26 @@ export class TwitchVOD {
                         Config.AudioContainer :
                         Config.getInstance().cfg("vod_container", "mp4");
 
-                Helper.remuxFile(path.join(this.directory, `${this.basename}.ts`), path.join(this.directory, `${this.basename}.${container_ext}`))
-                    .then(async status => {
-                        console.log(chalk.bgBlue.whiteBright(`${this.basename} remux status: ${status.success}`));
-                        this.addSegment(`${this.basename}.${container_ext}`);
-                        this.is_converting = false;
-                        await this.finalize();
-                        await this.saveJSON("fix remux");
-                    });
+                const in_file = path.join(this.directory, `${this.basename}.ts`);
+                const out_file = path.join(this.directory, `${this.basename}.${container_ext}`);
+
+                if (fs.existsSync(out_file)) {
+                    console.log(chalk.bgRed.whiteBright(`Converted file '${out_file}' for '${this.basename}' already exists, skipping remux!`));
+                } else {
+                    this.is_converting = true;
+                    Helper.remuxFile(in_file, out_file)
+                        .then(async status => {
+                            console.log(chalk.bgBlue.whiteBright(`${this.basename} remux status: ${status.success}`));
+                            this.addSegment(`${this.basename}.${container_ext}`);
+                            this.is_converting = false;
+                            await this.finalize();
+                            await this.saveJSON("fix remux");
+                        }).catch(async e => {
+                            console.log(chalk.bgRed.whiteBright(`${this.basename} remux failed: ${e.message}`));
+                            this.is_converting = false;
+                            await this.saveJSON("fix remux failed");
+                        });
+                }
             } else {
                 console.log(chalk.bgRed.whiteBright(`${this.basename} is not yet remuxed but no ts file found, skipping!`));
             }

@@ -51,15 +51,17 @@ export class Config {
             "help": "Must use HTTPS on port 443 (aka no port visible). No trailing slash. E.g. https://livestreamdvr.example.com . Enter 'debug' to not use, no recordings can be made.",
             // 'pattern': '^https:\/\/',
             "stripslash": true,
+            "guest": true,
         },
 
         { "key": "password", "group": "Interface", "text": "Password", "type": "string", "help": "Keep blank for none. Username is admin" },
+        // { "key": "guest_mode", "group": "Interface", "text": "Guest mode", "type": "boolean", "default": false, "help": "Allow guests to access the interface." },
         // { "key": "password_secure", "group": "Interface", "text": "Force HTTPS for password", "type": "boolean", "default": true },
 
         { "key": "webhook_url", "group": "Notifications", "text": "Webhook URL", "type": "string", "help": "For external scripting" },
-        { "key": "websocket_enabled", "group": "Notifications", "text": "Websockets enabled", "type": "boolean", "default": true, "help": "Requires a restart." },
+        { "key": "websocket_enabled", "group": "Notifications", "text": "Websockets enabled", "type": "boolean", "default": true, "help": "Requires a restart.", "guest": true },
         // { "key": "websocket_server_address", "group": "Notifications", "text": "Websocket server address override", "type": "string" },
-        { "key": "websocket_client_address", "group": "Notifications", "text": "Websocket client address override", "type": "string" },
+        { "key": "websocket_client_address", "group": "Notifications", "text": "Websocket client address override", "type": "string", "guest": true },
         { "key": "websocket_log", "group": "Notifications", "text": "Send logs over websocket", "type": "boolean" },
 
         { "key": "channel_folders", "group": "Storage", "text": "Channel folders", "type": "boolean", "default": true, "help": "Store VODs in subfolders instead of root" },
@@ -90,7 +92,7 @@ export class Config {
         // {'key': 'burn_preset', 			'group': 'Video',		'text': 'Burning h264 preset', 							    'type': 'array',		'choices': {'ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower', 'veryslow', 'placebo'}, 'default': 'slow'},
         // {'key': 'burn_crf', 				'group': 'Video',		'text': 'Burning h264 crf', 								'type': 'number',		'default': 26, 'help': 'Essentially a quality control. Lower is higher quality.'},
 
-        { "key": "debug", "group": "Developer", "text": "Debug", "type": "boolean", "default": false, "help": "Verbose logging, extra file outputs, more information available. Not for general use." },
+        { "key": "debug", "group": "Developer", "text": "Debug", "type": "boolean", "default": false, "help": "Verbose logging, extra file outputs, more information available. Not for general use.", "guest": true },
         { "key": "app_verbose", "group": "Developer", "text": "Verbose app output", "type": "boolean", "help": "Only verbose output" },
         { "key": "dump_payloads", "group": "Developer", "text": "Dump payloads", "type": "boolean", "default": false },
 

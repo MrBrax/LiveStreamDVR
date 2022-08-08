@@ -1,21 +1,21 @@
 <template>
     <div class="top-tabs">
-        <router-link :to="{ name: 'Settings', params: { tab: 'channels' } }">
+        <router-link :to="{ name: 'Settings', params: { tab: 'channels' } }" v-if="!store.guest">
             <span class="icon"><fa icon="user"></fa></span> {{ $t('pages.channels') }}
         </router-link>
-        <router-link :to="{ name: 'Settings', params: { tab: 'newchannel' } }">
+        <router-link :to="{ name: 'Settings', params: { tab: 'newchannel' } }" v-if="!store.guest">
             <span class="icon"><fa icon="user-plus"></fa></span> {{ $t('pages.new-channel') }}
         </router-link>
-        <router-link :to="{ name: 'Settings', params: { tab: 'config' } }">
+        <router-link :to="{ name: 'Settings', params: { tab: 'config' } }" v-if="!store.guest">
             <span class="icon"><fa icon="cog"></fa></span> {{ $t('pages.config') }}
         </router-link>
-        <router-link :to="{ name: 'Settings', params: { tab: 'keyvalue' } }">
+        <router-link :to="{ name: 'Settings', params: { tab: 'keyvalue' } }" v-if="!store.guest">
             <span class="icon"><fa icon="database"></fa></span> {{ $t('pages.keyvalue') }}
         </router-link>
-        <router-link :to="{ name: 'Settings', params: { tab: 'notifications' } }">
+        <router-link :to="{ name: 'Settings', params: { tab: 'notifications' } }" v-if="!store.guest">
             <span class="icon"><fa icon="bell"></fa></span> {{ $t('pages.notifications') }}
         </router-link>
-        <router-link :to="{ name: 'Settings', params: { tab: 'favourites' } }">
+        <router-link :to="{ name: 'Settings', params: { tab: 'favourites' } }" v-if="!store.guest">
             <span class="icon"><fa icon="star"></fa></span> {{ $t('pages.favourite-games') }}
         </router-link>
         <router-link :to="{ name: 'Settings', params: { tab: 'clientsettings' } }">
