@@ -1966,7 +1966,6 @@ export class TwitchVOD {
         if (!this.is_capturing && !this.is_converted && !this.is_finalized) {
             if (fs.existsSync(path.join(this.directory, `${this.basename}.ts`))) {
                 console.log(chalk.bgBlue.whiteBright(`${this.basename} is not yet remuxed, remuxing now!`));
-                
 
                 const channel = this.getChannel();
                 const container_ext =
