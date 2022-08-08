@@ -20,6 +20,7 @@ export const defaultConfig: ClientSettings = {
     theme: "auto",
     showOfflineCategoryInSidebar: true,
     sidemenuWidth: 330,
+    password: "",
 };
 
 interface ClientSettingField {
