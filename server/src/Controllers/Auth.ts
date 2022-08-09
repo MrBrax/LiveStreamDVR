@@ -6,8 +6,19 @@ export function Login(req: express.Request, res: express.Response): void {
     const client_password = req.body.password;
 
     if (req.session.authenticated) {
-        res.status(200).send({
+        res.status(400).send({
             authenticated: true,
+            message: "Already authenticated",
+            status: "ERROR",
+        });
+        return;
+    }
+
+    if (!password) {
+        res.status(400).send({
+            authenticated: false,
+            message: "No password set",
+            status: "ERROR",
         });
         return;
     }
@@ -21,10 +32,19 @@ export function Login(req: express.Request, res: express.Response): void {
             }
 
             req.session.authenticated = true;
-            res.send({
-                "authenticated": true,
-                "message": "Login successful",
-                "status": "OK",
+
+            req.session.save((err) => {
+                if (err) {
+                    console.error(err);
+                    res.status(500).send("Internal server error");
+                    return;
+                }
+
+                res.send({
+                    "authenticated": true,
+                    "message": "Login successful",
+                    "status": "OK",
+                });
             });
         });
     } else {
