@@ -76,8 +76,7 @@ Config.init().then(() => {
         app.use(morgan("combined"));
     }
 
-    // session
-    app.use(session({
+    const sessionParser = session({
         secret: Config.getInstance().cfg<string>("eventsub_secret", ""), // TODO: make this unique from eventsub_secret
         resave: false,
         saveUninitialized: true,
@@ -86,7 +85,12 @@ Config.init().then(() => {
         //     httpOnly: true,
         //     maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
         // },
-    }));
+    }); // bad
+
+    Config.getInstance().sessionParser = sessionParser;
+
+    // session
+    app.use(sessionParser);
 
     // authentication
     // app.use(Auth);

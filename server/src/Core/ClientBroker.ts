@@ -4,6 +4,7 @@ import chalk from "chalk";
 import { IncomingMessage } from "http";
 import WebSocket from "ws";
 import fs from "fs";
+import express from "express";
 import { NotificationCategories, NotificationCategory, NotificationProvider } from "../../../common/Defs";
 import { NotifyData } from "../../../common/Webhook";
 import { BaseConfigPath } from "./BaseConfig";
@@ -16,6 +17,7 @@ interface Client {
     ip: string;
     alive: boolean;
     userAgent: string;
+    authenticated: boolean;
 }
 
 interface TelegramSendMessagePayload {
@@ -69,13 +71,36 @@ export class ClientBroker {
             console.log("Websocket server error", error);
         });
 
-        this.wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
-            this.onConnect(ws, req);
+        this.wss.on("connection", (ws: WebSocket, req: express.Request) => {
+
+            const has_password = Config.getInstance().cfg<string>("password", "") != "";
+            const is_guest_mode = Config.getInstance().cfg<boolean>("guest_mode", false);
+
+            if (!has_password) {
+                this.onConnect(ws, req);
+            } else {
+
+                const sp = Config.getInstance().sessionParser;
+                if (sp) {
+                    sp(req, {} as any, () => {
+                        const is_authenticated = req.session.authenticated;
+                        if (is_authenticated) {
+                            this.onConnect(ws, req, is_authenticated);
+                        } else {
+                            console.log(chalk.red("Client attempted to connect without authentication."));
+                            // ws.write(JSON.stringify({ action: "alert", data: "Authentication required." }));
+                            ws.close(3000, "Authentication required.");
+                        }
+                    });
+                }
+
+            }
+
         });
 
     }
 
-    private static onConnect(ws: WebSocket.WebSocket, req: IncomingMessage) {
+    private static onConnect(ws: WebSocket.WebSocket, req: IncomingMessage, is_authenticated = false) {
 
         const client: Client = {
             id: req.headers["sec-websocket-key"] || "",
@@ -83,6 +108,7 @@ export class ClientBroker {
             ip: (req.headers["x-real-ip"] || req.headers["x-forwarded-for"] || req.socket.remoteAddress) as string,
             alive: true,
             userAgent: req.headers["user-agent"] || "",
+            authenticated: is_authenticated,
         };
 
         // console.debug(chalk.magenta(`Client ${client.id} connected from ${client.ip}, user-agent: ${client.userAgent}`));
@@ -158,10 +184,21 @@ export class ClientBroker {
             return;
         }
 
+        // const has_password = Config.getInstance().cfg<string>("password", "") != "";
+        // const is_guest_mode = Config.getInstance().cfg<boolean>("guest_mode", false);
+        // 
+        // const clients = this.clients.filter((c) => {
+        //     if (has_password && !is_guest_mode) {
+        //         return c.authenticated;
+        //     } else if (has_password && is_guest_mode) {
+        //         // filter each type
+        //     }
+
         console.log(chalk.blueBright(`Broadcasting data to ${this.wss.clients.size} clients: ${d.length > 64 ? d.substring(0, 64) + "..." : d}`));
         this.wss.clients.forEach((client) => {
             client.send(d);
         });
+
     }
 
     /**

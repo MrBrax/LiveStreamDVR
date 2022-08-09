@@ -4,6 +4,7 @@ import crypto from "crypto";
 import fs from "fs";
 import minimist from "minimist";
 import path from "path";
+import express from "express";
 import { SettingField } from "../../../common/Config";
 import { AppRoot, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot, HomeRoot } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
@@ -27,6 +28,8 @@ export class Config {
     watcher: fs.FSWatcher | undefined;
 
     forceDebug = false;
+
+    sessionParser?: express.RequestHandler;
 
 
     static readonly streamerCacheTime = 2592000 * 1000; // 30 days

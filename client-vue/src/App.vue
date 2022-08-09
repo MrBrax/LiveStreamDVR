@@ -257,13 +257,17 @@ export default defineComponent({
             this.websocket.addEventListener("close", (ev: CloseEvent) => {
                 console.log(`Disconnected from websocket! (${ev.code}/${ev.reason})`);
                 this.websocketConnecting = false;
+                this.websocketConnected = false;
+                clearInterval(this.websocketKeepalive);
+                if (ev.code === 3000) {
+                    alert("Websockets are only for authenticated users.");
+                    return;
+                }
                 setTimeout(() => {
                     if (!ev.wasClean) {
                         this.connectWebsocket();
                     }
                 }, 10000);
-                this.websocketConnected = false;
-                clearInterval(this.websocketKeepalive);
             });
 
             return this.websocket;
@@ -343,6 +347,8 @@ export default defineComponent({
                 } else if (action == "connected") {
                     this.websocketConnected = true;
                     console.log("Got connection event");
+                } else if (action == "alert") {
+                    alert(data.text);
                 } else {
                     console.warn("Unknown action", action, data);
                 }
