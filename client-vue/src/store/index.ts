@@ -1,5 +1,5 @@
 import { ApiChannel, ApiJob, ApiLogLine, ApiVod } from "../../../common/Api/Client";
-import { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiJobsResponse, ApiVodResponse } from "../../../common/Api/Api";
+import { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiJobsResponse, ApiSettingsResponse, ApiVodResponse } from "../../../common/Api/Api";
 import axios from "axios";
 import { defineStore } from "pinia";
 import { ClientSettings } from "@/twitchautomator";
@@ -23,19 +23,21 @@ interface StoreType {
     // diskTotalSize: number;
     diskFreeSize: number;
     loading: boolean;
-    guest: boolean;
+    authentication: boolean;
+    authenticated: boolean;
+    guest_mode: boolean;
 }
 
 export const useStore = defineStore("twitchAutomator", {
     state: function (): StoreType {
         return {
-            app_name: "",
+            app_name: "LiveStreamDVR",
             streamerList: [],
             streamerListLoaded: false,
             jobList: [],
             config: {},
             favourite_games: [],
-            version: "",
+            version: "?",
             clientConfig: undefined,
             serverType: "",
             websocketUrl: "",
@@ -44,7 +46,9 @@ export const useStore = defineStore("twitchAutomator", {
             // diskTotalSize: 0,
             diskFreeSize: 0,
             loading: false,
-            guest: false,
+            authentication: false,
+            authenticated: false,
+            guest_mode: false,
         };
     },
     actions: {
@@ -60,6 +64,45 @@ export const useStore = defineStore("twitchAutomator", {
             if (!this.clientConfig) return undefined;
             if (this.clientConfig[key] === undefined || this.clientConfig[key] === null) return def;
             return this.clientConfig[key];
+        },
+        async fetchData() {
+            // clear config
+            this.updateConfig(null);
+
+            let response;
+
+            try {
+                response = await axios.get(`/api/v0/settings`);
+            } catch (error) {
+                alert(error);
+                return;
+            }
+
+            if (response.status !== 200) {
+                alert("Non-200 response from server");
+                return;
+            }
+
+            if (!response.data || !response.data.data) {
+                alert("No data received for settings");
+                return;
+            }
+
+            const data: ApiSettingsResponse = response.data;
+
+            console.log(`Server type: ${data.data.server ?? "unknown"}`);
+
+            this.updateConfig(data.data.config);
+            this.updateVersion(data.data.version);
+            this.updateServerType(data.data.server);
+            this.updateFavouriteGames(data.data.favourite_games);
+            this.updateErrors(data.data.errors ?? []);
+            this.websocketUrl = data.data.websocket_url;
+            this.app_name = data.data.app_name;
+
+            await this.fetchAndUpdateStreamerList();
+            await this.fetchAndUpdateJobs();
+
         },
         async fetchAndUpdateStreamerList(): Promise<void> {
             const data = await this.fetchStreamerList();
@@ -338,6 +381,41 @@ export const useStore = defineStore("twitchAutomator", {
         },
         clearLog() {
             this.log = [];
+        },
+        async login(password: string): Promise<boolean> {
+            this.loading = true;
+            let response;
+
+            try {
+                response = await axios.post(`/api/v0/auth/login`, { password });
+            } catch (error) {
+                console.error(error);
+                this.loading = false;
+                return false;
+            }
+
+            this.loading = false;
+
+            if (!response.data.authenticated) {
+                alert(response.data.message);
+                return false;
+            }
+            
+            return true;
+        },
+        async logout(): Promise<void> {
+            this.loading = true;
+            let response;
+
+            try {
+                response = await axios.post(`/api/v0/auth/logout`);
+            } catch (error) {
+                console.error(error);
+                this.loading = false;
+                return;
+            }
+
+            this.loading = false;
         }
     },
     getters: {
@@ -352,5 +430,10 @@ export const useStore = defineStore("twitchAutomator", {
             if (!this.streamerList) return 0;
             return this.streamerList.reduce((acc, channel) => acc + (channel.vods_size || 0), 0);
         },
+        authElement(): boolean {
+            if (this.guest_mode && !this.authenticated) return false;
+            if (this.authentication && this.authenticated) return true;
+            return true;
+        }
     },
 });

@@ -18,6 +18,7 @@ import * as Tools from "../Controllers/Tools";
 import * as Files from "../Controllers/Files";
 import * as YouTube from "../Controllers/YouTube";
 import * as Exporter from "../Controllers/Exporter";
+import * as Auth from "../Controllers/Auth";
 import { AuthGuest, AuthAdmin } from "../Helpers/Auth";
 
 const router = express.Router();
@@ -69,8 +70,8 @@ router.patch("/favourites", AuthAdmin, Favourites.AddFavourite);
 
 router.get("/about", AuthAdmin, About.About);
 
-router.get("/log/:filename/:start_from?", AuthAdmin, Log.GetLog);
-// router.get("/log/:filename/:start_from", Log.GetLog);
+router.get("/log/:filename/:startFrom(\\d+)", AuthAdmin, Log.GetLog);
+router.get("/log/:filename", AuthAdmin, Log.GetLog);
 
 router.get("/jobs", AuthAdmin, Jobs.ListJobs);
 router.delete("/jobs/:name", AuthAdmin, Jobs.KillJob);
@@ -114,5 +115,9 @@ router.delete("/files", AuthAdmin, Files.DeleteFile);
 router.get("/youtube/authenticate", AuthAdmin, YouTube.Authenticate);
 router.get("/youtube/callback", AuthAdmin, YouTube.Callback);
 router.get("/youtube/status", AuthAdmin, YouTube.Status);
+
+router.post("/auth/login", Auth.Login);
+router.post("/auth/logout", Auth.Logout);
+router.get("/auth/check", Auth.CheckLogin);
 
 export default router;

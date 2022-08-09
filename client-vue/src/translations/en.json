@@ -114,7 +114,8 @@
     "fetch": "Fetch",
     "export": "Export",
     "checkstatus": "Check status",
-    "authenticate": "Authenticate"
+    "authenticate": "Authenticate",
+    "logout": "Log out"
   },
   "pages": {
     "favourite-games": "Favourite games",

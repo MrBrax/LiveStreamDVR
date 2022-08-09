@@ -12,6 +12,13 @@ import { ClientBroker } from "./Core/ClientBroker";
 import { Config } from "./Core/Config";
 import ApiRouter from "./Routes/Api";
 import dotenv from "dotenv";
+import session from "express-session";
+
+declare module "express-session" {
+    interface SessionData {
+        authenticated: boolean;
+    }
+}
 
 dotenv.config();
 
@@ -69,8 +76,20 @@ Config.init().then(() => {
         app.use(morgan("combined"));
     }
 
+    // session
+    app.use(session({
+        secret: Config.getInstance().cfg<string>("eventsub_secret", ""), // TODO: make this unique from eventsub_secret
+        resave: false,
+        saveUninitialized: true,
+        // cookie: {
+        //     secure: true,
+        //     httpOnly: true,
+        //     maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+        // },
+    }));
+
     // authentication
-    app.use(Auth);
+    // app.use(Auth);
 
     const baserouter = express.Router();
 

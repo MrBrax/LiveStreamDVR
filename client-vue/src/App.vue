@@ -1,7 +1,7 @@
 <template>
     <div class="splitter">
         <side-menu />
-        <div class="content">
+        <div class="content" v-show="!store.authentication || (store.authenticated || store.guest_mode)">
             <div v-if="errors" class="big-error">
                 <div v-for="error in errors" :key="error" class="big-error-item">Error</div>
             </div>
@@ -16,7 +16,16 @@
                 </div>
             </div>
         </div>
-        <job-status ref="jobstatus" />
+        <div class="content" v-if="(store.authentication && !store.authenticated && !store.guest_mode)">
+            <div class="container">
+                <section class="section">
+                    <div class="errors">
+                        This site is only available to logged in users.
+                    </div>
+                </section>
+            </div>
+        </div>
+        <job-status ref="jobstatus" v-if="store.authElement" />
         <websocket-status
             :websocket="websocket"
             :websocketConnected="websocketConnected"
@@ -109,30 +118,17 @@ export default defineComponent({
         this.$i18n.locale = this.store.clientConfig?.language ?? "en";
         // this.applyAuthentication();
         this.watchFaviconBadgeSub();
-        this.fetchData().then(() => {
-            this.updateTitle();
-            if (this.store.cfg("websocket_enabled") && this.store.clientCfg('useWebsockets')) {
-                console.debug("Connecting websocket...");
-                this.connectWebsocket();
-            } else {
-                console.debug("Websocket disabled");
-                if (this.store.clientCfg('useBackgroundTicker')) {
-                    console.debug("Starting background ticker...");
-                    this.tickerInterval = setInterval(() => {
-                        this.tickTicker();
-                    }, 1000);
-                }
-            }
+        this.checkLoginStatus().then((s) => {
+            
+            this.store.authentication = s.authentication;
+            this.store.authenticated = s.status;
+            this.store.guest_mode = s.guest_mode;
+            console.log("checkLoginStatus", s);
 
-            // update vods every 15 minutes
-            if (this.store.clientCfg('useBackgroundRefresh')) {
-                this.vodUpdateInterval = setInterval(() => {
-                    this.store.updateCapturingVods();
-                }, 1000 * 60 * 15);
+            if ((this.store.authentication && this.store.authenticated) || this.store.guest_mode || !this.store.authentication) {
+                this.fetchInitialData();
             }
-
-        }).catch((error) => {
-            console.error("fetchData error", error);
+            
         });
 
         const wantsReducedMotion = this.prefersReducedMotion();
@@ -174,45 +170,33 @@ export default defineComponent({
         }
     },
     methods: {
-        async fetchData() {
-            // clear config
-            this.store.updateConfig(null);
+        fetchInitialData() {
+            console.debug("App fetchInitialData");
+            this.store.fetchData().then(() => {
+                this.updateTitle();
+                if (this.store.cfg("websocket_enabled") && this.store.clientCfg('useWebsockets')) {
+                    console.debug("Connecting websocket...");
+                    this.connectWebsocket();
+                } else {
+                    console.debug("Websocket disabled");
+                    if (this.store.clientCfg('useBackgroundTicker')) {
+                        console.debug("Starting background ticker...");
+                        this.tickerInterval = setInterval(() => {
+                            this.tickTicker();
+                        }, 1000);
+                    }
+                }
 
-            let response;
+                // update vods every 15 minutes
+                if (this.store.clientCfg('useBackgroundRefresh')) {
+                    this.vodUpdateInterval = setInterval(() => {
+                        this.store.updateCapturingVods();
+                    }, 1000 * 60 * 15);
+                }
 
-            try {
-                response = await this.$http.get(`/api/v0/settings`);
-            } catch (error) {
-                alert(error);
-                return;
-            }
-
-            if (response.status !== 200) {
-                alert("Non-200 response from server");
-                return;
-            }
-
-            if (!response.data || !response.data.data) {
-                alert("No data received for settings");
-                return;
-            }
-
-            const data: ApiSettingsResponse = response.data;
-
-            console.log(`Server type: ${data.data.server ?? "unknown"}`);
-
-            this.store.updateConfig(data.data.config);
-            this.store.updateVersion(data.data.version);
-            this.store.updateServerType(data.data.server);
-            this.store.updateFavouriteGames(data.data.favourite_games);
-            this.store.updateErrors(data.data.errors ?? []);
-            this.store.websocketUrl = data.data.websocket_url;
-            this.store.app_name = data.data.app_name;
-            this.store.guest = data.data.guest;
-
-            await this.store.fetchAndUpdateStreamerList();
-            await this.store.fetchAndUpdateJobs();
-
+            }).catch((error) => {
+                console.error("fetchData error", error);
+            });
         },
         connectWebsocket(): WebSocket | undefined {
 
@@ -552,6 +536,15 @@ export default defineComponent({
         //         delete axios.defaults.headers.common["X-Password"];
         //     }
         // }
+        checkLoginStatus(): Promise<{ authentication: boolean; status: boolean; guest_mode: boolean; }> {
+            return this.$http.get("/api/v0/auth/check").then((response) => {
+                // console.debug("Check login status", response.data);
+                return { authentication: response.data.authentication as boolean, status: true, guest_mode: response.data.guest_mode as boolean };
+            }).catch((error) => {
+                // console.debug("Check login error", error);    
+                return { authentication: error.response.data.authentication as boolean, status: false, guest_mode: error.response.data.guest_mode as boolean };       
+            });
+        }
     },
     components: {
         SideMenu,

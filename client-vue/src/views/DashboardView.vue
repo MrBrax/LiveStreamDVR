@@ -1,6 +1,6 @@
 <template>
     <div class="container vertical">
-        <section class="section" v-if="store.errors && store.errors.length > 0" aria-label="Errors">
+        <section class="section" v-if="store.errors && store.errors.length > 0 && store.authElement" aria-label="Errors">
             <div class="errors">
                 <details class="details">
                     <summary>Errors ({{store.errors.length}})</summary>
