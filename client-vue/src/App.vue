@@ -1,7 +1,12 @@
 <template>
     <div class="splitter">
         <side-menu />
-        <div class="content" v-show="!store.authentication || (store.authenticated || store.guest_mode)">
+        <div class="content">
+            <section class="section" v-if="(store.authentication && !store.authenticated && !store.guest_mode)">
+                <div class="errors">
+                    This site is only available to logged in users.
+                </div>
+            </section>
             <div v-if="errors" class="big-error">
                 <div v-for="error in errors" :key="error" class="big-error-item">Error</div>
             </div>
@@ -14,15 +19,6 @@
                         </div>
                     </section>
                 </div>
-            </div>
-        </div>
-        <div class="content" v-if="(store.authentication && !store.authenticated && !store.guest_mode)">
-            <div class="container">
-                <section class="section">
-                    <div class="errors">
-                        This site is only available to logged in users.
-                    </div>
-                </section>
             </div>
         </div>
         <job-status ref="jobstatus" v-if="store.authElement" />

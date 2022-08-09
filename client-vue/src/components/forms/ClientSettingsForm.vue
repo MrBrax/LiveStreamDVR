@@ -49,7 +49,7 @@
             </button>
         </div>
         <div class="field">
-            <button class="button is-danger" @click="logout">
+            <button class="button is-danger" @click="logout" :disabled="!store.authenticated">
                 <span class="icon"><fa icon="arrow-right-from-bracket" /></span>
                 <span>{{ $t('buttons.logout') }}</span>
             </button>

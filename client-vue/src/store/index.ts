@@ -431,9 +431,10 @@ export const useStore = defineStore("twitchAutomator", {
             return this.streamerList.reduce((acc, channel) => acc + (channel.vods_size || 0), 0);
         },
         authElement(): boolean {
+            if (!this.authentication) return true;
             if (this.guest_mode && !this.authenticated) return false;
             if (this.authentication && this.authenticated) return true;
-            return true;
+            return false;
         }
     },
 });

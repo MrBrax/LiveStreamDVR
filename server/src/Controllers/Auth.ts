@@ -31,6 +31,8 @@ export function Login(req: express.Request, res: express.Response): void {
                 return;
             }
 
+            req.session.cookie.expires = new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)); // 7 days
+
             req.session.authenticated = true;
 
             req.session.save((err) => {

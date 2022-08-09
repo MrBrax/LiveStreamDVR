@@ -50,11 +50,11 @@ export function AuthGuest(req: express.Request, res: express.Response, next: exp
     } else if (req.session.authenticated) {
         next();
     } else {
-        // res.status(401).send({
-        //     status: "ERROR",
-        //     message: "Access denied",
-        // }).end();
-        next("route");
+        res.status(401).send({
+            status: "ERROR",
+            message: "Access denied",
+        }).end();
+        // next("route");
     }
 
 }
@@ -73,4 +73,9 @@ export function AuthAdmin(req: express.Request, res: express.Response, next: exp
         // next("route");
     }
 
+}
+
+export function AuthCore(req: express.Request, res: express.Response, next: express.NextFunction): void {
+    // this is for curl and other tools that don't use authentication
+    next();
 }

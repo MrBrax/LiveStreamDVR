@@ -28,7 +28,7 @@
                 </div>
                 <div class="field">
                     <div class="control">
-                        <button class="button is-confirm" type="submit">
+                        <button class="button is-confirm" type="submit" :disabled="!password">
                             <span class="icon"><fa icon="sign-in-alt"></fa></span>
                             <span>Login</span>
                         </button>

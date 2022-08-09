@@ -19,11 +19,11 @@ import * as Files from "../Controllers/Files";
 import * as YouTube from "../Controllers/YouTube";
 import * as Exporter from "../Controllers/Exporter";
 import * as Auth from "../Controllers/Auth";
-import { AuthGuest, AuthAdmin } from "../Helpers/Auth";
+import { AuthGuest, AuthAdmin, AuthCore } from "../Helpers/Auth";
 
 const router = express.Router();
 
-router.all("/hook", Hook.Hook);
+router.all("/hook", AuthCore, Hook.Hook);
 
 router.get("/settings", AuthGuest, Settings.GetSettings);
 router.put("/settings", AuthAdmin, Settings.SaveSettings);
@@ -80,8 +80,8 @@ router.get("/subscriptions", AuthAdmin, Subscriptions.ListSubscriptions);
 router.post("/subscriptions", AuthAdmin, Subscriptions.SubscribeToAllChannels);
 router.delete("/subscriptions/:sub_id", AuthAdmin, Subscriptions.UnsubscribeFromId);
 
-router.get("/cron/check_deleted_vods", AuthAdmin, Cron.CheckDeletedVods);
-router.get("/cron/check_muted_vods", AuthAdmin, Cron.CheckMutedVods);
+router.get("/cron/check_deleted_vods", AuthCore, Cron.CheckDeletedVods);
+router.get("/cron/check_muted_vods", AuthCore, Cron.CheckMutedVods);
 
 router.get("/twitchapi/videos/:login", AuthAdmin, TwitchAPI.TwitchAPIVideos);
 router.get("/twitchapi/video/:video_id", AuthAdmin, TwitchAPI.TwitchAPIVideo);

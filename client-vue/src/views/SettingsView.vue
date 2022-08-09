@@ -41,7 +41,10 @@
                         <channel-update-form :channel="channel" @formSuccess="updateAll" />
                     </div>
                 </div>
-                <span v-if="!formChannels || formChannels.length == 0">No channels added. Use the tab "New channel" above.</span>
+                <span v-if="(!formChannels || formChannels.length == 0) && store.authElement">No channels added. Use the tab "New channel" above.</span>
+                <div class="section-content" v-else-if="!store.authElement">
+                    <span class="icon"><fa icon="sign-in-alt"></fa></span> {{ $t("messages.login") }}
+                </div>
             </div>
         </section>
 
@@ -158,6 +161,11 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("settings fetch error", err.response);
+                    if (err.response.data && err.response.data.message) {
+                        alert(`Settings fetch error: ${err.response.data.message}`);
+                    } else {
+                        alert("Error fetching settings");
+                    }
                 }).finally(() => {
                     this.loading = false;
                 });
