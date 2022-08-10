@@ -518,6 +518,9 @@ export class Automator {
 
     public end() {
         Log.logAdvanced(LOGLEVEL.INFO, "automator", "Stream end");
+        if (this.channel && this.channel.download_vod_at_end) {
+            this.channel.downloadLatestVod("best");
+        }
     }
 
     public async download(tries = 0) {

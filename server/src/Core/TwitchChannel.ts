@@ -80,6 +80,8 @@ export class TwitchChannel {
     public max_storage = 0;
     public max_vods = 0;
 
+    public download_vod_at_end = false;
+
     /** 
      * Burn chat after capturing.
      * Currently not used.
@@ -834,6 +836,46 @@ export class TwitchChannel {
 
     get saves_vods(): boolean {
         return KeyValue.getInstance().getBool(`${this.login}.saves_vods`);
+    }
+
+    public async downloadLatestVod(quality: VideoQuality) {
+
+        if (!this.userid) {
+            throw new Error("Cannot download latest vod without userid");
+        }
+
+        const vods = await TwitchVOD.getVideos(this.userid);
+
+        if (!vods || vods.length === 0) {
+            throw new Error("No vods found");
+        }
+
+        const latestVod = vods[0];
+        const now = new Date();
+        const latestVodDate = new Date(latestVod.created_at);
+        const latestVodDuration = Helper.parseTwitchDuration(latestVod.duration);
+        const latestVodDateDiff = Math.abs(now.getTime() - (latestVodDate.getTime() + (latestVodDuration * 1000)));
+
+        if (latestVodDateDiff > (1000 * 60 * 15)) {
+            throw new Error("Latest vod is older than 15 minutes");
+        }
+
+        const file_path = path.join(BaseConfigDataFolder.saved_vods, `${this.login}_${latestVod.id}_${quality}.mp4`);
+
+        let success;
+
+        try {
+            success = await TwitchVOD.downloadVideo(latestVod.id, quality, file_path);
+        } catch (e) {
+            throw new Error(`Failed to download vod: ${(e as Error).message}`);
+        }
+
+        if (!success) {
+            throw new Error("Failed to download vod");
+        }
+
+        return file_path;
+
     }
 
     /**
