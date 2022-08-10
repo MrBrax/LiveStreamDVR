@@ -92,7 +92,9 @@
       "privacy-public": "Public",
       "privacy-unlisted": "Unlisted",
       "privacy-private": "Private",
-      "title": "Title"
+      "title": "Title",
+      "password": "Password",
+      "password-help": "Passwords in FTP are sent unencrypted in clear text."
     },
     "bookmarks": "Bookmarks",
     "buttons": {

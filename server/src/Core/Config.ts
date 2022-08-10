@@ -185,6 +185,7 @@ export class Config {
         { "key": "exporter.default.directory",      "group": "Exporter", "text": "Default directory", "type": "string", "help": "Default directory for exporter." },
         { "key": "exporter.default.host",           "group": "Exporter", "text": "Default host", "type": "string", "help": "Default host for exporter." },
         { "key": "exporter.default.username",       "group": "Exporter", "text": "Default username", "type": "string", "help": "Default username for exporter." },
+        { "key": "exporter.default.password",       "group": "Exporter", "text": "Default password", "type": "string", "help": "Default password for exporter. This is stored unencrypted." },
         { "key": "exporter.default.description",    "group": "Exporter", "text": "Default description", "type": "string", "help": "Default description for exporter." },
         { "key": "exporter.default.tags",           "group": "Exporter", "text": "Default tags", "type": "string", "help": "Default tags for exporter." },
         { "key": "exporter.auto.enabled",           "group": "Exporter", "text": "Enable auto exporter", "type": "boolean", "default": false, "help": "Enable auto exporter. Not implemented yet." },

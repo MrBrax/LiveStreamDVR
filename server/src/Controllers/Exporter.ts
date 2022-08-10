@@ -1,13 +1,14 @@
+import express from "express";
+import path from "path";
+import sanitize from "sanitize-filename";
+import { ApiErrorResponse, ApiResponse } from "../../../common/Api/Api";
 import { BaseConfigDataFolder, DataRoot } from "../Core/BaseConfig";
 import { TwitchVOD } from "../Core/TwitchVOD";
 import { FileExporter } from "../Exporters/File";
+import { FTPExporter } from "../Exporters/FTP";
 import { SFTPExporter } from "../Exporters/SFTP";
 import { YouTubeExporter } from "../Exporters/YouTube";
-import express from "express";
-import { ApiErrorResponse, ApiResponse } from "../../../common/Api/Api";
-import path from "path";
 import { validatePath } from "./Files";
-import sanitize from "sanitize-filename";
 
 type Exporter = FileExporter | YouTubeExporter | SFTPExporter;
 
@@ -70,6 +71,16 @@ export async function ExportFile(req: express.Request, res: express.Response): P
                     exporter.setHost(req.body.host);
                     exporter.setUsername(req.body.username);
                 }
+            } else if (input_exporter == "ftp") {
+                exporter = new FTPExporter();
+                if (exporter instanceof FTPExporter) { // why does typescript need this??
+                    exporter.loadVOD(vod);
+                    exporter.setDirectory(req.body.directory);
+                    exporter.setHost(req.body.host);
+                    exporter.setUsername(req.body.username);
+                    exporter.setPassword(req.body.password);
+                }
+            
             } else if (input_exporter == "youtube") {
                 exporter = new YouTubeExporter();
                 if (exporter instanceof YouTubeExporter) { // why does typescript need this??
@@ -147,6 +158,15 @@ export async function ExportFile(req: express.Request, res: express.Response): P
                     exporter.setDirectory(output_directory);
                     exporter.setHost(req.body.host);
                     exporter.setUsername(req.body.username);
+                }
+            } else if (input_exporter == "ftp") {
+                exporter = new SFTPExporter();
+                if (exporter instanceof FTPExporter) { // why does typescript need this??
+                    exporter.loadFile(full_input_path);
+                    exporter.setDirectory(output_directory);
+                    exporter.setHost(req.body.host);
+                    exporter.setUsername(req.body.username);
+                    exporter.setPassword(req.body.password);
                 }
             } else if (input_exporter == "youtube") {
                 exporter = new YouTubeExporter();

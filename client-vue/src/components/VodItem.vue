@@ -1009,6 +1009,7 @@
                     <option value="file">File</option>
                     <option value="youtube">YouTube</option>
                     <option value="sftp">SFTP</option>
+                    <option value="ftp">FTP</option>
                 </select>
             </div>
         </div>
@@ -1038,7 +1039,7 @@
                     <li v-for="v in exporterTemplateVariables">{{ v }}</li>
                 </ul>
             </div>
-            <div class="control" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp'">
+            <div class="control" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'">
                 {{ templatePreview(exportVodSettings.title_template) }}.mp4
             </div>
             <div class="control" v-else-if="exportVodSettings.exporter == 'youtube'">
@@ -1047,7 +1048,7 @@
         </div>
 
         <!-- Directory -->
-        <div class="field" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp'">
+        <div class="field" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'">
             <label class="label">{{ $t('vod.export.directory') }}</label>
             <div class="control">
                 <input class="input" type="text" v-model="exportVodSettings.directory" />
@@ -1055,7 +1056,7 @@
         </div>
 
         <!-- Host -->
-        <div class="field" v-if="exportVodSettings.exporter == 'sftp'">
+        <div class="field" v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'">
             <label class="label">{{ $t('vod.export.host') }}</label>
             <div class="control">
                 <input class="input" type="text" v-model="exportVodSettings.host" />
@@ -1063,11 +1064,20 @@
         </div>
 
         <!-- Username -->
-        <div class="field" v-if="exportVodSettings.exporter == 'sftp'">
+        <div class="field" v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'">
             <label class="label">{{ $t('vod.export.username') }}</label>
             <div class="control">
                 <input class="input" type="text" v-model="exportVodSettings.username" />
             </div>
+        </div>
+
+        <!-- Password -->
+        <div class="field" v-if="exportVodSettings.exporter == 'ftp'">
+            <label class="label">{{ $t('vod.export.password') }}</label>
+            <div class="control">
+                <input class="input" type="password" v-model="exportVodSettings.password" />
+            </div>
+            <p class="help">{{ $t('vod.export.password-help') }}</p>
         </div>
 
         <!-- YouTube Authentication -->
@@ -1275,6 +1285,7 @@ export default defineComponent({
                 directory: "",
                 host: "",
                 username: "",
+                password: "",
                 description: "",
                 tags: "",
                 category: "",
@@ -1644,6 +1655,7 @@ export default defineComponent({
             if (this.store.cfg("exporter.default.directory")) this.exportVodSettings.directory = this.store.cfg("exporter.default.directory");
             if (this.store.cfg("exporter.default.host")) this.exportVodSettings.host = this.store.cfg("exporter.default.host");
             if (this.store.cfg("exporter.default.username")) this.exportVodSettings.username = this.store.cfg("exporter.default.username");
+            if (this.store.cfg("exporter.default.password")) this.exportVodSettings.password = this.store.cfg("exporter.default.password");
             if (this.store.cfg("exporter.default.description")) this.exportVodSettings.description = this.store.cfg("exporter.default.description");
             if (this.store.cfg("exporter.default.tags")) this.exportVodSettings.tags = this.store.cfg("exporter.default.tags");
         }
