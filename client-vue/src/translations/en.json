@@ -153,7 +153,10 @@
       "max-storage": "Max storage",
       "max-storage-help": "In gigabytes, how many will be kept when cleaning up. 0 to inherit from settings.",
       "max-vods": "Max VODs",
-      "max-vods-help": "Amount of VODs to keep when cleaning up. 0 to inherit from settings."
+      "max-vods-help": "Amount of VODs to keep when cleaning up. 0 to inherit from settings.",
+      "download_vod_at_end": "Download VOD at end of capture/stream end",
+      "download_vod_at_end_quality": "Quality for download",
+      "download_vod_at_end_quality_help": "Use 'best' if unsure."
     },
     "config": {
       "validate-external-url": "Validate external URL"

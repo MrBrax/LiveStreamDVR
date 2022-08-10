@@ -54,4 +54,6 @@ export interface ChannelConfig {
     no_cleanup: boolean;
     max_storage: number;
     max_vods: number;
+    download_vod_at_end: boolean;
+    download_vod_at_end_quality: VideoQuality;
 }

@@ -1,6 +1,6 @@
 import axios from "axios";
 import chalk from "chalk";
-import { format } from "date-fns";
+import { format, parseJSON } from "date-fns";
 import fs from "fs";
 import { encode as htmlentities } from "html-entities";
 import path from "path";
@@ -26,6 +26,7 @@ import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import { Webhook } from "./Webhook";
+import { replaceAll } from "../Helpers/ReplaceAll";
 
 export class TwitchChannel {
 
@@ -81,6 +82,7 @@ export class TwitchChannel {
     public max_vods = 0;
 
     public download_vod_at_end = false;
+    public download_vod_at_end_quality: VideoQuality = "best";
 
     /** 
      * Burn chat after capturing.
@@ -117,6 +119,8 @@ export class TwitchChannel {
         this.no_cleanup = channel_config.no_cleanup !== undefined ? channel_config.no_cleanup : false;
         this.max_storage = channel_config.max_storage !== undefined ? channel_config.max_storage : 0;
         this.max_vods = channel_config.max_vods !== undefined ? channel_config.max_vods : 0;
+        this.download_vod_at_end = channel_config.download_vod_at_end !== undefined ? channel_config.download_vod_at_end : false;
+        this.download_vod_at_end_quality = channel_config.download_vod_at_end_quality !== undefined ? channel_config.download_vod_at_end_quality : "best";
     }
 
     /**
@@ -226,6 +230,8 @@ export class TwitchChannel {
             no_cleanup: this.no_cleanup,
             max_storage: this.max_storage,
             max_vods: this.max_vods,
+            download_vod_at_end: this.download_vod_at_end,
+            download_vod_at_end_quality: this.download_vod_at_end_quality,
             // subbed_at: this.subbed_at,
             // expires_at: this.expires_at,
             // last_online: this.last_online,
@@ -850,22 +856,30 @@ export class TwitchChannel {
             throw new Error("No vods found");
         }
 
-        const latestVod = vods[0];
+        const latestVodData = vods[0];
         const now = new Date();
-        const latestVodDate = new Date(latestVod.created_at);
-        const latestVodDuration = Helper.parseTwitchDuration(latestVod.duration);
-        const latestVodDateDiff = Math.abs(now.getTime() - (latestVodDate.getTime() + (latestVodDuration * 1000)));
+        const latestVodDate = new Date(latestVodData.created_at);
+        const latestVodDuration = Helper.parseTwitchDuration(latestVodData.duration);
+        const latestVodDateTotal = new Date(latestVodDate.getTime() + (latestVodDuration * 1000));
+        const latestVodDateDiff = Math.abs(now.getTime() - latestVodDateTotal.getTime());
 
-        if (latestVodDateDiff > (1000 * 60 * 15)) {
-            throw new Error("Latest vod is older than 15 minutes");
+        const localVod = this.vods_list.find((v) => v.twitch_vod_id === latestVodData.id || (v.created_at?.getTime() && now.getTime() - v.created_at?.getTime() < latestVodDateDiff ));
+        if (localVod) {
+            await localVod.downloadVod(quality);
+            return localVod.path_downloaded_vod;
         }
 
-        const file_path = path.join(BaseConfigDataFolder.saved_vods, `${this.login}_${latestVod.id}_${quality}.mp4`);
+        if (latestVodDateDiff > (1000 * 60 * 15)) {
+            throw new Error(`Latest vod is older than 15 minutes (${Math.floor(latestVodDateDiff / 1000 / 60)} minutes, ${latestVodDateTotal.toISOString()})`);
+        }
+
+        const basename = `${this.login}_${replaceAll(latestVodData.created_at, ":", "-")}_${latestVodData.stream_id}`;
+        const file_path = path.join(Helper.vodFolder(this.login), `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
 
         let success;
 
         try {
-            success = await TwitchVOD.downloadVideo(latestVod.id, quality, file_path);
+            success = await TwitchVOD.downloadVideo(latestVodData.id, quality, file_path);
         } catch (e) {
             throw new Error(`Failed to download vod: ${(e as Error).message}`);
         }
@@ -873,6 +887,21 @@ export class TwitchChannel {
         if (!success) {
             throw new Error("Failed to download vod");
         }
+
+        const vod = await this.createVOD(path.join(Helper.vodFolder(this.login), `${basename}.json`));
+        vod.started_at = parseJSON(latestVodData.created_at);
+
+        const duration = Helper.parseTwitchDuration(latestVodData.duration);
+        vod.ended_at = new Date(vod.started_at.getTime() + (duration * 1000));
+        await vod.saveJSON("manual creation");
+
+        vod.addSegment(path.basename(file_path));
+        vod.finalize();
+        await vod.saveJSON("manual finalize");
+
+        Webhook.dispatch("end_download", {
+            vod: await vod.toAPI(),
+        });
 
         return file_path;
 

@@ -519,7 +519,11 @@ export class Automator {
     public end() {
         Log.logAdvanced(LOGLEVEL.INFO, "automator", "Stream end");
         if (this.channel && this.channel.download_vod_at_end) {
-            this.channel.downloadLatestVod("best");
+            this.channel.downloadLatestVod(this.channel.download_vod_at_end_quality).then(() => {
+                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Downloaded VOD at end: ${this.basename()}`);
+            }).catch(err => {
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Error downloading VOD at end: ${this.basename()} (${(err as Error).message})`, err);
+            });
         }
     }
 

@@ -110,6 +110,28 @@
                 </label>
             </div>
 
+            <div class="field">
+                <label class="checkbox">
+                    <input
+                        type="checkbox"
+                        name="download_vod_at_end"
+                        v-model="formData.download_vod_at_end"
+                    />
+                    {{ $t('forms.channel.download_vod_at_end') }}
+                </label>
+            </div>
+
+            <div class="field" v-if="formData.download_vod_at_end">
+                <label class="label">{{ $t('forms.channel.download_vod_at_end_quality') }}</label>
+                <div class="select">
+                    <select name="download_vod_at_end_quality" v-model="formData.download_vod_at_end_quality">
+                        <option v-for="quality in VideoQualityArray" :value="quality">{{ quality }}</option>
+                    </select>
+                </div>
+                <p class="input-help">{{ $t('forms.channel.download_vod_at_end_quality_help') }}</p>
+            </div>
+            
+
             <div class="field form-submit">
                 <div class="control">
                     <button class="button is-confirm" type="submit">
@@ -181,6 +203,8 @@ export default defineComponent({
                 no_cleanup: this.channel.no_cleanup || false,
                 max_storage: this.channel.max_storage || 0,
                 max_vods: this.channel.max_vods || 0,
+                download_vod_at_end: this.channel.download_vod_at_end || false,
+                download_vod_at_end_quality: this.channel.download_vod_at_end_quality || "best",
             },
         };
     },

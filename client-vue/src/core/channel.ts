@@ -38,6 +38,9 @@ export default class TwitchChannel {
 
     saves_vods = false;
 
+    download_vod_at_end: boolean = false;
+    download_vod_at_end_quality: VideoQuality = "best";
+
     public static makeFromApiResponse(apiResponse: ApiChannel): TwitchChannel {
         const channel = new TwitchChannel();
         channel.userid = apiResponse.userid;

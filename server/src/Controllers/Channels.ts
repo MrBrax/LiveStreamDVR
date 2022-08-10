@@ -77,6 +77,8 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
         no_cleanup: boolean;
         max_storage: number;
         max_vods: number;
+        download_vod_at_end: boolean;
+        download_vod_at_end_quality: VideoQuality;
     } = req.body;
 
     const quality = formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [];
@@ -88,6 +90,8 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
     const no_cleanup = formdata.no_cleanup;
     const max_storage = formdata.max_storage;
     const max_vods = formdata.max_vods;
+    const download_vod_at_end = formdata.download_vod_at_end;
+    const download_vod_at_end_quality = formdata.download_vod_at_end_quality;
 
     const channel_config: ChannelConfig = {
         login: channel.login,
@@ -100,6 +104,8 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
         no_cleanup: no_cleanup,
         max_storage: max_storage,
         max_vods: max_vods,
+        download_vod_at_end: download_vod_at_end,
+        download_vod_at_end_quality: download_vod_at_end_quality,
     };
 
     channel.update(channel_config);
@@ -175,6 +181,8 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         no_cleanup: boolean;
         max_storage: number;
         max_vods: number;
+        download_vod_at_end: boolean;
+        download_vod_at_end_quality: VideoQuality;
     } = req.body;
 
     const channel_config: ChannelConfig = {
@@ -188,6 +196,8 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         no_cleanup: formdata.no_cleanup,
         max_storage: formdata.max_storage,
         max_vods: formdata.max_vods,
+        download_vod_at_end: formdata.download_vod_at_end,
+        download_vod_at_end_quality: formdata.download_vod_at_end_quality,
     };
 
     if (!channel_config.login) {

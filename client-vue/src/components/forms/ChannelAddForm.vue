@@ -125,6 +125,7 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import axios, { AxiosError } from "axios";
 import { UserData } from "@common/User";
+import { VideoQuality } from "@common/Config";
 library.add(faUserPlus);
 
 export default defineComponent({
@@ -147,6 +148,8 @@ export default defineComponent({
             no_cleanup: boolean;
             max_storage: number;
             max_vods: number;
+            download_vod_at_end: boolean;
+            download_vod_at_end_quality: VideoQuality;
         },
         channelData: UserData | undefined;
         userExists: boolean | undefined;
@@ -165,6 +168,8 @@ export default defineComponent({
                 no_cleanup: false,
                 max_storage: 0,
                 max_vods: 0,
+                download_vod_at_end: false,
+                download_vod_at_end_quality: "best",
             },
             channelData: undefined,
             userExists: undefined,
@@ -217,6 +222,8 @@ export default defineComponent({
                 no_cleanup: false,
                 max_storage: 0,
                 max_vods: 0,
+                download_vod_at_end: false,
+                download_vod_at_end_quality: "best",
             };
         },
         checkLogin() {
