@@ -79,6 +79,8 @@ export const MockApiChannelData: ApiChannel = {
     chapter_data: undefined,
     is_capturing: false,
     saves_vods: false,
+    download_vod_at_end: false,
+    download_vod_at_end_quality: "best"
 };
 
 export const MockApiVODData: ApiVod = {
