@@ -22,6 +22,7 @@
                 {{ $t('forms.channel.login_help') }}
             </p>
         </div>
+        
         <div class="field" v-if="channelData && channelData.login">
             <ul>
                 <li>Login: <strong>{{ channelData.login }}</strong></li>
@@ -30,11 +31,13 @@
                 <li>Avatar: <img :src="channelData.profile_image_url" rel="nofollow" width="64" height="64" /></li>
             </ul>
         </div>
+
         <div class="field" v-if="userExists === false">
             <div class="is-error">
                 {{ $t('forms.channel.login-does-not-exist', [formData.login]) }}
             </div>
         </div>
+
         <div class="field">
             <label class="label">{{ $t('forms.channel.quality') }} <span class="required">*</span></label>
             <div class="control">
@@ -51,6 +54,7 @@
                 <!--<p class="input-help">{{ $t('forms.channel.quality-help-choices', [VideoQualityArray.join(", ")]) }}</p>-->
             </div>
         </div>
+
         <div class="field">
             <label class="label">{{ $t('forms.channel.match-keywords') }}</label>
             <div class="control">
@@ -58,6 +62,7 @@
                 <p class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</p>
             </div>
         </div>
+
         <div class="field">
             <label class="label">{{ $t('forms.channel.max-storage') }}</label>
             <div class="control">
@@ -65,6 +70,7 @@
                 <p class="input-help">{{ $t('forms.channel.max-storage-help') }}</p>
             </div>
         </div>
+
         <div class="field">
             <label class="label">{{ $t('forms.channel.max-vods') }}</label>
             <div class="control">
@@ -72,12 +78,14 @@
                 <p class="input-help">{{ $t('forms.channel.max-vods-help') }}</p>
             </div>
         </div>
+
         <div class="field">
             <label class="checkbox">
                 <input type="checkbox" name="download_chat" v-model="formData.download_chat" />
                 {{ $t('forms.channel.download-chat') }}
             </label>
         </div>
+
         <div class="field">
             <label class="checkbox">
                 <input type="checkbox" name="live_chat" v-model="formData.live_chat" />
@@ -85,6 +93,7 @@
             </label>
             <p class="input-help">Requires Node binary path to be set in the settings</p>
         </div>
+
         <div class="field">
             <label class="checkbox">
                 <input type="checkbox" name="burn_chat" v-model="formData.burn_chat" />
@@ -92,18 +101,42 @@
             </label>
             <p class="input-help">Currently disabled</p>
         </div>
+
         <div class="field">
             <label class="checkbox">
                 <input type="checkbox" name="no_capture" v-model="formData.no_capture" />
                 {{ $t('forms.channel.no-capture') }}
             </label>
         </div>
+        
         <div class="field">
             <label class="checkbox">
                 <input type="checkbox" name="no_cleanup" v-model="formData.no_cleanup" />
                 {{ $t('forms.channel.no-cleanup') }}
             </label>
         </div>
+
+        <div class="field">
+            <label class="checkbox">
+                <input
+                    type="checkbox"
+                    name="download_vod_at_end"
+                    v-model="formData.download_vod_at_end"
+                />
+                {{ $t('forms.channel.download_vod_at_end') }}
+            </label>
+        </div>
+
+        <div class="field" v-if="formData.download_vod_at_end">
+            <label class="label">{{ $t('forms.channel.download_vod_at_end_quality') }}</label>
+            <div class="select">
+                <select name="download_vod_at_end_quality" v-model="formData.download_vod_at_end_quality">
+                    <option v-for="quality in VideoQualityArray" :value="quality">{{ quality }}</option>
+                </select>
+            </div>
+            <p class="input-help">{{ $t('forms.channel.download_vod_at_end_quality_help') }}</p>
+        </div>
+
         <p><em>{{ $t('forms.channel.live-channels-warning') }}</em></p>
         <div class="field form-submit">
             <div class="control">
