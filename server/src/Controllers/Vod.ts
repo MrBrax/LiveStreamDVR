@@ -46,10 +46,15 @@ export async function EditVod(req: express.Request, res: express.Response): Prom
     const stream_number = req.body.stream_number as number;
     const comment = req.body.comment as string;
     const prevent_deletion = req.body.prevent_deletion as boolean;
+    const segments = req.body.segments as string;
 
     vod.stream_number = stream_number;
     vod.comment = comment;
     vod.prevent_deletion = prevent_deletion;
+    if (segments) {
+        vod.segments_raw = segments.split("\n").map(s => s.trim()).filter(s => s.length > 0);
+        vod.parseSegments(vod.segments_raw);
+    }
 
     await vod.saveJSON("edit vod form");
 

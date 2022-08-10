@@ -73,7 +73,8 @@
       "comment": "Comment",
       "stream-number": "Stream number",
       "prevent-deletion": "Prevent deletion",
-      "edit-vod": "Edit VOD"
+      "edit-vod": "Edit VOD",
+      "segments": "Segments"
     },
     "export": {
       "title-template": "Title template",

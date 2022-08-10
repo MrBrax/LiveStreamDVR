@@ -983,6 +983,12 @@
             </div>
         </div>
         <div class="field">
+            <label class="label">{{ $t('vod.edit.segments') }}</label>
+            <div class="control">
+                <textarea class="input textarea" v-model="editVodSettings.segments" />
+            </div>
+        </div>
+        <div class="field">
             <div class="control">
                 <label class="checkbox">
                     <input type="checkbox" v-model="editVodSettings.prevent_deletion" />
@@ -1278,6 +1284,7 @@ export default defineComponent({
                 stream_number: 0,
                 comment: "",
                 prevent_deletion: false,
+                segments: "",
             },
             exportVodSettings: {
                 exporter: "file",
@@ -1321,6 +1328,7 @@ export default defineComponent({
                 stream_number: this.vod.stream_number ?? 0,
                 comment: this.vod.comment ?? "",
                 prevent_deletion: this.vod.prevent_deletion ?? false,
+                segments: this.vod.segments.map((s) => s.basename).join("\n"),
             };
             this.exportVodSettings.vod = this.vod.basename;
             this.applyDefaultExportSettings();
