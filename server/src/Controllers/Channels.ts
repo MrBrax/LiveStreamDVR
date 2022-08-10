@@ -144,7 +144,7 @@ export async function DeleteChannel(req: express.Request, res: express.Response)
         return;
     }
 
-    if (req.query.deletevods == "1") {
+    if (req.query.deletevods == "1" && channel.vods_list.length > 0) {
         try {
             await channel.deleteAllVods();
         } catch (error) {
