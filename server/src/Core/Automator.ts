@@ -525,6 +525,9 @@ export class Automator {
                 Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Error downloading VOD at end: ${this.basename()} (${(err as Error).message})`, err);
             });
         }
+        if (Config.getInstance().cfg("exporter.auto.enabled")) {
+            // TODO: export automatically
+        }
     }
 
     public async download(tries = 0) {

@@ -1312,6 +1312,7 @@ export default defineComponent({
                 prevent_deletion: this.vod.prevent_deletion ?? false,
             };
             this.exportVodSettings.vod = this.vod.basename;
+            this.applyDefaultExportSettings();
         }
     },
     props: {
@@ -1638,6 +1639,14 @@ export default defineComponent({
                 if (err.response.data && err.response.data.message) alert(err.response.data.message);
             });
         },
+        applyDefaultExportSettings() {
+            if (this.store.cfg("exporter.default.exporter")) this.exportVodSettings.exporter = this.store.cfg("exporter.default.exporter");
+            if (this.store.cfg("exporter.default.directory")) this.exportVodSettings.directory = this.store.cfg("exporter.default.directory");
+            if (this.store.cfg("exporter.default.host")) this.exportVodSettings.host = this.store.cfg("exporter.default.host");
+            if (this.store.cfg("exporter.default.username")) this.exportVodSettings.username = this.store.cfg("exporter.default.username");
+            if (this.store.cfg("exporter.default.description")) this.exportVodSettings.description = this.store.cfg("exporter.default.description");
+            if (this.store.cfg("exporter.default.tags")) this.exportVodSettings.tags = this.store.cfg("exporter.default.tags");
+        }
     },
     computed: {
         compDownloadChat(): boolean {
