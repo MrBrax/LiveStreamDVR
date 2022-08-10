@@ -81,33 +81,26 @@ export class SFTPExporter extends BaseExporter {
         
     }
 
+    // verify that the file exists over ssh
     async verify(): Promise<boolean> {
 
-        return true; // no way to verify over ssh
-    
-        /*
-        if (!this.remote_file) return false;
-
         const bin = "ssh";
-
         const args = [
             "-q",
             `${this.username}@${this.host}`,
-            `"test -e ${this.remote_file} && echo FOUND"`,
+            "test",
+            "-e",
+            `'${this.remote_file}'`,
         ];
 
         const job = await Helper.execSimple(bin, args, "ssh file check");
-        
-        console.log("ssh result", job);
 
-        if (job.stdout.includes("FOUND") || job.stderr.includes("FOUND")) {
-            return true;
-        } else {
-            return false;
-        }
-        */
+        if (job.code === 0) return true;
 
-        // return job.code === 0;
+        throw new Error("Failed to verify file, probably doesn't exist");
+
+        return false;
+
     }
 
 }

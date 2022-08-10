@@ -896,7 +896,7 @@ export class TwitchChannel {
         await vod.saveJSON("manual creation");
 
         vod.addSegment(path.basename(file_path));
-        vod.finalize();
+        await vod.finalize();
         await vod.saveJSON("manual finalize");
 
         Webhook.dispatch("end_download", {
