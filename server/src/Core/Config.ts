@@ -190,6 +190,11 @@ export class Config {
         { "key": "exporter.default.tags",           "group": "Exporter", "text": "Default tags", "type": "string", "help": "Default tags for exporter." },
         { "key": "exporter.auto.enabled",           "group": "Exporter", "text": "Enable auto exporter", "type": "boolean", "default": false, "help": "Enable auto exporter. Not implemented yet." },
 
+        { "key": "scheduler.clipdownload.enabled",  "group": "Scheduler (Clip Download)", "text": "Enable clip download scheduler", "type": "boolean", "default": false },
+        { "key": "scheduler.clipdownload.channels", "group": "Scheduler (Clip Download)", "text": "Channels to download clips from", "type": "string", "help": "Separate by commas." },
+        { "key": "scheduler.clipdownload.amount",   "group": "Scheduler (Clip Download)", "text": "Amount of clips to download", "type": "number", "default": 1 },
+        { "key": "scheduler.clipdownload.age",      "group": "Scheduler (Clip Download)", "text": "Age of clips to download", "type": "number", "default": 1 * 24 * 60 * 60, "help": "In seconds." },
+
     ];
 
     static readonly AudioContainer = "m4a";

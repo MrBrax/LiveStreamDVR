@@ -99,7 +99,7 @@ router.delete("/keyvalue/:key", AuthAdmin, KeyValue.DeleteKeyValue);
 // router.get("/debug/vods", AuthAdmin, Debug.ListVodsInMemory);
 // router.get("/debug/channels", AuthAdmin, Debug.ListChannelsInMemory);
 // router.get("/debug/notify", AuthAdmin, Debug.NotifyTest);
-// router.get("/debug/vd", AuthAdmin, Debug.VodDownloadAtEnd);
+// router.get("/debug/clips", AuthAdmin, Debug.Clips);
 
 router.get("/notifications", AuthAdmin, Notifications.GetNotificationSettings);
 router.put("/notifications", AuthAdmin, Notifications.SaveNotificationSettings);

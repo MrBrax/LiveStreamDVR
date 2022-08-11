@@ -1,6 +1,13 @@
 import cron from "cron";
+import { Sleep } from "../Helpers/Sleep";
+import path from "path";
+import fs from "fs";
 import * as CronController from "../Controllers/Cron";
+import { BaseConfigDataFolder } from "./BaseConfig";
 import { Config } from "./Config";
+import { Log, LOGLEVEL } from "./Log";
+import { TwitchChannel } from "./TwitchChannel";
+import { TwitchVOD } from "./TwitchVOD";
 
 export class Scheduler {
 
@@ -41,6 +48,9 @@ export class Scheduler {
             CronController.fMatchVods();
         });
 
+        // once a day
+        this.schedule("clipdownload", "0 0 * * *", this.scheduleClipDownload);
+
         // this.schedule("* * * * *", () => {
         //     console.log("Cronjob ran", new Date().toISOString());
         // });
@@ -67,6 +77,65 @@ export class Scheduler {
     public static restartScheduler() {
         this.removeAllJobs();
         this.defaultJobs();
+    }
+
+    public static async scheduleClipDownload() {
+
+        if (!Config.getInstance().cfg<boolean>("scheduler.clipdownload.enabled")) return;
+
+        Log.logAdvanced(LOGLEVEL.INFO, "Scheduler", "Scheduler: scheduleClipDownload - start");
+
+        const amount = Config.getInstance().cfg<number>("scheduler.clipdownload.amount");
+        const days = Config.getInstance().cfg<number>("scheduler.clipdownload.age");
+        const logins = Config.getInstance().cfg<string>("scheduler.clipdownload.channels").split(",").map(s => s.trim());
+
+        for (const login of logins) {
+            const channel = TwitchChannel.getChannelByLogin(login);
+            const clips = await channel?.getClips(days);
+
+            if (clips) {
+
+                for (let i = 0; i < Math.min(amount, clips.length); i++) {
+                    const clip = clips[i];
+
+                    const basefolder = path.join(BaseConfigDataFolder.saved_clips, "scheduler", clip.broadcaster_name);
+                    if (!fs.existsSync(basefolder)) {
+                        fs.mkdirSync(basefolder, { recursive: true });
+                    }
+
+                    const out = path.join(basefolder, clip.id);
+
+                    if (fs.existsSync(out + ".mp4")) {
+                        Log.logAdvanced(LOGLEVEL.WARNING, "scheduler", `Clip ${clip.id} already exists`);
+                        continue;
+                    }
+
+                    try {
+                        await TwitchVOD.downloadClip(clip.id, `${out}.mp4`, "best");
+                    } catch (error) {
+                        Log.logAdvanced(LOGLEVEL.ERROR, "scheduler", `Failed to download clip ${clip.id}: ${(error as Error).message}`);
+                        return;
+                    }
+
+                    try {
+                        await TwitchVOD.downloadChatTD(clip.id, out + ".json");
+                    } catch (error) {
+                        Log.logAdvanced(LOGLEVEL.ERROR, "scheduler", `Failed to download chat for clip ${clip.id}: ${(error as Error).message}`);
+                        return;
+                    }
+
+                    Log.logAdvanced(LOGLEVEL.INFO, "scheduler", `Downloaded clip ${clip.id}`);
+
+                    await Sleep(5000); // hehe
+
+                }
+
+            }
+
+        }
+
+        Log.logAdvanced(LOGLEVEL.INFO, "Scheduler", "Scheduler: scheduleClipDownload - end");
+
     }
 
 }

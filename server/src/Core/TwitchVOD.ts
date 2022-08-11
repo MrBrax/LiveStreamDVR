@@ -3102,7 +3102,7 @@ export class TwitchVOD {
         return json.data;
     }
 
-    static async getClips({ broadcaster_id, game_id, id }: { broadcaster_id?: string; game_id?: string; id?: string[] | string; }): Promise<false | Clip[]> {
+    static async getClips({ broadcaster_id, game_id, id }: { broadcaster_id?: string; game_id?: string; id?: string[] | string; }, max_age?: number): Promise<false | Clip[]> {
 
         if (!broadcaster_id && !game_id && !id) throw new Error("No broadcaster id, game id or id provided");
 
@@ -3119,6 +3119,11 @@ export class TwitchVOD {
             id.forEach((id) => {
                 params.append("id", id);
             });
+        }
+
+        if (max_age) {
+            params.append("started_at", new Date(Date.now() - max_age * 1000).toISOString());
+            params.append("ended_at", new Date().toISOString());
         }
 
         try {
@@ -3225,7 +3230,7 @@ export class TwitchVOD {
                     resolve(true);
                 } else {
                     Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Chat couldn't be downloaded for ${vod_id}`);
-                    reject(false);
+                    reject(new Error("Chat couldn't be downloaded"));
                 }
             });
 
@@ -3289,7 +3294,7 @@ export class TwitchVOD {
                     resolve(true);
                 } else {
                     Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Chat couldn't be downloaded for ${vod_id}`);
-                    reject(false);
+                    reject(new Error("Chat couldn't be downloaded"));
                 }
             });
 
