@@ -908,6 +908,23 @@ export class TwitchChannel {
     }
 
     /**
+     * Get videos (shortcut for TwitchVOD.getVideos)
+     */
+    public async getVideos() {
+        if (!this.userid) return false;
+        return await TwitchVOD.getVideos(this.userid);
+    }
+
+
+    /**
+     * Get clips (shortcut for TwitchVOD.getClips)
+     */
+    public async getClips(max_age?: number) {
+        if (!this.userid) return false;
+        return await TwitchVOD.getClips({ broadcaster_id: this.userid }, max_age);
+    }
+
+    /**
      * 
      * STATIC
      * 
