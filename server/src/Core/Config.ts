@@ -267,6 +267,7 @@ export class Config {
         { "key": "reencoder.crf", "group": "Reencoder", "text": "CRF", "type": "number", "default": 23, "help": "CRF to use for reencoding. Lower is better." },
         { "key": "reencoder.resolution", "group": "Reencoder", "text": "Resolution", "type": "number", "help": "Scale to this vertical resolution. Leave blank to keep original resolution." },
         { "key": "reencoder.hwaccel", "group": "Reencoder", "text": "Hardware acceleration", "type": "boolean", "help": "Preset is used instead of crf if this is enabled." },
+        { "key": "reencoder.delete_source", "group": "Reencoder", "text": "Delete source", "type": "boolean", "help": "Delete source after reencoding." },
 
     ];
 

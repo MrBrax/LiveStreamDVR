@@ -563,20 +563,35 @@ export class Automator {
     public async onEndDownload() {
         // download chat and optionally burn it
         // TODO: call this when a non-captured stream ends too
-        if (this.channel && this.vod && this.channel.download_chat && this.vod.twitch_vod_id) {
-            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Auto download chat on ${this.vod.basename}`);
+        if (this.channel && this.vod) {
+            if (this.channel.download_chat && this.vod.twitch_vod_id) {
+                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Auto download chat on ${this.vod.basename}`);
 
-            try {
-                await this.vod.downloadChat();
-            } catch (error) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to download chat for ${this.vod.basename}: ${(error as Error).message}`);
+                try {
+                    await this.vod.downloadChat();
+                } catch (error) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to download chat for ${this.vod.basename}: ${(error as Error).message}`);
+                }
+
+                if (this.channel.burn_chat) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", "Automatic chat burning has been disabled until settings have been implemented.");
+                    // if ($vodclass->renderChat()) {
+                    // 	$vodclass->burnChat();
+                    // }
+                }
             }
 
-            if (this.channel.burn_chat) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", "Automatic chat burning has been disabled until settings have been implemented.");
-                // if ($vodclass->renderChat()) {
-                // 	$vodclass->burnChat();
-                // }
+            // this is a slow solution since we already remux the vod to mp4, and here we reencode that file
+            if (Config.getInstance().cfg("reencoder.enabled")) {
+                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Auto reencoding on ${this.vod.basename}`);
+                try {
+                    await this.vod.reencodeSegments(
+                        true,
+                        Config.getInstance().cfg("reencoder.delete_source", false) // o_o
+                    );
+                } catch (error) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to reencode ${this.vod.basename}: ${(error as Error).message}`);
+                }
             }
         }
     }
