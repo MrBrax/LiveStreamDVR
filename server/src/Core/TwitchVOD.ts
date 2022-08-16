@@ -2482,7 +2482,7 @@ export class TwitchVOD {
         this.calculateBookmarks();
     }
 
-    public reencodeSegments(): Promise<boolean> {
+    public reencodeSegments(addToSegments = false, deleteOriginal = false): Promise<boolean> {
 
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Reencoding segments of ${this.filename}`);
 
@@ -2568,6 +2568,12 @@ export class TwitchVOD {
                     const success = fs.existsSync(file_out_path) && fs.statSync(file_out_path).size > 0;
                     if (success) {
                         Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Reencoded ${file_in_path} to ${file_out_path}`);
+                        if (deleteOriginal) {
+                            // fs.unlinkSync(file_in_path);
+                        }
+                        if (addToSegments) {
+                            this.addSegment(path.basename(file_out_path));
+                        }
                         resolve(true);
                     } else {
                         Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to reencode ${path.basename(file_in_path)} to ${path.basename(file_out_path)}`);
