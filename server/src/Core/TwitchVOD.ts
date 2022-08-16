@@ -2482,6 +2482,132 @@ export class TwitchVOD {
         this.calculateBookmarks();
     }
 
+    public reencodeSegments(): Promise<boolean> {
+
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Reencoding segments of ${this.filename}`);
+
+        const tasks = [];
+
+        if (!this.segments) throw new Error("No segments");
+
+        const ffmpeg_path = Helper.path_ffmpeg();
+
+        if (!ffmpeg_path) {
+            throw new Error("Failed to find ffmpeg");
+        }
+
+        for (const segment of this.segments) {
+            tasks.push(new Promise((resolve, reject) => {
+                if (!segment.basename) throw new Error("No filename");
+                const file_in_path = path.join(this.directory, segment.basename);
+                if (!fs.existsSync(file_in_path)) throw new Error(`File not found: ${file_in_path}`);
+                const file_out_path = path.join(this.directory, `${segment.basename}_enc.mp4`);
+                if (fs.existsSync(file_out_path)) {
+                    throw new Error(`File ${file_out_path} already exists!`);
+                }
+
+                const args = [];
+                if (Config.getInstance().cfg<string>("reencoder.hwaccel")) {
+                    // args.push("-hwaccel", Config.getInstance().cfg<string>("reencoder.hwaccel"));
+                    args.push("-i", file_in_path);
+                    args.push("-c:v", Config.getInstance().cfg<string>("reencoder.video_codec"));
+                    args.push("-c:a", "copy");
+                    args.push("-preset", Config.getInstance().cfg<string>("reencoder.preset"));
+                    args.push("-tune", Config.getInstance().cfg<string>("reencoder.tune"));
+                } else {
+                    args.push("-i", file_in_path);
+                    args.push("-c:v", Config.getInstance().cfg<string>("reencoder.video_codec"));
+                    args.push("-c:a", "copy"); // no need to reencode audio
+                    args.push("-preset", Config.getInstance().cfg<string>("reencoder.preset"));
+                    args.push("-crf", Config.getInstance().cfg<string>("reencoder.crf"));
+                }
+                args.push("-movflags", "+faststart");
+                if (Config.getInstance().cfg<number>("reencoder.resolution")) {
+                    args.push("-vf", `scale=-1:${Config.getInstance().cfg<number>("reencoder.resolution")}`);
+                }
+                // args.push("-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2"); // scale to nearest multiple of 2
+                args.push(file_out_path);
+
+                const job = Helper.startJob(`reencode_${path.basename(file_in_path)}`, ffmpeg_path, args);
+
+                if (!job || !job.process) {
+                    throw new Error("Failed to start ffmpeg");
+                }
+
+                let currentSeconds = 0;
+                let totalSeconds = 0;
+                job.on("log", (stream: string, data: string) => {
+                    const totalDurationMatch = data.match(/Duration: (\d+):(\d+):(\d+)/);
+                    const fpsMatch = data.match(/fps=(\d+)/);
+                    if (totalDurationMatch && !totalSeconds) {
+                        totalSeconds = parseInt(totalDurationMatch[1]) * 3600 + parseInt(totalDurationMatch[2]) * 60 + parseInt(totalDurationMatch[3]);
+                        console.debug(`Remux total duration: ${totalSeconds}`);
+                    }
+                    const currentTimeMatch = data.match(/time=(\d+):(\d+):(\d+)/);
+                    if (currentTimeMatch && totalSeconds > 0) {
+                        currentSeconds = parseInt(currentTimeMatch[1]) * 3600 + parseInt(currentTimeMatch[2]) * 60 + parseInt(currentTimeMatch[3]);
+                        job.setProgress(currentSeconds / totalSeconds);
+                        console.debug(`Remux current time: ${currentSeconds} / ${totalSeconds} (${Math.round(currentSeconds / totalSeconds * 100)}%, ${fpsMatch ? fpsMatch[1] : "?"}fps)`);
+                    }
+                    if (data.match(/moving the moov atom/)) {
+                        console.debug("Remux moov atom move");
+                    }
+                });
+
+                job.process.on("error", (err) => {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
+                    // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
+                    throw new Error(`Process ${process.pid} error: ${err}`);
+                });
+
+                job.process.on("close", (code) => {
+                    if (job) {
+                        job.clear();
+                    }
+                    // const out_log = ffmpeg.stdout.read();
+                    const success = fs.existsSync(file_out_path) && fs.statSync(file_out_path).size > 0;
+                    if (success) {
+                        Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Reencoded ${file_in_path} to ${file_out_path}`);
+                        resolve(true);
+                    } else {
+                        Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to reencode ${path.basename(file_in_path)} to ${path.basename(file_out_path)}`);
+                        // reject({ code, success, stdout: job.stdout, stderr: job.stderr });
+
+                        let message = "Unknown error";
+                        const errorSearch = job.stderr.join("").match(/\[error\] (.*)/g);
+                        if (errorSearch && errorSearch.length > 0) {
+                            message = errorSearch.slice(1).join(", ");
+                        }
+
+                        if (fs.existsSync(file_out_path) && fs.statSync(file_out_path).size == 0) {
+                            fs.unlinkSync(file_out_path);
+                        }
+
+                        // for (const err of errorSearch) {
+                        //    message = err[1];
+                        throw new Error(`Failed to reencode ${path.basename(file_in_path)} to ${path.basename(file_out_path)}: ${message}`);
+                    }
+                });
+
+                // const ffmpeg_command = `ffmpeg -i ${file_in_path} -c:v libx264 -preset veryfast -crf 23 -c:a aac -b:a 128k -strict -2 ${file_out_path}`;
+            }));
+        }
+
+
+        this.stopWatching();
+
+        return Promise.all(tasks).then((results) => {
+            console.debug("Reencoded", results);
+            return true;
+        }).catch((err) => {
+            console.debug("Reencoded error", err);
+            return false;
+        }).finally(() => {
+            this.startWatching();
+        });
+
+    }
+
     /**
      * 
      * STATIC

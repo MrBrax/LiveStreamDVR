@@ -27,7 +27,7 @@ export async function VodDownloadAtEnd(req: express.Request, res: express.Respon
     const login = req.query.login as string;
     const quality = req.query.quality as VideoQuality;
     const channel = TwitchChannel.getChannelByLogin(login);
-   
+
     let status;
     try {
         status = await channel?.downloadLatestVod(quality);
@@ -35,6 +35,27 @@ export async function VodDownloadAtEnd(req: express.Request, res: express.Respon
         res.status(500).send((error as Error).message);
         return;
     }
-    
+
+    res.send(status);
+}
+
+export async function ReencodeVod(req: express.Request, res: express.Response): Promise<void> {
+    const basename = req.params.basename as string;
+
+    const vod = TwitchVOD.vods.find((v) => v.basename === basename);
+
+    if (!vod) {
+        res.status(500).send(TwitchVOD.vods.map((v) => v.basename));
+        return;
+    }
+
+    let status;
+    try {
+        status = await vod.reencodeSegments();
+    } catch (error) {
+        res.status(500).send((error as Error).message);
+        return;
+    }
+
     res.send(status);
 }

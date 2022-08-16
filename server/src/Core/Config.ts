@@ -195,6 +195,79 @@ export class Config {
         { "key": "scheduler.clipdownload.amount",   "group": "Scheduler (Clip Download)", "text": "Amount of clips to download", "type": "number", "default": 1 },
         { "key": "scheduler.clipdownload.age",      "group": "Scheduler (Clip Download)", "text": "Age of clips to download", "type": "number", "default": 1 * 24 * 60 * 60, "help": "In seconds." },
 
+        { "key": "reencoder.enabled", "group": "Reencoder", "text": "Enable reencoder", "type": "boolean", "default": false },
+
+        {
+            "key": "reencoder.video_codec",
+            "group": "Reencoder",
+            "text": "Codec",
+            "type": "array",
+            "default": "libx264",
+            "choices": [
+                "libx264",
+                "h264_nvenc",
+                "h264_qsv",
+                "h264_videotoolbox",
+                "hevc_nvenc",
+            ],
+            "help": "Video codec to use for reencoding. If you want to use CUDA, select h264_nvenc or hevc_nvenc and enable Hardware Acceleration.",
+        },
+
+        {
+            "key": "reencoder.preset",
+            "group": "Reencoder",
+            "text": "Preset",
+            "type": "array",
+            "default": "medium",
+            "choices": [
+                "ultrafast",
+                "superfast",
+                "veryfast",
+                "faster",
+                "fast",
+                "medium",
+                "slow",
+                "slower",
+                "veryslow",
+                "placebo",
+
+                // nvenc presets
+                "hp",
+                "hq",
+                "bd",
+                "ll",
+                "llhq",
+                "llhp",
+                "lossless",
+                "losslesshp",
+                "p1",
+                "p2",
+                "p3",
+                "p4",
+                "p5",
+                "p6",
+                "p7",
+            ],
+        },
+
+        {
+            "key": "reencoder.tune",
+            "group": "Reencoder",
+            "text": "Tune",
+            "type": "array",
+            "default": "hq",
+            "choices": [
+                "hq",
+                "ll",
+                "ull",
+                "lossless",
+            ],
+        },
+
+        { "key": "reencoder.crf", "group": "Reencoder", "text": "CRF", "type": "number", "default": 23, "help": "CRF to use for reencoding. Lower is better." },
+        { "key": "reencoder.resolution", "group": "Reencoder", "text": "Resolution", "type": "number", "help": "Scale to this vertical resolution. Leave blank to keep original resolution." },
+        { "key": "reencoder.hwaccel", "group": "Reencoder", "text": "Hardware acceleration", "type": "boolean", "help": "Preset is used instead of crf if this is enabled." },
+
     ];
 
     static readonly AudioContainer = "m4a";

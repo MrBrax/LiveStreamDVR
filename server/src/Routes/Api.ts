@@ -100,6 +100,7 @@ router.delete("/keyvalue/:key", AuthAdmin, KeyValue.DeleteKeyValue);
 // router.get("/debug/channels", AuthAdmin, Debug.ListChannelsInMemory);
 // router.get("/debug/notify", AuthAdmin, Debug.NotifyTest);
 // router.get("/debug/clips", AuthAdmin, Debug.Clips);
+router.get("/debug/reencode/:basename", AuthAdmin, Debug.ReencodeVod);
 
 router.get("/notifications", AuthAdmin, Notifications.GetNotificationSettings);
 router.put("/notifications", AuthAdmin, Notifications.SaveNotificationSettings);
