@@ -19,6 +19,7 @@ import * as Files from "../Controllers/Files";
 import * as YouTube from "../Controllers/YouTube";
 import * as Exporter from "../Controllers/Exporter";
 import * as Auth from "../Controllers/Auth";
+import * as Telemetry from "../Controllers/Telemetry";
 import { AuthGuest, AuthAdmin, AuthCore } from "../Helpers/Auth";
 
 const router = express.Router();
@@ -121,5 +122,8 @@ router.get("/youtube/status", AuthAdmin, YouTube.Status);
 router.post("/auth/login", Auth.Login);
 router.post("/auth/logout", Auth.Logout);
 router.get("/auth/check", Auth.CheckLogin);
+
+router.get("/telemetry/show", AuthAdmin, Telemetry.ShowTelemetry);
+router.post("/telemetry/send", AuthAdmin, Telemetry.SendTelemetry);
 
 export default router;
