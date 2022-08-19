@@ -104,7 +104,7 @@
             <ul>
                 <li v-for="video in streamer.video_list" :key="video.basename">
                     <a class="text-overflow" target="_blank" :href="webPath + '/' + video.basename">
-                        <img :src="webPath + '/' + video.basename + '.jpg'" /><br />
+                        <img :src="basePath + '/cache/thumbs/' + video.thumbnail" /><br />
                         <span class="streamer-video-title">{{ video.basename }}</span><br />
                         <span class="streamer-video-info">{{ formatBytes(video.size) }}, {{ formatDuration(video.duration) }}, {{ video.video_metadata.height}}p</span>
                     </a>
@@ -426,6 +426,9 @@ export default defineComponent({
         webPath(): string {
             if (!this.streamer) return "";
             return this.store.cfg<string>("basepath", "") + "/vods/" + (this.store.cfg("channel_folders") ? this.streamer.login : "");
+        },
+        basePath(): string {
+            return this.store.cfg<string>("basepath", "");
         }
     },
     components: {

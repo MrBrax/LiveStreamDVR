@@ -7,4 +7,5 @@ export interface LocalVideo {
     duration: number;
     size: number;
     video_metadata: VideoMetadata;
+    thumbnail?: string;
 }

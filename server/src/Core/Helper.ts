@@ -20,6 +20,7 @@ import { TwitchChannel } from "./TwitchChannel";
 import { KeyValue } from "./KeyValue";
 import { SubStatus } from "../../../common/Defs";
 import { TwitchVOD } from "./TwitchVOD";
+import { createHash } from "crypto";
 
 export interface ExecReturn {
     stdout: string[];
@@ -968,7 +969,7 @@ export class Helper {
         return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${milliseconds.toString().padStart(3, "0")}`;
     }
 
-    public static async thumbnail(filename: string, output_image: string, width: number, offset = 5000): Promise<string | false> {
+    public static async thumbnail(filename: string, width: number, offset = 5000): Promise<string> {
 
         Log.logAdvanced(LOGLEVEL.INFO, "thumbnail", `Run ffmpeg on ${filename}`);
 
@@ -983,6 +984,10 @@ export class Helper {
         if (fs.statSync(filename).size == 0) {
             throw new Error("Filesize is 0 for thumbnail");
         }
+
+        const filenameHash = createHash("md5").update(filename + width + offset).digest("hex");
+
+        const output_image = path.join(BaseConfigDataFolder.public_cache_thumbs, `${filenameHash}.jpg`);
 
         if (fs.existsSync(output_image)) {
             return output_image;
@@ -1002,7 +1007,7 @@ export class Helper {
         if (output && fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
             return output_image;
         } else {
-            return false;
+            throw new Error("No output from ffmpeg");
         }
 
     }

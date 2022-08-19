@@ -871,7 +871,7 @@ export class TwitchChannel {
         const latestVodDateTotal = new Date(latestVodDate.getTime() + (latestVodDuration * 1000));
         const latestVodDateDiff = Math.abs(now.getTime() - latestVodDateTotal.getTime());
 
-        const localVod = this.vods_list.find((v) => v.twitch_vod_id === latestVodData.id || (v.created_at?.getTime() && now.getTime() - v.created_at?.getTime() < latestVodDateDiff ));
+        const localVod = this.vods_list.find((v) => v.twitch_vod_id === latestVodData.id || (v.created_at?.getTime() && now.getTime() - v.created_at?.getTime() < latestVodDateDiff));
         if (localVod) {
             await localVod.downloadVod(quality);
             return localVod.path_downloaded_vod;
@@ -973,16 +973,16 @@ export class TwitchChannel {
             } else if (eventType === "unlink") {
                 this.video_list = this.video_list.filter((v) => v.basename !== path.basename(filename));
             }
-            
+
         });
     }
 
     private async addLocalVideo(basename: string) {
-        
+
         const filename = path.join(Helper.vodFolder(this.login), basename);
-        
+
         let data: MediaInfo | false = false;
-        
+
         try {
             data = await Helper.mediainfo(filename);
         } catch (th) {
@@ -1038,21 +1038,22 @@ export class TwitchChannel {
 
         } as VideoMetadata;
 
+        let thumbnail;
+        try {
+            thumbnail = await Helper.thumbnail(filename, 240);
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to generate thumbnail for ${filename}: ${error}`);
+        }
+
         const video_entry: LocalVideo = {
             basename: basename,
             extension: path.extname(filename).substring(1),
             channel: this.login,
             duration: video_metadata.duration,
             size: video_metadata.size,
-            video_metadata: video_metadata,            
+            video_metadata: video_metadata,
+            thumbnail: thumbnail ? path.basename(thumbnail) : undefined,
         };
-
-        let thumbnail;
-        try {
-            thumbnail = await Helper.thumbnail(filename, filename + ".jpg", 240);            
-        } catch (error) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to generate thumbnail for ${filename}: ${error}`);
-        }
 
         this.video_list.push(video_entry);
 
