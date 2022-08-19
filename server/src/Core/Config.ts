@@ -269,6 +269,7 @@ export class Config {
         { "key": "reencoder.hwaccel", "group": "Reencoder", "text": "Hardware acceleration", "type": "boolean", "help": "Preset is used instead of crf if this is enabled." },
         { "key": "reencoder.delete_source", "group": "Reencoder", "text": "Delete source", "type": "boolean", "help": "Delete source after reencoding." },
 
+        { "key": "localvideos.enabled", "group": "Local Videos", "text": "Enable local videos", "type": "boolean", "default": false },
     ];
 
     static readonly AudioContainer = "m4a";

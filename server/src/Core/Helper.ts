@@ -959,6 +959,54 @@ export class Helper {
 
     }
 
+    public static ffmpeg_time(ms: number): string {
+        // format as 00:00:00.000
+        const hours = Math.floor(ms / 3600000);
+        const minutes = Math.floor((ms % 3600000) / 60000);
+        const seconds = Math.floor(((ms % 3600000) % 60000) / 1000);
+        const milliseconds = Math.floor(((ms % 3600000) % 60000) % 1000);
+        return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${milliseconds.toString().padStart(3, "0")}`;
+    }
+
+    public static async thumbnail(filename: string, output_image: string, width: number, offset = 5000): Promise<string | false> {
+
+        Log.logAdvanced(LOGLEVEL.INFO, "thumbnail", `Run ffmpeg on ${filename}`);
+
+        if (!filename) {
+            throw new Error("No filename supplied for thumbnail");
+        }
+
+        if (!fs.existsSync(filename)) {
+            throw new Error("File not found for thumbnail");
+        }
+
+        if (fs.statSync(filename).size == 0) {
+            throw new Error("Filesize is 0 for thumbnail");
+        }
+
+        if (fs.existsSync(output_image)) {
+            return output_image;
+        }
+
+        const ffmpeg_path = Helper.path_ffmpeg();
+        if (!ffmpeg_path) throw new Error("Failed to find ffmpeg");
+
+        const output = await Helper.execSimple(ffmpeg_path, [
+            "-ss", this.ffmpeg_time(offset),
+            "-i", filename,
+            "-vf", `thumbnail,scale=${width}:-1`,
+            "-frames:v", "1",
+            output_image,
+        ], "ffmpeg");
+
+        if (output && fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
+            return output_image;
+        } else {
+            return false;
+        }
+
+    }
+
     /**
      * @deprecated use getSubsList instead
      */
