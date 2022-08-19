@@ -99,16 +99,16 @@
             </ul>
         </div>
 
-        <div class="streamer-videos" v-if="streamer.video_list && streamer.video_list.length > 0">
-            <div class="streamer-videos-title"><h3>{{ $t("messages.local-videos") }}</h3></div>
-            <transition-group tag="ul">
-                <li v-for="video in streamer.video_list" :key="video.basename">
-                    <a class="text-overflow" target="_blank" :href="webPath + '/' + video.basename">
+        <div class="local-videos" v-if="streamer.video_list && streamer.video_list.length > 0">
+            <div class="local-videos-title"><h3>{{ $t("messages.local-videos") }}</h3></div>
+            <transition-group tag="div" class="local-videos-container">
+                <div class="local-video" v-for="video in streamer.video_list" :key="video.basename">
+                    <a target="_blank" :href="webPath + '/' + video.basename">
                         <img :src="basePath + '/cache/thumbs/' + video.thumbnail" /><br />
-                        <span class="streamer-video-title">{{ video.basename }}</span><br />
-                        <span class="streamer-video-info">{{ formatBytes(video.size) }}, {{ formatDuration(video.duration) }}, {{ video.video_metadata.height}}p</span>
-                    </a>
-                </li>
+                        <span class="local-video-title">{{ video.basename }}</span>
+                    </a><br />
+                    <span class="local-video-info">{{ formatBytes(video.size) }}, {{ formatDuration(video.duration) }}, {{ video.video_metadata.height}}p</span>
+                </div>
             </transition-group>
         </div>
 
@@ -447,59 +447,6 @@ export default defineComponent({
     }
 }
 
-.streamer-clips {
-    background-color: #2b2b2b;
-    .streamer-clips-title {
-        padding: 5px;
-        background: #116d3c;
-        color: #fff;
-        h3 {
-            font-size: 1.2em;
-            margin: 0;
-            padding: 0;
-        }
-    }
-    ul {
-        display: block;
-        margin: 0;
-        padding: 1em 2em;
-    }
-}
 
-.streamer-videos {
-    background-color: #2b2b2b;
-    .streamer-videos-title {
-        padding: 5px;
-        background: #116d3c;
-        color: #fff;
-        h3 {
-            font-size: 1.2em;
-            margin: 0;
-            padding: 0;
-        }
-    }
-    ul {
-        display: flex;
-        margin: 0;
-        padding: 0.5em;
-        flex-wrap: wrap;
-        // justify-content: space-between;
-        list-style: none;
-        a {
-            text-align: center;
-            display: block;
-            padding: 0.5em;
-            &:hover {
-                background-color: rgba(0, 0, 0, 0.2);
-            }
-        }
-    }
-    .streamer-video-info {
-        font-size: 0.8em;
-    }
-    img {
-        max-height: 240px;
-    }
-}
 
 </style>
