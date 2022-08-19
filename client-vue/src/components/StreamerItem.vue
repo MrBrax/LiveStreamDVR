@@ -101,7 +101,7 @@
 
         <div class="streamer-videos" v-if="streamer.video_list && streamer.video_list.length > 0">
             <div class="streamer-videos-title"><h3>{{ $t("messages.local-videos") }}</h3></div>
-            <ul>
+            <transition-group tag="ul">
                 <li v-for="video in streamer.video_list" :key="video.basename">
                     <a class="text-overflow" target="_blank" :href="webPath + '/' + video.basename">
                         <img :src="basePath + '/cache/thumbs/' + video.thumbnail" /><br />
@@ -109,7 +109,7 @@
                         <span class="streamer-video-info">{{ formatBytes(video.size) }}, {{ formatDuration(video.duration) }}, {{ video.video_metadata.height}}p</span>
                     </a>
                 </li>
-            </ul>
+            </transition-group>
         </div>
 
         <div v-if="streamer.vods_list.length == 0" class="notice">

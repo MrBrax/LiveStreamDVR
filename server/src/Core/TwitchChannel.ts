@@ -972,6 +972,8 @@ export class TwitchChannel {
 
             } else if (eventType === "unlink") {
                 this.video_list = this.video_list.filter((v) => v.basename !== path.basename(filename));
+                this.sortLocalVideos();
+                this.broadcastUpdate();
             }
 
         });
@@ -1057,8 +1059,16 @@ export class TwitchChannel {
 
         this.video_list.push(video_entry);
 
+        this.sortLocalVideos();
+
         this.broadcastUpdate();
 
+    }
+
+    private sortLocalVideos() {
+        this.video_list.sort((a, b) => {
+            return a.basename.localeCompare(b.basename);
+        });
     }
 
     private addAllLocalVideos() {
