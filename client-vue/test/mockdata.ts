@@ -80,7 +80,8 @@ export const MockApiChannelData: ApiChannel = {
     is_capturing: false,
     saves_vods: false,
     download_vod_at_end: false,
-    download_vod_at_end_quality: "best"
+    download_vod_at_end_quality: "best",
+    video_list: []
 };
 
 export const MockApiVODData: ApiVod = {
