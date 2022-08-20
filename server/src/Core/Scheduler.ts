@@ -130,7 +130,7 @@ export class Scheduler {
 
                 }
 
-                channel?.findClips();
+                await channel?.findClips();
 
             }
 

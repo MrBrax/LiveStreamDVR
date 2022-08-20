@@ -7,6 +7,7 @@ import { TwitchGame } from "./game";
 import TwitchVOD from "./vod";
 import { TwitchVODChapterJSON } from "../../../server/src/Storage/JSON";
 import { LocalVideo } from "@common/LocalVideo";
+import { LocalClip } from "@common/LocalClip";
 
 export default class TwitchChannel {
     userid = "";
@@ -24,7 +25,7 @@ export default class TwitchChannel {
     vods_raw: string[] = [];
     vods_list: TwitchVOD[] = [];
 
-    clips_list: string[] = [];
+    clips_list: LocalClip[] = [];
     video_list: LocalVideo[] = [];
 
     api_getSubscriptionStatus = false;

@@ -1,21 +1,26 @@
 import axios from "axios";
 import chalk from "chalk";
+import chokidar from "chokidar";
 import { format, parseJSON } from "date-fns";
 import fs from "fs";
 import { encode as htmlentities } from "html-entities";
 import path from "path";
 import { TwitchVODChapterJSON } from "Storage/JSON";
 import type { ApiChannel } from "../../../common/Api/Client";
-import type { UserData } from "../../../common/User";
 import { ChannelConfig, VideoQuality } from "../../../common/Config";
 import { MuteStatus, SubStatus } from "../../../common/Defs";
+import type { LocalVideo } from "../../../common/LocalVideo";
+import type { LocalClip } from "../../../common/LocalClip";
+import { VideoMetadata } from "../../../common/MediaInfo";
+import { MediaInfo } from "../../../common/mediainfofield";
+import type { Channel, ChannelsResponse } from "../../../common/TwitchAPI/Channels";
 import type { ErrorResponse, EventSubTypes } from "../../../common/TwitchAPI/Shared";
 import type { Stream, StreamsResponse } from "../../../common/TwitchAPI/Streams";
 import type { SubscriptionRequest, SubscriptionResponse } from "../../../common/TwitchAPI/Subscriptions";
 import type { BroadcasterType, UsersResponse } from "../../../common/TwitchAPI/Users";
-import type { Channel, ChannelsResponse } from "../../../common/TwitchAPI/Channels";
-import type { LocalVideo } from "../../../common/LocalVideo";
+import type { UserData } from "../../../common/User";
 import { ChannelUpdated } from "../../../common/Webhook";
+import { replaceAll } from "../Helpers/ReplaceAll";
 import { AppRoot, BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
@@ -27,10 +32,6 @@ import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import { Webhook } from "./Webhook";
-import { replaceAll } from "../Helpers/ReplaceAll";
-import chokidar from "chokidar";
-import { MediaInfo } from "../../../common/mediainfofield";
-import { VideoMetadata } from "../../../common/MediaInfo";
 
 export class TwitchChannel {
 
@@ -97,7 +98,7 @@ export class TwitchChannel {
     public vods_raw: string[] = [];
     public vods_list: TwitchVOD[] = [];
 
-    public clips_list: string[] = [];
+    public clips_list: LocalClip[] = [];
     public video_list: LocalVideo[] = [];
 
     public subbed_at: Date | undefined;
@@ -623,16 +624,54 @@ export class TwitchChannel {
         return `https://www.twitch.tv/${this.login}`;
     }
 
-    public findClips() {
+    public async findClips() {
         if (!this.login) return;
         this.clips_list = [];
-        const clips_on_disk = fs.readdirSync(BaseConfigDataFolder.saved_clips).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".mp4")).map(f => path.join(BaseConfigDataFolder.saved_clips, f));
-        const clips_scheduler_folder = path.join(BaseConfigDataFolder.saved_clips, "scheduler", this.login);
-        const clips_on_disk_scheduler = fs.existsSync(clips_scheduler_folder) ? fs.readdirSync(clips_scheduler_folder).filter(f => f.endsWith(".mp4")).map(f => path.join(clips_scheduler_folder, f)) : [];
-        const all_clips = clips_on_disk.concat(clips_on_disk_scheduler);
 
-        // transform all paths to relative paths to the clips folder
-        this.clips_list = all_clips.map(f => path.relative(BaseConfigDataFolder.saved_clips, f));
+        const clips_downloader_folder = path.join(BaseConfigDataFolder.saved_clips, "downloader", this.login);
+        const clips_downloader = fs.existsSync(clips_downloader_folder) ? fs.readdirSync(clips_downloader_folder).filter(f => f.endsWith(".mp4")).map(f => path.join(clips_downloader_folder, f)) : [];
+
+        const clips_scheduler_folder = path.join(BaseConfigDataFolder.saved_clips, "scheduler", this.login);
+        const clips_scheduler = fs.existsSync(clips_scheduler_folder) ? fs.readdirSync(clips_scheduler_folder).filter(f => f.endsWith(".mp4")).map(f => path.join(clips_scheduler_folder, f)) : [];
+
+        const all_clips = clips_downloader.concat(clips_scheduler);
+
+        for (const clip_path of all_clips) {
+
+            let video_metadata: VideoMetadata;
+
+            try {
+                video_metadata = await Helper.videometadata(clip_path);
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to get video metadata for clip ${clip_path}: ${(error as Error).message}`);
+                continue;
+            }
+
+            if (!video_metadata) continue;
+
+            let thumbnail;
+            try {
+                thumbnail = await Helper.thumbnail(clip_path, 240);
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to generate thumbnail for ${clip_path}: ${error}`);
+            }
+
+            const clip: LocalClip = {
+                folder: path.relative(BaseConfigDataFolder.saved_clips, path.dirname(clip_path)),
+                basename: path.basename(clip_path),
+                extension: path.extname(clip_path).substring(1),
+                channel: this.login,
+                duration: video_metadata.duration,
+                size: video_metadata.size,
+                video_metadata: video_metadata,
+                thumbnail: thumbnail || "dummy",
+            };
+
+            this.clips_list.push(clip);
+
+        }
+
+        // this.clips_list = all_clips.map(f => path.relative(BaseConfigDataFolder.saved_clips, f));
         Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Found ${this.clips_list.length} clips for ${this.login}`);
         this.broadcastUpdate();
     }
@@ -950,11 +989,17 @@ export class TwitchChannel {
             return; // don't watch if no channel folders are enabled
         }
 
-        const folder = Helper.vodFolder(this.login);
+        const folders = [Helper.vodFolder(this.login)];
 
-        console.log(`Watching channel ${this.login} folder...`);
+        // if (this.login && fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "scheduler", this.login)))
+        //     folders.push(path.join(BaseConfigDataFolder.saved_clips, "scheduler", this.login));
 
-        this.fileWatcher = chokidar.watch(folder, {
+        // if (this.login && fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "downloader", this.login)))
+        //     folders.push(path.join(BaseConfigDataFolder.saved_clips, "downloader", this.login));
+
+        console.log(`Watching channel ${this.login} folders...`);
+
+        this.fileWatcher = chokidar.watch(folders, {
             ignoreInitial: true,
         }).on("all", (eventType, filename) => {
 
@@ -989,62 +1034,14 @@ export class TwitchChannel {
 
         const filename = path.join(Helper.vodFolder(this.login), basename);
 
-        let data: MediaInfo | false = false;
+        let video_metadata: VideoMetadata;
 
         try {
-            data = await Helper.mediainfo(filename);
+            video_metadata = await Helper.videometadata(filename);
         } catch (th) {
             Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Trying to get mediainfo of ${filename} returned: ${(th as Error).message}`);
             return false;
         }
-
-        if (!data) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Trying to get mediainfo of ${filename} returned false`);
-            return false;
-        }
-
-        if (!data.general.Format || !data.general.Duration) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Invalid mediainfo for ${filename} (missing ${!data.general.Format ? "Format" : ""} ${!data.general.Duration ? "Duration" : ""})`);
-            return false;
-        }
-
-        if (!data.video) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Invalid mediainfo for ${filename} (missing video)`);
-            return false;
-        }
-
-        if (!data.audio) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Invalid mediainfo for ${filename} (missing audio)`);
-            return false;
-        }
-
-        const video_metadata = {
-
-            type: "video",
-
-            container: data.general.Format,
-
-            size: parseInt(data.general.FileSize),
-            duration: parseInt(data.general.Duration),
-            bitrate: parseInt(data.general.OverallBitRate),
-
-            width: parseInt(data.video.Width),
-            height: parseInt(data.video.Height),
-
-            fps: parseInt(data.video.FrameRate), // TODO: check if this is correct, seems to be variable
-            fps_mode: data.video.FrameRate_Mode as "VFR" | "CFR",
-
-            audio_codec: data.audio.Format,
-            audio_bitrate: parseInt(data.audio.BitRate),
-            audio_bitrate_mode: data.audio.BitRate_Mode as "VBR" | "CBR",
-            audio_sample_rate: parseInt(data.audio.SamplingRate),
-            audio_channels: parseInt(data.audio.Channels),
-
-            video_codec: data.video.Format,
-            video_bitrate: parseInt(data.video.BitRate),
-            video_bitrate_mode: data.video.BitRate_Mode as "VBR" | "CBR",
-
-        } as VideoMetadata;
 
         let thumbnail;
         try {
@@ -1163,9 +1160,15 @@ export class TwitchChannel {
             fs.mkdirSync(channel.getFolder());
         }
 
+        if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "scheduler", channel.login)))
+            fs.mkdirSync(path.join(BaseConfigDataFolder.saved_clips, "scheduler", channel.login), { recursive: true });
+
+        if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "downloader", channel.login)))
+            fs.mkdirSync(path.join(BaseConfigDataFolder.saved_clips, "downloader", channel.login), { recursive: true });
+
         await channel.parseVODs(api);
 
-        channel.findClips();
+        await channel.findClips();
 
         channel.saveKodiNfo();
 

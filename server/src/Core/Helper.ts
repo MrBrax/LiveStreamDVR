@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import fs from "fs";
 import path from "path";
 import { Stream } from "stream";
-import { MediaInfoJSONOutput } from "../../../common/MediaInfo";
+import { MediaInfoJSONOutput, VideoMetadata } from "../../../common/MediaInfo";
 import { MediaInfo } from "../../../common/mediainfofield";
 import { FFProbe } from "../../../common/FFProbe";
 import { EventSubTypes, Subscription } from "../../../common/TwitchAPI/Shared";
@@ -960,6 +960,69 @@ export class Helper {
 
     }
 
+    public static async videometadata(filename: string): Promise<VideoMetadata> {
+
+        let data: MediaInfo | false = false;
+
+        try {
+            data = await Helper.mediainfo(filename);
+        } catch (th) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper.videometadata", `Trying to get mediainfo of ${filename} returned: ${(th as Error).message}`);
+            throw th; // rethrow?
+        }
+
+        if (!data) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper.videometadata", `Trying to get mediainfo of ${filename} returned false`);
+            throw new Error("No data from mediainfo");    
+        }
+
+        if (!data.general.Format || !data.general.Duration) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper.videometadata", `Invalid mediainfo for ${filename} (missing ${!data.general.Format ? "Format" : ""} ${!data.general.Duration ? "Duration" : ""})`);
+            throw new Error("Invalid mediainfo: no format/duration");
+        }
+
+        if (!data.video) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper.videometadata", `Invalid mediainfo for ${filename} (missing video)`);
+            throw new Error("Invalid mediainfo: no video");
+        }
+
+        if (!data.audio) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper.videometadata", `Invalid mediainfo for ${filename} (missing audio)`);
+            throw new Error("Invalid mediainfo: no audio");
+        }
+
+        const video_metadata = {
+
+            type: "video",
+
+            container: data.general.Format,
+
+            size: parseInt(data.general.FileSize),
+            duration: parseInt(data.general.Duration),
+            bitrate: parseInt(data.general.OverallBitRate),
+
+            width: parseInt(data.video.Width),
+            height: parseInt(data.video.Height),
+
+            fps: parseInt(data.video.FrameRate), // TODO: check if this is correct, seems to be variable
+            fps_mode: data.video.FrameRate_Mode as "VFR" | "CFR",
+
+            audio_codec: data.audio.Format,
+            audio_bitrate: parseInt(data.audio.BitRate),
+            audio_bitrate_mode: data.audio.BitRate_Mode as "VBR" | "CBR",
+            audio_sample_rate: parseInt(data.audio.SamplingRate),
+            audio_channels: parseInt(data.audio.Channels),
+
+            video_codec: data.video.Format,
+            video_bitrate: parseInt(data.video.BitRate),
+            video_bitrate_mode: data.video.BitRate_Mode as "VBR" | "CBR",
+
+        } as VideoMetadata;
+
+        return video_metadata;
+
+    }
+
     public static ffmpeg_time(ms: number): string {
         // format as 00:00:00.000
         const hours = Math.floor(ms / 3600000);
@@ -990,7 +1053,7 @@ export class Helper {
         const output_image = path.join(BaseConfigDataFolder.public_cache_thumbs, `${filenameHash}.jpg`);
 
         if (fs.existsSync(output_image)) {
-            return output_image;
+            return path.basename(output_image);
         }
 
         const ffmpeg_path = Helper.path_ffmpeg();
@@ -1005,7 +1068,7 @@ export class Helper {
         ], "ffmpeg");
 
         if (output && fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
-            return output_image;
+            return path.basename(output_image);
         } else {
             throw new Error("No output from ffmpeg");
         }

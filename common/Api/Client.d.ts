@@ -7,6 +7,7 @@ import { BroadcasterType } from "../TwitchAPI/Users";
 import { TwitchVODChapterJSON } from "../../server/src/Storage/JSON";
 import { TwitchVODBookmark } from "../Bookmark";
 import { LocalVideo } from "../LocalVideo";
+import { LocalClip } from "../LocalClip";
 
 export type ApiVodSegment = {
     basename: string;
@@ -194,7 +195,7 @@ export type ApiChannel = {
     // api_getSubscriptionStatus: SubStatus;
     api_getSubscriptionStatus: boolean;
 
-    clips_list: string[];
+    clips_list: LocalClip[];
     video_list: LocalVideo[];
 
     current_stream_number?: number;

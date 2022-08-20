@@ -116,7 +116,31 @@
     ul {
         display: block;
         margin: 0;
-        padding: 1em 2em;
+        padding: 0.5em;
+        list-style: none;
+        li {
+            &:not(:last-child) {
+                margin-bottom: 0.5em;
+            }
+            a {
+                display: block;
+                // align-items: center;
+                img {
+                    max-height: 32px;
+                    padding-right: 0.5em;
+                    float: left;
+                }
+                &:hover img {
+                    filter: brightness(1.5);
+                }
+            }
+        }
+    }
+    .streamer-clips-info {
+        font-size: 0.8em;
+        text-decoration: none;
+        display: inline-block;
+        color: var(--text-darker);
     }
 }
 

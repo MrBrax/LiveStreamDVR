@@ -93,8 +93,12 @@
         <div class="streamer-clips" v-if="streamer.clips_list && streamer.clips_list.length > 0">
             <div class="streamer-clips-title"><h3>{{ $t("messages.clips") }}</h3></div>
             <ul>
-                <li v-for="clip in streamer.clips_list" :key="clip">
-                    <a class="text-overflow" :href="clipLink(clip)" target="_blank">{{ clip }}</a>
+                <li v-for="clip in streamer.clips_list" :key="clip.basename">
+                    <a class="text-overflow" :href="clipLink(clip)" target="_blank">
+                        <img :src="basePath + '/cache/thumbs/' + clip.thumbnail" />
+                        {{ clip.folder + "/" + clip.basename }}<br />
+                        <span class="streamer-clips-info">{{ formatBytes(clip.size) }}, {{ formatDuration(clip.duration) }}, {{ clip.video_metadata.height}}p</span>
+                    </a>
                 </li>
             </ul>
         </div>
@@ -175,6 +179,7 @@ import { Video } from "@common/TwitchAPI/Video";
 import TwitchChannel from "@/core/channel";
 import { useStore } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
+import { LocalClip } from "@common/LocalClip";
 library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil);
 
 export default defineComponent({
@@ -380,8 +385,9 @@ export default defineComponent({
         imageUrl(url: string, width: number, height: number) {
             return url.replace(/%\{width\}/g, width.toString()).replace(/%\{height\}/g, height.toString());
         },
-        clipLink(name: string): string {
-            return `${this.store.cfg<string>("basepath", "")}/saved_clips/${name}`;
+        clipLink(clip: LocalClip): string {
+            const path = clip.folder + "/" + clip.basename;
+            return `${this.store.cfg<string>("basepath", "")}/saved_clips/${path}`;
         },
         doToggleExpandVods() {
             // loop through all vods and set the expanded state
