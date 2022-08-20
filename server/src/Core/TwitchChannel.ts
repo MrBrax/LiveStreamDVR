@@ -626,9 +626,15 @@ export class TwitchChannel {
     public findClips() {
         if (!this.login) return;
         this.clips_list = [];
-        const clips_on_disk = fs.readdirSync(BaseConfigDataFolder.saved_clips).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".mp4"));
-        this.clips_list = clips_on_disk.map(f => path.basename(f));
+        const clips_on_disk = fs.readdirSync(BaseConfigDataFolder.saved_clips).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".mp4")).map(f => path.join(BaseConfigDataFolder.saved_clips, f));
+        const clips_scheduler_folder = path.join(BaseConfigDataFolder.saved_clips, "scheduler", this.login);
+        const clips_on_disk_scheduler = fs.existsSync(clips_scheduler_folder) ? fs.readdirSync(clips_scheduler_folder).filter(f => f.endsWith(".mp4")).map(f => path.join(clips_scheduler_folder, f)) : [];
+        const all_clips = clips_on_disk.concat(clips_on_disk_scheduler);
+
+        // transform all paths to relative paths to the clips folder
+        this.clips_list = all_clips.map(f => path.relative(BaseConfigDataFolder.saved_clips, f));
         Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Found ${this.clips_list.length} clips for ${this.login}`);
+        this.broadcastUpdate();
     }
 
     public async refreshData() {

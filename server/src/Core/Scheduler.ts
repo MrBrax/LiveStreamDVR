@@ -130,6 +130,8 @@ export class Scheduler {
 
                 }
 
+                channel?.findClips();
+
             }
 
         }

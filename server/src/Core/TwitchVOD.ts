@@ -2161,6 +2161,7 @@ export class TwitchVOD {
 
     }
 
+    // TODO: add hardware acceleration
     public burnChat(
         burn_horizontal = "left",
         burn_vertical = "top",
