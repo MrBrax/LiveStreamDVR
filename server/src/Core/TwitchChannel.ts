@@ -9,10 +9,9 @@ import { TwitchVODChapterJSON } from "Storage/JSON";
 import type { ApiChannel } from "../../../common/Api/Client";
 import { ChannelConfig, VideoQuality } from "../../../common/Config";
 import { MuteStatus, SubStatus } from "../../../common/Defs";
-import type { LocalVideo } from "../../../common/LocalVideo";
 import type { LocalClip } from "../../../common/LocalClip";
+import type { LocalVideo } from "../../../common/LocalVideo";
 import { AudioMetadata, VideoMetadata } from "../../../common/MediaInfo";
-import { MediaInfo } from "../../../common/mediainfofield";
 import type { Channel, ChannelsResponse } from "../../../common/TwitchAPI/Channels";
 import type { ErrorResponse, EventSubTypes } from "../../../common/TwitchAPI/Shared";
 import type { Stream, StreamsResponse } from "../../../common/TwitchAPI/Streams";
@@ -634,7 +633,10 @@ export class TwitchChannel {
         const clips_scheduler_folder = path.join(BaseConfigDataFolder.saved_clips, "scheduler", this.login);
         const clips_scheduler = fs.existsSync(clips_scheduler_folder) ? fs.readdirSync(clips_scheduler_folder).filter(f => f.endsWith(".mp4")).map(f => path.join(clips_scheduler_folder, f)) : [];
 
-        const all_clips = clips_downloader.concat(clips_scheduler);
+        const clips_editor_folder = path.join(BaseConfigDataFolder.saved_clips, "editor", this.login);
+        const clips_editor = fs.existsSync(clips_editor_folder) ? fs.readdirSync(clips_editor_folder).filter(f => f.endsWith(".mp4")).map(f => path.join(clips_editor_folder, f)) : [];
+
+        const all_clips = clips_downloader.concat(clips_scheduler).concat(clips_editor);
 
         for (const clip_path of all_clips) {
 
@@ -1167,11 +1169,15 @@ export class TwitchChannel {
             fs.mkdirSync(channel.getFolder());
         }
 
-        if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "scheduler", channel.login)))
-            fs.mkdirSync(path.join(BaseConfigDataFolder.saved_clips, "scheduler", channel.login), { recursive: true });
-
-        if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "downloader", channel.login)))
-            fs.mkdirSync(path.join(BaseConfigDataFolder.saved_clips, "downloader", channel.login), { recursive: true });
+        // only needed if i implement watching
+        // if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "scheduler", channel.login)))
+        //     fs.mkdirSync(path.join(BaseConfigDataFolder.saved_clips, "scheduler", channel.login), { recursive: true });
+        // 
+        // if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "downloader", channel.login)))
+        //     fs.mkdirSync(path.join(BaseConfigDataFolder.saved_clips, "downloader", channel.login), { recursive: true });
+        // 
+        // if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "editor", channel.login)))
+        //     fs.mkdirSync(path.join(BaseConfigDataFolder.saved_clips, "editor", channel.login), { recursive: true });
 
         await channel.parseVODs(api);
 

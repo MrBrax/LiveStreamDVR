@@ -1,16 +1,14 @@
-import { BaseConfigDataFolder } from "../Core/BaseConfig";
-import { Helper } from "../Core/Helper";
 import express from "express";
+import fs from "fs";
 import path from "path";
 import { ApiErrorResponse, ApiResponse, ApiVodResponse } from "../../../common/Api/Api";
+import { TwitchVODBookmark } from "../../../common/Bookmark";
 import { VideoQuality } from "../../../common/Config";
 import { VideoQualityArray } from "../../../common/Defs";
-import { LOGLEVEL, Log } from "../Core/Log";
+import { BaseConfigDataFolder } from "../Core/BaseConfig";
+import { Helper } from "../Core/Helper";
+import { Log, LOGLEVEL } from "../Core/Log";
 import { TwitchVOD } from "../Core/TwitchVOD";
-import { FileExporter } from "../Exporters/File";
-import { YouTubeExporter } from "../Exporters/YouTube";
-import { SFTPExporter } from "../Exporters/SFTP";
-import { TwitchVODBookmark } from "../../../common/Bookmark";
 
 export async function GetVod(req: express.Request, res: express.Response): Promise<void> {
 
@@ -393,7 +391,11 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
     // don't use fps, not using frame numbers, but seconds
 
     const file_in = path.join(vod.directory, vod.segments[0].basename);
-    const file_out = path.join(BaseConfigDataFolder.saved_clips, `${vod.basename}_${time_in}-${time_out}_${segment_name}.mp4`);
+    const file_out = path.join(BaseConfigDataFolder.saved_clips, "editor", vod.streamer_login, `${vod.basename}_${time_in}-${time_out}_${segment_name}.mp4`);
+
+    if (!fs.existsSync(path.dirname(file_out))) {
+        fs.mkdirSync(path.dirname(file_out), { recursive: true });
+    }
 
     let ret;
 
