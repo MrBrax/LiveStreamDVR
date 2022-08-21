@@ -3,6 +3,7 @@ export interface Clip {
     url: string;
     embed_url: string;
     broadcaster_id: string;
+    /** Broadcaster name, not login */
     broadcaster_name: string;
     creator_id: string;
     creator_name: string;

@@ -258,7 +258,17 @@ export async function DownloadClip(req: express.Request, res: express.Response):
 
     const basename = sanitize(formatString(Config.getInstance().cfg("filename_clip", "{broadcaster} - {title} [{id}] [{quality}]"), variables) + ".mp4");
     // const basename = sanitize(`[${format(clip_date, "yyyy-MM-dd")}] ${metadata.broadcaster_name} - ${metadata.title} [${metadata.id}] [${quality}].mp4`); // new filename? sanitize(`${metadata.broadcaster_name}.${metadata.title}.${metadata.id}.${quality}.mp4`);
-    const file_path = path.join(BaseConfigDataFolder.saved_clips, "downloader", metadata.broadcaster_name, basename);
+
+    const user = await TwitchChannel.getUserDataById(metadata.broadcaster_id);
+    if (!user) {
+        res.status(500).send({
+            status: "ERROR",
+            message: "Failed to get broadcaster user data",
+        });
+        return;
+    }
+
+    const file_path = path.join(BaseConfigDataFolder.saved_clips, "downloader", user.login, basename);
 
     if (!fs.existsSync(path.dirname(file_path))) {
         fs.mkdirSync(path.dirname(file_path), { recursive: true });

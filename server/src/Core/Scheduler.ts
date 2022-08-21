@@ -98,7 +98,7 @@ export class Scheduler {
                 for (let i = 0; i < Math.min(amount, clips.length); i++) {
                     const clip = clips[i];
 
-                    const basefolder = path.join(BaseConfigDataFolder.saved_clips, "scheduler", clip.broadcaster_name);
+                    const basefolder = path.join(BaseConfigDataFolder.saved_clips, "scheduler", login);
                     if (!fs.existsSync(basefolder)) {
                         fs.mkdirSync(basefolder, { recursive: true });
                     }
