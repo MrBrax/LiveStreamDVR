@@ -11,7 +11,7 @@ import { ChannelConfig, VideoQuality } from "../../../common/Config";
 import { MuteStatus, SubStatus } from "../../../common/Defs";
 import type { LocalVideo } from "../../../common/LocalVideo";
 import type { LocalClip } from "../../../common/LocalClip";
-import { VideoMetadata } from "../../../common/MediaInfo";
+import { AudioMetadata, VideoMetadata } from "../../../common/MediaInfo";
 import { MediaInfo } from "../../../common/mediainfofield";
 import type { Channel, ChannelsResponse } from "../../../common/TwitchAPI/Channels";
 import type { ErrorResponse, EventSubTypes } from "../../../common/TwitchAPI/Shared";
@@ -638,7 +638,7 @@ export class TwitchChannel {
 
         for (const clip_path of all_clips) {
 
-            let video_metadata: VideoMetadata;
+            let video_metadata: VideoMetadata | AudioMetadata;
 
             try {
                 video_metadata = await Helper.videometadata(clip_path);
@@ -647,7 +647,7 @@ export class TwitchChannel {
                 continue;
             }
 
-            if (!video_metadata) continue;
+            if (!video_metadata || video_metadata.type !== "video") continue;
 
             let thumbnail;
             try {
@@ -1030,16 +1030,21 @@ export class TwitchChannel {
         });
     }
 
-    private async addLocalVideo(basename: string) {
+    private async addLocalVideo(basename: string): Promise<boolean> {
 
         const filename = path.join(Helper.vodFolder(this.login), basename);
 
-        let video_metadata: VideoMetadata;
+        let video_metadata: VideoMetadata | AudioMetadata;
 
         try {
             video_metadata = await Helper.videometadata(filename);
         } catch (th) {
             Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Trying to get mediainfo of ${filename} returned: ${(th as Error).message}`);
+            return false;
+        }
+
+        if (!video_metadata || video_metadata.type !== "video") {
+            Log.logAdvanced(LOGLEVEL.WARNING, "channel", `${filename} is not a local video, not adding`);
             return false;
         }
 
@@ -1065,6 +1070,8 @@ export class TwitchChannel {
         this.sortLocalVideos();
 
         this.broadcastUpdate();
+
+        return true;
 
     }
 

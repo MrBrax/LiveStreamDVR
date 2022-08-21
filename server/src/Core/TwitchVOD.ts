@@ -476,6 +476,19 @@ export class TwitchVOD {
             return false;
         }
 
+        let metadata: VideoMetadata | AudioMetadata;
+        try {
+            metadata = await Helper.videometadata(filename);
+        } catch (e) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Could not get mediainfo of ${this.basename} (${filename} @ ${this.directory}): ${(e as Error).message}`);
+            return false;
+        }
+
+        this.video_metadata = metadata;
+
+        return metadata;
+
+        /*
         let data: MediaInfo | false = false;
 
         try {
@@ -565,6 +578,7 @@ export class TwitchVOD {
 
             return this.video_metadata;
         }
+        */
 
         Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Could not get mediainfo of ${this.basename}`);
 

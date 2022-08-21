@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import fs from "fs";
 import path from "path";
 import { Stream } from "stream";
-import { MediaInfoJSONOutput, VideoMetadata } from "../../../common/MediaInfo";
+import { AudioMetadata, MediaInfoJSONOutput, VideoMetadata } from "../../../common/MediaInfo";
 import { MediaInfo } from "../../../common/mediainfofield";
 import { FFProbe } from "../../../common/FFProbe";
 import { EventSubTypes, Subscription } from "../../../common/TwitchAPI/Shared";
@@ -960,7 +960,7 @@ export class Helper {
 
     }
 
-    public static async videometadata(filename: string): Promise<VideoMetadata> {
+    public static async videometadata(filename: string): Promise<VideoMetadata | AudioMetadata> {
 
         let data: MediaInfo | false = false;
 
@@ -973,7 +973,7 @@ export class Helper {
 
         if (!data) {
             Log.logAdvanced(LOGLEVEL.ERROR, "helper.videometadata", `Trying to get mediainfo of ${filename} returned false`);
-            throw new Error("No data from mediainfo");    
+            throw new Error("No data from mediainfo");
         }
 
         if (!data.general.Format || !data.general.Duration) {
@@ -981,45 +981,89 @@ export class Helper {
             throw new Error("Invalid mediainfo: no format/duration");
         }
 
-        if (!data.video) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "helper.videometadata", `Invalid mediainfo for ${filename} (missing video)`);
-            throw new Error("Invalid mediainfo: no video");
-        }
+        // if (!data.video) {
+        //     Log.logAdvanced(LOGLEVEL.ERROR, "helper.videometadata", `Invalid mediainfo for ${filename} (missing video)`);
+        //     throw new Error("Invalid mediainfo: no video");
+        // }
 
         if (!data.audio) {
             Log.logAdvanced(LOGLEVEL.ERROR, "helper.videometadata", `Invalid mediainfo for ${filename} (missing audio)`);
             throw new Error("Invalid mediainfo: no audio");
         }
 
-        const video_metadata = {
+        const isAudio = data.video === undefined;
 
-            type: "video",
+        if (isAudio) {
 
-            container: data.general.Format,
+            if (data.audio) {
 
-            size: parseInt(data.general.FileSize),
-            duration: parseInt(data.general.Duration),
-            bitrate: parseInt(data.general.OverallBitRate),
+                const audio_metadata = {
 
-            width: parseInt(data.video.Width),
-            height: parseInt(data.video.Height),
+                    type: "audio",
 
-            fps: parseInt(data.video.FrameRate), // TODO: check if this is correct, seems to be variable
-            fps_mode: data.video.FrameRate_Mode as "VFR" | "CFR",
+                    container: data.general.Format,
 
-            audio_codec: data.audio.Format,
-            audio_bitrate: parseInt(data.audio.BitRate),
-            audio_bitrate_mode: data.audio.BitRate_Mode as "VBR" | "CBR",
-            audio_sample_rate: parseInt(data.audio.SamplingRate),
-            audio_channels: parseInt(data.audio.Channels),
+                    size: parseInt(data.general.FileSize),
+                    duration: parseInt(data.general.Duration),
+                    bitrate: parseInt(data.general.OverallBitRate),
 
-            video_codec: data.video.Format,
-            video_bitrate: parseInt(data.video.BitRate),
-            video_bitrate_mode: data.video.BitRate_Mode as "VBR" | "CBR",
+                    audio_codec: data.audio.Format,
+                    audio_bitrate: parseInt(data.audio.BitRate),
+                    audio_bitrate_mode: data.audio.BitRate_Mode as "VBR" | "CBR",
+                    audio_sample_rate: parseInt(data.audio.SamplingRate),
+                    audio_channels: parseInt(data.audio.Channels),
 
-        } as VideoMetadata;
+                } as AudioMetadata;
 
-        return video_metadata;
+                return audio_metadata;
+
+            } else {
+
+                throw new Error("Invalid mediainfo: no audio");
+
+            }
+
+        } else {
+
+            if (data.video && data.audio) {
+
+                const video_metadata = {
+
+                    type: "video",
+
+                    container: data.general.Format,
+
+                    size: parseInt(data.general.FileSize),
+                    duration: parseInt(data.general.Duration),
+                    bitrate: parseInt(data.general.OverallBitRate),
+
+                    width: parseInt(data.video.Width),
+                    height: parseInt(data.video.Height),
+
+                    fps: parseInt(data.video.FrameRate), // TODO: check if this is correct, seems to be variable
+                    fps_mode: data.video.FrameRate_Mode as "VFR" | "CFR",
+
+                    audio_codec: data.audio.Format,
+                    audio_bitrate: parseInt(data.audio.BitRate),
+                    audio_bitrate_mode: data.audio.BitRate_Mode as "VBR" | "CBR",
+                    audio_sample_rate: parseInt(data.audio.SamplingRate),
+                    audio_channels: parseInt(data.audio.Channels),
+
+                    video_codec: data.video.Format,
+                    video_bitrate: parseInt(data.video.BitRate),
+                    video_bitrate_mode: data.video.BitRate_Mode as "VBR" | "CBR",
+
+                } as VideoMetadata;
+
+                return video_metadata;
+
+            } else {
+
+                throw new Error("Invalid mediainfo: no video/audio");
+
+            }
+
+        }
 
     }
 
