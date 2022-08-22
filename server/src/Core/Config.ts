@@ -84,8 +84,8 @@ export class Config {
         { "key": "api_client_id", "group": "Basic", "text": "Twitch client ID", "type": "string", "required": true },
         { "key": "api_secret", "group": "Basic", "text": "Twitch secret", "type": "string", "secret": true, "required": true, "help": "Keep blank to not change" },
 
-        { "key": "youtube_client_id", "group": "Basic", "text": "YouTube client ID", "type": "string" },
-        { "key": "youtube_client_secret", "group": "Basic", "text": "YouTube secret", "type": "string", "secret": true },
+        { "key": "youtube.client_id",       "group": "YouTube", "text": "YouTube client ID", "type": "string" },
+        { "key": "youtube.client_secret",   "group": "YouTube", "text": "YouTube secret", "type": "string", "secret": true },
 
         // { 'key': 'hook_callback', 		'text': 'Hook callback', 									'type': 'string', 'required': true },
         // {'key': 'timezone', 				'group': 'Interface',	'text': 'Timezone', 										'type': 'array',		'default': 'UTC', 'help': 'This only affects the GUI, not the values stored', 'deprecated': true},
@@ -272,6 +272,11 @@ export class Config {
         { "key": "localvideos.enabled", "group": "Local Videos", "text": "Enable local videos", "type": "boolean", "default": false },
     ];
 
+    static MigrateOptions = [
+        { from: "youtube_client_id", to: "youtube.client_id" },
+        { from: "youtube_client_secret", to: "youtube.client_secret" },
+    ];
+
     static readonly AudioContainer = "m4a";
 
     static readonly SeasonFormat = "yyyyMM";
@@ -350,8 +355,17 @@ export class Config {
 
         this.config = JSON.parse(data);
 
-        // this.config.app_name = AppName;
+        if (this.config) {
+            for (const field of Config.MigrateOptions) {
+                if (this.config[field.from] !== undefined) {
+                    this.config[field.to] = this.config[field.from];
+                    // delete this.config[field.from];
+                    Log.logAdvanced(LOGLEVEL.INFO, "config", `Migrated setting '${field.from}' to '${field.from}'.`);
+                }
+            }
+        }
 
+        // delete invalid settings
         for (const key in this.config) {
             if (!Config.settingExists(key)) {
                 console.warn(chalk.yellow(`Saved setting '${key}' does not exist, deprecated? Discarding.`));
