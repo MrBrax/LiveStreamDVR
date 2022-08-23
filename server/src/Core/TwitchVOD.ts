@@ -788,7 +788,7 @@ export class TwitchVOD {
     public async parseChapters(raw_chapters: TwitchVODChapterJSON[]): Promise<boolean> {
 
         if (!raw_chapters || raw_chapters.length == 0) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No chapter data found for ${this.basename}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod.parseChapters", `No chapter data found for ${this.basename}`);
             return false;
         }
 
@@ -797,7 +797,7 @@ export class TwitchVOD {
         for (const chapter of raw_chapters) {
 
             if (!this.started_at || !this.ended_at) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Time error for chapter parsing found for ${this.basename} (started_at: ${this.started_at}, ended_at: ${this.ended_at})`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "vod.parseChapters", `Time error for chapter parsing found for ${this.basename} (started_at: ${this.started_at}, ended_at: ${this.ended_at})`);
                 return false;
             }
 
@@ -853,7 +853,7 @@ export class TwitchVOD {
     // }
 
     public addChapter(chapter: TwitchVODChapter): void {
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Adding chapter ${chapter.title} (${chapter.game_name}) to ${this.basename}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "vod.addChapter", `Adding chapter ${chapter.title} (${chapter.game_name}) to ${this.basename}`);
         this.chapters.push(chapter);
         this.chapters_raw.push(chapter.toJSON()); // needed?
         this.calculateChapters();
@@ -868,12 +868,12 @@ export class TwitchVOD {
     public calculateChapters(): boolean {
 
         if (!this.started_at) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No start time found for ${this.basename}, can't calculate chapters`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod.calculateChapters", `No start time found for ${this.basename}, can't calculate chapters`);
             return false;
         }
 
         if (!this.chapters || this.chapters.length == 0) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No chapters found for ${this.basename}, can't calculate chapters`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod.calculateChapters", `No chapters found for ${this.basename}, can't calculate chapters`);
             return false;
         }
 
@@ -923,13 +923,13 @@ export class TwitchVOD {
 
         const longChapters = this.chapters.filter(chapter => {
             if (chapter.duration && chapter.duration > minDuration) {
-                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Keeping chapter ${chapter.title} with duration ${chapter.duration} on ${this.basename}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "vod.removeShortChapters", `Keeping chapter ${chapter.title} with duration ${chapter.duration} on ${this.basename}`);
                 return true;
             } else if (chapter.duration === undefined) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Chapter ${chapter.title} has undefined duration on ${this.basename}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "vod.removeShortChapters", `Chapter ${chapter.title} has undefined duration on ${this.basename}`);
                 return true;
             } else {
-                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Removing chapter ${chapter.title} with duration ${chapter.duration} on ${this.basename}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "vod.removeShortChapters", `Removing chapter ${chapter.title} with duration ${chapter.duration} on ${this.basename}`);
                 return false;
             }
         });
@@ -963,10 +963,10 @@ export class TwitchVOD {
         }
 
         if (!array) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No segment data supplied on ${this.basename}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod.parseSegments", `No segment data supplied on ${this.basename}`);
 
             if (!this.segments_raw) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No segment_raw data on ${this.basename}, calling rebuild...`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "vod.parseSegments", `No segment_raw data on ${this.basename}, calling rebuild...`);
                 this.rebuildSegmentList();
             }
 
@@ -978,14 +978,14 @@ export class TwitchVOD {
         for (const raw_segment of array) {
 
             if (typeof raw_segment !== "string") {
-                Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Segment list containing invalid data for ${this.basename}, rebuilding...`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "vod.parseSegments", `Segment list containing invalid data for ${this.basename}, rebuilding...`);
                 this.rebuildSegmentList();
                 return;
             }
 
             // find invalid characters for windows
             if (raw_segment.match(TwitchVOD.filenameIllegalChars)) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Segment list containing invalid characters for ${this.basename}: ${raw_segment}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "vod.parseSegments", `Segment list containing invalid characters for ${this.basename}: ${raw_segment}`);
                 return false;
             }
 
@@ -1027,7 +1027,7 @@ export class TwitchVOD {
      * @param segment 
      */
     public addSegment(segment: string): void {
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Adding segment ${segment} to ${this.basename}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "vod.addSegment", `Adding segment ${segment} to ${this.basename}`);
         this.segments_raw.push(segment);
         this.parseSegments(this.segments_raw);
     }
@@ -1039,7 +1039,7 @@ export class TwitchVOD {
      */
     public async rebuildSegmentList(): Promise<boolean> {
 
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Rebuilding segment list for ${this.basename}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "vod.rebuildSegmentList", `Rebuilding segment list for ${this.basename}`);
 
         const files = fs.readdirSync(this.directory)
             .filter(file =>
@@ -1052,7 +1052,7 @@ export class TwitchVOD {
             );
 
         if (!files || files.length == 0) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No segments found for ${this.basename}, can't rebuild segment list`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod.rebuildSegmentList", `No segments found for ${this.basename}, can't rebuild segment list`);
             return false;
         }
 
@@ -1074,7 +1074,7 @@ export class TwitchVOD {
      * @returns 
      */
     public async finalize(): Promise<boolean> {
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Finalize ${this.basename} @ ${this.directory}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "vod.finalize", `Finalize ${this.basename} @ ${this.directory}`);
 
         if (this.path_playlist && fs.existsSync(this.path_playlist)) {
             fs.unlinkSync(this.path_playlist);
@@ -1084,32 +1084,32 @@ export class TwitchVOD {
         try {
             await this.getMediainfo();
         } catch (error) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to get mediainfo for ${this.basename}: ${error}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod.finalize", `Failed to get mediainfo for ${this.basename}: ${error}`);
         }
 
         // generate chapter related files
         try {
             this.saveLosslessCut();
         } catch (error) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to save lossless cut for ${this.basename}: ${error}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod.finalize", `Failed to save lossless cut for ${this.basename}: ${error}`);
         }
 
         try {
             this.saveFFMPEGChapters();
         } catch (error) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to save ffmpeg chapters for ${this.basename}: ${error}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod.finalize", `Failed to save ffmpeg chapters for ${this.basename}: ${error}`);
         }
 
         try {
             this.saveVTTChapters();
         } catch (error) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to save vtt chapters for ${this.basename}: ${error}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod.finalize", `Failed to save vtt chapters for ${this.basename}: ${error}`);
         }
 
         try {
             this.saveKodiNfo();
         } catch (error) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to save kodi nfo for ${this.basename}: ${error}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod.finalize", `Failed to save kodi nfo for ${this.basename}: ${error}`);
         }
 
         // match stored vod to online vod
@@ -1130,11 +1130,11 @@ export class TwitchVOD {
         if (this.is_capturing || this.is_converting) return;
         if (!this.started_at) return;
 
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Matching ${this.basename} to provider`);
+        Log.logAdvanced(LOGLEVEL.INFO, "vod.matchProviderVod", `Matching ${this.basename} to provider`);
 
         const channel_videos = await TwitchVOD.getVideos(this.streamer_id);
         if (!channel_videos) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No videos returned from streamer of ${this.basename}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod.matchProviderVod", `No videos returned from streamer of ${this.basename}`);
             this.twitch_vod_neversaved = true;
             this.twitch_vod_exists = false;
             this.broadcastUpdate();
@@ -1147,7 +1147,7 @@ export class TwitchVOD {
 
             if (Math.abs(this.started_at.getTime() - video_time.getTime()) < 1000 * 60 * 5) { // 5 minutes
 
-                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Found matching VOD for ${this.basename}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "vod.matchProviderVod", `Found matching VOD for ${this.basename}`);
 
                 this.twitch_vod_id = video.id;
                 this.twitch_vod_duration = Helper.parseTwitchDuration(video.duration);
@@ -1167,7 +1167,7 @@ export class TwitchVOD {
         this.twitch_vod_neversaved = true;
         this.twitch_vod_exists = false;
 
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `No matching VOD for ${this.basename}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "vod.matchProviderVod", `No matching VOD for ${this.basename}`);
 
         this.broadcastUpdate();
 
@@ -1189,7 +1189,7 @@ export class TwitchVOD {
         // $csv_path = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv';
         const csv_path = path.join(this.directory, `${this.basename}-llc-edl.csv`);
 
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Saving lossless cut csv for ${this.basename} to ${csv_path}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "vod.saveLosslessCut", `Saving lossless cut csv for ${this.basename} to ${csv_path}`);
 
         let data = "";
 
@@ -1239,41 +1239,7 @@ export class TwitchVOD {
             return false;
         }
 
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Saving FFMPEG chapters file for ${this.basename} to ${this.path_ffmpegchapters}`);
-
-        /*
-        let data = "";
-        data += ";FFMETADATA1\n";
-        data += `artist=${this.streamer_name}\n`;
-        data += `title=${this.twitch_vod_title ?? this.chapters[0].title}\n`;
-        data += "\n";
-        // major_brand=isom
-        // minor_version=512
-        // compatible_brands=isomiso2avc1mp41
-        // encoder=Lavf59.20.101
-
-        this.chapters.forEach((chapter) => {
-            const offset = chapter.offset || 0;
-            const duration = chapter.duration || 0;
-
-            const start = Math.floor(offset * 1000);
-            const end = Math.floor((offset + duration) * 1000);
-
-            data += "[CHAPTER]\n";
-            data += `# Game ID: ${chapter.game_id}\n`;
-            data += `# Game Name: ${chapter.game_name}\n`;
-            data += `# Title: ${chapter.title}\n`;
-            data += `# Offset: ${offset}\n`;
-            data += `# Duration: ${duration}\n`;
-            data += `# Viewer count: ${chapter.viewer_count}\n`;
-            data += `# Started at: ${chapter.started_at.toISOString()}\n`;
-            data += "TIMEBASE=1/1000\n";
-            data += `START=${start}\n`;
-            data += `END=${end}\n`;
-            data += `TITLE=${chapter.title} (${chapter.game_name})\n\n`;
-
-        });
-        */
+        Log.logAdvanced(LOGLEVEL.INFO, "vod.saveFFMPEGChapters", `Saving FFMPEG chapters file for ${this.basename} to ${this.path_ffmpegchapters}`);
 
         const meta = new FFmpegMetadata()
             .setArtist(this.streamer_name)
@@ -1316,7 +1282,7 @@ export class TwitchVOD {
             throw new Error("TwitchVOD.saveVTTChapters: chapters are not set");
         }
 
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Saving VTT chapters file for ${this.basename} to ${this.path_vttchapters}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "vod.saveVTTChapters", `Saving VTT chapters file for ${this.basename} to ${this.path_vttchapters}`);
 
         let data = `WEBVTT - Generated by ${AppName}\n\n`;
 

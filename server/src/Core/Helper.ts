@@ -230,29 +230,12 @@ export class Helper {
     }
 
     public static path_mediainfo(): string | false {
-
         if (Config.getInstance().cfg("mediainfo_path")) return Config.getInstance().cfg<string>("mediainfo_path");
-
-        // const path = this.whereis("mediainfo", "mediainfo.exe");
-        // if (path) {
-        // 	TwitchConfig.setConfig('mediainfo_path', path);
-        // 	TwitchConfig.saveConfig("path resolver");
-        // 	return path;
-        // }
-
         return false;
     }
 
     public static path_ffmpeg(): string | false {
         if (Config.getInstance().cfg("ffmpeg_path")) return Config.getInstance().cfg<string>("ffmpeg_path");
-
-        // const path = this.whereis("ffmpeg", "ffmpeg.exe");
-        // if (path) {
-        // 	TwitchConfig.setConfig('ffmpeg_path', path);
-        // 	TwitchConfig.saveConfig("path resolver");
-        // 	return path;
-        // }
-
         return false;
     }
 
@@ -879,7 +862,7 @@ export class Helper {
      */
     public static async mediainfo(filename: string): Promise<MediaInfo> {
 
-        Log.logAdvanced(LOGLEVEL.INFO, "mediainfo", `Run mediainfo on ${filename}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "helper.mediainfo", `Run mediainfo on ${filename}`);
 
         if (!filename) {
             throw new Error("No filename supplied for mediainfo");
@@ -917,14 +900,14 @@ export class Helper {
             return data as MediaInfo;
 
         } else {
-            Log.logAdvanced(LOGLEVEL.ERROR, "mediainfo", `No output from mediainfo for ${filename}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper.mediainfo", `No output from mediainfo for ${filename}`);
             throw new Error("No output from mediainfo");
         }
     }
 
     public static async ffprobe(filename: string): Promise<FFProbe> {
 
-        Log.logAdvanced(LOGLEVEL.INFO, "ffprobe", `Run ffprobe on ${filename}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "helper.ffprobe", `Run ffprobe on ${filename}`);
 
         if (!filename) {
             throw new Error("No filename supplied for ffprobe");
@@ -954,7 +937,7 @@ export class Helper {
             const json: FFProbe = JSON.parse(output.stdout.join(""));
             return json;
         } else {
-            Log.logAdvanced(LOGLEVEL.ERROR, "ffprobe", `No output from ffprobe for ${filename}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper.ffprobe", `No output from ffprobe for ${filename}`);
             throw new Error("No output from ffprobe");
         }
 
@@ -964,16 +947,38 @@ export class Helper {
 
         let data: MediaInfo | false = false;
 
-        try {
-            data = await Helper.mediainfo(filename);
-        } catch (th) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "helper.videometadata", `Trying to get mediainfo of ${filename} returned: ${(th as Error).message}`);
-            throw th; // rethrow?
-        }
+        const filenameHash = createHash("md5").update(filename).digest("hex"); // TODO: do we need it to by dynamic?
+        const dataPath = path.join(BaseConfigDataFolder.cache, "mediainfo", `${filenameHash}.json`);
 
-        if (!data) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "helper.videometadata", `Trying to get mediainfo of ${filename} returned false`);
-            throw new Error("No data from mediainfo");
+        if (fs.existsSync(dataPath)) {
+
+            data = JSON.parse(fs.readFileSync(dataPath, { encoding: "utf-8" }));
+
+            if (!data) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper.videometadata", `Trying to read cached mediainfo of ${filename} returned nothing`);
+                throw new Error("No cached data from mediainfo");
+            }
+
+        } else {
+
+            try {
+                data = await Helper.mediainfo(filename);
+            } catch (th) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper.videometadata", `Trying to get mediainfo of ${filename} returned: ${(th as Error).message}`);
+                throw th; // rethrow?
+            }
+
+            if (!data) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper.videometadata", `Trying to get mediainfo of ${filename} returned false`);
+                throw new Error("No data from mediainfo");
+            }
+
+            if (!fs.existsSync(path.dirname(dataPath))) {
+                fs.mkdirSync(path.dirname(dataPath), { recursive: true});
+            }
+
+            fs.writeFileSync(dataPath, JSON.stringify(data));
+
         }
 
         if (!data.general.Format || !data.general.Duration) {
@@ -1078,7 +1083,7 @@ export class Helper {
 
     public static async thumbnail(filename: string, width: number, offset = 5000): Promise<string> {
 
-        Log.logAdvanced(LOGLEVEL.INFO, "thumbnail", `Run ffmpeg on ${filename}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "helper.thumbnail", `Run ffmpeg on ${filename}`);
 
         if (!filename) {
             throw new Error("No filename supplied for thumbnail");
@@ -1124,7 +1129,7 @@ export class Helper {
      */
     public static async getSubs(): Promise<Subscriptions | false> {
 
-        Log.logAdvanced(LOGLEVEL.INFO, "helper", "Requesting subscriptions list");
+        Log.logAdvanced(LOGLEVEL.INFO, "helper.getSubs", "Requesting subscriptions list");
 
         if (!this.axios) {
             throw new Error("Axios is not initialized");
@@ -1135,13 +1140,13 @@ export class Helper {
         try {
             response = await this.axios.get("/helix/eventsub/subscriptions");
         } catch (err) {
-            Log.logAdvanced(LOGLEVEL.FATAL, "helper", `Subs return: ${err}`);
+            Log.logAdvanced(LOGLEVEL.FATAL, "helper.getSubs", `Subs return: ${err}`);
             return false;
         }
 
         const json: Subscriptions = response.data;
 
-        Log.logAdvanced(LOGLEVEL.INFO, "helper", `${json.total} subscriptions`);
+        Log.logAdvanced(LOGLEVEL.INFO, "helper.getSubs", `${json.total} subscriptions`);
 
         return json;
 
@@ -1149,7 +1154,7 @@ export class Helper {
 
     public static async getSubsList(): Promise<Subscription[] | false> {
 
-        Log.logAdvanced(LOGLEVEL.INFO, "helper", "Requesting subscriptions list");
+        Log.logAdvanced(LOGLEVEL.INFO, "helper.getSubsList", "Requesting subscriptions list");
 
         if (!this.axios) {
             throw new Error("Axios is not initialized");
@@ -1162,7 +1167,7 @@ export class Helper {
 
         do {
 
-            Log.logAdvanced(LOGLEVEL.INFO, "helper", `Fetch subs page ${page}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "helper.getSubsList", `Fetch subs page ${page}`);
 
             let response;
 
@@ -1173,7 +1178,7 @@ export class Helper {
                     },
                 });
             } catch (err) {
-                Log.logAdvanced(LOGLEVEL.FATAL, "helper", `Subs return: ${err}`);
+                Log.logAdvanced(LOGLEVEL.FATAL, "helper.getSubsList", `Subs return: ${err}`);
                 return false;
             }
 
@@ -1185,7 +1190,7 @@ export class Helper {
 
         } while (cursor && page++ < maxpages);
 
-        Log.logAdvanced(LOGLEVEL.INFO, "helper", `${subscriptions.length} subscriptions`);
+        Log.logAdvanced(LOGLEVEL.INFO, "helper.getSubsList", `${subscriptions.length} subscriptions`);
 
         return subscriptions;
 

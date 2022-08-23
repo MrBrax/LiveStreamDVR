@@ -90,11 +90,11 @@
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <td>Started at</td>
-                            <td>PID</td>
-                            <td>Status</td>
-                            <td>Progress</td>
-                            <td>Action</td>
+                            <th>Started at</th>
+                            <th>PID</th>
+                            <th>Status</th>
+                            <th>Progress</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tr v-for="job in store.jobList" :key="job.name">
