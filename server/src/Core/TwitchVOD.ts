@@ -2264,6 +2264,24 @@ export class TwitchVOD {
 
     }
 
+    public async getSync() {
+        const files = {
+            ref: this.segments[0].filename || "",
+            act: this.path_downloaded_vod,
+        };
+
+        if (!files.ref || !files.act) return;
+
+        for (const f of ["ref", "act"]) {
+            if (!fs.existsSync(path.join(BaseConfigDataFolder.cache, `${f}.wav`))) {
+                const wavconvert = await Helper.execSimple("ffmpeg", ["-i", files[f as "act" | "ref"], "-t", "00:05:00", "-vn", path.join(BaseConfigDataFolder.cache, `${f}.wav`)], `${f} ffmpeg convert`);
+            }
+        }
+    
+        // somehow get the sync of the two audio files here
+    
+    }
+
     public getStartOffset(): number | false {
         if (!this.twitch_vod_duration) return false;
         // const dur = await this.getDuration();

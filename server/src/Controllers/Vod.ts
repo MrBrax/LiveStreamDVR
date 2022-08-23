@@ -554,3 +554,23 @@ export function RemoveBookmark(req: express.Request, res: express.Response): voi
     return;
 
 }
+
+export async function GetSync(req: express.Request, res: express.Response): Promise<void> {
+
+    const vod = TwitchVOD.getVod(req.params.basename);
+
+    if (!vod) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const data = await vod.getSync();
+
+    res.send({
+        data,
+    });
+
+}

@@ -59,6 +59,7 @@ router.post("/vod/:basename/save", AuthAdmin, Vod.ArchiveVod);
 // router.post("/vod/:basename/export", AuthAdmin, Vod.ExportVod);
 router.post("/vod/:basename/bookmark", AuthAdmin, Vod.AddBookmark);
 router.delete("/vod/:basename/bookmark", AuthAdmin, Vod.RemoveBookmark);
+router.get("/vod/:basename/sync", AuthAdmin, Vod.GetSync);
 
 router.get("/games", AuthGuest, Games.ListGames);
 
