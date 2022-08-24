@@ -152,4 +152,21 @@ Config.init().then(() => {
         console.log(chalk.yellow("WebSocket is disabled. Change the 'websocket_enabled' config to enable it."));
     }
 
+    // handle uncaught exceptions, not sure if this is a good idea
+    process.on("uncaughtException", function(err, origin) {
+        console.error("Fatal error; Uncaught exception", err, origin);
+        ClientBroker.broadcast({
+            action: "alert",
+            data: "Uncaught exception, server will exit.",
+        });
+        ClientBroker.notify(
+            "Uncaught exception, server will exit.",
+            err + "\n" + origin,
+            undefined,
+            "system"
+        );
+        fs.writeFileSync(path.join(BaseConfigDataFolder.logs, "crash.log"), err.toString() + "\n\n" + origin.toString());
+        process.exit(1);
+    });
+
 });
