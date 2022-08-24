@@ -13,6 +13,7 @@ import { Config } from "./Core/Config";
 import ApiRouter from "./Routes/Api";
 import dotenv from "dotenv";
 import session from "express-session";
+import { Log, LOGLEVEL } from "Core/Log";
 
 declare module "express-session" {
     interface SessionData {
@@ -44,6 +45,10 @@ const override_port = argv.port ? parseInt(argv.port as string) : undefined;
 
 // load all required config files and cache stuff
 Config.init().then(() => {
+
+    // if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) {
+    //     Log.logAdvanced(LOGLEVEL.WARNING, "index", "Seems like the server was not shut down gracefully...");
+    // }
 
     const app = express();
     const port = override_port || Config.getInstance().cfg<number>("server_port", 8080);
@@ -153,6 +158,7 @@ Config.init().then(() => {
     }
 
     // handle uncaught exceptions, not sure if this is a good idea
+    /*
     process.on("uncaughtException", function(err, origin) {
         console.error("Fatal error; Uncaught exception", err, origin);
         ClientBroker.broadcast({
@@ -168,5 +174,34 @@ Config.init().then(() => {
         fs.writeFileSync(path.join(BaseConfigDataFolder.logs, "crash.log"), err.toString() + "\n\n" + origin.toString());
         process.exit(1);
     });
+    */
+
+    // fs.writeFileSync(path.join(BaseConfigDataFolder.cache, "lock"), "1");
+
+    /*
+    process.on("beforeExit", (code) => {
+        if (code == 0) {
+            if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) fs.unlinkSync(path.join(BaseConfigDataFolder.cache, "lock"));
+        } else {
+            console.log(`Not removing lock, beforeExit code ${code}`);
+        }
+    });
+
+    process.on("exit", (code) => {
+        if (code == 0) {
+            if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) fs.unlinkSync(path.join(BaseConfigDataFolder.cache, "lock"));
+        } else {
+            console.log(`Not removing lock, exit code ${code}`);
+        }
+    });
+
+    process.on("SIGINT", (signal) => {
+        if (signal) {
+            if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) fs.unlinkSync(path.join(BaseConfigDataFolder.cache, "lock"));
+        } else {
+            console.log(`Not removing lock, sigint signal ${signal}`);
+        }
+    });
+    */
 
 });

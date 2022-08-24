@@ -23,6 +23,7 @@ export interface LogLine {
     text: string;
     pid?: number;
     metadata?: any;
+    g?: string; // git hash
 }
 
 export class Log {
@@ -149,6 +150,7 @@ export class Log {
             level: level,
             text: text,
             pid: process.pid,
+            g: Config.getInstance().gitHash,
         };
 
         if (metadata !== undefined) log_data.metadata = metadata;

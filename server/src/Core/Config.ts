@@ -29,6 +29,8 @@ export class Config {
 
     forceDebug = false;
 
+    gitHash?: string;
+
     sessionParser?: express.RequestHandler;
 
 
@@ -737,6 +739,8 @@ export class Config {
             " The Black Mesa compound is maintained at a pleasant 68 degrees at all times."
         );
 
+        await Config.getInstance().getGitHash();
+
         TwitchGame.populateGameDatabase();
         TwitchGame.populateFavouriteGames();
         TwitchChannel.loadChannelsConfig();
@@ -868,6 +872,24 @@ export class Config {
     static get can_shutdown(): boolean {
         if (!TwitchChannel.channels || TwitchChannel.channels.length === 0) return true;
         return !TwitchChannel.channels.some(c => c.is_live);
+    }
+
+    async getGitHash() {
+        let ret;
+        try {
+            ret = await Helper.execSimple("git", ["rev-parse", "HEAD"], "git hash check");
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.WARNING, "config.getGitHash", "Could not fetch git hash");
+            return false;            
+        } 
+        if (ret && ret.stdout) {
+            this.gitHash = ret.stdout.join("").trim();
+            Log.logAdvanced(LOGLEVEL.SUCCESS, "config.getGitHash", `Running on Git hash: ${this.gitHash}`);
+            return true;
+        } else {
+            Log.logAdvanced(LOGLEVEL.WARNING, "config.getGitHash", "Could not fetch git hash");
+            return false;
+        }
     }
 
 }
