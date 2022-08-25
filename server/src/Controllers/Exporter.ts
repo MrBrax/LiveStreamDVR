@@ -10,9 +10,9 @@ import { SFTPExporter } from "../Exporters/SFTP";
 import { YouTubeExporter } from "../Exporters/YouTube";
 import { validatePath } from "./Files";
 
-type Exporter = FileExporter | YouTubeExporter | SFTPExporter | FTPExporter;
+export type Exporter = FileExporter | YouTubeExporter | SFTPExporter | FTPExporter;
 
-interface ExporterOptions {
+export interface ExporterOptions {
     vod?: string;
     directory?: string;
     host?: string;

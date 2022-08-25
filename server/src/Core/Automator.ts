@@ -26,6 +26,7 @@ import { replaceAll } from "../Helpers/ReplaceAll";
 import { ChapterUpdateData } from "../../../common/Webhook";
 import sanitize from "sanitize-filename";
 import { formatString } from "../../../common/Format";
+import { Exporter, ExporterOptions, GetExporter } from "../Controllers/Exporter";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
@@ -580,6 +581,52 @@ export class Automator {
                     // }
                 }
             }
+
+            if (Config.getInstance().cfg("exporter.auto.enabled")) {
+
+                const options: ExporterOptions = {
+                    vod: this.basename(),
+                    directory: Config.getInstance().cfg("exporter.default.directory"),
+                    host: Config.getInstance().cfg("exporter.default.host"),
+                    username: Config.getInstance().cfg("exporter.default.username"),
+                    password: Config.getInstance().cfg("exporter.default.password"),
+                    description: Config.getInstance().cfg("exporter.default.description"),
+                    tags: Config.getInstance().cfg("exporter.default.tags"),
+                };
+
+                let exporter: Exporter | undefined;
+                try {
+                    exporter = GetExporter(
+                        Config.getInstance().cfg("exporter.default.exporter"),
+                        "vod",
+                        options
+                    );
+                } catch (error) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Auto exporter error: ${(error as Error).message}`);
+                }
+
+                if (exporter) {
+
+                    exporter.export().then((out_path) => {
+                        if (!exporter) return;
+                        if (out_path) {
+                            exporter.verify().then(status => {
+                                Log.logAdvanced(LOGLEVEL.SUCCESS, "automator", "Exporter finished for " + this.basename);
+                            }).catch(error => {
+                                Log.logAdvanced(LOGLEVEL.ERROR, "automator", (error as Error).message ? `Verify error: ${(error as Error).message}` : "Unknown error occurred while verifying export");
+                            });
+
+                        } else {
+                            Log.logAdvanced(LOGLEVEL.ERROR, "automator", "Exporter finished but no path output.");
+                        }
+                    }).catch(error => {
+                        Log.logAdvanced(LOGLEVEL.ERROR, "automator", (error as Error).message ? `Export error: ${(error as Error).message}` : "Unknown error occurred while exporting export");
+                    });
+
+                }
+
+            }
+
 
             // this is a slow solution since we already remux the vod to mp4, and here we reencode that file
             if (Config.getInstance().cfg("reencoder.enabled")) {
