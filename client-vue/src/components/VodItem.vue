@@ -276,7 +276,7 @@
                     <strong>{{ $t('vod.segments') }}</strong>
                     <ul class="list-segments">
                         <li v-for="segment in vod.segments" :key="segment.basename">
-                            <a :href="vod?.webpath + '/' + segment.basename">
+                            <a :href="vod?.webpath + '/' + segment.basename" target="_blank" @click.prevent="store.playMedia(vod?.webpath + '/' + segment.basename)">
                                 <span class="text-overflow">{{ segment.basename }}</span>
                                 <span v-if="!segment.deleted && segment.filesize"> ({{ formatBytes(segment.filesize) }}) </span>
                             </a>
@@ -289,20 +289,20 @@
                         </li>
 
                         <li v-if="vod.is_vod_downloaded">
-                            <a :href="vod.webpath + '/' + vod.basename + '_vod.mp4'">Downloaded VOD</a>
+                            <a :href="vod.webpath + '/' + vod.basename + '_vod.mp4'" target="_blank" @click.prevent="store.playMedia(vod?.webpath + '/' + vod?.basename + '_vod.mp4')">Downloaded VOD</a>
                         </li>
 
                         <template v-if="vod.is_chat_rendered">
                             <li>
-                                <a :href="vod.webpath + '/' + vod?.basename + '_chat.mp4'">Rendered chat</a>
+                                <a :href="vod.webpath + '/' + vod?.basename + '_chat.mp4'" target="_blank">Rendered chat</a>
                             </li>
                             <li>
-                                <a :href="vod.webpath + '/' + vod?.basename + '_chat_mask.mp4'">Rendered chat mask</a>
+                                <a :href="vod.webpath + '/' + vod?.basename + '_chat_mask.mp4'" target="_blank">Rendered chat mask</a>
                             </li>
                         </template>
 
                         <li v-if="vod.is_chat_burned">
-                            <a :href="vod?.webpath + '/' + vod?.basename + '_burned.mp4'">Burned chat</a>
+                            <a :href="vod?.webpath + '/' + vod?.basename + '_burned.mp4'" target="_blank">Burned chat</a>
                         </li>
                     </ul>
                     <span v-if="vod.segments.length === 0">

@@ -416,6 +416,9 @@ export const useStore = defineStore("twitchAutomator", {
             }
 
             this.loading = false;
+        },
+        playMedia(source: string) {
+            console.log("play media", source);
         }
     },
     getters: {

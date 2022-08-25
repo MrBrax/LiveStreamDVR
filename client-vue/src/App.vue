@@ -31,25 +31,41 @@
             :loading="loading"
         />
     </div>
+    <dialog class="mediaplayer" ref="mediaplayer">
+        <div>{{ mediaPlayerSource }}</div>
+        <div>
+            <video ref="mediaplayervideo" :src="mediaPlayerSource" controls autoplay />
+        </div>
+        <div class="buttons is-centered">
+            <button class="button is-small is-danger" @click="mediaPlayerSource = undefined; ($refs.mediaplayer as HTMLDialogElement).close()">
+                <span class="icon"><fa icon="xmark"></fa></span>
+                <span>Close</span>
+            </button>
+            <a :href="mediaPlayerSource" class="button is-small is-info" target="_blank" @click="($refs.mediaplayervideo as HTMLVideoElement).pause()">
+                <span class="icon"><fa icon="arrow-up-right-from-square"></fa></span>
+                <span>Open in new tab</span>
+            </a>
+        </div>
+    </dialog>
 </template>
 
 <style lang="scss"></style>
 
 <script lang="ts">
-import { defineComponent, reactive, ref } from "vue";
+import { defineComponent } from "vue";
 
 import SideMenu from "@/components/SideMenu.vue";
 import { useStore } from "./store";
-import type { ApiSettingsResponse } from "@common/Api/Api";
 import JobStatus from "./components/JobStatus.vue";
-// import { connectWebsocket, eventListener, WebsocketJSON } from "./websocket";
 import { ChannelUpdated, ChapterUpdateData, EndCaptureData, EndConvertData, JobClear, JobProgress, JobSave, NotifyData, VodRemoved, VodUpdated, WebhookAction } from "@common/Webhook";
 import { ApiLogLine } from "@common/Api/Client";
 import { parseISO } from "date-fns";
 import { WebsocketJSON } from "./websocket";
 import WebsocketStatus from "./components/WebsocketStatus.vue";
-import axios from "axios";
-// import websocket from "./websocket";
+
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
+library.add(faArrowUpRightFromSquare);
 
 const faviconCanvas = document.createElement("canvas");
 faviconCanvas.width = 32;
@@ -83,7 +99,9 @@ export default defineComponent({
         timer: number;
         timerMax: number;
         tickerInterval: number; // interval
+        mediaPlayerSource: string | undefined;
         faviconSub: () => void;
+        actionSub: () => void;
     } {
         return {
             loading: false,
@@ -101,6 +119,8 @@ export default defineComponent({
             faviconSub: () => {
                 console.log("faviconSub");
             },
+            mediaPlayerSource: undefined,
+            actionSub: () => {},
         };
     },
     provide() {
@@ -153,6 +173,13 @@ export default defineComponent({
         if (theme !== "" && theme !== "auto"){
             document.body.classList.add(`is-${theme}`);
         }
+        this.actionSub = this.store.$onAction(({ name, args }) => {
+            if (name !== "playMedia") return;
+            console.log("onaction", name, args);
+            this.mediaPlayerSource = args[0];
+            const p = this.$refs.mediaplayer as HTMLDialogElement;
+            p.showModal();
+        });
     },
     unmounted() {
         console.debug("App unmounted");
@@ -164,6 +191,7 @@ export default defineComponent({
         if (theme !== "" && theme !== "auto"){
             document.body.classList.remove(`is-${theme}`);
         }
+        if (this.actionSub) this.actionSub(); // unsub
     },
     methods: {
         fetchInitialData() {

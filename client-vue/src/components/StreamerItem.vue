@@ -90,6 +90,7 @@
             </div>
         </div>
 
+        <!-- local clips -->
         <div class="streamer-clips" v-if="streamer.clips_list && streamer.clips_list.length > 0">
             <div class="streamer-clips-title"><h3>{{ $t("messages.clips") }}</h3></div>
             <ul>
@@ -103,6 +104,7 @@
             </ul>
         </div>
 
+        <!-- local videos -->
         <div class="local-videos" v-if="streamer.video_list && streamer.video_list.length > 0">
             <div class="local-videos-title"><h3>{{ $t("messages.local-videos") }}</h3></div>
             <transition-group tag="div" class="local-videos-container">
