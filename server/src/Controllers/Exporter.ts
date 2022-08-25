@@ -10,111 +10,103 @@ import { SFTPExporter } from "../Exporters/SFTP";
 import { YouTubeExporter } from "../Exporters/YouTube";
 import { validatePath } from "./Files";
 
-type Exporter = FileExporter | YouTubeExporter | SFTPExporter;
+type Exporter = FileExporter | YouTubeExporter | SFTPExporter | FTPExporter;
 
-export async function ExportFile(req: express.Request, res: express.Response): Promise<void> {
+interface ExporterOptions {
+    vod?: string;
+    directory?: string;
+    host?: string;
+    username?: string;
+    password?: string;
+    description?: string;
+    tags?: string;
+    category?: string;
+    privacy?: "public" | "private" | "unlisted";
+    file_folder?: string;
+    file_name?: string;
+    file_source?: "segment" | "downloaded" | "burned";
+    title_template?: string;
+    title?: string;
+}
 
-    const mode = req.query.mode;
-    const input_exporter = req.body.exporter;
+export function GetExporter(name: string, mode: string, options: ExporterOptions): Exporter {
+
     let exporter: Exporter | undefined;
-
-    if (!input_exporter) {
-        res.status(400).send({
-            status: "ERROR",
-            message: "No exporter specified",
-        } as ApiErrorResponse);
-        return;
-    }
-
-    // FIXME: DRY this up, more sanitization of the input
 
     if (mode === "vod") {
 
-        const vod = TwitchVOD.getVod(req.body.vod);
+        if (!options.vod) {
+            throw new Error("No VOD chosen");
+        }
+
+        const vod = TwitchVOD.getVod(options.vod);
 
         if (!vod) {
-            res.status(400).send({
-                status: "ERROR",
-                message: "Vod not found",
-            } as ApiErrorResponse);
-            return;
+            throw new Error("Vod not found");
         }
 
         if (!vod.is_finalized) {
-            res.status(400).send({
-                status: "ERROR",
-                message: "Vod is not finalized",
-            } as ApiErrorResponse);
-            return;
+            throw new Error("Vod is not finalized");
         }
 
         if (!vod.segments || vod.segments.length == 0) {
-            res.status(400).send({
-                status: "ERROR",
-                message: "Vod has no segments",
-            } as ApiErrorResponse);
-            return;
+            throw new Error("Vod has no segments");
         }
 
         try {
-            if (input_exporter == "file") {
+            if (name == "file") {
                 exporter = new FileExporter();
                 if (exporter instanceof FileExporter) { // why does typescript need this??
                     exporter.loadVOD(vod);
-                    exporter.setDirectory(req.body.directory || BaseConfigDataFolder.saved_vods);
+                    exporter.setDirectory(options.directory || BaseConfigDataFolder.saved_vods);
                 }
-            } else if (input_exporter == "sftp") {
+            } else if (name == "sftp") {
+                if (!options.directory) throw ("No directory set");
+                if (!options.host) throw ("No host set");
+                if (!options.username) throw ("No username set");
                 exporter = new SFTPExporter();
                 if (exporter instanceof SFTPExporter) { // why does typescript need this??
                     exporter.loadVOD(vod);
-                    exporter.setDirectory(req.body.directory);
-                    exporter.setHost(req.body.host);
-                    exporter.setUsername(req.body.username);
+                    exporter.setDirectory(options.directory);
+                    exporter.setHost(options.host);
+                    exporter.setUsername(options.username);
                 }
-            } else if (input_exporter == "ftp") {
+            } else if (name == "ftp") {
+                if (!options.directory) throw ("No directory set");
+                if (!options.host) throw ("No host set");
+                if (!options.username) throw ("No username set");
+                if (!options.password) throw ("No password set");
                 exporter = new FTPExporter();
                 if (exporter instanceof FTPExporter) { // why does typescript need this??
                     exporter.loadVOD(vod);
-                    exporter.setDirectory(req.body.directory);
-                    exporter.setHost(req.body.host);
-                    exporter.setUsername(req.body.username);
-                    exporter.setPassword(req.body.password);
+                    exporter.setDirectory(options.directory);
+                    exporter.setHost(options.host);
+                    exporter.setUsername(options.username);
+                    exporter.setPassword(options.password);
                 }
-            
-            } else if (input_exporter == "youtube") {
+            } else if (name == "youtube") {
+                if (!options.category) throw ("No category set");
+                if (!options.privacy) throw ("No privacy level set");
                 exporter = new YouTubeExporter();
                 if (exporter instanceof YouTubeExporter) { // why does typescript need this??
                     exporter.loadVOD(vod);
-                    exporter.setDescription(req.body.description);
-                    exporter.setTags(req.body.tags ? (req.body.tags as string).split(",").map(tag => tag.trim()) : []);
-                    exporter.setCategory(req.body.category);
-                    exporter.setPrivacy(req.body.privacy);
+                    exporter.setDescription(options.description || "");
+                    exporter.setTags(options.tags ? (options.tags as string).split(",").map(tag => tag.trim()) : []);
+                    exporter.setCategory(options.category);
+                    exporter.setPrivacy(options.privacy);
                 }
             }
         } catch (error) {
-            res.status(400).send({
-                status: "ERROR",
-                message: (error as Error).message || "Unknown error occurred while creating exporter",
-            } as ApiErrorResponse);
-            return;
+            throw new Error("Exporter creation error: " + (error as Error).message);
         }
 
     } else if (mode == "file") {
 
-        if (process.env.TCD_ENABLE_FILES_API !== "1") {
-            res.status(404).send({ status: "ERROR", message: "Files API is disabled on this server. Enable with the TCD_ENABLE_FILES_API environment variable." });
-            return;
-        }
-
-        const input_folder  = req.body.file_folder;
-        const input_name    = req.body.file_name;
+        const input_folder = options.file_folder;
+        const input_name = options.file_name;
 
         if (!input_folder || !input_name) {
-            res.status(400).send({
-                status: "ERROR",
-                message: "Missing input file",
-            } as ApiErrorResponse);
-            return;
+            throw new Error("Missing input file");
         }
 
         const sanitized_input_name = sanitize(input_name);
@@ -124,98 +116,122 @@ export async function ExportFile(req: express.Request, res: express.Response): P
 
         const failpath = validatePath(full_input_dir);
         if (failpath !== true) {
-            res.status(400).send({
-                status: "ERROR",
-                message: failpath,
-            } as ApiErrorResponse);
-            return;
+            throw new Error(failpath.toString());
         }
 
         let output_directory = "";
-        if (req.body.directory) {
-            const dircheck = validatePath(req.body.directory);
+        if (options.directory) {
+            const dircheck = validatePath(options.directory);
             if (dircheck !== true) {
-                res.status(400).send({
-                    status: "ERROR",
-                    message: dircheck,
-                } as ApiErrorResponse);
-                return;
+                throw new Error(dircheck.toString());
             }
-            output_directory = req.body.directory;
+            output_directory = options.directory;
         }
 
         try {
-            if (input_exporter == "file") {
+            if (name == "file") {
                 exporter = new FileExporter();
                 if (exporter instanceof FileExporter) { // why does typescript need this??
                     exporter.loadFile(full_input_path);
                     exporter.setDirectory(output_directory || BaseConfigDataFolder.saved_vods);
                 }
-            } else if (input_exporter == "sftp") {
+            } else if (name == "sftp") {
+                if (!options.directory) throw ("No directory set");
+                if (!options.host) throw ("No host set");
+                if (!options.username) throw ("No username set");
                 exporter = new SFTPExporter();
                 if (exporter instanceof SFTPExporter) { // why does typescript need this??
                     exporter.loadFile(full_input_path);
                     exporter.setDirectory(output_directory);
-                    exporter.setHost(req.body.host);
-                    exporter.setUsername(req.body.username);
+                    exporter.setHost(options.host);
+                    exporter.setUsername(options.username);
                 }
-            } else if (input_exporter == "ftp") {
+            } else if (name == "ftp") {
+                if (!options.directory) throw ("No directory set");
+                if (!options.host) throw ("No host set");
+                if (!options.username) throw ("No username set");
+                if (!options.password) throw ("No password set");
                 exporter = new SFTPExporter();
                 if (exporter instanceof FTPExporter) { // why does typescript need this??
                     exporter.loadFile(full_input_path);
                     exporter.setDirectory(output_directory);
-                    exporter.setHost(req.body.host);
-                    exporter.setUsername(req.body.username);
-                    exporter.setPassword(req.body.password);
+                    exporter.setHost(options.host);
+                    exporter.setUsername(options.username);
+                    exporter.setPassword(options.password);
                 }
-            } else if (input_exporter == "youtube") {
+            } else if (name == "youtube") {
+                if (!options.category) throw ("No category set");
+                if (!options.privacy) throw ("No privacy level set");
                 exporter = new YouTubeExporter();
                 if (exporter instanceof YouTubeExporter) { // why does typescript need this??
                     exporter.loadFile(full_input_path);
-                    exporter.setDescription(req.body.description);
-                    exporter.setTags(req.body.tags ? (req.body.tags as string).split(",").map(tag => tag.trim()) : []);
-                    exporter.setCategory(req.body.category);
-                    exporter.setPrivacy(req.body.privacy);
+                    exporter.setDescription(options.description || "");
+                    exporter.setTags(options.tags ? (options.tags as string).split(",").map(tag => tag.trim()) : []);
+                    exporter.setCategory(options.category);
+                    exporter.setPrivacy(options.privacy);
                 }
             }
         } catch (error) {
-            res.status(400).send({
-                status: "ERROR",
-                message: (error as Error).message || "Unknown error occurred while creating exporter",
-            } as ApiErrorResponse);
-            return;
+            throw new Error("Exporter creation error: " + (error as Error).message);
         }
 
     } else {
-        res.status(400).send({
-            status: "ERROR",
-            message: "Unknown mode",
-        } as ApiErrorResponse);
-        return;
+        throw new Error("Unknown mode");
     }
 
     if (!exporter) {
+        throw new Error("Unknown exporter");
+    }
+
+    if (options.file_source) {
+        try {
+            exporter.setSource(options.file_source);
+        } catch (error) {
+            throw new Error((error as Error).message ? `Set source error: ${(error as Error).message}` : "Unknown error occurred while setting source");
+        }
+    }
+
+    if (options.title_template) exporter.setTemplate(options.title_template);
+    if (options.title) exporter.setOutputFilename(options.title);
+
+    return exporter;
+
+}
+
+export async function ExportFile(req: express.Request, res: express.Response): Promise<void> {
+
+    const mode = req.query.mode as string;
+    const input_exporter = req.body.exporter;
+
+    if (!input_exporter) {
         res.status(400).send({
             status: "ERROR",
-            message: "Unknown exporter",
+            message: "No exporter specified",
         } as ApiErrorResponse);
         return;
     }
 
-    if (req.body.file_source) {
-        try {
-            exporter.setSource(req.body.file_source);
-        } catch (error) {
-            res.status(400).send({
-                status: "ERROR",
-                message: (error as Error).message ? `Set source error: ${(error as Error).message}` : "Unknown error occurred while setting source",
-            } as ApiErrorResponse);
-            return;
-        }
+    if (mode == "file" && process.env.TCD_ENABLE_FILES_API !== "1") {
+        res.status(500).send({
+            status: "ERROR",
+            message: "Files API is disabled on this server. Enable with the TCD_ENABLE_FILES_API environment variable.",
+        } as ApiErrorResponse);
+        return;
     }
 
-    if (req.body.title_template) exporter.setTemplate(req.body.title_template);
-    if (req.body.title) exporter.setOutputFilename(req.body.title);
+    let exporter: Exporter | undefined;
+
+    try {
+        exporter = GetExporter(input_exporter, mode, req.body);
+    } catch (error) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Invalid exporter returned: " + (error as Error).message,
+        } as ApiErrorResponse);
+        return;
+    }
+
+    // FIXME: DRY this up, more sanitization of the input
 
     let success;
     try {
