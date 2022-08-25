@@ -17,7 +17,7 @@ export default defineComponent({
     },
     mounted() {
         this.refreshTime();
-        this.interval = setInterval(() => {
+        this.interval = window.setInterval(() => {
             this.refreshTime();
         }, 1000);
     },

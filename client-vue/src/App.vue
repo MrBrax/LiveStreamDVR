@@ -205,7 +205,7 @@ export default defineComponent({
                     console.debug("Websocket disabled");
                     if (this.store.clientCfg('useBackgroundTicker')) {
                         console.debug("Starting background ticker...");
-                        this.tickerInterval = setInterval(() => {
+                        this.tickerInterval = window.setInterval(() => {
                             this.tickTicker();
                         }, 1000);
                     }
@@ -213,7 +213,7 @@ export default defineComponent({
 
                 // update vods every 15 minutes
                 if (this.store.clientCfg('useBackgroundRefresh')) {
-                    this.vodUpdateInterval = setInterval(() => {
+                    this.vodUpdateInterval = window.setInterval(() => {
                         this.store.updateCapturingVods();
                     }, 1000 * 60 * 15);
                 }
@@ -247,7 +247,7 @@ export default defineComponent({
                 this.websocket.send(JSON.stringify({ action: "helloworld" }));
                 // this.websocketConnected = true;
                 this.websocketConnecting = false;
-                this.websocketKeepalive = setInterval(() => {
+                this.websocketKeepalive = window.setInterval(() => {
                     if (!this.websocket) return;
                     this.websocket.send("ping");
                 }, this.websocketKeepaliveTime);
