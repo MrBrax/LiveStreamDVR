@@ -59,6 +59,14 @@ export class Config {
             "guest": true,
         },
 
+        {
+            "key": "isolated_mode",
+            "group": "Basic",
+            "text": "Isolated mode",
+            "type": "boolean",
+            "help": "Enable this if your server is not exposed to the internet, aka no EventSub support.",
+        },
+
         { "key": "password", "group": "Interface", "text": "Password", "type": "string", "help": "Keep blank for none. Username is admin" },
         { "key": "guest_mode", "group": "Interface", "text": "Guest mode", "type": "boolean", "default": false, "help": "Allow guests to access the interface.", guest: true },
         // { "key": "password_secure", "group": "Interface", "text": "Force HTTPS for password", "type": "boolean", "default": true },

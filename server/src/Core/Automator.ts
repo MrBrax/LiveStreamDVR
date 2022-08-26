@@ -234,29 +234,8 @@ export class Automator {
 
         } else if (subscription_type == "stream.offline") {
 
-            KeyValue.getInstance().set(`${this.broadcaster_user_login}.last.offline`, new Date().toISOString());
-            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Stream offline for ${this.broadcaster_user_login}`);
-
-            // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
-
-            if (this.channel) {
-                ClientBroker.notify(
-                    `${this.broadcaster_user_login} has gone offline!`,
-                    this.channel && this.channel.latest_vod && this.channel.latest_vod.started_at ? `Was streaming for ${formatDistanceToNow(this.channel.latest_vod.started_at)}.` : "",
-                    this.channel.profile_image_url,
-                    "streamOffline",
-                    this.channel.getUrl()
-                );
-            }
-
-            // KeyValue.getInstance().set("${this.broadcaster_user_login}.online", "0");
-            KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
-            // KeyValue.getInstance().set("${this.broadcaster_user_login}.vod.id", null);
-            // KeyValue.getInstance().set("${this.broadcaster_user_login}.vod.started_at", null);
-
-            fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify({ time: new Date(), action: "offline" }) + "\n", { flag: "a" });
-
             await this.end();
+
         } else {
 
             Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No supported subscription type (${subscription_type}).`);
@@ -529,6 +508,31 @@ export class Automator {
 
         Log.logAdvanced(LOGLEVEL.INFO, "automator", "Stream end");
 
+        KeyValue.getInstance().set(`${this.broadcaster_user_login}.last.offline`, new Date().toISOString());
+        Log.logAdvanced(LOGLEVEL.INFO, "automator", `Stream offline for ${this.broadcaster_user_login}`);
+
+        // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
+
+        // channel offline notification
+        if (this.channel) {
+            ClientBroker.notify(
+                `${this.broadcaster_user_login} has gone offline!`,
+                this.channel && this.channel.latest_vod && this.channel.latest_vod.started_at ? `Was streaming for ${formatDistanceToNow(this.channel.latest_vod.started_at)}.` : "",
+                this.channel.profile_image_url,
+                "streamOffline",
+                this.channel.getUrl()
+            );
+        }
+
+        // KeyValue.getInstance().set("${this.broadcaster_user_login}.online", "0");
+        KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
+        // KeyValue.getInstance().set("${this.broadcaster_user_login}.vod.id", null);
+        // KeyValue.getInstance().set("${this.broadcaster_user_login}.vod.started_at", null);
+
+        // write to history
+        fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify({ time: new Date(), action: "offline" }) + "\n", { flag: "a" });
+
+
         // download latest vod from channel. is the end hook late enough for it to be available?
         if (this.channel && this.channel.download_vod_at_end) {
             let download_success = "";
@@ -640,6 +644,12 @@ export class Automator {
                     Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to reencode ${this.vod.basename}: ${(error as Error).message}`);
                 }
             }
+
+            // if there's no eventsub hook the stream will never actually end
+            if (Config.getInstance().cfg<boolean>("isolated_mode")) {
+                await this.end();
+            }
+
         }
     }
 
