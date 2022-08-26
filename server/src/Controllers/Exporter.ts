@@ -33,6 +33,62 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
 
     let exporter: Exporter | undefined;
 
+    let output_directory = "";
+    if (options.directory) {
+        const dircheck = validatePath(options.directory);
+        if (dircheck !== true) {
+            throw new Error(dircheck.toString());
+        }
+        output_directory = options.directory;
+    }
+
+    try {
+        if (name == "file") {
+            exporter = new FileExporter();
+            if (exporter instanceof FileExporter) { // why does typescript need this??
+                exporter.setDirectory(output_directory || BaseConfigDataFolder.saved_vods);
+            }
+        } else if (name == "sftp") {
+            if (!output_directory) throw new Error("No directory set");
+            if (!options.host) throw new Error("No host set");
+            if (!options.username) throw new Error("No username set");
+            exporter = new SFTPExporter();
+            if (exporter instanceof SFTPExporter) { // why does typescript need this??
+                exporter.setDirectory(output_directory);
+                exporter.setHost(options.host);
+                exporter.setUsername(options.username);
+            }
+        } else if (name == "ftp") {
+            if (!output_directory) throw new Error("No directory set");
+            if (!options.host) throw new Error("No host set");
+            if (!options.username) throw new Error("No username set");
+            if (!options.password) throw new Error("No password set");
+            exporter = new FTPExporter();
+            if (exporter instanceof FTPExporter) { // why does typescript need this??
+                exporter.setDirectory(output_directory);
+                exporter.setHost(options.host);
+                exporter.setUsername(options.username);
+                exporter.setPassword(options.password);
+            }
+        } else if (name == "youtube") {
+            if (!options.category) throw new Error("No category set");
+            if (!options.privacy) throw new Error("No privacy level set");
+            exporter = new YouTubeExporter();
+            if (exporter instanceof YouTubeExporter) { // why does typescript need this??
+                exporter.setDescription(options.description || "");
+                exporter.setTags(options.tags ? (options.tags as string).split(",").map(tag => tag.trim()) : []);
+                exporter.setCategory(options.category);
+                exporter.setPrivacy(options.privacy);
+            }
+        }
+    } catch (error) {
+        throw new Error("Exporter creation error: " + (error as Error).message);
+    }
+
+    if (!exporter) {
+        throw new Error("Unknown exporter");
+    }
+
     if (mode === "vod") {
 
         if (!options.vod) {
@@ -53,52 +109,7 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
             throw new Error("Vod has no segments");
         }
 
-        try {
-            if (name == "file") {
-                exporter = new FileExporter();
-                if (exporter instanceof FileExporter) { // why does typescript need this??
-                    exporter.loadVOD(vod);
-                    exporter.setDirectory(options.directory || BaseConfigDataFolder.saved_vods);
-                }
-            } else if (name == "sftp") {
-                if (!options.directory) throw ("No directory set");
-                if (!options.host) throw ("No host set");
-                if (!options.username) throw ("No username set");
-                exporter = new SFTPExporter();
-                if (exporter instanceof SFTPExporter) { // why does typescript need this??
-                    exporter.loadVOD(vod);
-                    exporter.setDirectory(options.directory);
-                    exporter.setHost(options.host);
-                    exporter.setUsername(options.username);
-                }
-            } else if (name == "ftp") {
-                if (!options.directory) throw ("No directory set");
-                if (!options.host) throw ("No host set");
-                if (!options.username) throw ("No username set");
-                if (!options.password) throw ("No password set");
-                exporter = new FTPExporter();
-                if (exporter instanceof FTPExporter) { // why does typescript need this??
-                    exporter.loadVOD(vod);
-                    exporter.setDirectory(options.directory);
-                    exporter.setHost(options.host);
-                    exporter.setUsername(options.username);
-                    exporter.setPassword(options.password);
-                }
-            } else if (name == "youtube") {
-                if (!options.category) throw ("No category set");
-                if (!options.privacy) throw ("No privacy level set");
-                exporter = new YouTubeExporter();
-                if (exporter instanceof YouTubeExporter) { // why does typescript need this??
-                    exporter.loadVOD(vod);
-                    exporter.setDescription(options.description || "");
-                    exporter.setTags(options.tags ? (options.tags as string).split(",").map(tag => tag.trim()) : []);
-                    exporter.setCategory(options.category);
-                    exporter.setPrivacy(options.privacy);
-                }
-            }
-        } catch (error) {
-            throw new Error("Exporter creation error: " + (error as Error).message);
-        }
+        exporter.loadVOD(vod);
 
     } else if (mode == "file") {
 
@@ -119,68 +130,10 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
             throw new Error(failpath.toString());
         }
 
-        let output_directory = "";
-        if (options.directory) {
-            const dircheck = validatePath(options.directory);
-            if (dircheck !== true) {
-                throw new Error(dircheck.toString());
-            }
-            output_directory = options.directory;
-        }
-
-        try {
-            if (name == "file") {
-                exporter = new FileExporter();
-                if (exporter instanceof FileExporter) { // why does typescript need this??
-                    exporter.loadFile(full_input_path);
-                    exporter.setDirectory(output_directory || BaseConfigDataFolder.saved_vods);
-                }
-            } else if (name == "sftp") {
-                if (!options.directory) throw ("No directory set");
-                if (!options.host) throw ("No host set");
-                if (!options.username) throw ("No username set");
-                exporter = new SFTPExporter();
-                if (exporter instanceof SFTPExporter) { // why does typescript need this??
-                    exporter.loadFile(full_input_path);
-                    exporter.setDirectory(output_directory);
-                    exporter.setHost(options.host);
-                    exporter.setUsername(options.username);
-                }
-            } else if (name == "ftp") {
-                if (!options.directory) throw ("No directory set");
-                if (!options.host) throw ("No host set");
-                if (!options.username) throw ("No username set");
-                if (!options.password) throw ("No password set");
-                exporter = new SFTPExporter();
-                if (exporter instanceof FTPExporter) { // why does typescript need this??
-                    exporter.loadFile(full_input_path);
-                    exporter.setDirectory(output_directory);
-                    exporter.setHost(options.host);
-                    exporter.setUsername(options.username);
-                    exporter.setPassword(options.password);
-                }
-            } else if (name == "youtube") {
-                if (!options.category) throw ("No category set");
-                if (!options.privacy) throw ("No privacy level set");
-                exporter = new YouTubeExporter();
-                if (exporter instanceof YouTubeExporter) { // why does typescript need this??
-                    exporter.loadFile(full_input_path);
-                    exporter.setDescription(options.description || "");
-                    exporter.setTags(options.tags ? (options.tags as string).split(",").map(tag => tag.trim()) : []);
-                    exporter.setCategory(options.category);
-                    exporter.setPrivacy(options.privacy);
-                }
-            }
-        } catch (error) {
-            throw new Error("Exporter creation error: " + (error as Error).message);
-        }
+        exporter.loadFile(full_input_path);
 
     } else {
         throw new Error("Unknown mode");
-    }
-
-    if (!exporter) {
-        throw new Error("Unknown exporter");
     }
 
     if (options.file_source) {
