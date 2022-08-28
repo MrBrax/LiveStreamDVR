@@ -26,6 +26,7 @@ interface StoreType {
     authentication: boolean;
     authenticated: boolean;
     guest_mode: boolean;
+    serverGitHash?: string;
 }
 
 export const useStore = defineStore("twitchAutomator", {
@@ -49,6 +50,7 @@ export const useStore = defineStore("twitchAutomator", {
             authentication: false,
             authenticated: false,
             guest_mode: false,
+            serverGitHash: "",
         };
     },
     actions: {
@@ -99,6 +101,7 @@ export const useStore = defineStore("twitchAutomator", {
             this.updateErrors(data.data.errors ?? []);
             this.websocketUrl = data.data.websocket_url;
             this.app_name = data.data.app_name;
+            this.serverGitHash = data.data.server_git_hash;
 
             await this.fetchAndUpdateStreamerList();
             await this.fetchAndUpdateJobs();

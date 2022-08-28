@@ -1020,6 +1020,8 @@ export class Helper {
 
                 } as AudioMetadata;
 
+                Log.logAdvanced(LOGLEVEL.SUCCESS, "helper.videometadata", `${filename} is an audio file ${audio_metadata.duration} long.`);
+
                 return audio_metadata;
 
             } else {
@@ -1059,6 +1061,8 @@ export class Helper {
                     video_bitrate_mode: data.video.BitRate_Mode as "VBR" | "CBR",
 
                 } as VideoMetadata;
+
+                Log.logAdvanced(LOGLEVEL.SUCCESS, "helper.videometadata", `${filename} is a video file ${video_metadata.duration} long at ${video_metadata.height}p${video_metadata.fps}.`);
 
                 return video_metadata;
 

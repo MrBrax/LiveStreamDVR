@@ -30,6 +30,7 @@ export function GetSettings(req: express.Request, res: express.Response): void {
             server: "ts-server",
             websocket_url: Config.getInstance().getWebsocketClientUrl(),
             errors: Helper.getErrors(),
+            server_git_hash: Config.getInstance().gitHash,
             // guest: is_guest,
         },
         status: "OK",
