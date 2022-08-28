@@ -16,6 +16,9 @@
                     <p class="input-help">{{ $t('forms.channel.quality-help-example') }}</p>
                     <p class="input-help"><strong>{{ $t('forms.channel.quality-help-warning') }}</strong></p>
                     <!--<p class="input-help">{{ $t('forms.channel.quality-help-choices', [VideoQualityArray.join(", ")]) }}</p>-->
+                    <p class="input-help error" v-if="!qualityWarning">
+                        {{ $t('forms.channel.quality-help-check') }}
+                    </p>
                 </div>
             </div>
 
@@ -355,6 +358,9 @@ export default defineComponent({
                 "is-success": this.formStatus == "OK",
             };
         },
+        qualityWarning(): boolean {
+            return this.formData.quality.includes("best") || this.formData.quality.includes("worst");
+        }
     },
 });
 </script>

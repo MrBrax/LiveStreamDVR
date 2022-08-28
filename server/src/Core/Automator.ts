@@ -723,6 +723,11 @@ export class Automator {
 
         const basename = this.basename();
 
+        if (TwitchVOD.hasVod(basename)) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Cancel download of ${basename}, vod already exists`);
+            return false;
+        }
+
         // create the vod and put it inside this class
         this.vod = await this.channel.createVOD(path.join(folder_base, `${basename}.json`));
         this.vod.meta = this.payload_eventsub;

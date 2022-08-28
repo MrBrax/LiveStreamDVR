@@ -160,7 +160,8 @@
       "max-vods-help": "Amount of VODs to keep when cleaning up. 0 to inherit from settings.",
       "download_vod_at_end": "Download VOD at end of capture/stream end",
       "download_vod_at_end_quality": "Quality for download",
-      "download_vod_at_end_quality_help": "Use 'best' if unsure."
+      "download_vod_at_end_quality_help": "Use 'best' if unsure.",
+      "quality-help-check": "It is recommended to place \"best\" or \"worst\" at the end to make the stream capture just in case."
     },
     "config": {
       "validate-external-url": "Validate external URL"
