@@ -26,6 +26,7 @@ import { replaceAll } from "../Helpers/ReplaceAll";
 import { ChapterUpdateData } from "../../../common/Webhook";
 import sanitize from "sanitize-filename";
 import { formatString } from "../../../common/Format";
+import { Exporter, ExporterOptions, GetExporter } from "../Controllers/Exporter";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
@@ -233,29 +234,8 @@ export class Automator {
 
         } else if (subscription_type == "stream.offline") {
 
-            KeyValue.getInstance().set(`${this.broadcaster_user_login}.last.offline`, new Date().toISOString());
-            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Stream offline for ${this.broadcaster_user_login}`);
-
-            // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
-
-            if (this.channel) {
-                ClientBroker.notify(
-                    `${this.broadcaster_user_login} has gone offline!`,
-                    this.channel && this.channel.latest_vod && this.channel.latest_vod.started_at ? `Was streaming for ${formatDistanceToNow(this.channel.latest_vod.started_at)}.` : "",
-                    this.channel.profile_image_url,
-                    "streamOffline",
-                    this.channel.getUrl()
-                );
-            }
-
-            // KeyValue.getInstance().set("${this.broadcaster_user_login}.online", "0");
-            KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
-            // KeyValue.getInstance().set("${this.broadcaster_user_login}.vod.id", null);
-            // KeyValue.getInstance().set("${this.broadcaster_user_login}.vod.started_at", null);
-
-            fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify({ time: new Date(), action: "offline" }) + "\n", { flag: "a" });
-
             await this.end();
+
         } else {
 
             Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No supported subscription type (${subscription_type}).`);
@@ -516,8 +496,161 @@ export class Automator {
 
     }
 
-    public end() {
+    /**
+     * End of stream
+     *
+     * This is called when the stream goes offline via eventsub, NOT when the stream stops capturing by streamlink
+     * 
+     * Available fields:
+     * - channel
+     */
+    public async end() {
+
         Log.logAdvanced(LOGLEVEL.INFO, "automator", "Stream end");
+
+        KeyValue.getInstance().set(`${this.broadcaster_user_login}.last.offline`, new Date().toISOString());
+        Log.logAdvanced(LOGLEVEL.INFO, "automator", `Stream offline for ${this.broadcaster_user_login}`);
+
+        // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
+
+        // channel offline notification
+        if (this.channel) {
+            ClientBroker.notify(
+                `${this.broadcaster_user_login} has gone offline!`,
+                this.channel && this.channel.latest_vod && this.channel.latest_vod.started_at ? `Was streaming for ${formatDistanceToNow(this.channel.latest_vod.started_at)}.` : "",
+                this.channel.profile_image_url,
+                "streamOffline",
+                this.channel.getUrl()
+            );
+        }
+
+        // KeyValue.getInstance().set("${this.broadcaster_user_login}.online", "0");
+        KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
+        // KeyValue.getInstance().set("${this.broadcaster_user_login}.vod.id", null);
+        // KeyValue.getInstance().set("${this.broadcaster_user_login}.vod.started_at", null);
+
+        // write to history
+        fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify({ time: new Date(), action: "offline" }) + "\n", { flag: "a" });
+
+
+        // download latest vod from channel. is the end hook late enough for it to be available?
+        if (this.channel && this.channel.download_vod_at_end) {
+            let download_success = "";
+            try {
+                download_success = await this.channel.downloadLatestVod(this.channel.download_vod_at_end_quality);
+            } catch (err) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Error downloading VOD at end: ${this.basename()} (${(err as Error).message})`, err);
+            }
+            if (download_success !== "") {
+                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Downloaded VOD at end: ${this.basename()}`);
+                if (!this.vod) {
+                    this.vod = this.channel.latest_vod;
+                }
+            }
+        }
+
+        if (Config.getInstance().cfg("exporter.auto.enabled")) {
+            // TODO: export automatically
+        }
+
+    }
+
+    /**
+     * End of download
+     * 
+     * This is called when the stream has been downloaded via streamlink, NOT when the stream goes offline via eventsub
+     * 
+     * Available fields:
+     * - channel
+     * - vod
+     * - basename
+     */
+    public async onEndDownload() {
+        // download chat and optionally burn it
+        // TODO: call this when a non-captured stream ends too
+        if (this.channel && this.vod) {
+            if (this.channel.download_chat && this.vod.twitch_vod_id) {
+                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Auto download chat on ${this.vod.basename}`);
+
+                try {
+                    await this.vod.downloadChat();
+                } catch (error) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to download chat for ${this.vod.basename}: ${(error as Error).message}`);
+                }
+
+                if (this.channel.burn_chat) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", "Automatic chat burning has been disabled until settings have been implemented.");
+                    // if ($vodclass->renderChat()) {
+                    // 	$vodclass->burnChat();
+                    // }
+                }
+            }
+
+            if (Config.getInstance().cfg("exporter.auto.enabled")) {
+
+                const options: ExporterOptions = {
+                    vod: this.basename(),
+                    directory: Config.getInstance().cfg("exporter.default.directory"),
+                    host: Config.getInstance().cfg("exporter.default.host"),
+                    username: Config.getInstance().cfg("exporter.default.username"),
+                    password: Config.getInstance().cfg("exporter.default.password"),
+                    description: Config.getInstance().cfg("exporter.default.description"),
+                    tags: Config.getInstance().cfg("exporter.default.tags"),
+                };
+
+                let exporter: Exporter | undefined;
+                try {
+                    exporter = GetExporter(
+                        Config.getInstance().cfg("exporter.default.exporter"),
+                        "vod",
+                        options
+                    );
+                } catch (error) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Auto exporter error: ${(error as Error).message}`);
+                }
+
+                if (exporter) {
+
+                    exporter.export().then((out_path) => {
+                        if (!exporter) return;
+                        if (out_path) {
+                            exporter.verify().then(status => {
+                                Log.logAdvanced(LOGLEVEL.SUCCESS, "automator", "Exporter finished for " + this.basename);
+                            }).catch(error => {
+                                Log.logAdvanced(LOGLEVEL.ERROR, "automator", (error as Error).message ? `Verify error: ${(error as Error).message}` : "Unknown error occurred while verifying export");
+                            });
+
+                        } else {
+                            Log.logAdvanced(LOGLEVEL.ERROR, "automator", "Exporter finished but no path output.");
+                        }
+                    }).catch(error => {
+                        Log.logAdvanced(LOGLEVEL.ERROR, "automator", (error as Error).message ? `Export error: ${(error as Error).message}` : "Unknown error occurred while exporting export");
+                    });
+
+                }
+
+            }
+
+
+            // this is a slow solution since we already remux the vod to mp4, and here we reencode that file
+            if (Config.getInstance().cfg("reencoder.enabled")) {
+                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Auto reencoding on ${this.vod.basename}`);
+                try {
+                    await this.vod.reencodeSegments(
+                        true,
+                        Config.getInstance().cfg("reencoder.delete_source", false) // o_o
+                    );
+                } catch (error) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to reencode ${this.vod.basename}: ${(error as Error).message}`);
+                }
+            }
+
+            // if there's no eventsub hook the stream will never actually end
+            if (Config.getInstance().cfg<boolean>("isolated_mode")) {
+                await this.end();
+            }
+
+        }
     }
 
     public async download(tries = 0) {
@@ -589,6 +722,11 @@ export class Automator {
         this.vod_episode = this.channel.incrementStreamNumber();
 
         const basename = this.basename();
+
+        if (TwitchVOD.hasVod(basename)) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Cancel download of ${basename}, vod already exists`);
+            return false;
+        }
 
         // create the vod and put it inside this class
         this.vod = await this.channel.createVOD(path.join(folder_base, `${basename}.json`));
@@ -769,24 +907,6 @@ export class Automator {
         Log.logAdvanced(LOGLEVEL.INFO, "automator", `Cleanup old VODs for ${data_username}`);
         await this.cleanup();
 
-        // download chat and optionally burn it
-        if (this.channel.download_chat && this.vod.twitch_vod_id) {
-            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Auto download chat on ${basename}`);
-
-            try {
-                await this.vod.downloadChat();
-            } catch (error) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to download chat for ${basename}: ${(error as Error).message}`);
-            }
-
-            if (this.channel.burn_chat) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", "Automatic chat burning has been disabled until settings have been implemented.");
-                // if ($vodclass->renderChat()) {
-                // 	$vodclass->burnChat();
-                // }
-            }
-        }
-
         // add to history, testing
         /*
         $history = file_exists(TwitchConfig::$historyPath) ? json_decode(file_get_contents(TwitchConfig::$historyPath), true) : [];
@@ -805,6 +925,8 @@ export class Automator {
         Webhook.dispatch("end_download", {
             "vod": await this.vod.toAPI(),
         });
+
+        this.onEndDownload();
 
         return true;
 

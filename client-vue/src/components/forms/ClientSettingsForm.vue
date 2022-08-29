@@ -35,14 +35,6 @@
                 </div>
             </div>
         </div>
-        <!--
-        <div class="field">
-            <label class="label">Password (sent unencrypted and stored in plain text)</label>
-            <div class="control">
-                <input type="password" class="input" v-model="updateConfig.password" />
-            </div>
-        </div>
-        -->
         <div class="field">
             <button class="button is-confirm" @click="saveClientConfig">
                 <span class="icon"><fa icon="save" /></span>
@@ -56,6 +48,12 @@
                 <span>Request notification permissions</span>
             </button>
         </div>
+        <div class="field">
+            <button class="button is-danger" @click="logout" :disabled="!store.authenticated">
+                <span class="icon"><fa icon="arrow-right-from-bracket" /></span>
+                <span>{{ $t('buttons.logout') }}</span>
+            </button>
+        </div>
     </div>
 </template>
 
@@ -66,8 +64,8 @@ import { defaultConfig, defaultConfigFields } from "@/defs";
 import { ClientSettings } from "@/twitchautomator";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faBell } from "@fortawesome/free-solid-svg-icons";
-library.add(faBell);
+import { faBell, faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
+library.add(faBell, faArrowRightFromBracket);
 
 export default defineComponent({
     name: "ClientSettingsForm",
@@ -116,6 +114,11 @@ export default defineComponent({
                 });
             }
         },
+        logout() {
+            this.store.logout().then(() => {
+                window.location.reload();
+            });
+        }
     },
     computed: {
         locales(): Record<string, string> {

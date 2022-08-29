@@ -12,7 +12,9 @@
     "loading": "Loading...",
     "changing-values-here-will-most-likely-require-a-restart": "Changing values here will most likely require a restart.",
     "this-is-a-bad-idea-if-any-of-your-channels-are-live": "This is a bad idea if any of your channels are live.",
-    "login-mismatch-fixing": "Login mismatch, fixing"
+    "login-mismatch-fixing": "Login mismatch, fixing",
+    "login": "You need to be logged in to view this resource.",
+    "local-videos": "Local videos"
   },
   "vod": {
     "add_comment": "Add a comment",
@@ -72,7 +74,8 @@
       "comment": "Comment",
       "stream-number": "Stream number",
       "prevent-deletion": "Prevent deletion",
-      "edit-vod": "Edit VOD"
+      "edit-vod": "Edit VOD",
+      "segments": "Segments"
     },
     "export": {
       "title-template": "Title template",
@@ -91,7 +94,9 @@
       "privacy-public": "Public",
       "privacy-unlisted": "Unlisted",
       "privacy-private": "Private",
-      "title": "Title"
+      "title": "Title",
+      "password": "Password",
+      "password-help": "Passwords in FTP are sent unencrypted in clear text."
     },
     "bookmarks": "Bookmarks",
     "buttons": {
@@ -114,7 +119,8 @@
     "fetch": "Fetch",
     "export": "Export",
     "checkstatus": "Check status",
-    "authenticate": "Authenticate"
+    "authenticate": "Authenticate",
+    "logout": "Log out"
   },
   "pages": {
     "favourite-games": "Favourite games",
@@ -151,7 +157,11 @@
       "max-storage": "Max storage",
       "max-storage-help": "In gigabytes, how many will be kept when cleaning up. 0 to inherit from settings.",
       "max-vods": "Max VODs",
-      "max-vods-help": "Amount of VODs to keep when cleaning up. 0 to inherit from settings."
+      "max-vods-help": "Amount of VODs to keep when cleaning up. 0 to inherit from settings.",
+      "download_vod_at_end": "Download VOD at end of capture/stream end",
+      "download_vod_at_end_quality": "Quality for download",
+      "download_vod_at_end_quality_help": "Use 'best' if unsure.",
+      "quality-help-check": "It is recommended to place \"best\" or \"worst\" at the end to make the stream capture just in case."
     },
     "config": {
       "validate-external-url": "Validate external URL"

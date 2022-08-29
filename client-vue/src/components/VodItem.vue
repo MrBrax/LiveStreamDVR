@@ -276,7 +276,7 @@
                     <strong>{{ $t('vod.segments') }}</strong>
                     <ul class="list-segments">
                         <li v-for="segment in vod.segments" :key="segment.basename">
-                            <a :href="vod?.webpath + '/' + segment.basename">
+                            <a :href="vod?.webpath + '/' + segment.basename" target="_blank" @click.prevent="store.playMedia(vod?.webpath + '/' + segment.basename)">
                                 <span class="text-overflow">{{ segment.basename }}</span>
                                 <span v-if="!segment.deleted && segment.filesize"> ({{ formatBytes(segment.filesize) }}) </span>
                             </a>
@@ -289,20 +289,20 @@
                         </li>
 
                         <li v-if="vod.is_vod_downloaded">
-                            <a :href="vod.webpath + '/' + vod.basename + '_vod.mp4'">Downloaded VOD</a>
+                            <a :href="vod.webpath + '/' + vod.basename + '_vod.mp4'" target="_blank" @click.prevent="store.playMedia(vod?.webpath + '/' + vod?.basename + '_vod.mp4')">Downloaded VOD</a>
                         </li>
 
                         <template v-if="vod.is_chat_rendered">
                             <li>
-                                <a :href="vod.webpath + '/' + vod?.basename + '_chat.mp4'">Rendered chat</a>
+                                <a :href="vod.webpath + '/' + vod?.basename + '_chat.mp4'" target="_blank">Rendered chat</a>
                             </li>
                             <li>
-                                <a :href="vod.webpath + '/' + vod?.basename + '_chat_mask.mp4'">Rendered chat mask</a>
+                                <a :href="vod.webpath + '/' + vod?.basename + '_chat_mask.mp4'" target="_blank">Rendered chat mask</a>
                             </li>
                         </template>
 
                         <li v-if="vod.is_chat_burned">
-                            <a :href="vod?.webpath + '/' + vod?.basename + '_burned.mp4'">Burned chat</a>
+                            <a :href="vod?.webpath + '/' + vod?.basename + '_burned.mp4'" target="_blank">Burned chat</a>
                         </li>
                     </ul>
                     <span v-if="vod.segments.length === 0">
@@ -983,6 +983,12 @@
             </div>
         </div>
         <div class="field">
+            <label class="label">{{ $t('vod.edit.segments') }}</label>
+            <div class="control">
+                <textarea class="input textarea" v-model="editVodSettings.segments" />
+            </div>
+        </div>
+        <div class="field">
             <div class="control">
                 <label class="checkbox">
                     <input type="checkbox" v-model="editVodSettings.prevent_deletion" />
@@ -1009,6 +1015,7 @@
                     <option value="file">File</option>
                     <option value="youtube">YouTube</option>
                     <option value="sftp">SFTP</option>
+                    <option value="ftp">FTP</option>
                 </select>
             </div>
         </div>
@@ -1038,7 +1045,7 @@
                     <li v-for="v in exporterTemplateVariables">{{ v }}</li>
                 </ul>
             </div>
-            <div class="control" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp'">
+            <div class="control" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'">
                 {{ templatePreview(exportVodSettings.title_template) }}.mp4
             </div>
             <div class="control" v-else-if="exportVodSettings.exporter == 'youtube'">
@@ -1047,7 +1054,7 @@
         </div>
 
         <!-- Directory -->
-        <div class="field" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp'">
+        <div class="field" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'">
             <label class="label">{{ $t('vod.export.directory') }}</label>
             <div class="control">
                 <input class="input" type="text" v-model="exportVodSettings.directory" />
@@ -1055,7 +1062,7 @@
         </div>
 
         <!-- Host -->
-        <div class="field" v-if="exportVodSettings.exporter == 'sftp'">
+        <div class="field" v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'">
             <label class="label">{{ $t('vod.export.host') }}</label>
             <div class="control">
                 <input class="input" type="text" v-model="exportVodSettings.host" />
@@ -1063,11 +1070,20 @@
         </div>
 
         <!-- Username -->
-        <div class="field" v-if="exportVodSettings.exporter == 'sftp'">
+        <div class="field" v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'">
             <label class="label">{{ $t('vod.export.username') }}</label>
             <div class="control">
                 <input class="input" type="text" v-model="exportVodSettings.username" />
             </div>
+        </div>
+
+        <!-- Password -->
+        <div class="field" v-if="exportVodSettings.exporter == 'ftp'">
+            <label class="label">{{ $t('vod.export.password') }}</label>
+            <div class="control">
+                <input class="input" type="password" v-model="exportVodSettings.password" />
+            </div>
+            <p class="help">{{ $t('vod.export.password-help') }}</p>
         </div>
 
         <!-- YouTube Authentication -->
@@ -1268,6 +1284,7 @@ export default defineComponent({
                 stream_number: 0,
                 comment: "",
                 prevent_deletion: false,
+                segments: "",
             },
             exportVodSettings: {
                 exporter: "file",
@@ -1275,6 +1292,7 @@ export default defineComponent({
                 directory: "",
                 host: "",
                 username: "",
+                password: "",
                 description: "",
                 tags: "",
                 category: "",
@@ -1310,8 +1328,10 @@ export default defineComponent({
                 stream_number: this.vod.stream_number ?? 0,
                 comment: this.vod.comment ?? "",
                 prevent_deletion: this.vod.prevent_deletion ?? false,
+                segments: this.vod.segments.map((s) => s.basename).join("\n"),
             };
             this.exportVodSettings.vod = this.vod.basename;
+            this.applyDefaultExportSettings();
         }
     },
     props: {
@@ -1638,6 +1658,15 @@ export default defineComponent({
                 if (err.response.data && err.response.data.message) alert(err.response.data.message);
             });
         },
+        applyDefaultExportSettings() {
+            if (this.store.cfg("exporter.default.exporter")) this.exportVodSettings.exporter = this.store.cfg("exporter.default.exporter");
+            if (this.store.cfg("exporter.default.directory")) this.exportVodSettings.directory = this.store.cfg("exporter.default.directory");
+            if (this.store.cfg("exporter.default.host")) this.exportVodSettings.host = this.store.cfg("exporter.default.host");
+            if (this.store.cfg("exporter.default.username")) this.exportVodSettings.username = this.store.cfg("exporter.default.username");
+            if (this.store.cfg("exporter.default.password")) this.exportVodSettings.password = this.store.cfg("exporter.default.password");
+            if (this.store.cfg("exporter.default.description")) this.exportVodSettings.description = this.store.cfg("exporter.default.description");
+            if (this.store.cfg("exporter.default.tags")) this.exportVodSettings.tags = this.store.cfg("exporter.default.tags");
+        }
     },
     computed: {
         compDownloadChat(): boolean {

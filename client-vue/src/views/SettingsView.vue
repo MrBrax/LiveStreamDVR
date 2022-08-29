@@ -1,21 +1,21 @@
 <template>
     <div class="top-tabs">
-        <router-link :to="{ name: 'Settings', params: { tab: 'channels' } }" v-if="!store.guest">
+        <router-link :to="{ name: 'Settings', params: { tab: 'channels' } }" v-if="store.authElement">
             <span class="icon"><fa icon="user"></fa></span> {{ $t('pages.channels') }}
         </router-link>
-        <router-link :to="{ name: 'Settings', params: { tab: 'newchannel' } }" v-if="!store.guest">
+        <router-link :to="{ name: 'Settings', params: { tab: 'newchannel' } }" v-if="store.authElement">
             <span class="icon"><fa icon="user-plus"></fa></span> {{ $t('pages.new-channel') }}
         </router-link>
-        <router-link :to="{ name: 'Settings', params: { tab: 'config' } }" v-if="!store.guest">
+        <router-link :to="{ name: 'Settings', params: { tab: 'config' } }" v-if="store.authElement">
             <span class="icon"><fa icon="cog"></fa></span> {{ $t('pages.config') }}
         </router-link>
-        <router-link :to="{ name: 'Settings', params: { tab: 'keyvalue' } }" v-if="!store.guest">
+        <router-link :to="{ name: 'Settings', params: { tab: 'keyvalue' } }" v-if="store.authElement">
             <span class="icon"><fa icon="database"></fa></span> {{ $t('pages.keyvalue') }}
         </router-link>
-        <router-link :to="{ name: 'Settings', params: { tab: 'notifications' } }" v-if="!store.guest">
+        <router-link :to="{ name: 'Settings', params: { tab: 'notifications' } }" v-if="store.authElement">
             <span class="icon"><fa icon="bell"></fa></span> {{ $t('pages.notifications') }}
         </router-link>
-        <router-link :to="{ name: 'Settings', params: { tab: 'favourites' } }" v-if="!store.guest">
+        <router-link :to="{ name: 'Settings', params: { tab: 'favourites' } }" v-if="store.authElement">
             <span class="icon"><fa icon="star"></fa></span> {{ $t('pages.favourite-games') }}
         </router-link>
         <router-link :to="{ name: 'Settings', params: { tab: 'clientsettings' } }">
@@ -41,7 +41,10 @@
                         <channel-update-form :channel="channel" @formSuccess="updateAll" />
                     </div>
                 </div>
-                <span v-if="!formChannels || formChannels.length == 0">No channels added. Use the tab "New channel" above.</span>
+                <span v-if="(!formChannels || formChannels.length == 0) && store.authElement">No channels added. Use the tab "New channel" above.</span>
+                <div class="section-content" v-else-if="!store.authElement">
+                    <span class="icon"><fa icon="sign-in-alt"></fa></span> {{ $t("messages.login") }}
+                </div>
             </div>
         </section>
 
@@ -158,6 +161,11 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("settings fetch error", err.response);
+                    if (err.response.data && err.response.data.message) {
+                        alert(`Settings fetch error: ${err.response.data.message}`);
+                    } else {
+                        alert("Error fetching settings");
+                    }
                 }).finally(() => {
                     this.loading = false;
                 });

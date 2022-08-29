@@ -60,6 +60,7 @@ export const BaseConfigDataFolder = {
     public_cache: path.join(DataRoot, "cache", "public"),
     public_cache_avatars: path.join(DataRoot, "cache", "public", "avatars"),
     public_cache_banners: path.join(DataRoot, "cache", "public", "banners"),
+    public_cache_thumbs: path.join(DataRoot, "cache", "public", "thumbs"),
 };
 
 export const BaseConfigPath = {

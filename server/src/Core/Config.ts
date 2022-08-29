@@ -4,6 +4,7 @@ import crypto from "crypto";
 import fs from "fs";
 import minimist from "minimist";
 import path from "path";
+import express from "express";
 import { SettingField } from "../../../common/Config";
 import { AppRoot, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot, HomeRoot } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
@@ -27,6 +28,10 @@ export class Config {
     watcher: fs.FSWatcher | undefined;
 
     forceDebug = false;
+
+    gitHash?: string;
+
+    sessionParser?: express.RequestHandler;
 
 
     static readonly streamerCacheTime = 2592000 * 1000; // 30 days
@@ -54,8 +59,16 @@ export class Config {
             "guest": true,
         },
 
+        {
+            "key": "isolated_mode",
+            "group": "Basic",
+            "text": "Isolated mode",
+            "type": "boolean",
+            "help": "Enable this if your server is not exposed to the internet, aka no EventSub support.",
+        },
+
         { "key": "password", "group": "Interface", "text": "Password", "type": "string", "help": "Keep blank for none. Username is admin" },
-        // { "key": "guest_mode", "group": "Interface", "text": "Guest mode", "type": "boolean", "default": false, "help": "Allow guests to access the interface." },
+        { "key": "guest_mode", "group": "Interface", "text": "Guest mode", "type": "boolean", "default": false, "help": "Allow guests to access the interface.", guest: true },
         // { "key": "password_secure", "group": "Interface", "text": "Force HTTPS for password", "type": "boolean", "default": true },
 
         { "key": "webhook_url", "group": "Notifications", "text": "Webhook URL", "type": "string", "help": "For external scripting" },
@@ -64,7 +77,7 @@ export class Config {
         { "key": "websocket_client_address", "group": "Notifications", "text": "Websocket client address override", "type": "string", "guest": true },
         { "key": "websocket_log", "group": "Notifications", "text": "Send logs over websocket", "type": "boolean" },
 
-        { "key": "channel_folders", "group": "Storage", "text": "Channel folders", "type": "boolean", "default": true, "help": "Store VODs in subfolders instead of root" },
+        { "key": "channel_folders", "group": "Storage", "text": "Channel folders", "type": "boolean", "default": true, "help": "Store VODs in subfolders instead of root", guest: true },
         { "key": "storage_per_streamer", "group": "Storage", "text": "Gigabytes of storage per streamer", "type": "number", "default": 100 },
         { "key": "vods_to_keep", "group": "Storage", "text": "VODs to keep per streamer", "type": "number", "default": 5, "help": "This is in addition to kept VODs from muted/favourite etc." },
         { "key": "keep_deleted_vods", "group": "Storage", "text": "Keep Twitch deleted VODs", "type": "boolean", "default": false },
@@ -81,8 +94,8 @@ export class Config {
         { "key": "api_client_id", "group": "Basic", "text": "Twitch client ID", "type": "string", "required": true },
         { "key": "api_secret", "group": "Basic", "text": "Twitch secret", "type": "string", "secret": true, "required": true, "help": "Keep blank to not change" },
 
-        { "key": "youtube_client_id", "group": "Basic", "text": "YouTube client ID", "type": "string" },
-        { "key": "youtube_client_secret", "group": "Basic", "text": "YouTube secret", "type": "string", "secret": true },
+        { "key": "youtube.client_id",       "group": "YouTube", "text": "YouTube client ID", "type": "string" },
+        { "key": "youtube.client_secret",   "group": "YouTube", "text": "YouTube secret", "type": "string", "secret": true },
 
         // { 'key': 'hook_callback', 		'text': 'Hook callback', 									'type': 'string', 'required': true },
         // {'key': 'timezone', 				'group': 'Interface',	'text': 'Timezone', 										'type': 'array',		'default': 'UTC', 'help': 'This only affects the GUI, not the values stored', 'deprecated': true},
@@ -178,6 +191,100 @@ export class Config {
 
         { "key": "no_vod_convert", "group": "Video", "text": "Don't convert VODs", "type": "boolean", "default": false },
 
+        { "key": "exporter.default.exporter",       "group": "Exporter", "text": "Default exporter", "type": "array", "default": "file", "choices": ["file", "sftp"], "help": "Default exporter for exporter." },
+        { "key": "exporter.default.directory",      "group": "Exporter", "text": "Default directory", "type": "string", "help": "Default directory for exporter." },
+        { "key": "exporter.default.host",           "group": "Exporter", "text": "Default host", "type": "string", "help": "Default host for exporter." },
+        { "key": "exporter.default.username",       "group": "Exporter", "text": "Default username", "type": "string", "help": "Default username for exporter." },
+        { "key": "exporter.default.password",       "group": "Exporter", "text": "Default password", "type": "string", "help": "Default password for exporter. This is stored unencrypted." },
+        { "key": "exporter.default.description",    "group": "Exporter", "text": "Default description", "type": "string", "help": "Default description for exporter." },
+        { "key": "exporter.default.tags",           "group": "Exporter", "text": "Default tags", "type": "string", "help": "Default tags for exporter." },
+        { "key": "exporter.auto.enabled",           "group": "Exporter", "text": "Enable auto exporter", "type": "boolean", "default": false, "help": "Enable auto exporter. Not implemented yet." },
+
+        { "key": "scheduler.clipdownload.enabled",  "group": "Scheduler (Clip Download)", "text": "Enable clip download scheduler", "type": "boolean", "default": false },
+        { "key": "scheduler.clipdownload.channels", "group": "Scheduler (Clip Download)", "text": "Channels to download clips from", "type": "string", "help": "Separate by commas." },
+        { "key": "scheduler.clipdownload.amount",   "group": "Scheduler (Clip Download)", "text": "Amount of clips to download", "type": "number", "default": 1 },
+        { "key": "scheduler.clipdownload.age",      "group": "Scheduler (Clip Download)", "text": "Age of clips to download", "type": "number", "default": 1 * 24 * 60 * 60, "help": "In seconds." },
+
+        { "key": "reencoder.enabled", "group": "Reencoder", "text": "Enable reencoder", "type": "boolean", "default": false },
+
+        {
+            "key": "reencoder.video_codec",
+            "group": "Reencoder",
+            "text": "Codec",
+            "type": "array",
+            "default": "libx264",
+            "choices": [
+                "libx264",
+                "h264_nvenc",
+                "h264_qsv",
+                "h264_videotoolbox",
+                "hevc_nvenc",
+            ],
+            "help": "Video codec to use for reencoding. If you want to use CUDA, select h264_nvenc or hevc_nvenc and enable Hardware Acceleration.",
+        },
+
+        {
+            "key": "reencoder.preset",
+            "group": "Reencoder",
+            "text": "Preset",
+            "type": "array",
+            "default": "medium",
+            "choices": [
+                "ultrafast",
+                "superfast",
+                "veryfast",
+                "faster",
+                "fast",
+                "medium",
+                "slow",
+                "slower",
+                "veryslow",
+                "placebo",
+
+                // nvenc presets
+                "hp",
+                "hq",
+                "bd",
+                "ll",
+                "llhq",
+                "llhp",
+                "lossless",
+                "losslesshp",
+                "p1",
+                "p2",
+                "p3",
+                "p4",
+                "p5",
+                "p6",
+                "p7",
+            ],
+        },
+
+        {
+            "key": "reencoder.tune",
+            "group": "Reencoder",
+            "text": "Tune",
+            "type": "array",
+            "default": "hq",
+            "choices": [
+                "hq",
+                "ll",
+                "ull",
+                "lossless",
+            ],
+        },
+
+        { "key": "reencoder.crf", "group": "Reencoder", "text": "CRF", "type": "number", "default": 23, "help": "CRF to use for reencoding. Lower is better." },
+        { "key": "reencoder.resolution", "group": "Reencoder", "text": "Resolution", "type": "number", "help": "Scale to this vertical resolution. Leave blank to keep original resolution." },
+        { "key": "reencoder.hwaccel", "group": "Reencoder", "text": "Hardware acceleration", "type": "boolean", "help": "Preset is used instead of crf if this is enabled." },
+        { "key": "reencoder.delete_source", "group": "Reencoder", "text": "Delete source", "type": "boolean", "help": "Delete source after reencoding." },
+
+        { "key": "localvideos.enabled", "group": "Local Videos", "text": "Enable local videos", "type": "boolean", "default": false },
+    ];
+
+    static MigrateOptions = [
+        { from: "youtube_client_id", to: "youtube.client_id" },
+        { from: "youtube_client_secret", to: "youtube.client_secret" },
     ];
 
     static readonly AudioContainer = "m4a";
@@ -258,8 +365,17 @@ export class Config {
 
         this.config = JSON.parse(data);
 
-        // this.config.app_name = AppName;
+        if (this.config) {
+            for (const field of Config.MigrateOptions) {
+                if (this.config[field.from] !== undefined) {
+                    this.config[field.to] = this.config[field.from];
+                    // delete this.config[field.from];
+                    Log.logAdvanced(LOGLEVEL.INFO, "config", `Migrated setting '${field.from}' to '${field.from}'.`);
+                }
+            }
+        }
 
+        // delete invalid settings
         for (const key in this.config) {
             if (!Config.settingExists(key)) {
                 console.warn(chalk.yellow(`Saved setting '${key}' does not exist, deprecated? Discarding.`));
@@ -631,6 +747,8 @@ export class Config {
             " The Black Mesa compound is maintained at a pleasant 68 degrees at all times."
         );
 
+        await Config.getInstance().getGitHash();
+
         TwitchGame.populateGameDatabase();
         TwitchGame.populateFavouriteGames();
         TwitchChannel.loadChannelsConfig();
@@ -762,6 +880,24 @@ export class Config {
     static get can_shutdown(): boolean {
         if (!TwitchChannel.channels || TwitchChannel.channels.length === 0) return true;
         return !TwitchChannel.channels.some(c => c.is_live);
+    }
+
+    async getGitHash() {
+        let ret;
+        try {
+            ret = await Helper.execSimple("git", ["rev-parse", "HEAD"], "git hash check");
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.WARNING, "config.getGitHash", "Could not fetch git hash");
+            return false;            
+        } 
+        if (ret && ret.stdout) {
+            this.gitHash = ret.stdout.join("").trim();
+            Log.logAdvanced(LOGLEVEL.SUCCESS, "config.getGitHash", `Running on Git hash: ${this.gitHash}`);
+            return true;
+        } else {
+            Log.logAdvanced(LOGLEVEL.WARNING, "config.getGitHash", "Could not fetch git hash");
+            return false;
+        }
     }
 
 }

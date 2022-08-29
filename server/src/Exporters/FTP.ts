@@ -1,15 +1,16 @@
-import { Helper } from "../Core/Helper";
 import path from "path";
 import sanitize from "sanitize-filename";
+import { Helper } from "../Core/Helper";
 import { BaseExporter } from "./Base";
 
-export class SFTPExporter extends BaseExporter {
+export class FTPExporter extends BaseExporter {
 
-    public type = "SFTP";
+    public type = "FTP";
 
     public directory = "";
     public host = "";
     public username = "";
+    public password = "";
 
     public remote_file = "";
 
@@ -25,44 +26,65 @@ export class SFTPExporter extends BaseExporter {
         this.username = username;
     }
 
+    setPassword(password: string): void {
+        this.password = password;
+    }
+
     export(): Promise<boolean | string> {
 
         return new Promise<boolean | string>((resolve, reject) => {
             if (!this.filename) throw new Error("No filename");
             if (!this.extension) throw new Error("No extension");
             if (!this.host) throw new Error("No host");
-            if (!this.directory) throw new Error("No directory");
+
+            // anonymous
+            // if (!this.username) throw new Error("No username");
+            // if (!this.password) throw new Error("No password");
+
+            // if (!this.directory) throw new Error("No directory");
             if (!this.getFormattedTitle()) throw new Error("No title");
 
             const final_filename = sanitize(this.getFormattedTitle()) + "." + this.extension;
 
             const filesystem_path = path.join(this.directory, final_filename);
             const linux_path = filesystem_path.replace(/\\/g, "/");
-            let remote_path = `${this.host}:'${linux_path}'`;
-            if (this.username) {
-                remote_path = `${this.username}@${remote_path}`;
-            }
+            const web_path = encodeURIComponent(linux_path);
 
             this.remote_file = linux_path;
 
             const local_name = this.filename.replace(/\\/g, "/").replace(/^C:/, "");
             const local_path = local_name.includes(" ") ? `'${local_name}'` : local_name;
 
-            const bin = "scp";
+            let ftp_url = `ftp://${this.host}/${web_path}`;
+            if (this.username && this.password) {
+                ftp_url = `ftp://${this.username}:${this.password}@${this.host}/${web_path}`;
+            }
+
+            if (ftp_url.includes(" ")) ftp_url = `'${ftp_url}'`;
+
+            const bin = "curl";
 
             const args = [
-                "-p",
                 "-v",
-                "-B",
-                // "-r",
+                "-g",
+                "-T",
                 local_path,
-                remote_path,
+                ftp_url,
             ];
+            //
 
-            const job = Helper.startJob("SFTPExporter_" + path.basename(this.filename), bin, args);
+            console.log(`${bin} ${args.join(" ")}`);
+
+            const job = Helper.startJob("FTPExporter_" + path.basename(this.filename), bin, args);
             if (!job) {
                 throw new Error("Failed to start job");
             }
+
+            job.on("log", (p, data) => {
+                console.log(p, data);
+            }).on("output", (p, data) => {
+                console.log(p, data);
+            });
 
             job.on("error", (err) => {
                 console.error("sftp error", err);
@@ -78,28 +100,29 @@ export class SFTPExporter extends BaseExporter {
             });
 
         });
-        
+
     }
 
-    // verify that the file exists over ssh
+    // verify that the file exists over ftp
     async verify(): Promise<boolean> {
 
-        const bin = "ssh";
+        const web_path = encodeURIComponent(this.remote_file);
+
+        const bin = "curl";
         const args = [
-            "-q",
-            `${this.username}@${this.host}`,
-            "test",
-            "-e",
-            `'${this.remote_file}'`,
+            "--list-only",
+            `ftp://${this.username}:${this.password}@${this.host}/${path.dirname(web_path)}`,
         ];
 
-        const job = await Helper.execSimple(bin, args, "ssh file check");
+        const job = await Helper.execSimple(bin, args, "ftp file check");
 
-        if (job.code === 0) return true;
+        const output = job.stdout.toString();
+
+        if (output.includes(path.basename(this.remote_file))) {
+            return true;
+        }
 
         throw new Error("Failed to verify file, probably doesn't exist");
-
-        return false;
 
     }
 

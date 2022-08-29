@@ -6,6 +6,8 @@ import { AudioMetadata, VideoMetadata } from "../MediaInfo";
 import { BroadcasterType } from "../TwitchAPI/Users";
 import { TwitchVODChapterJSON } from "../../server/src/Storage/JSON";
 import { TwitchVODBookmark } from "../Bookmark";
+import { LocalVideo } from "../LocalVideo";
+import { LocalClip } from "../LocalClip";
 
 export type ApiVodSegment = {
     basename: string;
@@ -179,6 +181,8 @@ export type ApiChannel = {
     no_cleanup: boolean;
     max_storage: number;
     max_vods: number;
+    download_vod_at_end: boolean;
+    download_vod_at_end_quality: VideoQuality;
 
     current_chapter?: ApiVodChapter;
     current_game?: ApiGame;
@@ -191,7 +195,8 @@ export type ApiChannel = {
     // api_getSubscriptionStatus: SubStatus;
     api_getSubscriptionStatus: boolean;
 
-    clips_list: string[];
+    clips_list: LocalClip[];
+    video_list: LocalVideo[];
 
     current_stream_number?: number;
     current_season?: string;
@@ -224,6 +229,8 @@ export type ApiChannelConfig = {
     no_cleanup: boolean;
     max_storage: number;
     max_vods: number;
+    download_vod_at_end: boolean;
+    download_vod_at_end_quality: VideoQuality;
 };
 
 export type ApiJob = {

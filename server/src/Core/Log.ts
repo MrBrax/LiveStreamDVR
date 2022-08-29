@@ -23,6 +23,7 @@ export interface LogLine {
     text: string;
     pid?: number;
     metadata?: any;
+    g?: string; // git hash
 }
 
 export class Log {
@@ -99,12 +100,7 @@ export class Log {
         }
 
         // clear old logs from memory
-        const today = format(new Date(), "yyyy-MM-dd");
-        if (today != Log.currentDate) {
-            console.log(chalk.yellow(`Clearing log memory from ${Log.currentDate} to ${today}`));
-            Log.currentDate = today;
-            Log.lines = [];
-        }
+        Log.nextLog();
 
         // today's filename in Y-m-d format
         const date = new Date();
@@ -149,6 +145,7 @@ export class Log {
             level: level,
             text: text,
             pid: process.pid,
+            g: Config.getInstance().gitHash,
         };
 
         if (metadata !== undefined) log_data.metadata = metadata;
@@ -200,6 +197,16 @@ export class Log {
             } else {
         */
 
+    }
+
+    private static nextLog() {
+        const today = format(new Date(), "yyyy-MM-dd");
+        if (today != Log.currentDate) {
+            console.log(chalk.yellow(`Clearing log memory from ${Log.currentDate} to ${today}`));
+            Log.currentDate = today;
+            Log.lines = [];
+            Log.logAdvanced(LOGLEVEL.INFO, "log", `Starting new log file for ${today}, git hash ${Config.getInstance().gitHash}`);
+        }
     }
 
     /**

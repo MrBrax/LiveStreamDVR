@@ -2,6 +2,11 @@
     <div class="splitter">
         <side-menu />
         <div class="content">
+            <section class="section" v-if="(store.authentication && !store.authenticated && !store.guest_mode)">
+                <div class="errors">
+                    This site is only available to logged in users.
+                </div>
+            </section>
             <div v-if="errors" class="big-error">
                 <div v-for="error in errors" :key="error" class="big-error-item">Error</div>
             </div>
@@ -16,7 +21,7 @@
                 </div>
             </div>
         </div>
-        <job-status ref="jobstatus" />
+        <job-status ref="jobstatus" v-if="store.authElement" />
         <websocket-status
             :websocket="websocket"
             :websocketConnected="websocketConnected"
@@ -26,25 +31,41 @@
             :loading="loading"
         />
     </div>
+    <dialog class="mediaplayer" ref="mediaplayer">
+        <div>{{ mediaPlayerSource }}</div>
+        <div>
+            <video ref="mediaplayervideo" :src="mediaPlayerSource" controls autoplay />
+        </div>
+        <div class="buttons is-centered">
+            <button class="button is-small is-danger" @click="mediaPlayerSource = undefined; ($refs.mediaplayer as HTMLDialogElement).close()">
+                <span class="icon"><fa icon="xmark"></fa></span>
+                <span>Close</span>
+            </button>
+            <a :href="mediaPlayerSource" class="button is-small is-info" target="_blank" @click="($refs.mediaplayervideo as HTMLVideoElement).pause()">
+                <span class="icon"><fa icon="arrow-up-right-from-square"></fa></span>
+                <span>Open in new tab</span>
+            </a>
+        </div>
+    </dialog>
 </template>
 
 <style lang="scss"></style>
 
 <script lang="ts">
-import { defineComponent, reactive, ref } from "vue";
+import { defineComponent } from "vue";
 
 import SideMenu from "@/components/SideMenu.vue";
 import { useStore } from "./store";
-import type { ApiSettingsResponse } from "@common/Api/Api";
 import JobStatus from "./components/JobStatus.vue";
-// import { connectWebsocket, eventListener, WebsocketJSON } from "./websocket";
 import { ChannelUpdated, ChapterUpdateData, EndCaptureData, EndConvertData, JobClear, JobProgress, JobSave, NotifyData, VodRemoved, VodUpdated, WebhookAction } from "@common/Webhook";
 import { ApiLogLine } from "@common/Api/Client";
 import { parseISO } from "date-fns";
 import { WebsocketJSON } from "./websocket";
 import WebsocketStatus from "./components/WebsocketStatus.vue";
-import axios from "axios";
-// import websocket from "./websocket";
+
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
+library.add(faArrowUpRightFromSquare);
 
 const faviconCanvas = document.createElement("canvas");
 faviconCanvas.width = 32;
@@ -78,7 +99,9 @@ export default defineComponent({
         timer: number;
         timerMax: number;
         tickerInterval: number; // interval
+        mediaPlayerSource: string | undefined;
         faviconSub: () => void;
+        actionSub: () => void;
     } {
         return {
             loading: false,
@@ -96,6 +119,8 @@ export default defineComponent({
             faviconSub: () => {
                 console.log("faviconSub");
             },
+            mediaPlayerSource: undefined,
+            actionSub: () => {},
         };
     },
     provide() {
@@ -109,30 +134,17 @@ export default defineComponent({
         this.$i18n.locale = this.store.clientConfig?.language ?? "en";
         // this.applyAuthentication();
         this.watchFaviconBadgeSub();
-        this.fetchData().then(() => {
-            this.updateTitle();
-            if (this.store.cfg("websocket_enabled") && this.store.clientCfg('useWebsockets')) {
-                console.debug("Connecting websocket...");
-                this.connectWebsocket();
-            } else {
-                console.debug("Websocket disabled");
-                if (this.store.clientCfg('useBackgroundTicker')) {
-                    console.debug("Starting background ticker...");
-                    this.tickerInterval = setInterval(() => {
-                        this.tickTicker();
-                    }, 1000);
-                }
-            }
+        this.checkLoginStatus().then((s) => {
+            
+            this.store.authentication = s.authentication;
+            this.store.authenticated = s.status;
+            this.store.guest_mode = s.guest_mode;
+            console.log("checkLoginStatus", s);
 
-            // update vods every 15 minutes
-            if (this.store.clientCfg('useBackgroundRefresh')) {
-                this.vodUpdateInterval = setInterval(() => {
-                    this.store.updateCapturingVods();
-                }, 1000 * 60 * 15);
+            if ((this.store.authentication && this.store.authenticated) || this.store.guest_mode || !this.store.authentication) {
+                this.fetchInitialData();
             }
-
-        }).catch((error) => {
-            console.error("fetchData error", error);
+            
         });
 
         const wantsReducedMotion = this.prefersReducedMotion();
@@ -161,6 +173,13 @@ export default defineComponent({
         if (theme !== "" && theme !== "auto"){
             document.body.classList.add(`is-${theme}`);
         }
+        this.actionSub = this.store.$onAction(({ name, args }) => {
+            if (name !== "playMedia") return;
+            console.log("onaction", name, args);
+            this.mediaPlayerSource = args[0];
+            const p = this.$refs.mediaplayer as HTMLDialogElement;
+            p.showModal();
+        });
     },
     unmounted() {
         console.debug("App unmounted");
@@ -172,47 +191,36 @@ export default defineComponent({
         if (theme !== "" && theme !== "auto"){
             document.body.classList.remove(`is-${theme}`);
         }
+        if (this.actionSub) this.actionSub(); // unsub
     },
     methods: {
-        async fetchData() {
-            // clear config
-            this.store.updateConfig(null);
+        fetchInitialData() {
+            console.debug("App fetchInitialData");
+            this.store.fetchData().then(() => {
+                this.updateTitle();
+                if (this.store.cfg("websocket_enabled") && this.store.clientCfg('useWebsockets')) {
+                    console.debug("Connecting websocket...");
+                    this.connectWebsocket();
+                } else {
+                    console.debug("Websocket disabled");
+                    if (this.store.clientCfg('useBackgroundTicker')) {
+                        console.debug("Starting background ticker...");
+                        this.tickerInterval = window.setInterval(() => {
+                            this.tickTicker();
+                        }, 1000);
+                    }
+                }
 
-            let response;
+                // update vods every 15 minutes
+                if (this.store.clientCfg('useBackgroundRefresh')) {
+                    this.vodUpdateInterval = window.setInterval(() => {
+                        this.store.updateCapturingVods();
+                    }, 1000 * 60 * 15);
+                }
 
-            try {
-                response = await this.$http.get(`/api/v0/settings`);
-            } catch (error) {
-                alert(error);
-                return;
-            }
-
-            if (response.status !== 200) {
-                alert("Non-200 response from server");
-                return;
-            }
-
-            if (!response.data || !response.data.data) {
-                alert("No data received for settings");
-                return;
-            }
-
-            const data: ApiSettingsResponse = response.data;
-
-            console.log(`Server type: ${data.data.server ?? "unknown"}`);
-
-            this.store.updateConfig(data.data.config);
-            this.store.updateVersion(data.data.version);
-            this.store.updateServerType(data.data.server);
-            this.store.updateFavouriteGames(data.data.favourite_games);
-            this.store.updateErrors(data.data.errors ?? []);
-            this.store.websocketUrl = data.data.websocket_url;
-            this.store.app_name = data.data.app_name;
-            this.store.guest = data.data.guest;
-
-            await this.store.fetchAndUpdateStreamerList();
-            await this.store.fetchAndUpdateJobs();
-
+            }).catch((error) => {
+                console.error("fetchData error", error);
+            });
         },
         connectWebsocket(): WebSocket | undefined {
 
@@ -239,7 +247,7 @@ export default defineComponent({
                 this.websocket.send(JSON.stringify({ action: "helloworld" }));
                 // this.websocketConnected = true;
                 this.websocketConnecting = false;
-                this.websocketKeepalive = setInterval(() => {
+                this.websocketKeepalive = window.setInterval(() => {
                     if (!this.websocket) return;
                     this.websocket.send("ping");
                 }, this.websocketKeepaliveTime);
@@ -277,13 +285,17 @@ export default defineComponent({
             this.websocket.addEventListener("close", (ev: CloseEvent) => {
                 console.log(`Disconnected from websocket! (${ev.code}/${ev.reason})`);
                 this.websocketConnecting = false;
+                this.websocketConnected = false;
+                clearInterval(this.websocketKeepalive);
+                if (ev.code === 3000) {
+                    alert("Websockets are only for authenticated users.");
+                    return;
+                }
                 setTimeout(() => {
                     if (!ev.wasClean) {
                         this.connectWebsocket();
                     }
                 }, 10000);
-                this.websocketConnected = false;
-                clearInterval(this.websocketKeepalive);
             });
 
             return this.websocket;
@@ -363,6 +375,8 @@ export default defineComponent({
                 } else if (action == "connected") {
                     this.websocketConnected = true;
                     console.log("Got connection event");
+                } else if (action == "alert") {
+                    alert(data.text);
                 } else {
                     console.warn("Unknown action", action, data);
                 }
@@ -552,6 +566,15 @@ export default defineComponent({
         //         delete axios.defaults.headers.common["X-Password"];
         //     }
         // }
+        checkLoginStatus(): Promise<{ authentication: boolean; status: boolean; guest_mode: boolean; }> {
+            return this.$http.get("/api/v0/auth/check").then((response) => {
+                // console.debug("Check login status", response.data);
+                return { authentication: response.data.authentication as boolean, status: true, guest_mode: response.data.guest_mode as boolean };
+            }).catch((error) => {
+                // console.debug("Check login error", error);    
+                return { authentication: error.response.data.authentication as boolean, status: false, guest_mode: error.response.data.guest_mode as boolean };       
+            });
+        }
     },
     components: {
         SideMenu,

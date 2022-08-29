@@ -1,14 +1,15 @@
-import express from "express";
-import { Config } from "../Core/Config";
-import { VideoQuality } from "../../../common/Config";
-import path from "path";
-import { BaseConfigDataFolder } from "../Core/BaseConfig";
-import { TwitchVOD } from "../Core/TwitchVOD";
-import { ApiErrorResponse } from "../../../common/Api/Api";
-import { TwitchChannel } from "../Core/TwitchChannel";
-import sanitize from "sanitize-filename";
 import { format, parseJSON } from "date-fns";
+import express from "express";
+import fs from "fs";
+import path from "path";
+import sanitize from "sanitize-filename";
+import { ApiErrorResponse } from "../../../common/Api/Api";
+import { VideoQuality } from "../../../common/Config";
 import { formatString } from "../../../common/Format";
+import { BaseConfigDataFolder } from "../Core/BaseConfig";
+import { Config } from "../Core/Config";
+import { TwitchChannel } from "../Core/TwitchChannel";
+import { TwitchVOD } from "../Core/TwitchVOD";
 
 export async function ResetChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -257,7 +258,21 @@ export async function DownloadClip(req: express.Request, res: express.Response):
 
     const basename = sanitize(formatString(Config.getInstance().cfg("filename_clip", "{broadcaster} - {title} [{id}] [{quality}]"), variables) + ".mp4");
     // const basename = sanitize(`[${format(clip_date, "yyyy-MM-dd")}] ${metadata.broadcaster_name} - ${metadata.title} [${metadata.id}] [${quality}].mp4`); // new filename? sanitize(`${metadata.broadcaster_name}.${metadata.title}.${metadata.id}.${quality}.mp4`);
-    const file_path = path.join(BaseConfigDataFolder.saved_clips, basename);
+
+    const user = await TwitchChannel.getUserDataById(metadata.broadcaster_id);
+    if (!user) {
+        res.status(500).send({
+            status: "ERROR",
+            message: "Failed to get broadcaster user data",
+        });
+        return;
+    }
+
+    const file_path = path.join(BaseConfigDataFolder.saved_clips, "downloader", user.login, basename);
+
+    if (!fs.existsSync(path.dirname(file_path))) {
+        fs.mkdirSync(path.dirname(file_path), { recursive: true });
+    }
 
     let success;
 
@@ -276,6 +291,11 @@ export async function DownloadClip(req: express.Request, res: express.Response):
             status: "OK",
             message: `Downloaded to ${file_path}`,
         });
+
+        const channel = TwitchChannel.getChannelByLogin(metadata.broadcaster_name);
+        if (channel) {
+            channel.findClips();
+        }
     } else {
         res.status(400).send({
             status: "ERROR",

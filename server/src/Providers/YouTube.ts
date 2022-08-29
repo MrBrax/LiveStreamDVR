@@ -29,8 +29,8 @@ export class YouTubeHelper {
     private static accessToken?: Credentials;
 
     static async setupClient() {
-        const client_id = Config.getInstance().cfg<string>("youtube_client_id");
-        const client_secret = Config.getInstance().cfg<string>("youtube_client_secret");
+        const client_id = Config.getInstance().cfg<string>("youtube.client_id");
+        const client_secret = Config.getInstance().cfg<string>("youtube.client_secret");
         let app_url = Config.getInstance().cfg<string>("app_url");
 
         if (app_url == "debug") {

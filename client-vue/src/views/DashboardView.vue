@@ -1,6 +1,6 @@
 <template>
     <div class="container vertical">
-        <section class="section" v-if="store.errors && store.errors.length > 0" aria-label="Errors">
+        <section class="section" v-if="store.errors && store.errors.length > 0 && store.authElement" aria-label="Errors">
             <div class="errors">
                 <details class="details">
                     <summary>Errors ({{store.errors.length}})</summary>
@@ -28,8 +28,11 @@
                     <strong>{{ $t('views.dashboard.free-space', [formatBytes(store.diskFreeSize)]) }}</strong>
                 </div>
             </div>
-            <div class="section-content" v-else-if="!store.streamerListLoaded">
+            <div class="section-content" v-else-if="!store.streamerListLoaded && store.authElement">
                 <span class="icon"><fa icon="sync" spin></fa></span> {{ $t("messages.loading") }}
+            </div>
+            <div class="section-content" v-else-if="!store.authElement">
+                <span class="icon"><fa icon="sign-in-alt"></fa></span> {{ $t("messages.login") }}
             </div>
             <div class="section-content" v-else>
                 <span class="icon"><fa icon="exclamation-triangle"></fa></span>
@@ -39,8 +42,11 @@
 
         <section class="section">
             <div class="section-title" @click="logToggle"><h1>{{ $t('dashboard.logs') }}</h1></div>
-            <div class="section-content" v-if="logVisible">
+            <div class="section-content" v-if="logVisible && store.authElement">
                 <log-viewer ref="logviewer" />
+            </div>
+            <div class="section-content" v-else-if="!store.authElement">
+                <span class="icon"><fa icon="sign-in-alt"></fa></span> {{ $t("messages.login") }}
             </div>
         </section>
     </div>

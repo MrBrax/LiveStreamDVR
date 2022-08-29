@@ -1,20 +1,25 @@
 import axios from "axios";
 import chalk from "chalk";
-import { format } from "date-fns";
+import chokidar from "chokidar";
+import { format, parseJSON } from "date-fns";
 import fs from "fs";
 import { encode as htmlentities } from "html-entities";
 import path from "path";
 import { TwitchVODChapterJSON } from "Storage/JSON";
 import type { ApiChannel } from "../../../common/Api/Client";
-import type { UserData } from "../../../common/User";
 import { ChannelConfig, VideoQuality } from "../../../common/Config";
 import { MuteStatus, SubStatus } from "../../../common/Defs";
+import type { LocalClip } from "../../../common/LocalClip";
+import type { LocalVideo } from "../../../common/LocalVideo";
+import { AudioMetadata, VideoMetadata } from "../../../common/MediaInfo";
+import type { Channel, ChannelsResponse } from "../../../common/TwitchAPI/Channels";
 import type { ErrorResponse, EventSubTypes } from "../../../common/TwitchAPI/Shared";
 import type { Stream, StreamsResponse } from "../../../common/TwitchAPI/Streams";
 import type { SubscriptionRequest, SubscriptionResponse } from "../../../common/TwitchAPI/Subscriptions";
 import type { BroadcasterType, UsersResponse } from "../../../common/TwitchAPI/Users";
-import type { Channel, ChannelsResponse } from "../../../common/TwitchAPI/Channels";
+import type { UserData } from "../../../common/User";
 import { ChannelUpdated } from "../../../common/Webhook";
+import { replaceAll } from "../Helpers/ReplaceAll";
 import { AppRoot, BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
@@ -80,6 +85,9 @@ export class TwitchChannel {
     public max_storage = 0;
     public max_vods = 0;
 
+    public download_vod_at_end = false;
+    public download_vod_at_end_quality: VideoQuality = "best";
+
     /** 
      * Burn chat after capturing.
      * Currently not used.
@@ -89,7 +97,8 @@ export class TwitchChannel {
     public vods_raw: string[] = [];
     public vods_list: TwitchVOD[] = [];
 
-    public clips_list: string[] = [];
+    public clips_list: LocalClip[] = [];
+    public video_list: LocalVideo[] = [];
 
     public subbed_at: Date | undefined;
     public expires_at: Date | undefined;
@@ -115,6 +124,8 @@ export class TwitchChannel {
         this.no_cleanup = channel_config.no_cleanup !== undefined ? channel_config.no_cleanup : false;
         this.max_storage = channel_config.max_storage !== undefined ? channel_config.max_storage : 0;
         this.max_vods = channel_config.max_vods !== undefined ? channel_config.max_vods : 0;
+        this.download_vod_at_end = channel_config.download_vod_at_end !== undefined ? channel_config.download_vod_at_end : false;
+        this.download_vod_at_end_quality = channel_config.download_vod_at_end_quality !== undefined ? channel_config.download_vod_at_end_quality : "best";
     }
 
     /**
@@ -224,6 +235,8 @@ export class TwitchChannel {
             no_cleanup: this.no_cleanup,
             max_storage: this.max_storage,
             max_vods: this.max_vods,
+            download_vod_at_end: this.download_vod_at_end,
+            download_vod_at_end_quality: this.download_vod_at_end_quality,
             // subbed_at: this.subbed_at,
             // expires_at: this.expires_at,
             // last_online: this.last_online,
@@ -239,6 +252,7 @@ export class TwitchChannel {
             expires_at: this.expires_at ? this.expires_at.toISOString() : undefined,
             last_online: this.last_online ? this.last_online.toISOString() : undefined,
             clips_list: this.clips_list,
+            video_list: this.video_list,
 
             current_stream_number: this.current_stream_number,
             current_season: this.current_season,
@@ -366,7 +380,7 @@ export class TwitchChannel {
         if (!this.login) throw new Error("Channel login is not set");
         if (!this.display_name) throw new Error("Channel display_name is not set");
 
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Create VOD JSON for ${this.login}: ${path.basename(filename)} @ ${path.dirname(filename)}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Create VOD JSON for ${this.login}: ${path.basename(filename)} @ ${path.dirname(filename)}`);
 
         const vod = new TwitchVOD();
 
@@ -412,7 +426,7 @@ export class TwitchChannel {
         const vod = this.vods_list.find(v => v.basename === basename);
         if (!vod) return false;
 
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Remove VOD JSON for ${this.login}: ${basename}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Remove VOD JSON for ${this.login}: ${basename}`);
 
         this.vods_list = this.vods_list.filter(v => v.basename !== basename);
 
@@ -432,7 +446,7 @@ export class TwitchChannel {
         const vods_in_main_memory = TwitchVOD.vods.filter(v => v.streamer_login === this.login);
 
         if (vods_on_disk.length !== vods_in_channel_memory.length) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Vod on disk and vod in memory are not the same for ${this.login}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Vod on disk and vod in memory are not the same for ${this.login}`);
             const removedVods = vods_in_channel_memory.filter(v => !vods_on_disk.includes(v.basename));
             ClientBroker.notify(
                 "VOD changed externally",
@@ -443,7 +457,7 @@ export class TwitchChannel {
         }
 
         if (vods_on_disk.length !== vods_in_main_memory.length) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Vod on disk and vod in main memory are not the same for ${this.login}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Vod on disk and vod in main memory are not the same for ${this.login}`);
             const removedVods = vods_in_main_memory.filter(v => !vods_on_disk.includes(v.basename));
             ClientBroker.notify(
                 "VOD changed externally",
@@ -454,7 +468,7 @@ export class TwitchChannel {
         }
 
         if (vods_in_channel_memory.length !== vods_in_main_memory.length) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Vod in memory and vod in main memory are not the same for ${this.login}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Vod in memory and vod in main memory are not the same for ${this.login}`);
             const removedVods = vods_in_main_memory.filter(v => !vods_in_channel_memory.includes(v));
             ClientBroker.notify(
                 "VOD changed externally",
@@ -487,7 +501,7 @@ export class TwitchChannel {
         if (!data) return;
         const chapter = TwitchChannel.channelDataToChapterData(data);
         KeyValue.getInstance().set(`${this.login}.chapterdata`, JSON.stringify(chapter));
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Updated chapter data for ${this.login}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Updated chapter data for ${this.login}`);
     }
 
     public roundupCleanupVodCandidates(ignore_basename = ""): TwitchVOD[] {
@@ -609,12 +623,59 @@ export class TwitchChannel {
         return `https://www.twitch.tv/${this.login}`;
     }
 
-    public findClips() {
+    public async findClips() {
         if (!this.login) return;
         this.clips_list = [];
-        const clips_on_disk = fs.readdirSync(BaseConfigDataFolder.saved_clips).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".mp4"));
-        this.clips_list = clips_on_disk.map(f => path.basename(f));
+
+        const clips_downloader_folder = path.join(BaseConfigDataFolder.saved_clips, "downloader", this.login);
+        const clips_downloader = fs.existsSync(clips_downloader_folder) ? fs.readdirSync(clips_downloader_folder).filter(f => f.endsWith(".mp4")).map(f => path.join(clips_downloader_folder, f)) : [];
+
+        const clips_scheduler_folder = path.join(BaseConfigDataFolder.saved_clips, "scheduler", this.login);
+        const clips_scheduler = fs.existsSync(clips_scheduler_folder) ? fs.readdirSync(clips_scheduler_folder).filter(f => f.endsWith(".mp4")).map(f => path.join(clips_scheduler_folder, f)) : [];
+
+        const clips_editor_folder = path.join(BaseConfigDataFolder.saved_clips, "editor", this.login);
+        const clips_editor = fs.existsSync(clips_editor_folder) ? fs.readdirSync(clips_editor_folder).filter(f => f.endsWith(".mp4")).map(f => path.join(clips_editor_folder, f)) : [];
+
+        const all_clips = clips_downloader.concat(clips_scheduler).concat(clips_editor);
+
+        for (const clip_path of all_clips) {
+
+            let video_metadata: VideoMetadata | AudioMetadata;
+
+            try {
+                video_metadata = await Helper.videometadata(clip_path);
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to get video metadata for clip ${clip_path}: ${(error as Error).message}`);
+                continue;
+            }
+
+            if (!video_metadata || video_metadata.type !== "video") continue;
+
+            let thumbnail;
+            try {
+                thumbnail = await Helper.thumbnail(clip_path, 240);
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to generate thumbnail for ${clip_path}: ${error}`);
+            }
+
+            const clip: LocalClip = {
+                folder: path.relative(BaseConfigDataFolder.saved_clips, path.dirname(clip_path)),
+                basename: path.basename(clip_path),
+                extension: path.extname(clip_path).substring(1),
+                channel: this.login,
+                duration: video_metadata.duration,
+                size: video_metadata.size,
+                video_metadata: video_metadata,
+                thumbnail: thumbnail || "dummy",
+            };
+
+            this.clips_list.push(clip);
+
+        }
+
+        // this.clips_list = all_clips.map(f => path.relative(BaseConfigDataFolder.saved_clips, f));
         Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Found ${this.clips_list.length} clips for ${this.login}`);
+        this.broadcastUpdate();
     }
 
     public async refreshData() {
@@ -715,6 +776,8 @@ export class TwitchChannel {
         if (!KeyValue.getInstance().has(`${this.login}.saves_vods`)) {
             this.checkIfChannelSavesVods();
         }
+        this.addAllLocalVideos();
+        this.startWatching();
     }
 
     public broadcastUpdate() {
@@ -820,20 +883,225 @@ export class TwitchChannel {
 
     public async checkIfChannelSavesVods(): Promise<boolean> {
         if (!this.userid) return false;
-        Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Checking if channel ${this.login} saves vods`);
+        Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Checking if channel ${this.login} saves vods`);
         const videos = await TwitchVOD.getVideos(this.userid);
         const state = videos && videos.length > 0;
         KeyValue.getInstance().setBool(`${this.login}.saves_vods`, state);
         if (state) {
-            Log.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `Channel ${this.login} saves vods`);
+            Log.logAdvanced(LOGLEVEL.SUCCESS, "channel", `Channel ${this.login} saves vods`);
         } else {
-            Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Channel ${this.login} does not save vods`);
+            Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${this.login} does not save vods`);
         }
         return state;
     }
 
     get saves_vods(): boolean {
         return KeyValue.getInstance().getBool(`${this.login}.saves_vods`);
+    }
+
+    public async downloadLatestVod(quality: VideoQuality) {
+
+        if (!this.userid) {
+            throw new Error("Cannot download latest vod without userid");
+        }
+
+        const vods = await TwitchVOD.getVideos(this.userid);
+
+        if (!vods || vods.length === 0) {
+            throw new Error("No vods found");
+        }
+
+        const latestVodData = vods[0];
+        const now = new Date();
+        const latestVodDate = new Date(latestVodData.created_at);
+        const latestVodDuration = Helper.parseTwitchDuration(latestVodData.duration);
+        const latestVodDateTotal = new Date(latestVodDate.getTime() + (latestVodDuration * 1000));
+        const latestVodDateDiff = Math.abs(now.getTime() - latestVodDateTotal.getTime());
+
+        const localVod = this.vods_list.find((v) => v.twitch_vod_id === latestVodData.id || (v.created_at?.getTime() && now.getTime() - v.created_at?.getTime() < latestVodDateDiff));
+        if (localVod) {
+            await localVod.downloadVod(quality);
+            return localVod.path_downloaded_vod;
+        }
+
+        if (latestVodDateDiff > (1000 * 60 * 15)) {
+            throw new Error(`Latest vod is older than 15 minutes (${Math.floor(latestVodDateDiff / 1000 / 60)} minutes, ${latestVodDateTotal.toISOString()})`);
+        }
+
+        const basename = `${this.login}_${replaceAll(latestVodData.created_at, ":", "-")}_${latestVodData.stream_id}`;
+        const file_path = path.join(Helper.vodFolder(this.login), `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
+
+        let success;
+
+        try {
+            success = await TwitchVOD.downloadVideo(latestVodData.id, quality, file_path);
+        } catch (e) {
+            throw new Error(`Failed to download vod: ${(e as Error).message}`);
+        }
+
+        if (!success) {
+            throw new Error("Failed to download vod");
+        }
+
+        const vod = await this.createVOD(path.join(Helper.vodFolder(this.login), `${basename}.json`));
+        vod.started_at = parseJSON(latestVodData.created_at);
+
+        const duration = Helper.parseTwitchDuration(latestVodData.duration);
+        vod.ended_at = new Date(vod.started_at.getTime() + (duration * 1000));
+        await vod.saveJSON("manual creation");
+
+        vod.addSegment(path.basename(file_path));
+        await vod.finalize();
+        await vod.saveJSON("manual finalize");
+
+        Webhook.dispatch("end_download", {
+            vod: await vod.toAPI(),
+        });
+
+        return file_path;
+
+    }
+
+    /**
+     * Get videos (shortcut for TwitchVOD.getVideos)
+     */
+    public async getVideos() {
+        if (!this.userid) return false;
+        return await TwitchVOD.getVideos(this.userid);
+    }
+
+
+    /**
+     * Get clips (shortcut for TwitchVOD.getClips)
+     */
+    public async getClips(max_age?: number) {
+        if (!this.userid) return false;
+        return await TwitchVOD.getClips({ broadcaster_id: this.userid }, max_age);
+    }
+
+    fileWatcher?: chokidar.FSWatcher;
+    public async startWatching() {
+        if (this.fileWatcher) await this.stopWatching();
+
+        // no blocks in testing
+        if (process.env.NODE_ENV === "test") return;
+
+        if (!Config.getInstance().cfg("channel_folders")) {
+            Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel folders are disabled, not watching channel ${this.login}`);
+            return; // don't watch if no channel folders are enabled
+        }
+
+        const folders = [Helper.vodFolder(this.login)];
+
+        // if (this.login && fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "scheduler", this.login)))
+        //     folders.push(path.join(BaseConfigDataFolder.saved_clips, "scheduler", this.login));
+
+        // if (this.login && fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "downloader", this.login)))
+        //     folders.push(path.join(BaseConfigDataFolder.saved_clips, "downloader", this.login));
+
+        console.log(`Watching channel ${this.login} folders...`);
+
+        this.fileWatcher = chokidar.watch(folders, {
+            ignoreInitial: true,
+        }).on("all", (eventType, filename) => {
+
+            if (eventType === "add") {
+
+                if (Config.getInstance().cfg("localvideos.enabled")) {
+
+                    const allVodFiles = this.vods_list.map((v) => v.associatedFiles.map((f) => path.basename(f))).flat();
+
+                    if (allVodFiles.includes(filename)) {
+                        return; // skip actual vods
+                    }
+
+                    if (!filename.endsWith(".mp4")) return;
+
+                    if (eventType === "add") {
+                        this.addLocalVideo(path.basename(filename));
+                    }
+
+                }
+
+            } else if (eventType === "unlink") {
+                this.video_list = this.video_list.filter((v) => v.basename !== path.basename(filename));
+                this.sortLocalVideos();
+                this.broadcastUpdate();
+            }
+
+        });
+    }
+
+    private async addLocalVideo(basename: string): Promise<boolean> {
+
+        const filename = path.join(Helper.vodFolder(this.login), basename);
+
+        let video_metadata: VideoMetadata | AudioMetadata;
+
+        try {
+            video_metadata = await Helper.videometadata(filename);
+        } catch (th) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Trying to get mediainfo of ${filename} returned: ${(th as Error).message}`);
+            return false;
+        }
+
+        if (!video_metadata || video_metadata.type !== "video") {
+            Log.logAdvanced(LOGLEVEL.WARNING, "channel", `${filename} is not a local video, not adding`);
+            return false;
+        }
+
+        let thumbnail;
+        try {
+            thumbnail = await Helper.thumbnail(filename, 240);
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to generate thumbnail for ${filename}: ${error}`);
+        }
+
+        const video_entry: LocalVideo = {
+            basename: basename,
+            extension: path.extname(filename).substring(1),
+            channel: this.login,
+            duration: video_metadata.duration,
+            size: video_metadata.size,
+            video_metadata: video_metadata,
+            thumbnail: thumbnail ? path.basename(thumbnail) : undefined,
+        };
+
+        this.video_list.push(video_entry);
+
+        this.sortLocalVideos();
+
+        this.broadcastUpdate();
+
+        return true;
+
+    }
+
+    private sortLocalVideos() {
+        this.video_list.sort((a, b) => {
+            return a.basename.localeCompare(b.basename);
+        });
+    }
+
+    private addAllLocalVideos() {
+        if (!Config.getInstance().cfg("channel_folders")) return; // don't watch if no channel folders are enabled
+        if (!Config.getInstance().cfg("localvideos.enabled")) return;
+        const folder = Helper.vodFolder(this.login);
+        const files = fs.readdirSync(folder);
+        const allVodFiles = this.vods_list.map((v) => v.associatedFiles.map((f) => path.basename(f))).flat();
+        for (const file of files) {
+            if (!file.endsWith(".mp4")) continue;
+            if (allVodFiles.includes(path.basename(file))) continue;
+            console.debug(`Adding local video ${file} for channel ${this.login}`);
+            this.addLocalVideo(path.basename(file));
+        }
+        console.log(`Added ${this.video_list.length} local videos to ${this.login}`);
+    }
+
+    public async stopWatching() {
+        if (this.fileWatcher) await this.fileWatcher.close();
+        this.fileWatcher = undefined;
+        // console.log(`Stopped watching ${this.basename}`);
     }
 
     /**
@@ -901,9 +1169,19 @@ export class TwitchChannel {
             fs.mkdirSync(channel.getFolder());
         }
 
+        // only needed if i implement watching
+        // if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "scheduler", channel.login)))
+        //     fs.mkdirSync(path.join(BaseConfigDataFolder.saved_clips, "scheduler", channel.login), { recursive: true });
+        // 
+        // if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "downloader", channel.login)))
+        //     fs.mkdirSync(path.join(BaseConfigDataFolder.saved_clips, "downloader", channel.login), { recursive: true });
+        // 
+        // if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "editor", channel.login)))
+        //     fs.mkdirSync(path.join(BaseConfigDataFolder.saved_clips, "editor", channel.login), { recursive: true });
+
         await channel.parseVODs(api);
 
-        channel.findClips();
+        await channel.findClips();
 
         channel.saveKodiNfo();
 

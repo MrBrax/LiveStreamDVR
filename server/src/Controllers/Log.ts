@@ -10,10 +10,13 @@ export function GetLog(req: express.Request, res: express.Response) {
 
     const filename = req.params.filename;
 
-    const start_from = req.params.start_from ? parseInt(req.params.start_from) : 0;
+    const start_from = req.params.startFrom ? parseInt(req.params.startFrom) : 0;
 
     if (!filename) {
-        res.status(400).send("Missing filename");
+        res.status(400).send({
+            status: "ERROR",
+            message: "Missing filename",
+        });
         return;
     }
 

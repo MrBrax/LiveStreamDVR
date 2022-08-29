@@ -90,13 +90,32 @@
             </div>
         </div>
 
+        <!-- local clips -->
         <div class="streamer-clips" v-if="streamer.clips_list && streamer.clips_list.length > 0">
             <div class="streamer-clips-title"><h3>{{ $t("messages.clips") }}</h3></div>
             <ul>
-                <li v-for="clip in streamer.clips_list" :key="clip">
-                    <a class="text-overflow" :href="clipLink(clip)" target="_blank">{{ clip }}</a>
+                <li v-for="clip in streamer.clips_list" :key="clip.basename">
+                    <a class="text-overflow" :href="clipLink(clip)" target="_blank">
+                        <img :src="basePath + '/cache/thumbs/' + clip.thumbnail" />
+                        {{ clip.folder + "/" + clip.basename }}<br />
+                        <span class="streamer-clips-info">{{ formatBytes(clip.size) }}, {{ formatDuration(clip.duration) }}, {{ clip.video_metadata.height}}p</span>
+                    </a>
                 </li>
             </ul>
+        </div>
+
+        <!-- local videos -->
+        <div class="local-videos" v-if="streamer.video_list && streamer.video_list.length > 0">
+            <div class="local-videos-title"><h3>{{ $t("messages.local-videos") }}</h3></div>
+            <transition-group tag="div" class="local-videos-container">
+                <div class="local-video" v-for="video in streamer.video_list" :key="video.basename">
+                    <a target="_blank" :href="webPath + '/' + video.basename">
+                        <img :src="basePath + '/cache/thumbs/' + video.thumbnail" /><br />
+                        <span class="local-video-title">{{ video.basename }}</span>
+                    </a><br />
+                    <span class="local-video-info">{{ formatBytes(video.size) }}, {{ formatDuration(video.duration) }}, {{ video.video_metadata.height}}p</span>
+                </div>
+            </transition-group>
         </div>
 
         <div v-if="streamer.vods_list.length == 0" class="notice">
@@ -162,6 +181,7 @@ import { Video } from "@common/TwitchAPI/Video";
 import TwitchChannel from "@/core/channel";
 import { useStore } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
+import { LocalClip } from "@common/LocalClip";
 library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil);
 
 export default defineComponent({
@@ -367,8 +387,9 @@ export default defineComponent({
         imageUrl(url: string, width: number, height: number) {
             return url.replace(/%\{width\}/g, width.toString()).replace(/%\{height\}/g, height.toString());
         },
-        clipLink(name: string): string {
-            return `${this.store.cfg<string>("basepath", "")}/saved_clips/${name}`;
+        clipLink(clip: LocalClip): string {
+            const path = clip.folder + "/" + clip.basename;
+            return `${this.store.cfg<string>("basepath", "")}/saved_clips/${path}`;
         },
         doToggleExpandVods() {
             // loop through all vods and set the expanded state
@@ -409,6 +430,13 @@ export default defineComponent({
             const vods = this.vodItem as unknown as typeof VodItem[];
             if (!vods) return false;
             return vods.filter((vod) => vod.minimized === false).length >= this.streamer.vods_list.length / 2;
+        },
+        webPath(): string {
+            if (!this.streamer) return "";
+            return this.store.cfg<string>("basepath", "") + "/vods/" + (this.store.cfg("channel_folders") ? this.streamer.login : "");
+        },
+        basePath(): string {
+            return this.store.cfg<string>("basepath", "");
         }
     },
     components: {
@@ -427,22 +455,6 @@ export default defineComponent({
     }
 }
 
-.streamer-clips {
-    background-color: #2b2b2b;
-    .streamer-clips-title {
-        padding: 5px;
-        background: #116d3c;
-        color: #fff;
-        h3 {
-            font-size: 1.2em;
-            margin: 0;
-            padding: 0;
-        }
-    }
-    ul {
-        display: block;
-        margin: 0;
-        padding: 1em 2em;
-    }
-}
+
+
 </style>

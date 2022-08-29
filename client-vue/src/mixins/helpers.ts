@@ -18,8 +18,6 @@ export default {
             const absDate = parseJSON(date);
             const now = new Date();
 
-            console.log(absDate, now, now.getFullYear(), absDate.getFullYear());
-
             if (now.getTime() - absDate.getTime() < 22 * 60 * 60 * 1000) {
                 return this.formatDate(date, "HH:mm:ss");
             } else if (now.getFullYear() == absDate.getFullYear()) {

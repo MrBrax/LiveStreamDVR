@@ -19,7 +19,8 @@ export type WebhookAction =
     "init" |
     "notify" |
     "connected" |
-    "log"
+    "log" |
+    "alert"
 ;
 
 export type WebhookData =
@@ -34,7 +35,8 @@ export type WebhookData =
     VodRemoved |
     VodUpdated |
     ChannelUpdated |
-    Init
+    Init |
+    Alert
     ;
 
 export interface StartDownloadData {
@@ -107,4 +109,8 @@ export interface JobProgress {
 export interface ChapterUpdateData {
     chapter: ApiVodChapter;
     vod: ApiVod;
+}
+
+export interface Alert {
+    text: string;
 }

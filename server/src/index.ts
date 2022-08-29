@@ -12,6 +12,14 @@ import { ClientBroker } from "./Core/ClientBroker";
 import { Config } from "./Core/Config";
 import ApiRouter from "./Routes/Api";
 import dotenv from "dotenv";
+import session from "express-session";
+import { Log, LOGLEVEL } from "Core/Log";
+
+declare module "express-session" {
+    interface SessionData {
+        authenticated: boolean;
+    }
+}
 
 dotenv.config();
 
@@ -37,6 +45,10 @@ const override_port = argv.port ? parseInt(argv.port as string) : undefined;
 
 // load all required config files and cache stuff
 Config.init().then(() => {
+
+    // if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) {
+    //     Log.logAdvanced(LOGLEVEL.WARNING, "index", "Seems like the server was not shut down gracefully...");
+    // }
 
     const app = express();
     const port = override_port || Config.getInstance().cfg<number>("server_port", 8080);
@@ -69,8 +81,24 @@ Config.init().then(() => {
         app.use(morgan("combined"));
     }
 
+    const sessionParser = session({
+        secret: Config.getInstance().cfg<string>("eventsub_secret", ""), // TODO: make this unique from eventsub_secret
+        resave: false,
+        saveUninitialized: true,
+        // cookie: {
+        //     secure: true,
+        //     httpOnly: true,
+        //     maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+        // },
+    }); // bad
+
+    Config.getInstance().sessionParser = sessionParser;
+
+    // session
+    app.use(sessionParser);
+
     // authentication
-    app.use(Auth);
+    // app.use(Auth);
 
     const baserouter = express.Router();
 
@@ -128,5 +156,52 @@ Config.init().then(() => {
     } else {
         console.log(chalk.yellow("WebSocket is disabled. Change the 'websocket_enabled' config to enable it."));
     }
+
+    // handle uncaught exceptions, not sure if this is a good idea
+    /*
+    process.on("uncaughtException", function(err, origin) {
+        console.error("Fatal error; Uncaught exception", err, origin);
+        ClientBroker.broadcast({
+            action: "alert",
+            data: "Uncaught exception, server will exit.",
+        });
+        ClientBroker.notify(
+            "Uncaught exception, server will exit.",
+            err + "\n" + origin,
+            undefined,
+            "system"
+        );
+        fs.writeFileSync(path.join(BaseConfigDataFolder.logs, "crash.log"), err.toString() + "\n\n" + origin.toString());
+        process.exit(1);
+    });
+    */
+
+    // fs.writeFileSync(path.join(BaseConfigDataFolder.cache, "lock"), "1");
+
+    /*
+    process.on("beforeExit", (code) => {
+        if (code == 0) {
+            if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) fs.unlinkSync(path.join(BaseConfigDataFolder.cache, "lock"));
+        } else {
+            console.log(`Not removing lock, beforeExit code ${code}`);
+        }
+    });
+
+    process.on("exit", (code) => {
+        if (code == 0) {
+            if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) fs.unlinkSync(path.join(BaseConfigDataFolder.cache, "lock"));
+        } else {
+            console.log(`Not removing lock, exit code ${code}`);
+        }
+    });
+
+    process.on("SIGINT", (signal) => {
+        if (signal) {
+            if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) fs.unlinkSync(path.join(BaseConfigDataFolder.cache, "lock"));
+        } else {
+            console.log(`Not removing lock, sigint signal ${signal}`);
+        }
+    });
+    */
 
 });

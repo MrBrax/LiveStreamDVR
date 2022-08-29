@@ -85,6 +85,7 @@
                     <li><strong>Docker:</strong> {{ aboutData.is_docker ? "Yes" : "No" }}</li>
                     <li><strong>Backend type:</strong> {{ store.serverType || "unknown" }}</li>
                     <li><strong>Backend version:</strong> {{ store.version }}</li>
+                    <li><strong>Backend git hash:</strong> {{ store.serverGitHash }}</li>
                     <li><strong>Frontend version:</strong> {{ clientVersion }}</li>
                     <li><strong>Frontend build:</strong> {{ clientMode }}</li>
                     <li><strong>Frontend verbose:</strong> {{ verboseClientVersion }}</li>

@@ -1,16 +1,14 @@
-import { BaseConfigDataFolder } from "../Core/BaseConfig";
-import { Helper } from "../Core/Helper";
 import express from "express";
+import fs from "fs";
 import path from "path";
 import { ApiErrorResponse, ApiResponse, ApiVodResponse } from "../../../common/Api/Api";
+import { TwitchVODBookmark } from "../../../common/Bookmark";
 import { VideoQuality } from "../../../common/Config";
 import { VideoQualityArray } from "../../../common/Defs";
-import { LOGLEVEL, Log } from "../Core/Log";
+import { BaseConfigDataFolder } from "../Core/BaseConfig";
+import { Helper } from "../Core/Helper";
+import { Log, LOGLEVEL } from "../Core/Log";
 import { TwitchVOD } from "../Core/TwitchVOD";
-import { FileExporter } from "../Exporters/File";
-import { YouTubeExporter } from "../Exporters/YouTube";
-import { SFTPExporter } from "../Exporters/SFTP";
-import { TwitchVODBookmark } from "../../../common/Bookmark";
 
 export async function GetVod(req: express.Request, res: express.Response): Promise<void> {
 
@@ -46,10 +44,15 @@ export async function EditVod(req: express.Request, res: express.Response): Prom
     const stream_number = req.body.stream_number as number;
     const comment = req.body.comment as string;
     const prevent_deletion = req.body.prevent_deletion as boolean;
+    const segments = req.body.segments as string;
 
     vod.stream_number = stream_number;
     vod.comment = comment;
     vod.prevent_deletion = prevent_deletion;
+    if (segments) {
+        vod.segments_raw = segments.split("\n").map(s => s.trim()).filter(s => s.length > 0);
+        vod.parseSegments(vod.segments_raw);
+    }
 
     await vod.saveJSON("edit vod form");
 
@@ -388,7 +391,11 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
     // don't use fps, not using frame numbers, but seconds
 
     const file_in = path.join(vod.directory, vod.segments[0].basename);
-    const file_out = path.join(BaseConfigDataFolder.saved_clips, `${vod.basename}_${time_in}-${time_out}_${segment_name}.mp4`);
+    const file_out = path.join(BaseConfigDataFolder.saved_clips, "editor", vod.streamer_login, `${vod.basename}_${time_in}-${time_out}_${segment_name}.mp4`);
+
+    if (!fs.existsSync(path.dirname(file_out))) {
+        fs.mkdirSync(path.dirname(file_out), { recursive: true });
+    }
 
     let ret;
 
@@ -545,5 +552,25 @@ export function RemoveBookmark(req: express.Request, res: express.Response): voi
     } as ApiResponse);
 
     return;
+
+}
+
+export async function GetSync(req: express.Request, res: express.Response): Promise<void> {
+
+    const vod = TwitchVOD.getVod(req.params.basename);
+
+    if (!vod) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const data = await vod.getSync();
+
+    res.send({
+        data,
+    });
 
 }

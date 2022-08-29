@@ -3,6 +3,7 @@ export interface Clip {
     url: string;
     embed_url: string;
     broadcaster_id: string;
+    /** Broadcaster name, not login */
     broadcaster_name: string;
     creator_id: string;
     creator_name: string;
@@ -14,6 +15,7 @@ export interface Clip {
     created_at: string;
     thumbnail_url: string;
     duration: number;
+    vod_offset: number; // added 2022‑07‑20
 }
 
 export interface ClipsResponse {
