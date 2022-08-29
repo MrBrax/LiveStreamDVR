@@ -38,7 +38,7 @@ beforeAll(async () => {
             id: "12345",
             login: "test",
             display_name: "test",
-            type: "channel",
+            type: "",
             broadcaster_type: "partner",
             description: "test",
             profile_image_url: "test",
@@ -47,6 +47,7 @@ beforeAll(async () => {
             created_at: "test",
             _updated: 1234,
             cache_avatar: "test",
+            cache_offline_image: "",
         } as UserData);
     });
 
