@@ -4,7 +4,7 @@ export interface User {
     id: string;
     login: string;
     display_name: string;
-    type: string;
+    type: "staff" | "admin" | "global_mod" | "";
     broadcaster_type: BroadcasterType;
     description: string;
     profile_image_url: string;
