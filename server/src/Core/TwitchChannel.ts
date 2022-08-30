@@ -545,6 +545,11 @@ export class TwitchChannel {
                     continue;
                 }
 
+                if (Config.getInstance().cfg<boolean>("keep_commented_vods") && (vodclass.comment !== "" && vodclass.comment !== undefined)) {
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to it having a comment set.`);
+                    continue;
+                }
+
                 if (vodclass.prevent_deletion) {
                     Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to prevent_deletion`);
                     continue;
