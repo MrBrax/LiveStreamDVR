@@ -521,32 +521,32 @@ export class TwitchChannel {
             for (const vodclass of [...this.vods_list].reverse()) { // reverse so we can delete the oldest ones first
 
                 if (!vodclass.is_finalized) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to not being finalized`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to not being finalized`);
                     continue;
                 }
 
                 if (vodclass.basename === ignore_basename) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to ignore_basename`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to ignore_basename`);
                     continue;
                 }
 
                 if (Config.getInstance().cfg<boolean>("keep_deleted_vods") && vodclass.twitch_vod_exists === false) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to it being deleted on Twitch.`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to it being deleted on Twitch.`);
                     continue;
                 }
 
                 if (Config.getInstance().cfg<boolean>("keep_favourite_vods") && vodclass.hasFavouriteGame()) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to it having a favourite game.`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to it having a favourite game.`);
                     continue;
                 }
 
                 if (Config.getInstance().cfg<boolean>("keep_muted_vods") && vodclass.twitch_vod_muted === MuteStatus.MUTED) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to it being muted on Twitch.`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to it being muted on Twitch.`);
                     continue;
                 }
 
                 if (vodclass.prevent_deletion) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to prevent_deletion`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to prevent_deletion`);
                     continue;
                 }
 
@@ -554,17 +554,17 @@ export class TwitchChannel {
                 total_vods += 1;
 
                 if (total_size > max_gigabytes) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Adding ${vodclass.basename} to vod_candidates due to storage limit (${Helper.formatBytes(vodclass.total_size)} of current total ${Helper.formatBytes(total_size)}, limit ${Helper.formatBytes(max_gigabytes)})`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Adding ${vodclass.basename} to vod_candidates due to storage limit (${Helper.formatBytes(vodclass.total_size)} of current total ${Helper.formatBytes(total_size)}, limit ${Helper.formatBytes(max_gigabytes)})`);
                     vod_candidates.push(vodclass);
                 }
 
                 if (total_vods > max_vods) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Adding ${vodclass.basename} to vod_candidates due to vod limit (${total_vods} of limit ${max_vods})`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Adding ${vodclass.basename} to vod_candidates due to vod limit (${total_vods} of limit ${max_vods})`);
                     vod_candidates.push(vodclass);
                 }
 
                 if (!vod_candidates.includes(vodclass)) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to it not being over storage limit (${Helper.formatBytes(total_size)}/${Helper.formatBytes(max_gigabytes)}) and not being over vod limit (${total_vods}/${max_vods})`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to it not being over storage limit (${Helper.formatBytes(total_size)}/${Helper.formatBytes(max_gigabytes)}) and not being over vod limit (${total_vods}/${max_vods})`);
                 }
 
             }
