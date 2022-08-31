@@ -1223,14 +1223,29 @@ export class TwitchChannel {
         const channel = await TwitchChannel.loadFromLogin(config.login, true);
         if (!channel || !channel.userid) throw new Error(`Channel ${config.login} could not be loaded`);
 
-        try {
-            await TwitchChannel.subscribe(channel.userid);
-        } catch (error) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`);
+        if (
+            Config.getInstance().cfg<string>("app_url", "") !== "" &&
+            Config.getInstance().cfg<string>("app_url", "") !== "debug" &&
+            !Config.getInstance().cfg<boolean>("isolated_mode")
+        ) {
+            try {
+                await TwitchChannel.subscribe(channel.userid);
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`);
+                TwitchChannel.channels_config = TwitchChannel.channels_config.filter(ch => ch.login !== config.login); // remove channel from config
+                TwitchChannel.saveChannelsConfig();
+                // throw new Error(`Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`, { cause: error });
+                throw error; // rethrow error
+            }
+        } else if (Config.getInstance().cfg("app_url") == "debug") {
+            Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Not subscribing to ${channel.login} due to debug app_url.`);
+        } else if (Config.getInstance().cfg("isolated_mode")) {
+            Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Not subscribing to ${channel.login} due to isolated mode.`);
+        } else {
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Can't subscribe to ${channel.login} due to either no app_url or isolated mode disabled.`);
             TwitchChannel.channels_config = TwitchChannel.channels_config.filter(ch => ch.login !== config.login); // remove channel from config
             TwitchChannel.saveChannelsConfig();
-            // throw new Error(`Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`, { cause: error });
-            throw error; // rethrow error
+            throw new Error("Can't subscribe due to either no app_url or isolated mode disabled.");
         }
 
         TwitchChannel.channels.push(channel);
