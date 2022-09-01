@@ -577,7 +577,7 @@ export default defineComponent({
                 return { authentication: error.response.data.authentication as boolean, status: false, guest_mode: error.response.data.guest_mode as boolean };       
             });
         },
-        keyEvent(event: Event) {
+        keyEvent(event: KeyboardEvent) {
             if (event.target && ["text", "textarea", "number"].includes((event.target as HTMLInputElement).type)) return;
             this.store.keyEvent(event.key);
         }
