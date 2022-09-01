@@ -13,7 +13,7 @@
         </div>
 
         <div class="menu-middle" v-if="store.streamerList && store.streamerList.length > 0">
-            <side-menu-streamer v-for="streamer in sortedStreamers" :key="streamer.login" v-bind:streamer="streamer"></side-menu-streamer>
+            <side-menu-streamer v-for="streamer in sortedStreamers" :key="streamer.login" v-bind:streamer="streamer" ref="streamer"></side-menu-streamer>
         </div>
 
         <!-- what was the point of this divider? -->
@@ -73,7 +73,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { DefineComponent, defineComponent } from "vue";
 import pack from "../../package.json";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -96,8 +96,28 @@ export default defineComponent({
     },
     data() {
         return {
-            password: ""
+            password: "",
+            expandAll: false,
+            keySub: () => {},
         };
+    },
+    mounted() {
+        this.keySub = this.store.$onAction(({ name, args }) => {
+            if (name !== "keyEvent") return;
+            const key = args[0];
+            if (key == "m") {
+                // i don't like this solution, not sure if i'm just having a brain fart
+                if (this.$refs.streamer) {
+                    this.expandAll = !this.expandAll;
+                    (this.$refs.streamer as any).forEach((element: DefineComponent) => {
+                        element.expanded = this.expandAll;
+                    });
+                }
+            }
+        });
+    },
+    unmounted() {
+        this.keySub();
     },
     methods: {
         login() {

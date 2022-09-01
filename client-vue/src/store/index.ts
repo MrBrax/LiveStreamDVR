@@ -403,7 +403,7 @@ export const useStore = defineStore("twitchAutomator", {
                 alert(response.data.message);
                 return false;
             }
-            
+
             return true;
         },
         async logout(): Promise<void> {
@@ -422,6 +422,9 @@ export const useStore = defineStore("twitchAutomator", {
         },
         playMedia(source: string) {
             console.log("play media", source);
+        },
+        keyEvent(key: string) {
+            console.log("key down", key);
         }
     },
     getters: {
