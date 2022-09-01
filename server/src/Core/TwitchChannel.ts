@@ -521,32 +521,37 @@ export class TwitchChannel {
             for (const vodclass of [...this.vods_list].reverse()) { // reverse so we can delete the oldest ones first
 
                 if (!vodclass.is_finalized) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to not being finalized`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to not being finalized`);
                     continue;
                 }
 
                 if (vodclass.basename === ignore_basename) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to ignore_basename`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to ignore_basename`);
                     continue;
                 }
 
                 if (Config.getInstance().cfg<boolean>("keep_deleted_vods") && vodclass.twitch_vod_exists === false) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to it being deleted on Twitch.`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to it being deleted on Twitch.`);
                     continue;
                 }
 
                 if (Config.getInstance().cfg<boolean>("keep_favourite_vods") && vodclass.hasFavouriteGame()) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to it having a favourite game.`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to it having a favourite game.`);
                     continue;
                 }
 
                 if (Config.getInstance().cfg<boolean>("keep_muted_vods") && vodclass.twitch_vod_muted === MuteStatus.MUTED) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to it being muted on Twitch.`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to it being muted on Twitch.`);
+                    continue;
+                }
+
+                if (Config.getInstance().cfg<boolean>("keep_commented_vods") && (vodclass.comment !== "" && vodclass.comment !== undefined)) {
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to it having a comment set.`);
                     continue;
                 }
 
                 if (vodclass.prevent_deletion) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to prevent_deletion`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to prevent_deletion`);
                     continue;
                 }
 
@@ -554,17 +559,17 @@ export class TwitchChannel {
                 total_vods += 1;
 
                 if (total_size > max_gigabytes) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Adding ${vodclass.basename} to vod_candidates due to storage limit (${Helper.formatBytes(vodclass.total_size)} of current total ${Helper.formatBytes(total_size)}, limit ${Helper.formatBytes(max_gigabytes)})`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Adding ${vodclass.basename} to vod_candidates due to storage limit (${Helper.formatBytes(vodclass.total_size)} of current total ${Helper.formatBytes(total_size)}, limit ${Helper.formatBytes(max_gigabytes)})`);
                     vod_candidates.push(vodclass);
                 }
 
                 if (total_vods > max_vods) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Adding ${vodclass.basename} to vod_candidates due to vod limit (${total_vods} of limit ${max_vods})`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Adding ${vodclass.basename} to vod_candidates due to vod limit (${total_vods} of limit ${max_vods})`);
                     vod_candidates.push(vodclass);
                 }
 
                 if (!vod_candidates.includes(vodclass)) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Keeping ${vodclass.basename} due to it not being over storage limit (${Helper.formatBytes(total_size)}/${Helper.formatBytes(max_gigabytes)}) and not being over vod limit (${total_vods}/${max_vods})`);
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to it not being over storage limit (${Helper.formatBytes(total_size)}/${Helper.formatBytes(max_gigabytes)}) and not being over vod limit (${total_vods}/${max_vods})`);
                 }
 
             }
@@ -1218,14 +1223,29 @@ export class TwitchChannel {
         const channel = await TwitchChannel.loadFromLogin(config.login, true);
         if (!channel || !channel.userid) throw new Error(`Channel ${config.login} could not be loaded`);
 
-        try {
-            await TwitchChannel.subscribe(channel.userid);
-        } catch (error) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`);
+        if (
+            Config.getInstance().cfg<string>("app_url", "") !== "" &&
+            Config.getInstance().cfg<string>("app_url", "") !== "debug" &&
+            !Config.getInstance().cfg<boolean>("isolated_mode")
+        ) {
+            try {
+                await TwitchChannel.subscribe(channel.userid);
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`);
+                TwitchChannel.channels_config = TwitchChannel.channels_config.filter(ch => ch.login !== config.login); // remove channel from config
+                TwitchChannel.saveChannelsConfig();
+                // throw new Error(`Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`, { cause: error });
+                throw error; // rethrow error
+            }
+        } else if (Config.getInstance().cfg("app_url") == "debug") {
+            Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Not subscribing to ${channel.login} due to debug app_url.`);
+        } else if (Config.getInstance().cfg("isolated_mode")) {
+            Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Not subscribing to ${channel.login} due to isolated mode.`);
+        } else {
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Can't subscribe to ${channel.login} due to either no app_url or isolated mode disabled.`);
             TwitchChannel.channels_config = TwitchChannel.channels_config.filter(ch => ch.login !== config.login); // remove channel from config
             TwitchChannel.saveChannelsConfig();
-            // throw new Error(`Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`, { cause: error });
-            throw error; // rethrow error
+            throw new Error("Can't subscribe due to either no app_url or isolated mode disabled.");
         }
 
         TwitchChannel.channels.push(channel);

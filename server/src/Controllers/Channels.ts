@@ -271,7 +271,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
     Log.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.add", `Created channel: ${new_channel.login}`);
 
     res.send({
-        data: new_channel,
+        data: await new_channel.toAPI(),
         status: "OK",
         message: `Channel '${new_channel.login}' created`,
     });

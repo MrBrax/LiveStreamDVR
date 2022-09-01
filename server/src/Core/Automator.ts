@@ -129,10 +129,10 @@ export class Automator {
      * Entrypoint for stream capture, this is where all Twitch EventSub (webhooks) end up.
      */
     public async handle(data: EventSubResponse, request: express.Request) {
-        Log.logAdvanced(LOGLEVEL.DEBUG, "automator", "Handle called, proceed to parsing.");
+        Log.logAdvanced(LOGLEVEL.DEBUG, "automator.handle", "Handle called, proceed to parsing.");
 
         if (!request.header("Twitch-Eventsub-Message-Id")) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "automator", "No twitch message id supplied to handle");
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator.handle", "No twitch message id supplied to handle");
             return false;
         }
 
@@ -158,7 +158,7 @@ export class Automator {
 
             // check if channel is in config, copypaste
             if (!TwitchChannel.getChannelByLogin(this.broadcaster_user_login)) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Handle (update) triggered with sub id ${subscription_id}, but username '${this.broadcaster_user_login}' is not in config.`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator.handle", `Handle (update) triggered with sub id ${subscription_id}, but username '${this.broadcaster_user_login}' is not in config.`);
 
                 // 5head solution
                 // TwitchHelper.channelUnsubscribe($this->broadcaster_user_id);
@@ -168,19 +168,19 @@ export class Automator {
 
             // KeyValue.getInstance().set("${this.broadcaster_user_login}.last.update", (new DateTime())->format(DateTime::ATOM));
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.last.update`, new Date().toISOString());
-            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel update for ${this.broadcaster_user_login}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Automator channel.update event for ${this.broadcaster_user_login}`);
 
             await this.updateGame();
         } else if (subscription_type == "stream.online" && "id" in event) {
 
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.last.online`, new Date().toISOString());
-            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Stream online for ${this.broadcaster_user_login} (retry ${message_retry})`);
+            Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Automator stream.online event for ${this.broadcaster_user_login} (retry ${message_retry})`);
 
             // const channel_obj = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
 
             // check if channel is in config, hmm
             if (!this.channel) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Handle (online) triggered with sub id ${subscription_id}, but username '${this.broadcaster_user_login}' is not in config.`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator.handle", `Handle (online) triggered with sub id ${subscription_id}, but username '${this.broadcaster_user_login}' is not in config.`);
 
                 // 5head solution
                 // TwitchHelper.channelUnsubscribe($this->broadcaster_user_id);
@@ -189,7 +189,7 @@ export class Automator {
             }
 
             if (this.channel.is_live) {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator", `${this.broadcaster_user_login} is already live, yet another stream online event received.`);
+                Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `${this.broadcaster_user_login} is already live, yet another stream online event received.`);
             }
 
             KeyValue.getInstance().setBool(`${this.broadcaster_user_login}.online`, true);
@@ -199,7 +199,7 @@ export class Automator {
             fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify({ time: new Date(), action: "online" }) + "\n", { flag: "a" });
 
             if (this.channel.no_capture) {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Skip capture for ${this.broadcaster_user_login} because no-capture is set`);
+                Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Skip capture for ${this.broadcaster_user_login} because no-capture is set`);
                 if (this.channel) this.channel.broadcastUpdate();
                 return false;
             }
@@ -211,7 +211,7 @@ export class Automator {
             // const folder_base = TwitchHelper.vodFolder(this.broadcaster_user_login);
 
             if (TwitchVOD.hasVod(basename)) {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} online, but vod ${basename} already exists, skipping`);
+                Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Channel ${this.broadcaster_user_login} online, but vod ${basename} already exists, skipping`);
                 return false;
             }
 
@@ -238,7 +238,7 @@ export class Automator {
 
         } else {
 
-            Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No supported subscription type (${subscription_type}).`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator.handle", `No supported subscription type (${subscription_type}).`);
         }
 
     }
@@ -456,7 +456,7 @@ export class Automator {
             if (streams && streams.length > 0) {
 
                 if (KeyValue.getInstance().getBool(`${this.broadcaster_user_login}.online`) === false) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} is offline but we managed to get stream data, so it's online? 🤔`);
+                    Log.logAdvanced(LOGLEVEL.INFO, "automator", `Get chapter data: Channel ${this.broadcaster_user_login} is offline but we managed to get stream data, so it's online? 🤔`);
                 }
 
                 KeyValue.getInstance().setBool(`${this.broadcaster_user_login}.online`, true); // if status has somehow been set to false, set it back to true
@@ -469,13 +469,13 @@ export class Automator {
 
                 } else {
 
-                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", "No viewer count in metadata request.");
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", "Get chapter data: No viewer count in metadata request.");
 
                 }
 
             } else {
 
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", "No streams in metadata request.");
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator", "Get chapter data: No streams in metadata request.");
 
             }
         }
@@ -506,10 +506,10 @@ export class Automator {
      */
     public async end() {
 
-        Log.logAdvanced(LOGLEVEL.INFO, "automator", "Stream end");
+        Log.logAdvanced(LOGLEVEL.INFO, "automator.end", "Stream end");
 
         KeyValue.getInstance().set(`${this.broadcaster_user_login}.last.offline`, new Date().toISOString());
-        Log.logAdvanced(LOGLEVEL.INFO, "automator", `Stream offline for ${this.broadcaster_user_login}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "automator.end", `Stream offline for ${this.broadcaster_user_login}`);
 
         // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
 
@@ -539,10 +539,10 @@ export class Automator {
             try {
                 download_success = await this.channel.downloadLatestVod(this.channel.download_vod_at_end_quality);
             } catch (err) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Error downloading VOD at end: ${this.basename()} (${(err as Error).message})`, err);
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator.end", `Error downloading VOD at end: ${this.basename()} (${(err as Error).message})`, err);
             }
             if (download_success !== "") {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Downloaded VOD at end: ${this.basename()}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "automator.end", `Downloaded VOD at end: ${this.basename()}`);
                 if (!this.vod) {
                     this.vod = this.channel.latest_vod;
                 }
@@ -570,16 +570,16 @@ export class Automator {
         // TODO: call this when a non-captured stream ends too
         if (this.channel && this.vod) {
             if (this.channel.download_chat && this.vod.twitch_vod_id) {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Auto download chat on ${this.vod.basename}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "automator.onEndDownload", `Auto download chat on ${this.vod.basename}`);
 
                 try {
                     await this.vod.downloadChat();
                 } catch (error) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to download chat for ${this.vod.basename}: ${(error as Error).message}`);
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator.onEndDownload", `Failed to download chat for ${this.vod.basename}: ${(error as Error).message}`);
                 }
 
                 if (this.channel.burn_chat) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", "Automatic chat burning has been disabled until settings have been implemented.");
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator.onEndDownload", "Automatic chat burning has been disabled until settings have been implemented.");
                     // if ($vodclass->renderChat()) {
                     // 	$vodclass->burnChat();
                     // }
@@ -606,7 +606,7 @@ export class Automator {
                         options
                     );
                 } catch (error) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Auto exporter error: ${(error as Error).message}`);
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator.onEndDownload", `Auto exporter error: ${(error as Error).message}`);
                 }
 
                 if (exporter) {
@@ -615,16 +615,16 @@ export class Automator {
                         if (!exporter) return;
                         if (out_path) {
                             exporter.verify().then(status => {
-                                Log.logAdvanced(LOGLEVEL.SUCCESS, "automator", "Exporter finished for " + this.basename);
+                                Log.logAdvanced(LOGLEVEL.SUCCESS, "automator.onEndDownload", "Exporter finished for " + this.basename);
                             }).catch(error => {
-                                Log.logAdvanced(LOGLEVEL.ERROR, "automator", (error as Error).message ? `Verify error: ${(error as Error).message}` : "Unknown error occurred while verifying export");
+                                Log.logAdvanced(LOGLEVEL.ERROR, "automator.onEndDownload", (error as Error).message ? `Verify error: ${(error as Error).message}` : "Unknown error occurred while verifying export");
                             });
 
                         } else {
-                            Log.logAdvanced(LOGLEVEL.ERROR, "automator", "Exporter finished but no path output.");
+                            Log.logAdvanced(LOGLEVEL.ERROR, "automator.onEndDownload", "Exporter finished but no path output.");
                         }
                     }).catch(error => {
-                        Log.logAdvanced(LOGLEVEL.ERROR, "automator", (error as Error).message ? `Export error: ${(error as Error).message}` : "Unknown error occurred while exporting export");
+                        Log.logAdvanced(LOGLEVEL.ERROR, "automator.onEndDownload", (error as Error).message ? `Export error: ${(error as Error).message}` : "Unknown error occurred while exporting export");
                     });
 
                 }
@@ -634,14 +634,14 @@ export class Automator {
 
             // this is a slow solution since we already remux the vod to mp4, and here we reencode that file
             if (Config.getInstance().cfg("reencoder.enabled")) {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Auto reencoding on ${this.vod.basename}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "automator.onEndDownload", `Auto reencoding on ${this.vod.basename}`);
                 try {
                     await this.vod.reencodeSegments(
                         true,
                         Config.getInstance().cfg("reencoder.delete_source", false) // o_o
                     );
                 } catch (error) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Failed to reencode ${this.vod.basename}: ${(error as Error).message}`);
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator.onEndDownload", `Failed to reencode ${this.vod.basename}: ${(error as Error).message}`);
                 }
             }
 
@@ -982,6 +982,11 @@ export class Automator {
             // disable channel hosting
             cmd.push("--twitch-disable-hosting");
 
+            if (fs.existsSync(path.join(BaseConfigDataFolder.config, "twitch_oauth.txt"))) {
+                const token = fs.readFileSync(path.join(BaseConfigDataFolder.config, "twitch_oauth.txt"));
+                cmd.push(`--twitch-api-header=Authentication=OAuth ${token}`);
+            }
+
             // enable low latency mode, probably not a good idea without testing
             if (Config.getInstance().cfg("low_latency", false)) {
                 cmd.push("--twitch-low-latency");
@@ -1181,7 +1186,7 @@ export class Automator {
                 }
 
                 if (data.includes("Writing output to")) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "automator", "Writing output");
+                    Log.logAdvanced(LOGLEVEL.INFO, "automator", "Streamlink now writing output to container.");
                     if (this.vod) {
                         this.vod.capture_started2 = new Date();
                         this.vod.broadcastUpdate();

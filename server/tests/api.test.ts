@@ -38,7 +38,7 @@ beforeAll(async () => {
             id: "12345",
             login: "test",
             display_name: "test",
-            type: "channel",
+            type: "",
             broadcaster_type: "partner",
             description: "test",
             profile_image_url: "test",
@@ -47,6 +47,7 @@ beforeAll(async () => {
             created_at: "test",
             _updated: 1234,
             cache_avatar: "test",
+            cache_offline_image: "",
         } as UserData);
     });
 
@@ -102,27 +103,30 @@ describe("channels", () => {
         expect(res.body).toHaveProperty("data.free_size");
     });
 
-    it("should add a channel", async () => {
+    const add_data = {
+        login: "test",
+        quality: "best 1080p60",
+        match: "",
+        download_chat: true,
+        live_chat: false,
+        burn_chat: false,
+        no_capture: false,
+        no_cleanup: true,
+        max_storage: 2,
+        max_vods: 5,
+    };
+    
+    it("should add a channel in isolated mode", async () => {
 
-        const res = await request(app).post("/api/v0/channels").send({
-            login: "test",
-            quality: "best 1080p60",
-            match: "",
-            download_chat: true,
-            live_chat: false,
-            burn_chat: false,
-            no_capture: false,
-            no_cleanup: true,
-            max_storage: 2,
-            max_vods: 5,
-        });
-
-        expect(res.body.message).toContain("'test' created");
-        expect(res.body.data).toHaveProperty("display_name");
-        expect(res.status).toBe(200);
-
-        expect(spy1).toHaveBeenCalled();
-        expect(spy2).toHaveBeenCalled();
+        Config.getInstance().setConfig("app_url", "");
+        Config.getInstance().setConfig("isolated_mode", true);
+        const res3 = await request(app).post("/api/v0/channels").send(add_data);
+        expect(res3.body.message).toContain("'test' created");
+        expect(res3.body.data).toHaveProperty("display_name");
+        expect(res3.status).toBe(200);
+        
+        TwitchChannel.channels = [];
+        TwitchChannel.channels_config = [];
 
     });
 
@@ -141,8 +145,59 @@ describe("channels", () => {
         });
 
         expect(res.status).toBe(400);
+        expect(res.body.message).toContain("Invalid quality");
 
         expect(spy1).not.toHaveBeenCalled();
+
+    });
+
+    it("should fail adding channel due to subscribe stuff", async () => {
+        
+        // both disabled
+        Config.getInstance().setConfig("app_url", "");
+        Config.getInstance().setConfig("isolated_mode", false);
+        const res1 = await request(app).post("/api/v0/channels").send(add_data);
+        expect(res1.body.message).toContain("no app_url");
+        expect(res1.status).toBe(400);
+
+        // debug app url
+        // Config.getInstance().setConfig("app_url", "debug");
+        // Config.getInstance().setConfig("isolated_mode", false);
+        // const res2 = await request(app).post("/api/v0/channels").send(add_data);
+        // expect(res2.body.message).toContain("'test' created");
+        // expect(res2.body.data).toHaveProperty("display_name");
+        // expect(res2.status).toBe(200);
+
+        // isolated mode
+        // Config.getInstance().setConfig("app_url", "");
+        // Config.getInstance().setConfig("isolated_mode", true);
+        // const res3 = await request(app).post("/api/v0/channels").send(add_data);
+        // expect(res3.body.message).toContain("'test' created");
+        // expect(res3.body.data).toHaveProperty("display_name");
+        // expect(res3.status).toBe(200);
+        // 
+        // TwitchChannel.channels = [];
+        // TwitchChannel.channels_config = [];
+
+    });
+
+    it("should add a channel", async () => {
+
+        Config.getInstance().setConfig("app_url", "https://example.com");
+        Config.getInstance().setConfig("isolated_mode", false);
+        const res4 = await request(app).post("/api/v0/channels").send(add_data);
+        expect(res4.body.message).toContain("'test' created");
+        expect(res4.body.data).toHaveProperty("display_name");
+        expect(res4.status).toBe(200);
+
+        // TwitchChannel.channels = [];
+        // TwitchChannel.channels_config = [];
+
+        expect(spy1).toHaveBeenCalled();
+        expect(spy2).toHaveBeenCalled();
+
+        Config.getInstance().setConfig("app_url", "");
+        Config.getInstance().setConfig("isolated_mode", false);
 
     });
 

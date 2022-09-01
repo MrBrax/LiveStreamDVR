@@ -1130,7 +1130,7 @@ export class TwitchVOD {
         if (this.is_capturing || this.is_converting) return;
         if (!this.started_at) return;
 
-        Log.logAdvanced(LOGLEVEL.INFO, "vod.matchProviderVod", `Matching ${this.basename} to provider`);
+        Log.logAdvanced(LOGLEVEL.INFO, "vod.matchProviderVod", `Trying to match ${this.basename} to provider...`);
 
         const channel_videos = await TwitchVOD.getVideos(this.streamer_id);
         if (!channel_videos) {
@@ -1147,7 +1147,7 @@ export class TwitchVOD {
 
             if (Math.abs(this.started_at.getTime() - video_time.getTime()) < 1000 * 60 * 5) { // 5 minutes
 
-                Log.logAdvanced(LOGLEVEL.INFO, "vod.matchProviderVod", `Found matching VOD for ${this.basename}`);
+                Log.logAdvanced(LOGLEVEL.SUCCESS, "vod.matchProviderVod", `Found matching VOD for ${this.basename}`);
 
                 this.twitch_vod_id = video.id;
                 this.twitch_vod_duration = Helper.parseTwitchDuration(video.duration);
@@ -1167,7 +1167,7 @@ export class TwitchVOD {
         this.twitch_vod_neversaved = true;
         this.twitch_vod_exists = false;
 
-        Log.logAdvanced(LOGLEVEL.INFO, "vod.matchProviderVod", `No matching VOD for ${this.basename}`);
+        Log.logAdvanced(LOGLEVEL.ERROR, "vod.matchProviderVod", `No matching VOD for ${this.basename}`);
 
         this.broadcastUpdate();
 
