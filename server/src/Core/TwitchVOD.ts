@@ -224,7 +224,7 @@ export class TwitchVOD {
         // const dur = this.getDurationLive();
         // this.duration_live = dur === false ? -1 : dur;
 
-        this.webpath = `${Config.getInstance().cfg<string>("basepath", "")}/vods/${Config.getInstance().cfg<boolean>("channel_folders") && this.streamer_login ? this.streamer_login : ""}`;
+        this.webpath = `${Config.getInstance().cfg<string>("basepath", "")}/vods/` + path.relative(BaseConfigDataFolder.vod, this.directory);
 
         this.comment = this.json.comment;
         this.prevent_deletion = this.json.prevent_deletion ?? false;

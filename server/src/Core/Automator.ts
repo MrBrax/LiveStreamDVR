@@ -22,7 +22,6 @@ import { JobStatus, nonGameCategories, NotificationCategory } from "../../../com
 import chalk from "chalk";
 import { Sleep } from "../Helpers/Sleep";
 import { ClientBroker } from "./ClientBroker";
-import { replaceAll } from "../Helpers/ReplaceAll";
 import { ChapterUpdateData } from "../../../common/Webhook";
 import sanitize from "sanitize-filename";
 import { formatString } from "../../../common/Format";
@@ -60,17 +59,32 @@ export class Automator {
     private vod_season?: string; // why is this a string
     private vod_episode?: number;
 
-    public basename() {
+    public basedir(): string {
+        if (Config.getInstance().cfg<boolean>("vod_folders")) {
+            return path.join(
+                this.getLogin(),
+                this.basename()
+            );
+        } else {
+            return this.getLogin();
+        }
+    }
+
+    public basename(): string {
         // return `${this.getLogin()}_${replaceAll(this.getStartDate(), ":", "_")}_${this.getVodID()}`; // TODO: replaceAll
         const variables: Record<string, string> = {
             login: this.getLogin(),
-            date: replaceAll(this.getStartDate(), ":", "_"),
+            date: this.getStartDate().replaceAll(":", "_"),
             id: this.getVodID().toString(),
             season: this.vod_season || "",
             episode: this.vod_episode ? this.vod_episode.toString() : "",
         };
         const basename = sanitize(formatString(Config.getInstance().cfg("filename_vod"), variables));
         return basename;
+    }
+
+    public fulldir(): string {
+        return path.join(BaseConfigDataFolder.vod, this.basedir());
     }
 
     public getVodID() {
@@ -104,6 +118,7 @@ export class Automator {
         return `twitch.tv/${this.broadcaster_user_login}`;
     }
 
+    /*
     public getCaptureFilename(segment_number: number) {
         const folder_base = Helper.vodFolder(this.getLogin());
         if (segment_number === 0) {
@@ -112,6 +127,7 @@ export class Automator {
             return path.join(folder_base, `${this.basename()}_${segment_number}.ts`);
         }
     }
+    */
 
     /*
     public convertUpdateEventToOnlineEvent(event: EventSubChannelUpdate) {
@@ -672,12 +688,12 @@ export class Automator {
         }
 
         const temp_basename = this.basename();
-        const folder_base = Helper.vodFolder(this.getLogin());
+        const folder_base = this.fulldir();
 
         // make a folder for the streamer if it for some reason doesn't exist, but it should get created in the config
         if (!fs.existsSync(folder_base)) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "automator", `Making folder for ${data_username}, unusual.`);
-            fs.mkdirSync(folder_base);
+            Log.logAdvanced(LOGLEVEL.DEBUG, "automator", `Making folder for ${temp_basename}.`);
+            fs.mkdirSync(folder_base, { recursive: true });
         }
 
         // if running

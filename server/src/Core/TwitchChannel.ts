@@ -3,6 +3,7 @@ import chalk from "chalk";
 import chokidar from "chokidar";
 import { format, parseJSON } from "date-fns";
 import fs from "fs";
+import readdirSyncRecursive from "fs-readdir-recursive";
 import { encode as htmlentities } from "html-entities";
 import path from "path";
 import { TwitchVODChapterJSON } from "Storage/JSON";
@@ -137,9 +138,22 @@ export class TwitchChannel {
         return Helper.vodFolder(this.login);
     }
 
+    public rescanVods(): string[] {
+        const list = readdirSyncRecursive(this.getFolder())
+            .filter(file =>
+                file.endsWith(".json") &&
+                fs.statSync(path.join(this.getFolder(), file)).size < 1024 * 1024
+            );
+        return list.map(
+            p => path.relative(
+                BaseConfigDataFolder.vod,
+                path.join(this.getFolder(), p)
+            ));
+    }
+
     private async parseVODs(api = false): Promise<void> {
 
-        // $this->vods_raw = glob($this->getFolder() . DIRECTORY_SEPARATOR . $this->login . "_*.json");
+        /*
         this.vods_raw = fs.readdirSync(this.getFolder())
             .filter(file =>
                 (
@@ -149,6 +163,21 @@ export class TwitchChannel {
                 file.endsWith(".json") &&
                 !file.endsWith("_chat.json") // bad workaround
             );
+        */
+
+        if (fs.existsSync(path.join(BaseConfigDataFolder.vods_db, `${this.login}.json`))) {
+            let list: string[] = JSON.parse(fs.readFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.login}.json`), { encoding: "utf-8" }));
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Found ${list.length} stored VODs in database for ${this.login}`);
+            console.log(list);
+            list = list.filter(p => fs.existsSync(path.join(BaseConfigDataFolder.vod, p)));
+            console.log(list);
+            this.vods_raw = list;
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Found ${this.vods_raw.length} existing VODs in database for ${this.login}`);
+        } else {
+            this.vods_raw = this.rescanVods();
+            Log.logAdvanced(LOGLEVEL.INFO, "channel", `No VODs in database found for ${this.login}, migrate ${this.vods_raw.length} from recursive file search`);
+            fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.login}.json`), JSON.stringify(this.vods_raw));
+        }
 
         this.vods_list = [];
 
@@ -156,7 +185,7 @@ export class TwitchChannel {
 
             Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Try to parse VOD ${vod}`);
 
-            const vod_full_path = path.join(this.getFolder(), vod);
+            const vod_full_path = path.join(BaseConfigDataFolder.vod, vod);
 
             let vodclass;
 
@@ -405,6 +434,10 @@ export class TwitchChannel {
         // TwitchVOD.addVod(vod);
         this.vods_list.push(load_vod);
 
+        // add to database
+        this.vods_raw.push(path.relative(BaseConfigDataFolder.vod, filename));
+        fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.login}.json`), JSON.stringify(this.vods_raw));
+
         this.checkStaleVodsInMemory();
 
         return load_vod;
@@ -429,6 +462,10 @@ export class TwitchChannel {
         Log.logAdvanced(LOGLEVEL.INFO, "channel", `Remove VOD JSON for ${this.login}: ${basename}`);
 
         this.vods_list = this.vods_list.filter(v => v.basename !== basename);
+
+        // remove vod from database
+        this.vods_raw = this.vods_raw.filter(p => p !== path.relative(BaseConfigDataFolder.vod, vod.filename));
+        fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.login}.json`), JSON.stringify(this.vods_raw));
 
         TwitchVOD.removeVod(basename);
 

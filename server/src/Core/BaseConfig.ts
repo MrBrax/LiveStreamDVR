@@ -61,6 +61,7 @@ export const BaseConfigDataFolder = {
     public_cache_avatars: path.join(DataRoot, "cache", "public", "avatars"),
     public_cache_banners: path.join(DataRoot, "cache", "public", "banners"),
     public_cache_thumbs: path.join(DataRoot, "cache", "public", "thumbs"),
+    vods_db: path.join(DataRoot, "config", "vods_db"),
 };
 
 export const BaseConfigPath = {
