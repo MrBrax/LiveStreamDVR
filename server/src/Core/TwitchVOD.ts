@@ -2361,37 +2361,52 @@ export class TwitchVOD {
         // console.log(`Stopped watching ${this.basename}`);
     }
 
-    public changeBaseName(new_basename: string) {
-        if (this.basename == new_basename) return;
+    public async changeBaseName(new_basename: string): Promise<boolean> {
+        if (this.basename == new_basename) return false;
         const old_basename = this.basename;
 
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Changing basename from ${old_basename} to ${new_basename}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass.changeBaseName", `Changing basename from ${old_basename} to ${new_basename}`);
 
-        for (const file of this.associatedFiles) {
-            const file_path = path.join(this.directory, file);
+        await this.stopWatching();
+
+        // copy array so it doesn't change during loop
+        const associatedFiles = [...this.associatedFiles];
+
+        for (const file of associatedFiles) {
+            if (this.segments_raw.map(s => path.basename(s)).includes(file)) {
+                Log.logAdvanced(LOGLEVEL.INFO, "vodclass.changeBaseName", `Skip over assoc '${file}' due to it being a segment!`);
+                continue;
+            }
+            const file_path = path.join(this.directory, path.basename(file));
             if (fs.existsSync(file_path)) {
-                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Rename assoc ${file_path} to ${replaceAll(file_path, old_basename, new_basename)}`);
-                fs.renameSync(file_path, replaceAll(file_path, old_basename, new_basename));
+                Log.logAdvanced(LOGLEVEL.INFO, "vodclass.changeBaseName", `Rename assoc '${file_path}' to '${file_path.replaceAll(old_basename, new_basename)}'`);
+                fs.renameSync(file_path, file_path.replaceAll(old_basename, new_basename));
             } else {
-                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `File assoc ${file_path} not found!`);
+                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass.changeBaseName", `File assoc '${file_path}' not found!`);
             }
         }
 
+        const new_segments = [];
         for (const segment of this.segments_raw) {
             const file_path = path.join(this.directory, path.basename(segment));
             if (fs.existsSync(file_path)) {
-                Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Rename segment ${file_path} to ${replaceAll(file_path, old_basename, new_basename)}`);
-                fs.renameSync(file_path, replaceAll(file_path, old_basename, new_basename));
+                Log.logAdvanced(LOGLEVEL.INFO, "vodclass.changeBaseName", `Rename segment '${file_path}' to '${file_path.replaceAll(old_basename, new_basename)}'`);
+                fs.renameSync(file_path, file_path.replaceAll(old_basename, new_basename));
+                new_segments.push(path.basename(file_path.replaceAll(old_basename, new_basename)));
             } else {
-                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Segment ${file_path} not found!`);
+                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass.changeBaseName", `Segment '${file_path}' not found!`);
             }
         }
 
-
         this.basename = new_basename;
-        this.filename = replaceAll(this.filename, old_basename, new_basename);
+        this.filename = this.filename.replaceAll(old_basename, new_basename);
         this.setupFiles();
-        this.rebuildSegmentList();
+        this.segments_raw = new_segments;
+        this.parseSegments(this.segments_raw);
+        await this.saveJSON("basename rename");
+        // this.rebuildSegmentList();
+        await this.startWatching();
+        return true;
     }
 
     /**
