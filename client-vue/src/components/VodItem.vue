@@ -439,6 +439,14 @@
                         <span>{{ $t('buttons.edit') }}</span>
                     </button>
 
+                    <!-- Vod edit menu -->
+                    <button v-if="showAdvanced" class="button is-confirm" @click="renameVodMenu ? (renameVodMenu.show = true) : ''">
+                        <span class="icon">
+                            <fa icon="pencil" type="fa"></fa>
+                        </span>
+                        <span>{{ $t('buttons.rename') }}</span>
+                    </button>
+
                     <!-- Delete -->
                     <button class="button is-danger" @click="doDelete" :disabled="vod.prevent_deletion">
                         <span class="icon">
@@ -1152,10 +1160,33 @@
             </div>
         </div>
     </modal-box>
+    <modal-box ref="renameVodMenu" :title="$t('vod.edit.rename-vod')">
+        <div class="field">
+            {{ $t('vod.rename.current-name-vod-basename', [vod?.basename]) }}
+        </div>
+        <div class="field">
+            <label class="label">{{ $t('vod.edit.template') }}</label>
+            <div class="control">
+                <input class="input" type="text" v-model="renameVodSettings.template" />
+                <ul class="template-replacements">
+                    <li v-for="t in VodBasenameFields">{{ t }}</li>
+                </ul>
+                <p class="template-preview">{{ renameVodTemplatePreview }}</p>
+            </div>
+        </div>
+        <div class="field">
+            <button class="button is-confirm" @click="doRenameVod">
+                <span class="icon"><fa icon="save" /></span>
+                <span>{{ $t("buttons.rename") }}</span>
+            </button>
+        </div>
+    </modal-box> 
 </template>
 
 <script lang="ts">
 import type { ApiJob } from "../../../common/Api/Client";
+import type { VodBasenameTemplate } from "@common/Replacements";
+import { VodBasenameFields } from "@common/ReplacementsConsts";
 import { defineComponent, ref } from "vue";
 import DurationDisplay from "@/components/DurationDisplay.vue";
 // import { format, toDate, parse } from 'date-fns';
@@ -1192,6 +1223,7 @@ import TwitchVOD from "@/core/vod";
 import { AudioMetadata } from "@common/MediaInfo";
 import { formatString } from "@common/Format";
 import { YouTubeCategories } from "@/defs";
+import { format } from "date-fns";
 library.add(
     faFileVideo,
     faCut,
@@ -1227,6 +1259,7 @@ export default defineComponent({
         const playerMenu = ref<InstanceType<typeof ModalBox>>();
         const editVodMenu = ref<InstanceType<typeof ModalBox>>();
         const exportVodMenu = ref<InstanceType<typeof ModalBox>>();
+        const renameVodMenu = ref<InstanceType<typeof ModalBox>>();
         return {
             store,
             burnMenu,
@@ -1237,7 +1270,9 @@ export default defineComponent({
             VideoQualityArray,
             editVodMenu,
             exportVodMenu,
+            renameVodMenu,
             YouTubeCategories,
+            VodBasenameFields
         };
     },
     data() {
@@ -1286,6 +1321,9 @@ export default defineComponent({
                 prevent_deletion: false,
                 segments: "",
             },
+            renameVodSettings: {
+                template: "",
+            },
             exportVodSettings: {
                 exporter: "file",
                 title_template: "[{login}] {title} ({date})",
@@ -1333,6 +1371,8 @@ export default defineComponent({
             this.exportVodSettings.vod = this.vod.basename;
             this.applyDefaultExportSettings();
         }
+
+        this.renameVodSettings.template = this.store.cfg("filename_vod", "");
     },
     props: {
         vod: Object as () => TwitchVOD,
@@ -1666,7 +1706,19 @@ export default defineComponent({
             if (this.store.cfg("exporter.default.password")) this.exportVodSettings.password = this.store.cfg("exporter.default.password");
             if (this.store.cfg("exporter.default.description")) this.exportVodSettings.description = this.store.cfg("exporter.default.description");
             if (this.store.cfg("exporter.default.tags")) this.exportVodSettings.tags = this.store.cfg("exporter.default.tags");
-        }
+        },
+        doRenameVod() {
+            this.$http.post(`/api/v0/vod/${this.vod?.basename}/rename`, this.renameVodSettings).then((response) => {
+                const json: ApiResponse = response.data;
+                if (json.message) alert(json.message);
+                console.log(json);
+                this.store.fetchAndUpdateStreamerList();
+                if (this.renameVodMenu) this.renameVodMenu.show = false;
+            }).catch((err) => {
+                console.error("form error", err.response);
+                if (err.response.data && err.response.data.message) alert(err.response.data.message);
+            });
+        },
     },
     computed: {
         compDownloadChat(): boolean {
@@ -1712,6 +1764,18 @@ export default defineComponent({
             if (!this.vod) return false;
             if (!this.vod.video_metadata) return false;
             return this.vod.video_metadata.type == 'audio';
+        },
+        renameVodTemplatePreview(): string {
+            if (!this.vod) return "";
+            const replacements: VodBasenameTemplate = {
+                login: this.vod.streamer_login,
+                date: this.vod.started_at ? format(this.vod.started_at, "yyyy-MM-dd'T'HH:mm:ss'Z'").replaceAll(":", "_") : "",
+                id: "1234",
+                season: this.vod.stream_season || "",
+                episode: this.vod.stream_number ? this.vod.stream_number.toString() : "",
+            };
+            const replaced_string = formatString(this.renameVodSettings.template, replacements);
+            return replaced_string;
         }
     },
     components: {

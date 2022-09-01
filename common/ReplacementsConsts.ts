@@ -1,0 +1,1 @@
+export const VodBasenameFields = ["login", "date", "id", "season", "episode"];

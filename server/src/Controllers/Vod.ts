@@ -1,10 +1,15 @@
+import { Config } from "../Core/Config";
+import { format } from "date-fns";
 import express from "express";
 import fs from "fs";
 import path from "path";
+import sanitize from "sanitize-filename";
 import { ApiErrorResponse, ApiResponse, ApiVodResponse } from "../../../common/Api/Api";
 import { TwitchVODBookmark } from "../../../common/Bookmark";
 import { VideoQuality } from "../../../common/Config";
 import { VideoQualityArray } from "../../../common/Defs";
+import { formatString } from "../../../common/Format";
+import type { VodBasenameTemplate } from "../../../common/Replacements";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { Helper } from "../Core/Helper";
 import { Log, LOGLEVEL } from "../Core/Log";
@@ -572,5 +577,40 @@ export async function GetSync(req: express.Request, res: express.Response): Prom
     res.send({
         data,
     });
+
+}
+
+export async function RenameVod(req: express.Request, res: express.Response): Promise<void> {
+
+    const vod = TwitchVOD.getVod(req.params.basename);
+
+    if (!vod) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const template = req.body.template;
+
+    const variables: VodBasenameTemplate = {
+        login: vod.streamer_login,
+        date: vod.started_at ? format(vod.started_at, Helper.TWITCH_DATE_FORMAT).replaceAll(":", "_") : "",
+        id: vod.capture_id || "",
+        season: vod.stream_season || "",
+        episode: vod.stream_number ? vod.stream_number.toString() : "",
+    };
+    
+    const basename = sanitize(formatString(template || Config.getInstance().cfg("filename_vod"), variables));
+
+    await vod.changeBaseName(basename);
+
+    res.send({
+        status: "OK",
+        message: basename,
+    } as ApiResponse);
+
+    return;
 
 }
