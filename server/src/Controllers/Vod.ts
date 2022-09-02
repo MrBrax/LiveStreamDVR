@@ -265,7 +265,7 @@ export async function CheckMute(req: express.Request, res: express.Response): Pr
     res.send({
         status: "OK",
         data: {
-            vod: vod,
+            vod: await vod.toAPI(),
             muted: is_muted,
         },
     } as ApiResponse);
