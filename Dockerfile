@@ -14,7 +14,7 @@ FROM node:18-bullseye-slim
 RUN apt-get update && apt-get install -y \
     python3 python3-pip \
     ffmpeg mediainfo \
-    bash git curl unzip \
+    bash git curl unzip rclone \
     && apt-get clean
 
 # install yarn
