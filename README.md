@@ -45,6 +45,10 @@ etc. I have only tested this with Nginx and letsencrypt.
 
 Post issues/help on the issues tab above. I already run an up to date version, so starting fresh might break stuff.
 
+Thanks to the contributors that helped expand the project!
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y4ES6VE)
+
 ---
 
 ## Migration from the PHP version
