@@ -69,7 +69,7 @@ export class RCloneExporter extends BaseExporter {
             job.on("log", (stream, text) => {
                 const percent = text.match(/([0-9]+)%/);
                 if (percent) {
-                    job.setProgress(percent[1]);
+                    job.setProgress(parseInt(percent[1])/100);
                 }
             });
 

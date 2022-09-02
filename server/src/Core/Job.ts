@@ -606,6 +606,7 @@ export class Job extends EventEmitter {
     }
 
     private progressAccumulator = 0; // FIXME: i hate this implementation
+    private progressUpdatesCleared = 0;
     public setProgress(progress: number): void {
         if (progress > this.progress) {
             // console.debug(`Job ${this.name} progress: ${progress}`);
@@ -627,7 +628,10 @@ export class Job extends EventEmitter {
                 // console.debug(`Job ${this.name} did not change progress by more than 2%`);
             }
             */
-            if (this._progressTimer) clearTimeout(this._progressTimer);
+            if (this._progressTimer) {
+                clearTimeout(this._progressTimer);
+                this.progressUpdatesCleared++;
+            } 
             this._progressTimer = setTimeout(() => {
                 if (!this || this.status !== JobStatus.RUNNING) return; 
                 this.progress = progress;
@@ -635,7 +639,8 @@ export class Job extends EventEmitter {
                     "job_name": this.name || "",
                     "progress": progress,
                 });
-            }, 1000);
+                this.progressUpdatesCleared = 0;
+            }, this.progressUpdatesCleared > 5 ? 0 : 2000);
         } else {
             // console.debug(`Job ${this.name} less progress: ${progress} / ${this.progress}`);
         }
