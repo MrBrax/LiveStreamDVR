@@ -1,5 +1,6 @@
 import { Helper } from "../Core/Helper";
 import path from "path";
+import fs from "fs";
 import sanitize from "sanitize-filename";
 import { BaseExporter } from "./Base";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
@@ -31,6 +32,9 @@ export class RCloneExporter extends BaseExporter {
             if (!this.directory) throw new Error("No directory");
             if (!this.remote) throw new Error("No remote");
             if (!this.getFormattedTitle()) throw new Error("No title");
+            if (!fs.existsSync(path.join(BaseConfigDataFolder.config, "rclone.conf"))) {
+                throw new Error("rclone.conf not found. Place it in the config folder.");
+            }
 
             const final_filename = sanitize(this.getFormattedTitle()) + "." + this.extension;
 

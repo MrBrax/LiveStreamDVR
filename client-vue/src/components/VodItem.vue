@@ -1027,6 +1027,22 @@
                     <option value="rclone">RClone</option>
                 </select>
             </div>
+            <p v-if="exportVodSettings.exporter == 'youtube'">
+                Upload videos directly to YouTube. It will only work for a limited time every time you authenticate, so it cannot be automated at this time.<br />
+                The API set up is quite cumbersome too, requiring your channel to be reviewed.
+            </p>
+            <p v-if="exportVodSettings.exporter == 'ftp'">
+                Old and outdated file transfer protocol. I would not suggest using this. If you insist, use it only on LAN.<br />
+                It is not encrypted and will send both your username/password and files for MITM to see.
+            </p>
+            <p v-if="exportVodSettings.exporter == 'sftp'">
+                Only key-file based authentication is supported. It should be automatically handled by SSH, if you know what that means.
+            </p>
+            <p v-if="exportVodSettings.exporter == 'rclone'">
+                RClone is a multi-protocol file management program.<br />
+                Generate a config file with <code>rclone config</code> and place <code>rclone.conf</code> in the <code>config</code> directory.<br />
+                Read more at <a href="https://rclone.org/" rel="noreferrer" target="_blank">https://rclone.org/</a>
+            </p>
         </div>
 
         <!-- File -->
@@ -1065,6 +1081,9 @@
             <label class="label">{{ $t('vod.export.directory') }}</label>
             <div class="control">
                 <input class="input" type="text" v-model="exportVodSettings.directory" />
+                <p class="input-help">
+                    The folder where you want the file to end up in. Both local and remote.
+                </p>
             </div>
         </div>
 
