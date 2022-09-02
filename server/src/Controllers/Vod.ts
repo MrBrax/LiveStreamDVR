@@ -597,6 +597,9 @@ export async function RenameVod(req: express.Request, res: express.Response): Pr
     const variables: VodBasenameTemplate = {
         login: vod.streamer_login,
         date: vod.started_at ? format(vod.started_at, Helper.TWITCH_DATE_FORMAT).replaceAll(":", "_") : "",
+        year: vod.started_at ? format(vod.started_at, "yyyy") : "",
+        month: vod.started_at ? format(vod.started_at, "MM") : "", 
+        day: vod.started_at ? format(vod.started_at, "dd") : "", 
         id: vod.capture_id || "",
         season: vod.stream_season || "",
         episode: vod.stream_number ? vod.stream_number.toString() : "",

@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-import { formatDistanceToNow, parseJSON } from "date-fns";
+import { format, formatDistanceToNow, parseJSON } from "date-fns";
 import express from "express";
 import fs from "fs";
 import { IncomingHttpHeaders } from "http";
@@ -72,9 +72,15 @@ export class Automator {
     }
 
     public vodFolderTemplate(): string {
+
+        const date = parseJSON(this.getStartDate());
+
         const variables: VodBasenameTemplate = {
             login: this.getLogin(),
             date: this.getStartDate().replaceAll(":", "_"),
+            year: date ? format(date, "yyyy") : "",
+            month: date ? format(date, "MM") : "",
+            day: date ? format(date, "dd") : "",
             id: this.getVodID().toString(),
             season: this.vod_season || "",
             episode: this.vod_episode ? this.vod_episode.toString() : "",
@@ -84,10 +90,15 @@ export class Automator {
     }
 
     public vodBasenameTemplate(): string {
-        // return `${this.getLogin()}_${replaceAll(this.getStartDate(), ":", "_")}_${this.getVodID()}`; // TODO: replaceAll
+
+        const date = parseJSON(this.getStartDate());
+
         const variables: VodBasenameTemplate = {
             login: this.getLogin(),
             date: this.getStartDate().replaceAll(":", "_"),
+            year: date ? format(date, "yyyy") : "",
+            month: date ? format(date, "MM") : "",
+            day: date ? format(date, "dd") : "",
             id: this.getVodID().toString(),
             season: this.vod_season || "",
             episode: this.vod_episode ? this.vod_episode.toString() : "",
