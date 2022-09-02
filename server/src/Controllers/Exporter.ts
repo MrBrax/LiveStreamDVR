@@ -1,4 +1,3 @@
-import { RCloneExporter } from "Exporters/RClone";
 import express from "express";
 import path from "path";
 import sanitize from "sanitize-filename";
@@ -7,6 +6,7 @@ import { BaseConfigDataFolder, DataRoot } from "../Core/BaseConfig";
 import { TwitchVOD } from "../Core/TwitchVOD";
 import { FileExporter } from "../Exporters/File";
 import { FTPExporter } from "../Exporters/FTP";
+import { RCloneExporter } from "../Exporters/RClone";
 import { SFTPExporter } from "../Exporters/SFTP";
 import { YouTubeExporter } from "../Exporters/YouTube";
 import { validatePath } from "./Files";

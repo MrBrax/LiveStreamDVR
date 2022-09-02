@@ -2,7 +2,7 @@ import { Helper } from "../Core/Helper";
 import path from "path";
 import sanitize from "sanitize-filename";
 import { BaseExporter } from "./Base";
-import { BaseConfigDataFolder } from "Core/BaseConfig";
+import { BaseConfigDataFolder } from "../Core/BaseConfig";
 
 export class RCloneExporter extends BaseExporter {
 

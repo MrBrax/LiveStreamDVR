@@ -1713,6 +1713,7 @@ export default defineComponent({
             if (this.store.cfg("exporter.default.password")) this.exportVodSettings.password = this.store.cfg("exporter.default.password");
             if (this.store.cfg("exporter.default.description")) this.exportVodSettings.description = this.store.cfg("exporter.default.description");
             if (this.store.cfg("exporter.default.tags")) this.exportVodSettings.tags = this.store.cfg("exporter.default.tags");
+            if (this.store.cfg("exporter.default.remote")) this.exportVodSettings.remote = this.store.cfg("exporter.default.remote");
         },
         doRenameVod() {
             this.$http.post(`/api/v0/vod/${this.vod?.basename}/rename`, this.renameVodSettings).then((response) => {

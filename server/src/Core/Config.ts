@@ -192,13 +192,14 @@ export class Config {
 
         { "key": "no_vod_convert", "group": "Video", "text": "Don't convert VODs", "type": "boolean", "default": false },
 
-        { "key": "exporter.default.exporter",       "group": "Exporter", "text": "Default exporter", "type": "array", "default": "file", "choices": ["file", "sftp"], "help": "Default exporter for exporter." },
-        { "key": "exporter.default.directory",      "group": "Exporter", "text": "Default directory", "type": "string", "help": "Default directory for exporter." },
-        { "key": "exporter.default.host",           "group": "Exporter", "text": "Default host", "type": "string", "help": "Default host for exporter." },
-        { "key": "exporter.default.username",       "group": "Exporter", "text": "Default username", "type": "string", "help": "Default username for exporter." },
-        { "key": "exporter.default.password",       "group": "Exporter", "text": "Default password", "type": "string", "help": "Default password for exporter. This is stored unencrypted." },
-        { "key": "exporter.default.description",    "group": "Exporter", "text": "Default description", "type": "string", "help": "Default description for exporter." },
-        { "key": "exporter.default.tags",           "group": "Exporter", "text": "Default tags", "type": "string", "help": "Default tags for exporter." },
+        { "key": "exporter.default.exporter",       "group": "Exporter", "text": "Default exporter", "type": "array", "default": "file", "choices": ["file", "sftp", "ftp", "rclone"], "help": "Default exporter for exporter." },
+        { "key": "exporter.default.directory",      "group": "Exporter", "text": "Default directory", "type": "string" },
+        { "key": "exporter.default.host",           "group": "Exporter", "text": "Default host", "type": "string" },
+        { "key": "exporter.default.username",       "group": "Exporter", "text": "Default username", "type": "string" },
+        { "key": "exporter.default.password",       "group": "Exporter", "text": "Default password", "type": "string", "help": "This is stored unencrypted." },
+        { "key": "exporter.default.description",    "group": "Exporter", "text": "Default description", "type": "string", "help": "YouTube description." },
+        { "key": "exporter.default.tags",           "group": "Exporter", "text": "Default tags", "type": "string", "help": "YouTube tags." },
+        { "key": "exporter.default.remote",         "group": "Exporter", "text": "Default remote", "type": "string", "help": "For RClone." },
         { "key": "exporter.auto.enabled",           "group": "Exporter", "text": "Enable auto exporter", "type": "boolean", "default": false, "help": "Enable auto exporter. Not implemented yet." },
 
         { "key": "scheduler.clipdownload.enabled",  "group": "Scheduler (Clip Download)", "text": "Enable clip download scheduler", "type": "boolean", "default": false },
