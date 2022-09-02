@@ -1770,6 +1770,9 @@ export default defineComponent({
             const replacements: VodBasenameTemplate = {
                 login: this.vod.streamer_login,
                 date: this.vod.started_at ? format(this.vod.started_at, "yyyy-MM-dd'T'HH:mm:ss'Z'").replaceAll(":", "_") : "",
+                year: this.vod.started_at ? format(this.vod.started_at, "yyyy") : "",
+                month: this.vod.started_at ? format(this.vod.started_at, "MM") : "", 
+                day: this.vod.started_at ? format(this.vod.started_at, "dd") : "", 
                 id: "1234",
                 season: this.vod.stream_season || "",
                 episode: this.vod.stream_number ? this.vod.stream_number.toString() : "",

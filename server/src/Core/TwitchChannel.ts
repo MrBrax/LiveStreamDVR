@@ -151,7 +151,7 @@ export class TwitchChannel {
             ));
     }
 
-    private async parseVODs(api = false): Promise<void> {
+    public async parseVODs(api = false, rescan = false): Promise<void> {
 
         /*
         this.vods_raw = fs.readdirSync(this.getFolder())
@@ -165,7 +165,7 @@ export class TwitchChannel {
             );
         */
 
-        if (fs.existsSync(path.join(BaseConfigDataFolder.vods_db, `${this.login}.json`))) {
+        if (fs.existsSync(path.join(BaseConfigDataFolder.vods_db, `${this.login}.json`)) && !rescan) {
             let list: string[] = JSON.parse(fs.readFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.login}.json`), { encoding: "utf-8" }));
             Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Found ${list.length} stored VODs in database for ${this.login}`);
             console.log(list);
@@ -220,6 +220,16 @@ export class TwitchChannel {
 
             this.vods_list.push(vodclass);
         }
+    }
+
+    public clearVODs(): void {
+        TwitchVOD.vods.forEach(v => {
+            if (v.streamer_login !== this.login) return;
+            v.stopWatching();
+        });
+        TwitchVOD.vods = TwitchVOD.vods.filter(v => v.streamer_login !== this.login);
+        this.vods_raw = [];
+        this.vods_list = [];
     }
 
     public getSubscriptionStatus(): boolean {

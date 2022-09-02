@@ -712,13 +712,6 @@ export class Automator {
         }
 
         const temp_basename = this.vodBasenameTemplate();
-        const folder_base = this.fulldir();
-
-        // make a folder for the streamer if it for some reason doesn't exist, but it should get created in the config
-        if (!fs.existsSync(folder_base)) {
-            Log.logAdvanced(LOGLEVEL.DEBUG, "automator", `Making folder for ${temp_basename}.`);
-            fs.mkdirSync(folder_base, { recursive: true });
-        }
 
         // if running
         const job = Job.findJob(`capture_${temp_basename}`);
@@ -762,6 +755,13 @@ export class Automator {
         this.vod_episode = this.channel.incrementStreamNumber();
 
         const basename = this.vodBasenameTemplate();
+
+        // folder base depends on vod season/episode now
+        const folder_base = this.fulldir();
+        if (!fs.existsSync(folder_base)) {
+            Log.logAdvanced(LOGLEVEL.DEBUG, "automator", `Making folder for ${temp_basename}.`);
+            fs.mkdirSync(folder_base, { recursive: true });
+        }
 
         if (TwitchVOD.hasVod(basename)) {
             Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Cancel download of ${basename}, vod already exists`);

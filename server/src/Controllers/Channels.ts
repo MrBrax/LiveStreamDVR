@@ -668,7 +668,7 @@ export function GetHistory(req: express.Request, res: express.Response): void {
 
 }
 
-export function ScanVods(req: express.Request, res: express.Response): void {
+export async function ScanVods(req: express.Request, res: express.Response): Promise<void> {
 
     const channel = TwitchChannel.getChannelByLogin(req.params.login);
 
@@ -680,10 +680,15 @@ export function ScanVods(req: express.Request, res: express.Response): void {
         return;
     }
 
-    channel.vods_raw = channel.rescanVods();
-    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Found ${channel.vods_raw.length} VODs from recursive file search for ${channel.login}`);
-    fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${channel.login}.json`), JSON.stringify(channel.vods_raw));
-    channel.broadcastUpdate();
+    // channel.vods_raw = channel.rescanVods();
+    // Log.logAdvanced(LOGLEVEL.INFO, "channel", `Found ${channel.vods_raw.length} VODs from recursive file search for ${channel.login}`);
+    // fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${channel.login}.json`), JSON.stringify(channel.vods_raw));
+    // channel.broadcastUpdate();
+    // console.log("vod amount sanity check 1", TwitchVOD.vods.length);
+    channel.clearVODs();
+    // console.log("vod amount sanity check 2", TwitchVOD.vods.length);
+    await channel.parseVODs(false, true);
+    // console.log("vod amount sanity check 3", TwitchVOD.vods.length);
 
     res.send({
         status: "OK",
