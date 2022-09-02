@@ -424,7 +424,7 @@ export const useStore = defineStore("twitchAutomator", {
             console.log("play media", source);
         },
         keyEvent(key: string) {
-            console.log("key down", key);
+            // console.log("key down", key);
         }
     },
     getters: {

@@ -99,6 +99,7 @@ export default defineComponent({
             password: "",
             expandAll: false,
             keySub: () => {},
+            keyMeme: [] as string[],
         };
     },
     mounted() {
@@ -114,6 +115,29 @@ export default defineComponent({
                     });
                 }
             }
+            switch (key) {
+                case "q":
+                    this.$router.push({ name: "Dashboard" });
+                    break;
+                case "w":
+                    this.$router.push({ name: "Files" });
+                    break;
+                case "e":
+                    this.$router.push({ name: "Tools" });
+                    break;
+                case "r":
+                    this.$router.push({ name: "Settings" });
+                    break;
+                case "t":
+                    this.$router.push({ name: "About" });
+                    break;
+            
+                default:
+                    break;
+                
+            }
+            this.keyMeme.push(key); if (this.keyMeme.length > 10) this.keyMeme.splice(0, 1);
+            if (this.keyMeme.join(" ") == "ArrowUp ArrowUp ArrowDown ArrowDown ArrowLeft ArrowRight ArrowLeft ArrowRight b a") document.location = 'https://youtu.be/dQw4w9WgXcQ';
         });
     },
     unmounted() {
