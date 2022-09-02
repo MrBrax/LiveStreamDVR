@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-import { format, formatDistanceToNow, parseJSON } from "date-fns";
+import { format, formatDistanceToNow, isValid, parseJSON } from "date-fns";
 import express from "express";
 import fs from "fs";
 import { IncomingHttpHeaders } from "http";
@@ -37,9 +37,9 @@ export class Automator {
 
     realm = "twitch";
 
-    private broadcaster_user_id = "";
-    private broadcaster_user_login = "";
-    private broadcaster_user_name = "";
+    public broadcaster_user_id = "";
+    public broadcaster_user_login = "";
+    public broadcaster_user_name = "";
 
     payload_eventsub: EventSubResponse | undefined;
     payload_headers: IncomingHttpHeaders | undefined;
@@ -75,36 +75,44 @@ export class Automator {
 
         const date = parseJSON(this.getStartDate());
 
+        if (!date || !isValid(date)) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator.vodFolderTemplate", `Invalid start date: ${this.getStartDate()}`);
+        }
+
         const variables: VodBasenameTemplate = {
             login: this.getLogin(),
             date: this.getStartDate().replaceAll(":", "_"),
-            year: date ? format(date, "yyyy") : "",
-            month: date ? format(date, "MM") : "",
-            day: date ? format(date, "dd") : "",
+            year: isValid(date) ? format(date, "yyyy") : "",
+            month: isValid(date) ? format(date, "MM") : "",
+            day: isValid(date) ? format(date, "dd") : "",
             id: this.getVodID().toString(),
             season: this.vod_season || "",
             episode: this.vod_episode ? this.vod_episode.toString() : "",
         };
-        const basename = sanitize(formatString(Config.getInstance().cfg("filename_vod_folder"), variables));
-        return basename;
+
+        return sanitize(formatString(Config.getInstance().cfg("filename_vod_folder"), variables));
     }
 
     public vodBasenameTemplate(): string {
 
         const date = parseJSON(this.getStartDate());
 
+        if (!date || !isValid(date)) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator.vodBasenameTemplate", `Invalid start date: ${this.getStartDate()}`);
+        }
+
         const variables: VodBasenameTemplate = {
             login: this.getLogin(),
             date: this.getStartDate().replaceAll(":", "_"),
-            year: date ? format(date, "yyyy") : "",
-            month: date ? format(date, "MM") : "",
-            day: date ? format(date, "dd") : "",
+            year: isValid(date) ? format(date, "yyyy") : "",
+            month: isValid(date) ? format(date, "MM") : "",
+            day: isValid(date) ? format(date, "dd") : "",
             id: this.getVodID().toString(),
             season: this.vod_season || "",
             episode: this.vod_episode ? this.vod_episode.toString() : "",
         };
-        const basename = sanitize(formatString(Config.getInstance().cfg("filename_vod"), variables));
-        return basename;
+
+        return sanitize(formatString(Config.getInstance().cfg("filename_vod"), variables));
     }
 
     public fulldir(): string {
