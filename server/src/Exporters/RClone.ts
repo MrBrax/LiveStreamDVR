@@ -62,7 +62,7 @@ export class RCloneExporter extends BaseExporter {
             }
 
             job.on("error", (err) => {
-                console.error("sftp error", err);
+                console.error("rclone error", err);
                 reject(err);
             });
 
@@ -75,7 +75,13 @@ export class RCloneExporter extends BaseExporter {
 
             job.on("clear", (code: number) => {
                 if (code !== 0) {
-                    reject(new Error(`Failed to clear, code ${code}`));
+                    if (job.stderr.join("").includes("didn't find section in config file")) {
+                        reject(new Error(`Could not find remote '${this.remote}' in config file`));
+                    } else if (job.stderr.join("").includes("The system cannot find the path specified.")) {
+                        reject(new Error("The system cannot find the path specified."));
+                    } else {
+                        reject(new Error(`Failed to clear, code ${code}`));
+                    }
                 } else {
                     resolve(linux_path);
                 }

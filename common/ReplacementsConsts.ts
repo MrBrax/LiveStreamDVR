@@ -26,5 +26,8 @@ export const ExporterFilenameFields: TemplateFields = {
     stream_number: { display: "5" },
     comment: { display: "Comment" },
     date: { display: "2020-12-31" },
+    year: { "display": "2020" },
+    month: { "display": "12" },
+    day: { "display": "31" },
     resolution: { display: "1080p" },
 };

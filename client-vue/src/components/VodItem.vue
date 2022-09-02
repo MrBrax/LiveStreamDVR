@@ -1048,17 +1048,15 @@
             <label class="label">{{ $t('vod.export.title-template') }}</label>
             <div class="control">
                 <input class="input" type="text" v-model="exportVodSettings.title_template" />
-            </div>
-            <div class="control">
-                <ul>
+                <ul class="template-replacements">
                     <li v-for="(v, k) in ExporterFilenameFields">{{ k }}</li>
                 </ul>
-            </div>
-            <div class="control" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp' || exportVodSettings.exporter == 'rclone'">
-                {{ templatePreview(exportVodSettings.title_template) }}.mp4
-            </div>
-            <div class="control" v-else-if="exportVodSettings.exporter == 'youtube'">
-                {{ templatePreview(exportVodSettings.title_template) }}
+                <p class="template-preview" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp' || exportVodSettings.exporter == 'rclone'">
+                    {{ templatePreview(exportVodSettings.title_template) }}.mp4
+                </p>
+                <p class="template-preview" v-else-if="exportVodSettings.exporter == 'youtube'">
+                    {{ templatePreview(exportVodSettings.title_template) }}
+                </p>
             </div>
         </div>
 

@@ -15,9 +15,12 @@ export interface ExporterFilenameTemplate extends Record<string, string> {
     stream_number: string;
     comment: string;
     date: string;
+    year: string;
+    month: string;
+    day: string;
     resolution: string;
 }
 
 export interface TemplateFields {
-    [key: string]: { display: string };
+    [key: string]: { display: string; description?: string; };
 }
