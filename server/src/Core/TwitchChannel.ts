@@ -1,6 +1,7 @@
 import axios from "axios";
 import chalk from "chalk";
 import chokidar from "chokidar";
+import { randomUUID } from "crypto";
 import { format, parseJSON } from "date-fns";
 import fs from "fs";
 import readdirSyncRecursive from "fs-readdir-recursive";
@@ -435,6 +436,8 @@ export class TwitchChannel {
         vod.streamer_id = this.userid;
 
         vod.created_at = new Date();
+
+        vod.uuid = randomUUID();
 
         await vod.saveJSON("create json");
 

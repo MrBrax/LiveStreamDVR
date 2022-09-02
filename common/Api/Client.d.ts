@@ -45,6 +45,7 @@ export type ApiGame = {
 };
 
 export type ApiVod = {
+    uuid?: string;
     basename: string;
 
     stream_title: string;

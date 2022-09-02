@@ -13,6 +13,7 @@ import { TwitchVODBookmark } from "@common/Bookmark";
 // const store = useStore();
 
 export default class TwitchVOD {
+    uuid? = "";
     basename = "";
 
     is_capturing = false;
@@ -75,6 +76,7 @@ export default class TwitchVOD {
 
     public static makeFromApiResponse(apiResponse: ApiVod): TwitchVOD {
         const vod = new TwitchVOD();
+        vod.uuid = apiResponse.uuid;
         vod.basename = apiResponse.basename;
         vod.is_capturing = apiResponse.is_capturing;
         vod.is_converting = apiResponse.is_converting;

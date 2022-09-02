@@ -293,27 +293,33 @@ export class Automator {
 
     public async updateGame(from_cache = false, no_run_check = false) {
 
-        const basename = this.vodBasenameTemplate();
-
-        const is_live = KeyValue.getInstance().getBool(`${this.broadcaster_user_login}.online`);
+        // const basename = this.vodBasenameTemplate();
+        const is_live = KeyValue.getInstance().getBool(`${this.getLogin()}.online`);
 
         // if online
         if (this.channel?.is_capturing) {
 
             // const folder_base = TwitchHelper.vodFolder(this.getLogin());
 
-            const vod = TwitchVOD.getVod(basename);
+            const capture_id = KeyValue.getInstance().get(`${this.getLogin()}.vod.id`);
+
+            if (!capture_id) {
+                Log.logAdvanced(LOGLEVEL.FATAL, "automator", `No capture ID for channel ${this.getLogin()} stream, can't update chapter on capture.`);
+                return false;
+            }
+
+            const vod = TwitchVOD.getVodByCaptureId(capture_id);
 
             if (!vod) {
-                Log.logAdvanced(LOGLEVEL.FATAL, "automator", `Tried to load VOD ${basename} for chapter update but errored.`);
+                Log.logAdvanced(LOGLEVEL.FATAL, "automator", `Tried to load VOD ${capture_id} for chapter update but errored.`);
                 Log.logAdvanced(LOGLEVEL.INFO, "automator", `Resetting online status on ${this.getLogin()}.`);
-                KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
+                KeyValue.getInstance().delete(`${this.getLogin()}.online`);
                 return false;
             }
 
             if (!no_run_check && !await vod.getCapturingStatus(true)) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `VOD ${basename} is not capturing, skipping chapter update. Removing online status.`);
-                KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `VOD ${vod.basename} is not capturing, skipping chapter update. Removing online status.`);
+                KeyValue.getInstance().delete(`${this.getLogin()}.online`);
                 return false;
             }
 
@@ -327,31 +333,31 @@ export class Automator {
                 } else if (KeyValue.getInstance().has(`${this.getLogin()}.chapterdata`)) {
                     chapter_data = KeyValue.getInstance().getObject<TwitchVODChapterJSON>(`${this.getLogin()}.chapterdata`) as TwitchVODChapterJSON; // type guard not working
                 } else {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No chapter data for ${this.broadcaster_user_login} found in cache.`);
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No chapter data for ${this.getLogin()} found in cache.`);
                     return false;
                 }
             } else if (this.payload_eventsub && "title" in this.payload_eventsub.event) {
                 if (!this.payload_eventsub || !this.payload_eventsub.event) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Tried to get event for ${this.broadcaster_user_login} but it was not available.`);
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Tried to get event for ${this.getLogin()} but it was not available.`);
                     return false;
                 }
                 event = this.payload_eventsub.event as ChannelUpdateEvent;
                 chapter_data = await this.getChapterData(event);
             } else {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No last resort event for ${this.broadcaster_user_login} not available.`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No last resort event for ${this.getLogin()} not available.`);
                 return false;
             }
 
             if (!chapter_data) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No chapter data for ${this.broadcaster_user_login} found.`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No chapter data for ${this.getLogin()} found.`);
                 return false;
             }
 
-            Log.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Channel data for ${this.broadcaster_user_login} fetched from ${from_cache ? "cache" : "notification"}.`);
+            Log.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Channel data for ${this.getLogin()} fetched from ${from_cache ? "cache" : "notification"}.`);
 
             const chapter = await TwitchVODChapter.fromJSON(chapter_data);
 
-            KeyValue.getInstance().setObject(`${this.broadcaster_user_login}.chapterdata`, chapter_data);
+            KeyValue.getInstance().setObject(`${this.getLogin()}.chapterdata`, chapter_data);
 
             vod.addChapter(chapter);
             await vod.saveJSON("game update");
@@ -362,12 +368,12 @@ export class Automator {
             } as ChapterUpdateData);
 
             // append chapter to history
-            fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify(chapter) + "\n", { flag: "a" });
+            fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.getLogin()}.jsonline`), JSON.stringify(chapter) + "\n", { flag: "a" });
 
             Log.logAdvanced(
                 LOGLEVEL.SUCCESS,
                 "automator",
-                `Stream updated on '${this.broadcaster_user_login}' to '${chapter_data.game_name}' (${chapter_data.title}) using ${from_cache ? "cache" : "eventsub"}.`
+                `Stream updated on '${this.getLogin()}' to '${chapter_data.game_name}' (${chapter_data.title}) using ${from_cache ? "cache" : "eventsub"}.`
             );
 
             if (this.channel) {
@@ -379,21 +385,21 @@ export class Automator {
         } else {
 
             if (!this.payload_eventsub || !this.payload_eventsub.event) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Tried to get event for ${this.broadcaster_user_login} but it was not available.`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Tried to get event for ${this.getLogin()} but it was not available.`);
                 return false;
             }
 
             if (!("title" in this.payload_eventsub.event)) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Event type was wrong for ${this.broadcaster_user_login}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Event type was wrong for ${this.getLogin()}`);
                 return false;
             }
 
             const event = this.payload_eventsub.event;
-            // KeyValue.setObject(`${this.broadcaster_user_login}.channeldata`, this.payload_eventsub.event);
+            // KeyValue.setObject(`${this.getLogin()}.channeldata`, this.payload_eventsub.event);
 
             if (this.channel) {
                 ClientBroker.notify(
-                    `${is_live ? "Live non-capturing" : "Offline"} channel ${this.broadcaster_user_login} changed status`,
+                    `${is_live ? "Live non-capturing" : "Offline"} channel ${this.getLogin()} changed status`,
                     `${event.category_name} (${event.title})`,
                     this.channel.profile_image_url,
                     "offlineStatusChange",
@@ -404,17 +410,17 @@ export class Automator {
             const chapter_data = await this.getChapterData(event);
             chapter_data.online = false;
 
-            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not capturing, saving channel data to cache: ${event.category_name} (${event.title})`);
-            KeyValue.getInstance().setObject(`${this.broadcaster_user_login}.chapterdata`, chapter_data);
+            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.getLogin()} not capturing, saving channel data to cache: ${event.category_name} (${event.title})`);
+            KeyValue.getInstance().setObject(`${this.getLogin()}.chapterdata`, chapter_data);
             if (this.channel) {
                 this.channel.broadcastUpdate();
             }
 
             // if (chapter_data.viewer_count) {
-            //     Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, but managed to get viewer count, so it's online? 🤔`);
+            //     Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.getLogin()} not online, but managed to get viewer count, so it's online? 🤔`);
             // }
 
-            // $fp = fopen(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "history" . DIRECTORY_SEPARATOR . this.broadcaster_user_login . ".jsonline", 'a');
+            // $fp = fopen(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "history" . DIRECTORY_SEPARATOR . this.getLogin() . ".jsonline", 'a');
             // fwrite($fp, json_encode($chapter) . "\n");
             // fclose($fp);
 
@@ -422,15 +428,15 @@ export class Automator {
                 setTimeout(async () => {
                     const isLive = await this.channel?.isLiveApi();
                     if (isLive) {
-                        Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} is now online, timeout check.`);
+                        Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.getLogin()} is now online, timeout check.`);
                     } else {
-                        Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} is still offline, timeout check.`);
+                        Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.getLogin()} is still offline, timeout check.`);
                     }
                 }, 30 * 1000); // remove in future, just for testing
             }
 
             if (!this.channel?.no_capture && is_live && !this.channel?.is_capturing) {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} status is online but not capturing, starting capture from chapter update.`);
+                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.getLogin()} status is online but not capturing, starting capture from chapter update.`);
                 this.download();
             }
 

@@ -52,7 +52,7 @@ const verifySignature = (request: express.Request): boolean => {
         Log.logAdvanced(LOGLEVEL.ERROR, "hook", "Missing twitch headers for signature check.");
         return false;
     }
-    
+
     // const body = JSON.stringify(request.body); // needs raw body
     const body: string = (request as any).rawBody;
 
@@ -168,7 +168,7 @@ export async function Hook(req: express.Request, res: express.Response): Promise
                 } catch (error) {
                     Log.logAdvanced(LOGLEVEL.ERROR, "hook", `Failed to dump payload to ${payload_filepath}`, error);
                 }
-                
+
             }
 
             // verify message

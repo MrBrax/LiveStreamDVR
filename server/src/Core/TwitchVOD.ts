@@ -32,6 +32,7 @@ import { TwitchGame } from "./TwitchGame";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchVODSegment } from "./TwitchVODSegment";
 import { Webhook } from "./Webhook";
+import { randomUUID } from "crypto";
 
 /**
  * Twitch VOD
@@ -48,6 +49,7 @@ export class TwitchVOD {
 
     loaded = false;
 
+    uuid = "";
     capture_id = "";
     filename = "";
     basename = "";
@@ -1384,6 +1386,7 @@ export class TwitchVOD {
     public async toAPI(): Promise<ApiVod> {
         return {
 
+            uuid: this.uuid || "",
             basename: this.basename || "",
 
             stream_title: this.stream_title,
@@ -1540,6 +1543,7 @@ export class TwitchVOD {
 
         generated.version = 2;
         generated.type = "twitch";
+        generated.uuid = this.uuid;
         generated.capture_id = this.capture_id;
         if (this.meta) generated.meta = this.meta;
         generated.stream_resolution = this.stream_resolution ?? undefined;
@@ -2025,6 +2029,11 @@ export class TwitchVOD {
                 console.log(chalk.bgRed.whiteBright(`${this.basename} has no segments starting with login ${this.streamer_login}, fixing!`));
                 this.rebuildSegmentList();
             }
+        }
+
+        if (!this.uuid) {
+            this.uuid = randomUUID();
+            await this.saveJSON("new uuid");
         }
 
     }
@@ -2642,12 +2651,6 @@ export class TwitchVOD {
 
         const basename = path.basename(filename);
 
-        const cached_vod = this.getVod(basename);
-        if (cached_vod) {
-            console.log(`[TwitchVOD] Returning cached vod ${basename}`);
-            return cached_vod;
-        }
-
         // check if file exists
         if (!fs.existsSync(filename)) {
             throw new Error("VOD JSON does not exist: " + filename);
@@ -2661,6 +2664,14 @@ export class TwitchVOD {
 
         // parse file
         let json: TwitchVODJSON = JSON.parse(data);
+
+        if (json.capture_id) {
+            const cached_vod = this.getVodByCaptureId(json.capture_id);
+            if (cached_vod) {
+                console.log(`[TwitchVOD] Returning cached vod ${basename}`);
+                return cached_vod;
+            }
+        }
 
         if (!("version" in json) || json.version < 2) {
             if (process.env.TCD_MIGRATE_OLD_VOD_JSON == "1") {
@@ -2680,6 +2691,7 @@ export class TwitchVOD {
         // create object
         const vod = new TwitchVOD();
 
+        vod.uuid = json.uuid || "";
         vod.capture_id = json.capture_id || "";
         vod.filename = filename;
         vod.basename = path.basename(filename, ".json");
@@ -2893,10 +2905,24 @@ export class TwitchVOD {
         return this.vods.findIndex(vod => vod.basename == basename) != -1;
     }
 
+    /**
+     * 
+     * @param basename 
+     * @deprecated
+     * @returns 
+     */
     public static getVod(basename: string): TwitchVOD | undefined {
         if (TwitchVOD.hasVod(basename)) {
             return TwitchVOD.vods.find(vod => vod.basename == basename);
         }
+    }
+
+    public static getVodByCaptureId(capture_id: string) {
+        return TwitchVOD.vods.find(vod => vod.capture_id == capture_id);
+    }
+
+    public static getVodByUUID(uuid: string) {
+        return TwitchVOD.vods.find(vod => vod.uuid == uuid);
     }
 
     /**

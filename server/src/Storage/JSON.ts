@@ -46,6 +46,7 @@ export interface TwitchVODJSON extends VODJSON {
     version: number;
     type: "twitch";
 
+    uuid?: string;
     capture_id?: string;
 
     meta?: EventSubResponse;
