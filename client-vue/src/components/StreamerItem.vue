@@ -81,6 +81,11 @@
                             <span class="icon"><fa icon="sync"></fa></span>
                         </button>
 
+                        <!-- scan vods -->
+                        <button class="icon-button white" title="Scan for VODs" @click="doScanVods">
+                            <span class="icon"><fa icon="folder-open"></fa></span>
+                        </button>
+
                         <!-- expand/collapse all vods -->
                         <button class="icon-button white" title="Expand/collapse all vods" @click="doToggleExpandVods">
                             <span class="icon"><fa :icon="toggleAllVodsExpanded ? 'chevron-up' : 'chevron-down'"></fa></span>
@@ -175,14 +180,14 @@ import VodItem from "@/components/VodItem.vue";
 import ModalBox from "@/components/ModalBox.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil } from "@fortawesome/free-solid-svg-icons";
+import { faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen } from "@fortawesome/free-solid-svg-icons";
 // import { TwitchAPI } from "@/twitchapi";
 import { Video } from "@common/TwitchAPI/Video";
 import TwitchChannel from "@/core/channel";
 import { useStore } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
 import { LocalClip } from "@common/LocalClip";
-library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil);
+library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen);
 
 export default defineComponent({
     name: "StreamerItem",
@@ -369,6 +374,26 @@ export default defineComponent({
             if (!this.streamer) return;
             this.$http
                 .post(`/api/v0/channels/${this.streamer.login}/refresh`)
+                .then((response) => {
+                    const json: ApiResponse = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.store.fetchStreamerList();
+                })
+                .catch((error) => {
+                    if (this.$http.isAxiosError(error)) {
+                        console.error("doChannelRefresh error", error.response);
+                        if (error.response && error.response.data && error.response.data.message) {
+                            alert(error.response.data.message);
+                        }
+                    }
+                });
+        },
+        async doScanVods() {
+            if (!this.streamer) return;
+            if (!confirm("Do you want to rescan for VODs? It might not find everything.")) return;
+            this.$http
+                .post(`/api/v0/channels/${this.streamer.login}/scan`)
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);

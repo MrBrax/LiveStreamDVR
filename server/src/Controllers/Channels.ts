@@ -667,3 +667,27 @@ export function GetHistory(req: express.Request, res: express.Response): void {
     return;
 
 }
+
+export function ScanVods(req: express.Request, res: express.Response): void {
+
+    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+
+    if (!channel || !channel.userid) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    channel.vods_raw = channel.rescanVods();
+    Log.logAdvanced(LOGLEVEL.INFO, "channel", `Found ${channel.vods_raw.length} VODs from recursive file search for ${channel.login}`);
+    fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${channel.login}.json`), JSON.stringify(channel.vods_raw));
+    channel.broadcastUpdate();
+
+    res.send({
+        status: "OK",
+        message: `Channel '${channel.login}' scanned, found ${channel.vods_raw.length} VODs.`,
+    });
+
+}

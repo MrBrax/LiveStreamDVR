@@ -44,6 +44,7 @@ router.post("/channels/:login/force_record", AuthAdmin, Channels.ForceRecord);
 router.post("/channels/:login/rename", AuthAdmin, Channels.RenameChannel);
 router.post("/channels/:login/deleteallvods", AuthAdmin, Channels.DeleteAllChannelVods);
 router.get("/channels/:login/history", AuthGuest, Channels.GetHistory);
+router.post("/channels/:login/scan", AuthGuest, Channels.ScanVods);
 
 router.get("/vod/:basename", AuthGuest, Vod.GetVod);
 router.post("/vod/:basename", AuthAdmin, Vod.EditVod);
