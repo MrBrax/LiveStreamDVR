@@ -1024,6 +1024,7 @@
                     <option value="youtube">YouTube</option>
                     <option value="sftp">SFTP</option>
                     <option value="ftp">FTP</option>
+                    <option value="rclone">RClone</option>
                 </select>
             </div>
         </div>
@@ -1050,10 +1051,10 @@
             </div>
             <div class="control">
                 <ul>
-                    <li v-for="v in exporterTemplateVariables">{{ v }}</li>
+                    <li v-for="(v, k) in ExporterFilenameFields">{{ k }}</li>
                 </ul>
             </div>
-            <div class="control" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'">
+            <div class="control" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp' || exportVodSettings.exporter == 'rclone'">
                 {{ templatePreview(exportVodSettings.title_template) }}.mp4
             </div>
             <div class="control" v-else-if="exportVodSettings.exporter == 'youtube'">
@@ -1062,7 +1063,7 @@
         </div>
 
         <!-- Directory -->
-        <div class="field" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'">
+        <div class="field" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp' || exportVodSettings.exporter == 'rclone'">
             <label class="label">{{ $t('vod.export.directory') }}</label>
             <div class="control">
                 <input class="input" type="text" v-model="exportVodSettings.directory" />
@@ -1074,6 +1075,14 @@
             <label class="label">{{ $t('vod.export.host') }}</label>
             <div class="control">
                 <input class="input" type="text" v-model="exportVodSettings.host" />
+            </div>
+        </div>
+
+        <!-- Remote -->
+        <div class="field" v-if="exportVodSettings.exporter == 'rclone'">
+            <label class="label">{{ $t('vod.export.remote') }}</label>
+            <div class="control">
+                <input class="input" type="text" v-model="exportVodSettings.remote" />
             </div>
         </div>
 
@@ -1186,7 +1195,7 @@
 <script lang="ts">
 import type { ApiJob } from "../../../common/Api/Client";
 import type { VodBasenameTemplate } from "@common/Replacements";
-import { VodBasenameFields } from "@common/ReplacementsConsts";
+import { VodBasenameFields, ExporterFilenameFields } from "@common/ReplacementsConsts";
 import { defineComponent, ref } from "vue";
 import DurationDisplay from "@/components/DurationDisplay.vue";
 // import { format, toDate, parse } from 'date-fns';
@@ -1272,7 +1281,8 @@ export default defineComponent({
             exportVodMenu,
             renameVodMenu,
             YouTubeCategories,
-            VodBasenameFields
+            VodBasenameFields,
+            ExporterFilenameFields
         };
     },
     data() {
@@ -1337,15 +1347,8 @@ export default defineComponent({
                 file_source: "segment",
                 privacy: "private",
                 vod: "",
+                remote: "",
             },
-            exporterTemplateVariables: [
-                "login",
-                "title",
-                "stream_number",
-                "comment",
-                "date",
-                "resolution",
-            ],
             newBookmark: {
                 name: "",
                 offset: 0,
@@ -1634,6 +1637,7 @@ export default defineComponent({
 
         },
         templatePreview(template: string): string {
+            /*
             const replacements = {
                 login: "TestLogin",
                 title: "TestTitle",
@@ -1643,6 +1647,9 @@ export default defineComponent({
                 comment: "TestComment", 
             };
             const replaced_string = formatString(template, replacements);
+            return replaced_string;
+            */
+            const replaced_string = formatString(template, Object.fromEntries(Object.entries(ExporterFilenameFields).map(([key, value]) => [key, value.display])));
             return replaced_string;
         },
         doExportVod() {

@@ -3,6 +3,7 @@ import path from "path";
 import fs from "fs";
 import { TwitchVOD } from "../Core/TwitchVOD";
 import { format } from "date-fns";
+import { ExporterFilenameTemplate } from "../../../common/Replacements";
 
 export class BaseExporter {
 
@@ -74,12 +75,13 @@ export class BaseExporter {
         if (this.vod.twitch_vod_title) title = this.vod.twitch_vod_title;
         if (this.vod.chapters[0]) title = this.vod.chapters[0].title;
 
-        const replacements: Record<string, string> = {
+        const replacements: ExporterFilenameTemplate = {
             login: this.vod.streamer_login,
             title: title,
             date: format(this.vod.started_at, "yyyy-MM-dd"),
             comment: this.vod.comment || "",
             stream_number: this.vod.stream_number?.toString() || "",
+            resolution: "",
         };
 
         if (this.vod.video_metadata.type == "video") {

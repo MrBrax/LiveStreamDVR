@@ -8,3 +8,16 @@ export interface VodBasenameTemplate extends Record<string, string> {
     season: string;
     episode: string;
 }
+
+export interface ExporterFilenameTemplate extends Record<string, string> {
+    login: string;
+    title: string;
+    stream_number: string;
+    comment: string;
+    date: string;
+    resolution: string;
+}
+
+export interface TemplateFields {
+    [key: string]: { display: string };
+}
