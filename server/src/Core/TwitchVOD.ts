@@ -2277,9 +2277,9 @@ export class TwitchVOD {
                 const wavconvert = await Helper.execSimple("ffmpeg", ["-i", files[f as "act" | "ref"], "-t", "00:05:00", "-vn", path.join(BaseConfigDataFolder.cache, `${f}.wav`)], `${f} ffmpeg convert`);
             }
         }
-    
+
         // somehow get the sync of the two audio files here
-    
+
     }
 
     public getStartOffset(): number | false {
@@ -2512,12 +2512,13 @@ export class TwitchVOD {
 
         for (const segment of this.segments) {
             tasks.push(new Promise((resolve, reject) => {
-                if (!segment.basename) throw new Error("No filename");
+                if (!segment.basename) { reject(new Error("No filename")); return; }
                 const file_in_path = path.join(this.directory, segment.basename);
-                if (!fs.existsSync(file_in_path)) throw new Error(`File not found: ${file_in_path}`);
+                if (!fs.existsSync(file_in_path)) { reject(new Error(`File not found: ${file_in_path}`)); return; }
                 const file_out_path = path.join(this.directory, `${segment.basename}_enc.mp4`);
                 if (fs.existsSync(file_out_path)) {
-                    throw new Error(`File ${file_out_path} already exists!`);
+                    reject(new Error(`File ${file_out_path} already exists!`));
+                    return;
                 }
 
                 const args = [];
@@ -2545,7 +2546,8 @@ export class TwitchVOD {
                 const job = Helper.startJob(`reencode_${path.basename(file_in_path)}`, ffmpeg_path, args);
 
                 if (!job || !job.process) {
-                    throw new Error("Failed to start ffmpeg");
+                    reject(new Error("Failed to start ffmpeg"));
+                    return;
                 }
 
                 let currentSeconds = 0;
@@ -2571,7 +2573,7 @@ export class TwitchVOD {
                 job.process.on("error", (err) => {
                     Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
                     // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
-                    throw new Error(`Process ${process.pid} error: ${err}`);
+                    reject(new Error(`Process ${process.pid} error: ${err}`));
                 });
 
                 job.process.on("close", (code) => {
@@ -2605,7 +2607,7 @@ export class TwitchVOD {
 
                         // for (const err of errorSearch) {
                         //    message = err[1];
-                        throw new Error(`Failed to reencode ${path.basename(file_in_path)} to ${path.basename(file_out_path)}: ${message}`);
+                        reject(new Error(`Failed to reencode ${path.basename(file_in_path)} to ${path.basename(file_out_path)}: ${message}`));
                     }
                 });
 
@@ -2618,9 +2620,11 @@ export class TwitchVOD {
 
         return Promise.all(tasks).then((results) => {
             console.debug("Reencoded", results);
+            Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Successfully reencoded ${this.basename}`);
             return true;
         }).catch((err) => {
             console.debug("Reencoded error", err);
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to reencode ${this.basename}: ${(err as Error).message}`);
             return false;
         }).finally(() => {
             this.startWatching();
