@@ -26,6 +26,7 @@ import { ChapterUpdateData } from "../../../common/Webhook";
 import sanitize from "sanitize-filename";
 import { formatString } from "../../../common/Format";
 import { Exporter, ExporterOptions, GetExporter } from "../Controllers/Exporter";
+import { VodBasenameTemplate } from "../../../common/Replacements";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
@@ -63,16 +64,28 @@ export class Automator {
         if (Config.getInstance().cfg<boolean>("vod_folders")) {
             return path.join(
                 this.getLogin(),
-                this.basename()
+                this.vodFolderTemplate()
             );
         } else {
             return this.getLogin();
         }
     }
 
-    public basename(): string {
+    public vodFolderTemplate(): string {
+        const variables: VodBasenameTemplate = {
+            login: this.getLogin(),
+            date: this.getStartDate().replaceAll(":", "_"),
+            id: this.getVodID().toString(),
+            season: this.vod_season || "",
+            episode: this.vod_episode ? this.vod_episode.toString() : "",
+        };
+        const basename = sanitize(formatString(Config.getInstance().cfg("filename_vod_folder"), variables));
+        return basename;
+    }
+
+    public vodBasenameTemplate(): string {
         // return `${this.getLogin()}_${replaceAll(this.getStartDate(), ":", "_")}_${this.getVodID()}`; // TODO: replaceAll
-        const variables: Record<string, string> = {
+        const variables: VodBasenameTemplate = {
             login: this.getLogin(),
             date: this.getStartDate().replaceAll(":", "_"),
             id: this.getVodID().toString(),
@@ -222,7 +235,7 @@ export class Automator {
 
             // $this->payload = $data['data'][0];
 
-            const basename = this.basename();
+            const basename = this.vodBasenameTemplate();
 
             // const folder_base = TwitchHelper.vodFolder(this.broadcaster_user_login);
 
@@ -261,7 +274,7 @@ export class Automator {
 
     public async updateGame(from_cache = false, no_run_check = false) {
 
-        const basename = this.basename();
+        const basename = this.vodBasenameTemplate();
 
         const is_live = KeyValue.getInstance().getBool(`${this.broadcaster_user_login}.online`);
 
@@ -508,7 +521,7 @@ export class Automator {
             return;
         }
 
-        await this.channel.cleanupVods(this.basename());
+        await this.channel.cleanupVods(this.vodBasenameTemplate());
 
     }
 
@@ -555,10 +568,10 @@ export class Automator {
             try {
                 download_success = await this.channel.downloadLatestVod(this.channel.download_vod_at_end_quality);
             } catch (err) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator.end", `Error downloading VOD at end: ${this.basename()} (${(err as Error).message})`, err);
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator.end", `Error downloading VOD at end: ${this.vodBasenameTemplate()} (${(err as Error).message})`, err);
             }
             if (download_success !== "") {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator.end", `Downloaded VOD at end: ${this.basename()}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "automator.end", `Downloaded VOD at end: ${this.vodBasenameTemplate()}`);
                 if (!this.vod) {
                     this.vod = this.channel.latest_vod;
                 }
@@ -605,7 +618,7 @@ export class Automator {
             if (Config.getInstance().cfg("exporter.auto.enabled")) {
 
                 const options: ExporterOptions = {
-                    vod: this.basename(),
+                    vod: this.vodBasenameTemplate(),
                     directory: Config.getInstance().cfg("exporter.default.directory"),
                     host: Config.getInstance().cfg("exporter.default.host"),
                     username: Config.getInstance().cfg("exporter.default.username"),
@@ -631,7 +644,7 @@ export class Automator {
                         if (!exporter) return;
                         if (out_path) {
                             exporter.verify().then(status => {
-                                Log.logAdvanced(LOGLEVEL.SUCCESS, "automator.onEndDownload", "Exporter finished for " + this.basename);
+                                Log.logAdvanced(LOGLEVEL.SUCCESS, "automator.onEndDownload", "Exporter finished for " + this.vodBasenameTemplate);
                             }).catch(error => {
                                 Log.logAdvanced(LOGLEVEL.ERROR, "automator.onEndDownload", (error as Error).message ? `Verify error: ${(error as Error).message}` : "Unknown error occurred while verifying export");
                             });
@@ -687,7 +700,7 @@ export class Automator {
             throw new Error("No data supplied");
         }
 
-        const temp_basename = this.basename();
+        const temp_basename = this.vodBasenameTemplate();
         const folder_base = this.fulldir();
 
         // make a folder for the streamer if it for some reason doesn't exist, but it should get created in the config
@@ -737,7 +750,7 @@ export class Automator {
         this.vod_season = this.channel.current_season;
         this.vod_episode = this.channel.incrementStreamNumber();
 
-        const basename = this.basename();
+        const basename = this.vodBasenameTemplate();
 
         if (TwitchVOD.hasVod(basename)) {
             Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Cancel download of ${basename}, vod already exists`);
@@ -958,12 +971,12 @@ export class Automator {
         return new Promise((resolve, reject) => {
 
             if (!this.vod) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No VOD for ${this.basename()}, this should not happen`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No VOD for ${this.vodBasenameTemplate()}, this should not happen`);
                 reject(false);
                 return;
             }
 
-            const basename = this.basename();
+            const basename = this.vodBasenameTemplate();
 
             const stream_url = this.streamURL();
 
@@ -1069,7 +1082,7 @@ export class Automator {
                 capture_job.startLog(jobName, `$ ${bin} ${cmd.join(" ")}\n`);
                 capture_job.addMetadata({
                     "login": this.getLogin(), // TODO: username?
-                    "basename": this.basename(),
+                    "basename": this.vodBasenameTemplate(),
                     "capture_filename": this.capture_filename,
                     "stream_id": this.getVodID(),
                 });
@@ -1292,13 +1305,13 @@ export class Automator {
             const chat_job = Helper.startJob(`chatdump_${this.basename()}`, chat_bin, chat_cmd);
             */
 
-            const chat_job = TwitchChannel.startChatDump(this.basename(), data_login, data_userid, parseJSON(data_started), this.chat_filename);
+            const chat_job = TwitchChannel.startChatDump(this.vodBasenameTemplate(), data_login, data_userid, parseJSON(data_started), this.chat_filename);
 
             if (chat_job && chat_job.pid) {
                 this.chatJob = chat_job;
                 this.chatJob.addMetadata({
                     "username": data_login,
-                    "basename": this.basename(),
+                    "basename": this.vodBasenameTemplate(),
                     "chat_filename": this.chat_filename,
                 });
             } else {

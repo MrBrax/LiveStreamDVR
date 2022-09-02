@@ -240,11 +240,12 @@ export default defineComponent({
                 });
         },
         templatePreview(data: SettingField<any>, template: string): string {
-            console.debug("templatePreview", data, template);
+            // console.debug("templatePreview", data, template);
             if (!data.replacements) return "";
             const replaced_string = formatString(template, Object.fromEntries(Object.entries(data.replacements).map(([key, value]) => [key, value.display])));
             if (data.context) {
-                return data.context.replace(/{template}/g, replaced_string);
+                // return data.context.replace(/{template}/g, replaced_string);
+                return formatString(data.context, Object.fromEntries(Object.entries(data.replacements).map(([key, value]) => [key, value.display]))).replace(/{template}/g, replaced_string);
             } else {
                 return replaced_string;
             }

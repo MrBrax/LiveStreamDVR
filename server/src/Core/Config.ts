@@ -6,6 +6,7 @@ import minimist from "minimist";
 import path from "path";
 import express from "express";
 import { SettingField } from "../../../common/Config";
+import { ClipBasenameFields, VodBasenameFields } from "../../../common/ReplacementsConsts";
 import { AppRoot, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot, HomeRoot } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Helper } from "./Helper";
@@ -159,14 +160,7 @@ export class Config {
             "type": "template",
             "default": "{broadcaster} - {title} [{id}] [{quality}]",
             "help": "Clip filename",
-            "replacements": {
-                id: { "display": "MinimalMooseOtterCatcher1234" },
-                quality: { "display": "720p" },
-                clip_date: { "display": "2020-01-01" },
-                title: { "display": "Moose crosses river" },
-                creator: { "display": "MooseClipper" },
-                broadcaster: { "display": "MooseStreamer" },
-            },
+            "replacements": ClipBasenameFields,
             "context": "{template}.mp4",
         },
 
@@ -176,15 +170,20 @@ export class Config {
             "text": "Vod filename",
             "type": "template",
             "default": "{login}_{date}_{id}",
-            "help": "Vod filename. This will break automatic segment finding if changed from default.",
-            "replacements": {
-                login: { "display": "MooseStreamer" },
-                date: { "display": "2020-01-01T12_05_04Z" },
-                id: { "display": "123456789" },
-                season: { "display": "2022" },
-                episode: { "display": "3" },
-            },
+            "help": "Vod filename.",
+            "replacements": VodBasenameFields,
             "context": "{template}.json, {template}.mp4",
+        },
+
+        {
+            "key": "filename_vod_folder",
+            "group": "Video",
+            "text": "Vod folder name",
+            "type": "template",
+            "default": "{login}_{date}_{id}",
+            "help": "Vod folder filename.",
+            "replacements": VodBasenameFields,
+            "context": "/vods/{login}/{template}/",
         },
 
         { "key": "min_chapter_duration", "group": "Video", "text": "Minimum chapter duration", "type": "number", "default": 0, "help": "Minimum duration in seconds for a chapter. Shorter chapters will be removed." },

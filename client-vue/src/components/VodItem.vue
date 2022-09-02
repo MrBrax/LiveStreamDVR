@@ -1169,7 +1169,7 @@
             <div class="control">
                 <input class="input" type="text" v-model="renameVodSettings.template" />
                 <ul class="template-replacements">
-                    <li v-for="t in VodBasenameFields">{{ t }}</li>
+                    <li v-for="(v, k) in VodBasenameFields">{{ k }}</li>
                 </ul>
                 <p class="template-preview">{{ renameVodTemplatePreview }}</p>
             </div>
