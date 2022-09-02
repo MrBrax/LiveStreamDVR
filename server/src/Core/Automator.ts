@@ -714,7 +714,7 @@ export class Automator {
         const temp_basename = this.vodBasenameTemplate();
 
         // if running
-        const job = Job.findJob(`capture_${temp_basename}`);
+        const job = Job.findJob(`capture_${this.getLogin()}_${this.getVodID()}`);
         if (job && await job.getStatus() === JobStatus.RUNNING) {
             const meta = job.metadata as {
                 login: string;
@@ -1082,7 +1082,7 @@ export class Automator {
 
             // make job for capture
             let capture_job: Job;
-            const jobName = `capture_${basename}`;
+            const jobName = `capture_${this.getLogin()}_${this.getVodID()}`;
 
             if (capture_process.pid) {
                 Log.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Spawned process ${capture_process.pid} for ${jobName}`);

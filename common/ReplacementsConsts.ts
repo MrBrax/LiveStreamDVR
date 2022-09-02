@@ -7,7 +7,7 @@ export const VodBasenameFields: TemplateFields = {
     month: { "display": "12" },
     day: { "display": "31" },
     id: { "display": "123456789" },
-    season: { "display": "2022" },
+    season: { "display": "202212" },
     episode: { "display": "3" },
 };
 
