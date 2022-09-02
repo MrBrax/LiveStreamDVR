@@ -15,6 +15,14 @@ export class BaseExporter {
     public output_filename = "";
     public extension = "";
 
+    public supportsDirectories = false;
+    public directoryMode = false;
+
+    setDirectoryMode(state: boolean) {
+        if (!this.supportsDirectories) return;
+        this.directoryMode = state;
+    }
+
     loadVOD(vod: TwitchVOD): boolean {
         if (!vod.filename) throw new Error("No filename");
         if (!vod.segments || vod.segments.length == 0) throw new Error("No segments");

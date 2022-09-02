@@ -15,6 +15,8 @@ export class RCloneExporter extends BaseExporter {
     public remote_file = "";
     public remote = "";
 
+    public supportsDirectories = true;
+
     setDirectory(directory: string): void {
         this.directory = directory;
     }
@@ -40,13 +42,13 @@ export class RCloneExporter extends BaseExporter {
 
             const filesystem_path = path.join(this.directory, final_filename);
             const linux_path = filesystem_path.replace(/\\/g, "/");
-            const escaped_remote_path = linux_path.includes(" ") ? `'${linux_path}'` : linux_path;
-            const remote_path = `${this.remote}:${escaped_remote_path}`;
+            // const escaped_remote_path = linux_path.includes(" ") ? `'${linux_path}'` : linux_path;
+            const remote_path = `${this.remote}:${linux_path}`;
 
             this.remote_file = linux_path;
 
-            const local_name = this.filename.replace(/\\/g, "/").replace(/^C:/, "");
-            const local_path = local_name.includes(" ") ? `'${local_name}'` : local_name;
+            // const local_name = this.filename.replace(/\\/g, "/").replace(/^C:/, "");
+            // const local_path = local_name; // local_name.includes(" ") ? `'${local_name}'` : local_name;
 
             const bin = "rclone";
 
@@ -55,7 +57,7 @@ export class RCloneExporter extends BaseExporter {
                 "--progress",
                 "--verbose",
                 "copyto",
-                local_path,
+                this.filename,
                 remote_path,
             ];
 

@@ -13,6 +13,8 @@ export class FileExporter extends BaseExporter {
 
     private final_path = "";
 
+    public supportsDirectories = true;
+
     setDirectory(directory: string): void {
         if (!directory) throw new Error("No directory");
         this.directory = directory;
