@@ -1792,15 +1792,20 @@ export default defineComponent({
         },
         renameVodTemplatePreview(): string {
             if (!this.vod) return "";
+            const date = this.vod.started_at;
             const replacements: VodBasenameTemplate = {
-                login: this.vod.streamer_login,
-                date: this.vod.started_at ? format(this.vod.started_at, "yyyy-MM-dd'T'HH:mm:ss'Z'").replaceAll(":", "_") : "",
-                year: this.vod.started_at ? format(this.vod.started_at, "yyyy") : "",
-                month: this.vod.started_at ? format(this.vod.started_at, "MM") : "", 
-                day: this.vod.started_at ? format(this.vod.started_at, "dd") : "", 
-                id: "1234",
-                season: this.vod.stream_season || "",
-                episode: this.vod.stream_number ? this.vod.stream_number.toString() : "",
+                login:      this.vod.streamer_login,
+                date:       date ? format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'").replaceAll(":", "_") : "",
+                year:       date ? format(date, "yyyy") : "",
+                year_short: date ? format(date, "yy") : "",
+                month:      date ? format(date, "MM") : "",
+                day:        date ? format(date, "dd") : "",
+                hour:       date ? format(date, "HH") : "",
+                minute:     date ? format(date, "mm") : "",
+                second:     date ? format(date, "ss") : "",
+                id:         "1234",
+                season:     this.vod.stream_season || "",
+                episode:    this.vod.stream_number ? this.vod.stream_number.toString() : "",
             };
             const replaced_string = formatString(this.renameVodSettings.template, replacements);
             return replaced_string;

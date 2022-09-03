@@ -598,13 +598,17 @@ export async function RenameVod(req: express.Request, res: express.Response): Pr
         login: vod.streamer_login,
         date: vod.started_at ? format(vod.started_at, Helper.TWITCH_DATE_FORMAT).replaceAll(":", "_") : "",
         year: vod.started_at ? format(vod.started_at, "yyyy") : "",
-        month: vod.started_at ? format(vod.started_at, "MM") : "", 
-        day: vod.started_at ? format(vod.started_at, "dd") : "", 
+        year_short: vod.started_at ? format(vod.started_at, "yy") : "",
+        month: vod.started_at ? format(vod.started_at, "MM") : "",
+        day: vod.started_at ? format(vod.started_at, "dd") : "",
+        hour: vod.started_at ? format(vod.started_at, "HH") : "",
+        minute: vod.started_at ? format(vod.started_at, "mm") : "",
+        second: vod.started_at ? format(vod.started_at, "ss") : "",
         id: vod.capture_id || "",
         season: vod.stream_season || "",
         episode: vod.stream_number ? vod.stream_number.toString() : "",
     };
-    
+
     const basename = sanitize(formatString(template || Config.getInstance().cfg("filename_vod"), variables));
 
     await vod.changeBaseName(basename);
