@@ -68,6 +68,7 @@ export default class TwitchVOD {
 
     stream_number?: number;
     stream_season?: string;
+    stream_absolute_season?: number;
 
     comment?: string;
     prevent_deletion = false;
@@ -117,6 +118,7 @@ export default class TwitchVOD {
         vod.total_size = apiResponse.total_size;
         vod.stream_number = apiResponse.stream_number;
         vod.stream_season = apiResponse.stream_season;
+        vod.stream_absolute_season = apiResponse.stream_absolute_season;
         vod.comment = apiResponse.comment;
         vod.prevent_deletion = apiResponse.prevent_deletion;
         vod.failed = apiResponse.failed || false;

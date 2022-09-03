@@ -38,7 +38,7 @@
                     </span>
                     &middot;
                     <span class="streamer-sxe" title="Season and episode">
-                        {{ streamer.current_season }}/{{ streamer.current_stream_number }}
+                        {{ streamer.current_season }}/{{ streamer.current_stream_number.toString().padStart(2, "0") }}
                     </span>
                     <span class="streamer-title-tools">
 

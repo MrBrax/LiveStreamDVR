@@ -127,6 +127,7 @@ export type ApiVod = {
 
     stream_number?: number;
     stream_season?: string;
+    stream_absolute_season?: number;
 
     comment?: string;
     prevent_deletion: boolean;

@@ -58,6 +58,7 @@ export class Automator {
     chatJob: Job | undefined;
 
     private vod_season?: string; // why is this a string
+    private vod_absolute_season?: number;
     private vod_episode?: number;
 
     public basedir(): string {
@@ -91,7 +92,8 @@ export class Automator {
             second: isValid(date) ? format(date, "ss") : "",
             id: this.getVodID().toString(),
             season: this.vod_season || "",
-            episode: this.vod_episode ? this.vod_episode.toString() : "",
+            absolute_season: this.vod_absolute_season ? this.vod_absolute_season.toString().padStart(2, "0") : "",
+            episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
         };
 
         return sanitize(formatString(Config.getInstance().cfg("filename_vod_folder"), variables));
@@ -117,7 +119,8 @@ export class Automator {
             second: isValid(date) ? format(date, "ss") : "",
             id: this.getVodID().toString(),
             season: this.vod_season || "",
-            episode: this.vod_episode ? this.vod_episode.toString() : "",
+            absolute_season: this.vod_absolute_season ? this.vod_absolute_season.toString().padStart(2, "0") : "",
+            episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
         };
 
         return sanitize(formatString(Config.getInstance().cfg("filename_vod"), variables));
@@ -774,6 +777,7 @@ export class Automator {
 
         // pre-calculate season and episode
         this.vod_season = this.channel.current_season;
+        this.vod_absolute_season = this.channel.current_absolute_season;
         this.vod_episode = this.channel.incrementStreamNumber();
 
         const basename = this.vodBasenameTemplate();
@@ -798,6 +802,8 @@ export class Automator {
         this.vod.started_at = parseJSON(data_started);
 
         this.vod.stream_number = this.channel.incrementStreamNumber();
+        // this.vod.stream_season = this.channel.current_season; /** @TODO: field? **/ 
+        this.vod.stream_absolute_season = this.channel.current_absolute_season;
 
         if (this.force_record) this.vod.force_record = true;
 

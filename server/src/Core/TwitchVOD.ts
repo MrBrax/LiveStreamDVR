@@ -143,6 +143,7 @@ export class TwitchVOD {
     webpath = "";
 
     stream_number?: number;
+    stream_absolute_season?: number;
 
     comment?: string;
 
@@ -1590,6 +1591,8 @@ export class TwitchVOD {
         generated.not_started = this.not_started;
 
         generated.stream_number = this.stream_number;
+        generated.stream_season = this.stream_season;
+        generated.stream_absolute_season = this.stream_absolute_season;
 
         generated.comment = this.comment;
 

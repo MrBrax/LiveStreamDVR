@@ -113,6 +113,7 @@ export class TwitchChannel {
 
     public current_stream_number = 0;
     public current_season = "";
+    public current_absolute_season?: number;
 
     private _updateTimer: NodeJS.Timeout | undefined;
 
@@ -802,6 +803,16 @@ export class TwitchChannel {
             this.current_season = KeyValue.getInstance().get(`${this.login}.season_identifier`) as string;
         }
 
+        // absolute season numbering, one each month that goes on forever
+        if (!KeyValue.getInstance().has(`${this.login}.absolute_season_identifier`)) {
+            KeyValue.getInstance().setInt(`${this.login}.absolute_season_identifier`, 1);
+            KeyValue.getInstance().setInt(`${this.login}.absolute_season_month`, parseInt(format(new Date(), "M")));
+            this.current_absolute_season = 1;
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Setting season for ${this.login} to ${this.current_season} as it is not set`);
+        } else {
+            this.current_absolute_season = KeyValue.getInstance().getInt(`${this.login}.absolute_season_identifier`);
+        }
+
         if (KeyValue.getInstance().has(`${this.login}.stream_number`)) {
             this.current_stream_number = KeyValue.getInstance().getInt(`${this.login}.stream_number`);
         } else {
@@ -812,6 +823,8 @@ export class TwitchChannel {
     }
 
     public incrementStreamNumber() {
+
+        // relative season
         const seasonIdentifier = KeyValue.getInstance().get(`${this.login}.season_identifier`);
         if (seasonIdentifier && seasonIdentifier !== format(new Date(), Config.SeasonFormat)) {
             this.current_stream_number = 1;
@@ -823,6 +836,14 @@ export class TwitchChannel {
             this.current_stream_number += 1;
             KeyValue.getInstance().setInt(`${this.login}.stream_number`, this.current_stream_number);
         }
+
+        // absolute season
+        if (parseInt(format(new Date(), "M")) !== KeyValue.getInstance().getInt(`${this.login}.absolute_season_month`)) {
+            KeyValue.getInstance().setInt(`${this.login}.absolute_season_month`, parseInt(format(new Date(), "M")));
+            this.current_absolute_season = this.current_absolute_season ? this.current_absolute_season + 1 : 1;
+            KeyValue.getInstance().setInt(`${this.login}.absolute_season_identifier`, this.current_absolute_season);
+        }
+
         return this.current_stream_number;
     }
 

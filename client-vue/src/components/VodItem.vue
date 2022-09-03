@@ -22,7 +22,7 @@
                         store.clientCfg('useRelativeTime') ? humanDate(vod.started_at, true) : formatDate(vod.started_at)
                     }}</span>
                     <span class="video-sxe">
-                        {{ vod.stream_season }}x{{ vod.stream_number }}
+                        {{ vod.stream_season }}x{{ vod.stream_number?.toString().padStart(2, "0") }}
                     </span>
                     <span class="video-filename">{{ vod.basename }}</span>
                 </h3>
@@ -1794,18 +1794,19 @@ export default defineComponent({
             if (!this.vod) return "";
             const date = this.vod.started_at;
             const replacements: VodBasenameTemplate = {
-                login:      this.vod.streamer_login,
-                date:       date ? format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'").replaceAll(":", "_") : "",
-                year:       date ? format(date, "yyyy") : "",
-                year_short: date ? format(date, "yy") : "",
-                month:      date ? format(date, "MM") : "",
-                day:        date ? format(date, "dd") : "",
-                hour:       date ? format(date, "HH") : "",
-                minute:     date ? format(date, "mm") : "",
-                second:     date ? format(date, "ss") : "",
-                id:         "1234",
-                season:     this.vod.stream_season || "",
-                episode:    this.vod.stream_number ? this.vod.stream_number.toString() : "",
+                login:              this.vod.streamer_login,
+                date:               date ? format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'").replaceAll(":", "_") : "",
+                year:               date ? format(date, "yyyy") : "",
+                year_short:         date ? format(date, "yy") : "",
+                month:              date ? format(date, "MM") : "",
+                day:                date ? format(date, "dd") : "",
+                hour:               date ? format(date, "HH") : "",
+                minute:             date ? format(date, "mm") : "",
+                second:             date ? format(date, "ss") : "",
+                id:                 "1234",
+                season:             this.vod.stream_season || "",
+                absolute_season:    this.vod.stream_absolute_season ? this.vod.stream_absolute_season.toString().padStart(2, "0") : "",
+                episode:            this.vod.stream_number ? this.vod.stream_number.toString().padStart(2, "0") : "",
             };
             const replaced_string = formatString(this.renameVodSettings.template, replacements);
             return replaced_string;
