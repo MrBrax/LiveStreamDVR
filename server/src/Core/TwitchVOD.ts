@@ -1979,6 +1979,13 @@ export class TwitchVOD {
                 }
             } else {
                 console.log(chalk.bgRed.whiteBright(`${this.basename} is not yet remuxed but no ts file found, skipping!`));
+
+                if (fs.existsSync(path.join(this.directory, `${this.basename}.mp4`))) {
+                    console.log(chalk.bgRed.whiteBright(`${this.basename} has an mp4 file but is not finalized!`));
+                    this.addSegment(`${this.basename}.mp4`);
+                    await this.finalize();
+                    await this.saveJSON("fix no segment added");
+                }
             }
         }
 

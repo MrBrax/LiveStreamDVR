@@ -186,7 +186,9 @@ export async function Hook(req: express.Request, res: express.Response): Promise
             if ("event" in data_json) {
                 Log.logAdvanced(LOGLEVEL.DEBUG, "hook", `Signature checked, no challenge, retry ${message_retry}. Run handle...`);
                 const TA = new Automator();
-                /* await */ TA.handle(data_json, req);
+                /* await */ TA.handle(data_json, req).catch(error => {
+                    Log.logAdvanced(LOGLEVEL.FATAL, "hook", `Automator returned error: ${error.message}`);
+                });
                 res.status(200).send("");
                 return;
             } else {
