@@ -707,506 +707,507 @@
 
             </div>
         </transition>
-    </div>
-    <modal-box ref="burnMenu" title="Render Menu" v-if="vod && vod.is_finalized && vod.video_metadata && vod.video_metadata.type !== 'audio'">
-        <div>
-            <pre>{{ vod.basename }}</pre>
-            <ul class="list" v-if="vod.video_metadata">
-                <li>
-                    <strong>{{ $t('metadata.format') }}</strong>
-                    {{ vod.video_metadata.width }}x{{ vod.video_metadata.height }}@
-                    {{ vod.video_metadata.fps }}
-                </li>
 
-                <li>
-                    <strong>{{ $t('metadata.video') }}</strong>
-                    {{ vod.video_metadata.video_codec }}
-                    {{ vod.video_metadata.video_bitrate_mode }}
-                    {{ Math.round(vod.video_metadata.video_bitrate / 1000) }}kbps
-                </li>
+        <modal-box ref="burnMenu" title="Render Menu" v-if="vod && vod.is_finalized && vod.video_metadata && vod.video_metadata.type !== 'audio'">
+            <div>
+                <pre>{{ vod.basename }}</pre>
+                <ul class="list" v-if="vod.video_metadata">
+                    <li>
+                        <strong>{{ $t('metadata.format') }}</strong>
+                        {{ vod.video_metadata.width }}x{{ vod.video_metadata.height }}@
+                        {{ vod.video_metadata.fps }}
+                    </li>
 
-                <li>
-                    <strong>{{ $t('metadata.audio') }}</strong>
-                    {{ vod.video_metadata.audio_codec }}
-                    {{ vod.video_metadata.audio_bitrate_mode }}
-                    {{ Math.round(vod.video_metadata.audio_bitrate / 1000) }}kbps
-                </li>
+                    <li>
+                        <strong>{{ $t('metadata.video') }}</strong>
+                        {{ vod.video_metadata.video_codec }}
+                        {{ vod.video_metadata.video_bitrate_mode }}
+                        {{ Math.round(vod.video_metadata.video_bitrate / 1000) }}kbps
+                    </li>
 
-                <li>
-                    <strong>{{ $t('metadata.general') }}</strong>
-                    {{ formatBytes(vod.video_metadata.size) }} / {{ vod.video_metadata.duration }}
-                </li>
-            </ul>
-            <p>Burning chat seems to work pretty good, but dumped chat+video has a pretty large offset, I have yet to find the offset anywhere.</p>
-        </div>
-        <div class="burn-preview">
-            <div class="burn-preview-chat" :style="burnPreviewChat">
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
-                Anon: Hello World<br />
+                    <li>
+                        <strong>{{ $t('metadata.audio') }}</strong>
+                        {{ vod.video_metadata.audio_codec }}
+                        {{ vod.video_metadata.audio_bitrate_mode }}
+                        {{ Math.round(vod.video_metadata.audio_bitrate / 1000) }}kbps
+                    </li>
+
+                    <li>
+                        <strong>{{ $t('metadata.general') }}</strong>
+                        {{ formatBytes(vod.video_metadata.size) }} / {{ vod.video_metadata.duration }}
+                    </li>
+                </ul>
+                <p>Burning chat seems to work pretty good, but dumped chat+video has a pretty large offset, I have yet to find the offset anywhere.</p>
             </div>
-        </div>
-        <div class="field-group">
-            <div class="field">
-                <label><input type="checkbox" v-model="burnSettings.renderChat" /> Render chat <strong v-if="vod.is_chat_rendered">(Exists)</strong></label>
+            <div class="burn-preview">
+                <div class="burn-preview-chat" :style="burnPreviewChat">
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                    Anon: Hello World<br />
+                </div>
             </div>
-            <template v-if="burnSettings.renderChat">
-                <!--<div class="field">
-                    <label><input type="checkbox" v-model="burnSettings.renderTest" /> Test duration</label>
-                </div>-->
+            <div class="field-group">
                 <div class="field">
-                    <label>
-                        <p>Chat width</p>
-                        <input class="input" type="range" min="1" :max="vod.video_metadata.width" v-model="burnSettings.chatWidth" />
-                        <br /><input class="input" type="number" v-model="burnSettings.chatWidth" />
-                        <span :class="{ 'input-help': true, error: burnSettings.chatWidth % 2 }">Chat width must be an even number.</span>
-                    </label>
+                    <label><input type="checkbox" v-model="burnSettings.renderChat" /> Render chat <strong v-if="vod.is_chat_rendered">(Exists)</strong></label>
                 </div>
-                <div class="field">
-                    <label>
-                        <p>Chat height</p>
-                        <input class="input" type="range" min="1" :max="vod.video_metadata.height" v-model="burnSettings.chatHeight" />
-                        <br /><input class="input" type="number" v-model="burnSettings.chatHeight" />
-                        <span :class="{ 'input-help': true, error: burnSettings.chatHeight % 2 }">Chat height must be an even number.</span>
-                    </label>
-                </div>
-                <div class="field">
-                    <label>
-                        <p>Video source</p>
-                        <select class="input" v-model="burnSettings.vodSource">
-                            <option value="captured">Captured</option>
-                            <option value="downloaded" :disabled="!vod.is_vod_downloaded">Downloaded</option>
-                        </select>
-                    </label>
-                </div>
-                <div class="field">
-                    <label>
-                        <p>Chat source</p>
-                        <select class="input" v-model="burnSettings.chatSource">
-                            <option value="captured">Captured</option>
-                            <option value="downloaded" :disabled="!vod.is_chat_downloaded">Downloaded</option>
-                        </select>
-                    </label>
-                </div>
-                <div class="field">
-                    <label>
-                        <p>Font</p>
-                        <select class="input" v-model="burnSettings.chatFont">
-                            <option value="Inter">Inter</option>
-                            <option value="Arial">Arial</option>
-                        </select>
-                    </label>
-                </div>
-                <div class="field">
-                    <label>
-                        <p>Font size</p>
-                        <input class="input" type="range" min="1" max="72" v-model="burnSettings.chatFontSize" />
-                        <br /><input class="input" type="number" v-model="burnSettings.chatFontSize" />
-                    </label>
-                </div>
-            </template>
-        </div>
-        <div class="field-group">
-            <div class="field">
-                <label>
-                    <input type="checkbox" v-model="burnSettings.burnChat" :disabled="!burnSettings.renderChat && !vod.is_chat_rendered" />
-                    Burn chat <strong v-if="vod.is_chat_burned">(Exists)</strong>
-                </label>
+                <template v-if="burnSettings.renderChat">
+                    <!--<div class="field">
+                        <label><input type="checkbox" v-model="burnSettings.renderTest" /> Test duration</label>
+                    </div>-->
+                    <div class="field">
+                        <label>
+                            <p>Chat width</p>
+                            <input class="input" type="range" min="1" :max="vod.video_metadata.width" v-model="burnSettings.chatWidth" />
+                            <br /><input class="input" type="number" v-model="burnSettings.chatWidth" />
+                            <span :class="{ 'input-help': true, error: burnSettings.chatWidth % 2 }">Chat width must be an even number.</span>
+                        </label>
+                    </div>
+                    <div class="field">
+                        <label>
+                            <p>Chat height</p>
+                            <input class="input" type="range" min="1" :max="vod.video_metadata.height" v-model="burnSettings.chatHeight" />
+                            <br /><input class="input" type="number" v-model="burnSettings.chatHeight" />
+                            <span :class="{ 'input-help': true, error: burnSettings.chatHeight % 2 }">Chat height must be an even number.</span>
+                        </label>
+                    </div>
+                    <div class="field">
+                        <label>
+                            <p>Video source</p>
+                            <select class="input" v-model="burnSettings.vodSource">
+                                <option value="captured">Captured</option>
+                                <option value="downloaded" :disabled="!vod.is_vod_downloaded">Downloaded</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="field">
+                        <label>
+                            <p>Chat source</p>
+                            <select class="input" v-model="burnSettings.chatSource">
+                                <option value="captured">Captured</option>
+                                <option value="downloaded" :disabled="!vod.is_chat_downloaded">Downloaded</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="field">
+                        <label>
+                            <p>Font</p>
+                            <select class="input" v-model="burnSettings.chatFont">
+                                <option value="Inter">Inter</option>
+                                <option value="Arial">Arial</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="field">
+                        <label>
+                            <p>Font size</p>
+                            <input class="input" type="range" min="1" max="72" v-model="burnSettings.chatFontSize" />
+                            <br /><input class="input" type="number" v-model="burnSettings.chatFontSize" />
+                        </label>
+                    </div>
+                </template>
             </div>
-            <template v-if="burnSettings.burnChat">
-                <!--<div class="field">
-                    <label><input type="checkbox" v-model="burnSettings.burnTest" /> Test duration</label>
-                </div>-->
+            <div class="field-group">
                 <div class="field">
                     <label>
-                        <p>Chat horizontal</p>
-                        <select class="input" v-model="burnSettings.burnHorizontal">
-                            <option value="left">Left</option>
-                            <option value="right">Right</option>
-                        </select>
+                        <input type="checkbox" v-model="burnSettings.burnChat" :disabled="!burnSettings.renderChat && !vod.is_chat_rendered" />
+                        Burn chat <strong v-if="vod.is_chat_burned">(Exists)</strong>
                     </label>
                 </div>
-                <div class="field">
-                    <label>
-                        <p>Chat vertical</p>
-                        <select class="input" v-model="burnSettings.burnVertical">
-                            <option value="top">Top</option>
-                            <option value="bottom">Bottom</option>
-                        </select>
-                    </label>
-                </div>
-                <div class="field">
-                    <label>
-                        <p>ffmpeg preset</p>
-                        <select class="input" v-model="burnSettings.ffmpegPreset">
-                            <option value="ultrafast">Ultrafast</option>
-                            <option value="superfast">Superfast</option>
-                            <option value="veryfast">Veryfast</option>
-                            <option value="faster">Faster</option>
-                            <option value="fast">Fast</option>
-                            <option value="medium">Medium</option>
-                            <option value="slow">Slow</option>
-                            <option value="slower">Slower</option>
-                            <option value="veryslow">Veryslow</option>
-                        </select>
-                    </label>
-                </div>
-                <div class="field">
-                    <label>
-                        <p>ffmpeg crf</p>
-                        <input class="input" type="range" min="0" max="51" v-model="burnSettings.ffmpegCrf" />
-                        <br />{{ burnSettings.ffmpegCrf }}
-                    </label>
-                </div>
-            </template>
-        </div>
-        <div class="field">
-            <button class="button is-confirm" @click="doRenderWizard">
-                <span class="icon"><fa icon="burn" /></span>
-                <span>Execute</span>
-            </button>
-            <span v-if="burnLoading">Running...</span>
-        </div>
-        <div class="job-status">
-            <table>
-                <tr v-for="job in burnJobs" :key="job.pid">
-                    <td>
-                        <span v-if="job.status">
-                            <span class="fa fa-spinner fa-spin"></span>
-                        </span>
-                        <span v-else>
-                            <span class="fa fa-times"></span>
-                        </span>
-                    </td>
-                    <td>
-                        {{ job.name }}
-                    </td>
-                </tr>
-            </table>
-        </div>
-    </modal-box>
-    <modal-box ref="chatDownloadMenu" title="Chat download">
-        <div class="buttons is-centered">
-            <button class="button is-confirm" @click="doDownloadChat('tcd')">
-                <span class="icon"><fa icon="download" /></span>
-                <span>{{ $t('vod.buttons.download-with', ['tcd']) }}</span>
-            </button>
-            <button class="button is-confirm" @click="doDownloadChat('td')">
-                <span class="icon"><fa icon="download" /></span>
-                <span>{{ $t('vod.buttons.download-with', ['TwitchDownloader']) }}</span>
-            </button>
-        </div>
-    </modal-box>
-    <modal-box ref="vodDownloadMenu" title="VOD download">
-        <div class="is-centered">
-            <div class="field">
-                <label class="label">Quality</label>
-                <select class="input" v-model="vodDownloadSettings.quality">
-                    <option v-for="quality in VideoQualityArray" :key="quality" :value="quality">{{ quality }}</option>
-                </select>
+                <template v-if="burnSettings.burnChat">
+                    <!--<div class="field">
+                        <label><input type="checkbox" v-model="burnSettings.burnTest" /> Test duration</label>
+                    </div>-->
+                    <div class="field">
+                        <label>
+                            <p>Chat horizontal</p>
+                            <select class="input" v-model="burnSettings.burnHorizontal">
+                                <option value="left">Left</option>
+                                <option value="right">Right</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="field">
+                        <label>
+                            <p>Chat vertical</p>
+                            <select class="input" v-model="burnSettings.burnVertical">
+                                <option value="top">Top</option>
+                                <option value="bottom">Bottom</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="field">
+                        <label>
+                            <p>ffmpeg preset</p>
+                            <select class="input" v-model="burnSettings.ffmpegPreset">
+                                <option value="ultrafast">Ultrafast</option>
+                                <option value="superfast">Superfast</option>
+                                <option value="veryfast">Veryfast</option>
+                                <option value="faster">Faster</option>
+                                <option value="fast">Fast</option>
+                                <option value="medium">Medium</option>
+                                <option value="slow">Slow</option>
+                                <option value="slower">Slower</option>
+                                <option value="veryslow">Veryslow</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="field">
+                        <label>
+                            <p>ffmpeg crf</p>
+                            <input class="input" type="range" min="0" max="51" v-model="burnSettings.ffmpegCrf" />
+                            <br />{{ burnSettings.ffmpegCrf }}
+                        </label>
+                    </div>
+                </template>
             </div>
             <div class="field">
-                <button class="button is-confirm" @click="doDownloadVod">
+                <button class="button is-confirm" @click="doRenderWizard">
+                    <span class="icon"><fa icon="burn" /></span>
+                    <span>Execute</span>
+                </button>
+                <span v-if="burnLoading">Running...</span>
+            </div>
+            <div class="job-status">
+                <table>
+                    <tr v-for="job in burnJobs" :key="job.pid">
+                        <td>
+                            <span v-if="job.status">
+                                <span class="fa fa-spinner fa-spin"></span>
+                            </span>
+                            <span v-else>
+                                <span class="fa fa-times"></span>
+                            </span>
+                        </td>
+                        <td>
+                            {{ job.name }}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </modal-box>
+        <modal-box ref="chatDownloadMenu" title="Chat download">
+            <div class="buttons is-centered">
+                <button class="button is-confirm" @click="doDownloadChat('tcd')">
                     <span class="icon"><fa icon="download" /></span>
-                    <span>Download</span>
+                    <span>{{ $t('vod.buttons.download-with', ['tcd']) }}</span>
+                </button>
+                <button class="button is-confirm" @click="doDownloadChat('td')">
+                    <span class="icon"><fa icon="download" /></span>
+                    <span>{{ $t('vod.buttons.download-with', ['TwitchDownloader']) }}</span>
                 </button>
             </div>
-        </div>
-    </modal-box>
-    <modal-box ref="playerMenu" title="Player">
-        <div class="columns">
-            <div class="column">
-                <h3>VOD source</h3>
-                <label>
-                    <input type="radio" v-model="playerSettings.vodSource" value="captured" /> Captured
-                </label>
-                <br />
-                <label>
-                    <input type="radio" v-model="playerSettings.vodSource" value="downloaded" :disabled="!vod?.is_vod_downloaded" /> Downloaded
-                </label>
-            </div>
-            <div class="column">
-                <h3>Chat source</h3>
-                <label>
-                    <input type="radio" v-model="playerSettings.chatSource" value="captured" /> Captured
-                </label>
-                <br />
-                <label>
-                    <input type="radio" v-model="playerSettings.chatSource" value="downloaded" :disabled="!vod?.is_chat_downloaded" /> Downloaded
-                </label>
-            </div>
-        </div>
-        <br />
-        <div class="field">
-            <button class="button" @click="openPlayer">
-                <fa icon="play" />
-                <span>Play</span>
-            </button>
-        </div>
-    </modal-box>
-    <modal-box ref="editVodMenu" :title="$t('vod.edit.edit-vod')">
-        <div class="field">
-            <label class="label">{{ $t('vod.edit.stream-number') }}</label>
-            <div class="control">
-                <input class="input" type="number" v-model.number="editVodSettings.stream_number" />
-            </div>
-        </div>
-        <div class="field">
-            <label class="label">{{ $t('vod.edit.comment') }}</label>
-            <div class="control">
-                <textarea class="input textarea" v-model="editVodSettings.comment" />
-            </div>
-        </div>
-        <div class="field">
-            <label class="label">{{ $t('vod.edit.segments') }}</label>
-            <div class="control">
-                <textarea class="input textarea" v-model="editVodSettings.segments" />
-            </div>
-        </div>
-        <div class="field">
-            <div class="control">
-                <label class="checkbox">
-                    <input type="checkbox" v-model="editVodSettings.prevent_deletion" />
-                    {{ $t('vod.edit.prevent-deletion') }}
-                </label>
-            </div>
-        </div>
-        <div class="field">
-            <button class="button is-confirm" @click="doEditVod">
-                <span class="icon"><fa icon="save" /></span>
-                <span>{{ $t("buttons.save") }}</span>
-            </button>
-        </div>
-    </modal-box> 
-    <modal-box ref="exportVodMenu" title="Export VOD">
-
-        <div class="notification is-error" v-if="!vod?.segments || vod.segments.length == 0">{{ $t('vod.export.no-segments') }}</div>
-
-        <!-- Exporter -->
-        <div class="field">
-            <label class="label">{{ $t('vod.export.export-type') }}</label>
-            <div class="control">
-                <select class="input" v-model="exportVodSettings.exporter">
-                    <option value="file">File</option>
-                    <option value="youtube">YouTube</option>
-                    <option value="sftp">SFTP</option>
-                    <option value="ftp">FTP</option>
-                    <option value="rclone">RClone</option>
-                </select>
-            </div>
-            <p v-if="exportVodSettings.exporter == 'youtube'">
-                Upload videos directly to YouTube. It will only work for a limited time every time you authenticate, so it cannot be automated at this time.<br />
-                The API set up is quite cumbersome too, requiring your channel to be reviewed.
-            </p>
-            <p v-if="exportVodSettings.exporter == 'ftp'">
-                Old and outdated file transfer protocol. I would not suggest using this. If you insist, use it only on LAN.<br />
-                It is not encrypted and will send both your username/password and files for MITM to see.
-            </p>
-            <p v-if="exportVodSettings.exporter == 'sftp'">
-                Only key-file based authentication is supported. It should be automatically handled by SSH, if you know what that means.
-            </p>
-            <p v-if="exportVodSettings.exporter == 'rclone'">
-                RClone is a multi-protocol file management program.<br />
-                Generate a config file with <code>rclone config</code> and place <code>rclone.conf</code> in the <code>config</code> directory.<br />
-                Read more at <a href="https://rclone.org/" rel="noreferrer" target="_blank">https://rclone.org/</a>
-            </p>
-        </div>
-
-        <!-- File -->
-        <div class="field">
-            <label class="label">{{ $t('vod.export.file-source') }}</label>
-            <div class="control">
-                <div class="select">
-                    <select v-model="exportVodSettings.file_source">
-                        <option value="segment">First captured segment</option>
-                        <option value="downloaded" :disabled="!vod?.is_vod_downloaded">Downloaded</option>
-                        <option value="burned" :disabled="!vod?.is_chat_burned">Burned</option>
+        </modal-box>
+        <modal-box ref="vodDownloadMenu" title="VOD download">
+            <div class="is-centered">
+                <div class="field">
+                    <label class="label">Quality</label>
+                    <select class="input" v-model="vodDownloadSettings.quality">
+                        <option v-for="quality in VideoQualityArray" :key="quality" :value="quality">{{ quality }}</option>
                     </select>
                 </div>
-            </div>
-        </div>
-
-        <!-- Title / Filename -->
-        <div class="field">
-            <label class="label">{{ $t('vod.export.title-template') }}</label>
-            <div class="control">
-                <input class="input" type="text" v-model="exportVodSettings.title_template" />
-                <ul class="template-replacements">
-                    <li v-for="(v, k) in ExporterFilenameFields">{{ k }}</li>
-                </ul>
-                <p class="template-preview" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp' || exportVodSettings.exporter == 'rclone'">
-                    {{ templatePreview(exportVodSettings.title_template) }}.mp4
-                </p>
-                <p class="template-preview" v-else-if="exportVodSettings.exporter == 'youtube'">
-                    {{ templatePreview(exportVodSettings.title_template) }}
-                </p>
-            </div>
-        </div>
-
-        <!-- Directory -->
-        <div class="field" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp' || exportVodSettings.exporter == 'rclone'">
-            <label class="label">{{ $t('vod.export.directory') }}</label>
-            <div class="control">
-                <input class="input" type="text" v-model="exportVodSettings.directory" />
-                <p class="input-help">
-                    The folder where you want the file to end up in. Both local and remote.
-                </p>
-            </div>
-        </div>
-
-        <!-- Host -->
-        <div class="field" v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'">
-            <label class="label">{{ $t('vod.export.host') }}</label>
-            <div class="control">
-                <input class="input" type="text" v-model="exportVodSettings.host" />
-            </div>
-        </div>
-
-        <!-- Remote -->
-        <div class="field" v-if="exportVodSettings.exporter == 'rclone'">
-            <label class="label">{{ $t('vod.export.remote') }}</label>
-            <div class="control">
-                <input class="input" type="text" v-model="exportVodSettings.remote" />
-            </div>
-        </div>
-
-        <!-- Username -->
-        <div class="field" v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'">
-            <label class="label">{{ $t('vod.export.username') }}</label>
-            <div class="control">
-                <input class="input" type="text" v-model="exportVodSettings.username" />
-            </div>
-        </div>
-
-        <!-- Password -->
-        <div class="field" v-if="exportVodSettings.exporter == 'ftp'">
-            <label class="label">{{ $t('vod.export.password') }}</label>
-            <div class="control">
-                <input class="input" type="password" v-model="exportVodSettings.password" />
-            </div>
-            <p class="help">{{ $t('vod.export.password-help') }}</p>
-        </div>
-
-        <!-- YouTube Authentication -->
-        <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
-            <div class="buttons">
-                <button class="button is-confirm" @click="doCheckYouTubeStatus">
-                    <span class="icon"><fa icon="sync" /></span>
-                    <span>{{ $t("buttons.checkstatus") }}</span>
-                </button>
-                <button class="button is-confirm" @click="doAuthenticateYouTube">
-                    <span class="icon"><fa icon="key" /></span>
-                    <span>{{ $t("buttons.authenticate") }}</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Description -->
-        <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
-            <label class="label">{{ $t('vod.export.description') }}</label>
-            <div class="control">
-                <textarea class="input textarea" v-model="exportVodSettings.description" />
-            </div>
-        </div>
-
-        <!-- Category -->
-        <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
-            <label class="label">{{ $t('vod.export.category') }}</label>
-            <div class="control">
-                <div class="select">
-                    <select v-model="exportVodSettings.category">
-                        <option v-for="(c, i) in YouTubeCategories" :value="i">{{ c }}</option>
-                    </select>
+                <div class="field">
+                    <button class="button is-confirm" @click="doDownloadVod">
+                        <span class="icon"><fa icon="download" /></span>
+                        <span>Download</span>
+                    </button>
                 </div>
             </div>
-        </div>
-
-        <!-- Tags -->
-        <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
-            <label class="label">{{ $t('vod.export.tags') }}</label>
-            <div class="control">
-                <input class="input" type="text" v-model="exportVodSettings.tags" />
-            </div>
-            <p class="input-help">{{ $t('vod.export.tags-help') }}</p>
-        </div>
-
-        <!-- Privacy -->
-        <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
-            <label class="label">{{ $t('vod.export.privacy') }}</label>
-            <div class="control">
-                <div class="select">
-                    <select v-model="exportVodSettings.privacy">
-                        <option value="public">{{ $t('vod.export.privacy-public') }}</option>
-                        <option value="unlisted">{{ $t('vod.export.privacy-unlisted') }}</option>
-                        <option value="private">{{ $t('vod.export.privacy-private') }}</option>
-                    </select>
+        </modal-box>
+        <modal-box ref="playerMenu" title="Player">
+            <div class="columns">
+                <div class="column">
+                    <h3>VOD source</h3>
+                    <label>
+                        <input type="radio" v-model="playerSettings.vodSource" value="captured" /> Captured
+                    </label>
+                    <br />
+                    <label>
+                        <input type="radio" v-model="playerSettings.vodSource" value="downloaded" :disabled="!vod?.is_vod_downloaded" /> Downloaded
+                    </label>
+                </div>
+                <div class="column">
+                    <h3>Chat source</h3>
+                    <label>
+                        <input type="radio" v-model="playerSettings.chatSource" value="captured" /> Captured
+                    </label>
+                    <br />
+                    <label>
+                        <input type="radio" v-model="playerSettings.chatSource" value="downloaded" :disabled="!vod?.is_chat_downloaded" /> Downloaded
+                    </label>
                 </div>
             </div>
-        </div>
-
-        <div class="field">
-            <div class="control">
-                <button class="button is-confirm" @click="doExportVod">
-                    <span class="icon"><fa icon="upload" /></span>
-                    <span>{{ $t("buttons.export") }}</span>
+            <br />
+            <div class="field">
+                <button class="button" @click="openPlayer">
+                    <fa icon="play" />
+                    <span>Play</span>
                 </button>
             </div>
-        </div>
-    </modal-box>
-    <modal-box ref="renameVodMenu" :title="$t('vod.edit.rename-vod')">
-        <div class="field">
-            {{ $t('vod.rename.current-name-vod-basename', [vod?.basename]) }}
-        </div>
-        <div class="field">
-            <label class="label">{{ $t('vod.edit.template') }}</label>
-            <div class="control">
-                <input class="input" type="text" v-model="renameVodSettings.template" />
-                <ul class="template-replacements">
-                    <li v-for="(v, k) in VodBasenameFields">{{ k }}</li>
-                </ul>
-                <p class="template-preview">{{ renameVodTemplatePreview }}</p>
+        </modal-box>
+        <modal-box ref="editVodMenu" :title="$t('vod.edit.edit-vod')">
+            <div class="field">
+                <label class="label">{{ $t('vod.edit.stream-number') }}</label>
+                <div class="control">
+                    <input class="input" type="number" v-model.number="editVodSettings.stream_number" />
+                </div>
             </div>
-        </div>
-        <div class="field">
-            <button class="button is-confirm" @click="doRenameVod">
-                <span class="icon"><fa icon="save" /></span>
-                <span>{{ $t("buttons.rename") }}</span>
-            </button>
-        </div>
-    </modal-box> 
+            <div class="field">
+                <label class="label">{{ $t('vod.edit.comment') }}</label>
+                <div class="control">
+                    <textarea class="input textarea" v-model="editVodSettings.comment" />
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">{{ $t('vod.edit.segments') }}</label>
+                <div class="control">
+                    <textarea class="input textarea" v-model="editVodSettings.segments" />
+                </div>
+            </div>
+            <div class="field">
+                <div class="control">
+                    <label class="checkbox">
+                        <input type="checkbox" v-model="editVodSettings.prevent_deletion" />
+                        {{ $t('vod.edit.prevent-deletion') }}
+                    </label>
+                </div>
+            </div>
+            <div class="field">
+                <button class="button is-confirm" @click="doEditVod">
+                    <span class="icon"><fa icon="save" /></span>
+                    <span>{{ $t("buttons.save") }}</span>
+                </button>
+            </div>
+        </modal-box>
+        <modal-box ref="exportVodMenu" title="Export VOD">
+
+            <div class="notification is-error" v-if="!vod?.segments || vod.segments.length == 0">{{ $t('vod.export.no-segments') }}</div>
+
+            <!-- Exporter -->
+            <div class="field">
+                <label class="label">{{ $t('vod.export.export-type') }}</label>
+                <div class="control">
+                    <select class="input" v-model="exportVodSettings.exporter">
+                        <option value="file">File</option>
+                        <option value="youtube">YouTube</option>
+                        <option value="sftp">SFTP</option>
+                        <option value="ftp">FTP</option>
+                        <option value="rclone">RClone</option>
+                    </select>
+                </div>
+                <p v-if="exportVodSettings.exporter == 'youtube'">
+                    Upload videos directly to YouTube. It will only work for a limited time every time you authenticate, so it cannot be automated at this time.<br />
+                    The API set up is quite cumbersome too, requiring your channel to be reviewed.
+                </p>
+                <p v-if="exportVodSettings.exporter == 'ftp'">
+                    Old and outdated file transfer protocol. I would not suggest using this. If you insist, use it only on LAN.<br />
+                    It is not encrypted and will send both your username/password and files for MITM to see.
+                </p>
+                <p v-if="exportVodSettings.exporter == 'sftp'">
+                    Only key-file based authentication is supported. It should be automatically handled by SSH, if you know what that means.
+                </p>
+                <p v-if="exportVodSettings.exporter == 'rclone'">
+                    RClone is a multi-protocol file management program.<br />
+                    Generate a config file with <code>rclone config</code> and place <code>rclone.conf</code> in the <code>config</code> directory.<br />
+                    Read more at <a href="https://rclone.org/" rel="noreferrer" target="_blank">https://rclone.org/</a>
+                </p>
+            </div>
+
+            <!-- File -->
+            <div class="field">
+                <label class="label">{{ $t('vod.export.file-source') }}</label>
+                <div class="control">
+                    <div class="select">
+                        <select v-model="exportVodSettings.file_source">
+                            <option value="segment">First captured segment</option>
+                            <option value="downloaded" :disabled="!vod?.is_vod_downloaded">Downloaded</option>
+                            <option value="burned" :disabled="!vod?.is_chat_burned">Burned</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Title / Filename -->
+            <div class="field">
+                <label class="label">{{ $t('vod.export.title-template') }}</label>
+                <div class="control">
+                    <input class="input" type="text" v-model="exportVodSettings.title_template" />
+                    <ul class="template-replacements">
+                        <li v-for="(v, k) in ExporterFilenameFields">{{ k }}</li>
+                    </ul>
+                    <p class="template-preview" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp' || exportVodSettings.exporter == 'rclone'">
+                        {{ templatePreview(exportVodSettings.title_template) }}.mp4
+                    </p>
+                    <p class="template-preview" v-else-if="exportVodSettings.exporter == 'youtube'">
+                        {{ templatePreview(exportVodSettings.title_template) }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Directory -->
+            <div class="field" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp' || exportVodSettings.exporter == 'rclone'">
+                <label class="label">{{ $t('vod.export.directory') }}</label>
+                <div class="control">
+                    <input class="input" type="text" v-model="exportVodSettings.directory" />
+                    <p class="input-help">
+                        The folder where you want the file to end up in. Both local and remote.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Host -->
+            <div class="field" v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'">
+                <label class="label">{{ $t('vod.export.host') }}</label>
+                <div class="control">
+                    <input class="input" type="text" v-model="exportVodSettings.host" />
+                </div>
+            </div>
+
+            <!-- Remote -->
+            <div class="field" v-if="exportVodSettings.exporter == 'rclone'">
+                <label class="label">{{ $t('vod.export.remote') }}</label>
+                <div class="control">
+                    <input class="input" type="text" v-model="exportVodSettings.remote" />
+                </div>
+            </div>
+
+            <!-- Username -->
+            <div class="field" v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'">
+                <label class="label">{{ $t('vod.export.username') }}</label>
+                <div class="control">
+                    <input class="input" type="text" v-model="exportVodSettings.username" />
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="field" v-if="exportVodSettings.exporter == 'ftp'">
+                <label class="label">{{ $t('vod.export.password') }}</label>
+                <div class="control">
+                    <input class="input" type="password" v-model="exportVodSettings.password" />
+                </div>
+                <p class="help">{{ $t('vod.export.password-help') }}</p>
+            </div>
+
+            <!-- YouTube Authentication -->
+            <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+                <div class="buttons">
+                    <button class="button is-confirm" @click="doCheckYouTubeStatus">
+                        <span class="icon"><fa icon="sync" /></span>
+                        <span>{{ $t("buttons.checkstatus") }}</span>
+                    </button>
+                    <button class="button is-confirm" @click="doAuthenticateYouTube">
+                        <span class="icon"><fa icon="key" /></span>
+                        <span>{{ $t("buttons.authenticate") }}</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+                <label class="label">{{ $t('vod.export.description') }}</label>
+                <div class="control">
+                    <textarea class="input textarea" v-model="exportVodSettings.description" />
+                </div>
+            </div>
+
+            <!-- Category -->
+            <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+                <label class="label">{{ $t('vod.export.category') }}</label>
+                <div class="control">
+                    <div class="select">
+                        <select v-model="exportVodSettings.category">
+                            <option v-for="(c, i) in YouTubeCategories" :value="i">{{ c }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tags -->
+            <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+                <label class="label">{{ $t('vod.export.tags') }}</label>
+                <div class="control">
+                    <input class="input" type="text" v-model="exportVodSettings.tags" />
+                </div>
+                <p class="input-help">{{ $t('vod.export.tags-help') }}</p>
+            </div>
+
+            <!-- Privacy -->
+            <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+                <label class="label">{{ $t('vod.export.privacy') }}</label>
+                <div class="control">
+                    <div class="select">
+                        <select v-model="exportVodSettings.privacy">
+                            <option value="public">{{ $t('vod.export.privacy-public') }}</option>
+                            <option value="unlisted">{{ $t('vod.export.privacy-unlisted') }}</option>
+                            <option value="private">{{ $t('vod.export.privacy-private') }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="control">
+                    <button class="button is-confirm" @click="doExportVod">
+                        <span class="icon"><fa icon="upload" /></span>
+                        <span>{{ $t("buttons.export") }}</span>
+                    </button>
+                </div>
+            </div>
+        </modal-box>
+        <modal-box ref="renameVodMenu" :title="$t('vod.edit.rename-vod')">
+            <div class="field">
+                {{ $t('vod.rename.current-name-vod-basename', [vod?.basename]) }}
+            </div>
+            <div class="field">
+                <label class="label">{{ $t('vod.edit.template') }}</label>
+                <div class="control">
+                    <input class="input" type="text" v-model="renameVodSettings.template" />
+                    <ul class="template-replacements">
+                        <li v-for="(v, k) in VodBasenameFields">{{ k }}</li>
+                    </ul>
+                    <p class="template-preview">{{ renameVodTemplatePreview }}</p>
+                </div>
+            </div>
+            <div class="field">
+                <button class="button is-confirm" @click="doRenameVod">
+                    <span class="icon"><fa icon="save" /></span>
+                    <span>{{ $t("buttons.rename") }}</span>
+                </button>
+            </div>
+        </modal-box>
+    </div>
 </template>
 
 <script lang="ts">

@@ -127,13 +127,19 @@
             <span v-if="streamer.no_capture">{{ $t("streamer.no-vods-not-capturing") }}</span>
             <span v-else>{{ $t("messages.no_vods") }}</span>
         </div>
-        <div v-else>
+        <div class="video-list" v-else>
             <vod-item
                 v-for="vod in streamer.vods_list"
                 :key="vod.basename"
                 v-bind:vod="vod"
                 @refresh="refresh"
                 ref="vodItem"
+                v-observe-visibility="{
+                    callback: (s: boolean, e: IntersectionObserverEntry) => visibilityChanged(vod.basename, s, e),
+                    intersection: {
+                        threshold: 0.9,
+                    }
+                }"
             />
         </div>
         <modal-box ref="videoDownloadMenu" title="Video download">
@@ -425,6 +431,10 @@ export default defineComponent({
                 }
             }
             this.toggleAllVodsExpanded = !this.toggleAllVodsExpanded;
+        },
+        visibilityChanged(basename: string, isVisible: boolean, entry: IntersectionObserverEntry) {
+            // console.log(basename, isVisible, entry);
+            if (isVisible) this.store.setVisibleVod(basename);
         }
     },
     computed: {

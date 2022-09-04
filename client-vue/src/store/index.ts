@@ -27,6 +27,7 @@ interface StoreType {
     authenticated: boolean;
     guest_mode: boolean;
     serverGitHash?: string;
+    visibleVod: string;
 }
 
 export const useStore = defineStore("twitchAutomator", {
@@ -51,6 +52,7 @@ export const useStore = defineStore("twitchAutomator", {
             authenticated: false,
             guest_mode: false,
             serverGitHash: "",
+            visibleVod: "",
         };
     },
     actions: {
@@ -425,6 +427,9 @@ export const useStore = defineStore("twitchAutomator", {
         },
         keyEvent(key: string) {
             // console.log("key down", key);
+        },
+        setVisibleVod(basename: string) {
+            this.visibleVod = basename;
         }
     },
     getters: {

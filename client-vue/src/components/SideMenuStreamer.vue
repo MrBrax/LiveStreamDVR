@@ -87,6 +87,7 @@
                             : { name: 'Dashboard', hash: '#vod_' + vod.basename }
                     "
                     :class="{
+                        'is-active': store.visibleVod == vod.basename,
                         'is-favourite': vod.hasFavouriteGame(),
                         'is-live': vod.is_capturing,
                         'is-animated': store.clientCfg('animationsEnabled'),

@@ -7,6 +7,7 @@ import titleMixin from "./mixins/titleMixin";
 import helpers from "./mixins/helpers";
 import { createPinia } from "pinia";
 import { createI18n } from "vue-i18n";
+import VueObserveVisibility from "vue-observe-visibility";
 import messages_en from "./translations/en.json";
 import messages_sv from "./translations/sv.json";
 import messages_ko from "./translations/ko.json";
@@ -39,6 +40,7 @@ createApp(App)
     .use(createPinia())
     .use(VueAxios, axios)
     .use(i18n)
+    .use(VueObserveVisibility)
     .component("fa", FontAwesomeIcon)
     .mixin(titleMixin)
     .mixin(helpers)
