@@ -34,4 +34,12 @@ const i18n = createI18n({
     },
 });
 
-createApp(App).use(router).use(createPinia()).use(VueAxios, axios).use(i18n).component("fa", FontAwesomeIcon).mixin(titleMixin).mixin(helpers).mount("#app");
+createApp(App)
+    .use(router)
+    .use(createPinia())
+    .use(VueAxios, axios)
+    .use(i18n)
+    .component("fa", FontAwesomeIcon)
+    .mixin(titleMixin)
+    .mixin(helpers)
+    .mount("#app");

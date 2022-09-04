@@ -3,9 +3,10 @@
         <p class="error">
             {{ $t('messages.changing-values-here-will-most-likely-require-a-restart') }}
         </p>
-        <transition-group
-            name="list"
-            tag="table"
+        <div class="field">
+            <input class="input" type="text" v-model="searchText" :placeholder="$t('input.search')" />
+        </div>
+        <table
             class="table is-fullwidth is-striped is-hoverable"
             v-if="keyvalue && Object.keys(keyvalue).length > 0"
         >
@@ -39,7 +40,7 @@
                     </button>
                 </td>
             </tr>
-        </transition-group>
+        </table>
         <p v-else>No key-value data found.</p>
 
         <hr />
@@ -91,6 +92,7 @@ export default defineComponent({
     data(): {
         keyvalue?: Record<string, string>;
         initialLoad: boolean;
+        searchText: string;
         addForm: {
             key: string;
             value: string;
@@ -99,6 +101,7 @@ export default defineComponent({
         return {
             keyvalue: undefined,
             initialLoad: true,
+            searchText: "",
             addForm: {
                 key: "",
                 value: ""
@@ -185,13 +188,15 @@ export default defineComponent({
                         alert(err.response.data.message);
                     }
                 });
-        },       
+        },
     },
     computed: {
         sortedKeyValues(): Record<string, string> {
             if (!this.keyvalue) return {};
-            return Object.fromEntries(Object.entries(this.keyvalue).sort());
-        }       
+            let entries = Object.entries(this.keyvalue);
+            if (this.searchText !== "") entries = entries.filter(e => e[0].includes(this.searchText));
+            return Object.fromEntries(entries.sort());
+        }
     },
 });
 </script>
