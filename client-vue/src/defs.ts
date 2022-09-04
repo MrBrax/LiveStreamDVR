@@ -20,6 +20,8 @@ export const defaultConfig: ClientSettings = {
     theme: "auto",
     showOfflineCategoryInSidebar: true,
     sidemenuWidth: 330,
+    expandDashboardVodList: true,
+    vodsToShowInDashboard: 4,
 };
 
 interface ClientSettingField {
@@ -51,6 +53,8 @@ export const defaultConfigFields: Record<keyof ClientSettings, ClientSettingFiel
     theme: { type: "choice", default: "auto", name: "Theme", choices: { auto: "Auto", default: "Default", dark: "Dark", hotdogstand: "Hot dog stand", windows95: "Windows 95", basalt: "Basalt", } },
     showOfflineCategoryInSidebar: { type: "boolean", default: true, name: "Show the offline category of channels in the sidebar" },
     sidemenuWidth: { type: "number", default: 330, name: "Width of the sidebar menu" },
+    expandDashboardVodList: { type: "boolean", default: true, name: "Always expand the VOD list in the dashboard"},
+    vodsToShowInDashboard: {  type: "number", default: 4, name: "Number of VODs to show in the dashboard" },
 };
 
 export const YouTubeCategories = {

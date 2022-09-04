@@ -128,19 +128,35 @@
             <span v-else>{{ $t("messages.no_vods") }}</span>
         </div>
         <div class="video-list" v-else>
-            <vod-item
-                v-for="vod in streamer.vods_list"
-                :key="vod.basename"
-                v-bind:vod="vod"
-                @refresh="refresh"
-                ref="vodItem"
-                v-observe-visibility="{
-                    callback: (s: boolean, e: IntersectionObserverEntry) => visibilityChanged(vod.basename, s, e),
-                    intersection: {
-                        threshold: 0.9,
-                    }
-                }"
-            />
+            <div class="streamer-expand-container" v-if="!store.clientCfg('expandDashboardVodList') && streamer.vods_list.length > store.clientCfg('vodsToShowInDashboard', 4)">
+                <button
+                    class="streamer-expand-main"
+                    @click="toggleLimitVods"
+                    title="Click to toggle VOD list"
+                >
+                    <span class="icon"><fa :icon="limitVods ? 'chevron-up' : 'chevron-down'" /></span>
+                    <transition>
+                        <span class="text" v-if="!limitVods">
+                            {{ streamer.vods_list.length - store.clientCfg('vodsToShowInDashboard', 4) }} hidden VODs
+                        </span>
+                    </transition>
+                </button>
+            </div>
+            <transition-group name="list" tag="div">
+                <vod-item
+                    v-for="vod in filteredVodsList"
+                    :key="vod.basename"
+                    v-bind:vod="vod"
+                    @refresh="refresh"
+                    ref="vodItem"
+                    v-observe-visibility="{
+                        callback: (s: boolean, e: IntersectionObserverEntry) => visibilityChanged(vod.basename, s, e),
+                        intersection: {
+                            threshold: 0.9,
+                        }
+                    }"
+                />
+            </transition-group>
         </div>
         <modal-box ref="videoDownloadMenu" title="Video download">
             <div class="video-download-menu">
@@ -193,6 +209,7 @@ import TwitchChannel from "@/core/channel";
 import { useStore } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
 import { LocalClip } from "@common/LocalClip";
+import TwitchVOD from "@/core/vod";
 library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen);
 
 export default defineComponent({
@@ -204,6 +221,7 @@ export default defineComponent({
     data: () => ({
         twitchVods: [] as Video[],
         toggleAllVodsExpanded: false,
+        limitVods: false,
     }),
     setup() {
         const videoDownloadMenu = ref<InstanceType<typeof ModalBox>>();
@@ -435,6 +453,9 @@ export default defineComponent({
         visibilityChanged(basename: string, isVisible: boolean, entry: IntersectionObserverEntry) {
             // console.log(basename, isVisible, entry);
             if (isVisible) this.store.setVisibleVod(basename);
+        },
+        toggleLimitVods() {
+            this.limitVods = !this.limitVods;
         }
     },
     computed: {
@@ -472,7 +493,15 @@ export default defineComponent({
         },
         basePath(): string {
             return this.store.cfg<string>("basepath", "");
-        }
+        },
+        filteredVodsList(): TwitchVOD[] {
+            if (!this.streamer) return [];
+            if (this.limitVods || this.store.clientCfg('expandDashboardVodList')) return this.streamer.vods_list;
+            const vodsToShow = this.store.clientCfg('vodsToShowInDashboard', 4);
+            if (vodsToShow === 0) return [];
+            // return last 4 vods
+            return this.streamer.vods_list.slice(-vodsToShow);
+        },
     },
     components: {
         VodItem,
