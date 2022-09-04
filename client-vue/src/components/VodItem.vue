@@ -1129,6 +1129,10 @@
                         <span class="icon"><fa icon="key" /></span>
                         <span>{{ $t("buttons.authenticate") }}</span>
                     </button>
+                    <button class="button is-danger" @click="doDestroyYouTube">
+                        <span class="icon"><fa icon="key" /></span>
+                        <span>{{ $t("buttons.destroy-session") }}</span>
+                    </button>
                 </div>
             </div>
 
@@ -1694,6 +1698,16 @@ export default defineComponent({
         doAuthenticateYouTube() {
             const url = `${this.store.cfg<string>("basepath", "")}/api/v0/youtube/authenticate`;
             window.open(url, "_blank");
+        },
+        doDestroyYouTube() {
+            this.$http.get(`/api/v0/youtube/destroy`).then((response) => {
+                const json: ApiResponse = response.data;
+                if (json.message) alert(json.message);
+                console.log(json);
+            }).catch((err) => {
+                console.error("youtube destroy error", err.response);
+                if (err.response.data && err.response.data.message) alert(err.response.data.message);
+            });
         },
         doMakeBookmark() {
             if (!this.vod) return;

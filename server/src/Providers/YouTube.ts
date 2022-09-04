@@ -18,6 +18,7 @@ export class YouTubeHelper {
     ];
 
     static readonly accessTokenFile = path.join(BaseConfigDataFolder.cache, "youtube_oauth.json");
+    static readonly accessTokenRefreshFile = path.join(BaseConfigDataFolder.cache, "youtube_oauth_refresh.bin");
     static readonly accessTokenExpire = 60 * 60 * 24 * 60 * 1000; // 60 days
     static readonly accessTokenRefresh = 60 * 60 * 24 * 30 * 1000; // 30 days
 
@@ -56,6 +57,14 @@ export class YouTubeHelper {
             `${app_url}/api/v0/youtube/callback`
         );
 
+        this.oAuth2Client.on("tokens", (tokens) => {
+            if (tokens.refresh_token) {
+                console.log("youtube refresh token", tokens.refresh_token);
+                fs.writeFileSync(this.accessTokenRefreshFile, tokens.refresh_token);
+            }
+            console.log("youtube access token", tokens.access_token);
+        });
+
         const token = this.loadToken();
         if (token) {
             this.oAuth2Client.setCredentials(token);
@@ -66,6 +75,13 @@ export class YouTubeHelper {
                 Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeHelper", `Failed to fetch username: ${(error as Error).message}`);
             }
         }
+
+        /*
+        this.oAuth2Client.setCredentials({
+            refresh_token: fs.readFileSync(this.accessTokenRefreshFile, { encoding: "utf-8" }),
+        });
+        */
+
     }
 
     static storeToken(token: Credentials) {
@@ -129,6 +145,18 @@ export class YouTubeHelper {
             throw error; // not pretty
         });
 
+    }
+
+    static async destroyCredentials(): Promise<void> {
+        if (!this.oAuth2Client) throw new Error("No client");
+        await this.oAuth2Client.revokeCredentials();
+        if (fs.existsSync(this.accessTokenFile)) fs.unlinkSync(this.accessTokenFile);
+        if (fs.existsSync(this.accessTokenRefreshFile)) fs.unlinkSync(this.accessTokenRefreshFile);
+        if (fs.existsSync(this.username_file)) fs.unlinkSync(this.username_file);
+        this.username = "";
+        this.accessToken = undefined;
+        this.accessTokenTime = 0;
+        return;
     }
 
 }

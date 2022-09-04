@@ -126,7 +126,8 @@
     "export": "Export",
     "checkstatus": "Check status",
     "authenticate": "Authenticate",
-    "logout": "Log out"
+    "logout": "Log out",
+    "destroy-session": "Destroy session"
   },
   "pages": {
     "favourite-games": "Favourite games",

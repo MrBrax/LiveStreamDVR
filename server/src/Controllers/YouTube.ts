@@ -22,6 +22,33 @@ export function Authenticate(req: express.Request, res: express.Response): void 
 
 }
 
+export async function DestroySession(req: express.Request, res: express.Response): Promise<void> {
+
+    if (!YouTubeHelper.oAuth2Client) {
+        res.status(500).send({
+            status: "ERROR",
+            message: "YouTube client not configured",
+        });
+        return;
+    }
+
+    try {
+        await YouTubeHelper.destroyCredentials();
+    } catch (error) {
+        res.status(500).send({
+            status: "ERROR",
+            message: (error as Error).message,
+        });
+        return;
+    }
+
+    res.send({
+        status: "OK",
+        message: "YouTube credentials destroyed",
+    });
+
+}
+
 export function Callback(req: express.Request, res: express.Response): Promise<void> {
 
     return new Promise<void>((resolve, reject) => {
@@ -44,7 +71,7 @@ export function Callback(req: express.Request, res: express.Response): Promise<v
                         status: "ERROR",
                         message: err.message,
                     });
-                    reject();
+                    // reject();
                     return;
                 } else if (token && YouTubeHelper.oAuth2Client) {
                     Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", "Authenticated with YouTube");
@@ -54,6 +81,14 @@ export function Callback(req: express.Request, res: express.Response): Promise<v
                     YouTubeHelper.storeToken(token);
                     YouTubeHelper.fetchUsername().then(() => {
                         resolve();
+                    }).catch(err => {
+                        Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", `Could not get username: ${err.message}`);
+                        // res.status(400).send({
+                        //     status: "ERROR",
+                        //     message: `Could not get username: ${err.message}`,
+                        // });
+                        // reject();
+                        return;
                     });
                     return;
                 } else {
@@ -62,7 +97,7 @@ export function Callback(req: express.Request, res: express.Response): Promise<v
                         status: "ERROR",
                         message: "Could not get token, unknown error",
                     });
-                    reject();
+                    // reject();
                     return;
                 }
             });

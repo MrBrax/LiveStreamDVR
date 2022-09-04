@@ -121,6 +121,7 @@ router.delete("/files", AuthAdmin, Files.DeleteFile);
 router.get("/youtube/authenticate", AuthAdmin, YouTube.Authenticate);
 router.get("/youtube/callback", AuthAdmin, YouTube.Callback);
 router.get("/youtube/status", AuthAdmin, YouTube.Status);
+router.get("/youtube/destroy", AuthAdmin, YouTube.DestroySession);
 
 router.post("/auth/login", Auth.Login);
 router.post("/auth/logout", Auth.Logout);
