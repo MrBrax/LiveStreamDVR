@@ -7,7 +7,7 @@ export interface SettingField<T> {
     /**
      * Value type
      */
-    type: "string" | "number" | "boolean" | "array" | "template";
+    type: "string" | "number" | "boolean" | "array" | "template" | "text";
     // type: T;
 
     /** Default value */

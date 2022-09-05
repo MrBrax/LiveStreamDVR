@@ -12,6 +12,10 @@
                 </details>
             </div>
         </section>
+        <section class="section" v-if="store.cfg('motd')">
+            <div class="section-title"><h1>{{ $t("dashboard.motd") }}</h1></div>
+            <div class="section-content motd">{{ store.cfg('motd') }}</div>
+        </section>
         <section class="section" data-section="vods">
             <div class="section-title"><h1>{{ $t("dashboard.recorded_vods") }}</h1></div>
             <div class="section-content" v-if="store.streamerListLoaded && store.streamerList.length > 0">

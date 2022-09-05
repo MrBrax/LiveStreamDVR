@@ -37,6 +37,17 @@
                     />
                 </div>
 
+                <!-- text -->
+                <div v-if="data.type == 'text'" class="control">
+                    <textarea
+                        class="input"
+                        :id="'input_' + data.key"
+                        :name="data.key"
+                        :title="data.help"
+                        v-model="(formData[data.key] as string)"
+                    ></textarea>
+                </div>
+
                 <!-- number -->
                 <div v-if="data.type == 'number'" class="control">
                     <input
