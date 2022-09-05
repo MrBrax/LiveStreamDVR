@@ -108,7 +108,7 @@ export function Callback(req: express.Request, res: express.Response): Promise<v
 
 }
 
-export function Status(req: express.Request, res: express.Response): void {
+export async function Status(req: express.Request, res: express.Response): Promise<void> {
 
     if (!YouTubeHelper.oAuth2Client) {
         res.status(500).send({
@@ -130,9 +130,26 @@ export function Status(req: express.Request, res: express.Response): void {
 
     const expires_in = formatDistanceToNow(end_date);
 
-    res.send({
-        status: "OK",
-        message: `YouTube authenticated with user: ${YouTubeHelper.username}, expires in ${expires_in} (${formatISO9075(end_date)})`,
-    });
+    let username = "";
+    try {
+        username = await YouTubeHelper.fetchUsername(true);
+    } catch (error) {
+        res.status(500).send({
+            status: "ERROR",
+            message: "YouTube not authenticated, no username returned",
+        });
+    }
+
+    if (username !== "") {
+        res.send({
+            status: "OK",
+            message: `YouTube authenticated with user: ${username}, expires in ${expires_in} (${formatISO9075(end_date)})`,
+        });
+    } else {
+        res.status(500).send({
+            status: "ERROR",
+            message: "YouTube not authenticated, username is blank",
+        });
+    }
 
 }
