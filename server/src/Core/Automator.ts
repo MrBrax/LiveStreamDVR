@@ -1344,7 +1344,7 @@ export class Automator {
             const chat_job = Helper.startJob(`chatdump_${this.basename()}`, chat_bin, chat_cmd);
             */
 
-            const chat_job = TwitchChannel.startChatDump(this.vodBasenameTemplate(), data_login, data_userid, parseJSON(data_started), this.chat_filename);
+            const chat_job = TwitchChannel.startChatDump(`${this.getLogin()}_${this.getVodID()}`, data_login, data_userid, parseJSON(data_started), this.chat_filename);
 
             if (chat_job && chat_job.pid) {
                 this.chatJob = chat_job;
