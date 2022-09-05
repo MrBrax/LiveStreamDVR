@@ -119,6 +119,8 @@
     <div v-if="loading">
         <span class="icon"><fa icon="sync" spin></fa></span> {{ $t("messages.loading") }}
     </div>
+    <hr />
+    <youtube-auth />
 </template>
 
 <script lang="ts">
@@ -128,6 +130,7 @@ import { SettingField } from "@common/Config";
 import { AxiosError } from "axios";
 import { defineComponent, PropType } from "vue";
 import { formatString } from "@common/Format";
+import YoutubeAuth from "@/components/YoutubeAuth.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGlobe } from "@fortawesome/free-solid-svg-icons";
@@ -139,6 +142,9 @@ interface SettingsGroup {
 }
 
 export default defineComponent({
+    components: {
+        YoutubeAuth,
+    },
     name: "SettingsForm",
     setup() {
         const store = useStore();

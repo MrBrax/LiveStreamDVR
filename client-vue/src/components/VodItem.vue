@@ -1026,8 +1026,8 @@
                     </select>
                 </div>
                 <p v-if="exportVodSettings.exporter == 'youtube'">
-                    Upload videos directly to YouTube. It will only work for a limited time every time you authenticate, so it cannot be automated at this time.<br />
-                    The API set up is quite cumbersome too, requiring your channel to be reviewed.
+                    Upload videos directly to YouTube.<br />
+                    The API set up is quite cumbersome, requiring your channel to be reviewed.
                 </p>
                 <p v-if="exportVodSettings.exporter == 'ftp'">
                     Old and outdated file transfer protocol. I would not suggest using this. If you insist, use it only on LAN.<br />
@@ -1120,20 +1120,7 @@
 
             <!-- YouTube Authentication -->
             <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
-                <div class="buttons">
-                    <button class="button is-confirm" @click="doCheckYouTubeStatus">
-                        <span class="icon"><fa icon="sync" /></span>
-                        <span>{{ $t("buttons.checkstatus") }}</span>
-                    </button>
-                    <button class="button is-confirm" @click="doAuthenticateYouTube">
-                        <span class="icon"><fa icon="key" /></span>
-                        <span>{{ $t("buttons.authenticate") }}</span>
-                    </button>
-                    <button class="button is-danger" @click="doDestroyYouTube">
-                        <span class="icon"><fa icon="key" /></span>
-                        <span>{{ $t("buttons.destroy-session") }}</span>
-                    </button>
-                </div>
+                <youtube-auth />
             </div>
 
             <!-- Description -->
@@ -1218,6 +1205,7 @@ import type { VodBasenameTemplate } from "@common/Replacements";
 import { VodBasenameFields, ExporterFilenameFields } from "@common/ReplacementsConsts";
 import { defineComponent, ref } from "vue";
 import DurationDisplay from "@/components/DurationDisplay.vue";
+import YoutubeAuth from "@/components/YoutubeAuth.vue";
 // import { format, toDate, parse } from 'date-fns';
 
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -1685,30 +1673,6 @@ export default defineComponent({
                 if (err.response.data && err.response.data.message) alert(err.response.data.message);
             });
         },
-        doCheckYouTubeStatus() {
-            this.$http.get(`/api/v0/youtube/status`).then((response) => {
-                const json: ApiResponse = response.data;
-                if (json.message) alert(json.message);
-                console.log(json);
-            }).catch((err) => {
-                console.error("youtube check error", err.response);
-                if (err.response.data && err.response.data.message) alert(err.response.data.message);
-            });
-        },
-        doAuthenticateYouTube() {
-            const url = `${this.store.cfg<string>("basepath", "")}/api/v0/youtube/authenticate`;
-            window.open(url, "_blank");
-        },
-        doDestroyYouTube() {
-            this.$http.get(`/api/v0/youtube/destroy`).then((response) => {
-                const json: ApiResponse = response.data;
-                if (json.message) alert(json.message);
-                console.log(json);
-            }).catch((err) => {
-                console.error("youtube destroy error", err.response);
-                if (err.response.data && err.response.data.message) alert(err.response.data.message);
-            });
-        },
         doMakeBookmark() {
             if (!this.vod) return;
             this.$http.post(`/api/v0/vod/${this.vod.basename}/bookmark`, this.newBookmark).then((response) => {
@@ -1828,6 +1792,7 @@ export default defineComponent({
     components: {
         DurationDisplay,
         ModalBox,
+        YoutubeAuth,
     },
     watch: {
         // watch hash

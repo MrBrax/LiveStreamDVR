@@ -12,7 +12,7 @@ export function Authenticate(req: express.Request, res: express.Response): void 
         });
         return;
     }
-    
+
     Log.logAdvanced(LOGLEVEL.INFO, "YouTube", "Begin auth process...");
 
     const url = YouTubeHelper.oAuth2Client.generateAuthUrl({
@@ -151,10 +151,17 @@ export async function Status(req: express.Request, res: express.Response): Promi
     const expires_in = formatDistanceToNow(end_date);
 
     if (username !== "") {
-        res.send({
-            status: "OK",
-            message: `YouTube authenticated with user: ${username}, expires in ${expires_in} (${formatISO9075(end_date)})`,
-        });
+        if (YouTubeHelper.accessTokenTime > 0) {
+            res.send({
+                status: "OK",
+                message: `YouTube authenticated with user: ${username}, expires in ${expires_in} (${formatISO9075(end_date)})`,
+            });
+        } else {
+            res.send({
+                status: "OK",
+                message: `YouTube authenticated with user: ${username}, unknown expiration.`,
+            });
+        }
     } else {
         res.status(500).send({
             status: "ERROR",
