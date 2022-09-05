@@ -25,7 +25,8 @@ etc. I have only tested this with Nginx and letsencrypt.
 ⚠️⚠️⚠️
 
 Features
-Automatic VOD recording pretty much the second the stream goes live, instead of checking it every minute like many other scripts do.
+Automatic VOD recording around when the stream goes live, instead of checking it every minute like many other scripts do.
+Because of notification delays, the stream usually starts capturing after ~2 minutes after the stream goes live.
 Cyclic recording, as in when a specified amount or storage per streamer is reached, the oldest stream gets deleted.
 Tons of metadata, maybe too much. Stores info about games played, stream titles, duration, if the stream got muted from copyrighted music, etc.
 Chapters (titles and games) are written to the final video file.
@@ -36,11 +37,15 @@ Writes a losslesscut compatible csv file for the full VOD so you don't have to f
 Uses ts instead of mp4 so if the stream or program crashes, the file won't be corrupted.
 Audio only support.
 Optionally either dumps chat while capturing or downloads the chat file after it's done.
-Basic tools for downloading any VOD or chat.
+Basic tools for downloading any VOD, chat, or clip.
 Can be set to automatically download the whole stream chat to a JSON file, to be used in my twitch-vod-chat webapp or automatically burned in with TwitchDownloader.
 Basic webhook support for external scripting.
 Notifications over the browser, telegram, and discord.
-One high-profile streamer VOD of 10 hours at 1080p60 is about 30-50GB.</Overview>
+Exporting of videos to external file, SFTP, and YouTube.
+One high-profile streamer VOD of 10 hours at 1080p60 is about 30-50GB.
+
+Post issues/help on the issues tab above. I already run an up to date version, so starting fresh might break stuff.
+</Overview>
   <Category>MediaApp:Video</Category>
   <WebUI/>
   <TemplateURL/>
@@ -53,12 +58,14 @@ One high-profile streamer VOD of 10 hours at 1080p60 is about 30-50GB.</Overview
   <DonateLink/>
   <Requires/>
   <Config Name="Webinterface" Target="8080" Default="8080" Mode="tcp" Description="WebUI Port" Type="Port" Display="always" Required="true" Mask="false">8146</Config>
-  <Config Name="Host Path 1" Target="/usr/local/share/twitchautomator/data/storage" Default="/mnt/user/" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/twitch_vods/</Config>
-  <Config Name="Host Path 2" Target="/usr/local/share/twitchautomator/data/cache" Default="/mnt/user/" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/TwitchAutomator/cache</Config>
-  <Config Name="Host Path 3" Target="/usr/local/share/twitchautomator/data/config" Default="/mnt/user/" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/TwitchAutomator/config</Config>
-  <Config Name="Host Path 4" Target="/usr/local/share/twitchautomator/data/logs" Default="/mnt/user/" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/TwitchAutomator/logs</Config>
-  <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">1000</Config>
-  <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">1000</Config>
+  <Config Name="Host Path 1" Target="/usr/local/share/twitchautomator/data/storage" Default="/mnt/user/" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/LiveStreamDVR/</Config>
+  <Config Name="Host Path 2" Target="/usr/local/share/twitchautomator/data/cache" Default="/mnt/user/" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/LiveStreamDVR/cache</Config>
+  <Config Name="Host Path 3" Target="/usr/local/share/twitchautomator/data/config" Default="/mnt/user/" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/LiveStreamDVR/config</Config>
+  <Config Name="Host Path 4" Target="/usr/local/share/twitchautomator/data/logs" Default="/mnt/user/" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/LiveStreamDVR/logs</Config>
+  <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">99</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">100</Config>
   <Config Name="UMASK" Target="UMASK" Default="022" Mode="" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">022</Config>
-  <Config Name="Enable file manager" Description="May enable exploits." Type="Variable" Target="TCD_ENABLE_FILES_API">0</Config>
+  <Config Name="Enable file manager" Description="Enable the files api, making it possible to download and delete files in storage. This might open up filesystem exploits." Type="Variable" Display="advanced" Required="false" Mask="false" Target="TCD_ENABLE_FILES_API">0</Config>
+  <Config Name="Migrate Old Json" Description="Make viewing logs in the file manager possible. Requires the above environment variable to be set." Type="Variable" Display="advanced" Required="false" Mask="false" Target="TCD_MIGRATE_OLD_VOD_JSON">0</Config>
+  <Config Name="Enable download logs in frontend" Description="Migrate old vod json files to the new format. This is automatically done when the server starts. Make sure to back up your data before doing this, as it will overwrite the old files and can't be undone. Bugs might occur, so use with caution." Type="Variable" Display="advanced" Required="false" Mask="false" Target="TCD_EXPOSE_LOGS_TO_PUBLIC">0</Config>
 </Container>
