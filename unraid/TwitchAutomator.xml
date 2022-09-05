@@ -25,7 +25,8 @@ etc. I have only tested this with Nginx and letsencrypt.
 ⚠️⚠️⚠️
 
 Features
-Automatic VOD recording pretty much the second the stream goes live, instead of checking it every minute like many other scripts do.
+Automatic VOD recording around when the stream goes live, instead of checking it every minute like many other scripts do.
+Because of notification delays, the stream usually starts capturing after ~2 minutes after the stream goes live.
 Cyclic recording, as in when a specified amount or storage per streamer is reached, the oldest stream gets deleted.
 Tons of metadata, maybe too much. Stores info about games played, stream titles, duration, if the stream got muted from copyrighted music, etc.
 Chapters (titles and games) are written to the final video file.
@@ -36,11 +37,15 @@ Writes a losslesscut compatible csv file for the full VOD so you don't have to f
 Uses ts instead of mp4 so if the stream or program crashes, the file won't be corrupted.
 Audio only support.
 Optionally either dumps chat while capturing or downloads the chat file after it's done.
-Basic tools for downloading any VOD or chat.
+Basic tools for downloading any VOD, chat, or clip.
 Can be set to automatically download the whole stream chat to a JSON file, to be used in my twitch-vod-chat webapp or automatically burned in with TwitchDownloader.
 Basic webhook support for external scripting.
 Notifications over the browser, telegram, and discord.
-One high-profile streamer VOD of 10 hours at 1080p60 is about 30-50GB.</Overview>
+Exporting of videos to external file, SFTP, and YouTube.
+One high-profile streamer VOD of 10 hours at 1080p60 is about 30-50GB.
+
+Post issues/help on the issues tab above. I already run an up to date version, so starting fresh might break stuff.
+</Overview>
   <Category>MediaApp:Video</Category>
   <WebUI/>
   <TemplateURL/>
