@@ -62,12 +62,19 @@ export class YouTubeHelper {
             if (tokens.refresh_token) {
                 console.log("youtube refresh token", tokens.refresh_token);
                 fs.writeFileSync(this.accessTokenRefreshFile, tokens.refresh_token);
+                if (this.oAuth2Client && !this.accessTokenRefresh) {
+                    this.accessTokenRefresh = tokens.refresh_token;
+                    this.oAuth2Client.setCredentials({
+                        refresh_token: this.accessTokenRefresh,
+                    });
+                }
             }
             console.log("youtube access token", tokens.access_token);
         });
 
         const token = this.loadToken();
         if (token) {
+            Log.logAdvanced(LOGLEVEL.INFO, "YouTubeHelper", "Found stored token, setting credentials...");
             this.oAuth2Client.setCredentials(token);
             this.authenticated = true;
             try {
@@ -75,6 +82,16 @@ export class YouTubeHelper {
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeHelper", `Failed to fetch username: ${(error as Error).message}`);
             }
+        }
+
+        this.loadRefreshToken();
+        if (this.accessTokenRefresh) {
+            Log.logAdvanced(LOGLEVEL.INFO, "YouTubeHelper", "Found refresh token, setting credentials...");
+            this.oAuth2Client.setCredentials({
+                refresh_token: fs.readFileSync(this.accessTokenRefreshFile, { encoding: "utf-8" }),
+            });
+        } else {
+            Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeHelper", "No refresh token found");
         }
 
         /*
@@ -92,20 +109,26 @@ export class YouTubeHelper {
     }
 
     static loadToken(): Credentials | undefined {
+        
         if (!fs.existsSync(this.accessTokenFile)) {
             Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `No token found in ${this.accessTokenFile}`);
             return undefined;
         }
+
         const json = fs.readFileSync(this.accessTokenFile, "utf8");
+
         const creds: Credentials = JSON.parse(json);
-        if (creds.expiry_date && creds.expiry_date < new Date().getTime()) {
+        
+        if (creds.expiry_date && new Date().getTime() > creds.expiry_date) {
             Log.logAdvanced(LOGLEVEL.WARNING, "YouTubeHelper", `Token expired at ${creds.expiry_date}`);
             fs.unlinkSync(this.accessTokenFile);
             this.accessToken = undefined;
             return undefined;
         }
+
         this.accessTokenTime = creds.expiry_date || 0;
         this.accessToken = creds;
+
         Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `Loaded token from ${this.accessTokenFile}`);
         return creds;
     }
@@ -136,9 +159,9 @@ export class YouTubeHelper {
             throw new Error("No oAuth2Client set up");
         }
 
-        if (!this.accessToken || !this.accessToken.access_token) {
-            throw new Error("No access token found");
-        }
+        // if (!this.accessToken || !this.accessToken.access_token) {
+        //     throw new Error("No access token found");
+        // }
 
         let response;
 
@@ -172,6 +195,7 @@ export class YouTubeHelper {
         this.username = "";
         this.accessToken = undefined;
         this.accessTokenTime = 0;
+        this.accessTokenRefresh = undefined;
         return;
     }
 

@@ -12,6 +12,8 @@ export function Authenticate(req: express.Request, res: express.Response): void 
         });
         return;
     }
+    
+    Log.logAdvanced(LOGLEVEL.INFO, "YouTube", "Begin auth process...");
 
     const url = YouTubeHelper.oAuth2Client.generateAuthUrl({
         access_type: "offline",
@@ -50,6 +52,8 @@ export async function DestroySession(req: express.Request, res: express.Response
 }
 
 export function Callback(req: express.Request, res: express.Response): Promise<void> {
+
+    Log.logAdvanced(LOGLEVEL.INFO, "YouTube", "Got callback from YouTube...");
 
     return new Promise<void>((resolve, reject) => {
 
@@ -101,7 +105,12 @@ export function Callback(req: express.Request, res: express.Response): Promise<v
                     return;
                 }
             });
-
+        } else {
+            Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", "No code provided");
+            res.status(500).send({
+                status: "ERROR",
+                message: "No code provided",
+            });
         }
 
     });
@@ -118,17 +127,13 @@ export async function Status(req: express.Request, res: express.Response): Promi
         return;
     }
 
-    if (!YouTubeHelper.authenticated) {
-        res.status(403).send({
-            status: "ERROR",
-            message: "YouTube not authenticated",
-        });
-        return;
-    }
-
-    const end_date = new Date(YouTubeHelper.accessTokenTime);
-
-    const expires_in = formatDistanceToNow(end_date);
+    // if (!YouTubeHelper.authenticated) {
+    //     res.status(403).send({
+    //         status: "ERROR",
+    //         message: "YouTube not authenticated",
+    //     });
+    //     return;
+    // }
 
     let username = "";
     try {
@@ -136,9 +141,14 @@ export async function Status(req: express.Request, res: express.Response): Promi
     } catch (error) {
         res.status(500).send({
             status: "ERROR",
-            message: "YouTube not authenticated, no username returned",
+            message: `YouTube not authenticated: ${(error as Error).message}`,
         });
+        return;
     }
+
+    const end_date = new Date(YouTubeHelper.accessTokenTime);
+
+    const expires_in = formatDistanceToNow(end_date);
 
     if (username !== "") {
         res.send({
