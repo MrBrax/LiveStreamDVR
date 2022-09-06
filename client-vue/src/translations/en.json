@@ -78,7 +78,8 @@
       "edit-vod": "Edit VOD",
       "segments": "Segments",
       "template": "Template",
-      "rename-vod": "Rename VOD"
+      "rename-vod": "Rename VOD",
+      "absolute-season": "Absolute season"
     },
     "export": {
       "title-template": "Title template",

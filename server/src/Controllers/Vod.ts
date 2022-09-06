@@ -47,6 +47,7 @@ export async function EditVod(req: express.Request, res: express.Response): Prom
     }
 
     const stream_number = req.body.stream_number as number;
+    const absolute_season = req.body.absolute_season as number;
     const comment = req.body.comment as string;
     const prevent_deletion = req.body.prevent_deletion as boolean;
     const segments = req.body.segments as string;
@@ -54,6 +55,7 @@ export async function EditVod(req: express.Request, res: express.Response): Prom
     vod.stream_number = stream_number;
     vod.comment = comment;
     vod.prevent_deletion = prevent_deletion;
+    vod.stream_absolute_season = absolute_season;
     if (segments) {
         vod.segments_raw = segments.split("\n").map(s => s.trim()).filter(s => s.length > 0);
         vod.parseSegments(vod.segments_raw);

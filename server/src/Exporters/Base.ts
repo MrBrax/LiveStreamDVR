@@ -1,9 +1,10 @@
-import { formatString } from "../Helpers/Format";
+
 import path from "path";
 import fs from "fs";
 import { TwitchVOD } from "../Core/TwitchVOD";
 import { format } from "date-fns";
 import { ExporterFilenameTemplate } from "../../../common/Replacements";
+import { formatString } from "../../../common/Format";
 
 export class BaseExporter {
 

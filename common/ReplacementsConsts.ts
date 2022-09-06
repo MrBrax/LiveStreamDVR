@@ -12,6 +12,7 @@ export const VodBasenameFields: TemplateFields = {
     second: { display: "04" },
     id: { display: "123456789" },
     season: { display: "202212" },
+    absolute_season: { display: "5" },
     episode: { display: "3" },
 };
 

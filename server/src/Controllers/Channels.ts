@@ -6,18 +6,22 @@ import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiResp
 import { VideoQualityArray } from "../../../common/Defs";
 import { LOGLEVEL, Log } from "../Core/Log";
 import { TwitchVOD } from "../Core/TwitchVOD";
-import { replaceAll } from "../Helpers/ReplaceAll";
 import { Helper } from "../Core/Helper";
 import { Config } from "../Core/Config";
 import path from "path";
 import fs from "fs";
-import { parseJSON } from "date-fns";
+import { format, isValid, parseJSON } from "date-fns";
 import { Webhook } from "../Core/Webhook";
 import { EventSubStreamOnline } from "../../../common/TwitchAPI/EventSub/StreamOnline";
 import { Automator } from "../Core/Automator";
 import { TwitchVODChapterJSON } from "../Storage/JSON";
 import { KeyValue } from "../Core/KeyValue";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
+import sanitize from "sanitize-filename";
+import { formatString } from "../../../common/Format";
+import { VodBasenameTemplate } from "../../../common/Replacements";
+import { randomUUID } from "crypto";
+import { Video } from "../../../common/TwitchAPI/Video";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -303,7 +307,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         return;
     }
 
-    let video;
+    let video: Video | false;
     try {
         video = await TwitchVOD.getVideo(video_id);
     } catch (error) {
@@ -322,9 +326,66 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         return;
     }
 
-    const basename = `${channel.login}_${replaceAll(video.created_at, ":", "-")}_${video.stream_id}`;
+    // const basename = `${channel.login}_${replaceAll(video.created_at, ":", "-")}_${video.stream_id}`;
 
-    const filepath = path.join(Helper.vodFolder(channel.login), `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
+    
+
+    /*
+
+    const variables: VodBasenameTemplate = {
+        login: channel.login,
+        date: video.created_at.replaceAll(":", "_"),
+        year: isValid(date) ? format(date, "yyyy") : "",
+        year_short: isValid(date) ? format(date, "yy") : "",
+        month: isValid(date) ? format(date, "MM") : "",
+        day: isValid(date) ? format(date, "dd") : "",
+        hour: isValid(date) ? format(date, "HH") : "",
+        minute: isValid(date) ? format(date, "mm") : "",
+        second: isValid(date) ? format(date, "ss") : "",
+        id: video.stream_id?.toString() || randomUUID(), // bad solution
+        season: channel.current_season,
+        absolute_season: channel.current_absolute_season ? channel.current_absolute_season.toString().padStart(2, "0") : "",
+        // episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
+        episode: "0", // episode won't work with random downloads
+    };
+
+    const basename = sanitize(formatString(Config.getInstance().cfg("filename_vod"), variables));
+    const basefolder = "";
+    */
+
+    const template = (what: string) => {
+        if (!video) return "";
+
+        const date = parseJSON(video.created_at);
+
+        if (!date || !isValid(date)) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.download", `Invalid start date: ${video.created_at}`);
+        }
+
+        const variables: VodBasenameTemplate = {
+            login: channel.login || "",
+            date: video.created_at?.replaceAll(":", "_"),
+            year: isValid(date) ? format(date, "yyyy") : "",
+            year_short: isValid(date) ? format(date, "yy") : "",
+            month: isValid(date) ? format(date, "MM") : "",
+            day: isValid(date) ? format(date, "dd") : "",
+            hour: isValid(date) ? format(date, "HH") : "",
+            minute: isValid(date) ? format(date, "mm") : "",
+            second: isValid(date) ? format(date, "ss") : "",
+            id: video.stream_id?.toString() || randomUUID(), // bad solution
+            season: channel.current_season,
+            absolute_season: channel.current_absolute_season ? channel.current_absolute_season.toString().padStart(2, "0") : "",
+            // episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
+            episode: "0", // episode won't work with random downloads
+        };
+
+        return sanitize(formatString(Config.getInstance().cfg(what), variables));
+    };
+
+    const basename = template("filename_vod");
+    const basefolder = template("filename_vod_folder");
+
+    const filepath = path.join(basefolder, `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
 
     let status = false;
 
@@ -340,7 +401,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
     }
 
     if (status) {
-        const vod = await channel.createVOD(path.join(Helper.vodFolder(channel.login), `${basename}.json`));
+        const vod = await channel.createVOD(path.join(basefolder, `${basename}.json`));
         // vod.meta = video;
         // vod.streamer_name = channel.display_name || channel.login;
         // vod.streamer_login = channel.login;

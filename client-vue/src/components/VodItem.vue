@@ -977,6 +977,12 @@
         </modal-box>
         <modal-box ref="editVodMenu" :title="$t('vod.edit.edit-vod')">
             <div class="field">
+                <label class="label">{{ $t('vod.edit.absolute-season') }}</label>
+                <div class="control">
+                    <input class="input" type="number" v-model.number="editVodSettings.absolute_season" />
+                </div>
+            </div>
+            <div class="field">
                 <label class="label">{{ $t('vod.edit.stream-number') }}</label>
                 <div class="control">
                     <input class="input" type="number" v-model.number="editVodSettings.stream_number" />
@@ -1334,6 +1340,7 @@ export default defineComponent({
                 chatSource: "captured",
             },
             editVodSettings: {
+                absolute_season: 0,
                 stream_number: 0,
                 comment: "",
                 prevent_deletion: false,
@@ -1374,6 +1381,7 @@ export default defineComponent({
                 console.error("Chapters array found but empty for vod", this.vod.basename, this.vod);
             }
             this.editVodSettings = {
+                absolute_season: this.vod.stream_absolute_season ?? 0,
                 stream_number: this.vod.stream_number ?? 0,
                 comment: this.vod.comment ?? "",
                 prevent_deletion: this.vod.prevent_deletion ?? false,
