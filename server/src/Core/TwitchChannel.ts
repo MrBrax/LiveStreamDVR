@@ -222,6 +222,7 @@ export class TwitchChannel {
 
             this.vods_list.push(vodclass);
         }
+        this.sortVods();
     }
 
     public clearVODs(): void {
@@ -447,6 +448,7 @@ export class TwitchChannel {
 
         // TwitchVOD.addVod(vod);
         this.vods_list.push(load_vod);
+        this.sortVods();
 
         // add to database
         this.vods_raw.push(path.relative(BaseConfigDataFolder.vod, filename));
@@ -456,6 +458,13 @@ export class TwitchChannel {
 
         return load_vod;
 
+    }
+
+    public sortVods() {
+        return this.vods_list.sort((a, b) => {
+            if (!a.started_at || !b.started_at) return 0;
+            return a.started_at.getTime() - b.started_at.getTime();
+        });
     }
 
     /**
