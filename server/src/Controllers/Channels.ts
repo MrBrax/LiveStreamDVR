@@ -387,6 +387,14 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
 
     const filepath = path.join(basefolder, `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
 
+    if (TwitchVOD.hasVod(basename)) {
+        res.status(400).send({
+            status: "ERROR",
+            message: `VOD already exists: ${basename}`,
+        } as ApiErrorResponse);
+        return;
+    }
+
     let status = false;
 
     try {
@@ -401,7 +409,19 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
     }
 
     if (status) {
-        const vod = await channel.createVOD(path.join(basefolder, `${basename}.json`));
+        
+        let vod;
+        
+        try {
+            vod = await channel.createVOD(path.join(basefolder, `${basename}.json`));
+        } catch (error) {
+            res.status(400).send({
+                status: "ERROR",
+                message: (error as Error).message,
+            } as ApiErrorResponse);
+            return;
+        }
+
         // vod.meta = video;
         // vod.streamer_name = channel.display_name || channel.login;
         // vod.streamer_login = channel.login;
