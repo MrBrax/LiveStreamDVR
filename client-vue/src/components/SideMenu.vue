@@ -4,8 +4,8 @@
             <div class="top-menu-item title" v-if="store.config">
                 <router-link to="/dashboard" class="link">
                     <img src="../assets/logo.png" class="favicon" width="24" height="24" :alt="store.cfg('app_name', 'TA') ?? 'TA'" aria-hidden="true">
-                    <span class="title" :title="verboseClientVersion">
-                        <span>{{ store.app_name }}</span> <span>{{ store.version }}</span>/<span :class="{ dev: isDev }">{{ clientVersion }}</span>
+                    <span class="title" :title="verboseVersion">
+                        <span>{{ store.app_name }}</span> <span>S{{ store.version }}</span>/<span :class="{ dev: isDev }">C{{ clientVersion }}</span>
                         <span class="debug-mode" v-if="store.cfg('debug')" title="Debug">👽</span>
                     </span>
                 </router-link>
@@ -159,8 +159,9 @@ export default defineComponent({
         clientVersion() {
             return import.meta.env.VITE_APP_VERSION; // injected
         },
-        verboseClientVersion() {
-            return `${import.meta.env.VITE_APP_VERSION} (${import.meta.env.VITE_APP_BUILDDATE} / ${import.meta.env.VITE_APP_GIT_HASH})`; // injected
+        verboseVersion() {
+            return `Server ${this.store.version} (${this.store.serverGitHash})\n` +
+            `Client ${import.meta.env.VITE_APP_VERSION} (${import.meta.env.VITE_APP_BUILDDATE} / ${import.meta.env.VITE_APP_GIT_HASH})`; // injected
         },
         homepageLink() {
             return pack.homepage;
