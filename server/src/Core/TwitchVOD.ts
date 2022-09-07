@@ -1964,6 +1964,13 @@ export class TwitchVOD {
             await this.saveJSON("fix set capturing to false");
         }
 
+        // if converting but process not running
+        if (this.is_converting && await this.getConvertingStatus() !== JobStatus.RUNNING) {
+            console.log(chalk.bgRed.whiteBright(`${this.basename} is converting but process not running. Setting to false for fixing.`));
+            this.is_converting = false;
+            await this.saveJSON("fix set converting to false");
+        }
+
         // remux if not yet remuxed
         if (!this.is_capturing && !this.is_converted && !this.is_finalized) {
             if (fs.existsSync(path.join(this.directory, `${this.basename}.ts`))) {
