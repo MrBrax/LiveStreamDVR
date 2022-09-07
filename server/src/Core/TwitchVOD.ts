@@ -1044,8 +1044,20 @@ export class TwitchVOD {
 
         Log.logAdvanced(LOGLEVEL.INFO, "vod.rebuildSegmentList", `Rebuilding segment list for ${this.basename}`);
 
-        const files = fs.readdirSync(this.directory)
-            .filter(file =>
+        let files: string[];
+
+        if (this.directory !== Helper.vodFolder(this.streamer_login)) { // is not in vod folder root
+            Log.logAdvanced(LOGLEVEL.INFO, "vod.rebuildSegmentList", `VOD ${this.basename} has its own folder, find all files.`);
+            files = fs.readdirSync(this.directory).filter(file =>
+                (
+                    file.endsWith(`.${Config.getInstance().cfg("vod_container", "mp4")}`) ||
+                    file.endsWith(Config.AudioContainer)
+                ) &&
+                !file.includes("_vod") && !file.includes("_chat") && !file.includes("_chat_mask") && !file.includes("_burned")
+            );
+        } else {
+            Log.logAdvanced(LOGLEVEL.INFO, "vod.rebuildSegmentList", `VOD ${this.basename} does not have a folder, find by basename.`);
+            files = fs.readdirSync(this.directory).filter(file =>
                 file.startsWith(this.basename) &&
                 (
                     file.endsWith(`.${Config.getInstance().cfg("vod_container", "mp4")}`) ||
@@ -1053,6 +1065,7 @@ export class TwitchVOD {
                 ) &&
                 !file.includes("_vod") && !file.includes("_chat") && !file.includes("_chat_mask") && !file.includes("_burned")
             );
+        }
 
         if (!files || files.length == 0) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vod.rebuildSegmentList", `No segments found for ${this.basename}, can't rebuild segment list`);
@@ -2047,6 +2060,8 @@ export class TwitchVOD {
                 const dir = path.dirname(seg.filename);
                 if (dir !== Helper.vodFolder(this.streamer_login) && seg.deleted) {
                     // rebuild here
+                    await this.rebuildSegmentList();
+                    continue;
                 }
             }
         }
