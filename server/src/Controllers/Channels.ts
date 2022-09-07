@@ -768,7 +768,7 @@ export async function ScanVods(req: express.Request, res: express.Response): Pro
     // console.log("vod amount sanity check 1", TwitchVOD.vods.length);
     channel.clearVODs();
     // console.log("vod amount sanity check 2", TwitchVOD.vods.length);
-    await channel.parseVODs(false, true);
+    await channel.parseVODs(true);
     // console.log("vod amount sanity check 3", TwitchVOD.vods.length);
 
     res.send({

@@ -153,7 +153,7 @@ export class TwitchChannel {
             ));
     }
 
-    public async parseVODs(api = false, rescan = false): Promise<void> {
+    public async parseVODs(rescan = false): Promise<void> {
 
         /*
         this.vods_raw = fs.readdirSync(this.getFolder())
@@ -192,7 +192,7 @@ export class TwitchChannel {
             let vodclass;
 
             try {
-                vodclass = await TwitchVOD.load(vod_full_path, api);
+                vodclass = await TwitchVOD.load(vod_full_path);
             } catch (e) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not load VOD ${vod}: ${(e as Error).message}`, e);
                 continue;
@@ -444,7 +444,7 @@ export class TwitchChannel {
         await vod.saveJSON("create json");
 
         // reload
-        const load_vod = await TwitchVOD.load(vod.filename);
+        const load_vod = await TwitchVOD.load(vod.filename, true);
 
         // TwitchVOD.addVod(vod);
         this.vods_list.push(load_vod);
@@ -1264,7 +1264,7 @@ export class TwitchChannel {
         // if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "editor", channel.login)))
         //     fs.mkdirSync(path.join(BaseConfigDataFolder.saved_clips, "editor", channel.login), { recursive: true });
 
-        await channel.parseVODs(api);
+        await channel.parseVODs();
 
         await channel.findClips();
 

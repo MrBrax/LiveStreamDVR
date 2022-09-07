@@ -2689,7 +2689,7 @@ export class TwitchVOD {
      * 
      */
 
-    public static async load(filename: string, api = false): Promise<TwitchVOD> {
+    public static async load(filename: string, noFixIssues = false): Promise<TwitchVOD> {
 
         const basename = path.basename(filename);
 
@@ -2754,7 +2754,7 @@ export class TwitchVOD {
         // 	vod.setupApiHelper();
         // }
 
-        Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `VOD Class for ${vod.basename} with api ${api ? "enabled" : "disabled"}!`);
+        // Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `VOD Class for ${vod.basename} with api ${api ? "enabled" : "disabled"}!`);
 
         // vod.saveJSON();
 
@@ -2765,7 +2765,7 @@ export class TwitchVOD {
 
         // fs.unwatchFile(vod.filename);
 
-        await vod.fixIssues();
+        if(!noFixIssues) await vod.fixIssues();
 
         // console.debug("vod getter check", vod.basename, vod.directory, vod.is_converted, vod.is_finalized, vod.is_capturing, vod.is_converting);
 
