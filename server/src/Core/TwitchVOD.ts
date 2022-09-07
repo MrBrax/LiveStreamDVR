@@ -2029,6 +2029,7 @@ export class TwitchVOD {
 
         // if segments don't begin with login
         if (this.is_finalized && this.segments.length > 0) {
+            /*
             let error_segments = 0;
             for (const seg of this.segments_raw) {
                 if (!path.basename(seg).startsWith(`${this.streamer_login}_`)) {
@@ -2040,6 +2041,13 @@ export class TwitchVOD {
             if (error_segments == this.segments_raw.length) {
                 console.log(chalk.bgRed.whiteBright(`${this.basename} has no segments starting with login ${this.streamer_login}, fixing!`));
                 this.rebuildSegmentList();
+            }*/
+            for (const seg of this.segments) {
+                if (!seg.filename) continue;
+                const dir = path.dirname(seg.filename);
+                if (dir !== Helper.vodFolder(this.streamer_login) && seg.deleted) {
+                    // rebuild here
+                }
             }
         }
 
