@@ -460,6 +460,8 @@ export class Automator {
         const vod = channel.latest_vod;
         if (!vod) return;
 
+        if (!vod.chapters || vod.chapters.length == 0) return;
+
         const current_chapter = vod.chapters[vod.chapters.length - 1];
         const previous_chapter = vod.chapters.length > 2 ? vod.chapters[vod.chapters.length - 2] : null;
 
