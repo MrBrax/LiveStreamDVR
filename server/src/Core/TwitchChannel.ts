@@ -170,9 +170,9 @@ export class TwitchChannel {
         if (fs.existsSync(path.join(BaseConfigDataFolder.vods_db, `${this.login}.json`)) && !rescan) {
             let list: string[] = JSON.parse(fs.readFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.login}.json`), { encoding: "utf-8" }));
             Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Found ${list.length} stored VODs in database for ${this.login}`);
-            console.log(list);
+            // console.log(list);
             list = list.filter(p => fs.existsSync(path.join(BaseConfigDataFolder.vod, p)));
-            console.log(list);
+            // console.log(list);
             this.vods_raw = list;
             Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Found ${this.vods_raw.length} existing VODs in database for ${this.login}`);
         } else {

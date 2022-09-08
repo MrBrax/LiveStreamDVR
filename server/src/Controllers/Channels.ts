@@ -521,6 +521,19 @@ export async function RefreshChannel(req: express.Request, res: express.Response
         return;
     }
 
+    let isLive = false;
+    try {
+        isLive = await channel.isLiveApi();
+    } catch (error) {
+        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.refresh", `Could not get live status for ${channel.login}`);
+    }
+
+    if (!isLive) {
+        KeyValue.getInstance().delete(`${channel.login}.online`);
+        KeyValue.getInstance().delete(`${channel.login}.vod.id`);
+        KeyValue.getInstance().delete(`${channel.login}.vod.started_at`);
+    }
+
     if (success) {
         Log.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.refresh", `Refreshed channel: ${channel.login}`);
         res.send({
