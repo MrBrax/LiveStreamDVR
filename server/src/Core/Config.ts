@@ -112,6 +112,7 @@ export class Config {
         { "key": "debug", "group": "Developer", "text": "Debug", "type": "boolean", "default": false, "help": "Verbose logging, extra file outputs, more information available. Not for general use.", "guest": true },
         { "key": "app_verbose", "group": "Developer", "text": "Verbose app output", "type": "boolean", "help": "Only verbose output" },
         { "key": "dump_payloads", "group": "Developer", "text": "Dump payloads", "type": "boolean", "default": false },
+        { "key": "debug.catch_global_exceptions", "group": "Developer", "text": "Catch global exceptions", "type": "boolean", "default": false },
 
         { "key": "chat_compress", "group": "Advanced", "text": "Compress chat with gzip (untested)", "type": "boolean" },
         // { "key": "relative_time", "group": "Interface", "text": "Relative time", "type": "boolean", "help": "\"1 hour ago\" instead of 2020-01-01" },
