@@ -226,7 +226,7 @@ Config.init().then(() => {
         });
         */
 
-        Promise.reject("test");
+        // Promise.reject("test");
     }
 
     // fs.writeFileSync(path.join(BaseConfigDataFolder.cache, "lock"), "1");
