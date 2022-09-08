@@ -230,7 +230,12 @@ export class Automator {
             Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Automator channel.update event for ${this.broadcaster_user_login}`);
 
             await this.updateGame();
-        } else if (subscription_type == "stream.online" && "id" in event) {
+        } else if (subscription_type == "stream.online") {
+
+            if (!("id" in event)) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator.handle", `No stream id supplied in event for channel '${this.broadcaster_user_login}', aborting.`, event);
+                return false;
+            }
 
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.last.online`, new Date().toISOString());
             Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Automator stream.online event for ${this.broadcaster_user_login} (retry ${message_retry})`);
@@ -254,6 +259,7 @@ export class Automator {
             KeyValue.getInstance().setBool(`${this.broadcaster_user_login}.online`, true);
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.vod.id`, event.id);
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.vod.started_at`, event.started_at);
+            Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `${this.broadcaster_user_login} stream has ID ${event.id}, started ${event.started_at}`);
 
             fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify({ time: new Date(), action: "online" }) + "\n", { flag: "a" });
 
@@ -289,7 +295,11 @@ export class Automator {
                 );
             }
 
-            await this.download();
+            try {
+                await this.download();
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator.handle", `Download of stream '${this.broadcaster_user_login}' failed: ${(error as Error).message}`);
+            }
 
         } else if (subscription_type == "stream.offline") {
 
@@ -447,8 +457,12 @@ export class Automator {
             }
 
             if (!this.channel?.no_capture && is_live && !this.channel?.is_capturing) {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.getLogin()} status is online but not capturing, starting capture from chapter update.`);
-                this.download();
+                if (!this.getVodID()) {
+                    Log.logAdvanced(LOGLEVEL.WARNING, "automator", `Channel ${this.getLogin()} does not have a stream id, cannot start downloading from chapter update.`);
+                } else {
+                    Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.getLogin()} status is online but not capturing, starting capture from chapter update.`);
+                    this.download();
+                }
             }
 
             return true;
@@ -592,9 +606,6 @@ export class Automator {
         }
 
         // KeyValue.getInstance().set("${this.broadcaster_user_login}.online", "0");
-        KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
-        // KeyValue.getInstance().set("${this.broadcaster_user_login}.vod.id", null);
-        // KeyValue.getInstance().set("${this.broadcaster_user_login}.vod.started_at", null);
 
         // write to history
         fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify({ time: new Date(), action: "offline" }) + "\n", { flag: "a" });
@@ -619,6 +630,10 @@ export class Automator {
         if (Config.getInstance().cfg("exporter.auto.enabled")) {
             // TODO: export automatically
         }
+
+        KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
+        KeyValue.getInstance().delete(`${this.broadcaster_user_login}.vod.id`);
+        KeyValue.getInstance().delete(`${this.broadcaster_user_login}.vod.started_at`);
 
     }
 
@@ -734,7 +749,7 @@ export class Automator {
         }
 
         if (!data_id) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No data supplied for download, try #${tries}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No VOD ID supplied for download (try #${tries})`);
             throw new Error("No data supplied");
         }
 
