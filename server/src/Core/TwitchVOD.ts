@@ -1926,7 +1926,7 @@ export class TwitchVOD {
 
     public async fixIssues(): Promise<void> {
 
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Run fixIssues for VOD ${this.basename}`);
+        Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Run fixIssues for VOD ${this.basename}`);
 
         if (this.not_started) {
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD ${this.basename} not started yet, skipping fix!`);

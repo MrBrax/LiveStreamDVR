@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import { compareVersions } from "compare-versions";
 import dotenv from "dotenv";
 import express from "express";
 import session from "express-session";
@@ -45,6 +46,18 @@ if (argv.help || argv.h) {
 
 // for overriding port if you can't or don't want to use the web gui to change it
 const override_port = argv.port ? parseInt(argv.port as string) : undefined;
+
+if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"))) {
+    if (
+        compareVersions(
+            version,
+            fs.readFileSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"), { encoding: "utf-8" })
+        ) == -1 && !argv["ignore-version"]) {
+        throw new Error("Server has been started with an older version than the data folder. Use the argument --ignore-version to continue.");
+    }
+}
+
+fs.writeFileSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"), version);
 
 // load all required config files and cache stuff
 Config.init().then(() => {
@@ -165,7 +178,7 @@ Config.init().then(() => {
         console.log(chalk.yellow("WebSocket is disabled. Change the 'websocket_enabled' config to enable it."));
     }
 
-    const shutdown = function() {
+    const shutdown = function () {
         server.close(async (e) => {
             if (websocketServer) websocketServer.close();
             Scheduler.removeAllJobs();
@@ -185,7 +198,7 @@ Config.init().then(() => {
 
     // handle uncaught exceptions, not sure if this is a good idea
     if (Config.getInstance().cfg<boolean>("debug.catch_global_exceptions")) {
-        process.on("uncaughtException", function(err, origin) {
+        process.on("uncaughtException", function (err, origin) {
             console.error("Fatal error; Uncaught exception");
             console.error(err);
             console.error(origin);

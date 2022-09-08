@@ -49,6 +49,7 @@
     "basic-auth": "^2.0.1",
     "chalk": "4",
     "chokidar": "^3.5.3",
+    "compare-versions": "^5.0.1",
     "cron": "2.1.0",
     "date-fns": "^2.28.0",
     "dotenv": "^16.0.0",
