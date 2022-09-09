@@ -188,7 +188,7 @@ export class Helper {
     }
 
     public static twitchDuration(seconds: number): string {
-        return replaceAll(this.getNiceDuration(seconds), " ", "").trim();
+        return this.getNiceDuration(seconds).replaceAll(" ", "").trim();
         // return trim(str_replace(" ", "", self::getNiceDuration($seconds)));
     }
 
@@ -638,16 +638,21 @@ export class Helper {
                 const totalDurationMatch = data.match(/Duration: (\d+):(\d+):(\d+)/);
                 if (totalDurationMatch && !totalSeconds) {
                     totalSeconds = parseInt(totalDurationMatch[1]) * 3600 + parseInt(totalDurationMatch[2]) * 60 + parseInt(totalDurationMatch[3]);
-                    console.debug(`Remux total duration: ${totalSeconds}`);
+                    console.log(`Remux total duration for ${path.basename(input)}: ${totalSeconds}`);
                 }
                 const currentTimeMatch = data.match(/time=(\d+):(\d+):(\d+)/);
                 if (currentTimeMatch && totalSeconds > 0) {
                     currentSeconds = parseInt(currentTimeMatch[1]) * 3600 + parseInt(currentTimeMatch[2]) * 60 + parseInt(currentTimeMatch[3]);
                     job.setProgress(currentSeconds / totalSeconds);
-                    console.debug(`Remux current time: ${currentSeconds}`);
+                    // console.debug(`Remux current time: ${currentSeconds}/${totalSeconds}`);
+                    console.log(
+                        chalk.bgGreen.whiteBright(
+                            `${new Date().toISOString()} ${path.basename(input)} ${currentSeconds}/${totalSeconds} (${Math.round((currentSeconds / totalSeconds) * 100)})`
+                        )
+                    );
                 }
                 if (data.match(/moving the moov atom/)) {
-                    console.debug("Remux moov atom move");
+                    console.log("Create MOOV atom for " + path.basename(input));
                 }
             });
 

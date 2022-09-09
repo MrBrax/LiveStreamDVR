@@ -153,7 +153,7 @@ export async function Hook(req: express.Request, res: express.Response): Promise
             }
 
             if (Config.debug || Config.getInstance().cfg<boolean>("dump_payloads")) {
-                let payload_filename = replaceAll(new Date().toISOString(), /[-:.]/g, "_"); // TODO: replaceAll
+                let payload_filename = new Date().toISOString().replaceAll(/[-:.]/g, "_");
                 if (data_json.subscription.type) payload_filename += `_${data_json.subscription.type}`;
                 payload_filename += ".json";
                 const payload_filepath = path.join(BaseConfigDataFolder.payloads, payload_filename);

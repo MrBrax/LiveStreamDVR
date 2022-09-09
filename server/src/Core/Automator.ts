@@ -130,64 +130,35 @@ export class Automator {
         return path.join(BaseConfigDataFolder.vod, this.basedir());
     }
 
-    public getVodID() {
+    public getVodID(): string | false {
         return KeyValue.getInstance().get(`${this.getLogin()}.vod.id`);
         // return $this->payload['id'];
     }
 
-    public getUserID() {
+    public getUserID(): string {
         return this.broadcaster_user_id;
     }
 
-    public getUsername() {
+    public getUsername(): string {
         return this.broadcaster_user_name;
     }
 
-    public getLogin() {
+    public getLogin(): string {
         return this.broadcaster_user_login;
     }
 
-    public getStartDate() {
+    public getStartDate(): string {
         return KeyValue.getInstance().get(`${this.getLogin()}.vod.started_at`) || "";
     }
 
-    public getDateTime() {
-        // return date(TwitchHelper::DATE_FORMAT);
-        // return format(new Date(), Helper.TWITCH_DATE_FORMAT);
-        return JSON.stringify(new Date());
-    }
-
-    public streamURL() {
+    public streamURL(): string {
         return `twitch.tv/${this.broadcaster_user_login}`;
     }
-
-    /*
-    public getCaptureFilename(segment_number: number) {
-        const folder_base = Helper.vodFolder(this.getLogin());
-        if (segment_number === 0) {
-            return path.join(folder_base, `${this.basename()}.ts`);
-        } else {
-            return path.join(folder_base, `${this.basename()}_${segment_number}.ts`);
-        }
-    }
-    */
-
-    /*
-    public convertUpdateEventToOnlineEvent(event: EventSubChannelUpdate) {
-
-        let sub: StreamOnlineSubscription = Object.assign({}, event.subscription);
-        sub.type = "channel.online";
-
-        const mock_data: EventSubStreamOnline = {
-
-
-    }
-    */
 
     /**
      * Entrypoint for stream capture, this is where all Twitch EventSub (webhooks) end up.
      */
-    public async handle(data: EventSubResponse, request: express.Request) {
+    public async handle(data: EventSubResponse, request: express.Request): Promise<boolean> {
         Log.logAdvanced(LOGLEVEL.DEBUG, "automator.handle", "Handle called, proceed to parsing.");
 
         if (!request.header("Twitch-Eventsub-Message-Id")) {
@@ -229,7 +200,7 @@ export class Automator {
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.last.update`, new Date().toISOString());
             Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Automator channel.update event for ${this.broadcaster_user_login}`);
 
-            await this.updateGame();
+            return await this.updateGame();
         } else if (subscription_type == "stream.online") {
 
             if (!("id" in event)) {
@@ -303,12 +274,17 @@ export class Automator {
 
         } else if (subscription_type == "stream.offline") {
 
-            await this.end();
+            return await this.end();
 
         } else {
 
             Log.logAdvanced(LOGLEVEL.ERROR, "automator.handle", `No supported subscription type (${subscription_type}).`);
+            return false;
+
         }
+
+        Log.logAdvanced(LOGLEVEL.ERROR, "automator.handle", "how did you get here");
+        return false;
 
     }
 
@@ -585,7 +561,7 @@ export class Automator {
      * Available fields:
      * - channel
      */
-    public async end() {
+    public async end(): Promise<boolean> {
 
         Log.logAdvanced(LOGLEVEL.INFO, "automator.end", "Stream end");
 
@@ -635,6 +611,8 @@ export class Automator {
         KeyValue.getInstance().delete(`${this.broadcaster_user_login}.vod.id`);
         KeyValue.getInstance().delete(`${this.broadcaster_user_login}.vod.started_at`);
 
+        return true;
+
     }
 
     /**
@@ -647,7 +625,7 @@ export class Automator {
      * - vod
      * - basename
      */
-    public async onEndDownload() {
+    public async onEndDownload(): Promise<boolean> {
         // download chat and optionally burn it
         // TODO: call this when a non-captured stream ends too
         if (this.channel && this.vod) {
@@ -733,9 +711,11 @@ export class Automator {
             }
 
         }
+
+        return true;
     }
 
-    public async download(tries = 0) {
+    public async download(tries = 0): Promise<boolean> {
 
         // const data_title = this.getTitle();
         const data_started = this.getStartDate();
@@ -894,9 +874,7 @@ export class Automator {
             // sleep(15);
             await Sleep(15 * 1000);
 
-            this.download(tries + 1);
-
-            return;
+            return this.download(tries + 1);
         }
 
         // end timestamp
@@ -1332,7 +1310,7 @@ export class Automator {
     /**
      * Capture chat in a "detached" process
      */
-    startCaptureChat() {
+    startCaptureChat(): boolean {
 
         // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
 
@@ -1385,7 +1363,7 @@ export class Automator {
     /**
      * Kill the process, stopping chat capture
      */
-    async endCaptureChat() {
+    async endCaptureChat(): Promise<void> {
 
         if (this.chatJob) {
             Log.logAdvanced(LOGLEVEL.INFO, "automator", `Ending chat dump with filename ${path.basename(this.chat_filename)}`);
@@ -1395,7 +1373,7 @@ export class Automator {
     }
 
     // maybe use this?
-    async compressChat() {
+    async compressChat(): Promise<boolean> {
         if (fs.existsSync(this.chat_filename)) {
             await Helper.execSimple("gzip", [this.chat_filename], "compress chat");
             return fs.existsSync(`${this.chat_filename}.gz`);
@@ -1403,7 +1381,7 @@ export class Automator {
         return false;
     }
 
-    async convertVideo() {
+    async convertVideo(): Promise<boolean> {
 
         if (!this.vod) return false;
 

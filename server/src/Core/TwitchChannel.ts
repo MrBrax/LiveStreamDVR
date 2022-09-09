@@ -688,7 +688,7 @@ export class TwitchChannel {
         return `https://www.twitch.tv/${this.login}`;
     }
 
-    public async findClips() {
+    public async findClips(): Promise<void> {
         if (!this.login) return;
         this.clips_list = [];
 
@@ -743,7 +743,7 @@ export class TwitchChannel {
         this.broadcastUpdate();
     }
 
-    public async refreshData() {
+    public async refreshData(): Promise<boolean> {
         if (!this.userid) throw new Error("Userid not set");
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Refreshing data for ${this.login}`);
 
@@ -801,7 +801,7 @@ export class TwitchChannel {
 
     }
 
-    public setupStreamNumber() {
+    public setupStreamNumber(): void {
 
         // set season
         if (!KeyValue.getInstance().has(`${this.login}.season_identifier`)) {
@@ -831,7 +831,7 @@ export class TwitchChannel {
         }
     }
 
-    public incrementStreamNumber() {
+    public incrementStreamNumber(): number {
 
         // relative season
         const seasonIdentifier = KeyValue.getInstance().get(`${this.login}.season_identifier`);
@@ -856,7 +856,7 @@ export class TwitchChannel {
         return this.current_stream_number;
     }
 
-    public postLoad() {
+    public postLoad(): void {
         this.setupStreamNumber();
         if (!KeyValue.getInstance().has(`${this.login}.saves_vods`)) {
             this.checkIfChannelSavesVods();
@@ -865,7 +865,7 @@ export class TwitchChannel {
         this.startWatching();
     }
 
-    public broadcastUpdate() {
+    public broadcastUpdate(): void {
         if (process.env.NODE_ENV === "test") return;
         if (this._updateTimer) {
             clearTimeout(this._updateTimer);
@@ -1013,7 +1013,7 @@ export class TwitchChannel {
             throw new Error(`Latest vod is older than 15 minutes (${Math.floor(latestVodDateDiff / 1000 / 60)} minutes, ${latestVodDateTotal.toISOString()})`);
         }
 
-        const basename = `${this.login}_${replaceAll(latestVodData.created_at, ":", "-")}_${latestVodData.stream_id}`;
+        const basename = `${this.login}_${latestVodData.created_at.replaceAll(":", "-")}_${latestVodData.stream_id}`;
         const file_path = path.join(Helper.vodFolder(this.login), `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
 
         let success;

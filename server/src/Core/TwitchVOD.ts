@@ -12,7 +12,6 @@ import { VideoQuality } from "../../../common/Config";
 import { JobStatus, MuteStatus } from "../../../common/Defs";
 import { AudioStream, FFProbe, VideoStream } from "../../../common/FFProbe";
 import { AudioMetadata, VideoMetadata } from "../../../common/MediaInfo";
-import { MediaInfo } from "../../../common/mediainfofield";
 import { Clip, ClipsResponse } from "../../../common/TwitchAPI/Clips";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { Video, VideosResponse } from "../../../common/TwitchAPI/Video";
@@ -782,10 +781,6 @@ export class TwitchVOD {
     get stream_season(): string | undefined {
         if (!this.started_at) return undefined;
         return format(this.started_at, Config.SeasonFormat);
-    }
-
-    public setupApiHelper() {
-        throw new Error("Method apihelper not implemented.");
     }
 
     public async parseChapters(raw_chapters: TwitchVODChapterJSON[]): Promise<boolean> {
@@ -1936,7 +1931,7 @@ export class TwitchVOD {
         // fix illegal characters
         if (this.basename.match(TwitchVOD.filenameIllegalChars)) {
             console.log(chalk.bgRed.whiteBright(`${this.basename} contains invalid characters!`));
-            const new_basename = replaceAll(this.basename, TwitchVOD.filenameIllegalChars, "_");
+            const new_basename = this.basename.replaceAll(TwitchVOD.filenameIllegalChars, "_");
             this.changeBaseName(new_basename);
         }
 
@@ -2340,11 +2335,11 @@ export class TwitchVOD {
         return this.twitch_vod_duration - this.duration;
     }
 
-    public async startWatching() {
+    public async startWatching(): Promise<boolean> {
         if (this.fileWatcher) await this.stopWatching();
 
         // no blocks in testing
-        if (process.env.NODE_ENV === "test") return;
+        if (process.env.NODE_ENV === "test") return false;
 
         const files = this.associatedFiles.map((f) => path.join(this.directory, f));
 
@@ -2404,9 +2399,11 @@ export class TwitchVOD {
             }
 
         });
+
+        return true;
     }
 
-    public async stopWatching() {
+    public async stopWatching(): Promise<void> {
         if (this.fileWatcher) await this.fileWatcher.close();
         this.fileWatcher = undefined;
         // console.log(`Stopped watching ${this.basename}`);
@@ -2531,7 +2528,7 @@ export class TwitchVOD {
 
     }
 
-    public setupStreamNumber() {
+    public setupStreamNumber(): void {
         const channel = this.getChannel();
         if (channel && channel.current_stream_number !== undefined && this.stream_number === undefined) {
             this.stream_number = channel.incrementStreamNumber();
@@ -2542,7 +2539,7 @@ export class TwitchVOD {
         }
     }
 
-    public postLoad() {
+    public postLoad(): void {
         this.setupStreamNumber();
         this.calculateBookmarks();
     }
@@ -2959,11 +2956,11 @@ export class TwitchVOD {
         }
     }
 
-    public static getVodByCaptureId(capture_id: string) {
+    public static getVodByCaptureId(capture_id: string): TwitchVOD | undefined {
         return TwitchVOD.vods.find(vod => vod.capture_id == capture_id);
     }
 
-    public static getVodByUUID(uuid: string) {
+    public static getVodByUUID(uuid: string): TwitchVOD | undefined {
         return TwitchVOD.vods.find(vod => vod.uuid == uuid);
     }
 
