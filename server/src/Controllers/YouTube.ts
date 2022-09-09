@@ -8,7 +8,7 @@ export function Authenticate(req: express.Request, res: express.Response): void 
     if (!YouTubeHelper.oAuth2Client) {
         res.status(500).send({
             status: "ERROR",
-            message: "YouTube client not configured",
+            message: "YouTube client not configured. Set it up in the settings page.",
         });
         return;
     }
@@ -29,7 +29,7 @@ export async function DestroySession(req: express.Request, res: express.Response
     if (!YouTubeHelper.oAuth2Client) {
         res.status(500).send({
             status: "ERROR",
-            message: "YouTube client not configured",
+            message: "YouTube client not configured. Set it up in the settings page.",
         });
         return;
     }

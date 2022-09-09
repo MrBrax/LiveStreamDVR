@@ -194,7 +194,7 @@ export class Config {
 
         { "key": "no_vod_convert", "group": "Video", "text": "Don't convert VODs", "type": "boolean", "default": false },
 
-        { "key": "exporter.default.exporter",       "group": "Exporter", "text": "Default exporter", "type": "array", "default": "file", "choices": ["file", "sftp", "ftp", "rclone"], "help": "Default exporter for exporter." },
+        { "key": "exporter.default.exporter",       "group": "Exporter", "text": "Default exporter", "type": "array", "default": "file", "choices": ["file", "sftp", "ftp", "rclone", "youtube"], "help": "Default exporter for exporter." },
         { "key": "exporter.default.directory",      "group": "Exporter", "text": "Default directory", "type": "string" },
         { "key": "exporter.default.host",           "group": "Exporter", "text": "Default host", "type": "string" },
         { "key": "exporter.default.username",       "group": "Exporter", "text": "Default username", "type": "string" },
