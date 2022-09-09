@@ -284,6 +284,33 @@ export class Config {
         { "key": "reencoder.delete_source", "group": "Reencoder", "text": "Delete source", "type": "boolean", "help": "Delete source after reencoding." },
 
         { "key": "localvideos.enabled", "group": "Local Videos", "text": "Enable local videos", "type": "boolean", "default": false },
+
+        /*
+            renderChat: false,
+            burnChat: false,
+            renderTest: false,
+            burnTest: false,
+            chatWidth: 300,
+            chatHeight: 300,
+            vodSource: "captured",
+            chatSource: "captured",
+            chatFont: "Inter",
+            chatFontSize: 12,
+            burnHorizontal: "left",
+            burnVertical: "top",
+            ffmpegPreset: "slow",
+            ffmpegCrf: 26,
+        */
+        { key: "chatburn.default.chat_width",       group: "Chat burn", text: "Chat width", type: "number", default: 300 },
+        { key: "chatburn.default.auto_chat_height", group: "Chat burn", text: "Chat auto height", type: "boolean", default: true },
+        { key: "chatburn.default.chat_height",      group: "Chat burn", text: "Chat height", type: "number", default: 300 },
+        { key: "chatburn.default.chat_font",        group: "Chat burn", text: "Chat font", type: "string", default: "Inter" },
+        { key: "chatburn.default.chat_font_size",   group: "Chat burn", text: "Chat font size", type: "number", default: 12 },
+        { key: "chatburn.default.horizontal",       group: "Chat burn", text: "Chat horizontal position", type: "array", choices: ["left", "right"], default: "left" },
+        { key: "chatburn.default.vertical",         group: "Chat burn", text: "Chat vertical position", type: "array", choices: ["top", "bottom"], default: "top" },
+        { key: "chatburn.default.preset",           group: "Chat burn", text: "Burning ffmpeg preset", type: "string", default: "slow" },
+        { key: "chatburn.default.crf",              group: "Chat burn", text: "Burning ffmpeg crf", type: "number", default: 26 },
+
     ];
 
     static MigrateOptions = [

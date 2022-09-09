@@ -1371,9 +1371,6 @@ export default defineComponent({
         };
     },
     mounted() {
-        if (this.vod && this.vod.video_metadata && this.vod.video_metadata.type !== 'audio')
-            this.burnSettings.chatHeight = this.vod.video_metadata.height;
-
         if (this.vod) {
             if (!this.vod.chapters) {
                 console.error("No chapters found for vod", this.vod.basename, this.vod);
@@ -1390,6 +1387,29 @@ export default defineComponent({
             this.exportVodSettings.vod = this.vod.basename;
             this.applyDefaultExportSettings();
         }
+
+        const chatHeight: number = 
+            this.vod && 
+            this.vod.video_metadata && 
+            this.vod.video_metadata.type !== 'audio' && 
+            this.store.cfg<boolean>("chatburn.default.auto_chat_height")
+            ?
+            this.vod.video_metadata.height
+            :
+            this.store.cfg<number>("chatburn.default.chat_height")
+        ;
+
+        this.burnSettings = {
+            ...this.burnSettings,
+            chatWidth: this.store.cfg<number>("chatburn.default.chat_width"),
+            chatHeight: chatHeight,
+            chatFont: this.store.cfg<string>("chatburn.default.chat_font"),
+            chatFontSize: this.store.cfg<number>("chatburn.default.chat_font_size"),
+            burnHorizontal: this.store.cfg<string>("chatburn.default.horizontal"),
+            burnVertical: this.store.cfg<string>("chatburn.default.vertical"),
+            ffmpegPreset: this.store.cfg<string>("chatburn.default.preset"),
+            ffmpegCrf: this.store.cfg<number>("chatburn.default.crf"),
+        };
 
         this.renameVodSettings.template = this.store.cfg("filename_vod", "");
     },

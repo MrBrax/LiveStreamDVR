@@ -639,10 +639,8 @@ export class Automator {
                 }
 
                 if (this.channel.burn_chat) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "automator.onEndDownload", "Automatic chat burning has been disabled until settings have been implemented.");
-                    // if ($vodclass->renderChat()) {
-                    // 	$vodclass->burnChat();
-                    // }
+                    // Log.logAdvanced(LOGLEVEL.ERROR, "automator.onEndDownload", "Automatic chat burning has been disabled until settings have been implemented.");
+                    await this.burnChat(); // @todo: should this await?
                 }
             }
 
@@ -1416,6 +1414,56 @@ export class Automator {
 
         return result && result.success;
 
+    }
+
+    public async burnChat(): Promise<void> {
+
+        if (!this.vod) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator.burnChat", "No VOD for burning chat");
+            return;
+        }
+
+        const chatHeight: number =
+            this.vod.video_metadata && 
+            this.vod.video_metadata.type !== "audio" && 
+            Config.getInstance().cfg<boolean>("chatburn.default.auto_chat_height")
+                ?
+                this.vod.video_metadata.height
+                :
+                Config.getInstance().cfg<number>("chatburn.default.chat_height")
+        ;
+
+        const settings = {
+            vodSource: "captured",
+            chatSource: "captured",
+            chatWidth: Config.getInstance().cfg<number>("chatburn.default.chat_width"),
+            chatHeight: chatHeight,
+            chatFont: Config.getInstance().cfg<string>("chatburn.default.chat_font"),
+            chatFontSize: Config.getInstance().cfg<number>("chatburn.default.chat_font_size"),
+            burnHorizontal: Config.getInstance().cfg<string>("chatburn.default.horizontal"),
+            burnVertical: Config.getInstance().cfg<string>("chatburn.default.vertical"),
+            ffmpegPreset: Config.getInstance().cfg<string>("chatburn.default.preset"),
+            ffmpegCrf: Config.getInstance().cfg<number>("chatburn.default.crf"),
+        };
+
+        let status_renderchat, status_burnchat;
+        
+        try {
+            status_renderchat = await this.vod.renderChat(settings.chatWidth, settings.chatHeight, settings.chatFont, settings.chatFontSize, settings.chatSource == "downloaded", true);
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator.burnChat", (error as Error).message);
+            return;
+        }
+        
+        try {
+            status_burnchat = await this.vod.burnChat(settings.burnHorizontal, settings.burnVertical, settings.ffmpegPreset, settings.ffmpegCrf, settings.vodSource == "downloaded", true);
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator.burnChat", (error as Error).message);
+            return;
+        }
+
+        Log.logAdvanced(LOGLEVEL.INFO, "automator.burnChat", `Render: ${status_renderchat}, Burn: ${status_burnchat}`);
+        
     }
 
 }
