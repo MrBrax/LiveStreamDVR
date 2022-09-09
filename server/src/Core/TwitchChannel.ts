@@ -501,7 +501,8 @@ export class TwitchChannel {
     public checkStaleVodsInMemory(): void {
         if (!this.login) return;
 
-        const vods_on_disk = fs.readdirSync(Helper.vodFolder(this.login)).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".json") && !f.endsWith("_chat.json"));
+        // const vods_on_disk = fs.readdirSync(Helper.vodFolder(this.login)).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".json") && !f.endsWith("_chat.json"));
+        const vods_on_disk = this.rescanVods();
         const vods_in_channel_memory = this.vods_list;
         const vods_in_main_memory = TwitchVOD.vods.filter(v => v.streamer_login === this.login);
 
