@@ -158,7 +158,8 @@
                             <span v-if="vod.twitch_vod_muted === MuteStatus.MUTED" class="icon is-error" title="Muted"><fa icon="volume-mute"></fa></span><!-- vod muted -->
                             <span v-if="vod.is_capture_paused" class="icon is-error" title="Paused"><fa icon="pause"></fa></span><!-- capturing paused -->
                             <span v-if="vod.prevent_deletion" class="icon is-success" title="Preventing deletion"><fa icon="lock"></fa></span><!-- prevent deletion -->
-                            <!--<span v-if="vod.comment" class="icon is-success" title="Preventing deletion"><fa icon="comment"></fa></span>--><!-- has comment -->
+                            <span v-if="vod.hasDeletedSegment" class="icon is-error" title="Deleted segment"><fa icon="film"></fa></span><!-- deleted segment -->
+                            <span v-if="vod.comment" class="icon is-success" title="Has comment"><fa icon="comment"></fa></span><!-- has comment -->
                         </span>
                     </template>
 

@@ -194,4 +194,9 @@ export default class TwitchVOD {
             return undefined;
         }
     }
+
+    get hasDeletedSegment(): boolean {
+        return this.segments.findIndex(s => s.deleted) !== -1;
+    }
+
 }
