@@ -565,7 +565,7 @@ export class TwitchChannel {
         Log.logAdvanced(LOGLEVEL.INFO, "channel", `Updated chapter data for ${this.login}`);
     }
 
-    public roundupCleanupVodCandidates(ignore_basename = ""): TwitchVOD[] {
+    public roundupCleanupVodCandidates(ignore_uuid = ""): TwitchVOD[] {
 
         let total_size = 0;
         let total_vods = 0;
@@ -586,8 +586,13 @@ export class TwitchChannel {
                     continue;
                 }
 
-                if (vodclass.basename === ignore_basename) {
-                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to ignore_basename`);
+                if (!vodclass.uuid) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "channel", `VOD ${vodclass.basename} does not have an UUID, will not remove.`);
+                    continue;
+                }
+
+                if (vodclass.uuid === ignore_uuid) {
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to ignore_uuid '${ignore_uuid}'`);
                     continue;
                 }
 
@@ -645,16 +650,16 @@ export class TwitchChannel {
 
     }
 
-    public async cleanupVods(ignore_basename = ""): Promise<number | false> {
+    public async cleanupVods(ignore_uuid = ""): Promise<number | false> {
 
         if (this.no_cleanup) {
             Log.logAdvanced(LOGLEVEL.INFO, "channel", `Skipping cleanup for ${this.login} due to no_cleanup flag`);
             return false;
         }
 
-        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Cleanup VODs for ${this.login}, ignore ${ignore_basename}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Cleanup VODs for ${this.login}, ignore ${ignore_uuid}`);
 
-        const vod_candidates = this.roundupCleanupVodCandidates(ignore_basename);
+        const vod_candidates = this.roundupCleanupVodCandidates(ignore_uuid);
 
         if (vod_candidates.length === 0) {
             Log.logAdvanced(LOGLEVEL.INFO, "channel", `Not enough vods to delete for ${this.login}`);

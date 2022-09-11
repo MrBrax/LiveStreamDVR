@@ -549,7 +549,7 @@ export class Automator {
             return;
         }
 
-        await this.channel.cleanupVods(this.vodBasenameTemplate());
+        await this.channel.cleanupVods(this.vod?.uuid);
 
     }
 
