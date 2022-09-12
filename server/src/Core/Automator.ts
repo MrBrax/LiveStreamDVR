@@ -234,12 +234,6 @@ export class Automator {
 
             fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify({ time: new Date(), action: "online" }) + "\n", { flag: "a" });
 
-            if (this.channel.no_capture) {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Skip capture for ${this.broadcaster_user_login} because no-capture is set`);
-                if (this.channel) this.channel.broadcastUpdate();
-                return false;
-            }
-
             // $this->payload = $data['data'][0];
 
             const basename = this.vodBasenameTemplate();
@@ -251,6 +245,7 @@ export class Automator {
                 return false;
             }
 
+            // notification
             if (this.channel) {
                 let body = "";
                 const chapter = this.channel.getChapterData();
@@ -264,6 +259,12 @@ export class Automator {
                     "streamOnline",
                     this.channel.getUrl()
                 );
+            }
+
+            if (this.channel.no_capture) {
+                Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Skip capture for ${this.broadcaster_user_login} because no-capture is set`);
+                if (this.channel) this.channel.broadcastUpdate();
+                return false;
             }
 
             try {
