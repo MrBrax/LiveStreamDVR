@@ -52,7 +52,7 @@ const verifySignature = (request: express.Request): boolean => {
         Log.logAdvanced(LOGLEVEL.ERROR, "hook", "Missing twitch headers for signature check.");
         return false;
     }
-    
+
     // const body = JSON.stringify(request.body); // needs raw body
     const body: string = (request as any).rawBody;
 
@@ -153,7 +153,7 @@ export async function Hook(req: express.Request, res: express.Response): Promise
             }
 
             if (Config.debug || Config.getInstance().cfg<boolean>("dump_payloads")) {
-                let payload_filename = replaceAll(new Date().toISOString(), /[-:.]/g, "_"); // TODO: replaceAll
+                let payload_filename = new Date().toISOString().replaceAll(/[-:.]/g, "_");
                 if (data_json.subscription.type) payload_filename += `_${data_json.subscription.type}`;
                 payload_filename += ".json";
                 const payload_filepath = path.join(BaseConfigDataFolder.payloads, payload_filename);
@@ -168,7 +168,7 @@ export async function Hook(req: express.Request, res: express.Response): Promise
                 } catch (error) {
                     Log.logAdvanced(LOGLEVEL.ERROR, "hook", `Failed to dump payload to ${payload_filepath}`, error);
                 }
-                
+
             }
 
             // verify message
@@ -186,7 +186,9 @@ export async function Hook(req: express.Request, res: express.Response): Promise
             if ("event" in data_json) {
                 Log.logAdvanced(LOGLEVEL.DEBUG, "hook", `Signature checked, no challenge, retry ${message_retry}. Run handle...`);
                 const TA = new Automator();
-                /* await */ TA.handle(data_json, req);
+                /* await */ TA.handle(data_json, req).catch(error => {
+                    Log.logAdvanced(LOGLEVEL.FATAL, "hook", `Automator returned error: ${error.message}`);
+                });
                 res.status(200).send("");
                 return;
             } else {

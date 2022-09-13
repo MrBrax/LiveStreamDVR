@@ -98,6 +98,10 @@ export class ClientBroker {
 
         });
 
+        this.wss.on("close", () => {
+            console.log("Shutting down websocket server");
+        });
+
     }
 
     private static onConnect(ws: WebSocket.WebSocket, req: IncomingMessage, is_authenticated = false) {

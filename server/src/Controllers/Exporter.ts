@@ -6,11 +6,12 @@ import { BaseConfigDataFolder, DataRoot } from "../Core/BaseConfig";
 import { TwitchVOD } from "../Core/TwitchVOD";
 import { FileExporter } from "../Exporters/File";
 import { FTPExporter } from "../Exporters/FTP";
+import { RCloneExporter } from "../Exporters/RClone";
 import { SFTPExporter } from "../Exporters/SFTP";
 import { YouTubeExporter } from "../Exporters/YouTube";
 import { validatePath } from "./Files";
 
-export type Exporter = FileExporter | YouTubeExporter | SFTPExporter | FTPExporter;
+export type Exporter = FileExporter | YouTubeExporter | SFTPExporter | FTPExporter | RCloneExporter;
 
 export interface ExporterOptions {
     vod?: string;
@@ -27,6 +28,7 @@ export interface ExporterOptions {
     file_source?: "segment" | "downloaded" | "burned";
     title_template?: string;
     title?: string;
+    remote?: string;
 }
 
 export function GetExporter(name: string, mode: string, options: ExporterOptions): Exporter {
@@ -36,11 +38,14 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
     let output_directory = "";
     if (options.directory) {
         const dircheck = validatePath(options.directory);
-        if (dircheck !== true) {
+        if (dircheck !== true && name == "file") {
+            console.error(`Invalid path: ${options.directory}`);
             throw new Error(dircheck.toString());
         }
         output_directory = options.directory;
     }
+
+    console.log("Create exporter", name, mode, options);
 
     try {
         if (name == "file") {
@@ -79,6 +84,14 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
                 exporter.setTags(options.tags ? (options.tags as string).split(",").map(tag => tag.trim()) : []);
                 exporter.setCategory(options.category);
                 exporter.setPrivacy(options.privacy);
+            }
+        } else if (name == "rclone") {
+            if (!output_directory) throw new Error("No directory set");
+            if (!options.remote) throw new Error("No remote set");
+            exporter = new RCloneExporter();
+            if (exporter instanceof RCloneExporter) { // why does typescript need this??
+                exporter.setDirectory(output_directory);
+                exporter.setRemote(options.remote);
             }
         }
     } catch (error) {

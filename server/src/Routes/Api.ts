@@ -44,6 +44,7 @@ router.post("/channels/:login/force_record", AuthAdmin, Channels.ForceRecord);
 router.post("/channels/:login/rename", AuthAdmin, Channels.RenameChannel);
 router.post("/channels/:login/deleteallvods", AuthAdmin, Channels.DeleteAllChannelVods);
 router.get("/channels/:login/history", AuthGuest, Channels.GetHistory);
+router.post("/channels/:login/scan", AuthGuest, Channels.ScanVods);
 
 router.get("/vod/:basename", AuthGuest, Vod.GetVod);
 router.post("/vod/:basename", AuthAdmin, Vod.EditVod);
@@ -60,6 +61,7 @@ router.post("/vod/:basename/save", AuthAdmin, Vod.ArchiveVod);
 router.post("/vod/:basename/bookmark", AuthAdmin, Vod.AddBookmark);
 router.delete("/vod/:basename/bookmark", AuthAdmin, Vod.RemoveBookmark);
 router.get("/vod/:basename/sync", AuthAdmin, Vod.GetSync);
+router.post("/vod/:basename/rename", AuthAdmin, Vod.RenameVod);
 
 router.get("/games", AuthGuest, Games.ListGames);
 
@@ -119,6 +121,7 @@ router.delete("/files", AuthAdmin, Files.DeleteFile);
 router.get("/youtube/authenticate", AuthAdmin, YouTube.Authenticate);
 router.get("/youtube/callback", AuthAdmin, YouTube.Callback);
 router.get("/youtube/status", AuthAdmin, YouTube.Status);
+router.get("/youtube/destroy", AuthAdmin, YouTube.DestroySession);
 
 router.post("/auth/login", Auth.Login);
 router.post("/auth/logout", Auth.Logout);

@@ -180,3 +180,30 @@
         max-height: 135px;
     }
 }
+
+.video-list {
+    .streamer-expand-container {
+        display: block;
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+        .streamer-expand-main {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background-color: #2b61d6;
+            color: #fff;
+            border: none;
+            padding: 0.5em;
+            font-family: "Roboto Condensed";
+            font-size: 1.2em;
+            font-weight: 500;
+            cursor: pointer;
+            &:hover {
+                background-color: #356be0;
+            }
+            .text {
+                padding-left: 0.5em;
+            }
+        }
+    }
+}

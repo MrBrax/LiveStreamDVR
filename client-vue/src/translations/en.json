@@ -1,7 +1,8 @@
 {
   "dashboard": {
     "recorded_vods": "Recorded VODs",
-    "logs": "Logs"
+    "logs": "Logs",
+    "motd": "MOTD"
   },
   "vods": "{count} VOD | {count} VODs",
   "messages": {
@@ -75,7 +76,10 @@
       "stream-number": "Stream number",
       "prevent-deletion": "Prevent deletion",
       "edit-vod": "Edit VOD",
-      "segments": "Segments"
+      "segments": "Segments",
+      "template": "Template",
+      "rename-vod": "Rename VOD",
+      "absolute-season": "Absolute season"
     },
     "export": {
       "title-template": "Title template",
@@ -96,11 +100,15 @@
       "privacy-private": "Private",
       "title": "Title",
       "password": "Password",
-      "password-help": "Passwords in FTP are sent unencrypted in clear text."
+      "password-help": "Passwords in FTP are sent unencrypted in clear text.",
+      "remote": "Remote"
     },
     "bookmarks": "Bookmarks",
     "buttons": {
       "download-with": "Download with {0}"
+    },
+    "rename": {
+      "current-name-vod-basename": "Current name: {0}"
     }
   },
   "buttons": {
@@ -120,7 +128,8 @@
     "export": "Export",
     "checkstatus": "Check status",
     "authenticate": "Authenticate",
-    "logout": "Log out"
+    "logout": "Log out",
+    "destroy-session": "Destroy session"
   },
   "pages": {
     "favourite-games": "Favourite games",

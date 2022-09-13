@@ -45,6 +45,7 @@ export type ApiGame = {
 };
 
 export type ApiVod = {
+    uuid?: string;
     basename: string;
 
     stream_title: string;
@@ -126,6 +127,7 @@ export type ApiVod = {
 
     stream_number?: number;
     stream_season?: string;
+    stream_absolute_season?: number;
 
     comment?: string;
     prevent_deletion: boolean;

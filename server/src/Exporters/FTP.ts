@@ -14,6 +14,8 @@ export class FTPExporter extends BaseExporter {
 
     public remote_file = "";
 
+    // public supportsDirectories = true;
+
     setDirectory(directory: string): void {
         this.directory = directory;
     }

@@ -1,8 +1,10 @@
 import axios from "axios";
 import chalk from "chalk";
 import chokidar from "chokidar";
+import { randomUUID } from "crypto";
 import { format, parseJSON } from "date-fns";
 import fs from "fs";
+import readdirSyncRecursive from "fs-readdir-recursive";
 import { encode as htmlentities } from "html-entities";
 import path from "path";
 import { TwitchVODChapterJSON } from "Storage/JSON";
@@ -111,6 +113,7 @@ export class TwitchChannel {
 
     public current_stream_number = 0;
     public current_season = "";
+    public current_absolute_season?: number;
 
     private _updateTimer: NodeJS.Timeout | undefined;
 
@@ -137,9 +140,22 @@ export class TwitchChannel {
         return Helper.vodFolder(this.login);
     }
 
-    private async parseVODs(api = false): Promise<void> {
+    public rescanVods(): string[] {
+        const list = readdirSyncRecursive(this.getFolder())
+            .filter(file =>
+                file.endsWith(".json") &&
+                fs.statSync(path.join(this.getFolder(), file)).size < 1024 * 1024
+            );
+        return list.map(
+            p => path.relative(
+                BaseConfigDataFolder.vod,
+                path.join(this.getFolder(), p)
+            ));
+    }
 
-        // $this->vods_raw = glob($this->getFolder() . DIRECTORY_SEPARATOR . $this->login . "_*.json");
+    public async parseVODs(rescan = false): Promise<void> {
+
+        /*
         this.vods_raw = fs.readdirSync(this.getFolder())
             .filter(file =>
                 (
@@ -149,6 +165,21 @@ export class TwitchChannel {
                 file.endsWith(".json") &&
                 !file.endsWith("_chat.json") // bad workaround
             );
+        */
+
+        if (fs.existsSync(path.join(BaseConfigDataFolder.vods_db, `${this.login}.json`)) && !rescan) {
+            let list: string[] = JSON.parse(fs.readFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.login}.json`), { encoding: "utf-8" }));
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Found ${list.length} stored VODs in database for ${this.login}`);
+            // console.log(list);
+            list = list.filter(p => fs.existsSync(path.join(BaseConfigDataFolder.vod, p)));
+            // console.log(list);
+            this.vods_raw = list;
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Found ${this.vods_raw.length} existing VODs in database for ${this.login}`);
+        } else {
+            this.vods_raw = this.rescanVods();
+            Log.logAdvanced(LOGLEVEL.INFO, "channel", `No VODs in database found for ${this.login}, migrate ${this.vods_raw.length} from recursive file search`);
+            fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.login}.json`), JSON.stringify(this.vods_raw));
+        }
 
         this.vods_list = [];
 
@@ -156,12 +187,12 @@ export class TwitchChannel {
 
             Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Try to parse VOD ${vod}`);
 
-            const vod_full_path = path.join(this.getFolder(), vod);
+            const vod_full_path = path.join(BaseConfigDataFolder.vod, vod);
 
             let vodclass;
 
             try {
-                vodclass = await TwitchVOD.load(vod_full_path, api);
+                vodclass = await TwitchVOD.load(vod_full_path);
             } catch (e) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not load VOD ${vod}: ${(e as Error).message}`, e);
                 continue;
@@ -191,6 +222,17 @@ export class TwitchChannel {
 
             this.vods_list.push(vodclass);
         }
+        this.sortVods();
+    }
+
+    public clearVODs(): void {
+        TwitchVOD.vods.forEach(v => {
+            if (v.streamer_login !== this.login) return;
+            v.stopWatching();
+        });
+        TwitchVOD.vods = TwitchVOD.vods.filter(v => v.streamer_login !== this.login);
+        this.vods_raw = [];
+        this.vods_list = [];
     }
 
     public getSubscriptionStatus(): boolean {
@@ -397,18 +439,32 @@ export class TwitchChannel {
 
         vod.created_at = new Date();
 
+        vod.uuid = randomUUID();
+
         await vod.saveJSON("create json");
 
         // reload
-        const load_vod = await TwitchVOD.load(vod.filename);
+        const load_vod = await TwitchVOD.load(vod.filename, true);
 
         // TwitchVOD.addVod(vod);
         this.vods_list.push(load_vod);
+        this.sortVods();
+
+        // add to database
+        this.vods_raw.push(path.relative(BaseConfigDataFolder.vod, filename));
+        fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.login}.json`), JSON.stringify(this.vods_raw));
 
         this.checkStaleVodsInMemory();
 
         return load_vod;
 
+    }
+
+    public sortVods() {
+        return this.vods_list.sort((a, b) => {
+            if (!a.started_at || !b.started_at) return 0;
+            return a.started_at.getTime() - b.started_at.getTime();
+        });
     }
 
     /**
@@ -430,6 +486,10 @@ export class TwitchChannel {
 
         this.vods_list = this.vods_list.filter(v => v.basename !== basename);
 
+        // remove vod from database
+        this.vods_raw = this.vods_raw.filter(p => p !== path.relative(BaseConfigDataFolder.vod, vod.filename));
+        fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.login}.json`), JSON.stringify(this.vods_raw));
+
         TwitchVOD.removeVod(basename);
 
         this.checkStaleVodsInMemory();
@@ -441,7 +501,8 @@ export class TwitchChannel {
     public checkStaleVodsInMemory(): void {
         if (!this.login) return;
 
-        const vods_on_disk = fs.readdirSync(Helper.vodFolder(this.login)).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".json") && !f.endsWith("_chat.json"));
+        // const vods_on_disk = fs.readdirSync(Helper.vodFolder(this.login)).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".json") && !f.endsWith("_chat.json"));
+        const vods_on_disk = this.rescanVods();
         const vods_in_channel_memory = this.vods_list;
         const vods_in_main_memory = TwitchVOD.vods.filter(v => v.streamer_login === this.login);
 
@@ -504,7 +565,7 @@ export class TwitchChannel {
         Log.logAdvanced(LOGLEVEL.INFO, "channel", `Updated chapter data for ${this.login}`);
     }
 
-    public roundupCleanupVodCandidates(ignore_basename = ""): TwitchVOD[] {
+    public roundupCleanupVodCandidates(ignore_uuid = ""): TwitchVOD[] {
 
         let total_size = 0;
         let total_vods = 0;
@@ -525,8 +586,13 @@ export class TwitchChannel {
                     continue;
                 }
 
-                if (vodclass.basename === ignore_basename) {
-                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to ignore_basename`);
+                if (!vodclass.uuid) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "channel", `VOD ${vodclass.basename} does not have an UUID, will not remove.`);
+                    continue;
+                }
+
+                if (vodclass.uuid === ignore_uuid) {
+                    Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Keeping ${vodclass.basename} due to ignore_uuid '${ignore_uuid}'`);
                     continue;
                 }
 
@@ -584,16 +650,16 @@ export class TwitchChannel {
 
     }
 
-    public async cleanupVods(ignore_basename = ""): Promise<number | false> {
+    public async cleanupVods(ignore_uuid = ""): Promise<number | false> {
 
         if (this.no_cleanup) {
             Log.logAdvanced(LOGLEVEL.INFO, "channel", `Skipping cleanup for ${this.login} due to no_cleanup flag`);
             return false;
         }
 
-        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Cleanup VODs for ${this.login}, ignore ${ignore_basename}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Cleanup VODs for ${this.login}, ignore ${ignore_uuid}`);
 
-        const vod_candidates = this.roundupCleanupVodCandidates(ignore_basename);
+        const vod_candidates = this.roundupCleanupVodCandidates(ignore_uuid);
 
         if (vod_candidates.length === 0) {
             Log.logAdvanced(LOGLEVEL.INFO, "channel", `Not enough vods to delete for ${this.login}`);
@@ -628,7 +694,7 @@ export class TwitchChannel {
         return `https://www.twitch.tv/${this.login}`;
     }
 
-    public async findClips() {
+    public async findClips(): Promise<void> {
         if (!this.login) return;
         this.clips_list = [];
 
@@ -683,7 +749,7 @@ export class TwitchChannel {
         this.broadcastUpdate();
     }
 
-    public async refreshData() {
+    public async refreshData(): Promise<boolean> {
         if (!this.userid) throw new Error("Userid not set");
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Refreshing data for ${this.login}`);
 
@@ -741,7 +807,7 @@ export class TwitchChannel {
 
     }
 
-    public setupStreamNumber() {
+    public setupStreamNumber(): void {
 
         // set season
         if (!KeyValue.getInstance().has(`${this.login}.season_identifier`)) {
@@ -750,6 +816,16 @@ export class TwitchChannel {
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Setting season for ${this.login} to ${this.current_season} as it is not set`);
         } else {
             this.current_season = KeyValue.getInstance().get(`${this.login}.season_identifier`) as string;
+        }
+
+        // absolute season numbering, one each month that goes on forever
+        if (!KeyValue.getInstance().has(`${this.login}.absolute_season_identifier`)) {
+            KeyValue.getInstance().setInt(`${this.login}.absolute_season_identifier`, 1);
+            KeyValue.getInstance().setInt(`${this.login}.absolute_season_month`, parseInt(format(new Date(), "M")));
+            this.current_absolute_season = 1;
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Setting season for ${this.login} to ${this.current_season} as it is not set`);
+        } else {
+            this.current_absolute_season = KeyValue.getInstance().getInt(`${this.login}.absolute_season_identifier`);
         }
 
         if (KeyValue.getInstance().has(`${this.login}.stream_number`)) {
@@ -761,7 +837,9 @@ export class TwitchChannel {
         }
     }
 
-    public incrementStreamNumber() {
+    public incrementStreamNumber(): number {
+
+        // relative season
         const seasonIdentifier = KeyValue.getInstance().get(`${this.login}.season_identifier`);
         if (seasonIdentifier && seasonIdentifier !== format(new Date(), Config.SeasonFormat)) {
             this.current_stream_number = 1;
@@ -773,10 +851,18 @@ export class TwitchChannel {
             this.current_stream_number += 1;
             KeyValue.getInstance().setInt(`${this.login}.stream_number`, this.current_stream_number);
         }
+
+        // absolute season
+        if (parseInt(format(new Date(), "M")) !== KeyValue.getInstance().getInt(`${this.login}.absolute_season_month`)) {
+            KeyValue.getInstance().setInt(`${this.login}.absolute_season_month`, parseInt(format(new Date(), "M")));
+            this.current_absolute_season = this.current_absolute_season ? this.current_absolute_season + 1 : 1;
+            KeyValue.getInstance().setInt(`${this.login}.absolute_season_identifier`, this.current_absolute_season);
+        }
+
         return this.current_stream_number;
     }
 
-    public postLoad() {
+    public postLoad(): void {
         this.setupStreamNumber();
         if (!KeyValue.getInstance().has(`${this.login}.saves_vods`)) {
             this.checkIfChannelSavesVods();
@@ -785,7 +871,7 @@ export class TwitchChannel {
         this.startWatching();
     }
 
-    public broadcastUpdate() {
+    public broadcastUpdate(): void {
         if (process.env.NODE_ENV === "test") return;
         if (this._updateTimer) {
             clearTimeout(this._updateTimer);
@@ -933,7 +1019,7 @@ export class TwitchChannel {
             throw new Error(`Latest vod is older than 15 minutes (${Math.floor(latestVodDateDiff / 1000 / 60)} minutes, ${latestVodDateTotal.toISOString()})`);
         }
 
-        const basename = `${this.login}_${replaceAll(latestVodData.created_at, ":", "-")}_${latestVodData.stream_id}`;
+        const basename = `${this.login}_${latestVodData.created_at.replaceAll(":", "-")}_${latestVodData.stream_id}`;
         const file_path = path.join(Helper.vodFolder(this.login), `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
 
         let success;
@@ -1184,7 +1270,7 @@ export class TwitchChannel {
         // if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "editor", channel.login)))
         //     fs.mkdirSync(path.join(BaseConfigDataFolder.saved_clips, "editor", channel.login), { recursive: true });
 
-        await channel.parseVODs(api);
+        await channel.parseVODs();
 
         await channel.findClips();
 
@@ -1347,6 +1433,9 @@ export class TwitchChannel {
                     ch.postLoad();
                     ch.vods_list.forEach(vod => vod.postLoad());
                     Log.logAdvanced(LOGLEVEL.SUCCESS, "config", `Loaded channel ${channel.login} with ${ch.vods_list?.length} vods`);
+                    if (ch.no_capture) {
+                        Log.logAdvanced(LOGLEVEL.WARNING, "config", `Channel ${channel.login} is configured to not capture streams.`);
+                    }
                 } else {
                     Log.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be added, please check logs.`);
                     break;

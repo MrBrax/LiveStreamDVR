@@ -81,6 +81,8 @@
                         <option value="file">File</option>
                         <option value="youtube">YouTube</option>
                         <option value="sftp">SFTP</option>
+                        <option value="ftp">FTP</option>
+                        <option value="rclone">RClone</option>
                     </select>
                 </div>
             </div>
@@ -94,7 +96,7 @@
             </div>
 
             <!-- Directory -->
-            <div class="field" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp'">
+            <div class="field" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp' || exportVodSettings.exporter == 'rclone'">
                 <label class="label">{{ $t('vod.export.directory') }}</label>
                 <div class="control">
                     <input class="input" type="text" v-model="exportVodSettings.directory" />
@@ -102,19 +104,36 @@
             </div>
 
             <!-- Host -->
-            <div class="field" v-if="exportVodSettings.exporter == 'sftp'">
+            <div class="field" v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'">
                 <label class="label">{{ $t('vod.export.host') }}</label>
                 <div class="control">
                     <input class="input" type="text" v-model="exportVodSettings.host" />
                 </div>
             </div>
 
+            <!-- Remote -->
+            <div class="field" v-if="exportVodSettings.exporter == 'rclone'">
+                <label class="label">{{ $t('vod.export.remote') }}</label>
+                <div class="control">
+                    <input class="input" type="text" v-model="exportVodSettings.remote" />
+                </div>
+            </div>
+
             <!-- Username -->
-            <div class="field" v-if="exportVodSettings.exporter == 'sftp'">
+            <div class="field" v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'">
                 <label class="label">{{ $t('vod.export.username') }}</label>
                 <div class="control">
                     <input class="input" type="text" v-model="exportVodSettings.username" />
                 </div>
+            </div>
+
+            <!-- Password -->
+            <div class="field" v-if="exportVodSettings.exporter == 'ftp'">
+                <label class="label">{{ $t('vod.export.password') }}</label>
+                <div class="control">
+                    <input class="input" type="password" v-model="exportVodSettings.password" />
+                </div>
+                <p class="help">{{ $t('vod.export.password-help') }}</p>
             </div>
 
             <!-- YouTube Authentication -->
@@ -238,7 +257,7 @@ export default defineComponent({
         sortBy: "name" | "size" | "date";
         sortOrder: "asc" | "desc";
         exportVodSettings: {
-            exporter: "file" | "sftp" | "youtube";
+            exporter: "file" | "sftp" | "ftp" | "rclone" | "youtube";
             title: string;
             directory: string;
             host: string;
@@ -249,8 +268,9 @@ export default defineComponent({
             file_folder: string;
             file_name: string;
             privacy: "public" | "unlisted" | "private";
+            remote: string;
+            password: string;
         };
-        exporterTemplateVariables: string[];
     } {
         return {
             files: [],
@@ -269,15 +289,9 @@ export default defineComponent({
                 file_folder: "",
                 file_name: "",
                 privacy: "private",
+                remote: "",
+                password: "",
             },
-            exporterTemplateVariables: [
-                "login",
-                "title",
-                "stream_number",
-                "comment",
-                "date",
-                "resolution",
-            ],
         };
     },
     created() {

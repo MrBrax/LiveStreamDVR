@@ -1,6 +1,5 @@
 import chalk from "chalk";
 import fs from "fs";
-import { replaceAll } from "../Helpers/ReplaceAll";
 import path from "path";
 import { BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
 import EventEmitter from "events";
@@ -48,7 +47,7 @@ export class KeyValue extends EventEmitter {
      */
     get(key: string): string | false {
 
-        key = replaceAll(key, /\//g, ""); // TODO: replaceAll
+        key = key.replaceAll("/", "");
 
         return this.data[key] !== undefined ? this.data[key] : false;
 
@@ -61,7 +60,7 @@ export class KeyValue extends EventEmitter {
      */
     getObject<T>(key: string): T | false {
 
-        key = replaceAll(key, /\//g, ""); // TODO: replaceAll
+        key = key.replaceAll("/", "");
 
         if (this.data[key] === undefined) {
             return false;
@@ -90,7 +89,7 @@ export class KeyValue extends EventEmitter {
      */
     set(key: string, value: string): void {
 
-        key = replaceAll(key, /\//g, ""); // TODO: replaceAll
+        key = key.replaceAll("/", "");
 
         if (Config.debug) console.debug(`Setting key-value pair: ${key} = ${value}`);
         this.data[key] = value;
@@ -107,7 +106,7 @@ export class KeyValue extends EventEmitter {
      */
     setObject<T>(key: string, value: T | null): void {
 
-        key = replaceAll(key, /\//g, ""); // TODO: replaceAll
+        key = key.replaceAll("/", "");
 
         if (value === null) {
             this.delete(key);

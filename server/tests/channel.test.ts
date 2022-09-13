@@ -4,6 +4,7 @@ import { TwitchVOD } from "../src/Core/TwitchVOD";
 import fs from "fs";
 import { TwitchVODSegment } from "../src/Core/TwitchVODSegment";
 import { Helper } from "../src/Core/Helper";
+import { randomUUID } from "crypto";
 
 // jest.mock("TwitchVOD");
 // const mockTwitchVOD = jest.mocked(TwitchVOD, true);
@@ -32,6 +33,7 @@ describe("Channel", () => {
 
         for (let i = 0; i < 10; i++) {
             const vod = new TwitchVOD();
+            vod.uuid = randomUUID();
             vod.basename = `testvod_${i+1}`;
             const seg = new TwitchVODSegment();
             seg.basename = `testvod_${i+1}.mp4`;
@@ -115,16 +117,18 @@ describe("Channel", () => {
         const candidates_8 = channel.roundupCleanupVodCandidates();
         expect(candidates_8.length).toBe(8);
 
+        const last_uuid = channel.vods_list ? channel.vods_list.at(-1)?.uuid : "";
+
         // 1 vod per streamer but ignore newest vod (delete 8 vods)
         Config.getInstance().setConfig("vods_to_keep", 1);
         Config.getInstance().setConfig("storage_per_streamer", 1000);
-        const candidates_9 = channel.roundupCleanupVodCandidates("testvod_10");
+        const candidates_9 = channel.roundupCleanupVodCandidates(last_uuid);
         expect(candidates_9.length).toBe(8);
 
         // 40 GB per streamer but ignore newest vod (delete 7 vods)
         Config.getInstance().setConfig("vods_to_keep", 99);
         Config.getInstance().setConfig("storage_per_streamer", 40);
-        const candidates_10 = channel.roundupCleanupVodCandidates("testvod_10");
+        const candidates_10 = channel.roundupCleanupVodCandidates(last_uuid);
         expect(candidates_10.length).toBe(7);
 
         // 1 vod per streamer but legacy mode (delete 1 vod)

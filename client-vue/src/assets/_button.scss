@@ -142,7 +142,7 @@
     flex-wrap: wrap;
     justify-content: flex-start;
 
-    .button:not(:last-child):not(.is-fullwidth) {
+    .button:not(:last-child):not(.is-fullwidth), .icon-button:not(:last-child):not(.is-fullwidth) {
         margin-right: .5rem;
     }
     &.is-centered {

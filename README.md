@@ -45,6 +45,10 @@ etc. I have only tested this with Nginx and letsencrypt.
 
 Post issues/help on the issues tab above. I already run an up to date version, so starting fresh might break stuff.
 
+Thanks to the contributors that helped expand the project!
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y4ES6VE)
+
 ---
 
 ## Migration from the PHP version
@@ -76,7 +80,7 @@ If you want the public webapp to have a custom base folder, you must provide `BA
 ## Standalone setup
 
 ### Main requirements
-- [node.js](https://nodejs.org/) 14+
+- [node.js](https://nodejs.org/) 15+
 - npm and yarn
 - HTTPS enabled with a valid certificate on the default port 443
 - Python 3.7+

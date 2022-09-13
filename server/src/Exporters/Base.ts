@@ -1,8 +1,10 @@
-import { formatString } from "../Helpers/Format";
+
 import path from "path";
 import fs from "fs";
 import { TwitchVOD } from "../Core/TwitchVOD";
 import { format } from "date-fns";
+import { ExporterFilenameTemplate } from "../../../common/Replacements";
+import { formatString } from "../../../common/Format";
 
 export class BaseExporter {
 
@@ -13,6 +15,14 @@ export class BaseExporter {
     public template_filename = "";
     public output_filename = "";
     public extension = "";
+
+    public supportsDirectories = false;
+    public directoryMode = false;
+
+    setDirectoryMode(state: boolean) {
+        if (!this.supportsDirectories) return;
+        this.directoryMode = state;
+    }
 
     loadVOD(vod: TwitchVOD): boolean {
         if (!vod.filename) throw new Error("No filename");
@@ -74,12 +84,16 @@ export class BaseExporter {
         if (this.vod.twitch_vod_title) title = this.vod.twitch_vod_title;
         if (this.vod.chapters[0]) title = this.vod.chapters[0].title;
 
-        const replacements: Record<string, string> = {
+        const replacements: ExporterFilenameTemplate = {
             login: this.vod.streamer_login,
             title: title,
             date: format(this.vod.started_at, "yyyy-MM-dd"),
+            year: this.vod.started_at ? format(this.vod.started_at, "yyyy") : "",
+            month: this.vod.started_at ? format(this.vod.started_at, "MM") : "", 
+            day: this.vod.started_at ? format(this.vod.started_at, "dd") : "", 
             comment: this.vod.comment || "",
             stream_number: this.vod.stream_number?.toString() || "",
+            resolution: "",
         };
 
         if (this.vod.video_metadata.type == "video") {

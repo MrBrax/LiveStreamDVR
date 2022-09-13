@@ -37,6 +37,17 @@
                     />
                 </div>
 
+                <!-- text -->
+                <div v-if="data.type == 'text'" class="control">
+                    <textarea
+                        class="input"
+                        :id="'input_' + data.key"
+                        :name="data.key"
+                        :title="data.help"
+                        v-model="(formData[data.key] as string)"
+                    ></textarea>
+                </div>
+
                 <!-- number -->
                 <div v-if="data.type == 'number'" class="control">
                     <input
@@ -119,6 +130,8 @@
     <div v-if="loading">
         <span class="icon"><fa icon="sync" spin></fa></span> {{ $t("messages.loading") }}
     </div>
+    <hr />
+    <youtube-auth />
 </template>
 
 <script lang="ts">
@@ -128,6 +141,7 @@ import { SettingField } from "@common/Config";
 import { AxiosError } from "axios";
 import { defineComponent, PropType } from "vue";
 import { formatString } from "@common/Format";
+import YoutubeAuth from "@/components/YoutubeAuth.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGlobe } from "@fortawesome/free-solid-svg-icons";
@@ -139,6 +153,9 @@ interface SettingsGroup {
 }
 
 export default defineComponent({
+    components: {
+        YoutubeAuth,
+    },
     name: "SettingsForm",
     setup() {
         const store = useStore();
@@ -240,11 +257,12 @@ export default defineComponent({
                 });
         },
         templatePreview(data: SettingField<any>, template: string): string {
-            console.debug("templatePreview", data, template);
+            // console.debug("templatePreview", data, template);
             if (!data.replacements) return "";
             const replaced_string = formatString(template, Object.fromEntries(Object.entries(data.replacements).map(([key, value]) => [key, value.display])));
             if (data.context) {
-                return data.context.replace(/{template}/g, replaced_string);
+                // return data.context.replace(/{template}/g, replaced_string);
+                return formatString(data.context, Object.fromEntries(Object.entries(data.replacements).map(([key, value]) => [key, value.display]))).replace(/{template}/g, replaced_string);
             } else {
                 return replaced_string;
             }

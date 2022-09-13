@@ -54,7 +54,7 @@ export class Log {
         [LOGLEVEL.EXEC]: "EXEC",
     };
 
-    static readTodaysLog() {
+    static readTodaysLog(): void {
         console.log(chalk.blue("Read today's log..."));
         const today = format(new Date(), "yyyy-MM-dd");
         const filename = `${today}.log`;
@@ -81,7 +81,7 @@ export class Log {
      * @param metadata 
      * @returns 
      */
-    static logAdvanced(level: LOGLEVEL, module: string, text: string, metadata?: any) {
+    static logAdvanced(level: LOGLEVEL, module: string, text: string, metadata?: any): void {
         if (!Config.debug && level == LOGLEVEL.DEBUG) return;
 
         // if testing, don't log
@@ -199,7 +199,7 @@ export class Log {
 
     }
 
-    private static nextLog() {
+    private static nextLog(): void {
         const today = format(new Date(), "yyyy-MM-dd");
         if (today != Log.currentDate) {
             console.log(chalk.yellow(`Clearing log memory from ${Log.currentDate} to ${today}`));

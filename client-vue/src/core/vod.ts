@@ -13,6 +13,7 @@ import { TwitchVODBookmark } from "@common/Bookmark";
 // const store = useStore();
 
 export default class TwitchVOD {
+    uuid? = "";
     basename = "";
 
     is_capturing = false;
@@ -67,6 +68,7 @@ export default class TwitchVOD {
 
     stream_number?: number;
     stream_season?: string;
+    stream_absolute_season?: number;
 
     comment?: string;
     prevent_deletion = false;
@@ -75,6 +77,7 @@ export default class TwitchVOD {
 
     public static makeFromApiResponse(apiResponse: ApiVod): TwitchVOD {
         const vod = new TwitchVOD();
+        vod.uuid = apiResponse.uuid;
         vod.basename = apiResponse.basename;
         vod.is_capturing = apiResponse.is_capturing;
         vod.is_converting = apiResponse.is_converting;
@@ -115,6 +118,7 @@ export default class TwitchVOD {
         vod.total_size = apiResponse.total_size;
         vod.stream_number = apiResponse.stream_number;
         vod.stream_season = apiResponse.stream_season;
+        vod.stream_absolute_season = apiResponse.stream_absolute_season;
         vod.comment = apiResponse.comment;
         vod.prevent_deletion = apiResponse.prevent_deletion;
         vod.failed = apiResponse.failed || false;
@@ -190,4 +194,9 @@ export default class TwitchVOD {
             return undefined;
         }
     }
+
+    get hasDeletedSegment(): boolean {
+        return this.segments.findIndex(s => s.deleted) !== -1;
+    }
+
 }

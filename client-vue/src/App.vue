@@ -180,6 +180,7 @@ export default defineComponent({
             const p = this.$refs.mediaplayer as HTMLDialogElement;
             p.showModal();
         });
+        document.addEventListener("keyup", this.keyEvent);
     },
     unmounted() {
         console.debug("App unmounted");
@@ -192,6 +193,7 @@ export default defineComponent({
             document.body.classList.remove(`is-${theme}`);
         }
         if (this.actionSub) this.actionSub(); // unsub
+        document.removeEventListener("keyup", this.keyEvent);
     },
     methods: {
         fetchInitialData() {
@@ -574,6 +576,10 @@ export default defineComponent({
                 // console.debug("Check login error", error);    
                 return { authentication: error.response.data.authentication as boolean, status: false, guest_mode: error.response.data.guest_mode as boolean };       
             });
+        },
+        keyEvent(event: KeyboardEvent) {
+            if (event.target && ["text", "textarea", "number"].includes((event.target as HTMLInputElement).type)) return;
+            this.store.keyEvent(event.key);
         }
     },
     components: {

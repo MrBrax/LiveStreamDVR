@@ -1,10 +1,15 @@
+import { Config } from "../Core/Config";
+import { format } from "date-fns";
 import express from "express";
 import fs from "fs";
 import path from "path";
+import sanitize from "sanitize-filename";
 import { ApiErrorResponse, ApiResponse, ApiVodResponse } from "../../../common/Api/Api";
 import { TwitchVODBookmark } from "../../../common/Bookmark";
 import { VideoQuality } from "../../../common/Config";
 import { VideoQualityArray } from "../../../common/Defs";
+import { formatString } from "../../../common/Format";
+import type { VodBasenameTemplate } from "../../../common/Replacements";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { Helper } from "../Core/Helper";
 import { Log, LOGLEVEL } from "../Core/Log";
@@ -42,6 +47,7 @@ export async function EditVod(req: express.Request, res: express.Response): Prom
     }
 
     const stream_number = req.body.stream_number as number;
+    const absolute_season = req.body.absolute_season as number;
     const comment = req.body.comment as string;
     const prevent_deletion = req.body.prevent_deletion as boolean;
     const segments = req.body.segments as string;
@@ -49,6 +55,7 @@ export async function EditVod(req: express.Request, res: express.Response): Prom
     vod.stream_number = stream_number;
     vod.comment = comment;
     vod.prevent_deletion = prevent_deletion;
+    vod.stream_absolute_season = absolute_season;
     if (segments) {
         vod.segments_raw = segments.split("\n").map(s => s.trim()).filter(s => s.length > 0);
         vod.parseSegments(vod.segments_raw);
@@ -260,7 +267,7 @@ export async function CheckMute(req: express.Request, res: express.Response): Pr
     res.send({
         status: "OK",
         data: {
-            vod: vod,
+            vod: await vod.toAPI(),
             muted: is_muted,
         },
     } as ApiResponse);
@@ -572,5 +579,47 @@ export async function GetSync(req: express.Request, res: express.Response): Prom
     res.send({
         data,
     });
+
+}
+
+export async function RenameVod(req: express.Request, res: express.Response): Promise<void> {
+
+    const vod = TwitchVOD.getVod(req.params.basename);
+
+    if (!vod) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const template = req.body.template;
+
+    const variables: VodBasenameTemplate = {
+        login: vod.streamer_login,
+        date: vod.started_at ? format(vod.started_at, Helper.TWITCH_DATE_FORMAT).replaceAll(":", "_") : "",
+        year: vod.started_at ? format(vod.started_at, "yyyy") : "",
+        year_short: vod.started_at ? format(vod.started_at, "yy") : "",
+        month: vod.started_at ? format(vod.started_at, "MM") : "",
+        day: vod.started_at ? format(vod.started_at, "dd") : "",
+        hour: vod.started_at ? format(vod.started_at, "HH") : "",
+        minute: vod.started_at ? format(vod.started_at, "mm") : "",
+        second: vod.started_at ? format(vod.started_at, "ss") : "",
+        id: vod.capture_id || "",
+        season: vod.stream_season || "",
+        episode: vod.stream_number ? vod.stream_number.toString() : "",
+    };
+
+    const basename = sanitize(formatString(template || Config.getInstance().cfg("filename_vod"), variables));
+
+    await vod.changeBaseName(basename);
+
+    res.send({
+        status: "OK",
+        message: basename,
+    } as ApiResponse);
+
+    return;
 
 }

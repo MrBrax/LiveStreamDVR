@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-import { formatDistanceToNow, parseJSON } from "date-fns";
+import { format, formatDistanceToNow, isValid, parseJSON } from "date-fns";
 import express from "express";
 import fs from "fs";
 import { IncomingHttpHeaders } from "http";
@@ -22,11 +22,11 @@ import { JobStatus, nonGameCategories, NotificationCategory } from "../../../com
 import chalk from "chalk";
 import { Sleep } from "../Helpers/Sleep";
 import { ClientBroker } from "./ClientBroker";
-import { replaceAll } from "../Helpers/ReplaceAll";
 import { ChapterUpdateData } from "../../../common/Webhook";
 import sanitize from "sanitize-filename";
 import { formatString } from "../../../common/Format";
 import { Exporter, ExporterOptions, GetExporter } from "../Controllers/Exporter";
+import { VodBasenameTemplate } from "../../../common/Replacements";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
@@ -37,9 +37,9 @@ export class Automator {
 
     realm = "twitch";
 
-    private broadcaster_user_id = "";
-    private broadcaster_user_login = "";
-    private broadcaster_user_name = "";
+    public broadcaster_user_id = "";
+    public broadcaster_user_login = "";
+    public broadcaster_user_name = "";
 
     payload_eventsub: EventSubResponse | undefined;
     payload_headers: IncomingHttpHeaders | undefined;
@@ -58,77 +58,107 @@ export class Automator {
     chatJob: Job | undefined;
 
     private vod_season?: string; // why is this a string
+    private vod_absolute_season?: number;
     private vod_episode?: number;
 
-    public basename() {
-        // return `${this.getLogin()}_${replaceAll(this.getStartDate(), ":", "_")}_${this.getVodID()}`; // TODO: replaceAll
-        const variables: Record<string, string> = {
-            login: this.getLogin(),
-            date: replaceAll(this.getStartDate(), ":", "_"),
-            id: this.getVodID().toString(),
-            season: this.vod_season || "",
-            episode: this.vod_episode ? this.vod_episode.toString() : "",
-        };
-        const basename = sanitize(formatString(Config.getInstance().cfg("filename_vod"), variables));
-        return basename;
+    public basedir(): string {
+        if (Config.getInstance().cfg<boolean>("vod_folders")) {
+            return path.join(
+                this.getLogin(),
+                this.vodFolderTemplate()
+            );
+        } else {
+            return this.getLogin();
+        }
     }
 
-    public getVodID() {
+    public vodFolderTemplate(): string {
+
+        const date = parseJSON(this.getStartDate());
+
+        if (!date || !isValid(date)) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator.vodFolderTemplate", `Invalid start date: ${this.getStartDate()}`);
+        }
+
+        const variables: VodBasenameTemplate = {
+            login: this.getLogin(),
+            date: this.getStartDate().replaceAll(":", "_"),
+            year: isValid(date) ? format(date, "yyyy") : "",
+            year_short: isValid(date) ? format(date, "yy") : "",
+            month: isValid(date) ? format(date, "MM") : "",
+            day: isValid(date) ? format(date, "dd") : "",
+            hour: isValid(date) ? format(date, "HH") : "",
+            minute: isValid(date) ? format(date, "mm") : "",
+            second: isValid(date) ? format(date, "ss") : "",
+            id: this.getVodID().toString(),
+            season: this.vod_season || "",
+            absolute_season: this.vod_absolute_season ? this.vod_absolute_season.toString().padStart(2, "0") : "",
+            episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
+        };
+
+        return sanitize(formatString(Config.getInstance().cfg("filename_vod_folder"), variables));
+    }
+
+    public vodBasenameTemplate(): string {
+
+        const date = parseJSON(this.getStartDate());
+
+        if (!date || !isValid(date)) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator.vodBasenameTemplate", `Invalid start date: ${this.getStartDate()}`);
+        }
+
+        const variables: VodBasenameTemplate = {
+            login: this.getLogin(),
+            date: this.getStartDate().replaceAll(":", "_"),
+            year: isValid(date) ? format(date, "yyyy") : "",
+            year_short: isValid(date) ? format(date, "yy") : "",
+            month: isValid(date) ? format(date, "MM") : "",
+            day: isValid(date) ? format(date, "dd") : "",
+            hour: isValid(date) ? format(date, "HH") : "",
+            minute: isValid(date) ? format(date, "mm") : "",
+            second: isValid(date) ? format(date, "ss") : "",
+            id: this.getVodID().toString(),
+            season: this.vod_season || "",
+            absolute_season: this.vod_absolute_season ? this.vod_absolute_season.toString().padStart(2, "0") : "",
+            episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
+        };
+
+        return sanitize(formatString(Config.getInstance().cfg("filename_vod"), variables));
+    }
+
+    public fulldir(): string {
+        return path.join(BaseConfigDataFolder.vod, this.basedir());
+    }
+
+    public getVodID(): string | false {
         return KeyValue.getInstance().get(`${this.getLogin()}.vod.id`);
         // return $this->payload['id'];
     }
 
-    public getUserID() {
+    public getUserID(): string {
         return this.broadcaster_user_id;
     }
 
-    public getUsername() {
+    public getUsername(): string {
         return this.broadcaster_user_name;
     }
 
-    public getLogin() {
+    public getLogin(): string {
         return this.broadcaster_user_login;
     }
 
-    public getStartDate() {
+    public getStartDate(): string {
         return KeyValue.getInstance().get(`${this.getLogin()}.vod.started_at`) || "";
     }
 
-    public getDateTime() {
-        // return date(TwitchHelper::DATE_FORMAT);
-        // return format(new Date(), Helper.TWITCH_DATE_FORMAT);
-        return JSON.stringify(new Date());
-    }
-
-    public streamURL() {
+    public streamURL(): string {
         return `twitch.tv/${this.broadcaster_user_login}`;
     }
-
-    public getCaptureFilename(segment_number: number) {
-        const folder_base = Helper.vodFolder(this.getLogin());
-        if (segment_number === 0) {
-            return path.join(folder_base, `${this.basename()}.ts`);
-        } else {
-            return path.join(folder_base, `${this.basename()}_${segment_number}.ts`);
-        }
-    }
-
-    /*
-    public convertUpdateEventToOnlineEvent(event: EventSubChannelUpdate) {
-
-        let sub: StreamOnlineSubscription = Object.assign({}, event.subscription);
-        sub.type = "channel.online";
-
-        const mock_data: EventSubStreamOnline = {
-
-
-    }
-    */
 
     /**
      * Entrypoint for stream capture, this is where all Twitch EventSub (webhooks) end up.
      */
-    public async handle(data: EventSubResponse, request: express.Request) {
+    public async handle(data: EventSubResponse, request: express.Request): Promise<boolean> {
         Log.logAdvanced(LOGLEVEL.DEBUG, "automator.handle", "Handle called, proceed to parsing.");
 
         if (!request.header("Twitch-Eventsub-Message-Id")) {
@@ -170,8 +200,13 @@ export class Automator {
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.last.update`, new Date().toISOString());
             Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Automator channel.update event for ${this.broadcaster_user_login}`);
 
-            await this.updateGame();
-        } else if (subscription_type == "stream.online" && "id" in event) {
+            return await this.updateGame();
+        } else if (subscription_type == "stream.online") {
+
+            if (!("id" in event)) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator.handle", `No stream id supplied in event for channel '${this.broadcaster_user_login}', aborting.`, event);
+                return false;
+            }
 
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.last.online`, new Date().toISOString());
             Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Automator stream.online event for ${this.broadcaster_user_login} (retry ${message_retry})`);
@@ -195,18 +230,13 @@ export class Automator {
             KeyValue.getInstance().setBool(`${this.broadcaster_user_login}.online`, true);
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.vod.id`, event.id);
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.vod.started_at`, event.started_at);
+            Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `${this.broadcaster_user_login} stream has ID ${event.id}, started ${event.started_at}`);
 
             fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify({ time: new Date(), action: "online" }) + "\n", { flag: "a" });
 
-            if (this.channel.no_capture) {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Skip capture for ${this.broadcaster_user_login} because no-capture is set`);
-                if (this.channel) this.channel.broadcastUpdate();
-                return false;
-            }
-
             // $this->payload = $data['data'][0];
 
-            const basename = this.basename();
+            const basename = this.vodBasenameTemplate();
 
             // const folder_base = TwitchHelper.vodFolder(this.broadcaster_user_login);
 
@@ -215,6 +245,7 @@ export class Automator {
                 return false;
             }
 
+            // notification
             if (this.channel) {
                 let body = "";
                 const chapter = this.channel.getChapterData();
@@ -230,42 +261,63 @@ export class Automator {
                 );
             }
 
-            await this.download();
+            if (this.channel.no_capture) {
+                Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Skip capture for ${this.broadcaster_user_login} because no-capture is set`);
+                if (this.channel) this.channel.broadcastUpdate();
+                return false;
+            }
+
+            try {
+                await this.download();
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator.handle", `Download of stream '${this.broadcaster_user_login}' failed: ${(error as Error).message}`);
+            }
 
         } else if (subscription_type == "stream.offline") {
 
-            await this.end();
+            return await this.end();
 
         } else {
 
             Log.logAdvanced(LOGLEVEL.ERROR, "automator.handle", `No supported subscription type (${subscription_type}).`);
+            return false;
+
         }
+
+        Log.logAdvanced(LOGLEVEL.ERROR, "automator.handle", "how did you get here");
+        return false;
 
     }
 
     public async updateGame(from_cache = false, no_run_check = false) {
 
-        const basename = this.basename();
-
-        const is_live = KeyValue.getInstance().getBool(`${this.broadcaster_user_login}.online`);
+        // const basename = this.vodBasenameTemplate();
+        const is_live = KeyValue.getInstance().getBool(`${this.getLogin()}.online`);
 
         // if online
         if (this.channel?.is_capturing) {
 
             // const folder_base = TwitchHelper.vodFolder(this.getLogin());
 
-            const vod = TwitchVOD.getVod(basename);
+            const capture_id = KeyValue.getInstance().get(`${this.getLogin()}.vod.id`);
+
+            if (!capture_id) {
+                Log.logAdvanced(LOGLEVEL.FATAL, "automator", `No capture ID for channel ${this.getLogin()} stream, can't update chapter on capture.`);
+                return false;
+            }
+
+            const vod = TwitchVOD.getVodByCaptureId(capture_id);
 
             if (!vod) {
-                Log.logAdvanced(LOGLEVEL.FATAL, "automator", `Tried to load VOD ${basename} for chapter update but errored.`);
+                Log.logAdvanced(LOGLEVEL.FATAL, "automator", `Tried to load VOD ${capture_id} for chapter update but errored.`);
                 Log.logAdvanced(LOGLEVEL.INFO, "automator", `Resetting online status on ${this.getLogin()}.`);
-                KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
+                KeyValue.getInstance().delete(`${this.getLogin()}.online`);
                 return false;
             }
 
             if (!no_run_check && !await vod.getCapturingStatus(true)) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `VOD ${basename} is not capturing, skipping chapter update. Removing online status.`);
-                KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `VOD ${vod.basename} is not capturing, skipping chapter update. Removing online status.`);
+                KeyValue.getInstance().delete(`${this.getLogin()}.online`);
                 return false;
             }
 
@@ -279,31 +331,31 @@ export class Automator {
                 } else if (KeyValue.getInstance().has(`${this.getLogin()}.chapterdata`)) {
                     chapter_data = KeyValue.getInstance().getObject<TwitchVODChapterJSON>(`${this.getLogin()}.chapterdata`) as TwitchVODChapterJSON; // type guard not working
                 } else {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No chapter data for ${this.broadcaster_user_login} found in cache.`);
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No chapter data for ${this.getLogin()} found in cache.`);
                     return false;
                 }
             } else if (this.payload_eventsub && "title" in this.payload_eventsub.event) {
                 if (!this.payload_eventsub || !this.payload_eventsub.event) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Tried to get event for ${this.broadcaster_user_login} but it was not available.`);
+                    Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Tried to get event for ${this.getLogin()} but it was not available.`);
                     return false;
                 }
                 event = this.payload_eventsub.event as ChannelUpdateEvent;
                 chapter_data = await this.getChapterData(event);
             } else {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No last resort event for ${this.broadcaster_user_login} not available.`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No last resort event for ${this.getLogin()} not available.`);
                 return false;
             }
 
             if (!chapter_data) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No chapter data for ${this.broadcaster_user_login} found.`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No chapter data for ${this.getLogin()} found.`);
                 return false;
             }
 
-            Log.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Channel data for ${this.broadcaster_user_login} fetched from ${from_cache ? "cache" : "notification"}.`);
+            Log.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Channel data for ${this.getLogin()} fetched from ${from_cache ? "cache" : "notification"}.`);
 
             const chapter = await TwitchVODChapter.fromJSON(chapter_data);
 
-            KeyValue.getInstance().setObject(`${this.broadcaster_user_login}.chapterdata`, chapter_data);
+            KeyValue.getInstance().setObject(`${this.getLogin()}.chapterdata`, chapter_data);
 
             vod.addChapter(chapter);
             await vod.saveJSON("game update");
@@ -314,12 +366,12 @@ export class Automator {
             } as ChapterUpdateData);
 
             // append chapter to history
-            fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify(chapter) + "\n", { flag: "a" });
+            fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.getLogin()}.jsonline`), JSON.stringify(chapter) + "\n", { flag: "a" });
 
             Log.logAdvanced(
                 LOGLEVEL.SUCCESS,
                 "automator",
-                `Stream updated on '${this.broadcaster_user_login}' to '${chapter_data.game_name}' (${chapter_data.title}) using ${from_cache ? "cache" : "eventsub"}.`
+                `Stream updated on '${this.getLogin()}' to '${chapter_data.game_name}' (${chapter_data.title}) using ${from_cache ? "cache" : "eventsub"}.`
             );
 
             if (this.channel) {
@@ -331,21 +383,21 @@ export class Automator {
         } else {
 
             if (!this.payload_eventsub || !this.payload_eventsub.event) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Tried to get event for ${this.broadcaster_user_login} but it was not available.`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Tried to get event for ${this.getLogin()} but it was not available.`);
                 return false;
             }
 
             if (!("title" in this.payload_eventsub.event)) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Event type was wrong for ${this.broadcaster_user_login}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Event type was wrong for ${this.getLogin()}`);
                 return false;
             }
 
             const event = this.payload_eventsub.event;
-            // KeyValue.setObject(`${this.broadcaster_user_login}.channeldata`, this.payload_eventsub.event);
+            // KeyValue.setObject(`${this.getLogin()}.channeldata`, this.payload_eventsub.event);
 
             if (this.channel) {
                 ClientBroker.notify(
-                    `${is_live ? "Live non-capturing" : "Offline"} channel ${this.broadcaster_user_login} changed status`,
+                    `${is_live ? "Live non-capturing" : "Offline"} channel ${this.getLogin()} changed status`,
                     `${event.category_name} (${event.title})`,
                     this.channel.profile_image_url,
                     "offlineStatusChange",
@@ -356,17 +408,17 @@ export class Automator {
             const chapter_data = await this.getChapterData(event);
             chapter_data.online = false;
 
-            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not capturing, saving channel data to cache: ${event.category_name} (${event.title})`);
-            KeyValue.getInstance().setObject(`${this.broadcaster_user_login}.chapterdata`, chapter_data);
+            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.getLogin()} not capturing, saving channel data to cache: ${event.category_name} (${event.title})`);
+            KeyValue.getInstance().setObject(`${this.getLogin()}.chapterdata`, chapter_data);
             if (this.channel) {
                 this.channel.broadcastUpdate();
             }
 
             // if (chapter_data.viewer_count) {
-            //     Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} not online, but managed to get viewer count, so it's online? 🤔`);
+            //     Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.getLogin()} not online, but managed to get viewer count, so it's online? 🤔`);
             // }
 
-            // $fp = fopen(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "history" . DIRECTORY_SEPARATOR . this.broadcaster_user_login . ".jsonline", 'a');
+            // $fp = fopen(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "history" . DIRECTORY_SEPARATOR . this.getLogin() . ".jsonline", 'a');
             // fwrite($fp, json_encode($chapter) . "\n");
             // fclose($fp);
 
@@ -374,16 +426,20 @@ export class Automator {
                 setTimeout(async () => {
                     const isLive = await this.channel?.isLiveApi();
                     if (isLive) {
-                        Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} is now online, timeout check.`);
+                        Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.getLogin()} is now online, timeout check.`);
                     } else {
-                        Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} is still offline, timeout check.`);
+                        Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.getLogin()} is still offline, timeout check.`);
                     }
                 }, 30 * 1000); // remove in future, just for testing
             }
 
             if (!this.channel?.no_capture && is_live && !this.channel?.is_capturing) {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.broadcaster_user_login} status is online but not capturing, starting capture from chapter update.`);
-                this.download();
+                if (!this.getVodID()) {
+                    Log.logAdvanced(LOGLEVEL.WARNING, "automator", `Channel ${this.getLogin()} does not have a stream id, cannot start downloading from chapter update.`);
+                } else {
+                    Log.logAdvanced(LOGLEVEL.INFO, "automator", `Channel ${this.getLogin()} status is online but not capturing, starting capture from chapter update.`);
+                    this.download();
+                }
             }
 
             return true;
@@ -394,6 +450,8 @@ export class Automator {
 
         const vod = channel.latest_vod;
         if (!vod) return;
+
+        if (!vod.chapters || vod.chapters.length == 0) return;
 
         const current_chapter = vod.chapters[vod.chapters.length - 1];
         const previous_chapter = vod.chapters.length > 2 ? vod.chapters[vod.chapters.length - 2] : null;
@@ -492,7 +550,7 @@ export class Automator {
             return;
         }
 
-        await this.channel.cleanupVods(this.basename());
+        await this.channel.cleanupVods(this.vod?.uuid);
 
     }
 
@@ -504,7 +562,7 @@ export class Automator {
      * Available fields:
      * - channel
      */
-    public async end() {
+    public async end(): Promise<boolean> {
 
         Log.logAdvanced(LOGLEVEL.INFO, "automator.end", "Stream end");
 
@@ -525,9 +583,6 @@ export class Automator {
         }
 
         // KeyValue.getInstance().set("${this.broadcaster_user_login}.online", "0");
-        KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
-        // KeyValue.getInstance().set("${this.broadcaster_user_login}.vod.id", null);
-        // KeyValue.getInstance().set("${this.broadcaster_user_login}.vod.started_at", null);
 
         // write to history
         fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify({ time: new Date(), action: "offline" }) + "\n", { flag: "a" });
@@ -539,10 +594,10 @@ export class Automator {
             try {
                 download_success = await this.channel.downloadLatestVod(this.channel.download_vod_at_end_quality);
             } catch (err) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator.end", `Error downloading VOD at end: ${this.basename()} (${(err as Error).message})`, err);
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator.end", `Error downloading VOD at end: ${this.vodBasenameTemplate()} (${(err as Error).message})`, err);
             }
             if (download_success !== "") {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator.end", `Downloaded VOD at end: ${this.basename()}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "automator.end", `Downloaded VOD at end: ${this.vodBasenameTemplate()}`);
                 if (!this.vod) {
                     this.vod = this.channel.latest_vod;
                 }
@@ -552,6 +607,12 @@ export class Automator {
         if (Config.getInstance().cfg("exporter.auto.enabled")) {
             // TODO: export automatically
         }
+
+        KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
+        KeyValue.getInstance().delete(`${this.broadcaster_user_login}.vod.id`);
+        KeyValue.getInstance().delete(`${this.broadcaster_user_login}.vod.started_at`);
+
+        return true;
 
     }
 
@@ -565,7 +626,7 @@ export class Automator {
      * - vod
      * - basename
      */
-    public async onEndDownload() {
+    public async onEndDownload(): Promise<boolean> {
         // download chat and optionally burn it
         // TODO: call this when a non-captured stream ends too
         if (this.channel && this.vod) {
@@ -579,17 +640,15 @@ export class Automator {
                 }
 
                 if (this.channel.burn_chat) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "automator.onEndDownload", "Automatic chat burning has been disabled until settings have been implemented.");
-                    // if ($vodclass->renderChat()) {
-                    // 	$vodclass->burnChat();
-                    // }
+                    // Log.logAdvanced(LOGLEVEL.ERROR, "automator.onEndDownload", "Automatic chat burning has been disabled until settings have been implemented.");
+                    await this.burnChat(); // @todo: should this await?
                 }
             }
 
             if (Config.getInstance().cfg("exporter.auto.enabled")) {
 
                 const options: ExporterOptions = {
-                    vod: this.basename(),
+                    vod: this.vodBasenameTemplate(),
                     directory: Config.getInstance().cfg("exporter.default.directory"),
                     host: Config.getInstance().cfg("exporter.default.host"),
                     username: Config.getInstance().cfg("exporter.default.username"),
@@ -615,7 +674,7 @@ export class Automator {
                         if (!exporter) return;
                         if (out_path) {
                             exporter.verify().then(status => {
-                                Log.logAdvanced(LOGLEVEL.SUCCESS, "automator.onEndDownload", "Exporter finished for " + this.basename);
+                                Log.logAdvanced(LOGLEVEL.SUCCESS, "automator.onEndDownload", "Exporter finished for " + this.vodBasenameTemplate);
                             }).catch(error => {
                                 Log.logAdvanced(LOGLEVEL.ERROR, "automator.onEndDownload", (error as Error).message ? `Verify error: ${(error as Error).message}` : "Unknown error occurred while verifying export");
                             });
@@ -651,9 +710,11 @@ export class Automator {
             }
 
         }
+
+        return true;
     }
 
-    public async download(tries = 0) {
+    public async download(tries = 0): Promise<boolean> {
 
         // const data_title = this.getTitle();
         const data_started = this.getStartDate();
@@ -667,21 +728,14 @@ export class Automator {
         }
 
         if (!data_id) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No data supplied for download, try #${tries}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No VOD ID supplied for download (try #${tries})`);
             throw new Error("No data supplied");
         }
 
-        const temp_basename = this.basename();
-        const folder_base = Helper.vodFolder(this.getLogin());
-
-        // make a folder for the streamer if it for some reason doesn't exist, but it should get created in the config
-        if (!fs.existsSync(folder_base)) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "automator", `Making folder for ${data_username}, unusual.`);
-            fs.mkdirSync(folder_base);
-        }
+        const temp_basename = this.vodBasenameTemplate();
 
         // if running
-        const job = Job.findJob(`capture_${temp_basename}`);
+        const job = Job.findJob(`capture_${this.getLogin()}_${this.getVodID()}`);
         if (job && await job.getStatus() === JobStatus.RUNNING) {
             const meta = job.metadata as {
                 login: string;
@@ -719,9 +773,17 @@ export class Automator {
 
         // pre-calculate season and episode
         this.vod_season = this.channel.current_season;
+        this.vod_absolute_season = this.channel.current_absolute_season;
         this.vod_episode = this.channel.incrementStreamNumber();
 
-        const basename = this.basename();
+        const basename = this.vodBasenameTemplate();
+
+        // folder base depends on vod season/episode now
+        const folder_base = this.fulldir();
+        if (!fs.existsSync(folder_base)) {
+            Log.logAdvanced(LOGLEVEL.DEBUG, "automator", `Making folder for ${temp_basename}.`);
+            fs.mkdirSync(folder_base, { recursive: true });
+        }
 
         if (TwitchVOD.hasVod(basename)) {
             Log.logAdvanced(LOGLEVEL.ERROR, "automator", `Cancel download of ${basename}, vod already exists`);
@@ -736,6 +798,8 @@ export class Automator {
         this.vod.started_at = parseJSON(data_started);
 
         this.vod.stream_number = this.channel.incrementStreamNumber();
+        // this.vod.stream_season = this.channel.current_season; /** @TODO: field? **/ 
+        this.vod.stream_absolute_season = this.channel.current_absolute_season;
 
         if (this.force_record) this.vod.force_record = true;
 
@@ -809,9 +873,7 @@ export class Automator {
             // sleep(15);
             await Sleep(15 * 1000);
 
-            this.download(tries + 1);
-
-            return;
+            return this.download(tries + 1);
         }
 
         // end timestamp
@@ -942,12 +1004,12 @@ export class Automator {
         return new Promise((resolve, reject) => {
 
             if (!this.vod) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No VOD for ${this.basename()}, this should not happen`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No VOD for ${this.vodBasenameTemplate()}, this should not happen`);
                 reject(false);
                 return;
             }
 
-            const basename = this.basename();
+            const basename = this.vodBasenameTemplate();
 
             const stream_url = this.streamURL();
 
@@ -1042,7 +1104,7 @@ export class Automator {
 
             // make job for capture
             let capture_job: Job;
-            const jobName = `capture_${basename}`;
+            const jobName = `capture_${this.getLogin()}_${this.getVodID()}`;
 
             if (capture_process.pid) {
                 Log.logAdvanced(LOGLEVEL.SUCCESS, "automator", `Spawned process ${capture_process.pid} for ${jobName}`);
@@ -1053,7 +1115,7 @@ export class Automator {
                 capture_job.startLog(jobName, `$ ${bin} ${cmd.join(" ")}\n`);
                 capture_job.addMetadata({
                     "login": this.getLogin(), // TODO: username?
-                    "basename": this.basename(),
+                    "basename": this.vodBasenameTemplate(),
                     "capture_filename": this.capture_filename,
                     "stream_id": this.getVodID(),
                 });
@@ -1247,7 +1309,7 @@ export class Automator {
     /**
      * Capture chat in a "detached" process
      */
-    startCaptureChat() {
+    startCaptureChat(): boolean {
 
         // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
 
@@ -1276,13 +1338,13 @@ export class Automator {
             const chat_job = Helper.startJob(`chatdump_${this.basename()}`, chat_bin, chat_cmd);
             */
 
-            const chat_job = TwitchChannel.startChatDump(this.basename(), data_login, data_userid, parseJSON(data_started), this.chat_filename);
+            const chat_job = TwitchChannel.startChatDump(`${this.getLogin()}_${this.getVodID()}`, data_login, data_userid, parseJSON(data_started), this.chat_filename);
 
             if (chat_job && chat_job.pid) {
                 this.chatJob = chat_job;
                 this.chatJob.addMetadata({
                     "username": data_login,
-                    "basename": this.basename(),
+                    "basename": this.vodBasenameTemplate(),
                     "chat_filename": this.chat_filename,
                 });
             } else {
@@ -1300,7 +1362,7 @@ export class Automator {
     /**
      * Kill the process, stopping chat capture
      */
-    async endCaptureChat() {
+    async endCaptureChat(): Promise<void> {
 
         if (this.chatJob) {
             Log.logAdvanced(LOGLEVEL.INFO, "automator", `Ending chat dump with filename ${path.basename(this.chat_filename)}`);
@@ -1310,7 +1372,7 @@ export class Automator {
     }
 
     // maybe use this?
-    async compressChat() {
+    async compressChat(): Promise<boolean> {
         if (fs.existsSync(this.chat_filename)) {
             await Helper.execSimple("gzip", [this.chat_filename], "compress chat");
             return fs.existsSync(`${this.chat_filename}.gz`);
@@ -1318,7 +1380,7 @@ export class Automator {
         return false;
     }
 
-    async convertVideo() {
+    async convertVideo(): Promise<boolean> {
 
         if (!this.vod) return false;
 
@@ -1353,6 +1415,56 @@ export class Automator {
 
         return result && result.success;
 
+    }
+
+    public async burnChat(): Promise<void> {
+
+        if (!this.vod) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator.burnChat", "No VOD for burning chat");
+            return;
+        }
+
+        const chatHeight: number =
+            this.vod.video_metadata && 
+            this.vod.video_metadata.type !== "audio" && 
+            Config.getInstance().cfg<boolean>("chatburn.default.auto_chat_height")
+                ?
+                this.vod.video_metadata.height
+                :
+                Config.getInstance().cfg<number>("chatburn.default.chat_height")
+        ;
+
+        const settings = {
+            vodSource: "captured",
+            chatSource: "captured",
+            chatWidth: Config.getInstance().cfg<number>("chatburn.default.chat_width"),
+            chatHeight: chatHeight,
+            chatFont: Config.getInstance().cfg<string>("chatburn.default.chat_font"),
+            chatFontSize: Config.getInstance().cfg<number>("chatburn.default.chat_font_size"),
+            burnHorizontal: Config.getInstance().cfg<string>("chatburn.default.horizontal"),
+            burnVertical: Config.getInstance().cfg<string>("chatburn.default.vertical"),
+            ffmpegPreset: Config.getInstance().cfg<string>("chatburn.default.preset"),
+            ffmpegCrf: Config.getInstance().cfg<number>("chatburn.default.crf"),
+        };
+
+        let status_renderchat, status_burnchat;
+        
+        try {
+            status_renderchat = await this.vod.renderChat(settings.chatWidth, settings.chatHeight, settings.chatFont, settings.chatFontSize, settings.chatSource == "downloaded", true);
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator.burnChat", (error as Error).message);
+            return;
+        }
+        
+        try {
+            status_burnchat = await this.vod.burnChat(settings.burnHorizontal, settings.burnVertical, settings.ffmpegPreset, settings.ffmpegCrf, settings.vodSource == "downloaded", true);
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator.burnChat", (error as Error).message);
+            return;
+        }
+
+        Log.logAdvanced(LOGLEVEL.INFO, "automator.burnChat", `Render: ${status_renderchat}, Burn: ${status_burnchat}`);
+        
     }
 
 }

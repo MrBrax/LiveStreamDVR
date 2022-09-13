@@ -38,7 +38,7 @@
                     </span>
                     &middot;
                     <span class="streamer-sxe" title="Season and episode">
-                        {{ streamer.current_season }}/{{ streamer.current_stream_number }}
+                        {{ streamer.current_season }}/{{ streamer.current_stream_number.toString().padStart(2, "0") }}
                     </span>
                     <span class="streamer-title-tools">
 
@@ -79,6 +79,11 @@
                         <!-- refresh channel data -->
                         <button class="icon-button white" title="Refresh data" @click="doChannelRefresh">
                             <span class="icon"><fa icon="sync"></fa></span>
+                        </button>
+
+                        <!-- scan vods -->
+                        <button class="icon-button white" title="Scan for VODs" @click="doScanVods">
+                            <span class="icon"><fa icon="folder-open"></fa></span>
                         </button>
 
                         <!-- expand/collapse all vods -->
@@ -122,14 +127,36 @@
             <span v-if="streamer.no_capture">{{ $t("streamer.no-vods-not-capturing") }}</span>
             <span v-else>{{ $t("messages.no_vods") }}</span>
         </div>
-        <div v-else>
-            <vod-item
-                v-for="vod in streamer.vods_list"
-                :key="vod.basename"
-                v-bind:vod="vod"
-                @refresh="refresh"
-                ref="vodItem"
-            />
+        <div class="video-list" v-else>
+            <div class="streamer-expand-container" v-if="!store.clientCfg('expandDashboardVodList') && streamer.vods_list.length > store.clientCfg('vodsToShowInDashboard', 4)">
+                <button
+                    class="streamer-expand-main"
+                    @click="toggleLimitVods"
+                    title="Click to toggle VOD list"
+                >
+                    <span class="icon"><fa :icon="limitVods ? 'chevron-up' : 'chevron-down'" /></span>
+                    <transition>
+                        <span class="text" v-if="!limitVods">
+                            {{ streamer.vods_list.length - store.clientCfg('vodsToShowInDashboard', 4) }} hidden VODs
+                        </span>
+                    </transition>
+                </button>
+            </div>
+            <transition-group name="list" tag="div">
+                <vod-item
+                    v-for="vod in filteredVodsList"
+                    :key="vod.basename"
+                    v-bind:vod="vod"
+                    @refresh="refresh"
+                    ref="vodItem"
+                    v-observe-visibility="{
+                        callback: (s: boolean, e: IntersectionObserverEntry) => visibilityChanged(vod.basename, s, e),
+                        intersection: {
+                            threshold: 0.9,
+                        }
+                    }"
+                />
+            </transition-group>
         </div>
         <modal-box ref="videoDownloadMenu" title="Video download">
             <div class="video-download-menu">
@@ -175,14 +202,15 @@ import VodItem from "@/components/VodItem.vue";
 import ModalBox from "@/components/ModalBox.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil } from "@fortawesome/free-solid-svg-icons";
+import { faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen } from "@fortawesome/free-solid-svg-icons";
 // import { TwitchAPI } from "@/twitchapi";
 import { Video } from "@common/TwitchAPI/Video";
 import TwitchChannel from "@/core/channel";
 import { useStore } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
 import { LocalClip } from "@common/LocalClip";
-library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil);
+import TwitchVOD from "@/core/vod";
+library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen);
 
 export default defineComponent({
     name: "StreamerItem",
@@ -193,6 +221,7 @@ export default defineComponent({
     data: () => ({
         twitchVods: [] as Video[],
         toggleAllVodsExpanded: false,
+        limitVods: false,
     }),
     setup() {
         const videoDownloadMenu = ref<InstanceType<typeof ModalBox>>();
@@ -384,6 +413,26 @@ export default defineComponent({
                     }
                 });
         },
+        async doScanVods() {
+            if (!this.streamer) return;
+            if (!confirm("Do you want to rescan for VODs? It might not find everything.")) return;
+            this.$http
+                .post(`/api/v0/channels/${this.streamer.login}/scan`)
+                .then((response) => {
+                    const json: ApiResponse = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                    this.store.fetchStreamerList();
+                })
+                .catch((error) => {
+                    if (this.$http.isAxiosError(error)) {
+                        console.error("doChannelRefresh error", error.response);
+                        if (error.response && error.response.data && error.response.data.message) {
+                            alert(error.response.data.message);
+                        }
+                    }
+                });
+        },
         imageUrl(url: string, width: number, height: number) {
             return url.replace(/%\{width\}/g, width.toString()).replace(/%\{height\}/g, height.toString());
         },
@@ -400,6 +449,13 @@ export default defineComponent({
                 }
             }
             this.toggleAllVodsExpanded = !this.toggleAllVodsExpanded;
+        },
+        visibilityChanged(basename: string, isVisible: boolean, entry: IntersectionObserverEntry) {
+            // console.log(basename, isVisible, entry);
+            if (isVisible) this.store.setVisibleVod(basename);
+        },
+        toggleLimitVods() {
+            this.limitVods = !this.limitVods;
         }
     },
     computed: {
@@ -437,7 +493,15 @@ export default defineComponent({
         },
         basePath(): string {
             return this.store.cfg<string>("basepath", "");
-        }
+        },
+        filteredVodsList(): TwitchVOD[] {
+            if (!this.streamer) return [];
+            if (this.limitVods || this.store.clientCfg('expandDashboardVodList')) return this.streamer.vods_list;
+            const vodsToShow = this.store.clientCfg('vodsToShowInDashboard', 4);
+            if (vodsToShow === 0) return [];
+            // return last 4 vods
+            return this.streamer.vods_list.slice(-vodsToShow);
+        },
     },
     components: {
         VodItem,

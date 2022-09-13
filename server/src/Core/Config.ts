@@ -6,6 +6,7 @@ import minimist from "minimist";
 import path from "path";
 import express from "express";
 import { SettingField } from "../../../common/Config";
+import { ClipBasenameFields, VodBasenameFields } from "../../../common/ReplacementsConsts";
 import { AppRoot, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot, HomeRoot } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Helper } from "./Helper";
@@ -67,6 +68,7 @@ export class Config {
             "help": "Enable this if your server is not exposed to the internet, aka no EventSub support.",
         },
 
+        { "key": "motd", "group": "Interface", "text": "MOTD", "type": "text", "help": "Shown at the top of the dashboard", guest: true },
         { "key": "password", "group": "Interface", "text": "Password", "type": "string", "help": "Keep blank for none. Username is admin" },
         { "key": "guest_mode", "group": "Interface", "text": "Guest mode", "type": "boolean", "default": false, "help": "Allow guests to access the interface.", guest: true },
         // { "key": "password_secure", "group": "Interface", "text": "Force HTTPS for password", "type": "boolean", "default": true },
@@ -77,7 +79,8 @@ export class Config {
         { "key": "websocket_client_address", "group": "Notifications", "text": "Websocket client address override", "type": "string", "guest": true },
         { "key": "websocket_log", "group": "Notifications", "text": "Send logs over websocket", "type": "boolean" },
 
-        { "key": "channel_folders", "group": "Storage", "text": "Channel folders", "type": "boolean", "default": true, "help": "Store VODs in subfolders instead of root", guest: true },
+        { "key": "channel_folders", "group": "Storage", "text": "Channel folders", "type": "boolean", "default": true, "help": "Store VODs in subfolders instead of root", guest: true, deprecated: true },
+        { "key": "vod_folders", "group": "Storage", "text": "VOD folders", "type": "boolean", "default": true, "help": "Store VODs in subfolders instead of root", guest: true },
         { "key": "storage_per_streamer", "group": "Storage", "text": "Gigabytes of storage per streamer", "type": "number", "default": 100 },
         { "key": "vods_to_keep", "group": "Storage", "text": "VODs to keep per streamer", "type": "number", "default": 5, "help": "This is in addition to kept VODs from muted/favourite etc." },
         { "key": "keep_deleted_vods", "group": "Storage", "text": "Keep Twitch deleted VODs", "type": "boolean", "default": false },
@@ -109,6 +112,7 @@ export class Config {
         { "key": "debug", "group": "Developer", "text": "Debug", "type": "boolean", "default": false, "help": "Verbose logging, extra file outputs, more information available. Not for general use.", "guest": true },
         { "key": "app_verbose", "group": "Developer", "text": "Verbose app output", "type": "boolean", "help": "Only verbose output" },
         { "key": "dump_payloads", "group": "Developer", "text": "Dump payloads", "type": "boolean", "default": false },
+        { "key": "debug.catch_global_exceptions", "group": "Developer", "text": "Catch global exceptions", "type": "boolean", "default": false },
 
         { "key": "chat_compress", "group": "Advanced", "text": "Compress chat with gzip (untested)", "type": "boolean" },
         // { "key": "relative_time", "group": "Interface", "text": "Relative time", "type": "boolean", "help": "\"1 hour ago\" instead of 2020-01-01" },
@@ -158,14 +162,7 @@ export class Config {
             "type": "template",
             "default": "{broadcaster} - {title} [{id}] [{quality}]",
             "help": "Clip filename",
-            "replacements": {
-                id: { "display": "MinimalMooseOtterCatcher1234" },
-                quality: { "display": "720p" },
-                clip_date: { "display": "2020-01-01" },
-                title: { "display": "Moose crosses river" },
-                creator: { "display": "MooseClipper" },
-                broadcaster: { "display": "MooseStreamer" },
-            },
+            "replacements": ClipBasenameFields,
             "context": "{template}.mp4",
         },
 
@@ -175,15 +172,20 @@ export class Config {
             "text": "Vod filename",
             "type": "template",
             "default": "{login}_{date}_{id}",
-            "help": "Vod filename. This will break automatic segment finding if changed from default.",
-            "replacements": {
-                login: { "display": "MooseStreamer" },
-                date: { "display": "2020-01-01T12_05_04Z" },
-                id: { "display": "123456789" },
-                season: { "display": "2022" },
-                episode: { "display": "3" },
-            },
+            "help": "Vod filename.",
+            "replacements": VodBasenameFields,
             "context": "{template}.json, {template}.mp4",
+        },
+
+        {
+            "key": "filename_vod_folder",
+            "group": "Video",
+            "text": "Vod folder name",
+            "type": "template",
+            "default": "{login}_{date}_{id}",
+            "help": "Vod folder filename.",
+            "replacements": VodBasenameFields,
+            "context": "/vods/{login}/{template}/",
         },
 
         { "key": "min_chapter_duration", "group": "Video", "text": "Minimum chapter duration", "type": "number", "default": 0, "help": "Minimum duration in seconds for a chapter. Shorter chapters will be removed." },
@@ -192,13 +194,14 @@ export class Config {
 
         { "key": "no_vod_convert", "group": "Video", "text": "Don't convert VODs", "type": "boolean", "default": false },
 
-        { "key": "exporter.default.exporter",       "group": "Exporter", "text": "Default exporter", "type": "array", "default": "file", "choices": ["file", "sftp"], "help": "Default exporter for exporter." },
-        { "key": "exporter.default.directory",      "group": "Exporter", "text": "Default directory", "type": "string", "help": "Default directory for exporter." },
-        { "key": "exporter.default.host",           "group": "Exporter", "text": "Default host", "type": "string", "help": "Default host for exporter." },
-        { "key": "exporter.default.username",       "group": "Exporter", "text": "Default username", "type": "string", "help": "Default username for exporter." },
-        { "key": "exporter.default.password",       "group": "Exporter", "text": "Default password", "type": "string", "help": "Default password for exporter. This is stored unencrypted." },
-        { "key": "exporter.default.description",    "group": "Exporter", "text": "Default description", "type": "string", "help": "Default description for exporter." },
-        { "key": "exporter.default.tags",           "group": "Exporter", "text": "Default tags", "type": "string", "help": "Default tags for exporter." },
+        { "key": "exporter.default.exporter",       "group": "Exporter", "text": "Default exporter", "type": "array", "default": "file", "choices": ["file", "sftp", "ftp", "rclone", "youtube"], "help": "Default exporter for exporter." },
+        { "key": "exporter.default.directory",      "group": "Exporter", "text": "Default directory", "type": "string" },
+        { "key": "exporter.default.host",           "group": "Exporter", "text": "Default host", "type": "string" },
+        { "key": "exporter.default.username",       "group": "Exporter", "text": "Default username", "type": "string" },
+        { "key": "exporter.default.password",       "group": "Exporter", "text": "Default password", "type": "string", "help": "This is stored unencrypted." },
+        { "key": "exporter.default.description",    "group": "Exporter", "text": "Default description", "type": "string", "help": "YouTube description." },
+        { "key": "exporter.default.tags",           "group": "Exporter", "text": "Default tags", "type": "string", "help": "YouTube tags." },
+        { "key": "exporter.default.remote",         "group": "Exporter", "text": "Default remote", "type": "string", "help": "For RClone." },
         { "key": "exporter.auto.enabled",           "group": "Exporter", "text": "Enable auto exporter", "type": "boolean", "default": false, "help": "Enable auto exporter. Not implemented yet." },
 
         { "key": "scheduler.clipdownload.enabled",  "group": "Scheduler (Clip Download)", "text": "Enable clip download scheduler", "type": "boolean", "default": false },
@@ -281,6 +284,33 @@ export class Config {
         { "key": "reencoder.delete_source", "group": "Reencoder", "text": "Delete source", "type": "boolean", "help": "Delete source after reencoding." },
 
         { "key": "localvideos.enabled", "group": "Local Videos", "text": "Enable local videos", "type": "boolean", "default": false },
+
+        /*
+            renderChat: false,
+            burnChat: false,
+            renderTest: false,
+            burnTest: false,
+            chatWidth: 300,
+            chatHeight: 300,
+            vodSource: "captured",
+            chatSource: "captured",
+            chatFont: "Inter",
+            chatFontSize: 12,
+            burnHorizontal: "left",
+            burnVertical: "top",
+            ffmpegPreset: "slow",
+            ffmpegCrf: 26,
+        */
+        { key: "chatburn.default.chat_width",       group: "Chat burn", text: "Chat width", type: "number", default: 300 },
+        { key: "chatburn.default.auto_chat_height", group: "Chat burn", text: "Chat auto height", type: "boolean", default: true },
+        { key: "chatburn.default.chat_height",      group: "Chat burn", text: "Chat height", type: "number", default: 300 },
+        { key: "chatburn.default.chat_font",        group: "Chat burn", text: "Chat font", type: "string", default: "Inter" },
+        { key: "chatburn.default.chat_font_size",   group: "Chat burn", text: "Chat font size", type: "number", default: 12 },
+        { key: "chatburn.default.horizontal",       group: "Chat burn", text: "Chat horizontal position", type: "array", choices: ["left", "right"], default: "left" },
+        { key: "chatburn.default.vertical",         group: "Chat burn", text: "Chat vertical position", type: "array", choices: ["top", "bottom"], default: "top" },
+        { key: "chatburn.default.preset",           group: "Chat burn", text: "Burning ffmpeg preset", type: "string", default: "slow" },
+        { key: "chatburn.default.crf",              group: "Chat burn", text: "Burning ffmpeg crf", type: "number", default: 26 },
+
     ];
 
     static MigrateOptions = [
