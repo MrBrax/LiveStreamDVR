@@ -1,13 +1,14 @@
 import express from "express";
 import { VideoQuality } from "../../../common/Config";
 import { ClientBroker } from "../Core/ClientBroker";
+import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { TwitchChannel } from "../Core/TwitchChannel";
 import { TwitchVOD } from "../Core/TwitchVOD";
 
 export function ListVodsInMemory(req: express.Request, res: express.Response): void {
     res.send({
         status: "OK",
-        data: TwitchVOD.vods,
+        data: LiveStreamDVR.getInstance().vods,
     });
 }
 
@@ -42,10 +43,10 @@ export async function VodDownloadAtEnd(req: express.Request, res: express.Respon
 export async function ReencodeVod(req: express.Request, res: express.Response): Promise<void> {
     const basename = req.params.basename as string;
 
-    const vod = TwitchVOD.vods.find((v) => v.basename === basename);
+    const vod = LiveStreamDVR.getInstance().vods.find((v) => v.basename === basename);
 
     if (!vod) {
-        res.status(500).send(TwitchVOD.vods.map((v) => v.basename));
+        res.status(500).send(LiveStreamDVR.getInstance().vods.map((v) => v.basename));
         return;
     }
 

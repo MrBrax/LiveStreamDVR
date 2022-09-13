@@ -21,6 +21,7 @@ import { KeyValue } from "./KeyValue";
 import { SubStatus } from "../../../common/Defs";
 import { TwitchVOD } from "./TwitchVOD";
 import { createHash } from "crypto";
+import { LiveStreamDVR } from "./LiveStreamDVR";
 
 export interface ExecReturn {
     stdout: string[];
@@ -1272,7 +1273,7 @@ export class Helper {
 
         if (Config.debug) {
 
-            for (const vod of TwitchVOD.vods) {
+            for (const vod of LiveStreamDVR.getInstance().vods) {
 
                 if (!vod.is_finalized) continue;
 

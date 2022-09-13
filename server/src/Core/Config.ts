@@ -16,8 +16,8 @@ import { Scheduler } from "./Scheduler";
 import { Job } from "./Job";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
-import { TwitchVOD } from "./TwitchVOD";
 import { YouTubeHelper } from "../Providers/YouTube";
+import { LiveStreamDVR } from "./LiveStreamDVR";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -812,7 +812,7 @@ export class Config {
         TwitchChannel.channels_cache = {};
         TwitchChannel.channels_config = [];
         TwitchChannel.channels = [];
-        TwitchVOD.vods = [];
+        LiveStreamDVR.getInstance().vods = [];
         TwitchChannel.loadChannelsConfig();
         TwitchChannel.loadChannelsCache();
         await TwitchChannel.loadChannels();

@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import { compareVersions } from "compare-versions";
+import { LiveStreamDVR } from "Core/LiveStreamDVR";
 import dotenv from "dotenv";
 import express from "express";
 import session from "express-session";
@@ -185,7 +186,7 @@ Config.init().then(() => {
             for (const c of TwitchChannel.channels) {
                 await c.stopWatching();
             }
-            for (const v of TwitchVOD.vods) {
+            for (const v of LiveStreamDVR.getInstance().vods) {
                 await v.stopWatching();
             }
             for (const j of Job.jobs) {

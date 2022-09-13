@@ -32,15 +32,17 @@ import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchVODSegment } from "./TwitchVODSegment";
 import { Webhook } from "./Webhook";
 import { randomUUID } from "crypto";
+import { LiveStreamDVR } from "./LiveStreamDVR";
+import { VOD } from "./VOD";
 
 /**
  * Twitch VOD
  * 
  * @warning **Do NOT create this class directly. Use TwitchChannel.createVOD() instead.**
  */
-export class TwitchVOD {
+export class TwitchVOD extends VOD {
 
-    static vods: TwitchVOD[] = [];
+    // static vods: TwitchVOD[] = [];
 
     static filenameIllegalChars = /[:*?"<>|]/g;
 
@@ -2359,7 +2361,7 @@ export class TwitchVOD {
             if (filename === this.filename) {
                 if (!fs.existsSync(this.filename)) {
                     Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD JSON ${this.basename} deleted!`);
-                    if (TwitchVOD.vods.find(v => v.basename == this.basename)) {
+                    if (LiveStreamDVR.getInstance().vods.find(v => v.basename == this.basename)) {
                         Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${this.basename} still in memory!`);
 
                         // const channel = TwitchChannel.getChannelByLogin(this.streamer_login);
@@ -2937,13 +2939,13 @@ export class TwitchVOD {
         if (this.hasVod(vod.basename))
             throw new Error(`VOD ${vod.basename} is already in cache!`);
 
-        this.vods.push(vod);
+        LiveStreamDVR.getInstance().vods.push(vod);
 
         return this.hasVod(vod.basename);
     }
 
     public static hasVod(basename: string): boolean {
-        return this.vods.findIndex(vod => vod.basename == basename) != -1;
+        return LiveStreamDVR.getInstance().vods.findIndex(vod => vod.basename == basename) != -1;
     }
 
     /**
@@ -2954,16 +2956,16 @@ export class TwitchVOD {
      */
     public static getVod(basename: string): TwitchVOD | undefined {
         if (TwitchVOD.hasVod(basename)) {
-            return TwitchVOD.vods.find(vod => vod.basename == basename);
+            return LiveStreamDVR.getInstance().vods.find(vod => vod.basename == basename);
         }
     }
 
     public static getVodByCaptureId(capture_id: string): TwitchVOD | undefined {
-        return TwitchVOD.vods.find(vod => vod.capture_id == capture_id);
+        return LiveStreamDVR.getInstance().vods.find(vod => vod.capture_id == capture_id);
     }
 
     public static getVodByUUID(uuid: string): TwitchVOD | undefined {
-        return TwitchVOD.vods.find(vod => vod.uuid == uuid);
+        return LiveStreamDVR.getInstance().vods.find(vod => vod.uuid == uuid);
     }
 
     /**
@@ -2974,7 +2976,7 @@ export class TwitchVOD {
      */
     public static removeVod(basename: string): boolean {
         if (TwitchVOD.hasVod(basename)) {
-            TwitchVOD.vods = TwitchVOD.vods.filter(vod => vod.basename != basename);
+            LiveStreamDVR.getInstance().vods = LiveStreamDVR.getInstance().vods.filter(vod => vod.basename != basename);
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD ${basename} removed from memory!`);
             Webhook.dispatch("vod_removed", { basename: basename });
             return true;
@@ -3366,7 +3368,7 @@ export class TwitchVOD {
     }
 
     static cleanLingeringVODs(): void {
-        this.vods.forEach((vod) => {
+        LiveStreamDVR.getInstance().vods.forEach((vod) => {
             const channel = vod.getChannel();
             if (!channel) {
                 Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Channel ${vod.streamer_login} removed but VOD ${vod.basename} still lingering`);

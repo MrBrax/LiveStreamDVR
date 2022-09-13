@@ -28,6 +28,7 @@ import { Config } from "./Config";
 import { Helper } from "./Helper";
 import { Job } from "./Job";
 import { KeyValue } from "./KeyValue";
+import { LiveStreamDVR } from "./LiveStreamDVR";
 import { Log, LOGLEVEL } from "./Log";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
@@ -226,11 +227,11 @@ export class TwitchChannel {
     }
 
     public clearVODs(): void {
-        TwitchVOD.vods.forEach(v => {
+        LiveStreamDVR.getInstance().vods.forEach(v => {
             if (v.streamer_login !== this.login) return;
             v.stopWatching();
         });
-        TwitchVOD.vods = TwitchVOD.vods.filter(v => v.streamer_login !== this.login);
+        LiveStreamDVR.getInstance().vods = LiveStreamDVR.getInstance().vods.filter(v => v.streamer_login !== this.login);
         this.vods_raw = [];
         this.vods_list = [];
     }
@@ -504,7 +505,7 @@ export class TwitchChannel {
         // const vods_on_disk = fs.readdirSync(Helper.vodFolder(this.login)).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".json") && !f.endsWith("_chat.json"));
         const vods_on_disk = this.rescanVods();
         const vods_in_channel_memory = this.vods_list;
-        const vods_in_main_memory = TwitchVOD.vods.filter(v => v.streamer_login === this.login);
+        const vods_in_main_memory = LiveStreamDVR.getInstance().vods.filter(v => v.streamer_login === this.login);
 
         if (vods_on_disk.length !== vods_in_channel_memory.length) {
             Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Vod on disk and vod in memory are not the same for ${this.login}`);
