@@ -1433,6 +1433,9 @@ export class TwitchChannel {
                     ch.postLoad();
                     ch.vods_list.forEach(vod => vod.postLoad());
                     Log.logAdvanced(LOGLEVEL.SUCCESS, "config", `Loaded channel ${channel.login} with ${ch.vods_list?.length} vods`);
+                    if (ch.no_capture) {
+                        Log.logAdvanced(LOGLEVEL.WARNING, "config", `Channel ${channel.login} is configured to not capture streams.`);
+                    }
                 } else {
                     Log.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be added, please check logs.`);
                     break;

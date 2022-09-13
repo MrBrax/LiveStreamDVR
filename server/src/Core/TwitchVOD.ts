@@ -2382,6 +2382,7 @@ export class TwitchVOD {
                 }
             } else if (this.segments.some(s => s.filename === filename)) {
                 if (Config.debug) console.debug(`VOD segment ${filename} changed (${eventType})!`);
+                Log.logAdvanced(LOGLEVEL.INFO, "vod.watch", `VOD segment ${filename} changed (${eventType})!`);
                 ClientBroker.notify(
                     "Segment changed externally",
                     path.basename(filename),
@@ -2390,6 +2391,7 @@ export class TwitchVOD {
                 );
             } else {
                 if (Config.debug) console.debug(`VOD file ${filename} changed (${eventType})!`);
+                Log.logAdvanced(LOGLEVEL.INFO, "vod.watch", `VOD file ${filename} changed (${eventType})!`);
                 ClientBroker.notify(
                     "VOD file changed externally",
                     path.basename(filename),
