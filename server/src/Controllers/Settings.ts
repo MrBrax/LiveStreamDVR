@@ -1,12 +1,11 @@
 import express from "express";
 import type { ApiSettingsResponse } from "../../../common/Api/Api";
-// import type { SettingField } from "../../../common/Config";
 import { version } from "../../package.json";
-import { TwitchChannel } from "../Core/TwitchChannel";
-import { Config } from "../Core/Config";
-import { TwitchGame } from "../Core/TwitchGame";
-import { Helper } from "../Core/Helper";
 import { AppName } from "../Core/BaseConfig";
+import { Config } from "../Core/Config";
+import { Helper } from "../Core/Helper";
+import { LiveStreamDVR } from "../Core/LiveStreamDVR";
+import { TwitchGame } from "../Core/TwitchGame";
 
 export function GetSettings(req: express.Request, res: express.Response): void {
 
@@ -23,7 +22,7 @@ export function GetSettings(req: express.Request, res: express.Response): void {
         data: {
             app_name: AppName,
             config: config,
-            channels: TwitchChannel.channels_config,
+            channels: LiveStreamDVR.getInstance().channels_config,
             favourite_games: TwitchGame.favourite_games,
             fields: Config.settingsFields,
             version: version,

@@ -782,9 +782,9 @@ export class Config {
 
         TwitchGame.populateGameDatabase();
         TwitchGame.populateFavouriteGames();
-        TwitchChannel.loadChannelsConfig();
+        LiveStreamDVR.getInstance().loadChannelsConfig();
         TwitchChannel.loadChannelsCache();
-        await TwitchChannel.loadChannels();
+        await LiveStreamDVR.getInstance().loadChannels();
         Job.loadJobsFromCache();
 
         Config.getInstance().startWatchingConfig();
@@ -810,12 +810,12 @@ export class Config {
 
     static async resetChannels() {
         TwitchChannel.channels_cache = {};
-        TwitchChannel.channels_config = [];
-        TwitchChannel.channels = [];
+        LiveStreamDVR.getInstance().channels_config = [];
+        LiveStreamDVR.getInstance().channels = [];
         LiveStreamDVR.getInstance().vods = [];
-        TwitchChannel.loadChannelsConfig();
+        LiveStreamDVR.getInstance().loadChannelsConfig();
         TwitchChannel.loadChannelsCache();
-        await TwitchChannel.loadChannels();
+        await LiveStreamDVR.getInstance().loadChannels();
     }
 
     async validateExternalURL(test_url = ""): Promise<boolean> {
@@ -909,8 +909,8 @@ export class Config {
     }
 
     static get can_shutdown(): boolean {
-        if (!TwitchChannel.channels || TwitchChannel.channels.length === 0) return true;
-        return !TwitchChannel.channels.some(c => c.is_live);
+        if (!LiveStreamDVR.getInstance().channels || LiveStreamDVR.getInstance().channels.length === 0) return true;
+        return !LiveStreamDVR.getInstance().channels.some(c => c.is_live);
     }
 
     async getGitHash() {

@@ -21,7 +21,6 @@ import type { SubscriptionRequest, SubscriptionResponse } from "../../../common/
 import type { BroadcasterType, UsersResponse } from "../../../common/TwitchAPI/Users";
 import type { UserData } from "../../../common/User";
 import { ChannelUpdated } from "../../../common/Webhook";
-import { replaceAll } from "../Helpers/ReplaceAll";
 import { AppRoot, BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
@@ -33,12 +32,15 @@ import { Log, LOGLEVEL } from "./Log";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
+import { VChannel } from "./VChannel";
 import { Webhook } from "./Webhook";
 
-export class TwitchChannel {
+export class TwitchChannel extends VChannel {
 
-    static channels: TwitchChannel[] = [];
-    static channels_config: ChannelConfig[] = [];
+    public provider = "twitch";
+
+    // static channels: TwitchChannel[] = [];
+    // static channels_config: ChannelConfig[] = [];
     static channels_cache: Record<string, UserData> = {};
 
     /**
@@ -56,10 +58,7 @@ export class TwitchChannel {
      */
     public channel_data: UserData | undefined;
 
-    /**
-     * Channel config from config file
-     */
-    public config: ChannelConfig | undefined;
+    
 
     /**
      * Display name used in chats and profile pages.
@@ -73,20 +72,7 @@ export class TwitchChannel {
     public offline_image_url: string | undefined;
     /** @todo: Not implemented */
     public banner_image_url: string | undefined;
-    public quality: VideoQuality[] | undefined;
-    public match: string[] | undefined;
-    public download_chat = false;
-
-    /** Capture chat live */
-    public live_chat = false;
-
-    /** Don't capture, just exist */
-    public no_capture = false;
-
-    public no_cleanup = false;
-
-    public max_storage = 0;
-    public max_vods = 0;
+    
 
     public download_vod_at_end = false;
     public download_vod_at_end_quality: VideoQuality = "best";
@@ -312,13 +298,13 @@ export class TwitchChannel {
      * @param config 
      */
     public update(config: ChannelConfig): boolean {
-        const i = TwitchChannel.channels_config.findIndex(ch => ch.login === this.login);
+        const i = LiveStreamDVR.getInstance().channels_config.findIndex(ch => ch.provider == "twitch" && ch.login === this.login);
         if (i !== -1) {
             this.config = config;
             this.applyConfig(config);
             Log.logAdvanced(LOGLEVEL.INFO, "channel", `Replacing channel config for ${this.login}`);
-            TwitchChannel.channels_config[i] = config;
-            TwitchChannel.saveChannelsConfig();
+            LiveStreamDVR.getInstance().channels_config[i] = config;
+            LiveStreamDVR.getInstance().saveChannelsConfig();
             return true;
         } else {
             Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not update channel ${this.login}`);
@@ -334,19 +320,19 @@ export class TwitchChannel {
         const userid = this.userid;
 
         Log.logAdvanced(LOGLEVEL.INFO, "channel", `Deleting channel ${login}`);
-        const index_config = TwitchChannel.channels_config.findIndex(ch => ch.login === login);
+        const index_config = LiveStreamDVR.getInstance().channels_config.findIndex(ch => ch.provider == "twitch" && ch.login === login);
         if (index_config !== -1) {
-            TwitchChannel.channels_config.splice(index_config, 1);
+            LiveStreamDVR.getInstance().channels_config.splice(index_config, 1);
         }
 
-        const index_channel = TwitchChannel.channels.findIndex(ch => ch.login === login);
+        const index_channel = LiveStreamDVR.getInstance().channels.findIndex(ch => ch instanceof TwitchChannel && ch.login === login);
         if (index_channel !== -1) {
-            TwitchChannel.channels.splice(index_channel, 1);
+            LiveStreamDVR.getInstance().channels.splice(index_channel, 1);
         }
 
         if (userid) TwitchChannel.unsubscribe(userid);
 
-        TwitchChannel.saveChannelsConfig();
+        LiveStreamDVR.getInstance().saveChannelsConfig();
 
         return TwitchChannel.getChannelByLogin(login) == undefined;
     }
@@ -934,10 +920,10 @@ export class TwitchChannel {
         }
 
         // update config
-        const channelConfigIndex = TwitchChannel.channels_config.findIndex((c) => c.login === old_login);
+        const channelConfigIndex = LiveStreamDVR.getInstance().channels_config.findIndex((c) => c.provider == "twitch" && c.login === old_login);
         if (channelConfigIndex !== -1) {
-            TwitchChannel.channels_config[channelConfigIndex].login = new_login;
-            TwitchChannel.saveChannelsConfig();
+            LiveStreamDVR.getInstance().channels_config[channelConfigIndex].login = new_login;
+            LiveStreamDVR.getInstance().saveChannelsConfig();
         } else {
             throw new Error(`Could not find channel config for ${old_login}`);
         }
@@ -1190,23 +1176,17 @@ export class TwitchChannel {
         console.log(`Added ${this.video_list.length} local videos to ${this.login}`);
     }
 
-    public async stopWatching() {
-        if (this.fileWatcher) await this.fileWatcher.close();
-        this.fileWatcher = undefined;
-        // console.log(`Stopped watching ${this.basename}`);
-    }
-
     /**
      * 
      * STATIC
      * 
      */
 
-    public static async loadAbstract(channel_id: string, api: boolean): Promise<TwitchChannel> {
+    public static async loadAbstract(channel_id: string): Promise<TwitchChannel> {
 
         Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Load channel ${channel_id}`);
 
-        const channel_memory = this.channels.find(channel => channel.userid === channel_id);
+        const channel_memory = LiveStreamDVR.getInstance().channels.find<TwitchChannel>((channel): channel is TwitchChannel => channel instanceof TwitchChannel && channel.userid === channel_id);
         if (channel_memory) {
             Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel_id} already loaded`);
             return channel_memory;
@@ -1220,7 +1200,7 @@ export class TwitchChannel {
 
         const channel_login = channel_data.login;
 
-        const channel_config = TwitchChannel.channels_config.find(c => c.login === channel_login);
+        const channel_config = LiveStreamDVR.getInstance().channels_config.find(c => c.provider == "twitch" && c.login === channel_login);
         if (!channel_config) throw new Error(`Could not find channel config in memory for channel login: ${channel_login}`);
 
         channel.channel_data = channel_data;
@@ -1295,19 +1275,20 @@ export class TwitchChannel {
      */
     public static async create(config: ChannelConfig): Promise<TwitchChannel> {
 
-        const exists_config = TwitchChannel.channels_config.find(ch => ch.login === config.login);
+        const exists_config = LiveStreamDVR.getInstance().channels_config.find(ch => ch.provider == "twitch" && ch.login === config.login);
         if (exists_config) throw new Error(`Channel ${config.login} already exists in config`);
 
-        const exists_channel = TwitchChannel.channels.find(ch => ch.login === config.login);
+        // const exists_channel = TwitchChannel.channels.find(ch => ch.login === config.login);
+        const exists_channel = LiveStreamDVR.getInstance().channels.find<TwitchChannel>((channel): channel is TwitchChannel => channel instanceof TwitchChannel && channel.login === config.login);
         if (exists_channel) throw new Error(`Channel ${config.login} already exists in channels`);
 
-        const data = await TwitchChannel.getUserDataByLogin(config.login, true);
+        const data = await TwitchChannel.getUserDataByLogin(config.login);
         if (!data) throw new Error(`Could not get channel data for channel login: ${config.login}`);
 
-        TwitchChannel.channels_config.push(config);
-        TwitchChannel.saveChannelsConfig();
+        LiveStreamDVR.getInstance().channels_config.push(config);
+        LiveStreamDVR.getInstance().saveChannelsConfig();
 
-        const channel = await TwitchChannel.loadFromLogin(config.login, true);
+        const channel = await TwitchChannel.loadFromLogin(config.login);
         if (!channel || !channel.userid) throw new Error(`Channel ${config.login} could not be loaded`);
 
         if (
@@ -1319,8 +1300,8 @@ export class TwitchChannel {
                 await TwitchChannel.subscribe(channel.userid);
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`);
-                TwitchChannel.channels_config = TwitchChannel.channels_config.filter(ch => ch.login !== config.login); // remove channel from config
-                TwitchChannel.saveChannelsConfig();
+                LiveStreamDVR.getInstance().channels_config = LiveStreamDVR.getInstance().channels_config.filter(ch => ch.provider == "twitch" && ch.login !== config.login); // remove channel from config
+                LiveStreamDVR.getInstance().saveChannelsConfig();
                 // throw new Error(`Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`, { cause: error });
                 throw error; // rethrow error
             }
@@ -1330,12 +1311,12 @@ export class TwitchChannel {
             Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Not subscribing to ${channel.login} due to isolated mode.`);
         } else {
             Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Can't subscribe to ${channel.login} due to either no app_url or isolated mode disabled.`);
-            TwitchChannel.channels_config = TwitchChannel.channels_config.filter(ch => ch.login !== config.login); // remove channel from config
-            TwitchChannel.saveChannelsConfig();
+            LiveStreamDVR.getInstance().channels_config = LiveStreamDVR.getInstance().channels_config.filter(ch => ch.provider == "twitch" && ch.login !== config.login); // remove channel from config
+            LiveStreamDVR.getInstance().saveChannelsConfig();
             throw new Error("Can't subscribe due to either no app_url or isolated mode disabled.");
         }
 
-        TwitchChannel.channels.push(channel);
+        LiveStreamDVR.getInstance().channels.push(channel);
 
         if (Helper.axios) { // bad hack?
             const streams = await TwitchChannel.getStreams(channel.userid);
@@ -1350,6 +1331,7 @@ export class TwitchChannel {
     /**
      * Load channel config into memory, not the channels themselves.
      */
+    /*
     public static loadChannelsConfig(): boolean {
 
         if (!fs.existsSync(BaseConfigPath.channel)) {
@@ -1390,12 +1372,13 @@ export class TwitchChannel {
         return true;
 
     }
+    */
 
-    public static saveChannelsConfig(): boolean {
-        Log.logAdvanced(LOGLEVEL.INFO, "channel", "Saving channel config");
-        fs.writeFileSync(BaseConfigPath.channel, JSON.stringify(this.channels_config, null, 4));
-        return fs.existsSync(BaseConfigPath.channel) && fs.readFileSync(BaseConfigPath.channel, "utf8") === JSON.stringify(this.channels_config, null, 4);
-    }
+    // public static saveChannelsConfig(): boolean {
+    //     Log.logAdvanced(LOGLEVEL.INFO, "channel", "Saving channel config");
+    //     fs.writeFileSync(BaseConfigPath.channel, JSON.stringify(this.channels_config, null, 4));
+    //     return fs.existsSync(BaseConfigPath.channel) && fs.readFileSync(BaseConfigPath.channel, "utf8") === JSON.stringify(this.channels_config, null, 4);
+    // }
 
     /**
      * Load channel cache into memory, like usernames and id's.
@@ -1414,6 +1397,7 @@ export class TwitchChannel {
      * 
      * @returns Amount of loaded channels
      */
+    /*
     public static async loadChannels(): Promise<number> {
         Log.logAdvanced(LOGLEVEL.INFO, "channel", "Loading channels...");
         if (this.channels_config.length > 0) {
@@ -1422,7 +1406,7 @@ export class TwitchChannel {
                 let ch: TwitchChannel;
 
                 try {
-                    ch = await TwitchChannel.loadFromLogin(channel.login, true);
+                    ch = await TwitchChannel.loadFromLogin(channel.login);
                 } catch (th) {
                     Log.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be loaded: ${th}`);
                     continue;
@@ -1446,9 +1430,15 @@ export class TwitchChannel {
         Log.logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${this.channels.length} channels!`);
         return this.channels.length;
     }
+    */
 
     public static getChannels(): TwitchChannel[] {
-        return this.channels;
+        // return this.channels;
+        return LiveStreamDVR.getInstance().channels.filter<TwitchChannel>((channel): channel is TwitchChannel => channel instanceof TwitchChannel) || [];
+    }
+
+    public static isType(channel: any): channel is TwitchChannel {
+        return channel instanceof TwitchChannel;
     }
 
     /**
@@ -1461,7 +1451,7 @@ export class TwitchChannel {
      * @returns {TwitchChannel} Channel object
      */
     public static getChannelByLogin(login: string): TwitchChannel | undefined {
-        return this.channels.find(ch => ch.login === login);
+        return LiveStreamDVR.getInstance().channels.find<TwitchChannel>((ch): ch is TwitchChannel => ch instanceof TwitchChannel && ch.login === login);
     }
 
     public static async getStreams(streamer_id: string): Promise<Stream[] | false> {
@@ -1498,13 +1488,13 @@ export class TwitchChannel {
      * @param api 
      * @returns 
      */
-    public static async loadFromLogin(login: string, api: boolean): Promise<TwitchChannel> {
+    public static async loadFromLogin(login: string): Promise<TwitchChannel> {
         if (!login) throw new Error("Streamer login is empty");
         if (typeof login !== "string") throw new TypeError("Streamer login is not a string");
         Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Load from login ${login}`);
         const channel_id = await this.channelIdFromLogin(login);
         if (!channel_id) throw new Error(`Could not get channel id from login: ${login}`);
-        return this.loadAbstract(channel_id, api); // $channel;
+        return this.loadAbstract(channel_id); // $channel;
     }
 
     public static async channelIdFromLogin(login: string): Promise<string | false> {
@@ -1961,4 +1951,6 @@ export class TwitchChannel {
         return chat_job;
 
     }
+
+    
 }

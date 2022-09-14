@@ -1,27 +1,28 @@
-import express from "express";
-import { generateStreamerList } from "../Helpers/StreamerList";
-import { TwitchChannel } from "../Core/TwitchChannel";
-import { ChannelConfig, VideoQuality } from "../../../common/Config";
-import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiResponse } from "../../../common/Api/Api";
-import { VideoQualityArray } from "../../../common/Defs";
-import { LOGLEVEL, Log } from "../Core/Log";
-import { TwitchVOD } from "../Core/TwitchVOD";
-import { Helper } from "../Core/Helper";
-import { Config } from "../Core/Config";
-import path from "path";
-import fs from "fs";
+import { randomUUID } from "crypto";
 import { format, isValid, parseJSON } from "date-fns";
-import { Webhook } from "../Core/Webhook";
-import { EventSubStreamOnline } from "../../../common/TwitchAPI/EventSub/StreamOnline";
-import { Automator } from "../Core/Automator";
-import { TwitchVODChapterJSON } from "../Storage/JSON";
-import { KeyValue } from "../Core/KeyValue";
-import { BaseConfigDataFolder } from "../Core/BaseConfig";
+import express from "express";
+import fs from "fs";
+import path from "path";
 import sanitize from "sanitize-filename";
+import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiResponse } from "../../../common/Api/Api";
+import { ChannelConfig, VideoQuality } from "../../../common/Config";
+import { VideoQualityArray } from "../../../common/Defs";
 import { formatString } from "../../../common/Format";
 import { VodBasenameTemplate } from "../../../common/Replacements";
-import { randomUUID } from "crypto";
+import { EventSubStreamOnline } from "../../../common/TwitchAPI/EventSub/StreamOnline";
 import { Video } from "../../../common/TwitchAPI/Video";
+import { Automator } from "../Core/Automator";
+import { BaseConfigDataFolder } from "../Core/BaseConfig";
+import { Config } from "../Core/Config";
+import { Helper } from "../Core/Helper";
+import { KeyValue } from "../Core/KeyValue";
+import { LiveStreamDVR } from "../Core/LiveStreamDVR";
+import { Log, LOGLEVEL } from "../Core/Log";
+import { TwitchChannel } from "../Core/TwitchChannel";
+import { TwitchVOD } from "../Core/TwitchVOD";
+import { Webhook } from "../Core/Webhook";
+import { generateStreamerList } from "../Helpers/StreamerList";
+import { TwitchVODChapterJSON } from "../Storage/JSON";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -98,6 +99,7 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
     const download_vod_at_end_quality = formdata.download_vod_at_end_quality;
 
     const channel_config: ChannelConfig = {
+        provider: channel.provider,
         login: channel.login,
         quality: quality,
         match: match,
@@ -129,9 +131,9 @@ export async function DeleteChannel(req: express.Request, res: express.Response)
 
     if (!channel || !channel.login) {
 
-        if (TwitchChannel.channels_config.find(c => c.login === req.params.login)) {
-            TwitchChannel.channels_config = TwitchChannel.channels_config.filter(c => c.login !== req.params.login);
-            TwitchChannel.saveChannelsConfig();
+        if (LiveStreamDVR.getInstance().channels_config.find(c => c instanceof TwitchChannel && c.login === req.params.login)) {
+            LiveStreamDVR.getInstance().channels_config = LiveStreamDVR.getInstance().channels_config.filter(c => c instanceof TwitchChannel && c.login !== req.params.login);
+            LiveStreamDVR.getInstance().saveChannelsConfig();
 
             res.send({
                 status: "OK",
@@ -190,6 +192,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
     } = req.body;
 
     const channel_config: ChannelConfig = {
+        provider: "twitch",
         login: formdata.login,
         quality: formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [],
         match: formdata.match ? formdata.match.split(",").map(m => m.trim()) : [],

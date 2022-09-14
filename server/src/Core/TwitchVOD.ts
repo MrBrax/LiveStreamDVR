@@ -17,7 +17,6 @@ import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { Video, VideosResponse } from "../../../common/TwitchAPI/Video";
 import { TwitchVODBookmark } from "../../../common/Bookmark";
 import { VodUpdated } from "../../../common/Webhook";
-import { replaceAll } from "../Helpers/ReplaceAll";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../Storage/JSON";
 import { AppName, BaseConfigDataFolder } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
@@ -29,7 +28,7 @@ import { Log, LOGLEVEL } from "./Log";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVODChapter } from "./TwitchVODChapter";
-import { TwitchVODSegment } from "./TwitchVODSegment";
+import { VODSegment } from "./VODSegment";
 import { Webhook } from "./Webhook";
 import { randomUUID } from "crypto";
 import { LiveStreamDVR } from "./LiveStreamDVR";
@@ -42,19 +41,7 @@ import { VOD } from "./VOD";
  */
 export class TwitchVOD extends VOD {
 
-    // static vods: TwitchVOD[] = [];
-
     static filenameIllegalChars = /[:*?"<>|]/g;
-
-    // vod_path = "vods";
-
-    loaded = false;
-
-    uuid = "";
-    capture_id = "";
-    filename = "";
-    basename = "";
-    directory = "";
 
     json?: TwitchVODJSON;
     meta?: EventSubResponse;
@@ -63,40 +50,10 @@ export class TwitchVOD extends VOD {
     streamer_id = "";
     streamer_login = "";
 
-    /**
-     * An array of strings containing the file paths of the segments.
-     */
-    segments_raw: string[] = [];
-    segments: TwitchVODSegment[] = [];
-
     chapters_raw: TwitchVODChapterJSON[] = [];
     chapters: TwitchVODChapter[] = [];
 
-
     bookmarks: TwitchVODBookmark[] = [];
-
-    /**
-     * Date for when the VOD was created
-     */
-    created_at?: Date;
-
-    /**
-     * Date for when the stream was started on the provider's end.
-     */
-    started_at?: Date;
-    ended_at?: Date;
-    saved_at?: Date;
-
-    /**
-     * Date for when the capture process was launched
-     */
-    capture_started?: Date;
-
-    /**
-     * Date for when the capture file was output
-     */
-    capture_started2?: Date;
-    conversion_started?: Date;
 
     twitch_vod_id?: string;
     twitch_vod_duration?: number;
@@ -108,49 +65,12 @@ export class TwitchVOD extends VOD {
     twitch_vod_exists?: boolean;
     twitch_vod_attempted?: boolean;
 
-    video_metadata: VideoMetadata | AudioMetadata | undefined;
-
-    is_capturing = false;
-    is_converting = false;
-    is_finalized = false;
-
-    // game_offset: number | undefined;
-
-    duration = 0;
-    total_size = 0;
-
-    path_chat = "";
-    path_downloaded_vod = "";
-    path_losslesscut = "";
-    path_chatrender = "";
-    path_chatmask = "";
-    path_chatburn = "";
-    path_chatdump = "";
-    path_adbreak = "";
-    path_playlist = "";
-    path_ffmpegchapters = "";
-    path_vttchapters = "";
-    path_kodinfo = "";
-
-    force_record = false;
-
     stream_resolution: VideoQuality | undefined;
     stream_title = "";
 
     // duration_live: number | undefined;
-    created = false;
-    not_started = false;
 
     webpath = "";
-
-    stream_number?: number;
-    stream_absolute_season?: number;
-
-    comment?: string;
-
-    prevent_deletion = false;
-
-    failed = false;
 
     /*
     public ?bool $api_hasFavouriteGame = null;
@@ -163,33 +83,7 @@ export class TwitchVOD extends VOD {
     public ?int $api_getDurationLive = null;
     */
 
-    /*private*/ public _writeJSON = false;
-
-    fileWatcher?: chokidar.FSWatcher;
-
-    private _updateTimer: NodeJS.Timeout | undefined;
-
-    /**
-     * Set up date related data
-     * Requires JSON to be loaded
-     */
-    public setupDates(): void {
-
-        if (!this.json) {
-            throw new Error("No JSON loaded for date setup!");
-        }
-
-        if (this.json.created_at) this.created_at = parseJSON(this.json.created_at);
-        if (this.json.started_at) this.started_at = parseJSON(this.json.started_at);
-
-        if (this.json.ended_at) this.ended_at = parseJSON(this.json.ended_at);
-        if (this.json.saved_at) this.saved_at = parseJSON(this.json.saved_at);
-
-        if (this.json.capture_started) this.capture_started = parseJSON(this.json.capture_started);
-        if (this.json.capture_started2) this.capture_started2 = parseJSON(this.json.capture_started2);
-        if (this.json.conversion_started) this.conversion_started = parseJSON(this.json.conversion_started);
-
-    }
+    
 
     /**
      * Set up basic data
@@ -681,10 +575,6 @@ export class TwitchVOD extends VOD {
         return false;
     }
 
-    private realpath(expanded_path: string): string {
-        return path.normalize(expanded_path);
-    }
-
     public setupFiles(): void {
 
         if (!this.directory) {
@@ -973,7 +863,7 @@ export class TwitchVOD extends VOD {
             return false;
         }
 
-        const segments: TwitchVODSegment[] = [];
+        const segments: VODSegment[] = [];
 
         for (const raw_segment of array) {
 
@@ -989,7 +879,7 @@ export class TwitchVOD extends VOD {
                 return false;
             }
 
-            const segment = new TwitchVODSegment();
+            const segment = new VODSegment();
 
             // segment.filename = realpath($this.directory . DIRECTORY_SEPARATOR . basename($v));
             // segment.basename = basename($v);
@@ -2766,7 +2656,7 @@ export class TwitchVOD extends VOD {
 
         // fs.unwatchFile(vod.filename);
 
-        if(!noFixIssues) await vod.fixIssues();
+        if (!noFixIssues) await vod.fixIssues();
 
         // console.debug("vod getter check", vod.basename, vod.directory, vod.is_converted, vod.is_finalized, vod.is_capturing, vod.is_converting);
 

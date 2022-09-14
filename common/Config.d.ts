@@ -44,6 +44,7 @@ export interface SettingField<T> {
 }
 
 export interface ChannelConfig {
+    provider: string;
     login: string;
     quality: VideoQuality[];
     match: string[];

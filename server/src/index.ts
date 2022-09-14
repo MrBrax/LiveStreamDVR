@@ -183,7 +183,7 @@ Config.init().then(() => {
         server.close(async (e) => {
             if (websocketServer) websocketServer.close();
             Scheduler.removeAllJobs();
-            for (const c of TwitchChannel.channels) {
+            for (const c of LiveStreamDVR.getInstance().channels) {
                 await c.stopWatching();
             }
             for (const v of LiveStreamDVR.getInstance().vods) {

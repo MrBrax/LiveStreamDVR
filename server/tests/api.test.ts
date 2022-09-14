@@ -1,12 +1,11 @@
+import { LiveStreamDVR } from "../src/Core/LiveStreamDVR";
 import express, { Express } from "express";
-import fs from "fs";
-import { Auth } from "../src/Helpers/Auth";
 import request from "supertest";
 import { UserData } from "../../common/User";
-import { User } from "../../common/TwitchAPI/Users";
-import { AppName, DataRoot } from "../src/Core/BaseConfig";
+import { AppName } from "../src/Core/BaseConfig";
 import { Config } from "../src/Core/Config";
 import { TwitchChannel } from "../src/Core/TwitchChannel";
+import { Auth } from "../src/Helpers/Auth";
 import ApiRouter from "../src/Routes/Api";
 
 // jest.mock("../src/Core/TwitchChannel");
@@ -125,8 +124,8 @@ describe("channels", () => {
         expect(res3.body.data).toHaveProperty("display_name");
         expect(res3.status).toBe(200);
         
-        TwitchChannel.channels = [];
-        TwitchChannel.channels_config = [];
+        LiveStreamDVR.getInstance().channels = [];
+        LiveStreamDVR.getInstance().channels_config = [];
 
     });
 

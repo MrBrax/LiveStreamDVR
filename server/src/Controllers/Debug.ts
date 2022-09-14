@@ -15,7 +15,7 @@ export function ListVodsInMemory(req: express.Request, res: express.Response): v
 export function ListChannelsInMemory(req: express.Request, res: express.Response): void {
     res.send({
         status: "OK",
-        data: TwitchChannel.channels,
+        data: LiveStreamDVR.getInstance().channels,
     });
 }
 

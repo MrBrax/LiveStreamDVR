@@ -1243,7 +1243,7 @@ export class Helper {
         if (!Config.getInstance().cfg("app_url") && Config.getInstance().cfg("app_url") !== "debug") errors.push("No app url set in the config.");
         if (!Config.getInstance().cfg("api_client_id")) errors.push("No client id set in the config.");
         if (!Config.getInstance().cfg("api_secret")) errors.push("No client secret set in the config.");
-        if (TwitchChannel.channels.length == 0) errors.push("No channels set in the config.");
+        if (LiveStreamDVR.getInstance().channels.length == 0) errors.push("No channels set in the config.");
 
         if (!this.path_ffmpeg()) errors.push("Failed to find ffmpeg");
         if (!this.path_streamlink()) errors.push("Failed to find streamlink");
@@ -1259,7 +1259,7 @@ export class Helper {
             }
         }
 
-        for (const channel of TwitchChannel.channels) {
+        for (const channel of TwitchChannel.getChannels()) {
             for (const sub_type of Helper.CHANNEL_SUB_TYPES) {
                 if (KeyValue.getInstance().get(`${channel.userid}.substatus.${sub_type}`) === SubStatus.WAITING) {
                     errors.push(`${channel.login} is waiting for subscription ${sub_type}. Please check the config.`);

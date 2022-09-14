@@ -1,6 +1,19 @@
 <template>
     <form method="POST" enctype="multipart/form-data" action="#" ref="form" @submit="submitForm">
         <div class="field">
+            <label class="label">{{ $t('forms.channel.provider') }}</label>
+            <div class="select">
+                <select
+                    class="select"
+                    name="provider"
+                    v-model="formData.provider"
+                >
+                    <option value="twitch">Twitch</option>
+                    <option value="youtube" disabled>YouTube</option>
+                </select>
+            </div>
+        </div>
+        <div class="field">
             <label class="label">{{ $t('forms.channel.login') }} <span class="required">*</span></label>
             <div class="control has-addon">
                 <input
@@ -174,6 +187,7 @@ export default defineComponent({
         formStatusText: string;
         formStatus: string;
         formData: {
+            provider: string;
             login: string;
             quality: string;
             match: string;
@@ -194,6 +208,7 @@ export default defineComponent({
             formStatusText: "Ready",
             formStatus: "",
             formData: {
+                provider: "twitch",
                 login: "",
                 quality: "",
                 match: "",

@@ -23,7 +23,6 @@ export type ApiVodChapter = {
     game?: ApiGame;
     box_art_url?: string;
 
-    strings: Record<string, string>;
     duration: number;
 
     started_at: string;
