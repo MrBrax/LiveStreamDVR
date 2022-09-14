@@ -1,5 +1,5 @@
 import { Config } from "../src/Core/Config";
-import { Automator } from "../src/Core/Automator";
+import { BaseAutomator } from "../src/Core/Providers/Base/BaseAutomator";
 import { KeyValue } from "../src/Core/KeyValue";
 
 // jest.mock("Automator");
@@ -12,7 +12,7 @@ describe("Automator", () => {
 
     it("automator templating", () => {
 
-        const TA = new Automator();
+        const TA = new BaseAutomator();
         TA.broadcaster_user_login = "test";
 
         const kv = KeyValue.getInstance();

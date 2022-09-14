@@ -3,7 +3,7 @@ import { parseJSON } from "date-fns";
 import { ApiVodChapter } from "../../../../../common/Api/Client";
 import { TwitchVODChapterJSON } from "../../../Storage/JSON";
 import { TwitchGame } from "./TwitchGame";
-import { VODChapter } from "../Base/VODChapter";
+import { BaseVODChapter } from "../Base/BaseVODChapter";
 
 /*
 export interface TwitchVODChapterJSON {
@@ -50,7 +50,7 @@ export interface TwitchVODChapterMinimalJSON {
                 */
 
 
-export class TwitchVODChapter extends VODChapter {
+export class TwitchVODChapter extends BaseVODChapter {
 
     public raw_chapter: TwitchVODChapterJSON | undefined;
 

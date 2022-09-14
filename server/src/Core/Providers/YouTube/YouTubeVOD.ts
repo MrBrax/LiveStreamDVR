@@ -1,5 +1,5 @@
-import { VOD } from "../Base/VOD";
+import { BaseVOD } from "../Base/BaseVOD";
 
-export class YouTubeVOD extends VOD {
+export class YouTubeVOD extends BaseVOD {
 
 }

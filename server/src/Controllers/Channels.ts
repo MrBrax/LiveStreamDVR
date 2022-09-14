@@ -11,7 +11,7 @@ import { formatString } from "../../../common/Format";
 import { VodBasenameTemplate } from "../../../common/Replacements";
 import { EventSubStreamOnline } from "../../../common/TwitchAPI/EventSub/StreamOnline";
 import { Video } from "../../../common/TwitchAPI/Video";
-import { Automator } from "../Core/Automator";
+import { BaseAutomator } from "../Core/Providers/Base/BaseAutomator";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
 import { Helper } from "../Core/Helper";
@@ -748,7 +748,7 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
             } as TwitchVODChapterJSON;
             KeyValue.getInstance().setObject(`${stream.user_login}.chapterdata`, chapter_data);
 
-            const TA = new Automator();
+            const TA = new BaseAutomator();
             TA.handle(mock_data, req);
 
             res.send({

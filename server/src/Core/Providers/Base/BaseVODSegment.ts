@@ -1,6 +1,6 @@
 import { ApiVodSegment } from "../../../../../common/Api/Client";
 
-export class VODSegment {
+export class BaseVODSegment {
     filename: string | undefined;
     basename: string | undefined;
     strings: Record<string, string> = {};

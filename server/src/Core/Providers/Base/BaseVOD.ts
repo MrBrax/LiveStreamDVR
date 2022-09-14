@@ -16,11 +16,11 @@ import { LiveStreamDVR } from "../../LiveStreamDVR";
 import { Log, LOGLEVEL } from "../../Log";
 import { Webhook } from "../../Webhook";
 import { TwitchVOD } from "../Twitch/TwitchVOD";
-import { VChannel } from "./VChannel";
-import { VODChapter } from "./VODChapter";
-import { VODSegment } from "./VODSegment";
+import { BaseChannel } from "./BaseChannel";
+import { BaseVODChapter } from "./BaseVODChapter";
+import { BaseVODSegment } from "./BaseVODSegment";
 
-export class VOD {
+export class BaseVOD {
 
     // public provider: Providers;
 
@@ -80,7 +80,7 @@ export class VOD {
 
     failed = false;
 
-    chapters: VODChapter[] = [];
+    chapters: BaseVODChapter[] = [];
 
     path_chat = "";
     path_downloaded_vod = "";
@@ -102,7 +102,7 @@ export class VOD {
      * An array of strings containing the file paths of the segments.
      */
     segments_raw: string[] = [];
-    segments: VODSegment[] = [];
+    segments: BaseVODSegment[] = [];
 
     public fileWatcher?: chokidar.FSWatcher;
     public _writeJSON = false;
@@ -206,7 +206,7 @@ export class VOD {
         // console.log(`Stopped watching ${this.basename}`);
     }
 
-    public getChannel(): VChannel | undefined {
+    public getChannel(): BaseChannel | undefined {
         throw new Error("Not implemented");
     }
 
@@ -296,7 +296,7 @@ export class VOD {
             return false;
         }
 
-        const segments: VODSegment[] = [];
+        const segments: BaseVODSegment[] = [];
 
         for (const raw_segment of array) {
 
@@ -312,7 +312,7 @@ export class VOD {
                 return false;
             }
 
-            const segment = new VODSegment();
+            const segment = new BaseVODSegment();
 
             // segment.filename = realpath($this.directory . DIRECTORY_SEPARATOR . basename($v));
             // segment.basename = basename($v);

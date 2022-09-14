@@ -5,7 +5,7 @@ import crypto from "crypto";
 import path from "path";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import fs from "fs";
-import { Automator } from "../Core/Automator";
+import { BaseAutomator } from "../Core/Providers/Base/BaseAutomator";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { ChallengeResponse } from "../../../common/TwitchAPI/Challenge";
 import { LOGLEVEL, Log } from "../Core/Log";
@@ -185,7 +185,7 @@ export async function Hook(req: express.Request, res: express.Response): Promise
 
             if ("event" in data_json) {
                 Log.logAdvanced(LOGLEVEL.DEBUG, "hook", `Signature checked, no challenge, retry ${message_retry}. Run handle...`);
-                const TA = new Automator();
+                const TA = new BaseAutomator();
                 /* await */ TA.handle(data_json, req).catch(error => {
                     Log.logAdvanced(LOGLEVEL.FATAL, "hook", `Automator returned error: ${error.message}`);
                 });

@@ -29,7 +29,7 @@ import { Log, LOGLEVEL } from "../../Log";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVODChapter } from "./TwitchVODChapter";
-import { VOD } from "../Base/VOD";
+import { BaseVOD } from "../Base/BaseVOD";
 import { Webhook } from "../../Webhook";
 
 /**
@@ -37,7 +37,7 @@ import { Webhook } from "../../Webhook";
  * 
  * @warning **Do NOT create this class directly. Use TwitchChannel.createVOD() instead.**
  */
-export class TwitchVOD extends VOD {
+export class TwitchVOD extends BaseVOD {
 
     static filenameIllegalChars = /[:*?"<>|]/g;
 

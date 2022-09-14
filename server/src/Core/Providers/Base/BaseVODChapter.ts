@@ -1,7 +1,7 @@
 import { ApiVodChapter } from "../../../../../common/Api/Client";
 import { Log, LOGLEVEL } from "../../Log";
 
-export class VODChapter {
+export class BaseVODChapter {
 
     /**
      * Started at date, offset and duration are calculated from this.

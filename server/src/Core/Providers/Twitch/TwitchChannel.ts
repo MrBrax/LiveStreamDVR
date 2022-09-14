@@ -31,11 +31,11 @@ import { Log, LOGLEVEL } from "../../Log";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
-import { VChannel } from "../Base/VChannel";
-import { VODChapter } from "../Base/VODChapter";
+import { BaseChannel } from "../Base/BaseChannel";
+import { BaseVODChapter } from "../Base/BaseVODChapter";
 import { Webhook } from "../../Webhook";
 
-export class TwitchChannel extends VChannel {
+export class TwitchChannel extends BaseChannel {
 
     public provider: Providers = "twitch";
 
@@ -76,7 +76,9 @@ export class TwitchChannel extends VChannel {
 
     public deactivated = false;
 
-    
+    get livestreamUrl() {
+        return `https://twitch.tv/${this.login}`;
+    }
 
     /**
      * Folder for the channel that stores VODs and all other data
@@ -882,7 +884,7 @@ export class TwitchChannel extends VChannel {
         return KeyValue.getInstance().getBool(`${this.login}.saves_vods`);
     }
 
-    public async downloadLatestVod(quality: VideoQuality) {
+    public async downloadLatestVod(quality: VideoQuality): Promise<string> {
 
         if (!this.userid) {
             throw new Error("Cannot download latest vod without userid");

@@ -4,11 +4,12 @@ import { ChannelConfig, VideoQuality } from "../../../../../common/Config";
 import { LocalClip } from "../../../../../common/LocalClip";
 import { LocalVideo } from "../../../../../common/LocalVideo";
 import { ChannelUpdated } from "../../../../../common/Webhook";
-import { VOD } from "./VOD";
-import { VODChapter } from "./VODChapter";
+import { BaseVOD } from "./BaseVOD";
+import { BaseVODChapter } from "./BaseVODChapter";
 import { Webhook } from "../../Webhook";
+import { VODChapterJSON } from "Storage/JSON";
 
-export class VChannel {
+export class BaseChannel {
 
     /**
      * Channel config from config file
@@ -20,6 +21,7 @@ export class VChannel {
      */
     public display_name?: string;
     public description?: string;
+    public profile_image_url: string | undefined;
 
     public quality: VideoQuality[] | undefined;
     public match: string[] | undefined;
@@ -51,11 +53,15 @@ export class VChannel {
 
     public clips_list: LocalClip[] = [];
     public video_list: LocalVideo[] = [];
-    public vods_list: VOD[] = [];
+    public vods_list: BaseVOD[] = [];
 
     fileWatcher?: chokidar.FSWatcher;
 
     public _updateTimer: NodeJS.Timeout | undefined;
+
+    get livestreamUrl() {
+        return "";
+    }
 
     public async startWatching() {
         throw new Error("Method not implemented.");
@@ -117,14 +123,14 @@ export class VChannel {
     /**
      * Get the current capturing vod
      */
-    get current_vod(): VOD | undefined {
+    get current_vod(): BaseVOD | undefined {
         return this.vods_list?.find(vod => vod.is_capturing);
     }
 
     /**
      * Get the latest vod of the channel regardless of its status
      */
-    get latest_vod(): VOD | undefined {
+    get latest_vod(): BaseVOD | undefined {
         if (!this.vods_list || this.vods_list.length == 0) return undefined;
         return this.vods_list[this.vods_list.length - 1]; // is this reliable?
     }
@@ -146,7 +152,7 @@ export class VChannel {
         return this.vods_list?.some(vod => vod.is_converting) ?? false;
     }
 
-    get current_chapter(): VODChapter | undefined {
+    get current_chapter(): BaseVODChapter | undefined {
         if (!this.current_vod || !this.current_vod.chapters || this.current_vod.chapters.length == 0) return undefined;
         // return this.current_vod.chapters.at(-1);
         return this.current_vod.chapters[this.current_vod.chapters.length - 1];
@@ -154,6 +160,26 @@ export class VChannel {
 
     get vods_size(): number {
         return this.vods_list?.reduce((acc, vod) => acc + (vod.segments?.reduce((acc, seg) => acc + (seg && seg.filesize ? seg.filesize : 0), 0) ?? 0), 0) ?? 0;
+    }
+
+    public getChapterData(): VODChapterJSON | undefined {
+        throw new Error("Method not implemented.");
+    }
+
+    public async createVOD(filename: string): Promise<BaseVOD> {
+        throw new Error("Method not implemented.");
+    }
+
+    public async cleanupVods(ignore_uuid = ""): Promise<number | false> {
+        throw new Error("Method not implemented.");
+    }
+
+    public incrementStreamNumber(): number {
+        throw new Error("Method not implemented.");
+    }
+
+    public async downloadLatestVod(quality: VideoQuality): Promise<string> {
+        throw new Error("Method not implemented.");
     }
 
 }

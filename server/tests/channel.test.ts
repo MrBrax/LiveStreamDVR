@@ -2,7 +2,7 @@ import { TwitchChannel } from "../src/Core/Providers/Twitch/TwitchChannel";
 import { Config } from "../src/Core/Config";
 import { TwitchVOD } from "../src/Core/Providers/Twitch/TwitchVOD";
 import fs from "fs";
-import { VODSegment } from "../src/Core/Providers/Base/VODSegment";
+import { BaseVODSegment } from "../src/Core/Providers/Base/BaseVODSegment";
 import { randomUUID } from "crypto";
 import { LiveStreamDVR } from "../src/Core/LiveStreamDVR";
 
@@ -35,7 +35,7 @@ describe("Channel", () => {
             const vod = new TwitchVOD();
             vod.uuid = randomUUID();
             vod.basename = `testvod_${i+1}`;
-            const seg = new VODSegment();
+            const seg = new BaseVODSegment();
             seg.basename = `testvod_${i+1}.mp4`;
             seg.filesize = 1024 * 1024 * 1024 * 20;
             vod.segments = [seg];

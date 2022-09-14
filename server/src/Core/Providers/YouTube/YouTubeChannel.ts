@@ -1,7 +1,7 @@
 import { YouTubeChannelConfig } from "../../../../../common/Config";
 import { Providers } from "../../../../../common/Defs";
 import { LiveStreamDVR } from "../../LiveStreamDVR";
-import { VChannel } from "../Base/VChannel";
+import { BaseChannel } from "../Base/BaseChannel";
 import { youtube_v3 } from "@googleapis/youtube";
 import { YouTubeHelper } from "../../../Providers/YouTube";
 import { Config } from "../../Config";
@@ -19,7 +19,7 @@ interface YouTubeChannelData extends youtube_v3.Schema$ChannelSnippet {
     id: string;
 }
 
-export class YouTubeChannel extends VChannel {
+export class YouTubeChannel extends BaseChannel {
 
     static channels_cache: Record<string, YouTubeChannelData> = {};
 
@@ -33,6 +33,10 @@ export class YouTubeChannel extends VChannel {
 
     public subbed_at: Date | undefined;
     public expires_at: Date | undefined;
+
+    get livestreamUrl() {
+        return `https://youtube.com/c/${this.channel_data?.customUrl}`;
+    }
 
 
     public static getChannels(): YouTubeChannel[] {
