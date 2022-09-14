@@ -311,6 +311,7 @@ export class YouTubeChannel extends VChannel {
         const vods_list = await Promise.all(this.vods_list?.map(async (vod) => await vod.toAPI()));
 
         return {
+            provider: "youtube",
             userid: this.channel_id || "",
             login: "",
             display_name: this.display_name || "",

@@ -200,6 +200,7 @@ export class TwitchChannel extends VChannel {
         const vods_list = await Promise.all(this.vods_list?.map(async (vod) => await vod.toAPI()));
 
         return {
+            provider: "twitch",
             userid: this.userid || "",
             login: this.login || "",
             display_name: this.display_name || "",
