@@ -1,4 +1,4 @@
-import { ApiVodSegment } from "../../../common/Api/Client";
+import { ApiVodSegment } from "../../../../../common/Api/Client";
 
 export class VODSegment {
     filename: string | undefined;

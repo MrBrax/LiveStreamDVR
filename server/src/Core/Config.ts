@@ -14,11 +14,11 @@ import { KeyValue } from "./KeyValue";
 import { Log, LOGLEVEL } from "./Log";
 import { Scheduler } from "./Scheduler";
 import { Job } from "./Job";
-import { TwitchChannel } from "./TwitchChannel";
-import { TwitchGame } from "./TwitchGame";
+import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
+import { TwitchGame } from "./Providers/Twitch/TwitchGame";
 import { YouTubeHelper } from "../Providers/YouTube";
 import { LiveStreamDVR } from "./LiveStreamDVR";
-import { YouTubeChannel } from "./YouTubeChannel";
+import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 
 const argv = minimist(process.argv.slice(2));
 

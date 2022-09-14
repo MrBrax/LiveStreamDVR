@@ -1,4 +1,4 @@
-import { TwitchChannel } from "../Core/TwitchChannel";
+import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { Config } from "../Core/Config";
 import express from "express";
 import crypto from "crypto";

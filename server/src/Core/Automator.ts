@@ -11,12 +11,12 @@ import { ChannelUpdateEvent } from "../../../common/TwitchAPI/EventSub/ChannelUp
 import { BaseConfigDataFolder } from "./BaseConfig";
 import { KeyValue } from "./KeyValue";
 import { Job } from "./Job";
-import { TwitchChannel } from "./TwitchChannel";
+import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { Config } from "./Config";
 import { Helper, RemuxReturn } from "./Helper";
 import { LOGLEVEL, Log } from "./Log";
-import { TwitchVOD } from "./TwitchVOD";
-import { TwitchVODChapter } from "./TwitchVODChapter";
+import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
+import { TwitchVODChapter } from "./Providers/Twitch/TwitchVODChapter";
 import { Webhook } from "./Webhook";
 import { JobStatus, nonGameCategories, NotificationCategory } from "../../../common/Defs";
 import chalk from "chalk";
@@ -27,7 +27,7 @@ import sanitize from "sanitize-filename";
 import { formatString } from "../../../common/Format";
 import { Exporter, ExporterOptions, GetExporter } from "../Controllers/Exporter";
 import { VodBasenameTemplate } from "../../../common/Replacements";
-import { VOD } from "./VOD";
+import { VOD } from "./Providers/Base/VOD";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 

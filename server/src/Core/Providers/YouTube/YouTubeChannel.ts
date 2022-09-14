@@ -1,17 +1,17 @@
-import { YouTubeChannelConfig } from "../../../common/Config";
-import { Providers } from "../../../common/Defs";
-import { LiveStreamDVR } from "./LiveStreamDVR";
-import { VChannel } from "./VChannel";
+import { YouTubeChannelConfig } from "../../../../../common/Config";
+import { Providers } from "../../../../../common/Defs";
+import { LiveStreamDVR } from "../../LiveStreamDVR";
+import { VChannel } from "../Base/VChannel";
 import { youtube_v3 } from "@googleapis/youtube";
-import { YouTubeHelper } from "../Providers/YouTube";
-import { Config } from "./Config";
-import { KeyValue } from "./KeyValue";
-import { Log, LOGLEVEL } from "./Log";
+import { YouTubeHelper } from "../../../Providers/YouTube";
+import { Config } from "../../Config";
+import { KeyValue } from "../../KeyValue";
+import { Log, LOGLEVEL } from "../../Log";
 import fs from "fs";
-import { BaseConfigPath } from "./BaseConfig";
-import { Helper } from "./Helper";
+import { BaseConfigPath } from "../../BaseConfig";
+import { Helper } from "../../Helper";
 import { YouTubeVOD } from "./YouTubeVOD";
-import { ApiChannel } from "../../../common/Api/Client";
+import { ApiChannel } from "../../../../../common/Api/Client";
 import { VODChapterJSON } from "Storage/JSON";
 
 interface YouTubeChannelData extends youtube_v3.Schema$ChannelSnippet {

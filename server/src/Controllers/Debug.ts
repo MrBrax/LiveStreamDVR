@@ -1,10 +1,10 @@
-import { YouTubeChannel } from "../Core/YouTubeChannel";
+import { YouTubeChannel } from "../Core/Providers/YouTube/YouTubeChannel";
 import express from "express";
 import { VideoQuality } from "../../../common/Config";
 import { ClientBroker } from "../Core/ClientBroker";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
-import { TwitchChannel } from "../Core/TwitchChannel";
-import { TwitchVOD } from "../Core/TwitchVOD";
+import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
+import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 
 export function ListVodsInMemory(req: express.Request, res: express.Response): void {
     res.send({

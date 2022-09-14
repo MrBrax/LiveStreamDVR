@@ -1,25 +1,24 @@
-import { VODChapter } from "./VODChapter";
-import chokidar from "chokidar";
-import path from "path";
-import { ClientBroker } from "./ClientBroker";
-import { Config } from "./Config";
-import { LiveStreamDVR } from "./LiveStreamDVR";
-import { Log, LOGLEVEL } from "./Log";
-import { TwitchVOD } from "./TwitchVOD";
-import fs from "fs";
-import { VChannel } from "./VChannel";
-import { VODSegment } from "./VODSegment";
-import { VideoMetadata, AudioMetadata } from "../../../common/MediaInfo";
-import { parseJSON } from "date-fns";
-import { VODJSON } from "Storage/JSON";
-import { Providers } from "../../../common/Defs";
-import { ApiVod } from "../../../common/Api/Client";
 import chalk from "chalk";
-import { BaseConfigDataFolder } from "./BaseConfig";
-import { Helper } from "./Helper";
-import { VideoQuality } from "../../../common/Config";
-import { VodUpdated } from "../../../common/Webhook";
-import { Webhook } from "./Webhook";
+import chokidar from "chokidar";
+import { parseJSON } from "date-fns";
+import fs from "fs";
+import path from "path";
+import { VODJSON } from "Storage/JSON";
+import { ApiVod } from "../../../../../common/Api/Client";
+import { VideoQuality } from "../../../../../common/Config";
+import { AudioMetadata, VideoMetadata } from "../../../../../common/MediaInfo";
+import { VodUpdated } from "../../../../../common/Webhook";
+import { BaseConfigDataFolder } from "../../BaseConfig";
+import { ClientBroker } from "../../ClientBroker";
+import { Config } from "../../Config";
+import { Helper } from "../../Helper";
+import { LiveStreamDVR } from "../../LiveStreamDVR";
+import { Log, LOGLEVEL } from "../../Log";
+import { Webhook } from "../../Webhook";
+import { TwitchVOD } from "../Twitch/TwitchVOD";
+import { VChannel } from "./VChannel";
+import { VODChapter } from "./VODChapter";
+import { VODSegment } from "./VODSegment";
 
 export class VOD {
 

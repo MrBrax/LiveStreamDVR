@@ -1,8 +1,8 @@
-import { TwitchChannel } from "../src/Core/TwitchChannel";
+import { TwitchChannel } from "../src/Core/Providers/Twitch/TwitchChannel";
 import { Config } from "../src/Core/Config";
-import { TwitchVOD } from "../src/Core/TwitchVOD";
+import { TwitchVOD } from "../src/Core/Providers/Twitch/TwitchVOD";
 import fs from "fs";
-import { VODSegment } from "../src/Core/VODSegment";
+import { VODSegment } from "../src/Core/Providers/Base/VODSegment";
 import { randomUUID } from "crypto";
 import { LiveStreamDVR } from "../src/Core/LiveStreamDVR";
 

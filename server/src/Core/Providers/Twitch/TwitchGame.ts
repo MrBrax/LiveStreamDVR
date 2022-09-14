@@ -1,9 +1,9 @@
 import fs from "fs";
-import { Helper } from "./Helper";
-import { BaseConfigPath } from "./BaseConfig";
-import { LOGLEVEL, Log } from "./Log";
-import { ApiGame } from "../../../common/Api/Client";
-import { GamesResponse } from "../../../common/TwitchAPI/Games";
+import { Helper } from "../../Helper";
+import { BaseConfigPath } from "../../BaseConfig";
+import { LOGLEVEL, Log } from "../../Log";
+import { ApiGame } from "../../../../../common/Api/Client";
+import { GamesResponse } from "../../../../../common/TwitchAPI/Games";
 
 interface TwitchGameJSON {
     name: string;

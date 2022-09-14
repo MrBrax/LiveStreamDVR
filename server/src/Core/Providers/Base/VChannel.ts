@@ -1,12 +1,12 @@
 import chokidar from "chokidar";
-import { ApiChannel } from "../../../common/Api/Client";
-import { ChannelConfig, VideoQuality } from "../../../common/Config";
-import { LocalClip } from "../../../common/LocalClip";
-import { LocalVideo } from "../../../common/LocalVideo";
-import { ChannelUpdated } from "../../../common/Webhook";
+import { ApiChannel } from "../../../../../common/Api/Client";
+import { ChannelConfig, VideoQuality } from "../../../../../common/Config";
+import { LocalClip } from "../../../../../common/LocalClip";
+import { LocalVideo } from "../../../../../common/LocalVideo";
+import { ChannelUpdated } from "../../../../../common/Webhook";
 import { VOD } from "./VOD";
 import { VODChapter } from "./VODChapter";
-import { Webhook } from "./Webhook";
+import { Webhook } from "../../Webhook";
 
 export class VChannel {
 

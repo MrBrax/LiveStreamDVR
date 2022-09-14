@@ -3,9 +3,9 @@ import { ChannelConfig } from "../../../common/Config";
 import { BaseConfigPath, BaseConfigDataFolder } from "./BaseConfig";
 import { Config } from "./Config";
 import { Log, LOGLEVEL } from "./Log";
-import { TwitchChannel } from "./TwitchChannel";
-import { TwitchVOD } from "./TwitchVOD";
-import { YouTubeChannel } from "./YouTubeChannel";
+import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
+import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
+import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 
 export type ChannelTypes = TwitchChannel | YouTubeChannel;
 export type VODTypes = TwitchVOD;

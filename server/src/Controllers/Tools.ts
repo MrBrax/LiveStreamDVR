@@ -8,8 +8,8 @@ import { VideoQuality } from "../../../common/Config";
 import { formatString } from "../../../common/Format";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
-import { TwitchChannel } from "../Core/TwitchChannel";
-import { TwitchVOD } from "../Core/TwitchVOD";
+import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
+import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 
 export async function ResetChannels(req: express.Request, res: express.Response): Promise<void> {
 

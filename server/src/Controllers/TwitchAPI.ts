@@ -1,5 +1,5 @@
-import { TwitchChannel } from "../Core/TwitchChannel";
-import { TwitchVOD } from "../Core/TwitchVOD";
+import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
+import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import express from "express";
 import { ApiErrorResponse } from "../../../common/Api/Api";
 import { LOGLEVEL, Log } from "../Core/Log";

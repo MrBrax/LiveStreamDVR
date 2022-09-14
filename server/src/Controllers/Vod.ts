@@ -13,7 +13,7 @@ import type { VodBasenameTemplate } from "../../../common/Replacements";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { Helper } from "../Core/Helper";
 import { Log, LOGLEVEL } from "../Core/Log";
-import { TwitchVOD } from "../Core/TwitchVOD";
+import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 
 export async function GetVod(req: express.Request, res: express.Response): Promise<void> {
 

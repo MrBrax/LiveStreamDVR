@@ -1,4 +1,4 @@
-import { TwitchChannel } from "../Core/TwitchChannel";
+import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import express from "express";
 import { MuteStatus } from "../../../common/Defs";
 import { ClientBroker } from "../Core/ClientBroker";

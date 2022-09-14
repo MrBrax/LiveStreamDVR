@@ -4,7 +4,7 @@ import request from "supertest";
 import { UserData } from "../../common/User";
 import { AppName } from "../src/Core/BaseConfig";
 import { Config } from "../src/Core/Config";
-import { TwitchChannel } from "../src/Core/TwitchChannel";
+import { TwitchChannel } from "../src/Core/Providers/Twitch/TwitchChannel";
 import { Auth } from "../src/Helpers/Auth";
 import ApiRouter from "../src/Routes/Api";
 

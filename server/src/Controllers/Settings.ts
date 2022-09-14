@@ -5,7 +5,7 @@ import { AppName } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
 import { Helper } from "../Core/Helper";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
-import { TwitchGame } from "../Core/TwitchGame";
+import { TwitchGame } from "../Core/Providers/Twitch/TwitchGame";
 
 export function GetSettings(req: express.Request, res: express.Response): void {
 

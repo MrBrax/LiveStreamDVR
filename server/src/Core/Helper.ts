@@ -16,10 +16,10 @@ import { Config } from "./Config";
 import { LOGLEVEL, Log } from "./Log";
 import { TwitchCommentDump } from "../../../common/Comments";
 import { replaceAll } from "../Helpers/ReplaceAll";
-import { TwitchChannel } from "./TwitchChannel";
+import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { KeyValue } from "./KeyValue";
 import { SubStatus } from "../../../common/Defs";
-import { TwitchVOD } from "./TwitchVOD";
+import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
 import { createHash } from "crypto";
 import { LiveStreamDVR } from "./LiveStreamDVR";
 

@@ -2,7 +2,7 @@ import express from "express";
 import { ApiErrorResponse } from "../../../common/Api/Api";
 import { SubStatus } from "../../../common/Defs";
 import { KeyValue } from "../Core/KeyValue";
-import { TwitchChannel } from "../Core/TwitchChannel";
+import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { Config } from "../Core/Config";
 import { Helper } from "../Core/Helper";
 import { LOGLEVEL, Log } from "../Core/Log";

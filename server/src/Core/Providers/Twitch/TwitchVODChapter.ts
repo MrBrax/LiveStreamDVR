@@ -1,9 +1,9 @@
 import chalk from "chalk";
 import { parseJSON } from "date-fns";
-import { ApiVodChapter } from "../../../common/Api/Client";
-import { TwitchVODChapterJSON } from "../Storage/JSON";
+import { ApiVodChapter } from "../../../../../common/Api/Client";
+import { TwitchVODChapterJSON } from "../../../Storage/JSON";
 import { TwitchGame } from "./TwitchGame";
-import { VODChapter } from "./VODChapter";
+import { VODChapter } from "../Base/VODChapter";
 
 /*
 export interface TwitchVODChapterJSON {

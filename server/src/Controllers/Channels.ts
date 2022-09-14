@@ -18,10 +18,10 @@ import { Helper } from "../Core/Helper";
 import { KeyValue } from "../Core/KeyValue";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { Log, LOGLEVEL } from "../Core/Log";
-import { TwitchChannel } from "../Core/TwitchChannel";
-import { TwitchVOD } from "../Core/TwitchVOD";
+import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
+import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import { Webhook } from "../Core/Webhook";
-import { YouTubeChannel } from "../Core/YouTubeChannel";
+import { YouTubeChannel } from "../Core/Providers/YouTube/YouTubeChannel";
 import { generateStreamerList } from "../Helpers/StreamerList";
 import { TwitchVODChapterJSON } from "../Storage/JSON";
 

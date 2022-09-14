@@ -1,5 +1,5 @@
-import { ApiVodChapter } from "../../../common/Api/Client";
-import { Log, LOGLEVEL } from "./Log";
+import { ApiVodChapter } from "../../../../../common/Api/Client";
+import { Log, LOGLEVEL } from "../../Log";
 
 export class VODChapter {
 

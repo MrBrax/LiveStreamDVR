@@ -3,7 +3,7 @@ import path from "path";
 import sanitize from "sanitize-filename";
 import { ApiErrorResponse, ApiResponse } from "../../../common/Api/Api";
 import { BaseConfigDataFolder, DataRoot } from "../Core/BaseConfig";
-import { TwitchVOD } from "../Core/TwitchVOD";
+import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import { FileExporter } from "../Exporters/File";
 import { FTPExporter } from "../Exporters/FTP";
 import { RCloneExporter } from "../Exporters/RClone";
