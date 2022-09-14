@@ -6,7 +6,7 @@
                 <h2>
                     <a :href="'https://twitch.tv/' + streamer.login" rel="noreferrer" target="_blank">
                         {{ streamer.display_name }}
-                        <template v-if="streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }})</template>
+                        <template v-if="streamer.provider == 'twitch' && streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }})</template>
                     </a>
                     <span v-if="streamer.is_live" class="streamer-live">live</span>
                     <span v-if="streamer.is_capturing" class="streamer-capturing">capturing</span>

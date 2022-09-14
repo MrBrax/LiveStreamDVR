@@ -10,6 +10,8 @@ import { LocalVideo } from "@common/LocalVideo";
 import { LocalClip } from "@common/LocalClip";
 
 export default class TwitchChannel {
+
+    provider = "";
     userid = "";
     display_name = "";
     login = "";
@@ -46,6 +48,7 @@ export default class TwitchChannel {
 
     public static makeFromApiResponse(apiResponse: ApiChannel): TwitchChannel {
         const channel = new TwitchChannel();
+        channel.provider = apiResponse.provider;
         channel.userid = apiResponse.userid;
         channel.display_name = apiResponse.display_name;
         channel.login = apiResponse.login;

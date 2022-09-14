@@ -26,7 +26,7 @@
             </span>
             <span class="username">
                 {{ streamer.display_name }}
-                <template v-if="streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }})</template>
+                <template v-if="streamer.provider == 'twitch' && streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }})</template>
             </span>
             <span
                 class="vodcount"

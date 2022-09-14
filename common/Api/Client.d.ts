@@ -151,6 +151,7 @@ export type ApiSettingsField = {
 };
 
 export type ApiChannel = {
+    provider: Providers;
     userid: string;
     display_name: string;
     login: string;
