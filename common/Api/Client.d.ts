@@ -4,7 +4,7 @@ import { UserData } from "../User";
 import { MuteStatus, ExistStatus, JobStatus, Providers } from "../../common/Defs";
 import { AudioMetadata, VideoMetadata } from "../MediaInfo";
 import { BroadcasterType } from "../TwitchAPI/Users";
-import { TwitchVODChapterJSON } from "../../server/src/Storage/JSON";
+import { TwitchVODChapterJSON, VODChapterJSON } from "../../server/src/Storage/JSON";
 import { TwitchVODBookmark } from "../Bookmark";
 import { LocalVideo } from "../LocalVideo";
 import { LocalClip } from "../LocalClip";
@@ -202,7 +202,7 @@ export type ApiChannel = {
     current_stream_number?: number;
     current_season?: string;
 
-    chapter_data?: TwitchVODChapterJSON;
+    chapter_data?: VODChapterJSON | TwitchVODChapterJSON;
 
     saves_vods: boolean;
 

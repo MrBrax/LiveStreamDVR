@@ -66,7 +66,7 @@ export default class TwitchChannel {
         channel.current_season = apiResponse.current_season ?? "";
         // channel.is_capturing = apiResponse.is_capturing ?? false;
         channel.is_live = apiResponse.is_live ?? false;
-        channel.chapter_data = apiResponse.chapter_data;
+        channel.chapter_data = apiResponse.chapter_data as TwitchVODChapterJSON; // temp
         channel.saves_vods = apiResponse.saves_vods ?? false;
         return channel;
     }

@@ -1,3 +1,4 @@
+import { TwitchChannel } from "../Core/TwitchChannel";
 import express from "express";
 import { MuteStatus } from "../../../common/Defs";
 import { ClientBroker } from "../Core/ClientBroker";
@@ -12,6 +13,7 @@ export async function fCheckDeletedVods(): Promise<string> {
 
     for (const channel of streamerList.channels) {
 
+        if (!(channel instanceof TwitchChannel)) continue;
         if (!channel.vods_list) continue;
 
         for (const vod of channel.vods_list) {
@@ -56,6 +58,7 @@ export async function fCheckMutedVods(force = false): Promise<string> {
 
     for (const channel of streamerList.channels) {
 
+        if (!(channel instanceof TwitchChannel)) continue;
         if (!channel.vods_list) continue;
 
         for (const vod of channel.vods_list) {
@@ -122,6 +125,8 @@ export async function fMatchVods(force = false): Promise<string> {
     let output = "";
 
     for (const channel of streamerList.channels) {
+
+        if (!(channel instanceof TwitchChannel)) continue;
 
         if (!channel.vods_list) continue;
 

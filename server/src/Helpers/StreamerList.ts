@@ -1,9 +1,10 @@
 import { TwitchChannel } from "../Core/TwitchChannel";
 import { LOGLEVEL, Log } from "../Core/Log";
+import { ChannelTypes, LiveStreamDVR } from "../Core/LiveStreamDVR";
 
-export function generateStreamerList(): { channels: TwitchChannel[], total_size: number } {
+export function generateStreamerList(): { channels: ChannelTypes[], total_size: number } {
 
-    const channels = TwitchChannel.getChannels();
+    const channels = LiveStreamDVR.getInstance().getChannels();
 
     if (channels.length == 0) Log.logAdvanced(LOGLEVEL.WARNING, "api", "No channels in channel list");
 

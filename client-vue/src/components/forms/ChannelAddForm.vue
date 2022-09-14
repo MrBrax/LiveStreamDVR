@@ -9,11 +9,12 @@
                     v-model="formData.provider"
                 >
                     <option value="twitch">Twitch</option>
-                    <option value="youtube" disabled>YouTube</option>
+                    <option value="youtube">YouTube</option>
                 </select>
             </div>
         </div>
-        <div class="field">
+
+        <div class="field" v-if="formData.provider == 'twitch'">
             <label class="label">{{ $t('forms.channel.login') }} <span class="required">*</span></label>
             <div class="control has-addon">
                 <input
@@ -33,6 +34,29 @@
             </div>
             <p class="input-help">
                 {{ $t('forms.channel.login_help') }}
+            </p>
+        </div>
+
+        <div class="field" v-if="formData.provider == 'youtube'">
+            <label class="label">{{ $t('forms.channel.id') }} <span class="required">*</span></label>
+            <div class="control has-addon">
+                <input
+                    class="input"
+                    type="text"
+                    name="channel_id"
+                    v-model="formData.channel_id"
+                    required
+                    ref="channel_id"
+                />
+                <!--
+                <button class="button is-confirm" type="button" @click="fetchLogin" :disabled="!formData.login">
+                    <span class="icon"><fa icon="sync" /></span>
+                    <span>{{ $t('forms.channel.check') }}</span>
+                </button>
+                -->
+            </div>
+            <p class="input-help">
+                {{ $t('forms.channel.id_help') }}
             </p>
         </div>
 
@@ -189,6 +213,7 @@ export default defineComponent({
         formData: {
             provider: string;
             login: string;
+            channel_id: string;
             quality: string;
             match: string;
             download_chat: boolean;
@@ -210,6 +235,7 @@ export default defineComponent({
             formData: {
                 provider: "twitch",
                 login: "",
+                channel_id: "",
                 quality: "",
                 match: "",
                 download_chat: false,
@@ -265,6 +291,7 @@ export default defineComponent({
             this.formData = {
                 provider: "twitch",
                 login: "",
+                channel_id: "",
                 quality: "",
                 match: "",
                 download_chat: false,

@@ -27,12 +27,13 @@ import sanitize from "sanitize-filename";
 import { formatString } from "../../../common/Format";
 import { Exporter, ExporterOptions, GetExporter } from "../Controllers/Exporter";
 import { VodBasenameTemplate } from "../../../common/Replacements";
+import { VOD } from "./VOD";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
 export class Automator {
 
-    vod: TwitchVOD | undefined;
+    vod: VOD | undefined;
     channel: TwitchChannel | undefined;
 
     realm = "twitch";
@@ -460,6 +461,9 @@ export class Automator {
         const body = current_chapter.title;
         const icon = channel.profile_image_url;
 
+        if (current_chapter && !(current_chapter instanceof TwitchVODChapter)) return;
+        if (previous_chapter && !(previous_chapter instanceof TwitchVODChapter)) return;
+
         if (
             (!previous_chapter?.game_id && current_chapter.game_id) || // game changed from null to something
             (previous_chapter?.game_id && current_chapter.game_id && previous_chapter.game_id !== current_chapter.game_id) // game changed
@@ -630,7 +634,7 @@ export class Automator {
         // download chat and optionally burn it
         // TODO: call this when a non-captured stream ends too
         if (this.channel && this.vod) {
-            if (this.channel.download_chat && this.vod.twitch_vod_id) {
+            if (this.vod instanceof TwitchVOD && this.channel.download_chat && this.vod.twitch_vod_id) {
                 Log.logAdvanced(LOGLEVEL.INFO, "automator.onEndDownload", `Auto download chat on ${this.vod.basename}`);
 
                 try {
@@ -792,7 +796,11 @@ export class Automator {
 
         // create the vod and put it inside this class
         this.vod = await this.channel.createVOD(path.join(folder_base, `${basename}.json`));
-        this.vod.meta = this.payload_eventsub;
+        
+        // if (this.vod instanceof TwitchChannel) {
+        //     this.vod.meta = this.payload_eventsub;
+        // }
+
         // this.vod.json.meta = $this.payload_eventsub; // what
         this.vod.capture_id = this.getVodID() || "1";
         this.vod.started_at = parseJSON(data_started);

@@ -73,20 +73,18 @@ export interface TwitchVODJSON extends VODJSON {
 
 }
 
-export interface TwitchVODChapterJSON {
-
+export interface VODChapterJSON {
     started_at: string;
     title: string;
+    online: boolean; // ?
+}
 
+export interface TwitchVODChapterJSON extends VODChapterJSON {
     game_id?: string;
     game_name?: string;
     box_art_url?: string;
-
     is_mature: boolean;
-    online: boolean; // ?
     viewer_count?: number;
-
     // offset: number;
     // duration: number;
-
 }

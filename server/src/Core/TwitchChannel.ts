@@ -32,6 +32,7 @@ import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import { VChannel } from "./VChannel";
+import { VODChapter } from "./VODChapter";
 import { Webhook } from "./Webhook";
 
 export class TwitchChannel extends VChannel {
@@ -64,16 +65,6 @@ export class TwitchChannel extends VChannel {
     public offline_image_url: string | undefined;
     /** @todo: Not implemented */
     public banner_image_url: string | undefined;
-    
-
-    public download_vod_at_end = false;
-    public download_vod_at_end_quality: VideoQuality = "best";
-
-    /** 
-     * Burn chat after capturing.
-     * Currently not used.
-     */
-    public burn_chat = false;
 
     public vods_list: TwitchVOD[] = [];
 
@@ -85,19 +76,7 @@ export class TwitchChannel extends VChannel {
 
     public deactivated = false;
 
-    applyConfig(channel_config: ChannelConfig): void {
-        this.quality = channel_config.quality !== undefined ? channel_config.quality : ["best"];
-        this.match = channel_config.match !== undefined ? channel_config.match : [];
-        this.download_chat = channel_config.download_chat !== undefined ? channel_config.download_chat : false;
-        this.no_capture = channel_config.no_capture !== undefined ? channel_config.no_capture : false;
-        this.burn_chat = channel_config.burn_chat !== undefined ? channel_config.burn_chat : false;
-        this.live_chat = channel_config.live_chat !== undefined ? channel_config.live_chat : false;
-        this.no_cleanup = channel_config.no_cleanup !== undefined ? channel_config.no_cleanup : false;
-        this.max_storage = channel_config.max_storage !== undefined ? channel_config.max_storage : 0;
-        this.max_vods = channel_config.max_vods !== undefined ? channel_config.max_vods : 0;
-        this.download_vod_at_end = channel_config.download_vod_at_end !== undefined ? channel_config.download_vod_at_end : false;
-        this.download_vod_at_end_quality = channel_config.download_vod_at_end_quality !== undefined ? channel_config.download_vod_at_end_quality : "best";
-    }
+    
 
     /**
      * Folder for the channel that stores VODs and all other data
@@ -318,29 +297,9 @@ export class TwitchChannel extends VChannel {
         return TwitchChannel.getChannelByLogin(login) == undefined;
     }
 
-    /**
-     * Get the current capturing vod
-     */
-    get current_vod(): TwitchVOD | undefined {
-        return this.vods_list?.find(vod => vod.is_capturing);
-    }
-
-    /**
-     * Get the latest vod of the channel regardless of its status
-     */
-    get latest_vod(): TwitchVOD | undefined {
-        if (!this.vods_list || this.vods_list.length == 0) return undefined;
-        return this.vods_list[this.vods_list.length - 1]; // is this reliable?
-    }
-
-    get current_chapter(): TwitchVODChapter | undefined {
-        if (!this.current_vod || !this.current_vod.chapters || this.current_vod.chapters.length == 0) return undefined;
-        // return this.current_vod.chapters.at(-1);
-        return this.current_vod.chapters[this.current_vod.chapters.length - 1];
-    }
-
     get current_game(): TwitchGame | undefined {
-        return this.current_vod?.current_game;
+        if (!this.current_vod) return undefined;
+        return (this.current_vod as TwitchVOD).current_game;
     }
 
     get current_duration(): number | undefined {
@@ -355,27 +314,6 @@ export class TwitchChannel extends VChannel {
     get is_live(): boolean {
         // return this.current_vod != undefined && this.current_vod.is_capturing;
         return KeyValue.getInstance().getBool(`${this.login}.online`);
-    }
-
-    /**
-     * Returns true if the channel is currently capturing, which also means it is live.
-     * It is dependent on the current vod being captured and the is_capturing flag that gets set after the initial capture process.
-     * @returns {boolean}
-     */
-    get is_capturing(): boolean {
-        return this.current_vod != undefined && this.current_vod.is_capturing;
-    }
-
-    /**
-     * Returns true if the channel is currently converting a vod (remuxing).
-     * @returns {boolean}
-     */
-    get is_converting(): boolean {
-        return this.vods_list?.some(vod => vod.is_converting) ?? false;
-    }
-
-    get vods_size(): number {
-        return this.vods_list?.reduce((acc, vod) => acc + (vod.segments?.reduce((acc, seg) => acc + (seg && seg.filesize ? seg.filesize : 0), 0) ?? 0), 0) ?? 0;
     }
 
     /**

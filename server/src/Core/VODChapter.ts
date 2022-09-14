@@ -1,3 +1,4 @@
+import { ApiVodChapter } from "../../../common/Api/Client";
 import { Log, LOGLEVEL } from "./Log";
 
 export class VODChapter {
@@ -49,6 +50,26 @@ export class VODChapter {
 
         // console.debug(`Calculated duration and offset for chapter: ${this.title}`, this.offset, this.duration);
 
+    }
+
+    public toAPI(): ApiVodChapter {
+        return {
+            title: this.title,
+
+            game_id: "",
+            box_art_url: "",
+            game_name: "",
+
+            // game: undefined,
+
+            offset: this.offset || 0,
+            duration: this.duration || 0,
+
+            started_at: this.started_at.toISOString(),
+
+            // viewer_count: this.viewer_count,
+            is_mature: false,
+        };
     }
 
 }

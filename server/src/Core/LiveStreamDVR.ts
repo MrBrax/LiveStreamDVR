@@ -7,8 +7,8 @@ import { TwitchChannel } from "./TwitchChannel";
 import { TwitchVOD } from "./TwitchVOD";
 import { YouTubeChannel } from "./YouTubeChannel";
 
-type ChannelTypes = TwitchChannel | YouTubeChannel;
-type VODTypes = TwitchVOD;
+export type ChannelTypes = TwitchChannel | YouTubeChannel;
+export type VODTypes = TwitchVOD;
 
 export class LiveStreamDVR {
     public static instance: LiveStreamDVR | undefined;
@@ -111,6 +111,31 @@ export class LiveStreamDVR {
                         break;
                     }
 
+                } else if (channel.provider == "youtube") {
+
+                    let ch: YouTubeChannel;
+
+                    try {
+                        ch = await YouTubeChannel.loadFromId(channel.channel_id);
+                    } catch (th) {
+                        Log.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.channel_id} could not be loaded: ${th}`);
+                        continue;
+                        // break;
+                    }
+
+                    if (ch) {
+                        this.channels.push(ch);
+                        ch.postLoad();
+                        ch.vods_list.forEach(vod => vod.postLoad());
+                        Log.logAdvanced(LOGLEVEL.SUCCESS, "config", `Loaded channel ${channel.channel_id} with ${ch.vods_list?.length} vods`);
+                        if (ch.no_capture) {
+                            Log.logAdvanced(LOGLEVEL.WARNING, "config", `Channel ${channel.channel_id} is configured to not capture streams.`);
+                        }
+                    } else {
+                        Log.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.channel_id} could not be added, please check logs.`);
+                        break;
+                    }
+
                 }
             }
         }
@@ -122,6 +147,10 @@ export class LiveStreamDVR {
         Log.logAdvanced(LOGLEVEL.INFO, "channel", "Saving channel config");
         fs.writeFileSync(BaseConfigPath.channel, JSON.stringify(this.channels_config, null, 4));
         return fs.existsSync(BaseConfigPath.channel) && fs.readFileSync(BaseConfigPath.channel, "utf8") === JSON.stringify(this.channels_config, null, 4);
+    }
+
+    public getChannels(): ChannelTypes[] {
+        return this.channels;
     }
 
 }
