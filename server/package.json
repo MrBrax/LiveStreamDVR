@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@googleapis/oauth2": "^0.2.0",
-    "@googleapis/youtube": "^4.2.0",
+    "@googleapis/youtube": "^6.0.0",
     "axios": "^0.26.0",
     "basic-auth": "^2.0.1",
     "chalk": "4",

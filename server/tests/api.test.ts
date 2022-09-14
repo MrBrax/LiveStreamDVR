@@ -103,6 +103,7 @@ describe("channels", () => {
     });
 
     const add_data = {
+        provider: "twitch",
         login: "test",
         quality: "best 1080p60",
         match: "",
@@ -134,6 +135,7 @@ describe("channels", () => {
         spy1?.mockClear();
 
         const res = await request(app).post("/api/v0/channels").send({
+            provider: "twitch",
             login: "test",
             quality: "best 1080p6",
             match: "",

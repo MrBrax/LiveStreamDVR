@@ -18,6 +18,7 @@ import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
 import { YouTubeHelper } from "../Providers/YouTube";
 import { LiveStreamDVR } from "./LiveStreamDVR";
+import { YouTubeChannel } from "./YouTubeChannel";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -784,6 +785,7 @@ export class Config {
         TwitchGame.populateFavouriteGames();
         LiveStreamDVR.getInstance().loadChannelsConfig();
         TwitchChannel.loadChannelsCache();
+        YouTubeChannel.loadChannelsCache();
         await LiveStreamDVR.getInstance().loadChannels();
         Job.loadJobsFromCache();
 
@@ -815,6 +817,7 @@ export class Config {
         LiveStreamDVR.getInstance().vods = [];
         LiveStreamDVR.getInstance().loadChannelsConfig();
         TwitchChannel.loadChannelsCache();
+        YouTubeChannel.loadChannelsCache();
         await LiveStreamDVR.getInstance().loadChannels();
     }
 

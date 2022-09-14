@@ -9,8 +9,8 @@ import { encode as htmlentities } from "html-entities";
 import path from "path";
 import { TwitchVODChapterJSON } from "Storage/JSON";
 import type { ApiChannel } from "../../../common/Api/Client";
-import { ChannelConfig, VideoQuality } from "../../../common/Config";
-import { MuteStatus, SubStatus } from "../../../common/Defs";
+import { ChannelConfig, TwitchChannelConfig, VideoQuality } from "../../../common/Config";
+import { MuteStatus, Providers, SubStatus } from "../../../common/Defs";
 import type { LocalClip } from "../../../common/LocalClip";
 import type { LocalVideo } from "../../../common/LocalVideo";
 import { AudioMetadata, VideoMetadata } from "../../../common/MediaInfo";
@@ -20,7 +20,6 @@ import type { Stream, StreamsResponse } from "../../../common/TwitchAPI/Streams"
 import type { SubscriptionRequest, SubscriptionResponse } from "../../../common/TwitchAPI/Subscriptions";
 import type { BroadcasterType, UsersResponse } from "../../../common/TwitchAPI/Users";
 import type { UserData } from "../../../common/User";
-import { ChannelUpdated } from "../../../common/Webhook";
 import { AppRoot, BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
@@ -37,7 +36,7 @@ import { Webhook } from "./Webhook";
 
 export class TwitchChannel extends VChannel {
 
-    public provider = "twitch";
+    public provider: Providers = "twitch";
 
     // static channels: TwitchChannel[] = [];
     // static channels_config: ChannelConfig[] = [];
@@ -58,13 +57,6 @@ export class TwitchChannel extends VChannel {
      */
     public channel_data: UserData | undefined;
 
-    
-
-    /**
-     * Display name used in chats and profile pages.
-     */
-    public display_name: string | undefined;
-
     public broadcaster_type: BroadcasterType = "";
 
     public description: string | undefined;
@@ -83,26 +75,15 @@ export class TwitchChannel extends VChannel {
      */
     public burn_chat = false;
 
-    public vods_raw: string[] = [];
     public vods_list: TwitchVOD[] = [];
-
-    public clips_list: LocalClip[] = [];
-    public video_list: LocalVideo[] = [];
 
     public subbed_at: Date | undefined;
     public expires_at: Date | undefined;
-    public last_online: Date | undefined;
 
     // public ?int current_duration = null;
     // public bool deactivated = false;
 
     public deactivated = false;
-
-    public current_stream_number = 0;
-    public current_season = "";
-    public current_absolute_season?: number;
-
-    private _updateTimer: NodeJS.Timeout | undefined;
 
     applyConfig(channel_config: ChannelConfig): void {
         this.quality = channel_config.quality !== undefined ? channel_config.quality : ["best"];
@@ -297,7 +278,7 @@ export class TwitchChannel extends VChannel {
      * 
      * @param config 
      */
-    public update(config: ChannelConfig): boolean {
+    public update(config: TwitchChannelConfig): boolean {
         const i = LiveStreamDVR.getInstance().channels_config.findIndex(ch => ch.provider == "twitch" && ch.login === this.login);
         if (i !== -1) {
             this.config = config;
@@ -858,21 +839,6 @@ export class TwitchChannel extends VChannel {
         this.startWatching();
     }
 
-    public broadcastUpdate(): void {
-        if (process.env.NODE_ENV === "test") return;
-        if (this._updateTimer) {
-            clearTimeout(this._updateTimer);
-            this._updateTimer = undefined;
-        }
-        this._updateTimer = setTimeout(async () => {
-            const channel = await this.toAPI();
-            Webhook.dispatch("channel_updated", {
-                channel: channel,
-            } as ChannelUpdated);
-            this._updateTimer = undefined;
-        }, 3000);
-    }
-
     /**
      * Delete all VODs for channel without deleting the channel
      * @throws
@@ -922,7 +888,7 @@ export class TwitchChannel extends VChannel {
         // update config
         const channelConfigIndex = LiveStreamDVR.getInstance().channels_config.findIndex((c) => c.provider == "twitch" && c.login === old_login);
         if (channelConfigIndex !== -1) {
-            LiveStreamDVR.getInstance().channels_config[channelConfigIndex].login = new_login;
+            (LiveStreamDVR.getInstance().channels_config[channelConfigIndex] as TwitchChannelConfig).login = new_login;
             LiveStreamDVR.getInstance().saveChannelsConfig();
         } else {
             throw new Error(`Could not find channel config for ${old_login}`);
@@ -1273,7 +1239,7 @@ export class TwitchChannel extends VChannel {
      * @param config
      * @returns 
      */
-    public static async create(config: ChannelConfig): Promise<TwitchChannel> {
+    public static async create(config: TwitchChannelConfig): Promise<TwitchChannel> {
 
         const exists_config = LiveStreamDVR.getInstance().channels_config.find(ch => ch.provider == "twitch" && ch.login === config.login);
         if (exists_config) throw new Error(`Channel ${config.login} already exists in config`);

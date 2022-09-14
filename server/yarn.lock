@@ -292,9 +292,9 @@
   dependencies:
     googleapis-common "^5.0.1"
 
-"@googleapis/youtube@^4.2.0":
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/@googleapis/youtube/-/youtube-4.2.0.tgz#e27cf7da1f2009c06f656b543065f97165769262"
+"@googleapis/youtube@^6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@googleapis/youtube/-/youtube-6.0.0.tgz#f6d7718ae4e91e13c36b916c0d673722b594369c"
   dependencies:
     googleapis-common "^5.0.1"
 
@@ -642,7 +642,6 @@
 "@types/fs-readdir-recursive@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@types/fs-readdir-recursive/-/fs-readdir-recursive-1.1.0.tgz#c0840685ec3bc77487329924685f53c786ad690f"
-  integrity sha512-bod4N8d1d0qF2GV4j79jdh0MZEki3rJ093a0Hx3zHhlHK6jctkA0zfux1tu9sOfET2IMKTrbxAk8o0z8aJTA+g==
 
 "@types/graceful-fs@^4.1.2":
   version "4.1.5"
@@ -1294,7 +1293,6 @@ combined-stream@^1.0.8:
 compare-versions@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/compare-versions/-/compare-versions-5.0.1.tgz#14c6008436d994c3787aba38d4087fabe858555e"
-  integrity sha512-v8Au3l0b+Nwkp4G142JcgJFh1/TUhdxut7wzD1Nq1dyp5oa3tXaqb03EXOAB6jS4gMlalkjAUPZBMiAfKUixHQ==
 
 component-emitter@^1.3.0:
   version "1.3.0"
@@ -2129,7 +2127,6 @@ fresh@0.5.2:
 fs-readdir-recursive@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/fs-readdir-recursive/-/fs-readdir-recursive-1.1.0.tgz#e32fc030a2ccee44a6b5371308da54be0b397d27"
-  integrity sha512-GNanXlVr2pf02+sPN40XN8HG+ePaNcvM0q5mZBd668Obwb0yD5GiUbZOFgwn8kGMY6I3mdyDJzieUy3PTYyTRA==
 
 fs.realpath@^1.0.0:
   version "1.0.0"

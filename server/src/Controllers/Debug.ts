@@ -1,3 +1,4 @@
+import { YouTubeChannel } from "../Core/YouTubeChannel";
 import express from "express";
 import { VideoQuality } from "../../../common/Config";
 import { ClientBroker } from "../Core/ClientBroker";
@@ -59,4 +60,19 @@ export async function ReencodeVod(req: express.Request, res: express.Response): 
     }
 
     res.send(status);
+}
+
+export async function GetYouTubeChannel(req: express.Request, res: express.Response): Promise<void> {
+    const id = req.query.id as string;
+    
+    let d;
+
+    try {
+        d = await YouTubeChannel.getUserDataById(id);
+    } catch (error) {
+        res.status(500).send((error as Error).message);
+        return;
+    }
+
+    res.send(d);
 }

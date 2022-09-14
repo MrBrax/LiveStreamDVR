@@ -5,8 +5,8 @@ import fs from "fs";
 import path from "path";
 import sanitize from "sanitize-filename";
 import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiResponse } from "../../../common/Api/Api";
-import { ChannelConfig, VideoQuality } from "../../../common/Config";
-import { VideoQualityArray } from "../../../common/Defs";
+import { TwitchChannelConfig, VideoQuality, YouTubeChannelConfig } from "../../../common/Config";
+import { Providers, VideoQualityArray } from "../../../common/Defs";
 import { formatString } from "../../../common/Format";
 import { VodBasenameTemplate } from "../../../common/Replacements";
 import { EventSubStreamOnline } from "../../../common/TwitchAPI/EventSub/StreamOnline";
@@ -21,6 +21,7 @@ import { Log, LOGLEVEL } from "../Core/Log";
 import { TwitchChannel } from "../Core/TwitchChannel";
 import { TwitchVOD } from "../Core/TwitchVOD";
 import { Webhook } from "../Core/Webhook";
+import { YouTubeChannel } from "../Core/YouTubeChannel";
 import { generateStreamerList } from "../Helpers/StreamerList";
 import { TwitchVODChapterJSON } from "../Storage/JSON";
 
@@ -98,8 +99,8 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
     const download_vod_at_end = formdata.download_vod_at_end;
     const download_vod_at_end_quality = formdata.download_vod_at_end_quality;
 
-    const channel_config: ChannelConfig = {
-        provider: channel.provider,
+    const channel_config: TwitchChannelConfig = {
+        provider: "twitch",
         login: channel.login,
         quality: quality,
         match: match,
@@ -113,6 +114,41 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
         download_vod_at_end: download_vod_at_end,
         download_vod_at_end_quality: download_vod_at_end_quality,
     };
+
+    // if (channel.provider == "twitch") {
+    /*channel_config = {
+            provider: "twitch",
+            login: channel.login,
+            quality: quality,
+            match: match,
+            download_chat: download_chat,
+            burn_chat: burn_chat,
+            no_capture: no_capture,
+            live_chat: live_chat,
+            no_cleanup: no_cleanup,
+            max_storage: max_storage,
+            max_vods: max_vods,
+            download_vod_at_end: download_vod_at_end,
+            download_vod_at_end_quality: download_vod_at_end_quality,
+        };
+        
+    } else if (channel.provider == "youtube") {
+        channel_config = {
+            provider: "youtube",
+            channel_id: channel.channel_id,
+            quality: quality,
+            match: match,
+            download_chat: download_chat,
+            burn_chat: burn_chat,
+            no_capture: no_capture,
+            live_chat: live_chat,
+            no_cleanup: no_cleanup,
+            max_storage: max_storage,
+            max_vods: max_vods,
+            download_vod_at_end: download_vod_at_end,
+            download_vod_at_end_quality: download_vod_at_end_quality,
+        };
+    }*/
 
     channel.update(channel_config);
 
@@ -176,8 +212,19 @@ export async function DeleteChannel(req: express.Request, res: express.Response)
 
 export async function AddChannel(req: express.Request, res: express.Response): Promise<void> {
 
+    const provider = req.body.provider as Providers;
+
+    if (!provider) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "No provider",
+        } as ApiErrorResponse);
+        return;
+    }
+
     const formdata: {
-        login: string;
+        login?: string;
+        channel_id?: string;
         quality: string;
         match: string;
         download_chat: boolean;
@@ -191,96 +238,181 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         download_vod_at_end_quality: VideoQuality;
     } = req.body;
 
-    const channel_config: ChannelConfig = {
-        provider: "twitch",
-        login: formdata.login,
-        quality: formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [],
-        match: formdata.match ? formdata.match.split(",").map(m => m.trim()) : [],
-        download_chat: formdata.download_chat,
-        burn_chat: formdata.burn_chat,
-        no_capture: formdata.no_capture,
-        live_chat: formdata.live_chat,
-        no_cleanup: formdata.no_cleanup,
-        max_storage: formdata.max_storage,
-        max_vods: formdata.max_vods,
-        download_vod_at_end: formdata.download_vod_at_end,
-        download_vod_at_end_quality: formdata.download_vod_at_end_quality,
-    };
-
-    if (!channel_config.login) {
-        res.status(400).send({
-            status: "ERROR",
-            message: "Channel login not specified",
-        } as ApiErrorResponse);
-        return;
-    }
-
-    if (channel_config.quality.length === 0) {
-        res.status(400).send({
-            status: "ERROR",
-            message: "No quality selected",
-        } as ApiErrorResponse);
-        return;
-    }
-
-    if (channel_config.quality.some(q => !VideoQualityArray.includes(q))) {
-        res.status(400).send({
-            status: "ERROR",
-            message: "Invalid quality selected",
-        } as ApiErrorResponse);
-        return;
-    }
-
-
-    const channel = TwitchChannel.getChannelByLogin(channel_config.login);
-    if (channel) {
-        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, channel already exists: ${channel_config.login}`);
-        res.status(400).send({
-            status: "ERROR",
-            message: "Channel already exists",
-        } as ApiErrorResponse);
-        return;
-    }
-
-    let api_channel_data;
-
-    try {
-        api_channel_data = await TwitchChannel.getUserDataByLogin(channel_config.login);
-    } catch (error) {
-        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, API error: ${(error as Error).message}`);
-        res.status(400).send({
-            status: "ERROR",
-            message: `API error: ${(error as Error).message}`,
-        } as ApiErrorResponse);
-        return;
-    }
-
-    if (api_channel_data && api_channel_data.login !== channel_config.login) {
-        res.status(400).send({
-            status: "ERROR",
-            message: "Channel login does not match data fetched from API",
-        } as ApiErrorResponse);
-        return;
-    }
-
     let new_channel;
-    try {
-        new_channel = await TwitchChannel.create(channel_config);
-    } catch (error) {
-        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel: ${error}`);
+
+    if (provider == "twitch") {
+
+        const channel_config: TwitchChannelConfig = {
+            provider: "twitch",
+            login: formdata.login || "",
+            quality: formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [],
+            match: formdata.match ? formdata.match.split(",").map(m => m.trim()) : [],
+            download_chat: formdata.download_chat,
+            burn_chat: formdata.burn_chat,
+            no_capture: formdata.no_capture,
+            live_chat: formdata.live_chat,
+            no_cleanup: formdata.no_cleanup,
+            max_storage: formdata.max_storage,
+            max_vods: formdata.max_vods,
+            download_vod_at_end: formdata.download_vod_at_end,
+            download_vod_at_end_quality: formdata.download_vod_at_end_quality,
+        };
+
+        if (!channel_config.login) {
+            res.status(400).send({
+                status: "ERROR",
+                message: "Channel login not specified",
+            } as ApiErrorResponse);
+            return;
+        }
+
+        if (channel_config.quality.length === 0) {
+            res.status(400).send({
+                status: "ERROR",
+                message: "No quality selected",
+            } as ApiErrorResponse);
+            return;
+        }
+
+        if (channel_config.quality.some(q => !VideoQualityArray.includes(q))) {
+            res.status(400).send({
+                status: "ERROR",
+                message: "Invalid quality selected",
+            } as ApiErrorResponse);
+            return;
+        }
+
+        const channel = TwitchChannel.getChannelByLogin(channel_config.login);
+        if (channel) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, channel already exists: ${channel_config.login}`);
+            res.status(400).send({
+                status: "ERROR",
+                message: "Channel already exists",
+            } as ApiErrorResponse);
+            return;
+        }
+
+        let api_channel_data;
+
+        try {
+            api_channel_data = await TwitchChannel.getUserDataByLogin(channel_config.login);
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, API error: ${(error as Error).message}`);
+            res.status(400).send({
+                status: "ERROR",
+                message: `API error: ${(error as Error).message}`,
+            } as ApiErrorResponse);
+            return;
+        }
+
+        if (api_channel_data && api_channel_data.login !== channel_config.login) {
+            res.status(400).send({
+                status: "ERROR",
+                message: "Channel login does not match data fetched from API",
+            } as ApiErrorResponse);
+            return;
+        }
+
+        
+        try {
+            new_channel = await TwitchChannel.create(channel_config);
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel: ${error}`);
+            res.status(400).send({
+                status: "ERROR",
+                message: (error as Error).message,
+            } as ApiErrorResponse);
+            return;
+        }
+
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.add", `Created channel: ${new_channel.login}`);
+
+    } else if (provider == "youtube") {
+
+        const channel_config: YouTubeChannelConfig = {
+            provider: "youtube",
+            channel_id: formdata.channel_id || "",
+            quality: formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [],
+            match: formdata.match ? formdata.match.split(",").map(m => m.trim()) : [],
+            download_chat: formdata.download_chat,
+            burn_chat: formdata.burn_chat,
+            no_capture: formdata.no_capture,
+            live_chat: formdata.live_chat,
+            no_cleanup: formdata.no_cleanup,
+            max_storage: formdata.max_storage,
+            max_vods: formdata.max_vods,
+            download_vod_at_end: formdata.download_vod_at_end,
+            download_vod_at_end_quality: formdata.download_vod_at_end_quality,
+        };
+
+        if (!channel_config.channel_id) {
+            res.status(400).send({
+                status: "ERROR",
+                message: "Channel ID not specified",
+            } as ApiErrorResponse);
+            return;
+        }
+
+        const channel = YouTubeChannel.getChannelById(channel_config.channel_id);
+        if (channel) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, channel already exists: ${channel_config.channel_id}`);
+            res.status(400).send({
+                status: "ERROR",
+                message: "Channel already exists",
+            } as ApiErrorResponse);
+            return;
+        }
+
+        let api_channel_data;
+
+        try {
+            api_channel_data = await YouTubeChannel.getUserDataById(channel_config.channel_id);
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, API error: ${(error as Error).message}`);
+            res.status(400).send({
+                status: "ERROR",
+                message: `API error: ${(error as Error).message}`,
+            } as ApiErrorResponse);
+            return;
+        }
+
+        /*
+        if (api_channel_data && api_channel_data.login !== channel_config.login) {
+            res.status(400).send({
+                status: "ERROR",
+                message: "Channel login does not match data fetched from API",
+            } as ApiErrorResponse);
+            return;
+        }
+        */
+        
+        try {
+            new_channel = await YouTubeChannel.create(channel_config);
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel: ${error}`);
+            res.status(400).send({
+                status: "ERROR",
+                message: (error as Error).message,
+            } as ApiErrorResponse);
+            return;
+        }
+
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.add", `Created channel: ${new_channel.display_name}`);
+
+    }
+
+    if (!new_channel) {
         res.status(400).send({
             status: "ERROR",
-            message: (error as Error).message,
+            message: "No channel created",
         } as ApiErrorResponse);
         return;
     }
-
-    Log.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.add", `Created channel: ${new_channel.login}`);
 
     res.send({
         data: await new_channel.toAPI(),
         status: "OK",
-        message: `Channel '${new_channel.login}' created`,
+        message: `Channel '${new_channel.display_name}' created`,
     });
 
     new_channel.broadcastUpdate();
@@ -331,7 +463,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
 
     // const basename = `${channel.login}_${replaceAll(video.created_at, ":", "-")}_${video.stream_id}`;
 
-    
+
 
     /*
 
@@ -412,9 +544,9 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
     }
 
     if (status) {
-        
+
         let vod;
-        
+
         try {
             vod = await channel.createVOD(path.join(basefolder, `${basename}.json`));
         } catch (error) {

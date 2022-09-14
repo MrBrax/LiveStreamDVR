@@ -263,6 +263,7 @@ export default defineComponent({
         },
         resetForm() {
             this.formData = {
+                provider: "twitch",
                 login: "",
                 quality: "",
                 match: "",

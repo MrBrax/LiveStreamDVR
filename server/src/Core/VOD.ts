@@ -12,8 +12,11 @@ import { VODSegment } from "./VODSegment";
 import { VideoMetadata, AudioMetadata } from "../../../common/MediaInfo";
 import { parseJSON } from "date-fns";
 import { VODJSON } from "Storage/JSON";
+import { Providers } from "../../../common/Defs";
 
 export class VOD {
+
+    // public provider: Providers;
 
     loaded = false;
 

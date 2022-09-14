@@ -44,13 +44,13 @@ export class LiveStreamDVR {
 
         let needsSave = false;
         for (const channel of data) {
-            if (!("quality" in channel) || !channel.quality) {
+            if ((!("quality" in channel) || !channel.quality) && channel.provider == "twitch") {
                 Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel.login} has no quality set, setting to default`);
                 channel.quality = ["best"];
                 needsSave = true;
             }
             if (!("provider" in channel)) {
-                channel.provider = "twitch";
+                (channel as any).provider = "twitch";
             }
         }
 
@@ -66,7 +66,7 @@ export class LiveStreamDVR {
             const folders = fs.readdirSync(BaseConfigDataFolder.vod);
             for (const folder of folders) {
                 if (folder == ".gitkeep") continue;
-                if (!this.channels_config.find(ch => ch.login === folder)) {
+                if (!this.channels_config.find(ch => ch.provider == "twitch" && ch.login === folder)) {
                     Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel folder ${folder} is not in channel config, left over?`);
                 }
             }
