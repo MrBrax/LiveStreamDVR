@@ -1,7 +1,7 @@
 import { MediaInfo, MediaInfoPublic } from "../mediainfofield";
 import { VideoQuality } from "../Config";
 import { UserData } from "../User";
-import { MuteStatus, ExistStatus, JobStatus } from "../../common/Defs";
+import { MuteStatus, ExistStatus, JobStatus, Providers } from "../../common/Defs";
 import { AudioMetadata, VideoMetadata } from "../MediaInfo";
 import { BroadcasterType } from "../TwitchAPI/Users";
 import { TwitchVODChapterJSON } from "../../server/src/Storage/JSON";
@@ -220,7 +220,9 @@ export type ApiSubscription = {
 };
 
 export type ApiChannelConfig = {
-    login: string;
+    provider: Providers;
+    login?: string;
+    channel_id?: string;
     match: string[];
     quality: VideoQuality[];
     download_chat: boolean;

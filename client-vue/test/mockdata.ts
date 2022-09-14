@@ -132,7 +132,7 @@ export const MockApiVODData: ApiVod = {
 
 export const MockApiChapterData: ApiVodChapter = {
     title: "",
-    strings: {},
+    // strings: {},
     duration: 0,
     started_at: "",
     offset: 0,

@@ -40,7 +40,7 @@ export class TwitchVODChapter {
         chapter.started_at = new Date(apiResponse.started_at);
         chapter.offset = apiResponse.offset;
         chapter.duration = apiResponse.duration;
-        chapter.strings = apiResponse.strings;
+        // chapter.strings = apiResponse.strings;
         chapter.game_id = apiResponse.game_id;
         chapter.title = apiResponse.title;
         chapter.is_mature = apiResponse.is_mature;

@@ -156,8 +156,11 @@ export default defineComponent({
                 .then((response) => {
                     const json: ApiSettingsResponse = response.data;
                     if (json.message) alert(json.message);
-                    const channels: ApiChannelConfig[] = json.data.channels;
-                    this.formChannels = channels.sort((a, b) => a.login.localeCompare(b.login));
+                    const channels = json.data.channels;
+                    this.formChannels = channels.sort((a, b) => {
+                        if (a.provider == "youtube" || b.provider == "youtube") return -1;
+                        return a.login.localeCompare(b.login)
+                    });
                 })
                 .catch((err) => {
                     console.error("settings fetch error", err.response);
