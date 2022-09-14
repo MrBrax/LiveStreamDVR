@@ -5,13 +5,12 @@ import crypto from "crypto";
 import path from "path";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import fs from "fs";
-import { BaseAutomator } from "../Core/Providers/Base/BaseAutomator";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { ChallengeResponse } from "../../../common/TwitchAPI/Challenge";
 import { LOGLEVEL, Log } from "../Core/Log";
 import { KeyValue } from "../Core/KeyValue";
 import { SubStatus } from "../../../common/Defs";
-import { replaceAll } from "../Helpers/ReplaceAll";
+import { TwitchAutomator } from "Core/Providers/Twitch/TwitchAutomator";
 
 const verifySignature = (request: express.Request): boolean => {
 
@@ -185,7 +184,7 @@ export async function Hook(req: express.Request, res: express.Response): Promise
 
             if ("event" in data_json) {
                 Log.logAdvanced(LOGLEVEL.DEBUG, "hook", `Signature checked, no challenge, retry ${message_retry}. Run handle...`);
-                const TA = new BaseAutomator();
+                const TA = new TwitchAutomator();
                 /* await */ TA.handle(data_json, req).catch(error => {
                     Log.logAdvanced(LOGLEVEL.FATAL, "hook", `Automator returned error: ${error.message}`);
                 });
@@ -201,6 +200,8 @@ export async function Hook(req: express.Request, res: express.Response): Promise
             res.status(400).send("No data supplied");
             return;
         }
+    } else if (source == "youtube") {
+        console.log("youtube");
     }
 
     Log.logAdvanced(LOGLEVEL.WARNING, "hook", `Hook called with no data (${source})...`, debugMeta);
