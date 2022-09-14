@@ -81,7 +81,8 @@ export const MockApiChannelData: ApiChannel = {
     saves_vods: false,
     download_vod_at_end: false,
     download_vod_at_end_quality: "best",
-    video_list: []
+    video_list: [],
+    provider: "twitch"
 };
 
 export const MockApiVODData: ApiVod = {
