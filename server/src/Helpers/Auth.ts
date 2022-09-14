@@ -12,6 +12,8 @@ export function Auth(req: express.Request, res: express.Response, next: express.
 
     const ignored_paths = [
         `${basepath}/api/v0/hook`,
+        `${basepath}/api/v0/hook/twitch`,
+        `${basepath}/api/v0/hook/youtube`,
         `${basepath}/api/v0/cron/sub`,
         `${basepath}/api/v0/cron/check_muted_vods`,
         `${basepath}/api/v0/cron/check_deleted_vods`,

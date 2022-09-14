@@ -24,7 +24,9 @@ import { AuthGuest, AuthAdmin, AuthCore } from "../Helpers/Auth";
 
 const router = express.Router();
 
-router.all("/hook", AuthCore, Hook.Hook);
+router.all("/hook", AuthCore, Hook.HookTwitch); // deprecated
+router.all("/hook/twitch", AuthCore, Hook.HookTwitch);
+router.all("/hook/youtube", AuthCore, Hook.HookYouTube);
 
 router.get("/settings", AuthGuest, Settings.GetSettings);
 router.put("/settings", AuthAdmin, Settings.SaveSettings);
