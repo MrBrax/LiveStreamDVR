@@ -1,26 +1,27 @@
 import express from "express";
-import * as Settings from "../Controllers/Settings";
-import * as Channels from "../Controllers/Channels";
-import * as Log from "../Controllers/Log";
-import * as Vod from "../Controllers/Vod";
-import * as Games from "../Controllers/Games";
 import * as About from "../Controllers/About";
-import * as Jobs from "../Controllers/Jobs";
-import * as Subscriptions from "../Controllers/Subscriptions";
-import * as Cron from "../Controllers/Cron";
-import * as TwitchAPI from "../Controllers/TwitchAPI";
-import * as Hook from "../Controllers/Hook";
-import * as KeyValue from "../Controllers/KeyValue";
-import * as Debug from "../Controllers/Debug";
-import * as Favourites from "../Controllers/Favourites";
-import * as Notifications from "../Controllers/Notifications";
-import * as Tools from "../Controllers/Tools";
-import * as Files from "../Controllers/Files";
-import * as YouTube from "../Controllers/YouTube";
-import * as Exporter from "../Controllers/Exporter";
 import * as Auth from "../Controllers/Auth";
+import * as Channels from "../Controllers/Channels";
+import * as Cron from "../Controllers/Cron";
+import * as Debug from "../Controllers/Debug";
+import * as Exporter from "../Controllers/Exporter";
+import * as Favourites from "../Controllers/Favourites";
+import * as Files from "../Controllers/Files";
+import * as Games from "../Controllers/Games";
+import * as Hook from "../Controllers/Hook";
+import * as Jobs from "../Controllers/Jobs";
+import * as KeyValue from "../Controllers/KeyValue";
+import * as Log from "../Controllers/Log";
+import * as Notifications from "../Controllers/Notifications";
+import * as Settings from "../Controllers/Settings";
+import * as Subscriptions from "../Controllers/Subscriptions";
 import * as Telemetry from "../Controllers/Telemetry";
-import { AuthGuest, AuthAdmin, AuthCore } from "../Helpers/Auth";
+import * as Tools from "../Controllers/Tools";
+import * as TwitchAPI from "../Controllers/TwitchAPI";
+import * as Vod from "../Controllers/Vod";
+import * as YouTube from "../Controllers/YouTube";
+import * as YouTubeAPI from "../Controllers/YouTubeAPI";
+import { AuthAdmin, AuthCore, AuthGuest } from "../Helpers/Auth";
 
 const router = express.Router();
 
@@ -95,6 +96,8 @@ router.get("/twitchapi/user/:login", AuthAdmin, TwitchAPI.TwitchAPIUser);
 router.get("/twitchapi/streams/:login", AuthAdmin, TwitchAPI.TwitchAPIStreams);
 router.get("/twitchapi/channel/:login", AuthAdmin, TwitchAPI.TwitchAPIChannel);
 router.get("/twitchapi/clips", AuthAdmin, TwitchAPI.TwitchAPIClips);
+
+router.get("/youtubeapi/videos/:channel_id", AuthAdmin, YouTubeAPI.YouTubeAPIVideos);
 
 router.get("/keyvalue", AuthAdmin, KeyValue.GetAllKeyValues);
 router.delete("/keyvalue", AuthAdmin, KeyValue.DeleteAllKeyValues);

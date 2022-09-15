@@ -31,6 +31,7 @@ import { TwitchGame } from "./TwitchGame";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 import { BaseVOD } from "../Base/BaseVOD";
 import { Webhook } from "../../Webhook";
+import { ProxyVideo } from "../../../../../common/Proxies/Video";
 
 /**
  * Twitch VOD
@@ -2322,6 +2323,42 @@ export class TwitchVOD extends BaseVOD {
         }
 
         return json.data;
+    }
+
+    static async getVideosProxy(channel_id: string): Promise<false | ProxyVideo[]> {
+        if (!channel_id) throw new Error("No channel id");
+
+        if (!Helper.axios) {
+            throw new Error("Axios is not initialized");
+        }
+
+        let response;
+
+        try {
+            response = await Helper.axios.get(`/helix/videos?user_id=${channel_id}`);
+        } catch (e) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Tried to get videos for channel id ${channel_id} but got error ${e}`);
+            return false;
+        }
+
+        const json: VideosResponse = response.data;
+
+        if (json.data.length === 0) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Tried to get videos for channel id ${channel_id} but got no data`);
+            return false;
+        }
+
+        return json.data.map(item => {
+            return {
+                id: item.id,
+                title: item.title,
+                description: item.description,
+                url: `https://www.twitch.tv/v/${item.id}`,
+                thumbnail: item.thumbnail_url,
+                created_at: item.created_at,
+                duration: Helper.parseTwitchDuration(item.duration),
+            } as ProxyVideo;
+        });
     }
 
     static async getClips({ broadcaster_id, game_id, id }: { broadcaster_id?: string; game_id?: string; id?: string[] | string; }, max_age?: number): Promise<false | Clip[]> {

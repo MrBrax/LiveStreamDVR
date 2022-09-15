@@ -1,11 +1,15 @@
 import path from "path";
 import fs from "fs";
 import { ApiYouTubeVod } from "../../../../../common/Api/Client";
+import { ProxyVideo } from "../../../../../common/Proxies/Video";
 import { BaseVOD } from "../Base/BaseVOD";
 import { VODJSON } from "../../../Storage/JSON";
 import { Log, LOGLEVEL } from "../../../Core/Log";
 import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
 import { BaseVODChapter } from "../Base/BaseVODChapter";
+import { youtube_v3 } from "@googleapis/youtube";
+import { YouTubeHelper } from "Providers/YouTube";
+import { Helper } from "Core/Helper";
 
 export class YouTubeVOD extends BaseVOD {
 
@@ -176,6 +180,70 @@ export class YouTubeVOD extends BaseVOD {
 
     public static getVodByCaptureId(capture_id: string): YouTubeVOD | undefined {
         return LiveStreamDVR.getInstance().vods.find<YouTubeVOD>((vod): vod is YouTubeVOD => vod instanceof YouTubeVOD && vod.capture_id == capture_id);
+    }
+
+    static async getVideosProxy(channel_id: string): Promise<false | ProxyVideo[]> {
+        if (!channel_id) throw new Error("No channel id");
+
+        const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
+
+        let searchResponse;
+        try {
+            searchResponse = await service.search.list({
+                channelId: channel_id,
+                order: "date",
+                type: ["video"],
+                part: ["snippet"],
+            });
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.WARNING, "helper", `Channel video search for ${channel_id} error: ${(error as Error).message}`);
+            return false;
+        }
+
+        // console.log(searchResponse.data);
+
+        if (!searchResponse.data) return false;
+        if (!searchResponse.data.items || searchResponse.data.items.length == 0) return false;
+        
+        const ids: string[] = [];
+        searchResponse.data.items.forEach(item => {
+            if (item && item.id && item.id.videoId) ids.push(item.id.videoId);
+        });
+
+        console.log("ids", ids);
+
+        let videosResponse;
+        try {
+            videosResponse = await service.videos.list({
+                id: ids,
+                part: ["contentDetails"],
+            });
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.WARNING, "helper", `Channel video details for ${channel_id} error: ${(error as Error).message}`);
+            return false;
+        }
+
+        if (!videosResponse.data) return false;
+        if (!videosResponse.data.items || videosResponse.data.items.length == 0) return false;
+
+        const durations: Record<string, number> = {};
+        videosResponse.data.items.forEach((item) => {
+            if (!item.id) return;
+            durations[item.id] = item.contentDetails?.duration ? Helper.parseYouTubeDuration(item.contentDetails?.duration) : -1;
+        });
+
+        return searchResponse.data.items.map(item => {
+            return {
+                id: item.id?.videoId,
+                title: item.snippet?.title,
+                description: item.snippet?.description,
+                url: `https://www.youtube.com/watch?v=${item.id?.videoId}`,
+                thumbnail: item.snippet?.thumbnails?.default?.url,
+                created_at: item.snippet?.publishedAt,
+                duration: item.id?.videoId ? durations[item.id?.videoId] : -1,
+            } as ProxyVideo;
+        });
+
     }
 
 }
