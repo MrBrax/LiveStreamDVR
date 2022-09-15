@@ -1,10 +1,10 @@
-import { ApiChannel, ApiJob, ApiLogLine, ApiVod } from "../../../common/Api/Client";
+import { ApiTwitchChannel, ApiJob, ApiLogLine, ApiVod } from "../../../common/Api/Client";
 import { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiJobsResponse, ApiSettingsResponse, ApiVodResponse } from "../../../common/Api/Api";
 import axios from "axios";
 import { defineStore } from "pinia";
 import { ClientSettings } from "@/twitchautomator";
-import TwitchChannel from "@/core/channel";
-import TwitchVOD from "@/core/vod";
+import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
+import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import { defaultConfig } from "@/defs";
 
 interface StoreType {
@@ -119,7 +119,7 @@ export const useStore = defineStore("twitchAutomator", {
                 // this.diskTotalSize = data.total_size;
             }
         },
-        async fetchStreamerList(): Promise<false | { streamer_list: ApiChannel[]; total_size: number; free_size: number; }> {
+        async fetchStreamerList(): Promise<false | { streamer_list: ApiTwitchChannel[]; total_size: number; free_size: number; }> {
             this.loading = true;
             let response;
             try {
@@ -214,7 +214,7 @@ export const useStore = defineStore("twitchAutomator", {
                 });
             });
         },
-        async fetchStreamer(login: string): Promise<false | ApiChannel> {
+        async fetchStreamer(login: string): Promise<false | ApiTwitchChannel> {
             this.loading = true;
             let response;
             try {
@@ -236,7 +236,7 @@ export const useStore = defineStore("twitchAutomator", {
                 return false;
             }
 
-            const streamer: ApiChannel = data.data;
+            const streamer: ApiTwitchChannel = data.data;
 
             this.loading = true;
             return streamer;
@@ -267,11 +267,11 @@ export const useStore = defineStore("twitchAutomator", {
 
             return true;
         },
-        updateStreamerFromData(streamer_data: ApiChannel): boolean {
+        updateStreamerFromData(streamer_data: ApiTwitchChannel): boolean {
             const streamer = TwitchChannel.makeFromApiResponse(streamer_data);
             return this.updateStreamer(streamer);
         },
-        updateStreamerList(data: ApiChannel[]): void {
+        updateStreamerList(data: ApiTwitchChannel[]): void {
             // console.debug("updateStreamerList", data);
             if (!data || typeof data !== "object") {
                 console.warn("updateStreamerList malformed data", typeof data, data);

@@ -1,4 +1,4 @@
-import { ApiChannel, ApiJob, ApiVod, ApiVodChapter } from "./Api/Client";
+import { ApiTwitchChannel, ApiJob, ApiVod, ApiVodChapter } from "./Api/Client";
 
 export type WebhookAction =
     "chapter_update" |
@@ -67,7 +67,7 @@ export interface VodUpdated {
 }
 
 export interface ChannelUpdated {
-    channel: ApiChannel;
+    channel: ApiTwitchChannel;
 }
 
 export interface Init {

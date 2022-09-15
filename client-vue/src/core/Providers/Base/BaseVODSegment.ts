@@ -1,14 +1,14 @@
 import { ApiVodSegment } from "@common/Api/Client";
 
-export class TwitchVODSegment {
+export class BaseVODSegment {
     // filename: string | undefined;
     basename: string | undefined;
     // strings: Record<string, string> = {};
     filesize: number | undefined;
     deleted = false;
 
-    public static makeFromApiResponse(apiResponse: ApiVodSegment): TwitchVODSegment {
-        const segment = new TwitchVODSegment();
+    public static makeFromApiResponse(apiResponse: ApiVodSegment): BaseVODSegment {
+        const segment = new BaseVODSegment();
         // segment.filename = apiResponse.filename;
         segment.basename = apiResponse.basename;
         // segment.strings = apiResponse.strings;

@@ -140,8 +140,8 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { TwitchVODChapter } from "@/core/chapter";
-import TwitchVOD from "@/core/vod";
+import { TwitchVODChapter } from "@/core/Providers/Twitch/TwitchVODChapter";
+import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import { useStore } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
 

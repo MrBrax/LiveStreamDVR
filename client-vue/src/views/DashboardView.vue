@@ -59,15 +59,15 @@
 <script lang="ts">
 import { defineComponent, ref } from "vue";
 import Streamer from "@/components/StreamerItem.vue";
-import type { ApiChannel } from "@common/Api/Client";
+import type { ApiTwitchChannel } from "@common/Api/Client";
 import { useStore } from "@/store";
-import TwitchChannel from "@/core/channel";
+import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
 import LogViewer from "@/components/LogViewer.vue";
 
 interface DashboardData {
     loading: boolean;
     // vodUpdateInterval: number;
-    oldData: Record<string, ApiChannel>;
+    oldData: Record<string, ApiTwitchChannel>;
     // notificationSub: () => void;
     logVisible: boolean;
 }

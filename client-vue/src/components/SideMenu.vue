@@ -83,7 +83,7 @@ import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import SideMenuStreamer from "./SideMenuStreamer.vue";
 
 import { useStore } from "@/store";
-import TwitchChannel from "@/core/channel";
+import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
 
 library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faArchive, faSignInAlt);
 

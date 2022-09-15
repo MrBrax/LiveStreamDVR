@@ -201,8 +201,8 @@ import { useStore } from "@/store";
 library.add(faGithub, faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp, faChevronDown, faChevronUp, faLock, faGamepad, faBed, faComment);
 
 import { MuteStatus, nonGameCategories, TwitchVodAge } from "../../../common/Defs";
-import TwitchChannel from "@/core/channel";
-import TwitchVOD from "@/core/vod";
+import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
+import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 
 export default defineComponent({
     name: "SideMenuStreamer",

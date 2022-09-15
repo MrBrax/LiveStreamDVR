@@ -1242,7 +1242,7 @@ import { useStore } from "@/store";
 import ModalBox from "./ModalBox.vue";
 import { MuteStatus, VideoQualityArray } from "../../../common/Defs";
 import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
-import TwitchVOD from "@/core/vod";
+import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import { AudioMetadata } from "@common/MediaInfo";
 import { formatString } from "@common/Format";
 import { YouTubeCategories } from "@/defs";

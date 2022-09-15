@@ -1,40 +1,22 @@
-import { useStore } from "../store";
-import { ApiVod } from "../../../common/Api/Client";
-import { JobStatus, MuteStatus } from "../../../common/Defs";
-import { AudioMetadata, VideoMetadata } from "../../../common/MediaInfo";
-import TwitchChannel from "./channel";
-import { TwitchVODChapter } from "./chapter";
+import { useStore } from "../../../store";
+import { ApiVod } from "../../../../../common/Api/Client";
+import { JobStatus, MuteStatus } from "../../../../../common/Defs";
+import { AudioMetadata, VideoMetadata } from "../../../../../common/MediaInfo";
+import TwitchChannel from "./TwitchChannel";
+import { TwitchVODChapter } from "./TwitchVODChapter";
 // import { useStore } from "../store";
-import { TwitchGame } from "./game";
-import { TwitchHelper } from "./helper";
-import { TwitchVODSegment } from "./segment";
+import { TwitchGame } from "./TwitchGame";
+import { TwitchHelper } from "../../helper";
+import { BaseVODSegment } from "../Base/BaseVODSegment";
 import { TwitchVODBookmark } from "@common/Bookmark";
+import BaseVOD from "../Base/BaseVOD";
 
 // const store = useStore();
 
-export default class TwitchVOD {
-    uuid? = "";
-    basename = "";
-
-    is_capturing = false;
-    is_converting = false;
-    is_finalized = false;
-
-    created_at?: Date;
-    started_at?: Date;
-    ended_at?: Date;
-    saved_at?: Date;
-    capture_started?: Date;
-    capture_started2?: Date;
-    conversion_started?: Date;
-
-    segments: TwitchVODSegment[] = [];
+export default class TwitchVOD extends BaseVOD {
+    // segments: BaseVODSegment[] = [];
     chapters: TwitchVODChapter[] = [];
     bookmarks: TwitchVODBookmark[] = [];
-
-    video_metadata: VideoMetadata | AudioMetadata | undefined;
-
-    duration = 0;
 
     twitch_vod_id: string | undefined;
     twitch_vod_duration: number | undefined;
@@ -43,38 +25,13 @@ export default class TwitchVOD {
     twitch_vod_title: string | undefined;
     twitch_vod_muted: MuteStatus | undefined = MuteStatus.UNKNOWN;
 
-    is_chat_downloaded = false;
-    is_chatdump_captured = false;
-    is_chat_rendered = false;
-    is_chat_burned = false;
-    is_vod_downloaded = false;
-    is_lossless_cut_generated = false;
-    is_capture_paused = false;
-
     stream_resolution: string | undefined = "";
     stream_title = "";
 
     streamer_login = "";
     streamer_id = "";
 
-    webpath = "";
-
-    convertingStatus: JobStatus = JobStatus.NONE;
-    capturingStatus: JobStatus = JobStatus.NONE;
-    chatDumpStatus: JobStatus = JobStatus.NONE;
-    recordingSize: number | false = 0;
-
-    total_size = 0;
-
-    stream_number?: number;
-    stream_season?: string;
-    stream_absolute_season?: number;
-
-    comment?: string;
-    prevent_deletion = false;
-
-    failed = false;
-
+    
     public static makeFromApiResponse(apiResponse: ApiVod): TwitchVOD {
         const vod = new TwitchVOD();
         vod.uuid = apiResponse.uuid;
@@ -82,7 +39,7 @@ export default class TwitchVOD {
         vod.is_capturing = apiResponse.is_capturing;
         vod.is_converting = apiResponse.is_converting;
         vod.is_finalized = apiResponse.is_finalized;
-        vod.segments = apiResponse.segments.map((seg) => TwitchVODSegment.makeFromApiResponse(seg));
+        vod.segments = apiResponse.segments.map((seg) => BaseVODSegment.makeFromApiResponse(seg));
         vod.chapters = apiResponse.chapters.map((chap) => TwitchVODChapter.makeFromApiResponse(chap));
         vod.video_metadata = apiResponse.video_metadata;
         vod.created_at = apiResponse.created_at ? new Date(apiResponse.created_at) : undefined;

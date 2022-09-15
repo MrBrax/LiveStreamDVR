@@ -205,11 +205,11 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen } from "@fortawesome/free-solid-svg-icons";
 // import { TwitchAPI } from "@/twitchapi";
 import { Video } from "@common/TwitchAPI/Video";
-import TwitchChannel from "@/core/channel";
+import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
 import { useStore } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
 import { LocalClip } from "@common/LocalClip";
-import TwitchVOD from "@/core/vod";
+import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen);
 
 export default defineComponent({

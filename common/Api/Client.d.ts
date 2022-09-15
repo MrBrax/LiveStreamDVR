@@ -150,32 +150,18 @@ export type ApiSettingsField = {
     pattern?: string;
 };
 
-export type ApiChannel = {
+export interface ApiBaseChannel {
     provider: Providers;
-    userid: string;
-    display_name: string;
-    login: string;
     description: string;
-    quality: VideoQuality[] | undefined;
-
     vods_raw: string[];
-    vods_list: ApiVod[];
     vods_size: number;
-
     is_live: boolean;
     is_capturing: boolean;
     is_converting: boolean;
-    profile_image_url: string;
-    offline_image_url: string;
-    banner_image_url: string;
-    broadcaster_type: BroadcasterType;
-
     subbed_at?: string;
     expires_at?: string;
     last_online?: string;
-
     match: string[] | undefined;
-
     download_chat: boolean;
     no_capture: boolean;
     burn_chat: boolean;
@@ -185,7 +171,25 @@ export type ApiChannel = {
     max_vods: number;
     download_vod_at_end: boolean;
     download_vod_at_end_quality: VideoQuality;
+    clips_list: LocalClip[];
+    video_list: LocalVideo[];
 
+    current_stream_number?: number;
+    current_season?: string;
+    saves_vods: boolean;
+}
+
+export interface ApiTwitchChannel extends ApiBaseChannel {
+    provider: "twitch";
+    userid: string;
+    display_name: string;
+    login: string;
+    quality: VideoQuality[] | undefined;
+    vods_list: ApiVod[];
+    profile_image_url: string;
+    offline_image_url: string;
+    banner_image_url: string;
+    broadcaster_type: BroadcasterType;
     current_chapter?: ApiVodChapter;
     current_game?: ApiGame;
     current_vod?: ApiVod;
@@ -197,15 +201,7 @@ export type ApiChannel = {
     // api_getSubscriptionStatus: SubStatus;
     api_getSubscriptionStatus: boolean;
 
-    clips_list: LocalClip[];
-    video_list: LocalVideo[];
-
-    current_stream_number?: number;
-    current_season?: string;
-
-    chapter_data?: VODChapterJSON | TwitchVODChapterJSON;
-
-    saves_vods: boolean;
+    chapter_data?: TwitchVODChapterJSON;
 
 };
 

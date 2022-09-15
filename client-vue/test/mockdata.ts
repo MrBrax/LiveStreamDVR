@@ -1,4 +1,4 @@
-import { ApiChannel, ApiGame, ApiVod, ApiVodChapter, ApiVodSegment } from "@common/Api/Client";
+import { ApiTwitchChannel, ApiGame, ApiVod, ApiVodChapter, ApiVodSegment } from "@common/Api/Client";
 import { UserData } from "@common/User";
 import { JobStatus } from "@common/Defs";
 
@@ -50,7 +50,7 @@ export const TwitchChannelData: UserData = {
     cache_offline_image: "",
 };
 
-export const MockApiChannelData: ApiChannel = {
+export const MockApiChannelData: ApiTwitchChannel = {
     userid: "123",
     display_name: "test",
     login: "test",

@@ -1,5 +1,5 @@
 import { ApiGame } from "@common/Api/Client";
-import { useStore } from "../store";
+import { useStore } from "../../../store";
 
 export class TwitchGame {
     public id!: string;
