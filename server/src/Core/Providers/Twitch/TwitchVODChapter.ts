@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import { parseJSON } from "date-fns";
-import { ApiVodChapter } from "../../../../../common/Api/Client";
+import { ApiVodTwitchChapter } from "../../../../../common/Api/Client";
 import { TwitchVODChapterJSON } from "../../../Storage/JSON";
 import { TwitchGame } from "./TwitchGame";
 import { BaseVODChapter } from "../Base/BaseVODChapter";
@@ -80,7 +80,7 @@ export class TwitchVODChapter extends BaseVODChapter {
         };
     }
 
-    public toAPI(): ApiVodChapter {
+    public toAPI(): ApiVodTwitchChapter {
         return {
             title: this.title,
 

@@ -1,5 +1,5 @@
 import chokidar from "chokidar";
-import { ApiChannel } from "../../../../../common/Api/Client";
+import { ApiChannels } from "../../../../../common/Api/Client";
 import { ChannelConfig, VideoQuality } from "../../../../../common/Config";
 import { LocalClip } from "../../../../../common/LocalClip";
 import { LocalVideo } from "../../../../../common/LocalVideo";
@@ -7,9 +7,11 @@ import { ChannelUpdated } from "../../../../../common/Webhook";
 import { BaseVOD } from "./BaseVOD";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { Webhook } from "../../Webhook";
-import { VODChapterJSON } from "Storage/JSON";
+import { BaseVODChapterJSON } from "Storage/JSON";
 
 export class BaseChannel {
+    
+    public uuid?: string;
 
     /**
      * Channel config from config file
@@ -116,7 +118,7 @@ export class BaseChannel {
         this.download_vod_at_end_quality = channel_config.download_vod_at_end_quality !== undefined ? channel_config.download_vod_at_end_quality : "best";
     }
 
-    public async toAPI(): Promise<ApiChannel> {
+    public async toAPI(): Promise<ApiChannels> {
         throw new Error("Method not implemented");
     }
 
@@ -162,7 +164,7 @@ export class BaseChannel {
         return this.vods_list?.reduce((acc, vod) => acc + (vod.segments?.reduce((acc, seg) => acc + (seg && seg.filesize ? seg.filesize : 0), 0) ?? 0), 0) ?? 0;
     }
 
-    public getChapterData(): VODChapterJSON | undefined {
+    public getChapterData(): BaseVODChapterJSON | undefined {
         throw new Error("Method not implemented.");
     }
 
@@ -180,6 +182,13 @@ export class BaseChannel {
 
     public async downloadLatestVod(quality: VideoQuality): Promise<string> {
         throw new Error("Method not implemented.");
+    }
+
+    public sortVods() {
+        return this.vods_list.sort((a, b) => {
+            if (!a.started_at || !b.started_at) return 0;
+            return a.started_at.getTime() - b.started_at.getTime();
+        });
     }
 
 }

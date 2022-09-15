@@ -1,4 +1,4 @@
-import { ApiTwitchChannel, ApiJob, ApiLogLine, ApiVod } from "../../../common/Api/Client";
+import { ApiTwitchChannel, ApiJob, ApiLogLine, ApiChannels, ApiVods } from "../../../common/Api/Client";
 import { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiJobsResponse, ApiSettingsResponse, ApiVodResponse } from "../../../common/Api/Api";
 import axios from "axios";
 import { defineStore } from "pinia";
@@ -6,10 +6,16 @@ import { ClientSettings } from "@/twitchautomator";
 import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import { defaultConfig } from "@/defs";
+import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
+import BaseChannel from "@/core/Providers/Base/BaseChannel";
+import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
+
+export type ChannelTypes = TwitchChannel | YouTubeChannel;
+export type VODTypes = TwitchVOD | YouTubeVOD;
 
 interface StoreType {
     app_name: string;
-    streamerList: TwitchChannel[];
+    streamerList: ChannelTypes[];
     streamerListLoaded: boolean;
     jobList: ApiJob[];
     config: Record<string, any> | null;
@@ -112,14 +118,23 @@ export const useStore = defineStore("twitchAutomator", {
         async fetchAndUpdateStreamerList(): Promise<void> {
             const data = await this.fetchStreamerList();
             if (data) {
-                const channels = data.streamer_list.map((channel) => TwitchChannel.makeFromApiResponse(channel));
+                const channels = data.streamer_list.map((channel) => {
+                    switch (channel.provider) {
+                        case "twitch":
+                            return TwitchChannel.makeFromApiResponse(channel);
+                        case "youtube":
+                            return YouTubeChannel.makeFromApiResponse(channel);
+                        
+                    }
+                }).filter(c => c !== undefined);
+                
                 this.streamerList = channels;
                 this.streamerListLoaded = true;
                 this.diskFreeSize = data.free_size;
                 // this.diskTotalSize = data.total_size;
             }
         },
-        async fetchStreamerList(): Promise<false | { streamer_list: ApiTwitchChannel[]; total_size: number; free_size: number; }> {
+        async fetchStreamerList(): Promise<false | { streamer_list: ApiChannels[]; total_size: number; free_size: number; }> {
             this.loading = true;
             let response;
             try {
@@ -140,7 +155,7 @@ export const useStore = defineStore("twitchAutomator", {
             this.loading = false;
             return data.data;
         },
-        async fetchVod(basename: string): Promise<false | ApiVod> {
+        async fetchVod(basename: string): Promise<false | ApiVods> {
             this.loading = true;
             let response;
             try {
@@ -167,34 +182,64 @@ export const useStore = defineStore("twitchAutomator", {
             if (!vod_data) return false;
 
             // check if streamer is already in the list
-            const index = this.streamerList.findIndex((s) => s.userid === vod_data.streamer_id);
-            if (index === -1) return false;
-
-            const vod = TwitchVOD.makeFromApiResponse(vod_data);
-
-            return this.updateVod(vod);
+            if (vod_data.provider == "twitch") {
+                const index = this.streamerList.findIndex((s) => s instanceof TwitchChannel && s.userid === vod_data.streamer_id);
+                if (index === -1) return false;
+                const vod = TwitchVOD.makeFromApiResponse(vod_data);
+                return this.updateVod(vod);
+            } else if (vod_data.provider == "youtube") {
+                const index = this.streamerList.findIndex((s) => s instanceof YouTubeChannel && s.channel_id === vod_data.streamer_id);
+                if (index === -1) return false;
+                const vod = YouTubeVOD.makeFromApiResponse(vod_data);
+                return this.updateVod(vod);
+            }
+            return false;
         },
-        updateVod(vod: TwitchVOD): boolean {
-            const index = this.streamerList.findIndex((s) => s.userid === vod.streamer_id);
-            if (index === -1) return false;
+        updateVod(vod: VODTypes): boolean {
+
+            const provider = vod.provider;
+
+            const streamer = this.streamerList.find<ChannelTypes>((s): s is ChannelTypes => {
+                if (provider == "twitch") return s instanceof TwitchChannel && s.userid === vod.streamer_id;
+                if (provider == "youtube") return s instanceof YouTubeChannel && s.channel_id === vod.streamer_id;
+                return false;
+            });
+            if (!streamer) return false;
 
             // check if vod is already in the streamer's vods
-            const vodIndex = this.streamerList[index].vods_list.findIndex((v) => v.basename === vod.basename);
-
-            console.debug("updateVod", vod.basename, vodIndex);
-
+            const vodIndex = streamer.vods_list.findIndex((v) => v.uuid === vod.uuid);
+            
             if (vodIndex === -1) {
                 console.debug("inserting vod", vod);
-                this.streamerList[index].vods_list.push(vod);
+                if (streamer instanceof TwitchChannel) {
+                    streamer.vods_list.push(vod as TwitchVOD);
+                } else if (streamer instanceof YouTubeChannel) {
+                    streamer.vods_list.push(vod as YouTubeVOD);
+                }
             } else {
                 console.debug("updating vod", vod);
-                this.streamerList[index].vods_list[vodIndex] = vod;
+                streamer.vods_list[vodIndex] = vod;
             }
             return true;
         },
-        updateVodFromData(vod_data: ApiVod): boolean {
-            const vod = TwitchVOD.makeFromApiResponse(vod_data);
-            return this.updateVod(vod);
+        updateVodFromData(vod_data: ApiVods): boolean {
+            // const vod = TwitchVOD.makeFromApiResponse(vod_data);
+            // return this.updateVod(vod);
+
+            if (vod_data.provider == "twitch") {
+                const index = this.streamerList.findIndex((s) => s instanceof TwitchChannel && s.userid === vod_data.streamer_id);
+                if (index === -1) return false;
+                const vod = TwitchVOD.makeFromApiResponse(vod_data);
+                return this.updateVod(vod);
+            } else if (vod_data.provider == "youtube") {
+                const index = this.streamerList.findIndex((s) => s instanceof YouTubeChannel && s.channel_id === vod_data.streamer_id);
+                if (index === -1) return false;
+                const vod = YouTubeVOD.makeFromApiResponse(vod_data);
+                return this.updateVod(vod);
+            }
+
+            return false;
+
         },
         removeVod(basename: string): void {
             this.streamerList.forEach((s) => {
@@ -214,7 +259,7 @@ export const useStore = defineStore("twitchAutomator", {
                 });
             });
         },
-        async fetchStreamer(login: string): Promise<false | ApiTwitchChannel> {
+        async fetchStreamer(login: string): Promise<false | ApiChannels> {
             this.loading = true;
             let response;
             try {
@@ -236,7 +281,7 @@ export const useStore = defineStore("twitchAutomator", {
                 return false;
             }
 
-            const streamer: ApiTwitchChannel = data.data;
+            const streamer: ApiChannels = data.data;
 
             this.loading = true;
             return streamer;
@@ -378,7 +423,7 @@ export const useStore = defineStore("twitchAutomator", {
             localStorage.setItem("twitchautomator_config", JSON.stringify(this.clientConfig));
             console.log("Saved client config");
         },
-        getStreamers(): TwitchChannel[] {
+        getStreamers(): ChannelTypes[] {
             return this.streamerList;
         },
         addLog(lines: ApiLogLine[]) {

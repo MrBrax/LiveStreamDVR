@@ -15,13 +15,11 @@ import { Job } from "./Job";
 import { Config } from "./Config";
 import { LOGLEVEL, Log } from "./Log";
 import { TwitchCommentDump } from "../../../common/Comments";
-import { replaceAll } from "../Helpers/ReplaceAll";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { KeyValue } from "./KeyValue";
 import { SubStatus } from "../../../common/Defs";
-import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
 import { createHash } from "crypto";
-import { LiveStreamDVR } from "./LiveStreamDVR";
+import { ChapterTypes, LiveStreamDVR } from "./LiveStreamDVR";
 
 export interface ExecReturn {
     stdout: string[];
@@ -1293,7 +1291,7 @@ export class Helper {
                 //     errors.push(`${vod.basename} last chapter ends at ${Math.round(lastChapter.offset + lastChapter.duration)} seconds but the VOD duration is ${vod.duration} seconds.`);
                 // }
 
-                const chaptersDuration = vod.chapters.reduce((prev, val) => prev + (val.duration || 0), 0);
+                const chaptersDuration = (vod.chapters as ChapterTypes[]).reduce((prev, cur) => prev + (cur.duration || 0), 0);
                 if (vod.duration - chaptersDuration > 0) {
                     errors.push(`${vod.basename} has a duration of ${vod.duration} but the chapters are not aligned (${chaptersDuration}).`);
                 }

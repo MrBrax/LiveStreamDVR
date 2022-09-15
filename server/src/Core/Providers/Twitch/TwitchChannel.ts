@@ -8,8 +8,8 @@ import readdirSyncRecursive from "fs-readdir-recursive";
 import { encode as htmlentities } from "html-entities";
 import path from "path";
 import { TwitchVODChapterJSON } from "Storage/JSON";
-import type { ApiChannel } from "../../../../../common/Api/Client";
-import { ChannelConfig, TwitchChannelConfig, VideoQuality } from "../../../../../common/Config";
+import type { ApiTwitchChannel } from "../../../../../common/Api/Client";
+import { TwitchChannelConfig, VideoQuality } from "../../../../../common/Config";
 import { MuteStatus, Providers, SubStatus } from "../../../../../common/Defs";
 import type { LocalClip } from "../../../../../common/LocalClip";
 import type { LocalVideo } from "../../../../../common/LocalVideo";
@@ -30,9 +30,7 @@ import { LiveStreamDVR } from "../../LiveStreamDVR";
 import { Log, LOGLEVEL } from "../../Log";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
-import { TwitchVODChapter } from "./TwitchVODChapter";
 import { BaseChannel } from "../Base/BaseChannel";
-import { BaseVODChapter } from "../Base/BaseVODChapter";
 import { Webhook } from "../../Webhook";
 
 export class TwitchChannel extends BaseChannel {
@@ -176,10 +174,11 @@ export class TwitchChannel extends BaseChannel {
 
     public clearVODs(): void {
         LiveStreamDVR.getInstance().vods.forEach(v => {
+            if (!(v instanceof TwitchVOD)) return;
             if (v.streamer_login !== this.login) return;
             v.stopWatching();
         });
-        LiveStreamDVR.getInstance().vods = LiveStreamDVR.getInstance().vods.filter(v => v.streamer_login !== this.login);
+        LiveStreamDVR.getInstance().vods = LiveStreamDVR.getInstance().vods.filter(v => v instanceof TwitchVOD && v.streamer_login !== this.login);
         this.vods_raw = [];
         this.vods_list = [];
     }
@@ -194,7 +193,7 @@ export class TwitchChannel extends BaseChannel {
         return Helper.CHANNEL_SUB_TYPES.every(sub_type => KeyValue.getInstance().get(`${this.userid}.substatus.${sub_type}`) === SubStatus.SUBSCRIBED);
     }
 
-    public async toAPI(): Promise<ApiChannel> {
+    public async toAPI(): Promise<ApiTwitchChannel> {
 
         if (!this.userid || !this.login || !this.display_name)
             console.error(chalk.red(`Channel ${this.login} is missing userid, login or display_name`));
@@ -369,13 +368,6 @@ export class TwitchChannel extends BaseChannel {
 
     }
 
-    public sortVods() {
-        return this.vods_list.sort((a, b) => {
-            if (!a.started_at || !b.started_at) return 0;
-            return a.started_at.getTime() - b.started_at.getTime();
-        });
-    }
-
     /**
      * Remove a vod from the channel and the main vods list
      * 
@@ -413,7 +405,7 @@ export class TwitchChannel extends BaseChannel {
         // const vods_on_disk = fs.readdirSync(Helper.vodFolder(this.login)).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".json") && !f.endsWith("_chat.json"));
         const vods_on_disk = this.rescanVods();
         const vods_in_channel_memory = this.vods_list;
-        const vods_in_main_memory = LiveStreamDVR.getInstance().vods.filter(v => v.streamer_login === this.login);
+        const vods_in_main_memory = LiveStreamDVR.getInstance().vods.filter(v => v instanceof TwitchVOD && v.streamer_login === this.login);
 
         if (vods_on_disk.length !== vods_in_channel_memory.length) {
             Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Vod on disk and vod in memory are not the same for ${this.login}`);
@@ -439,7 +431,7 @@ export class TwitchChannel extends BaseChannel {
 
         if (vods_in_channel_memory.length !== vods_in_main_memory.length) {
             Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Vod in memory and vod in main memory are not the same for ${this.login}`);
-            const removedVods = vods_in_main_memory.filter(v => !vods_in_channel_memory.includes(v));
+            const removedVods = vods_in_main_memory.filter(v => v instanceof TwitchVOD && !vods_in_channel_memory.includes(v));
             ClientBroker.notify(
                 "VOD changed externally",
                 `Please do not delete or rename VOD files manually.\nRemoved VODs: ${removedVods.map(v => v.basename).join(", ")}`,
@@ -1110,6 +1102,7 @@ export class TwitchChannel extends BaseChannel {
         const channel_config = LiveStreamDVR.getInstance().channels_config.find(c => c.provider == "twitch" && c.login === channel_login);
         if (!channel_config) throw new Error(`Could not find channel config in memory for channel login: ${channel_login}`);
 
+        channel.uuid = channel_config.uuid;
         channel.channel_data = channel_data;
         channel.config = channel_config;
 
@@ -1191,6 +1184,8 @@ export class TwitchChannel extends BaseChannel {
 
         const data = await TwitchChannel.getUserDataByLogin(config.login);
         if (!data) throw new Error(`Could not get channel data for channel login: ${config.login}`);
+
+        config.uuid = randomUUID();
 
         LiveStreamDVR.getInstance().channels_config.push(config);
         LiveStreamDVR.getInstance().saveChannelsConfig();
@@ -1859,5 +1854,13 @@ export class TwitchChannel extends BaseChannel {
 
     }
 
+    get current_vod(): TwitchVOD | undefined {
+        return this.vods_list?.find(vod => vod.is_capturing);
+    }
+
+    get latest_vod(): TwitchVOD | undefined {
+        if (!this.vods_list || this.vods_list.length == 0) return undefined;
+        return this.vods_list[this.vods_list.length - 1]; // is this reliable?
+    }
     
 }

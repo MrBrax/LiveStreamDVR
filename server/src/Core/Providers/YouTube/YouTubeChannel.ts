@@ -8,11 +8,13 @@ import { Config } from "../../Config";
 import { KeyValue } from "../../KeyValue";
 import { Log, LOGLEVEL } from "../../Log";
 import fs from "fs";
-import { BaseConfigPath } from "../../BaseConfig";
+import { BaseConfigDataFolder, BaseConfigPath } from "../../BaseConfig";
 import { Helper } from "../../Helper";
 import { YouTubeVOD } from "./YouTubeVOD";
-import { ApiChannel } from "../../../../../common/Api/Client";
-import { VODChapterJSON } from "Storage/JSON";
+import { ApiYouTubeChannel } from "../../../../../common/Api/Client";
+import { BaseVODChapterJSON } from "Storage/JSON";
+import { randomUUID } from "crypto";
+import path from "path";
 
 interface YouTubeChannelData extends youtube_v3.Schema$ChannelSnippet {
     _updated: number;
@@ -53,6 +55,8 @@ export class YouTubeChannel extends BaseChannel {
 
         const data = await YouTubeChannel.getUserDataById(config.channel_id);
         if (!data) throw new Error(`Could not get channel data for channel login: ${config.channel_id}`);
+
+        config.uuid = randomUUID();
 
         LiveStreamDVR.getInstance().channels_config.push(config);
         LiveStreamDVR.getInstance().saveChannelsConfig();
@@ -130,6 +134,7 @@ export class YouTubeChannel extends BaseChannel {
         const channel_config = LiveStreamDVR.getInstance().channels_config.find(c => c.provider == "youtube" && c.channel_id === channel_id);
         if (!channel_config) throw new Error(`Could not find channel config in memory for channel id: ${channel_id}`);
 
+        channel.uuid = channel_config.uuid;
         channel.channel_data = channel_data;
         channel.config = channel_config;
 
@@ -307,7 +312,11 @@ export class YouTubeChannel extends BaseChannel {
         this.startWatching();
     }
 
-    public async toAPI(): Promise<ApiChannel> {
+    get current_vod(): YouTubeVOD | undefined {
+        return this.vods_list?.find(vod => vod.is_capturing);
+    }
+
+    public async toAPI(): Promise<ApiYouTubeChannel> {
 
         // if (!this.userid || !this.login || !this.display_name)
         //     console.error(chalk.red(`Channel ${this.login} is missing userid, login or display_name`));
@@ -316,22 +325,22 @@ export class YouTubeChannel extends BaseChannel {
 
         return {
             provider: "youtube",
-            userid: this.channel_id || "",
-            login: "",
+            channel_id: this.channel_id || "",
+            // login: "",
             display_name: this.display_name || "",
             description: this.description || "",
             profile_image_url: this.channel_data?.thumbnails?.default?.url || "",
-            offline_image_url: "",
-            banner_image_url: "",
-            broadcaster_type: "",
+            // offline_image_url: "",
+            // banner_image_url: "",
+            // broadcaster_type: "",
             is_live: this.is_live,
             is_capturing: this.is_capturing,
             is_converting: this.is_converting,
             current_vod: await this.current_vod?.toAPI(),
-            current_game: undefined,
+            // current_game: undefined,
             current_chapter: this.current_chapter?.toAPI(),
             // current_duration: this.current_duration,
-            quality: this.quality,
+            // quality: this.quality,
             match: this.match,
             download_chat: this.download_chat,
             no_capture: this.no_capture,
@@ -349,7 +358,7 @@ export class YouTubeChannel extends BaseChannel {
             vods_raw: this.vods_raw,
             vods_size: this.vods_size || 0,
             // channel_data: this.channel_data,
-            channel_data: undefined,
+            // channel_data: undefined,
             // config: this.config,
             // deactivated: this.deactivated,
             // api_getSubscriptionStatus: this.getSubscriptionStatus(),
@@ -374,13 +383,68 @@ export class YouTubeChannel extends BaseChannel {
         return KeyValue.getInstance().getBool(`yt.${this.channel_id}.saves_vods`);
     }
 
-    public getChapterData(): VODChapterJSON | undefined {
+    public getChapterData(): BaseVODChapterJSON | undefined {
         const cd = KeyValue.getInstance().get(`yt.${this.channel_id}.chapterdata`);
-        return cd ? JSON.parse(cd) as VODChapterJSON : undefined;
+        return cd ? JSON.parse(cd) as BaseVODChapterJSON : undefined;
     }
 
     public async startWatching(): Promise<void> {
         return;
+    }
+
+    get latest_vod(): YouTubeVOD | undefined {
+        if (!this.vods_list || this.vods_list.length == 0) return undefined;
+        return this.vods_list[this.vods_list.length - 1]; // is this reliable?
+    }
+
+    /**
+     * Create an empty VOD object. This is the only method to use to create a new VOD. Do NOT use the constructor of the VOD class.
+     *
+     * @param filename The filename of the vod including json extension.
+     * @returns Empty VOD
+     */
+    public async createVOD(filename: string): Promise<YouTubeVOD> {
+
+        if (!this.channel_id) throw new Error("Channel id is not set");
+        // if (!this.login) throw new Error("Channel login is not set");
+        if (!this.display_name) throw new Error("Channel display_name is not set");
+
+        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Create VOD JSON for ${this.channel_id}: ${path.basename(filename)} @ ${path.dirname(filename)}`);
+
+        const vod = new YouTubeVOD();
+
+        vod.created = true;
+        vod.not_started = true;
+
+        vod.filename = filename;
+        vod.basename = path.basename(filename, ".json");
+        vod.directory = path.dirname(filename);
+
+        vod.streamer_name = this.display_name;
+        // vod.streamer_login = this.login;
+        vod.streamer_id = this.channel_id;
+
+        vod.created_at = new Date();
+
+        vod.uuid = randomUUID();
+
+        await vod.saveJSON("create json");
+
+        // reload
+        const load_vod = await YouTubeVOD.load(vod.filename, true);
+
+        // TwitchVOD.addVod(vod);
+        this.vods_list.push(load_vod);
+        this.sortVods();
+
+        // add to database
+        this.vods_raw.push(path.relative(BaseConfigDataFolder.vod, filename));
+        fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.channel_id}.json`), JSON.stringify(this.vods_raw));
+
+        this.checkStaleVodsInMemory();
+
+        return load_vod;
+
     }
 
 }

@@ -1,5 +1,4 @@
 import { useStore } from "../../../store";
-import { ApiVod } from "../../../../../common/Api/Client";
 import { JobStatus, MuteStatus } from "../../../../../common/Defs";
 import { AudioMetadata, VideoMetadata } from "../../../../../common/MediaInfo";
 import TwitchChannel from "./TwitchChannel";
@@ -10,10 +9,12 @@ import { TwitchHelper } from "../../helper";
 import { BaseVODSegment } from "../Base/BaseVODSegment";
 import { TwitchVODBookmark } from "@common/Bookmark";
 import BaseVOD from "../Base/BaseVOD";
+import { ApiTwitchVod } from "@common/Api/Client";
 
 // const store = useStore();
 
 export default class TwitchVOD extends BaseVOD {
+    readonly provider = "twitch";
     // segments: BaseVODSegment[] = [];
     chapters: TwitchVODChapter[] = [];
     bookmarks: TwitchVODBookmark[] = [];
@@ -32,7 +33,7 @@ export default class TwitchVOD extends BaseVOD {
     streamer_id = "";
 
     
-    public static makeFromApiResponse(apiResponse: ApiVod): TwitchVOD {
+    public static makeFromApiResponse(apiResponse: ApiTwitchVod): TwitchVOD {
         const vod = new TwitchVOD();
         vod.uuid = apiResponse.uuid;
         vod.basename = apiResponse.basename;
@@ -105,26 +106,6 @@ export default class TwitchVOD extends BaseVOD {
         }
     }
 
-    public getDuration() {
-        return this.duration;
-    }
-
-    public getConvertingStatus() {
-        return this.convertingStatus;
-    }
-
-    public getCapturingStatus() {
-        return this.capturingStatus;
-    }
-
-    public getChatDumpStatus() {
-        return this.chatDumpStatus;
-    }
-
-    public getRecordingSize() {
-        return this.recordingSize;
-    }
-
     public getDurationLive(): number | false {
         if (!this.started_at) return false;
         const now = new Date();
@@ -133,7 +114,7 @@ export default class TwitchVOD extends BaseVOD {
 
     public getChannel(): TwitchChannel | undefined {
         const store = useStore();
-        return store.streamerList.find((streamer) => streamer.userid == this.streamer_id);
+        return store.streamerList.find<TwitchChannel>((streamer): streamer is TwitchChannel => streamer.userid == this.streamer_id);
     }
 
     get current_game(): TwitchGame | undefined {
@@ -144,16 +125,6 @@ export default class TwitchVOD extends BaseVOD {
         }
     }
 
-    get current_chapter(): TwitchVODChapter | undefined {
-        if (this.chapters.length > 0) {
-            return this.chapters[this.chapters.length - 1];
-        } else {
-            return undefined;
-        }
-    }
-
-    get hasDeletedSegment(): boolean {
-        return this.segments.findIndex(s => s.deleted) !== -1;
-    }
+    
 
 }

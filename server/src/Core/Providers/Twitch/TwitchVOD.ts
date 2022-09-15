@@ -7,7 +7,7 @@ import fs from "fs";
 import { encode as htmlentities } from "html-entities";
 import path from "path";
 import { trueCasePathSync } from "true-case-path";
-import { ApiVod } from "../../../../../common/Api/Client";
+import { ApiTwitchVod } from "../../../../../common/Api/Client";
 import { TwitchVODBookmark } from "../../../../../common/Bookmark";
 import type { TwitchComment, TwitchCommentDump } from "../../../../../common/Comments";
 import { VideoQuality } from "../../../../../common/Config";
@@ -39,8 +39,6 @@ import { Webhook } from "../../Webhook";
  */
 export class TwitchVOD extends BaseVOD {
 
-    static filenameIllegalChars = /[:*?"<>|]/g;
-
     json?: TwitchVODJSON;
     // meta?: EventSubResponse;
 
@@ -48,10 +46,10 @@ export class TwitchVOD extends BaseVOD {
     streamer_id = "";
     streamer_login = "";
 
-    chapters_raw: TwitchVODChapterJSON[] = [];
-    chapters: TwitchVODChapter[] = [];
+    chapters_raw: Array<TwitchVODChapterJSON> = [];
+    chapters: Array<TwitchVODChapter> = [];
 
-    bookmarks: TwitchVODBookmark[] = [];
+    bookmarks: Array<TwitchVODBookmark> = [];
 
     twitch_vod_id?: string;
     twitch_vod_duration?: number;
@@ -64,8 +62,6 @@ export class TwitchVOD extends BaseVOD {
     twitch_vod_attempted?: boolean;
 
     // duration_live: number | undefined;
-
-    webpath = "";
 
     /*
     public ?bool $api_hasFavouriteGame = null;
@@ -204,50 +200,7 @@ export class TwitchVOD extends BaseVOD {
         // }
     }
 
-    /**
-     * Set up misc data
-     * Requires JSON to be loaded
-     */
-    public async setupAssoc(): Promise<void> {
-
-        if (!this.json) {
-            throw new Error("No JSON loaded for assoc setup!");
-        }
-
-        // this.video_fail2 = this.json.video_fail2 !== undefined ? this.json.video_fail2 : false;
-        this.video_metadata = this.json.video_metadata !== undefined ? this.json.video_metadata : undefined;
-        // this.filterMediainfo();
-
-        // this.ads = this.json.ads !== undefined ? this.json.ads : [];
-        if (this.json.chapters && this.json.chapters.length > 0) {
-            await this.parseChapters(this.json.chapters);
-        } else {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No chapters on ${this.basename}!`);
-        }
-
-        this.segments_raw = this.json.segments !== undefined ? this.json.segments : [];
-
-        if (this.segments_raw && this.segments_raw.length > 0) {
-            this.parseSegments(this.segments_raw);
-        }
-
-        if (this.is_finalized) {
-            if (!this.duration) {
-                Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `VOD ${this.basename} finalized but no duration, trying to fix`);
-                this.getDuration(true);
-            }
-        }
-
-        if (!this.video_metadata && this.is_finalized && this.segments_raw.length > 0 && Helper.path_mediainfo()) {
-            Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `VOD ${this.basename} finalized but no metadata, trying to fix`);
-            if (await this.getMediainfo()) {
-                await this.saveJSON("fix mediainfo");
-            }
-        }
-
-        this.stream_number = this.json.stream_number !== undefined ? this.json.stream_number : undefined;
-
-    }
+    
     public getWebhookDuration(): string | undefined {
         if (this.started_at && this.ended_at) {
             // format is H:i:s
@@ -256,212 +209,6 @@ export class TwitchVOD extends BaseVOD {
         } else {
             return undefined;
         }
-    }
-
-    public async getDuration(save = false): Promise<number | null> {
-
-        if (this.duration && this.duration > 0) {
-            // TwitchHelper.log(LOGLEVEL.DEBUG, "Returning saved duration for " . this.basename . ": " . this.duration_seconds );
-            return this.duration;
-        }
-
-        const isOldFormat = this.video_metadata && "general" in this.video_metadata;
-
-        if (this.video_metadata && isOldFormat) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${this.basename} has old video metadata format.`);
-        }
-
-        if (this.video_metadata && !isOldFormat) {
-
-            if (this.video_metadata.size && this.video_metadata.size == 0) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Invalid video metadata for ${this.basename}!`);
-                return null;
-            }
-
-            if (this.video_metadata.duration) {
-                Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `No duration_seconds but metadata exists for ${this.basename}: ${this.video_metadata.duration}`);
-                this.duration = this.video_metadata.duration;
-                return this.duration;
-            }
-
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Video metadata for ${this.basename} does not include duration!`);
-
-            return null;
-        }
-
-        if (this.is_capturing) {
-            Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Can't request duration because ${this.basename} is still recording!`);
-            return null;
-        }
-
-        if (!this.is_converted || this.is_converting) {
-            Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Can't request duration because ${this.basename} is converting!`);
-            return null;
-        }
-
-        if (!this.is_finalized) {
-            Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Can't request duration because ${this.basename} is not finalized!`);
-            return null;
-        }
-
-        if (!this.segments_raw || this.segments_raw.length == 0) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No video file available for duration of ${this.basename}`);
-            return null;
-        }
-
-        Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `No mediainfo for getDuration of ${this.basename}`);
-
-        const file = await this.getMediainfo();
-
-        if (!file) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Could not find duration of ${this.basename}`);
-            return null;
-        } else {
-
-            // this.duration 			= $file['playtime_string'];
-            this.duration = file.duration;
-
-            if (save) {
-                Log.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `Saved duration for ${this.basename}`);
-                await this.saveJSON("duration save");
-            }
-
-            Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Duration fetched for ${this.basename}: ${this.duration}`);
-
-            return this.duration;
-        }
-
-        Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", "Reached end of getDuration for {this.basename}, this shouldn't happen!");
-    }
-
-    public async getMediainfo(segment_num = 0): Promise<false | VideoMetadata | AudioMetadata> {
-
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Fetching mediainfo of ${this.basename}, segment #${segment_num}`);
-
-        if (!this.directory) {
-            throw new Error("No directory set!");
-        }
-
-        if (!this.segments_raw || this.segments_raw.length == 0) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `No segments available for mediainfo of ${this.basename}`);
-            return false;
-        }
-
-        const filename = path.join(this.directory, path.basename(this.segments_raw[segment_num]));
-
-        if (!fs.existsSync(filename)) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `File does not exist for mediainfo of ${this.basename} (${filename} @ ${this.directory})`);
-            return false;
-        }
-
-        let metadata: VideoMetadata | AudioMetadata;
-        try {
-            metadata = await Helper.videometadata(filename);
-        } catch (e) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Could not get mediainfo of ${this.basename} (${filename} @ ${this.directory}): ${(e as Error).message}`);
-            return false;
-        }
-
-        this.video_metadata = metadata;
-
-        return metadata;
-
-        /*
-        let data: MediaInfo | false = false;
-
-        try {
-            data = await Helper.mediainfo(filename);
-        } catch (th) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Trying to get mediainfo of ${this.basename} returned: ${th}`);
-            return false;
-        }
-
-        if (data) {
-            // console.debug(`Got mediainfo of ${this.basename}`);
-
-            if (!data.general.Format || !data.general.Duration) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Invalid mediainfo for ${this.basename} (missing ${!data.general.Format ? "Format" : ""} ${!data.general.Duration ? "Duration" : ""})`);
-                return false;
-            }
-
-            // check if even framerate
-            if (data.video && parseInt(data.video.FrameRate) % 2 != 0) {
-                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Strange framerate for ${this.basename}: ${data.video.FrameRate}`);
-                console.debug("mediainfo", data);
-            }
-
-            const isAudio = data.video === undefined;
-
-            // use proxy type for mediainfo, can switch to ffprobe if needed
-            if (isAudio) {
-
-                if (data.audio) {
-                    this.video_metadata = {
-
-                        type: "audio",
-
-                        container: data.general.Format,
-
-                        size: parseInt(data.general.FileSize),
-                        duration: parseInt(data.general.Duration),
-                        bitrate: parseInt(data.general.OverallBitRate),
-
-                        audio_codec: data.audio.Format,
-                        audio_bitrate: parseInt(data.audio.BitRate),
-                        audio_bitrate_mode: data.audio.BitRate_Mode as "VBR" | "CBR",
-                        audio_sample_rate: parseInt(data.audio.SamplingRate),
-                        audio_channels: parseInt(data.audio.Channels),
-
-                    } as AudioMetadata;
-                } else {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Invalid mediainfo for ${this.basename} (missing audio)`);
-                    return false;
-                }
-
-            } else {
-
-                if (data.video && data.audio) {
-                    this.video_metadata = {
-
-                        type: "video",
-
-                        container: data.general.Format,
-
-                        size: parseInt(data.general.FileSize),
-                        duration: parseInt(data.general.Duration),
-                        bitrate: parseInt(data.general.OverallBitRate),
-
-                        width: parseInt(data.video.Width),
-                        height: parseInt(data.video.Height),
-
-                        fps: parseInt(data.video.FrameRate), // TODO: check if this is correct, seems to be variable
-                        fps_mode: data.video.FrameRate_Mode as "VFR" | "CFR",
-
-                        audio_codec: data.audio.Format,
-                        audio_bitrate: parseInt(data.audio.BitRate),
-                        audio_bitrate_mode: data.audio.BitRate_Mode as "VBR" | "CBR",
-                        audio_sample_rate: parseInt(data.audio.SamplingRate),
-                        audio_channels: parseInt(data.audio.Channels),
-
-                        video_codec: data.video.Format,
-                        video_bitrate: parseInt(data.video.BitRate),
-                        video_bitrate_mode: data.video.BitRate_Mode as "VBR" | "CBR",
-
-                    } as VideoMetadata;
-                } else {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Invalid mediainfo for ${this.basename} (missing video/audio)`);
-                    return false;
-                }
-            }
-
-            return this.video_metadata;
-        }
-        */
-
-        Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Could not get mediainfo of ${this.basename}`);
-
-        // this.video_fail2 = true;
-        return false;
     }
 
     /** TODO: implement ffprobe for mediainfo */
@@ -555,52 +302,7 @@ export class TwitchVOD extends BaseVOD {
         return false;
     }
 
-    public setupFiles(): void {
-
-        if (!this.directory) {
-            throw new Error("No directory set!");
-        }
-
-        this.path_chat = this.realpath(path.join(this.directory, `${this.basename}_chat.json`));
-        this.path_downloaded_vod = this.realpath(path.join(this.directory, `${this.basename}_vod.mp4`));
-        this.path_losslesscut = this.realpath(path.join(this.directory, `${this.basename}-llc-edl.csv`));
-        this.path_chatrender = this.realpath(path.join(this.directory, `${this.basename}_chat.mp4`));
-        this.path_chatmask = this.realpath(path.join(this.directory, `${this.basename}_chat_mask.mp4`));
-        this.path_chatburn = this.realpath(path.join(this.directory, `${this.basename}_burned.mp4`));
-        this.path_chatdump = this.realpath(path.join(this.directory, `${this.basename}.chatdump`));
-        this.path_adbreak = this.realpath(path.join(this.directory, `${this.basename}.adbreak`));
-        this.path_playlist = this.realpath(path.join(this.directory, `${this.basename}.m3u8`));
-        this.path_ffmpegchapters = this.realpath(path.join(this.directory, `${this.basename}-ffmpeg-chapters.txt`));
-        this.path_vttchapters = this.realpath(path.join(this.directory, `${this.basename}.chapters.vtt`));
-        this.path_kodinfo = this.realpath(path.join(this.directory, `${this.basename}.nfo`));
-
-        // just to be sure, remake these
-        if (this.is_finalized) {
-            try {
-                if (!fs.existsSync(this.path_losslesscut)) {
-                    this.saveLosslessCut();
-                }
-                if (!fs.existsSync(this.path_ffmpegchapters)) {
-                    this.saveFFMPEGChapters();
-                }
-                if (!fs.existsSync(this.path_vttchapters)) {
-                    this.saveVTTChapters();
-                }
-                if (!fs.existsSync(this.path_kodinfo) && Config.getInstance().cfg("create_kodi_nfo")) {
-                    this.saveKodiNfo();
-                }
-            } catch (error) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Could not save associated files for ${this.basename}: ${(error as Error).message}`);
-            }
-        }
-    }
-
-    get is_converted(): boolean {
-        if (!this.directory) return false;
-        if (!this.segments || this.segments.length == 0) return false;
-        if (this.is_converting) return false;
-        return this.segments.some(segment => segment.filename && fs.existsSync(segment.filename) && fs.statSync(segment.filename).size > 0);
-    }
+    
 
     get current_game(): TwitchGame | undefined {
         if (!this.chapters || this.chapters.length == 0) return undefined;
@@ -640,11 +342,6 @@ export class TwitchVOD extends BaseVOD {
 
         return base.filter(f => fs.existsSync(this.realpath(path.join(this.directory || "", f))));
 
-    }
-
-    get stream_season(): string | undefined {
-        if (!this.started_at) return undefined;
-        return format(this.started_at, Config.SeasonFormat);
     }
 
     public async parseChapters(raw_chapters: TwitchVODChapterJSON[]): Promise<boolean> {
@@ -1111,9 +808,9 @@ export class TwitchVOD extends BaseVOD {
         return games;
     }
 
-    public async toAPI(): Promise<ApiVod> {
+    public async toAPI(): Promise<ApiTwitchVod> {
         return {
-
+            provider: "twitch",
             uuid: this.uuid || "",
             basename: this.basename || "",
 
@@ -1635,9 +1332,9 @@ export class TwitchVOD extends BaseVOD {
         }
 
         // fix illegal characters
-        if (this.basename.match(TwitchVOD.filenameIllegalChars)) {
+        if (this.basename.match(LiveStreamDVR.filenameIllegalChars)) {
             console.log(chalk.bgRed.whiteBright(`${this.basename} contains invalid characters!`));
-            const new_basename = this.basename.replaceAll(TwitchVOD.filenameIllegalChars, "_");
+            const new_basename = this.basename.replaceAll(LiveStreamDVR.filenameIllegalChars, "_");
             this.changeBaseName(new_basename);
         }
 
@@ -1839,7 +1536,7 @@ export class TwitchVOD extends BaseVOD {
                     }
 
                     setTimeout(() => {
-                        TwitchVOD.cleanLingeringVODs();
+                        LiveStreamDVR.getInstance().cleanLingeringVODs();
                     }, 4000);
 
                     const channel = this.getChannel();
@@ -2085,33 +1782,18 @@ export class TwitchVOD extends BaseVOD {
         await vod.setupAssoc();
         vod.setupFiles();
 
-        // $vod.webpath = TwitchConfig.getInstance().cfg('basepath') . '/vods/' . (TwitchConfig.getInstance().cfg("channel_folders") && $vod.streamer_login ? $vod.streamer_login : '');
-
-        // if (api) {
-        // 	vod.setupApiHelper();
-        // }
-
-        // Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `VOD Class for ${vod.basename} with api ${api ? "enabled" : "disabled"}!`);
-
-        // vod.saveJSON();
-
         // add to cache
         this.addVod(vod);
 
         await vod.startWatching();
 
-        // fs.unwatchFile(vod.filename);
-
         if (!noFixIssues) await vod.fixIssues();
-
-        // console.debug("vod getter check", vod.basename, vod.directory, vod.is_converted, vod.is_finalized, vod.is_capturing, vod.is_converting);
 
         if (!vod.not_started && !vod.is_finalized) {
             Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Loaded VOD ${vod.basename} is not finalized!`);
         }
 
         // vod.compareDumpedChatAndDownloadedChat();
-
         // vod.getFFProbe();
 
         vod.loaded = true;
@@ -2267,22 +1949,7 @@ export class TwitchVOD extends BaseVOD {
         };
     }
 
-    public static addVod(vod: TwitchVOD): boolean {
-
-        if (!vod.basename)
-            throw new Error("VOD basename is not set!");
-
-        if (this.hasVod(vod.basename))
-            throw new Error(`VOD ${vod.basename} is already in cache!`);
-
-        LiveStreamDVR.getInstance().vods.push(vod);
-
-        return this.hasVod(vod.basename);
-    }
-
-    public static hasVod(basename: string): boolean {
-        return LiveStreamDVR.getInstance().vods.findIndex(vod => vod.basename == basename) != -1;
-    }
+    
 
     /**
      * 
@@ -2292,16 +1959,16 @@ export class TwitchVOD extends BaseVOD {
      */
     public static getVod(basename: string): TwitchVOD | undefined {
         if (TwitchVOD.hasVod(basename)) {
-            return LiveStreamDVR.getInstance().vods.find(vod => vod.basename == basename);
+            return LiveStreamDVR.getInstance().vods.find<TwitchVOD>((vod): vod is TwitchVOD => vod instanceof TwitchVOD && vod.basename == basename);
         }
     }
 
     public static getVodByCaptureId(capture_id: string): TwitchVOD | undefined {
-        return LiveStreamDVR.getInstance().vods.find(vod => vod.capture_id == capture_id);
+        return LiveStreamDVR.getInstance().vods.find<TwitchVOD>((vod): vod is TwitchVOD => vod instanceof TwitchVOD && vod.capture_id == capture_id);
     }
 
     public static getVodByUUID(uuid: string): TwitchVOD | undefined {
-        return LiveStreamDVR.getInstance().vods.find(vod => vod.uuid == uuid);
+        return LiveStreamDVR.getInstance().vods.find<TwitchVOD>((vod): vod is TwitchVOD => vod instanceof TwitchVOD && vod.uuid == uuid);
     }
 
     /**
@@ -2703,17 +2370,7 @@ export class TwitchVOD extends BaseVOD {
 
     }
 
-    static cleanLingeringVODs(): void {
-        LiveStreamDVR.getInstance().vods.forEach((vod) => {
-            const channel = vod.getChannel();
-            if (!channel) {
-                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Channel ${vod.streamer_login} removed but VOD ${vod.basename} still lingering`);
-            }
-            if (!fs.existsSync(vod.filename)) {
-                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${vod.basename} in memory but not on disk`);
-            }
-        });
-    }
+    
 
     public static async downloadChat(method: "td" | "tcd" = "td", vod_id: string, output: string): Promise<boolean> {
         return method == "td" ? await this.downloadChatTD(vod_id, output) : await this.downloadChatTCD(vod_id, output);

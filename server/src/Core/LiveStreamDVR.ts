@@ -3,15 +3,20 @@ import { ChannelConfig } from "../../../common/Config";
 import { BaseConfigPath, BaseConfigDataFolder } from "./BaseConfig";
 import { Config } from "./Config";
 import { Log, LOGLEVEL } from "./Log";
+import { BaseVODChapter } from "./Providers/Base/BaseVODChapter";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
+import { TwitchVODChapter } from "./Providers/Twitch/TwitchVODChapter";
 import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
+import { YouTubeVOD } from "./Providers/YouTube/YouTubeVOD";
 
 export type ChannelTypes = TwitchChannel | YouTubeChannel;
-export type VODTypes = TwitchVOD;
+export type VODTypes = TwitchVOD | YouTubeVOD;
+export type ChapterTypes = TwitchVODChapter | BaseVODChapter;
 
 export class LiveStreamDVR {
     public static instance: LiveStreamDVR | undefined;
+    public static filenameIllegalChars = /[:*?"<>|]/g;
 
     channels_config: ChannelConfig[] = [];
     channels: ChannelTypes[] = [];
@@ -151,6 +156,18 @@ export class LiveStreamDVR {
 
     public getChannels(): ChannelTypes[] {
         return this.channels;
+    }
+
+    public cleanLingeringVODs(): void {
+        this.vods.forEach((vod) => {
+            const channel = vod.getChannel();
+            if (!channel) {
+                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Channel ${vod.streamer_name} removed but VOD ${vod.basename} still lingering`);
+            }
+            if (!fs.existsSync(vod.filename)) {
+                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${vod.basename} in memory but not on disk`);
+            }
+        });
     }
 
 }

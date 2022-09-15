@@ -1,9 +1,10 @@
-import { JobStatus } from "@common/Defs";
+import { JobStatus, Providers } from "@common/Defs";
 import { VideoMetadata, AudioMetadata } from "@common/MediaInfo";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { BaseVODSegment } from "./BaseVODSegment";
 
 export default class BaseVOD {
+    provider: Providers = "base";
     uuid? = "";
     basename = "";
     is_capturing = false;
@@ -48,5 +49,37 @@ export default class BaseVOD {
     prevent_deletion = false;
 
     failed = false;
+
+    get current_chapter(): BaseVODChapter | undefined {
+        if (this.chapters.length > 0) {
+            return this.chapters[this.chapters.length - 1];
+        } else {
+            return undefined;
+        }
+    }
+
+    get hasDeletedSegment(): boolean {
+        return this.segments.findIndex(s => s.deleted) !== -1;
+    }
+
+    public getDuration() {
+        return this.duration;
+    }
+
+    public getConvertingStatus() {
+        return this.convertingStatus;
+    }
+
+    public getCapturingStatus() {
+        return this.capturingStatus;
+    }
+
+    public getChatDumpStatus() {
+        return this.chatDumpStatus;
+    }
+
+    public getRecordingSize() {
+        return this.recordingSize;
+    }
 
 }

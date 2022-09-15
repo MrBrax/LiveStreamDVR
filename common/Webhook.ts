@@ -1,4 +1,4 @@
-import { ApiTwitchChannel, ApiJob, ApiVod, ApiVodChapter } from "./Api/Client";
+import { ApiTwitchChannel, ApiJob, ApiTwitchVod, ApiVodBaseChapter, ApiVods, ApiChannels } from "./Api/Client";
 
 export type WebhookAction =
     "chapter_update" |
@@ -40,16 +40,16 @@ export type WebhookData =
     ;
 
 export interface StartDownloadData {
-    vod: ApiVod;
+    vod: ApiVods;
 }
 
 export interface EndCaptureData {
-    vod: ApiVod;
+    vod: ApiVods;
     success: boolean;
 }
 
 export interface EndConvertData {
-    vod: ApiVod;
+    vod: ApiVods;
     success: boolean;
 }
 
@@ -63,11 +63,11 @@ export interface VodRemoved {
 }
 
 export interface VodUpdated {
-    vod: ApiVod;
+    vod: ApiVods;
 }
 
 export interface ChannelUpdated {
-    channel: ApiTwitchChannel;
+    channel: ApiChannels;
 }
 
 export interface Init {
@@ -107,8 +107,8 @@ export interface JobProgress {
 // }
 
 export interface ChapterUpdateData {
-    chapter: ApiVodChapter;
-    vod: ApiVod;
+    chapter: ApiVodBaseChapter;
+    vod: ApiTwitchVod;
 }
 
 export interface Alert {

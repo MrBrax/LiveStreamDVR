@@ -1,5 +1,5 @@
 import { ChannelConfig, SettingField } from "../Config";
-import { ApiTwitchChannel, ApiGame, ApiJob, ApiLogLine, ApiVod } from "./Client";
+import { ApiTwitchChannel, ApiGame, ApiJob, ApiLogLine, ApiTwitchVod, ApiChannels, ApiVods } from "./Client";
 
 interface ApiResponse {
     data: any;
@@ -36,18 +36,18 @@ export interface ApiGamesResponse extends ApiResponse {
 
 export interface ApiChannelsResponse extends ApiResponse {
     data: {
-        streamer_list: ApiTwitchChannel[];
+        streamer_list: ApiChannels[];
         total_size: number;
         free_size: number;
     };
 }
 
 export interface ApiChannelResponse extends ApiResponse {
-    data: ApiTwitchChannel;
+    data: ApiChannels;
 }
 
 export interface ApiVodResponse extends ApiResponse {
-    data: ApiVod;
+    data: ApiVods;
 }
 
 export interface ApiLogResponse extends ApiResponse {

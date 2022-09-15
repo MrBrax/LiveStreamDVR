@@ -4,7 +4,7 @@ import { UserData } from "../User";
 import { MuteStatus, ExistStatus, JobStatus, Providers } from "../../common/Defs";
 import { AudioMetadata, VideoMetadata } from "../MediaInfo";
 import { BroadcasterType } from "../TwitchAPI/Users";
-import { TwitchVODChapterJSON, VODChapterJSON } from "../../server/src/Storage/JSON";
+import { TwitchVODChapterJSON, BaseVODChapterJSON } from "../../server/src/Storage/JSON";
 import { TwitchVODBookmark } from "../Bookmark";
 import { LocalVideo } from "../LocalVideo";
 import { LocalClip } from "../LocalClip";
@@ -15,23 +15,23 @@ export type ApiVodSegment = {
     deleted: boolean;
 };
 
-export type ApiVodChapter = {
+export interface ApiVodBaseChapter {
     title: string;
+    duration: number;
+    started_at: string;
+    // datetime: PHPDateTimeJSON;
+    offset: number;
+}
 
+export interface ApiVodTwitchChapter extends ApiVodBaseChapter {
     game_id?: string;
     game_name?: string;
     game?: ApiGame;
     box_art_url?: string;
-
-    duration: number;
-
-    started_at: string;
-    // datetime: PHPDateTimeJSON;
-    offset: number;
     viewer_count?: number;
     // width: number; // why
     is_mature: boolean;
-};
+}
 
 export type ApiGame = {
     id: string;
@@ -43,31 +43,13 @@ export type ApiGame = {
     added: string;
 };
 
-export type ApiVod = {
+export interface ApiBaseVod {
+    provider: Providers;
     uuid?: string;
     basename: string;
-
-    stream_title: string;
-    stream_resolution?: VideoQuality;
-
     segments: ApiVodSegment[];
+    chapters: ApiVodBaseChapter[];
     segments_raw: string[];
-
-    streamer_name: string;
-    streamer_id: string;
-    streamer_login: string;
-
-    twitch_vod_duration?: number;
-    twitch_vod_muted?: MuteStatus;
-    twitch_vod_status?: ExistStatus;
-    twitch_vod_id?: string;
-    twitch_vod_date?: string;
-    twitch_vod_title?: string;
-
-    twitch_vod_neversaved?: boolean;
-    twitch_vod_exists?: boolean;
-    twitch_vod_attempted?: boolean;
-
     created_at?: string;
     saved_at?: string;
     started_at: string;
@@ -88,17 +70,6 @@ export type ApiVod = {
     is_vod_downloaded: boolean;
     is_capture_paused: boolean;
     is_lossless_cut_generated: boolean;
-
-    api_hasFavouriteGame: boolean;
-    api_getUniqueGames: ApiGame[];
-    api_getWebhookDuration?: string;
-    api_getDuration: number | null;
-    api_getCapturingStatus: JobStatus;
-    api_getConvertingStatus: JobStatus;
-    api_getRecordingSize: number | false;
-    api_getChatDumpStatus: JobStatus;
-    api_getDurationLive: number | false;
-
     path_chat: string;
     path_downloaded_vod: string;
     path_losslesscut: string;
@@ -108,20 +79,10 @@ export type ApiVod = {
     path_chatmask: string;
     path_adbreak: string;
     path_playlist: string;
-
     duration_live: number | false;
     duration: number;
-
     total_size: number;
-
-    // game_offset: number;
-
-    // video_metadata: MediaInfo;
-    // video_metadata_public?: MediaInfoPublic;
     video_metadata?: VideoMetadata | AudioMetadata;
-
-    chapters: ApiVodChapter[];
-
     webpath: string;
 
     stream_number?: number;
@@ -133,9 +94,55 @@ export type ApiVod = {
 
     failed?: boolean;
 
+}
+
+export interface ApiTwitchVod extends ApiBaseVod {
+    provider: "twitch";
+    stream_title: string;
+    stream_resolution?: VideoQuality;
+
+    streamer_name: string;
+    streamer_id: string;
+    streamer_login: string;
+
+    twitch_vod_duration?: number;
+    twitch_vod_muted?: MuteStatus;
+    twitch_vod_status?: ExistStatus;
+    twitch_vod_id?: string;
+    twitch_vod_date?: string;
+    twitch_vod_title?: string;
+
+    twitch_vod_neversaved?: boolean;
+    twitch_vod_exists?: boolean;
+    twitch_vod_attempted?: boolean;
+
+    api_hasFavouriteGame: boolean;
+    api_getUniqueGames: ApiGame[];
+    api_getWebhookDuration?: string;
+    api_getDuration: number | null;
+    api_getCapturingStatus: JobStatus;
+    api_getConvertingStatus: JobStatus;
+    api_getRecordingSize: number | false;
+    api_getChatDumpStatus: JobStatus;
+    api_getDurationLive: number | false;
+
+    // game_offset: number;
+
+    // video_metadata: MediaInfo;
+    // video_metadata_public?: MediaInfoPublic;
+
+    chapters: ApiVodBaseChapter[];
+
     bookmarks: TwitchVODBookmark[];
 
-};
+}
+
+export interface ApiYouTubeVod extends ApiBaseVod {
+    streamer_name: string;
+    streamer_id: string;
+    provider: "youtube";
+
+}
 
 export type ApiSettingsField = {
     key: string;
@@ -185,14 +192,14 @@ export interface ApiTwitchChannel extends ApiBaseChannel {
     display_name: string;
     login: string;
     quality: VideoQuality[] | undefined;
-    vods_list: ApiVod[];
+    vods_list: ApiTwitchVod[];
     profile_image_url: string;
     offline_image_url: string;
     banner_image_url: string;
     broadcaster_type: BroadcasterType;
-    current_chapter?: ApiVodChapter;
+    current_chapter?: ApiVodBaseChapter;
     current_game?: ApiGame;
-    current_vod?: ApiVod;
+    current_vod?: ApiTwitchVod;
     // channel_data: {
     //     profile_image_url: string;
     // };
@@ -203,7 +210,35 @@ export interface ApiTwitchChannel extends ApiBaseChannel {
 
     chapter_data?: TwitchVODChapterJSON;
 
-};
+}
+
+export interface ApiYouTubeChannel extends ApiBaseChannel {
+    provider: "youtube";
+    channel_id: string;
+    display_name: string;
+    // quality: VideoQuality[] | undefined;
+    vods_list: ApiYouTubeVod[];
+    profile_image_url: string;
+    // offline_image_url: string;
+    // banner_image_url: string;
+    // broadcaster_type: BroadcasterType;
+    current_chapter?: ApiVodBaseChapter;
+    // current_game?: ApiGame;
+    current_vod?: ApiYouTubeVod;
+    // channel_data: {
+    //     profile_image_url: string;
+    // };
+    // channel_data: UserData | undefined;
+
+    // api_getSubscriptionStatus: SubStatus;
+    api_getSubscriptionStatus: boolean;
+
+    chapter_data?: BaseVODChapterJSON;
+
+}
+
+export type ApiChannels = ApiTwitchChannel | ApiYouTubeChannel;
+export type ApiVods = ApiTwitchVod | ApiYouTubeVod;
 
 export type ApiSubscription = {
     type: string;

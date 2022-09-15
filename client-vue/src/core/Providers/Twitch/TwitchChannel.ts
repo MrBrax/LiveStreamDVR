@@ -12,7 +12,7 @@ import BaseChannel from "../Base/BaseChannel";
 
 export default class TwitchChannel extends BaseChannel {
 
-    provider = "twitch";
+    readonly provider = "twitch";
     userid = "";
     display_name = "";
     login = "";
@@ -29,14 +29,14 @@ export default class TwitchChannel extends BaseChannel {
 
     channel_data: UserData | undefined;
 
-    is_live = false;
+    // is_live = false;
     // is_capturing = false;
 
     declare chapter_data?: TwitchVODChapterJSON;
 
     public static makeFromApiResponse(apiResponse: ApiTwitchChannel): TwitchChannel {
         const channel = new TwitchChannel();
-        channel.provider = apiResponse.provider;
+        // channel.provider = apiResponse.provider;
         channel.userid = apiResponse.userid;
         channel.display_name = apiResponse.display_name;
         channel.login = apiResponse.login;
@@ -60,6 +60,14 @@ export default class TwitchChannel extends BaseChannel {
         channel.chapter_data = apiResponse.chapter_data as TwitchVODChapterJSON; // temp
         channel.saves_vods = apiResponse.saves_vods ?? false;
         return channel;
+    }
+
+    get current_vod(): TwitchVOD | undefined {
+        return this.vods_list?.find((vod) => vod.is_capturing);
+    }
+
+    get current_game(): TwitchGame | undefined {
+        return this.current_vod?.current_game;
     }
 
 }

@@ -1,4 +1,4 @@
-import { ApiVodChapter } from "../../../../../common/Api/Client";
+import { ApiVodBaseChapter } from "../../../../../common/Api/Client";
 import { Log, LOGLEVEL } from "../../Log";
 
 export class BaseVODChapter {
@@ -52,13 +52,13 @@ export class BaseVODChapter {
 
     }
 
-    public toAPI(): ApiVodChapter {
+    public toAPI(): ApiVodBaseChapter {
         return {
             title: this.title,
 
-            game_id: "",
-            box_art_url: "",
-            game_name: "",
+            // game_id: "",
+            // box_art_url: "",
+            // game_name: "",
 
             // game: undefined,
 
@@ -68,7 +68,7 @@ export class BaseVODChapter {
             started_at: this.started_at.toISOString(),
 
             // viewer_count: this.viewer_count,
-            is_mature: false,
+            // is_mature: false,
         };
     }
 

@@ -10,7 +10,7 @@ import { ChallengeResponse } from "../../../common/TwitchAPI/Challenge";
 import { LOGLEVEL, Log } from "../Core/Log";
 import { KeyValue } from "../Core/KeyValue";
 import { SubStatus } from "../../../common/Defs";
-import { TwitchAutomator } from "Core/Providers/Twitch/TwitchAutomator";
+import { TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
 
 const verifyTwitchSignature = (request: express.Request): boolean => {
 

@@ -29,13 +29,14 @@ import { Exporter, ExporterOptions, GetExporter } from "../../../Controllers/Exp
 import { VodBasenameTemplate } from "../../../../../common/Replacements";
 import { BaseVOD } from "./BaseVOD";
 import { BaseChannel } from "./BaseChannel";
+import { ChannelTypes, VODTypes } from "Core/LiveStreamDVR";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
 export class BaseAutomator {
 
-    vod: BaseVOD | undefined;
-    channel: BaseChannel | undefined;
+    vod: VODTypes | undefined;
+    channel: ChannelTypes | undefined;
 
     realm = "base";
 
@@ -323,7 +324,7 @@ export class BaseAutomator {
             }
             if (download_success !== "") {
                 Log.logAdvanced(LOGLEVEL.INFO, "automator.end", `Downloaded VOD at end: ${this.vodBasenameTemplate()}`);
-                if (!this.vod) {
+                if (!this.vod && this.channel.latest_vod !== undefined) {
                     this.vod = this.channel.latest_vod;
                 }
             }
