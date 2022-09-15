@@ -377,6 +377,11 @@ export class YouTubeChannel extends BaseChannel {
             chapter_data: this.getChapterData(),
 
             saves_vods: this.saves_vods,
+
+            displayName: this.displayName,
+            internalName: this.internalName,
+            internalId: this.internalId,
+            url: this.url,
         };
     }
 
@@ -446,6 +451,42 @@ export class YouTubeChannel extends BaseChannel {
 
         return load_vod;
 
+    }
+
+    /**
+     * Update and save channel config
+     * 
+     * @param config 
+     */
+    public update(config: YouTubeChannelConfig): boolean {
+        const i = LiveStreamDVR.getInstance().channels_config.findIndex(ch => ch.uuid === this.uuid);
+        if (i !== -1) {
+            this.config = config;
+            this.applyConfig(config);
+            Log.logAdvanced(LOGLEVEL.INFO, "channel", `Replacing channel config for ${this.internalName}`);
+            LiveStreamDVR.getInstance().channels_config[i] = config;
+            LiveStreamDVR.getInstance().saveChannelsConfig();
+            return true;
+        } else {
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not update channel ${this.internalName}`);
+        }
+        return false;
+    }
+
+    get displayName(): string {
+        return this.channel_data?.title || "";
+    }
+
+    get internalName(): string {
+        return this.channel_data?.customUrl || "";
+    }
+
+    get internalId(): string {
+        return this.channel_data?.id || "";
+    }
+
+    get url(): string {
+        return `https://www.youtube.com/c/${this.internalName}`;
     }
 
 }

@@ -8,6 +8,11 @@ import { BaseVOD } from "./BaseVOD";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { Webhook } from "../../Webhook";
 import { BaseVODChapterJSON } from "Storage/JSON";
+import { Log, LOGLEVEL } from "Core/Log";
+import path from "path";
+import fs from "fs";
+import { BaseConfigDataFolder } from "Core/BaseConfig";
+import { LiveStreamDVR } from "Core/LiveStreamDVR";
 
 export class BaseChannel {
     
@@ -20,6 +25,7 @@ export class BaseChannel {
 
     /**
      * Display name used in chats and profile pages.
+     * @deprecated
      */
     public display_name?: string;
     public description?: string;
@@ -189,6 +195,102 @@ export class BaseChannel {
             if (!a.started_at || !b.started_at) return 0;
             return a.started_at.getTime() - b.started_at.getTime();
         });
+    }
+
+    get displayName(): string {
+        return "";
+    }
+
+    get internalName(): string {
+        return "";
+    }
+
+    get internalId(): string {
+        return "";
+    }
+
+    /**
+     * Delete all VODs for channel without deleting the channel
+     * @throws
+     * @returns 
+     */
+    public async deleteAllVods(): Promise<boolean> {
+        const total_vods = this.vods_list.length;
+
+        if (total_vods === 0) {
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `No vods to delete for ${this.internalName}`);
+            throw new Error(`No vods to delete for ${this.internalName}`);
+        }
+
+        let deleted_vods = 0;
+        for (const vod of this.vods_list) {
+            try {
+                await vod.delete();
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to delete vod ${vod.basename}: ${(error as Error).message}`);
+                continue;
+            }
+            deleted_vods++;
+        }
+        return deleted_vods == total_vods;
+    }
+
+    /**
+     * Remove a vod from the channel and the main vods list
+     * 
+     * @param basename 
+     * @returns 
+     */
+    public removeVod(uuid: string): boolean {
+
+        if (!this.internalId) throw new Error("Channel userid is not set");
+        if (!this.internalName) throw new Error("Channel login is not set");
+        if (!this.displayName) throw new Error("Channel display_name is not set");
+
+        const vod = this.vods_list.find(v => v.uuid === uuid);
+        if (!vod) return false;
+
+        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Remove VOD JSON for ${this.internalName}: ${uuid}`);
+
+        this.vods_list = this.vods_list.filter(v => v.uuid !== uuid);
+
+        // remove vod from database
+        this.vods_raw = this.vods_raw.filter(p => p !== path.relative(BaseConfigDataFolder.vod, vod.filename));
+        fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`), JSON.stringify(this.vods_raw));
+
+        LiveStreamDVR.getInstance().removeVod(uuid);
+
+        this.checkStaleVodsInMemory();
+
+        return true;
+
+    }
+
+    public delete(): boolean {
+
+        const uuid = this.uuid || "";
+        // const login = this.login;
+        if (!uuid) throw new Error("Channel uuid is not set");
+
+        // const userid = this.userid;
+
+        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Deleting channel ${this.internalName}`);
+        const index_config = LiveStreamDVR.getInstance().channels_config.findIndex(ch => ch.provider == "twitch" && ch.uuid === uuid);
+        if (index_config !== -1) {
+            LiveStreamDVR.getInstance().channels_config.splice(index_config, 1);
+        }
+
+        const index_channel = LiveStreamDVR.getInstance().channels.findIndex(ch => ch.uuid === uuid);
+        if (index_channel !== -1) {
+            LiveStreamDVR.getInstance().channels.splice(index_channel, 1);
+        }
+
+        // @todo unsub
+        // if (this.internalId) TwitchChannel.unsubscribe(userid);
+
+        LiveStreamDVR.getInstance().saveChannelsConfig();
+
+        return LiveStreamDVR.getInstance().getChannelByUUID(uuid) == undefined;
     }
 
 }

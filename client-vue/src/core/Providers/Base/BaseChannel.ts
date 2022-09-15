@@ -48,6 +48,11 @@ export default class BaseChannel {
     download_vod_at_end: boolean = false;
     download_vod_at_end_quality: VideoQuality = "best";
 
+    displayName = "";
+    internalName = "";
+    internalId = "";
+    url = "";
+
     public static makeFromApiResponse(apiResponse: ApiBaseChannel): BaseChannel {
         throw new Error("Not for base channel");
     }

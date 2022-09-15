@@ -1,12 +1,12 @@
 <template>
-    <div class="streamer-box" v-if="streamer" :id="'streamer_' + streamer.login">
+    <div class="streamer-box" v-if="streamer" :id="'streamer_' + streamer.uuid">
         <div :class="{ 'streamer-title': true, 'is-live': streamer.is_live, 'is-capturing': streamer.is_capturing }">
             <div class="streamer-title-avatar" :style="'background-image: url(' + avatarUrl + ')'"></div>
             <div class="streamer-title-text">
                 <h2>
-                    <a :href="'https://twitch.tv/' + streamer.login" rel="noreferrer" target="_blank">
-                        {{ streamer.display_name }}
-                        <template v-if="streamer.provider == 'twitch' && streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }})</template>
+                    <a :href="streamer.url" rel="noreferrer" target="_blank">
+                        {{ streamer.displayName }}
+                        <template v-if="streamer.internalName.toLowerCase() != streamer.displayName.toLowerCase()"> ({{ streamer.internalName }})</template>
                     </a>
                     <span v-if="streamer.is_live" class="streamer-live">live</span>
                     <span v-if="streamer.is_capturing" class="streamer-capturing">capturing</span>
@@ -43,7 +43,7 @@
                     <span class="streamer-title-tools">
 
                         <!-- edit -->
-                        <router-link class="icon-button white" :to="{ name: 'Settings', params: { tab: 'channels' }, hash: '#channel_' + streamer.login }" title="Edit channel">
+                        <router-link class="icon-button white" :to="{ name: 'Settings', params: { tab: 'channels' }, hash: '#channel_' + streamer.uuid }" title="Edit channel">
                             <span class="icon"><fa icon="pencil"></fa></span>
                         </router-link>
 
@@ -269,12 +269,13 @@ export default defineComponent({
             console.log("Killed", data);
         },
         async forceRecord() {
+            if (!this.streamer) return;
             if (!confirm("Force record is unstable. Continue?")) return;
 
             let response;
 
             try {
-                response = await this.$http.post(`/api/v0/channels/${this.streamer?.login}/force_record`);
+                response = await this.$http.post(`/api/v0/channels/${this.streamer.uuid}/force_record`);
             } catch (error) {
                 if (this.$http.isAxiosError(error)) {
                     console.error("forceRecord error", error.response);
@@ -301,7 +302,7 @@ export default defineComponent({
             let response;
 
             try {
-                response = await this.$http.get(`/api/v0/channels/${this.streamer.login}/dump_playlist`);
+                response = await this.$http.get(`/api/v0/channels/${this.streamer.uuid}/dump_playlist`);
             } catch (error) {
                 if (this.$http.isAxiosError(error)) {
                     console.error("abortCapture error", error.response);
@@ -376,7 +377,7 @@ export default defineComponent({
             let response;
 
             try {
-                response = await this.$http.get(`/api/v0/channels/${this.streamer.login}/download/${id}`);
+                response = await this.$http.get(`/api/v0/channels/${this.streamer.uuid}/download/${id}`);
             } catch (error) {
                 if (this.$http.isAxiosError(error)) {
                     console.error("downloadVideo error", error.response);
@@ -403,7 +404,7 @@ export default defineComponent({
             let response;
 
             try {
-                response = await this.$http.post(`/api/v0/channels/${this.streamer.login}/cleanup`);
+                response = await this.$http.post(`/api/v0/channels/${this.streamer.uuid}/cleanup`);
             } catch (error) {
                 if (this.$http.isAxiosError(error)) {
                     console.error("doChannelCleanup error", error.response);
@@ -425,7 +426,7 @@ export default defineComponent({
         async doChannelRefresh() {
             if (!this.streamer) return;
             this.$http
-                .post(`/api/v0/channels/${this.streamer.login}/refresh`)
+                .post(`/api/v0/channels/${this.streamer.uuid}/refresh`)
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
@@ -445,7 +446,7 @@ export default defineComponent({
             if (!this.streamer) return;
             if (!confirm("Do you want to rescan for VODs? It might not find everything.")) return;
             this.$http
-                .post(`/api/v0/channels/${this.streamer.login}/scan`)
+                .post(`/api/v0/channels/${this.streamer.uuid}/scan`)
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
@@ -518,7 +519,7 @@ export default defineComponent({
         },
         webPath(): string {
             if (!this.streamer) return "";
-            return this.store.cfg<string>("basepath", "") + "/vods/" + (this.store.cfg("channel_folders") ? this.streamer.login : "");
+            return this.store.cfg<string>("basepath", "") + "/vods/" + (this.store.cfg("channel_folders") ? this.streamer.internalName : "");
         },
         basePath(): string {
             return this.store.cfg<string>("basepath", "");
@@ -551,7 +552,5 @@ export default defineComponent({
         margin-bottom: 1em;
     }
 }
-
-
 
 </style>

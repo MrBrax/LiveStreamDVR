@@ -25,8 +25,8 @@
                 <img :src="avatarUrl" :alt="streamer.login" />
             </span>
             <span class="username">
-                {{ streamer.display_name }}
-                <template v-if="streamer.provider == 'twitch' && streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }})</template>
+                {{ streamer.displayName }}
+                <template v-if="streamer.internalName.toLowerCase() != streamer.displayName.toLowerCase()"> ({{ streamer.internalName }})</template>
             </span>
             <span
                 class="vodcount"

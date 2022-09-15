@@ -14,8 +14,12 @@ export default class TwitchChannel extends BaseChannel {
 
     readonly provider = "twitch";
     uuid = "";
+    /** @deprecated */
     userid = "";
+    /** @deprecated */
     display_name = "";
+
+    /** @deprecated */
     login = "";
     quality: VideoQuality[] = [];
     broadcaster_type: BroadcasterType = "";
@@ -61,6 +65,10 @@ export default class TwitchChannel extends BaseChannel {
         channel.is_live = apiResponse.is_live ?? false;
         channel.chapter_data = apiResponse.chapter_data as TwitchVODChapterJSON; // temp
         channel.saves_vods = apiResponse.saves_vods ?? false;
+        channel.displayName = apiResponse.displayName;
+        channel.internalName = apiResponse.internalName;
+        channel.internalId = apiResponse.internalId;
+        channel.url = apiResponse.url;
         return channel;
     }
 

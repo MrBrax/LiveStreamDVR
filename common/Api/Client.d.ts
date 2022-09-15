@@ -185,6 +185,11 @@ export interface ApiBaseChannel {
     current_stream_number?: number;
     current_season?: string;
     saves_vods: boolean;
+
+    displayName: string;
+    internalName: string;
+    internalId: string;
+    url: string;
 }
 
 export interface ApiTwitchChannel extends ApiBaseChannel {

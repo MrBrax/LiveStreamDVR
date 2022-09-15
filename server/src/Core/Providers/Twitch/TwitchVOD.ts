@@ -1095,35 +1095,6 @@ export class TwitchVOD extends BaseVOD {
         return this.chapters.some(chapter => chapter.game?.isFavourite());
     }
 
-    public async delete(): Promise<boolean> {
-
-        if (!this.directory) {
-            throw new Error("No directory set for deletion");
-        }
-
-        if (this.prevent_deletion) {
-            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Deletion of ${this.basename} prevented`);
-            throw new Error("Vod has been marked with prevent_deletion");
-        }
-
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Delete ${this.basename}`, this.associatedFiles);
-
-        await this.stopWatching();
-
-        for (const file of this.associatedFiles) {
-            if (fs.existsSync(path.join(this.directory, file))) {
-                Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Delete ${file}`);
-                fs.unlinkSync(path.join(this.directory, file));
-            }
-        }
-
-        const channel = this.getChannel();
-        if (channel) channel.removeVod(this.basename);
-
-        return fs.existsSync(this.filename);
-
-    }
-
     public move(newDirectory: string): void {
 
         if (!this.directory) throw new Error("No directory set for move");
@@ -1146,7 +1117,7 @@ export class TwitchVOD extends BaseVOD {
         this.move(BaseConfigDataFolder.saved_vods);
 
         const channel = this.getChannel();
-        if (channel) channel.removeVod(this.basename);
+        if (channel) channel.removeVod(this.uuid);
 
     }
 
@@ -1970,22 +1941,6 @@ export class TwitchVOD extends BaseVOD {
 
     public static getVodByUUID(uuid: string): TwitchVOD | undefined {
         return LiveStreamDVR.getInstance().vods.find<TwitchVOD>((vod): vod is TwitchVOD => vod instanceof TwitchVOD && vod.uuid == uuid);
-    }
-
-    /**
-     * Remove a vod from the vods list
-     * 
-     * @param basename 
-     * @returns 
-     */
-    public static removeVod(basename: string): boolean {
-        if (TwitchVOD.hasVod(basename)) {
-            LiveStreamDVR.getInstance().vods = LiveStreamDVR.getInstance().vods.filter(vod => vod.basename != basename);
-            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD ${basename} removed from memory!`);
-            Webhook.dispatch("vod_removed", { basename: basename });
-            return true;
-        }
-        return false;
     }
 
     /**

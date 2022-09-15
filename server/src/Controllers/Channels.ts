@@ -44,7 +44,7 @@ export async function ListChannels(req: express.Request, res: express.Response):
 
 export async function GetChannel(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
 
     if (!channel) {
         res.status(400).send({
@@ -63,9 +63,9 @@ export async function GetChannel(req: express.Request, res: express.Response): P
 
 export function UpdateChannel(req: express.Request, res: express.Response): void {
 
-    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
 
-    if (!channel || !channel.login) {
+    if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
             message: "Channel not found",
@@ -99,26 +99,10 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
     const download_vod_at_end = formdata.download_vod_at_end;
     const download_vod_at_end_quality = formdata.download_vod_at_end_quality;
 
-    const channel_config: TwitchChannelConfig = {
-        provider: "twitch",
-        login: channel.login,
-        quality: quality,
-        match: match,
-        download_chat: download_chat,
-        burn_chat: burn_chat,
-        no_capture: no_capture,
-        live_chat: live_chat,
-        no_cleanup: no_cleanup,
-        max_storage: max_storage,
-        max_vods: max_vods,
-        download_vod_at_end: download_vod_at_end,
-        download_vod_at_end_quality: download_vod_at_end_quality,
-    };
-
-    // if (channel.provider == "twitch") {
-    /*channel_config = {
+    if (channel instanceof TwitchChannel) {
+        const channel_config: TwitchChannelConfig = {
             provider: "twitch",
-            login: channel.login,
+            login: channel.login || "",
             quality: quality,
             match: match,
             download_chat: download_chat,
@@ -131,11 +115,11 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
             download_vod_at_end: download_vod_at_end,
             download_vod_at_end_quality: download_vod_at_end_quality,
         };
-        
-    } else if (channel.provider == "youtube") {
-        channel_config = {
+        channel.update(channel_config);
+    } else if (channel instanceof YouTubeChannel) {
+        const channel_config: YouTubeChannelConfig = {
             provider: "youtube",
-            channel_id: channel.channel_id,
+            channel_id: channel.channel_id || "",
             quality: quality,
             match: match,
             download_chat: download_chat,
@@ -148,24 +132,23 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
             download_vod_at_end: download_vod_at_end,
             download_vod_at_end_quality: download_vod_at_end_quality,
         };
-    }*/
-
-    channel.update(channel_config);
+        channel.update(channel_config);
+    }
 
     channel.broadcastUpdate();
 
     res.send({
         status: "OK",
-        message: `Channel '${channel.login}' updated`,
+        message: `Channel '${channel.internalName}' updated`,
     });
 
 }
 
 export async function DeleteChannel(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
 
-    if (!channel || !channel.login) {
+    if (!channel || !channel.internalName) {
 
         if (LiveStreamDVR.getInstance().channels_config.find(c => c instanceof TwitchChannel && c.login === req.params.login)) {
             LiveStreamDVR.getInstance().channels_config = LiveStreamDVR.getInstance().channels_config.filter(c => c instanceof TwitchChannel && c.login !== req.params.login);
@@ -205,7 +188,7 @@ export async function DeleteChannel(req: express.Request, res: express.Response)
 
     res.send({
         status: "OK",
-        message: `Channel '${channel.login}' deleted`,
+        message: `Channel '${channel.internalName}' deleted`,
     });
 
 }
@@ -421,9 +404,9 @@ export async function AddChannel(req: express.Request, res: express.Response): P
 
 export async function DownloadVideo(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
 
-    if (!channel || !channel.login) {
+    if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
             message: "Channel not found",
@@ -434,7 +417,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
     const video_id = req.params.video_id;
     const quality = req.query.quality && VideoQualityArray.includes(req.query.quality as string) ? req.query.quality as VideoQuality : "best";
 
-    if (channel.hasVod(video_id)) {
+    if (TwitchVOD.hasVod(video_id)) {
         res.status(400).send({
             status: "ERROR",
             message: "Video already downloaded",
@@ -498,7 +481,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         }
 
         const variables: VodBasenameTemplate = {
-            login: channel.login || "",
+            login: channel.internalName || "",
             date: video.created_at?.replaceAll(":", "_"),
             year: isValid(date) ? format(date, "yyyy") : "",
             year_short: isValid(date) ? format(date, "yy") : "",
@@ -613,9 +596,9 @@ export async function SubscribeToChannel(req: express.Request, res: express.Resp
 
 export async function CleanupChannelVods(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
 
-    if (!channel || !channel.login) {
+    if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
             message: "Channel not found",
@@ -634,9 +617,9 @@ export async function CleanupChannelVods(req: express.Request, res: express.Resp
 
 export async function RefreshChannel(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
 
-    if (!channel || !channel.login) {
+    if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
             message: "Channel not found",
@@ -660,24 +643,24 @@ export async function RefreshChannel(req: express.Request, res: express.Response
     try {
         isLive = await channel.isLiveApi();
     } catch (error) {
-        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.refresh", `Could not get live status for ${channel.login}`);
+        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.refresh", `Could not get live status for ${channel.internalName}`);
     }
 
     if (!isLive) {
-        KeyValue.getInstance().delete(`${channel.login}.online`);
-        KeyValue.getInstance().delete(`${channel.login}.vod.id`);
-        KeyValue.getInstance().delete(`${channel.login}.vod.started_at`);
+        KeyValue.getInstance().delete(`${channel.internalName}.online`);
+        KeyValue.getInstance().delete(`${channel.internalName}.vod.id`);
+        KeyValue.getInstance().delete(`${channel.internalName}.vod.started_at`);
     }
 
     if (success) {
-        Log.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.refresh", `Refreshed channel: ${channel.login}`);
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.refresh", `Refreshed channel: ${channel.internalName}`);
         res.send({
             status: "OK",
-            message: `Refreshed channel: ${channel.login}`,
+            message: `Refreshed channel: ${channel.internalName}`,
         });
         channel.broadcastUpdate();
     } else {
-        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.refresh", `Failed to refresh channel: ${channel.login}`);
+        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.refresh", `Failed to refresh channel: ${channel.internalName}`);
         res.status(400).send({
             status: "ERROR",
             message: "Failed to refresh channel",
@@ -688,9 +671,9 @@ export async function RefreshChannel(req: express.Request, res: express.Response
 
 export async function ForceRecord(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
 
-    if (!channel || !channel.userid) {
+    if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
             message: "Channel not found",
@@ -698,7 +681,7 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
         return;
     }
 
-    const streams = await TwitchChannel.getStreams(channel.userid);
+    const streams = await TwitchChannel.getStreams(channel.internalName);
 
     if (streams) {
         const stream = streams.find((s) => s.type === "live");
@@ -753,7 +736,7 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
 
             res.send({
                 status: "OK",
-                message: `Forced recording of channel: ${channel.login}`,
+                message: `Forced recording of channel: ${channel.internalName}`,
             });
 
             return;
@@ -778,9 +761,9 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
 
 export async function RenameChannel(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
 
-    if (!channel || !channel.userid) {
+    if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
             message: "Channel not found",
@@ -791,14 +774,14 @@ export async function RenameChannel(req: express.Request, res: express.Response)
     const success = await channel.rename(req.body.new_login);
 
     if (success) {
-        Log.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.rename", `Renamed channel: ${channel.login} to ${req.body.new_login}`);
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.rename", `Renamed channel: ${channel.internalName} to ${req.body.new_login}`);
         res.send({
             status: "OK",
-            message: `Renamed channel: ${channel.login} to ${req.body.new_login}`,
+            message: `Renamed channel: ${channel.internalName} to ${req.body.new_login}`,
         });
         channel.broadcastUpdate();
     } else {
-        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.rename", `Failed to rename channel: ${channel.login} to ${req.body.new_login}`);
+        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.rename", `Failed to rename channel: ${channel.internalName} to ${req.body.new_login}`);
         res.status(400).send({
             status: "ERROR",
             message: "Failed to rename channel",
@@ -809,9 +792,9 @@ export async function RenameChannel(req: express.Request, res: express.Response)
 
 export async function DeleteAllChannelVods(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
 
-    if (!channel || !channel.userid) {
+    if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
             message: "Channel not found",
@@ -833,14 +816,14 @@ export async function DeleteAllChannelVods(req: express.Request, res: express.Re
     }
 
     if (success) {
-        Log.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.deleteallvods", `Deleted all VODs of channel: ${channel.login}`);
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.deleteallvods", `Deleted all VODs of channel: ${channel.internalName}`);
         res.send({
             status: "OK",
-            message: `Deleted all VODs of channel: ${channel.login}`,
+            message: `Deleted all VODs of channel: ${channel.internalName}`,
         });
         channel.broadcastUpdate();
     } else {
-        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.deleteallvods", `Failed to delete all VODs of channel: ${channel.login}`);
+        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.deleteallvods", `Failed to delete all VODs of channel: ${channel.internalName}`);
         res.status(400).send({
             status: "ERROR",
             message: "Failed to delete all VODs",
@@ -858,9 +841,9 @@ type HistoryEntry = TwitchVODChapterJSON | StreamEvent;
 
 export function GetHistory(req: express.Request, res: express.Response): void {
 
-    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
 
-    if (!channel || !channel.userid) {
+    if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
             message: "Channel not found",
@@ -870,7 +853,7 @@ export function GetHistory(req: express.Request, res: express.Response): void {
 
     const history: HistoryEntry[] = [];
 
-    const file = path.join(BaseConfigDataFolder.history, `${channel.login}.jsonline`);
+    const file = path.join(BaseConfigDataFolder.history, `${channel.internalName}.jsonline`);
     if (!fs.existsSync(file)) {
         res.status(400).send({
             status: "ERROR",
@@ -899,9 +882,9 @@ export function GetHistory(req: express.Request, res: express.Response): void {
 
 export async function ScanVods(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = TwitchChannel.getChannelByLogin(req.params.login);
+    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
 
-    if (!channel || !channel.userid) {
+    if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
             message: "Channel not found",
@@ -921,7 +904,7 @@ export async function ScanVods(req: express.Request, res: express.Response): Pro
 
     res.send({
         status: "OK",
-        message: `Channel '${channel.login}' scanned, found ${channel.vods_raw.length} VODs.`,
+        message: `Channel '${channel.internalName}' scanned, found ${channel.vods_raw.length} VODs.`,
     });
 
 }

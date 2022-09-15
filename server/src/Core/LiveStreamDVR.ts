@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import fs from "fs";
 import { ChannelConfig } from "../../../common/Config";
 import { BaseConfigPath, BaseConfigDataFolder } from "./BaseConfig";
@@ -9,6 +10,7 @@ import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
 import { TwitchVODChapter } from "./Providers/Twitch/TwitchVODChapter";
 import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { YouTubeVOD } from "./Providers/YouTube/YouTubeVOD";
+import { Webhook } from "./Webhook";
 
 export type ChannelTypes = TwitchChannel | YouTubeChannel;
 export type VODTypes = TwitchVOD | YouTubeVOD;
@@ -56,6 +58,10 @@ export class LiveStreamDVR {
             }
             if (!("provider" in channel)) {
                 (channel as any).provider = "twitch";
+            }
+            if (!channel.uuid) {
+                channel.uuid = randomUUID();
+                console.log(`Channel does not have an UUID, generated: ${channel.uuid}`);
             }
         }
 
@@ -168,6 +174,36 @@ export class LiveStreamDVR {
                 Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${vod.basename} in memory but not on disk`);
             }
         });
+    }
+
+    public getChannelByUUID(uuid: string): ChannelTypes | false {
+        const search = this.channels.find(c => c.uuid == uuid);
+        if (!search) return false;
+        return search;
+    }
+
+    public getVodByUUID(uuid: string): VODTypes | false {
+        const search = this.vods.find(c => c.uuid == uuid);
+        if (!search) return false;
+        return search;
+    }
+
+
+    /**
+     * Remove a vod from the vods list
+     * 
+     * @param uuid 
+     * @returns 
+     */
+    public  removeVod(uuid: string): boolean {
+        const vod = this.getVodByUUID(uuid);
+        if (vod) {
+            this.vods = this.vods.filter(vod => vod.uuid != uuid);
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD ${vod.basename} removed from memory!`);
+            Webhook.dispatch("vod_removed", { basename: vod.basename });
+            return true;
+        }
+        return false;
     }
 
 }

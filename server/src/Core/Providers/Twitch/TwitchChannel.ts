@@ -43,11 +43,13 @@ export class TwitchChannel extends BaseChannel {
 
     /**
      * User ID
+     * @deprecated
      */
     public userid: string | undefined;
 
     /**
      * Login name, used in URLs
+     * @deprecated
      */
     public login: string | undefined;
 
@@ -252,6 +254,11 @@ export class TwitchChannel extends BaseChannel {
             chapter_data: this.getChapterData(),
 
             saves_vods: this.saves_vods,
+
+            displayName: this.displayName,
+            internalName: this.internalName,
+            internalId: this.internalId,
+            url: this.url,
         };
     }
 
@@ -261,43 +268,18 @@ export class TwitchChannel extends BaseChannel {
      * @param config 
      */
     public update(config: TwitchChannelConfig): boolean {
-        const i = LiveStreamDVR.getInstance().channels_config.findIndex(ch => ch.provider == "twitch" && ch.login === this.login);
+        const i = LiveStreamDVR.getInstance().channels_config.findIndex(ch => ch.uuid === this.uuid);
         if (i !== -1) {
             this.config = config;
             this.applyConfig(config);
-            Log.logAdvanced(LOGLEVEL.INFO, "channel", `Replacing channel config for ${this.login}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "channel", `Replacing channel config for ${this.internalName}`);
             LiveStreamDVR.getInstance().channels_config[i] = config;
             LiveStreamDVR.getInstance().saveChannelsConfig();
             return true;
         } else {
-            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not update channel ${this.login}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not update channel ${this.internalName}`);
         }
         return false;
-    }
-
-    public delete(): boolean {
-
-        const login = this.login;
-        if (!login) throw new Error("Channel login is not set");
-
-        const userid = this.userid;
-
-        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Deleting channel ${login}`);
-        const index_config = LiveStreamDVR.getInstance().channels_config.findIndex(ch => ch.provider == "twitch" && ch.login === login);
-        if (index_config !== -1) {
-            LiveStreamDVR.getInstance().channels_config.splice(index_config, 1);
-        }
-
-        const index_channel = LiveStreamDVR.getInstance().channels.findIndex(ch => ch instanceof TwitchChannel && ch.login === login);
-        if (index_channel !== -1) {
-            LiveStreamDVR.getInstance().channels.splice(index_channel, 1);
-        }
-
-        if (userid) TwitchChannel.unsubscribe(userid);
-
-        LiveStreamDVR.getInstance().saveChannelsConfig();
-
-        return TwitchChannel.getChannelByLogin(login) == undefined;
     }
 
     get current_game(): TwitchGame | undefined {
@@ -366,37 +348,6 @@ export class TwitchChannel extends BaseChannel {
         this.checkStaleVodsInMemory();
 
         return load_vod;
-
-    }
-
-    /**
-     * Remove a vod from the channel and the main vods list
-     * 
-     * @param basename 
-     * @returns 
-     */
-    public removeVod(basename: string): boolean {
-
-        if (!this.userid) throw new Error("Channel userid is not set");
-        if (!this.login) throw new Error("Channel login is not set");
-        if (!this.display_name) throw new Error("Channel display_name is not set");
-
-        const vod = this.vods_list.find(v => v.basename === basename);
-        if (!vod) return false;
-
-        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Remove VOD JSON for ${this.login}: ${basename}`);
-
-        this.vods_list = this.vods_list.filter(v => v.basename !== basename);
-
-        // remove vod from database
-        this.vods_raw = this.vods_raw.filter(p => p !== path.relative(BaseConfigDataFolder.vod, vod.filename));
-        fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.login}.json`), JSON.stringify(this.vods_raw));
-
-        TwitchVOD.removeVod(basename);
-
-        this.checkStaleVodsInMemory();
-
-        return true;
 
     }
 
@@ -771,32 +722,6 @@ export class TwitchChannel extends BaseChannel {
         }
         this.addAllLocalVideos();
         this.startWatching();
-    }
-
-    /**
-     * Delete all VODs for channel without deleting the channel
-     * @throws
-     * @returns 
-     */
-    public async deleteAllVods(): Promise<boolean> {
-        const total_vods = this.vods_list.length;
-
-        if (total_vods === 0) {
-            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `No vods to delete for ${this.login}`);
-            throw new Error(`No vods to delete for ${this.login}`);
-        }
-
-        let deleted_vods = 0;
-        for (const vod of this.vods_list) {
-            try {
-                await vod.delete();
-            } catch (error) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to delete vod ${vod.basename}: ${(error as Error).message}`);
-                continue;
-            }
-            deleted_vods++;
-        }
-        return deleted_vods == total_vods;
     }
 
     /**
@@ -1862,6 +1787,22 @@ export class TwitchChannel extends BaseChannel {
     get latest_vod(): TwitchVOD | undefined {
         if (!this.vods_list || this.vods_list.length == 0) return undefined;
         return this.vods_list[this.vods_list.length - 1]; // is this reliable?
+    }
+
+    get displayName(): string {
+        return this.channel_data?.display_name || "";
+    }
+
+    get internalName(): string {
+        return this.channel_data?.login || "";
+    }
+
+    get internalId(): string {
+        return this.channel_data?.id || "";
+    }
+
+    get url(): string {
+        return `https://twitch.tv/${this.internalName}`;
     }
     
 }

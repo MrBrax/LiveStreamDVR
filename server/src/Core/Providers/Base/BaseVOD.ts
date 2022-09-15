@@ -1073,4 +1073,33 @@ export class BaseVOD {
     public setupBasic(): void { return; }
     public setupProvider(): void { return; }
 
+    public async delete(): Promise<boolean> {
+
+        if (!this.directory) {
+            throw new Error("No directory set for deletion");
+        }
+
+        if (this.prevent_deletion) {
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Deletion of ${this.basename} prevented`);
+            throw new Error("Vod has been marked with prevent_deletion");
+        }
+
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Delete ${this.basename}`, this.associatedFiles);
+
+        await this.stopWatching();
+
+        for (const file of this.associatedFiles) {
+            if (fs.existsSync(path.join(this.directory, file))) {
+                Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Delete ${file}`);
+                fs.unlinkSync(path.join(this.directory, file));
+            }
+        }
+
+        const channel = this.getChannel();
+        if (channel) channel.removeVod(this.uuid);
+
+        return fs.existsSync(this.filename);
+
+    }
+
 }
