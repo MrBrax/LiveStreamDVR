@@ -60,8 +60,8 @@ export class TwitchChannel extends BaseChannel {
 
     public broadcaster_type: BroadcasterType = "";
 
-    public description: string | undefined;
-    public profile_image_url: string | undefined;
+    // public description: string | undefined;
+    // public profile_image_url: string | undefined;
     public offline_image_url: string | undefined;
     /** @todo: Not implemented */
     public banner_image_url: string | undefined;
@@ -151,6 +151,9 @@ export class TwitchChannel extends BaseChannel {
                 continue;
             }
 
+            if (!vodclass.channel_uuid) {
+                vodclass.channel_uuid = this.uuid;
+            }
 
             // if (vodclass.is_capturing) {
             //     $this->is_live = true;
@@ -172,17 +175,6 @@ export class TwitchChannel extends BaseChannel {
             this.vods_list.push(vodclass);
         }
         this.sortVods();
-    }
-
-    public clearVODs(): void {
-        LiveStreamDVR.getInstance().vods.forEach(v => {
-            if (!(v instanceof TwitchVOD)) return;
-            if (v.streamer_login !== this.login) return;
-            v.stopWatching();
-        });
-        LiveStreamDVR.getInstance().vods = LiveStreamDVR.getInstance().vods.filter(v => v instanceof TwitchVOD && v.streamer_login !== this.login);
-        this.vods_raw = [];
-        this.vods_list = [];
     }
 
     public getSubscriptionStatus(): boolean {
@@ -327,6 +319,7 @@ export class TwitchChannel extends BaseChannel {
         vod.streamer_name = this.display_name;
         vod.streamer_login = this.login;
         vod.streamer_id = this.userid;
+        vod.channel_uuid = this.uuid;
 
         vod.created_at = new Date();
 
@@ -614,9 +607,9 @@ export class TwitchChannel extends BaseChannel {
             this.userid = channel_data.id;
             this.login = channel_data.login;
             this.display_name = channel_data.display_name;
-            this.profile_image_url = channel_data.profile_image_url;
+            // this.profile_image_url = channel_data.profile_image_url;
             this.broadcaster_type = channel_data.broadcaster_type;
-            this.description = channel_data.description;
+            // this.description = channel_data.description;
             return true;
         }
 
@@ -1035,8 +1028,8 @@ export class TwitchChannel extends BaseChannel {
 
         channel.login = channel_data.login;
         channel.display_name = channel_data.display_name;
-        channel.description = channel_data.description;
-        channel.profile_image_url = channel_data.profile_image_url;
+        // channel.description = channel_data.description;
+        // channel.profile_image_url = channel_data.profile_image_url;
         channel.broadcaster_type = channel_data.broadcaster_type;
         channel.applyConfig(channel_config);
 
@@ -1705,7 +1698,7 @@ export class TwitchChannel extends BaseChannel {
 
     }
 
-    public static async unsubscribe(channel_id: string): Promise<boolean> {
+    public static async unsubscribeFromId(channel_id: string): Promise<boolean> {
 
         const subscriptions = await Helper.getSubsList();
 
@@ -1737,6 +1730,10 @@ export class TwitchChannel extends BaseChannel {
 
         return unsubbed === subscriptions.length;
 
+    }
+
+    public async unsubscribe(): Promise<boolean> {
+        return await TwitchChannel.unsubscribeFromId(this.internalId);
     }
 
     public static async getSubscriptionId(channel_id: string, sub_type: EventSubTypes): Promise<string | false> {
@@ -1805,5 +1802,13 @@ export class TwitchChannel extends BaseChannel {
     get url(): string {
         return `https://twitch.tv/${this.internalName}`;
     }
-    
+
+    get description(): string {
+        return this.channel_data?.description || "";
+    }
+
+    get profilePictureUrl(): string {
+        return this.channel_data?.profile_image_url || "";
+    }
+
 }

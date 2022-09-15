@@ -8,8 +8,8 @@ import { Log, LOGLEVEL } from "../../../Core/Log";
 import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
 import { BaseVODChapter } from "../Base/BaseVODChapter";
 import { youtube_v3 } from "@googleapis/youtube";
-import { YouTubeHelper } from "Providers/YouTube";
-import { Helper } from "Core/Helper";
+import { YouTubeHelper } from "../../../Providers/YouTube";
+import { Helper } from "../../../Core/Helper";
 
 export class YouTubeVOD extends BaseVOD {
 
@@ -19,9 +19,12 @@ export class YouTubeVOD extends BaseVOD {
     chapters: Array<BaseVODChapter> = [];
 
     public async toAPI(): Promise<ApiYouTubeVod> {
+        if (!this.uuid) throw new Error(`No UUID set on VOD ${this.basename}`);
+        if (!this.channel_uuid) throw new Error(`No channel UUID set on VOD ${this.basename}`);
         return {
             provider: "youtube",
-            uuid: this.uuid || "",
+            uuid: this.uuid,
+            channel_uuid: this.channel_uuid,
             basename: this.basename || "",
 
             // stream_title: this.stream_title,

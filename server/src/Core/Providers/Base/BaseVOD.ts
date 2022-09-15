@@ -103,6 +103,8 @@ export class BaseVOD {
     segments_raw: string[] = [];
     segments: BaseVODSegment[] = [];
 
+    public channel_uuid?: string;
+
     webpath = "";
 
     public fileWatcher?: chokidar.FSWatcher;

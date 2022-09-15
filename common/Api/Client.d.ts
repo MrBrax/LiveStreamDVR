@@ -45,7 +45,8 @@ export type ApiGame = {
 
 export interface ApiBaseVod {
     provider: Providers;
-    uuid?: string;
+    uuid: string;
+    channel_uuid: string;
     basename: string;
     segments: ApiVodSegment[];
     chapters: ApiVodBaseChapter[];

@@ -34,6 +34,7 @@ beforeAll(async () => {
     // TwitchChannel.getChannelDataProxy
     spy1 = jest.spyOn(TwitchChannel, "getUserDataProxy").mockImplementation(() => {
         return Promise.resolve({
+            provider: "twitch",
             id: "12345",
             login: "test",
             display_name: "test",
@@ -56,8 +57,18 @@ beforeAll(async () => {
     });
 
     // TwitchChannel.unsubscribe
-    spy3 = jest.spyOn(TwitchChannel, "unsubscribe").mockImplementation(() => {
+    spy3 = jest.spyOn(TwitchChannel, "unsubscribeFromId").mockImplementation(() => {
         return Promise.resolve(true);
+    });
+
+    jest.spyOn(LiveStreamDVR.getInstance(), "loadChannelsConfig").mockImplementation(() => {
+        console.log("TRIED TO LOAD CONFIG");
+        return true;
+    });
+
+    jest.spyOn(LiveStreamDVR.getInstance(), "saveChannelsConfig").mockImplementation(() => {
+        console.log("TRIED TO SAVE CONFIG");
+        return true;
     });
 
 });
@@ -115,7 +126,7 @@ describe("channels", () => {
         max_storage: 2,
         max_vods: 5,
     };
-    
+
     it("should add a channel in isolated mode", async () => {
 
         Config.getInstance().setConfig("app_url", "");
@@ -124,7 +135,7 @@ describe("channels", () => {
         expect(res3.body.message).toContain("'test' created");
         expect(res3.body.data).toHaveProperty("display_name");
         expect(res3.status).toBe(200);
-        
+
         LiveStreamDVR.getInstance().channels = [];
         LiveStreamDVR.getInstance().channels_config = [];
 
@@ -153,7 +164,7 @@ describe("channels", () => {
     });
 
     it("should fail adding channel due to subscribe stuff", async () => {
-        
+
         // both disabled
         Config.getInstance().setConfig("app_url", "");
         Config.getInstance().setConfig("isolated_mode", false);
@@ -182,6 +193,8 @@ describe("channels", () => {
 
     });
 
+    let uuid = "";
+
     it("should add a channel", async () => {
 
         Config.getInstance().setConfig("app_url", "https://example.com");
@@ -190,6 +203,9 @@ describe("channels", () => {
         expect(res4.body.message).toContain("'test' created");
         expect(res4.body.data).toHaveProperty("display_name");
         expect(res4.status).toBe(200);
+
+        uuid = res4.body.data.uuid;
+        expect(uuid).not.toBe("");
 
         // TwitchChannel.channels = [];
         // TwitchChannel.channels_config = [];
@@ -215,11 +231,10 @@ describe("channels", () => {
         });
 
         expect(res.status).toBe(400);
-
     });
 
     it("added channel should be in channel route", async () => {
-        const channel_res = await request(app).get("/api/v0/channels/test");
+        const channel_res = await request(app).get(`/api/v0/channels/${uuid}`);
         expect(channel_res.status).toBe(200);
         expect(channel_res.body.data).toHaveProperty("display_name");
     });
@@ -232,7 +247,7 @@ describe("channels", () => {
     });
 
     it("should remove a channel", async () => {
-        const res = await request(app).delete("/api/v0/channels/test");
+        const res = await request(app).delete(`/api/v0/channels/${uuid}`);
         expect(res.status).toBe(200);
         expect(res.body.message).toContain("'test' deleted");
         expect(res.body.status).toBe("OK");

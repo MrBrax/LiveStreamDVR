@@ -1,4 +1,4 @@
-import { YouTubeVOD } from "Core/Providers/YouTube/YouTubeVOD";
+import { YouTubeVOD } from "../Core/Providers/YouTube/YouTubeVOD";
 import express from "express";
 import { ApiErrorResponse } from "../../../common/Api/Api";
 export async function YouTubeAPIVideos(req: express.Request, res: express.Response): Promise<void> {

@@ -13,9 +13,8 @@ import type { TwitchComment, TwitchCommentDump } from "../../../../../common/Com
 import { VideoQuality } from "../../../../../common/Config";
 import { JobStatus, MuteStatus } from "../../../../../common/Defs";
 import { AudioStream, FFProbe, VideoStream } from "../../../../../common/FFProbe";
-import { AudioMetadata, VideoMetadata } from "../../../../../common/MediaInfo";
+import { VideoMetadata } from "../../../../../common/MediaInfo";
 import { Clip, ClipsResponse } from "../../../../../common/TwitchAPI/Clips";
-import { EventSubResponse } from "../../../../../common/TwitchAPI/EventSub";
 import { Video, VideosResponse } from "../../../../../common/TwitchAPI/Video";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../../../Storage/JSON";
 import { AppName, BaseConfigDataFolder } from "../../BaseConfig";
@@ -43,8 +42,11 @@ export class TwitchVOD extends BaseVOD {
     json?: TwitchVODJSON;
     // meta?: EventSubResponse;
 
+    /** @deprecated */
     streamer_name = "";
+    /** @deprecated */
     streamer_id = "";
+    /** @deprecated */
     streamer_login = "";
 
     chapters_raw: Array<TwitchVODChapterJSON> = [];
@@ -810,9 +812,12 @@ export class TwitchVOD extends BaseVOD {
     }
 
     public async toAPI(): Promise<ApiTwitchVod> {
+        if (!this.uuid) throw new Error(`No UUID set on VOD ${this.basename}`);
+        if (!this.channel_uuid) throw new Error(`No channel UUID set on VOD ${this.basename}`);
         return {
             provider: "twitch",
-            uuid: this.uuid || "",
+            uuid: this.uuid,
+            channel_uuid: this.channel_uuid,
             basename: this.basename || "",
 
             stream_title: this.stream_title,

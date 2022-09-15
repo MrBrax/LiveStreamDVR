@@ -7,12 +7,12 @@ import { ChannelUpdated } from "../../../../../common/Webhook";
 import { BaseVOD } from "./BaseVOD";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { Webhook } from "../../Webhook";
-import { BaseVODChapterJSON } from "Storage/JSON";
-import { Log, LOGLEVEL } from "Core/Log";
+import { BaseVODChapterJSON } from "../../../Storage/JSON";
+import { Log, LOGLEVEL } from "../../../Core/Log";
 import path from "path";
 import fs from "fs";
-import { BaseConfigDataFolder } from "Core/BaseConfig";
-import { LiveStreamDVR } from "Core/LiveStreamDVR";
+import { BaseConfigDataFolder } from "../../../Core/BaseConfig";
+import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
 
 export class BaseChannel {
     
@@ -28,7 +28,9 @@ export class BaseChannel {
      * @deprecated
      */
     public display_name?: string;
-    public description?: string;
+    // public description?: string;
+
+    /** @deprecated */
     public profile_image_url: string | undefined;
 
     public quality: VideoQuality[] | undefined;
@@ -209,6 +211,14 @@ export class BaseChannel {
         return "";
     }
 
+    get description(): string {
+        return "";
+    }
+
+    get profilePictureUrl(): string {
+        return "";
+    }
+
     /**
      * Delete all VODs for channel without deleting the channel
      * @throws
@@ -286,11 +296,36 @@ export class BaseChannel {
         }
 
         // @todo unsub
-        // if (this.internalId) TwitchChannel.unsubscribe(userid);
+        if (this.internalId) this.unsubscribe();
 
         LiveStreamDVR.getInstance().saveChannelsConfig();
 
         return LiveStreamDVR.getInstance().getChannelByUUID(uuid) == undefined;
+    }
+
+    public async unsubscribe(): Promise<boolean> {
+        return await Promise.resolve(false);
+    }
+
+    public async refreshData(): Promise<boolean> { return false; }
+
+    public async isLiveApi(): Promise<boolean> {
+        return false;
+    }
+
+    public async rename(new_login: string): Promise<boolean> { return false; }
+
+    public parseVODs(rescan = false): Promise<void> { return Promise.resolve(); }
+
+    public clearVODs(): void {
+        LiveStreamDVR.getInstance().vods.forEach(v => {
+            // if (!(v instanceof TwitchVOD)) return;
+            if (v.channel_uuid !== this.uuid) return;
+            v.stopWatching();
+        });
+        LiveStreamDVR.getInstance().vods = LiveStreamDVR.getInstance().vods.filter(v => v.channel_uuid !== this.uuid);
+        this.vods_raw = [];
+        this.vods_list = [];
     }
 
 }

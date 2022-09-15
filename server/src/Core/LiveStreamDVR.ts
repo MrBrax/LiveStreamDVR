@@ -62,6 +62,7 @@ export class LiveStreamDVR {
             if (!channel.uuid) {
                 channel.uuid = randomUUID();
                 console.log(`Channel does not have an UUID, generated: ${channel.uuid}`);
+                needsSave = true;
             }
         }
 

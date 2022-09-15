@@ -140,7 +140,7 @@ export class YouTubeChannel extends BaseChannel {
 
         // channel.login = channel_data.login;
         channel.display_name = channel_data.title || "";
-        channel.description = channel_data.description || "";
+        // channel.description = channel_data.description || "";
         // channel.profile_image_url = channel_data.profile_image_url;
         // channel.broadcaster_type = channel_data.broadcaster_type;
         channel.applyConfig(channel_config);
@@ -295,12 +295,12 @@ export class YouTubeChannel extends BaseChannel {
         return true;
     }
 
-    static async subscribe(channel_id: string) {
-        return true;
+    static async subscribe(channel_id: string): Promise<boolean> {
+        return await Promise.resolve(false);
     }
 
     public getFolder(): string {
-        return Helper.vodFolder(this.display_name);
+        return Helper.vodFolder(this.internalName);
     }
 
     public postLoad(): void {
@@ -413,7 +413,7 @@ export class YouTubeChannel extends BaseChannel {
 
         if (!this.channel_id) throw new Error("Channel id is not set");
         // if (!this.login) throw new Error("Channel login is not set");
-        if (!this.display_name) throw new Error("Channel display_name is not set");
+        if (!this.internalName) throw new Error("Channel display_name is not set");
 
         Log.logAdvanced(LOGLEVEL.INFO, "channel", `Create VOD JSON for ${this.channel_id}: ${path.basename(filename)} @ ${path.dirname(filename)}`);
 
@@ -426,9 +426,10 @@ export class YouTubeChannel extends BaseChannel {
         vod.basename = path.basename(filename, ".json");
         vod.directory = path.dirname(filename);
 
-        vod.streamer_name = this.display_name;
+        vod.streamer_name = this.displayName;
         // vod.streamer_login = this.login;
-        vod.streamer_id = this.channel_id;
+        vod.streamer_id = this.internalId;
+        vod.channel_uuid = this.uuid;
 
         vod.created_at = new Date();
 
@@ -487,6 +488,35 @@ export class YouTubeChannel extends BaseChannel {
 
     get url(): string {
         return `https://www.youtube.com/c/${this.internalName}`;
+    }
+
+    get description(): string {
+        return this.channel_data?.description || "";
+    }
+
+    get profilePictureUrl(): string {
+        return this.channel_data?.thumbnails?.default?.url || "";    
+    }
+
+    public async refreshData(): Promise<boolean> {
+        if (!this.channel_id) throw new Error("Channel id not set");
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Refreshing data for ${this.internalName}`);
+
+        const channel_data = await YouTubeChannel.getUserDataById(this.channel_id, true);
+
+        if (channel_data) {
+            this.channel_data = channel_data;
+            this.channel_id = channel_data.id;
+            // this.login = channel_data.login;
+            // this.display_name = channel_data.display_name;
+            // this.profile_image_url = channel_data.profile_image_url;
+            // this.broadcaster_type = channel_data.broadcaster_type;
+            // this.description = channel_data.description;
+            return true;
+        }
+
+        return false;
+
     }
 
 }
