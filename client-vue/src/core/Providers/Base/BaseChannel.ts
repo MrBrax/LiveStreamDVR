@@ -52,6 +52,7 @@ export default class BaseChannel {
     internalName = "";
     internalId = "";
     url = "";
+    profilePictureUrl = "";
 
     public static makeFromApiResponse(apiResponse: ApiBaseChannel): BaseChannel {
         throw new Error("Not for base channel");

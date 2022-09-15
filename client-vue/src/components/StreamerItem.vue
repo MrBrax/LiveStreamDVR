@@ -211,8 +211,6 @@ import { ChannelTypes, useStore, VODTypes } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
 import { LocalClip } from "@common/LocalClip";
 import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
-import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
-import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
 library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen);
 
 export default defineComponent({

@@ -1,3 +1,4 @@
+import { BaseVODChapterJSON } from "Storage/JSON";
 import { ApiVodBaseChapter } from "../../../../../common/Api/Client";
 import { Log, LOGLEVEL } from "../../Log";
 
@@ -69,6 +70,21 @@ export class BaseVODChapter {
 
             // viewer_count: this.viewer_count,
             // is_mature: false,
+        };
+    }
+
+    public toJSON(): BaseVODChapterJSON {
+        return {
+            started_at: this.started_at.toISOString(),
+            // game_id: this.game_id ?? undefined,
+            // game_name: this.game_name ?? undefined,
+            title: this.title,
+            // is_mature: this.is_mature,
+            online: this.online, // ?
+            // viewer_count: this.viewer_count ?? undefined,
+            // offset: this.offset,
+            // duration: this.duration,
+            // box_art_url: this.box_art_url ?? undefined,
         };
     }
 

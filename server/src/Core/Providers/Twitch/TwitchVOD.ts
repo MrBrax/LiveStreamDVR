@@ -948,13 +948,6 @@ export class TwitchVOD extends BaseVOD {
             throw new Error("Filename not set.");
         }
 
-        if (fs.existsSync(this.filename)) {
-            // $tmp = file_get_contents(this.filename);
-            // if (md5($tmp) !== this.json_hash) {
-            // 	TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", "JSON has been changed since loading of {this.basename}");
-            // }
-        }
-
         // if (!this.created && (this.is_capturing || this.is_converting || !this.is_finalized)) {
         //     TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Saving JSON of ${this.basename} while not finalized!`);
         // }

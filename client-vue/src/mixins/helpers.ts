@@ -182,9 +182,9 @@ declare module "@vue/runtime-core" {
         // sortObject: (game: Record<string, any>, value: string) => any;
         prefersReducedMotion: () => boolean;
         formatDuration: (duration_seconds: number) => string;
-        isTwitch: (channel: ChannelTypes) => boolean;
-        isYouTube: (channel: ChannelTypes) => boolean;
-        isTwitchVOD: (vod: VODTypes) => boolean;
-        isYouTubeVOD: (vod: VODTypes) => boolean;
+        isTwitch: (channel: ChannelTypes) => channel is TwitchChannel;
+        isYouTube: (channel: ChannelTypes) => channel is YouTubeChannel;
+        isTwitchVOD: (vod: VODTypes) => vod is TwitchVOD;
+        isYouTubeVOD: (vod: VODTypes) => vod is YouTubeVOD;
     }
 }

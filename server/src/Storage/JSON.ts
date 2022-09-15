@@ -50,8 +50,6 @@ export interface VODJSON {
 
 }
 export interface TwitchVODJSON extends VODJSON {
-
-    version: number;
     type: "twitch";
 
     meta?: EventSubResponse;
@@ -73,6 +71,10 @@ export interface TwitchVODJSON extends VODJSON {
     twitch_vod_exists?: boolean;
     twitch_vod_attempted?: boolean;
 
+}
+
+export interface YouTubeVODJSON extends VODJSON {
+    
 }
 
 export interface BaseVODChapterJSON {

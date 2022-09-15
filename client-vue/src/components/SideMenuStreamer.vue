@@ -36,7 +36,7 @@
             >{{ streamer.vods_list.length }}</span>
             <span class="subtitle">
                 <template v-if="streamer.is_live && streamer.is_capturing">
-                    <template v-if="streamer.current_game && streamer.current_game.name != ''">
+                    <template v-if="isTwitch(streamer) && streamer.current_game && streamer.current_game.name != ''">
                         {{ gameVerb }}
                         <strong>{{ streamer.current_game.name }}</strong>
                     </template>
@@ -55,7 +55,7 @@
                 <template v-else-if="streamer.is_converting"> Converting... </template>
                 <template v-else-if="streamer.chapter_data && store.clientCfg('showOfflineCategoryInSidebar')">
                     <span :title="streamer.chapter_data.title">
-                        <span class="icon is-small"><fa icon="bed" title="Offline category" /></span> {{ streamer.chapter_data.game_name }} @ {{ formatLogicalDate(streamer.chapter_data.started_at) }}
+                        <span class="icon is-small"><fa icon="bed" title="Offline category" /></span> {{ isTwitch(streamer) ? streamer.chapter_data.game_name : "" }} @ {{ formatLogicalDate(streamer.chapter_data.started_at) }}
                     </span>
                 </template>
                 <template v-else>
@@ -88,7 +88,7 @@
                     "
                     :class="{
                         'is-active': store.visibleVod == vod.basename,
-                        'is-favourite': vod.hasFavouriteGame(),
+                        'is-favourite': isTwitchVOD(vod) ? vod.hasFavouriteGame() : false,
                         'is-live': vod.is_capturing,
                         'is-animated': store.clientCfg('animationsEnabled'),
                         'is-converting': vod.is_converting,
@@ -105,7 +105,7 @@
                     <span class="icon" v-else-if="vod.is_converting"><fa icon="cog" spin></fa></span>
 
                     <!-- favourite -->
-                    <span class="icon" v-else-if="vod.hasFavouriteGame()"><fa icon="star"></fa></span>
+                    <span class="icon" v-else-if="isTwitchVOD(vod) && vod.hasFavouriteGame()"><fa icon="star"></fa></span>
 
                     <span class="icon is-error" v-else-if="vod.failed"><fa icon="exclamation-triangle" /></span>
 
@@ -150,12 +150,12 @@
                     <!-- flags -->
                     <template v-if="vod.is_finalized">
                         <span class="flags">
-                            <span v-if="vod.twitch_vod_exists === false" class="icon is-error" title="Deleted from provider"><fa icon="trash"></fa></span><!-- vod deleted -->
-                            <span v-if="vod.twitch_vod_exists === true && isRiskOfBeingDeleted(vod)" class="icon is-warning" title="Is risking deletion from provider">
+                            <span v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === false" class="icon is-error" title="Deleted from provider"><fa icon="trash"></fa></span><!-- vod deleted -->
+                            <span v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === true && isRiskOfBeingDeleted(vod)" class="icon is-warning" title="Is risking deletion from provider">
                                 <fa icon="trash-arrow-up"></fa>
                             </span><!-- vod deleted -->
-                            <span v-if="vod.twitch_vod_exists === null" class="icon is-error" title="Not checked"><fa icon="question"></fa></span><!-- vod not checked -->
-                            <span v-if="vod.twitch_vod_muted === MuteStatus.MUTED" class="icon is-error" title="Muted"><fa icon="volume-mute"></fa></span><!-- vod muted -->
+                            <span v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === null" class="icon is-error" title="Not checked"><fa icon="question"></fa></span><!-- vod not checked -->
+                            <span v-if="isTwitchVOD(vod) && vod.twitch_vod_muted === MuteStatus.MUTED" class="icon is-error" title="Muted"><fa icon="volume-mute"></fa></span><!-- vod muted -->
                             <span v-if="vod.is_capture_paused" class="icon is-error" title="Paused"><fa icon="pause"></fa></span><!-- capturing paused -->
                             <span v-if="vod.prevent_deletion" class="icon is-success" title="Preventing deletion"><fa icon="lock"></fa></span><!-- prevent deletion -->
                             <span v-if="vod.hasDeletedSegment" class="icon is-error" title="Deleted segment"><fa icon="film"></fa></span><!-- deleted segment -->
@@ -170,7 +170,7 @@
                             <template v-if="streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }})</template>
                         </div>
                         <div class="stream-name">{{ vod.basename }}</div>
-                        <div class="boxart-carousel is-small">
+                        <div class="boxart-carousel is-small" v-if="isTwitchVOD(vod)">
                             <div
                                 v-for="game in vod.getUniqueGames()"
                                 :key="game.name"
@@ -180,7 +180,7 @@
                                 <span class="boxart-name">{{ game.name }}</span>
                             </div>
                         </div>
-                        <div class="stream-title">{{ vod.stream_title }}</div>
+                        <div class="stream-title">{{ isTwitchVOD(vod) ? vod.stream_title : "" }}</div>
                     </div>
                 </router-link>
             </li>
@@ -197,18 +197,17 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faTrashArrowUp, faChevronDown, faChevronUp, faLock, faGamepad, faBed, faComment } from "@fortawesome/free-solid-svg-icons";
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
-import { useStore } from "@/store";
+import { ChannelTypes, useStore, VODTypes } from "@/store";
 library.add(faGithub, faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp, faChevronDown, faChevronUp, faLock, faGamepad, faBed, faComment);
 
 import { MuteStatus, nonGameCategories, TwitchVodAge } from "../../../common/Defs";
-import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 
 export default defineComponent({
     name: "SideMenuStreamer",
     props: {
         streamer: {
-            type: Object as () => TwitchChannel,
+            type: Object as () => ChannelTypes,
         },
     },
     data() {
@@ -241,14 +240,14 @@ export default defineComponent({
         toggleExpand() {
             this.expanded = !this.expanded;
         },
-        fileIcon(vod: TwitchVOD): string {
+        fileIcon(vod: VODTypes): string {
             if (!this.streamer) return "";
             if (vod.video_metadata?.type === "audio") return "headphones";
             return "film";
         }
     },
     computed: {
-        filteredVodsList(): TwitchVOD[] {
+        filteredVodsList(): VODTypes[] {
             if (!this.streamer) return [];
             if (this.expanded || this.store.clientCfg('expandVodList')) return this.streamer.vods_list;
             const vodsToShow = this.store.clientCfg('vodsToShowInMenu', 4);
@@ -256,18 +255,19 @@ export default defineComponent({
             // return last 4 vods
             return this.streamer.vods_list.slice(-vodsToShow);
         },
-        avatarUrl() {
-            if (!this.streamer) return;
-            if (this.streamer.channel_data?.cache_avatar) return `${this.store.cfg<string>("basepath", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
-            return this.streamer.profile_image_url;
+        avatarUrl(): string {
+            if (!this.streamer) return "";
+            // if (this.streamer.channel_data?.cache_avatar) return `${this.store.cfg<string>("basepath", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
+            // return this.streamer.profile_image_url;
+            return this.streamer.profilePictureUrl;
         },
-        bannerUrl() {
-            if (!this.streamer) return;
+        bannerUrl(): string {
+            if (!this.streamer || !this.isTwitch(this.streamer)) return "";
             if (this.streamer.channel_data?.cache_offline_image) return `${this.store.cfg<string>("basepath", "")}/cache/banners/${this.streamer.channel_data.cache_offline_image}`;
             return this.streamer.offline_image_url;
         },
         gameVerb(): string {
-            if (!this.streamer) return "";
+            if (!this.streamer || !this.isTwitch(this.streamer)) return "";
             if (!this.streamer.current_game) return "";
             if (nonGameCategories.includes(this.streamer.current_game.name)) return "Streaming";
             if (this.streamer.current_game.name === "Among Us") return "Sussing"; // lol

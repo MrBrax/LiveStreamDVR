@@ -191,6 +191,7 @@ export interface ApiBaseChannel {
     internalName: string;
     internalId: string;
     url: string;
+    profilePictureUrl: string;
 }
 
 export interface ApiTwitchChannel extends ApiBaseChannel {

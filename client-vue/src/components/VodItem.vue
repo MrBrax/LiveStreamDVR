@@ -1242,7 +1242,6 @@ import { ChapterTypes, useStore, VODTypes } from "@/store";
 import ModalBox from "./ModalBox.vue";
 import { MuteStatus, VideoQualityArray } from "../../../common/Defs";
 import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
-import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import { AudioMetadata } from "@common/MediaInfo";
 import { formatString } from "@common/Format";
 import { YouTubeCategories } from "@/defs";
@@ -1516,7 +1515,7 @@ export default defineComponent({
         doDelete() {
             if (!this.vod) return;
             if (!confirm(`Do you want to delete "${this.vod?.basename}"?`)) return;
-            if (this.vod instanceof TwitchVOD && this.vod.twitch_vod_exists === false && !confirm(`The VOD "${this.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
+            if (this.isTwitchVOD(this.vod) && this.vod.twitch_vod_exists === false && !confirm(`The VOD "${this.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
             this.taskStatus.delete = true;
             this.$http
                 .delete(`/api/v0/vod/${this.vod?.basename}`)
@@ -1526,7 +1525,7 @@ export default defineComponent({
                     console.log(json);
                     this.taskStatus.delete = false;
                     this.$emit("refresh");
-                    if (this.vod && this.vod instanceof TwitchVOD) this.store.fetchAndUpdateStreamer(this.vod.channel_uuid);
+                    if (this.vod && this.isTwitchVOD(this.vod)) this.store.fetchAndUpdateStreamer(this.vod.channel_uuid);
                 })
                 .catch((err) => {
                     console.error("form error", err.response);

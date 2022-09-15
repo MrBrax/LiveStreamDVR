@@ -3,13 +3,14 @@ import fs from "fs";
 import { ApiYouTubeVod } from "../../../../../common/Api/Client";
 import { ProxyVideo } from "../../../../../common/Proxies/Video";
 import { BaseVOD } from "../Base/BaseVOD";
-import { VODJSON } from "../../../Storage/JSON";
+import { VODJSON, YouTubeVODJSON } from "../../../Storage/JSON";
 import { Log, LOGLEVEL } from "../../../Core/Log";
 import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
 import { BaseVODChapter } from "../Base/BaseVODChapter";
 import { youtube_v3 } from "@googleapis/youtube";
 import { YouTubeHelper } from "../../../Providers/YouTube";
 import { Helper } from "../../../Core/Helper";
+import chalk from "chalk";
 
 export class YouTubeVOD extends BaseVOD {
 
@@ -115,6 +116,103 @@ export class YouTubeVOD extends BaseVOD {
             // dt_started_at: this.dt_started_at ? TwitchHelper.JSDateToPHPDate(this.dt_started_at) : null,
             // dt_ended_at: this.dt_ended_at ? TwitchHelper.JSDateToPHPDate(this.dt_ended_at) : null,
         };
+    }
+
+    public async saveJSON(reason = ""): Promise<false | YouTubeVODJSON> {
+
+        if (!this.filename) {
+            throw new Error("Filename not set.");
+        }
+
+        // if (!this.created && (this.is_capturing || this.is_converting || !this.is_finalized)) {
+        //     TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Saving JSON of ${this.basename} while not finalized!`);
+        // }
+
+        if (!this.not_started && (!this.chapters || this.chapters.length == 0)) {
+            Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Saving JSON of ${this.basename} with no chapters!!`);
+        }
+
+        if (!this.streamer_name && !this.created) {
+            Log.logAdvanced(LOGLEVEL.FATAL, "vodclass", `Found no streamer name in class of ${this.basename}, not saving!`);
+            return false;
+        }
+
+        // clone this.json
+        const generated: YouTubeVODJSON = this.json && Object.keys(this.json).length > 0 ? JSON.parse(JSON.stringify(this.json)) : {};
+        // const generated: TwitchVODJSON = Object.assign({}, this.json || {});
+
+        generated.version = 2;
+        generated.type = "youtube";
+        generated.uuid = this.uuid;
+        generated.capture_id = this.capture_id;
+        // if (this.meta) generated.meta = this.meta;
+        generated.stream_resolution = this.stream_resolution ?? undefined;
+
+        // generated.streamer_name = this.streamer_name ?? "";
+        // generated.streamer_id = this.streamer_id ?? "";
+        // generated.streamer_login = this.streamer_login ?? "";
+
+        // generated.chapters = this.chapters_raw;
+        // generated.segments = this.segments_raw;
+        generated.chapters = this.chapters.map((chapter) => chapter.toJSON());
+        generated.segments = this.segments.map((segment) => segment.filename || ""); // hack?
+
+        generated.is_capturing = this.is_capturing;
+        generated.is_converting = this.is_converting;
+        generated.is_finalized = this.is_finalized;
+
+        generated.duration = this.duration ?? undefined;
+
+        generated.video_metadata = this.video_metadata;
+
+        generated.saved_at = new Date().toISOString();
+
+        if (this.created_at) generated.created_at = this.created_at.toISOString();
+        if (this.capture_started) generated.capture_started = this.capture_started.toISOString();
+        if (this.capture_started2) generated.capture_started2 = this.capture_started2.toISOString();
+        if (this.conversion_started) generated.conversion_started = this.conversion_started.toISOString();
+        if (this.started_at) generated.started_at = this.started_at.toISOString();
+        if (this.ended_at) generated.ended_at = this.ended_at.toISOString();
+
+        generated.not_started = this.not_started;
+
+        generated.stream_number = this.stream_number;
+        generated.stream_season = this.stream_season;
+        generated.stream_absolute_season = this.stream_absolute_season;
+
+        generated.comment = this.comment;
+
+        generated.prevent_deletion = this.prevent_deletion;
+
+        generated.failed = this.failed;
+
+        // generated.bookmarks = this.bookmarks;
+
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `Saving JSON of ${this.basename} ${(reason ? " (" + reason + ")" : "")}`);
+
+        //file_put_contents(this.filename, json_encode(generated));
+        // this.setPermissions();
+
+        await this.stopWatching();
+
+        this._writeJSON = true;
+
+        try {
+            fs.writeFileSync(this.filename, JSON.stringify(generated, null, 4));
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.FATAL, "vodclass", `Failed to save JSON of ${this.basename}: ${(error as Error).message}`);
+            console.log(chalk.bgRedBright.whiteBright(`Failed to save JSON of ${this.basename}: ${(error as Error).message}`));
+            return false;
+        }
+
+        this._writeJSON = false;
+
+        await this.startWatching();
+
+        this.broadcastUpdate(); // should this be here?
+
+        return generated;
+
     }
 
     public static async load(filename: string, noFixIssues = false): Promise<YouTubeVOD> {

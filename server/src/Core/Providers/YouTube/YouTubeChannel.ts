@@ -382,6 +382,7 @@ export class YouTubeChannel extends BaseChannel {
             internalName: this.internalName,
             internalId: this.internalId,
             url: this.url,
+            profilePictureUrl: this.profilePictureUrl,
         };
     }
 
