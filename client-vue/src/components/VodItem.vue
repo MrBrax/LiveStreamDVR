@@ -8,7 +8,7 @@
             'is-recording': vod.is_capturing,
             'is-converting': vod.is_converting,
             'is-finalized': vod.is_finalized,
-            'is-favourite': vod.hasFavouriteGame(),
+            'is-favourite': vod.provider == 'twitch' && vod.hasFavouriteGame(),
         }"
     >
         <div :id="'vod_' + vod.basename" class="anchor"></div>
@@ -37,7 +37,7 @@
             <!-- description -->
             <div class="video-description">
                 <!-- box art -->
-                <div class="boxart-carousel is-small" v-if="vod && vod.getUniqueGames()">
+                <div class="boxart-carousel is-small" v-if="vod && vod.provider == 'twitch' && vod.getUniqueGames()">
                     <div v-for="game in vod.getUniqueGames()" :key="game.id" class="boxart-item">
                         <img v-if="game.box_art_url" :title="game.name" :alt="game.name" :src="game.getBoxArtUrl(140, 190)" loading="lazy" />
                         <span v-else>{{ game.name }}</span>
@@ -98,7 +98,7 @@
                             </template>
                             <li v-if="vod.getDuration() && showAdvanced">
                                 <strong>{{ $t('vod.video-info.missing-from-captured-file') }}:</strong>
-                                <span class="px-1" v-if="vod.twitch_vod_duration">
+                                <span class="px-1" v-if="vod.provider == 'twitch' && vod.twitch_vod_duration">
                                     {{ humanDuration(vod.twitch_vod_duration - vod.getDuration()) }}
                                     <strong v-if="vod.twitch_vod_duration - vod.getDuration() > 600" class="is-error"><br />A lot missing!</strong>
                                 </span>
@@ -179,7 +179,7 @@
                     </div>
 
                     <!-- Twitch VOD -->
-                    <div class="info-column">
+                    <div class="info-column" v-if="vod.provider == 'twitch'">
                         <h4>Twitch VOD</h4>
                         <ul class="video-info">
                             <template v-if="vod.twitch_vod_exists === true">
@@ -262,8 +262,8 @@
                             </li>
                             <li v-if="vod.capture_started2"><strong>Wrote file:</strong> {{ formatDate(vod.capture_started2) }}</li>
                             <li><strong>Current duration:</strong> <duration-display :startDate="vod.started_at" outputStyle="human"></duration-display></li>
-                            <li><strong>Resolution:</strong> {{ vod.stream_resolution || "Unknown" }}</li>
-                            <li><strong>Watch live:</strong> <a :href="'https://twitch.tv/' + vod.streamer_login" rel="noreferrer" target="_blank">Twitch</a></li>
+                            <li v-if="vod.provider == 'twitch'"><strong>Resolution:</strong> {{ vod.stream_resolution || "Unknown" }}</li>
+                            <li v-if="vod.provider == 'twitch'"><strong>Watch live:</strong> <a :href="'https://twitch.tv/' + vod.streamer_login" rel="noreferrer" target="_blank">Twitch</a></li>
                         </ul>
                         <!--<button class="button is-small is-danger" @click="unbreak">Unbreak</button>-->
                     </div>
@@ -310,7 +310,7 @@
             </div>
 
             <!-- bookmark list -->
-            <div class="video-bookmarks">
+            <div class="video-bookmarks" v-if="vod.provider == 'twitch'">
                 <strong>{{ $t('vod.bookmarks') }}</strong>
                 <ul class="list-segments">
                     <li v-for="(bookmark, i) in vod.bookmarks" :key="i">
@@ -375,7 +375,7 @@
                 </a>
 
                 <!-- Download chat-->
-                <a v-if="vod.twitch_vod_id && !vod?.is_chat_downloaded" class="button" @click="chatDownloadMenu ? (chatDownloadMenu.show = true) : ''">
+                <a v-if="vod.provider == 'twitch' && vod.twitch_vod_id && !vod?.is_chat_downloaded" class="button" @click="chatDownloadMenu ? (chatDownloadMenu.show = true) : ''">
                     <span class="icon">
                         <fa icon="comments" type="fa" v-if="!taskStatus.downloadChat && !compDownloadChat"></fa>
                         <fa icon="sync" type="fa" spin v-else></fa>
@@ -383,7 +383,7 @@
                     <span>{{ $t('vod.controls.download-chat') }}</span>
                 </a>
 
-                <template v-if="vod.twitch_vod_id">
+                <template v-if="vod.provider == 'twitch' && vod.twitch_vod_id">
                     <!-- Download VOD -->
                     <a v-if="!vod.is_vod_downloaded" class="button" @click="vodDownloadMenu ? (vodDownloadMenu.show = true) : ''">
                         <span class="icon">
@@ -578,7 +578,7 @@
                             v-for="(chapter, chapterIndex) in vod.chapters"
                             :key="chapterIndex"
                             :class="{
-                                favourite: store.config && chapter.game_id && store.favourite_games.includes(chapter.game_id.toString()),
+                                favourite: isTwitchChapter(chapter) && store.config && chapter.game_id && store.favourite_games.includes(chapter.game_id.toString()),
                                 current: vod && chapterIndex === vod.chapters.length - 1 && vod.is_capturing,
                             }"
                         >
@@ -638,7 +638,7 @@
 
                                         <!-- open on twitch link -->
                                         <a
-                                            v-if="vod.twitch_vod_exists && vod.twitch_vod_id && chapter.offset"
+                                            v-if="vod.provider == 'twitch' && vod.twitch_vod_exists && vod.twitch_vod_id && chapter.offset"
                                             :href="twitchVideoLink(vod.twitch_vod_id) + '?t=' + twitchDuration(chapter.offset)"
                                             target="_blank"
                                             rel="noreferrer"
@@ -655,7 +655,7 @@
                                 <!-- favourite button -->
                                 <button
                                     class="icon-button favourite-button"
-                                    v-if="store.config && chapter.game_id && !store.favourite_games.includes(chapter.game_id.toString())"
+                                    v-if="store.config && isTwitchChapter(chapter) && chapter.game_id && !store.favourite_games.includes(chapter.game_id.toString())"
                                     title="Add to favourites"
                                     @click="chapter.game_id && addFavouriteGame(chapter.game_id.toString())"
                                 >
@@ -675,7 +675,7 @@
 
                             <!-- mature -->
                             <td>
-                                <span v-if="chapter.is_mature">🔞</span>
+                                <span v-if="isTwitchChapter(chapter) && chapter.is_mature">🔞</span>
                             </td>
                         </tr>
 
@@ -1238,7 +1238,7 @@ import {
     faUpload,
     faKey,
 } from "@fortawesome/free-solid-svg-icons";
-import { useStore } from "@/store";
+import { ChapterTypes, useStore, VODTypes } from "@/store";
 import ModalBox from "./ModalBox.vue";
 import { MuteStatus, VideoQualityArray } from "../../../common/Defs";
 import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
@@ -1247,6 +1247,7 @@ import { AudioMetadata } from "@common/MediaInfo";
 import { formatString } from "@common/Format";
 import { YouTubeCategories } from "@/defs";
 import { format } from "date-fns";
+import { TwitchVODChapter } from "@/core/Providers/Twitch/TwitchVODChapter";
 library.add(
     faFileVideo,
     faCut,
@@ -1414,7 +1415,7 @@ export default defineComponent({
         this.renameVodSettings.template = this.store.cfg("filename_vod", "");
     },
     props: {
-        vod: Object as () => TwitchVOD,
+        vod: Object as () => VODTypes,
     },
     methods: {
         doArchive() {
@@ -1513,8 +1514,9 @@ export default defineComponent({
         //     alert("FullBurn");
         // },
         doDelete() {
+            if (!this.vod) return;
             if (!confirm(`Do you want to delete "${this.vod?.basename}"?`)) return;
-            if (this.vod?.twitch_vod_exists === false && !confirm(`The VOD "${this.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
+            if (this.vod instanceof TwitchVOD && this.vod.twitch_vod_exists === false && !confirm(`The VOD "${this.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
             this.taskStatus.delete = true;
             this.$http
                 .delete(`/api/v0/vod/${this.vod?.basename}`)
@@ -1524,7 +1526,7 @@ export default defineComponent({
                     console.log(json);
                     this.taskStatus.delete = false;
                     this.$emit("refresh");
-                    if (this.vod) this.store.fetchAndUpdateStreamer(this.vod.streamer_login);
+                    if (this.vod && this.vod instanceof TwitchVOD) this.store.fetchAndUpdateStreamer(this.vod.streamer_login);
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
@@ -1749,6 +1751,9 @@ export default defineComponent({
                 if (err.response.data && err.response.data.message) alert(err.response.data.message);
             });
         },
+        isTwitchChapter(chapter: ChapterTypes): chapter is TwitchVODChapter {
+            return chapter instanceof TwitchVODChapter;
+        }
     },
     computed: {
         compDownloadChat(): boolean {
@@ -1799,7 +1804,7 @@ export default defineComponent({
             if (!this.vod) return "";
             const date = this.vod.started_at;
             const replacements: VodBasenameTemplate = {
-                login:              this.vod.streamer_login,
+                login:              this.vod.provider == 'twitch' ? this.vod.streamer_login : "",
                 date:               date ? format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'").replaceAll(":", "_") : "",
                 year:               date ? format(date, "yyyy") : "",
                 year_short:         date ? format(date, "yy") : "",

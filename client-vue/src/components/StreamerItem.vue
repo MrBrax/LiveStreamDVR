@@ -162,26 +162,30 @@
             <div class="video-download-menu">
                 <p>
                     {{ $t('messages.video_download_help') }}<br />
-                    <span v-if="averageVodBitrate">Average bitrate: {{ averageVodBitrate / 1000 }} kbps</span>
+                    <!--<span v-if="averageVodBitrate">Average bitrate: {{ averageVodBitrate / 1000 }} kbps</span>-->
                 </p>
-                <button class="button is-confirm" @click="fetchTwitchVods">
+                <button v-if="isTwitch(streamer)" class="button is-confirm" @click="fetchTwitchVods">
+                    <span class="icon"><fa icon="download"></fa></span>
+                    <span>{{ $t('vod.fetch-vod-list') }}</span>
+                </button>
+                <button v-if="isYouTube(streamer)" class="button is-confirm" @click="fetchYouTubeVods">
                     <span class="icon"><fa icon="download"></fa></span>
                     <span>{{ $t('vod.fetch-vod-list') }}</span>
                 </button>
                 <hr />
-                <div class="video-download-menu-item" v-for="vod in twitchVods" :key="vod.id">
+                <div class="video-download-menu-item" v-for="vod in onlineVods" :key="vod.id">
                     <h2>
-                        <a :href="vod.url" rel="nofollow" target="_blank">{{ vod.created_at }}</a> ({{ vod.type }})
+                        <a :href="vod.url" rel="nofollow" target="_blank">{{ vod.created_at }}</a>
                     </h2>
-                    <img :src="imageUrl(vod.thumbnail_url, 320, 240)" /><br />
+                    <img :src="imageUrl(vod.thumbnail, 320, 240)" /><br />
                     <p>{{ vod.title }}</p>
                     <ul>
-                        <li>{{ vod.duration }} ({{ parseTwitchDuration(vod.duration) }})</li>
+                        <li>{{ formatDuration(vod.duration) }}</li>
                         <li>{{ formatNumber(vod.view_count, 0) }} views</li>
                         <li v-if="vod.muted_segments && vod.muted_segments.length > 0">
                             <span class="is-error">Muted segments: {{ vod.muted_segments.length }}</span>
                         </li>
-                        <li>Estimated size: {{ formatBytes(((averageVodBitrate || 6000000) / 10) * parseTwitchDuration(vod.duration)) }}</li>
+                        <!--<li>Estimated size: {{ formatBytes(((averageVodBitrate || 6000000) / 10) * parseTwitchDuration(vod.duration)) }}</li>-->
                     </ul>
                     <br />
                     <button class="button is-small is-confirm" @click="downloadVideo(vod.id.toString())">
@@ -200,26 +204,25 @@
 import { defineComponent, ref } from "vue";
 import VodItem from "@/components/VodItem.vue";
 import ModalBox from "@/components/ModalBox.vue";
-
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen } from "@fortawesome/free-solid-svg-icons";
-// import { TwitchAPI } from "@/twitchapi";
-import { Video } from "@common/TwitchAPI/Video";
-import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
-import { useStore } from "@/store";
+import { ProxyVideo } from "@common/Proxies/Video";
+import { ChannelTypes, useStore, VODTypes } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
 import { LocalClip } from "@common/LocalClip";
+import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
+import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
 library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen);
 
 export default defineComponent({
     name: "StreamerItem",
     emits: ["refresh"],
     props: {
-        streamer: Object as () => TwitchChannel,
+        streamer: Object as () => ChannelTypes,
     },
     data: () => ({
-        twitchVods: [] as Video[],
+        onlineVods: [] as ProxyVideo[],
         toggleAllVodsExpanded: false,
         limitVods: false,
     }),
@@ -340,7 +343,32 @@ export default defineComponent({
             }
 
             console.log("Fetched", data);
-            this.twitchVods = data.data;
+            this.onlineVods = data.data;
+        },
+        async fetchYouTubeVods() {
+            if (!this.streamer || !(this.streamer instanceof YouTubeChannel)) return;
+            let response;
+
+            try {
+                response = await this.$http.get(`/api/v0/youtubeapi/videos/${this.streamer.channel_id}`);
+            } catch (error) {
+                if (this.$http.isAxiosError(error)) {
+                    console.error("fetchYouTubeVods error", error.response);
+                    if (error.response && error.response.data && error.response.data.message) {
+                        alert(error.response.data.message);
+                    }
+                }
+                return;
+            }
+
+            const data = response.data;
+
+            if (data.message) {
+                alert(data.message);
+            }
+
+            console.log("Fetched", data);
+            this.onlineVods = data.data;
         },
         async downloadVideo(id: string) {
             if (!this.streamer) return;
@@ -434,6 +462,7 @@ export default defineComponent({
                 });
         },
         imageUrl(url: string, width: number, height: number) {
+            if (!url) return "";
             return url.replace(/%\{width\}/g, width.toString()).replace(/%\{height\}/g, height.toString());
         },
         clipLink(clip: LocalClip): string {
@@ -466,7 +495,7 @@ export default defineComponent({
         averageVodBitrate(): number | undefined {
             if (!this.streamer) return;
             const vods = this.streamer.vods_list;
-            const total = vods.reduce((acc, vod) => {
+            const total = (vods as VODTypes[]).reduce((acc, vod) => {
                 if (!vod.video_metadata) return acc;
                 return acc + vod.video_metadata.bitrate;
             }, 0);
@@ -478,7 +507,7 @@ export default defineComponent({
         },
         avatarUrl() {
             if (!this.streamer) return;
-            if (this.streamer.channel_data?.cache_avatar) return `${this.store.cfg<string>("basepath", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
+            if ("channel_data" in this.streamer && this.streamer.channel_data?.cache_avatar) return `${this.store.cfg<string>("basepath", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
             return this.streamer.profile_image_url;
         },
         areMostVodsExpanded(): boolean {
@@ -494,7 +523,7 @@ export default defineComponent({
         basePath(): string {
             return this.store.cfg<string>("basepath", "");
         },
-        filteredVodsList(): TwitchVOD[] {
+        filteredVodsList(): VODTypes[] {
             if (!this.streamer) return [];
             if (this.limitVods || this.store.clientCfg('expandDashboardVodList')) return this.streamer.vods_list;
             const vodsToShow = this.store.clientCfg('vodsToShowInDashboard', 4);
@@ -502,6 +531,10 @@ export default defineComponent({
             // return last 4 vods
             return this.streamer.vods_list.slice(-vodsToShow);
         },
+        providerapi(): string {
+            if (this.streamer && this.streamer.provider == "youtube") return "youtubeapi";
+            return "twitchapi";
+        }
     },
     components: {
         VodItem,

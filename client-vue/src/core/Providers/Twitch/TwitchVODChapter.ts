@@ -1,4 +1,4 @@
-import { ApiVodChapter } from "@common/Api/Client";
+import { ApiVodTwitchChapter } from "@common/Api/Client";
 import { BaseVODChapter } from "../Base/BaseVODChapter";
 import { TwitchGame } from "./TwitchGame";
 
@@ -16,7 +16,7 @@ export class TwitchVODChapter extends BaseVODChapter {
      */
     // public viewer_count?: number;
 
-    public static makeFromApiResponse(apiResponse: ApiVodChapter): TwitchVODChapter {
+    public static makeFromApiResponse(apiResponse: ApiVodTwitchChapter): TwitchVODChapter {
         const chapter = new TwitchVODChapter();
         chapter.started_at = new Date(apiResponse.started_at);
         chapter.offset = apiResponse.offset;

@@ -82,7 +82,7 @@ import { faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faSt
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import SideMenuStreamer from "./SideMenuStreamer.vue";
 
-import { useStore } from "@/store";
+import { ChannelTypes, useStore } from "@/store";
 import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
 
 library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faArchive, faSignInAlt);
@@ -152,7 +152,7 @@ export default defineComponent({
         },
     },
     computed: {
-        sortedStreamers(): TwitchChannel[] {
+        sortedStreamers(): ChannelTypes[] {
             const streamers = [...this.store.streamerList];
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
         },

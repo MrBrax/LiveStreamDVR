@@ -1,3 +1,8 @@
+import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
+import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
+import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
+import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
+import { ChannelTypes, VODTypes } from "@/store";
 import { format, formatDistance, formatDistanceToNow, parseISO, parseJSON } from "date-fns";
 // const dateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000
 
@@ -146,6 +151,18 @@ export default {
             const seconds = Math.floor(duration_seconds - (hours * 60 * 60) - (minutes * 60));
             return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
         },
+        isTwitch(vod: ChannelTypes): vod is TwitchChannel {
+            return vod instanceof TwitchChannel;
+        },
+        isYouTube(vod: ChannelTypes): vod is YouTubeChannel {
+            return vod instanceof YouTubeChannel;
+        },
+        isTwitchVOD(vod: VODTypes): vod is TwitchVOD {
+            return vod instanceof TwitchVOD;
+        },
+        isYouTubeVOD(vod: VODTypes): vod is YouTubeVOD {
+            return vod instanceof YouTubeVOD;
+        }
     },
 };
 
@@ -165,5 +182,9 @@ declare module "@vue/runtime-core" {
         // sortObject: (game: Record<string, any>, value: string) => any;
         prefersReducedMotion: () => boolean;
         formatDuration: (duration_seconds: number) => string;
+        isTwitch: (channel: ChannelTypes) => boolean;
+        isYouTube: (channel: ChannelTypes) => boolean;
+        isTwitchVOD: (vod: VODTypes) => boolean;
+        isYouTubeVOD: (vod: VODTypes) => boolean;
     }
 }

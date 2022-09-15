@@ -9,9 +9,12 @@ import { defaultConfig } from "@/defs";
 import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
 import BaseChannel from "@/core/Providers/Base/BaseChannel";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
+import { TwitchVODChapter } from "@/core/Providers/Twitch/TwitchVODChapter";
+import { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
 
 export type ChannelTypes = TwitchChannel | YouTubeChannel;
 export type VODTypes = TwitchVOD | YouTubeVOD;
+export type ChapterTypes = TwitchVODChapter | BaseVODChapter;
 
 interface StoreType {
     app_name: string;
@@ -290,6 +293,7 @@ export const useStore = defineStore("twitchAutomator", {
             const streamer_data = await this.fetchStreamer(login);
             if (!streamer_data) return false;
 
+            /*
             const index = this.streamerList.findIndex((s) => s.login === login);
             if (index === -1) return false;
 
@@ -298,9 +302,23 @@ export const useStore = defineStore("twitchAutomator", {
             this.updateStreamer(streamer);
             console.debug("updated streamer", streamer);
             return true;
+            */
+
+            if (streamer_data.provider == "twitch") {
+                const index = this.streamerList.findIndex((s) => s instanceof TwitchChannel && s.userid === streamer_data.userid);
+                if (index === -1) return false;
+                const streamer = TwitchChannel.makeFromApiResponse(streamer_data);
+                return this.updateStreamer(streamer);
+            } else if (streamer_data.provider == "youtube") {
+                const index = this.streamerList.findIndex((s) => s instanceof YouTubeChannel && s.channel_id === streamer_data.channel_id);
+                if (index === -1) return false;
+                const streamer = YouTubeChannel.makeFromApiResponse(streamer_data);
+                return this.updateStreamer(streamer);
+            }
+            return false;
         },
-        updateStreamer(streamer: TwitchChannel): boolean {
-            const index = this.streamerList.findIndex((s) => s.login === streamer.login);
+        updateStreamer(streamer: ChannelTypes): boolean {
+            const index = this.streamerList.findIndex((s) => s.uuid === streamer.uuid);
 
             console.debug("updateStreamer", streamer.login, index);
 
@@ -312,16 +330,27 @@ export const useStore = defineStore("twitchAutomator", {
 
             return true;
         },
-        updateStreamerFromData(streamer_data: ApiTwitchChannel): boolean {
-            const streamer = TwitchChannel.makeFromApiResponse(streamer_data);
+        updateStreamerFromData(streamer_data: ApiChannels): boolean {
+            let streamer;
+            if (streamer_data.provider == "youtube") {
+                streamer = YouTubeChannel.makeFromApiResponse(streamer_data);
+            } else {
+                streamer = TwitchChannel.makeFromApiResponse(streamer_data);
+            }
             return this.updateStreamer(streamer);
         },
-        updateStreamerList(data: ApiTwitchChannel[]): void {
+        updateStreamerList(data: ApiChannels[]): void {
             // console.debug("updateStreamerList", data);
             if (!data || typeof data !== "object") {
                 console.warn("updateStreamerList malformed data", typeof data, data);
             }
-            const channels = data.map((channel) => TwitchChannel.makeFromApiResponse(channel));
+            const channels = data.map((channel) => {
+                if (channel.provider == "youtube") {
+                    return YouTubeChannel.makeFromApiResponse(channel);
+                } else {
+                    return TwitchChannel.makeFromApiResponse(channel);
+                }
+            });
             this.streamerList = channels;
             this.streamerListLoaded = true;
         },

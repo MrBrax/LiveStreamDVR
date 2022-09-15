@@ -226,11 +226,13 @@ export class YouTubeVOD extends BaseVOD {
         if (!videosResponse.data) return false;
         if (!videosResponse.data.items || videosResponse.data.items.length == 0) return false;
 
-        const durations: Record<string, number> = {};
+        const details: Record<string, youtube_v3.Schema$VideoContentDetails> = {};
         videosResponse.data.items.forEach((item) => {
-            if (!item.id) return;
-            durations[item.id] = item.contentDetails?.duration ? Helper.parseYouTubeDuration(item.contentDetails?.duration) : -1;
+            if (!item.id || !item.contentDetails) return;
+            details[item.id] = item.contentDetails;
         });
+
+        // durations[item.id] = item.contentDetails?.duration ? Helper.parseYouTubeDuration(item.contentDetails?.duration) : -1;
 
         return searchResponse.data.items.map(item => {
             return {
@@ -240,7 +242,8 @@ export class YouTubeVOD extends BaseVOD {
                 url: `https://www.youtube.com/watch?v=${item.id?.videoId}`,
                 thumbnail: item.snippet?.thumbnails?.default?.url,
                 created_at: item.snippet?.publishedAt,
-                duration: item.id?.videoId ? durations[item.id?.videoId] : -1,
+                duration: item.id?.videoId ? Helper.parseYouTubeDuration(details[item.id?.videoId].duration || "") : -1,
+                view_count: -1, // what
             } as ProxyVideo;
         });
 

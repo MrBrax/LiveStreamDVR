@@ -2357,6 +2357,8 @@ export class TwitchVOD extends BaseVOD {
                 thumbnail: item.thumbnail_url,
                 created_at: item.created_at,
                 duration: Helper.parseTwitchDuration(item.duration),
+                view_count: item.view_count,
+                muted_segments: item.muted_segments,
             } as ProxyVideo;
         });
     }

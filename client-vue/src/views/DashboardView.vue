@@ -60,7 +60,7 @@
 import { defineComponent, ref } from "vue";
 import Streamer from "@/components/StreamerItem.vue";
 import type { ApiTwitchChannel } from "@common/Api/Client";
-import { useStore } from "@/store";
+import { ChannelTypes, useStore } from "@/store";
 import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
 import LogViewer from "@/components/LogViewer.vue";
 
@@ -134,11 +134,11 @@ export default defineComponent({
         },
     },
     computed: {
-        sortedStreamers(): TwitchChannel[] {
-            const streamers: TwitchChannel[] = [...this.store.streamerList];
+        sortedStreamers(): ChannelTypes[] {
+            const streamers: ChannelTypes[] = [...this.store.streamerList];
             return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
         },
-        singleStreamer(): TwitchChannel | undefined {
+        singleStreamer(): ChannelTypes | undefined {
             if (!this.store.streamerList) return undefined;
 
             const current = this.$route.query.channel as string;

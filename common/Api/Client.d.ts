@@ -131,7 +131,7 @@ export interface ApiTwitchVod extends ApiBaseVod {
     // video_metadata: MediaInfo;
     // video_metadata_public?: MediaInfoPublic;
 
-    chapters: ApiVodBaseChapter[];
+    chapters: ApiVodTwitchChapter[];
 
     bookmarks: TwitchVODBookmark[];
 
@@ -158,6 +158,7 @@ export type ApiSettingsField = {
 };
 
 export interface ApiBaseChannel {
+    uuid: string;
     provider: Providers;
     description: string;
     vods_raw: string[];

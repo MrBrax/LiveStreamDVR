@@ -9,6 +9,7 @@ import BaseChannel from "../Base/BaseChannel";
 import YouTubeVOD from "./YouTubeVOD";
 
 export default class YouTubeChannel extends BaseChannel {
+    uuid = "";
     readonly provider = "youtube";
     channel_id = "";
     display_name = "";
@@ -29,6 +30,7 @@ export default class YouTubeChannel extends BaseChannel {
     public static makeFromApiResponse(apiResponse: ApiYouTubeChannel): YouTubeChannel {
         const channel = new YouTubeChannel();
         // channel.provider = apiResponse.provider;
+        channel.uuid = apiResponse.uuid;
         channel.channel_id = apiResponse.channel_id;
         channel.display_name = apiResponse.display_name;
         // channel.login = apiResponse.login;

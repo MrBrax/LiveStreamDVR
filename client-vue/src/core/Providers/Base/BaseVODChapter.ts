@@ -1,4 +1,4 @@
-import { ApiVodChapter } from "@common/Api/Client";
+import { ApiVodBaseChapter } from "@common/Api/Client";
 
 export class BaseVODChapter {
     // public raw_chapter: TwitchVODChapterJSON | undefined;
@@ -29,7 +29,7 @@ export class BaseVODChapter {
      */
     public online = false;
 
-    public static makeFromApiResponse(apiResponse: ApiVodChapter): BaseVODChapter {
+    public static makeFromApiResponse(apiResponse: ApiVodBaseChapter): BaseVODChapter {
         const chapter = new BaseVODChapter();
         chapter.started_at = new Date(apiResponse.started_at);
         chapter.offset = apiResponse.offset;
@@ -38,7 +38,7 @@ export class BaseVODChapter {
         // chapter.game_id = apiResponse.game_id;
         chapter.title = apiResponse.title;
         // chapter.is_mature = apiResponse.is_mature;
-        chapter.viewer_count = apiResponse.viewer_count;
+        // chapter.viewer_count = apiResponse.viewer_count;
         // chapter.game = apiResponse.game ? TwitchGame.makeFromApiResponse(apiResponse.game) : undefined;
         // chapter.online = apiResponse.online;
         return chapter;

@@ -1,4 +1,4 @@
-import { ApiTwitchChannel, ApiGame, ApiVod, ApiVodChapter, ApiVodSegment } from "@common/Api/Client";
+import { ApiTwitchChannel, ApiGame, ApiVodSegment, ApiTwitchVod, ApiVodTwitchChapter } from "@common/Api/Client";
 import { UserData } from "@common/User";
 import { JobStatus } from "@common/Defs";
 
@@ -51,6 +51,7 @@ export const TwitchChannelData: UserData = {
 };
 
 export const MockApiChannelData: ApiTwitchChannel = {
+    uuid: "uuid",
     userid: "123",
     display_name: "test",
     login: "test",
@@ -85,7 +86,7 @@ export const MockApiChannelData: ApiTwitchChannel = {
     provider: "twitch"
 };
 
-export const MockApiVODData: ApiVod = {
+export const MockApiVODData: ApiTwitchVod = {
     basename: "",
     stream_title: "",
     segments: [],
@@ -129,9 +130,10 @@ export const MockApiVODData: ApiVod = {
     webpath: "",
     prevent_deletion: false,
     bookmarks: [],
+    provider: "twitch"
 };
 
-export const MockApiChapterData: ApiVodChapter = {
+export const MockApiChapterData: ApiVodTwitchChapter = {
     title: "",
     // strings: {},
     duration: 0,
