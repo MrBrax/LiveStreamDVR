@@ -127,10 +127,9 @@ export const useStore = defineStore("twitchAutomator", {
                             return TwitchChannel.makeFromApiResponse(channel);
                         case "youtube":
                             return YouTubeChannel.makeFromApiResponse(channel);
-                        
                     }
                 }).filter(c => c !== undefined);
-                
+
                 this.streamerList = channels;
                 this.streamerListLoaded = true;
                 this.diskFreeSize = data.free_size;
@@ -262,11 +261,11 @@ export const useStore = defineStore("twitchAutomator", {
                 });
             });
         },
-        async fetchStreamer(login: string): Promise<false | ApiChannels> {
+        async fetchStreamer(uuid: string): Promise<false | ApiChannels> {
             this.loading = true;
             let response;
             try {
-                response = await axios.get(`/api/v0/channels/${login}`);
+                response = await axios.get(`/api/v0/channels/${uuid}`);
             } catch (error) {
                 console.error("fetchStreamer error", error);
                 this.loading = false;
@@ -289,8 +288,8 @@ export const useStore = defineStore("twitchAutomator", {
             this.loading = true;
             return streamer;
         },
-        async fetchAndUpdateStreamer(login: string): Promise<boolean> {
-            const streamer_data = await this.fetchStreamer(login);
+        async fetchAndUpdateStreamer(uuid: string): Promise<boolean> {
+            const streamer_data = await this.fetchStreamer(uuid);
             if (!streamer_data) return false;
 
             /*

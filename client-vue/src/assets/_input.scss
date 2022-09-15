@@ -33,6 +33,13 @@
         outline: none;
     }
 
+    &:read-only {
+        background-color: var(--input-readonly-background-color);
+        &:hover {
+            border-color: var(--input-border-color);
+        }
+    }
+
     &[type="text"],
     &[type="number"],
     &[type="password"] {

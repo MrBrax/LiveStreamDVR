@@ -32,10 +32,11 @@ export default class TwitchVOD extends BaseVOD {
     streamer_login = "";
     streamer_id = "";
 
-    
+
     public static makeFromApiResponse(apiResponse: ApiTwitchVod): TwitchVOD {
         const vod = new TwitchVOD();
         vod.uuid = apiResponse.uuid;
+        vod.channel_uuid = apiResponse.channel_uuid;
         vod.basename = apiResponse.basename;
         vod.is_capturing = apiResponse.is_capturing;
         vod.is_converting = apiResponse.is_converting;

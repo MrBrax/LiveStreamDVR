@@ -65,8 +65,6 @@ export default class BaseChannel {
     //     return this.current_vod != undefined && this.current_vod.is_capturing;
     // }
 
-    
-
     get current_chapter(): BaseVODChapter | undefined {
         return this.current_vod?.current_chapter;
     }

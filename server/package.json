@@ -10,7 +10,7 @@
     "start:dev": "nodemon src/index.ts",
     "start": "node --enable-source-maps build/server.js",
     "build:ts": "tsc --project tsconfig.json",
-    "build": "esbuild ./src/index.ts --bundle --platform=node --target=node14 --sourcemap --outfile=./build/server.js"
+    "build": "tsc -noEmit && esbuild ./src/index.ts --bundle --platform=node --target=node14 --sourcemap --outfile=./build/server.js"
   },
   "author": "",
   "license": "ISC",

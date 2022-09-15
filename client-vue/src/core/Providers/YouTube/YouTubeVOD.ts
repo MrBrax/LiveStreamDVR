@@ -19,6 +19,7 @@ export default class YouTubeVOD extends BaseVOD {
     public static makeFromApiResponse(apiResponse: ApiYouTubeVod): YouTubeVOD {
         const vod = new YouTubeVOD();
         vod.uuid = apiResponse.uuid;
+        vod.channel_uuid = apiResponse.channel_uuid;
         vod.basename = apiResponse.basename;
         vod.is_capturing = apiResponse.is_capturing;
         vod.is_converting = apiResponse.is_converting;

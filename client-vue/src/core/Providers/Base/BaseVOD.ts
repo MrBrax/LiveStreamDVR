@@ -5,7 +5,8 @@ import { BaseVODSegment } from "./BaseVODSegment";
 
 export default class BaseVOD {
     provider: Providers = "base";
-    uuid? = "";
+    uuid = "";
+    channel_uuid = "";
     basename = "";
     is_capturing = false;
     is_converting = false;

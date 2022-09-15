@@ -18,11 +18,11 @@
         }"
     -->
         <router-link
-            :to="store.clientCfg('singlePage') ? { name: 'Dashboard', query: { channel: streamer.login } } : { name: 'Dashboard', hash: '#streamer_' + streamer.login }"
+            :to="store.clientCfg('singlePage') ? { name: 'Dashboard', query: { channel: streamer.uuid } } : { name: 'Dashboard', hash: '#streamer_' + streamer.uuid }"
             class="streamer-link"
         >
-            <span class="avatar" @click.prevent="streamer && store.fetchAndUpdateStreamer(streamer.login)" aria-label="Streamer Avatar">
-                <img :src="avatarUrl" :alt="streamer.login" />
+            <span class="avatar" @click.prevent="streamer && store.fetchAndUpdateStreamer(streamer.uuid)" aria-label="Streamer Avatar">
+                <img :src="avatarUrl" :alt="streamer.internalName" />
             </span>
             <span class="username">
                 {{ streamer.displayName }}
@@ -83,8 +83,8 @@
                 <router-link
                     :to="
                         store.clientCfg('singlePage')
-                            ? { name: 'Dashboard', query: { channel: streamer.login }, hash: '#vod_' + vod.basename }
-                            : { name: 'Dashboard', hash: '#vod_' + vod.basename }
+                            ? { name: 'Dashboard', query: { channel: streamer.uuid }, hash: '#vod_' + vod.uuid }
+                            : { name: 'Dashboard', hash: '#vod_' + vod.uuid }
                     "
                     :class="{
                         'is-active': store.visibleVod == vod.basename,

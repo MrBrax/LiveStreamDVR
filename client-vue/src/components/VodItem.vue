@@ -11,7 +11,7 @@
             'is-favourite': vod.provider == 'twitch' && vod.hasFavouriteGame(),
         }"
     >
-        <div :id="'vod_' + vod.basename" class="anchor"></div>
+        <div :id="'vod_' + vod.uuid" class="anchor"></div>
 
         <!-- title -->
         <div class="video-title" @click="minimized = !minimized">
@@ -1526,7 +1526,7 @@ export default defineComponent({
                     console.log(json);
                     this.taskStatus.delete = false;
                     this.$emit("refresh");
-                    if (this.vod && this.vod instanceof TwitchVOD) this.store.fetchAndUpdateStreamer(this.vod.streamer_login);
+                    if (this.vod && this.vod instanceof TwitchVOD) this.store.fetchAndUpdateStreamer(this.vod.channel_uuid);
                 })
                 .catch((err) => {
                     console.error("form error", err.response);

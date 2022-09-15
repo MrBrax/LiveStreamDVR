@@ -172,7 +172,8 @@
       "download_vod_at_end_quality_help": "Use 'best' if unsure.",
       "quality-help-check": "It is recommended to place \"best\" or \"worst\" at the end to make the stream capture just in case.",
       "provider": "Provider",
-      "id": "ID"
+      "id": "ID",
+      "uuid": "UUID"
     },
     "config": {
       "validate-external-url": "Validate external URL"

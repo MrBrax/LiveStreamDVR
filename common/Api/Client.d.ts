@@ -260,6 +260,7 @@ export type ApiSubscription = {
 
 export type ApiChannelConfig = {
     provider: Providers;
+    uuid: string;
     login?: string;
     channel_id?: string;
     match: string[];

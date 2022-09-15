@@ -1,13 +1,40 @@
 <template>
-    <div :id="'channelupdate_' + channel.login">
+    <div :id="'channelupdate_' + channel.uuid">
         <form @submit.prevent="submitForm">
+
             <div class="field">
-                <label class="label" :for="`input_${channel.login}_quality`">{{ $t('forms.channel.quality') }} <span class="required">*</span></label>
+                <label class="label">{{ $t('forms.channel.provider') }}</label>
                 <div class="control">
                     <input
                         class="input input-required"
                         type="text"
-                        :id="`input_${channel.login}_quality`"
+                        :value="channel.provider"
+                        disabled
+                        readonly
+                    />
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="label">{{ $t('forms.channel.uuid') }}</label>
+                <div class="control">
+                    <input
+                        class="input input-required"
+                        type="text"
+                        :value="channel.uuid"
+                        disabled
+                        readonly
+                    />
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="label" :for="`input_${channel.uuid}_quality`">{{ $t('forms.channel.quality') }} <span class="required">*</span></label>
+                <div class="control">
+                    <input
+                        class="input input-required"
+                        type="text"
+                        :id="`input_${channel.uuid}_quality`"
                         v-model="formData.quality"
                         required
                         ref="quality"
@@ -23,12 +50,12 @@
             </div>
 
             <div class="field">
-                <label class="label" :for="`input_${channel.login}_match`">{{ $t('forms.channel.match-keywords') }}</label>
+                <label class="label" :for="`input_${channel.uuid}_match`">{{ $t('forms.channel.match-keywords') }}</label>
                 <div class="control">
                     <input
                         class="input"
                         type="text"
-                        :id="`input_${channel.login}_match`"
+                        :id="`input_${channel.uuid}_match`"
                         name="match"
                         v-model="formData.match"
                     />
@@ -133,7 +160,6 @@
                 </div>
                 <p class="input-help">{{ $t('forms.channel.download_vod_at_end_quality_help') }}</p>
             </div>
-            
 
             <div class="field form-submit">
                 <div class="control">
@@ -218,7 +244,7 @@ export default defineComponent({
             this.formStatus = "";
 
             this.$http
-                .put(`/api/v0/channels/${this.channel.login}`, this.formData)
+                .put(`/api/v0/channels/${this.channel.uuid}`, this.formData)
                 .then((response) => {
                     const json = response.data;
                     this.formStatusText = json.message;
@@ -250,7 +276,7 @@ export default defineComponent({
             );
 
             this.$http
-                .delete(`/api/v0/channels/${this.channel.login}`,
+                .delete(`/api/v0/channels/${this.channel.uuid}`,
                     {
                         params: {
                             deletevods: deleteVodsToo ? "1" : "0",
@@ -278,7 +304,7 @@ export default defineComponent({
             }
 
             this.$http
-                .post(`/api/v0/channels/${this.channel.login}/subscribe`)
+                .post(`/api/v0/channels/${this.channel.uuid}/subscribe`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);
@@ -314,7 +340,7 @@ export default defineComponent({
             const newLogin = prompt("Enter new channel login. If channel has not changed login, this will fail in the future.\n", this.channel.login);
             if (!newLogin || newLogin == this.channel.login) return;
             this.$http
-                .post(`/api/v0/channels/${this.channel.login}/rename`, {
+                .post(`/api/v0/channels/${this.channel.uuid}/rename`, {
                     new_login: newLogin,
                 })
                 .then((response) => {
@@ -332,9 +358,9 @@ export default defineComponent({
                 });
         },
         deleteAllVods() {
-            if (!confirm(`Do you want to delete all VODs for "${this.channel.login}"? This cannot be undone.`)) return;
+            if (!confirm(`Do you want to delete all VODs for "${this.channel.uuid}"? This cannot be undone.`)) return;
             this.$http
-                .post(`/api/v0/channels/${this.channel.login}/deleteallvods`)
+                .post(`/api/v0/channels/${this.channel.uuid}/deleteallvods`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);
