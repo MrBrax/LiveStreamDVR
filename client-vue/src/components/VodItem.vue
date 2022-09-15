@@ -348,7 +348,7 @@
                     </span>
                 </button>
                 <!-- Editor -->
-                <router-link v-if="vod.video_metadata && vod.video_metadata.type !== 'audio'" class="button is-blue" :to="{ name: 'Editor', params: { vod: vod?.basename } }">
+                <router-link v-if="vod.video_metadata && vod.video_metadata.type !== 'audio'" class="button is-blue" :to="{ name: 'Editor', params: { uuid: vod?.uuid } }">
                     <span class="icon"><fa icon="cut" type="fa"></fa></span>
                     <span>{{ $t('vod.controls.editor') }}</span>
                 </router-link>
@@ -495,7 +495,7 @@
                             vod.getRecordingSize() ? formatBytes(vod.getRecordingSize() as number) : "unknown"
                         }}</strong
                         >)
-                        <span class="icon clickable" title="Refresh" @click="vod && store.fetchAndUpdateVod(vod.basename)"><fa icon="sync"></fa></span>
+                        <span class="icon clickable" title="Refresh" @click="vod && store.fetchAndUpdateVod(vod.uuid)"><fa icon="sync"></fa></span>
                     </em>
 
                     <br />
@@ -629,7 +629,7 @@
                                             title="Open in editor"
                                             :to="{
                                                 name: 'Editor',
-                                                params: { vod: vod.basename },
+                                                params: { uuid: vod.uuid },
                                                 query: { start: chapter.offset, end: (chapter.offset || 0) + (chapter.duration || 0), chapter: chapterIndex },
                                             }"
                                         >
@@ -1418,10 +1418,11 @@ export default defineComponent({
     },
     methods: {
         doArchive() {
+            if (!this.vod) return;
             if (!confirm(`Do you want to archive "${this.vod?.basename}"?`)) return;
             this.taskStatus.archive = true;
             this.$http
-                .post(`/api/v0/vod/${this.vod?.basename}/save`)
+                .post(`/api/v0/vod/${this.vod.uuid}/save`)
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
@@ -1436,17 +1437,18 @@ export default defineComponent({
                 });
         },
         doDownloadChat(method = "tcd") {
-            if (!confirm(`Do you want to download the chat for "${this.vod?.basename}" with ${method}?`)) return;
+            if (!this.vod) return;
+            if (!confirm(`Do you want to download the chat for "${this.vod.basename}" with ${method}?`)) return;
             this.taskStatus.downloadChat = true;
             this.$http
-                .post(`/api/v0/vod/${this.vod?.basename}/download_chat?method=${method}`)
+                .post(`/api/v0/vod/${this.vod.uuid}/download_chat?method=${method}`)
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
                     console.log(json);
                     this.taskStatus.downloadChat = false;
                     this.$emit("refresh");
-                    if (this.vod) this.store.fetchAndUpdateVod(this.vod.basename);
+                    if (this.vod) this.store.fetchAndUpdateVod(this.vod.uuid);
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
@@ -1459,6 +1461,7 @@ export default defineComponent({
         //     alert(`RenderChat not implemented: ${useVod}`);
         // },
         doDownloadVod() {
+            if (!this.vod) return;
             if (!VideoQualityArray.includes(this.vodDownloadSettings.quality)) {
                 alert(`Invalid quality: ${this.vodDownloadSettings.quality}`);
                 return;
@@ -1466,7 +1469,7 @@ export default defineComponent({
 
             this.taskStatus.downloadVod = true;
             this.$http
-                .post(`/api/v0/vod/${this.vod?.basename}/download?quality=${this.vodDownloadSettings.quality}`)
+                .post(`/api/v0/vod/${this.vod.uuid}/download?quality=${this.vodDownloadSettings.quality}`)
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
@@ -1481,9 +1484,10 @@ export default defineComponent({
                 });
         },
         doCheckMute() {
+            if (!this.vod) return;
             this.taskStatus.vodMuteCheck = true;
             this.$http
-                .post(`/api/v0/vod/${this.vod?.basename}/check_mute`)
+                .post(`/api/v0/vod/${this.vod.uuid}/check_mute`)
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
@@ -1518,7 +1522,7 @@ export default defineComponent({
             if (this.isTwitchVOD(this.vod) && this.vod.twitch_vod_exists === false && !confirm(`The VOD "${this.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
             this.taskStatus.delete = true;
             this.$http
-                .delete(`/api/v0/vod/${this.vod?.basename}`)
+                .delete(`/api/v0/vod/${this.vod.uuid}`)
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
@@ -1534,10 +1538,11 @@ export default defineComponent({
                 });
         },
         doRenderWizard() {
+            if (!this.vod) return;
             this.burnLoading = true;
             console.debug("doRenderWizard", this.burnSettings);
             this.$http
-                .post(`/api/v0/vod/${this.vod?.basename}/renderwizard`, this.burnSettings)
+                .post(`/api/v0/vod/${this.vod.uuid}/renderwizard`, this.burnSettings)
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
@@ -1553,9 +1558,10 @@ export default defineComponent({
                 });
         },
         doFixIssues() {
+            if (!this.vod) return;
             this.taskStatus.fixIssues = true;
             this.$http
-                .post(`/api/v0/vod/${this.vod?.basename}/fix_issues`)
+                .post(`/api/v0/vod/${this.vod.uuid}/fix_issues`)
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
@@ -1570,10 +1576,11 @@ export default defineComponent({
                 });
         },
         unbreak() {
+            if (!this.vod) return;
             // this.burnLoading = true;
             console.debug("doUnbreak", this.vod);
             this.$http
-                .post(`/api/v0/vod/${this.vod?.basename}/unbreak`)
+                .post(`/api/v0/vod/${this.vod.uuid}/unbreak`)
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
@@ -1622,7 +1629,7 @@ export default defineComponent({
         matchVod() {
             if (!this.vod) return;
             this.$http
-                .post(`/api/v0/vod/${this.vod.basename}/match`)
+                .post(`/api/v0/vod/${this.vod.uuid}/match`)
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
@@ -1660,12 +1667,12 @@ export default defineComponent({
 
         },
         doEditVod() {
-            
-            this.$http.post(`/api/v0/vod/${this.vod?.basename}`, this.editVodSettings).then((response) => {
+            if (!this.vod) return;
+            this.$http.post(`/api/v0/vod/${this.vod.uuid}`, this.editVodSettings).then((response) => {
                 const json: ApiResponse = response.data;
                 if (json.message) alert(json.message);
                 console.log(json);
-                if (this.vod) this.store.fetchAndUpdateVod(this.vod.basename);
+                if (this.vod) this.store.fetchAndUpdateVod(this.vod.uuid);
                 if (this.editVodMenu) this.editVodMenu.show = false;
             }).catch((err) => {
                 console.error("form error", err.response);
@@ -1695,7 +1702,7 @@ export default defineComponent({
                 const json: ApiResponse = response.data;
                 if (json.message) alert(json.message);
                 console.log(json);
-                if (this.vod) this.store.fetchAndUpdateVod(this.vod.basename);
+                if (this.vod) this.store.fetchAndUpdateVod(this.vod.uuid);
                 if (this.editVodMenu) this.editVodMenu.show = false;
             }).catch((err) => {
                 console.error("form error", err.response);
@@ -1704,11 +1711,11 @@ export default defineComponent({
         },
         doMakeBookmark() {
             if (!this.vod) return;
-            this.$http.post(`/api/v0/vod/${this.vod.basename}/bookmark`, this.newBookmark).then((response) => {
+            this.$http.post(`/api/v0/vod/${this.vod.uuid}/bookmark`, this.newBookmark).then((response) => {
                 const json: ApiResponse = response.data;
                 if (json.message) alert(json.message);
                 console.log(json);
-                if (this.vod) this.store.fetchAndUpdateVod(this.vod.basename);
+                if (this.vod) this.store.fetchAndUpdateVod(this.vod.uuid);
                 // if (this.editVodMenu) this.editVodMenu.show = false;
             }).catch((err) => {
                 console.error("form error", err.response);
@@ -1717,11 +1724,11 @@ export default defineComponent({
         },
         doDeleteBookmark(i: number) {
             if (!this.vod) return;
-            this.$http.delete(`/api/v0/vod/${this.vod.basename}/bookmark?index=${i}`).then((response) => {
+            this.$http.delete(`/api/v0/vod/${this.vod.uuid}/bookmark?index=${i}`).then((response) => {
                 const json: ApiResponse = response.data;
                 if (json.message) alert(json.message);
                 console.log(json);
-                if (this.vod) this.store.fetchAndUpdateVod(this.vod.basename);
+                if (this.vod) this.store.fetchAndUpdateVod(this.vod.uuid);
                 // if (this.editVodMenu) this.editVodMenu.show = false;
             }).catch((err) => {
                 console.error("form error", err.response);
@@ -1739,7 +1746,8 @@ export default defineComponent({
             if (this.store.cfg("exporter.default.remote")) this.exportVodSettings.remote = this.store.cfg("exporter.default.remote");
         },
         doRenameVod() {
-            this.$http.post(`/api/v0/vod/${this.vod?.basename}/rename`, this.renameVodSettings).then((response) => {
+            if (!this.vod) return;
+            this.$http.post(`/api/v0/vod/${this.vod.uuid}/rename`, this.renameVodSettings).then((response) => {
                 const json: ApiResponse = response.data;
                 if (json.message) alert(json.message);
                 console.log(json);

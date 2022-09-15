@@ -4,7 +4,7 @@
             <video
                 id="video"
                 ref="player"
-                :src="vodData.webpath + '/' + vodData.basename + '.mp4'"
+                :src="videoSource"
                 @timeupdate="videoTimeUpdate"
                 width="1280"
                 @canplay="videoCanPlay"
@@ -74,6 +74,8 @@
                 </ul>
             </div>
 
+            <!--{{ videoSource }}-->
+
             <div class="videoplayer-form">
                 <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
 
@@ -142,12 +144,13 @@
 import { defineComponent } from "vue";
 import { TwitchVODChapter } from "@/core/Providers/Twitch/TwitchVODChapter";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
-import { useStore } from "@/store";
+import { useStore, VODTypes } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
 
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPause, faBookmark, faFastBackward, faFastForward } from "@fortawesome/free-solid-svg-icons";
+import { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
 library.add(faPause, faBookmark, faFastBackward, faFastForward);
 
 export default defineComponent({
@@ -159,7 +162,7 @@ export default defineComponent({
     },
     data() {
         return {
-            vodData: {} as TwitchVOD,
+            vodData: {} as VODTypes,
             secondsIn: 0,
             secondsOut: 0,
             currentVideoTime: 0,
@@ -173,14 +176,14 @@ export default defineComponent({
         this.fetchData();
     },
     props: {
-        vod: String,
+        uuid: String,
     },
     methods: {
         fetchData() {
             // this.vodData = [];
             /** TODO: axios */
             this.$http
-                .get(`/api/v0/vod/${this.vod}`)
+                .get(`/api/v0/vod/${this.uuid}`)
                 .then((response) => {
                     const json = response.data;
                     this.vodData = TwitchVOD.makeFromApiResponse(json.data);
@@ -252,7 +255,7 @@ export default defineComponent({
             };
 
             this.$http
-                .post(`/api/v0/vod/${this.vod}/cut`, inputs)
+                .post(`/api/v0/vod/${this.uuid}/cut`, inputs)
                 .then((response) => {
                     const json = response.data;
                     this.formStatusText = json.message;
@@ -271,7 +274,7 @@ export default defineComponent({
             event.preventDefault();
             return false;
         },
-        chapterWidth(chapter: TwitchVODChapter): number {
+        chapterWidth(chapter: BaseVODChapter): number {
             const player = this.$refs.player as HTMLVideoElement;
             if (!player) return 0;
             // const chapterOffset = chapter.offset || 0;
@@ -297,7 +300,7 @@ export default defineComponent({
                 const json: ApiResponse = response.data;
                 if (json.message) alert(json.message);
                 console.log(json);
-                if (this.vod) this.store.fetchAndUpdateVod(this.vodData.basename);
+                if (this.uuid) this.store.fetchAndUpdateVod(this.uuid);
                 // if (this.editVodMenu) this.editVodMenu.show = false;
             }).catch((err) => {
                 console.error("form error", err.response);
@@ -340,6 +343,9 @@ export default defineComponent({
             if (!original_size) return 0;
             return Math.round(original_size * (duration / this.videoDuration));
         },
+        videoSource(): string {
+            return `${this.vodData.webpath}/${this.vodData.basename}.mp4`
+        }
         // videoDuration(): number {
         //     const player = this.$refs.player as HTMLVideoElement;
         //     if (!player) return 0;

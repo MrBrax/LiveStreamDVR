@@ -157,11 +157,11 @@ export const useStore = defineStore("twitchAutomator", {
             this.loading = false;
             return data.data;
         },
-        async fetchVod(basename: string): Promise<false | ApiVods> {
+        async fetchVod(uuid: string): Promise<false | ApiVods> {
             this.loading = true;
             let response;
             try {
-                response = await axios.get(`/api/v0/vod/${basename}`);
+                response = await axios.get(`/api/v0/vod/${uuid}`);
             } catch (error) {
                 console.error("fetchVod error", error);
                 this.loading = false;
@@ -179,8 +179,8 @@ export const useStore = defineStore("twitchAutomator", {
             this.loading = false;
             return data.data;
         },
-        async fetchAndUpdateVod(basename: string): Promise<boolean> {
-            const vod_data = await this.fetchVod(basename);
+        async fetchAndUpdateVod(uuid: string): Promise<boolean> {
+            const vod_data = await this.fetchVod(uuid);
             if (!vod_data) return false;
 
             // check if streamer is already in the list
@@ -256,7 +256,7 @@ export const useStore = defineStore("twitchAutomator", {
                 streamer.vods_list.forEach((vod) => {
                     if (vod.is_capturing) {
                         // console.debug("updateCapturingVods", vod.basename);
-                        this.fetchAndUpdateVod(vod.basename);
+                        this.fetchAndUpdateVod(vod.uuid);
                     }
                 });
             });

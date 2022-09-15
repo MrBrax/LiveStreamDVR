@@ -13,6 +13,8 @@ import path from "path";
 import fs from "fs";
 import { BaseConfigDataFolder } from "../../../Core/BaseConfig";
 import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
+import { Helper } from "../../../Core/Helper";
+import { AudioMetadata, VideoMetadata } from "../../../../../common/MediaInfo";
 
 export class BaseChannel {
 
@@ -301,6 +303,61 @@ export class BaseChannel {
         LiveStreamDVR.getInstance().saveChannelsConfig();
 
         return LiveStreamDVR.getInstance().getChannelByUUID(uuid) == undefined;
+    }
+
+    public async findClips(): Promise<void> {
+        if (!this.internalName) return;
+        this.clips_list = [];
+
+        const clips_downloader_folder = path.join(BaseConfigDataFolder.saved_clips, "downloader", this.internalName);
+        const clips_downloader = fs.existsSync(clips_downloader_folder) ? fs.readdirSync(clips_downloader_folder).filter(f => f.endsWith(".mp4")).map(f => path.join(clips_downloader_folder, f)) : [];
+
+        const clips_scheduler_folder = path.join(BaseConfigDataFolder.saved_clips, "scheduler", this.internalName);
+        const clips_scheduler = fs.existsSync(clips_scheduler_folder) ? fs.readdirSync(clips_scheduler_folder).filter(f => f.endsWith(".mp4")).map(f => path.join(clips_scheduler_folder, f)) : [];
+
+        const clips_editor_folder = path.join(BaseConfigDataFolder.saved_clips, "editor", this.internalName);
+        const clips_editor = fs.existsSync(clips_editor_folder) ? fs.readdirSync(clips_editor_folder).filter(f => f.endsWith(".mp4")).map(f => path.join(clips_editor_folder, f)) : [];
+
+        const all_clips = clips_downloader.concat(clips_scheduler).concat(clips_editor);
+
+        for (const clip_path of all_clips) {
+
+            let video_metadata: VideoMetadata | AudioMetadata;
+
+            try {
+                video_metadata = await Helper.videometadata(clip_path);
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to get video metadata for clip ${clip_path}: ${(error as Error).message}`);
+                continue;
+            }
+
+            if (!video_metadata || video_metadata.type !== "video") continue;
+
+            let thumbnail;
+            try {
+                thumbnail = await Helper.thumbnail(clip_path, 240);
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to generate thumbnail for ${clip_path}: ${error}`);
+            }
+
+            const clip: LocalClip = {
+                folder: path.relative(BaseConfigDataFolder.saved_clips, path.dirname(clip_path)),
+                basename: path.basename(clip_path),
+                extension: path.extname(clip_path).substring(1),
+                channel: this.internalName,
+                duration: video_metadata.duration,
+                size: video_metadata.size,
+                video_metadata: video_metadata,
+                thumbnail: thumbnail || "dummy",
+            };
+
+            this.clips_list.push(clip);
+
+        }
+
+        // this.clips_list = all_clips.map(f => path.relative(BaseConfigDataFolder.saved_clips, f));
+        Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Found ${this.clips_list.length} clips for ${this.internalName}`);
+        this.broadcastUpdate();
     }
 
     public async unsubscribe(): Promise<boolean> {

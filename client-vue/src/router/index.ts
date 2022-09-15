@@ -13,7 +13,7 @@ const routes: Array<RouteRecordRaw> = [
         component: Dashboard,
     },
     {
-        path: "/vod/:vod/editor",
+        path: "/vod/:uuid/editor",
         name: "Editor",
         props: true,
         component: () => import(/* webpackChunkName: "editor" */ "../views/EditorView.vue"),

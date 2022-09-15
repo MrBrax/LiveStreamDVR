@@ -1550,69 +1550,28 @@ export class TwitchVOD extends BaseVOD {
         // console.log(`Stopped watching ${this.basename}`);
     }
 
-    public async changeBaseName(new_basename: string): Promise<boolean> {
-        if (this.basename == new_basename) return false;
-        const old_basename = this.basename;
-
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass.changeBaseName", `Changing basename from ${old_basename} to ${new_basename}`);
-
-        await this.stopWatching();
-
-        // copy array so it doesn't change during loop
-        const associatedFiles = [...this.associatedFiles];
-
-        for (const file of associatedFiles) {
-            if (this.segments_raw.map(s => path.basename(s)).includes(file)) {
-                Log.logAdvanced(LOGLEVEL.INFO, "vodclass.changeBaseName", `Skip over assoc '${file}' due to it being a segment!`);
-                continue;
-            }
-            const file_path = path.join(this.directory, path.basename(file));
-            if (fs.existsSync(file_path)) {
-                Log.logAdvanced(LOGLEVEL.INFO, "vodclass.changeBaseName", `Rename assoc '${file_path}' to '${file_path.replaceAll(old_basename, new_basename)}'`);
-                fs.renameSync(file_path, file_path.replaceAll(old_basename, new_basename));
-            } else {
-                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass.changeBaseName", `File assoc '${file_path}' not found!`);
-            }
-        }
-
-        const new_segments = [];
-        for (const segment of this.segments_raw) {
-            const file_path = path.join(this.directory, path.basename(segment));
-            if (fs.existsSync(file_path)) {
-                Log.logAdvanced(LOGLEVEL.INFO, "vodclass.changeBaseName", `Rename segment '${file_path}' to '${file_path.replaceAll(old_basename, new_basename)}'`);
-                fs.renameSync(file_path, file_path.replaceAll(old_basename, new_basename));
-                new_segments.push(path.basename(file_path.replaceAll(old_basename, new_basename)));
-            } else {
-                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass.changeBaseName", `Segment '${file_path}' not found!`);
-            }
-        }
-
-        this.basename = new_basename;
-        this.filename = this.filename.replaceAll(old_basename, new_basename);
-        this.setupFiles();
-        this.segments_raw = new_segments;
-        this.parseSegments(this.segments_raw);
-        await this.saveJSON("basename rename");
-        // this.rebuildSegmentList();
-        await this.startWatching();
-        return true;
-    }
+    
 
     /**
      * Get the channel of the vod
      * 
      * @returns Channel
      */
-    public getChannel(): TwitchChannel | undefined {
-        return TwitchChannel.getChannelByLogin(this.streamer_login);
+    public getChannel(): TwitchChannel {
+        if (!this.channel_uuid) throw new Error("No UUID set!?");
+        // return TwitchChannel.getChannelByLogin(this.streamer_login);
+        const channel = LiveStreamDVR.getInstance().getChannelByUUID(this.channel_uuid);
+        if (!channel) throw new Error("No channel found");
+        if (!(channel instanceof TwitchChannel)) throw new TypeError("Wrong type for channel");
+        return channel;
     }
 
-    public downloadChat(method: "td" | "tcd" = "td"): Promise<boolean> {
+    public async downloadChat(method: "td" | "tcd" = "td"): Promise<boolean> {
         // since tcd does not work anymore, twitchdownloadercli is used instead
         if (!this.twitch_vod_id) {
             throw new Error("No twitch_vod_id for chat download");
         }
-        return TwitchVOD.downloadChat(method, this.twitch_vod_id, this.path_chat);
+        return await TwitchVOD.downloadChat(method, this.twitch_vod_id, this.path_chat);
     }
 
 

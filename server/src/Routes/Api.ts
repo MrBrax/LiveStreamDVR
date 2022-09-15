@@ -49,22 +49,22 @@ router.post("/channels/:uuid/deleteallvods", AuthAdmin, Channels.DeleteAllChanne
 router.get("/channels/:uuid/history", AuthGuest, Channels.GetHistory);
 router.post("/channels/:uuid/scan", AuthGuest, Channels.ScanVods);
 
-router.get("/vod/:basename", AuthGuest, Vod.GetVod);
-router.post("/vod/:basename", AuthAdmin, Vod.EditVod);
-router.delete("/vod/:basename", AuthAdmin, Vod.DeleteVod);
-router.post("/vod/:basename/archive", AuthAdmin, Vod.ArchiveVod);
-router.post("/vod/:basename/renderwizard", AuthAdmin, Vod.RenderWizard);
-router.post("/vod/:basename/download_chat", AuthAdmin, Vod.DownloadChat);
-router.post("/vod/:basename/download", AuthAdmin, Vod.DownloadVod);
-router.post("/vod/:basename/check_mute", AuthAdmin, Vod.CheckMute);
-router.post("/vod/:basename/match", AuthAdmin, Vod.MatchVod);
-router.post("/vod/:basename/cut", AuthAdmin, Vod.CutVod);
-router.post("/vod/:basename/save", AuthAdmin, Vod.ArchiveVod);
-// router.post("/vod/:basename/export", AuthAdmin, Vod.ExportVod);
-router.post("/vod/:basename/bookmark", AuthAdmin, Vod.AddBookmark);
-router.delete("/vod/:basename/bookmark", AuthAdmin, Vod.RemoveBookmark);
-router.get("/vod/:basename/sync", AuthAdmin, Vod.GetSync);
-router.post("/vod/:basename/rename", AuthAdmin, Vod.RenameVod);
+router.get("/vod/:uuid", AuthGuest, Vod.GetVod);
+router.post("/vod/:uuid", AuthAdmin, Vod.EditVod);
+router.delete("/vod/:uuid", AuthAdmin, Vod.DeleteVod);
+router.post("/vod/:uuid/archive", AuthAdmin, Vod.ArchiveVod);
+router.post("/vod/:uuid/renderwizard", AuthAdmin, Vod.RenderWizard);
+router.post("/vod/:uuid/download_chat", AuthAdmin, Vod.DownloadChat);
+router.post("/vod/:uuid/download", AuthAdmin, Vod.DownloadVod);
+router.post("/vod/:uuid/check_mute", AuthAdmin, Vod.CheckMute);
+router.post("/vod/:uuid/match", AuthAdmin, Vod.MatchVod);
+router.post("/vod/:uuid/cut", AuthAdmin, Vod.CutVod);
+router.post("/vod/:uuid/save", AuthAdmin, Vod.ArchiveVod);
+// router.post("/vod/:uuid/export", AuthAdmin, Vod.ExportVod);
+router.post("/vod/:uuid/bookmark", AuthAdmin, Vod.AddBookmark);
+router.delete("/vod/:uuid/bookmark", AuthAdmin, Vod.RemoveBookmark);
+router.get("/vod/:uuid/sync", AuthAdmin, Vod.GetSync);
+router.post("/vod/:uuid/rename", AuthAdmin, Vod.RenameVod);
 
 router.get("/games", AuthGuest, Games.ListGames);
 

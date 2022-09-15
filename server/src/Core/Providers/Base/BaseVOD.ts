@@ -6,6 +6,7 @@ import path from "path";
 import { BaseVODChapterJSON, VODJSON } from "Storage/JSON";
 import { ApiBaseVod } from "../../../../../common/Api/Client";
 import { VideoQuality } from "../../../../../common/Config";
+import { MuteStatus } from "../../../../../common/Defs";
 import { AudioMetadata, VideoMetadata } from "../../../../../common/MediaInfo";
 import { VodUpdated } from "../../../../../common/Webhook";
 import { BaseConfigDataFolder } from "../../BaseConfig";
@@ -209,7 +210,7 @@ export class BaseVOD {
         // console.log(`Stopped watching ${this.basename}`);
     }
 
-    public getChannel(): BaseChannel | undefined {
+    public getChannel(): BaseChannel {
         throw new Error("Not implemented");
     }
 
@@ -299,6 +300,8 @@ export class BaseVOD {
             return false;
         }
 
+        this.total_size = 0;
+
         const segments: BaseVODSegment[] = [];
 
         for (const raw_segment of array) {
@@ -322,24 +325,13 @@ export class BaseVOD {
             segment.filename = path.join(this.directory, path.basename(raw_segment));
             segment.basename = path.basename(raw_segment);
 
-            /*
-            if (isset($segment['filename']) && $segment['filename'] != false && file_exists($segment['filename']) && filesize($segment['filename']) > 0) {
-                $segment['filesize'] = filesize($segment['filename']);
-                $this.total_size += $segment['filesize'];
-            } else {
-                $segment['deleted'] = true;
-            }
-            */
             if (segment.filename && fs.existsSync(segment.filename) && fs.statSync(segment.filename).size > 0) {
                 segment.filesize = fs.statSync(segment.filename).size;
                 this.total_size += segment.filesize;
+                // console.debug(this.basename, segment.basename, segment.filesize);
             } else {
                 segment.deleted = true;
             }
-
-            segment.strings = {};
-            // $diff = $this.started_at.diff($this.ended_at);
-            // $segment['strings']['webhook_duration'] = $diff.format('%H:%I:%S') . '</li>';
 
             segments.push(segment);
         }
@@ -1103,5 +1095,59 @@ export class BaseVOD {
         return fs.existsSync(this.filename);
 
     }
+
+    public async changeBaseName(new_basename: string): Promise<boolean> {
+        if (this.basename == new_basename) return false;
+        const old_basename = this.basename;
+
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass.changeBaseName", `Changing basename from ${old_basename} to ${new_basename}`);
+
+        await this.stopWatching();
+
+        // copy array so it doesn't change during loop
+        const associatedFiles = [...this.associatedFiles];
+
+        for (const file of associatedFiles) {
+            if (this.segments_raw.map(s => path.basename(s)).includes(file)) {
+                Log.logAdvanced(LOGLEVEL.INFO, "vodclass.changeBaseName", `Skip over assoc '${file}' due to it being a segment!`);
+                continue;
+            }
+            const file_path = path.join(this.directory, path.basename(file));
+            if (fs.existsSync(file_path)) {
+                Log.logAdvanced(LOGLEVEL.INFO, "vodclass.changeBaseName", `Rename assoc '${file_path}' to '${file_path.replaceAll(old_basename, new_basename)}'`);
+                fs.renameSync(file_path, file_path.replaceAll(old_basename, new_basename));
+            } else {
+                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass.changeBaseName", `File assoc '${file_path}' not found!`);
+            }
+        }
+
+        const new_segments = [];
+        for (const segment of this.segments_raw) {
+            const file_path = path.join(this.directory, path.basename(segment));
+            if (fs.existsSync(file_path)) {
+                Log.logAdvanced(LOGLEVEL.INFO, "vodclass.changeBaseName", `Rename segment '${file_path}' to '${file_path.replaceAll(old_basename, new_basename)}'`);
+                fs.renameSync(file_path, file_path.replaceAll(old_basename, new_basename));
+                new_segments.push(path.basename(file_path.replaceAll(old_basename, new_basename)));
+            } else {
+                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass.changeBaseName", `Segment '${file_path}' not found!`);
+            }
+        }
+
+        this.basename = new_basename;
+        this.filename = this.filename.replaceAll(old_basename, new_basename);
+        this.setupFiles();
+        this.segments_raw = new_segments;
+        this.parseSegments(this.segments_raw);
+        await this.saveJSON("basename rename");
+        // this.rebuildSegmentList();
+        await this.startWatching();
+        return true;
+    }
+
+    public archive(): void { return; }
+    public async downloadVod(quality: VideoQuality = "best"): Promise<boolean> { return await Promise.resolve(false); }
+    public async downloadChat(method: "td" | "tcd" = "td"): Promise<boolean> { return await Promise.resolve(false); }
+    public async checkMutedVod(save = false): Promise<MuteStatus> { return await Promise.resolve(MuteStatus.UNKNOWN); }
+    public async matchProviderVod(force = false): Promise<boolean | undefined> { return await Promise.resolve(false); }
 
 }
