@@ -83,7 +83,11 @@ export const MockApiChannelData: ApiTwitchChannel = {
     download_vod_at_end: false,
     download_vod_at_end_quality: "best",
     video_list: [],
-    provider: "twitch"
+    provider: "twitch",
+    displayName: "",
+    internalName: "",
+    internalId: "",
+    url: ""
 };
 
 export const MockApiVODData: ApiTwitchVod = {
@@ -130,7 +134,9 @@ export const MockApiVODData: ApiTwitchVod = {
     webpath: "",
     prevent_deletion: false,
     bookmarks: [],
-    provider: "twitch"
+    provider: "twitch",
+    uuid: "",
+    channel_uuid: ""
 };
 
 export const MockApiChapterData: ApiVodTwitchChapter = {

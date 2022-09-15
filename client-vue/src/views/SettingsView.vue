@@ -157,9 +157,11 @@ export default defineComponent({
                     const json: ApiSettingsResponse = response.data;
                     if (json.message) alert(json.message);
                     const channels = json.data.channels;
-                    this.formChannels = channels.sort((a, b) => {
-                        if (a.provider == "youtube" || b.provider == "youtube") return -1;
-                        return a.login.localeCompare(b.login)
+                    /* this.formChannels = */ 
+                    channels.sort((a, b) => {
+                        // if (a.provider == "youtube" || b.provider == "youtube") return -1;
+                        // return a..localeCompare(b.login)
+                        return this.store.channelUUIDToInternalName(a.uuid).localeCompare(this.store.channelUUIDToInternalName(b.uuid));
                     });
                 })
                 .catch((err) => {

@@ -503,6 +503,11 @@ export const useStore = defineStore("twitchAutomator", {
         },
         setVisibleVod(basename: string) {
             this.visibleVod = basename;
+        },
+        channelUUIDToInternalName(uuid: string): string {
+            const channel = this.streamerList.find(c => c.uuid === uuid);
+            if (!channel) return "";
+            return channel.internalName;
         }
     },
     getters: {

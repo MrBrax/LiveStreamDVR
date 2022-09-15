@@ -47,7 +47,7 @@ export interface SettingField<T> {
 
 export interface BaseChannelConfig {
     provider: Providers;
-    uuid?: string;
+    uuid: string;
     quality: VideoQuality[];
     match: string[];
     download_chat: boolean;

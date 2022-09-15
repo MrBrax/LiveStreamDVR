@@ -110,7 +110,7 @@ export class YouTubeChannel extends BaseChannel {
         Log.logAdvanced(LOGLEVEL.DEBUG, "yt.channel", `Load from login ${channel_id}`);
         // const channel_id = await this.channelIdFromLogin(channel_id);
         // if (!channel_id) throw new Error(`Could not get channel id from login: ${channel_id}`);
-        return this.loadAbstract(channel_id); // $channel;
+        return await this.loadAbstract(channel_id); // $channel;
     }
 
     public static async loadAbstract(channel_id: string): Promise<YouTubeChannel> {
@@ -395,7 +395,7 @@ export class YouTubeChannel extends BaseChannel {
     }
 
     public async startWatching(): Promise<void> {
-        return;
+        return await Promise.resolve();
     }
 
     get latest_vod(): YouTubeVOD | undefined {
@@ -495,7 +495,7 @@ export class YouTubeChannel extends BaseChannel {
     }
 
     get profilePictureUrl(): string {
-        return this.channel_data?.thumbnails?.default?.url || "";    
+        return this.channel_data?.thumbnails?.default?.url || "";
     }
 
     public async refreshData(): Promise<boolean> {
