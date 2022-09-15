@@ -15,8 +15,8 @@ import { BaseConfigDataFolder } from "../../../Core/BaseConfig";
 import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
 
 export class BaseChannel {
-    
-    public uuid?: string;
+
+    declare public uuid: string;
 
     /**
      * Channel config from config file

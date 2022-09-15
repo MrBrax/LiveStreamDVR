@@ -101,6 +101,7 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
 
     if (channel instanceof TwitchChannel) {
         const channel_config: TwitchChannelConfig = {
+            uuid: channel.uuid,
             provider: "twitch",
             login: channel.login || "",
             quality: quality,
@@ -118,6 +119,7 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
         channel.update(channel_config);
     } else if (channel instanceof YouTubeChannel) {
         const channel_config: YouTubeChannelConfig = {
+            uuid: channel.uuid,
             provider: "youtube",
             channel_id: channel.channel_id || "",
             quality: quality,
@@ -226,6 +228,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
     if (provider == "twitch") {
 
         const channel_config: TwitchChannelConfig = {
+            uuid: "",
             provider: "twitch",
             login: formdata.login || "",
             quality: formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [],
@@ -296,7 +299,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
             return;
         }
 
-        
+
         try {
             new_channel = await TwitchChannel.create(channel_config);
         } catch (error) {
@@ -313,6 +316,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
     } else if (provider == "youtube") {
 
         const channel_config: YouTubeChannelConfig = {
+            uuid: "",
             provider: "youtube",
             channel_id: formdata.channel_id || "",
             quality: formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [],
@@ -368,7 +372,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
             return;
         }
         */
-        
+
         try {
             new_channel = await YouTubeChannel.create(channel_config);
         } catch (error) {
