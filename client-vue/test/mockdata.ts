@@ -87,7 +87,8 @@ export const MockApiChannelData: ApiTwitchChannel = {
     displayName: "",
     internalName: "",
     internalId: "",
-    url: ""
+    url: "",
+    profilePictureUrl: ""
 };
 
 export const MockApiVODData: ApiTwitchVod = {
