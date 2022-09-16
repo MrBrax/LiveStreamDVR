@@ -46,17 +46,18 @@ if (argv.help || argv.h) {
 // for overriding port if you can't or don't want to use the web gui to change it
 const override_port = argv.port ? parseInt(argv.port as string) : undefined;
 
-if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"))) {
-    if (
-        compareVersions(
-            version,
-            fs.readFileSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"), { encoding: "utf-8" })
-        ) == -1 && !argv["ignore-version"]) {
-        throw new Error("Server has been started with an older version than the data folder. Use the argument --ignore-version to continue.");
+if (fs.existsSync(path.join(BaseConfigDataFolder.cache))) {
+    if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"))) {
+        if (
+            compareVersions(
+                version,
+                fs.readFileSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"), { encoding: "utf-8" })
+            ) == -1 && !argv["ignore-version"]) {
+            throw new Error("Server has been started with an older version than the data folder. Use the argument --ignore-version to continue.");
+        }
     }
+    fs.writeFileSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"), version);
 }
-
-fs.writeFileSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"), version);
 
 // load all required config files and cache stuff
 Config.init().then(() => {
