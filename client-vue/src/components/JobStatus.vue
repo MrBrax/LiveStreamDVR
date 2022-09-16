@@ -1,14 +1,36 @@
 <template>
-    <div class="statustab statustab-jobs" v-if="store.jobList !== undefined">
+    <div
+        v-if="store.jobList !== undefined"
+        class="statustab statustab-jobs"
+    >
         <table>
-            <tr v-for="job in store.jobList" :key="job.name">
+            <tr
+                v-for="job in store.jobList"
+                :key="job.name"
+            >
                 <td>
                     <span class="icon">
-                        <fa icon="sync" spin v-if="job.status == JobStatus.RUNNING"></fa>
-                        <fa icon="exclamation-triangle" v-else-if="job.status == JobStatus.STOPPED"></fa>
-                        <fa icon="times" v-else-if="job.status == JobStatus.ERROR"></fa>
-                        <fa icon="clock" v-else-if="job.status == JobStatus.WAITING"></fa>
-                        <fa icon="circle" v-else-if="job.status == JobStatus.NONE"></fa>
+                        <fa
+                            v-if="job.status == JobStatus.RUNNING"
+                            icon="sync"
+                            spin
+                        />
+                        <fa
+                            v-else-if="job.status == JobStatus.STOPPED"
+                            icon="exclamation-triangle"
+                        />
+                        <fa
+                            v-else-if="job.status == JobStatus.ERROR"
+                            icon="times"
+                        />
+                        <fa
+                            v-else-if="job.status == JobStatus.WAITING"
+                            icon="clock"
+                        />
+                        <fa
+                            v-else-if="job.status == JobStatus.NONE"
+                            icon="circle"
+                        />
                     </span>
                     <span class="text-overflow px-1">{{ job.name }}</span>
                 </td>
@@ -20,7 +42,9 @@
                     <span v-else-if="job.status == JobStatus.WAITING">Waiting</span>
                     <span v-else-if="job.status == JobStatus.NONE">None</span>
                 </td>
-                <td v-if="job.progress && job.progress > 0">{{ Math.round(job.progress * 100) }}%</td>
+                <td v-if="job.progress && job.progress > 0">
+                    {{ Math.round(job.progress * 100) }}%
+                </td>
             </tr>
         </table>
 

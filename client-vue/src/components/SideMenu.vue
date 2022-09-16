@@ -1,35 +1,75 @@
 <template>
     <div class="side-menu">
         <div class="menu-top">
-            <div class="top-menu-item title" v-if="store.config">
-                <router-link to="/dashboard" class="link">
-                    <img src="../assets/logo.png" class="favicon" width="24" height="24" :alt="store.cfg('app_name', 'TA') ?? 'TA'" aria-hidden="true">
-                    <span class="title" :title="verboseVersion">
+            <div
+                v-if="store.config"
+                class="top-menu-item title"
+            >
+                <router-link
+                    to="/dashboard"
+                    class="link"
+                >
+                    <img
+                        src="../assets/logo.png"
+                        class="favicon"
+                        width="24"
+                        height="24"
+                        :alt="store.cfg('app_name', 'TA') ?? 'TA'"
+                        aria-hidden="true"
+                    >
+                    <span
+                        class="title"
+                        :title="verboseVersion"
+                    >
                         <span>{{ store.app_name }}</span> <span>S{{ store.version }}</span>/<span :class="{ dev: isDev }">C{{ clientVersion }}</span>
-                        <span class="debug-mode" v-if="store.cfg('debug')" title="Debug">👽</span>
+                        <span
+                            v-if="store.cfg('debug')"
+                            class="debug-mode"
+                            title="Debug"
+                        >👽</span>
                     </span>
                 </router-link>
             </div>
         </div>
 
-        <div class="menu-middle" v-if="store.streamerList && store.streamerList.length > 0">
-            <side-menu-streamer v-for="streamer in sortedStreamers" :key="streamer.login" v-bind:streamer="streamer" ref="streamer"></side-menu-streamer>
+        <div
+            v-if="store.streamerList && store.streamerList.length > 0"
+            class="menu-middle"
+        >
+            <side-menu-streamer
+                v-for="streamer in sortedStreamers"
+                :key="streamer.login"
+                ref="streamer"
+                :streamer="streamer"
+            />
         </div>
 
         <!-- what was the point of this divider? -->
         <!--<div class="top-menu-item divider"></div>-->
 
-        <div class="menu-auth" v-if="store.authentication && !store.authenticated">
+        <div
+            v-if="store.authentication && !store.authenticated"
+            class="menu-auth"
+        >
             <form @submit.prevent="login">
                 <div class="field">
                     <div class="control">
-                        <input type="password" class="input is-small" v-model="password" placeholder="Password">
+                        <input
+                            v-model="password"
+                            type="password"
+                            class="input is-small"
+                            placeholder="Password"
+                        >
                     </div>
                 </div>
                 <div class="field">
                     <div class="control">
-                        <button class="button is-small is-confirm" type="submit" :disabled="!password">
-                            <span class="icon"><fa icon="sign-in-alt"></fa></span>
+                        <button
+                            class="button is-small is-confirm"
+                            type="submit"
+                            :disabled="!password"
+                        >
+                            <span class="icon"><fa icon="sign-in-alt" /></span>
                             <span>Login</span>
                         </button>
                     </div>
@@ -38,34 +78,81 @@
         </div>
 
         <div class="menu-bottom">
-            <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Dashboard' }" data-menuitem="dashboard">
-                <router-link to="/dashboard" :title="$t('pages.dashboard')" class="link">
-                    <span class="icon"><fa icon="tachometer-alt"></fa></span>
+            <div
+                :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Dashboard' }"
+                data-menuitem="dashboard"
+            >
+                <router-link
+                    to="/dashboard"
+                    :title="$t('pages.dashboard')"
+                    class="link"
+                >
+                    <span class="icon"><fa icon="tachometer-alt" /></span>
                 </router-link>
             </div>
-            <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Files' }" data-menuitem="files" v-if="store.authElement">
-                <router-link to="/files" :title="$t('pages.files')" class="link">
-                    <span class="icon"><fa icon="archive"></fa></span>
+            <div
+                v-if="store.authElement"
+                :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Files' }"
+                data-menuitem="files"
+            >
+                <router-link
+                    to="/files"
+                    :title="$t('pages.files')"
+                    class="link"
+                >
+                    <span class="icon"><fa icon="archive" /></span>
                 </router-link>
             </div>
-            <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Tools' }" data-menuitem="tools" v-if="store.authElement">
-                <router-link to="/tools" :title="$t('pages.tools')" class="link">
-                    <span class="icon"><fa icon="wrench"></fa></span>
+            <div
+                v-if="store.authElement"
+                :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Tools' }"
+                data-menuitem="tools"
+            >
+                <router-link
+                    to="/tools"
+                    :title="$t('pages.tools')"
+                    class="link"
+                >
+                    <span class="icon"><fa icon="wrench" /></span>
                 </router-link>
             </div>
-            <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Settings' }" data-menuitem="settings">
-                <router-link to="/settings" :title="$t('pages.settings')" class="link">
-                    <span class="icon"><fa icon="cog"></fa></span>
+            <div
+                :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Settings' }"
+                data-menuitem="settings"
+            >
+                <router-link
+                    to="/settings"
+                    :title="$t('pages.settings')"
+                    class="link"
+                >
+                    <span class="icon"><fa icon="cog" /></span>
                 </router-link>
             </div>
-            <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'About' }" data-menuitem="github" v-if="store.authElement">
-                <router-link to="/about" :title="$t('pages.about')" class="link">
-                    <span class="icon"><fa icon="info-circle"></fa></span>
+            <div
+                v-if="store.authElement"
+                :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'About' }"
+                data-menuitem="github"
+            >
+                <router-link
+                    to="/about"
+                    :title="$t('pages.about')"
+                    class="link"
+                >
+                    <span class="icon"><fa icon="info-circle" /></span>
                 </router-link>
             </div>
-            <div class="top-menu-item icon right" data-menuitem="github">
-                <a class="linkback link" :href="homepageLink" target="_blank" rel="noreferrer" title="GitHub">
-                    <span class="icon"><fa :icon="['fab', 'github']"></fa></span>
+            <div
+                class="top-menu-item icon right"
+                data-menuitem="github"
+            >
+                <a
+                    class="linkback link"
+                    :href="homepageLink"
+                    target="_blank"
+                    rel="noreferrer"
+                    title="GitHub"
+                >
+                    <span class="icon"><fa :icon="['fab', 'github']" /></span>
                 </a>
             </div>
         </div>
@@ -83,13 +170,12 @@ import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import SideMenuStreamer from "./SideMenuStreamer.vue";
 
 import { ChannelTypes, useStore } from "@/store";
-import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
 
 library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faArchive, faSignInAlt);
 
 export default defineComponent({
-    components: { SideMenuStreamer },
     name: "SideMenu",
+    components: { SideMenuStreamer },
     setup() {
         const store = useStore();
         return { store };
@@ -98,9 +184,28 @@ export default defineComponent({
         return {
             password: "",
             expandAll: false,
-            keySub: () => {},
+            keySub: () => { console.log("key"); },
             keyMeme: [] as string[],
         };
+    },
+    computed: {
+        sortedStreamers(): ChannelTypes[] {
+            const streamers = [...this.store.streamerList];
+            return streamers.sort((a, b) => a.displayName.localeCompare(b.displayName));
+        },
+        clientVersion() {
+            return import.meta.env.VITE_APP_VERSION; // injected
+        },
+        verboseVersion() {
+            return `Server ${this.store.version} (${this.store.serverGitHash})\n` +
+            `Client ${import.meta.env.VITE_APP_VERSION} (${import.meta.env.VITE_APP_BUILDDATE} / ${import.meta.env.VITE_APP_GIT_HASH})`; // injected
+        },
+        homepageLink() {
+            return pack.homepage;
+        },
+        isDev() {
+            return import.meta.env.DEV; // injected
+        }
     },
     mounted() {
         this.keySub = this.store.$onAction(({ name, args }) => {
@@ -150,25 +255,6 @@ export default defineComponent({
             });
             this.password = "";
         },
-    },
-    computed: {
-        sortedStreamers(): ChannelTypes[] {
-            const streamers = [...this.store.streamerList];
-            return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
-        },
-        clientVersion() {
-            return import.meta.env.VITE_APP_VERSION; // injected
-        },
-        verboseVersion() {
-            return `Server ${this.store.version} (${this.store.serverGitHash})\n` +
-            `Client ${import.meta.env.VITE_APP_VERSION} (${import.meta.env.VITE_APP_BUILDDATE} / ${import.meta.env.VITE_APP_GIT_HASH})`; // injected
-        },
-        homepageLink() {
-            return pack.homepage;
-        },
-        isDev() {
-            return import.meta.env.DEV; // injected
-        }
     },
 });
 </script>

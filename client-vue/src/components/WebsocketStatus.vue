@@ -1,7 +1,13 @@
 <template>
-   <div :class="{ 'statustab': true, 'statustab-update': true, disconnected: websocket && !websocketConnected }" ref="js-status">
+    <div
+        ref="js-status"
+        :class="{ 'statustab': true, 'statustab-update': true, disconnected: websocket && !websocketConnected }"
+    >
         <span v-if="store.loading">
-            <span class="icon"><fa icon="sync" spin /></span> Store...
+            <span class="icon"><fa
+                icon="sync"
+                spin
+            /></span> Store...
         </span>
         <div v-if="store.clientCfg('useWebsockets') && websocket">
             {{ websocketConnected ? $t('components.status.connected') : websocketConnecting ? $t('components.status.connecting') : $t('components.status.disconnected') }}
@@ -27,6 +33,7 @@ export default defineComponent({
     props: {
         websocket: {
             type: WebSocket,
+            required: true,
         },
         websocketConnected: {
             type: Boolean,
@@ -38,9 +45,11 @@ export default defineComponent({
         },
         timer: {
             type: Number,
+            required: true,
         },
         tickerInterval: {
             type: Number,
+            required: true,
         },
         loading: {
             type: Boolean,

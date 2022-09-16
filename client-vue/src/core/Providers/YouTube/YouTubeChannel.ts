@@ -1,10 +1,5 @@
-import { ApiTwitchChannel, ApiYouTubeChannel } from "@common/Api/Client";
-import { UserData } from "@common/User";
-import { VideoQuality } from "@common/Config";
-import { BroadcasterType } from "@common/TwitchAPI/Users";
-import { BaseVODChapterJSON, TwitchVODChapterJSON } from "../../../../../server/src/Storage/JSON";
-import { LocalVideo } from "@common/LocalVideo";
-import { LocalClip } from "@common/LocalClip";
+import { ApiYouTubeChannel } from "@common/Api/Client";
+import { BaseVODChapterJSON } from "../../../../../server/src/Storage/JSON";
 import BaseChannel from "../Base/BaseChannel";
 import YouTubeVOD from "./YouTubeVOD";
 

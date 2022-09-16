@@ -1,4 +1,4 @@
-import { ApiTwitchChannel, ApiJob, ApiLogLine, ApiChannels, ApiVods } from "../../../common/Api/Client";
+import { ApiJob, ApiLogLine, ApiChannels, ApiVods } from "../../../common/Api/Client";
 import { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiJobsResponse, ApiSettingsResponse, ApiVodResponse } from "../../../common/Api/Api";
 import axios from "axios";
 import { defineStore } from "pinia";
@@ -7,7 +7,6 @@ import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import { defaultConfig } from "@/defs";
 import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
-import BaseChannel from "@/core/Providers/Base/BaseChannel";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
 import { TwitchVODChapter } from "@/core/Providers/Twitch/TwitchVODChapter";
 import { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
@@ -185,12 +184,12 @@ export const useStore = defineStore("twitchAutomator", {
 
             // check if streamer is already in the list
             if (vod_data.provider == "twitch") {
-                const index = this.streamerList.findIndex((s) => s instanceof TwitchChannel && s.userid === vod_data.streamer_id);
+                const index = this.streamerList.findIndex((s) => s instanceof TwitchChannel && s.uuid === vod_data.uuid);
                 if (index === -1) return false;
                 const vod = TwitchVOD.makeFromApiResponse(vod_data);
                 return this.updateVod(vod);
             } else if (vod_data.provider == "youtube") {
-                const index = this.streamerList.findIndex((s) => s instanceof YouTubeChannel && s.channel_id === vod_data.streamer_id);
+                const index = this.streamerList.findIndex((s) => s instanceof YouTubeChannel && s.uuid === vod_data.uuid);
                 if (index === -1) return false;
                 const vod = YouTubeVOD.makeFromApiResponse(vod_data);
                 return this.updateVod(vod);
@@ -202,8 +201,8 @@ export const useStore = defineStore("twitchAutomator", {
             const provider = vod.provider;
 
             const streamer = this.streamerList.find<ChannelTypes>((s): s is ChannelTypes => {
-                if (provider == "twitch") return s instanceof TwitchChannel && s.userid === vod.streamer_id;
-                if (provider == "youtube") return s instanceof YouTubeChannel && s.channel_id === vod.streamer_id;
+                if (provider == "twitch") return s instanceof TwitchChannel && s.uuid === vod.channel_uuid;
+                if (provider == "youtube") return s instanceof YouTubeChannel && s.uuid === vod.channel_uuid;
                 return false;
             });
             if (!streamer) return false;
@@ -229,12 +228,12 @@ export const useStore = defineStore("twitchAutomator", {
             // return this.updateVod(vod);
 
             if (vod_data.provider == "twitch") {
-                const index = this.streamerList.findIndex((s) => s instanceof TwitchChannel && s.userid === vod_data.streamer_id);
+                const index = this.streamerList.findIndex((channel) => channel instanceof TwitchChannel && channel.uuid === vod_data.channel_uuid);
                 if (index === -1) return false;
                 const vod = TwitchVOD.makeFromApiResponse(vod_data);
                 return this.updateVod(vod);
             } else if (vod_data.provider == "youtube") {
-                const index = this.streamerList.findIndex((s) => s instanceof YouTubeChannel && s.channel_id === vod_data.streamer_id);
+                const index = this.streamerList.findIndex((channel) => channel instanceof YouTubeChannel && channel.uuid === vod_data.channel_uuid);
                 if (index === -1) return false;
                 const vod = YouTubeVOD.makeFromApiResponse(vod_data);
                 return this.updateVod(vod);
@@ -304,12 +303,12 @@ export const useStore = defineStore("twitchAutomator", {
             */
 
             if (streamer_data.provider == "twitch") {
-                const index = this.streamerList.findIndex((s) => s instanceof TwitchChannel && s.userid === streamer_data.userid);
+                const index = this.streamerList.findIndex((channel) => channel instanceof TwitchChannel && channel.uuid === streamer_data.uuid);
                 if (index === -1) return false;
                 const streamer = TwitchChannel.makeFromApiResponse(streamer_data);
                 return this.updateStreamer(streamer);
             } else if (streamer_data.provider == "youtube") {
-                const index = this.streamerList.findIndex((s) => s instanceof YouTubeChannel && s.channel_id === streamer_data.channel_id);
+                const index = this.streamerList.findIndex((channel) => channel instanceof YouTubeChannel && channel.uuid === streamer_data.uuid);
                 if (index === -1) return false;
                 const streamer = YouTubeChannel.makeFromApiResponse(streamer_data);
                 return this.updateStreamer(streamer);
@@ -319,7 +318,7 @@ export const useStore = defineStore("twitchAutomator", {
         updateStreamer(streamer: ChannelTypes): boolean {
             const index = this.streamerList.findIndex((s) => s.uuid === streamer.uuid);
 
-            console.debug("updateStreamer", streamer.login, index);
+            console.debug("updateStreamer", streamer.internalName, index);
 
             if (index === -1) {
                 this.streamerList.push(streamer);

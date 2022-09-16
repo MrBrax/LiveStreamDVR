@@ -3,29 +3,51 @@
         <h3><span class="icon"><fa :icon="['fab', 'youtube']" /></span> YouTube authentication</h3>
         <div class="youtube-help">
             Follow the guide here and set up the API keys in the config tab:
-            <a href="https://developers.google.com/youtube/v3/getting-started" target="_blank" rel="noreferrer">
+            <a
+                href="https://developers.google.com/youtube/v3/getting-started"
+                target="_blank"
+                rel="noreferrer"
+            >
                 https://developers.google.com/youtube/v3/getting-started
             </a>
         </div>
         <div class="buttons">
-            <button class="button is-confirm" @click="doCheckYouTubeStatus">
+            <button
+                class="button is-confirm"
+                @click="doCheckYouTubeStatus"
+            >
                 <span class="icon"><fa icon="sync" /></span>
                 <span>{{ $t("buttons.checkstatus") }}</span>
             </button>
-            <button class="icon-button" @click="doAuthenticateYouTube" style="padding-top: 2px">
-                <img src="../assets/google/btn_google_signin_dark_normal_web.png" height="36" />
+            <button
+                class="icon-button"
+                style="padding-top: 2px"
+                @click="doAuthenticateYouTube"
+            >
+                <img
+                    src="../assets/google/btn_google_signin_dark_normal_web.png"
+                    height="36"
+                >
             </button>
-            <button class="button is-danger" @click="doDestroyYouTube">
+            <button
+                class="button is-danger"
+                @click="doDestroyYouTube"
+            >
                 <span class="icon"><fa icon="right-from-bracket" /></span>
                 <span>{{ $t("buttons.destroy-session") }}</span>
             </button>
         </div>
-        <div class="youtube-status" v-if="status">{{ status }}</div>
+        <div
+            v-if="status"
+            class="youtube-status"
+        >
+            {{ status }}
+        </div>
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent } from "vue";
 import { ApiResponse } from "@common/Api/Api";
 import { useStore } from "@/store";
 import { library } from "@fortawesome/fontawesome-svg-core";

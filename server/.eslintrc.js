@@ -46,4 +46,5 @@ module.exports = {
         }],
         "deprecation/deprecation": "warn",
     },
+    ignorePatterns: ['.eslintrc.js']
 };

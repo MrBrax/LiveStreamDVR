@@ -1,105 +1,191 @@
 <template>
     <div class="top-tabs">
-        <router-link :to="{ name: 'Settings', params: { tab: 'channels' } }" v-if="store.authElement">
-            <span class="icon"><fa icon="user"></fa></span> {{ $t('pages.channels') }}
+        <router-link
+            v-if="store.authElement"
+            :to="{ name: 'Settings', params: { tab: 'channels' } }"
+        >
+            <span class="icon"><fa icon="user" /></span> {{ $t('pages.channels') }}
         </router-link>
-        <router-link :to="{ name: 'Settings', params: { tab: 'newchannel' } }" v-if="store.authElement">
-            <span class="icon"><fa icon="user-plus"></fa></span> {{ $t('pages.new-channel') }}
+        <router-link
+            v-if="store.authElement"
+            :to="{ name: 'Settings', params: { tab: 'newchannel' } }"
+        >
+            <span class="icon"><fa icon="user-plus" /></span> {{ $t('pages.new-channel') }}
         </router-link>
-        <router-link :to="{ name: 'Settings', params: { tab: 'config' } }" v-if="store.authElement">
-            <span class="icon"><fa icon="cog"></fa></span> {{ $t('pages.config') }}
+        <router-link
+            v-if="store.authElement"
+            :to="{ name: 'Settings', params: { tab: 'config' } }"
+        >
+            <span class="icon"><fa icon="cog" /></span> {{ $t('pages.config') }}
         </router-link>
-        <router-link :to="{ name: 'Settings', params: { tab: 'keyvalue' } }" v-if="store.authElement">
-            <span class="icon"><fa icon="database"></fa></span> {{ $t('pages.keyvalue') }}
+        <router-link
+            v-if="store.authElement"
+            :to="{ name: 'Settings', params: { tab: 'keyvalue' } }"
+        >
+            <span class="icon"><fa icon="database" /></span> {{ $t('pages.keyvalue') }}
         </router-link>
-        <router-link :to="{ name: 'Settings', params: { tab: 'notifications' } }" v-if="store.authElement">
-            <span class="icon"><fa icon="bell"></fa></span> {{ $t('pages.notifications') }}
+        <router-link
+            v-if="store.authElement"
+            :to="{ name: 'Settings', params: { tab: 'notifications' } }"
+        >
+            <span class="icon"><fa icon="bell" /></span> {{ $t('pages.notifications') }}
         </router-link>
-        <router-link :to="{ name: 'Settings', params: { tab: 'favourites' } }" v-if="store.authElement">
-            <span class="icon"><fa icon="star"></fa></span> {{ $t('pages.favourite-games') }}
+        <router-link
+            v-if="store.authElement"
+            :to="{ name: 'Settings', params: { tab: 'favourites' } }"
+        >
+            <span class="icon"><fa icon="star" /></span> {{ $t('pages.favourite-games') }}
         </router-link>
         <router-link :to="{ name: 'Settings', params: { tab: 'clientsettings' } }">
-            <span class="icon"><fa icon="user-cog"></fa></span> {{ $t('pages.client-settings') }}
+            <span class="icon"><fa icon="user-cog" /></span> {{ $t('pages.client-settings') }}
         </router-link>
     </div>
 
     <div class="container">
         <!-- channels -->
-        <section class="section" v-if="!$route.params.tab || $route.params.tab == 'channels'">
-            <div class="section-title"><h1>{{ $t('pages.channels') }}</h1></div>
+        <section
+            v-if="!$route.params.tab || $route.params.tab == 'channels'"
+            class="section"
+        >
+            <div class="section-title">
+                <h1>{{ $t('pages.channels') }}</h1>
+            </div>
             <div class="section-content">
                 <ul class="list">
-                    <li v-for="channel in formChannels" :key="channel.login">
-                        <router-link :to="{ hash: '#channel_' + channel.login }">{{ channel.login }}</router-link>
+                    <li
+                        v-for="channel in formChannels"
+                        :key="channel.login"
+                    >
+                        <router-link :to="{ hash: '#channel_' + channel.login }">
+                            {{ channel.login }}
+                        </router-link>
                     </li>
                 </ul>
-                <div class="card" v-for="channel in formChannels" :key="channel.login" :id="'channel_' + channel.login">
+                <div
+                    v-for="channel in formChannels"
+                    :id="'channel_' + channel.login"
+                    :key="channel.login"
+                    class="card"
+                >
                     <div class="card-title">
                         <h2>{{ channel.login }}</h2>
                     </div>
                     <div class="card-content">
-                        <channel-update-form :channel="channel" @formSuccess="updateAll" />
+                        <channel-update-form
+                            :channel="channel"
+                            @form-success="updateAll"
+                        />
                     </div>
                 </div>
                 <span v-if="(!formChannels || formChannels.length == 0) && store.authElement">No channels added. Use the tab "New channel" above.</span>
-                <div class="section-content" v-else-if="!store.authElement">
-                    <span class="icon"><fa icon="sign-in-alt"></fa></span> {{ $t("messages.login") }}
+                <div
+                    v-else-if="!store.authElement"
+                    class="section-content"
+                >
+                    <span class="icon"><fa icon="sign-in-alt" /></span> {{ $t("messages.login") }}
                 </div>
             </div>
         </section>
 
         <!-- new channel -->
-        <section class="section" v-if="$route.params.tab == 'newchannel'">
-            <div class="section-title"><h1>{{ $t('pages.new-channel') }}</h1></div>
+        <section
+            v-if="$route.params.tab == 'newchannel'"
+            class="section"
+        >
+            <div class="section-title">
+                <h1>{{ $t('pages.new-channel') }}</h1>
+            </div>
             <div class="section-content">
-                <channel-add-form @formSuccess="updateUsers" />
+                <channel-add-form @form-success="updateUsers" />
             </div>
         </section>
 
         <!-- settings -->
-        <section class="section" v-if="$route.params.tab == 'config'">
-            <div class="section-title"><h1>{{ $t('pages.config') }}</h1></div>
-            <div class="section-content" v-if="!loading">
+        <section
+            v-if="$route.params.tab == 'config'"
+            class="section"
+        >
+            <div class="section-title">
+                <h1>{{ $t('pages.config') }}</h1>
+            </div>
+            <div
+                v-if="!loading"
+                class="section-content"
+            >
                 <settings-form />
             </div>
-            <div class="section-content" v-else>
-                <span class="icon"><fa icon="sync" spin></fa></span> {{ $t("messages.loading") }}
+            <div
+                v-else
+                class="section-content"
+            >
+                <span class="icon"><fa
+                    icon="sync"
+                    spin
+                /></span> {{ $t("messages.loading") }}
             </div>
         </section>
 
         <!-- notifications -->
-        <section class="section" v-if="$route.params.tab == 'notifications'">
-            <div class="section-title"><h1>{{ $t('pages.notifications') }}</h1></div>
+        <section
+            v-if="$route.params.tab == 'notifications'"
+            class="section"
+        >
+            <div class="section-title">
+                <h1>{{ $t('pages.notifications') }}</h1>
+            </div>
             <div class="section-content">
-                <notifications-form @formSuccess="fetchData" />
+                <notifications-form @form-success="fetchData" />
             </div>
         </section>
 
         <!-- favourites -->
-        <section class="section" v-if="$route.params.tab == 'favourites'">
-            <div class="section-title"><h1>{{ $t('pages.favourite-games') }}</h1></div>
-            <div class="section-content" v-if="!loading">
+        <section
+            v-if="$route.params.tab == 'favourites'"
+            class="section"
+        >
+            <div class="section-title">
+                <h1>{{ $t('pages.favourite-games') }}</h1>
+            </div>
+            <div
+                v-if="!loading"
+                class="section-content"
+            >
                 <favourites-form />
             </div>
-            <div class="section-content" v-else>
-                <span class="icon"><fa icon="sync" spin></fa></span> {{ $t("messages.loading") }}
+            <div
+                v-else
+                class="section-content"
+            >
+                <span class="icon"><fa
+                    icon="sync"
+                    spin
+                /></span> {{ $t("messages.loading") }}
             </div>
         </section>
 
         <!-- client settings -->
-        <section class="section" v-if="$route.params.tab == 'clientsettings'">
-            <div class="section-title"><h1>{{ $t('pages.client-settings') }}</h1></div>
+        <section
+            v-if="$route.params.tab == 'clientsettings'"
+            class="section"
+        >
+            <div class="section-title">
+                <h1>{{ $t('pages.client-settings') }}</h1>
+            </div>
             <client-settings-form />
         </section>
 
         <!-- keyvalue -->
-        <section class="section" v-if="$route.params.tab == 'keyvalue'">
-            <div class="section-title"><h1>{{ $t('pages.keyvalue') }}</h1></div>
+        <section
+            v-if="$route.params.tab == 'keyvalue'"
+            class="section"
+        >
+            <div class="section-title">
+                <h1>{{ $t('pages.keyvalue') }}</h1>
+            </div>
             <div class="section-content">
                 <key-value-form />
             </div>
         </section>
- 
     </div>
 </template>
 
@@ -114,8 +200,8 @@ import NotificationsForm from "@/components/forms/NotificationsForm.vue";
 import ClientSettingsForm from "@/components/forms/ClientSettingsForm.vue";
 import KeyValueForm from "@/components/forms/KeyValueForm.vue";
 
-import type { ApiGame, ApiChannelConfig } from "@common/Api/Client";
-import type { ApiSettingsResponse, ApiGamesResponse } from "@common/Api/Api";
+import type { ApiChannelConfig } from "@common/Api/Client";
+import type { ApiSettingsResponse } from "@common/Api/Api";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase } from "@fortawesome/free-solid-svg-icons";
@@ -125,6 +211,15 @@ library.add(faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase);
 
 export default defineComponent({
     name: "SettingsView",
+    components: {
+        ChannelAddForm,
+        ChannelUpdateForm,
+        SettingsForm,
+        FavouritesForm,
+        NotificationsForm,
+        ClientSettingsForm,
+        KeyValueForm,
+    },
     setup() {
         const store = useStore();
         return { store };
@@ -143,6 +238,13 @@ export default defineComponent({
             loading: false,
             formChannels: [],
         };
+    },
+    computed: {
+        /*
+        sortedGames() {
+            return Object.entries((this as any).games).sort(([, a], [, b]) => (a as any).name.localeCompare((b as any).name));
+        },
+        */
     },
     created() {
         this.fetchData();
@@ -183,22 +285,6 @@ export default defineComponent({
             this.fetchData();
             this.updateUsers();
         },
-    },
-    computed: {
-        /*
-        sortedGames() {
-            return Object.entries((this as any).games).sort(([, a], [, b]) => (a as any).name.localeCompare((b as any).name));
-        },
-        */
-    },
-    components: {
-        ChannelAddForm,
-        ChannelUpdateForm,
-        SettingsForm,
-        FavouritesForm,
-        NotificationsForm,
-        ClientSettingsForm,
-        KeyValueForm,
     },
 });
 </script>
