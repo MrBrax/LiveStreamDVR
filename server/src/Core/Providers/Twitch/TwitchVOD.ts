@@ -144,6 +144,7 @@ export class TwitchVOD extends BaseVOD {
         this.streamer_id = this.json.streamer_id;
         this.streamer_login = await TwitchChannel.channelLoginFromId(this.streamer_id || "") || "";
         this.streamer_name = await TwitchChannel.channelDisplayNameFromId(this.streamer_id || "") || "";
+        this.channel_uuid = this.json.channel_uuid;
     }
 
     /**
@@ -975,6 +976,7 @@ export class TwitchVOD extends BaseVOD {
         generated.streamer_name = this.streamer_name ?? "";
         generated.streamer_id = this.streamer_id ?? "";
         generated.streamer_login = this.streamer_login ?? "";
+        if (this.channel_uuid) generated.channel_uuid = this.channel_uuid;
 
         // generated.chapters = this.chapters_raw;
         // generated.segments = this.segments_raw;
@@ -1857,6 +1859,7 @@ export class TwitchVOD extends BaseVOD {
             streamer_name: json.streamer_name,
             streamer_id: json.streamer_id,
             streamer_login: json.streamer_login,
+            channel_uuid: "",
             chapters: chapters,
             type: "twitch",
             segments: segments,

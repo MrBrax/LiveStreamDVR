@@ -11,6 +11,7 @@ export interface VODJSON {
 
     uuid?: string;
     capture_id?: string;
+    channel_uuid: string;
 
     chapters: BaseVODChapterJSON[];
 

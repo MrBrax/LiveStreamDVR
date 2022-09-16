@@ -218,13 +218,15 @@ export async function HookYouTube(req: express.Request, res: express.Response): 
         }
     }
 
-    const hub_challenge         = req.params["hub.challenge"];
-    const hub_mode              = req.params["hub.mode"];
-    const hub_lease_seconds     = req.params["hub.lease_seconds"];
+    const hub_topic             = req.query["hub.topic"];
+    const hub_challenge         = req.query["hub.challenge"];
+    const hub_mode              = req.query["hub.mode"];
+    const hub_lease_seconds     = req.query["hub.lease_seconds"];
 
     // @todo: verify
     if (hub_challenge) {
-        res.send(hub_challenge);
+        Log.logAdvanced(LOGLEVEL.INFO, "hook.youtube", `Got challenge ${hub_challenge}, responding.`);
+        res.status(200).send(hub_challenge);
         return;
     }
 

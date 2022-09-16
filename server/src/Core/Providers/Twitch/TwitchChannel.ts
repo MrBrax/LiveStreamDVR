@@ -152,6 +152,7 @@ export class TwitchChannel extends BaseChannel {
             }
 
             if (!vodclass.channel_uuid) {
+                Log.logAdvanced(LOGLEVEL.INFO, "channel", `VOD ${vod} does not have a channel UUID, setting.`);
                 vodclass.channel_uuid = this.uuid;
             }
 
