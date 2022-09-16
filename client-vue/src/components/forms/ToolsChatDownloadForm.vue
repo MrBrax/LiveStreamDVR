@@ -1,9 +1,17 @@
 <template>
-    <form method="POST" @submit="submitForm">
+    <form
+        method="POST"
+        @submit="submitForm"
+    >
         <div class="field">
             <label class="label">VOD URL</label>
             <div class="control">
-                <input class="input" type="text" v-model="formData.url" required />
+                <input
+                    v-model="formData.url"
+                    class="input"
+                    type="text"
+                    required
+                >
             </div>
         </div>
 
@@ -12,8 +20,12 @@
             <div class="control">
                 <div class="select">
                     <select v-model="formData.method">
-                        <option value="td">TwitchDownloaderCLI</option>
-                        <option value="tcd">Twitch Chat Downloader</option>
+                        <option value="td">
+                            TwitchDownloaderCLI
+                        </option>
+                        <option value="tcd">
+                            Twitch Chat Downloader
+                        </option>
                     </select>
                 </div>
             </div>
@@ -21,15 +33,23 @@
 
         <div class="field form-submit">
             <div class="control">
-                <button class="button is-confirm" type="submit">
-                    <span class="icon"><fa icon="download"></fa></span>
+                <button
+                    class="button is-confirm"
+                    type="submit"
+                >
+                    <span class="icon"><fa icon="download" /></span>
                     <span>{{ $t('buttons.execute') }}</span>
                 </button>
             </div>
-            <div :class="formStatusClass">{{ formStatusText }}</div>
+            <div :class="formStatusClass">
+                {{ formStatusText }}
+            </div>
         </div>
 
-        <div class="field" v-if="fileLink">
+        <div
+            v-if="fileLink"
+            class="field"
+        >
             <a :href="fileLink">{{ fileLink }}</a>
         </div>
     </form>
@@ -51,6 +71,15 @@ export default defineComponent({
             },
             fileLink: "",
         };
+    },
+    computed: {
+        formStatusClass(): Record<string, boolean> {
+            return {
+                "form-status": true,
+                "is-error": this.formStatus == "ERROR",
+                "is-success": this.formStatus == "OK",
+            };
+        },
     },
     methods: {
         submitForm(event: Event) {
@@ -107,15 +136,6 @@ export default defineComponent({
 
             event.preventDefault();
             return false;
-        },
-    },
-    computed: {
-        formStatusClass(): Record<string, boolean> {
-            return {
-                "form-status": true,
-                "is-error": this.formStatus == "ERROR",
-                "is-success": this.formStatus == "OK",
-            };
         },
     },
 });

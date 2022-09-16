@@ -1,25 +1,45 @@
 <template>
-    <form method="POST" @submit="submitForm">
+    <form
+        method="POST"
+        @submit="submitForm"
+    >
         <div class="field">
             <label class="label">VOD URL</label>
             <div class="control">
-                <input class="input input-required" type="text" name="url" value="" required />
+                <input
+                    class="input input-required"
+                    type="text"
+                    name="url"
+                    value=""
+                    required
+                >
             </div>
         </div>
 
         <div class="field">
             <label class="label">Quality</label>
             <div class="control">
-                <select class="input input-required" name="quality">
-                    <option v-for="quality in VideoQualityArray" :key="quality">{{ quality }}</option>
+                <select
+                    class="input input-required"
+                    name="quality"
+                >
+                    <option
+                        v-for="quality in VideoQualityArray"
+                        :key="quality"
+                    >
+                        {{ quality }}
+                    </option>
                 </select>
             </div>
         </div>
 
         <div class="field">
             <div class="control">
-                <button class="button is-confirm" type="submit">
-                    <span class="icon"><fa icon="burn"></fa></span> Execute
+                <button
+                    class="button is-confirm"
+                    type="submit"
+                >
+                    <span class="icon"><fa icon="burn" /></span> Execute
                 </button>
                 <span :class="formStatusClass">{{ formStatusText }}</span>
             </div>
@@ -43,6 +63,15 @@ export default defineComponent({
             formStatus: "",
             formData: {},
         };
+    },
+    computed: {
+        formStatusClass(): Record<string, boolean> {
+            return {
+                "form-status": true,
+                "is-error": this.formStatus == "ERROR",
+                "is-success": this.formStatus == "OK",
+            };
+        },
     },
     methods: {
         submitForm(event: Event) {
@@ -76,15 +105,6 @@ export default defineComponent({
 
             event.preventDefault();
             return false;
-        },
-    },
-    computed: {
-        formStatusClass(): Record<string, boolean> {
-            return {
-                "form-status": true,
-                "is-error": this.formStatus == "ERROR",
-                "is-success": this.formStatus == "OK",
-            };
         },
     },
 });
