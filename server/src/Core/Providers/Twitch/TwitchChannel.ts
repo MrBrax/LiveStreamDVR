@@ -11,7 +11,6 @@ import { TwitchVODChapterJSON } from "Storage/JSON";
 import type { ApiTwitchChannel } from "../../../../../common/Api/Client";
 import { TwitchChannelConfig, VideoQuality } from "../../../../../common/Config";
 import { MuteStatus, Providers, SubStatus } from "../../../../../common/Defs";
-import type { LocalClip } from "../../../../../common/LocalClip";
 import type { LocalVideo } from "../../../../../common/LocalVideo";
 import { AudioMetadata, VideoMetadata } from "../../../../../common/MediaInfo";
 import type { Channel, ChannelsResponse } from "../../../../../common/TwitchAPI/Channels";
@@ -938,10 +937,10 @@ export class TwitchChannel extends BaseChannel {
         for (const file of files) {
             if (!file.endsWith(".mp4")) continue;
             if (allVodFiles.includes(path.basename(file))) continue;
-            console.debug(`Adding local video ${file} for channel ${this.login}`);
+            console.debug(`Adding local video ${file} for channel ${this.internalName}`);
             this.addLocalVideo(path.basename(file));
         }
-        console.log(`Added ${this.video_list.length} local videos to ${this.login}`);
+        console.log(`Added ${this.video_list.length} local videos to ${this.internalName}`);
     }
 
     /**
@@ -1759,6 +1758,9 @@ export class TwitchChannel extends BaseChannel {
     }
 
     get profilePictureUrl(): string {
+        if (this.channel_data && this.channel_data.cache_avatar) {
+            return `${Config.getInstance().cfg<string>("basepath", "")}/cache/avatars/${this.channel_data.cache_avatar}`;
+        }
         return this.channel_data?.profile_image_url || "";
     }
 
