@@ -2,12 +2,9 @@ import { ApiTwitchChannel } from "@common/Api/Client";
 import { UserData } from "@common/User";
 import { VideoQuality } from "@common/Config";
 import { BroadcasterType } from "@common/TwitchAPI/Users";
-import { TwitchVODChapter } from "./TwitchVODChapter";
 import { TwitchGame } from "./TwitchGame";
 import TwitchVOD from "./TwitchVOD";
 import { TwitchVODChapterJSON } from "../../../../../server/src/Storage/JSON";
-import { LocalVideo } from "@common/LocalVideo";
-import { LocalClip } from "@common/LocalClip";
 import BaseChannel from "../Base/BaseChannel";
 
 export default class TwitchChannel extends BaseChannel {

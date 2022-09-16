@@ -1,5 +1,6 @@
 <template>
     <div
+        v-if="streamer"
         :class="{
             'top-menu-item': true,
             'is-live': streamer.is_live,
@@ -11,9 +12,8 @@
             streamer: true,
         }"
         :data-streamer="streamer.login"
-        v-if="streamer"
     >
-    <!-- :style="{
+        <!-- :style="{
             'background-image': 'url(' + bannerUrl + ')',
         }"
     -->
@@ -21,8 +21,15 @@
             :to="store.clientCfg('singlePage') ? { name: 'Dashboard', query: { channel: streamer.uuid } } : { name: 'Dashboard', hash: '#streamer_' + streamer.uuid }"
             class="streamer-link"
         >
-            <span class="avatar" @click.prevent="streamer && store.fetchAndUpdateStreamer(streamer.uuid)" aria-label="Streamer Avatar">
-                <img :src="avatarUrl" :alt="streamer.internalName" />
+            <span
+                class="avatar"
+                aria-label="Streamer Avatar"
+                @click.prevent="streamer && store.fetchAndUpdateStreamer(streamer.uuid)"
+            >
+                <img
+                    :src="avatarUrl"
+                    :alt="streamer.internalName"
+                >
             </span>
             <span class="username">
                 {{ streamer.displayName }}
@@ -43,19 +50,23 @@
                     <template v-else>Streaming</template>
                     for
                     <duration-display
-                        :startDate="streamer.current_vod?.current_chapter?.started_at"
-                        :outputStyle="store.clientCfg('useRelativeTime') ? 'human' : 'numbers'"
-                    ></duration-display>
+                        v-if="streamer"
+                        :start-date="streamer.current_vod?.current_chapter?.started_at"
+                        :output-style="store.clientCfg('useRelativeTime') ? 'human' : 'numbers'"
+                    />
                     (<duration-display
-                        :startDate="streamer.current_vod?.started_at"
-                        :outputStyle="store.clientCfg('useRelativeTime') ? 'human' : 'numbers'"
-                    ></duration-display
-                    >)
+                        v-if="streamer"
+                        :start-date="streamer.current_vod?.started_at"
+                        :output-style="store.clientCfg('useRelativeTime') ? 'human' : 'numbers'"
+                    />)
                 </template>
                 <template v-else-if="streamer.is_converting"> Converting... </template>
                 <template v-else-if="streamer.chapter_data && store.clientCfg('showOfflineCategoryInSidebar')">
                     <span :title="streamer.chapter_data.title">
-                        <span class="icon is-small"><fa icon="bed" title="Offline category" /></span> {{ isTwitch(streamer) ? streamer.chapter_data.game_name : "" }} @ {{ formatLogicalDate(streamer.chapter_data.started_at) }}
+                        <span class="icon is-small"><fa
+                            icon="bed"
+                            title="Offline category"
+                        /></span> {{ isTwitch(streamer) ? streamer.chapter_data.game_name : "" }} @ {{ formatLogicalDate(streamer.chapter_data.started_at) }}
                     </span>
                 </template>
                 <template v-else>
@@ -65,22 +76,38 @@
         </router-link>
         <div class="streamer-expand-container">
             <button
-                class="streamer-expand-main"
                 v-if="!store.clientCfg('expandVodList') && streamer.vods_list.length > store.clientCfg('vodsToShowInMenu', 4)"
-                @click="toggleExpand"
+                class="streamer-expand-main"
                 title="Click to toggle VOD list"
+                @click="toggleExpand"
             >
-                <transition><span class="amount" v-if="!expanded">{{ streamer.vods_list.length - store.clientCfg('vodsToShowInMenu', 4) }}</span></transition>
+                <transition>
+                    <span
+                        v-if="!expanded"
+                        class="amount"
+                    >{{ streamer.vods_list.length - store.clientCfg('vodsToShowInMenu', 4) }}</span>
+                </transition>
                 <fa :icon="expanded ? 'chevron-up' : 'chevron-down'" />
             </button>
         </div>
     </div>
 
-    <div class="top-menu-item streamer-jumpto" v-if="streamer">
-        <transition-group name="list" tag="ul" v-if="streamer.vods_list.length > 0">
+    <div
+        v-if="streamer"
+        class="top-menu-item streamer-jumpto"
+    >
+        <transition-group
+            v-if="streamer.vods_list.length > 0"
+            name="list"
+            tag="ul"
+        >
             <!--<li v-if="!expanded && !store.clientCfg('expandVodList') && streamer.vods_list.length > store.clientCfg('vodsToShowInMenu', 4)" class="streamer-expand-hide"></li>-->
-            <li v-for="vod in filteredVodsList" :key="vod.basename">
+            <li
+                v-for="vod in filteredVodsList"
+                :key="vod.basename"
+            >
                 <router-link
+                    v-if="streamer"
                     :to="
                         store.clientCfg('singlePage')
                             ? { name: 'Dashboard', query: { channel: streamer.uuid }, hash: '#vod_' + vod.uuid }
@@ -96,24 +123,47 @@
                         'streamer-jumpto-vod': true,
                     }"
                     :title="vod.started_at ? formatDate(vod.started_at) : 'Unknown'"
-                    v-if="streamer"
                 >
                     <!-- capturing -->
-                    <span class="icon" v-if="vod.is_capturing"><fa icon="sync" spin></fa></span>
+                    <span
+                        v-if="vod.is_capturing"
+                        class="icon"
+                    ><fa
+                        icon="sync"
+                        spin
+                    /></span>
 
                     <!-- converting -->
-                    <span class="icon" v-else-if="vod.is_converting"><fa icon="cog" spin></fa></span>
+                    <span
+                        v-else-if="vod.is_converting"
+                        class="icon"
+                    ><fa
+                        icon="cog"
+                        spin
+                    /></span>
 
                     <!-- favourite -->
-                    <span class="icon" v-else-if="isTwitchVOD(vod) && vod.hasFavouriteGame()"><fa icon="star"></fa></span>
+                    <span
+                        v-else-if="isTwitchVOD(vod) && vod.hasFavouriteGame()"
+                        class="icon"
+                    ><fa icon="star" /></span>
 
-                    <span class="icon is-error" v-else-if="vod.failed"><fa icon="exclamation-triangle" /></span>
+                    <span
+                        v-else-if="vod.failed"
+                        class="icon is-error"
+                    ><fa icon="exclamation-triangle" /></span>
 
                     <!-- waiting after capture -->
-                    <span class="icon" v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized"><fa :icon="['far', 'hourglass']"></fa></span>
+                    <span
+                        v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized"
+                        class="icon"
+                    ><fa :icon="['far', 'hourglass']" /></span>
 
                     <!-- video -->
-                    <span class="icon" v-else-if="vod.is_finalized"><fa :icon="fileIcon(vod)"></fa></span>
+                    <span
+                        v-else-if="vod.is_finalized"
+                        class="icon"
+                    ><fa :icon="fileIcon(vod)" /></span>
 
                     <!-- started at -->
 
@@ -127,13 +177,10 @@
                     <template v-if="vod.is_capturing">
                         <span>
                             &middot; (<duration-display
-                                :startDate="streamer.current_vod?.started_at"
-                                :outputStyle="store.clientCfg('useRelativeTime') ? 'human' : 'numbers'"
-                            ></duration-display
-                            >)</span
-                        ><!-- duration -->
-                        <span v-if="vod.getRecordingSize()"> &middot; {{ formatBytes(vod.getRecordingSize() || 0, 2) }}+</span
-                        ><!-- filesize -->
+                                :start-date="streamer.current_vod?.started_at"
+                                :output-style="store.clientCfg('useRelativeTime') ? 'human' : 'numbers'"
+                            />)</span><!-- duration -->
+                        <span v-if="vod.getRecordingSize()"> &middot; {{ formatBytes(vod.getRecordingSize() || 0, 2) }}+</span><!-- filesize -->
                     </template>
 
                     <!-- when not capturing -->
@@ -150,16 +197,48 @@
                     <!-- flags -->
                     <template v-if="vod.is_finalized">
                         <span class="flags">
-                            <span v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === false" class="icon is-error" title="Deleted from provider"><fa icon="trash"></fa></span><!-- vod deleted -->
-                            <span v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === true && isRiskOfBeingDeleted(vod)" class="icon is-warning" title="Is risking deletion from provider">
-                                <fa icon="trash-arrow-up"></fa>
+                            <span
+                                v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === false"
+                                class="icon is-error"
+                                title="Deleted from provider"
+                            ><fa icon="trash" /></span><!-- vod deleted -->
+                            <span
+                                v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === true && isRiskOfBeingDeleted(vod)"
+                                class="icon is-warning"
+                                title="Is risking deletion from provider"
+                            >
+                                <fa icon="trash-arrow-up" />
                             </span><!-- vod deleted -->
-                            <span v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === null" class="icon is-error" title="Not checked"><fa icon="question"></fa></span><!-- vod not checked -->
-                            <span v-if="isTwitchVOD(vod) && vod.twitch_vod_muted === MuteStatus.MUTED" class="icon is-error" title="Muted"><fa icon="volume-mute"></fa></span><!-- vod muted -->
-                            <span v-if="vod.is_capture_paused" class="icon is-error" title="Paused"><fa icon="pause"></fa></span><!-- capturing paused -->
-                            <span v-if="vod.prevent_deletion" class="icon is-success" title="Preventing deletion"><fa icon="lock"></fa></span><!-- prevent deletion -->
-                            <span v-if="vod.hasDeletedSegment" class="icon is-error" title="Deleted segment"><fa icon="film"></fa></span><!-- deleted segment -->
-                            <span v-if="vod.comment" class="icon is-success" title="Has comment"><fa icon="comment"></fa></span><!-- has comment -->
+                            <span
+                                v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === null"
+                                class="icon is-error"
+                                title="Not checked"
+                            ><fa icon="question" /></span><!-- vod not checked -->
+                            <span
+                                v-if="isTwitchVOD(vod) && vod.twitch_vod_muted === MuteStatus.MUTED"
+                                class="icon is-error"
+                                title="Muted"
+                            ><fa icon="volume-mute" /></span><!-- vod muted -->
+                            <span
+                                v-if="vod.is_capture_paused"
+                                class="icon is-error"
+                                title="Paused"
+                            ><fa icon="pause" /></span><!-- capturing paused -->
+                            <span
+                                v-if="vod.prevent_deletion"
+                                class="icon is-success"
+                                title="Preventing deletion"
+                            ><fa icon="lock" /></span><!-- prevent deletion -->
+                            <span
+                                v-if="vod.hasDeletedSegment"
+                                class="icon is-error"
+                                title="Deleted segment"
+                            ><fa icon="film" /></span><!-- deleted segment -->
+                            <span
+                                v-if="vod.comment"
+                                class="icon is-success"
+                                title="Has comment"
+                            ><fa icon="comment" /></span><!-- has comment -->
                         </span>
                     </template>
 
@@ -167,20 +246,35 @@
                     <div :class="{ tooltip: true, 'is-static': store.clientCfg('tooltipStatic') }">
                         <div class="stream-channel">
                             {{ streamer.display_name }}
-                            <template v-if="streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }})</template>
+                            <template v-if="streamer.login.toLowerCase() != streamer.display_name.toLowerCase()">
+                                ({{ streamer.login }})
+                            </template>
                         </div>
-                        <div class="stream-name">{{ vod.basename }}</div>
-                        <div class="boxart-carousel is-small" v-if="isTwitchVOD(vod)">
+                        <div class="stream-name">
+                            {{ vod.basename }}
+                        </div>
+                        <div
+                            v-if="isTwitchVOD(vod)"
+                            class="boxart-carousel is-small"
+                        >
                             <div
                                 v-for="game in vod.getUniqueGames()"
                                 :key="game.name"
                                 :class="{ 'boxart-item': true, 'is-favourite': store.config && store.favourite_games.includes(game.id) }"
                             >
-                                <img v-if="game.box_art_url" :title="game.name" :alt="game.name" :src="game.getBoxArtUrl(140, 190)" loading="lazy" />
+                                <img
+                                    v-if="game.box_art_url"
+                                    :title="game.name"
+                                    :alt="game.name"
+                                    :src="game.getBoxArtUrl(140, 190)"
+                                    loading="lazy"
+                                >
                                 <span class="boxart-name">{{ game.name }}</span>
                             </div>
                         </div>
-                        <div class="stream-title">{{ isTwitchVOD(vod) ? vod.stream_title : "" }}</div>
+                        <div class="stream-title">
+                            {{ isTwitchVOD(vod) ? vod.stream_title : "" }}
+                        </div>
                     </div>
                 </router-link>
             </li>
@@ -205,46 +299,23 @@ import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 
 export default defineComponent({
     name: "SideMenuStreamer",
+    components: {
+        DurationDisplay,
+    },
     props: {
         streamer: {
             type: Object as () => ChannelTypes,
+            required: true,
         },
-    },
-    data() {
-        return {
-            expanded: false,
-        };
     },
     setup() {
         const store = useStore();
         return { store, nonGameCategories, MuteStatus };
     },
-    components: {
-        DurationDisplay,
-    },
-    methods: {
-        isRiskOfBeingDeleted(vod: TwitchVOD) {
-            if (!vod.started_at) return false;
-
-            const channel = vod.getChannel();
-            if (channel) {
-                if (channel.broadcaster_type === "partner") return false; // partner vods are never deleted, i think?
-            }
-
-            // 14 days minus 2 days for some slack
-            const maxVodAge = TwitchVodAge - 2 * 24 * 60 * 60 * 1000;
-
-            // if the vod is older than 12 days, it is considered risky
-            return Date.now() - vod.started_at.getTime() >= maxVodAge;
-        },
-        toggleExpand() {
-            this.expanded = !this.expanded;
-        },
-        fileIcon(vod: VODTypes): string {
-            if (!this.streamer) return "";
-            if (vod.video_metadata?.type === "audio") return "headphones";
-            return "film";
-        }
+    data() {
+        return {
+            expanded: false,
+        };
     },
     computed: {
         filteredVodsList(): VODTypes[] {
@@ -272,6 +343,30 @@ export default defineComponent({
             if (nonGameCategories.includes(this.streamer.current_game.name)) return "Streaming";
             if (this.streamer.current_game.name === "Among Us") return "Sussing"; // lol
             return "Playing";
+        }
+    },
+    methods: {
+        isRiskOfBeingDeleted(vod: TwitchVOD) {
+            if (!vod.started_at) return false;
+
+            const channel = vod.getChannel();
+            if (channel) {
+                if (channel.broadcaster_type === "partner") return false; // partner vods are never deleted, i think?
+            }
+
+            // 14 days minus 2 days for some slack
+            const maxVodAge = TwitchVodAge - 2 * 24 * 60 * 60 * 1000;
+
+            // if the vod is older than 12 days, it is considered risky
+            return Date.now() - vod.started_at.getTime() >= maxVodAge;
+        },
+        toggleExpand() {
+            this.expanded = !this.expanded;
+        },
+        fileIcon(vod: VODTypes): string {
+            if (!this.streamer) return "";
+            if (vod.video_metadata?.type === "audio") return "headphones";
+            return "film";
         }
     }
 });

@@ -10,21 +10,27 @@
         -->
 
         <section class="section">
-            <div class="section-title"><h1>{{ $t('views.tools.vod-download') }}</h1></div>
+            <div class="section-title">
+                <h1>{{ $t('views.tools.vod-download') }}</h1>
+            </div>
             <div class="section-content">
                 <tools-vod-download-form />
             </div>
         </section>
 
         <section class="section">
-            <div class="section-title"><h1>{{ $t('views.tools.chat-download') }}</h1></div>
+            <div class="section-title">
+                <h1>{{ $t('views.tools.chat-download') }}</h1>
+            </div>
             <div class="section-content">
                 <tools-chat-download-form />
             </div>
         </section>
 
         <section class="section">
-            <div class="section-title"><h1>{{ $t('views.tools.clip-download') }}</h1></div>
+            <div class="section-title">
+                <h1>{{ $t('views.tools.clip-download') }}</h1>
+            </div>
             <div class="section-content">
                 <tools-clip-download-form />
             </div>
@@ -32,28 +38,42 @@
     </div>
     <div class="container">
         <section class="section">
-            <div class="section-title"><h1>{{ $t('views.tools.chat-dump') }}</h1></div>
+            <div class="section-title">
+                <h1>{{ $t('views.tools.chat-dump') }}</h1>
+            </div>
             <div class="section-content">
                 <tools-chat-dump-form />
             </div>
         </section>
 
         <section class="section">
-            <div class="section-title"><h1>Hook debug</h1></div>
+            <div class="section-title">
+                <h1>Hook debug</h1>
+            </div>
             <div class="section-content">
-                <input type="file" @change="sendHookDebug" accept=".json" />
+                <input
+                    type="file"
+                    accept=".json"
+                    @change="sendHookDebug"
+                >
                 <p>
-                    Fakes a hook call from a JSON payload. Useful for debugging.<br />
+                    Fakes a hook call from a JSON payload. Useful for debugging.<br>
                     Payloads are stored in <code>/data/payloads/</code>
                 </p>
             </div>
         </section>
 
         <section class="section">
-            <div class="section-title"><h1>{{ $t('views.tools.reset-channels') }}</h1></div>
+            <div class="section-title">
+                <h1>{{ $t('views.tools.reset-channels') }}</h1>
+            </div>
             <div class="section-content">
-                <button type="button" class="button is-danger" @click="resetChannels">
-                    <span class="icon"><fa icon="sync"></fa></span>
+                <button
+                    type="button"
+                    class="button is-danger"
+                    @click="resetChannels"
+                >
+                    <span class="icon"><fa icon="sync" /></span>
                     <span>{{ $t('buttons.reset') }}</span>
                 </button>
                 <p>
@@ -80,13 +100,17 @@
             </div>
         </section>
         -->
-
     </div>
     <div class="container">
         <section class="section">
-            <div class="section-title"><h1>{{ $t('views.tools.current-jobs') }}</h1></div>
+            <div class="section-title">
+                <h1>{{ $t('views.tools.current-jobs') }}</h1>
+            </div>
             <div class="section-content">
-                <table class="table is-fullwidth is-striped" v-if="store.jobList && store.jobList.length > 0">
+                <table
+                    v-if="store.jobList && store.jobList.length > 0"
+                    class="table is-fullwidth is-striped"
+                >
                     <thead>
                         <tr>
                             <th>Name</th>
@@ -97,7 +121,10 @@
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <tr v-for="job in store.jobList" :key="job.name">
+                    <tr
+                        v-for="job in store.jobList"
+                        :key="job.name"
+                    >
                         <td>
                             <span class="text-overflow">{{ job.name }}</span>
                         </td>
@@ -117,17 +144,37 @@
                         </td>
                         <td>
                             <div class="buttons">
-                                <a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name, 'SIGHUP')" title="Gracefully kill job (SIGHUP)">
-                                    <span class="icon"><fa icon="heart"></fa></span>
+                                <a
+                                    v-if="job.status"
+                                    class="button is-danger is-small"
+                                    title="Gracefully kill job (SIGHUP)"
+                                    @click="killJob(job.name, 'SIGHUP')"
+                                >
+                                    <span class="icon"><fa icon="heart" /></span>
                                 </a>
-                                <a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name, 'SIGINT')" title="Gracefully kill job (SIGINT)">
-                                    <span class="icon"><fa icon="stop"></fa></span>
+                                <a
+                                    v-if="job.status"
+                                    class="button is-danger is-small"
+                                    title="Gracefully kill job (SIGINT)"
+                                    @click="killJob(job.name, 'SIGINT')"
+                                >
+                                    <span class="icon"><fa icon="stop" /></span>
                                 </a>
-                                <a class="button is-danger is-small" v-if="job.status" @click="killJob(job.name)" title="Kill job (SIGTERM)">
-                                    <span class="icon"><fa icon="skull"></fa></span>
+                                <a
+                                    v-if="job.status"
+                                    class="button is-danger is-small"
+                                    title="Kill job (SIGTERM)"
+                                    @click="killJob(job.name)"
+                                >
+                                    <span class="icon"><fa icon="skull" /></span>
                                 </a>
-                                <a class="button is-danger is-small" v-if="job.status" @click="clearJob(job.name)" title="Clear job">
-                                    <span class="icon"><fa icon="trash"></fa></span>
+                                <a
+                                    v-if="job.status"
+                                    class="button is-danger is-small"
+                                    title="Clear job"
+                                    @click="clearJob(job.name)"
+                                >
+                                    <span class="icon"><fa icon="trash" /></span>
                                 </a>
                             </div>
                         </td>
@@ -142,7 +189,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 
-import ToolsBurnForm from "@/components/forms/ToolsBurnForm.vue";
+// import ToolsBurnForm from "@/components/forms/ToolsBurnForm.vue";
 import ToolsVodDownloadForm from "@/components/forms/ToolsVodDownloadForm.vue";
 import ToolsChatDownloadForm from "@/components/forms/ToolsChatDownloadForm.vue";
 import ToolsChatDumpForm from "@/components/forms/ToolsChatDumpForm.vue";
@@ -165,14 +212,19 @@ interface PayloadDump {
 export default defineComponent({
     name: "ToolsView",
     title: "Tools",
+    components: {
+        // ToolsBurnForm,
+        ToolsVodDownloadForm,
+        ToolsChatDownloadForm,
+        ToolsChatDumpForm,
+        ToolsClipDownloadForm
+    },
     setup() {
         const store = useStore();
         return { store, JobStatus };
     },
-    created() {
-    },
     methods: {
-        killJob(name: string, method: string = "") {
+        killJob(name: string, method = "") {
             if (!confirm(`Kill job "${name}?"`)) return;
 
             this.$http
@@ -249,13 +301,6 @@ export default defineComponent({
                     console.error("tools reset channels error", err.response);
                 });
         },
-    },
-    components: {
-        ToolsBurnForm,
-        ToolsVodDownloadForm,
-        ToolsChatDownloadForm,
-        ToolsChatDumpForm,
-        ToolsClipDownloadForm
     },
 });
 </script>

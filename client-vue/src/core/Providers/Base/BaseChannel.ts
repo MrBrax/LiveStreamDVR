@@ -1,12 +1,9 @@
-import { ApiBaseChannel, ApiTwitchChannel } from "@common/Api/Client";
-import { UserData } from "@common/User";
+import { ApiBaseChannel } from "@common/Api/Client";
 import { VideoQuality } from "@common/Config";
 import { BroadcasterType } from "@common/TwitchAPI/Users";
-import { BaseVODChapterJSON, TwitchVODChapterJSON } from "../../../../../server/src/Storage/JSON";
+import { BaseVODChapterJSON } from "../../../../../server/src/Storage/JSON";
 import { LocalVideo } from "@common/LocalVideo";
 import { LocalClip } from "@common/LocalClip";
-import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
-import { TwitchGame } from "../Twitch/TwitchGame";
 import { BaseVODChapter } from "./BaseVODChapter";
 import BaseVOD from "./BaseVOD";
 import { Providers } from "@common/Defs";
@@ -36,7 +33,7 @@ export default class BaseChannel {
 
     // channel_data: UserData | undefined;
 
-    current_stream_number: number = 0;
+    current_stream_number = 0;
     current_season = "";
     is_live = false;
     // is_capturing = false;
@@ -45,7 +42,7 @@ export default class BaseChannel {
 
     saves_vods = false;
 
-    download_vod_at_end: boolean = false;
+    download_vod_at_end = false;
     download_vod_at_end_quality: VideoQuality = "best";
 
     displayName = "";

@@ -1,6 +1,5 @@
 import { useStore } from "../../../store";
-import { JobStatus, MuteStatus } from "../../../../../common/Defs";
-import { AudioMetadata, VideoMetadata } from "../../../../../common/MediaInfo";
+import { MuteStatus } from "../../../../../common/Defs";
 import TwitchChannel from "./TwitchChannel";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 // import { useStore } from "../store";
@@ -115,7 +114,7 @@ export default class TwitchVOD extends BaseVOD {
 
     public getChannel(): TwitchChannel | undefined {
         const store = useStore();
-        return store.streamerList.find<TwitchChannel>((streamer): streamer is TwitchChannel => streamer.userid == this.streamer_id);
+        return store.streamerList.find<TwitchChannel>((streamer): streamer is TwitchChannel => streamer.uuid == this.channel_uuid);
     }
 
     get current_game(): TwitchGame | undefined {

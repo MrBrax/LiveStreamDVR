@@ -8,7 +8,10 @@ import { intervalToDuration, parseJSON } from "date-fns";
 
 export default defineComponent({
     name: "DurationDisplay",
-    props: ["startDate", "outputStyle"],
+    props: {
+        startDate: { type: String, default: "0", },
+        outputStyle: { type: String, default: "human", }
+    },
     data() {
         return {
             interval: 0,
@@ -28,7 +31,7 @@ export default defineComponent({
     },
     methods: {
         refreshTime() {
-            if (!this.startDate) return;
+            if (!this.startDate || this.startDate == "0") return;
             const dateObj = parseJSON(this.startDate);
             const dur = intervalToDuration({ start: dateObj, end: new Date() });
             if (this.outputStyle == "human") {

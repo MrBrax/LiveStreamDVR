@@ -15,8 +15,6 @@ import { ClientBroker } from "./Core/ClientBroker";
 import { Config } from "./Core/Config";
 import { Job } from "./Core/Job";
 import { Scheduler } from "./Core/Scheduler";
-import { TwitchChannel } from "./Core/Providers/Twitch/TwitchChannel";
-import { TwitchVOD } from "./Core/Providers/Twitch/TwitchVOD";
 import { Webhook } from "./Core/Webhook";
 import ApiRouter from "./Routes/Api";
 

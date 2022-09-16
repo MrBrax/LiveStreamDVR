@@ -1,56 +1,110 @@
 <template>
     <div class="container vertical">
-        <section class="section" v-if="store.errors && store.errors.length > 0 && store.authElement" aria-label="Errors">
+        <section
+            v-if="store.errors && store.errors.length > 0 && store.authElement"
+            class="section"
+            aria-label="Errors"
+        >
             <div class="errors">
                 <details class="details">
-                    <summary>Errors ({{store.errors.length}})</summary>
+                    <summary>Errors ({{ store.errors.length }})</summary>
                     <ul>
-                        <li v-for="error in store.errors" :key="error">
+                        <li
+                            v-for="error in store.errors"
+                            :key="error"
+                        >
                             {{ error }}
                         </li>
                     </ul>
                 </details>
             </div>
         </section>
-        <section class="section" v-if="store.cfg('motd')">
-            <div class="section-title"><h1>{{ $t("dashboard.motd") }}</h1></div>
-            <div class="section-content motd">{{ store.cfg('motd') }}</div>
+        <section
+            v-if="store.cfg('motd')"
+            class="section"
+        >
+            <div class="section-title">
+                <h1>{{ $t("dashboard.motd") }}</h1>
+            </div>
+            <div class="section-content motd">
+                {{ store.cfg('motd') }}
+            </div>
         </section>
-        <section class="section" data-section="vods">
-            <div class="section-title"><h1>{{ $t("dashboard.recorded_vods") }}</h1></div>
-            <div class="section-content" v-if="store.streamerListLoaded && store.streamerList.length > 0">
+        <section
+            class="section"
+            data-section="vods"
+        >
+            <div class="section-title">
+                <h1>{{ $t("dashboard.recorded_vods") }}</h1>
+            </div>
+            <div
+                v-if="store.streamerListLoaded && store.streamerList.length > 0"
+                class="section-content"
+            >
                 <template v-if="!store.clientCfg('singlePage')">
-                    <streamer v-for="streamer in sortedStreamers" v-bind:key="streamer.userid" v-bind:streamer="streamer" />
+                    <streamer
+                        v-for="streamer in sortedStreamers"
+                        :key="streamer.userid"
+                        :streamer="streamer"
+                    />
                 </template>
                 <template v-else>
-                    <streamer v-bind:streamer="singleStreamer" @refresh="store.fetchAndUpdateStreamerList" />
+                    <streamer
+                        :streamer="singleStreamer"
+                        @refresh="store.fetchAndUpdateStreamerList"
+                    />
                 </template>
-                <hr />
+                <hr>
                 <div class="dashboard-stats">
                     <strong>{{ $t('views.dashboard.total-size', [formatBytes(store.diskTotalSize)]) }}</strong>
-                    <br />
+                    <br>
                     <strong>{{ $t('views.dashboard.free-space', [formatBytes(store.diskFreeSize)]) }}</strong>
                 </div>
             </div>
-            <div class="section-content" v-else-if="!store.streamerListLoaded && store.authElement">
-                <span class="icon"><fa icon="sync" spin></fa></span> {{ $t("messages.loading") }}
+            <div
+                v-else-if="!store.streamerListLoaded && store.authElement"
+                class="section-content"
+            >
+                <span class="icon"><fa
+                    icon="sync"
+                    spin
+                /></span> {{ $t("messages.loading") }}
             </div>
-            <div class="section-content" v-else-if="!store.authElement">
-                <span class="icon"><fa icon="sign-in-alt"></fa></span> {{ $t("messages.login") }}
+            <div
+                v-else-if="!store.authElement"
+                class="section-content"
+            >
+                <span class="icon"><fa icon="sign-in-alt" /></span> {{ $t("messages.login") }}
             </div>
-            <div class="section-content" v-else>
-                <span class="icon"><fa icon="exclamation-triangle"></fa></span>
-                No channels found. Add some at <router-link :to="{ name: 'Settings', params: { tab: 'newchannel' } }">New Channel</router-link> to start.
+            <div
+                v-else
+                class="section-content"
+            >
+                <span class="icon"><fa icon="exclamation-triangle" /></span>
+                No channels found. Add some at <router-link :to="{ name: 'Settings', params: { tab: 'newchannel' } }">
+                    New Channel
+                </router-link> to start.
             </div>
         </section>
 
         <section class="section">
-            <div class="section-title" @click="logToggle"><h1>{{ $t('dashboard.logs') }}</h1></div>
-            <div class="section-content" v-if="logVisible && store.authElement">
+            <div
+                class="section-title"
+                @click="logToggle"
+            >
+                <h1>{{ $t('dashboard.logs') }}</h1>
+            </div>
+            <div
+                v-if="logVisible && store.authElement"
+                class="section-content"
+            >
                 <log-viewer ref="logviewer" />
             </div>
-            <div class="section-content" v-else-if="!store.authElement">
-                <span class="icon"><fa icon="sign-in-alt"></fa></span> {{ $t("messages.login") }}
+            <div
+                v-else-if="!store.authElement"
+                class="section-content"
+            >
+                <span class="icon"><fa icon="sign-in-alt" /></span> {{ $t("messages.login") }}
             </div>
         </section>
     </div>
@@ -61,7 +115,6 @@ import { defineComponent, ref } from "vue";
 import Streamer from "@/components/StreamerItem.vue";
 import type { ApiTwitchChannel } from "@common/Api/Client";
 import { ChannelTypes, useStore } from "@/store";
-import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
 import LogViewer from "@/components/LogViewer.vue";
 
 interface DashboardData {
@@ -72,13 +125,12 @@ interface DashboardData {
     logVisible: boolean;
 }
 
-interface WebsocketJSON {
-    action: string;
-    data: any;
-}
-
 export default defineComponent({
     name: "DashboardView",
+    components: {
+        Streamer,
+        LogViewer,
+    },
     setup() {
         const store = useStore();
         const logviewer = ref<InstanceType<typeof LogViewer>>();
@@ -94,6 +146,23 @@ export default defineComponent({
             oldData: {},
             logVisible: false,
         };
+    },
+    computed: {
+        sortedStreamers(): ChannelTypes[] {
+            const streamers: ChannelTypes[] = [...this.store.streamerList];
+            return streamers.sort((a, b) => a.displayName.localeCompare(b.displayName));
+        },
+        singleStreamer(): ChannelTypes | undefined {
+            if (!this.store.streamerList) return undefined;
+
+            const current = this.$route.query.channel as string;
+            if (current !== undefined) {
+                return this.store.streamerList.find((u) => u.uuid === current);
+            } else {
+                // this.$route.query.channel = this.store.streamerList[0].display_name;
+                return this.store.streamerList[0];
+            }
+        },
     },
     created() {
         console.debug("Dashboard created");
@@ -132,27 +201,6 @@ export default defineComponent({
             this.logVisible = !this.logVisible;
             this.logviewer?.scrollLog();
         },
-    },
-    computed: {
-        sortedStreamers(): ChannelTypes[] {
-            const streamers: ChannelTypes[] = [...this.store.streamerList];
-            return streamers.sort((a, b) => a.display_name.localeCompare(b.display_name));
-        },
-        singleStreamer(): ChannelTypes | undefined {
-            if (!this.store.streamerList) return undefined;
-
-            const current = this.$route.query.channel as string;
-            if (current !== undefined) {
-                return this.store.streamerList.find((u) => u.login === current);
-            } else {
-                // this.$route.query.channel = this.store.streamerList[0].display_name;
-                return this.store.streamerList[0];
-            }
-        },
-    },
-    components: {
-        Streamer,
-        LogViewer,
     },
 });
 </script>

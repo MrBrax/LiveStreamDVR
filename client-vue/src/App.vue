@@ -2,54 +2,89 @@
     <div class="splitter">
         <side-menu />
         <div class="content">
-            <section class="section" v-if="(store.authentication && !store.authenticated && !store.guest_mode)">
+            <section
+                v-if="(store.authentication && !store.authenticated && !store.guest_mode)"
+                class="section"
+            >
                 <div class="errors">
                     This site is only available to logged in users.
                 </div>
             </section>
-            <div v-if="errors" class="big-error">
-                <div v-for="error in errors" :key="error" class="big-error-item">Error</div>
+            <div
+                v-if="errors"
+                class="big-error"
+            >
+                <div
+                    v-for="error in errors"
+                    :key="error"
+                    class="big-error-item"
+                >
+                    Error
+                </div>
             </div>
-            <router-view v-if="store.config !== null && store.favourite_games !== null" ref="view" />
+            <router-view
+                v-if="store.config !== null && store.favourite_games !== null"
+                ref="view"
+            />
             <div v-else>
                 <div class="container">
                     <section class="section">
                         <div class="section-content">
-                            <span class="icon"><fa icon="sync" spin></fa></span> {{ $t("messages.loading") }}
+                            <span class="icon"><fa
+                                icon="sync"
+                                spin
+                            /></span> {{ $t("messages.loading") }}
                         </div>
                     </section>
                 </div>
             </div>
         </div>
-        <job-status ref="jobstatus" v-if="store.authElement" />
+        <job-status
+            v-if="store.authElement"
+            ref="jobstatus"
+        />
         <websocket-status
             :websocket="websocket"
-            :websocketConnected="websocketConnected"
-            :websocketConnecting="websocketConnecting"
+            :websocket-connected="websocketConnected"
+            :websocket-connecting="websocketConnecting"
             :timer="timer"
-            :tickerInterval="tickerInterval"
+            :ticker-interval="tickerInterval"
             :loading="loading"
         />
     </div>
-    <dialog class="mediaplayer" ref="mediaplayer">
+    <dialog
+        ref="mediaplayer"
+        class="mediaplayer"
+    >
         <div>{{ mediaPlayerSource }}</div>
         <div>
-            <video ref="mediaplayervideo" :src="mediaPlayerSource" controls autoplay />
+            <video
+                ref="mediaplayervideo"
+                :src="mediaPlayerSource"
+                controls
+                autoplay
+            />
         </div>
         <div class="buttons is-centered">
-            <button class="button is-small is-danger" @click="mediaPlayerSource = undefined; ($refs.mediaplayer as HTMLDialogElement).close()">
-                <span class="icon"><fa icon="xmark"></fa></span>
+            <button
+                class="button is-small is-danger"
+                @click="mediaPlayerSource = undefined; ($refs.mediaplayer as HTMLDialogElement).close()"
+            >
+                <span class="icon"><fa icon="xmark" /></span>
                 <span>Close</span>
             </button>
-            <a :href="mediaPlayerSource" class="button is-small is-info" target="_blank" @click="($refs.mediaplayervideo as HTMLVideoElement).pause()">
-                <span class="icon"><fa icon="arrow-up-right-from-square"></fa></span>
+            <a
+                :href="mediaPlayerSource"
+                class="button is-small is-info"
+                target="_blank"
+                @click="($refs.mediaplayervideo as HTMLVideoElement).pause()"
+            >
+                <span class="icon"><fa icon="arrow-up-right-from-square" /></span>
                 <span>Open in new tab</span>
             </a>
         </div>
     </dialog>
 </template>
-
-<style lang="scss"></style>
 
 <script lang="ts">
 import { defineComponent } from "vue";
@@ -82,6 +117,16 @@ faviconTempImage.onload = () => {
 
 export default defineComponent({
     name: "App",
+    components: {
+        SideMenu,
+        JobStatus,
+        WebsocketStatus
+    },
+    provide() {
+        return {
+            websocket: this.websocket,
+        };
+    },
     setup() {
         const store = useStore();
         return { store };
@@ -120,13 +165,17 @@ export default defineComponent({
                 console.log("faviconSub");
             },
             mediaPlayerSource: undefined,
-            actionSub: () => {},
+            actionSub: () => { console.log("action"); },
         };
     },
-    provide() {
-        return {
-            websocket: this.websocket,
-        };
+    watch: {
+        // watch for title changes
+        $route(to, from) {
+            this.updateTitle();
+        },
+        "store.channelsOnline"(v) {
+            this.updateTitle();
+        },
     },
     created() {
         console.debug("App created");
@@ -257,7 +306,7 @@ export default defineComponent({
 
             this.websocket.addEventListener("message", (ev: MessageEvent) => {
 
-                let text: string = ev.data;
+                const text: string = ev.data;
 
                 if (text == "pong") {
                     // console.log("pong recieved");
@@ -582,20 +631,8 @@ export default defineComponent({
             this.store.keyEvent(event.key);
         }
     },
-    components: {
-        SideMenu,
-        JobStatus,
-        WebsocketStatus
-    },
-    watch: {
-        // watch for title changes
-        $route(to, from) {
-            this.updateTitle();
-        },
-        "store.channelsOnline"(v) {
-            this.updateTitle();
-        },
-    },
 });
 
 </script>
+
+<style lang="scss"></style>

@@ -1,94 +1,165 @@
 <template>
-    <div class="streamer-box" v-if="streamer" :id="'streamer_' + streamer.uuid">
+    <div
+        v-if="streamer"
+        :id="'streamer_' + streamer.uuid"
+        class="streamer-box"
+    >
         <div :class="{ 'streamer-title': true, 'is-live': streamer.is_live, 'is-capturing': streamer.is_capturing }">
-            <div class="streamer-title-avatar" :style="'background-image: url(' + avatarUrl + ')'"></div>
+            <div
+                class="streamer-title-avatar"
+                :style="'background-image: url(' + avatarUrl + ')'"
+            />
             <div class="streamer-title-text">
                 <h2>
-                    <a :href="streamer.url" rel="noreferrer" target="_blank">
+                    <a
+                        :href="streamer.url"
+                        rel="noreferrer"
+                        target="_blank"
+                    >
                         {{ streamer.displayName }}
                         <template v-if="streamer.internalName.toLowerCase() != streamer.displayName.toLowerCase()"> ({{ streamer.internalName }})</template>
                     </a>
-                    <span v-if="streamer.is_live" class="streamer-live">live</span>
-                    <span v-if="streamer.is_capturing" class="streamer-capturing">capturing</span>
+                    <span
+                        v-if="streamer.is_live"
+                        class="streamer-live"
+                    >live</span>
+                    <span
+                        v-if="streamer.is_capturing"
+                        class="streamer-capturing"
+                    >capturing</span>
                 </h2>
                 <span class="streamer-title-subtitle">
-                    <span class="streamer-vods-quality help" title="Quality">{{ quality }}</span
-                    ><!-- quality -->
+                    <span
+                        class="streamer-vods-quality help"
+                        title="Quality"
+                    >{{ quality }}</span><!-- quality -->
                     &middot;
-                    <span class="streamer-vods-amount" title="Total vod amount">{{ $tc("vods", streamer.vods_list.length) }}</span
-                    ><!-- vods -->
+                    <span
+                        class="streamer-vods-amount"
+                        title="Total vod amount"
+                    >{{ $tc("vods", streamer.vods_list.length) }}</span><!-- vods -->
                     &middot;
-                    <span class="streamer-vods-size" title="Total vod size">{{ formatBytes(streamer.vods_size) }}</span
-                    ><!-- total size -->
+                    <span
+                        class="streamer-vods-size"
+                        title="Total vod size"
+                    >{{ formatBytes(streamer.vods_size) }}</span><!-- total size -->
                     &middot;
                     <span class="streamer-subbed-status">
                         <span v-if="streamer.api_getSubscriptionStatus">{{ $t("messages.subscribed") }}</span>
-                        <span class="is-error" title="Could just be that subscriptions were made before this feature was implemented." v-else>
+                        <span
+                            v-else
+                            class="is-error"
+                            title="Could just be that subscriptions were made before this feature was implemented."
+                        >
                             {{ $t('streamer.one-or-more-subscriptions-missing') }}
-                        </span></span
-                    ><!-- sub status -->
+                        </span></span><!-- sub status -->
                     &middot;
-                    <span class="streamer-type" title="Broadcaster type">
+                    <span
+                        class="streamer-type"
+                        title="Broadcaster type"
+                    >
                         <span v-if="streamer.broadcaster_type">{{ streamer.broadcaster_type }}</span>
                         <span v-else>Free</span>
                     </span>
                     <span class="streamer-saves-vods">
                         &middot;
-                        <span v-if="!streamer.saves_vods" class="is-error">{{ $t("streamer.no-save-vods") }}</span>
+                        <span
+                            v-if="!streamer.saves_vods"
+                            class="is-error"
+                        >{{ $t("streamer.no-save-vods") }}</span>
                     </span>
                     &middot;
-                    <span class="streamer-sxe" title="Season and episode">
+                    <span
+                        class="streamer-sxe"
+                        title="Season and episode"
+                    >
                         {{ streamer.current_season }}/{{ streamer.current_stream_number.toString().padStart(2, "0") }}
                     </span>
                     <span class="streamer-title-tools">
 
                         <!-- edit -->
-                        <router-link class="icon-button white" :to="{ name: 'Settings', params: { tab: 'channels' }, hash: '#channel_' + streamer.uuid }" title="Edit channel">
-                            <span class="icon"><fa icon="pencil"></fa></span>
+                        <router-link
+                            class="icon-button white"
+                            :to="{ name: 'Settings', params: { tab: 'channels' }, hash: '#channel_' + streamer.uuid }"
+                            title="Edit channel"
+                        >
+                            <span class="icon"><fa icon="pencil" /></span>
                         </router-link>
 
                         <span v-if="canAbortCapture">
                             <!-- abort recording -->
-                            <button class="icon-button white" @click="abortCapture" title="Abort record">
-                                <span class="icon"><fa icon="video-slash"></fa></span>
+                            <button
+                                class="icon-button white"
+                                title="Abort record"
+                                @click="abortCapture"
+                            >
+                                <span class="icon"><fa icon="video-slash" /></span>
                             </button>
                         </span>
 
                         <span v-else>
                             <!-- force recording -->
-                            <button class="icon-button white" @click="forceRecord" title="Force record">
-                                <span class="icon"><fa icon="video"></fa></span>
+                            <button
+                                class="icon-button white"
+                                title="Force record"
+                                @click="forceRecord"
+                            >
+                                <span class="icon"><fa icon="video" /></span>
                             </button>
                         </span>
 
                         <!-- dump playlist -->
-                        <button class="icon-button white" @click="playlistRecord" title="Playlist record">
-                            <span class="icon"><fa icon="play-circle"></fa></span>
+                        <button
+                            class="icon-button white"
+                            title="Playlist record"
+                            @click="playlistRecord"
+                        >
+                            <span class="icon"><fa icon="play-circle" /></span>
                         </button>
 
                         <!-- download stuff -->
-                        <button class="icon-button white" @click="videoDownloadMenu ? (videoDownloadMenu.show = true) : ''" title="Video download">
-                            <span class="icon"><fa icon="download"></fa></span>
+                        <button
+                            class="icon-button white"
+                            title="Video download"
+                            @click="videoDownloadMenu ? (videoDownloadMenu.show = true) : ''"
+                        >
+                            <span class="icon"><fa icon="download" /></span>
                         </button>
 
                         <!-- run cleanup -->
-                        <button class="icon-button white" title="Clean up" @click="doChannelCleanup">
-                            <span class="icon"><fa icon="trash"></fa></span>
+                        <button
+                            class="icon-button white"
+                            title="Clean up"
+                            @click="doChannelCleanup"
+                        >
+                            <span class="icon"><fa icon="trash" /></span>
                         </button>
 
                         <!-- refresh channel data -->
-                        <button class="icon-button white" title="Refresh data" @click="doChannelRefresh">
-                            <span class="icon"><fa icon="sync"></fa></span>
+                        <button
+                            class="icon-button white"
+                            title="Refresh data"
+                            @click="doChannelRefresh"
+                        >
+                            <span class="icon"><fa icon="sync" /></span>
                         </button>
 
                         <!-- scan vods -->
-                        <button class="icon-button white" title="Scan for VODs" @click="doScanVods">
-                            <span class="icon"><fa icon="folder-open"></fa></span>
+                        <button
+                            class="icon-button white"
+                            title="Scan for VODs"
+                            @click="doScanVods"
+                        >
+                            <span class="icon"><fa icon="folder-open" /></span>
                         </button>
 
                         <!-- expand/collapse all vods -->
-                        <button class="icon-button white" title="Expand/collapse all vods" @click="doToggleExpandVods">
-                            <span class="icon"><fa :icon="toggleAllVodsExpanded ? 'chevron-up' : 'chevron-down'"></fa></span>
+                        <button
+                            class="icon-button white"
+                            title="Expand/collapse all vods"
+                            @click="doToggleExpandVods"
+                        >
+                            <span class="icon"><fa :icon="toggleAllVodsExpanded ? 'chevron-up' : 'chevron-down'" /></span>
                         </button>
                     </span>
                 </span>
@@ -96,58 +167,98 @@
         </div>
 
         <!-- local clips -->
-        <div class="streamer-clips" v-if="streamer.clips_list && streamer.clips_list.length > 0">
-            <div class="streamer-clips-title"><h3>{{ $t("messages.clips") }}</h3></div>
+        <div
+            v-if="streamer.clips_list && streamer.clips_list.length > 0"
+            class="streamer-clips"
+        >
+            <div class="streamer-clips-title">
+                <h3>{{ $t("messages.clips") }}</h3>
+            </div>
             <ul>
-                <li v-for="clip in streamer.clips_list" :key="clip.basename">
-                    <a class="text-overflow" :href="clipLink(clip)" target="_blank">
-                        <img :src="basePath + '/cache/thumbs/' + clip.thumbnail" />
-                        {{ clip.folder + "/" + clip.basename }}<br />
-                        <span class="streamer-clips-info">{{ formatBytes(clip.size) }}, {{ formatDuration(clip.duration) }}, {{ clip.video_metadata.height}}p</span>
+                <li
+                    v-for="clip in streamer.clips_list"
+                    :key="clip.basename"
+                >
+                    <a
+                        class="text-overflow"
+                        :href="clipLink(clip)"
+                        target="_blank"
+                    >
+                        <img :src="basePath + '/cache/thumbs/' + clip.thumbnail">
+                        {{ clip.folder + "/" + clip.basename }}<br>
+                        <span class="streamer-clips-info">{{ formatBytes(clip.size) }}, {{ formatDuration(clip.duration) }}, {{ clip.video_metadata.height }}p</span>
                     </a>
                 </li>
             </ul>
         </div>
 
         <!-- local videos -->
-        <div class="local-videos" v-if="streamer.video_list && streamer.video_list.length > 0">
-            <div class="local-videos-title"><h3>{{ $t("messages.local-videos") }}</h3></div>
-            <transition-group tag="div" class="local-videos-container">
-                <div class="local-video" v-for="video in streamer.video_list" :key="video.basename">
-                    <a target="_blank" :href="webPath + '/' + video.basename">
-                        <img :src="basePath + '/cache/thumbs/' + video.thumbnail" /><br />
+        <div
+            v-if="streamer.video_list && streamer.video_list.length > 0"
+            class="local-videos"
+        >
+            <div class="local-videos-title">
+                <h3>{{ $t("messages.local-videos") }}</h3>
+            </div>
+            <transition-group
+                tag="div"
+                class="local-videos-container"
+            >
+                <div
+                    v-for="video in streamer.video_list"
+                    :key="video.basename"
+                    class="local-video"
+                >
+                    <a
+                        target="_blank"
+                        :href="webPath + '/' + video.basename"
+                    >
+                        <img :src="basePath + '/cache/thumbs/' + video.thumbnail"><br>
                         <span class="local-video-title">{{ video.basename }}</span>
-                    </a><br />
-                    <span class="local-video-info">{{ formatBytes(video.size) }}, {{ formatDuration(video.duration) }}, {{ video.video_metadata.height}}p</span>
+                    </a><br>
+                    <span class="local-video-info">{{ formatBytes(video.size) }}, {{ formatDuration(video.duration) }}, {{ video.video_metadata.height }}p</span>
                 </div>
             </transition-group>
         </div>
 
-        <div v-if="streamer.vods_list.length == 0" class="notice">
+        <div
+            v-if="streamer.vods_list.length == 0"
+            class="notice"
+        >
             <span v-if="streamer.no_capture">{{ $t("streamer.no-vods-not-capturing") }}</span>
             <span v-else>{{ $t("messages.no_vods") }}</span>
         </div>
-        <div class="video-list" v-else>
-            <div class="streamer-expand-container" v-if="!store.clientCfg('expandDashboardVodList') && streamer.vods_list.length > store.clientCfg('vodsToShowInDashboard', 4)">
+        <div
+            v-else
+            class="video-list"
+        >
+            <div
+                v-if="!store.clientCfg('expandDashboardVodList') && streamer.vods_list.length > store.clientCfg('vodsToShowInDashboard', 4)"
+                class="streamer-expand-container"
+            >
                 <button
                     class="streamer-expand-main"
-                    @click="toggleLimitVods"
                     title="Click to toggle VOD list"
+                    @click="toggleLimitVods"
                 >
                     <span class="icon"><fa :icon="limitVods ? 'chevron-up' : 'chevron-down'" /></span>
                     <transition>
-                        <span class="text" v-if="!limitVods">
+                        <span
+                            v-if="!limitVods"
+                            class="text"
+                        >
                             {{ streamer.vods_list.length - store.clientCfg('vodsToShowInDashboard', 4) }} hidden VODs
                         </span>
                     </transition>
                 </button>
             </div>
-            <transition-group name="list" tag="div">
+            <transition-group
+                name="list"
+                tag="div"
+            >
                 <vod-item
                     v-for="vod in filteredVodsList"
                     :key="vod.basename"
-                    v-bind:vod="vod"
-                    @refresh="refresh"
                     ref="vodItem"
                     v-observe-visibility="{
                         callback: (s: boolean, e: IntersectionObserverEntry) => visibilityChanged(vod.basename, s, e),
@@ -155,29 +266,50 @@
                             threshold: 0.9,
                         }
                     }"
+                    :vod="vod"
+                    @refresh="refresh"
                 />
             </transition-group>
         </div>
-        <modal-box ref="videoDownloadMenu" title="Video download">
+        <modal-box
+            ref="videoDownloadMenu"
+            title="Video download"
+        >
             <div class="video-download-menu">
                 <p>
-                    {{ $t('messages.video_download_help') }}<br />
+                    {{ $t('messages.video_download_help') }}<br>
                     <!--<span v-if="averageVodBitrate">Average bitrate: {{ averageVodBitrate / 1000 }} kbps</span>-->
                 </p>
-                <button v-if="isTwitch(streamer)" class="button is-confirm" @click="fetchTwitchVods">
-                    <span class="icon"><fa icon="download"></fa></span>
+                <button
+                    v-if="isTwitch(streamer)"
+                    class="button is-confirm"
+                    @click="fetchTwitchVods"
+                >
+                    <span class="icon"><fa icon="download" /></span>
                     <span>{{ $t('vod.fetch-vod-list') }}</span>
                 </button>
-                <button v-if="isYouTube(streamer)" class="button is-confirm" @click="fetchYouTubeVods">
-                    <span class="icon"><fa icon="download"></fa></span>
+                <button
+                    v-if="isYouTube(streamer)"
+                    class="button is-confirm"
+                    @click="fetchYouTubeVods"
+                >
+                    <span class="icon"><fa icon="download" /></span>
                     <span>{{ $t('vod.fetch-vod-list') }}</span>
                 </button>
-                <hr />
-                <div class="video-download-menu-item" v-for="vod in onlineVods" :key="vod.id">
+                <hr>
+                <div
+                    v-for="vod in onlineVods"
+                    :key="vod.id"
+                    class="video-download-menu-item"
+                >
                     <h2>
-                        <a :href="vod.url" rel="nofollow" target="_blank">{{ vod.created_at }}</a>
+                        <a
+                            :href="vod.url"
+                            rel="nofollow"
+                            target="_blank"
+                        >{{ vod.created_at }}</a>
                     </h2>
-                    <img :src="imageUrl(vod.thumbnail, 320, 240)" /><br />
+                    <img :src="imageUrl(vod.thumbnail, 320, 240)"><br>
                     <p>{{ vod.title }}</p>
                     <ul>
                         <li>{{ formatDuration(vod.duration) }}</li>
@@ -187,16 +319,21 @@
                         </li>
                         <!--<li>Estimated size: {{ formatBytes(((averageVodBitrate || 6000000) / 10) * parseTwitchDuration(vod.duration)) }}</li>-->
                     </ul>
-                    <br />
-                    <button class="button is-small is-confirm" @click="downloadVideo(vod.id.toString())">
-                        <span class="icon"><fa icon="download"></fa></span>
+                    <br>
+                    <button
+                        class="button is-small is-confirm"
+                        @click="downloadVideo(vod.id.toString())"
+                    >
+                        <span class="icon"><fa icon="download" /></span>
                         <span>{{ $t("buttons.download") }}</span>
                     </button>
                 </div>
             </div>
         </modal-box>
     </div>
-    <div v-else>Invalid streamer</div>
+    <div v-else>
+        Invalid streamer
+    </div>
 </template>
 
 <script lang="ts">
@@ -215,20 +352,76 @@ library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, f
 
 export default defineComponent({
     name: "StreamerItem",
-    emits: ["refresh"],
+    components: {
+        VodItem,
+        ModalBox,
+    },
     props: {
-        streamer: Object as () => ChannelTypes,
+        streamer: {
+            type: Object as () => ChannelTypes,
+            required: true,
+        },
+    },
+    emits: ["refresh"],
+    setup() {
+        const videoDownloadMenu = ref<InstanceType<typeof ModalBox>>();
+        const vodItem = ref<InstanceType<typeof VodItem>>();
+        const store = useStore();
+        return { videoDownloadMenu, store, vodItem };
     },
     data: () => ({
         onlineVods: [] as ProxyVideo[],
         toggleAllVodsExpanded: false,
         limitVods: false,
     }),
-    setup() {
-        const videoDownloadMenu = ref<InstanceType<typeof ModalBox>>();
-        const vodItem = ref<InstanceType<typeof VodItem>>();
-        const store = useStore();
-        return { videoDownloadMenu, store, vodItem };
+    computed: {
+        quality(): string | undefined {
+            if (!this.streamer || !this.streamer.quality) return "";
+            return this.streamer.quality.join(", ");
+        },
+        averageVodBitrate(): number | undefined {
+            if (!this.streamer) return;
+            const vods = this.streamer.vods_list;
+            const total = (vods as VODTypes[]).reduce((acc, vod) => {
+                if (!vod.video_metadata) return acc;
+                return acc + vod.video_metadata.bitrate;
+            }, 0);
+            return total / vods.length;
+        },
+        canAbortCapture(): boolean {
+            if (!this.streamer) return false;
+            return this.streamer.is_capturing && this.store.jobList.some((job) => this.streamer && job.name.startsWith(`capture_${this.streamer.internalName}`));
+        },
+        avatarUrl() {
+            if (!this.streamer) return;
+            if ("channel_data" in this.streamer && this.streamer.channel_data?.cache_avatar) return `${this.store.cfg<string>("basepath", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
+            return this.streamer.profile_image_url;
+        },
+        areMostVodsExpanded(): boolean {
+            if (!this.streamer) return false;
+            const vods = this.vodItem as unknown as typeof VodItem[];
+            if (!vods) return false;
+            return vods.filter((vod) => vod.minimized === false).length >= this.streamer.vods_list.length / 2;
+        },
+        webPath(): string {
+            if (!this.streamer) return "";
+            return this.store.cfg<string>("basepath", "") + "/vods/" + (this.store.cfg("channel_folders") ? this.streamer.internalName : "");
+        },
+        basePath(): string {
+            return this.store.cfg<string>("basepath", "");
+        },
+        filteredVodsList(): VODTypes[] {
+            if (!this.streamer) return [];
+            if (this.limitVods || this.store.clientCfg('expandDashboardVodList')) return this.streamer.vods_list;
+            const vodsToShow = this.store.clientCfg('vodsToShowInDashboard', 4);
+            if (vodsToShow === 0) return [];
+            // return last 4 vods
+            return this.streamer.vods_list.slice(-vodsToShow);
+        },
+        providerapi(): string {
+            if (this.streamer && this.streamer.provider == "youtube") return "youtubeapi";
+            return "twitchapi";
+        }
     },
     mounted() {
         this.toggleAllVodsExpanded = this.areMostVodsExpanded;
@@ -485,59 +678,6 @@ export default defineComponent({
         toggleLimitVods() {
             this.limitVods = !this.limitVods;
         }
-    },
-    computed: {
-        quality(): string | undefined {
-            if (!this.streamer || !this.streamer.quality) return "";
-            return this.streamer.quality.join(", ");
-        },
-        averageVodBitrate(): number | undefined {
-            if (!this.streamer) return;
-            const vods = this.streamer.vods_list;
-            const total = (vods as VODTypes[]).reduce((acc, vod) => {
-                if (!vod.video_metadata) return acc;
-                return acc + vod.video_metadata.bitrate;
-            }, 0);
-            return total / vods.length;
-        },
-        canAbortCapture(): boolean {
-            if (!this.streamer) return false;
-            return this.streamer.is_capturing && this.store.jobList.some((job) => this.streamer && job.name.startsWith(`capture_${this.streamer.login}`));
-        },
-        avatarUrl() {
-            if (!this.streamer) return;
-            if ("channel_data" in this.streamer && this.streamer.channel_data?.cache_avatar) return `${this.store.cfg<string>("basepath", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
-            return this.streamer.profile_image_url;
-        },
-        areMostVodsExpanded(): boolean {
-            if (!this.streamer) return false;
-            const vods = this.vodItem as unknown as typeof VodItem[];
-            if (!vods) return false;
-            return vods.filter((vod) => vod.minimized === false).length >= this.streamer.vods_list.length / 2;
-        },
-        webPath(): string {
-            if (!this.streamer) return "";
-            return this.store.cfg<string>("basepath", "") + "/vods/" + (this.store.cfg("channel_folders") ? this.streamer.internalName : "");
-        },
-        basePath(): string {
-            return this.store.cfg<string>("basepath", "");
-        },
-        filteredVodsList(): VODTypes[] {
-            if (!this.streamer) return [];
-            if (this.limitVods || this.store.clientCfg('expandDashboardVodList')) return this.streamer.vods_list;
-            const vodsToShow = this.store.clientCfg('vodsToShowInDashboard', 4);
-            if (vodsToShow === 0) return [];
-            // return last 4 vods
-            return this.streamer.vods_list.slice(-vodsToShow);
-        },
-        providerapi(): string {
-            if (this.streamer && this.streamer.provider == "youtube") return "youtubeapi";
-            return "twitchapi";
-        }
-    },
-    components: {
-        VodItem,
-        ModalBox,
     },
 });
 </script>
