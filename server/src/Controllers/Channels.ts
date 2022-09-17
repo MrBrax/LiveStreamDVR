@@ -11,7 +11,6 @@ import { formatString } from "../../../common/Format";
 import { VodBasenameTemplate } from "../../../common/Replacements";
 import { EventSubStreamOnline } from "../../../common/TwitchAPI/EventSub/StreamOnline";
 import { Video } from "../../../common/TwitchAPI/Video";
-import { BaseAutomator } from "../Core/Providers/Base/BaseAutomator";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
 import { Helper } from "../Core/Helper";
@@ -24,6 +23,7 @@ import { Webhook } from "../Core/Webhook";
 import { YouTubeChannel } from "../Core/Providers/YouTube/YouTubeChannel";
 import { generateStreamerList } from "../Helpers/StreamerList";
 import { TwitchVODChapterJSON } from "../Storage/JSON";
+import { TwitchAutomator } from "Core/Providers/Twitch/TwitchAutomator";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -586,7 +586,7 @@ export async function SubscribeToChannel(req: express.Request, res: express.Resp
         return;
     }
 
-    const sub = await TwitchChannel.subscribe(channel.userid, true);
+    const sub = await channel.subscribe(true);
 
     res.send({
         data: {
@@ -735,7 +735,7 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
             } as TwitchVODChapterJSON;
             KeyValue.getInstance().setObject(`${stream.user_login}.chapterdata`, chapter_data);
 
-            const TA = new BaseAutomator();
+            const TA = new TwitchAutomator();
             TA.handle(mock_data, req);
 
             res.send({

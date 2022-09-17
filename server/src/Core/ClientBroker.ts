@@ -10,6 +10,7 @@ import { NotifyData } from "../../../common/Webhook";
 import { BaseConfigPath } from "./BaseConfig";
 import { Config } from "./Config";
 import { Log, LOGLEVEL } from "./Log";
+import { LiveStreamDVR } from "./LiveStreamDVR";
 
 interface Client {
     id: string;
@@ -177,6 +178,9 @@ export class ClientBroker {
     }
 
     static broadcast(data: unknown) {
+
+        if (LiveStreamDVR.shutting_down) return;
+
         const d = JSON.stringify(data);
         if (!this.wss) {
             console.error(chalk.bgRed.whiteBright(`No WebSocket server attached to broker for data: ${d.length > 64 ? d.substring(0, 64) + "..." : d}`));

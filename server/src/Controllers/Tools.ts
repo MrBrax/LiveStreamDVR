@@ -1,3 +1,4 @@
+import { LiveStreamDVR } from "Core/LiveStreamDVR";
 import { format, parseJSON } from "date-fns";
 import express from "express";
 import fs from "fs";
@@ -303,4 +304,9 @@ export async function DownloadClip(req: express.Request, res: express.Response):
         });
     }
 
+}
+
+export function Shutdown(req: express.Request, res: express.Response): void {
+    res.end("goodbye");
+    LiveStreamDVR.shutdown("tools");
 }

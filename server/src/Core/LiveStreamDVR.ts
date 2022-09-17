@@ -1,8 +1,13 @@
+import chalk from "chalk";
 import { randomUUID } from "crypto";
 import fs from "fs";
+import { Server } from "http";
+import { WebSocketServer } from "ws";
 import { ChannelConfig } from "../../../common/Config";
 import { BaseConfigPath, BaseConfigDataFolder } from "./BaseConfig";
+import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
+import { Job } from "./Job";
 import { Log, LOGLEVEL } from "./Log";
 import { BaseVODChapter } from "./Providers/Base/BaseVODChapter";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
@@ -10,6 +15,7 @@ import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
 import { TwitchVODChapter } from "./Providers/Twitch/TwitchVODChapter";
 import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { YouTubeVOD } from "./Providers/YouTube/YouTubeVOD";
+import { Scheduler } from "./Scheduler";
 import { Webhook } from "./Webhook";
 
 export type ChannelTypes = TwitchChannel | YouTubeChannel;
@@ -23,6 +29,10 @@ export class LiveStreamDVR {
     channels_config: ChannelConfig[] = [];
     channels: ChannelTypes[] = [];
     vods: VODTypes[] = [];
+
+    static server: Server;
+    static websocketServer: WebSocketServer;
+    static shutting_down = false;
 
     static getInstance(): LiveStreamDVR {
         if (!this.instance) {
@@ -177,16 +187,16 @@ export class LiveStreamDVR {
         });
     }
 
-    public getChannelByUUID(uuid: string): ChannelTypes | false {
+    public getChannelByUUID<T extends ChannelTypes>(uuid: string): T | false {
         const search = this.channels.find(c => c.uuid == uuid);
         if (!search) return false;
-        return search;
+        return search as T;
     }
 
-    public getVodByUUID(uuid: string): VODTypes | false {
+    public getVodByUUID<T extends VODTypes>(uuid: string): T | false {
         const search = this.vods.find(c => c.uuid == uuid);
         if (!search) return false;
-        return search;
+        return search as T;
     }
 
 
@@ -205,6 +215,47 @@ export class LiveStreamDVR {
             return true;
         }
         return false;
+    }
+
+    public static shutdown(reason: string) {
+        this.shutting_down = true;
+        console.log(chalk.red(`[${new Date().toISOString()}] Shutting down (${reason})...`));
+
+        let timeout: NodeJS.Timeout | undefined = undefined;
+        // introduced in node 18.2
+        if ("closeAllConnections" in this.server) {
+            (this.server as any).closeAllConnections();
+        } else {
+            // bad workaround
+            timeout = setTimeout(() => {
+                console.log(chalk.red("Force exiting server, 10 seconds have passed without close event."));
+                process.exit(1);
+            }, 10000);
+        }
+
+        // this will not be called until all connections are closed
+        this.server.close(async (error) => {
+            if (error) {
+                console.log(chalk.red(error));
+            } else {
+                console.log(chalk.red("express server is now down"));
+            }
+            if (this.websocketServer) this.websocketServer.close();
+            Scheduler.removeAllJobs();
+            for (const c of LiveStreamDVR.getInstance().channels) {
+                await c.stopWatching();
+            }
+            for (const v of LiveStreamDVR.getInstance().vods) {
+                await v.stopWatching();
+            }
+            for (const j of Job.jobs) {
+                await j.kill();
+            }
+            ClientBroker.wss = undefined;
+            Config.getInstance().stopWatchingConfig();
+            if (timeout !== undefined) clearTimeout(timeout);
+            console.log(chalk.red("Finished tasks, bye bye."));
+        });
     }
 
 }

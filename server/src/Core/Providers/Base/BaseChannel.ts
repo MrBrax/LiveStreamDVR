@@ -360,6 +360,10 @@ export class BaseChannel {
         this.broadcastUpdate();
     }
 
+    public async subscribe(): Promise<boolean> {
+        return await Promise.resolve(false);
+    }
+
     public async unsubscribe(): Promise<boolean> {
         return await Promise.resolve(false);
     }

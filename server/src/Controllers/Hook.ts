@@ -11,6 +11,9 @@ import { LOGLEVEL, Log } from "../Core/Log";
 import { KeyValue } from "../Core/KeyValue";
 import { SubStatus } from "../../../common/Defs";
 import { TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
+import { XMLParser } from "fast-xml-parser";
+import { PubsubVideo } from "../../../common/YouTubeAPI/Pubsub";
+import { YouTubeAutomator } from "Core/Providers/YouTube/YouTubeAutomator";
 
 const verifyTwitchSignature = (request: express.Request): boolean => {
 
@@ -218,10 +221,10 @@ export async function HookYouTube(req: express.Request, res: express.Response): 
         }
     }
 
-    const hub_topic             = req.query["hub.topic"];
-    const hub_challenge         = req.query["hub.challenge"];
-    const hub_mode              = req.query["hub.mode"];
-    const hub_lease_seconds     = req.query["hub.lease_seconds"];
+    const hub_topic = req.query["hub.topic"];
+    const hub_challenge = req.query["hub.challenge"];
+    const hub_mode = req.query["hub.mode"];
+    const hub_lease_seconds = req.query["hub.lease_seconds"];
 
     // @todo: verify
     if (hub_challenge) {
@@ -240,17 +243,41 @@ export async function HookYouTube(req: express.Request, res: express.Response): 
             fs.writeFileSync(payload_filepath, JSON.stringify({
                 headers: req.headers,
                 body: req.body,
+                rawbody: (req as any).rawBody,
                 query: req.query,
                 ip: req.ip,
+                status: req.statusCode,
+                message: req.statusMessage,
             }, null, 4));
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.ERROR, "hook", `Failed to dump payload to ${payload_filepath}`, error);
         }
     }
 
-    res.status(200).end();
+    console.log("body", req.body);
 
-    Log.logAdvanced(LOGLEVEL.INFO, "hook", "YouTube hook not finished.", debugMeta);
+    if (req.body) {
+
+        const parser = new XMLParser();
+        const obj = parser.parse(req.body);
+        const entry: PubsubVideo = obj.feed.entry;
+
+        // console.log(entry["yt:channelId"], entry["yt:videoId"], entry.title);
+
+        Log.logAdvanced(LOGLEVEL.INFO, "hook", "YouTube hook not finished.", debugMeta);
+
+        const YA = new YouTubeAutomator();
+        YA.handle(entry, req).catch(error => {
+            Log.logAdvanced(LOGLEVEL.FATAL, "hook", `Automator returned error: ${error.message}`);
+        });
+
+        res.status(200).end("");
+
+    } else {
+
+        Log.logAdvanced(LOGLEVEL.ERROR, "hook", "YouTube hook no body.", debugMeta);
+
+    }
 
 
     // Log.logAdvanced(LOGLEVEL.WARNING, "hook", "Hook called with no data...", debugMeta);

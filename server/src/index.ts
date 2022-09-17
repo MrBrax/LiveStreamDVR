@@ -84,11 +84,15 @@ Config.init().then(() => {
      * apparently this is needed to get the raw body since express doesn't do it by default,
      * i read it takes up twice the memory, but it's required for signature verification
      */
+
     app.use(express.json({
-        verify: (req, res, buf) => {
+        verify: (req, res, buf, encoding) => {
             (req as any).rawBody = buf;
         },
     }));
+
+    app.use(express.text({ type: "application/xml" }));
+    app.use(express.text({ type: "application/atom+xml" }));
 
     // logging
     if (process.env.NODE_ENV == "development") {
@@ -163,7 +167,7 @@ Config.init().then(() => {
         console.log("Express server closed");
     });
 
-    let websocketServer: WebSocketServer;
+    let websocketServer: WebSocketServer | undefined = undefined;
     if (Config.getInstance().cfg<boolean>("websocket_enabled")) {
 
         // start websocket server and attach broker
@@ -177,24 +181,6 @@ Config.init().then(() => {
     } else {
         console.log(chalk.yellow("WebSocket is disabled. Change the 'websocket_enabled' config to enable it."));
     }
-
-    const shutdown = function () {
-        server.close(async (e) => {
-            if (websocketServer) websocketServer.close();
-            Scheduler.removeAllJobs();
-            for (const c of LiveStreamDVR.getInstance().channels) {
-                await c.stopWatching();
-            }
-            for (const v of LiveStreamDVR.getInstance().vods) {
-                await v.stopWatching();
-            }
-            for (const j of Job.jobs) {
-                await j.kill();
-            }
-            ClientBroker.wss = undefined;
-            Config.getInstance().stopWatchingConfig();
-        });
-    };
 
     // handle uncaught exceptions, not sure if this is a good idea
     if (Config.getInstance().cfg<boolean>("debug.catch_global_exceptions")) {
@@ -214,7 +200,7 @@ Config.init().then(() => {
             );
             const errorText = `[${AppName} ${version} ${Config.getInstance().gitHash}]\nUNCAUGHT EXCEPTION\n${err.name}: ${err.message}\n${err.stack}`;
             fs.writeFileSync(path.join(BaseConfigDataFolder.logs, "crash.log"), errorText);
-            shutdown();
+            LiveStreamDVR.shutdown("uncaught exception");
             // throw err;
         });
         /*
@@ -241,6 +227,14 @@ Config.init().then(() => {
 
         // Promise.reject("test");
     }
+
+    LiveStreamDVR.server = server;
+    if (websocketServer) LiveStreamDVR.websocketServer = websocketServer;
+
+    process.on("SIGINT", (signal) => {
+        console.log(`Sigint received, shutting down (signal ${signal})`);
+        LiveStreamDVR.shutdown("sigint");
+    });
 
     // fs.writeFileSync(path.join(BaseConfigDataFolder.cache, "lock"), "1");
 

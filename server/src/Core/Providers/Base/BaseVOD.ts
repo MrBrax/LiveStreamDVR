@@ -677,6 +677,8 @@ export class BaseVOD {
 
             if (!this.started_at) return; // thanks scoping
 
+            if (!chapter.vod_uuid) chapter.vod_uuid = this.uuid;
+
             const next_chapter = this.chapters[index + 1];
 
             chapter.calculateDurationAndOffset(this.started_at, this.ended_at, next_chapter ? next_chapter.started_at : undefined);

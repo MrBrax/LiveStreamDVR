@@ -291,7 +291,7 @@ export class TwitchChannel extends BaseChannel {
      */
     get is_live(): boolean {
         // return this.current_vod != undefined && this.current_vod.is_capturing;
-        return KeyValue.getInstance().getBool(`${this.login}.online`);
+        return KeyValue.getInstance().getBool(`${this.internalName}.online`);
     }
 
     /**
@@ -306,7 +306,7 @@ export class TwitchChannel extends BaseChannel {
         if (!this.login) throw new Error("Channel login is not set");
         if (!this.display_name) throw new Error("Channel display_name is not set");
 
-        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Create VOD JSON for ${this.login}: ${path.basename(filename)} @ ${path.dirname(filename)}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Create VOD JSON for ${this.internalName}: ${path.basename(filename)} @ ${path.dirname(filename)}`);
 
         const vod = new TwitchVOD();
 
@@ -351,10 +351,10 @@ export class TwitchChannel extends BaseChannel {
         // const vods_on_disk = fs.readdirSync(Helper.vodFolder(this.login)).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".json") && !f.endsWith("_chat.json"));
         const vods_on_disk = this.rescanVods();
         const vods_in_channel_memory = this.vods_list;
-        const vods_in_main_memory = LiveStreamDVR.getInstance().vods.filter(v => v instanceof TwitchVOD && v.streamer_login === this.login);
+        const vods_in_main_memory = LiveStreamDVR.getInstance().vods.filter(v => v instanceof TwitchVOD && v.channel_uuid === this.uuid);
 
         if (vods_on_disk.length !== vods_in_channel_memory.length) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Vod on disk and vod in memory are not the same for ${this.login}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Vod on disk and vod in memory are not the same for ${this.internalName}`);
             const removedVods = vods_in_channel_memory.filter(v => !vods_on_disk.includes(v.basename));
             ClientBroker.notify(
                 "VOD changed externally",
@@ -365,7 +365,7 @@ export class TwitchChannel extends BaseChannel {
         }
 
         if (vods_on_disk.length !== vods_in_main_memory.length) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Vod on disk and vod in main memory are not the same for ${this.login}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Vod on disk and vod in main memory are not the same for ${this.internalName}`);
             const removedVods = vods_in_main_memory.filter(v => !vods_on_disk.includes(v.basename));
             ClientBroker.notify(
                 "VOD changed externally",
@@ -376,7 +376,7 @@ export class TwitchChannel extends BaseChannel {
         }
 
         if (vods_in_channel_memory.length !== vods_in_main_memory.length) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Vod in memory and vod in main memory are not the same for ${this.login}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Vod in memory and vod in main memory are not the same for ${this.internalName}`);
             const removedVods = vods_in_main_memory.filter(v => v instanceof TwitchVOD && !vods_in_channel_memory.includes(v));
             ClientBroker.notify(
                 "VOD changed externally",
@@ -398,7 +398,7 @@ export class TwitchChannel extends BaseChannel {
      * @returns {TwitchVODChapterJSON|undefined} Chapter data
      */
     public getChapterData(): TwitchVODChapterJSON | undefined {
-        const cd = KeyValue.getInstance().get(`${this.login}.chapterdata`);
+        const cd = KeyValue.getInstance().get(`${this.internalName}.chapterdata`);
         return cd ? JSON.parse(cd) as TwitchVODChapterJSON : undefined;
     }
 
@@ -542,13 +542,11 @@ export class TwitchChannel extends BaseChannel {
         return `https://www.twitch.tv/${this.login}`;
     }
 
-    
-
     public async refreshData(): Promise<boolean> {
-        if (!this.userid) throw new Error("Userid not set");
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Refreshing data for ${this.login}`);
+        if (!this.internalId) throw new Error("Userid not set");
+        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Refreshing data for ${this.internalName}`);
 
-        const channel_data = await TwitchChannel.getUserDataById(this.userid, true);
+        const channel_data = await TwitchChannel.getUserDataById(this.internalId, true);
 
         if (channel_data) {
             this.channel_data = channel_data;
@@ -1067,7 +1065,7 @@ export class TwitchChannel extends BaseChannel {
             !Config.getInstance().cfg<boolean>("isolated_mode")
         ) {
             try {
-                await TwitchChannel.subscribe(channel.userid);
+                await channel.subscribe();
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`);
                 LiveStreamDVR.getInstance().channels_config = LiveStreamDVR.getInstance().channels_config.filter(ch => ch.provider == "twitch" && ch.login !== config.login); // remove channel from config
@@ -1544,7 +1542,11 @@ export class TwitchChannel extends BaseChannel {
         return chapterData;
     }
 
-    public static async subscribe(channel_id: string, force = false): Promise<boolean> {
+    public async subscribe(force = false): Promise<boolean> {
+        return await TwitchChannel.subscribeToId(this.internalId, force);
+    }
+
+    public static async subscribeToId(channel_id: string, force = false): Promise<boolean> {
 
         if (!Config.getInstance().cfg("app_url")) {
             throw new Error("app_url is not set");

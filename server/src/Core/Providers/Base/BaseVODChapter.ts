@@ -1,6 +1,9 @@
+import { LiveStreamDVR, VODTypes } from "Core/LiveStreamDVR";
 import { BaseVODChapterJSON } from "Storage/JSON";
 import { ApiVodBaseChapter } from "../../../../../common/Api/Client";
 import { Log, LOGLEVEL } from "../../Log";
+import { TwitchVOD } from "../Twitch/TwitchVOD";
+import { BaseVOD } from "./BaseVOD";
 
 export class BaseVODChapter {
 
@@ -18,6 +21,8 @@ export class BaseVODChapter {
     * Was it added when the channel was online?
     */
     public online = false;
+
+    declare public vod_uuid: string;
 
     public calculateDurationAndOffset(vod_started_at: Date, vod_ended_at: Date | undefined, next_chapter_started_at: Date | undefined): void {
 
@@ -86,6 +91,12 @@ export class BaseVODChapter {
             // duration: this.duration,
             // box_art_url: this.box_art_url ?? undefined,
         };
+    }
+
+    public getVOD<T extends VODTypes>(): T {
+        const vod = LiveStreamDVR.getInstance().getVodByUUID<T>(this.vod_uuid);
+        if (!vod) throw new Error("no vod for chapter");
+        return vod;
     }
 
 }

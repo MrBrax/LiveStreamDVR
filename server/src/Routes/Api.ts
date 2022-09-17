@@ -120,6 +120,7 @@ router.post("/tools/vod_download", AuthAdmin, Tools.DownloadVod);
 router.post("/tools/chat_download", AuthAdmin, Tools.DownloadChat);
 router.post("/tools/chat_dump", AuthAdmin, Tools.ChatDump);
 router.post("/tools/clip_download", AuthAdmin, Tools.DownloadClip);
+router.get("/tools/shutdown", AuthAdmin, Tools.Shutdown);
 
 router.get("/files", AuthAdmin, Files.ListFiles);
 router.delete("/files", AuthAdmin, Files.DeleteFile);
