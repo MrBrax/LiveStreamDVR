@@ -1,7 +1,8 @@
 {
   "dashboard": {
     "recorded_vods": "Aufgenommene VODs",
-    "logs": "Protokolle"
+    "logs": "Protokolle",
+    "motd": "Nachricht des Tages"
   },
   "vods": "{count} VOD | {count} VODs",
   "messages": {
@@ -11,7 +12,10 @@
     "video_download_help": "Mit diesem Tool heruntergeladene Videos werden auf die gleiche Weise bereinigt wie aufgenommene VODs, wenn ein Stream beendet ist.\n Sie werden insgesamt genauso behandelt wie aufgenommene VODs.",
     "loading": "Lade...",
     "changing-values-here-will-most-likely-require-a-restart": "Neustart nach Änderung der Werte in der Regel notwendig.",
-    "this-is-a-bad-idea-if-any-of-your-channels-are-live": "Sollte einer deiner Kanäle live sein, ist dies eine schlechte Idee."
+    "this-is-a-bad-idea-if-any-of-your-channels-are-live": "Sollte einer deiner Kanäle live sein, ist dies eine schlechte Idee.",
+    "login-mismatch-fixing": "Login stimmt nicht überein, repariere",
+    "login": "Du musst eingeloggt sein, um diese Recource ansehen zu können.",
+    "local-videos": "Lokale Videos"
   },
   "vod": {
     "add_comment": "Kommentar hinzufügen",
@@ -60,18 +64,22 @@
       "category": "Kategorie",
       "title": "Titel",
       "viewers": "Zuschauer",
-      "ended": "Beendet",
       "end": "ENDE",
-      "ongoing": "FORTLAUFEND"
+      "ongoing": "FORTLAUFEND",
+      "ended": "Beendet"
     },
     "failed": "Aufnahme fehlgeschlagen",
     "fetch-vod-list": "VOD-Liste abrufen",
     "capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck": "Aufnahme läuft seit über 24 Stunden, jedoch unterstützt Streamlink dies nicht. \nHängt die Aufnahme?",
     "edit": {
-      "edit-vod": "VOD bearbeiten",
       "comment": "Kommentar",
+      "stream-number": "Streamnummer",
       "prevent-deletion": "Löschen verhindern",
-      "stream-number": "Streamnummer"
+      "edit-vod": "VOD bearbeiten",
+      "segments": "Segmente",
+      "template": "Vorlage",
+      "rename-vod": "VOD umbenennen",
+      "absolute-season": "Absolute Staffel"
     },
     "export": {
       "title-template": "Vorlagen Titel",
@@ -90,7 +98,17 @@
       "privacy-public": "Öffentlich",
       "privacy-unlisted": "Ungelistet",
       "privacy-private": "Privat",
-      "title": "Titel"
+      "title": "Titel",
+      "password": "Passwort",
+      "password-help": "FTP-Passwörter werden unverschlüsselt übermittelt",
+      "remote": "Remote"
+    },
+    "bookmarks": "Lesezeichen",
+    "buttons": {
+      "download-with": "Download mit {0}"
+    },
+    "rename": {
+      "current-name-vod-basename": "Momentaner Name: {0}"
     }
   },
   "buttons": {
@@ -98,7 +116,6 @@
     "save-favourites": "Speichere Favoriten",
     "delete": "Löschen",
     "subscribe": "Abonnieren",
-    "delete-all-vods": "Alle VODs löschen",
     "rename": "Umbenennen",
     "delete-all": "Alle löschen",
     "create": "Erstellen",
@@ -106,10 +123,13 @@
     "reset": "Zurücksetzen",
     "execute": "Ausführen",
     "download": "Herunterladen",
+    "delete-all-vods": "Alle VODs löschen",
     "fetch": "Abrufen",
     "export": "Exportieren",
     "checkstatus": "Status prüfen",
-    "authenticate": "Authentifizieren"
+    "authenticate": "Authentifizieren",
+    "logout": "Ausloggen",
+    "destroy-session": "Sitzung vernichten"
   },
   "pages": {
     "favourite-games": "Favorisierte Spiele",
@@ -119,17 +139,16 @@
     "keyvalue": "Schlüsselwerte",
     "notifications": "Benachrichtigungen",
     "client-settings": "Client-Einstellungen",
+    "about": "Über",
     "dashboard": "Dashboard",
     "files": "Dateien",
     "tools": "Werkzeuge",
-    "settings": "Einstellungen",
-    "about": "Über"
+    "settings": "Einstellungen"
   },
   "forms": {
     "channel": {
       "login": "Login",
       "login_help": "Kanal-Login, kleingeschrieben. Der Teil, der in der URL nach dem Domänennamen und dem Slash kommt (nicht der Anzeigename).\n Alternativ Link zu einer Kanalseite einfügen, um den Login zu setzen.",
-      "check": "Überprüfen",
       "quality": "Qualität",
       "match-keywords": "Passende Schlüsselwörter",
       "add-channel": "Kanal hinzufügen",
@@ -139,6 +158,7 @@
       "no-capture": "Streams nicht aufnehmen (Deaktiviert Aufnahmen vollständig)",
       "live-channels-warning": "Live-Kanäle werden erst aufgenommen, wenn sie das nächste Mal live sind.",
       "no-cleanup": "Keine Bereinigung der VODs nach beendeter Aufnahme",
+      "check": "Überprüfen",
       "quality-help-example": "Trennen durch Leerzeichen, z. B. \nbest 1080p 720p audio_only",
       "quality-help-choices": "Gültige Werte: {0}",
       "quality-help-warning": "Wenn der Stream keine der konfigurierten Werte verwendet, wird er nicht aufgezeichnet.",
@@ -146,7 +166,14 @@
       "max-storage": "Max Speicher",
       "max-storage-help": "Zu behaltenden VOD's in Gigabyte beim Bereinigen. 0 um den globalen Wert zu übernehmen.",
       "max-vods": "Max VODs",
-      "max-vods-help": "Anzahl der zu behaltenden VOD's beim Bereinigen. 0 um den globalen Wert zu übernehmen."
+      "max-vods-help": "Anzahl der zu behaltenden VOD's beim Bereinigen. 0 um den globalen Wert zu übernehmen.",
+      "download_vod_at_end": "VOD am Ende der Aufnahme/des Streams herunterladen",
+      "download_vod_at_end_quality": "Qualität des Downloads",
+      "download_vod_at_end_quality_help": "Benutze 'best' wenn nicht sicher.",
+      "quality-help-check": "Es wird empfohlen, \"best\" oder \"worst\" an das Ende zu setzen, um den Stream in jedem Fall aufzunehmen.",
+      "provider": "Anbieter",
+      "id": "ID",
+      "uuid": "UUID"
     },
     "config": {
       "validate-external-url": "Externe URL validieren"
@@ -203,6 +230,20 @@
       "chat-dump": "Chat-Dump",
       "current-jobs": "Aktuelle Aufgaben",
       "reset-channels": "Kanäle zurücksetzen"
+    },
+    "editor": {
+      "buttons": {
+        "play": "Wiedergabe",
+        "pause": "Pause",
+        "mark-in": "Markierung Anfang",
+        "mark-out": "Markierung Ende",
+        "add-bookmark": "Lesezeichen hinzufügen",
+        "submit-cut": "Schnitt senden"
+      },
+      "time-in": "Anfangszeit",
+      "time-out": "Endzeit",
+      "filesize": "Dateigröße",
+      "edit-segment": "Segment bearbeiten"
     }
   },
   "components": {
@@ -228,7 +269,9 @@
     "search": "Suche..."
   },
   "streamer": {
-    "one-or-more-subscriptions-missing": "Mindestens ein Abonnement fehlt"
+    "one-or-more-subscriptions-missing": "Mindestens ein Abonnement fehlt",
+    "no-vods-not-capturing": "Keine VODs, kein Aufnehmen",
+    "no-save-vods": "Speichert keine VODs"
   },
   "about": {
     "installed-utilities": "Installierte Dienstprogramme",
