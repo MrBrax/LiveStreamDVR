@@ -1,4 +1,3 @@
-import { LiveStreamDVR } from "Core/LiveStreamDVR";
 import { format, parseJSON } from "date-fns";
 import express from "express";
 import fs from "fs";
@@ -9,6 +8,7 @@ import { VideoQuality } from "../../../common/Config";
 import { formatString } from "../../../common/Format";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
+import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 

@@ -7,7 +7,7 @@ import { Config } from "../Core/Config";
 import { Helper } from "../Core/Helper";
 import { LOGLEVEL, Log } from "../Core/Log";
 import { EventSubTypes } from "../../../common/TwitchAPI/Shared";
-import { LiveStreamDVR } from "Core/LiveStreamDVR";
+import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 
 interface ChannelSub {
     type: EventSubTypes;

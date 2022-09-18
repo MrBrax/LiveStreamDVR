@@ -17,6 +17,7 @@ import { randomUUID } from "crypto";
 import path from "path";
 import axios from "axios";
 import { response } from "express";
+import { ProxyVideo } from "../../../../../common/Proxies/Video";
 
 interface YouTubeChannelData extends youtube_v3.Schema$ChannelSnippet {
     _updated: number;
@@ -579,6 +580,42 @@ export class YouTubeChannel extends BaseChannel {
 
         return false;
 
+    }
+
+    public async getVideos(): Promise<false | ProxyVideo[]> {
+        return await YouTubeVOD.getVideosProxy(this.channel_id);
+    }
+
+    public async getStreams(): Promise<false | youtube_v3.Schema$SearchResult> {
+
+        const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
+
+        // service.liveBroadcasts.list({
+        //     id:
+        // })
+
+        let searchResponse;
+        try {
+            searchResponse = await service.search.list({
+                channelId: this.channel_id,
+                eventType: "live",
+            });
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
+
+        if (!searchResponse.data) return false;
+        if (!searchResponse.data.items || searchResponse.data.items.length == 0) return false;
+
+        console.log(searchResponse.data.items[0]);
+
+        return searchResponse.data.items[0];
+
+    }
+
+    public async isLiveApi(): Promise<boolean> {
+        return await this.getStreams() !== false;
     }
 
 }

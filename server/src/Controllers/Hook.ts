@@ -233,43 +233,51 @@ export async function HookYouTube(req: express.Request, res: express.Response): 
         return;
     }
 
-    if (Config.debug || Config.getInstance().cfg<boolean>("dump_payloads")) {
-        let payload_filename = `yt_${new Date().toISOString().replaceAll(/[-:.]/g, "_")}`;
-        // if (data_json.subscription.type) payload_filename += `_${data_json.subscription.type}`;
-        payload_filename += ".json";
-        const payload_filepath = path.join(BaseConfigDataFolder.payloads, payload_filename);
-        Log.logAdvanced(LOGLEVEL.INFO, "hook", `Dumping debug hook payload to ${payload_filepath}`);
-        try {
-            fs.writeFileSync(payload_filepath, JSON.stringify({
-                headers: req.headers,
-                body: req.body,
-                rawbody: (req as any).rawBody,
-                query: req.query,
-                ip: req.ip,
-                status: req.statusCode,
-                message: req.statusMessage,
-            }, null, 4));
-        } catch (error) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "hook", `Failed to dump payload to ${payload_filepath}`, error);
-        }
-    }
-
     console.log("body", req.body);
 
     if (req.body) {
 
-        const parser = new XMLParser();
+        const parser = new XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix : "@_",
+        });
         const obj = parser.parse(req.body);
-        const entry: PubsubVideo = obj.feed.entry;
+
+        if (Config.debug || Config.getInstance().cfg<boolean>("dump_payloads")) {
+            let payload_filename = `yt_${new Date().toISOString().replaceAll(/[-:.]/g, "_")}`;
+            // if (data_json.subscription.type) payload_filename += `_${data_json.subscription.type}`;
+            payload_filename += ".json";
+            const payload_filepath = path.join(BaseConfigDataFolder.payloads, payload_filename);
+            Log.logAdvanced(LOGLEVEL.INFO, "hook", `Dumping debug hook payload to ${payload_filepath}`);
+            try {
+                fs.writeFileSync(payload_filepath, JSON.stringify({
+                    headers: req.headers,
+                    body: req.body,
+                    obj: obj,
+                    query: req.query,
+                    ip: req.ip,
+                    status: req.statusCode,
+                    message: req.statusMessage,
+                }, null, 4));
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "hook", `Failed to dump payload to ${payload_filepath}`, error);
+            }
+        }
+
+        // const entry: PubsubVideo = obj.feed.entry;
 
         // console.log(entry["yt:channelId"], entry["yt:videoId"], entry.title);
 
         Log.logAdvanced(LOGLEVEL.INFO, "hook", "YouTube hook not finished.", debugMeta);
 
+        /*
+
         const YA = new YouTubeAutomator();
         YA.handle(entry, req).catch(error => {
             Log.logAdvanced(LOGLEVEL.FATAL, "hook", `Automator returned error: ${error.message}`);
         });
+
+        */
 
         res.status(200).end("");
 

@@ -1,5 +1,6 @@
 <template>
     <form method="POST" enctype="multipart/form-data" action="#" ref="form" @submit="submitForm">
+
         <div class="field">
             <label class="label">{{ $t('forms.channel.provider') }}</label>
             <div class="select">
@@ -12,6 +13,9 @@
                     <option value="youtube">YouTube</option>
                 </select>
             </div>
+            <p class="input-help">
+                YouTube will not work until they add webhooks for livestreams. It is only here as a proof of concept.
+            </p>
         </div>
 
         <div class="field" v-if="formData.provider == 'twitch'">

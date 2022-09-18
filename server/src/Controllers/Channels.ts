@@ -17,13 +17,13 @@ import { Helper } from "../Core/Helper";
 import { KeyValue } from "../Core/KeyValue";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { Log, LOGLEVEL } from "../Core/Log";
+import { TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
-import { Webhook } from "../Core/Webhook";
 import { YouTubeChannel } from "../Core/Providers/YouTube/YouTubeChannel";
+import { Webhook } from "../Core/Webhook";
 import { generateStreamerList } from "../Helpers/StreamerList";
 import { TwitchVODChapterJSON } from "../Storage/JSON";
-import { TwitchAutomator } from "Core/Providers/Twitch/TwitchAutomator";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
