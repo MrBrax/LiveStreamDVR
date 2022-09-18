@@ -48,12 +48,12 @@ const override_port = argv.port ? parseInt(argv.port as string) : undefined;
 
 if (fs.existsSync(path.join(BaseConfigDataFolder.cache))) {
     if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"))) {
-        if (
-            compareVersions(
-                version,
-                fs.readFileSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"), { encoding: "utf-8" })
-            ) == -1 && !argv["ignore-version"]) {
-            throw new Error("Server has been started with an older version than the data folder. Use the argument --ignore-version to continue.");
+        const old_version = fs.readFileSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"), { encoding: "utf-8" });
+        if (compareVersions(version, old_version) == -1 && !argv["ignore-version"]) {
+            console.log(chalk.bgRed.whiteBright(`Server has been started with an older version than the data folder (old ${old_version}, current ${version}).`));
+            console.log(chalk.bgRed.whiteBright("Use the argument --ignore-version to continue."));
+            console.log(chalk.bgRed.whiteBright("If you have been using the ts-develop branch and gone back to master, this can happen."));
+            process.exit(1);
         }
     }
     fs.writeFileSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"), version);
