@@ -4,6 +4,7 @@ import { ClientBroker } from "./ClientBroker";
 import axios from "axios";
 import { LOGLEVEL, Log } from "./Log";
 import { WebhookData, WebhookAction } from "../../../common/Webhook";
+import { LiveStreamDVR } from "./LiveStreamDVR";
 
 export class Webhook {
 
@@ -17,6 +18,8 @@ export class Webhook {
      * @param data 
      */
     static dispatch(action: WebhookAction, data: WebhookData): void {
+
+        if (LiveStreamDVR.shutting_down) return;
 
         // console.log("Webhook:", action, data);
 

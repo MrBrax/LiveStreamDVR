@@ -125,9 +125,9 @@ export class TwitchAutomator extends BaseAutomator {
                 ClientBroker.notify(
                     `${this.broadcaster_user_login} is live!`,
                     body,
-                    this.channel.profile_image_url,
+                    this.channel.profilePictureUrl,
                     "streamOnline",
-                    this.channel.getUrl()
+                    this.channel.url
                 );
             }
 
@@ -269,9 +269,9 @@ export class TwitchAutomator extends BaseAutomator {
                 ClientBroker.notify(
                     `${is_live ? "Live non-capturing" : "Offline"} channel ${this.getLogin()} changed status`,
                     `${event.category_name} (${event.title})`,
-                    this.channel.profile_image_url,
+                    this.channel.profilePictureUrl,
                     "offlineStatusChange",
-                    this.channel.getUrl()
+                    this.channel.url
                 );
             }
 

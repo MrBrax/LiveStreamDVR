@@ -11,6 +11,9 @@ import { LOGLEVEL, Log } from "../Core/Log";
 import { KeyValue } from "../Core/KeyValue";
 import { SubStatus } from "../../../common/Defs";
 import { TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
+import { XMLParser } from "fast-xml-parser";
+import { PubsubVideo } from "../../../common/YouTubeAPI/Pubsub";
+import { YouTubeAutomator } from "Core/Providers/YouTube/YouTubeAutomator";
 
 const verifyTwitchSignature = (request: express.Request): boolean => {
 
@@ -218,37 +221,71 @@ export async function HookYouTube(req: express.Request, res: express.Response): 
         }
     }
 
-    const hub_challenge         = req.params["hub.challenge"];
-    const hub_mode              = req.params["hub.mode"];
-    const hub_lease_seconds     = req.params["hub.lease_seconds"];
+    const hub_topic = req.query["hub.topic"];
+    const hub_challenge = req.query["hub.challenge"];
+    const hub_mode = req.query["hub.mode"];
+    const hub_lease_seconds = req.query["hub.lease_seconds"];
 
     // @todo: verify
     if (hub_challenge) {
-        res.send(hub_challenge);
+        Log.logAdvanced(LOGLEVEL.INFO, "hook.youtube", `Got challenge ${hub_challenge}, responding.`);
+        res.status(200).send(hub_challenge);
         return;
     }
 
-    if (Config.debug || Config.getInstance().cfg<boolean>("dump_payloads")) {
-        let payload_filename = `yt_${new Date().toISOString().replaceAll(/[-:.]/g, "_")}`;
-        // if (data_json.subscription.type) payload_filename += `_${data_json.subscription.type}`;
-        payload_filename += ".json";
-        const payload_filepath = path.join(BaseConfigDataFolder.payloads, payload_filename);
-        Log.logAdvanced(LOGLEVEL.INFO, "hook", `Dumping debug hook payload to ${payload_filepath}`);
-        try {
-            fs.writeFileSync(payload_filepath, JSON.stringify({
-                headers: req.headers,
-                body: req.body,
-                query: req.query,
-                ip: req.ip,
-            }, null, 4));
-        } catch (error) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "hook", `Failed to dump payload to ${payload_filepath}`, error);
+    console.log("body", req.body);
+
+    if (req.body) {
+
+        const parser = new XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix : "@_",
+        });
+        const obj = parser.parse(req.body);
+
+        if (Config.debug || Config.getInstance().cfg<boolean>("dump_payloads")) {
+            let payload_filename = `yt_${new Date().toISOString().replaceAll(/[-:.]/g, "_")}`;
+            // if (data_json.subscription.type) payload_filename += `_${data_json.subscription.type}`;
+            payload_filename += ".json";
+            const payload_filepath = path.join(BaseConfigDataFolder.payloads, payload_filename);
+            Log.logAdvanced(LOGLEVEL.INFO, "hook", `Dumping debug hook payload to ${payload_filepath}`);
+            try {
+                fs.writeFileSync(payload_filepath, JSON.stringify({
+                    headers: req.headers,
+                    body: req.body,
+                    obj: obj,
+                    query: req.query,
+                    ip: req.ip,
+                    status: req.statusCode,
+                    message: req.statusMessage,
+                }, null, 4));
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "hook", `Failed to dump payload to ${payload_filepath}`, error);
+            }
         }
+
+        // const entry: PubsubVideo = obj.feed.entry;
+
+        // console.log(entry["yt:channelId"], entry["yt:videoId"], entry.title);
+
+        Log.logAdvanced(LOGLEVEL.INFO, "hook", "YouTube hook not finished.", debugMeta);
+
+        /*
+
+        const YA = new YouTubeAutomator();
+        YA.handle(entry, req).catch(error => {
+            Log.logAdvanced(LOGLEVEL.FATAL, "hook", `Automator returned error: ${error.message}`);
+        });
+
+        */
+
+        res.status(200).end("");
+
+    } else {
+
+        Log.logAdvanced(LOGLEVEL.ERROR, "hook", "YouTube hook no body.", debugMeta);
+
     }
-
-    res.status(200).end();
-
-    Log.logAdvanced(LOGLEVEL.INFO, "hook", "YouTube hook not finished.", debugMeta);
 
 
     // Log.logAdvanced(LOGLEVEL.WARNING, "hook", "Hook called with no data...", debugMeta);

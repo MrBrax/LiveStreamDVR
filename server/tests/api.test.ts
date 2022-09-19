@@ -52,7 +52,7 @@ beforeAll(async () => {
     });
 
     // TwitchChannel.subscribe
-    spy2 = jest.spyOn(TwitchChannel, "subscribe").mockImplementation(() => {
+    spy2 = jest.spyOn(TwitchChannel, "subscribeToId").mockImplementation(() => {
         return Promise.resolve(true);
     });
 

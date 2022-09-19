@@ -22,6 +22,9 @@
                     </option>
                 </select>
             </div>
+            <p class="input-help">
+                YouTube will not work until they add webhooks for livestreams. It is only here as a proof of concept.
+            </p>
         </div>
 
         <div

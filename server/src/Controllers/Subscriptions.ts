@@ -7,6 +7,7 @@ import { Config } from "../Core/Config";
 import { Helper } from "../Core/Helper";
 import { LOGLEVEL, Log } from "../Core/Log";
 import { EventSubTypes } from "../../../common/TwitchAPI/Shared";
+import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 
 interface ChannelSub {
     type: EventSubTypes;
@@ -88,17 +89,17 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
 
 export async function SubscribeToAllChannels(req: express.Request, res: express.Response): Promise<void> {
 
-    const all_channels = TwitchChannel.getChannels();
+    const all_channels = LiveStreamDVR.getInstance().getChannels();
 
     const payload_data: { channels: { login: string; status: string; }[] } = {
         channels: [],
     };
 
     for (const channel of all_channels) {
-        if (!channel.userid || !channel.login) continue;
-        const sub = await TwitchChannel.subscribe(channel.userid);
+        // if (!channel.userid || !channel.login) continue;
+        const sub = await channel.subscribe();
         const entry = {
-            login: channel.login,
+            login: channel.internalName,
             status: sub === true ? "Subscription request sent, check logs for details" : "ERROR",
         };
         payload_data.channels.push(entry);

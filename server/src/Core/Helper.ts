@@ -669,7 +669,7 @@ export class Helper {
                     // console.debug(`Remux current time: ${currentSeconds}/${totalSeconds}`);
                     console.log(
                         chalk.bgGreen.whiteBright(
-                            `${new Date().toISOString()} ${path.basename(input)} ${currentSeconds}/${totalSeconds} (${Math.round((currentSeconds / totalSeconds) * 100)})`
+                            `[${new Date().toISOString()}] Remuxing ${path.basename(input)} - ${currentSeconds}/${totalSeconds} seconds (${Math.round((currentSeconds / totalSeconds) * 100)}%)`
                         )
                     );
                 }
@@ -1282,12 +1282,12 @@ export class Helper {
 
         for (const channel of TwitchChannel.getChannels()) {
             for (const sub_type of Helper.CHANNEL_SUB_TYPES) {
-                if (KeyValue.getInstance().get(`${channel.userid}.substatus.${sub_type}`) === SubStatus.WAITING) {
-                    errors.push(`${channel.login} is waiting for subscription ${sub_type}. Please check the config.`);
-                } else if (KeyValue.getInstance().get(`${channel.userid}.substatus.${sub_type}`) === SubStatus.FAILED) {
-                    errors.push(`${channel.login} failed to subscribe ${sub_type}. Please check the config.`);
-                } else if (KeyValue.getInstance().get(`${channel.userid}.substatus.${sub_type}`) === SubStatus.NONE || !KeyValue.getInstance().has(`${channel.userid}.substatus.${sub_type}`)) {
-                    errors.push(`${channel.login} is not subscribed to ${sub_type}. Please check the config and subscribe.`);
+                if (KeyValue.getInstance().get(`${channel.internalId}.substatus.${sub_type}`) === SubStatus.WAITING) {
+                    errors.push(`${channel.internalName} is waiting for subscription ${sub_type}. Please check the config.`);
+                } else if (KeyValue.getInstance().get(`${channel.internalId}.substatus.${sub_type}`) === SubStatus.FAILED) {
+                    errors.push(`${channel.internalName} failed to subscribe ${sub_type}. Please check the config.`);
+                } else if (KeyValue.getInstance().get(`${channel.internalId}.substatus.${sub_type}`) === SubStatus.NONE || !KeyValue.getInstance().has(`${channel.internalId}.substatus.${sub_type}`)) {
+                    errors.push(`${channel.internalName} is not subscribed to ${sub_type}. Please check the config and subscribe.`);
                 }
             }
         }

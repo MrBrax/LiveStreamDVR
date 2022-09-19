@@ -265,6 +265,7 @@ export default defineComponent({
                         // return a..localeCompare(b.login)
                         return this.store.channelUUIDToInternalName(a.uuid).localeCompare(this.store.channelUUIDToInternalName(b.uuid));
                     });
+                    this.formChannels = channels;
                 })
                 .catch((err) => {
                     console.error("settings fetch error", err.response);

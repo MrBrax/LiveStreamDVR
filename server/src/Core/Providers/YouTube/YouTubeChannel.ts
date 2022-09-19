@@ -15,6 +15,9 @@ import { ApiYouTubeChannel } from "../../../../../common/Api/Client";
 import { BaseVODChapterJSON } from "Storage/JSON";
 import { randomUUID } from "crypto";
 import path from "path";
+import axios from "axios";
+import { response } from "express";
+import { ProxyVideo } from "../../../../../common/Proxies/Video";
 
 interface YouTubeChannelData extends youtube_v3.Schema$ChannelSnippet {
     _updated: number;
@@ -296,7 +299,66 @@ export class YouTubeChannel extends BaseChannel {
     }
 
     static async subscribe(channel_id: string): Promise<boolean> {
-        return await Promise.resolve(false);
+
+        if (!Config.getInstance().cfg("app_url")) {
+            throw new Error("app_url is not set");
+        }
+
+        if (Config.getInstance().cfg("app_url") === "debug") {
+            throw new Error("app_url is set to debug, no subscriptions possible");
+        }
+
+        let hook_callback = `${Config.getInstance().cfg("app_url")}/api/v0/hook/twitch`;
+
+        if (Config.getInstance().cfg("instance_id")) {
+            hook_callback += "?instance=" + Config.getInstance().cfg("instance_id");
+        }
+
+        // if (!Config.getInstance().cfg("eventsub_secret")) {
+        //     throw new Error("eventsub_secret is not set");
+        // }
+
+        const form = new FormData();
+        form.append("hub.callback", hook_callback);
+        form.append("hub.topic", `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${channel_id}`);
+        form.append("hub.verify", "sync");
+        form.append("hub.mode", "subscribe");
+        form.append("hub.verify_token", "");
+        form.append("hub.secret", "");
+        form.append("hub.lease_seconds", "");
+
+        let request;
+        try {
+            request = await axios.post("https://pubsubhubbub.appspot.com/subscribe", form, {
+                // "credentials": "omit",
+                "headers": {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    // "Upgrade-Insecure-Requests": "1",
+                    // "Sec-Fetch-Dest": "document",
+                    // "Sec-Fetch-Mode": "navigate",
+                    // "Sec-Fetch-Site": "same-origin",
+                    // "Sec-Fetch-User": "?1"
+                },
+                // "referrer": "https://pubsubhubbub.appspot.com/subscribe",
+                "method": "POST",
+                // "mode": "cors",
+            });
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not subscribe to ${channel_id}: ${error.message} / ${error.response?.data.message}`);
+            }
+            return false;
+        }
+
+        if (request.status == 204) {
+            Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Subscribe for ${channel_id} sent.`);
+            return true;
+        }
+
+        Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not subscribe to ${channel_id}: ${request.data}`);
+
+        return false;
+
     }
 
     public getFolder(): string {
@@ -518,6 +580,42 @@ export class YouTubeChannel extends BaseChannel {
 
         return false;
 
+    }
+
+    public async getVideos(): Promise<false | ProxyVideo[]> {
+        return await YouTubeVOD.getVideosProxy(this.channel_id);
+    }
+
+    public async getStreams(): Promise<false | youtube_v3.Schema$SearchResult> {
+
+        const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
+
+        // service.liveBroadcasts.list({
+        //     id:
+        // })
+
+        let searchResponse;
+        try {
+            searchResponse = await service.search.list({
+                channelId: this.channel_id,
+                eventType: "live",
+            });
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
+
+        if (!searchResponse.data) return false;
+        if (!searchResponse.data.items || searchResponse.data.items.length == 0) return false;
+
+        console.log(searchResponse.data.items[0]);
+
+        return searchResponse.data.items[0];
+
+    }
+
+    public async isLiveApi(): Promise<boolean> {
+        return await this.getStreams() !== false;
     }
 
 }

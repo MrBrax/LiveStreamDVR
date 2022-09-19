@@ -161,9 +161,9 @@ export class BaseAutomator {
         return this.channel.livestreamUrl;
     }
 
-    public async handle(data: EventSubResponse, request: express.Request): Promise<boolean> {
-        return false;
-    }
+    // public async handle(data: EventSubResponse, request: express.Request): Promise<boolean> {
+    //     return false;
+    // }
 
     public async updateGame(from_cache = false, no_run_check = false) {
         return false;
@@ -181,7 +181,7 @@ export class BaseAutomator {
 
         let title = "";
         const body = current_chapter.title;
-        const icon = channel.profile_image_url;
+        const icon = channel.profilePictureUrl;
 
         if (current_chapter && !(current_chapter instanceof TwitchVODChapter)) return;
         if (previous_chapter && !(previous_chapter instanceof TwitchVODChapter)) return;
@@ -193,21 +193,21 @@ export class BaseAutomator {
             let category: NotificationCategory = "streamStatusChange";
             if (nonGameCategories.includes(current_chapter.game_name)) {
                 if (current_chapter.game?.isFavourite()) {
-                    title = `${channel.display_name} is online with one of your favourite categories: ${current_chapter.game_name}!`;
+                    title = `${channel.displayName} is online with one of your favourite categories: ${current_chapter.game_name}!`;
                     category = "streamStatusChangeFavourite";
                 } else if (current_chapter.game_name) {
-                    title = `${channel.display_name} is now streaming ${current_chapter.game_name}!`;
+                    title = `${channel.displayName} is now streaming ${current_chapter.game_name}!`;
                 } else {
-                    title = `${channel.display_name} is now streaming without a category!`;
+                    title = `${channel.displayName} is now streaming without a category!`;
                 }
             } else {
                 if (current_chapter.game?.isFavourite()) {
-                    title = `${channel.display_name} is now playing one of your favourite games: ${current_chapter.game_name}!`;
+                    title = `${channel.displayName} is now playing one of your favourite games: ${current_chapter.game_name}!`;
                     category = "streamStatusChangeFavourite";
                 } else if (current_chapter.game_name) {
-                    title = `${channel.display_name} is now playing ${current_chapter.game_name}!`;
+                    title = `${channel.displayName} is now playing ${current_chapter.game_name}!`;
                 } else {
-                    title = `${channel.display_name} is now streaming without a game!`;
+                    title = `${channel.displayName} is now streaming without a game!`;
                 }
 
             }
@@ -215,7 +215,7 @@ export class BaseAutomator {
             ClientBroker.notify(title, body, icon, category, this.channel?.livestreamUrl);
 
         } else if (previous_chapter?.title !== current_chapter.title) {
-            title = `${channel.display_name} changed title, still playing/streaming ${current_chapter.game_name}!`;
+            title = `${channel.displayName} changed title, still playing/streaming ${current_chapter.game_name}!`;
         }
 
     }
@@ -302,7 +302,7 @@ export class BaseAutomator {
             ClientBroker.notify(
                 `${this.broadcaster_user_login} has gone offline!`,
                 this.channel && this.channel.latest_vod && this.channel.latest_vod.started_at ? `Was streaming for ${formatDistanceToNow(this.channel.latest_vod.started_at)}.` : "",
-                this.channel.profile_image_url,
+                this.channel.profilePictureUrl,
                 "streamOffline",
                 this.channel.livestreamUrl
             );

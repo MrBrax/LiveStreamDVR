@@ -77,7 +77,7 @@ export class TwitchVOD extends BaseVOD {
     public ?int $api_getDurationLive = null;
     */
 
-    
+
 
     /**
      * Set up basic data
@@ -144,6 +144,7 @@ export class TwitchVOD extends BaseVOD {
         this.streamer_id = this.json.streamer_id;
         this.streamer_login = await TwitchChannel.channelLoginFromId(this.streamer_id || "") || "";
         this.streamer_name = await TwitchChannel.channelDisplayNameFromId(this.streamer_id || "") || "";
+        this.channel_uuid = this.json.channel_uuid;
     }
 
     /**
@@ -203,7 +204,7 @@ export class TwitchVOD extends BaseVOD {
         // }
     }
 
-    
+
     public getWebhookDuration(): string | undefined {
         if (this.started_at && this.ended_at) {
             // format is H:i:s
@@ -305,7 +306,7 @@ export class TwitchVOD extends BaseVOD {
         return false;
     }
 
-    
+
 
     get current_game(): TwitchGame | undefined {
         if (!this.chapters || this.chapters.length == 0) return undefined;
@@ -364,6 +365,7 @@ export class TwitchVOD extends BaseVOD {
             }
 
             const new_chapter = await TwitchVODChapter.fromJSON(chapter);
+            new_chapter.vod_uuid = this.uuid;
 
             chapters.push(new_chapter);
 
@@ -975,6 +977,7 @@ export class TwitchVOD extends BaseVOD {
         generated.streamer_name = this.streamer_name ?? "";
         generated.streamer_id = this.streamer_id ?? "";
         generated.streamer_login = this.streamer_login ?? "";
+        if (this.channel_uuid) generated.channel_uuid = this.channel_uuid;
 
         // generated.chapters = this.chapters_raw;
         // generated.segments = this.segments_raw;
@@ -1084,7 +1087,7 @@ export class TwitchVOD extends BaseVOD {
 
     }
 
-    
+
 
     /**
      * Checks all chapters for games with the favourite flag set
@@ -1550,7 +1553,7 @@ export class TwitchVOD extends BaseVOD {
         // console.log(`Stopped watching ${this.basename}`);
     }
 
-    
+
 
     /**
      * Get the channel of the vod
@@ -1560,9 +1563,8 @@ export class TwitchVOD extends BaseVOD {
     public getChannel(): TwitchChannel {
         if (!this.channel_uuid) throw new Error("No UUID set!?");
         // return TwitchChannel.getChannelByLogin(this.streamer_login);
-        const channel = LiveStreamDVR.getInstance().getChannelByUUID(this.channel_uuid);
+        const channel = LiveStreamDVR.getInstance().getChannelByUUID<TwitchChannel>(this.channel_uuid);
         if (!channel) throw new Error("No channel found");
-        if (!(channel instanceof TwitchChannel)) throw new TypeError("Wrong type for channel");
         return channel;
     }
 
@@ -1644,7 +1646,7 @@ export class TwitchVOD extends BaseVOD {
         this.calculateBookmarks();
     }
 
-    
+
 
     /**
      * 
@@ -1857,6 +1859,7 @@ export class TwitchVOD extends BaseVOD {
             streamer_name: json.streamer_name,
             streamer_id: json.streamer_id,
             streamer_login: json.streamer_login,
+            channel_uuid: "",
             chapters: chapters,
             type: "twitch",
             segments: segments,
@@ -1878,7 +1881,7 @@ export class TwitchVOD extends BaseVOD {
         };
     }
 
-    
+
 
     /**
      * 
@@ -2321,7 +2324,7 @@ export class TwitchVOD extends BaseVOD {
 
     }
 
-    
+
 
     public static async downloadChat(method: "td" | "tcd" = "td", vod_id: string, output: string): Promise<boolean> {
         return method == "td" ? await this.downloadChatTD(vod_id, output) : await this.downloadChatTCD(vod_id, output);
