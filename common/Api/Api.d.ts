@@ -12,6 +12,14 @@ interface ApiErrorResponse {
     message: string;
 }
 
+interface ApiQuotas {
+    twitch: {
+        max_total_cost: number;
+        total_cost: number;
+        total: number;
+    };
+};
+
 export interface ApiSettingsResponse extends ApiResponse {
     data: {
         app_name: string;
@@ -27,6 +35,7 @@ export interface ApiSettingsResponse extends ApiResponse {
         errors?: string[];
         guest: boolean;
         server_git_hash?: string;
+        quotas: ApiQuotas;
     };
 }
 

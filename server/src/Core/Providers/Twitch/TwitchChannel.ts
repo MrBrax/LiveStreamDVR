@@ -1622,6 +1622,10 @@ export class TwitchChannel extends BaseChannel {
             const json: SubscriptionResponse = response.data;
             const http_code = response.status;
 
+            KeyValue.getInstance().setInt("twitch.max_total_cost", json.max_total_cost);
+            KeyValue.getInstance().setInt("twitch.total_cost", json.total_cost);
+            KeyValue.getInstance().setInt("twitch.total", json.total);
+
             if (http_code == 202) {
 
                 if (json.data[0].status !== "webhook_callback_verification_pending") {

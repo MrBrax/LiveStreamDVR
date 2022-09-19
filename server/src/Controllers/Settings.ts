@@ -4,6 +4,7 @@ import { version } from "../../package.json";
 import { AppName } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
 import { Helper } from "../Core/Helper";
+import { KeyValue } from "../Core/KeyValue";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { TwitchGame } from "../Core/Providers/Twitch/TwitchGame";
 
@@ -30,6 +31,13 @@ export function GetSettings(req: express.Request, res: express.Response): void {
             websocket_url: Config.getInstance().getWebsocketClientUrl(),
             errors: Helper.getErrors(),
             server_git_hash: Config.getInstance().gitHash,
+            quotas: {
+                twitch: {
+                    max_total_cost: KeyValue.getInstance().getInt("twitch.max_total_cost"),
+                    total_cost: KeyValue.getInstance().getInt("twitch.total_cost"),
+                    total: KeyValue.getInstance().getInt("twitch.total"),
+                },
+            },
             // guest: is_guest,
         },
         status: "OK",
