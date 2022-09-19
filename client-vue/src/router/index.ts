@@ -24,9 +24,50 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import(/* webpackChunkName: "tools" */ "../views/ToolsView.vue"),
     },
     {
-        path: "/settings/:tab?",
-        name: "Settings",
+        path: "/settings",
+        // name: "Settings",
         component: () => import(/* webpackChunkName: "settings" */ "../views/SettingsView.vue"),
+        children: [
+            {
+                path: '',
+                redirect: '/settings/channels', // default child path
+            },
+            {
+                path: "/settings/channels/:channel?",
+                name: "SettingsChannels",
+                component: () => import(/* webpackChunkName: "settingschannels" */ "../views/Settings/SettingsChannels.vue"),
+            },
+            {
+                path: "/settings/newchannel",
+                name: "SettingsAddChannel",
+                component: () => import(/* webpackChunkName: "settingsaddchannel" */ "../views/Settings/SettingsAddChannel.vue"),
+            },
+            {
+                path: "/settings/config",
+                name: "SettingsConfig",
+                component: () => import(/* webpackChunkName: "settingsconfig" */ "../views/Settings/SettingsConfig.vue"),
+            },
+            {
+                path: "/settings/keyvalue",
+                name: "SettingsKeyvalue",
+                component: () => import(/* webpackChunkName: "settingsKeyvalue" */ "../views/Settings/SettingsKeyvalue.vue"),
+            },
+            {
+                path: "/settings/notifications",
+                name: "SettingsNotifications",
+                component: () => import(/* webpackChunkName: "settingsNotifications" */ "../views/Settings/SettingsNotifications.vue"),
+            },
+            {
+                path: "/settings/favourites",
+                name: "SettingsFavourites",
+                component: () => import(/* webpackChunkName: "settingsFavourites" */ "../views/Settings/SettingsFavourites.vue"),
+            },
+            {
+                path: "/settings/clientsettings",
+                name: "SettingsClientSettings",
+                component: () => import(/* webpackChunkName: "settingsClientSettings" */ "../views/Settings/SettingsClientSettings.vue"),
+            },
+        ]
     },
     {
         path: "/about",

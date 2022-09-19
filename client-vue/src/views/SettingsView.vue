@@ -2,224 +2,61 @@
     <div class="top-tabs">
         <router-link
             v-if="store.authElement"
-            :to="{ name: 'Settings', params: { tab: 'channels' } }"
+            :to="{ name: 'SettingsChannels' }"
         >
             <span class="icon"><fa icon="user" /></span> {{ $t('pages.channels') }}
         </router-link>
         <router-link
             v-if="store.authElement"
-            :to="{ name: 'Settings', params: { tab: 'newchannel' } }"
+            :to="{ name: 'SettingsAddChannel' }"
         >
             <span class="icon"><fa icon="user-plus" /></span> {{ $t('pages.new-channel') }}
         </router-link>
         <router-link
             v-if="store.authElement"
-            :to="{ name: 'Settings', params: { tab: 'config' } }"
+            :to="{ name: 'SettingsConfig' }"
         >
             <span class="icon"><fa icon="cog" /></span> {{ $t('pages.config') }}
         </router-link>
         <router-link
             v-if="store.authElement"
-            :to="{ name: 'Settings', params: { tab: 'keyvalue' } }"
+            :to="{ name: 'SettingsKeyvalue' }"
         >
             <span class="icon"><fa icon="database" /></span> {{ $t('pages.keyvalue') }}
         </router-link>
         <router-link
             v-if="store.authElement"
-            :to="{ name: 'Settings', params: { tab: 'notifications' } }"
+            :to="{ name: 'SettingsNotifications' }"
         >
             <span class="icon"><fa icon="bell" /></span> {{ $t('pages.notifications') }}
         </router-link>
         <router-link
             v-if="store.authElement"
-            :to="{ name: 'Settings', params: { tab: 'favourites' } }"
+            :to="{ name: 'SettingsFavourites' }"
         >
             <span class="icon"><fa icon="star" /></span> {{ $t('pages.favourite-games') }}
         </router-link>
-        <router-link :to="{ name: 'Settings', params: { tab: 'clientsettings' } }">
+        <router-link :to="{ name: 'SettingsClientSettings' }">
             <span class="icon"><fa icon="user-cog" /></span> {{ $t('pages.client-settings') }}
         </router-link>
     </div>
 
     <div class="container">
-        <!-- channels -->
-        <section
-            v-if="!$route.params.tab || $route.params.tab == 'channels'"
-            class="section"
-        >
-            <div class="section-title">
-                <h1>{{ $t('pages.channels') }}</h1>
-            </div>
-            <div class="section-content">
-                <ul class="list">
-                    <li
-                        v-for="channel in formChannels"
-                        :key="channel.login"
-                    >
-                        <router-link :to="{ hash: '#channel_' + channel.login }">
-                            {{ channel.login }}
-                        </router-link>
-                    </li>
-                </ul>
-                <div
-                    v-for="channel in formChannels"
-                    :id="'channel_' + channel.login"
-                    :key="channel.login"
-                    class="card"
-                >
-                    <div class="card-title">
-                        <h2>{{ channel.login }}</h2>
-                    </div>
-                    <div class="card-content">
-                        <channel-update-form
-                            :channel="channel"
-                            @form-success="updateAll"
-                        />
-                    </div>
-                </div>
-                <span v-if="(!formChannels || formChannels.length == 0) && store.authElement">No channels added. Use the tab "New channel" above.</span>
-                <div
-                    v-else-if="!store.authElement"
-                    class="section-content"
-                >
-                    <span class="icon"><fa icon="sign-in-alt" /></span> {{ $t("messages.login") }}
-                </div>
-            </div>
-        </section>
-
-        <!-- new channel -->
-        <section
-            v-if="$route.params.tab == 'newchannel'"
-            class="section"
-        >
-            <div class="section-title">
-                <h1>{{ $t('pages.new-channel') }}</h1>
-            </div>
-            <div class="section-content">
-                <channel-add-form @form-success="updateUsers" />
-            </div>
-        </section>
-
-        <!-- settings -->
-        <section
-            v-if="$route.params.tab == 'config'"
-            class="section"
-        >
-            <div class="section-title">
-                <h1>{{ $t('pages.config') }}</h1>
-            </div>
-            <div
-                v-if="!loading"
-                class="section-content"
-            >
-                <settings-form />
-            </div>
-            <div
-                v-else
-                class="section-content"
-            >
-                <span class="icon"><fa
-                    icon="sync"
-                    spin
-                /></span> {{ $t("messages.loading") }}
-            </div>
-        </section>
-
-        <!-- notifications -->
-        <section
-            v-if="$route.params.tab == 'notifications'"
-            class="section"
-        >
-            <div class="section-title">
-                <h1>{{ $t('pages.notifications') }}</h1>
-            </div>
-            <div class="section-content">
-                <notifications-form @form-success="fetchData" />
-            </div>
-        </section>
-
-        <!-- favourites -->
-        <section
-            v-if="$route.params.tab == 'favourites'"
-            class="section"
-        >
-            <div class="section-title">
-                <h1>{{ $t('pages.favourite-games') }}</h1>
-            </div>
-            <div
-                v-if="!loading"
-                class="section-content"
-            >
-                <favourites-form />
-            </div>
-            <div
-                v-else
-                class="section-content"
-            >
-                <span class="icon"><fa
-                    icon="sync"
-                    spin
-                /></span> {{ $t("messages.loading") }}
-            </div>
-        </section>
-
-        <!-- client settings -->
-        <section
-            v-if="$route.params.tab == 'clientsettings'"
-            class="section"
-        >
-            <div class="section-title">
-                <h1>{{ $t('pages.client-settings') }}</h1>
-            </div>
-            <client-settings-form />
-        </section>
-
-        <!-- keyvalue -->
-        <section
-            v-if="$route.params.tab == 'keyvalue'"
-            class="section"
-        >
-            <div class="section-title">
-                <h1>{{ $t('pages.keyvalue') }}</h1>
-            </div>
-            <div class="section-content">
-                <key-value-form />
-            </div>
-        </section>
+        <router-view />
     </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
 
-import ChannelAddForm from "@/components/forms/ChannelAddForm.vue";
-import ChannelUpdateForm from "@/components/forms/ChannelUpdateForm.vue";
-import SettingsForm from "@/components/forms/SettingsForm.vue";
-import FavouritesForm from "@/components/forms/FavouritesForm.vue";
-import NotificationsForm from "@/components/forms/NotificationsForm.vue";
-import ClientSettingsForm from "@/components/forms/ClientSettingsForm.vue";
-import KeyValueForm from "@/components/forms/KeyValueForm.vue";
-
-import type { ApiChannelConfig } from "@common/Api/Client";
-import type { ApiSettingsResponse } from "@common/Api/Api";
-
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase } from "@fortawesome/free-solid-svg-icons";
+import { faUser, faUserPlus, faCalendarCheck, faStar, faBell, faUserCog, faDatabase } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
 
-library.add(faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase);
+library.add(faUser, faUserPlus, faCalendarCheck, faStar, faBell, faUserCog, faDatabase);
 
 export default defineComponent({
     name: "SettingsView",
-    components: {
-        ChannelAddForm,
-        ChannelUpdateForm,
-        SettingsForm,
-        FavouritesForm,
-        NotificationsForm,
-        ClientSettingsForm,
-        KeyValueForm,
-    },
     setup() {
         const store = useStore();
         return { store };
@@ -232,11 +69,9 @@ export default defineComponent({
     },
     data(): {
         loading: boolean;
-        formChannels: ApiChannelConfig[];
     } {
         return {
             loading: false,
-            formChannels: [],
         };
     },
     computed: {
@@ -245,47 +80,6 @@ export default defineComponent({
             return Object.entries((this as any).games).sort(([, a], [, b]) => (a as any).name.localeCompare((b as any).name));
         },
         */
-    },
-    created() {
-        this.fetchData();
-    },
-    methods: {
-        fetchData() {
-            console.debug("Fetching settings and games data");
-            this.loading = true;
-            this.$http
-                .get(`api/v0/settings`)
-                .then((response) => {
-                    const json: ApiSettingsResponse = response.data;
-                    if (json.message) alert(json.message);
-                    const channels = json.data.channels;
-                    /* this.formChannels = */ 
-                    channels.sort((a, b) => {
-                        // if (a.provider == "youtube" || b.provider == "youtube") return -1;
-                        // return a..localeCompare(b.login)
-                        return this.store.channelUUIDToInternalName(a.uuid).localeCompare(this.store.channelUUIDToInternalName(b.uuid));
-                    });
-                    this.formChannels = channels;
-                })
-                .catch((err) => {
-                    console.error("settings fetch error", err.response);
-                    if (err.response.data && err.response.data.message) {
-                        alert(`Settings fetch error: ${err.response.data.message}`);
-                    } else {
-                        alert("Error fetching settings");
-                    }
-                }).finally(() => {
-                    this.loading = false;
-                });
-
-        },
-        updateUsers() {
-            this.store.fetchAndUpdateStreamerList();
-        },
-        updateAll() {
-            this.fetchData();
-            this.updateUsers();
-        },
     },
 });
 </script>

@@ -80,7 +80,7 @@
                         <!-- edit -->
                         <router-link
                             class="icon-button white"
-                            :to="{ name: 'Settings', params: { tab: 'channels' }, hash: '#channel_' + streamer.uuid }"
+                            :to="{ name: 'SettingsChannels', params: { channel: streamer.uuid } }"
                             title="Edit channel"
                         >
                             <span class="icon"><fa icon="pencil" /></span>

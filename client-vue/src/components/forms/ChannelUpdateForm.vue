@@ -27,6 +27,38 @@
                 </div>
             </div>
 
+            <div
+                v-if="'login' in channel"
+                class="field"
+            >
+                <label class="label">{{ $t('forms.channel.login') }}</label>
+                <div class="control">
+                    <input
+                        class="input"
+                        type="text"
+                        :value="channel.login"
+                        disabled
+                        readonly
+                    >
+                </div>
+            </div>
+
+            <div
+                v-if="'channel_id' in channel"
+                class="field"
+            >
+                <label class="label">{{ $t('forms.channel.id') }}</label>
+                <div class="control">
+                    <input
+                        class="input"
+                        type="text"
+                        :value="channel.channel_id"
+                        disabled
+                        readonly
+                    >
+                </div>
+            </div>
+
             <div class="field">
                 <label
                     class="label"
