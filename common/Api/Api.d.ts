@@ -17,8 +17,8 @@ interface ApiQuotas {
         max_total_cost: number;
         total_cost: number;
         total: number;
-    };
-};
+    }
+}
 
 export interface ApiSettingsResponse extends ApiResponse {
     data: {
