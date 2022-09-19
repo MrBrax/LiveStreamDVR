@@ -84,9 +84,13 @@ export default class YouTubeVOD extends BaseVOD {
         return Math.abs((this.started_at.getTime() - now.getTime()) / 1000);
     }
 
-    public getChannel(): YouTubeChannel | undefined {
+    public getChannel(): YouTubeChannel {
         const store = useStore();
-        return store.streamerList.find<YouTubeChannel>((streamer): streamer is YouTubeChannel => streamer instanceof YouTubeChannel && streamer.channel_id == this.streamer_id);
+        const streamer = store.streamerList.find<YouTubeChannel>((streamer): streamer is YouTubeChannel => streamer instanceof YouTubeChannel && streamer.channel_id == this.streamer_id);
+        if (!streamer) {
+            throw new Error("No streamer for vod");
+        }
+        return streamer;
     }
 
     get current_chapter(): BaseVODChapter | undefined {

@@ -82,8 +82,14 @@ export class BaseAutomator {
             Log.logAdvanced(LOGLEVEL.ERROR, "automator.vodFolderTemplate", `Invalid start date: ${this.getStartDate()}`);
         }
 
+        if (!this.channel) {
+            throw new Error("No channel for template");
+        }
+
         const variables: VodBasenameTemplate = {
             login: this.getLogin(),
+            internalName: this.channel.internalName,
+            displayName: this.channel.displayName,
             date: this.getStartDate().replaceAll(":", "_"),
             year: isValid(date) ? format(date, "yyyy") : "",
             year_short: isValid(date) ? format(date, "yy") : "",
@@ -109,8 +115,14 @@ export class BaseAutomator {
             Log.logAdvanced(LOGLEVEL.ERROR, "automator.vodBasenameTemplate", `Invalid start date: ${this.getStartDate()}`);
         }
 
+        if (!this.channel) {
+            throw new Error("No channel for template");
+        }
+
         const variables: VodBasenameTemplate = {
             login: this.getLogin(),
+            internalName: this.channel.internalName,
+            displayName: this.channel.displayName,
             date: this.getStartDate().replaceAll(":", "_"),
             year: isValid(date) ? format(date, "yyyy") : "",
             year_short: isValid(date) ? format(date, "yy") : "",

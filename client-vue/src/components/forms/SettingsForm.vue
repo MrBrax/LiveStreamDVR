@@ -148,6 +148,16 @@
                             :key="ix"
                         >
                             <button
+                                v-if="item.deprecated"
+                                type="button"
+                                class="deprecated"
+                                title="Deprecated"
+                                @click="insertReplacement(data.key, ix)"
+                            >
+                                <span class="strikethrough">&lbrace;{{ ix }}&rbrace;</span>
+                            </button>
+                            <button
+                                v-else
                                 type="button"
                                 @click="insertReplacement(data.key, ix)"
                             >
@@ -420,3 +430,12 @@ export default defineComponent({
     },
 });
 </script>
+
+<style lang="scss" scoped>
+    .deprecated {
+        background-color: #c13e3e;
+        &:hover {
+            background-color: #d44949;
+        }
+    }
+</style>

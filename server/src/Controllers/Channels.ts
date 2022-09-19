@@ -486,6 +486,8 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
 
         const variables: VodBasenameTemplate = {
             login: channel.internalName || "",
+            internalName: channel.internalName,
+            displayName: channel.displayName,
             date: video.created_at?.replaceAll(":", "_"),
             year: isValid(date) ? format(date, "yyyy") : "",
             year_short: isValid(date) ? format(date, "yy") : "",

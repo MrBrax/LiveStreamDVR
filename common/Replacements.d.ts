@@ -1,5 +1,7 @@
 export interface VodBasenameTemplate extends Record<string, string> {
     login: string;
+    internalName: string;
+    displayName: string;
     date: string;
     year: string;
     year_short: string;
@@ -15,6 +17,8 @@ export interface VodBasenameTemplate extends Record<string, string> {
 
 export interface ExporterFilenameTemplate extends Record<string, string> {
     login: string;
+    internalName: string;
+    displayName: string;
     title: string;
     stream_number: string;
     comment: string;
@@ -26,5 +30,5 @@ export interface ExporterFilenameTemplate extends Record<string, string> {
 }
 
 export interface TemplateFields {
-    [key: string]: { display: string; description?: string; };
+    [key: string]: { display: string; description?: string; deprecated?: boolean; };
 }

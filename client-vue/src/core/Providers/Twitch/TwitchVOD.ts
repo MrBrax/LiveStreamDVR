@@ -28,7 +28,10 @@ export default class TwitchVOD extends BaseVOD {
     stream_resolution: string | undefined = "";
     stream_title = "";
 
+    /** @deprecated */
     streamer_login = "";
+
+    /** @deprecated */
     streamer_id = "";
 
 
@@ -112,9 +115,13 @@ export default class TwitchVOD extends BaseVOD {
         return Math.abs((this.started_at.getTime() - now.getTime()) / 1000);
     }
 
-    public getChannel(): TwitchChannel | undefined {
+    public getChannel(): TwitchChannel {
         const store = useStore();
-        return store.streamerList.find<TwitchChannel>((streamer): streamer is TwitchChannel => streamer.uuid == this.channel_uuid);
+        const streamer = store.streamerList.find<TwitchChannel>((streamer): streamer is TwitchChannel => streamer.uuid == this.channel_uuid);
+        if (!streamer) {
+            throw new Error("No streamer for vod");
+        }
+        return streamer;
     }
 
     get current_game(): TwitchGame | undefined {

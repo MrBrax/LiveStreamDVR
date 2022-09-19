@@ -36,9 +36,7 @@ export interface SettingField<T> {
 
     restart_required?: boolean;
 
-    replacements?: Record<string, {
-        display: string;
-    }>;
+    replacements?: Record<string, { display: string; description?: string; deprecated?: boolean; }>;
     context?: string;
 
     guest?: boolean;

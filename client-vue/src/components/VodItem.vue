@@ -2089,6 +2089,8 @@ export default defineComponent({
             const date = this.vod.started_at;
             const replacements: VodBasenameTemplate = {
                 login:              this.vod.provider == 'twitch' ? this.vod.streamer_login : "",
+                internalName:       this.vod.getChannel().internalName,
+                displayName:        this.vod.getChannel().displayName,
                 date:               date ? format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'").replaceAll(":", "_") : "",
                 year:               date ? format(date, "yyyy") : "",
                 year_short:         date ? format(date, "yy") : "",
