@@ -3,7 +3,7 @@ import type { ApiSettingsResponse } from "../../../common/Api/Api";
 import { version } from "../../package.json";
 import { AppName } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
-import { Helper } from "../Core/Helper";
+import { TwitchHelper } from "../Providers/Twitch";
 import { KeyValue } from "../Core/KeyValue";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { TwitchGame } from "../Core/Providers/Twitch/TwitchGame";
@@ -29,7 +29,7 @@ export function GetSettings(req: express.Request, res: express.Response): void {
             version: version,
             server: "ts-server",
             websocket_url: Config.getInstance().getWebsocketClientUrl(),
-            errors: Helper.getErrors(),
+            errors: TwitchHelper.getErrors(),
             server_git_hash: Config.getInstance().gitHash,
             quotas: {
                 twitch: {
@@ -92,7 +92,7 @@ export function SaveSettings(req: express.Request, res: express.Response): void 
     Config.getInstance().saveConfig("settings form saved");
 
     if (force_new_token) {
-        Helper.getAccessToken(true);
+        TwitchHelper.getAccessToken(true);
     }
 
     res.send({

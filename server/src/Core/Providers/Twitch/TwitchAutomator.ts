@@ -1,6 +1,6 @@
 import { BaseConfigDataFolder } from "../../../Core/BaseConfig";
 import { ClientBroker } from "../../../Core/ClientBroker";
-import { Helper } from "../../../Core/Helper";
+import { TwitchHelper } from "../../../Providers/Twitch";
 import { KeyValue } from "../../../Core/KeyValue";
 import { Log, LOGLEVEL } from "../../../Core/Log";
 import path from "path";
@@ -62,7 +62,7 @@ export class TwitchAutomator extends BaseAutomator {
 
                 // 5head solution
                 // TwitchHelper.channelUnsubscribe($this->broadcaster_user_id);
-                Helper.eventSubUnsubscribe(subscription_id);
+                TwitchHelper.eventSubUnsubscribe(subscription_id);
                 return false;
             }
 
@@ -89,7 +89,7 @@ export class TwitchAutomator extends BaseAutomator {
 
                 // 5head solution
                 // TwitchHelper.channelUnsubscribe($this->broadcaster_user_id);
-                Helper.eventSubUnsubscribe(subscription_id);
+                TwitchHelper.eventSubUnsubscribe(subscription_id);
                 return false;
             }
 

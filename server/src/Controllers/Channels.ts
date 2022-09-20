@@ -13,7 +13,7 @@ import { EventSubStreamOnline } from "../../../common/TwitchAPI/EventSub/StreamO
 import { Video } from "../../../common/TwitchAPI/Video";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
-import { Helper } from "../Core/Helper";
+import { TwitchHelper } from "../Providers/Twitch";
 import { KeyValue } from "../Core/KeyValue";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { Log, LOGLEVEL } from "../Core/Log";
@@ -552,7 +552,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         // vod.streamer_id = channel.userid || "";
         vod.started_at = parseJSON(video.created_at);
 
-        const duration = Helper.parseTwitchDuration(video.duration);
+        const duration = TwitchHelper.parseTwitchDuration(video.duration);
         vod.ended_at = new Date(vod.started_at.getTime() + (duration * 1000));
         await vod.saveJSON("manual creation");
 

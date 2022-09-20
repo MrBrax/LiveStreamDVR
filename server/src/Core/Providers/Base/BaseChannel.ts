@@ -13,8 +13,9 @@ import path from "path";
 import fs from "fs";
 import { BaseConfigDataFolder } from "../../../Core/BaseConfig";
 import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
-import { Helper } from "../../../Core/Helper";
+import { TwitchHelper } from "../../../Providers/Twitch";
 import { AudioMetadata, VideoMetadata } from "../../../../../common/MediaInfo";
+import { Helper } from "../../../Core/Helper";
 
 export class BaseChannel {
 

@@ -9,7 +9,7 @@ import { SettingField } from "../../../common/Config";
 import { ClipBasenameFields, VodBasenameFields } from "../../../common/ReplacementsConsts";
 import { AppRoot, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot, HomeRoot } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
-import { Helper } from "./Helper";
+import { TwitchHelper } from "../Providers/Twitch";
 import { KeyValue } from "./KeyValue";
 import { Log, LOGLEVEL } from "./Log";
 import { Scheduler } from "./Scheduler";
@@ -19,6 +19,7 @@ import { TwitchGame } from "./Providers/Twitch/TwitchGame";
 import { YouTubeHelper } from "../Providers/YouTube";
 import { LiveStreamDVR } from "./LiveStreamDVR";
 import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
+import { Helper } from "./Helper";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -570,7 +571,7 @@ export class Config {
 
         let token;
         try {
-            token = await Helper.getAccessToken();
+            token = await TwitchHelper.getAccessToken();
         } catch (error) {
             console.error(chalk.red(`Failed to get access token: ${error}`));
             return;
@@ -581,7 +582,7 @@ export class Config {
             throw new Error("Could not get access token!");
         }
 
-        Helper.axios = axios.create({
+        TwitchHelper.axios = axios.create({
             baseURL: "https://api.twitch.tv",
             headers: {
                 "Client-ID": this.cfg("api_client_id"),

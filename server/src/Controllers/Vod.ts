@@ -11,10 +11,11 @@ import { VideoQualityArray } from "../../../common/Defs";
 import { formatString } from "../../../common/Format";
 import type { VodBasenameTemplate } from "../../../common/Replacements";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
-import { Helper } from "../Core/Helper";
+import { TwitchHelper } from "../Providers/Twitch";
 import { Log, LOGLEVEL } from "../Core/Log";
 import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
+import { Helper } from "../Core/Helper";
 
 export async function GetVod(req: express.Request, res: express.Response): Promise<void> {
 
@@ -442,7 +443,7 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
 
         let success;
         try {
-            success = await Helper.cutChat(chat_file_in, chat_file_out, seconds_in, seconds_out);
+            success = await TwitchHelper.cutChat(chat_file_in, chat_file_out, seconds_in, seconds_out);
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.ERROR, "route.vod.cutVod", `Cut chat failed: ${(error as Error).message}`);
         }
@@ -629,7 +630,7 @@ export async function RenameVod(req: express.Request, res: express.Response): Pr
         login: vod.getChannel().internalName,
         internalName: vod.getChannel().internalName,
         displayName: vod.getChannel().displayName,
-        date: vod.started_at ? format(vod.started_at, Helper.TWITCH_DATE_FORMAT).replaceAll(":", "_") : "",
+        date: vod.started_at ? format(vod.started_at, TwitchHelper.TWITCH_DATE_FORMAT).replaceAll(":", "_") : "",
         year: vod.started_at ? format(vod.started_at, "yyyy") : "",
         year_short: vod.started_at ? format(vod.started_at, "yy") : "",
         month: vod.started_at ? format(vod.started_at, "MM") : "",

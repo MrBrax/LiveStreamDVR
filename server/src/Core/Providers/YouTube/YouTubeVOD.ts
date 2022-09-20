@@ -9,7 +9,7 @@ import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
 import { BaseVODChapter } from "../Base/BaseVODChapter";
 import { youtube_v3 } from "@googleapis/youtube";
 import { YouTubeHelper } from "../../../Providers/YouTube";
-import { Helper } from "../../../Core/Helper";
+import { TwitchHelper } from "../../../Providers/Twitch";
 import chalk from "chalk";
 
 export class YouTubeVOD extends BaseVOD {
@@ -344,7 +344,7 @@ export class YouTubeVOD extends BaseVOD {
                 url: `https://www.youtube.com/watch?v=${item.id?.videoId}`,
                 thumbnail: item.snippet?.thumbnails?.default?.url,
                 created_at: item.snippet?.publishedAt,
-                duration: item.id?.videoId ? Helper.parseYouTubeDuration(details[item.id?.videoId].duration || "") : -1,
+                duration: item.id?.videoId ? YouTubeHelper.parseYouTubeDuration(details[item.id?.videoId].duration || "") : -1,
                 view_count: -1, // what
             } as ProxyVideo;
         });

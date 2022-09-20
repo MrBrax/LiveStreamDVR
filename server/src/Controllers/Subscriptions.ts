@@ -4,7 +4,7 @@ import { SubStatus } from "../../../common/Defs";
 import { KeyValue } from "../Core/KeyValue";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { Config } from "../Core/Config";
-import { Helper } from "../Core/Helper";
+import { TwitchHelper } from "../Providers/Twitch";
 import { LOGLEVEL, Log } from "../Core/Log";
 import { EventSubTypes } from "../../../common/TwitchAPI/Shared";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
@@ -22,7 +22,7 @@ interface ChannelSub {
 
 export async function ListSubscriptions(req: express.Request, res: express.Response): Promise<void> {
 
-    const subs = await Helper.getSubsList();
+    const subs = await TwitchHelper.getSubsList();
 
     if (subs && subs.length > 0) {
 
@@ -124,7 +124,7 @@ export async function UnsubscribeFromId(req: express.Request, res: express.Respo
 
     const sub_id = req.params.sub_id;
 
-    const sub = await Helper.getSubscription(sub_id);
+    const sub = await TwitchHelper.getSubscription(sub_id);
 
     if (!sub) {
         res.status(404).send({
@@ -134,7 +134,7 @@ export async function UnsubscribeFromId(req: express.Request, res: express.Respo
         return;
     }
 
-    const status = await Helper.eventSubUnsubscribe(sub_id);
+    const status = await TwitchHelper.eventSubUnsubscribe(sub_id);
 
     if (status === true) {
         res.send({

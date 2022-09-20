@@ -2,13 +2,14 @@ import path from "path";
 import fs from "fs";
 import { BaseConfigDataFolder } from "./BaseConfig";
 import { LOGLEVEL, Log } from "./Log";
-import { Helper } from "./Helper";
+import { TwitchHelper } from "../Providers/Twitch";
 import { parseJSON } from "date-fns";
 import { ChildProcessWithoutNullStreams } from "child_process";
 import { EventEmitter } from "events";
 import { Webhook } from "./Webhook";
 import { ApiJob } from "../../../common/Api/Client";
 import { JobStatus } from "../../../common/Defs";
+import { Helper } from "./Helper";
 
 export interface TwitchAutomatorJobJSON {
     name: string;

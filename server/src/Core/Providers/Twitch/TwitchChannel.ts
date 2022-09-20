@@ -19,18 +19,19 @@ import type { Stream, StreamsResponse } from "../../../../../common/TwitchAPI/St
 import type { SubscriptionRequest, SubscriptionResponse } from "../../../../../common/TwitchAPI/Subscriptions";
 import type { BroadcasterType, UsersResponse } from "../../../../../common/TwitchAPI/Users";
 import type { UserData } from "../../../../../common/User";
+import { Helper } from "../../../Core/Helper";
+import { TwitchHelper } from "../../../Providers/Twitch";
 import { AppRoot, BaseConfigDataFolder, BaseConfigPath } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
-import { Helper } from "../../Helper";
 import { Job } from "../../Job";
 import { KeyValue } from "../../KeyValue";
 import { LiveStreamDVR } from "../../LiveStreamDVR";
 import { Log, LOGLEVEL } from "../../Log";
+import { Webhook } from "../../Webhook";
+import { BaseChannel } from "../Base/BaseChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
-import { BaseChannel } from "../Base/BaseChannel";
-import { Webhook } from "../../Webhook";
 
 export class TwitchChannel extends BaseChannel {
 
@@ -184,7 +185,7 @@ export class TwitchChannel extends BaseChannel {
         //     }
         // }
         // return true;
-        return Helper.CHANNEL_SUB_TYPES.every(sub_type => KeyValue.getInstance().get(`${this.internalName}.substatus.${sub_type}`) === SubStatus.SUBSCRIBED);
+        return TwitchHelper.CHANNEL_SUB_TYPES.every(sub_type => KeyValue.getInstance().get(`${this.internalName}.substatus.${sub_type}`) === SubStatus.SUBSCRIBED);
     }
 
     public async toAPI(): Promise<ApiTwitchChannel> {
@@ -757,7 +758,7 @@ export class TwitchChannel extends BaseChannel {
         const latestVodData = vods[0];
         const now = new Date();
         const latestVodDate = new Date(latestVodData.created_at);
-        const latestVodDuration = Helper.parseTwitchDuration(latestVodData.duration);
+        const latestVodDuration = TwitchHelper.parseTwitchDuration(latestVodData.duration);
         const latestVodDateTotal = new Date(latestVodDate.getTime() + (latestVodDuration * 1000));
         const latestVodDateDiff = Math.abs(now.getTime() - latestVodDateTotal.getTime());
 
@@ -789,7 +790,7 @@ export class TwitchChannel extends BaseChannel {
         const vod = await this.createVOD(path.join(Helper.vodFolder(this.login), `${basename}.json`));
         vod.started_at = parseJSON(latestVodData.created_at);
 
-        const duration = Helper.parseTwitchDuration(latestVodData.duration);
+        const duration = TwitchHelper.parseTwitchDuration(latestVodData.duration);
         vod.ended_at = new Date(vod.started_at.getTime() + (duration * 1000));
         await vod.saveJSON("manual creation");
 
@@ -1086,7 +1087,7 @@ export class TwitchChannel extends BaseChannel {
 
         LiveStreamDVR.getInstance().channels.push(channel);
 
-        if (Helper.axios) { // bad hack?
+        if (TwitchHelper.axios) { // bad hack?
             const streams = await TwitchChannel.getStreams(channel.internalId);
             if (streams && streams.length > 0) {
                 KeyValue.getInstance().setBool(`${channel.internalName}.online`, true);
@@ -1225,12 +1226,12 @@ export class TwitchChannel extends BaseChannel {
     public static async getStreams(streamer_id: string): Promise<Stream[] | false> {
         let response;
 
-        if (!Helper.axios) {
+        if (!TwitchHelper.axios) {
             throw new Error("Axios is not initialized");
         }
 
         try {
-            response = await Helper.axios.get(`/helix/streams?user_id=${streamer_id}`);
+            response = await TwitchHelper.axios.get(`/helix/streams?user_id=${streamer_id}`);
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get streams for ${streamer_id}: ${error}`);
             return false;
@@ -1338,21 +1339,21 @@ export class TwitchChannel extends BaseChannel {
             }
         }
 
-        const access_token = await Helper.getAccessToken();
+        const access_token = await TwitchHelper.getAccessToken();
 
         if (!access_token) {
             Log.logAdvanced(LOGLEVEL.ERROR, "helper", "Could not get access token, aborting.");
             throw new Error("Could not get access token, aborting.");
         }
 
-        if (!Helper.axios) {
+        if (!TwitchHelper.axios) {
             throw new Error("Axios is not initialized");
         }
 
         let response;
 
         try {
-            response = await Helper.axios.get(`/helix/users?${method}=${identifier}`);
+            response = await TwitchHelper.axios.get(`/helix/users?${method}=${identifier}`);
         } catch (err) {
             if (axios.isAxiosError(err)) {
                 // Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`, err);
@@ -1465,21 +1466,21 @@ export class TwitchChannel extends BaseChannel {
 
         Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Fetching channel data for ${broadcaster_id}`);
 
-        const access_token = await Helper.getAccessToken();
+        const access_token = await TwitchHelper.getAccessToken();
 
         if (!access_token) {
             Log.logAdvanced(LOGLEVEL.ERROR, "helper", "Could not get access token, aborting.");
             throw new Error("Could not get access token, aborting.");
         }
 
-        if (!Helper.axios) {
+        if (!TwitchHelper.axios) {
             throw new Error("Axios is not initialized");
         }
 
         let response;
 
         try {
-            response = await Helper.axios.get(`/helix/channels?broadcaster_id=${broadcaster_id}`);
+            response = await TwitchHelper.axios.get(`/helix/channels?broadcaster_id=${broadcaster_id}`);
         } catch (err) {
             if (axios.isAxiosError(err)) {
                 // Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`, err);
@@ -1568,7 +1569,7 @@ export class TwitchChannel extends BaseChannel {
 
         const streamer_login = await TwitchChannel.channelLoginFromId(channel_id);
 
-        for (const sub_type of Helper.CHANNEL_SUB_TYPES) {
+        for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
 
             if (KeyValue.getInstance().get(`${channel_id}.sub.${sub_type}`) && !force) {
                 Log.logAdvanced(LOGLEVEL.INFO, "helper", `Skip subscription to ${channel_id}:${sub_type} (${streamer_login}), in cache.`);
@@ -1590,14 +1591,14 @@ export class TwitchChannel extends BaseChannel {
                 },
             };
 
-            if (!Helper.axios) {
+            if (!TwitchHelper.axios) {
                 throw new Error("Axios is not initialized");
             }
 
             let response;
 
             try {
-                response = await Helper.axios.post("/helix/eventsub/subscriptions", payload);
+                response = await TwitchHelper.axios.post("/helix/eventsub/subscriptions", payload);
             } catch (err) {
                 if (axios.isAxiosError(err)) {
                     Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not subscribe to ${channel_id}:${sub_type}: ${err.message} / ${err.response?.data.message}`);
@@ -1654,7 +1655,7 @@ export class TwitchChannel extends BaseChannel {
 
     public static async unsubscribeFromId(channel_id: string): Promise<boolean> {
 
-        const subscriptions = await Helper.getSubsList();
+        const subscriptions = await TwitchHelper.getSubsList();
 
         if (!subscriptions) {
             return false;
@@ -1669,7 +1670,7 @@ export class TwitchChannel extends BaseChannel {
                 continue;
             }
 
-            const unsub = await Helper.eventSubUnsubscribe(sub.id);
+            const unsub = await TwitchHelper.eventSubUnsubscribe(sub.id);
 
             if (unsub) {
                 Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Unsubscribed from ${channel_id}:${sub.type} (${streamer_login})`);
@@ -1691,7 +1692,7 @@ export class TwitchChannel extends BaseChannel {
     }
 
     public static async getSubscriptionId(channel_id: string, sub_type: EventSubTypes): Promise<string | false> {
-        const all_subs = await Helper.getSubsList();
+        const all_subs = await TwitchHelper.getSubsList();
         if (all_subs) {
             const sub_id = all_subs.find(sub => sub.condition.broadcaster_user_id == channel_id && sub.type == sub_type);
             return sub_id ? sub_id.id : false;

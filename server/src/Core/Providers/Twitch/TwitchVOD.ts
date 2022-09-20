@@ -21,7 +21,7 @@ import { AppName, BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
 import { FFmpegMetadata } from "../../FFmpegMetadata";
-import { Helper } from "../../Helper";
+import { TwitchHelper } from "../../../Providers/Twitch";
 import { Job } from "../../Job";
 import { LiveStreamDVR } from "../../LiveStreamDVR";
 import { Log, LOGLEVEL } from "../../Log";
@@ -31,6 +31,7 @@ import { TwitchVODChapter } from "./TwitchVODChapter";
 import { BaseVOD } from "../Base/BaseVOD";
 import { Webhook } from "../../Webhook";
 import { ProxyVideo } from "../../../../../common/Proxies/Video";
+import { Helper } from "../../../Core/Helper";
 
 /**
  * Twitch VOD
@@ -582,7 +583,7 @@ export class TwitchVOD extends BaseVOD {
                 Log.logAdvanced(LOGLEVEL.SUCCESS, "vod.matchProviderVod", `Found matching VOD for ${this.basename}`);
 
                 this.twitch_vod_id = video.id;
-                this.twitch_vod_duration = Helper.parseTwitchDuration(video.duration);
+                this.twitch_vod_duration = TwitchHelper.parseTwitchDuration(video.duration);
                 this.twitch_vod_title = video.title;
                 this.twitch_vod_date = video.created_at;
                 this.twitch_vod_exists = true;
@@ -1791,7 +1792,7 @@ export class TwitchVOD extends BaseVOD {
             let started_at = "";
 
             if (chapter.dt_started_at) {
-                started_at = JSON.stringify(parse(chapter.dt_started_at.date, Helper.PHP_DATE_FORMAT, new Date()));
+                started_at = JSON.stringify(parse(chapter.dt_started_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date()));
             } else if (chapter.time) {
                 started_at = JSON.stringify(parseJSON(chapter.time));
             }
@@ -1816,23 +1817,23 @@ export class TwitchVOD extends BaseVOD {
         let ended_at = "";
 
         if (json.saved_at) {
-            saved_at = JSON.stringify(parse(json.saved_at.date, Helper.PHP_DATE_FORMAT, new Date()));
+            saved_at = JSON.stringify(parse(json.saved_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date()));
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Migrated saved_at: ${saved_at}`);
         }
 
         if (json.started_at) {
-            started_at = JSON.stringify(parse(json.started_at.date, Helper.PHP_DATE_FORMAT, new Date()));
+            started_at = JSON.stringify(parse(json.started_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date()));
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Migrated started_at with json.started_at: ${started_at}`);
         } else if (json.dt_started_at) {
-            started_at = JSON.stringify(parse(json.dt_started_at.date, Helper.PHP_DATE_FORMAT, new Date()));
+            started_at = JSON.stringify(parse(json.dt_started_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date()));
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Migrated started_at with json.dt_started_at: ${started_at}`);
         }
 
         if (json.ended_at) {
-            ended_at = JSON.stringify(parse(json.ended_at.date, Helper.PHP_DATE_FORMAT, new Date()));
+            ended_at = JSON.stringify(parse(json.ended_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date()));
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Migrated ended_at with json.ended_at: ${ended_at}`);
         } else if (json.dt_ended_at) {
-            ended_at = JSON.stringify(parse(json.dt_ended_at.date, Helper.PHP_DATE_FORMAT, new Date()));
+            ended_at = JSON.stringify(parse(json.dt_ended_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date()));
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Migrated ended_at with json.dt_ended_at: ${ended_at}`);
         }
 
@@ -1997,7 +1998,7 @@ export class TwitchVOD extends BaseVOD {
             let chapters_file = "";
             if (Config.getInstance().cfg("create_video_chapters")) {
                 chapters_file = path.join(BaseConfigDataFolder.cache, `${video_id}.ffmpeg.txt`);
-                const end = Helper.parseTwitchDuration(video.duration);
+                const end = TwitchHelper.parseTwitchDuration(video.duration);
                 const meta = new FFmpegMetadata().setArtist(video.user_name).setTitle(video.title).addChapter(0, end, video.title, "1/1000");
                 fs.writeFileSync(chapters_file, meta.getString());
             }
@@ -2184,14 +2185,14 @@ export class TwitchVOD extends BaseVOD {
     static async getVideo(video_id: string): Promise<false | Video> {
         if (!video_id) throw new Error("No video id");
 
-        if (!Helper.axios) {
+        if (!TwitchHelper.axios) {
             throw new Error("Axios is not initialized");
         }
 
         let response;
 
         try {
-            response = await Helper.axios.get(`/helix/videos/?id=${video_id}`);
+            response = await TwitchHelper.axios.get(`/helix/videos/?id=${video_id}`);
         } catch (err) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Tried to get video id ${video_id} but got error ${(err as Error).message}`);
             if (axios.isAxiosError(err)) {
@@ -2217,14 +2218,14 @@ export class TwitchVOD extends BaseVOD {
     static async getVideos(channel_id: string): Promise<false | Video[]> {
         if (!channel_id) throw new Error("No channel id");
 
-        if (!Helper.axios) {
+        if (!TwitchHelper.axios) {
             throw new Error("Axios is not initialized");
         }
 
         let response;
 
         try {
-            response = await Helper.axios.get(`/helix/videos?user_id=${channel_id}`);
+            response = await TwitchHelper.axios.get(`/helix/videos?user_id=${channel_id}`);
         } catch (e) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Tried to get videos for channel id ${channel_id} but got error ${e}`);
             return false;
@@ -2243,14 +2244,14 @@ export class TwitchVOD extends BaseVOD {
     static async getVideosProxy(channel_id: string): Promise<false | ProxyVideo[]> {
         if (!channel_id) throw new Error("No channel id");
 
-        if (!Helper.axios) {
+        if (!TwitchHelper.axios) {
             throw new Error("Axios is not initialized");
         }
 
         let response;
 
         try {
-            response = await Helper.axios.get(`/helix/videos?user_id=${channel_id}`);
+            response = await TwitchHelper.axios.get(`/helix/videos?user_id=${channel_id}`);
         } catch (e) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Tried to get videos for channel id ${channel_id} but got error ${e}`);
             return false;
@@ -2271,7 +2272,7 @@ export class TwitchVOD extends BaseVOD {
                 url: `https://www.twitch.tv/v/${item.id}`,
                 thumbnail: item.thumbnail_url,
                 created_at: item.created_at,
-                duration: Helper.parseTwitchDuration(item.duration),
+                duration: TwitchHelper.parseTwitchDuration(item.duration),
                 view_count: item.view_count,
                 muted_segments: item.muted_segments,
             } as ProxyVideo;
@@ -2282,7 +2283,7 @@ export class TwitchVOD extends BaseVOD {
 
         if (!broadcaster_id && !game_id && !id) throw new Error("No broadcaster id, game id or id provided");
 
-        if (!Helper.axios) {
+        if (!TwitchHelper.axios) {
             throw new Error("Axios is not initialized");
         }
 
@@ -2303,7 +2304,7 @@ export class TwitchVOD extends BaseVOD {
         }
 
         try {
-            response = await Helper.axios.get("/helix/clips", {
+            response = await TwitchHelper.axios.get("/helix/clips", {
                 params: params,
             });
         } catch (e) {

@@ -12,13 +12,14 @@ import { VodUpdated } from "../../../../../common/Webhook";
 import { BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
-import { Helper } from "../../Helper";
+import { TwitchHelper } from "../../../Providers/Twitch";
 import { LiveStreamDVR, VODTypes } from "../../LiveStreamDVR";
 import { Log, LOGLEVEL } from "../../Log";
 import { Webhook } from "../../Webhook";
 import { BaseChannel } from "./BaseChannel";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { BaseVODSegment } from "./BaseVODSegment";
+import { Helper } from "../../../Core/Helper";
 
 export class BaseVOD {
 
