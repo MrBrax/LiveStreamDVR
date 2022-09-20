@@ -36,7 +36,15 @@ export class TwitchAutomator extends BaseAutomator {
             return false;
         }
 
-        const message_retry = request.header("Twitch-Eventsub-Message-Retry") || null;
+        const messageId             = request.header("Twitch-Eventsub-Message-Id");
+        const messageRetry          = request.header("Twitch-Eventsub-Message-Retry");
+        const messageType           = request.header("Twitch-Eventsub-Message-Type");
+        const messageSignature      = request.header("Twitch-Eventsub-Message-Signature");
+        const messageTimestamp      = request.header("Twitch-Eventsub-Message-Timestamp");
+        const subscriptionType      = request.header("Twitch-Eventsub-Subscription-Type");
+        const subscriptionVersion   = request.header("Twitch-Eventsub-Subscription-Version");
+
+        // const message_retry = request.header("Twitch-Eventsub-Message-Retry") || null;
 
         this.payload_eventsub = data;
         this.payload_headers = request.headers;
@@ -79,7 +87,7 @@ export class TwitchAutomator extends BaseAutomator {
             }
 
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.last.online`, new Date().toISOString());
-            Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Automator stream.online event for ${this.broadcaster_user_login} (retry ${message_retry})`);
+            Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Automator stream.online event for ${this.broadcaster_user_login} (retry ${messageRetry})`);
 
             // const channel_obj = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
 

@@ -12,8 +12,6 @@ import { KeyValue } from "../Core/KeyValue";
 import { SubStatus } from "../../../common/Defs";
 import { TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
 import { XMLParser } from "fast-xml-parser";
-import { PubsubVideo } from "../../../common/YouTubeAPI/Pubsub";
-import { YouTubeAutomator } from "Core/Providers/YouTube/YouTubeAutomator";
 
 const verifyTwitchSignature = (request: express.Request): boolean => {
 
@@ -82,7 +80,15 @@ export async function HookTwitch(req: express.Request, res: express.Response): P
 
     const debugMeta = { "GET": req.query, "POST": req.body, "HEADERS": req.headers, "DATA": data_json };
 
-    Log.logAdvanced(LOGLEVEL.INFO, "hook", "Hook called", debugMeta);
+    const messageId             = req.header("Twitch-Eventsub-Message-Id");
+    const messageRetry          = req.header("Twitch-Eventsub-Message-Retry");
+    const messageType           = req.header("Twitch-Eventsub-Message-Type");
+    const messageSignature      = req.header("Twitch-Eventsub-Message-Signature");
+    const messageTimestamp      = req.header("Twitch-Eventsub-Message-Timestamp");
+    const subscriptionType      = req.header("Twitch-Eventsub-Subscription-Type");
+    const subscriptionVersion   = req.header("Twitch-Eventsub-Subscription-Version");
+
+    Log.logAdvanced(LOGLEVEL.INFO, "hook", `Hook called with message ID ${messageId}, version ${subscriptionVersion}, type ${subscriptionType} (retry ${messageRetry}, type ${messageType}, date ${messageTimestamp})`, debugMeta);
 
     if (Config.getInstance().cfg("instance_id")) {
         if (!req.query.instance || req.query.instance != Config.getInstance().cfg("instance_id")) {
@@ -93,7 +99,6 @@ export async function HookTwitch(req: express.Request, res: express.Response): P
     }
 
     // handle regular hook
-
     if (data_json && Object.keys(data_json).length > 0) {
 
         if (req.header("Twitch-Notification-Id")) {
@@ -104,11 +109,8 @@ export async function HookTwitch(req: express.Request, res: express.Response): P
                 "Hook got data with old webhook format."
             );
             res.status(400).send("Outdated format");
+            return;
         }
-
-        const message_retry = req.header("Twitch-Eventsub-Message-Retry") || null;
-
-        // console.log("Message retry", message_retry);
 
         if ("challenge" in data_json && data_json.challenge !== null) {
 
@@ -124,7 +126,7 @@ export async function HookTwitch(req: express.Request, res: express.Response): P
 
             // $signature = $response->getHeader("Twitch-Eventsub-Message-Signature");
 
-            Log.logAdvanced(LOGLEVEL.INFO, "hook", `Challenge received for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}), retry ${message_retry}`, debugMeta);
+            Log.logAdvanced(LOGLEVEL.INFO, "hook", `Challenge received for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}), retry ${messageRetry}`, debugMeta);
 
             if (!verifyTwitchSignature(req)) {
 
@@ -137,7 +139,7 @@ export async function HookTwitch(req: express.Request, res: express.Response): P
                 res.status(400).send("Invalid signature check for challenge");
             }
 
-            Log.logAdvanced(LOGLEVEL.SUCCESS, "hook", `Challenge completed, subscription active for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}), retry ${message_retry}.`, debugMeta);
+            Log.logAdvanced(LOGLEVEL.SUCCESS, "hook", `Challenge completed, subscription active for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}), retry ${messageRetry}.`, debugMeta);
 
             KeyValue.getInstance().set(`${channel_id}.substatus.${sub_type}`, SubStatus.SUBSCRIBED);
 
@@ -178,7 +180,7 @@ export async function HookTwitch(req: express.Request, res: express.Response): P
         }
 
         if ("event" in data_json) {
-            Log.logAdvanced(LOGLEVEL.DEBUG, "hook", `Signature checked, no challenge, retry ${message_retry}. Run handle...`);
+            Log.logAdvanced(LOGLEVEL.DEBUG, "hook", `Signature checked, no challenge, retry ${messageRetry}. Run handle...`);
             const TA = new TwitchAutomator();
             /* await */ TA.handle(data_json, req).catch(error => {
                 Log.logAdvanced(LOGLEVEL.FATAL, "hook", `Automator returned error: ${error.message}`);
