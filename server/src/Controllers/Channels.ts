@@ -576,14 +576,12 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
 
 export async function SubscribeToChannel(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel_login = req.params.login;
+    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
 
-    const channel = TwitchChannel.getChannelByLogin(channel_login);
-
-    if (!channel || !channel.userid) {
+    if (!channel || !(channel instanceof TwitchChannel) || !channel.userid) {
         res.status(400).send({
             status: "ERROR",
-            message: `Channel ${channel_login} not found`,
+            message: `Channel ${req.params.uuid} not found`,
         } as ApiErrorResponse);
         return;
     }
@@ -592,9 +590,43 @@ export async function SubscribeToChannel(req: express.Request, res: express.Resp
 
     res.send({
         data: {
-            login: channel_login,
+            login: channel.login,
             status: sub === true ? "Subscription request sent, check logs for details" : "ERROR",
         },
+        status: "OK",
+    });
+
+}
+
+export async function CheckSubscriptions(req: express.Request, res: express.Response): Promise<void> {
+
+    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+
+    if (!channel || !(channel instanceof TwitchChannel) || !channel.userid) {
+        res.status(400).send({
+            status: "ERROR",
+            message: `Channel ${req.params.uuid} not found`,
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const all_subs = await TwitchHelper.getSubsList();
+
+    if (!all_subs) {
+        res.status(400).send({
+            status: "ERROR",
+            message: `No subscriptions for ${channel.internalName}`,
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const channel_subs = all_subs.filter(sub => sub.condition.broadcaster_user_id == channel.internalId);
+
+    res.send({
+        data: {
+            raw: channel_subs,
+        },
+        message: channel_subs.map(sub => `${sub.type}: ${sub.status}`).join("\n"),
         status: "OK",
     });
 

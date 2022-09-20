@@ -295,6 +295,13 @@ export class TwitchHelper {
 
         Log.logAdvanced(LOGLEVEL.INFO, "helper.getSubsList", `${subscriptions.length} subscriptions`);
 
+        if (subscriptions) {
+            subscriptions.forEach(sub => {
+                KeyValue.getInstance().set(`${sub.condition.broadcaster_user_id}.sub.${sub.type}`, sub.id);
+                KeyValue.getInstance().set(`${sub.condition.broadcaster_user_id}.substatus.${sub.type}`, sub.status == "enabled" ? SubStatus.SUBSCRIBED : SubStatus.NONE);
+            });
+        }
+
         return subscriptions;
 
     }

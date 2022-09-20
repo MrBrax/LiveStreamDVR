@@ -129,7 +129,8 @@
     "checkstatus": "Check status",
     "authenticate": "Authenticate",
     "logout": "Log out",
-    "destroy-session": "Destroy session"
+    "destroy-session": "Destroy session",
+    "check-subscriptions": "Check subscriptions"
   },
   "pages": {
     "favourite-games": "Favourite games",

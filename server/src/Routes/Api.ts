@@ -41,6 +41,7 @@ router.put("/channels/:uuid", AuthAdmin, Channels.UpdateChannel);
 router.delete("/channels/:uuid", AuthAdmin, Channels.DeleteChannel);
 router.get("/channels/:uuid/download/:video_id", AuthAdmin, Channels.DownloadVideo);
 router.post("/channels/:uuid/subscribe", AuthAdmin, Channels.SubscribeToChannel);
+router.get("/channels/:uuid/checksubscriptions", AuthAdmin, Channels.CheckSubscriptions);
 router.post("/channels/:uuid/cleanup", AuthAdmin, Channels.CleanupChannelVods);
 router.post("/channels/:uuid/refresh", AuthAdmin, Channels.RefreshChannel);
 router.post("/channels/:uuid/force_record", AuthAdmin, Channels.ForceRecord);

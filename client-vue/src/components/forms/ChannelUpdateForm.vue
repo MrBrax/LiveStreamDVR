@@ -272,14 +272,21 @@
                 <span>{{ $t('buttons.delete-all-vods') }}</span>
             </button>
             <button
-                class="button is-small is-confirm"
+                class="button is-small"
                 @click="subscribeChannel"
             >
                 <span class="icon"><fa icon="sync" /></span>
                 <span>{{ $t('buttons.subscribe') }}</span>
             </button>
             <button
-                class="button is-small is-confirm"
+                class="button is-small"
+                @click="checkSubscriptions"
+            >
+                <span class="icon"><fa icon="list" /></span>
+                <span>{{ $t('buttons.check-subscriptions') }}</span>
+            </button>
+            <button
+                class="button is-small"
                 @click="renameChannel"
             >
                 <span class="icon"><fa icon="pencil" /></span>
@@ -294,11 +301,11 @@ import { defineComponent } from "vue";
 import { VideoQualityArray } from "../../../../common/Defs";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faSave } from "@fortawesome/free-solid-svg-icons";
+import { faSave, faList } from "@fortawesome/free-solid-svg-icons";
 import { ApiChannelConfig } from "@common/Api/Client";
 import { AxiosError } from "axios";
 import { useStore } from "@/store";
-library.add(faSave);
+library.add(faSave, faList);
 
 export default defineComponent({
     name: "ChannelUpdateForm",
@@ -417,6 +424,21 @@ export default defineComponent({
                     if (json.message) alert(json.message);
                     console.log(json);
                     this.$emit("formSuccess", json);
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) {
+                        alert(err.response.data.message);
+                    }
+                });
+        },
+        checkSubscriptions() {
+            this.$http
+                .get(`/api/v0/channels/${this.channel.uuid}/checksubscriptions`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
