@@ -4,29 +4,27 @@
             <h1>{{ $t('pages.channels') }}</h1>
         </div>
         <div class="section-content">
+            <h1>Channels</h1>
             <ul class="list">
                 <li
                     v-for="channel in formChannels"
                     :key="channel.uuid"
                 >
                     <router-link :to="{ params: { channel: channel.uuid } }">
-                        {{ store.channelUUIDToInternalName(channel.uuid) || channel.login || "<<unknown>>" }}
+                        <span class="icon">
+                            <fa :icon="['fab', channel.provider]" />
+                        </span>
+                        <span>{{ store.channelUUIDToInternalName(channel.uuid) || channel.login || "<<unknown>>" }}</span>
                     </router-link>
                 </li>
             </ul>
-            <div
-                v-if="formChannel"
-                class="card"
-            >
-                <div class="card-title">
-                    <h2>{{ store.channelUUIDToInternalName(formChannel.uuid) || formChannel.login || "<<unknown>>" }}</h2>
-                </div>
-                <div class="card-content">
-                    <channel-update-form
-                        :channel="formChannel"
-                        @form-success="updateAll"
-                    />
-                </div>
+            <hr>
+            <div v-if="formChannel">
+                <h1>{{ store.channelUUIDToInternalName(formChannel.uuid) || formChannel.login || "<<unknown>>" }}</h1>
+                <channel-update-form
+                    :channel="formChannel"
+                    @form-success="updateAll"
+                />
             </div>
             <span v-if="(!formChannels || formChannels.length == 0) && store.authElement">
                 No channels added. Use the tab "New channel" above.</span>
@@ -48,9 +46,10 @@ import ChannelUpdateForm from "@/components/forms/ChannelUpdateForm.vue";
 import type { ApiSettingsResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase } from "@fortawesome/free-solid-svg-icons";
+import { faTwitch, faYoutube } from "@fortawesome/free-brands-svg-icons";
 import { useStore } from "@/store";
 import { ApiChannelConfig } from "@common/Api/Client";
-library.add(faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase);
+library.add(faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase, faTwitch, faYoutube);
 
 export default defineComponent({
     name: "SettingsChannelsView",
@@ -137,9 +136,12 @@ export default defineComponent({
 <style lang="scss" scoped>
 
 .list {
-    // list-style: none;
-    margin: 0 0 0.5em 0;
-    // padding: 0;
+    list-style: none;
+    margin: 0 0 0.8em 0;
+    padding: 0;
+    li {
+        padding: 0.1em 0;
+    }
     a {
         display: inline-block;
         // background-color: rgba(128, 128, 128, 0.4);
@@ -148,7 +150,12 @@ export default defineComponent({
         // border-radius: 0.5em;
         &.router-link-exact-active {
             color: #fff;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
             // background-color: rgba(128, 128, 128, 0.6);
+        }
+        .icon {
+            vertical-align: middle;
+            margin-right: 0.2em;
         }
     }
 }
