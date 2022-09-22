@@ -1,5 +1,4 @@
 import chalk from "chalk";
-import { compareVersions } from "compare-versions";
 import { LiveStreamDVR } from "Core/LiveStreamDVR";
 import dotenv from "dotenv";
 import express from "express";
@@ -13,8 +12,6 @@ import { version } from "../package.json";
 import { AppName, BaseConfigDataFolder, BaseConfigFolder } from "./Core/BaseConfig";
 import { ClientBroker } from "./Core/ClientBroker";
 import { Config } from "./Core/Config";
-import { Job } from "./Core/Job";
-import { Scheduler } from "./Core/Scheduler";
 import { Webhook } from "./Core/Webhook";
 import ApiRouter from "./Routes/Api";
 
@@ -26,9 +23,9 @@ declare module "express-session" {
 
 dotenv.config();
 
-const argv = minimist(process.argv.slice(2));
+LiveStreamDVR.argv = minimist(process.argv.slice(2));
 
-if (argv.help || argv.h) {
+if (LiveStreamDVR.argv.help || LiveStreamDVR.argv.h) {
     console.log(`
     Usage:
         yarn run start [options]
@@ -44,20 +41,9 @@ if (argv.help || argv.h) {
 }
 
 // for overriding port if you can't or don't want to use the web gui to change it
-const override_port = argv.port ? parseInt(argv.port as string) : undefined;
+const override_port = LiveStreamDVR.argv.port ? parseInt(LiveStreamDVR.argv.port as string) : undefined;
 
-if (fs.existsSync(path.join(BaseConfigDataFolder.cache))) {
-    if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"))) {
-        const old_version = fs.readFileSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"), { encoding: "utf-8" });
-        if (compareVersions(version, old_version) == -1 && !argv["ignore-version"]) {
-            console.log(chalk.bgRed.whiteBright(`Server has been started with an older version than the data folder (old ${old_version}, current ${version}).`));
-            console.log(chalk.bgRed.whiteBright("Use the argument --ignore-version to continue."));
-            console.log(chalk.bgRed.whiteBright("If you have been using the ts-develop branch and gone back to master, this can happen."));
-            process.exit(1);
-        }
-    }
-    fs.writeFileSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"), version);
-}
+LiveStreamDVR.checkVersion();
 
 // load all required config files and cache stuff
 Config.init().then(() => {

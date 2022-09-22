@@ -127,7 +127,8 @@ export class TwitchChannel extends BaseChannel {
         } else {
             this.vods_raw = this.rescanVods();
             Log.logAdvanced(LOGLEVEL.INFO, "channel", `No VODs in database found for ${this.internalName}, migrate ${this.vods_raw.length} from recursive file search`);
-            fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`), JSON.stringify(this.vods_raw));
+            // fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`), JSON.stringify(this.vods_raw));
+            this.saveVodDatabase();
         }
 
         this.vods_list = [];
@@ -337,8 +338,8 @@ export class TwitchChannel extends BaseChannel {
         this.sortVods();
 
         // add to database
-        this.vods_raw.push(path.relative(BaseConfigDataFolder.vod, filename));
-        fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`), JSON.stringify(this.vods_raw));
+        this.addVodToDatabase(path.relative(BaseConfigDataFolder.vod, filename));
+        this.saveVodDatabase();
 
         this.checkStaleVodsInMemory();
 

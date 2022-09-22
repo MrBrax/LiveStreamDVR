@@ -448,6 +448,13 @@ export class BaseAutomator {
         return true;
     }
 
+    public applySeasonEpisode() {
+        if (!this.channel) throw new Error("No channel");
+        this.vod_season = this.channel.current_season;
+        this.vod_absolute_season = this.channel.current_absolute_season;
+        this.vod_episode = this.channel.incrementStreamNumber();
+    }
+
     public async download(tries = 0): Promise<boolean> {
 
         // const data_title = this.getTitle();
@@ -506,9 +513,7 @@ export class BaseAutomator {
         }
 
         // pre-calculate season and episode
-        this.vod_season = this.channel.current_season;
-        this.vod_absolute_season = this.channel.current_absolute_season;
-        this.vod_episode = this.channel.incrementStreamNumber();
+        this.applySeasonEpisode();
 
         const basename = this.vodBasenameTemplate();
 
@@ -535,9 +540,12 @@ export class BaseAutomator {
         this.vod.capture_id = this.getVodID() || "1";
         this.vod.started_at = parseJSON(data_started);
 
-        this.vod.stream_number = this.channel.incrementStreamNumber();
+        // this.vod.stream_number = this.channel.incrementStreamNumber();
         // this.vod.stream_season = this.channel.current_season; /** @TODO: field? **/ 
-        this.vod.stream_absolute_season = this.channel.current_absolute_season;
+        // this.vod.stream_absolute_season = this.channel.current_absolute_season;
+        this.vod.stream_number = this.vod_episode;
+        // this.vod.stream_season = this.vod_season;
+        this.vod.stream_absolute_season = this.vod_absolute_season;
 
         if (this.force_record) this.vod.force_record = true;
 

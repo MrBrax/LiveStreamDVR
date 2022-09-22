@@ -1,10 +1,15 @@
 import chalk from "chalk";
+import { compareVersions } from "compare-versions";
 import { randomUUID } from "crypto";
 import fs from "fs";
 import { Server } from "http";
+import minimist from "minimist";
+// import { version } from "os";
+import { version } from "../../package.json";
+import path from "path";
 import { WebSocketServer } from "ws";
 import { ChannelConfig } from "../../../common/Config";
-import { BaseConfigPath, BaseConfigDataFolder } from "./BaseConfig";
+import { BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
 import { Job } from "./Job";
@@ -33,6 +38,7 @@ export class LiveStreamDVR {
     static server: Server;
     static websocketServer: WebSocketServer;
     static shutting_down = false;
+    static argv: minimist.ParsedArgs;
 
     static getInstance(): LiveStreamDVR {
         if (!this.instance) {
@@ -179,7 +185,7 @@ export class LiveStreamDVR {
         this.vods.forEach((vod) => {
             const channel = vod.getChannel();
             if (!channel) {
-                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Channel ${vod.streamer_name} removed but VOD ${vod.basename} still lingering`);
+                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Channel ${vod.getChannel().internalName} removed but VOD ${vod.basename} still lingering`);
             }
             if (!fs.existsSync(vod.filename)) {
                 Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${vod.basename} in memory but not on disk`);
@@ -206,7 +212,7 @@ export class LiveStreamDVR {
      * @param uuid 
      * @returns 
      */
-    public  removeVod(uuid: string): boolean {
+    public removeVod(uuid: string): boolean {
         const vod = this.getVodByUUID(uuid);
         if (vod) {
             this.vods = this.vods.filter(vod => vod.uuid != uuid);
@@ -256,6 +262,28 @@ export class LiveStreamDVR {
             if (timeout !== undefined) clearTimeout(timeout);
             console.log(chalk.red("Finished tasks, bye bye."));
         });
+    }
+
+    public static checkVersion(): void {
+        if (fs.existsSync(path.join(BaseConfigDataFolder.cache))) {
+            if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"))) {
+                const old_version = fs.readFileSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"), { encoding: "utf-8" });
+                let compare;
+                try {
+                    compare = compareVersions(version, old_version) == -1 && !this.argv["ignore-version"];
+                } catch (error) {
+                    console.log(chalk.bgRed.whiteBright(`Could not compare version ${version} to ${old_version}: ${(error as Error).message}`));
+                    return;
+                }
+                if (compare) {
+                    console.log(chalk.bgRed.whiteBright(`Server has been started with an older version than the data folder (old ${old_version}, current ${version}).`));
+                    console.log(chalk.bgRed.whiteBright("Use the argument --ignore-version to continue."));
+                    console.log(chalk.bgRed.whiteBright("If you have been using the ts-develop branch and gone back to master, this can happen."));
+                    process.exit(1);
+                }
+            }
+            fs.writeFileSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"), version);
+        }
     }
 
 }

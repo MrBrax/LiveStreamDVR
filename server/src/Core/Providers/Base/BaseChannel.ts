@@ -268,8 +268,9 @@ export class BaseChannel {
         this.vods_list = this.vods_list.filter(v => v.uuid !== uuid);
 
         // remove vod from database
-        this.vods_raw = this.vods_raw.filter(p => p !== path.relative(BaseConfigDataFolder.vod, vod.filename));
-        fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`), JSON.stringify(this.vods_raw));
+        this.removeVodFromDatabase(path.relative(BaseConfigDataFolder.vod, vod.filename));
+        // fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`), JSON.stringify(this.vods_raw));
+        this.saveVodDatabase();
 
         LiveStreamDVR.getInstance().removeVod(uuid);
 
@@ -277,6 +278,18 @@ export class BaseChannel {
 
         return true;
 
+    }
+
+    public addVodToDatabase(filename: string) {
+        this.vods_raw.push(filename);
+    }
+
+    public removeVodFromDatabase(filename: string) {
+        this.vods_raw = this.vods_raw.filter(p => p !== filename);
+    }
+
+    public saveVodDatabase() {
+        fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`), JSON.stringify(this.vods_raw));
     }
 
     public delete(): boolean {

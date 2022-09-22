@@ -507,8 +507,10 @@ export class YouTubeChannel extends BaseChannel {
         this.sortVods();
 
         // add to database
-        this.vods_raw.push(path.relative(BaseConfigDataFolder.vod, filename));
-        fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.channel_id}.json`), JSON.stringify(this.vods_raw));
+        // this.vods_raw.push(path.relative(BaseConfigDataFolder.vod, filename));
+        // fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.channel_id}.json`), JSON.stringify(this.vods_raw));
+        this.addVodToDatabase(path.relative(BaseConfigDataFolder.vod, filename));
+        this.saveVodDatabase();
 
         this.checkStaleVodsInMemory();
 
