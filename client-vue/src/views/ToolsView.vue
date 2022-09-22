@@ -113,12 +113,13 @@
                 >
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Started at</th>
-                            <th>PID</th>
-                            <th>Status</th>
-                            <th>Progress</th>
-                            <th>Action</th>
+                            <th>{{ $t('jobs.name') }}</th>
+                            <th>{{ $t('jobs.started-at') }}</th>
+                            <th>{{ $t('jobs.pid') }}</th>
+                            <th>{{ $t('jobs.status') }}</th>
+                            <th>{{ $t('jobs.progress') }}</th>
+                            <th>{{ $t('jobs.time-left') }}</th>
+                            <th>{{ $t('jobs.action') }}</th>
                         </tr>
                     </thead>
                     <tr
@@ -140,7 +141,20 @@
                             <span v-else-if="job.status == JobStatus.NONE">None</span>
                         </td>
                         <td>
-                            <span v-if="job.progress">{{ Math.round(job.progress * 100) }}%</span>
+                            <span v-if="job.progress">
+                                <progress
+                                    :value="job.progress * 100"
+                                    max="100"
+                                    :title="Math.round(job.progress * 100).toString() + '%'"
+                                    class="progress"
+                                /><br>
+                                <!--<span class="input-help">{{ Math.round(job.progress * 100) }}%</span>-->
+                            </span>
+                        </td>
+                        <td>
+                            <span v-if="job.progress && job.progress > 0">
+                                {{ shortDuration(store.getJobTimeRemaining(job.name) / 1000) }}
+                            </span>
                         </td>
                         <td>
                             <div class="buttons">
@@ -181,6 +195,9 @@
                     </tr>
                 </table>
                 <em v-else>{{ $t('jobs.no-jobs-running') }}</em>
+                <p v-if="store.jobList && store.jobList.length > 0 && allJobsDuration > 0">
+                    All jobs finish in {{ shortDuration(allJobsDuration / 1000) }}
+                </p>
             </div>
         </section>
     </div>
@@ -222,6 +239,11 @@ export default defineComponent({
     setup() {
         const store = useStore();
         return { store, JobStatus };
+    },
+    computed: {
+        allJobsDuration(): number {
+            return this.store.jobList.reduce((prev, cur) => (this.store.getJobTimeRemaining(cur.name) || 0) + prev, 0);
+        }
     },
     methods: {
         killJob(name: string, method = "") {

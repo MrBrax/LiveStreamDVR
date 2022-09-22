@@ -45,6 +45,9 @@
                 <td v-if="job.progress && job.progress > 0">
                     {{ Math.round(job.progress * 100) }}%
                 </td>
+                <td v-if="job.progress && job.progress > 0">
+                    {{ shortDuration(store.getJobTimeRemaining(job.name) / 1000) }}
+                </td>
             </tr>
         </table>
 

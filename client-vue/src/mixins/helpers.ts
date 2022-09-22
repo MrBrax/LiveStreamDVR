@@ -92,6 +92,15 @@ export default {
             }
             return duration.trim();
         },
+        shortDuration(durationInSeconds: number): string {
+            if (durationInSeconds > 3600) {
+                return `${Math.round(durationInSeconds / 3600)} hours`;
+            } else if (durationInSeconds > 60) {
+                return `${Math.round(durationInSeconds / 60)} minutes`;
+            } else {
+                return `${Math.round(durationInSeconds)} seconds`;
+            }
+        },
         twitchDuration(seconds: number): string {
             return this.niceDuration(seconds).replaceAll(" ", "").trim();
             // return trim(str_replace(" ", "", self::getNiceDuration($seconds)));
@@ -186,5 +195,6 @@ declare module "@vue/runtime-core" {
         isYouTube: (channel: ChannelTypes) => channel is YouTubeChannel;
         isTwitchVOD: (vod: VODTypes) => vod is TwitchVOD;
         isYouTubeVOD: (vod: VODTypes) => vod is YouTubeVOD;
+        shortDuration: (durationInSeconds: number) => string;
     }
 }

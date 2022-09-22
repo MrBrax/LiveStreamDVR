@@ -241,7 +241,14 @@
     }
   },
   "jobs": {
-    "no-jobs-running": "No jobs running"
+    "no-jobs-running": "No jobs running",
+    "name": "Name",
+    "started-at": "Started at",
+    "pid": "PID",
+    "status": "Status",
+    "progress": "Progress",
+    "time-left": "Time left",
+    "action": "Action"
   },
   "input": {
     "search": "Search..."

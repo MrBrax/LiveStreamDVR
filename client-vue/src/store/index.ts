@@ -10,6 +10,7 @@ import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
 import { TwitchVODChapter } from "@/core/Providers/Twitch/TwitchVODChapter";
 import { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
+import { parseJSON } from "date-fns";
 
 export type ChannelTypes = TwitchChannel | YouTubeChannel;
 export type VODTypes = TwitchVOD | YouTubeVOD;
@@ -400,6 +401,21 @@ export const useStore = defineStore("twitchAutomator", {
             if (index !== -1) {
                 this.jobList.splice(index, 1);
             }
+        },
+        getJobTimeRemaining(job_name: string): number {
+            const index = this.jobList.findIndex((j) => j.name === job_name);
+            if (index === -1) {
+                console.warn(`Job '${job_name}' not found in job list`);
+                return 0;
+            }
+
+            // https://math.stackexchange.com/a/3694290
+            const job = this.jobList[index];
+            const now = Date.now();
+            const start = parseJSON(job.dt_started_at).getTime();
+            const elapsedSeconds = (now - start);
+            const calc = elapsedSeconds * (1/(job.progress) - 1);
+            return calc;
         },
         updateConfig(data: Record<string, any> | null) {
             this.config = data;

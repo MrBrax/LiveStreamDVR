@@ -5,6 +5,7 @@ import { ClientBroker } from "../Core/ClientBroker";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
+import { Job } from "../Core/Job";
 
 export function ListVodsInMemory(req: express.Request, res: express.Response): void {
     res.send({
@@ -75,4 +76,24 @@ export async function GetYouTubeChannel(req: express.Request, res: express.Respo
     }
 
     res.send(d);
+}
+
+export async function JobProgress(req: express.Request, res: express.Response): Promise<void> {
+    
+    const job = Job.create("progress_test");
+    job.dummy = true;
+    job.save();
+
+    let progress = 0;
+    const i = setInterval(() => {
+        progress += 0.02;
+        job.setProgress(progress);
+        console.log(progress);
+        if (progress >= 1) {
+            clearInterval(i);
+            job.clear();
+        }
+    }, 1000);
+
+    res.send("ok");
 }
