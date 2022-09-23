@@ -46,7 +46,11 @@
                     {{ Math.round(job.progress * 100) }}%
                 </td>
                 <td v-if="job.progress && job.progress > 0">
-                    {{ shortDuration(store.getJobTimeRemaining(job.name) / 1000) }}
+                    <!--{{ shortDuration(store.getJobTimeRemaining(job.name) / 1000) }}-->
+                    <duration-display
+                        :start-date="new Date().getTime() + store.getJobTimeRemaining(job.name)"
+                        output-style="humanLong"
+                    />
                 </td>
             </tr>
         </table>
@@ -56,15 +60,19 @@
 </template>
 
 <script lang="ts">
+import DurationDisplay from "@/components/DurationDisplay.vue";
 import { useStore } from "@/store";
 import { JobStatus } from "@common/Defs";
-import { defineComponent } from "vue";
-import { faTimes, faSync, faExclamationTriangle, faClock, faCircle } from "@fortawesome/free-solid-svg-icons";
 import { library } from "@fortawesome/fontawesome-svg-core";
+import { faCircle, faClock, faExclamationTriangle, faSync, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { defineComponent } from "vue";
 library.add(faSync, faTimes, faExclamationTriangle, faClock, faCircle);
 
 export default defineComponent({
     name: "JobStatus",
+    components: {
+        DurationDisplay,
+    },
     setup() {
         const store = useStore();
         return { store, JobStatus };

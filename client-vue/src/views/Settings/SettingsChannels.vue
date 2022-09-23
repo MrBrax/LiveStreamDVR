@@ -149,7 +149,7 @@ export default defineComponent({
         // margin-bottom: 0.2em;
         // border-radius: 0.5em;
         &.router-link-exact-active {
-            color: #fff;
+            color: var(--link-active-color);
             text-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
             // background-color: rgba(128, 128, 128, 0.6);
         }

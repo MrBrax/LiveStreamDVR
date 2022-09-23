@@ -46,7 +46,10 @@
             </div>
         </section>
 
-        <section class="section">
+        <section
+            v-if="store.cfg('debug')"
+            class="section"
+        >
             <div class="section-title">
                 <h1>Hook debug</h1>
             </div>
@@ -153,7 +156,11 @@
                         </td>
                         <td>
                             <span v-if="job.progress && job.progress > 0">
-                                {{ shortDuration(store.getJobTimeRemaining(job.name) / 1000) }}
+                                <!--{{ shortDuration(store.getJobTimeRemaining(job.name) / 1000) }}-->
+                                <duration-display
+                                    :start-date="new Date().getTime() + store.getJobTimeRemaining(job.name)"
+                                    output-style="humanLong"
+                                />
                             </span>
                         </td>
                         <td>
@@ -195,8 +202,11 @@
                     </tr>
                 </table>
                 <em v-else>{{ $t('jobs.no-jobs-running') }}</em>
-                <p v-if="store.jobList && store.jobList.length > 0 && allJobsDuration > 0">
-                    All jobs finish in {{ shortDuration(allJobsDuration / 1000) }}
+                <p v-if="store.jobList && store.jobList.length > 0 && allJobsDuration !== 0">
+                    All jobs finish in <duration-display
+                        :start-date="new Date().getTime() + allJobsDuration"
+                        output-style="humanLong"
+                    />
                 </p>
             </div>
         </section>
@@ -211,6 +221,7 @@ import ToolsVodDownloadForm from "@/components/forms/ToolsVodDownloadForm.vue";
 import ToolsChatDownloadForm from "@/components/forms/ToolsChatDownloadForm.vue";
 import ToolsChatDumpForm from "@/components/forms/ToolsChatDumpForm.vue";
 import ToolsClipDownloadForm from "../components/forms/ToolsClipDownloadForm.vue";
+import DurationDisplay from "@/components/DurationDisplay.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faHeart, faStop, faSkull, faTrash } from "@fortawesome/free-solid-svg-icons";
@@ -234,7 +245,8 @@ export default defineComponent({
         ToolsVodDownloadForm,
         ToolsChatDownloadForm,
         ToolsChatDumpForm,
-        ToolsClipDownloadForm
+        ToolsClipDownloadForm,
+        DurationDisplay,
     },
     setup() {
         const store = useStore();

@@ -210,7 +210,7 @@ export default defineComponent({
 
         document.addEventListener("visibilitychange", () => {
             if (document.visibilityState === "visible") {
-                console.debug("Visibility change: visible");
+                // console.debug("Visibility change: visible");
                 this.store.fetchAndUpdateStreamerList();
             }
         });

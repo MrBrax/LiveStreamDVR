@@ -278,5 +278,10 @@
     "yes": "Yes",
     "no": "No",
     "no-data": "No data"
+  },
+  "duration": {
+    "hours": "datetime.hours",
+    "minutes": "datetime.minutes",
+    "seconds": "datetime.seconds"
   }
 }

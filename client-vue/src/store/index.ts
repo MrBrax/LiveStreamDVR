@@ -415,6 +415,7 @@ export const useStore = defineStore("twitchAutomator", {
             const start = parseJSON(job.dt_started_at).getTime();
             const elapsedSeconds = (now - start);
             const calc = elapsedSeconds * (1/(job.progress) - 1);
+            console.debug(job_name, job.dt_started_at, elapsedSeconds, job.progress, calc);
             return calc;
         },
         updateConfig(data: Record<string, any> | null) {

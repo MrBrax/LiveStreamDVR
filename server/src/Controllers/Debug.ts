@@ -80,7 +80,7 @@ export async function GetYouTubeChannel(req: express.Request, res: express.Respo
 
 export async function JobProgress(req: express.Request, res: express.Response): Promise<void> {
     
-    const job = Job.create("progress_test");
+    const job = Job.create("progress_test" + Math.round(Math.random() * 1000));
     job.dummy = true;
     job.save();
 
