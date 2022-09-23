@@ -1273,6 +1273,25 @@ title="Retry VOD match"
                     </div>-->
                     <div class="field">
                         <label>
+                            <p>Offset (seconds)</p>
+                            <input
+                                v-model="burnSettings.burnOffset"
+                                class="input"
+                                type="number"
+                            >
+                        </label>
+                    </div>
+                    <div class="field">
+                        <label>
+                            <input
+                                v-model="burnSettings.testDuration"
+                                type="checkbox"
+                            >
+                            Test duration (don't burn entire video)                            
+                        </label>
+                    </div>
+                    <div class="field">
+                        <label>
                             <p>Chat horizontal</p>
                             <select
                                 v-model="burnSettings.burnHorizontal"
@@ -1517,6 +1536,17 @@ title="Retry VOD match"
                             type="checkbox"
                         >
                         {{ $t('vod.edit.prevent-deletion') }}
+                    </label>
+                </div>
+            </div>
+            <div class="field">
+                <div class="control">
+                    <label class="checkbox">
+                        <input
+                            v-model="editVodSettings.cloud_storage"
+                            type="checkbox"
+                        >
+                        {{ $t('vod.edit.cloud-storage') }}
                     </label>
                 </div>
             </div>
@@ -1997,6 +2027,8 @@ export default defineComponent({
                 burnVertical: "top",
                 ffmpegPreset: "slow",
                 ffmpegCrf: 26,
+                burnOffset: 0,
+                testDuration: false,
             },
             chatDownloadMethod: "tcd",
             showAdvanced: false,
@@ -2014,6 +2046,7 @@ export default defineComponent({
                 comment: "",
                 prevent_deletion: false,
                 segments: "",
+                cloud_storage: false,
             },
             renameVodSettings: {
                 template: "",
@@ -2130,6 +2163,7 @@ export default defineComponent({
                 comment: this.vod.comment ?? "",
                 prevent_deletion: this.vod.prevent_deletion ?? false,
                 segments: this.vod.segments.map((s) => s.basename).join("\n"),
+                cloud_storage: this.vod.cloud_storage ?? false,
             };
             this.exportVodSettings.vod = this.vod.basename;
             this.applyDefaultExportSettings();

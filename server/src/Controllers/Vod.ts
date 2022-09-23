@@ -53,11 +53,13 @@ export async function EditVod(req: express.Request, res: express.Response): Prom
     const comment = req.body.comment as string;
     const prevent_deletion = req.body.prevent_deletion as boolean;
     const segments = req.body.segments as string;
+    const cloud_storage = req.body.cloud_storage as boolean;
 
     vod.stream_number = stream_number;
     vod.comment = comment;
     vod.prevent_deletion = prevent_deletion;
     vod.stream_absolute_season = absolute_season;
+    vod.cloud_storage = cloud_storage;
     if (segments) {
         vod.segments_raw = segments.split("\n").map(s => s.trim()).filter(s => s.length > 0);
         vod.parseSegments(vod.segments_raw);
@@ -195,8 +197,10 @@ export async function RenderWizard(req: express.Request, res: express.Response):
     const chat_font_size = data.chatFontSize;
     const burn_horizontal = data.burnHorizontal;
     const burn_vertical = data.burnVertical;
+    const burn_offset = data.burnOffset || 0;
     const ffmpeg_preset = data.ffmpegPreset;
     const ffmpeg_crf = data.ffmpegCrf;
+    const test_duration = data.testDuration || false;
 
     let status_renderchat = false;
     let status_burnchat = false;
@@ -223,7 +227,7 @@ export async function RenderWizard(req: express.Request, res: express.Response):
 
     if (burn_chat) {
         try {
-            status_burnchat = await vod.burnChat(burn_horizontal, burn_vertical, ffmpeg_preset, ffmpeg_crf, vod_source == "downloaded", true);
+            status_burnchat = await vod.burnChat(burn_horizontal, burn_vertical, ffmpeg_preset, ffmpeg_crf, vod_source == "downloaded", true, burn_offset, test_duration);
         } catch (error) {
             res.status(400).send({
                 status: "ERROR",

@@ -67,6 +67,7 @@ export default class TwitchChannel extends BaseChannel {
         channel.internalId = apiResponse.internalId;
         channel.url = apiResponse.url;
         channel.profilePictureUrl = apiResponse.profilePictureUrl;
+        channel.cloud_storage = apiResponse.cloud_storage;
         return channel;
     }
 

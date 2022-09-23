@@ -79,7 +79,8 @@
       "segments": "Segments",
       "template": "Template",
       "rename-vod": "Rename VOD",
-      "absolute-season": "Absolute season"
+      "absolute-season": "Absolute season",
+      "cloud-storage": "Cloud storage"
     },
     "export": {
       "title-template": "Title template",

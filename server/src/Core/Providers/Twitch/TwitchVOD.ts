@@ -908,6 +908,8 @@ export class TwitchVOD extends BaseVOD {
 
             bookmarks: this.bookmarks,
 
+            cloud_storage: this.cloud_storage,
+
             // game_offset: this.game_offset || 0,
             // twitch_vod_url: this.twitch_vod_url,
             // twitch_vod_exists: this.twitch_vod_exists,
@@ -1028,6 +1030,8 @@ export class TwitchVOD extends BaseVOD {
         generated.failed = this.failed;
 
         generated.bookmarks = this.bookmarks;
+
+        generated.cloud_storage = this.cloud_storage;
 
         // generated.twitch_vod_status = this.twitch_vod_status;
 

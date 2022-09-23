@@ -49,6 +49,8 @@ export interface VODJSON {
     prevent_deletion: boolean;
     failed?: boolean;
 
+    cloud_storage?: boolean;
+
 }
 export interface TwitchVODJSON extends VODJSON {
     type: "twitch";

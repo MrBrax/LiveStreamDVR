@@ -1191,6 +1191,7 @@ export class BaseAutomator {
             burnVertical: Config.getInstance().cfg<string>("chatburn.default.vertical"),
             ffmpegPreset: Config.getInstance().cfg<string>("chatburn.default.preset"),
             ffmpegCrf: Config.getInstance().cfg<number>("chatburn.default.crf"),
+            burnOffset: 0,
         };
 
         let status_renderchat, status_burnchat;
@@ -1203,7 +1204,7 @@ export class BaseAutomator {
         }
 
         try {
-            status_burnchat = await this.vod.burnChat(settings.burnHorizontal, settings.burnVertical, settings.ffmpegPreset, settings.ffmpegCrf, settings.vodSource == "downloaded", true);
+            status_burnchat = await this.vod.burnChat(settings.burnHorizontal, settings.burnVertical, settings.ffmpegPreset, settings.ffmpegCrf, settings.vodSource == "downloaded", true, settings.burnOffset);
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.ERROR, "automator.burnChat", (error as Error).message);
             return;

@@ -99,6 +99,8 @@ export class BaseVOD {
     stream_resolution: VideoQuality | undefined;
     stream_title = "";
 
+    public cloud_storage = false;
+
     /**
      * An array of strings containing the file paths of the segments.
      */
@@ -467,6 +469,7 @@ export class BaseVOD {
         ffmpeg_crf = 26,
         use_vod = false,
         overwrite = false,
+        startOffset = 0,
         test_duration = false
     ): Promise<boolean> {
 
@@ -509,10 +512,10 @@ export class BaseVOD {
             throw new Error("ffmpeg not found");
         }
 
-        const startOffset = this.getStartOffset();
+        // const startOffset = this.getStartOffset();
 
         // chat render offset
-        if (startOffset && !use_vod) {
+        if (startOffset) {
             args.push("-ss", startOffset.toString());
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Using start offset for chat: ${startOffset}`);
         }
@@ -522,9 +525,13 @@ export class BaseVOD {
 
 
         // chat mask offset
-        if (startOffset && !use_vod) {
+        if (startOffset) {
             args.push("-ss", startOffset.toString());
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Using start offset for chat mask: ${startOffset}`);
+        }
+
+        if (test_duration) {
+            args.push("-t", Helper.ffmpeg_time(60 * 1000));
         }
 
         // chat mask

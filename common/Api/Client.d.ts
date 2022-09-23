@@ -94,6 +94,7 @@ export interface ApiBaseVod {
     prevent_deletion: boolean;
 
     failed?: boolean;
+    cloud_storage?: boolean;
 
 }
 
@@ -192,6 +193,7 @@ export interface ApiBaseChannel {
     internalId: string;
     url: string;
     profilePictureUrl: string;
+    cloud_storage?: boolean;
 }
 
 export interface ApiTwitchChannel extends ApiBaseChannel {

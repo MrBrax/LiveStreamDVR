@@ -35,6 +35,8 @@ export default class BaseVOD {
     is_capture_paused = false;
     webpath = "";
 
+    cloud_storage = false;
+
     convertingStatus: JobStatus = JobStatus.NONE;
     capturingStatus: JobStatus = JobStatus.NONE;
     chatDumpStatus: JobStatus = JobStatus.NONE;
