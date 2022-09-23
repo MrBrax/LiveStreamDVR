@@ -255,7 +255,6 @@
             </div>
         </form>
         <hr>
-
         <div class="buttons">
             <button
                 class="button is-small is-danger"
@@ -293,12 +292,61 @@
                 <span>{{ $t('buttons.rename') }}</span>
             </button>
         </div>
+        <hr>
+        <div>
+            <h2>History</h2>
+            <div class="field">
+                <button
+                    class="button is-small is-confirm"
+                    @click="fetchHistory"
+                >
+                    <span class="icon"><fa icon="sync" /></span>
+                    <span>{{ $t('buttons.fetch') }}</span>
+                </button>
+            </div>
+            <table
+                v-if="history.length"
+                class="table is-striped"
+            >
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Action</th>
+                        <th>Title</th>
+                        <th>View count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        v-for="(item, i) in history"
+                        :key="i"
+                    >
+                        <template v-if="'action' in item">
+                            <td>{{ formatDate(item.time) }}</td>
+                            <td>{{ item.action }}</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                        </template>
+                        <template v-else>
+                            <td>{{ formatDate(item.started_at) }}</td>
+                            <td>Chapter change</td>
+                            <td>{{ item.title }}</td>
+                            <td>{{ item.viewer_count?.toLocaleString() }}</td>
+                        </template>
+                    </tr>
+                </tbody>
+            </table>
+            <div v-if="history.length">
+                <strong>Average start time:</strong> {{ averageOnlineStartTime }}
+            </div>
+        </div>
     </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
 import { VideoQualityArray } from "../../../../common/Defs";
+import { HistoryEntry, HistoryEntryOnline } from "../../../../common/History";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSave, faList } from "@fortawesome/free-solid-svg-icons";
@@ -337,6 +385,7 @@ export default defineComponent({
                 download_vod_at_end: this.channel.download_vod_at_end || false,
                 download_vod_at_end_quality: this.channel.download_vod_at_end_quality || "best",
             },
+            history: [] as HistoryEntry[],
         };
     },
     computed: {
@@ -349,7 +398,16 @@ export default defineComponent({
         },
         qualityWarning(): boolean {
             return this.formData.quality.includes("best") || this.formData.quality.includes("worst");
-        }
+        },
+        averageOnlineStartTime(): string {
+            const startTimes = this.history
+                .filter<HistoryEntryOnline>((h): h is HistoryEntryOnline => "action" in h && h.action == "online")
+                .map((h) => new Date(h.time).getHours() * 60 + new Date(h.time).getMinutes() + new Date(h.time).getSeconds() / 60);
+            const average = startTimes.reduce((a, b) => a + b, 0) / startTimes.length;
+            const hours = Math.floor(average / 60);
+            const minutes = Math.floor(average % 60);
+            return `${hours}:${minutes}`;
+        },
     },
     methods: {
         submitForm(event: Event) {
@@ -499,6 +557,21 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) {
+                        alert(err.response.data.message);
+                    }
+                });
+        },
+        fetchHistory() {
+            this.$http
+                .get(`/api/v0/channels/${this.channel.uuid}/history`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    this.history = json.data;
+                })
+                .catch((err) => {
+                    console.error("history fetch error", err.response);
                     if (err.response.data && err.response.data.message) {
                         alert(err.response.data.message);
                     }
