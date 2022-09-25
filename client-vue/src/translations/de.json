@@ -79,7 +79,8 @@
       "segments": "Segmente",
       "template": "Vorlage",
       "rename-vod": "VOD umbenennen",
-      "absolute-season": "Absolute Staffel"
+      "absolute-season": "Absolute Staffel",
+      "cloud_storage": "Cloud Speicher"
     },
     "export": {
       "title-template": "Vorlagen Titel",
@@ -129,7 +130,9 @@
     "checkstatus": "Status prüfen",
     "authenticate": "Authentifizieren",
     "logout": "Ausloggen",
-    "destroy-session": "Sitzung vernichten"
+    "destroy-session": "Sitzung vernichten",
+    "check-subscriptions": "Prüfe Abonnements",
+    "refresh": "Aktualisieren"
   },
   "pages": {
     "favourite-games": "Favorisierte Spiele",
@@ -173,7 +176,8 @@
       "quality-help-check": "Es wird empfohlen, \"best\" oder \"worst\" an das Ende zu setzen, um den Stream in jedem Fall aufzunehmen.",
       "provider": "Anbieter",
       "id": "ID",
-      "uuid": "UUID"
+      "uuid": "UUID",
+      "id_help": "Die ID kann über externe Dienste abgerufen werden. Es ist NICHT Bestandteil der URL des Kanals."
     },
     "config": {
       "validate-external-url": "Externe URL validieren"
@@ -263,7 +267,14 @@
     }
   },
   "jobs": {
-    "no-jobs-running": "Es werden keine Aufgaben ausgeführt"
+    "no-jobs-running": "Es werden keine Aufgaben ausgeführt",
+    "name": "Name",
+    "started-at": "Gestartet um",
+    "pid": "PID",
+    "status": "Status",
+    "progress": "Fortschritt",
+    "time-left": "Verbleibende Zeit",
+    "action": "Aktion"
   },
   "input": {
     "search": "Suche..."
@@ -293,5 +304,10 @@
     "yes": "Ja",
     "no": "Nein",
     "no-data": "Kein Wert"
+  },
+  "duration": {
+    "hours": "datetime.hours",
+    "minutes": "datetime.minutes",
+    "seconds": "datetime.seconds"
   }
 }
