@@ -80,7 +80,7 @@
       "template": "Vorlage",
       "rename-vod": "VOD umbenennen",
       "absolute-season": "Absolute Staffel",
-      "cloud-storage": "Cloud Speicher"
+      "cloud_storage": "Cloud Speicher"
     },
     "export": {
       "title-template": "Vorlagen Titel",
