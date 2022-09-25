@@ -132,7 +132,9 @@
     "logout": "Log out",
     "destroy-session": "Destroy session",
     "check-subscriptions": "Check subscriptions",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "delete-segments": "Delete segments",
+    "delete-segment": "Delete segment"
   },
   "pages": {
     "favourite-games": "Favourite games",

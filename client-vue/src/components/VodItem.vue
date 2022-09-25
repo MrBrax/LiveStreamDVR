@@ -406,8 +406,11 @@ title="Retry VOD match"
                             <span class="text-overflow">{{ segment.basename }}</span>
                             <span v-if="!segment.deleted && segment.filesize"> ({{ formatBytes(segment.filesize) }}) </span>
                         </a>
-                        <span v-if="segment.deleted">
+                        <span v-if="segment.deleted && !vod.cloud_storage">
                             <strong class="is-error">&nbsp;(deleted)</strong>
+                        </span>
+                        <span v-else-if="segment.deleted && vod.cloud_storage">
+                            <strong class="is-error">&nbsp;<fa icon="cloud" /></strong> 
                         </span>
                         <span v-else-if="!segment.filesize">
                             <strong class="is-error">&nbsp;(filesize missing)</strong>
@@ -698,7 +701,7 @@ title="Retry VOD match"
                     <span>{{ $t('buttons.edit') }}</span>
                 </button>
 
-                <!-- Vod edit menu -->
+                <!-- Rename vod menu -->
                 <button
                     v-if="showAdvanced"
                     class="button is-confirm"
@@ -711,6 +714,22 @@ title="Retry VOD match"
                         />
                     </span>
                     <span>{{ $t('buttons.rename') }}</span>
+                </button>
+
+                <!-- Delete segment -->
+                <button
+                    v-if="showAdvanced"
+                    class="button is-danger"
+                    :disabled="vod.prevent_deletion"
+                    @click="doDeleteSegment(0)"
+                >
+                    <span class="icon">
+                        <fa
+                            icon="trash"
+                            type="fa"
+                        />
+                    </span>
+                    <span>{{ $t('buttons.delete-segment') }}</span>
                 </button>
 
                 <!-- Delete -->
@@ -2306,6 +2325,26 @@ export default defineComponent({
                     if (json.message) alert(json.message);
                     console.log(json);
                     this.taskStatus.delete = false;
+                    this.$emit("refresh");
+                    if (this.vod && this.isTwitchVOD(this.vod)) this.store.fetchAndUpdateStreamer(this.vod.channel_uuid);
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
+                    this.taskStatus.delete = false;
+                });
+        },
+        doDeleteSegment(index = 0) {
+            if (!this.vod) return;
+            if (!confirm(`Do you want to delete segment ${index} of "${this.vod?.basename}"?`)) return;
+            const keepEntry = confirm(`Do you want to keep the entry and mark it as cloud storage?`);
+            if (this.isTwitchVOD(this.vod) && this.vod.twitch_vod_exists === false && !confirm(`The VOD "${this.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
+            this.$http
+                .post(`/api/v0/vod/${this.vod.uuid}/delete_segment?segment=${index}&keep_entry=${keepEntry ? "true" : "false"}`)
+                .then((response) => {
+                    const json: ApiResponse = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
                     this.$emit("refresh");
                     if (this.vod && this.isTwitchVOD(this.vod)) this.store.fetchAndUpdateStreamer(this.vod.channel_uuid);
                 })

@@ -122,6 +122,34 @@ export async function DeleteVod(req: express.Request, res: express.Response): Pr
 
 }
 
+export async function DeleteVodSegment(req: express.Request, res: express.Response): Promise<void> {
+
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
+
+    if (!vod) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    try {
+        await vod.deleteSegment(parseInt(req.query.segment as string), req.query.keep_entry === "true");
+    } catch (error) {
+        res.status(400).send({
+            status: "ERROR",
+            message: `Vod segment could not be deleted: ${(error as Error).message}`,
+        } as ApiErrorResponse);
+        return;
+    }
+
+    res.send({
+        status: "OK",
+    });
+
+}
+
 export async function DownloadVod(req: express.Request, res: express.Response): Promise<void> {
 
     const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);

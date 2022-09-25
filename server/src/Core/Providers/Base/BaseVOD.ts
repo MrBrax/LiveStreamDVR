@@ -1106,6 +1106,51 @@ export class BaseVOD {
 
     }
 
+    public async deleteSegment(segmentIndex: number, keepEntry = false): Promise<boolean> {
+
+        if (!this.directory) {
+            throw new Error("No directory set for deletion");
+        }
+
+        if (this.prevent_deletion) {
+            Log.logAdvanced(LOGLEVEL.INFO, "vod.deleteSegment", `Deletion of ${this.basename} segment prevented`);
+            throw new Error("Vod has been marked with prevent_deletion");
+        }
+
+        Log.logAdvanced(LOGLEVEL.INFO, "vod.deleteSegment", `Delete segment #${segmentIndex} of ${this.basename}`);
+
+        if (segmentIndex >= this.segments_raw.length) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod.deleteSegment", `Segment #${segmentIndex} does not exist for ${this.basename}`);
+            throw new Error("Segment does not exist");
+        }
+
+        const file = this.segments[segmentIndex];
+
+        await this.stopWatching();
+
+        if (!file.filename) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod.deleteSegment", `No filename for segment #${segmentIndex} of ${this.basename}`);
+            throw new Error("No filename for segment");
+        }
+
+        if (fs.existsSync(file.filename)) {
+            Log.logAdvanced(LOGLEVEL.DEBUG, "vod.deleteSegment", `Delete ${file}`);
+            fs.unlinkSync(file.filename);
+        }
+
+        if (!keepEntry) {
+            this.segments.splice(segmentIndex, 1);
+            this.segments_raw.splice(segmentIndex, 1);
+        } else {
+            this.cloud_storage = true;
+        }
+
+        await this.saveJSON("delete segment");
+
+        return fs.existsSync(file.filename);
+
+    }
+
     public async changeBaseName(new_basename: string): Promise<boolean> {
         if (this.basename == new_basename) return false;
         const old_basename = this.basename;

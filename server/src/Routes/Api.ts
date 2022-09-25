@@ -53,6 +53,7 @@ router.post("/channels/:uuid/scan", AuthGuest, Channels.ScanVods);
 router.get("/vod/:uuid", AuthGuest, Vod.GetVod);
 router.post("/vod/:uuid", AuthAdmin, Vod.EditVod);
 router.delete("/vod/:uuid", AuthAdmin, Vod.DeleteVod);
+router.post("/vod/:uuid/delete_segment", AuthAdmin, Vod.DeleteVodSegment);
 router.post("/vod/:uuid/archive", AuthAdmin, Vod.ArchiveVod);
 router.post("/vod/:uuid/renderwizard", AuthAdmin, Vod.RenderWizard);
 router.post("/vod/:uuid/download_chat", AuthAdmin, Vod.DownloadChat);
