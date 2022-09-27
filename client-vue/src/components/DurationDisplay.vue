@@ -8,7 +8,7 @@ import { parseJSON } from "date-fns";
 import { formatDuration, niceDuration, shortDuration } from "@/mixins/newhelpers";
 
 const props = defineProps({
-    startDate: { type: [String, Number], default: "0", },
+    startDate: { type: [String, Number, Date], default: "0", },
     outputStyle: { type: String, default: "human", }
 });
 

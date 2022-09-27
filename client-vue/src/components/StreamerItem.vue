@@ -184,7 +184,10 @@
                         :href="clipLink(clip)"
                         target="_blank"
                     >
-                        <img :src="basePath + '/cache/thumbs/' + clip.thumbnail">
+                        <img
+                            :src="basePath + '/cache/thumbs/' + clip.thumbnail"
+                            alt="Clip thumbnail"
+                        >
                         {{ clip.folder + "/" + clip.basename }}<br>
                         <span class="streamer-clips-info">{{ formatBytes(clip.size) }}, {{ formatDuration(clip.duration) }}, {{ clip.video_metadata.height }}p</span>
                     </a>
@@ -213,7 +216,10 @@
                         target="_blank"
                         :href="webPath + '/' + video.basename"
                     >
-                        <img :src="basePath + '/cache/thumbs/' + video.thumbnail"><br>
+                        <img
+                            :src="basePath + '/cache/thumbs/' + video.thumbnail"
+                            alt="Video thumbnail"
+                        ><br>
                         <span class="local-video-title">{{ video.basename }}</span>
                     </a><br>
                     <span class="local-video-info">{{ formatBytes(video.size) }}, {{ formatDuration(video.duration) }}, {{ video.video_metadata.height }}p</span>

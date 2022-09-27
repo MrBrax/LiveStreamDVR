@@ -39,7 +39,6 @@
                 class="vodcount"
                 :data-count="streamer.vods_list.length"
                 title="VOD count"
-                :aria-valuenow="streamer.vods_list.length"
             >{{ streamer.vods_list.length }}</span>
             <span class="subtitle">
                 <template v-if="streamer.is_live && streamer.is_capturing">

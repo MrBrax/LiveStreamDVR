@@ -43,7 +43,12 @@ if (LiveStreamDVR.argv.help || LiveStreamDVR.argv.h) {
 // for overriding port if you can't or don't want to use the web gui to change it
 const override_port = LiveStreamDVR.argv.port ? parseInt(LiveStreamDVR.argv.port as string) : undefined;
 
-LiveStreamDVR.checkVersion();
+try {
+    LiveStreamDVR.checkVersion();
+} catch (error) {
+    console.error(`Check version error: ${(error as Error).message}`);
+}
+
 
 // load all required config files and cache stuff
 Config.init().then(() => {

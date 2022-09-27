@@ -252,9 +252,11 @@
                                             :href="twitchVideoLink(vod.twitch_vod_id)"
                                             rel="noreferrer"
                                             target="_blank"
+                                            title="Open external video"
                                         >{{ vod.twitch_vod_id }}</a>
                                         &nbsp;<a
                                             href="javascript:void(0)"
+                                            title="Match VOD"
                                             @click="matchVod()"
                                         ><fa icon="sync" /></a>
                                     </span>
@@ -994,6 +996,7 @@ title="Retry VOD match"
                                             class="px-1"
                                             target="_blank"
                                             :href="playerLink(chapter.offset)"
+                                            title="Open in player"
                                         >
                                             {{ chapter.game_name ? chapter.game_name : "None" }}
                                         </a>
