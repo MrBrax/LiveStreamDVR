@@ -1,13 +1,15 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
 import chokidar from "chokidar";
 import { randomUUID } from "crypto";
 import { format, parseJSON } from "date-fns";
 import fs from "fs";
+import fsPromises from "fs/promises";
 import readdirSyncRecursive from "fs-readdir-recursive";
 import { encode as htmlentities } from "html-entities";
 import path from "path";
 import { TwitchVODChapterJSON } from "Storage/JSON";
+import { Readable } from "stream";
 import type { ApiTwitchChannel } from "../../../../../common/Api/Client";
 import { TwitchChannelConfig, VideoQuality } from "../../../../../common/Config";
 import { MuteStatus, Providers, SubStatus } from "../../../../../common/Defs";
@@ -897,7 +899,7 @@ export class TwitchChannel extends BaseChannel {
 
         let thumbnail;
         try {
-            thumbnail = await Helper.thumbnail(filename, 240);
+            thumbnail = await Helper.videoThumbnail(filename, 240);
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to generate thumbnail for ${filename}: ${error}`);
         }
@@ -1404,21 +1406,44 @@ export class TwitchChannel extends BaseChannel {
             const logo_path = path.join(BaseConfigDataFolder.public_cache_avatars, logo_filename);
             if (fs.existsSync(logo_path)) {
                 fs.unlinkSync(logo_path);
+                Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Deleted old avatar for ${userData.id}`);
             }
-            let avatar_response;
+            let avatar_response: AxiosResponse<Readable> | undefined;
             try {
                 avatar_response = await axios({
                     url: userData.profile_image_url,
                     method: "GET",
                     responseType: "stream",
-                });
+                }) as AxiosResponse<Readable>;
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not download user logo for ${userData.id}: ${(error as Error).message}`, error);
             }
             if (avatar_response) {
-                avatar_response.data.pipe(fs.createWriteStream(logo_path));
+                // const ws = fs.createWriteStream(logo_path);
+                // avatar_response.data.pipe(ws);
+                // ws.close();
+                await fsPromises.writeFile(logo_path, avatar_response.data);
+
                 userData.cache_avatar = logo_filename;
+
+                if (fs.existsSync(logo_path)) {
+                    let avatar_thumbnail;
+                    try {
+                        avatar_thumbnail = await Helper.imageThumbnail(logo_path, 64);
+                    } catch (error) {
+                        Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not create thumbnail for user logo for ${userData.id}: ${(error as Error).message}`, error);
+                    }
+
+                    if (avatar_thumbnail) {
+                        userData.cache_avatar = avatar_thumbnail;
+                        Log.logAdvanced(LOGLEVEL.DEBUG, "helper", `Created thumbnail for user logo for ${userData.id}`);
+                    }
+                } else {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not find downloaded avatar for ${userData.id}`);
+                }
             }
+        } else {
+            Log.logAdvanced(LOGLEVEL.WARNING, "helper", `User ${userData.id} has no profile image url`);
         }
 
         if (userData.offline_image_url) {
@@ -1767,7 +1792,8 @@ export class TwitchChannel extends BaseChannel {
 
     get profilePictureUrl(): string {
         if (this.channel_data && this.channel_data.cache_avatar) {
-            return `${Config.getInstance().cfg<string>("basepath", "")}/cache/avatars/${this.channel_data.cache_avatar}`;
+            // return `${Config.getInstance().cfg<string>("basepath", "")}/cache/avatars/${this.channel_data.cache_avatar}`;
+            return `${Config.getInstance().cfg<string>("basepath", "")}/cache/thumbs/${this.channel_data.cache_avatar}`;
         }
         return this.channel_data?.profile_image_url || "";
     }

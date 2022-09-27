@@ -349,7 +349,7 @@ export class BaseChannel {
 
             let thumbnail;
             try {
-                thumbnail = await Helper.thumbnail(clip_path, 240);
+                thumbnail = await Helper.videoThumbnail(clip_path, 240);
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to generate thumbnail for ${clip_path}: ${error}`);
             }

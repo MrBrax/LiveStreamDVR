@@ -54,7 +54,6 @@ const refreshTime = () => {
     } else {
         timeString.value = "Invalid output style";
     }
-    console.debug("updateTime", props.startDate, timeString);
 };
    
 </script>

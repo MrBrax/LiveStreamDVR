@@ -870,7 +870,7 @@ export class Helper {
         return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${milliseconds.toString().padStart(3, "0")}`;
     }
 
-    public static async thumbnail(filename: string, width: number, offset = 5000): Promise<string> {
+    public static async videoThumbnail(filename: string, width: number, offset = 5000): Promise<string> {
 
         Log.logAdvanced(LOGLEVEL.INFO, "helper.thumbnail", `Run ffmpeg on ${filename}`);
 
@@ -879,16 +879,16 @@ export class Helper {
         }
 
         if (!fs.existsSync(filename)) {
-            throw new Error("File not found for thumbnail");
+            throw new Error(`File not found for video thumbnail: ${filename}`);
         }
 
         if (fs.statSync(filename).size == 0) {
-            throw new Error("Filesize is 0 for thumbnail");
+            throw new Error(`Filesize is 0 for video thumbnail: ${filename}`);
         }
 
         const filenameHash = createHash("md5").update(filename + width + offset).digest("hex");
 
-        const output_image = path.join(BaseConfigDataFolder.public_cache_thumbs, `${filenameHash}.jpg`);
+        const output_image = path.join(BaseConfigDataFolder.public_cache_thumbs, `${filenameHash}.${Config.getInstance().cfg<string>("thumbnail_format", "jpg")}`);
 
         if (fs.existsSync(output_image)) {
             return path.basename(output_image);
@@ -903,7 +903,48 @@ export class Helper {
             "-vf", `thumbnail,scale=${width}:-1`,
             "-frames:v", "1",
             output_image,
-        ], "ffmpeg");
+        ], "ffmpeg video thumbnail");
+
+        if (output && fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
+            return path.basename(output_image);
+        } else {
+            throw new Error("No output from ffmpeg");
+        }
+
+    }
+
+    public static async imageThumbnail(filename: string, width: number): Promise<string> {
+
+        Log.logAdvanced(LOGLEVEL.INFO, "helper.thumbnail", `Run imagemagick on ${filename}`);
+
+        if (!filename) {
+            throw new Error("No filename supplied for thumbnail");
+        }
+
+        if (!fs.existsSync(filename)) {
+            throw new Error(`File not found for thumbnail: ${filename}`);
+        }
+
+        if (fs.statSync(filename).size == 0) {
+            throw new Error(`Filesize is 0 for thumbnail: ${filename}`);
+        }
+
+        const filenameHash = createHash("md5").update(filename + width).digest("hex");
+
+        const output_image = path.join(BaseConfigDataFolder.public_cache_thumbs, `${filenameHash}.${Config.getInstance().cfg<string>("thumbnail_format", "jpg")}`);
+
+        if (fs.existsSync(output_image)) {
+            return path.basename(output_image);
+        }
+
+        const ffmpeg_path = Helper.path_ffmpeg();
+        if (!ffmpeg_path) throw new Error("Failed to find ffmpeg");
+
+        const output = await Helper.execSimple(ffmpeg_path, [
+            "-i", filename,
+            "-vf", `scale=${width}:-1`,
+            output_image,
+        ], "ffmpeg image thumbnail");
 
         if (output && fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
             return path.basename(output_image);

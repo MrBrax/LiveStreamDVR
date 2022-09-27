@@ -219,6 +219,13 @@
         font-size: 10px;
         z-index: 3;
 
+        display: flex;
+
+        .statustab-jobs-list {
+            flex-grow: 1;
+            align-self: center;
+        }
+
         table {
             font-size: 10px;
             color: inherit;

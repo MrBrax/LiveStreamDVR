@@ -291,18 +291,6 @@
         }
     }
 
-    #js-status {
-        display: none;
-    }
-
-    #jobs-status {
-        display: none;
-    }
-
-    .jobs_list {
-        display: none;
-    }
-
     label {
         &.checkbox {
             display: block;
@@ -333,6 +321,19 @@
         text-overflow: ellipsis;
         word-break: unset;
         overflow: unset;
+    }
+
+    .statustab {
+        &.statustab-jobs {
+            left: 0;
+            right: 0;
+            bottom: 50px;
+            padding: 0.2em;
+            border-radius: 0;
+            table {
+                width: 100%;
+            }
+        }
     }
 
 }

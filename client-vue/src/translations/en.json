@@ -252,7 +252,8 @@
     "status": "Status",
     "progress": "Progress",
     "time-left": "Time left",
-    "action": "Action"
+    "action": "Action",
+    "jobs-running": "{count} jobs running"
   },
   "input": {
     "search": "Search..."

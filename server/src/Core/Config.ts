@@ -313,6 +313,8 @@ export class Config {
         { key: "chatburn.default.preset",           group: "Chat burn", text: "Burning ffmpeg preset", type: "string", default: "slow" },
         { key: "chatburn.default.crf",              group: "Chat burn", text: "Burning ffmpeg crf", type: "number", default: 26 },
 
+        { key: "thumbnail_format", group: "Thumbnails", text: "Thumbnail format", type: "array", choices: ["jpg", "png", "webp"], default: "jpg" },
+
     ];
 
     static MigrateOptions = [
