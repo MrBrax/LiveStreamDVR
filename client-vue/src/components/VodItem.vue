@@ -1044,7 +1044,7 @@ title="Retry VOD match"
 
                             <!-- title -->
                             <td>
-                                <span class="text-overflow is-text-darker">{{ chapter.title }}</span>
+                                <span class="text-overflow text-long is-text-darker">{{ chapter.title }}</span>
                             </td>
 
                             <!-- viewer count -->
