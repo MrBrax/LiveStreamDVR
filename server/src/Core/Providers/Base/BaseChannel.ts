@@ -311,7 +311,7 @@ export class BaseChannel {
             LiveStreamDVR.getInstance().channels.splice(index_channel, 1);
         }
 
-        // @todo unsub
+        // TODO: unsub
         if (this.internalId) this.unsubscribe();
 
         LiveStreamDVR.getInstance().saveChannelsConfig();

@@ -228,7 +228,7 @@ export async function HookYouTube(req: express.Request, res: express.Response): 
     const hub_mode = req.query["hub.mode"];
     const hub_lease_seconds = req.query["hub.lease_seconds"];
 
-    // @todo: verify
+    // TODO: verify
     if (hub_challenge) {
         Log.logAdvanced(LOGLEVEL.INFO, "hook.youtube", `Got challenge ${hub_challenge}, responding.`);
         res.status(200).send(hub_challenge);

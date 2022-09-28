@@ -1088,318 +1088,12 @@ title="Retry VOD match"
                 </div>
             </div>
         </div>
-
         <modal-box
             v-if="vod && vod.is_finalized && vod.video_metadata && vod.video_metadata.type !== 'audio'"
             ref="burnMenu"
             title="Render Menu"
         >
-            <div>
-                <pre>{{ vod.basename }}</pre>
-                <ul
-                    v-if="vod.video_metadata"
-                    class="list"
-                >
-                    <li>
-                        <strong>{{ $t('metadata.format') }}</strong>
-                        {{ vod.video_metadata.width }}x{{ vod.video_metadata.height }}@
-                        {{ vod.video_metadata.fps }}
-                    </li>
-
-                    <li>
-                        <strong>{{ $t('metadata.video') }}</strong>
-                        {{ vod.video_metadata.video_codec }}
-                        {{ vod.video_metadata.video_bitrate_mode }}
-                        {{ Math.round(vod.video_metadata.video_bitrate / 1000) }}kbps
-                    </li>
-
-                    <li>
-                        <strong>{{ $t('metadata.audio') }}</strong>
-                        {{ vod.video_metadata.audio_codec }}
-                        {{ vod.video_metadata.audio_bitrate_mode }}
-                        {{ Math.round(vod.video_metadata.audio_bitrate / 1000) }}kbps
-                    </li>
-
-                    <li>
-                        <strong>{{ $t('metadata.general') }}</strong>
-                        {{ formatBytes(vod.video_metadata.size) }} / {{ vod.video_metadata.duration }}
-                    </li>
-                </ul>
-                <p>Burning chat seems to work pretty good, but dumped chat+video has a pretty large offset, I have yet to find the offset anywhere.</p>
-            </div>
-            <div class="burn-preview">
-                <div
-                    class="burn-preview-chat"
-                    :style="burnPreviewChat"
-                >
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                    Anon: Hello World<br>
-                </div>
-            </div>
-            <div class="field-group">
-                <div class="field">
-                    <label><input
-                        v-model="burnSettings.renderChat"
-                        type="checkbox"
-                    > Render chat <strong v-if="vod.is_chat_rendered">(Exists)</strong></label>
-                </div>
-                <template v-if="burnSettings.renderChat">
-                    <!--<div class="field">
-                        <label><input type="checkbox" v-model="burnSettings.renderTest" /> Test duration</label>
-                    </div>-->
-                    <div class="field">
-                        <label>
-                            <p>Chat width</p>
-                            <input
-                                v-model="burnSettings.chatWidth"
-                                class="input"
-                                type="range"
-                                min="1"
-                                :max="vod.video_metadata.width"
-                            >
-                            <br><input
-                                v-model="burnSettings.chatWidth"
-                                class="input"
-                                type="number"
-                            >
-                            <span :class="{ 'input-help': true, error: burnSettings.chatWidth % 2 }">Chat width must be an even number.</span>
-                        </label>
-                    </div>
-                    <div class="field">
-                        <label>
-                            <p>Chat height</p>
-                            <input
-                                v-model="burnSettings.chatHeight"
-                                class="input"
-                                type="range"
-                                min="1"
-                                :max="vod.video_metadata.height"
-                            >
-                            <br><input
-                                v-model="burnSettings.chatHeight"
-                                class="input"
-                                type="number"
-                            >
-                            <span :class="{ 'input-help': true, error: burnSettings.chatHeight % 2 }">Chat height must be an even number.</span>
-                        </label>
-                    </div>
-                    <div class="field">
-                        <label>
-                            <p>Video source</p>
-                            <select
-                                v-model="burnSettings.vodSource"
-                                class="input"
-                            >
-                                <option value="captured">Captured</option>
-                                <option
-                                    value="downloaded"
-                                    :disabled="!vod.is_vod_downloaded"
-                                >Downloaded</option>
-                            </select>
-                        </label>
-                    </div>
-                    <div class="field">
-                        <label>
-                            <p>Chat source</p>
-                            <select
-                                v-model="burnSettings.chatSource"
-                                class="input"
-                            >
-                                <option value="captured">Captured</option>
-                                <option
-                                    value="downloaded"
-                                    :disabled="!vod.is_chat_downloaded"
-                                >Downloaded</option>
-                            </select>
-                        </label>
-                    </div>
-                    <div class="field">
-                        <label>
-                            <p>Font</p>
-                            <select
-                                v-model="burnSettings.chatFont"
-                                class="input"
-                            >
-                                <option value="Inter">Inter</option>
-                                <option value="Arial">Arial</option>
-                            </select>
-                        </label>
-                    </div>
-                    <div class="field">
-                        <label>
-                            <p>Font size</p>
-                            <input
-                                v-model="burnSettings.chatFontSize"
-                                class="input"
-                                type="range"
-                                min="1"
-                                max="72"
-                            >
-                            <br><input
-                                v-model="burnSettings.chatFontSize"
-                                class="input"
-                                type="number"
-                            >
-                        </label>
-                    </div>
-                </template>
-            </div>
-            <div class="field-group">
-                <div class="field">
-                    <label>
-                        <input
-                            v-model="burnSettings.burnChat"
-                            type="checkbox"
-                            :disabled="!burnSettings.renderChat && !vod.is_chat_rendered"
-                        >
-                        Burn chat <strong v-if="vod.is_chat_burned">(Exists)</strong>
-                    </label>
-                </div>
-                <template v-if="burnSettings.burnChat">
-                    <!--<div class="field">
-                        <label><input type="checkbox" v-model="burnSettings.burnTest" /> Test duration</label>
-                    </div>-->
-                    <div class="field">
-                        <label>
-                            <p>Offset (seconds)</p>
-                            <input
-                                v-model="burnSettings.burnOffset"
-                                class="input"
-                                type="number"
-                            >
-                        </label>
-                    </div>
-                    <div class="field">
-                        <label>
-                            <input
-                                v-model="burnSettings.testDuration"
-                                type="checkbox"
-                            >
-                            Test duration (don't burn entire video)                            
-                        </label>
-                    </div>
-                    <div class="field">
-                        <label>
-                            <p>Chat horizontal</p>
-                            <select
-                                v-model="burnSettings.burnHorizontal"
-                                class="input"
-                            >
-                                <option value="left">Left</option>
-                                <option value="right">Right</option>
-                            </select>
-                        </label>
-                    </div>
-                    <div class="field">
-                        <label>
-                            <p>Chat vertical</p>
-                            <select
-                                v-model="burnSettings.burnVertical"
-                                class="input"
-                            >
-                                <option value="top">Top</option>
-                                <option value="bottom">Bottom</option>
-                            </select>
-                        </label>
-                    </div>
-                    <div class="field">
-                        <label>
-                            <p>ffmpeg preset</p>
-                            <select
-                                v-model="burnSettings.ffmpegPreset"
-                                class="input"
-                            >
-                                <option value="ultrafast">Ultrafast</option>
-                                <option value="superfast">Superfast</option>
-                                <option value="veryfast">Veryfast</option>
-                                <option value="faster">Faster</option>
-                                <option value="fast">Fast</option>
-                                <option value="medium">Medium</option>
-                                <option value="slow">Slow</option>
-                                <option value="slower">Slower</option>
-                                <option value="veryslow">Veryslow</option>
-                            </select>
-                        </label>
-                    </div>
-                    <div class="field">
-                        <label>
-                            <p>ffmpeg crf</p>
-                            <input
-                                v-model="burnSettings.ffmpegCrf"
-                                class="input"
-                                type="range"
-                                min="0"
-                                max="51"
-                            >
-                            <br>{{ burnSettings.ffmpegCrf }}
-                        </label>
-                    </div>
-                </template>
-            </div>
-            <div class="field">
-                <button
-                    class="button is-confirm"
-                    @click="doRenderWizard"
-                >
-                    <span class="icon"><fa icon="burn" /></span>
-                    <span>Execute</span>
-                </button>
-                <span v-if="burnLoading">Running...</span>
-            </div>
-            <div class="job-status">
-                <table>
-                    <tr
-                        v-for="job in burnJobs"
-                        :key="job.pid"
-                    >
-                        <td>
-                            <span v-if="job.status">
-                                <span class="fa fa-spinner fa-spin" />
-                            </span>
-                            <span v-else>
-                                <span class="fa fa-times" />
-                            </span>
-                        </td>
-                        <td>
-                            {{ job.name }}
-                        </td>
-                    </tr>
-                </table>
-            </div>
+            <render-modal :vod="vod" />
         </modal-box>
         <modal-box
             ref="chatDownloadMenu"
@@ -1586,294 +1280,7 @@ title="Retry VOD match"
             ref="exportVodMenu"
             title="Export VOD"
         >
-            <div
-                v-if="!vod?.segments || vod.segments.length == 0"
-                class="notification is-error"
-            >
-                {{ $t('vod.export.no-segments') }}
-            </div>
-
-            <!-- Exporter -->
-            <div class="field">
-                <label class="label">{{ $t('vod.export.export-type') }}</label>
-                <div class="control">
-                    <select
-                        v-model="exportVodSettings.exporter"
-                        class="input"
-                    >
-                        <option value="file">
-                            File
-                        </option>
-                        <option value="youtube">
-                            YouTube
-                        </option>
-                        <option value="sftp">
-                            SFTP
-                        </option>
-                        <option value="ftp">
-                            FTP
-                        </option>
-                        <option value="rclone">
-                            RClone
-                        </option>
-                    </select>
-                </div>
-                <p v-if="exportVodSettings.exporter == 'youtube'">
-                    Upload videos directly to YouTube.<br>
-                    The API set up is quite cumbersome, requiring your channel to be reviewed.
-                </p>
-                <p v-if="exportVodSettings.exporter == 'ftp'">
-                    Old and outdated file transfer protocol. I would not suggest using this. If you insist, use it only on LAN.<br>
-                    It is not encrypted and will send both your username/password and files for MITM to see.
-                </p>
-                <p v-if="exportVodSettings.exporter == 'sftp'">
-                    Only key-file based authentication is supported. It should be automatically handled by SSH, if you know what that means.
-                </p>
-                <p v-if="exportVodSettings.exporter == 'rclone'">
-                    RClone is a multi-protocol file management program.<br>
-                    Generate a config file with <code>rclone config</code> and place <code>rclone.conf</code> in the <code>config</code> directory.<br>
-                    Read more at <a
-                        href="https://rclone.org/"
-                        rel="noreferrer"
-                        target="_blank"
-                    >https://rclone.org/</a>
-                </p>
-            </div>
-
-            <!-- File -->
-            <div class="field">
-                <label class="label">{{ $t('vod.export.file-source') }}</label>
-                <div class="control">
-                    <div class="select">
-                        <select v-model="exportVodSettings.file_source">
-                            <option value="segment">
-                                First captured segment
-                            </option>
-                            <option
-                                value="downloaded"
-                                :disabled="!vod?.is_vod_downloaded"
-                            >
-                                Downloaded
-                            </option>
-                            <option
-                                value="burned"
-                                :disabled="!vod?.is_chat_burned"
-                            >
-                                Burned
-                            </option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Title / Filename -->
-            <div class="field">
-                <label class="label">{{ $t('vod.export.title-template') }}</label>
-                <div class="control">
-                    <input
-                        v-model="exportVodSettings.title_template"
-                        class="input"
-                        type="text"
-                    >
-                    <ul class="template-replacements">
-                        <li
-                            v-for="(v, k) in ExporterFilenameFields"
-                            :key="k"
-                        >
-                            {{ k }}
-                        </li>
-                    </ul>
-                    <p
-                        v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp' || exportVodSettings.exporter == 'rclone'"
-                        class="template-preview"
-                    >
-                        {{ templatePreview(exportVodSettings.title_template) }}.mp4
-                    </p>
-                    <p
-                        v-else-if="exportVodSettings.exporter == 'youtube'"
-                        class="template-preview"
-                    >
-                        {{ templatePreview(exportVodSettings.title_template) }}
-                    </p>
-                </div>
-            </div>
-
-            <!-- Directory -->
-            <div
-                v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp' || exportVodSettings.exporter == 'rclone'"
-                class="field"
-            >
-                <label class="label">{{ $t('vod.export.directory') }}</label>
-                <div class="control">
-                    <input
-                        v-model="exportVodSettings.directory"
-                        class="input"
-                        type="text"
-                    >
-                    <p class="input-help">
-                        The folder where you want the file to end up in. Both local and remote.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Host -->
-            <div
-                v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'"
-                class="field"
-            >
-                <label class="label">{{ $t('vod.export.host') }}</label>
-                <div class="control">
-                    <input
-                        v-model="exportVodSettings.host"
-                        class="input"
-                        type="text"
-                    >
-                </div>
-            </div>
-
-            <!-- Remote -->
-            <div
-                v-if="exportVodSettings.exporter == 'rclone'"
-                class="field"
-            >
-                <label class="label">{{ $t('vod.export.remote') }}</label>
-                <div class="control">
-                    <input
-                        v-model="exportVodSettings.remote"
-                        class="input"
-                        type="text"
-                    >
-                </div>
-            </div>
-
-            <!-- Username -->
-            <div
-                v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'"
-                class="field"
-            >
-                <label class="label">{{ $t('vod.export.username') }}</label>
-                <div class="control">
-                    <input
-                        v-model="exportVodSettings.username"
-                        class="input"
-                        type="text"
-                    >
-                </div>
-            </div>
-
-            <!-- Password -->
-            <div
-                v-if="exportVodSettings.exporter == 'ftp'"
-                class="field"
-            >
-                <label class="label">{{ $t('vod.export.password') }}</label>
-                <div class="control">
-                    <input
-                        v-model="exportVodSettings.password"
-                        class="input"
-                        type="password"
-                    >
-                </div>
-                <p class="help">
-                    {{ $t('vod.export.password-help') }}
-                </p>
-            </div>
-
-            <!-- YouTube Authentication -->
-            <div
-                v-if="exportVodSettings.exporter == 'youtube'"
-                class="field"
-            >
-                <youtube-auth />
-            </div>
-
-            <!-- Description -->
-            <div
-                v-if="exportVodSettings.exporter == 'youtube'"
-                class="field"
-            >
-                <label class="label">{{ $t('vod.export.description') }}</label>
-                <div class="control">
-                    <textarea
-                        v-model="exportVodSettings.description"
-                        class="input textarea"
-                    />
-                </div>
-            </div>
-
-            <!-- Category -->
-            <div
-                v-if="exportVodSettings.exporter == 'youtube'"
-                class="field"
-            >
-                <label class="label">{{ $t('vod.export.category') }}</label>
-                <div class="control">
-                    <div class="select">
-                        <select v-model="exportVodSettings.category">
-                            <option
-                                v-for="(c, i) in YouTubeCategories"
-                                :key="i"
-                                :value="i"
-                            >
-                                {{ c }}
-                            </option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tags -->
-            <div
-                v-if="exportVodSettings.exporter == 'youtube'"
-                class="field"
-            >
-                <label class="label">{{ $t('vod.export.tags') }}</label>
-                <div class="control">
-                    <input
-                        v-model="exportVodSettings.tags"
-                        class="input"
-                        type="text"
-                    >
-                </div>
-                <p class="input-help">
-                    {{ $t('vod.export.tags-help') }}
-                </p>
-            </div>
-
-            <!-- Privacy -->
-            <div
-                v-if="exportVodSettings.exporter == 'youtube'"
-                class="field"
-            >
-                <label class="label">{{ $t('vod.export.privacy') }}</label>
-                <div class="control">
-                    <div class="select">
-                        <select v-model="exportVodSettings.privacy">
-                            <option value="public">
-                                {{ $t('vod.export.privacy-public') }}
-                            </option>
-                            <option value="unlisted">
-                                {{ $t('vod.export.privacy-unlisted') }}
-                            </option>
-                            <option value="private">
-                                {{ $t('vod.export.privacy-private') }}
-                            </option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="field">
-                <div class="control">
-                    <button
-                        class="button is-confirm"
-                        @click="doExportVod"
-                    >
-                        <span class="icon"><fa icon="upload" /></span>
-                        <span>{{ $t("buttons.export") }}</span>
-                    </button>
-                </div>
-            </div>
+            <export-modal :vod="vod" />
         </modal-box>
         <modal-box
             ref="renameVodMenu"
@@ -1917,12 +1324,10 @@ title="Retry VOD match"
 </template>
 
 <script lang="ts">
-import type { ApiJob } from "../../../common/Api/Client";
 import type { VodBasenameTemplate } from "@common/Replacements";
 import { VodBasenameFields, ExporterFilenameFields } from "@common/ReplacementsConsts";
 import { defineComponent, ref } from "vue";
 import DurationDisplay from "@/components/DurationDisplay.vue";
-import YoutubeAuth from "@/components/YoutubeAuth.vue";
 // import { format, toDate, parse } from 'date-fns';
 
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -1951,6 +1356,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { ChapterTypes, useStore, VODTypes } from "@/store";
 import ModalBox from "./ModalBox.vue";
+import RenderModal from "./vod/RenderModal.vue";
+import ExportModal from "./vod/ExportModal.vue";
 import { MuteStatus, VideoQualityArray } from "../../../common/Defs";
 import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import { formatString } from "@common/Format";
@@ -1986,7 +1393,8 @@ export default defineComponent({
     components: {
         DurationDisplay,
         ModalBox,
-        YoutubeAuth,
+        RenderModal,
+        ExportModal,
     },
     props: {
         vod: {
@@ -2033,25 +1441,6 @@ export default defineComponent({
                 delete: false,
                 fixIssues: false,
             },
-            burnLoading: false,
-            burnSettings: {
-                renderChat: false,
-                burnChat: false,
-                renderTest: false,
-                burnTest: false,
-                chatWidth: 300,
-                chatHeight: 300,
-                vodSource: "captured",
-                chatSource: "captured",
-                chatFont: "Inter",
-                chatFontSize: 12,
-                burnHorizontal: "left",
-                burnVertical: "top",
-                ffmpegPreset: "slow",
-                ffmpegCrf: 26,
-                burnOffset: 0,
-                testDuration: false,
-            },
             chatDownloadMethod: "tcd",
             showAdvanced: false,
             minimized: this.getDefaultMinimized(),
@@ -2072,21 +1461,6 @@ export default defineComponent({
             },
             renameVodSettings: {
                 template: "",
-            },
-            exportVodSettings: {
-                exporter: "file",
-                title_template: "[{login}] {title} ({date})",
-                directory: "",
-                host: "",
-                username: "",
-                password: "",
-                description: "",
-                tags: "",
-                category: "",
-                file_source: "segment",
-                privacy: "private",
-                vod: "",
-                remote: "",
             },
             newBookmark: {
                 name: "",
@@ -2110,29 +1484,6 @@ export default defineComponent({
             return this.vod.chapters.some((chapter) => {
                 return chapter.viewer_count && chapter.viewer_count > 0;
             });
-        },
-        burnJobs(): ApiJob[] {
-            if (!this.store.jobList) return [];
-            const jobs: ApiJob[] = [];
-            for (const job of this.store.jobList) {
-                if (job.name == `tdrender_${this.vod?.basename}` || job.name == `burnchat_${this.vod?.basename}`) {
-                    jobs.push(job);
-                }
-            }
-            return jobs;
-        },
-        burnPreviewChat(): Record<string, string> {
-            if (!this.vod || !this.vod.video_metadata || this.vod.video_metadata.type == 'audio') return {};
-            return {
-                width: `${(this.burnSettings.chatWidth / this.vod.video_metadata.width) * 100}%`,
-                height: `${(this.burnSettings.chatHeight / this.vod.video_metadata.height) * 100}%`,
-                left: this.burnSettings.burnHorizontal == "left" ? "0" : "",
-                right: this.burnSettings.burnHorizontal == "right" ? "0" : "",
-                top: this.burnSettings.burnVertical == "top" ? "0" : "",
-                bottom: this.burnSettings.burnVertical == "bottom" ? "0" : "",
-                fontSize: `${this.burnSettings.chatFontSize * 0.35}px`,
-                fontFamily: this.burnSettings.chatFont,
-            };
         },
         audioOnly(): boolean {
             if (!this.vod) return false;
@@ -2187,33 +1538,7 @@ export default defineComponent({
                 segments: this.vod.segments.map((s) => s.basename).join("\n"),
                 cloud_storage: this.vod.cloud_storage ?? false,
             };
-            this.exportVodSettings.vod = this.vod.basename;
-            this.applyDefaultExportSettings();
         }
-
-        const chatHeight: number = 
-            this.vod && 
-            this.vod.video_metadata && 
-            this.vod.video_metadata.type !== 'audio' && 
-            this.store.cfg<boolean>("chatburn.default.auto_chat_height")
-            ?
-            this.vod.video_metadata.height
-            :
-            this.store.cfg<number>("chatburn.default.chat_height")
-        ;
-
-        this.burnSettings = {
-            ...this.burnSettings,
-            chatWidth: this.store.cfg<number>("chatburn.default.chat_width"),
-            chatHeight: chatHeight,
-            chatFont: this.store.cfg<string>("chatburn.default.chat_font"),
-            chatFontSize: this.store.cfg<number>("chatburn.default.chat_font_size"),
-            burnHorizontal: this.store.cfg<string>("chatburn.default.horizontal"),
-            burnVertical: this.store.cfg<string>("chatburn.default.vertical"),
-            ffmpegPreset: this.store.cfg<string>("chatburn.default.preset"),
-            ffmpegCrf: this.store.cfg<number>("chatburn.default.crf"),
-        };
-
         this.renameVodSettings.template = this.store.cfg("filename_vod", "");
     },
     methods: {
@@ -2357,26 +1682,6 @@ export default defineComponent({
                     this.taskStatus.delete = false;
                 });
         },
-        doRenderWizard() {
-            if (!this.vod) return;
-            this.burnLoading = true;
-            console.debug("doRenderWizard", this.burnSettings);
-            this.$http
-                .post(`/api/v0/vod/${this.vod.uuid}/renderwizard`, this.burnSettings)
-                .then((response) => {
-                    const json: ApiResponse = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                    this.$emit("refresh");
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
-                })
-                .finally(() => {
-                    this.burnLoading = false;
-                });
-        },
         doFixIssues() {
             if (!this.vod) return;
             this.taskStatus.fixIssues = true;
@@ -2516,19 +1821,6 @@ export default defineComponent({
             const replaced_string = formatString(template, Object.fromEntries(Object.entries(ExporterFilenameFields).map(([key, value]) => [key, value.display])));
             return replaced_string;
         },
-        doExportVod() {
-            if (!this.vod) return;
-            this.$http.post(`/api/v0/exporter?mode=vod`, this.exportVodSettings).then((response) => {
-                const json: ApiResponse = response.data;
-                if (json.message) alert(json.message);
-                console.log(json);
-                if (this.vod) this.store.fetchAndUpdateVod(this.vod.uuid);
-                if (this.editVodMenu) this.editVodMenu.show = false;
-            }).catch((err) => {
-                console.error("form error", err.response);
-                if (err.response.data && err.response.data.message) alert(err.response.data.message);
-            });
-        },
         doMakeBookmark() {
             if (!this.vod) return;
             this.$http.post(`/api/v0/vod/${this.vod.uuid}/bookmark`, this.newBookmark).then((response) => {
@@ -2555,16 +1847,7 @@ export default defineComponent({
                 if (err.response.data && err.response.data.message) alert(err.response.data.message);
             });
         },
-        applyDefaultExportSettings() {
-            if (this.store.cfg("exporter.default.exporter")) this.exportVodSettings.exporter = this.store.cfg("exporter.default.exporter");
-            if (this.store.cfg("exporter.default.directory")) this.exportVodSettings.directory = this.store.cfg("exporter.default.directory");
-            if (this.store.cfg("exporter.default.host")) this.exportVodSettings.host = this.store.cfg("exporter.default.host");
-            if (this.store.cfg("exporter.default.username")) this.exportVodSettings.username = this.store.cfg("exporter.default.username");
-            if (this.store.cfg("exporter.default.password")) this.exportVodSettings.password = this.store.cfg("exporter.default.password");
-            if (this.store.cfg("exporter.default.description")) this.exportVodSettings.description = this.store.cfg("exporter.default.description");
-            if (this.store.cfg("exporter.default.tags")) this.exportVodSettings.tags = this.store.cfg("exporter.default.tags");
-            if (this.store.cfg("exporter.default.remote")) this.exportVodSettings.remote = this.store.cfg("exporter.default.remote");
-        },
+        
         doRenameVod() {
             if (!this.vod) return;
             this.$http.post(`/api/v0/vod/${this.vod.uuid}/rename`, this.renameVodSettings).then((response) => {
@@ -2584,27 +1867,3 @@ export default defineComponent({
     }
 });
 </script>
-
-<style lang="scss" scoped>
-.burn-preview {
-    position: relative;
-    width: 320px;
-    aspect-ratio: 16/9;
-    background-color: #eee;
-    margin-bottom: 1rem;
-    border: 1px solid #333;
-    .burn-preview-chat {
-        position: absolute;
-        // top: 0;
-        // left: 0;
-        height: 100%;
-        width: 50px;
-        background-color: #000;
-        opacity: 0.5;
-        color: #fff;
-        // font-size: 2px;
-        overflow: hidden;
-        padding: 1px;
-    }
-}
-</style>

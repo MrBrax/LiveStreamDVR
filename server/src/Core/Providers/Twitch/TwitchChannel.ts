@@ -65,7 +65,7 @@ export class TwitchChannel extends BaseChannel {
     // public description: string | undefined;
     // public profile_image_url: string | undefined;
     public offline_image_url: string | undefined;
-    /** @todo: Not implemented */
+    /** TODO: Not implemented */
     public banner_image_url: string | undefined;
 
     public vods_list: TwitchVOD[] = [];

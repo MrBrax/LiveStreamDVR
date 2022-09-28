@@ -39,7 +39,7 @@ export interface VODJSON {
 
     not_started: boolean;
 
-    /** @todo: rename number to episode? */
+    /** TODO: rename number to episode? */
     stream_number?: number;
     stream_season?: string;
     stream_absolute_season?: number;

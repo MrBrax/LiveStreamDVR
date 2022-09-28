@@ -375,7 +375,7 @@ export class BaseAutomator {
 
                 if (this.channel.burn_chat) {
                     // Log.logAdvanced(LOGLEVEL.ERROR, "automator.onEndDownload", "Automatic chat burning has been disabled until settings have been implemented.");
-                    await this.burnChat(); // @todo: should this await?
+                    await this.burnChat(); // TODO: should this await?
                 }
             }
 
