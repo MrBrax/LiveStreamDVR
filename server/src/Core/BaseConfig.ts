@@ -50,6 +50,7 @@ export const BaseConfigDataFolder = {
     keyvalue: path.join(DataRoot, "cache", "kv"),
     history: path.join(DataRoot, "cache", "history"),
     dotnet: path.join(DataRoot, "cache", "dotnet"),
+    capture: path.join(DataRoot, "cache", "capture"),
     logs: path.join(DataRoot, "logs"),
     logs_software: path.join(DataRoot, "logs", "software"),
     payloads: path.join(DataRoot, "payloads"),

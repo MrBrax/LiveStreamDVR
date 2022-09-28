@@ -572,7 +572,13 @@ export class BaseAutomator {
                 Config.AudioContainer :
                 Config.getInstance().cfg("vod_container", "mp4");
 
-        this.capture_filename = path.join(folder_base, `${basename}.ts`);
+
+        if (Config.getInstance().cfg("capture.use_cache", false)) {
+            this.capture_filename = path.join(BaseConfigDataFolder.capture, `${basename}.ts`);
+        } else {
+            this.capture_filename = path.join(folder_base, `${basename}.ts`);
+        }
+
         this.converted_filename = path.join(folder_base, `${basename}.${container_ext}`);
         this.chat_filename = path.join(folder_base, `${basename}.chatdump`);
 
