@@ -292,7 +292,7 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
 import { useStore, VODTypes } from '@/store';
-import { VodBasenameFields, ExporterFilenameFields } from "@common/ReplacementsConsts";
+import { ExporterFilenameFields } from "@common/ReplacementsConsts";
 import { formatString } from '@common/Format';
 import { YouTubeCategories } from "@/defs";
 import axios from 'axios';
@@ -328,7 +328,7 @@ function templatePreview(template: string): string {
 
 function doExportVod() {
     if (!props.vod) return;
-    axios.post(`/api/v0/exporter?mode=vod`, exportVodSettings).then((response) => {
+    axios.post(`/api/v0/exporter?mode=vod`, exportVodSettings.value).then((response) => {
         const json: ApiResponse = response.data;
         if (json.message) alert(json.message);
         console.log(json);

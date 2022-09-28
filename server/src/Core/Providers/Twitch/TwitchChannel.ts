@@ -188,7 +188,7 @@ export class TwitchChannel extends BaseChannel {
         //     }
         // }
         // return true;
-        return TwitchHelper.CHANNEL_SUB_TYPES.every(sub_type => KeyValue.getInstance().get(`${this.internalName}.substatus.${sub_type}`) === SubStatus.SUBSCRIBED);
+        return TwitchHelper.CHANNEL_SUB_TYPES.every(sub_type => KeyValue.getInstance().get(`${this.internalId}.substatus.${sub_type}`) === SubStatus.SUBSCRIBED);
     }
 
     public async toAPI(): Promise<ApiTwitchChannel> {

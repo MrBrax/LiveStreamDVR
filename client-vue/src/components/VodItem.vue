@@ -1206,75 +1206,10 @@ title="Retry VOD match"
             ref="editVodMenu"
             :title="$t('vod.edit.edit-vod')"
         >
-            <div class="field">
-                <label class="label">{{ $t('vod.edit.absolute-season') }}</label>
-                <div class="control">
-                    <input
-                        v-model.number="editVodSettings.absolute_season"
-                        class="input"
-                        type="number"
-                    >
-                </div>
-            </div>
-            <div class="field">
-                <label class="label">{{ $t('vod.edit.stream-number') }}</label>
-                <div class="control">
-                    <input
-                        v-model.number="editVodSettings.stream_number"
-                        class="input"
-                        type="number"
-                    >
-                </div>
-            </div>
-            <div class="field">
-                <label class="label">{{ $t('vod.edit.comment') }}</label>
-                <div class="control">
-                    <textarea
-                        v-model="editVodSettings.comment"
-                        class="input textarea"
-                    />
-                </div>
-            </div>
-            <div class="field">
-                <label class="label">{{ $t('vod.edit.segments') }}</label>
-                <div class="control">
-                    <textarea
-                        v-model="editVodSettings.segments"
-                        class="input textarea"
-                    />
-                </div>
-            </div>
-            <div class="field">
-                <div class="control">
-                    <label class="checkbox">
-                        <input
-                            v-model="editVodSettings.prevent_deletion"
-                            type="checkbox"
-                        >
-                        {{ $t('vod.edit.prevent-deletion') }}
-                    </label>
-                </div>
-            </div>
-            <div class="field">
-                <div class="control">
-                    <label class="checkbox">
-                        <input
-                            v-model="editVodSettings.cloud_storage"
-                            type="checkbox"
-                        >
-                        {{ $t('vod.edit.cloud-storage') }}
-                    </label>
-                </div>
-            </div>
-            <div class="field">
-                <button
-                    class="button is-confirm"
-                    @click="doEditVod"
-                >
-                    <span class="icon"><fa icon="save" /></span>
-                    <span>{{ $t("buttons.save") }}</span>
-                </button>
-            </div>
+            <edit-modal
+                :vod="vod"
+                @close="editVodMenu ? editVodMenu.show = false : ''"
+            />
         </modal-box>
         <modal-box
             ref="exportVodMenu"
@@ -1358,6 +1293,7 @@ import { ChapterTypes, useStore, VODTypes } from "@/store";
 import ModalBox from "./ModalBox.vue";
 import RenderModal from "./vod/RenderModal.vue";
 import ExportModal from "./vod/ExportModal.vue";
+import EditModal from "./vod/EditModal.vue";
 import { MuteStatus, VideoQualityArray } from "../../../common/Defs";
 import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import { formatString } from "@common/Format";
@@ -1395,6 +1331,7 @@ export default defineComponent({
         ModalBox,
         RenderModal,
         ExportModal,
+        EditModal,
     },
     props: {
         vod: {
@@ -1450,14 +1387,6 @@ export default defineComponent({
             playerSettings: {
                 vodSource: "captured",
                 chatSource: "captured",
-            },
-            editVodSettings: {
-                absolute_season: 0,
-                stream_number: 0,
-                comment: "",
-                prevent_deletion: false,
-                segments: "",
-                cloud_storage: false,
             },
             renameVodSettings: {
                 template: "",
@@ -1530,14 +1459,6 @@ export default defineComponent({
             } else if (this.vod.chapters && this.vod.chapters.length == 0) {
                 console.error("Chapters array found but empty for vod", this.vod.basename, this.vod);
             }
-            this.editVodSettings = {
-                absolute_season: this.vod.stream_absolute_season ?? 0,
-                stream_number: this.vod.stream_number ?? 0,
-                comment: this.vod.comment ?? "",
-                prevent_deletion: this.vod.prevent_deletion ?? false,
-                segments: this.vod.segments.map((s) => s.basename).join("\n"),
-                cloud_storage: this.vod.cloud_storage ?? false,
-            };
         }
         this.renameVodSettings.template = this.store.cfg("filename_vod", "");
     },
@@ -1700,6 +1621,7 @@ export default defineComponent({
                     this.taskStatus.fixIssues = false;
                 });
         },
+        /*
         unbreak() {
             if (!this.vod) return;
             // this.burnLoading = true;
@@ -1720,6 +1642,7 @@ export default defineComponent({
                     // this.burnLoading = false;
                 });
         },
+        */
         addFavouriteGame(game_id: string) {
             if (!this.store.config) return;
 
@@ -1789,20 +1712,6 @@ export default defineComponent({
 
             // url.searchParams.set("offset", this.playerSettings.offset.toString());
             window.open(url.toString(), "_blank");
-
-        },
-        doEditVod() {
-            if (!this.vod) return;
-            this.$http.post(`/api/v0/vod/${this.vod.uuid}`, this.editVodSettings).then((response) => {
-                const json: ApiResponse = response.data;
-                if (json.message) alert(json.message);
-                console.log(json);
-                if (this.vod) this.store.fetchAndUpdateVod(this.vod.uuid);
-                if (this.editVodMenu) this.editVodMenu.show = false;
-            }).catch((err) => {
-                console.error("form error", err.response);
-                if (err.response.data && err.response.data.message) alert(err.response.data.message);
-            });
 
         },
         templatePreview(template: string): string {
