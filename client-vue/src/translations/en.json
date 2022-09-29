@@ -288,5 +288,22 @@
     "hours": "datetime.hours",
     "minutes": "datetime.minutes",
     "seconds": "datetime.seconds"
+  },
+  "render-menu": {
+    "render-chat": "Render chat",
+    "chat-width": "Chat width",
+    "chat-width-must-be-an-even-number": "Chat width must be an even number.",
+    "chat-height": "Chat height",
+    "chat-height-must-be-an-even-number": "Chat height must be an even number.",
+    "video-source": "Video source",
+    "source-captured": "Captured",
+    "source-downloaded": "Downloaded",
+    "chat-source": "Chat source",
+    "font": "Font",
+    "font-size": "Font size",
+    "offset-seconds": "Offset (seconds)",
+    "test-duration-dont-burn-entire-video": "Test duration (don't burn entire video)",
+    "chat-horizontal": "Chat horizontal",
+    "chat-vertical": "Chat vertical"
   }
 }

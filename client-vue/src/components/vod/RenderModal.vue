@@ -31,11 +31,12 @@
                     {{ formatBytes(vod.video_metadata.size) }} / {{ vod.video_metadata.duration }}
                 </li>
             </ul>
-            <p>
+            <div class="notice is-error">
                 Burning chat seems to work pretty good, but dumped chat+video has a pretty large offset, I have yet to
                 find the offset anywhere.
-            </p>
+            </div>
         </div>
+        <hr>
         <div class="burn-preview">
             <div
                 class="burn-preview-chat"
@@ -84,7 +85,7 @@
                 <label><input
                     v-model="burnSettings.renderChat"
                     type="checkbox"
-                > Render chat <strong
+                > {{ $t('render-menu.render-chat') }} <strong
                     v-if="vod.is_chat_rendered"
                 >(Exists)</strong></label>
             </div>
@@ -93,8 +94,8 @@
                         <label><input type="checkbox" v-model="burnSettings.renderTest" /> Test duration</label>
                     </div>-->
                 <div class="field">
-                    <label>
-                        <p>Chat width</p>
+                    <label class="label">{{ $t('render-menu.chat-width') }}</label>
+                    <div class="control">
                         <input
                             v-model="burnSettings.chatWidth"
                             class="input"
@@ -107,13 +108,15 @@
                             class="input"
                             type="number"
                         >
-                        <span :class="{ 'input-help': true, error: burnSettings.chatWidth % 2 }">Chat width must be an
-                            even number.</span>
-                    </label>
+                        <span :class="{ 'input-help': true, error: burnSettings.chatWidth % 2 }">
+                            {{ $t('render-menu.chat-width-must-be-an-even-number') }}
+                        </span>
+                    </div>
                 </div>
+
                 <div class="field">
-                    <label>
-                        <p>Chat height</p>
+                    <label class="label">{{ $t('render-menu.chat-height') }}</label>
+                    <div class="control">
                         <input
                             v-model="burnSettings.chatHeight"
                             class="input"
@@ -126,55 +129,67 @@
                             class="input"
                             type="number"
                         >
-                        <span :class="{ 'input-help': true, error: burnSettings.chatHeight % 2 }">Chat height must be an
-                            even number.</span>
-                    </label>
+                        <span :class="{ 'input-help': true, error: burnSettings.chatHeight % 2 }">
+                            {{ $t('render-menu.chat-height-must-be-an-even-number') }}
+                        </span>
+                    </div>
                 </div>
+
                 <div class="field">
-                    <label>
-                        <p>Video source</p>
+                    <label class="label">{{ $t('render-menu.video-source') }}</label>
+                    <div class="select">
                         <select
                             v-model="burnSettings.vodSource"
-                            class="input"
                         >
-                            <option value="captured">Captured</option>
+                            <option value="captured">
+                                {{ $t('render-menu.source-captured') }}
+                            </option>
                             <option
                                 value="downloaded"
                                 :disabled="!vod.is_vod_downloaded"
-                            >Downloaded</option>
+                            >
+                                {{ $t('render-menu.source-downloaded') }}
+                            </option>
                         </select>
-                    </label>
+                    </div>
                 </div>
+
                 <div class="field">
-                    <label>
-                        <p>Chat source</p>
+                    <label class="label">{{ $t('render-menu.chat-source') }}</label>
+                    <div class="select">
                         <select
                             v-model="burnSettings.chatSource"
-                            class="input"
                         >
-                            <option value="captured">Captured</option>
+                            <option value="captured">
+                                {{ $t('render-menu.source-captured') }}
+                            </option>
                             <option
                                 value="downloaded"
                                 :disabled="!vod.is_chat_downloaded"
-                            >Downloaded</option>
+                            >
+                                {{ $t('render-menu.source-downloaded') }}
+                            </option>
                         </select>
-                    </label>
+                    </div>
                 </div>
+
                 <div class="field">
-                    <label>
-                        <p>Font</p>
-                        <select
+                    <label class="label">{{ $t('render-menu.font') }}</label>
+                    <div class="control">
+                        <input
                             v-model="burnSettings.chatFont"
                             class="input"
+                            list="font"
                         >
-                            <option value="Inter">Inter</option>
-                            <option value="Arial">Arial</option>
-                        </select>
-                    </label>
+                        <datalist id="font">
+                            <option value="Arial" />
+                            <option value="Inter" />
+                        </datalist>
+                    </div>
                 </div>
                 <div class="field">
-                    <label>
-                        <p>Font size</p>
+                    <label class="label">{{ $t('render-menu.font-size') }}</label>
+                    <div class="control">
                         <input
                             v-model="burnSettings.chatFontSize"
                             class="input"
@@ -187,7 +202,7 @@
                             class="input"
                             type="number"
                         >
-                    </label>
+                    </div>
                 </div>
             </template>
         </div>
@@ -207,54 +222,51 @@
                         <label><input type="checkbox" v-model="burnSettings.burnTest" /> Test duration</label>
                     </div>-->
                 <div class="field">
-                    <label>
-                        <p>Offset (seconds)</p>
+                    <label class="label">{{ $t('render-menu.offset-seconds') }}</label>
+                    <div class="control">
                         <input
                             v-model="burnSettings.burnOffset"
                             class="input"
                             type="number"
                         >
-                    </label>
+                    </div>
                 </div>
                 <div class="field">
-                    <label>
+                    <div class="control">
                         <input
                             v-model="burnSettings.testDuration"
                             type="checkbox"
                         >
-                        Test duration (don't burn entire video)
-                    </label>
+                        {{ $t('render-menu.test-duration-dont-burn-entire-video') }}
+                    </div>
                 </div>
                 <div class="field">
-                    <label>
-                        <p>Chat horizontal</p>
+                    <label class="label">{{ $t('render-menu.chat-horizontal') }}</label>
+                    <div class="select">
                         <select
                             v-model="burnSettings.burnHorizontal"
-                            class="input"
                         >
                             <option value="left">Left</option>
                             <option value="right">Right</option>
                         </select>
-                    </label>
+                    </div>
                 </div>
                 <div class="field">
-                    <label>
-                        <p>Chat vertical</p>
+                    <label class="label">{{ $t('render-menu.chat-vertical') }}</label>
+                    <div class="select">
                         <select
                             v-model="burnSettings.burnVertical"
-                            class="input"
                         >
                             <option value="top">Top</option>
                             <option value="bottom">Bottom</option>
                         </select>
-                    </label>
+                    </div>
                 </div>
                 <div class="field">
-                    <label>
-                        <p>ffmpeg preset</p>
+                    <label class="label">ffmpeg preset</label>
+                    <div class="select">
                         <select
                             v-model="burnSettings.ffmpegPreset"
-                            class="input"
                         >
                             <option value="ultrafast">Ultrafast</option>
                             <option value="superfast">Superfast</option>
@@ -266,11 +278,11 @@
                             <option value="slower">Slower</option>
                             <option value="veryslow">Veryslow</option>
                         </select>
-                    </label>
+                    </div>
                 </div>
                 <div class="field">
-                    <label>
-                        <p>ffmpeg crf</p>
+                    <label class="label">ffmpeg crf</label>
+                    <div class="control">
                         <input
                             v-model="burnSettings.ffmpegCrf"
                             class="input"
@@ -279,7 +291,7 @@
                             max="51"
                         >
                         <br>{{ burnSettings.ffmpegCrf }}
-                    </label>
+                    </div>
                 </div>
             </template>
         </div>
