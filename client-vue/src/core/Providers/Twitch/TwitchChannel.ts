@@ -1,51 +1,45 @@
-import { ApiChannel } from "@common/Api/Client";
+import { ApiTwitchChannel } from "@common/Api/Client";
 import { UserData } from "@common/User";
 import { VideoQuality } from "@common/Config";
 import { BroadcasterType } from "@common/TwitchAPI/Users";
-import { TwitchVODChapter } from "./chapter";
-import { TwitchGame } from "./game";
-import TwitchVOD from "./vod";
-import { TwitchVODChapterJSON } from "../../../server/src/Storage/JSON";
-import { LocalVideo } from "@common/LocalVideo";
-import { LocalClip } from "@common/LocalClip";
+import { TwitchGame } from "./TwitchGame";
+import TwitchVOD from "./TwitchVOD";
+import { TwitchVODChapterJSON } from "../../../../../server/src/Storage/JSON";
+import BaseChannel from "../Base/BaseChannel";
 
-export default class TwitchChannel {
+export default class TwitchChannel extends BaseChannel {
+
+    readonly provider = "twitch";
+    uuid = "";
+    /** @deprecated */
     userid = "";
+    /** @deprecated */
     display_name = "";
+
+    /** @deprecated */
     login = "";
-    description = "";
     quality: VideoQuality[] = [];
-    no_capture = false;
     broadcaster_type: BroadcasterType = "";
 
     profile_image_url = "";
     offline_image_url = "";
     banner_image_url = "";
 
-    vods_raw: string[] = [];
     vods_list: TwitchVOD[] = [];
-
-    clips_list: LocalClip[] = [];
-    video_list: LocalVideo[] = [];
 
     api_getSubscriptionStatus = false;
 
     channel_data: UserData | undefined;
 
-    current_stream_number: number = 0;
-    current_season = "";
-    is_live = false;
+    // is_live = false;
     // is_capturing = false;
 
-    chapter_data?: TwitchVODChapterJSON;
+    declare chapter_data?: TwitchVODChapterJSON;
 
-    saves_vods = false;
-
-    download_vod_at_end: boolean = false;
-    download_vod_at_end_quality: VideoQuality = "best";
-
-    public static makeFromApiResponse(apiResponse: ApiChannel): TwitchChannel {
+    public static makeFromApiResponse(apiResponse: ApiTwitchChannel): TwitchChannel {
         const channel = new TwitchChannel();
+        // channel.provider = apiResponse.provider;
+        channel.uuid = apiResponse.uuid;
         channel.userid = apiResponse.userid;
         channel.display_name = apiResponse.display_name;
         channel.login = apiResponse.login;
@@ -66,8 +60,13 @@ export default class TwitchChannel {
         channel.current_season = apiResponse.current_season ?? "";
         // channel.is_capturing = apiResponse.is_capturing ?? false;
         channel.is_live = apiResponse.is_live ?? false;
-        channel.chapter_data = apiResponse.chapter_data;
+        channel.chapter_data = apiResponse.chapter_data as TwitchVODChapterJSON; // temp
         channel.saves_vods = apiResponse.saves_vods ?? false;
+        channel.displayName = apiResponse.displayName;
+        channel.internalName = apiResponse.internalName;
+        channel.internalId = apiResponse.internalId;
+        channel.url = apiResponse.url;
+        channel.profilePictureUrl = apiResponse.profilePictureUrl;
         return channel;
     }
 
@@ -75,27 +74,8 @@ export default class TwitchChannel {
         return this.vods_list?.find((vod) => vod.is_capturing);
     }
 
-    // get is_live() {
-    //     return this.current_vod != undefined && this.current_vod.is_capturing;
-    // }
-
     get current_game(): TwitchGame | undefined {
         return this.current_vod?.current_game;
     }
 
-    get current_chapter(): TwitchVODChapter | undefined {
-        return this.current_vod?.current_chapter;
-    }
-
-    get is_capturing(): boolean {
-        return this.current_vod != undefined && this.current_vod.is_capturing;
-    }
-
-    get is_converting(): boolean {
-        return this.vods_list?.some((vod) => vod.is_converting) ?? false;
-    }
-
-    get vods_size(): number {
-        return this.vods_list?.reduce((acc, vod) => acc + (vod.segments?.reduce((acc, seg) => acc + (seg && seg.filesize ? seg.filesize : 0), 0) ?? 0), 0) ?? 0;
-    }
 }

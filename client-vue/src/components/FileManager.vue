@@ -1,60 +1,130 @@
 <template>
     <div class="file-manager">
-        <p v-if="isPrivate" class="error">
+        <p
+            v-if="isPrivate"
+            class="error"
+        >
             {{ $t('components.filemanager.these-files-are-not-downloadable-due-to-a-config-setting') }}
         </p>
-        <table class="table is-fullwidth is-striped" v-if="!error && files.length > 0">
+        <table
+            v-if="!error && files.length > 0"
+            class="table is-fullwidth is-striped"
+        >
             <thead>
                 <tr>
-                    <th></th>
-                    <th style="cursor: pointer;" @click="setSort('name')">
+                    <th />
+                    <th
+                        style="cursor: pointer;"
+                        @click="setSort('name')"
+                    >
                         <span>{{ $t('components.filemanager.name') }}</span>
-                        <span v-if="sortBy == 'name'" class="icon is-small">
-                            <fa icon="sort-down" v-if="sortOrder === 'asc'" />
-                            <fa icon="sort-up" v-if="sortOrder === 'desc'" />
+                        <span
+                            v-if="sortBy == 'name'"
+                            class="icon is-small"
+                        >
+                            <fa
+                                v-if="sortOrder === 'asc'"
+                                icon="sort-down"
+                            />
+                            <fa
+                                v-if="sortOrder === 'desc'"
+                                icon="sort-up"
+                            />
                         </span>
                     </th>
-                    <th style="cursor: pointer;" @click="setSort('size')">
+                    <th
+                        style="cursor: pointer;"
+                        @click="setSort('size')"
+                    >
                         <span>{{ $t('components.filemanager.size') }}</span>
-                        <span v-if="sortBy == 'size'" class="icon is-small">
-                            <fa icon="sort-down" v-if="sortOrder === 'asc'" />
-                            <fa icon="sort-up" v-if="sortOrder === 'desc'" />
+                        <span
+                            v-if="sortBy == 'size'"
+                            class="icon is-small"
+                        >
+                            <fa
+                                v-if="sortOrder === 'asc'"
+                                icon="sort-down"
+                            />
+                            <fa
+                                v-if="sortOrder === 'desc'"
+                                icon="sort-up"
+                            />
                         </span>
                     </th>
-                    <th style="cursor: pointer;" @click="setSort('date')">
+                    <th
+                        style="cursor: pointer;"
+                        @click="setSort('date')"
+                    >
                         <span>{{ $t('components.filemanager.last-modified') }}</span>
-                        <span v-if="sortBy == 'date'" class="icon is-small">
-                            <fa icon="sort-down" v-if="sortOrder === 'asc'" />
-                            <fa icon="sort-up" v-if="sortOrder === 'desc'" />
+                        <span
+                            v-if="sortBy == 'date'"
+                            class="icon is-small"
+                        >
+                            <fa
+                                v-if="sortOrder === 'asc'"
+                                icon="sort-down"
+                            />
+                            <fa
+                                v-if="sortOrder === 'desc'"
+                                icon="sort-up"
+                            />
                         </span>
                     </th>
                     <th>{{ $t('components.filemanager.actions') }}</th>
                 </tr>
             </thead>
-            <tr class="file-manager-item" v-for="(item, index) in sortedFiles">
-                <td width="16" class="file-manager-item-icon">
+            <tr
+                v-for="item in sortedFiles"
+                :key="item.name"
+                class="file-manager-item"
+            >
+                <td
+                    width="16"
+                    class="file-manager-item-icon"
+                >
                     <fa :icon="getIconName(item.extension)" />
                 </td>
                 <td class="file-manager-item-name">
-                    <a v-if="web && item.is_public" :href="downloadLink(item)" target="_blank">
+                    <a
+                        v-if="web && item.is_public"
+                        :href="downloadLink(item)"
+                        target="_blank"
+                    >
                         {{ item.name }}
                     </a>
                     <span v-else>
                         {{ item.name }}
                     </span>
                 </td>
-                <td class="file-manager-item-size">{{ formatBytes(item.size) }}</td>
-                <td class="file-manager-item-date">{{ item.date }}</td>
+                <td class="file-manager-item-size">
+                    {{ formatBytes(item.size) }}
+                </td>
+                <td class="file-manager-item-date">
+                    {{ item.date }}
+                </td>
                 <td class="file-manager-item-actions">
                     <div class="buttons">
-                        <a v-if="web && item.is_public" class="button is-small is-confirm" :href="downloadLink(item)" target="_blank" download>
-                            <span><fa icon="download"></fa></span>
+                        <a
+                            v-if="web && item.is_public"
+                            class="button is-small is-confirm"
+                            :href="downloadLink(item)"
+                            target="_blank"
+                            download
+                        >
+                            <span><fa icon="download" /></span>
                         </a>
-                        <button class="button is-small is-danger" @click="deleteFile(item)">
-                            <span><fa icon="trash"></fa></span>
+                        <button
+                            class="button is-small is-danger"
+                            @click="deleteFile(item)"
+                        >
+                            <span><fa icon="trash" /></span>
                         </button>
-                        <button v-if="['mp4'].includes(item.extension)" class="button is-small is-info" @click="showExportFileDialog(item)">
-                            <span><fa icon="upload"></fa></span>
+                        <button
+                            v-if="['mp4'].includes(item.extension)"
+                            class="button is-small is-info"
+                            @click="showExportFileDialog(item)"
+                        >
+                            <span><fa icon="upload" /></span>
                         </button>
                     </div>
                 </td>
@@ -63,26 +133,43 @@
         <div v-else-if="!error">
             No files found.
         </div>
-        <div class="notification is-danger error" v-if="error">
+        <div
+            v-if="error"
+            class="notification is-danger error"
+        >
             {{ error }}
         </div>
     </div>
-    <modal-box ref="exportFileMenu" title="Export File">
-
+    <modal-box
+        ref="exportFileMenu"
+        title="Export File"
+    >
         <pre>{{ exportVodSettings.file_folder }}/{{ exportVodSettings.file_name }}</pre>
 
         <form @submit.prevent="doExportFile">
-
             <!-- Exporter -->
             <div class="field">
                 <label class="label">{{ $t('vod.export.export-type') }}</label>
                 <div class="control">
-                    <select class="input" v-model="exportVodSettings.exporter">
-                        <option value="file">File</option>
-                        <option value="youtube">YouTube</option>
-                        <option value="sftp">SFTP</option>
-                        <option value="ftp">FTP</option>
-                        <option value="rclone">RClone</option>
+                    <select
+                        v-model="exportVodSettings.exporter"
+                        class="input"
+                    >
+                        <option value="file">
+                            File
+                        </option>
+                        <option value="youtube">
+                            YouTube
+                        </option>
+                        <option value="sftp">
+                            SFTP
+                        </option>
+                        <option value="ftp">
+                            FTP
+                        </option>
+                        <option value="rclone">
+                            RClone
+                        </option>
                     </select>
                 </div>
             </div>
@@ -91,59 +178,110 @@
             <div class="field">
                 <label class="label">{{ $t('vod.export.title') }}</label>
                 <div class="control">
-                    <input class="input" type="text" v-model="exportVodSettings.title" required />
+                    <input
+                        v-model="exportVodSettings.title"
+                        class="input"
+                        type="text"
+                        required
+                    >
                 </div>
             </div>
 
             <!-- Directory -->
-            <div class="field" v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp' || exportVodSettings.exporter == 'rclone'">
+            <div
+                v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp' || exportVodSettings.exporter == 'rclone'"
+                class="field"
+            >
                 <label class="label">{{ $t('vod.export.directory') }}</label>
                 <div class="control">
-                    <input class="input" type="text" v-model="exportVodSettings.directory" />
+                    <input
+                        v-model="exportVodSettings.directory"
+                        class="input"
+                        type="text"
+                    >
                 </div>
             </div>
 
             <!-- Host -->
-            <div class="field" v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'">
+            <div
+                v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'"
+                class="field"
+            >
                 <label class="label">{{ $t('vod.export.host') }}</label>
                 <div class="control">
-                    <input class="input" type="text" v-model="exportVodSettings.host" />
+                    <input
+                        v-model="exportVodSettings.host"
+                        class="input"
+                        type="text"
+                    >
                 </div>
             </div>
 
             <!-- Remote -->
-            <div class="field" v-if="exportVodSettings.exporter == 'rclone'">
+            <div
+                v-if="exportVodSettings.exporter == 'rclone'"
+                class="field"
+            >
                 <label class="label">{{ $t('vod.export.remote') }}</label>
                 <div class="control">
-                    <input class="input" type="text" v-model="exportVodSettings.remote" />
+                    <input
+                        v-model="exportVodSettings.remote"
+                        class="input"
+                        type="text"
+                    >
                 </div>
             </div>
 
             <!-- Username -->
-            <div class="field" v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'">
+            <div
+                v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'"
+                class="field"
+            >
                 <label class="label">{{ $t('vod.export.username') }}</label>
                 <div class="control">
-                    <input class="input" type="text" v-model="exportVodSettings.username" />
+                    <input
+                        v-model="exportVodSettings.username"
+                        class="input"
+                        type="text"
+                    >
                 </div>
             </div>
 
             <!-- Password -->
-            <div class="field" v-if="exportVodSettings.exporter == 'ftp'">
+            <div
+                v-if="exportVodSettings.exporter == 'ftp'"
+                class="field"
+            >
                 <label class="label">{{ $t('vod.export.password') }}</label>
                 <div class="control">
-                    <input class="input" type="password" v-model="exportVodSettings.password" />
+                    <input
+                        v-model="exportVodSettings.password"
+                        class="input"
+                        type="password"
+                    >
                 </div>
-                <p class="help">{{ $t('vod.export.password-help') }}</p>
+                <p class="help">
+                    {{ $t('vod.export.password-help') }}
+                </p>
             </div>
 
             <!-- YouTube Authentication -->
-            <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+            <div
+                v-if="exportVodSettings.exporter == 'youtube'"
+                class="field"
+            >
                 <div class="buttons">
-                    <button class="button is-confirm" @click="doCheckYouTubeStatus">
+                    <button
+                        class="button is-confirm"
+                        @click="doCheckYouTubeStatus"
+                    >
                         <span class="icon"><fa icon="sync" /></span>
                         <span>{{ $t("buttons.checkstatus") }}</span>
                     </button>
-                    <button class="button is-confirm" @click="doAuthenticateYouTube">
+                    <button
+                        class="button is-confirm"
+                        @click="doAuthenticateYouTube"
+                    >
                         <span class="icon"><fa icon="key" /></span>
                         <span>{{ $t("buttons.authenticate") }}</span>
                     </button>
@@ -151,43 +289,76 @@
             </div>
 
             <!-- Description -->
-            <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+            <div
+                v-if="exportVodSettings.exporter == 'youtube'"
+                class="field"
+            >
                 <label class="label">{{ $t('vod.export.description') }}</label>
                 <div class="control">
-                    <textarea class="input textarea" v-model="exportVodSettings.description" />
+                    <textarea
+                        v-model="exportVodSettings.description"
+                        class="input textarea"
+                    />
                 </div>
             </div>
 
             <!-- Category -->
-            <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+            <div
+                v-if="exportVodSettings.exporter == 'youtube'"
+                class="field"
+            >
                 <label class="label">{{ $t('vod.export.category') }}</label>
                 <div class="control">
                     <div class="select">
                         <select v-model="exportVodSettings.category">
-                            <option v-for="(c, i) in YouTubeCategories" :value="i">{{ c }}</option>
+                            <option
+                                v-for="(c, i) in YouTubeCategories"
+                                :key="i"
+                                :value="i"
+                            >
+                                {{ c }}
+                            </option>
                         </select>
                     </div>
                 </div>
             </div>
 
             <!-- Tags -->
-            <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+            <div
+                v-if="exportVodSettings.exporter == 'youtube'"
+                class="field"
+            >
                 <label class="label">{{ $t('vod.export.tags') }}</label>
                 <div class="control">
-                    <input class="input" type="text" v-model="exportVodSettings.tags" />
+                    <input
+                        v-model="exportVodSettings.tags"
+                        class="input"
+                        type="text"
+                    >
                 </div>
-                <p class="input-help">{{ $t('vod.export.tags-help') }}</p>
+                <p class="input-help">
+                    {{ $t('vod.export.tags-help') }}
+                </p>
             </div>
 
             <!-- Privacy -->
-            <div class="field" v-if="exportVodSettings.exporter == 'youtube'">
+            <div
+                v-if="exportVodSettings.exporter == 'youtube'"
+                class="field"
+            >
                 <label class="label">{{ $t('vod.export.privacy') }}</label>
                 <div class="control">
                     <div class="select">
                         <select v-model="exportVodSettings.privacy">
-                            <option value="public">{{ $t('vod.export.privacy-public') }}</option>
-                            <option value="unlisted">{{ $t('vod.export.privacy-unlisted') }}</option>
-                            <option value="private">{{ $t('vod.export.privacy-private') }}</option>
+                            <option value="public">
+                                {{ $t('vod.export.privacy-public') }}
+                            </option>
+                            <option value="unlisted">
+                                {{ $t('vod.export.privacy-unlisted') }}
+                            </option>
+                            <option value="private">
+                                {{ $t('vod.export.privacy-private') }}
+                            </option>
                         </select>
                     </div>
                 </div>
@@ -210,7 +381,6 @@ import { useStore } from "@/store";
 import { AxiosError } from "axios";
 import { defineComponent, ref } from "vue";
 import ModalBox from "./ModalBox.vue";
-import { formatString } from "@common/Format";
 import { YouTubeCategories } from "@/defs";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -229,6 +399,9 @@ interface ApiFile {
 
 export default defineComponent({
     name: "FileManager",
+    components: {
+        ModalBox,
+    },
     props: {
         path: {
             type: String,
@@ -236,6 +409,7 @@ export default defineComponent({
         },
         web: {
             type: String,
+            default: "",
         },
         defaultSortBy: {
             type: String,
@@ -294,7 +468,27 @@ export default defineComponent({
             },
         };
     },
-    created() {
+    computed: {
+        sortedFiles() {
+            return this.files.filter(file => !file.is_dir).sort((a, b) => {
+                if (typeof a[this.sortBy] === "string") {
+                    if (this.sortOrder === "asc") {
+                        return (a[this.sortBy] as string).localeCompare(b[this.sortBy] as string);
+                    } else {
+                        return (b[this.sortBy] as string).localeCompare(a[this.sortBy] as string);
+                    }
+                } else {
+                    if (this.sortOrder === "asc") {
+                        return (a[this.sortBy] as number) - (b[this.sortBy] as number);
+                    } else {
+                        return (b[this.sortBy] as number) - (a[this.sortBy] as number);
+                    }
+                }
+            });
+        },
+        isPrivate() {
+            return this.files.some(file => file.is_public === false);
+        },
     },
     mounted() {
         this.fetchFileList();
@@ -387,31 +581,6 @@ export default defineComponent({
         doAuthenticateYouTube() {
             const url = `${this.store.cfg<string>("basepath", "")}/api/v0/youtube/authenticate`;
             window.open(url, "_blank");
-        },
-    },
-    components: {
-        ModalBox,
-    },
-    computed: {
-        sortedFiles() {
-            return this.files.filter(file => !file.is_dir).sort((a, b) => {
-                if (typeof a[this.sortBy] === "string") {
-                    if (this.sortOrder === "asc") {
-                        return (a[this.sortBy] as string).localeCompare(b[this.sortBy] as string);
-                    } else {
-                        return (b[this.sortBy] as string).localeCompare(a[this.sortBy] as string);
-                    }
-                } else {
-                    if (this.sortOrder === "asc") {
-                        return (a[this.sortBy] as number) - (b[this.sortBy] as number);
-                    } else {
-                        return (b[this.sortBy] as number) - (a[this.sortBy] as number);
-                    }
-                }
-            });
-        },
-        isPrivate() {
-            return this.files.some(file => file.is_public === false);
         },
     },
 });

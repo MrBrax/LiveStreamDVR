@@ -1,9 +1,9 @@
 import fs from "fs";
-import { Helper } from "./Helper";
-import { BaseConfigPath } from "./BaseConfig";
-import { LOGLEVEL, Log } from "./Log";
-import { ApiGame } from "../../../common/Api/Client";
-import { GamesResponse } from "../../../common/TwitchAPI/Games";
+import { TwitchHelper } from "../../../Providers/Twitch";
+import { BaseConfigPath } from "../../BaseConfig";
+import { LOGLEVEL, Log } from "../../Log";
+import { ApiGame } from "../../../../../common/Api/Client";
+import { GamesResponse } from "../../../../../common/TwitchAPI/Games";
 
 interface TwitchGameJSON {
     name: string;
@@ -86,13 +86,13 @@ export class TwitchGame {
 
         Log.logAdvanced(LOGLEVEL.DEBUG, "helper", `Game id ${game_id} not in cache, fetching...`);
 
-        if (!Helper.axios) {
+        if (!TwitchHelper.axios) {
             throw new Error("Axios is not initialized");
         }
 
         let response;
         try {
-            response = await Helper.axios.get(`/helix/games?id=${game_id}`);
+            response = await TwitchHelper.axios.get(`/helix/games?id=${game_id}`);
         } catch (th) {
             Log.logAdvanced(LOGLEVEL.FATAL, "helper", `Tried to get game data for ${game_id} but server returned: ${th}`);
             return null;

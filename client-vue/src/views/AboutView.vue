@@ -1,7 +1,12 @@
 <template>
     <section class="section">
-        <div class="section-title"><h1>{{ $t('pages.about') }}</h1></div>
-        <div class="section-content" v-if="aboutData && aboutData.bins">
+        <div class="section-title">
+            <h1>{{ $t('pages.about') }}</h1>
+        </div>
+        <div
+            v-if="aboutData && aboutData.bins"
+            class="section-content"
+        >
             <div class="block">
                 <h3>{{ $t('about.installed-utilities') }}</h3>
                 <table class="table">
@@ -45,18 +50,20 @@
                         <td>Pipenv</td>
                         <td>{{ aboutData.bins.pipenv.path }}</td>
                         <td>{{ aboutData.bins.pipenv.version }}</td>
-                        <td v-html="aboutData.bins.pipenv.status"></td>
+                        <td v-html="aboutData.bins.pipenv.status" />
                     </tr>
                     <tr v-if="aboutData.bins.twitchdownloader">
                         <td>TwitchDownloaderCLI</td>
                         <td>{{ aboutData.bins.twitchdownloader.path }}</td>
                         <td>{{ aboutData.bins.twitchdownloader.version }}</td>
-                        <td v-html="aboutData.bins.twitchdownloader.status"></td>
+                        <td v-html="aboutData.bins.twitchdownloader.status" />
                     </tr>
                 </table>
                 <p>
                     This app tries to find all the executables using system utilities. This may not work if they're on a custom PATH. Please visit
-                    <router-link :to="{ name: 'Settings' }">settings</router-link> to manually change them.
+                    <router-link :to="{ name: 'Settings' }">
+                        settings
+                    </router-link> to manually change them.
                 </p>
             </div>
 
@@ -112,13 +119,21 @@
             <div class="block">
                 <h3>{{ $t('about.subscriptions') }}</h3>
                 <p class="buttons">
-                    <button class="button is-confirm is-small" @click="fetchSubscriptions" :disabled="subscriptionsLoading">
+                    <button
+                        class="button is-confirm is-small"
+                        :disabled="subscriptionsLoading"
+                        @click="fetchSubscriptions"
+                    >
                         <span class="icon"><fa icon="sync" /></span>
                         <span>{{ $t("buttons.fetch") }}</span>
                     </button>
-                    <button class="button is-confirm is-small" @click="subscribeAll" :disabled="subscriptionsLoading">
+                    <button
+                        class="button is-confirm is-small"
+                        :disabled="subscriptionsLoading"
+                        @click="subscribeAll"
+                    >
                         <span class="icon"><fa icon="rss" /></span>
-                        <span>{{ $t("buttons.subscribe")}} </span>
+                        <span>{{ $t("buttons.subscribe") }} </span>
                     </button>
                 </p>
                 <!--<button class="button is-confirm is-small" @click="unsubscribeAll" :disabled="subscriptionsLoading">Unsubscribe</button>-->
@@ -135,20 +150,27 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="subscription in subscriptions" :key="subscription.id">
+                        <tr
+                            v-for="subscription in subscriptions"
+                            :key="subscription.id"
+                        >
                             <td>{{ subscription.id }}</td>
                             <td>{{ subscription.created_at }}</td>
                             <td>
-                                {{ subscription.username }}<br />
+                                {{ subscription.username }}<br>
                                 <small class="is-dark-gray">{{ subscription.type }}</small>
                             </td>
                             <td>{{ subscription.status }}</td>
                             <td>
-                                {{ subscription.instance_match }}<br />
+                                {{ subscription.instance_match }}<br>
                                 <small class="is-dark-gray">{{ subscription.callback }}</small>
                             </td>
                             <td>
-                                <button class="button is-confirm is-small" @click="unsubscribe(subscription.id)" :disabled="subscriptionsLoading">
+                                <button
+                                    class="button is-confirm is-small"
+                                    :disabled="subscriptionsLoading"
+                                    @click="unsubscribe(subscription.id)"
+                                >
                                     <span class="icon"><fa icon="ban" /></span>
                                     <span>Unsubscribe</span>
                                 </button>
@@ -159,24 +181,57 @@
             </div>
 
             <!-- pip update -->
-            <div class="block" v-if="!aboutData.is_docker">
+            <div
+                v-if="!aboutData.is_docker"
+                class="block"
+            >
                 <h3>Pip update</h3>
                 <code class="code">pip install --user --upgrade {{ pipKeys }}</code>
-                <br />You might want to install without the --user switch depending on environment.
+                <br>You might want to install without the --user switch depending on environment.
             </div>
             <div class="block">
                 <!-- links -->
                 <h3>{{ $t('about.links') }}</h3>
                 <ul>
-                    <li><a href="https://www.python.org/downloads/" target="_blank" rel="noreferrer">Python</a></li>
-                    <li><a href="https://www.gyan.dev/ffmpeg/builds/" target="_blank" rel="noreferrer">FFmpeg builds for Windows</a> (rip zeranoe)</li>
-                    <li><a href="https://mediaarea.net/en/MediaInfo" target="_blank" rel="noreferrer">MediaInfo</a></li>
-                    <li><a href="https://github.com/lay295/TwitchDownloader" target="_blank" rel="noreferrer">TwitchDownloader</a></li>
+                    <li>
+                        <a
+                            href="https://www.python.org/downloads/"
+                            target="_blank"
+                            rel="noreferrer"
+                        >Python</a>
+                    </li>
+                    <li>
+                        <a
+                            href="https://www.gyan.dev/ffmpeg/builds/"
+                            target="_blank"
+                            rel="noreferrer"
+                        >FFmpeg builds for Windows</a> (rip zeranoe)
+                    </li>
+                    <li>
+                        <a
+                            href="https://mediaarea.net/en/MediaInfo"
+                            target="_blank"
+                            rel="noreferrer"
+                        >MediaInfo</a>
+                    </li>
+                    <li>
+                        <a
+                            href="https://github.com/lay295/TwitchDownloader"
+                            target="_blank"
+                            rel="noreferrer"
+                        >TwitchDownloader</a>
+                    </li>
                 </ul>
             </div>
         </div>
-        <div class="section-content" v-else>
-            <span class="icon"><fa icon="sync" spin></fa></span> {{ $t("messages.loading") }}
+        <div
+            v-else
+            class="section-content"
+        >
+            <span class="icon"><fa
+                icon="sync"
+                spin
+            /></span> {{ $t("messages.loading") }}
         </div>
     </section>
 </template>
@@ -245,9 +300,6 @@ export default defineComponent({
             subscriptionsLoading: false,
         };
     },
-    created() {
-        this.fetchData();
-    },
     computed: {
         clientVersion(): string {
             return import.meta.env.VITE_APP_VERSION; // injected
@@ -264,6 +316,9 @@ export default defineComponent({
             }
             return Object.keys(this.aboutData.pip).join(" ");
         },
+    },
+    created() {
+        this.fetchData();
     },
     methods: {
         fetchData() {

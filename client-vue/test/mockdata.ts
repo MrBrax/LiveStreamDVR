@@ -1,4 +1,4 @@
-import { ApiChannel, ApiGame, ApiVod, ApiVodChapter, ApiVodSegment } from "@common/Api/Client";
+import { ApiTwitchChannel, ApiGame, ApiVodSegment, ApiTwitchVod, ApiVodTwitchChapter } from "@common/Api/Client";
 import { UserData } from "@common/User";
 import { JobStatus } from "@common/Defs";
 
@@ -50,7 +50,8 @@ export const TwitchChannelData: UserData = {
     cache_offline_image: "",
 };
 
-export const MockApiChannelData: ApiChannel = {
+export const MockApiChannelData: ApiTwitchChannel = {
+    uuid: "uuid",
     userid: "123",
     display_name: "test",
     login: "test",
@@ -81,10 +82,16 @@ export const MockApiChannelData: ApiChannel = {
     saves_vods: false,
     download_vod_at_end: false,
     download_vod_at_end_quality: "best",
-    video_list: []
+    video_list: [],
+    provider: "twitch",
+    displayName: "",
+    internalName: "",
+    internalId: "",
+    url: "",
+    profilePictureUrl: ""
 };
 
-export const MockApiVODData: ApiVod = {
+export const MockApiVODData: ApiTwitchVod = {
     basename: "",
     stream_title: "",
     segments: [],
@@ -128,11 +135,14 @@ export const MockApiVODData: ApiVod = {
     webpath: "",
     prevent_deletion: false,
     bookmarks: [],
+    provider: "twitch",
+    uuid: "",
+    channel_uuid: ""
 };
 
-export const MockApiChapterData: ApiVodChapter = {
+export const MockApiChapterData: ApiVodTwitchChapter = {
     title: "",
-    strings: {},
+    // strings: {},
     duration: 0,
     started_at: "",
     offset: 0,

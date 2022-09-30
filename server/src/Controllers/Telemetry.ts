@@ -5,9 +5,9 @@ import { ApiResponse } from "../../../common/Api/Api";
 import { BaseConfigFolder } from "../Core/BaseConfig";
 import { ClientBroker } from "../Core/ClientBroker";
 import { Config } from "../Core/Config";
-import { Helper } from "../Core/Helper";
-import { TwitchChannel } from "../Core/TwitchChannel";
+import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { generateStreamerList } from "../Helpers/StreamerList";
+import { Helper } from "../Core/Helper";
 
 /**
  * I don't like telemetry myself, but I do get curious sometimes.
@@ -20,8 +20,8 @@ function GetTelemetry() {
     const { total_size } = generateStreamerList();
     const data = {
         uid: 0, // TODO: make an unique uid for telemetry, is this ok to do?
-        channel_amount: TwitchChannel.channels.length,
-        vods_amount: TwitchChannel.channels.map(c => c.vods_list.length),
+        channel_amount: LiveStreamDVR.getInstance().channels.length,
+        vods_amount: LiveStreamDVR.getInstance().channels.map(c => c.vods_list.length),
         uses_proxy: Config.getInstance().cfg("trust_proxy"),
         notifications: ClientBroker.notificationSettings,
         windows: Helper.is_windows(),

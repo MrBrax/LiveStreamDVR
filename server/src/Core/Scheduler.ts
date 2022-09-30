@@ -6,8 +6,8 @@ import * as CronController from "../Controllers/Cron";
 import { BaseConfigDataFolder } from "./BaseConfig";
 import { Config } from "./Config";
 import { Log, LOGLEVEL } from "./Log";
-import { TwitchChannel } from "./TwitchChannel";
-import { TwitchVOD } from "./TwitchVOD";
+import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
+import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
 
 export class Scheduler {
 

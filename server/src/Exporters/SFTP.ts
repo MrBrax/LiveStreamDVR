@@ -1,7 +1,8 @@
-import { Helper } from "../Core/Helper";
+import { TwitchHelper } from "../Providers/Twitch";
 import path from "path";
 import sanitize from "sanitize-filename";
 import { BaseExporter } from "./Base";
+import { Helper } from "../Core/Helper";
 
 export class SFTPExporter extends BaseExporter {
 

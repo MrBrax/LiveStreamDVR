@@ -1,55 +1,125 @@
 <template>
     <div class="section-content">
-        <div class="field" v-for="(value, key) in defaultConfigFields" :key="key" :title="key" v-show="!value.hidden">
-            <label v-if="value.type != 'boolean'" class="label" :for="'input_' + key">
+        <div
+            v-for="(value, key) in defaultConfigFields"
+            v-show="!value.hidden"
+            :key="key"
+            class="field"
+            :title="key"
+        >
+            <label
+                v-if="value.type != 'boolean'"
+                class="label"
+                :for="'input_' + key"
+            >
                 {{ $te('clientsetting.' + key) ? $te('clientsetting.' + key) : value.name }} <!--<span v-if="value.required" class="required">*</span>-->
             </label>
-            <div class="control" v-if="value.type === 'boolean'">
+            <div
+                v-if="value.type === 'boolean'"
+                class="control"
+            >
                 <label class="checkbox">
-                    <input type="checkbox" v-model="(updateConfig[key] as boolean)" /> {{ $te('clientsetting.' + key) ? $t('clientsetting.' + key) : value.name }}
+                    <input
+                        v-model="(updateConfig[key] as boolean)"
+                        type="checkbox"
+                    > {{ $te('clientsetting.' + key) ? $t('clientsetting.' + key) : value.name }}
                 </label>
             </div>
-            <div class="control" v-if="value.type === 'number'">
-                <input type="number" class="input" v-model.number="(updateConfig[key] as number)" :id="'input_' + key" />
+            <div
+                v-if="value.type === 'number'"
+                class="control"
+            >
+                <input
+                    :id="'input_' + key"
+                    v-model.number="(updateConfig[key] as number)"
+                    type="number"
+                    class="input"
+                >
             </div>
-            <div class="control" v-if="value.type === 'string'">
-                <input type="text" class="input" v-model="(updateConfig[key] as string)" :id="'input_' + key" />
+            <div
+                v-if="value.type === 'string'"
+                class="control"
+            >
+                <input
+                    :id="'input_' + key"
+                    v-model="(updateConfig[key] as string)"
+                    type="text"
+                    class="input"
+                >
             </div>
-            <div class="control" v-if="value.type === 'choice'">
+            <div
+                v-if="value.type === 'choice'"
+                class="control"
+            >
                 <div class="select">
-                    <select v-model="(updateConfig[key] as string)" :id="'input_' + key">
-                        <option v-for="(option, optionKey) in value.choices" :value="optionKey">{{ option }}</option>
+                    <select
+                        :id="'input_' + key"
+                        v-model="(updateConfig[key] as string)"
+                    >
+                        <option
+                            v-for="(option, optionKey) in value.choices"
+                            :key="optionKey"
+                            :value="optionKey"
+                        >
+                            {{ option }}
+                        </option>
                     </select>
                 </div>
             </div>
-            <p class="input-help" v-if="value.help">{{ value.help }}</p>
-            <p class="input-default" v-if="value.default !== undefined">Default: {{ value.default }}</p>
+            <p
+                v-if="value.help"
+                class="input-help"
+            >
+                {{ value.help }}
+            </p>
+            <p
+                v-if="value.default !== undefined"
+                class="input-default"
+            >
+                Default: {{ value.default }}
+            </p>
         </div>
         <div class="field">
             <label class="label">Language</label>
             <div class="control">
                 <div class="select">
                     <select v-model="updateConfig.language">
-                        <option v-for="(language, code) in locales" :value="code">{{ language }} ({{ code }})</option>
+                        <option
+                            v-for="(language, code) in locales"
+                            :key="code"
+                            :value="code"
+                        >
+                            {{ language }} ({{ code }})
+                        </option>
                     </select>
                 </div>
             </div>
         </div>
         <div class="field">
-            <button class="button is-confirm" @click="saveClientConfig">
+            <button
+                class="button is-confirm"
+                @click="saveClientConfig"
+            >
                 <span class="icon"><fa icon="save" /></span>
                 <span>{{ $t('buttons.save') }}</span>
             </button>
         </div>
-        <br />
+        <br>
         <div class="field">
-            <button class="button is-small" @click="requestNotifications">
+            <button
+                class="button is-small"
+                @click="requestNotifications"
+            >
                 <span class="icon"><fa icon="bell" /></span>
                 <span>Request notification permissions</span>
             </button>
         </div>
         <div class="field">
-            <button class="button is-danger" @click="logout" :disabled="!store.authenticated">
+            <button
+                class="button is-danger"
+                :disabled="!store.authenticated"
+                @click="logout"
+            >
                 <span class="icon"><fa icon="arrow-right-from-bracket" /></span>
                 <span>{{ $t('buttons.logout') }}</span>
             </button>
@@ -83,9 +153,20 @@ export default defineComponent({
             updateConfig: {...defaultConfig},
         };
     },
+    computed: {
+        locales(): Record<string, string> {
+            const provided = this.$i18n.availableLocales;
+            const names = new Intl.DisplayNames(["en"], { type: "language" });
+            const all: Record<string, string> = {};
+            for (const code of provided) {
+                all[code] = names.of(code) || code;
+            }
+            return all;
+        },
+    },
     created() {
         if (!this.store.clientConfig) return;
-        const crConf = {...defaultConfig};
+        // const crConf = {...defaultConfig};
         const currentConfig: ClientSettings = {...this.store.clientConfig};
         this.updateConfig = currentConfig;
         this.currentConfig = currentConfig;
@@ -119,17 +200,6 @@ export default defineComponent({
                 window.location.reload();
             });
         }
-    },
-    computed: {
-        locales(): Record<string, string> {
-            const provided = this.$i18n.availableLocales;
-            const names = new Intl.DisplayNames(["en"], { type: "language" });
-            let all: Record<string, string> = {};
-            for (const code of provided) {
-                all[code] = names.of(code) || code;
-            }
-            return all;
-        },
     }
     /*
     watch: {

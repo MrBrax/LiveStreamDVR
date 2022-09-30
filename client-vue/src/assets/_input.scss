@@ -33,6 +33,13 @@
         outline: none;
     }
 
+    &:read-only {
+        background-color: var(--input-readonly-background-color);
+        &:hover {
+            border-color: var(--input-border-color);
+        }
+    }
+
     &[type="text"],
     &[type="number"],
     &[type="password"] {
@@ -158,8 +165,8 @@
 	*/
 }
 
-.details-toggle {
-    padding: 5px 8px;
+.button.details-toggle {
+    padding: 0.2em 0.5em;
     text-align: center;
     background-color: #eaeaea;
     border-radius: 2px;
@@ -195,6 +202,11 @@
             color: #ccc;
             // color: #2f6d68;
         }
+    }
+
+    &.icon-button-big {
+        font-size: 1.2em;
+        padding: 0.5em 0.8em;
     }
 }
 

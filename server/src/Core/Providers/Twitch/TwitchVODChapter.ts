@@ -1,9 +1,9 @@
 import chalk from "chalk";
 import { parseJSON } from "date-fns";
-import { ApiVodChapter } from "../../../common/Api/Client";
-import { TwitchVODChapterJSON } from "../Storage/JSON";
-import { Log, LOGLEVEL } from "./Log";
+import { ApiVodTwitchChapter } from "../../../../../common/Api/Client";
+import { TwitchVODChapterJSON } from "../../../Storage/JSON";
 import { TwitchGame } from "./TwitchGame";
+import { BaseVODChapter } from "../Base/BaseVODChapter";
 
 /*
 export interface TwitchVODChapterJSON {
@@ -50,27 +50,12 @@ export interface TwitchVODChapterMinimalJSON {
                 */
 
 
-export class TwitchVODChapter {
+export class TwitchVODChapter extends BaseVODChapter {
 
     public raw_chapter: TwitchVODChapterJSON | undefined;
 
-    /**
-     * Started at date, offset and duration are calculated from this.
-     */
-    public started_at!: Date;
-
-    public offset?: number;
-    public duration?: number;
-
-    /**
-     * @deprecated
-     */
-    public strings: Record<string, string> = {};
-
     public game_id?: string;
     public game?: TwitchGame;
-
-    public title = "";
 
     public is_mature = false;
 
@@ -79,11 +64,6 @@ export class TwitchVODChapter {
      * so it has to be fetched from the GetStreams endpoint.
      */
     public viewer_count?: number;
-
-    /**
-     * Was it added when the channel was online?
-     */
-    public online = false;
 
     public toJSON(): TwitchVODChapterJSON {
         return {
@@ -100,7 +80,7 @@ export class TwitchVODChapter {
         };
     }
 
-    public toAPI(): ApiVodChapter {
+    public toAPI(): ApiVodTwitchChapter {
         return {
             title: this.title,
 
@@ -109,8 +89,6 @@ export class TwitchVODChapter {
             game_name: this.game_name,
 
             game: this.game?.toAPI(),
-
-            strings: this.strings,
 
             offset: this.offset || 0,
             duration: this.duration || 0,
@@ -156,40 +134,6 @@ export class TwitchVODChapter {
         chapter.raw_chapter = data;
 
         return chapter;
-
-    }
-
-    public calculateDurationAndOffset(vod_started_at: Date, vod_ended_at: Date | undefined, next_chapter_started_at: Date | undefined): void {
-
-        if (vod_started_at.getTime() > this.started_at.getTime()) { // this chapter started before the vod started
-
-            const started_at = vod_started_at;
-
-            if (next_chapter_started_at) {
-                this.duration = (next_chapter_started_at.getTime() - started_at.getTime()) / 1000;
-            } else if (vod_ended_at) {
-                this.duration = (vod_ended_at.getTime() - started_at.getTime()) / 1000;
-            } else {
-                Log.logAdvanced(LOGLEVEL.WARNING, "chapter", `No next chapter or vod end time for chapter ${this.title} (${this.started_at.toISOString()}), duration will probably be 0.`);
-            }
-
-            this.offset = 0;
-
-        } else {
-
-            if (next_chapter_started_at) {
-                this.duration = (next_chapter_started_at.getTime() - this.started_at.getTime()) / 1000;
-            } else if (vod_ended_at) {
-                this.duration = (vod_ended_at.getTime() - this.started_at.getTime()) / 1000;
-            } else {
-                Log.logAdvanced(LOGLEVEL.WARNING, "chapter", `No next chapter or vod end time for chapter ${this.title} (${this.started_at.toISOString()}), duration will probably be 0.`);
-            }
-
-            this.offset = (this.started_at.getTime() - vod_started_at.getTime()) / 1000;
-
-        }
-
-        // console.debug(`Calculated duration and offset for chapter: ${this.title}`, this.offset, this.duration);
 
     }
 

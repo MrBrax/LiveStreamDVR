@@ -36,6 +36,7 @@ test('ChannelUpdateForm', async () => {
         },
         props: {
             channel: {
+                uuid: "randomuuid",
                 login: "test123",
                 match: ["match"],
                 quality: ["best", "720p"],
@@ -116,7 +117,7 @@ test('ChannelUpdateForm', async () => {
 
     // check if put was called
     expect(wrapper.vm.$http.put).toHaveBeenCalled();
-    expect(wrapper.vm.$http.put).toHaveBeenCalledWith('/api/v0/channels/test123', wrapper.vm.formData);
+    expect(wrapper.vm.$http.put).toHaveBeenCalledWith('/api/v0/channels/randomuuid', wrapper.vm.formData);
     // expect(wrapper.vm.resetForm).toHaveBeenCalled();
     expect(wrapper.vm.store.fetchAndUpdateStreamerList).toHaveBeenCalled();
 

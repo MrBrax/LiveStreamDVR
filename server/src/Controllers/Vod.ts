@@ -11,13 +11,15 @@ import { VideoQualityArray } from "../../../common/Defs";
 import { formatString } from "../../../common/Format";
 import type { VodBasenameTemplate } from "../../../common/Replacements";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
-import { Helper } from "../Core/Helper";
+import { TwitchHelper } from "../Providers/Twitch";
 import { Log, LOGLEVEL } from "../Core/Log";
-import { TwitchVOD } from "../Core/TwitchVOD";
+import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
+import { LiveStreamDVR } from "../Core/LiveStreamDVR";
+import { Helper } from "../Core/Helper";
 
 export async function GetVod(req: express.Request, res: express.Response): Promise<void> {
 
-    const vod = TwitchVOD.getVod(req.params.basename);
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
         res.status(400).send({
@@ -36,7 +38,7 @@ export async function GetVod(req: express.Request, res: express.Response): Promi
 
 export async function EditVod(req: express.Request, res: express.Response): Promise<void> {
 
-    const vod = TwitchVOD.getVod(req.params.basename);
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
         res.status(400).send({
@@ -51,11 +53,13 @@ export async function EditVod(req: express.Request, res: express.Response): Prom
     const comment = req.body.comment as string;
     const prevent_deletion = req.body.prevent_deletion as boolean;
     const segments = req.body.segments as string;
+    const cloud_storage = req.body.cloud_storage as boolean;
 
     vod.stream_number = stream_number;
     vod.comment = comment;
     vod.prevent_deletion = prevent_deletion;
     vod.stream_absolute_season = absolute_season;
+    vod.cloud_storage = cloud_storage;
     if (segments) {
         vod.segments_raw = segments.split("\n").map(s => s.trim()).filter(s => s.length > 0);
         vod.parseSegments(vod.segments_raw);
@@ -72,7 +76,7 @@ export async function EditVod(req: express.Request, res: express.Response): Prom
 
 export function ArchiveVod(req: express.Request, res: express.Response): void {
 
-    const vod = TwitchVOD.getVod(req.params.basename);
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
         res.status(400).send({
@@ -92,7 +96,7 @@ export function ArchiveVod(req: express.Request, res: express.Response): void {
 
 export async function DeleteVod(req: express.Request, res: express.Response): Promise<void> {
 
-    const vod = TwitchVOD.getVod(req.params.basename);
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
         res.status(400).send({
@@ -118,9 +122,37 @@ export async function DeleteVod(req: express.Request, res: express.Response): Pr
 
 }
 
+export async function DeleteVodSegment(req: express.Request, res: express.Response): Promise<void> {
+
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
+
+    if (!vod) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    try {
+        await vod.deleteSegment(parseInt(req.query.segment as string), req.query.keep_entry === "true");
+    } catch (error) {
+        res.status(400).send({
+            status: "ERROR",
+            message: `Vod segment could not be deleted: ${(error as Error).message}`,
+        } as ApiErrorResponse);
+        return;
+    }
+
+    res.send({
+        status: "OK",
+    });
+
+}
+
 export async function DownloadVod(req: express.Request, res: express.Response): Promise<void> {
 
-    const vod = TwitchVOD.getVod(req.params.basename);
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     const quality = req.query.quality && VideoQualityArray.includes(req.query.quality as string) ? req.query.quality as VideoQuality : "best";
 
@@ -142,7 +174,7 @@ export async function DownloadVod(req: express.Request, res: express.Response): 
 
 export async function DownloadChat(req: express.Request, res: express.Response): Promise<void> {
 
-    const vod = TwitchVOD.getVod(req.params.basename);
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
         res.status(400).send({
@@ -172,7 +204,7 @@ export async function DownloadChat(req: express.Request, res: express.Response):
 
 export async function RenderWizard(req: express.Request, res: express.Response): Promise<void> {
 
-    const vod = TwitchVOD.getVod(req.params.basename);
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
         res.status(400).send({
@@ -193,8 +225,10 @@ export async function RenderWizard(req: express.Request, res: express.Response):
     const chat_font_size = data.chatFontSize;
     const burn_horizontal = data.burnHorizontal;
     const burn_vertical = data.burnVertical;
+    const burn_offset = data.burnOffset || 0;
     const ffmpeg_preset = data.ffmpegPreset;
     const ffmpeg_crf = data.ffmpegCrf;
+    const test_duration = data.testDuration || false;
 
     let status_renderchat = false;
     let status_burnchat = false;
@@ -221,7 +255,7 @@ export async function RenderWizard(req: express.Request, res: express.Response):
 
     if (burn_chat) {
         try {
-            status_burnchat = await vod.burnChat(burn_horizontal, burn_vertical, ffmpeg_preset, ffmpeg_crf, vod_source == "downloaded", true);
+            status_burnchat = await vod.burnChat(burn_horizontal, burn_vertical, ffmpeg_preset, ffmpeg_crf, vod_source == "downloaded", true, burn_offset, test_duration);
         } catch (error) {
             res.status(400).send({
                 status: "ERROR",
@@ -243,7 +277,7 @@ export async function RenderWizard(req: express.Request, res: express.Response):
 
 export async function CheckMute(req: express.Request, res: express.Response): Promise<void> {
 
-    const vod = TwitchVOD.getVod(req.params.basename);
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
         res.status(400).send({
@@ -276,7 +310,7 @@ export async function CheckMute(req: express.Request, res: express.Response): Pr
 
 export async function FixIssues(req: express.Request, res: express.Response): Promise<void> {
 
-    const vod = TwitchVOD.getVod(req.params.basename);
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
         res.status(400).send({
@@ -297,12 +331,20 @@ export async function FixIssues(req: express.Request, res: express.Response): Pr
 
 export async function MatchVod(req: express.Request, res: express.Response): Promise<void> {
 
-    const vod = TwitchVOD.getVod(req.params.basename);
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
         res.status(400).send({
             status: "ERROR",
             message: "Vod not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (!(vod instanceof TwitchVOD)) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not compatible",
         } as ApiErrorResponse);
         return;
     }
@@ -328,7 +370,7 @@ export async function MatchVod(req: express.Request, res: express.Response): Pro
 
 export async function CutVod(req: express.Request, res: express.Response): Promise<void> {
 
-    const vod = TwitchVOD.getVod(req.params.basename);
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
         res.status(400).send({
@@ -390,6 +432,8 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
         return;
     }
 
+    const channel = vod.getChannel();
+
     // const fps = vod.video_metadata.fps;
     // const seconds_in = Math.floor(time_in / fps);
     // const seconds_out = Math.floor(time_out / fps);
@@ -398,7 +442,7 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
     // don't use fps, not using frame numbers, but seconds
 
     const file_in = path.join(vod.directory, vod.segments[0].basename);
-    const file_out = path.join(BaseConfigDataFolder.saved_clips, "editor", vod.streamer_login, `${vod.basename}_${time_in}-${time_out}_${segment_name}.mp4`);
+    const file_out = path.join(BaseConfigDataFolder.saved_clips, "editor", channel.internalName, `${vod.basename}_${time_in}-${time_out}_${segment_name}.mp4`);
 
     if (!fs.existsSync(path.dirname(file_out))) {
         fs.mkdirSync(path.dirname(file_out), { recursive: true });
@@ -431,7 +475,7 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
 
         let success;
         try {
-            success = await Helper.cutChat(chat_file_in, chat_file_out, seconds_in, seconds_out);
+            success = await TwitchHelper.cutChat(chat_file_in, chat_file_out, seconds_in, seconds_out);
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.ERROR, "route.vod.cutVod", `Cut chat failed: ${(error as Error).message}`);
         }
@@ -455,12 +499,20 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
 
 export function AddBookmark(req: express.Request, res: express.Response): void {
 
-    const vod = TwitchVOD.getVod(req.params.basename);
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
         res.status(400).send({
             status: "ERROR",
             message: "Vod not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (!("bookmarks" in vod)) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not compatible",
         } as ApiErrorResponse);
         return;
     }
@@ -529,12 +581,20 @@ export function AddBookmark(req: express.Request, res: express.Response): void {
 
 export function RemoveBookmark(req: express.Request, res: express.Response): void {
 
-    const vod = TwitchVOD.getVod(req.params.basename);
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
         res.status(400).send({
             status: "ERROR",
             message: "Vod not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (!("bookmarks" in vod)) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not compatible",
         } as ApiErrorResponse);
         return;
     }
@@ -564,7 +624,7 @@ export function RemoveBookmark(req: express.Request, res: express.Response): voi
 
 export async function GetSync(req: express.Request, res: express.Response): Promise<void> {
 
-    const vod = TwitchVOD.getVod(req.params.basename);
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
         res.status(400).send({
@@ -574,17 +634,19 @@ export async function GetSync(req: express.Request, res: express.Response): Prom
         return;
     }
 
+    /*
     const data = await vod.getSync();
 
     res.send({
         data,
     });
+    */
 
 }
 
 export async function RenameVod(req: express.Request, res: express.Response): Promise<void> {
 
-    const vod = TwitchVOD.getVod(req.params.basename);
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
         res.status(400).send({
@@ -597,8 +659,10 @@ export async function RenameVod(req: express.Request, res: express.Response): Pr
     const template = req.body.template;
 
     const variables: VodBasenameTemplate = {
-        login: vod.streamer_login,
-        date: vod.started_at ? format(vod.started_at, Helper.TWITCH_DATE_FORMAT).replaceAll(":", "_") : "",
+        login: vod.getChannel().internalName,
+        internalName: vod.getChannel().internalName,
+        displayName: vod.getChannel().displayName,
+        date: vod.started_at ? format(vod.started_at, TwitchHelper.TWITCH_DATE_FORMAT).replaceAll(":", "_") : "",
         year: vod.started_at ? format(vod.started_at, "yyyy") : "",
         year_short: vod.started_at ? format(vod.started_at, "yy") : "",
         month: vod.started_at ? format(vod.started_at, "MM") : "",

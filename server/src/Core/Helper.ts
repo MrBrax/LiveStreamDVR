@@ -1,171 +1,21 @@
-import axios, { Axios } from "axios";
-import chalk from "chalk";
-import { spawn } from "child_process";
-import { format } from "date-fns";
-import fs from "fs";
 import path from "path";
-import { Stream } from "stream";
-import { AudioMetadata, MediaInfoJSONOutput, VideoMetadata } from "../../../common/MediaInfo";
-import { MediaInfo } from "../../../common/mediainfofield";
-import { FFProbe } from "../../../common/FFProbe";
-import { EventSubTypes, Subscription } from "../../../common/TwitchAPI/Shared";
-import { Subscriptions } from "../../../common/TwitchAPI/Subscriptions";
+import fs from "fs";
 import { BaseConfigDataFolder } from "./BaseConfig";
-import { Job } from "./Job";
 import { Config } from "./Config";
-import { LOGLEVEL, Log } from "./Log";
-import { TwitchCommentDump } from "../../../common/Comments";
-import { replaceAll } from "../Helpers/ReplaceAll";
-import { TwitchChannel } from "./TwitchChannel";
-import { KeyValue } from "./KeyValue";
-import { SubStatus } from "../../../common/Defs";
-import { TwitchVOD } from "./TwitchVOD";
+import { Log, LOGLEVEL } from "./Log";
+import { ExecReturn, RemuxReturn } from "Providers/Twitch";
+import { spawn } from "child_process";
+import { Stream } from "../../../common/TwitchAPI/Streams";
+import chalk from "chalk";
+import { Job } from "./Job";
 import { createHash } from "crypto";
-
-export interface ExecReturn {
-    stdout: string[];
-    stderr: string[];
-    code: number;
-}
-
-export interface RemuxReturn {
-    stdout: string[];
-    stderr: string[];
-    code: number;
-    success: boolean;
-}
+import { FFProbe } from "../../../common/FFProbe";
+import { MediaInfoJSONOutput, VideoMetadata, AudioMetadata } from "../../../common/MediaInfo";
+import { MediaInfo } from "../../../common/mediainfofield";
 
 export class Helper {
-
-    static axios: Axios | undefined;
-
-    static accessToken = "";
-
-    static readonly accessTokenFile = path.join(BaseConfigDataFolder.cache, "oauth.bin");
-
-    static readonly accessTokenExpire = 60 * 60 * 24 * 60 * 1000; // 60 days
-    static readonly accessTokenRefresh = 60 * 60 * 24 * 30 * 1000; // 30 days
-
-    static readonly PHP_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSSSSS";
-    static readonly TWITCH_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
-    static readonly TWITCH_DATE_FORMAT_MS = "yyyy-MM-dd'T'HH:mm:ss'.'SSS'Z'";
-
-    /*
-    static readonly SUBSTATUS = {
-        NONE: "0",
-        WAITING: "1",
-        SUBSCRIBED: "2",
-        FAILED: "3",
-    };
-    */
-
-    static readonly CHANNEL_SUB_TYPES: EventSubTypes[] = ["stream.online", "stream.offline", "channel.update"];
-
-    static async getAccessToken(force = false): Promise<string> {
-        // token should last 60 days, delete it after 30 just to be sure
-        if (fs.existsSync(this.accessTokenFile)) {
-
-            if (Date.now() > fs.statSync(this.accessTokenFile).mtimeMs + this.accessTokenRefresh) {
-                Log.logAdvanced(LOGLEVEL.INFO, "helper", `Deleting old access token, too old: ${format(fs.statSync(this.accessTokenFile).mtimeMs, this.PHP_DATE_FORMAT)}`);
-                fs.unlinkSync(this.accessTokenFile);
-            } else if (!force) {
-                Log.logAdvanced(LOGLEVEL.DEBUG, "helper", "Fetched access token from cache");
-                return fs.readFileSync(this.accessTokenFile, "utf8");
-            }
-
-        }
-
-        if (!Config.getInstance().cfg("api_secret") || !Config.getInstance().cfg("api_client_id")) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "helper", "Missing either api secret or client id, aborting fetching of access token!");
-            throw new Error("Missing either api secret or client id, aborting fetching of access token!");
-        }
-
-
-        // oauth2
-        const oauth_url = "https://id.twitch.tv/oauth2/token";
-
-        /*
-        try {
-            $response = $client->post($oauth_url, [
-                'query' => [
-                    'client_id' => TwitchConfig::cfg('api_client_id'),
-                    'client_secret' => TwitchConfig::cfg('api_secret'),
-                    'grant_type' => 'client_credentials'
-                ],
-                'headers' => [
-                    'Client-ID: ' . TwitchConfig::cfg('api_client_id')
-                ]
-            ]);
-        } catch (\Throwable $th) {
-            TwitchLog.logAdvanced(LOGLEVEL.FATAL, "helper", "Tried to get oauth token but server returned: " . $th->getMessage());
-            sleep(5);
-            return false;
-        }
-        */
-
-        const response = await axios.post(oauth_url, {
-            "client_id": Config.getInstance().cfg("api_client_id"),
-            "client_secret": Config.getInstance().cfg("api_secret"),
-            "grant_type": "client_credentials",
-        }, {
-            headers: {
-                "Client-ID": Config.getInstance().cfg("api_client_id"),
-            },
-        });
-
-        if (response.status != 200) {
-            Log.logAdvanced(LOGLEVEL.FATAL, "helper", "Tried to get oauth token but server returned: " + response.statusText);
-            throw new Error("Tried to get oauth token but server returned: " + response.statusText);
-        }
-
-        const json = response.data;
-
-        if (!json || !json.access_token) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to fetch access token: ${json}`);
-            throw new Error(`Failed to fetch access token: ${json}`);
-        }
-
-        const access_token = json.access_token;
-
-        this.accessToken = access_token;
-
-        fs.writeFileSync(this.accessTokenFile, access_token);
-
-        Log.logAdvanced(LOGLEVEL.INFO, "helper", "Fetched new access token");
-
-        return access_token;
-    }
-
     public static vodFolder(username = "") {
         return BaseConfigDataFolder.vod + (Config.getInstance().cfg("channel_folders") && username !== "" ? path.sep + username : "");
-    }
-
-    /**
-     * For some reason, twitch uses "1h1m1s" for durations, not seconds
-     * thanks copilot
-     * 
-     * @param duration 
-     */
-    public static parseTwitchDuration(duration: string) {
-        const regex = /(\d+)([a-z]+)/g;
-        let match;
-        let seconds = 0;
-        while ((match = regex.exec(duration)) !== null) {
-            const num = parseInt(match[1]);
-            const unit = match[2];
-            switch (unit) {
-            case "h":
-                seconds += num * 3600;
-                break;
-            case "m":
-                seconds += num * 60;
-                break;
-            case "s":
-                seconds += num;
-                break;
-            }
-        }
-        return seconds;
     }
 
     public static getNiceDuration(duration: number) {
@@ -185,11 +35,6 @@ export class Helper {
 
         return str.trim();
 
-    }
-
-    public static twitchDuration(seconds: number): string {
-        return this.getNiceDuration(seconds).replaceAll(" ", "").trim();
-        // return trim(str_replace(" ", "", self::getNiceDuration($seconds)));
     }
 
     /**
@@ -301,35 +146,6 @@ export class Helper {
     public static path_twitchdownloader(): string | false {
         if (Config.getInstance().cfg("twitchdownloader_path")) return Config.getInstance().cfg<string>("twitchdownloader_path");
         return false;
-    }
-
-    public static async eventSubUnsubscribe(subscription_id: string) {
-
-        Log.logAdvanced(LOGLEVEL.INFO, "helper", `Unsubscribing from eventsub id ${subscription_id}`);
-
-        if (!this.axios) {
-            throw new Error("Axios is not initialized");
-        }
-
-        let response;
-
-        try {
-            // $response = $this->$guzzler->request("DELETE", "/helix/eventsub/subscriptions?id={$subscription_id}");
-            response = await this.axios.delete(`/helix/eventsub/subscriptions?id=${subscription_id}`);
-        } catch (th) {
-            Log.logAdvanced(LOGLEVEL.FATAL, "helper", `Unsubscribe from eventsub ${subscription_id} error: ${th}`);
-            return false;
-        }
-
-        if (response.status > 299) {
-            Log.logAdvanced(LOGLEVEL.FATAL, "helper", `Unsubscribe from eventsub ${subscription_id} error: ${response.statusText}`);
-            return false;
-        }
-
-        Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Unsubscribed from eventsub ${subscription_id} successfully`);
-
-        return true;
-
     }
 
     /**
@@ -560,7 +376,7 @@ export class Helper {
 
         return new Promise((resolve, reject) => {
 
-            const ffmpeg_path = this.path_ffmpeg();
+            const ffmpeg_path = Helper.path_ffmpeg();
 
             if (!ffmpeg_path) {
                 reject(new Error("Failed to find ffmpeg"));
@@ -647,7 +463,7 @@ export class Helper {
                     // console.debug(`Remux current time: ${currentSeconds}/${totalSeconds}`);
                     console.log(
                         chalk.bgGreen.whiteBright(
-                            `${new Date().toISOString()} ${path.basename(input)} ${currentSeconds}/${totalSeconds} (${Math.round((currentSeconds / totalSeconds) * 100)})`
+                            `[${new Date().toISOString()}] Remuxing ${path.basename(input)} - ${currentSeconds}/${totalSeconds} seconds (${Math.round((currentSeconds / totalSeconds) * 100)}%)`
                         )
                     );
                 }
@@ -699,7 +515,7 @@ export class Helper {
 
         return new Promise((resolve, reject) => {
 
-            const ffmpeg_path = this.path_ffmpeg();
+            const ffmpeg_path = Helper.path_ffmpeg();
 
             if (!ffmpeg_path) {
                 reject(new Error("Failed to find ffmpeg"));
@@ -800,42 +616,6 @@ export class Helper {
 
     }
 
-    // not sure if this is even working correctly, chat is horrible to work with, not even worth it
-    static cutChat(input: string, output: string, start_second: number, end_second: number, overwrite = false): boolean {
-
-        // return new Promise((resolve, reject) => {
-
-        if (!fs.existsSync(input)) {
-            throw new Error(`Input file ${input} does not exist`);
-        }
-
-        if (!overwrite && fs.existsSync(output)) {
-            throw new Error(`Output file ${output} already exists`);
-        }
-
-        const json: TwitchCommentDump = JSON.parse(fs.readFileSync(input, "utf8"));
-
-        // delete comments outside of the time range
-        json.comments = json.comments.filter((comment) => {
-            return comment.content_offset_seconds >= start_second && comment.content_offset_seconds <= end_second;
-        });
-
-        // normalize the offset of each comment
-        const base_offset = json.comments[0].content_offset_seconds;
-        json.comments.forEach((comment) => {
-            comment.content_offset_seconds -= base_offset;
-        });
-
-        // set length
-        // json.video.length = end_second - start_second;
-        json.video.start = 0;
-        json.video.end = end_second - start_second;
-        // json.video.duration = TwitchHelper.twitchDuration(end_second-start_second);
-
-        fs.writeFileSync(output, JSON.stringify(json));
-
-        return fs.existsSync(output) && fs.statSync(output).size > 0;
-    }
 
     // https://stackoverflow.com/a/2510459
     static formatBytes(bytes: number, precision = 2): string {
@@ -979,7 +759,7 @@ export class Helper {
             }
 
             if (!fs.existsSync(path.dirname(dataPath))) {
-                fs.mkdirSync(path.dirname(dataPath), { recursive: true});
+                fs.mkdirSync(path.dirname(dataPath), { recursive: true });
             }
 
             fs.writeFileSync(dataPath, JSON.stringify(data));
@@ -1090,7 +870,7 @@ export class Helper {
         return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${milliseconds.toString().padStart(3, "0")}`;
     }
 
-    public static async thumbnail(filename: string, width: number, offset = 5000): Promise<string> {
+    public static async videoThumbnail(filename: string, width: number, offset = 5000): Promise<string> {
 
         Log.logAdvanced(LOGLEVEL.INFO, "helper.thumbnail", `Run ffmpeg on ${filename}`);
 
@@ -1099,16 +879,16 @@ export class Helper {
         }
 
         if (!fs.existsSync(filename)) {
-            throw new Error("File not found for thumbnail");
+            throw new Error(`File not found for video thumbnail: ${filename}`);
         }
 
         if (fs.statSync(filename).size == 0) {
-            throw new Error("Filesize is 0 for thumbnail");
+            throw new Error(`Filesize is 0 for video thumbnail: ${filename}`);
         }
 
         const filenameHash = createHash("md5").update(filename + width + offset).digest("hex");
 
-        const output_image = path.join(BaseConfigDataFolder.public_cache_thumbs, `${filenameHash}.jpg`);
+        const output_image = path.join(BaseConfigDataFolder.public_cache_thumbs, `${filenameHash}.${Config.getInstance().cfg<string>("thumbnail_format", "jpg")}`);
 
         if (fs.existsSync(output_image)) {
             return path.basename(output_image);
@@ -1123,7 +903,7 @@ export class Helper {
             "-vf", `thumbnail,scale=${width}:-1`,
             "-frames:v", "1",
             output_image,
-        ], "ffmpeg");
+        ], "ffmpeg video thumbnail");
 
         if (output && fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
             return path.basename(output_image);
@@ -1133,181 +913,45 @@ export class Helper {
 
     }
 
-    /**
-     * @deprecated use getSubsList instead
-     */
-    public static async getSubs(): Promise<Subscriptions | false> {
+    public static async imageThumbnail(filename: string, width: number): Promise<string> {
 
-        Log.logAdvanced(LOGLEVEL.INFO, "helper.getSubs", "Requesting subscriptions list");
+        Log.logAdvanced(LOGLEVEL.INFO, "helper.thumbnail", `Run imagemagick on ${filename}`);
 
-        if (!this.axios) {
-            throw new Error("Axios is not initialized");
+        if (!filename) {
+            throw new Error("No filename supplied for thumbnail");
         }
 
-        let response;
-
-        try {
-            response = await this.axios.get("/helix/eventsub/subscriptions");
-        } catch (err) {
-            Log.logAdvanced(LOGLEVEL.FATAL, "helper.getSubs", `Subs return: ${err}`);
-            return false;
+        if (!fs.existsSync(filename)) {
+            throw new Error(`File not found for thumbnail: ${filename}`);
         }
 
-        const json: Subscriptions = response.data;
-
-        Log.logAdvanced(LOGLEVEL.INFO, "helper.getSubs", `${json.total} subscriptions`);
-
-        return json;
-
-    }
-
-    public static async getSubsList(): Promise<Subscription[] | false> {
-
-        Log.logAdvanced(LOGLEVEL.INFO, "helper.getSubsList", "Requesting subscriptions list");
-
-        if (!this.axios) {
-            throw new Error("Axios is not initialized");
+        if (fs.statSync(filename).size == 0) {
+            throw new Error(`Filesize is 0 for thumbnail: ${filename}`);
         }
 
-        let subscriptions: Subscription[] = [];
-        let cursor = "";
-        const maxpages = 5;
-        let page = 0;
+        const filenameHash = createHash("md5").update(filename + width).digest("hex");
 
-        do {
+        const output_image = path.join(BaseConfigDataFolder.public_cache_thumbs, `${filenameHash}.${Config.getInstance().cfg<string>("thumbnail_format", "jpg")}`);
 
-            Log.logAdvanced(LOGLEVEL.INFO, "helper.getSubsList", `Fetch subs page ${page}`);
-
-            let response;
-
-            try {
-                response = await this.axios.get("/helix/eventsub/subscriptions", {
-                    params: {
-                        after: cursor,
-                    },
-                });
-            } catch (err) {
-                Log.logAdvanced(LOGLEVEL.FATAL, "helper.getSubsList", `Subs return: ${err}`);
-                return false;
-            }
-
-            const json: Subscriptions = response.data;
-
-            subscriptions = subscriptions.concat(json.data);
-
-            cursor = json.pagination.cursor || "";
-
-        } while (cursor && page++ < maxpages);
-
-        Log.logAdvanced(LOGLEVEL.INFO, "helper.getSubsList", `${subscriptions.length} subscriptions`);
-
-        return subscriptions;
-
-    }
-
-    /**
-     * Get subscription by ID, this is very hacky since it gets all subscriptions and filters by ID
-     * 
-     * @param id 
-     * @returns 
-     */
-    public static async getSubscription(id: string): Promise<Subscription | false> {
-
-        Log.logAdvanced(LOGLEVEL.INFO, "helper", `Requesting subscription ${id}`);
-
-        if (!this.axios) {
-            throw new Error("Axios is not initialized");
+        if (fs.existsSync(output_image)) {
+            return path.basename(output_image);
         }
 
-        const subs = await this.getSubsList();
+        const ffmpeg_path = Helper.path_ffmpeg();
+        if (!ffmpeg_path) throw new Error("Failed to find ffmpeg");
 
-        if (!subs) {
-            return false;
+        const output = await Helper.execSimple(ffmpeg_path, [
+            "-i", filename,
+            "-vf", `scale=${width}:-1`,
+            output_image,
+        ], "ffmpeg image thumbnail");
+
+        if (output && fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
+            return path.basename(output_image);
+        } else {
+            throw new Error("No output from ffmpeg");
         }
 
-        const sub = subs.find((s) => s.id == id);
-
-        if (!sub) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Subscription ${id} not found`);
-            return false;
-        }
-
-        return sub;
-
-    }
-
-    public static getErrors(): string[] {
-        const errors = [];
-        if (!this.axios) errors.push("Axios is not initialized. Make sure the client id and secret are set in the config.");
-        if (!Config.getInstance().cfg("app_url") && Config.getInstance().cfg("app_url") !== "debug") errors.push("No app url set in the config.");
-        if (!Config.getInstance().cfg("api_client_id")) errors.push("No client id set in the config.");
-        if (!Config.getInstance().cfg("api_secret")) errors.push("No client secret set in the config.");
-        if (TwitchChannel.channels.length == 0) errors.push("No channels set in the config.");
-
-        if (!this.path_ffmpeg()) errors.push("Failed to find ffmpeg");
-        if (!this.path_streamlink()) errors.push("Failed to find streamlink");
-        if (!this.path_mediainfo()) errors.push("Failed to find mediainfo");
-
-        for (const field of Config.settingsFields) {
-            if (field.deprecated && Config.getInstance().cfg(field.key) !== field.default) {
-                if (typeof field.deprecated === "string") {
-                    errors.push(`${field.key} is deprecated: ${field.deprecated}`);
-                } else {
-                    errors.push(`'${field.key}' is deprecated and will be removed in the future.`);
-                }
-            }
-        }
-
-        for (const channel of TwitchChannel.channels) {
-            for (const sub_type of Helper.CHANNEL_SUB_TYPES) {
-                if (KeyValue.getInstance().get(`${channel.userid}.substatus.${sub_type}`) === SubStatus.WAITING) {
-                    errors.push(`${channel.login} is waiting for subscription ${sub_type}. Please check the config.`);
-                } else if (KeyValue.getInstance().get(`${channel.userid}.substatus.${sub_type}`) === SubStatus.FAILED) {
-                    errors.push(`${channel.login} failed to subscribe ${sub_type}. Please check the config.`);
-                } else if (KeyValue.getInstance().get(`${channel.userid}.substatus.${sub_type}`) === SubStatus.NONE || !KeyValue.getInstance().has(`${channel.userid}.substatus.${sub_type}`)) {
-                    errors.push(`${channel.login} is not subscribed to ${sub_type}. Please check the config and subscribe.`);
-                }
-            }
-        }
-
-        if (Config.debug) {
-
-            for (const vod of TwitchVOD.vods) {
-
-                if (!vod.is_finalized) continue;
-
-                if (!vod.duration) continue;
-
-                if (!vod.chapters || vod.chapters.length == 0) continue;
-
-                const firstChapter = vod.chapters[0];
-                const lastChapter = vod.chapters[vod.chapters.length - 1];
-
-                if (firstChapter.offset && firstChapter.offset > 0) {
-                    errors.push(`${vod.basename} first chapter starts at ${firstChapter.offset} seconds. Missing pre-stream chapter update?`);
-                }
-
-                // This check does not work since the start/end time of the livestream is not the same as the duration of the VOD
-                // if (lastChapter.offset && lastChapter.duration && Math.round(lastChapter.offset + lastChapter.duration) != vod.duration) {
-                //     errors.push(`${vod.basename} last chapter ends at ${Math.round(lastChapter.offset + lastChapter.duration)} seconds but the VOD duration is ${vod.duration} seconds.`);
-                // }
-
-                const chaptersDuration = vod.chapters.reduce((prev, val) => prev + (val.duration || 0), 0);
-                if (vod.duration - chaptersDuration > 0) {
-                    errors.push(`${vod.basename} has a duration of ${vod.duration} but the chapters are not aligned (${chaptersDuration}).`);
-                }
-
-                for (const chapter of vod.chapters) {
-                    if (!chapter.duration || chapter.duration == 0) {
-                        errors.push(`${vod.basename} chapter ${chapter.title} has no duration.`);
-                    }
-                }
-
-            }
-
-        }
-
-        return errors;
     }
 
 }

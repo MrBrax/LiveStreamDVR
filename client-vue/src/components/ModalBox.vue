@@ -1,17 +1,24 @@
 <template>
     <transition name="modal-transition">
-        <div class="modal-box" v-if="show" @click.self="show = false">
+        <div
+            v-if="show"
+            class="modal-box"
+            @click.self="show = false"
+        >
             <div class="modal-box__container">
                 <div class="modal-box__header">
                     <div class="modal-box__title">
                         {{ title }}
                     </div>
-                    <div class="modal-box__close" @click="show = false">
+                    <div
+                        class="modal-box__close"
+                        @click="show = false"
+                    >
                         <fa icon="times" />
                     </div>
                 </div>
                 <div class="modal-box__body">
-                    <slot></slot>
+                    <slot />
                 </div>
             </div>
         </div>
@@ -25,12 +32,6 @@ import { faTimes } from "@fortawesome/free-solid-svg-icons";
 library.add(faTimes);
 
 export default defineComponent({
-    emits: ["close"],
-    data() {
-        return {
-            show: false,
-        };
-    },
     props: {
         title: {
             type: String,
@@ -40,6 +41,12 @@ export default defineComponent({
         //     type: Boolean,
         //     default: false,
         // },
+    },
+    emits: ["close"],
+    data() {
+        return {
+            show: false,
+        };
     },
     methods: {
         close() {

@@ -11,9 +11,11 @@ module.exports = {
     "parserOptions": {
         "ecmaVersion": "latest",
         "sourceType": "module",
+        "project": "./tsconfig.json",
     },
     "plugins": [
         "@typescript-eslint",
+        "deprecation",
     ],
     "rules": {
         "indent": [
@@ -42,5 +44,7 @@ module.exports = {
             "exports": "always-multiline",
             "functions": "never",
         }],
+        "deprecation/deprecation": "warn",
     },
+    ignorePatterns: ['.eslintrc.js']
 };

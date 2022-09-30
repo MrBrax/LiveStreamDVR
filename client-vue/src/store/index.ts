@@ -1,15 +1,24 @@
-import { ApiChannel, ApiJob, ApiLogLine, ApiVod } from "../../../common/Api/Client";
+import { ApiJob, ApiLogLine, ApiChannels, ApiVods } from "../../../common/Api/Client";
 import { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiJobsResponse, ApiSettingsResponse, ApiVodResponse } from "../../../common/Api/Api";
 import axios from "axios";
 import { defineStore } from "pinia";
 import { ClientSettings } from "@/twitchautomator";
-import TwitchChannel from "@/core/channel";
-import TwitchVOD from "@/core/vod";
+import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
+import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import { defaultConfig } from "@/defs";
+import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
+import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
+import { TwitchVODChapter } from "@/core/Providers/Twitch/TwitchVODChapter";
+import { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
+import { parseJSON } from "date-fns";
+
+export type ChannelTypes = TwitchChannel | YouTubeChannel;
+export type VODTypes = TwitchVOD | YouTubeVOD;
+export type ChapterTypes = TwitchVODChapter | BaseVODChapter;
 
 interface StoreType {
     app_name: string;
-    streamerList: TwitchChannel[];
+    streamerList: ChannelTypes[];
     streamerListLoaded: boolean;
     jobList: ApiJob[];
     config: Record<string, any> | null;
@@ -112,14 +121,22 @@ export const useStore = defineStore("twitchAutomator", {
         async fetchAndUpdateStreamerList(): Promise<void> {
             const data = await this.fetchStreamerList();
             if (data) {
-                const channels = data.streamer_list.map((channel) => TwitchChannel.makeFromApiResponse(channel));
+                const channels = data.streamer_list.map((channel) => {
+                    switch (channel.provider) {
+                        case "twitch":
+                            return TwitchChannel.makeFromApiResponse(channel);
+                        case "youtube":
+                            return YouTubeChannel.makeFromApiResponse(channel);
+                    }
+                }).filter(c => c !== undefined);
+
                 this.streamerList = channels;
                 this.streamerListLoaded = true;
                 this.diskFreeSize = data.free_size;
                 // this.diskTotalSize = data.total_size;
             }
         },
-        async fetchStreamerList(): Promise<false | { streamer_list: ApiChannel[]; total_size: number; free_size: number; }> {
+        async fetchStreamerList(): Promise<false | { streamer_list: ApiChannels[]; total_size: number; free_size: number; }> {
             this.loading = true;
             let response;
             try {
@@ -140,11 +157,11 @@ export const useStore = defineStore("twitchAutomator", {
             this.loading = false;
             return data.data;
         },
-        async fetchVod(basename: string): Promise<false | ApiVod> {
+        async fetchVod(uuid: string): Promise<false | ApiVods> {
             this.loading = true;
             let response;
             try {
-                response = await axios.get(`/api/v0/vod/${basename}`);
+                response = await axios.get(`/api/v0/vod/${uuid}`);
             } catch (error) {
                 console.error("fetchVod error", error);
                 this.loading = false;
@@ -162,39 +179,69 @@ export const useStore = defineStore("twitchAutomator", {
             this.loading = false;
             return data.data;
         },
-        async fetchAndUpdateVod(basename: string): Promise<boolean> {
-            const vod_data = await this.fetchVod(basename);
+        async fetchAndUpdateVod(uuid: string): Promise<boolean> {
+            const vod_data = await this.fetchVod(uuid);
             if (!vod_data) return false;
 
             // check if streamer is already in the list
-            const index = this.streamerList.findIndex((s) => s.userid === vod_data.streamer_id);
-            if (index === -1) return false;
-
-            const vod = TwitchVOD.makeFromApiResponse(vod_data);
-
-            return this.updateVod(vod);
+            if (vod_data.provider == "twitch") {
+                const index = this.streamerList.findIndex((s) => s instanceof TwitchChannel && s.uuid === vod_data.uuid);
+                if (index === -1) return false;
+                const vod = TwitchVOD.makeFromApiResponse(vod_data);
+                return this.updateVod(vod);
+            } else if (vod_data.provider == "youtube") {
+                const index = this.streamerList.findIndex((s) => s instanceof YouTubeChannel && s.uuid === vod_data.uuid);
+                if (index === -1) return false;
+                const vod = YouTubeVOD.makeFromApiResponse(vod_data);
+                return this.updateVod(vod);
+            }
+            return false;
         },
-        updateVod(vod: TwitchVOD): boolean {
-            const index = this.streamerList.findIndex((s) => s.userid === vod.streamer_id);
-            if (index === -1) return false;
+        updateVod(vod: VODTypes): boolean {
+
+            const provider = vod.provider;
+
+            const streamer = this.streamerList.find<ChannelTypes>((s): s is ChannelTypes => {
+                if (provider == "twitch") return s instanceof TwitchChannel && s.uuid === vod.channel_uuid;
+                if (provider == "youtube") return s instanceof YouTubeChannel && s.uuid === vod.channel_uuid;
+                return false;
+            });
+            if (!streamer) return false;
 
             // check if vod is already in the streamer's vods
-            const vodIndex = this.streamerList[index].vods_list.findIndex((v) => v.basename === vod.basename);
-
-            console.debug("updateVod", vod.basename, vodIndex);
-
+            const vodIndex = streamer.vods_list.findIndex((v) => v.uuid === vod.uuid);
+            
             if (vodIndex === -1) {
                 console.debug("inserting vod", vod);
-                this.streamerList[index].vods_list.push(vod);
+                if (streamer instanceof TwitchChannel) {
+                    streamer.vods_list.push(vod as TwitchVOD);
+                } else if (streamer instanceof YouTubeChannel) {
+                    streamer.vods_list.push(vod as YouTubeVOD);
+                }
             } else {
                 console.debug("updating vod", vod);
-                this.streamerList[index].vods_list[vodIndex] = vod;
+                streamer.vods_list[vodIndex] = vod;
             }
             return true;
         },
-        updateVodFromData(vod_data: ApiVod): boolean {
-            const vod = TwitchVOD.makeFromApiResponse(vod_data);
-            return this.updateVod(vod);
+        updateVodFromData(vod_data: ApiVods): boolean {
+            // const vod = TwitchVOD.makeFromApiResponse(vod_data);
+            // return this.updateVod(vod);
+
+            if (vod_data.provider == "twitch") {
+                const index = this.streamerList.findIndex((channel) => channel instanceof TwitchChannel && channel.uuid === vod_data.channel_uuid);
+                if (index === -1) return false;
+                const vod = TwitchVOD.makeFromApiResponse(vod_data);
+                return this.updateVod(vod);
+            } else if (vod_data.provider == "youtube") {
+                const index = this.streamerList.findIndex((channel) => channel instanceof YouTubeChannel && channel.uuid === vod_data.channel_uuid);
+                if (index === -1) return false;
+                const vod = YouTubeVOD.makeFromApiResponse(vod_data);
+                return this.updateVod(vod);
+            }
+
+            return false;
+
         },
         removeVod(basename: string): void {
             this.streamerList.forEach((s) => {
@@ -209,16 +256,16 @@ export const useStore = defineStore("twitchAutomator", {
                 streamer.vods_list.forEach((vod) => {
                     if (vod.is_capturing) {
                         // console.debug("updateCapturingVods", vod.basename);
-                        this.fetchAndUpdateVod(vod.basename);
+                        this.fetchAndUpdateVod(vod.uuid);
                     }
                 });
             });
         },
-        async fetchStreamer(login: string): Promise<false | ApiChannel> {
+        async fetchStreamer(uuid: string): Promise<false | ApiChannels> {
             this.loading = true;
             let response;
             try {
-                response = await axios.get(`/api/v0/channels/${login}`);
+                response = await axios.get(`/api/v0/channels/${uuid}`);
             } catch (error) {
                 console.error("fetchStreamer error", error);
                 this.loading = false;
@@ -236,15 +283,16 @@ export const useStore = defineStore("twitchAutomator", {
                 return false;
             }
 
-            const streamer: ApiChannel = data.data;
+            const streamer: ApiChannels = data.data;
 
             this.loading = true;
             return streamer;
         },
-        async fetchAndUpdateStreamer(login: string): Promise<boolean> {
-            const streamer_data = await this.fetchStreamer(login);
+        async fetchAndUpdateStreamer(uuid: string): Promise<boolean> {
+            const streamer_data = await this.fetchStreamer(uuid);
             if (!streamer_data) return false;
 
+            /*
             const index = this.streamerList.findIndex((s) => s.login === login);
             if (index === -1) return false;
 
@@ -253,11 +301,25 @@ export const useStore = defineStore("twitchAutomator", {
             this.updateStreamer(streamer);
             console.debug("updated streamer", streamer);
             return true;
-        },
-        updateStreamer(streamer: TwitchChannel): boolean {
-            const index = this.streamerList.findIndex((s) => s.login === streamer.login);
+            */
 
-            console.debug("updateStreamer", streamer.login, index);
+            if (streamer_data.provider == "twitch") {
+                const index = this.streamerList.findIndex((channel) => channel instanceof TwitchChannel && channel.uuid === streamer_data.uuid);
+                if (index === -1) return false;
+                const streamer = TwitchChannel.makeFromApiResponse(streamer_data);
+                return this.updateStreamer(streamer);
+            } else if (streamer_data.provider == "youtube") {
+                const index = this.streamerList.findIndex((channel) => channel instanceof YouTubeChannel && channel.uuid === streamer_data.uuid);
+                if (index === -1) return false;
+                const streamer = YouTubeChannel.makeFromApiResponse(streamer_data);
+                return this.updateStreamer(streamer);
+            }
+            return false;
+        },
+        updateStreamer(streamer: ChannelTypes): boolean {
+            const index = this.streamerList.findIndex((s) => s.uuid === streamer.uuid);
+
+            console.debug("updateStreamer", streamer.internalName, index);
 
             if (index === -1) {
                 this.streamerList.push(streamer);
@@ -267,16 +329,27 @@ export const useStore = defineStore("twitchAutomator", {
 
             return true;
         },
-        updateStreamerFromData(streamer_data: ApiChannel): boolean {
-            const streamer = TwitchChannel.makeFromApiResponse(streamer_data);
+        updateStreamerFromData(streamer_data: ApiChannels): boolean {
+            let streamer;
+            if (streamer_data.provider == "youtube") {
+                streamer = YouTubeChannel.makeFromApiResponse(streamer_data);
+            } else {
+                streamer = TwitchChannel.makeFromApiResponse(streamer_data);
+            }
             return this.updateStreamer(streamer);
         },
-        updateStreamerList(data: ApiChannel[]): void {
+        updateStreamerList(data: ApiChannels[]): void {
             // console.debug("updateStreamerList", data);
             if (!data || typeof data !== "object") {
                 console.warn("updateStreamerList malformed data", typeof data, data);
             }
-            const channels = data.map((channel) => TwitchChannel.makeFromApiResponse(channel));
+            const channels = data.map((channel) => {
+                if (channel.provider == "youtube") {
+                    return YouTubeChannel.makeFromApiResponse(channel);
+                } else {
+                    return TwitchChannel.makeFromApiResponse(channel);
+                }
+            });
             this.streamerList = channels;
             this.streamerListLoaded = true;
         },
@@ -329,6 +402,22 @@ export const useStore = defineStore("twitchAutomator", {
                 this.jobList.splice(index, 1);
             }
         },
+        getJobTimeRemaining(job_name: string): number {
+            const index = this.jobList.findIndex((j) => j.name === job_name);
+            if (index === -1) {
+                console.warn(`Job '${job_name}' not found in job list`);
+                return 0;
+            }
+
+            // https://math.stackexchange.com/a/3694290
+            const job = this.jobList[index];
+            const now = Date.now();
+            const start = parseJSON(job.dt_started_at).getTime();
+            const elapsedSeconds = (now - start);
+            const calc = elapsedSeconds * (1/(job.progress) - 1);
+            console.debug(job_name, job.dt_started_at, elapsedSeconds, job.progress, calc);
+            return calc;
+        },
         updateConfig(data: Record<string, any> | null) {
             this.config = data;
         },
@@ -378,7 +467,7 @@ export const useStore = defineStore("twitchAutomator", {
             localStorage.setItem("twitchautomator_config", JSON.stringify(this.clientConfig));
             console.log("Saved client config");
         },
-        getStreamers(): TwitchChannel[] {
+        getStreamers(): ChannelTypes[] {
             return this.streamerList;
         },
         addLog(lines: ApiLogLine[]) {
@@ -430,6 +519,11 @@ export const useStore = defineStore("twitchAutomator", {
         },
         setVisibleVod(basename: string) {
             this.visibleVod = basename;
+        },
+        channelUUIDToInternalName(uuid: string): string {
+            const channel = this.streamerList.find(c => c.uuid === uuid);
+            if (!channel) return "";
+            return channel.internalName;
         }
     },
     getters: {

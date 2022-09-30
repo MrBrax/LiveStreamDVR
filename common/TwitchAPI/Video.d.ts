@@ -1,6 +1,6 @@
 import { Pagination } from "./Shared";
 
-interface MutedSegment {
+export interface MutedSegment {
     duration: number;
     offset: number;
 }

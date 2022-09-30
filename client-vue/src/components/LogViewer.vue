@@ -3,28 +3,56 @@
         <div class="field is-horizontal">
             <div class="select is-small">
                 <select v-model="logFilename">
-                    <option v-for="fn in logFilenames" :key="fn">{{ fn }}</option>
+                    <option
+                        v-for="fn in logFilenames"
+                        :key="fn"
+                    >
+                        {{ fn }}
+                    </option>
                 </select>
             </div>
-            <button class="button is-small" type="button" @click="fetchLog(true)">
+            <button
+                class="button is-small"
+                type="button"
+                @click="fetchLog(true)"
+            >
                 <span class="icon"><fa icon="sync" /></span>
                 <span>Fetch</span>
             </button>
         </div>
     </div>
 
-    <div class="log_viewer" ref="logViewer">
+    <div
+        ref="logViewer"
+        class="log_viewer"
+    >
         <table>
-            <tr v-for="(line, lineIndex) in logFiltered" :key="lineIndex" :class="logLineClass(line)">
-                <td v-if="line.date">{{ formatDate(line.date) }}</td>
-                <td v-else-if="line.time">{{ formatTimestamp(line.time / 1000, "yyyy-MM-dd HH:ii:ss.SSS") }}</td>
-                <td v-else-if="line.date_string">{{ line.date_string }}</td>
-                <td v-else>(no date)</td>
+            <tr
+                v-for="(line, lineIndex) in logFiltered"
+                :key="lineIndex"
+                :class="logLineClass(line)"
+            >
+                <td v-if="line.date">
+                    {{ formatDate(line.date) }}
+                </td>
+                <td v-else-if="line.time">
+                    {{ formatTimestamp(line.time / 1000, "yyyy-MM-dd HH:ii:ss.SSS") }}
+                </td>
+                <td v-else-if="line.date_string">
+                    {{ line.date_string }}
+                </td>
+                <td v-else>
+                    (no date)
+                </td>
                 <td>
                     <a @click="logSetFilter(line.module)">{{ line.module }}</a>
                 </td>
-                <td :title="'PID: ' + line.pid">{{ line.level || "UNKNOWN" }}</td>
-                <td @click="expandLog(lineIndex)">{{ line.text }}</td>
+                <td :title="'PID: ' + line.pid">
+                    {{ line.level || "UNKNOWN" }}
+                </td>
+                <td @click="expandLog(lineIndex)">
+                    {{ line.text }}
+                </td>
             </tr>
         </table>
     </div>
@@ -57,8 +85,21 @@ export default defineComponent({
             logFromLine: 0,
             logVisible: false,
             logModule: "",
-            watcher: () => {},
+            watcher: () => { console.log("watcher"); },
         };
+    },
+    computed: {
+        logFiltered(): ApiLogLine[] {
+            return this.logLines.filter(line => {
+                if (this.logModule) {
+                    return line.module === this.logModule;
+                }
+                return true;
+            });
+        },
+        logLines(): ApiLogLine[] {
+            return this.store.log;
+        },
     },
     mounted() {
         this.watcher = this.store.$onAction(({ name, store, args, after, onError }) => {
@@ -141,19 +182,6 @@ export default defineComponent({
                 alert(JSON.stringify(this.store.log[lineNumber].metadata, undefined, 2));
                 console.log(this.store.log[lineNumber].metadata);
             }
-        },
-    },
-    computed: {
-        logFiltered(): ApiLogLine[] {
-            return this.logLines.filter(line => {
-                if (this.logModule) {
-                    return line.module === this.logModule;
-                }
-                return true;
-            });
-        },
-        logLines(): ApiLogLine[] {
-            return this.store.log;
         },
     },
 });

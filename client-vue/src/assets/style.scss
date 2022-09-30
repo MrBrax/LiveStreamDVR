@@ -43,6 +43,7 @@ $boxart-height: 190px;
 
     --link-color: #277dec;
     --link-hover-color: #184279;
+    --link-active-color: #148d8d;
 
     --input-background-color: #fff;
     --input-border-color: #ccc;
@@ -132,6 +133,9 @@ a {
     color: var(--link-color);
     &:hover {
         color: var(--link-hover-color);
+    }
+    &:active {
+        color: var(--link-active-color);
     }
 }
 
@@ -264,4 +268,8 @@ svg[data-icon] {
 
 .is-text-darker {
     color: var(--text-darker);
+}
+
+.strikethrough {
+    text-decoration: line-through;
 }

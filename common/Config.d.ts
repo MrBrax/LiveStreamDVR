@@ -1,3 +1,5 @@
+import type { Providers } from "./Defs";
+
 export type VideoQuality = "best" | "1080p60" | "1080p" | "720p60" | "720p" | "480p" | "360p" | "160p" | "140p" | "worst" | "audio_only";
 export interface SettingField<T> {
     key: string;
@@ -34,17 +36,16 @@ export interface SettingField<T> {
 
     restart_required?: boolean;
 
-    replacements?: Record<string, {
-        display: string;
-    }>;
+    replacements?: Record<string, { display: string; description?: string; deprecated?: boolean; }>;
     context?: string;
 
     guest?: boolean;
 
 }
 
-export interface ChannelConfig {
-    login: string;
+export interface BaseChannelConfig {
+    provider: Providers;
+    uuid: string;
     quality: VideoQuality[];
     match: string[];
     download_chat: boolean;
@@ -57,3 +58,15 @@ export interface ChannelConfig {
     download_vod_at_end: boolean;
     download_vod_at_end_quality: VideoQuality;
 }
+
+export interface TwitchChannelConfig extends BaseChannelConfig {
+    provider: "twitch";
+    login: string;
+}
+
+export interface YouTubeChannelConfig extends BaseChannelConfig {
+    provider: "youtube";
+    channel_id: string;
+}
+
+export type ChannelConfig = TwitchChannelConfig | YouTubeChannelConfig;

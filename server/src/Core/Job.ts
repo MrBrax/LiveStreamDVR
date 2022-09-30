@@ -2,13 +2,14 @@ import path from "path";
 import fs from "fs";
 import { BaseConfigDataFolder } from "./BaseConfig";
 import { LOGLEVEL, Log } from "./Log";
-import { Helper } from "./Helper";
+import { TwitchHelper } from "../Providers/Twitch";
 import { parseJSON } from "date-fns";
 import { ChildProcessWithoutNullStreams } from "child_process";
 import { EventEmitter } from "events";
 import { Webhook } from "./Webhook";
 import { ApiJob } from "../../../common/Api/Client";
 import { JobStatus } from "../../../common/Defs";
+import { Helper } from "./Helper";
 
 export interface TwitchAutomatorJobJSON {
     name: string;
@@ -85,7 +86,20 @@ export class Job extends EventEmitter {
     public static async checkStaleJobs() {
         // const now = new Date();
         for (const job of this.jobs) {
-            const status = await job.getStatus(true);
+            if (job.dummy) {
+                job.clear();
+                continue;
+            }
+            
+            let status;
+            try {
+                status = await job.getStatus(true);
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Job ${job.name} stale status error: ${(error as Error).message}`);
+                job.clear();
+                continue;
+            } 
+
             if (status == JobStatus.STOPPED || status == JobStatus.ERROR) {
                 Log.logAdvanced(LOGLEVEL.WARNING, "job", `Job ${job.name} is stale, no process found. Clearing.`);
                 job.clear();
@@ -629,18 +643,19 @@ export class Job extends EventEmitter {
             }
             */
             if (this._progressTimer) {
+                // console.debug(`Job ${this.name} cancel update`);
                 clearTimeout(this._progressTimer);
                 this.progressUpdatesCleared++;
             } 
             this._progressTimer = setTimeout(() => {
-                if (!this || this.status !== JobStatus.RUNNING) return; 
+                if (!this || (!this.dummy && this.status !== JobStatus.RUNNING)) return; 
                 this.progress = progress;
                 Webhook.dispatch("job_progress", {
                     "job_name": this.name || "",
                     "progress": progress,
                 });
                 this.progressUpdatesCleared = 0;
-            }, this.progressUpdatesCleared > 5 ? 0 : 2000);
+            }, this.progressUpdatesCleared > 3 ? 0 : 2000);
         } else {
             // console.debug(`Job ${this.name} less progress: ${progress} / ${this.progress}`);
         }
@@ -690,7 +705,13 @@ export class Job extends EventEmitter {
         if (!noTimer) {
             this._updateTimer = setTimeout(async () => {
                 // console.debug(`Broadcasting job update for ${this.name}: ${this.status}`);
-                await this.getStatus();
+                
+                try {
+                    await this.getStatus();
+                } catch (error) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "job", `Broadcast job ${this.name} status error: ${(error as Error).message}`);
+                }
+
                 this.emit("update", this.toAPI());
                 this._updateTimer = undefined;
                 Webhook.dispatch(Job.hasJob(this.name || "") ? "job_update" : "job_clear", {

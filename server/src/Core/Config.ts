@@ -9,15 +9,17 @@ import { SettingField } from "../../../common/Config";
 import { ClipBasenameFields, VodBasenameFields } from "../../../common/ReplacementsConsts";
 import { AppRoot, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot, HomeRoot } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
-import { Helper } from "./Helper";
+import { TwitchHelper } from "../Providers/Twitch";
 import { KeyValue } from "./KeyValue";
 import { Log, LOGLEVEL } from "./Log";
 import { Scheduler } from "./Scheduler";
 import { Job } from "./Job";
-import { TwitchChannel } from "./TwitchChannel";
-import { TwitchGame } from "./TwitchGame";
-import { TwitchVOD } from "./TwitchVOD";
+import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
+import { TwitchGame } from "./Providers/Twitch/TwitchGame";
 import { YouTubeHelper } from "../Providers/YouTube";
+import { LiveStreamDVR } from "./LiveStreamDVR";
+import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
+import { Helper } from "./Helper";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -94,6 +96,8 @@ export class Config {
         { "key": "low_latency", "group": "Capture", "text": "Low latency (untested)", "type": "boolean" },
         { "key": "disable_ads", "group": "Capture", "text": "Try to remove ads from captured file", "type": "boolean", "default": true, "help": "This removes the \"Commercial break in progress\", but stream is probably going to be cut off anyway" },
 
+        { "key": "capture.use_cache", "group": "Capture", "text": "Use cache", "type": "boolean", "default": false, "help": "Use cache directory for in-progress captures" },
+
         // { "key": "sub_lease", "group": "Advanced", "text": "Subscription lease", "type": "number", "default": 604800 },
         { "key": "api_client_id", "group": "Basic", "text": "Twitch client ID", "type": "string", "required": true },
         { "key": "api_secret", "group": "Basic", "text": "Twitch secret", "type": "string", "secret": true, "required": true, "help": "Keep blank to not change" },
@@ -114,16 +118,16 @@ export class Config {
         { "key": "dump_payloads", "group": "Developer", "text": "Dump payloads", "type": "boolean", "default": false },
         { "key": "debug.catch_global_exceptions", "group": "Developer", "text": "Catch global exceptions", "type": "boolean", "default": false },
 
-        { "key": "chat_compress", "group": "Advanced", "text": "Compress chat with gzip (untested)", "type": "boolean" },
+        // { "key": "chat_compress", "group": "Advanced", "text": "Compress chat with gzip (untested)", "type": "boolean" },
         // { "key": "relative_time", "group": "Interface", "text": "Relative time", "type": "boolean", "help": "\"1 hour ago\" instead of 2020-01-01" },
 
         // {'key': 'youtube_dlc', 			'group': 'Advanced',	'text': 'Use youtube-dlc instead of the regular one', 	        'type': 'boolean'},
         // {'key': 'youtube_dl_alternative', 'group': 'Advanced',	'text': 'The alternative to youtube-dl to use', 			    'type': 'string'},
-        { "key": "pipenv_enabled", "group": "Advanced", "text": "Use pipenv", "type": "boolean", "default": false, deprecated: true },
-        { "key": "chat_dump", "group": "Basic", "text": "Dump chat during capture for all channels", "type": "boolean", "default": false, "help": "Dump chat from IRC, forgoing saved vod chat.", "deprecated": "Use the setting per channel instead" },
-        { "key": "ts_sync", "group": "Video", "text": "Try to force sync remuxing (not recommended)", "type": "boolean", "default": false },
-        { "key": "encode_audio", "group": "Video", "text": "Encode audio stream", "type": "boolean", "default": false, "help": "This may help with audio syncing." },
-        { "key": "fix_corruption", "group": "Video", "text": "Try to fix corruption in remuxing (not recommended)", "type": "boolean", "default": false, "help": "This may help with audio syncing." },
+        // { "key": "pipenv_enabled", "group": "Advanced", "text": "Use pipenv", "type": "boolean", "default": false, deprecated: true },
+        // { "key": "chat_dump", "group": "Basic", "text": "Dump chat during capture for all channels", "type": "boolean", "default": false, "help": "Dump chat from IRC, forgoing saved vod chat.", "deprecated": "Use the setting per channel instead" },
+        // { "key": "ts_sync", "group": "Video", "text": "Try to force sync remuxing (not recommended)", "type": "boolean", "default": false },
+        // { "key": "encode_audio", "group": "Video", "text": "Encode audio stream", "type": "boolean", "default": false, "help": "This may help with audio syncing." },
+        // { "key": "fix_corruption", "group": "Video", "text": "Try to fix corruption in remuxing (not recommended)", "type": "boolean", "default": false, "help": "This may help with audio syncing." },
         { "key": "playlist_dump", "group": "Advanced", "text": "Use playlist dumping (experimental)", "type": "boolean", "default": false },
         // { "key": "process_wait_method", "group": "Advanced", "text": "Process wait method", "type": "number", "default": 1 },
 
@@ -310,6 +314,8 @@ export class Config {
         { key: "chatburn.default.vertical",         group: "Chat burn", text: "Chat vertical position", type: "array", choices: ["top", "bottom"], default: "top" },
         { key: "chatburn.default.preset",           group: "Chat burn", text: "Burning ffmpeg preset", type: "string", default: "slow" },
         { key: "chatburn.default.crf",              group: "Chat burn", text: "Burning ffmpeg crf", type: "number", default: 26 },
+
+        { key: "thumbnail_format", group: "Thumbnails", text: "Thumbnail format", type: "array", choices: ["jpg", "png", "webp"], default: "jpg" },
 
     ];
 
@@ -569,7 +575,7 @@ export class Config {
 
         let token;
         try {
-            token = await Helper.getAccessToken();
+            token = await TwitchHelper.getAccessToken();
         } catch (error) {
             console.error(chalk.red(`Failed to get access token: ${error}`));
             return;
@@ -580,7 +586,7 @@ export class Config {
             throw new Error("Could not get access token!");
         }
 
-        Helper.axios = axios.create({
+        TwitchHelper.axios = axios.create({
             baseURL: "https://api.twitch.tv",
             headers: {
                 "Client-ID": this.cfg("api_client_id"),
@@ -782,9 +788,10 @@ export class Config {
 
         TwitchGame.populateGameDatabase();
         TwitchGame.populateFavouriteGames();
-        TwitchChannel.loadChannelsConfig();
+        LiveStreamDVR.getInstance().loadChannelsConfig();
         TwitchChannel.loadChannelsCache();
-        await TwitchChannel.loadChannels();
+        YouTubeChannel.loadChannelsCache();
+        await LiveStreamDVR.getInstance().loadChannels();
         Job.loadJobsFromCache();
 
         Config.getInstance().startWatchingConfig();
@@ -810,12 +817,13 @@ export class Config {
 
     static async resetChannels() {
         TwitchChannel.channels_cache = {};
-        TwitchChannel.channels_config = [];
-        TwitchChannel.channels = [];
-        TwitchVOD.vods = [];
-        TwitchChannel.loadChannelsConfig();
+        LiveStreamDVR.getInstance().channels_config = [];
+        LiveStreamDVR.getInstance().channels = [];
+        LiveStreamDVR.getInstance().vods = [];
+        LiveStreamDVR.getInstance().loadChannelsConfig();
         TwitchChannel.loadChannelsCache();
-        await TwitchChannel.loadChannels();
+        YouTubeChannel.loadChannelsCache();
+        await LiveStreamDVR.getInstance().loadChannels();
     }
 
     async validateExternalURL(test_url = ""): Promise<boolean> {
@@ -909,8 +917,8 @@ export class Config {
     }
 
     static get can_shutdown(): boolean {
-        if (!TwitchChannel.channels || TwitchChannel.channels.length === 0) return true;
-        return !TwitchChannel.channels.some(c => c.is_live);
+        if (!LiveStreamDVR.getInstance().channels || LiveStreamDVR.getInstance().channels.length === 0) return true;
+        return !LiveStreamDVR.getInstance().channels.some(c => c.is_live);
     }
 
     async getGitHash() {

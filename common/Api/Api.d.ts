@@ -1,5 +1,5 @@
 import { ChannelConfig, SettingField } from "../Config";
-import { ApiChannel, ApiGame, ApiJob, ApiLogLine, ApiVod } from "./Client";
+import { ApiTwitchChannel, ApiGame, ApiJob, ApiLogLine, ApiTwitchVod, ApiChannels, ApiVods } from "./Client";
 
 interface ApiResponse {
     data: any;
@@ -10,6 +10,14 @@ interface ApiResponse {
 interface ApiErrorResponse {
     status: "ERROR";
     message: string;
+}
+
+interface ApiQuotas {
+    twitch: {
+        max_total_cost: number;
+        total_cost: number;
+        total: number;
+    }
 }
 
 export interface ApiSettingsResponse extends ApiResponse {
@@ -27,6 +35,7 @@ export interface ApiSettingsResponse extends ApiResponse {
         errors?: string[];
         guest: boolean;
         server_git_hash?: string;
+        quotas: ApiQuotas;
     };
 }
 
@@ -36,18 +45,18 @@ export interface ApiGamesResponse extends ApiResponse {
 
 export interface ApiChannelsResponse extends ApiResponse {
     data: {
-        streamer_list: ApiChannel[];
+        streamer_list: ApiChannels[];
         total_size: number;
         free_size: number;
     };
 }
 
 export interface ApiChannelResponse extends ApiResponse {
-    data: ApiChannel;
+    data: ApiChannels;
 }
 
 export interface ApiVodResponse extends ApiResponse {
-    data: ApiVod;
+    data: ApiVods;
 }
 
 export interface ApiLogResponse extends ApiResponse {

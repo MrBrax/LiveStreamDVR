@@ -1,12 +1,12 @@
 import express from "express";
 import type { ApiSettingsResponse } from "../../../common/Api/Api";
-// import type { SettingField } from "../../../common/Config";
 import { version } from "../../package.json";
-import { TwitchChannel } from "../Core/TwitchChannel";
-import { Config } from "../Core/Config";
-import { TwitchGame } from "../Core/TwitchGame";
-import { Helper } from "../Core/Helper";
 import { AppName } from "../Core/BaseConfig";
+import { Config } from "../Core/Config";
+import { TwitchHelper } from "../Providers/Twitch";
+import { KeyValue } from "../Core/KeyValue";
+import { LiveStreamDVR } from "../Core/LiveStreamDVR";
+import { TwitchGame } from "../Core/Providers/Twitch/TwitchGame";
 
 export function GetSettings(req: express.Request, res: express.Response): void {
 
@@ -23,14 +23,21 @@ export function GetSettings(req: express.Request, res: express.Response): void {
         data: {
             app_name: AppName,
             config: config,
-            channels: TwitchChannel.channels_config,
+            channels: LiveStreamDVR.getInstance().channels_config,
             favourite_games: TwitchGame.favourite_games,
             fields: Config.settingsFields,
             version: version,
             server: "ts-server",
             websocket_url: Config.getInstance().getWebsocketClientUrl(),
-            errors: Helper.getErrors(),
+            errors: TwitchHelper.getErrors(),
             server_git_hash: Config.getInstance().gitHash,
+            quotas: {
+                twitch: {
+                    max_total_cost: KeyValue.getInstance().getInt("twitch.max_total_cost"),
+                    total_cost: KeyValue.getInstance().getInt("twitch.total_cost"),
+                    total: KeyValue.getInstance().getInt("twitch.total"),
+                },
+            },
             // guest: is_guest,
         },
         status: "OK",
@@ -85,7 +92,7 @@ export function SaveSettings(req: express.Request, res: express.Response): void 
     Config.getInstance().saveConfig("settings form saved");
 
     if (force_new_token) {
-        Helper.getAccessToken(true);
+        TwitchHelper.getAccessToken(true);
     }
 
     res.send({

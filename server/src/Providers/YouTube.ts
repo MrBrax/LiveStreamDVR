@@ -199,4 +199,27 @@ export class YouTubeHelper {
         return;
     }
 
+    // PT4M13S
+    public static parseYouTubeDuration(duration: string) {
+        const regex = /(\d+)([A-Z]+)/g;
+        let match;
+        let seconds = 0;
+        while ((match = regex.exec(duration)) !== null) {
+            const num = parseInt(match[1]);
+            const unit = match[2];
+            switch (unit) {
+            case "H":
+                seconds += num * 3600;
+                break;
+            case "M":
+                seconds += num * 60;
+                break;
+            case "S":
+                seconds += num;
+                break;
+            }
+        }
+        return seconds;
+    }
+
 }

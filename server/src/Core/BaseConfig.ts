@@ -50,6 +50,7 @@ export const BaseConfigDataFolder = {
     keyvalue: path.join(DataRoot, "cache", "kv"),
     history: path.join(DataRoot, "cache", "history"),
     dotnet: path.join(DataRoot, "cache", "dotnet"),
+    capture: path.join(DataRoot, "cache", "capture"),
     logs: path.join(DataRoot, "logs"),
     logs_software: path.join(DataRoot, "logs", "software"),
     payloads: path.join(DataRoot, "payloads"),
@@ -71,6 +72,7 @@ export const BaseConfigPath = {
     gameDb: path.join(BaseConfigDataFolder.cache, "games_v2.json"),
     history: path.join(BaseConfigDataFolder.cache, "history.json"),
     streamerCache: path.join(BaseConfigDataFolder.cache, "streamers_v2.json"),
+    streamerYouTubeCache: path.join(BaseConfigDataFolder.cache, "streamers_youtube.json"),
     keyvalue: path.join(BaseConfigDataFolder.keyvalue, "kv.json"),
     notifications: path.join(BaseConfigDataFolder.config, "notifications.json"),
 };

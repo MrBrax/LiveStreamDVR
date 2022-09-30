@@ -1,7 +1,7 @@
 
 import path from "path";
 import fs from "fs";
-import { TwitchVOD } from "../Core/TwitchVOD";
+import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import { format } from "date-fns";
 import { ExporterFilenameTemplate } from "../../../common/Replacements";
 import { formatString } from "../../../common/Format";
@@ -86,6 +86,8 @@ export class BaseExporter {
 
         const replacements: ExporterFilenameTemplate = {
             login: this.vod.streamer_login,
+            internalName: this.vod.getChannel().internalName,
+            displayName: this.vod.getChannel().displayName,
             title: title,
             date: format(this.vod.started_at, "yyyy-MM-dd"),
             year: this.vod.started_at ? format(this.vod.started_at, "yyyy") : "",

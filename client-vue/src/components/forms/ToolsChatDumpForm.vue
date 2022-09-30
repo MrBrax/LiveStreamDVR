@@ -1,9 +1,17 @@
 <template>
-    <form method="POST" @submit.prevent="submitForm">
+    <form
+        method="POST"
+        @submit.prevent="submitForm"
+    >
         <div class="field">
             <label class="label">Login</label>
             <div class="control">
-                <input class="input" type="text" v-model="formData.login" required />
+                <input
+                    v-model="formData.login"
+                    class="input"
+                    type="text"
+                    required
+                >
                 <p class="input-help">
                     Does not need to exist in your channels list.
                 </p>
@@ -11,18 +19,23 @@
         </div>
 
         <p>
-            The chat dumper will continue to run in the background until you manually stop it.<br />
+            The chat dumper will continue to run in the background until you manually stop it.<br>
             Keeping it running for a very long time can use up a large amount of disk space.
         </p>
 
         <div class="field form-submit">
             <div class="control">
-                <button class="button is-confirm" type="submit">
-                    <span class="icon"><fa icon="download"></fa></span>
+                <button
+                    class="button is-confirm"
+                    type="submit"
+                >
+                    <span class="icon"><fa icon="download" /></span>
                     <span>{{ $t('buttons.execute') }}</span>
                 </button>
             </div>
-            <div :class="formStatusClass">{{ formStatusText }}</div>
+            <div :class="formStatusClass">
+                {{ formStatusText }}
+            </div>
         </div>
     </form>
 </template>
@@ -41,6 +54,15 @@ export default defineComponent({
                 login: "",
             },
         };
+    },
+    computed: {
+        formStatusClass(): Record<string, boolean> {
+            return {
+                "form-status": true,
+                "is-error": this.formStatus == "ERROR",
+                "is-success": this.formStatus == "OK",
+            };
+        },
     },
     methods: {
         submitForm(event: Event) {
@@ -72,15 +94,6 @@ export default defineComponent({
 
             event.preventDefault();
             return false;
-        },
-    },
-    computed: {
-        formStatusClass(): Record<string, boolean> {
-            return {
-                "form-status": true,
-                "is-error": this.formStatus == "ERROR",
-                "is-success": this.formStatus == "OK",
-            };
         },
     },
 });

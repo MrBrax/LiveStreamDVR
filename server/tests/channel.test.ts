@@ -1,10 +1,10 @@
-import { TwitchChannel } from "../src/Core/TwitchChannel";
+import { TwitchChannel } from "../src/Core/Providers/Twitch/TwitchChannel";
 import { Config } from "../src/Core/Config";
-import { TwitchVOD } from "../src/Core/TwitchVOD";
+import { TwitchVOD } from "../src/Core/Providers/Twitch/TwitchVOD";
 import fs from "fs";
-import { TwitchVODSegment } from "../src/Core/TwitchVODSegment";
-import { Helper } from "../src/Core/Helper";
+import { BaseVODSegment } from "../src/Core/Providers/Base/BaseVODSegment";
 import { randomUUID } from "crypto";
+import { LiveStreamDVR } from "../src/Core/LiveStreamDVR";
 
 // jest.mock("TwitchVOD");
 // const mockTwitchVOD = jest.mocked(TwitchVOD, true);
@@ -12,12 +12,12 @@ import { randomUUID } from "crypto";
 beforeAll(async () => {
     const channels_config = JSON.parse(fs.readFileSync("./tests/mockdata/channels.json", "utf8"));
     await Config.init();
-    TwitchChannel.channels_config = channels_config;
-    TwitchChannel.channels = [];
+    LiveStreamDVR.getInstance().channels_config = channels_config;
+    LiveStreamDVR.getInstance().channels = [];
 
     const mock_channel = new TwitchChannel();
     mock_channel.login = "testuser";
-    TwitchChannel.channels.push(mock_channel);
+    LiveStreamDVR.getInstance().channels.push(mock_channel);
 
     // mock twitchvod delete function
     // mockTwitchVOD.delete.mockImplementation(async (vod_id) => {
@@ -27,7 +27,7 @@ beforeAll(async () => {
 describe("Channel", () => {
 
     it("cleanup", async () => {
-        const channel = TwitchChannel.channels[0];
+        const channel = LiveStreamDVR.getInstance().channels[0] as TwitchChannel;
 
         const spies = [];
 
@@ -35,7 +35,7 @@ describe("Channel", () => {
             const vod = new TwitchVOD();
             vod.uuid = randomUUID();
             vod.basename = `testvod_${i+1}`;
-            const seg = new TwitchVODSegment();
+            const seg = new BaseVODSegment();
             seg.basename = `testvod_${i+1}.mp4`;
             seg.filesize = 1024 * 1024 * 1024 * 20;
             vod.segments = [seg];

@@ -1,16 +1,31 @@
 <template>
-    <form method="POST" enctype="multipart/form-data" action="#" @submit.prevent="submitForm">
-        <div class="field favourites_list" v-if="gamesData && favouritesData">
-            <div v-for="game in sortedGames" :key="game.id" class="checkbox">
+    <form
+        method="POST"
+        enctype="multipart/form-data"
+        action="#"
+        @submit.prevent="submitForm"
+    >
+        <div
+            v-if="gamesData && favouritesData"
+            class="field favourites_list"
+        >
+            <div
+                v-for="game in sortedGames"
+                :key="game.id"
+                class="checkbox"
+            >
                 <label>
                     <input
+                        :id="game.id"
+                        v-model="formData.games"
                         type="checkbox"
                         :name="game.id"
                         :value="game.id"
-                        :id="game.id"
-                        v-model="formData.games"
-                    /> {{ game.name }}
-                    <span class="game-date" v-if="game.added">{{ formatDate(game.added) }}</span>
+                    > {{ game.name }}
+                    <span
+                        v-if="game.added"
+                        class="game-date"
+                    >{{ formatDate(game.added) }}</span>
                 </label>
             </div>
             <div v-if="!gamesData || Object.keys(gamesData).length == 0">
@@ -19,12 +34,17 @@
         </div>
         <div class="field form-submit">
             <div class="control">
-                <button class="button is-confirm" type="submit">
-                    <span class="icon"><fa icon="save"></fa></span>
+                <button
+                    class="button is-confirm"
+                    type="submit"
+                >
+                    <span class="icon"><fa icon="save" /></span>
                     <span>{{ $t('buttons.save-favourites') }}</span>
                 </button>
             </div>
-            <div :class="formStatusClass">{{ formStatusText }}</div>
+            <div :class="formStatusClass">
+                {{ formStatusText }}
+            </div>
         </div>
     </form>
 </template>
@@ -32,7 +52,7 @@
 <script lang="ts">
 import { useStore } from "@/store";
 import { ApiGamesResponse, ApiSettingsResponse } from "@common/Api/Api";
-import { ApiChannelConfig, ApiGame } from "@common/Api/Client";
+import { ApiGame } from "@common/Api/Client";
 import { defineComponent } from "vue";
 
 export default defineComponent({
@@ -62,6 +82,20 @@ export default defineComponent({
             favouritesData: [],
             gamesData: {},
         };
+    },
+
+    computed: {
+        formStatusClass(): Record<string, boolean> {
+            return {
+                "form-status": true,
+                "is-error": this.formStatus == "ERROR",
+                "is-success": this.formStatus == "OK",
+            };
+        },
+        sortedGames(): ApiGame[] {
+            if (!this.gamesData) return [];
+            return Object.values(this.gamesData).sort((a, b) => a.name.localeCompare(b.name));
+        },
     },
     mounted() {
         // this.formData.games = this.favouritesData ? [...this.favouritesData] : [];
@@ -124,20 +158,6 @@ export default defineComponent({
                 this.loading = false;
             });
         }
-    },
-
-    computed: {
-        formStatusClass(): Record<string, boolean> {
-            return {
-                "form-status": true,
-                "is-error": this.formStatus == "ERROR",
-                "is-success": this.formStatus == "OK",
-            };
-        },
-        sortedGames(): ApiGame[] {
-            if (!this.gamesData) return [];
-            return Object.values(this.gamesData).sort((a, b) => a.name.localeCompare(b.name));
-        },
     },
 });
 </script>

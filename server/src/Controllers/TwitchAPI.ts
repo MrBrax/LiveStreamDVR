@@ -1,5 +1,5 @@
-import { TwitchChannel } from "../Core/TwitchChannel";
-import { TwitchVOD } from "../Core/TwitchVOD";
+import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
+import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import express from "express";
 import { ApiErrorResponse } from "../../../common/Api/Api";
 import { LOGLEVEL, Log } from "../Core/Log";
@@ -13,7 +13,7 @@ export async function TwitchAPIVideos(req: express.Request, res: express.Respons
         return;
     }
 
-    const videos = await TwitchVOD.getVideos(channel_id);
+    const videos = await TwitchVOD.getVideosProxy(channel_id);
 
     if (!videos) {
         res.status(400).send({

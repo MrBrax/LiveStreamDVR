@@ -1,19 +1,19 @@
-import { TwitchChannel } from "../Core/TwitchChannel";
+import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { Config } from "../Core/Config";
 import express from "express";
 import crypto from "crypto";
 import path from "path";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import fs from "fs";
-import { Automator } from "../Core/Automator";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { ChallengeResponse } from "../../../common/TwitchAPI/Challenge";
 import { LOGLEVEL, Log } from "../Core/Log";
 import { KeyValue } from "../Core/KeyValue";
 import { SubStatus } from "../../../common/Defs";
-import { replaceAll } from "../Helpers/ReplaceAll";
+import { TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
+import { XMLParser } from "fast-xml-parser";
 
-const verifySignature = (request: express.Request): boolean => {
+const verifyTwitchSignature = (request: express.Request): boolean => {
 
     // calculate signature
     /*
@@ -72,9 +72,7 @@ const verifySignature = (request: express.Request): boolean => {
 
 };
 
-export async function Hook(req: express.Request, res: express.Response): Promise<void> {
-
-    const source = req.query.source ?? "twitch";
+export async function HookTwitch(req: express.Request, res: express.Response): Promise<void> {
 
     // console.log("Body", req.body, req.body.toString(), JSON.stringify(req.body));
 
@@ -82,7 +80,15 @@ export async function Hook(req: express.Request, res: express.Response): Promise
 
     const debugMeta = { "GET": req.query, "POST": req.body, "HEADERS": req.headers, "DATA": data_json };
 
-    Log.logAdvanced(LOGLEVEL.INFO, "hook", "Hook called", debugMeta);
+    const messageId             = req.header("Twitch-Eventsub-Message-Id");
+    const messageRetry          = req.header("Twitch-Eventsub-Message-Retry");
+    const messageType           = req.header("Twitch-Eventsub-Message-Type");
+    const messageSignature      = req.header("Twitch-Eventsub-Message-Signature");
+    const messageTimestamp      = req.header("Twitch-Eventsub-Message-Timestamp");
+    const subscriptionType      = req.header("Twitch-Eventsub-Subscription-Type");
+    const subscriptionVersion   = req.header("Twitch-Eventsub-Subscription-Version");
+
+    Log.logAdvanced(LOGLEVEL.INFO, "hook", `Hook called with message ID ${messageId}, version ${subscriptionVersion}, type ${subscriptionType} (retry ${messageRetry}, type ${messageType}, date ${messageTimestamp})`, debugMeta);
 
     if (Config.getInstance().cfg("instance_id")) {
         if (!req.query.instance || req.query.instance != Config.getInstance().cfg("instance_id")) {
@@ -93,119 +99,200 @@ export async function Hook(req: express.Request, res: express.Response): Promise
     }
 
     // handle regular hook
-    if (source == "twitch") {
+    if (data_json && Object.keys(data_json).length > 0) {
 
-        // if (post_json) {
-        //     TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "hook", "Custom payload received...");
-        //     $data_json = json_decode($post_json, true);
-        // }
+        if (req.header("Twitch-Notification-Id")) {
 
-        if (data_json && Object.keys(data_json).length > 0) {
+            Log.logAdvanced(
+                LOGLEVEL.ERROR,
+                "hook",
+                "Hook got data with old webhook format."
+            );
+            res.status(400).send("Outdated format");
+            return;
+        }
 
-            if (req.header("Twitch-Notification-Id")) {
+        if ("challenge" in data_json && data_json.challenge !== null) {
 
-                Log.logAdvanced(
-                    LOGLEVEL.ERROR,
-                    "hook",
-                    "Hook got data with old webhook format."
-                );
-                res.status(400).send("Outdated format");
-            }
+            const challenge = data_json.challenge;
+            const subscription = data_json.subscription;
 
-            const message_retry = req.header("Twitch-Eventsub-Message-Retry") || null;
+            const sub_type = subscription.type;
 
-            // console.log("Message retry", message_retry);
+            const channel_id = subscription["condition"]["broadcaster_user_id"];
+            const channel_login = await TwitchChannel.channelLoginFromId(subscription.condition.broadcaster_user_id);
 
-            if ("challenge" in data_json && data_json.challenge !== null) {
+            // $username = TwitchHelper::getChannelUsername($subscription["condition"]["broadcaster_user_id"]);
 
-                const challenge = data_json.challenge;
-                const subscription = data_json.subscription;
+            // $signature = $response->getHeader("Twitch-Eventsub-Message-Signature");
 
-                const sub_type = subscription.type;
+            Log.logAdvanced(LOGLEVEL.INFO, "hook", `Challenge received for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}), retry ${messageRetry}`, debugMeta);
 
-                const channel_id = subscription["condition"]["broadcaster_user_id"];
-                const channel_login = await TwitchChannel.channelLoginFromId(subscription.condition.broadcaster_user_id);
+            if (!verifyTwitchSignature(req)) {
 
-                // $username = TwitchHelper::getChannelUsername($subscription["condition"]["broadcaster_user_id"]);
-
-                // $signature = $response->getHeader("Twitch-Eventsub-Message-Signature");
-
-                Log.logAdvanced(LOGLEVEL.INFO, "hook", `Challenge received for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}), retry ${message_retry}`, debugMeta);
-
-                if (!verifySignature(req)) {
-
-                    Log.logAdvanced(
-                        LOGLEVEL.FATAL,
-                        "hook",
-                        "Invalid signature check for challenge!"
-                    );
-                    KeyValue.getInstance().set(`${channel_id}.substatus.${sub_type}`, SubStatus.FAILED);
-                    res.status(400).send("Invalid signature check for challenge");
-                }
-
-                Log.logAdvanced(LOGLEVEL.SUCCESS, "hook", `Challenge completed, subscription active for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}), retry ${message_retry}.`, debugMeta);
-
-                KeyValue.getInstance().set(`${channel_id}.substatus.${sub_type}`, SubStatus.SUBSCRIBED);
-
-                // return the challenge string to twitch if signature matches
-                res.status(202).send(challenge);
-                return;
-            }
-
-            if (Config.debug || Config.getInstance().cfg<boolean>("dump_payloads")) {
-                let payload_filename = new Date().toISOString().replaceAll(/[-:.]/g, "_");
-                if (data_json.subscription.type) payload_filename += `_${data_json.subscription.type}`;
-                payload_filename += ".json";
-                const payload_filepath = path.join(BaseConfigDataFolder.payloads, payload_filename);
-                Log.logAdvanced(LOGLEVEL.INFO, "hook", `Dumping debug hook payload to ${payload_filepath}`);
-                try {
-                    fs.writeFileSync(payload_filepath, JSON.stringify({
-                        headers: req.headers,
-                        body: data_json,
-                        query: req.query,
-                        ip: req.ip,
-                    }, null, 4));
-                } catch (error) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "hook", `Failed to dump payload to ${payload_filepath}`, error);
-                }
-
-            }
-
-            // verify message
-            if (!verifySignature(req)) {
                 Log.logAdvanced(
                     LOGLEVEL.FATAL,
                     "hook",
-                    "Invalid signature check for message!",
-                    debugMeta
+                    "Invalid signature check for challenge!"
                 );
-                res.status(400).send("Invalid signature check");
-                return;
+                KeyValue.getInstance().set(`${channel_id}.substatus.${sub_type}`, SubStatus.FAILED);
+                res.status(400).send("Invalid signature check for challenge");
             }
 
-            if ("event" in data_json) {
-                Log.logAdvanced(LOGLEVEL.DEBUG, "hook", `Signature checked, no challenge, retry ${message_retry}. Run handle...`);
-                const TA = new Automator();
-                /* await */ TA.handle(data_json, req).catch(error => {
-                    Log.logAdvanced(LOGLEVEL.FATAL, "hook", `Automator returned error: ${error.message}`);
-                });
-                res.status(200).send("");
-                return;
-            } else {
-                Log.logAdvanced(LOGLEVEL.ERROR, "hook", "No event in message!");
-                res.status(400).send("No event in message");
-                return;
+            Log.logAdvanced(LOGLEVEL.SUCCESS, "hook", `Challenge completed, subscription active for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}), retry ${messageRetry}.`, debugMeta);
+
+            KeyValue.getInstance().set(`${channel_id}.substatus.${sub_type}`, SubStatus.SUBSCRIBED);
+
+            // return the challenge string to twitch if signature matches
+            res.status(202).send(challenge);
+            return;
+        }
+
+        if (Config.debug || Config.getInstance().cfg<boolean>("dump_payloads")) {
+            let payload_filename = `tw_${new Date().toISOString().replaceAll(/[-:.]/g, "_")}`;
+            if (data_json.subscription.type) payload_filename += `_${data_json.subscription.type}`;
+            payload_filename += ".json";
+            const payload_filepath = path.join(BaseConfigDataFolder.payloads, payload_filename);
+            Log.logAdvanced(LOGLEVEL.INFO, "hook", `Dumping debug hook payload to ${payload_filepath}`);
+            try {
+                fs.writeFileSync(payload_filepath, JSON.stringify({
+                    headers: req.headers,
+                    body: data_json,
+                    query: req.query,
+                    ip: req.ip,
+                }, null, 4));
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "hook", `Failed to dump payload to ${payload_filepath}`, error);
             }
+
+        }
+
+        // verify message
+        if (!verifyTwitchSignature(req)) {
+            Log.logAdvanced(
+                LOGLEVEL.FATAL,
+                "hook",
+                "Invalid signature check for message!",
+                debugMeta
+            );
+            res.status(400).send("Invalid signature check");
+            return;
+        }
+
+        if ("event" in data_json) {
+            Log.logAdvanced(LOGLEVEL.DEBUG, "hook", `Signature checked, no challenge, retry ${messageRetry}. Run handle...`);
+            const TA = new TwitchAutomator();
+            /* await */ TA.handle(data_json, req).catch(error => {
+                Log.logAdvanced(LOGLEVEL.FATAL, "hook", `Automator returned error: ${error.message}`);
+            });
+            res.status(200).send("");
+            return;
         } else {
-            Log.logAdvanced(LOGLEVEL.ERROR, "hook", "Hook called with invalid JSON.");
-            res.status(400).send("No data supplied");
+            Log.logAdvanced(LOGLEVEL.ERROR, "hook", "No event in message!");
+            res.status(400).send("No event in message");
+            return;
+        }
+    } else {
+        Log.logAdvanced(LOGLEVEL.ERROR, "hook", "Hook called with invalid JSON.");
+        res.status(400).send("No data supplied");
+        return;
+    }
+
+    Log.logAdvanced(LOGLEVEL.WARNING, "hook", "Hook called with no data...", debugMeta);
+
+    res.status(400).send("No data supplied");
+    return;
+
+}
+
+export async function HookYouTube(req: express.Request, res: express.Response): Promise<void> {
+
+    // console.log("Body", req.body, req.body.toString(), JSON.stringify(req.body));
+
+    // const data_json: EventSubResponse | ChallengeResponse = req.body;
+
+    const debugMeta = { "GET": req.query, "POST": req.body, "HEADERS": req.headers, "DATA": req.body };
+
+    Log.logAdvanced(LOGLEVEL.INFO, "hook", "YouTube hook called", debugMeta);
+
+    if (Config.getInstance().cfg("instance_id")) {
+        if (!req.query.instance || req.query.instance != Config.getInstance().cfg("instance_id")) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "hook", `Hook called with the wrong instance (${req.query.instance})`);
+            res.send("Invalid instance");
             return;
         }
     }
 
-    Log.logAdvanced(LOGLEVEL.WARNING, "hook", `Hook called with no data (${source})...`, debugMeta);
+    const hub_topic = req.query["hub.topic"];
+    const hub_challenge = req.query["hub.challenge"];
+    const hub_mode = req.query["hub.mode"];
+    const hub_lease_seconds = req.query["hub.lease_seconds"];
 
-    res.status(400).send("No data supplied");
-    return;
+    // TODO: verify
+    if (hub_challenge) {
+        Log.logAdvanced(LOGLEVEL.INFO, "hook.youtube", `Got challenge ${hub_challenge}, responding.`);
+        res.status(200).send(hub_challenge);
+        return;
+    }
+
+    console.log("body", req.body);
+
+    if (req.body) {
+
+        const parser = new XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix : "@_",
+        });
+        const obj = parser.parse(req.body);
+
+        if (Config.debug || Config.getInstance().cfg<boolean>("dump_payloads")) {
+            let payload_filename = `yt_${new Date().toISOString().replaceAll(/[-:.]/g, "_")}`;
+            // if (data_json.subscription.type) payload_filename += `_${data_json.subscription.type}`;
+            payload_filename += ".json";
+            const payload_filepath = path.join(BaseConfigDataFolder.payloads, payload_filename);
+            Log.logAdvanced(LOGLEVEL.INFO, "hook", `Dumping debug hook payload to ${payload_filepath}`);
+            try {
+                fs.writeFileSync(payload_filepath, JSON.stringify({
+                    headers: req.headers,
+                    body: req.body,
+                    obj: obj,
+                    query: req.query,
+                    ip: req.ip,
+                    status: req.statusCode,
+                    message: req.statusMessage,
+                }, null, 4));
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "hook", `Failed to dump payload to ${payload_filepath}`, error);
+            }
+        }
+
+        // const entry: PubsubVideo = obj.feed.entry;
+
+        // console.log(entry["yt:channelId"], entry["yt:videoId"], entry.title);
+
+        Log.logAdvanced(LOGLEVEL.INFO, "hook", "YouTube hook not finished.", debugMeta);
+
+        /*
+
+        const YA = new YouTubeAutomator();
+        YA.handle(entry, req).catch(error => {
+            Log.logAdvanced(LOGLEVEL.FATAL, "hook", `Automator returned error: ${error.message}`);
+        });
+
+        */
+
+        res.status(200).end("");
+
+    } else {
+
+        Log.logAdvanced(LOGLEVEL.ERROR, "hook", "YouTube hook no body.", debugMeta);
+
+    }
+
+
+    // Log.logAdvanced(LOGLEVEL.WARNING, "hook", "Hook called with no data...", debugMeta);
+
+    // res.status(400).send("No data supplied");
+    // return;
 
 }

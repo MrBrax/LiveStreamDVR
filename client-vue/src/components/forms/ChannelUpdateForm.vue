@@ -1,65 +1,152 @@
 <template>
-    <div :id="'channelupdate_' + channel.login">
+    <div :id="'channelupdate_' + channel.uuid">
         <form @submit.prevent="submitForm">
             <div class="field">
-                <label class="label" :for="`input_${channel.login}_quality`">{{ $t('forms.channel.quality') }} <span class="required">*</span></label>
+                <label class="label">{{ $t('forms.channel.provider') }}</label>
                 <div class="control">
                     <input
                         class="input input-required"
                         type="text"
-                        :id="`input_${channel.login}_quality`"
-                        v-model="formData.quality"
-                        required
+                        :value="channel.provider"
+                        disabled
+                        readonly
+                    >
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="label">{{ $t('forms.channel.uuid') }}</label>
+                <div class="control">
+                    <input
+                        class="input input-required"
+                        type="text"
+                        :value="channel.uuid"
+                        disabled
+                        readonly
+                    >
+                </div>
+            </div>
+
+            <div
+                v-if="'login' in channel"
+                class="field"
+            >
+                <label class="label">{{ $t('forms.channel.login') }}</label>
+                <div class="control">
+                    <input
+                        class="input"
+                        type="text"
+                        :value="channel.login"
+                        disabled
+                        readonly
+                    >
+                </div>
+            </div>
+
+            <div
+                v-if="'channel_id' in channel"
+                class="field"
+            >
+                <label class="label">{{ $t('forms.channel.id') }}</label>
+                <div class="control">
+                    <input
+                        class="input"
+                        type="text"
+                        :value="channel.channel_id"
+                        disabled
+                        readonly
+                    >
+                </div>
+            </div>
+
+            <div class="field">
+                <label
+                    class="label"
+                    :for="`input_${channel.uuid}_quality`"
+                >{{ $t('forms.channel.quality') }} <span class="required">*</span></label>
+                <div class="control">
+                    <input
+                        :id="`input_${channel.uuid}_quality`"
                         ref="quality"
+                        v-model="formData.quality"
+                        class="input input-required"
+                        type="text"
+                        required
                         name="quality"
-                    />
-                    <p class="input-help">{{ $t('forms.channel.quality-help-example') }}</p>
-                    <p class="input-help"><strong>{{ $t('forms.channel.quality-help-warning') }}</strong></p>
+                    >
+                    <p class="input-help">
+                        {{ $t('forms.channel.quality-help-example') }}
+                    </p>
+                    <p class="input-help">
+                        <strong>{{ $t('forms.channel.quality-help-warning') }}</strong>
+                    </p>
                     <!--<p class="input-help">{{ $t('forms.channel.quality-help-choices', [VideoQualityArray.join(", ")]) }}</p>-->
-                    <p class="input-help error" v-if="!qualityWarning">
+                    <p
+                        v-if="!qualityWarning"
+                        class="input-help error"
+                    >
                         {{ $t('forms.channel.quality-help-check') }}
                     </p>
                 </div>
             </div>
 
             <div class="field">
-                <label class="label" :for="`input_${channel.login}_match`">{{ $t('forms.channel.match-keywords') }}</label>
+                <label
+                    class="label"
+                    :for="`input_${channel.uuid}_match`"
+                >{{ $t('forms.channel.match-keywords') }}</label>
                 <div class="control">
                     <input
+                        :id="`input_${channel.uuid}_match`"
+                        v-model="formData.match"
                         class="input"
                         type="text"
-                        :id="`input_${channel.login}_match`"
                         name="match"
-                        v-model="formData.match"
-                    />
-                    <p class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</p>
+                    >
+                    <p class="input-help">
+                        Separate by commas, e.g. christmas,media share,opening,po box
+                    </p>
                 </div>
             </div>
 
             <div class="field">
                 <label class="label">{{ $t('forms.channel.max-storage') }}</label>
                 <div class="control">
-                    <input class="input" type="number" name="max_storage" v-model="formData.max_storage" />
-                    <p class="input-help">{{ $t('forms.channel.max-storage-help') }}</p>
+                    <input
+                        v-model="formData.max_storage"
+                        class="input"
+                        type="number"
+                        name="max_storage"
+                    >
+                    <p class="input-help">
+                        {{ $t('forms.channel.max-storage-help') }}
+                    </p>
                 </div>
             </div>
 
             <div class="field">
                 <label class="label">{{ $t('forms.channel.max-vods') }}</label>
                 <div class="control">
-                    <input class="input" type="number" name="max_vods" v-model="formData.max_vods" />
-                    <p class="input-help">{{ $t('forms.channel.max-vods-help') }}</p>
+                    <input
+                        v-model="formData.max_vods"
+                        class="input"
+                        type="number"
+                        name="max_vods"
+                    >
+                    <p class="input-help">
+                        {{ $t('forms.channel.max-vods-help') }}
+                    </p>
                 </div>
             </div>
 
             <div class="field">
                 <label class="checkbox">
                     <input
+                        v-model="formData.download_chat"
                         class="input"
                         type="checkbox"
                         name="download_chat"
-                        v-model="formData.download_chat"
-                    />
+                    >
                     {{ $t('forms.channel.download-chat') }}
                 </label>
             </div>
@@ -67,37 +154,41 @@
             <div class="field">
                 <label class="checkbox">
                     <input
+                        v-model="formData.live_chat"
                         class="input"
                         type="checkbox"
                         name="live_chat"
-                        v-model="formData.live_chat"
-                    />
+                    >
                     {{ $t('forms.channel.live-chat-download') }}
                 </label>
-                <p class="input-help">Requires Node binary path to be set in the settings</p>
+                <p class="input-help">
+                    Requires Node binary path to be set in the settings
+                </p>
             </div>
 
             <div class="field">
                 <label class="checkbox">
                     <input
+                        v-model="formData.burn_chat"
                         class="input"
                         type="checkbox"
                         name="burn_chat"
-                        v-model="formData.burn_chat"
-                    />
+                    >
                     {{ $t('forms.channel.burn-chat') }}
                 </label>
-                <p class="input-help">Currently disabled</p>
+                <p class="input-help">
+                    Currently disabled
+                </p>
             </div>
 
             <div class="field">
                 <label class="checkbox">
                     <input
+                        v-model="formData.no_capture"
                         class="input"
                         type="checkbox"
                         name="no_capture"
-                        v-model="formData.no_capture"
-                    />
+                    >
                     {{ $t('forms.channel.no-capture') }}
                 </label>
             </div>
@@ -105,10 +196,10 @@
             <div class="field">
                 <label class="checkbox">
                     <input
+                        v-model="formData.no_cleanup"
                         type="checkbox"
                         name="no_cleanup"
-                        v-model="formData.no_cleanup"
-                    />
+                    >
                     {{ $t('forms.channel.no-cleanup') }}
                 </label>
             </div>
@@ -116,54 +207,138 @@
             <div class="field">
                 <label class="checkbox">
                     <input
+                        v-model="formData.download_vod_at_end"
                         type="checkbox"
                         name="download_vod_at_end"
-                        v-model="formData.download_vod_at_end"
-                    />
+                    >
                     {{ $t('forms.channel.download_vod_at_end') }}
                 </label>
             </div>
 
-            <div class="field" v-if="formData.download_vod_at_end">
+            <div
+                v-if="formData.download_vod_at_end"
+                class="field"
+            >
                 <label class="label">{{ $t('forms.channel.download_vod_at_end_quality') }}</label>
                 <div class="select">
-                    <select name="download_vod_at_end_quality" v-model="formData.download_vod_at_end_quality">
-                        <option v-for="quality in VideoQualityArray" :value="quality">{{ quality }}</option>
+                    <select
+                        v-model="formData.download_vod_at_end_quality"
+                        name="download_vod_at_end_quality"
+                    >
+                        <option
+                            v-for="quality in VideoQualityArray"
+                            :key="quality"
+                            :value="quality"
+                        >
+                            {{ quality }}
+                        </option>
                     </select>
                 </div>
-                <p class="input-help">{{ $t('forms.channel.download_vod_at_end_quality_help') }}</p>
+                <p class="input-help">
+                    {{ $t('forms.channel.download_vod_at_end_quality_help') }}
+                </p>
             </div>
-            
 
             <div class="field form-submit">
                 <div class="control">
-                    <button class="button is-confirm" type="submit">
-                        <span class="icon"><fa icon="save"></fa></span>
+                    <button
+                        class="button is-confirm"
+                        type="submit"
+                    >
+                        <span class="icon"><fa icon="save" /></span>
                         <span>{{ $t('buttons.save') }}</span>
                     </button>
                 </div>
-                <div :class="formStatusClass">{{ formStatusText }}</div>
+                <div :class="formStatusClass">
+                    {{ formStatusText }}
+                </div>
             </div>
         </form>
-        <hr />
-
+        <hr>
         <div class="buttons">
-            <button class="button is-small is-danger" @click="deleteChannel">
-                <span class="icon"><fa icon="trash"></fa></span>
+            <button
+                class="button is-small is-danger"
+                @click="deleteChannel"
+            >
+                <span class="icon"><fa icon="trash" /></span>
                 <span>{{ $t('buttons.delete') }}</span>
             </button>
-            <button class="button is-small is-danger" @click="deleteAllVods">
-                <span class="icon"><fa icon="video-slash"></fa></span>
+            <button
+                class="button is-small is-danger"
+                @click="deleteAllVods"
+            >
+                <span class="icon"><fa icon="video-slash" /></span>
                 <span>{{ $t('buttons.delete-all-vods') }}</span>
             </button>
-            <button class="button is-small is-confirm" @click="subscribeChannel">
-                <span class="icon"><fa icon="sync"></fa></span>
+            <button
+                class="button is-small"
+                @click="subscribeChannel"
+            >
+                <span class="icon"><fa icon="sync" /></span>
                 <span>{{ $t('buttons.subscribe') }}</span>
             </button>
-            <button class="button is-small is-confirm" @click="renameChannel">
-                <span class="icon"><fa icon="pencil"></fa></span>
+            <button
+                class="button is-small"
+                @click="checkSubscriptions"
+            >
+                <span class="icon"><fa icon="list" /></span>
+                <span>{{ $t('buttons.check-subscriptions') }}</span>
+            </button>
+            <button
+                class="button is-small"
+                @click="renameChannel"
+            >
+                <span class="icon"><fa icon="pencil" /></span>
                 <span>{{ $t('buttons.rename') }}</span>
             </button>
+        </div>
+        <hr>
+        <div>
+            <h2>History</h2>
+            <div class="field">
+                <button
+                    class="button is-small is-confirm"
+                    @click="fetchHistory"
+                >
+                    <span class="icon"><fa icon="sync" /></span>
+                    <span>{{ $t('buttons.fetch') }}</span>
+                </button>
+            </div>
+            <table
+                v-if="history.length"
+                class="table is-striped"
+            >
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Action</th>
+                        <th>Title</th>
+                        <th>View count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        v-for="(item, i) in history"
+                        :key="i"
+                    >
+                        <template v-if="'action' in item">
+                            <td>{{ formatDate(item.time) }}</td>
+                            <td>{{ item.action }}</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                        </template>
+                        <template v-else>
+                            <td>{{ formatDate(item.started_at) }}</td>
+                            <td>Chapter change</td>
+                            <td>{{ item.title }}</td>
+                            <td>{{ item.viewer_count?.toLocaleString() }}</td>
+                        </template>
+                    </tr>
+                </tbody>
+            </table>
+            <div v-if="history.length">
+                <strong>Average start time:</strong> {{ averageOnlineStartTime }}
+            </div>
         </div>
     </div>
 </template>
@@ -171,13 +346,14 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { VideoQualityArray } from "../../../../common/Defs";
+import { HistoryEntry, HistoryEntryOnline } from "../../../../common/History";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faSave } from "@fortawesome/free-solid-svg-icons";
+import { faSave, faList } from "@fortawesome/free-solid-svg-icons";
 import { ApiChannelConfig } from "@common/Api/Client";
 import { AxiosError } from "axios";
 import { useStore } from "@/store";
-library.add(faSave);
+library.add(faSave, faList);
 
 export default defineComponent({
     name: "ChannelUpdateForm",
@@ -209,7 +385,29 @@ export default defineComponent({
                 download_vod_at_end: this.channel.download_vod_at_end || false,
                 download_vod_at_end_quality: this.channel.download_vod_at_end_quality || "best",
             },
+            history: [] as HistoryEntry[],
         };
+    },
+    computed: {
+        formStatusClass(): Record<string, boolean> {
+            return {
+                "form-status": true,
+                "is-error": this.formStatus == "ERROR",
+                "is-success": this.formStatus == "OK",
+            };
+        },
+        qualityWarning(): boolean {
+            return this.formData.quality.includes("best") || this.formData.quality.includes("worst");
+        },
+        averageOnlineStartTime(): string {
+            const startTimes = this.history
+                .filter<HistoryEntryOnline>((h): h is HistoryEntryOnline => "action" in h && h.action == "online")
+                .map((h) => new Date(h.time).getHours() * 60 + new Date(h.time).getMinutes() + new Date(h.time).getSeconds() / 60);
+            const average = startTimes.reduce((a, b) => a + b, 0) / startTimes.length;
+            const hours = Math.floor(average / 60);
+            const minutes = Math.floor(average % 60);
+            return `${hours}:${minutes}`;
+        },
     },
     methods: {
         submitForm(event: Event) {
@@ -218,7 +416,7 @@ export default defineComponent({
             this.formStatus = "";
 
             this.$http
-                .put(`/api/v0/channels/${this.channel.login}`, this.formData)
+                .put(`/api/v0/channels/${this.channel.uuid}`, this.formData)
                 .then((response) => {
                     const json = response.data;
                     this.formStatusText = json.message;
@@ -250,7 +448,7 @@ export default defineComponent({
             );
 
             this.$http
-                .delete(`/api/v0/channels/${this.channel.login}`,
+                .delete(`/api/v0/channels/${this.channel.uuid}`,
                     {
                         params: {
                             deletevods: deleteVodsToo ? "1" : "0",
@@ -278,12 +476,27 @@ export default defineComponent({
             }
 
             this.$http
-                .post(`/api/v0/channels/${this.channel.login}/subscribe`)
+                .post(`/api/v0/channels/${this.channel.uuid}/subscribe`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);
                     console.log(json);
                     this.$emit("formSuccess", json);
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                    if (err.response.data && err.response.data.message) {
+                        alert(err.response.data.message);
+                    }
+                });
+        },
+        checkSubscriptions() {
+            this.$http
+                .get(`/api/v0/channels/${this.channel.uuid}/checksubscriptions`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
@@ -314,7 +527,7 @@ export default defineComponent({
             const newLogin = prompt("Enter new channel login. If channel has not changed login, this will fail in the future.\n", this.channel.login);
             if (!newLogin || newLogin == this.channel.login) return;
             this.$http
-                .post(`/api/v0/channels/${this.channel.login}/rename`, {
+                .post(`/api/v0/channels/${this.channel.uuid}/rename`, {
                     new_login: newLogin,
                 })
                 .then((response) => {
@@ -332,9 +545,9 @@ export default defineComponent({
                 });
         },
         deleteAllVods() {
-            if (!confirm(`Do you want to delete all VODs for "${this.channel.login}"? This cannot be undone.`)) return;
+            if (!confirm(`Do you want to delete all VODs for "${this.channel.uuid}"? This cannot be undone.`)) return;
             this.$http
-                .post(`/api/v0/channels/${this.channel.login}/deleteallvods`)
+                .post(`/api/v0/channels/${this.channel.uuid}/deleteallvods`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);
@@ -349,18 +562,21 @@ export default defineComponent({
                     }
                 });
         },
-    },
-    computed: {
-        formStatusClass(): Record<string, boolean> {
-            return {
-                "form-status": true,
-                "is-error": this.formStatus == "ERROR",
-                "is-success": this.formStatus == "OK",
-            };
+        fetchHistory() {
+            this.$http
+                .get(`/api/v0/channels/${this.channel.uuid}/history`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    this.history = json.data;
+                })
+                .catch((err) => {
+                    console.error("history fetch error", err.response);
+                    if (err.response.data && err.response.data.message) {
+                        alert(err.response.data.message);
+                    }
+                });
         },
-        qualityWarning(): boolean {
-            return this.formData.quality.includes("best") || this.formData.quality.includes("worst");
-        }
     },
 });
 </script>

@@ -4,11 +4,16 @@
             {{ $t('messages.changing-values-here-will-most-likely-require-a-restart') }}
         </p>
         <div class="field">
-            <input class="input" type="text" v-model="searchText" :placeholder="$t('input.search')" />
+            <input
+                v-model="searchText"
+                class="input"
+                type="text"
+                :placeholder="$t('input.search')"
+            >
         </div>
         <table
-            class="table is-fullwidth is-striped is-hoverable"
             v-if="keyvalue && Object.keys(keyvalue).length > 0"
+            class="table is-fullwidth is-striped is-hoverable"
         >
             <thead key="header">
                 <tr>
@@ -17,16 +22,26 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tr v-for="(value, key) in sortedKeyValues" :key="key">
+            <tr
+                v-for="(value, key) in sortedKeyValues"
+                :key="key"
+            >
                 <td>{{ key }}</td>
                 <td>
                     {{ value }}
-                    <button class="icon-button" @click="editKeyValue(key, value)" title="Edit">
+                    <button
+                        class="icon-button"
+                        title="Edit"
+                        @click="editKeyValue(key, value)"
+                    >
                         <span><fa icon="pencil" /></span>
                     </button>
                 </td>
                 <td>
-                    <button class="button is-danger is-small" @click="deleteKeyValue(key)">
+                    <button
+                        class="button is-danger is-small"
+                        @click="deleteKeyValue(key)"
+                    >
                         <span class="icon"><fa icon="trash" /></span>
                         <span>{{ $t('buttons.delete') }}</span>
                     </button>
@@ -34,35 +49,61 @@
             </tr>
             <tr key="deleteall">
                 <td colspan="999">
-                    <button class="button is-danger" @click="deleteAllKeyValues">
+                    <button
+                        class="button is-danger"
+                        @click="deleteAllKeyValues"
+                    >
                         <span class="icon"><fa icon="trash" /></span>
                         <span>{{ $t('buttons.delete-all') }}</span>
                     </button>
                 </td>
             </tr>
         </table>
-        <p v-else>No key-value data found.</p>
+        <p v-else>
+            No key-value data found.
+        </p>
 
-        <hr />
+        <hr>
 
         <form @submit.prevent="doAdd">
             <div class="field">
-                <label for="key" class="label">{{ $t('forms.keyvalue.key') }}</label>
+                <label
+                    for="key"
+                    class="label"
+                >{{ $t('forms.keyvalue.key') }}</label>
                 <div class="control">
-                    <input class="input" type="text" id="key" v-model="addForm.key" />
+                    <input
+                        id="key"
+                        v-model="addForm.key"
+                        class="input"
+                        type="text"
+                    >
                 </div>
             </div>
             <div class="field">
-                <label for="value" class="label">{{ $t('forms.keyvalue.value') }}</label>
+                <label
+                    for="value"
+                    class="label"
+                >{{ $t('forms.keyvalue.value') }}</label>
                 <div class="control">
-                    <input class="input" type="text" id="value" v-model="addForm.value" />
+                    <input
+                        id="value"
+                        v-model="addForm.value"
+                        class="input"
+                        type="text"
+                    >
                 </div>
-                <p class="input-help">The value will be stored as a string, and depending on how it is used, it might be converted to another type.</p>
+                <p class="input-help">
+                    The value will be stored as a string, and depending on how it is used, it might be converted to another type.
+                </p>
             </div>
             <div class="field">
                 <div class="control">
-                    <button class="button is-confirm" type="submit">
-                        <span class="icon"><fa icon="plus"></fa></span>
+                    <button
+                        class="button is-confirm"
+                        type="submit"
+                    >
+                        <span class="icon"><fa icon="plus" /></span>
                         <span>{{ $t('buttons.create') }}</span>
                     </button>
                 </div>
@@ -70,13 +111,16 @@
         </form>
     </div>
     <div v-if="initialLoad">
-        <span class="icon"><fa icon="sync" spin></fa></span> {{ $t("messages.loading") }}
+        <span class="icon"><fa
+            icon="sync"
+            spin
+        /></span> {{ $t("messages.loading") }}
     </div>
 </template>
 
 <script lang="ts">
 import { useStore } from "@/store";
-import { defineComponent, PropType } from "vue";
+import { defineComponent } from "vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPencil, faSync, faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
@@ -84,11 +128,11 @@ library.add(faPencil, faSync, faTrash, faPlus);
 
 export default defineComponent({
     name: "KeyValueForm",
+    emits: ["formSuccess"],
     setup() {
         const store = useStore();
         return { store };
     },
-    emits: ["formSuccess"],
     data(): {
         keyvalue?: Record<string, string>;
         initialLoad: boolean;
@@ -107,6 +151,14 @@ export default defineComponent({
                 value: ""
             }
         };
+    },
+    computed: {
+        sortedKeyValues(): Record<string, string> {
+            if (!this.keyvalue) return {};
+            let entries = Object.entries(this.keyvalue);
+            if (this.searchText !== "") entries = entries.filter(e => e[0].includes(this.searchText));
+            return Object.fromEntries(entries.sort());
+        }
     },
     mounted(): void {
         this.fetchData();
@@ -189,14 +241,6 @@ export default defineComponent({
                     }
                 });
         },
-    },
-    computed: {
-        sortedKeyValues(): Record<string, string> {
-            if (!this.keyvalue) return {};
-            let entries = Object.entries(this.keyvalue);
-            if (this.searchText !== "") entries = entries.filter(e => e[0].includes(this.searchText));
-            return Object.fromEntries(entries.sort());
-        }
     },
 });
 </script>

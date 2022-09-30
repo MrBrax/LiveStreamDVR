@@ -1,6 +1,6 @@
 import express from "express";
 import { ApiFavouriteGamesResponse } from "../../../common/Api/Api";
-import { TwitchGame } from "../Core/TwitchGame";
+import { TwitchGame } from "../Core/Providers/Twitch/TwitchGame";
 import { LOGLEVEL, Log } from "../Core/Log";
 
 export function ListFavourites(req: express.Request, res: express.Response): void {

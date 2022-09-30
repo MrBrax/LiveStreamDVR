@@ -164,6 +164,11 @@
                     color: #f00;
                 }
             }
+
+            .streamer-expand-container {
+                display: none;
+            }
+
         }
     }
 
@@ -175,7 +180,14 @@
         font-size: 0.9em;
 
         .streamer-title-tools {
-            display: none;
+            display: flex;
+            padding: 1em 0 0.5em 0;
+            a, button {
+                flex-grow: 1;
+            }
+            .icon {
+                font-size: 1.5em;
+            }
         }
 
         .streamer-title-subtitle {
@@ -253,6 +265,7 @@
     .video-controls {
         display: flex;
         flex-wrap: wrap;
+        gap: 0.4em;
 
         .button {
             flex-grow: 1;
@@ -260,8 +273,8 @@
 
             .icon {
                 display: block;
-                font-size: 1.5em;
-                margin: 0 auto 0.25em auto;
+                font-size: 1.2em;
+                margin: 0.2em auto 0em auto;
                 text-align: center;
             }
         }
@@ -276,18 +289,6 @@
                 content: none;
             }
         }
-    }
-
-    #js-status {
-        display: none;
-    }
-
-    #jobs-status {
-        display: none;
-    }
-
-    .jobs_list {
-        display: none;
     }
 
     label {
@@ -308,6 +309,31 @@
     .dashboard-stats {
         font-size: 0.8em;
         padding-bottom: 10px;
+    }
+
+    .local-videos {
+        .local-videos-container {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        }
+    }
+
+    .text-long {
+        text-overflow: ellipsis;
+        word-break: unset;
+        overflow: unset;
+    }
+
+    .statustab {
+        &.statustab-jobs {
+            left: 0;
+            right: 0;
+            bottom: 50px;
+            padding: 0.2em;
+            border-radius: 0;
+            table {
+                width: 100%;
+            }
+        }
     }
 
 }

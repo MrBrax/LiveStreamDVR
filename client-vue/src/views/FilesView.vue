@@ -1,27 +1,51 @@
 <template>
     <div class="container vertical">
         <section class="section is-fullwidth">
-            <div class="section-title"><h1>{{ $t('views.files.folders.clips') }}</h1></div>
+            <div class="section-title">
+                <h1>{{ $t('views.files.folders.clips') }}</h1>
+            </div>
             <div class="section-content">
-                <FileManager path="storage/saved_clips" web="saved_clips" />
+                <FileManager
+                    path="storage/saved_clips"
+                    web="saved_clips"
+                />
             </div>
         </section>
         <section class="section is-fullwidth">
-            <div class="section-title"><h1>{{ $t('views.files.folders.archived-vods') }}</h1></div>
+            <div class="section-title">
+                <h1>{{ $t('views.files.folders.archived-vods') }}</h1>
+            </div>
             <div class="section-content">
-                <FileManager path="storage/saved_vods" web="saved_vods" />
+                <FileManager
+                    path="storage/saved_vods"
+                    web="saved_vods"
+                />
             </div>
         </section>
         <section class="section is-fullwidth">
-            <div class="section-title"><h1>{{ $t('views.files.folders.application-logs') }}</h1></div>
+            <div class="section-title">
+                <h1>{{ $t('views.files.folders.application-logs') }}</h1>
+            </div>
             <div class="section-content">
-                <FileManager path="logs" web="logs" default-sort-by="date" default-sort-order="desc" />
+                <FileManager
+                    path="logs"
+                    web="logs"
+                    default-sort-by="date"
+                    default-sort-order="desc"
+                />
             </div>
         </section>
         <section class="section is-fullwidth">
-            <div class="section-title"><h1>{{ $t('views.files.folders.software-logs') }}</h1></div>
+            <div class="section-title">
+                <h1>{{ $t('views.files.folders.software-logs') }}</h1>
+            </div>
             <div class="section-content">
-                <FileManager path="logs/software" web="logs/software" default-sort-by="date" default-sort-order="desc" />
+                <FileManager
+                    path="logs/software"
+                    web="logs/software"
+                    default-sort-by="date"
+                    default-sort-order="desc"
+                />
             </div>
         </section>
     </div>
@@ -41,12 +65,12 @@ import FileManager from "@/components/FileManager.vue";
 export default defineComponent({
     name: "FilesView",
     title: "Files",
+    components: {
+        FileManager
+    },
     setup() {
         const store = useStore();
         return { store };
-    },
-    components: {
-        FileManager
     },
 });
 </script>

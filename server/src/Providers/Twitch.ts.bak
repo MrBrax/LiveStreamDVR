@@ -1,0 +1,69 @@
+import { Log, LOGLEVEL } from "../Core/Log";
+import { EventSubTypes, Subscription } from "../../../common/TwitchAPI/Shared";
+import { Subscriptions } from "../../../common/TwitchAPI/Subscriptions";
+import path from "path";
+import { BaseConfigDataFolder } from "../Core/BaseConfig";
+import { Axios } from "axios";
+
+export class TwitchHelper {
+
+    static axios: Axios | undefined;
+
+    static accessToken = "";
+
+    static readonly accessTokenFile = path.join(BaseConfigDataFolder.cache, "oauth.bin");
+
+    static readonly accessTokenExpire = 60 * 60 * 24 * 60 * 1000; // 60 days
+    static readonly accessTokenRefresh = 60 * 60 * 24 * 30 * 1000; // 30 days
+
+    static readonly TWITCH_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+    static readonly TWITCH_DATE_FORMAT_MS = "yyyy-MM-dd'T'HH:mm:ss'.'SSS'Z'";
+
+    public static async getSubsList(): Promise<Subscription[] | false> {
+
+        Log.logAdvanced(LOGLEVEL.INFO, "helper.getSubsList", "Requesting subscriptions list");
+
+        if (!this.axios) {
+            throw new Error("Axios is not initialized");
+        }
+
+        let subscriptions: Subscription[] = [];
+        let cursor = "";
+        const maxpages = 5;
+        let page = 0;
+
+        do {
+
+            Log.logAdvanced(LOGLEVEL.INFO, "helper.getSubsList", `Fetch subs page ${page}`);
+
+            let response;
+
+            try {
+                response = await this.axios.get("/helix/eventsub/subscriptions", {
+                    params: {
+                        after: cursor,
+                    },
+                });
+            } catch (err) {
+                Log.logAdvanced(LOGLEVEL.FATAL, "helper.getSubsList", `Subs return: ${err}`);
+                return false;
+            }
+
+            const json: Subscriptions = response.data;
+
+            subscriptions = subscriptions.concat(json.data);
+
+            cursor = json.pagination.cursor || "";
+
+        } while (cursor && page++ < maxpages);
+
+        Log.logAdvanced(LOGLEVEL.INFO, "helper.getSubsList", `${subscriptions.length} subscriptions`);
+
+        return subscriptions;
+
+    }
+
+    static readonly CHANNEL_SUB_TYPES: EventSubTypes[] = ["stream.online", "stream.offline", "channel.update"];
+
+
+}

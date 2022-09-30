@@ -1,9 +1,9 @@
-import { ApiVodSegment } from "../../../common/Api/Client";
+import { ApiVodSegment } from "../../../../../common/Api/Client";
 
-export class TwitchVODSegment {
+export class BaseVODSegment {
     filename: string | undefined;
     basename: string | undefined;
-    strings: Record<string, string> = {};
+    // strings: Record<string, string> = {};
     filesize: number | undefined;
     deleted = false;
 

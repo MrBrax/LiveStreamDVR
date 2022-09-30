@@ -22,6 +22,7 @@ export const defaultConfig: ClientSettings = {
     sidemenuWidth: 330,
     expandDashboardVodList: true,
     vodsToShowInDashboard: 4,
+    jobStatusExpandedByDefault: false,
 };
 
 interface ClientSettingField {
@@ -55,6 +56,7 @@ export const defaultConfigFields: Record<keyof ClientSettings, ClientSettingFiel
     sidemenuWidth: { type: "number", default: 330, name: "Width of the sidebar menu" },
     expandDashboardVodList: { type: "boolean", default: true, name: "Always expand the VOD list in the dashboard"},
     vodsToShowInDashboard: {  type: "number", default: 4, name: "Number of VODs to show in the dashboard" },
+    jobStatusExpandedByDefault: { type: "boolean", default: false, name: "Expand the job status by default" },
 };
 
 export const YouTubeCategories = {

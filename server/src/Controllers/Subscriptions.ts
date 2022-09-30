@@ -2,11 +2,12 @@ import express from "express";
 import { ApiErrorResponse } from "../../../common/Api/Api";
 import { SubStatus } from "../../../common/Defs";
 import { KeyValue } from "../Core/KeyValue";
-import { TwitchChannel } from "../Core/TwitchChannel";
+import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { Config } from "../Core/Config";
-import { Helper } from "../Core/Helper";
+import { TwitchHelper } from "../Providers/Twitch";
 import { LOGLEVEL, Log } from "../Core/Log";
 import { EventSubTypes } from "../../../common/TwitchAPI/Shared";
+import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 
 interface ChannelSub {
     type: EventSubTypes;
@@ -21,7 +22,7 @@ interface ChannelSub {
 
 export async function ListSubscriptions(req: express.Request, res: express.Response): Promise<void> {
 
-    const subs = await Helper.getSubsList();
+    const subs = await TwitchHelper.getSubsList();
 
     if (subs && subs.length > 0) {
 
@@ -88,17 +89,17 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
 
 export async function SubscribeToAllChannels(req: express.Request, res: express.Response): Promise<void> {
 
-    const all_channels = TwitchChannel.getChannels();
+    const all_channels = LiveStreamDVR.getInstance().getChannels();
 
     const payload_data: { channels: { login: string; status: string; }[] } = {
         channels: [],
     };
 
     for (const channel of all_channels) {
-        if (!channel.userid || !channel.login) continue;
-        const sub = await TwitchChannel.subscribe(channel.userid);
+        // if (!channel.userid || !channel.login) continue;
+        const sub = await channel.subscribe();
         const entry = {
-            login: channel.login,
+            login: channel.internalName,
             status: sub === true ? "Subscription request sent, check logs for details" : "ERROR",
         };
         payload_data.channels.push(entry);
@@ -123,7 +124,7 @@ export async function UnsubscribeFromId(req: express.Request, res: express.Respo
 
     const sub_id = req.params.sub_id;
 
-    const sub = await Helper.getSubscription(sub_id);
+    const sub = await TwitchHelper.getSubscription(sub_id);
 
     if (!sub) {
         res.status(404).send({
@@ -133,7 +134,7 @@ export async function UnsubscribeFromId(req: express.Request, res: express.Respo
         return;
     }
 
-    const status = await Helper.eventSubUnsubscribe(sub_id);
+    const status = await TwitchHelper.eventSubUnsubscribe(sub_id);
 
     if (status === true) {
         res.send({

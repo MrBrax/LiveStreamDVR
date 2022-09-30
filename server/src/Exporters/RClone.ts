@@ -1,9 +1,10 @@
-import { Helper } from "../Core/Helper";
+import { TwitchHelper } from "../Providers/Twitch";
 import path from "path";
 import fs from "fs";
 import sanitize from "sanitize-filename";
 import { BaseExporter } from "./Base";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
+import { Helper } from "../Core/Helper";
 
 export class RCloneExporter extends BaseExporter {
 

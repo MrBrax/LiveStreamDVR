@@ -1,10 +1,10 @@
 import { MediaInfo, MediaInfoPublic } from "../mediainfofield";
 import { VideoQuality } from "../Config";
 import { UserData } from "../User";
-import { MuteStatus, ExistStatus, JobStatus } from "../../common/Defs";
+import { MuteStatus, ExistStatus, JobStatus, Providers } from "../../common/Defs";
 import { AudioMetadata, VideoMetadata } from "../MediaInfo";
 import { BroadcasterType } from "../TwitchAPI/Users";
-import { TwitchVODChapterJSON } from "../../server/src/Storage/JSON";
+import { TwitchVODChapterJSON, BaseVODChapterJSON } from "../../server/src/Storage/JSON";
 import { TwitchVODBookmark } from "../Bookmark";
 import { LocalVideo } from "../LocalVideo";
 import { LocalClip } from "../LocalClip";
@@ -15,24 +15,23 @@ export type ApiVodSegment = {
     deleted: boolean;
 };
 
-export type ApiVodChapter = {
+export interface ApiVodBaseChapter {
     title: string;
+    duration: number;
+    started_at: string;
+    // datetime: PHPDateTimeJSON;
+    offset: number;
+}
 
+export interface ApiVodTwitchChapter extends ApiVodBaseChapter {
     game_id?: string;
     game_name?: string;
     game?: ApiGame;
     box_art_url?: string;
-
-    strings: Record<string, string>;
-    duration: number;
-
-    started_at: string;
-    // datetime: PHPDateTimeJSON;
-    offset: number;
     viewer_count?: number;
     // width: number; // why
     is_mature: boolean;
-};
+}
 
 export type ApiGame = {
     id: string;
@@ -44,31 +43,14 @@ export type ApiGame = {
     added: string;
 };
 
-export type ApiVod = {
-    uuid?: string;
+export interface ApiBaseVod {
+    provider: Providers;
+    uuid: string;
+    channel_uuid: string;
     basename: string;
-
-    stream_title: string;
-    stream_resolution?: VideoQuality;
-
     segments: ApiVodSegment[];
+    chapters: ApiVodBaseChapter[];
     segments_raw: string[];
-
-    streamer_name: string;
-    streamer_id: string;
-    streamer_login: string;
-
-    twitch_vod_duration?: number;
-    twitch_vod_muted?: MuteStatus;
-    twitch_vod_status?: ExistStatus;
-    twitch_vod_id?: string;
-    twitch_vod_date?: string;
-    twitch_vod_title?: string;
-
-    twitch_vod_neversaved?: boolean;
-    twitch_vod_exists?: boolean;
-    twitch_vod_attempted?: boolean;
-
     created_at?: string;
     saved_at?: string;
     started_at: string;
@@ -89,6 +71,52 @@ export type ApiVod = {
     is_vod_downloaded: boolean;
     is_capture_paused: boolean;
     is_lossless_cut_generated: boolean;
+    path_chat: string;
+    path_downloaded_vod: string;
+    path_losslesscut: string;
+    path_chatrender: string;
+    path_chatburn: string;
+    path_chatdump: string;
+    path_chatmask: string;
+    path_adbreak: string;
+    path_playlist: string;
+    duration_live: number | false;
+    duration: number;
+    total_size: number;
+    video_metadata?: VideoMetadata | AudioMetadata;
+    webpath: string;
+
+    stream_number?: number;
+    stream_season?: string;
+    stream_absolute_season?: number;
+
+    comment?: string;
+    prevent_deletion: boolean;
+
+    failed?: boolean;
+    cloud_storage?: boolean;
+
+}
+
+export interface ApiTwitchVod extends ApiBaseVod {
+    provider: "twitch";
+    stream_title: string;
+    stream_resolution?: VideoQuality;
+
+    streamer_name: string;
+    streamer_id: string;
+    streamer_login: string;
+
+    twitch_vod_duration?: number;
+    twitch_vod_muted?: MuteStatus;
+    twitch_vod_status?: ExistStatus;
+    twitch_vod_id?: string;
+    twitch_vod_date?: string;
+    twitch_vod_title?: string;
+
+    twitch_vod_neversaved?: boolean;
+    twitch_vod_exists?: boolean;
+    twitch_vod_attempted?: boolean;
 
     api_hasFavouriteGame: boolean;
     api_getUniqueGames: ApiGame[];
@@ -100,43 +128,23 @@ export type ApiVod = {
     api_getChatDumpStatus: JobStatus;
     api_getDurationLive: number | false;
 
-    path_chat: string;
-    path_downloaded_vod: string;
-    path_losslesscut: string;
-    path_chatrender: string;
-    path_chatburn: string;
-    path_chatdump: string;
-    path_chatmask: string;
-    path_adbreak: string;
-    path_playlist: string;
-
-    duration_live: number | false;
-    duration: number;
-
-    total_size: number;
-
     // game_offset: number;
 
     // video_metadata: MediaInfo;
     // video_metadata_public?: MediaInfoPublic;
-    video_metadata?: VideoMetadata | AudioMetadata;
 
-    chapters: ApiVodChapter[];
-
-    webpath: string;
-
-    stream_number?: number;
-    stream_season?: string;
-    stream_absolute_season?: number;
-
-    comment?: string;
-    prevent_deletion: boolean;
-
-    failed?: boolean;
+    chapters: ApiVodTwitchChapter[];
 
     bookmarks: TwitchVODBookmark[];
 
-};
+}
+
+export interface ApiYouTubeVod extends ApiBaseVod {
+    streamer_name: string;
+    streamer_id: string;
+    provider: "youtube";
+
+}
 
 export type ApiSettingsField = {
     key: string;
@@ -151,31 +159,19 @@ export type ApiSettingsField = {
     pattern?: string;
 };
 
-export type ApiChannel = {
-    userid: string;
-    display_name: string;
-    login: string;
+export interface ApiBaseChannel {
+    uuid: string;
+    provider: Providers;
     description: string;
-    quality: VideoQuality[] | undefined;
-
     vods_raw: string[];
-    vods_list: ApiVod[];
     vods_size: number;
-
     is_live: boolean;
     is_capturing: boolean;
     is_converting: boolean;
-    profile_image_url: string;
-    offline_image_url: string;
-    banner_image_url: string;
-    broadcaster_type: BroadcasterType;
-
     subbed_at?: string;
     expires_at?: string;
     last_online?: string;
-
     match: string[] | undefined;
-
     download_chat: boolean;
     no_capture: boolean;
     burn_chat: boolean;
@@ -185,10 +181,35 @@ export type ApiChannel = {
     max_vods: number;
     download_vod_at_end: boolean;
     download_vod_at_end_quality: VideoQuality;
+    clips_list: LocalClip[];
+    video_list: LocalVideo[];
 
-    current_chapter?: ApiVodChapter;
+    current_stream_number?: number;
+    current_season?: string;
+    saves_vods: boolean;
+
+    displayName: string;
+    internalName: string;
+    internalId: string;
+    url: string;
+    profilePictureUrl: string;
+    cloud_storage?: boolean;
+}
+
+export interface ApiTwitchChannel extends ApiBaseChannel {
+    provider: "twitch";
+    userid: string;
+    display_name: string;
+    login: string;
+    quality: VideoQuality[] | undefined;
+    vods_list: ApiTwitchVod[];
+    profile_image_url: string;
+    offline_image_url: string;
+    banner_image_url: string;
+    broadcaster_type: BroadcasterType;
+    current_chapter?: ApiVodBaseChapter;
     current_game?: ApiGame;
-    current_vod?: ApiVod;
+    current_vod?: ApiTwitchVod;
     // channel_data: {
     //     profile_image_url: string;
     // };
@@ -197,17 +218,37 @@ export type ApiChannel = {
     // api_getSubscriptionStatus: SubStatus;
     api_getSubscriptionStatus: boolean;
 
-    clips_list: LocalClip[];
-    video_list: LocalVideo[];
-
-    current_stream_number?: number;
-    current_season?: string;
-
     chapter_data?: TwitchVODChapterJSON;
 
-    saves_vods: boolean;
+}
 
-};
+export interface ApiYouTubeChannel extends ApiBaseChannel {
+    provider: "youtube";
+    channel_id: string;
+    display_name: string;
+    // quality: VideoQuality[] | undefined;
+    vods_list: ApiYouTubeVod[];
+    profile_image_url: string;
+    // offline_image_url: string;
+    // banner_image_url: string;
+    // broadcaster_type: BroadcasterType;
+    current_chapter?: ApiVodBaseChapter;
+    // current_game?: ApiGame;
+    current_vod?: ApiYouTubeVod;
+    // channel_data: {
+    //     profile_image_url: string;
+    // };
+    // channel_data: UserData | undefined;
+
+    // api_getSubscriptionStatus: SubStatus;
+    api_getSubscriptionStatus: boolean;
+
+    chapter_data?: BaseVODChapterJSON;
+
+}
+
+export type ApiChannels = ApiTwitchChannel | ApiYouTubeChannel;
+export type ApiVods = ApiTwitchVod | ApiYouTubeVod;
 
 export type ApiSubscription = {
     type: string;
@@ -221,7 +262,10 @@ export type ApiSubscription = {
 };
 
 export type ApiChannelConfig = {
-    login: string;
+    provider: Providers;
+    uuid: string;
+    login?: string;
+    channel_id?: string;
     match: string[];
     quality: VideoQuality[];
     download_chat: boolean;

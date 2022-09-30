@@ -1,11 +1,11 @@
-import { ApiChannel } from '@common/Api/Client';
+import { ApiTwitchChannel } from '@common/Api/Client';
 import { MockApiChannelData, MockApiChapterData, MockApiGameData, MockApiVODData, MockApiVODSegmentData } from '@/../test/mockdata';
 import { assert, describe, expect, it, test, vitest } from 'vitest'
-import TwitchChannel from "./channel";
-import TwitchVOD from './vod';
-import { TwitchGame } from './game';
-import { TwitchVODChapter } from './chapter';
-import { TwitchVODSegment } from './segment';
+import TwitchChannel from "./Providers/Twitch/TwitchChannel";
+import TwitchVOD from './Providers/Twitch/TwitchVOD';
+import { TwitchGame } from './Providers/Twitch/TwitchGame';
+import { TwitchVODChapter } from './Providers/Twitch/TwitchVODChapter';
+import { BaseVODSegment } from './Providers/Base/BaseVODSegment';
 
 test("makeFromApiResponse", () => {
 
@@ -91,7 +91,7 @@ test("vods_size getter", () => {
 
     const vod_channel = TwitchChannel.makeFromApiResponse(MockApiChannelData);
     const mock_vod = TwitchVOD.makeFromApiResponse(MockApiVODData);
-    const mock_segment = TwitchVODSegment.makeFromApiResponse(MockApiVODSegmentData);
+    const mock_segment = BaseVODSegment.makeFromApiResponse(MockApiVODSegmentData);
     mock_segment.filesize = 1024;
     mock_vod.segments.push(mock_segment);
     vod_channel.vods_list.push(mock_vod);

@@ -79,7 +79,8 @@
       "segments": "Segments",
       "template": "Template",
       "rename-vod": "Rename VOD",
-      "absolute-season": "Absolute season"
+      "absolute-season": "Absolute season",
+      "cloud-storage": "Cloud storage"
     },
     "export": {
       "title-template": "Title template",
@@ -129,7 +130,11 @@
     "checkstatus": "Check status",
     "authenticate": "Authenticate",
     "logout": "Log out",
-    "destroy-session": "Destroy session"
+    "destroy-session": "Destroy session",
+    "check-subscriptions": "Check subscriptions",
+    "refresh": "Refresh",
+    "delete-segments": "Delete segments",
+    "delete-segment": "Delete segment"
   },
   "pages": {
     "favourite-games": "Favourite games",
@@ -170,7 +175,11 @@
       "download_vod_at_end": "Download VOD at end of capture/stream end",
       "download_vod_at_end_quality": "Quality for download",
       "download_vod_at_end_quality_help": "Use 'best' if unsure.",
-      "quality-help-check": "It is recommended to place \"best\" or \"worst\" at the end to make the stream capture just in case."
+      "quality-help-check": "It is recommended to place \"best\" or \"worst\" at the end to make the stream capture just in case.",
+      "provider": "Provider",
+      "id": "ID",
+      "uuid": "UUID",
+      "id_help": "ID can be retrieved from external services. It is NOT the one in the URL of the channel."
     },
     "config": {
       "validate-external-url": "Validate external URL"
@@ -236,7 +245,15 @@
     }
   },
   "jobs": {
-    "no-jobs-running": "No jobs running"
+    "no-jobs-running": "No jobs running",
+    "name": "Name",
+    "started-at": "Started at",
+    "pid": "PID",
+    "status": "Status",
+    "progress": "Progress",
+    "time-left": "Time left",
+    "action": "Action",
+    "jobs-running": "{count} jobs running"
   },
   "input": {
     "search": "Search..."
@@ -266,5 +283,27 @@
     "yes": "Yes",
     "no": "No",
     "no-data": "No data"
+  },
+  "duration": {
+    "hours": "datetime.hours",
+    "minutes": "datetime.minutes",
+    "seconds": "datetime.seconds"
+  },
+  "render-menu": {
+    "render-chat": "Render chat",
+    "chat-width": "Chat width",
+    "chat-width-must-be-an-even-number": "Chat width must be an even number.",
+    "chat-height": "Chat height",
+    "chat-height-must-be-an-even-number": "Chat height must be an even number.",
+    "video-source": "Video source",
+    "source-captured": "Captured",
+    "source-downloaded": "Downloaded",
+    "chat-source": "Chat source",
+    "font": "Font",
+    "font-size": "Font size",
+    "offset-seconds": "Offset (seconds)",
+    "test-duration-dont-burn-entire-video": "Test duration (don't burn entire video)",
+    "chat-horizontal": "Chat horizontal",
+    "chat-vertical": "Chat vertical"
   }
 }

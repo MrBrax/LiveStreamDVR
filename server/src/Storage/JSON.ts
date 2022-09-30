@@ -1,13 +1,19 @@
 import { VideoQuality } from "../../../common/Config";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
-import { MuteStatus } from "../../../common/Defs";
+import { MuteStatus, Providers } from "../../../common/Defs";
 import { AudioMetadata, VideoMetadata } from "../../../common/MediaInfo";
 import { TwitchVODBookmark } from "../../../common/Bookmark";
 
 export interface VODJSON {
 
     version: number;
-    type: string;
+    type: Providers;
+
+    uuid?: string;
+    capture_id?: string;
+    channel_uuid: string;
+
+    chapters: BaseVODChapterJSON[];
 
     stream_resolution: VideoQuality | undefined;
 
@@ -33,7 +39,7 @@ export interface VODJSON {
 
     not_started: boolean;
 
-    /** @todo: rename number to episode? */
+    /** TODO: rename number to episode? */
     stream_number?: number;
     stream_season?: string;
     stream_absolute_season?: number;
@@ -43,14 +49,11 @@ export interface VODJSON {
     prevent_deletion: boolean;
     failed?: boolean;
 
+    cloud_storage?: boolean;
+
 }
 export interface TwitchVODJSON extends VODJSON {
-
-    version: number;
     type: "twitch";
-
-    uuid?: string;
-    capture_id?: string;
 
     meta?: EventSubResponse;
 
@@ -73,20 +76,22 @@ export interface TwitchVODJSON extends VODJSON {
 
 }
 
-export interface TwitchVODChapterJSON {
+export interface YouTubeVODJSON extends VODJSON {
+    channel_id?: string;
+}
 
+export interface BaseVODChapterJSON {
     started_at: string;
     title: string;
+    online: boolean; // ?
+}
 
+export interface TwitchVODChapterJSON extends BaseVODChapterJSON {
     game_id?: string;
     game_name?: string;
     box_art_url?: string;
-
     is_mature: boolean;
-    online: boolean; // ?
     viewer_count?: number;
-
     // offset: number;
     // duration: number;
-
 }

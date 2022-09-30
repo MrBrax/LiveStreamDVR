@@ -1,7 +1,9 @@
 import { TemplateFields } from "./Replacements";
 
 export const VodBasenameFields: TemplateFields = {
-    login: { display: "MooseStreamer" },
+    login: { display: "MooseStreamer", deprecated: true },
+    internalName: { display: "moosestreamer" },
+    displayName: { display: "MooseStreamer", },
     date: { display: "2022-12-31T12_05_04Z" },
     year: { display: "2022" },
     year_short: { display: "22" },
@@ -26,7 +28,9 @@ export const ClipBasenameFields: TemplateFields = {
 };
 
 export const ExporterFilenameFields: TemplateFields = {
-    login: { display: "Username" },
+    login: { display: "username", deprecated: true },
+    internalName: { display: "username" },
+    displayName: { display: "DisplayName", },
     title: { display: "Title" },
     stream_number: { display: "5" },
     comment: { display: "Comment" },
