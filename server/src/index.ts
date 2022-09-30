@@ -49,7 +49,6 @@ try {
     console.error(`Check version error: ${(error as Error).message}`);
 }
 
-
 // load all required config files and cache stuff
 Config.init().then(() => {
 
