@@ -16,6 +16,7 @@ import { Log, LOGLEVEL } from "../Core/Log";
 import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { Helper } from "../Core/Helper";
+import { EditableChapter } from "../../../common/Api/Client";
 
 export async function GetVod(req: express.Request, res: express.Response): Promise<void> {
 
@@ -54,6 +55,7 @@ export async function EditVod(req: express.Request, res: express.Response): Prom
     const prevent_deletion = req.body.prevent_deletion as boolean;
     const segments = req.body.segments as string;
     const cloud_storage = req.body.cloud_storage as boolean;
+    const chapters = req.body.chapters as EditableChapter[];
 
     vod.stream_number = stream_number;
     vod.comment = comment;
@@ -63,6 +65,10 @@ export async function EditVod(req: express.Request, res: express.Response): Prom
     if (segments) {
         vod.segments_raw = segments.split("\n").map(s => s.trim()).filter(s => s.length > 0);
         vod.parseSegments(vod.segments_raw);
+    }
+
+    if (chapters) {
+        console.debug("chapters", chapters);
     }
 
     await vod.saveJSON("edit vod form");

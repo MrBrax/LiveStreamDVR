@@ -246,8 +246,12 @@
                         <select
                             v-model="burnSettings.burnHorizontal"
                         >
-                            <option value="left">Left</option>
-                            <option value="right">Right</option>
+                            <option value="left">
+                                Left
+                            </option>
+                            <option value="right">
+                                Right
+                            </option>
                         </select>
                     </div>
                 </div>
@@ -257,8 +261,12 @@
                         <select
                             v-model="burnSettings.burnVertical"
                         >
-                            <option value="top">Top</option>
-                            <option value="bottom">Bottom</option>
+                            <option value="top">
+                                Top
+                            </option>
+                            <option value="bottom">
+                                Bottom
+                            </option>
                         </select>
                     </div>
                 </div>
@@ -268,15 +276,33 @@
                         <select
                             v-model="burnSettings.ffmpegPreset"
                         >
-                            <option value="ultrafast">Ultrafast</option>
-                            <option value="superfast">Superfast</option>
-                            <option value="veryfast">Veryfast</option>
-                            <option value="faster">Faster</option>
-                            <option value="fast">Fast</option>
-                            <option value="medium">Medium</option>
-                            <option value="slow">Slow</option>
-                            <option value="slower">Slower</option>
-                            <option value="veryslow">Veryslow</option>
+                            <option value="ultrafast">
+                                Ultrafast
+                            </option>
+                            <option value="superfast">
+                                Superfast
+                            </option>
+                            <option value="veryfast">
+                                Veryfast
+                            </option>
+                            <option value="faster">
+                                Faster
+                            </option>
+                            <option value="fast">
+                                Fast
+                            </option>
+                            <option value="medium">
+                                Medium
+                            </option>
+                            <option value="slow">
+                                Slow
+                            </option>
+                            <option value="slower">
+                                Slower
+                            </option>
+                            <option value="veryslow">
+                                Veryslow
+                            </option>
                         </select>
                     </div>
                 </div>

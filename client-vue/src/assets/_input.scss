@@ -11,6 +11,8 @@
     color: var(--input-color);
     border: 1px solid var(--input-border-color);
 
+    width: 100%;
+
     &:invalid {
         border-color: #c10b0b;
 
