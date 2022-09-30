@@ -304,4 +304,7 @@ export interface EditableChapter {
     offset: number;
     title: string;
     game_id?: string;
+    viewer_count?: number;
+    is_mature?: boolean;
+    // online: boolean;
 }

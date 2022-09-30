@@ -81,6 +81,8 @@ export class BaseVOD {
 
     failed = false;
 
+    chapters_raw: BaseVODChapterJSON[] = [];
+
     chapters: Array<BaseVODChapter> = [];
 
     path_chat = "";

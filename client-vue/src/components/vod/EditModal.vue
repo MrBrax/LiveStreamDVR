@@ -79,6 +79,7 @@
                         class="input is-small"
                     >
                 </td>
+                <!-- offset -->
                 <td>
                     <input
                         :value="humanReadableChapterOffset(i)"
@@ -87,6 +88,7 @@
                         class="input is-small"
                     >
                 </td>
+                <!-- date -->
                 <td>
                     <input
                         :value="chapterDate(i)?.toISOString()"
@@ -95,6 +97,7 @@
                         class="input is-small"
                     >
                 </td>
+                <!-- title -->
                 <td>
                     <input
                         v-model="chapter.title"
@@ -102,6 +105,7 @@
                         class="input is-small"
                     >
                 </td>
+                <!-- game id -->
                 <td>
                     <div class="select is-small">
                         <select
@@ -121,6 +125,16 @@
                         </select>
                     </div>
                 </td>
+                <!-- viewer count -->
+                <td>
+                    <input
+                        :value="chapter.viewer_count"
+                        readonly
+                        disabled
+                        class="input is-small"
+                    >
+                </td>
+                <!-- delete -->
                 <td>
                     <button
                         class="button is-small is-danger"
@@ -141,8 +155,9 @@
                         class="input is-small"
                     >
                 </td>
-                <td></td>
-                <td></td>
+                <td />
+                <td />
+                <!-- title -->
                 <td>
                     <input
                         v-model="newChapter.title"
@@ -150,6 +165,7 @@
                         class="input is-small"
                     >
                 </td>
+                <!-- game id -->
                 <td>
                     <div class="select is-small">
                         <select
@@ -289,6 +305,10 @@ const gamesData = ref<Record<string,ApiGame>>({});
 const newChapter = ref<EditableChapter>({
     offset: 0,
     title: "",
+    game_id: "",
+    viewer_count: undefined,
+    is_mature: undefined,
+    online: true,
 });
 
 const sortedChapters = computed(() => {
@@ -306,8 +326,6 @@ function sortChapters() {
 function doEditVod() {
     if (!props.vod) return;
     sortChapters();
-    console.table(editVodSettings.value.chapters);
-    return;
     axios.post(`/api/v0/vod/${props.vod.uuid}`, editVodSettings.value).then((response) => {
         const json: ApiResponse = response.data;
         if (json.message) alert(json.message);
@@ -323,11 +341,14 @@ function doEditVod() {
 }
 
 function makeEditableChapters(chapters: ChapterTypes[]): EditableChapter[] {
-    return chapters.map((c, i) => ({
-        offset: c.offset || 0,
-        title: c.title,
-        game_id: c instanceof TwitchVODChapter ? c.game_id : undefined,
+    return chapters.map((chapter, i) => ({
         originalIndex: i,
+        offset: chapter.offset || 0,
+        title: chapter.title,
+        game_id: chapter instanceof TwitchVODChapter ? chapter.game_id : undefined,
+        viewer_count: chapter instanceof TwitchVODChapter ? chapter.viewer_count : undefined,
+        is_mature: chapter instanceof TwitchVODChapter ? chapter.is_mature : undefined,
+        online: chapter.online || false,
     }));
 }
 
@@ -340,6 +361,10 @@ function addChapter() {
     newChapter.value = {
         offset: 0,
         title: "",
+        game_id: "",
+        viewer_count: undefined,
+        is_mature: undefined,
+        online: true,
     };
 }
 

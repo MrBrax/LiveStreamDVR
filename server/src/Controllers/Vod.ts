@@ -17,6 +17,7 @@ import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { Helper } from "../Core/Helper";
 import { EditableChapter } from "../../../common/Api/Client";
+import { TwitchVODChapter } from "../Core/Providers/Twitch/TwitchVODChapter";
 
 export async function GetVod(req: express.Request, res: express.Response): Promise<void> {
 
@@ -67,8 +68,27 @@ export async function EditVod(req: express.Request, res: express.Response): Prom
         vod.parseSegments(vod.segments_raw);
     }
 
-    if (chapters) {
-        console.debug("chapters", chapters);
+    if (chapters && vod.started_at) {
+        console.table(/*"inputChapters",*/ chapters);
+        console.table(/*"vodChapters",*/ vod.chapters);
+
+        const realChapters = await Promise.all(chapters.map(async c => {
+            if (!vod.started_at) {
+                console.error("VOD has no started_at");
+                return;
+            }
+            const originalChapter = c.originalIndex !== undefined ? vod.chapters[c.originalIndex] : undefined;
+            const json = {
+                ...c,
+                started_at: new Date(vod.started_at.getTime() + c.offset).toISOString(),
+                is_mature: c.is_mature || false,
+                online: originalChapter ? originalChapter.online : false,
+            };
+            return await TwitchVODChapter.fromJSON(json);
+        }));
+
+        console.table(/*"realChapters",*/ realChapters);
+
     }
 
     await vod.saveJSON("edit vod form");
