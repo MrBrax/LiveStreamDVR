@@ -135,9 +135,10 @@ export class TwitchChannel extends BaseChannel {
             let vodclass;
 
             try {
-                vodclass = await TwitchVOD.load(vod_full_path);
+                vodclass = await TwitchVOD.load(vod_full_path, true);
             } catch (e) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not load VOD ${vod}: ${(e as Error).message}`, e);
+                console.error(e);
                 continue;
             }
 
@@ -146,9 +147,11 @@ export class TwitchChannel extends BaseChannel {
             }
 
             if (!vodclass.channel_uuid) {
-                Log.logAdvanced(LOGLEVEL.INFO, "channel", `VOD ${vod} does not have a channel UUID, setting.`);
+                Log.logAdvanced(LOGLEVEL.INFO, "channel", `VOD '${vod}' does not have a channel UUID, setting it to '${this.uuid}'`);
                 vodclass.channel_uuid = this.uuid;
             }
+
+            await vodclass.fixIssues();
 
             // if (vodclass.is_capturing) {
             //     $this->is_live = true;

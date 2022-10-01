@@ -145,7 +145,11 @@ export class TwitchVOD extends BaseVOD {
         this.streamer_id = this.json.streamer_id;
         this.streamer_login = await TwitchChannel.channelLoginFromId(this.streamer_id || "") || "";
         this.streamer_name = await TwitchChannel.channelDisplayNameFromId(this.streamer_id || "") || "";
-        this.channel_uuid = this.json.channel_uuid;
+        if (this.json.channel_uuid) {
+            this.channel_uuid = this.json.channel_uuid;
+        } else {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod", `No channel UUID for VOD ${this.basename}`);
+        }
     }
 
     /**
@@ -463,7 +467,7 @@ export class TwitchVOD extends BaseVOD {
 
         let files: string[];
 
-        if (this.directory !== this.getChannel().getFolder()) { // is not in vod folder root
+        if (this.directory !== Helper.vodFolder(this.streamer_login)) { // is not in vod folder root, TODO: channel might not be added yet
             Log.logAdvanced(LOGLEVEL.INFO, "vod.rebuildSegmentList", `VOD ${this.basename} has its own folder, find all files.`);
             files = fs.readdirSync(this.directory).filter(file =>
                 (
@@ -1309,6 +1313,11 @@ export class TwitchVOD extends BaseVOD {
 
         Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Run fixIssues for VOD ${this.basename}`);
 
+        // if (!this.getChannel()) {
+        //     Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `VOD ${this.basename} has no channel!`);
+        //     return;
+        // }
+
         if (this.not_started) {
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD ${this.basename} not started yet, skipping fix!`);
             return;
@@ -1446,7 +1455,7 @@ export class TwitchVOD extends BaseVOD {
             for (const seg of this.segments) {
                 if (!seg.filename) continue;
                 const dir = path.dirname(seg.filename);
-                if (dir !== this.getChannel().getFolder() && seg.deleted) {
+                if (dir !== Helper.vodFolder(this.streamer_login) && seg.deleted) { // TODO: channel might not be added yet
                     // rebuild here
                     await this.rebuildSegmentList();
                     continue;
@@ -1571,10 +1580,10 @@ export class TwitchVOD extends BaseVOD {
      * @returns Channel
      */
     public getChannel(): TwitchChannel {
-        if (!this.channel_uuid) throw new Error("No UUID set!?");
+        if (!this.channel_uuid) throw new Error("No channel UUID set for getChannel");
         // return TwitchChannel.getChannelByLogin(this.streamer_login);
         const channel = LiveStreamDVR.getInstance().getChannelByUUID<TwitchChannel>(this.channel_uuid);
-        if (!channel) throw new Error("No channel found");
+        if (!channel) throw new Error(`No channel found for getChannel (uuid: ${this.channel_uuid})`);
         return channel;
     }
 

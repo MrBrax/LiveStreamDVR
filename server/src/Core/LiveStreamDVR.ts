@@ -121,7 +121,8 @@ export class LiveStreamDVR {
                     try {
                         ch = await TwitchChannel.loadFromLogin(channel.login);
                     } catch (th) {
-                        Log.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be loaded: ${th}`);
+                        Log.logAdvanced(LOGLEVEL.FATAL, "config", `TW Channel ${channel.login} could not be loaded: ${th}`);
+                        console.error(th);
                         continue;
                         // break;
                     }
@@ -146,7 +147,8 @@ export class LiveStreamDVR {
                     try {
                         ch = await YouTubeChannel.loadFromId(channel.channel_id);
                     } catch (th) {
-                        Log.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.channel_id} could not be loaded: ${th}`);
+                        Log.logAdvanced(LOGLEVEL.FATAL, "config", `YT Channel ${channel.channel_id} could not be loaded: ${th}`);
+                        console.error(th);
                         continue;
                         // break;
                     }
@@ -195,7 +197,10 @@ export class LiveStreamDVR {
 
     public getChannelByUUID<T extends ChannelTypes>(uuid: string): T | false {
         const search = this.channels.find(c => c.uuid == uuid);
-        if (!search) return false;
+        if (!search) {
+            console.error(`Channel with UUID ${uuid} not found in list: ${this.channels.map(c => c.uuid).join(", ")}`);
+            return false;
+        }
         return search as T;
     }
 
