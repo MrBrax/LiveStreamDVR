@@ -488,7 +488,7 @@ export class Helper {
                     Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Remuxed ${input} to ${output}`);
                     resolve({ code: code || -1, success, stdout: job.stdout, stderr: job.stderr });
                 } else {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to remux ${path.basename(input)} to ${path.basename(output)}`);
+                    Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to remux '${input}' to '${output}'`);
                     // reject({ code, success, stdout: job.stdout, stderr: job.stderr });
 
                     let message = "Unknown error";
@@ -503,7 +503,7 @@ export class Helper {
 
                     // for (const err of errorSearch) {
                     //    message = err[1];
-                    reject(new Error(`Failed to remux ${path.basename(input)} to ${path.basename(output)}: ${message}`));
+                    reject(new Error(`Failed to remux '${input}' to '${output}': ${message}`));
                 }
             });
 

@@ -446,7 +446,7 @@ export default defineComponent({
             let response;
 
             try {
-                response = await this.$http.delete(`/api/v0/jobs/capture_${this.streamer.current_vod.basename}`);
+                response = await this.$http.delete(`/api/v0/jobs/capture_${this.streamer.internalName}_*`);
             } catch (error) {
                 if (this.$http.isAxiosError(error)) {
                     console.error("abortCapture error", error.response);

@@ -20,7 +20,15 @@ export async function ListJobs(req: express.Request, res: express.Response): Pro
 
 export async function KillJob(req: express.Request, res: express.Response): Promise<void> {
 
-    const job = Job.getJob(req.params.name);
+    let job: Job | boolean = false;
+
+    if (req.params.name.endsWith("*")) {
+        const name = req.params.name.slice(0, -1);
+        job = Job.findJobThatStartsWith(name);
+    } else {
+        job = Job.getJob(req.params.name);
+    }
+
     const clear = req.query.clear;
     const method: NodeJS.Signals = req.query.method !== undefined && req.query.method !== "" ? req.query.method as NodeJS.Signals : "SIGTERM";
 

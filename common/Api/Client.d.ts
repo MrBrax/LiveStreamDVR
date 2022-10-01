@@ -298,3 +298,13 @@ export type ApiLogLine = {
     pid?: number;
     metadata?: any;
 };
+
+export interface EditableChapter {
+    originalIndex?: number;
+    offset: number;
+    title: string;
+    game_id?: string;
+    viewer_count?: number;
+    is_mature?: boolean;
+    // online: boolean;
+}

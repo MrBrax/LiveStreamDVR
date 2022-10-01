@@ -80,7 +80,9 @@
       "template": "Template",
       "rename-vod": "Rename VOD",
       "absolute-season": "Absolute season",
-      "cloud-storage": "Cloud storage"
+      "cloud-storage": "Cloud storage",
+      "chapters": "Chapters",
+      "reset-chapters": "Reset chapters"
     },
     "export": {
       "title-template": "Title template",

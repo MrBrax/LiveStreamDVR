@@ -1205,6 +1205,7 @@ title="Retry VOD match"
         <modal-box
             ref="editVodMenu"
             :title="$t('vod.edit.edit-vod')"
+            max-width="1200px"
         >
             <edit-modal
                 :vod="vod"

@@ -16,6 +16,8 @@ import { Log, LOGLEVEL } from "../Core/Log";
 import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { Helper } from "../Core/Helper";
+import { EditableChapter } from "../../../common/Api/Client";
+import { TwitchVODChapter } from "../Core/Providers/Twitch/TwitchVODChapter";
 
 export async function GetVod(req: express.Request, res: express.Response): Promise<void> {
 
@@ -54,6 +56,7 @@ export async function EditVod(req: express.Request, res: express.Response): Prom
     const prevent_deletion = req.body.prevent_deletion as boolean;
     const segments = req.body.segments as string;
     const cloud_storage = req.body.cloud_storage as boolean;
+    const chapters = req.body.chapters as EditableChapter[];
 
     vod.stream_number = stream_number;
     vod.comment = comment;
@@ -63,6 +66,29 @@ export async function EditVod(req: express.Request, res: express.Response): Prom
     if (segments) {
         vod.segments_raw = segments.split("\n").map(s => s.trim()).filter(s => s.length > 0);
         vod.parseSegments(vod.segments_raw);
+    }
+
+    if (chapters && vod.started_at) {
+        console.table(/*"inputChapters",*/ chapters);
+        console.table(/*"vodChapters",*/ vod.chapters);
+
+        const realChapters = await Promise.all(chapters.map(async c => {
+            if (!vod.started_at) {
+                console.error("VOD has no started_at");
+                return;
+            }
+            const originalChapter = c.originalIndex !== undefined ? vod.chapters[c.originalIndex] : undefined;
+            const json = {
+                ...c,
+                started_at: new Date(vod.started_at.getTime() + c.offset).toISOString(),
+                is_mature: c.is_mature || false,
+                online: originalChapter ? originalChapter.online : false,
+            };
+            return await TwitchVODChapter.fromJSON(json);
+        }));
+
+        console.table(/*"realChapters",*/ realChapters);
+
     }
 
     await vod.saveJSON("edit vod form");

@@ -152,8 +152,8 @@ export async function DeleteChannel(req: express.Request, res: express.Response)
 
     if (!channel || !channel.internalName) {
 
-        if (LiveStreamDVR.getInstance().channels_config.find(c => c instanceof TwitchChannel && c.login === req.params.login)) {
-            LiveStreamDVR.getInstance().channels_config = LiveStreamDVR.getInstance().channels_config.filter(c => c instanceof TwitchChannel && c.login !== req.params.login);
+        if (LiveStreamDVR.getInstance().channels_config.find(c => c instanceof TwitchChannel && c.uuid === req.params.uuid)) {
+            LiveStreamDVR.getInstance().channels_config = LiveStreamDVR.getInstance().channels_config.filter(c => c instanceof TwitchChannel && c.uuid !== req.params.uuid);
             LiveStreamDVR.getInstance().saveChannelsConfig();
 
             res.send({
@@ -311,7 +311,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
             return;
         }
 
-        Log.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.add", `Created channel: ${new_channel.login}`);
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.add", `Created channel: ${new_channel.internalName}`);
 
     } else if (provider == "youtube") {
 
@@ -384,7 +384,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
             return;
         }
 
-        Log.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.add", `Created channel: ${new_channel.display_name}`);
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "route.channels.add", `Created channel: ${new_channel.displayName}`);
 
     }
 
@@ -399,7 +399,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
     res.send({
         data: await new_channel.toAPI(),
         status: "OK",
-        message: `Channel '${new_channel.display_name}' created`,
+        message: `Channel '${new_channel.displayName}' created`,
     });
 
     new_channel.broadcastUpdate();
@@ -507,7 +507,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
     };
 
     const basename = template("filename_vod");
-    const basefolder = template("filename_vod_folder");
+    const basefolder = path.join(channel.getFolder(), template("filename_vod_folder"));
 
     const filepath = path.join(basefolder, `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
 
@@ -517,6 +517,10 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             message: `VOD already exists: ${basename}`,
         } as ApiErrorResponse);
         return;
+    }
+
+    if (!fs.existsSync(path.dirname(filepath))) {
+        fs.mkdirSync(path.dirname(filepath), { recursive: true });
     }
 
     let status = false;
@@ -711,7 +715,7 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
 
     const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
 
-    if (!channel || !channel.internalName) {
+    if (!channel || !channel.internalId) {
         res.status(400).send({
             status: "ERROR",
             message: "Channel not found",
@@ -719,7 +723,7 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
         return;
     }
 
-    const streams = await TwitchChannel.getStreams(channel.internalName);
+    const streams = await TwitchChannel.getStreams(channel.internalId);
 
     if (streams) {
         const stream = streams.find((s) => s.type === "live");

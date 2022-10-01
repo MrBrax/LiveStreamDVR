@@ -1,6 +1,6 @@
 {
   "name": "livestreamdvr-server",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "",
   "main": "index.ts",
   "scripts": {
@@ -10,7 +10,7 @@
     "start:dev": "nodemon src/index.ts",
     "start": "node --enable-source-maps build/server.js",
     "build:ts": "tsc --project tsconfig.json",
-    "build": "tsc -noEmit && esbuild ./src/index.ts --bundle --platform=node --target=node14 --sourcemap --outfile=./build/server.js"
+    "build": "tsc -noEmit && esbuild ./src/index.ts --bundle --platform=node --target=node15 --sourcemap --outfile=./build/server.js"
   },
   "author": "",
   "license": "ISC",

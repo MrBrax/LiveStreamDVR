@@ -82,15 +82,6 @@ export class TwitchChannel extends BaseChannel {
         return `https://twitch.tv/${this.internalName}`;
     }
 
-    /**
-     * Folder for the channel that stores VODs and all other data
-     * 
-     * @returns {string} Folder path
-     */
-    public getFolder(): string {
-        return Helper.vodFolder(this.internalName);
-    }
-
     public rescanVods(): string[] {
         const list = readdirSyncRecursive(this.getFolder())
             .filter(file =>
@@ -144,9 +135,10 @@ export class TwitchChannel extends BaseChannel {
             let vodclass;
 
             try {
-                vodclass = await TwitchVOD.load(vod_full_path);
+                vodclass = await TwitchVOD.load(vod_full_path, true);
             } catch (e) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not load VOD ${vod}: ${(e as Error).message}`, e);
+                console.error(e);
                 continue;
             }
 
@@ -155,9 +147,11 @@ export class TwitchChannel extends BaseChannel {
             }
 
             if (!vodclass.channel_uuid) {
-                Log.logAdvanced(LOGLEVEL.INFO, "channel", `VOD ${vod} does not have a channel UUID, setting.`);
+                Log.logAdvanced(LOGLEVEL.INFO, "channel", `VOD '${vod}' does not have a channel UUID, setting it to '${this.uuid}'`);
                 vodclass.channel_uuid = this.uuid;
             }
+
+            await vodclass.fixIssues();
 
             // if (vodclass.is_capturing) {
             //     $this->is_live = true;
@@ -573,13 +567,13 @@ export class TwitchChannel extends BaseChannel {
         if (!Config.getInstance().cfg("create_kodi_nfo")) return false;
         if (!Config.getInstance().cfg("channel_folders")) return false; // only create nfo if we have channel folders
 
-        const nfo_file = path.join(Helper.vodFolder(this.channel_data.login), "tvshow.nfo");
+        const nfo_file = path.join(this.getFolder(), "tvshow.nfo");
 
         let avatar;
         if (this.channel_data.cache_avatar && fs.existsSync(path.join(BaseConfigDataFolder.public_cache_avatars, this.channel_data.cache_avatar))) {
             fs.copyFileSync(
                 path.join(BaseConfigDataFolder.public_cache_avatars, this.channel_data.cache_avatar),
-                path.join(Helper.vodFolder(this.channel_data.login), `poster${path.extname(this.channel_data.cache_avatar)}`)
+                path.join(this.getFolder(), `poster${path.extname(this.channel_data.cache_avatar)}`)
             );
             avatar = `poster${path.extname(this.channel_data.cache_avatar)}`;
         }
@@ -776,7 +770,7 @@ export class TwitchChannel extends BaseChannel {
         }
 
         const basename = `${this.login}_${latestVodData.created_at.replaceAll(":", "-")}_${latestVodData.stream_id}`;
-        const file_path = path.join(Helper.vodFolder(this.login), `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
+        const file_path = path.join(this.getFolder(), `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
 
         let success;
 
@@ -790,7 +784,7 @@ export class TwitchChannel extends BaseChannel {
             throw new Error("Failed to download vod");
         }
 
-        const vod = await this.createVOD(path.join(Helper.vodFolder(this.login), `${basename}.json`));
+        const vod = await this.createVOD(path.join(this.getFolder(), `${basename}.json`));
         vod.started_at = parseJSON(latestVodData.created_at);
 
         const duration = TwitchHelper.parseTwitchDuration(latestVodData.duration);
@@ -881,7 +875,7 @@ export class TwitchChannel extends BaseChannel {
 
     private async addLocalVideo(basename: string): Promise<boolean> {
 
-        const filename = path.join(Helper.vodFolder(this.login), basename);
+        const filename = path.join(this.getFolder(), basename);
 
         let video_metadata: VideoMetadata | AudioMetadata;
 
@@ -933,7 +927,7 @@ export class TwitchChannel extends BaseChannel {
     private addAllLocalVideos() {
         if (!Config.getInstance().cfg("channel_folders")) return; // don't watch if no channel folders are enabled
         if (!Config.getInstance().cfg("localvideos.enabled")) return;
-        const folder = Helper.vodFolder(this.login);
+        const folder = this.getFolder();
         const files = fs.readdirSync(folder);
         const allVodFiles = this.vods_list.map((v) => v.associatedFiles.map((f) => path.basename(f))).flat();
         for (const file of files) {

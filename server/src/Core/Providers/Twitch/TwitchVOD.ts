@@ -145,7 +145,11 @@ export class TwitchVOD extends BaseVOD {
         this.streamer_id = this.json.streamer_id;
         this.streamer_login = await TwitchChannel.channelLoginFromId(this.streamer_id || "") || "";
         this.streamer_name = await TwitchChannel.channelDisplayNameFromId(this.streamer_id || "") || "";
-        this.channel_uuid = this.json.channel_uuid;
+        if (this.json.channel_uuid) {
+            this.channel_uuid = this.json.channel_uuid;
+        } else {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod", `No channel UUID for VOD ${this.basename}`);
+        }
     }
 
     /**
@@ -463,7 +467,7 @@ export class TwitchVOD extends BaseVOD {
 
         let files: string[];
 
-        if (this.directory !== Helper.vodFolder(this.streamer_login)) { // is not in vod folder root
+        if (this.directory !== Helper.vodFolder(this.streamer_login)) { // is not in vod folder root, TODO: channel might not be added yet
             Log.logAdvanced(LOGLEVEL.INFO, "vod.rebuildSegmentList", `VOD ${this.basename} has its own folder, find all files.`);
             files = fs.readdirSync(this.directory).filter(file =>
                 (
@@ -565,7 +569,7 @@ export class TwitchVOD extends BaseVOD {
 
         Log.logAdvanced(LOGLEVEL.INFO, "vod.matchProviderVod", `Trying to match ${this.basename} to provider...`);
 
-        const channel_videos = await TwitchVOD.getVideos(this.streamer_id);
+        const channel_videos = await TwitchVOD.getVideos(this.getChannel().internalId);
         if (!channel_videos) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vod.matchProviderVod", `No videos returned from streamer of ${this.basename}`);
             this.twitch_vod_neversaved = true;
@@ -675,7 +679,7 @@ export class TwitchVOD extends BaseVOD {
         Log.logAdvanced(LOGLEVEL.INFO, "vod.saveFFMPEGChapters", `Saving FFMPEG chapters file for ${this.basename} to ${this.path_ffmpegchapters}`);
 
         const meta = new FFmpegMetadata()
-            .setArtist(this.streamer_name)
+            .setArtist(this.getChannel().displayName)
             .setTitle(this.twitch_vod_title ?? this.chapters[0].title);
 
         if (this.started_at) meta.setDate(this.started_at);
@@ -757,13 +761,18 @@ export class TwitchVOD extends BaseVOD {
 
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Saving Kodi NFO file for ${this.basename} to ${this.path_kodinfo}`);
 
-        const title = this.twitch_vod_title ?? this.chapters[0].title;
+        const title =
+            this.twitch_vod_title ?
+                this.twitch_vod_title :
+                this.chapters[0] ?
+                    this.chapters[0].title :
+                    this.basename;
 
         let data = "";
         data += "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\n";
         data += "<episodedetails>\n";
         data += `\t<title>${htmlentities(title)}</title>\n`;
-        data += `\t<showtitle>${this.streamer_name}</showtitle>\n`;
+        data += `\t<showtitle>${this.getChannel().displayName}</showtitle>\n`;
         data += `\t<uniqueid type="twitch">${this.twitch_vod_id}</uniqueid>\n`;
 
         data += `\t<season>${format(this.started_at, Config.SeasonFormat)}</season>\n`;
@@ -780,7 +789,7 @@ export class TwitchVOD extends BaseVOD {
         if (this.duration) data += `\t<runtime>${Math.ceil(this.duration / 60)}</runtime>\n`;
 
         data += "\t<actor>\n";
-        data += `\t\t<name>${this.streamer_name}</name>\n`;
+        data += `\t\t<name>${this.getChannel().displayName}</name>\n`;
         data += "\t\t<role>Themselves</role>\n";
         data += "\t</actor>\n";
 
@@ -794,7 +803,7 @@ export class TwitchVOD extends BaseVOD {
         data += `\t<aired>${format(this.started_at, "yyyy-MM-dd")}</aired>\n`;
         data += `\t<dateadded>${format(this.started_at, "yyyy-MM-dd")}</dateadded>\n`;
         data += `\t<year>${format(this.started_at, "yyyy")}</year>\n`;
-        data += `\t<studio>${this.streamer_name}</studio>\n`;
+        data += `\t<studio>${this.getChannel().displayName}</studio>\n`;
 
         data += `\t<id>${this.twitch_vod_id}</id>\n`;
 
@@ -1304,6 +1313,11 @@ export class TwitchVOD extends BaseVOD {
 
         Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Run fixIssues for VOD ${this.basename}`);
 
+        // if (!this.getChannel()) {
+        //     Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `VOD ${this.basename} has no channel!`);
+        //     return;
+        // }
+
         if (this.not_started) {
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD ${this.basename} not started yet, skipping fix!`);
             return;
@@ -1352,31 +1366,39 @@ export class TwitchVOD extends BaseVOD {
             if (fs.existsSync(path.join(this.directory, `${this.basename}.ts`))) {
                 console.log(chalk.bgBlue.whiteBright(`${this.basename} is not yet remuxed, remuxing now!`));
 
-                const channel = this.getChannel();
-                const container_ext =
-                    channel && channel.quality && channel.quality[0] === "audio_only" ?
-                        Config.AudioContainer :
-                        Config.getInstance().cfg("vod_container", "mp4");
+                let channel;
+                try {
+                    channel = this.getChannel();
+                } catch (error) {
+                    console.log(chalk.bgRed.whiteBright(`${this.basename} has no channel!`));
+                }
 
-                const in_file = path.join(this.directory, `${this.basename}.ts`);
-                const out_file = path.join(this.directory, `${this.basename}.${container_ext}`);
+                if (channel) {
+                    const container_ext =
+                        channel && channel.quality && channel.quality[0] === "audio_only" ?
+                            Config.AudioContainer :
+                            Config.getInstance().cfg("vod_container", "mp4");
 
-                if (fs.existsSync(out_file)) {
-                    console.log(chalk.bgRed.whiteBright(`Converted file '${out_file}' for '${this.basename}' already exists, skipping remux!`));
-                } else {
-                    this.is_converting = true;
-                    Helper.remuxFile(in_file, out_file)
-                        .then(async status => {
-                            console.log(chalk.bgBlue.whiteBright(`${this.basename} remux status: ${status.success}`));
-                            this.addSegment(`${this.basename}.${container_ext}`);
-                            this.is_converting = false;
-                            await this.finalize();
-                            await this.saveJSON("fix remux");
-                        }).catch(async e => {
-                            console.log(chalk.bgRed.whiteBright(`${this.basename} remux failed: ${e.message}`));
-                            this.is_converting = false;
-                            await this.saveJSON("fix remux failed");
-                        });
+                    const in_file = path.join(this.directory, `${this.basename}.ts`);
+                    const out_file = path.join(this.directory, `${this.basename}.${container_ext}`);
+
+                    if (fs.existsSync(out_file)) {
+                        console.log(chalk.bgRed.whiteBright(`Converted file '${out_file}' for '${this.basename}' already exists, skipping remux!`));
+                    } else {
+                        this.is_converting = true;
+                        Helper.remuxFile(in_file, out_file)
+                            .then(async status => {
+                                console.log(chalk.bgBlue.whiteBright(`${this.basename} remux status: ${status.success}`));
+                                this.addSegment(`${this.basename}.${container_ext}`);
+                                this.is_converting = false;
+                                await this.finalize();
+                                await this.saveJSON("fix remux");
+                            }).catch(async e => {
+                                console.log(chalk.bgRed.whiteBright(`${this.basename} remux failed: ${e.message}`));
+                                this.is_converting = false;
+                                await this.saveJSON("fix remux failed");
+                            });
+                    }
                 }
             } else {
                 console.log(chalk.bgRed.whiteBright(`${this.basename} is not yet remuxed but no ts file found, skipping!`));
@@ -1441,7 +1463,7 @@ export class TwitchVOD extends BaseVOD {
             for (const seg of this.segments) {
                 if (!seg.filename) continue;
                 const dir = path.dirname(seg.filename);
-                if (dir !== Helper.vodFolder(this.streamer_login) && seg.deleted) {
+                if (dir !== Helper.vodFolder(this.streamer_login) && seg.deleted) { // TODO: channel might not be added yet
                     // rebuild here
                     await this.rebuildSegmentList();
                     continue;
@@ -1566,10 +1588,10 @@ export class TwitchVOD extends BaseVOD {
      * @returns Channel
      */
     public getChannel(): TwitchChannel {
-        if (!this.channel_uuid) throw new Error("No UUID set!?");
+        if (!this.channel_uuid) throw new Error("No channel UUID set for getChannel");
         // return TwitchChannel.getChannelByLogin(this.streamer_login);
         const channel = LiveStreamDVR.getInstance().getChannelByUUID<TwitchChannel>(this.channel_uuid);
-        if (!channel) throw new Error("No channel found");
+        if (!channel) throw new Error(`No channel found for getChannel (uuid: ${this.channel_uuid})`);
         return channel;
     }
 
@@ -1985,6 +2007,10 @@ export class TwitchVOD extends BaseVOD {
                     currentSegment = parseInt(currentSegmentMatch[1]);
                     // console.debug(`Current segment: ${currentSegment}`);
                     return currentSegment / totalSegments;
+                }
+
+                if (log.match(/Error when reading from stream: Read timeout, exiting/)) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "channel", log.trim());
                 }
             });
 

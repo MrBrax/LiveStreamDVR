@@ -5,7 +5,10 @@
             class="modal-box"
             @click.self="show = false"
         >
-            <div class="modal-box__container">
+            <div
+                class="modal-box__container"
+                :style="{ maxWidth: maxWidth }"
+            >
                 <div class="modal-box__header">
                     <div class="modal-box__title">
                         {{ title }}
@@ -36,6 +39,10 @@ export default defineComponent({
         title: {
             type: String,
             default: "Modal",
+        },
+        maxWidth: {
+            type: String,
+            default: "800px",
         },
         // show: {
         //     type: Boolean,

@@ -403,4 +403,13 @@ export class BaseChannel {
         this.vods_list = [];
     }
 
+    /**
+     * Folder for the channel that stores VODs and all other data
+     * 
+     * @returns {string} Folder path
+     */
+    public getFolder(): string {
+        return Helper.vodFolder(this.internalName);
+    }
+
 }
