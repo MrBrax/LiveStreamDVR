@@ -715,7 +715,7 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
 
     const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
 
-    if (!channel || !channel.internalName) {
+    if (!channel || !channel.internalId) {
         res.status(400).send({
             status: "ERROR",
             message: "Channel not found",
@@ -723,7 +723,7 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
         return;
     }
 
-    const streams = await TwitchChannel.getStreams(channel.internalName);
+    const streams = await TwitchChannel.getStreams(channel.internalId);
 
     if (streams) {
         const stream = streams.find((s) => s.type === "live");
