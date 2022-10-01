@@ -360,9 +360,9 @@ export class YouTubeChannel extends BaseChannel {
 
     }
 
-    public getFolder(): string {
-        return Helper.vodFolder(this.internalName);
-    }
+    // public getFolder(): string {
+    //     return Helper.vodFolder(this.internalName);
+    // }
 
     public postLoad(): void {
         // this.setupStreamNumber();

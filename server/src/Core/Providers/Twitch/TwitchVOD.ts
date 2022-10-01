@@ -463,7 +463,7 @@ export class TwitchVOD extends BaseVOD {
 
         let files: string[];
 
-        if (this.directory !== Helper.vodFolder(this.streamer_login)) { // is not in vod folder root
+        if (this.directory !== this.getChannel().getFolder()) { // is not in vod folder root
             Log.logAdvanced(LOGLEVEL.INFO, "vod.rebuildSegmentList", `VOD ${this.basename} has its own folder, find all files.`);
             files = fs.readdirSync(this.directory).filter(file =>
                 (
@@ -565,7 +565,7 @@ export class TwitchVOD extends BaseVOD {
 
         Log.logAdvanced(LOGLEVEL.INFO, "vod.matchProviderVod", `Trying to match ${this.basename} to provider...`);
 
-        const channel_videos = await TwitchVOD.getVideos(this.streamer_id);
+        const channel_videos = await TwitchVOD.getVideos(this.getChannel().internalId);
         if (!channel_videos) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vod.matchProviderVod", `No videos returned from streamer of ${this.basename}`);
             this.twitch_vod_neversaved = true;
@@ -675,7 +675,7 @@ export class TwitchVOD extends BaseVOD {
         Log.logAdvanced(LOGLEVEL.INFO, "vod.saveFFMPEGChapters", `Saving FFMPEG chapters file for ${this.basename} to ${this.path_ffmpegchapters}`);
 
         const meta = new FFmpegMetadata()
-            .setArtist(this.streamer_name)
+            .setArtist(this.getChannel().displayName)
             .setTitle(this.twitch_vod_title ?? this.chapters[0].title);
 
         if (this.started_at) meta.setDate(this.started_at);
@@ -757,13 +757,18 @@ export class TwitchVOD extends BaseVOD {
 
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Saving Kodi NFO file for ${this.basename} to ${this.path_kodinfo}`);
 
-        const title = this.twitch_vod_title ?? this.chapters[0].title;
+        const title =
+            this.twitch_vod_title ?
+                this.twitch_vod_title :
+                this.chapters[0] ?
+                    this.chapters[0].title :
+                    this.basename;
 
         let data = "";
         data += "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\n";
         data += "<episodedetails>\n";
         data += `\t<title>${htmlentities(title)}</title>\n`;
-        data += `\t<showtitle>${this.streamer_name}</showtitle>\n`;
+        data += `\t<showtitle>${this.getChannel().displayName}</showtitle>\n`;
         data += `\t<uniqueid type="twitch">${this.twitch_vod_id}</uniqueid>\n`;
 
         data += `\t<season>${format(this.started_at, Config.SeasonFormat)}</season>\n`;
@@ -780,7 +785,7 @@ export class TwitchVOD extends BaseVOD {
         if (this.duration) data += `\t<runtime>${Math.ceil(this.duration / 60)}</runtime>\n`;
 
         data += "\t<actor>\n";
-        data += `\t\t<name>${this.streamer_name}</name>\n`;
+        data += `\t\t<name>${this.getChannel().displayName}</name>\n`;
         data += "\t\t<role>Themselves</role>\n";
         data += "\t</actor>\n";
 
@@ -794,7 +799,7 @@ export class TwitchVOD extends BaseVOD {
         data += `\t<aired>${format(this.started_at, "yyyy-MM-dd")}</aired>\n`;
         data += `\t<dateadded>${format(this.started_at, "yyyy-MM-dd")}</dateadded>\n`;
         data += `\t<year>${format(this.started_at, "yyyy")}</year>\n`;
-        data += `\t<studio>${this.streamer_name}</studio>\n`;
+        data += `\t<studio>${this.getChannel().displayName}</studio>\n`;
 
         data += `\t<id>${this.twitch_vod_id}</id>\n`;
 
@@ -1441,7 +1446,7 @@ export class TwitchVOD extends BaseVOD {
             for (const seg of this.segments) {
                 if (!seg.filename) continue;
                 const dir = path.dirname(seg.filename);
-                if (dir !== Helper.vodFolder(this.streamer_login) && seg.deleted) {
+                if (dir !== this.getChannel().getFolder() && seg.deleted) {
                     // rebuild here
                     await this.rebuildSegmentList();
                     continue;
@@ -1985,6 +1990,10 @@ export class TwitchVOD extends BaseVOD {
                     currentSegment = parseInt(currentSegmentMatch[1]);
                     // console.debug(`Current segment: ${currentSegment}`);
                     return currentSegment / totalSegments;
+                }
+
+                if (log.match(/Error when reading from stream: Read timeout, exiting/)) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "channel", log.trim());
                 }
             });
 
