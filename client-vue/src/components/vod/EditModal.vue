@@ -308,7 +308,7 @@ const newChapter = ref<EditableChapter>({
     game_id: "",
     viewer_count: undefined,
     is_mature: undefined,
-    online: true,
+    // online: true,
 });
 
 const sortedChapters = computed(() => {
@@ -364,7 +364,7 @@ function addChapter() {
         game_id: "",
         viewer_count: undefined,
         is_mature: undefined,
-        online: true,
+        // online: true,
     };
 }
 
