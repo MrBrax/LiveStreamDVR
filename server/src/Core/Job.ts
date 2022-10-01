@@ -199,12 +199,28 @@ export class Job extends EventEmitter {
         return false;
     }
 
-    public static findJobByPid(pid: number): Job | undefined {
-        return this.jobs.find(job => job.pid === pid);
+    public static findJobThatStartsWith(search: string): Job | false {
+        const job = this.jobs.find(job => job.name?.startsWith(search));
+        if (job) {
+            return job;
+        }
+        return false;
     }
 
-    public static getJob(name: string): Job | undefined {
-        return this.jobs.find(job => job.name === name);
+    public static findJobByPid(pid: number): Job | false {
+        const job = this.jobs.find(job => job.pid === pid);
+        if (job) {
+            return job;
+        }
+        return false;
+    }
+
+    public static getJob(name: string): Job | false {
+        const job = this.jobs.find(job => job.name === name);
+        if (job) {
+            return job;
+        }
+        return false;
     }
 
     /**
