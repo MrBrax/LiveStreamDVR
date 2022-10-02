@@ -9,7 +9,7 @@ import { version } from "../../package.json";
 import path from "path";
 import { WebSocketServer } from "ws";
 import { ChannelConfig } from "../../../common/Config";
-import { BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
+import { BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
 import { Job } from "./Job";
@@ -270,9 +270,9 @@ export class LiveStreamDVR {
     }
 
     public static checkVersion(): void {
-        if (fs.existsSync(path.join(BaseConfigDataFolder.cache))) {
-            if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"))) {
-                const old_version = fs.readFileSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"), { encoding: "utf-8" });
+        if (fs.existsSync(path.join(BaseConfigCacheFolder.cache))) {
+            if (fs.existsSync(path.join(BaseConfigCacheFolder.cache, "currentversion.dat"))) {
+                const old_version = fs.readFileSync(path.join(BaseConfigCacheFolder.cache, "currentversion.dat"), { encoding: "utf-8" });
                 let compare;
                 try {
                     compare = compareVersions(version, old_version) == -1 && !this.argv["ignore-version"];
@@ -287,8 +287,14 @@ export class LiveStreamDVR {
                     process.exit(1);
                 }
             }
-            fs.writeFileSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"), version);
+            fs.writeFileSync(path.join(BaseConfigCacheFolder.cache, "currentversion.dat"), version);
         }
     }
+
+    // private migrateCacheToData(relative_path: string): void {
+    //     if (fs.existsSync(path.join(BaseConfigCacheFolder.cache, relative_path))) {
+    //         fs.renameSync(path.join(BaseConfigCacheFolder.cache, relative_path), path.join(BaseConfigDataFolder., relative_path));
+    //     }
+    // }
 
 }

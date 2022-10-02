@@ -23,7 +23,7 @@ import type { BroadcasterType, UsersResponse } from "../../../../../common/Twitc
 import type { UserData } from "../../../../../common/User";
 import { Helper } from "../../../Core/Helper";
 import { TwitchHelper } from "../../../Providers/Twitch";
-import { AppRoot, BaseConfigDataFolder, BaseConfigPath } from "../../BaseConfig";
+import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
 import { Job } from "../../Job";
@@ -570,9 +570,9 @@ export class TwitchChannel extends BaseChannel {
         const nfo_file = path.join(this.getFolder(), "tvshow.nfo");
 
         let avatar;
-        if (this.channel_data.cache_avatar && fs.existsSync(path.join(BaseConfigDataFolder.public_cache_avatars, this.channel_data.cache_avatar))) {
+        if (this.channel_data.cache_avatar && fs.existsSync(path.join(BaseConfigCacheFolder.public_cache_avatars, this.channel_data.cache_avatar))) {
             fs.copyFileSync(
-                path.join(BaseConfigDataFolder.public_cache_avatars, this.channel_data.cache_avatar),
+                path.join(BaseConfigCacheFolder.public_cache_avatars, this.channel_data.cache_avatar),
                 path.join(this.getFolder(), `poster${path.extname(this.channel_data.cache_avatar)}`)
             );
             avatar = `poster${path.extname(this.channel_data.cache_avatar)}`;
@@ -1397,7 +1397,7 @@ export class TwitchChannel extends BaseChannel {
         // download channel logo
         if (userData.profile_image_url) {
             const logo_filename = `${userData.id}${path.extname(userData.profile_image_url)}`;
-            const logo_path = path.join(BaseConfigDataFolder.public_cache_avatars, logo_filename);
+            const logo_path = path.join(BaseConfigCacheFolder.public_cache_avatars, logo_filename);
             if (fs.existsSync(logo_path)) {
                 fs.unlinkSync(logo_path);
                 Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Deleted old avatar for ${userData.id}`);
@@ -1442,7 +1442,7 @@ export class TwitchChannel extends BaseChannel {
 
         if (userData.offline_image_url) {
             const offline_filename = `${userData.id}${path.extname(userData.offline_image_url)}`;
-            const offline_path = path.join(BaseConfigDataFolder.public_cache_banners, offline_filename);
+            const offline_path = path.join(BaseConfigCacheFolder.public_cache_banners, offline_filename);
             if (fs.existsSync(offline_path)) {
                 fs.unlinkSync(offline_path);
             }

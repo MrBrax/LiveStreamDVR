@@ -2,8 +2,6 @@ import { LiveStreamDVR, VODTypes } from "../../../Core/LiveStreamDVR";
 import { BaseVODChapterJSON } from "Storage/JSON";
 import { ApiVodBaseChapter } from "../../../../../common/Api/Client";
 import { Log, LOGLEVEL } from "../../Log";
-import { TwitchVOD } from "../Twitch/TwitchVOD";
-import { BaseVOD } from "./BaseVOD";
 
 export class BaseVODChapter {
 

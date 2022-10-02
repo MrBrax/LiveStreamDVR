@@ -41,8 +41,55 @@ export const BaseConfigFolder = {
     vodplayer: path.join(AppRoot, "twitch-vod-chat", "dist"),
 };
 
+/**
+ * All the folders in this object will be created if they don't exist.
+ * It should be used for persistent data only.
+ */
 export const BaseConfigDataFolder = {
+
     config: path.join(DataRoot, "config"),
+
+    /**
+     * TODO: Separate cache to its own object
+     */
+
+    /** @deprecated **/
+    cache: path.join(DataRoot, "cache"),
+    /** @deprecated **/
+    cron: path.join(DataRoot, "cache", "cron"),
+    /** @deprecated **/
+    pids: path.join(DataRoot, "cache", "pids"),
+    /** @deprecated **/
+    playlist: path.join(DataRoot, "cache", "playlist"),
+    /** @deprecated **/
+    keyvalue: path.join(DataRoot, "cache", "kv"),
+    /** @deprecated **/
+    history: path.join(DataRoot, "cache", "history"),
+    /** @deprecated **/
+    dotnet: path.join(DataRoot, "cache", "dotnet"),
+    /** @deprecated **/
+    capture: path.join(DataRoot, "cache", "capture"),
+    /** @deprecated **/
+    public_cache: path.join(DataRoot, "cache", "public"),
+    /** @deprecated **/
+    public_cache_avatars: path.join(DataRoot, "cache", "public", "avatars"),
+    /** @deprecated **/
+    public_cache_banners: path.join(DataRoot, "cache", "public", "banners"),
+    /** @deprecated **/
+    public_cache_thumbs: path.join(DataRoot, "cache", "public", "thumbs"),
+
+    logs: path.join(DataRoot, "logs"),
+    logs_software: path.join(DataRoot, "logs", "software"),
+    payloads: path.join(DataRoot, "payloads"),
+    storage: path.join(DataRoot, "storage"),
+    vod: path.join(DataRoot, "storage", "vods"),
+    saved_vods: path.join(DataRoot, "storage", "saved_vods"),
+    saved_clips: path.join(DataRoot, "storage", "saved_clips"),
+    vods_db: path.join(DataRoot, "config", "vods_db"),
+    backup: path.join(DataRoot, "backup"),
+};
+
+export const BaseConfigCacheFolder = {
     cache: path.join(DataRoot, "cache"),
     cron: path.join(DataRoot, "cache", "cron"),
     pids: path.join(DataRoot, "cache", "pids"),
@@ -51,18 +98,10 @@ export const BaseConfigDataFolder = {
     history: path.join(DataRoot, "cache", "history"),
     dotnet: path.join(DataRoot, "cache", "dotnet"),
     capture: path.join(DataRoot, "cache", "capture"),
-    logs: path.join(DataRoot, "logs"),
-    logs_software: path.join(DataRoot, "logs", "software"),
-    payloads: path.join(DataRoot, "payloads"),
-    storage: path.join(DataRoot, "storage"),
-    vod: path.join(DataRoot, "storage", "vods"),
-    saved_vods: path.join(DataRoot, "storage", "saved_vods"),
-    saved_clips: path.join(DataRoot, "storage", "saved_clips"),
     public_cache: path.join(DataRoot, "cache", "public"),
     public_cache_avatars: path.join(DataRoot, "cache", "public", "avatars"),
     public_cache_banners: path.join(DataRoot, "cache", "public", "banners"),
     public_cache_thumbs: path.join(DataRoot, "cache", "public", "thumbs"),
-    vods_db: path.join(DataRoot, "config", "vods_db"),
 };
 
 export const BaseConfigPath = {

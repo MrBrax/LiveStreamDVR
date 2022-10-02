@@ -17,7 +17,7 @@ import { VideoMetadata } from "../../../../../common/MediaInfo";
 import { Clip, ClipsResponse } from "../../../../../common/TwitchAPI/Clips";
 import { Video, VideosResponse } from "../../../../../common/TwitchAPI/Video";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../../../Storage/JSON";
-import { AppName, BaseConfigDataFolder } from "../../BaseConfig";
+import { AppName, BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
 import { FFmpegMetadata } from "../../FFmpegMetadata";
@@ -1488,8 +1488,8 @@ export class TwitchVOD extends BaseVOD {
         if (!files.ref || !files.act) return;
 
         for (const f of ["ref", "act"]) {
-            if (!fs.existsSync(path.join(BaseConfigDataFolder.cache, `${f}.wav`))) {
-                const wavconvert = await Helper.execSimple("ffmpeg", ["-i", files[f as "act" | "ref"], "-t", "00:05:00", "-vn", path.join(BaseConfigDataFolder.cache, `${f}.wav`)], `${f} ffmpeg convert`);
+            if (!fs.existsSync(path.join(BaseConfigCacheFolder.cache, `${f}.wav`))) {
+                const wavconvert = await Helper.execSimple("ffmpeg", ["-i", files[f as "act" | "ref"], "-t", "00:05:00", "-vn", path.join(BaseConfigCacheFolder.cache, `${f}.wav`)], `${f} ffmpeg convert`);
             }
         }
 
@@ -1952,7 +1952,7 @@ export class TwitchVOD extends BaseVOD {
 
         const basename = path.basename(filename);
 
-        const capture_filename = path.join(BaseConfigDataFolder.cache, `${video_id}.ts`);
+        const capture_filename = path.join(BaseConfigCacheFolder.cache, `${video_id}.ts`);
         const converted_filename = filename;
 
         // download vod
@@ -2027,7 +2027,7 @@ export class TwitchVOD extends BaseVOD {
 
             let chapters_file = "";
             if (Config.getInstance().cfg("create_video_chapters")) {
-                chapters_file = path.join(BaseConfigDataFolder.cache, `${video_id}.ffmpeg.txt`);
+                chapters_file = path.join(BaseConfigCacheFolder.cache, `${video_id}.ffmpeg.txt`);
                 const end = TwitchHelper.parseTwitchDuration(video.duration);
                 const meta = new FFmpegMetadata().setArtist(video.user_name).setTitle(video.title).addChapter(0, end, video.title, "1/1000");
                 fs.writeFileSync(chapters_file, meta.getString());
@@ -2097,7 +2097,7 @@ export class TwitchVOD extends BaseVOD {
 
         const basename = path.basename(filename);
 
-        const capture_filename = path.join(BaseConfigDataFolder.cache, `${clip_id}.ts`);
+        const capture_filename = path.join(BaseConfigCacheFolder.cache, `${clip_id}.ts`);
         const converted_filename = filename;
 
         // download vod
@@ -2170,7 +2170,7 @@ export class TwitchVOD extends BaseVOD {
                 .setTitle(clip.title)
                 .setComment(`Clipped by ${clip.creator_name}.\nSource: ${clip.url}\nClip ID: ${clip.id}`)
                 .setDate(parseJSON(clip.created_at))
-                .writeToFile(path.join(BaseConfigDataFolder.cache, `${clip_id}.ffmpeg.txt`));
+                .writeToFile(path.join(BaseConfigCacheFolder.cache, `${clip_id}.ffmpeg.txt`));
 
             let ret;
             try {
@@ -2384,15 +2384,15 @@ export class TwitchVOD extends BaseVOD {
 
             const args: string[] = [];
             args.push("--mode", "ChatDownload");
-            args.push("--temp-path", BaseConfigDataFolder.cache);
+            args.push("--temp-path", BaseConfigCacheFolder.cache);
             args.push("--ffmpeg-path", Helper.path_ffmpeg() || "");
             args.push("--id", vod_id);
             args.push("-o", output);
 
             const env = {
-                DOTNET_BUNDLE_EXTRACT_BASE_DIR: BaseConfigDataFolder.dotnet,
-                TEMP: BaseConfigDataFolder.cache,
-                PWD: BaseConfigDataFolder.dotnet,
+                DOTNET_BUNDLE_EXTRACT_BASE_DIR: BaseConfigCacheFolder.dotnet,
+                TEMP: BaseConfigCacheFolder.cache,
+                PWD: BaseConfigCacheFolder.dotnet,
             };
 
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Downloading chat for ${vod_id}`);
@@ -2456,7 +2456,7 @@ export class TwitchVOD extends BaseVOD {
                 return;
             }
 
-            const temp_filepath = path.join(BaseConfigDataFolder.cache, `${vod_id}.json`);
+            const temp_filepath = path.join(BaseConfigCacheFolder.cache, `${vod_id}.json`);
 
             if (fs.existsSync(temp_filepath)) {
                 fs.renameSync(temp_filepath, output);
@@ -2474,7 +2474,7 @@ export class TwitchVOD extends BaseVOD {
                 args.push("--verbose");
                 args.push("--debug");
             }
-            args.push("--output", BaseConfigDataFolder.cache);
+            args.push("--output", BaseConfigCacheFolder.cache);
 
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Downloading chat for ${vod_id}`);
 

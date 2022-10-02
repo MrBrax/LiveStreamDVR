@@ -1,4 +1,4 @@
-import { BaseConfigDataFolder } from "../Core/BaseConfig";
+import { BaseConfigCacheFolder } from "../Core/BaseConfig";
 // import { OAuth2Client } from "google-auth-library";
 import { OAuth2Client } from "googleapis-common";
 import type { Credentials } from "google-auth-library";
@@ -17,15 +17,15 @@ export class YouTubeHelper {
         "https://www.googleapis.com/auth/youtube.readonly",
     ];
 
-    static readonly accessTokenFile = path.join(BaseConfigDataFolder.cache, "youtube_oauth.json");
-    static readonly accessTokenRefreshFile = path.join(BaseConfigDataFolder.cache, "youtube_oauth_refresh.bin");
+    static readonly accessTokenFile = path.join(BaseConfigCacheFolder.cache, "youtube_oauth.json");
+    static readonly accessTokenRefreshFile = path.join(BaseConfigCacheFolder.cache, "youtube_oauth_refresh.bin");
     static readonly accessTokenExpire = 60 * 60 * 24 * 60 * 1000; // 60 days
     // static readonly accessTokenRefresh = 60 * 60 * 24 * 30 * 1000; // 30 days
 
     static oAuth2Client?: OAuth2Client;
     static authenticated = false;
     static username = "";
-    static username_file = path.join(BaseConfigDataFolder.cache, "youtube_username.txt");
+    static username_file = path.join(BaseConfigCacheFolder.cache, "youtube_username.txt");
     static accessTokenTime = 0;
     private static accessToken?: Credentials;
     private static accessTokenRefresh?: string;

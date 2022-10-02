@@ -16,7 +16,6 @@ import { LiveStreamDVR } from "../../LiveStreamDVR";
 import { Log, LOGLEVEL } from "../../Log";
 import { BaseChannel } from "../Base/BaseChannel";
 import { YouTubeVOD } from "./YouTubeVOD";
-import { Helper } from "../../../Core/Helper";
 
 interface YouTubeChannelData extends youtube_v3.Schema$ChannelSnippet {
     _updated: number;

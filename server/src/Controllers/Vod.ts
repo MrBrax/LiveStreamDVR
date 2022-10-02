@@ -146,6 +146,8 @@ export async function EditVod(req: express.Request, res: express.Response): Prom
         console.debug("realChapters");
         console.table(/*"realChapters",*/ realChapters, d);
 
+        vod.backupJSON();
+
         // purge original chapters and add new ones
         vod.chapters = [];
         realChapters.forEach(c => {

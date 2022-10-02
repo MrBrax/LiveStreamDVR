@@ -11,7 +11,7 @@ import { formatString } from "../../../common/Format";
 import { VodBasenameTemplate } from "../../../common/Replacements";
 import { EventSubStreamOnline } from "../../../common/TwitchAPI/EventSub/StreamOnline";
 import { Video } from "../../../common/TwitchAPI/Video";
-import { BaseConfigDataFolder } from "../Core/BaseConfig";
+import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
 import { TwitchHelper } from "../Providers/Twitch";
 import { KeyValue } from "../Core/KeyValue";
@@ -895,7 +895,7 @@ export function GetHistory(req: express.Request, res: express.Response): void {
 
     const history: HistoryEntry[] = [];
 
-    const file = path.join(BaseConfigDataFolder.history, `${channel.internalName}.jsonline`);
+    const file = path.join(BaseConfigCacheFolder.history, `${channel.internalName}.jsonline`);
     if (!fs.existsSync(file)) {
         res.status(400).send({
             status: "ERROR",

@@ -9,7 +9,7 @@ import { VideoQuality } from "../../../../../common/Config";
 import { MuteStatus } from "../../../../../common/Defs";
 import { AudioMetadata, VideoMetadata } from "../../../../../common/MediaInfo";
 import { VodUpdated } from "../../../../../common/Webhook";
-import { BaseConfigDataFolder } from "../../BaseConfig";
+import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
 import { TwitchHelper } from "../../../Providers/Twitch";
@@ -393,7 +393,7 @@ export class BaseVOD {
         }
 
         args.push("--mode", "ChatRender");
-        args.push("--temp-path", BaseConfigDataFolder.cache);
+        args.push("--temp-path", BaseConfigCacheFolder.cache);
         args.push("--ffmpeg-path", ffmpeg_bin);
         args.push("--input", path.normalize(use_downloaded ? this.path_chat : this.path_chatdump));
         args.push("--chat-height", (chat_height ? chat_height : this.video_metadata.height).toString());
@@ -410,8 +410,8 @@ export class BaseVOD {
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Running ${bin} ${args.join(" ")}`);
 
         const env = {
-            DOTNET_BUNDLE_EXTRACT_BASE_DIR: BaseConfigDataFolder.dotnet,
-            TEMP: BaseConfigDataFolder.cache,
+            DOTNET_BUNDLE_EXTRACT_BASE_DIR: BaseConfigCacheFolder.dotnet,
+            TEMP: BaseConfigCacheFolder.cache,
         };
 
         return new Promise((resolve, reject) => {
@@ -1212,6 +1212,14 @@ export class BaseVOD {
         this.chapters.push(chapter);
         this.chapters_raw.push(chapter.toJSON()); // needed?
         this.calculateChapters();
+    }
+
+    public backupJSON(): void {
+        if (fs.existsSync(this.filename)) {
+            const backup_file = path.join(BaseConfigDataFolder.backup, `${this.basename}.${Date.now()}.json`);
+            Log.logAdvanced(LOGLEVEL.INFO, "vod.backupJSON", `Backing up ${this.basename} to ${backup_file}`);
+            fs.copyFileSync(this.filename, backup_file);
+        }
     }
 
 }
