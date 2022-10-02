@@ -1207,4 +1207,11 @@ export class BaseVOD {
     public async checkMutedVod(save = false): Promise<MuteStatus> { return await Promise.resolve(MuteStatus.UNKNOWN); }
     public async matchProviderVod(force = false): Promise<boolean | undefined> { return await Promise.resolve(false); }
 
+    public addChapter(chapter: BaseVODChapter): void {
+        Log.logAdvanced(LOGLEVEL.INFO, "vod.addChapter", `Adding chapter ${chapter.title} to ${this.basename}`);
+        this.chapters.push(chapter);
+        this.chapters_raw.push(chapter.toJSON()); // needed?
+        this.calculateChapters();
+    }
+
 }

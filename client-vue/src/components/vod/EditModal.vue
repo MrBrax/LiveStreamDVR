@@ -61,167 +61,207 @@
         <label
             class="label"
         >{{ $t('vod.edit.chapters') }}</label>
-        <p class="input-help is-error">
-            Currently not editable
-        </p>
-        <table class="table is-fullwidth">
-            <tr
-                v-for="(chapter, i) in sortedChapters"
-                :key="chapter.originalIndex"
-            >
-                <td>
-                    {{ chapter.originalIndex }}
-                </td>
-                <td>
-                    <input
-                        v-model.lazy="chapter.offset"
-                        type="number"
-                        class="input is-small"
-                    >
-                </td>
-                <!-- offset -->
-                <td>
-                    <input
-                        :value="humanReadableChapterOffset(i)"
-                        readonly
-                        disabled
-                        class="input is-small"
-                    >
-                </td>
-                <!-- date -->
-                <td>
-                    <input
-                        :value="chapterDate(i)?.toISOString()"
-                        readonly
-                        disabled
-                        class="input is-small"
-                    >
-                </td>
-                <!-- title -->
-                <td>
-                    <input
-                        v-model="chapter.title"
-                        type="text"
-                        class="input is-small"
-                    >
-                </td>
-                <!-- game id -->
-                <td>
-                    <div class="select is-small">
-                        <select
-                            v-if="vod.provider == 'twitch'"
-                            v-model="chapter.game_id"
-                        >
-                            <option value="">
-                                None
-                            </option>
-                            <option
-                                v-for="game in sortedGamesData"
-                                :key="game.id"
-                                :value="game.id"
-                            >
-                                {{ game.name }}
-                            </option>
-                        </select>
-                    </div>
-                </td>
-                <!-- viewer count -->
-                <td>
-                    <input
-                        :value="chapter.viewer_count"
-                        readonly
-                        disabled
-                        class="input is-small"
-                    >
-                </td>
-                <!-- delete -->
-                <td>
-                    <button
-                        class="button is-small is-danger"
-                        @click="deleteChapter(i)"
-                    >
-                        <span class="icon">
-                            <fa icon="trash" />
-                        </span>
-                    </button>
-                </td>
-            </tr>
-            <tr>
-                <td />
-                <td>
-                    <input
-                        v-model="newChapter.offset"
-                        type="number"
-                        class="input is-small"
-                    >
-                </td>
-                <td />
-                <td />
-                <!-- title -->
-                <td>
-                    <input
-                        v-model="newChapter.title"
-                        type="text"
-                        class="input is-small"
-                    >
-                </td>
-                <!-- game id -->
-                <td>
-                    <div class="select is-small">
-                        <select
-                            v-if="vod.provider == 'twitch'"
-                            v-model="newChapter.game_id"
-                        >
-                            <option value="">
-                                None
-                            </option>
-                            <option
-                                v-for="game in sortedGamesData"
-                                :key="game.id"
-                                :value="game.id"
-                            >
-                                {{ game.name }}
-                            </option>
-                        </select>
-                    </div>
-                </td>
-                <td>
-                    <button
-                        class="button is-small is-confirm"
-                        @click="addChapter"
-                    >
-                        <span class="icon">
-                            <fa icon="plus" />
-                        </span>
-                    </button>
-                </td>
-            </tr>
-        </table>
-        <table class="chaptervis">
-            <tr>
-                <td
-                    v-if="sortedChapters.length > 0 && sortedChapters[0].offset > 0"
-                    :style="{ left: `${firstChapterLeft}%` }"
-                />
-                <td
-                    v-for="(chapter, i) in sortedChapters"
-                    :key="i"
-                    :style="{ width: `${chapterWidth(i)}%` }"
+        <div class="control">
+            <label class="checkbox">
+                <input
+                    v-model="editVodSettings.editChapters"
+                    type="checkbox"
                 >
-                    {{ chapter.originalIndex || i }}
-                </td>
-            </tr>
-        </table>
-        <button
-            class="button is-small is-danger"
-            @click="resetChapters"
-        >
-            <span class="icon"><fa icon="undo" /></span>
-            <span>{{ $t('vod.edit.reset-chapters') }}</span>
-        </button>
-        <p>
-            Total duration: {{ vod.duration }}
-        </p>
+                {{ $t('vod.edit.edit-chapters') }}
+            </label>
+        </div>
+        <div v-if="editVodSettings.editChapters">
+            <div class="notice is-error">
+                {{ $t('vod.edit.edit-chapters-warning') }}
+            </div>
+            <table class="table is-fullwidth">
+                <tr
+                    v-for="(chapter, i) in sortedChapters"
+                    :key="chapter.originalIndex"
+                >
+                    <td>
+                        {{ chapter.originalIndex }}
+                    </td>
+                    <td>
+                        <input
+                            v-model.lazy="chapter.offset"
+                            type="number"
+                            class="input is-small"
+                        >
+                    </td>
+                    <!-- offset -->
+                    <td>
+                        <input
+                            :value="humanReadableChapterOffset(i)"
+                            readonly
+                            disabled
+                            class="input is-small"
+                        >
+                    </td>
+                    <!-- date -->
+                    <td>
+                        <input
+                            :value="chapterDate(i)?.toISOString()"
+                            readonly
+                            disabled
+                            class="input is-small"
+                        >
+                    </td>
+                    <!-- title -->
+                    <td>
+                        <input
+                            v-model="chapter.title"
+                            type="text"
+                            class="input is-small"
+                        >
+                    </td>
+                    <!-- game id -->
+                    <td>
+                        <div class="select is-small">
+                            <select
+                                v-if="vod.provider == 'twitch'"
+                                v-model="chapter.game_id"
+                            >
+                                <option value="">
+                                    None
+                                </option>
+                                <option
+                                    v-for="game in sortedGamesData"
+                                    :key="game.id"
+                                    :value="game.id"
+                                >
+                                    {{ game.name }}
+                                </option>
+                            </select>
+                        </div>
+                    </td>
+                    <!-- viewer count -->
+                    <td>
+                        <input
+                            :value="chapter.viewer_count"
+                            readonly
+                            disabled
+                            class="input is-small"
+                        >
+                    </td>
+                    <!-- delete -->
+                    <td>
+                        <button
+                            class="button is-small is-danger"
+                            @click="deleteChapter(i)"
+                        >
+                            <span class="icon">
+                                <fa icon="trash" />
+                            </span>
+                        </button>
+                    </td>
+                </tr>
+
+                <!-- new chapter -->
+                <tr>
+                    <td />
+                    <td>
+                        <input
+                            v-model="newChapter.offset"
+                            type="number"
+                            class="input is-small"
+                        >
+                    </td>
+                    <td>
+                        <input
+                            :value="formatDuration(newChapter.offset)"
+                            readonly
+                            disabled
+                            class="input is-small"
+                        >
+                    </td>
+                    <td>
+                        <input
+                            :value="new Date((vod.started_at?.getTime() || 0) + newChapter.offset * 1000)?.toISOString()"
+                            readonly
+                            disabled
+                            class="input is-small"
+                        >
+                    </td>
+                    <!-- title -->
+                    <td>
+                        <input
+                            v-model="newChapter.title"
+                            type="text"
+                            class="input is-small"
+                        >
+                    </td>
+                    <!-- game id -->
+                    <td>
+                        <div class="select is-small">
+                            <select
+                                v-if="vod.provider == 'twitch'"
+                                v-model="newChapter.game_id"
+                            >
+                                <option value="">
+                                    None
+                                </option>
+                                <option
+                                    v-for="game in sortedGamesData"
+                                    :key="game.id"
+                                    :value="game.id"
+                                >
+                                    {{ game.name }}
+                                </option>
+                            </select>
+                        </div>
+                    </td>
+                    <td>
+                        <input
+                            :value="newChapter.viewer_count"
+                            readonly
+                            disabled
+                            class="input is-small"
+                        >
+                    </td>
+                    <td>
+                        <button
+                            class="button is-small is-confirm"
+                            @click="addChapter"
+                        >
+                            <span class="icon">
+                                <fa icon="plus" />
+                            </span>
+                        </button>
+                    </td>
+                </tr>
+            </table>
+            <table class="chaptervis">
+                <tr>
+                    <td
+                        v-if="sortedChapters.length > 0 && sortedChapters[0].offset > 0"
+                        :style="{ left: `${firstChapterLeft}%` }"
+                    />
+                    <td
+                        v-for="(chapter, i) in sortedChapters"
+                        :key="i"
+                        :style="{ width: `${chapterWidth(i)}%` }"
+                    >
+                        {{ chapter.originalIndex || i }}
+                    </td>
+                </tr>
+            </table>
+            <!--
+            <div class="notice is-error">
+                Currently not editable
+            </div>
+            -->
+            <button
+                class="button is-small is-danger"
+                @click="resetChapters"
+            >
+                <span class="icon"><fa icon="undo" /></span>
+                <span>{{ $t('vod.edit.reset-chapters') }}</span>
+            </button>
+            <p>
+                Total duration: {{ vod.duration }}
+            </p>
+        </div>
     </div>
 
     <div class="field">
@@ -290,6 +330,7 @@ const editVodSettings = ref<{
     segments: string;
     cloud_storage: boolean;
     chapters: EditableChapter[];
+    editChapters: boolean;
 }>({
     absolute_season: 0,
     stream_number: 0,
@@ -298,6 +339,7 @@ const editVodSettings = ref<{
     segments: "",
     cloud_storage: false,
     chapters: [],
+    editChapters: false,
 });
 
 const gamesData = ref<Record<string,ApiGame>>({});

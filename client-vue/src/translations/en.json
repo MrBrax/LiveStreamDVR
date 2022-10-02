@@ -82,7 +82,9 @@
       "absolute-season": "Absolute season",
       "cloud-storage": "Cloud storage",
       "chapters": "Chapters",
-      "reset-chapters": "Reset chapters"
+      "reset-chapters": "Reset chapters",
+      "edit-chapters": "Edit chapters",
+      "edit-chapters-warning": "Editing chapters can cause loss of data. Back up the JSON if you want to be sure."
     },
     "export": {
       "title-template": "Title template",

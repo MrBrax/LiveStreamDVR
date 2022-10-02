@@ -56,47 +56,123 @@ export async function EditVod(req: express.Request, res: express.Response): Prom
     const prevent_deletion = req.body.prevent_deletion as boolean;
     const segments = req.body.segments as string;
     const cloud_storage = req.body.cloud_storage as boolean;
+    const editChapters = req.body.edit_chapters as boolean;
     const chapters = req.body.chapters as EditableChapter[];
 
-    vod.stream_number = stream_number;
-    vod.comment = comment;
-    vod.prevent_deletion = prevent_deletion;
-    vod.stream_absolute_season = absolute_season;
-    vod.cloud_storage = cloud_storage;
-    if (segments) {
-        vod.segments_raw = segments.split("\n").map(s => s.trim()).filter(s => s.length > 0);
-        vod.parseSegments(vod.segments_raw);
+    let changed = false;
+
+    if (stream_number !== vod.stream_number) {
+        vod.stream_number = stream_number;
+        changed = true;
     }
 
-    if (chapters && vod.started_at) {
-        console.table(/*"inputChapters",*/ chapters);
-        console.table(/*"vodChapters",*/ vod.chapters);
+    if (absolute_season !== vod.stream_absolute_season) {
+        vod.stream_absolute_season = absolute_season;
+        changed = true;
+    }
+
+    if (comment !== vod.comment) {
+        vod.comment = comment;
+        changed = true;
+    }
+
+    if (prevent_deletion !== vod.prevent_deletion) {
+        vod.prevent_deletion = prevent_deletion;
+        changed = true;
+    }
+
+    if (cloud_storage !== vod.cloud_storage) {
+        vod.cloud_storage = cloud_storage;
+        changed = true;
+    }
+
+    // vod.comment = comment;
+    // vod.prevent_deletion = prevent_deletion;
+    // vod.stream_absolute_season = absolute_season;
+    // vod.cloud_storage = cloud_storage;
+
+    const segments_array = segments.split("\n").map(s => s.trim()).filter(s => s.length > 0);
+    // if (segments_array.length !== vod.segments.length) {
+    //     vod.segments = segments_array;
+    //     changed = true;
+    // }
+    if (segments) {
+        vod.segments_raw = segments_array;
+        vod.parseSegments(vod.segments_raw);
+        changed = true;
+    }
+
+    if (editChapters && chapters && vod.started_at) {
+
+        // console.debug(vod.started_at, vod.created_at, vod.capture_started, vod.capture_started2);
+        console.debug(
+            `vod.started_at: ${vod.started_at}\n`,
+            `vod.created_at: ${vod.created_at}\n`,
+            `vod.capture_started: ${vod.capture_started}\n`,
+            `vod.capture_started2: ${vod.capture_started2}\n`
+        );
+
+        const d = ["duration", "offset", "title", "started_at"];
+
+        console.debug("inputChapters");
+        console.table(/*"inputChapters",*/ chapters, d);
+
+        console.debug("vodChapters");
+        console.table(/*"vodChapters",*/ vod.chapters, d);
 
         const realChapters = await Promise.all(chapters.map(async c => {
             if (!vod.started_at) {
                 console.error("VOD has no started_at");
                 return;
             }
+            // const started = vod.created_at ?? vod.started_at;
+            const started = vod.started_at;
             const originalChapter = c.originalIndex !== undefined ? vod.chapters[c.originalIndex] : undefined;
             const json = {
                 ...c,
-                started_at: new Date(vod.started_at.getTime() + c.offset).toISOString(),
+                started_at: new Date(started.getTime() + (c.offset * 1000)).toISOString(),
                 is_mature: c.is_mature || false,
                 online: originalChapter ? originalChapter.online : false,
             };
             return await TwitchVODChapter.fromJSON(json);
         }));
 
-        console.table(/*"realChapters",*/ realChapters);
+        realChapters.forEach((c, i) => {
+            if (!vod.started_at) return;
+            const n = realChapters[i + 1];
+            c?.calculateDurationAndOffset(vod.started_at, vod.ended_at, n ? n.started_at : undefined);
+        });
+
+        console.debug("realChapters");
+        console.table(/*"realChapters",*/ realChapters, d);
+
+        // purge original chapters and add new ones
+        vod.chapters = [];
+        realChapters.forEach(c => {
+            if (c) {
+                vod.addChapter(c);
+            }
+        });
 
     }
 
-    await vod.saveJSON("edit vod form");
+    if (changed) {
 
-    res.send({
-        status: "OK",
-        message: "Vod edited",
-    } as ApiResponse);
+        await vod.saveJSON("edit vod form");
+
+        res.send({
+            status: "OK",
+            message: "Vod edited",
+        } as ApiResponse);
+
+    } else {
+
+        res.send({
+            status: "OK",
+            message: "No changes",
+        } as ApiResponse);
+
+    }
 
 }
 

@@ -224,6 +224,15 @@ svg[data-icon] {
     background: var(--notice-background-color);
     padding: 0.8em;
     color: var(--notice-color);
+    margin: 0 0 1em 0;
+    &.is-warning {
+        background: #f0fa57;
+        color: #000;
+    }
+    &.is-error {
+        background: #f54e4e;
+        color: #fff;
+    }
 }
 
 .anchor {

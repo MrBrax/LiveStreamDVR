@@ -100,25 +100,45 @@
                                 <strong>{{ $t('vod.video-info.webhook-duration') }}:</strong>
                                 {{ vod.getWebhookDuration() }}
                             </li>
-                            <li v-if="vod.created_at">
+                            <li>
                                 <strong>{{ $t('vod.video-info.created') }}:</strong>
-                                {{ formatDate(vod.created_at, "yyyy-MM-dd HH:mm:ss") }}
+                                <span v-if="vod.created_at">{{ formatDate(vod.created_at, "yyyy-MM-dd HH:mm:ss") }}</span>
+                                <span
+                                    v-else
+                                    class="is-error"
+                                >No created_at</span>
                             </li>
-                            <li v-if="vod.started_at && showAdvanced">
+                            <li v-if="showAdvanced">
                                 <strong>{{ $t('vod.video-info.went-live') }}:</strong>
-                                {{ formatDate(vod.started_at, "yyyy-MM-dd HH:mm:ss") }}
+                                <span v-if="vod.started_at">{{ formatDate(vod.started_at, "yyyy-MM-dd HH:mm:ss") }}</span>
+                                <span
+                                    v-else
+                                    class="is-error"
+                                >No started_at</span>
                             </li>
-                            <li v-if="vod.capture_started && showAdvanced">
+                            <li v-if="showAdvanced">
                                 <strong>{{ $t('vod.video-info.capture-launched') }}:</strong>
-                                {{ formatDate(vod.capture_started, "yyyy-MM-dd HH:mm:ss") }}
+                                <span v-if="vod.capture_started">{{ formatDate(vod.capture_started, "yyyy-MM-dd HH:mm:ss") }}</span>
+                                <span
+                                    v-else
+                                    class="is-error"
+                                >No capture_started</span>
                             </li>
-                            <li v-if="vod.capture_started2 && showAdvanced">
+                            <li v-if="showAdvanced">
                                 <strong>{{ $t('vod.video-info.wrote-file') }}:</strong>
-                                {{ formatDate(vod.capture_started2, "yyyy-MM-dd HH:mm:ss") }}
+                                <span v-if="vod.capture_started2">{{ formatDate(vod.capture_started2, "yyyy-MM-dd HH:mm:ss") }}</span>
+                                <span
+                                    v-else
+                                    class="is-error"
+                                >No capture_started2</span>
                             </li>
-                            <li v-if="vod.ended_at">
+                            <li>
                                 <strong>{{ $t('vod.video-info.stream-end') }}:</strong>
-                                {{ formatDate(vod.ended_at, "yyyy-MM-dd HH:mm:ss") }}
+                                <span v-if="vod.ended_at">{{ formatDate(vod.ended_at, "yyyy-MM-dd HH:mm:ss") }}</span>
+                                <span
+                                    v-else
+                                    class="is-error"
+                                >No ended_at</span>
                             </li>
                             <template v-if="vod.capture_started && vod.conversion_started">
                                 <li>
