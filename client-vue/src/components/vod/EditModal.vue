@@ -447,6 +447,7 @@ onMounted(() => {
         segments: props.vod.segments.map((s) => s.basename).join("\n"),
         cloud_storage: props.vod.cloud_storage ?? false,
         chapters: props.vod.chapters ? makeEditableChapters(props.vod.chapters) : [],
+        editChapters: false,
     };
 
     axios.get(`api/v0/games`)
