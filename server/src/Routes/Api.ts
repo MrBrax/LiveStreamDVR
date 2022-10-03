@@ -141,4 +141,9 @@ router.get("/auth/check", Auth.CheckLogin);
 router.get("/telemetry/show", AuthAdmin, Telemetry.ShowTelemetry);
 router.post("/telemetry/send", AuthAdmin, Telemetry.SendTelemetry);
 
+// 404
+router.use(function(req, res, next) {
+    res.status(404).send("404 Not Found");
+});
+
 export default router;
