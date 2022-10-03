@@ -1,3 +1,9 @@
+import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
+import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
+import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
+import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
+import { ChannelTypes, VODTypes } from "@/store";
+
 export function niceDuration(durationInSeconds: number): string {
     if (durationInSeconds < 0) {
         return `(NEGATIVE DURATION: ${durationInSeconds})`;
@@ -40,4 +46,20 @@ export function formatDuration(duration_seconds: number) {
     const minutes = Math.floor((duration_seconds - (hours * 60 * 60)) / 60);
     const seconds = Math.floor(duration_seconds - (hours * 60 * 60) - (minutes * 60));
     return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+}
+
+export function isTwitch(vod: ChannelTypes): vod is TwitchChannel {
+    return vod instanceof TwitchChannel;
+}
+
+export function isYouTube(vod: ChannelTypes): vod is YouTubeChannel {
+    return vod instanceof YouTubeChannel;
+}
+
+export function isTwitchVOD(vod: VODTypes): vod is TwitchVOD {
+    return vod instanceof TwitchVOD;
+}
+
+export function isYouTubeVOD(vod: VODTypes): vod is YouTubeVOD {
+    return vod instanceof YouTubeVOD;
 }
