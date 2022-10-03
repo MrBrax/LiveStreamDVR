@@ -10,6 +10,7 @@ export function Authenticate(req: express.Request, res: express.Response): void 
             status: "ERROR",
             message: "YouTube client not configured. Set it up in the settings page.",
         });
+        Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", "YouTube client not configured. Set it up in the settings page.");
         return;
     }
 
