@@ -18,7 +18,19 @@ export function Authenticate(req: express.Request, res: express.Response): void 
     const url = YouTubeHelper.oAuth2Client.generateAuthUrl({
         access_type: "offline",
         scope: YouTubeHelper.SCOPES,
+        // prompt: "consent", // necessary?
     });
+
+    if (!url) {
+        res.status(500).send({
+            status: "ERROR",
+            message: "No URL received from OAuth. Check your settings.",
+        });
+        Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", "No URL received from OAuth, user stuck.");
+        return;
+    }
+
+    Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", `Send user to: ${url}`);
 
     res.redirect(302, url);
 
