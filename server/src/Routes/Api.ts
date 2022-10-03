@@ -1,3 +1,4 @@
+import { Config } from "Core/Config";
 import express from "express";
 import * as About from "../Controllers/About";
 import * as Auth from "../Controllers/Auth";
@@ -143,7 +144,11 @@ router.post("/telemetry/send", AuthAdmin, Telemetry.SendTelemetry);
 
 // 404
 router.use(function(req, res, next) {
-    res.status(404).send("404 Not Found");
+    res.status(404).send(
+        `<h1>404 Not Found</h1>Endpoint <code>${req.originalUrl}</code> using method <code>${req.method}</code> does not exist.<br>` +
+        "If you think this is a bug (did you not type the URL manually?), please report it to the developers." +
+        (!Config.getInstance().cfg("password") ? `<hr>Version: ${process.env.npm_package_version}, debug ${Config.debug ? "enabled" : "disabled"}. ${new Date().toISOString()}` : "")
+    );
 });
 
 export default router;
