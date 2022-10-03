@@ -30,10 +30,6 @@ export class YouTubeChannel extends BaseChannel {
 
     public provider: Providers = "youtube";
 
-    public static is(channel: ChannelTypes): channel is YouTubeChannel {
-        return channel instanceof YouTubeChannel;
-    }
-
     public channel_id = "";
 
     public vods_list: YouTubeVOD[] = [];

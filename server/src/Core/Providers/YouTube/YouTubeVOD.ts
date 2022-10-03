@@ -15,8 +15,11 @@ import { VideoQuality } from "../../../../../common/Config";
 import { BaseConfigCacheFolder } from "../../../Core/BaseConfig";
 import { Helper } from "../../../Core/Helper";
 import { YouTubeChannel } from "./YouTubeChannel";
+import { Providers } from "../../../../../common/Defs";
 
 export class YouTubeVOD extends BaseVOD {
+
+    public provider: Providers = "youtube";
 
     json?: YouTubeVODJSON;
 

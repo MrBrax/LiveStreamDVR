@@ -2,8 +2,11 @@ import { LiveStreamDVR, VODTypes } from "../../../Core/LiveStreamDVR";
 import { BaseVODChapterJSON } from "Storage/JSON";
 import { ApiVodBaseChapter } from "../../../../../common/Api/Client";
 import { Log, LOGLEVEL } from "../../Log";
+import { Providers } from "../../../../../common/Defs";
 
 export class BaseVODChapter {
+
+    public provider: Providers = "base";
 
     /**
      * Started at date, offset and duration are calculated from this.

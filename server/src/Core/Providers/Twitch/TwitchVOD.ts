@@ -11,27 +11,27 @@ import { ApiTwitchVod } from "../../../../../common/Api/Client";
 import { TwitchVODBookmark } from "../../../../../common/Bookmark";
 import type { TwitchComment, TwitchCommentDump } from "../../../../../common/Comments";
 import { VideoQuality } from "../../../../../common/Config";
-import { JobStatus, MuteStatus } from "../../../../../common/Defs";
+import { JobStatus, MuteStatus, Providers } from "../../../../../common/Defs";
 import { AudioStream, FFProbe, VideoStream } from "../../../../../common/FFProbe";
 import { VideoMetadata } from "../../../../../common/MediaInfo";
+import { ProxyVideo } from "../../../../../common/Proxies/Video";
 import { Clip, ClipsResponse } from "../../../../../common/TwitchAPI/Clips";
 import { Video, VideosResponse } from "../../../../../common/TwitchAPI/Video";
+import { Helper } from "../../../Core/Helper";
+import { TwitchHelper } from "../../../Providers/Twitch";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../../../Storage/JSON";
 import { AppName, BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
 import { FFmpegMetadata } from "../../FFmpegMetadata";
-import { TwitchHelper } from "../../../Providers/Twitch";
 import { Job } from "../../Job";
 import { LiveStreamDVR } from "../../LiveStreamDVR";
 import { Log, LOGLEVEL } from "../../Log";
+import { Webhook } from "../../Webhook";
+import { BaseVOD } from "../Base/BaseVOD";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVODChapter } from "./TwitchVODChapter";
-import { BaseVOD } from "../Base/BaseVOD";
-import { Webhook } from "../../Webhook";
-import { ProxyVideo } from "../../../../../common/Proxies/Video";
-import { Helper } from "../../../Core/Helper";
 
 /**
  * Twitch VOD
@@ -39,6 +39,8 @@ import { Helper } from "../../../Core/Helper";
  * @warning **Do NOT create this class directly. Use TwitchChannel.createVOD() instead.**
  */
 export class TwitchVOD extends BaseVOD {
+
+    public provider: Providers = "twitch";
 
     json?: TwitchVODJSON;
     // meta?: EventSubResponse;
@@ -604,103 +606,6 @@ export class TwitchVOD extends BaseVOD {
 
     }
 
-    public saveLosslessCut(): boolean {
-
-        if (!this.directory) {
-            throw new Error("TwitchVOD.saveLosslessCut: directory is not set");
-        }
-
-        if (!this.chapters || this.chapters.length == 0) {
-            // throw new Error('TwitchVOD.saveLosslessCut: chapters are not set');
-            return false;
-        }
-
-        // $csv_path = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv';
-        const csv_path = path.join(this.directory, `${this.basename}-llc-edl.csv`);
-
-        Log.logAdvanced(LOGLEVEL.INFO, "vod.saveLosslessCut", `Saving lossless cut csv for ${this.basename} to ${csv_path}`);
-
-        let data = "";
-
-        this.chapters.forEach((chapter, i) => {
-            let offset = chapter.offset;
-            if (offset === undefined) return;
-
-            offset -= this.chapters[0].offset || 0;
-
-            data += offset + ","; // offset
-
-            if (i < this.chapters.length - 1) { // not last chapter
-                data += (offset + (chapter.duration || 0)) + ",";
-            } else { // last chapter
-                data += ",";
-            }
-
-            data += "\"";
-            let label = `${chapter.game_name || chapter.game_id} (${chapter.title})`;
-            label = label.replace(/"/g, "\\\"");
-            data += label;
-            data += "\"";
-
-            data += "\n";
-        });
-
-        fs.writeFileSync(csv_path, data);
-
-        this.setPermissions();
-
-        return fs.existsSync(csv_path);
-    }
-
-    /**
-     * Save chapter data in ffmpeg format for use in remuxing.
-     * @see {@link https://ikyle.me/blog/2020/add-mp4-chapters-ffmpeg}
-     * @returns Save success
-     */
-    public saveFFMPEGChapters(): boolean {
-
-        if (!this.directory) {
-            throw new Error("TwitchVOD.saveFFMPEGChapters: directory is not set");
-        }
-
-        if (!this.chapters || this.chapters.length == 0) {
-            // throw new Error('TwitchVOD.saveFFMPEGChapters: chapters are not set');
-            return false;
-        }
-
-        Log.logAdvanced(LOGLEVEL.INFO, "vod.saveFFMPEGChapters", `Saving FFMPEG chapters file for ${this.basename} to ${this.path_ffmpegchapters}`);
-
-        const meta = new FFmpegMetadata()
-            .setArtist(this.getChannel().displayName)
-            .setTitle(this.twitch_vod_title ?? this.chapters[0].title);
-
-        if (this.started_at) meta.setDate(this.started_at);
-
-        this.chapters.forEach((chapter) => {
-            const offset = chapter.offset || 0;
-            const duration = chapter.duration || 0;
-            const start = Math.floor(offset * 1000);
-            const end = Math.floor((offset + duration) * 1000);
-            const title = `${chapter.title} (${chapter.game_name})`;
-            meta.addChapter(start, end, title, "1/1000", [
-                `Game ID: ${chapter.game_id}`,
-                `Game Name: ${chapter.game_name}`,
-                `Title: ${chapter.title}`,
-                `Offset: ${offset}`,
-                `Duration: ${duration}`,
-                `Viewer count: ${chapter.viewer_count}`,
-                `Started at: ${chapter.started_at.toISOString()}`,
-            ]);
-        });
-
-        fs.writeFileSync(this.path_ffmpegchapters, meta.getString(), { encoding: "utf8" });
-
-        this.setPermissions();
-
-        return fs.existsSync(this.path_ffmpegchapters);
-
-    }
-
     public saveVTTChapters(): boolean {
 
         if (!this.directory) {
@@ -1071,28 +976,6 @@ export class TwitchVOD extends BaseVOD {
         return generated;
 
     }
-
-    public setPermissions(): void {
-
-        if (
-            !Config.getInstance().cfg("file_permissions") ||
-            !Config.getInstance().cfg("file_chown_uid") ||
-            !Config.getInstance().cfg("file_chown_gid") ||
-            !Config.getInstance().cfg("file_chmod")
-        ) {
-            return;
-        }
-
-        for (const file of this.associatedFiles) {
-            const fullpath = path.join(this.directory, file);
-            if (fs.existsSync(fullpath)) {
-                fs.chownSync(fullpath, Config.getInstance().cfg("file_chown_uid"), Config.getInstance().cfg("file_chown_gid"));
-                fs.chmodSync(fullpath, Config.getInstance().cfg("file_chmod"));
-            }
-        }
-
-    }
-
 
 
     /**

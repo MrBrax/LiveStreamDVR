@@ -37,10 +37,6 @@ import { TwitchVOD } from "./TwitchVOD";
 export class TwitchChannel extends BaseChannel {
     public provider: Providers = "twitch";
 
-    public static is(channel: ChannelTypes): channel is TwitchChannel {
-        return channel.provider === "twitch";
-    }
-
     // static channels: TwitchChannel[] = [];
     // static channels_config: ChannelConfig[] = [];
     static channels_cache: Record<string, UserData> = {};

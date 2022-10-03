@@ -24,6 +24,7 @@ import { YouTubeChannel } from "../Core/Providers/YouTube/YouTubeChannel";
 import { YouTubeVOD } from "../Core/Providers/YouTube/YouTubeVOD";
 import { Webhook } from "../Core/Webhook";
 import { generateStreamerList } from "../Helpers/StreamerList";
+import { isTwitchChannel, isYouTubeChannel } from "../Helpers/Types";
 import { TwitchHelper } from "../Providers/Twitch";
 import { TwitchVODChapterJSON } from "../Storage/JSON";
 
@@ -454,7 +455,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         return sanitize(formatString(Config.getInstance().cfg(what), variables));
     };
 
-    if (TwitchChannel.is(channel)) {
+    if (isTwitchChannel(channel)) {
 
         if (TwitchVOD.getVodByProviderId(video_id)) {
             res.status(400).send({
@@ -580,7 +581,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             return;
         }
 
-    } else if (YouTubeChannel.is(channel)) {
+    } else if (isYouTubeChannel(channel)) {
 
         if (YouTubeVOD.getVodByProviderId(video_id)) {
             res.status(400).send({
@@ -845,7 +846,7 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
         return;
     }
 
-    if (TwitchChannel.is(channel)) {
+    if (isTwitchChannel(channel)) {
 
         const streams = await TwitchChannel.getStreams(channel.internalId);
 
@@ -923,7 +924,7 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
             return;
         }
 
-    } else if (YouTubeChannel.is(channel)) {
+    } else if (isYouTubeChannel(channel)) {
 
         const streams = await channel.getStreams();
 

@@ -4,6 +4,7 @@ import { ApiVodTwitchChapter } from "../../../../../common/Api/Client";
 import { TwitchVODChapterJSON } from "../../../Storage/JSON";
 import { TwitchGame } from "./TwitchGame";
 import { BaseVODChapter } from "../Base/BaseVODChapter";
+import { Providers } from "../../../../../common/Defs";
 
 /*
 export interface TwitchVODChapterJSON {
@@ -51,6 +52,8 @@ export interface TwitchVODChapterMinimalJSON {
 
 
 export class TwitchVODChapter extends BaseVODChapter {
+
+    public provider: Providers = "twitch";
 
     public raw_chapter: TwitchVODChapterJSON | undefined;
 
