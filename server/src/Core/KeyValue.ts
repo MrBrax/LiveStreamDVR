@@ -49,7 +49,11 @@ export class KeyValue extends EventEmitter {
 
         key = key.replaceAll("/", "");
 
-        return this.data[key] !== undefined ? this.data[key] : false;
+        const data = this.data[key] !== undefined ? this.data[key] : false;
+
+        if (Config.debug) console.debug(`Getting key-value pair: ${key} = ${data}`);
+
+        return data;
 
     }
 

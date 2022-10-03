@@ -16,6 +16,9 @@ import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
 import { TwitchHelper } from "../../../Providers/Twitch";
 import { AudioMetadata, VideoMetadata } from "../../../../../common/MediaInfo";
 import { Helper } from "../../../Core/Helper";
+import { KeyValue } from "../../../Core/KeyValue";
+import { format } from "date-fns";
+import { Config } from "../../../Core/Config";
 
 export class BaseChannel {
 
@@ -188,7 +191,28 @@ export class BaseChannel {
     }
 
     public incrementStreamNumber(): number {
-        throw new Error("Method not implemented.");
+
+        // relative season
+        const seasonIdentifier = KeyValue.getInstance().get(`${this.internalName}.season_identifier`);
+        if (seasonIdentifier && seasonIdentifier !== format(new Date(), Config.SeasonFormat)) {
+            this.current_stream_number = 1;
+            KeyValue.getInstance().setInt(`${this.internalName}.stream_number`, 1);
+            KeyValue.getInstance().set(`${this.internalName}.season_identifier`, format(new Date(), Config.SeasonFormat));
+            this.current_season = format(new Date(), Config.SeasonFormat);
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Season changed for ${this.internalName} to ${this.current_season}`);
+        } else {
+            this.current_stream_number += 1;
+            KeyValue.getInstance().setInt(`${this.internalName}.stream_number`, this.current_stream_number);
+        }
+
+        // absolute season
+        if (parseInt(format(new Date(), "M")) !== KeyValue.getInstance().getInt(`${this.internalName}.absolute_season_month`)) {
+            KeyValue.getInstance().setInt(`${this.internalName}.absolute_season_month`, parseInt(format(new Date(), "M")));
+            this.current_absolute_season = this.current_absolute_season ? this.current_absolute_season + 1 : 1;
+            KeyValue.getInstance().setInt(`${this.internalName}.absolute_season_identifier`, this.current_absolute_season);
+        }
+
+        return this.current_stream_number;
     }
 
     public async downloadLatestVod(quality: VideoQuality): Promise<string> {

@@ -24,6 +24,7 @@ import { YouTubeChannel } from "../Core/Providers/YouTube/YouTubeChannel";
 import { Webhook } from "../Core/Webhook";
 import { generateStreamerList } from "../Helpers/StreamerList";
 import { TwitchVODChapterJSON } from "../Storage/JSON";
+import { YouTubeAutomator } from "Core/Providers/YouTube/YouTubeAutomator";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -723,80 +724,118 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
         return;
     }
 
-    const streams = await TwitchChannel.getStreams(channel.internalId);
+    if (TwitchChannel.is(channel)) {
 
-    if (streams) {
-        const stream = streams.find((s) => s.type === "live");
-        if (stream) {
-            const mock_data: EventSubStreamOnline = {
-                "subscription": {
-                    "id": "fake",
-                    "type": "stream.online",
-                    "condition": {
+        const streams = await TwitchChannel.getStreams(channel.internalId);
+
+        if (streams) {
+            const stream = streams.find((s) => s.type === "live");
+            if (stream) {
+                const mock_data: EventSubStreamOnline = {
+                    "subscription": {
+                        "id": "fake",
+                        "type": "stream.online",
+                        "condition": {
+                            "broadcaster_user_id": stream.user_id,
+                        },
+                        "version": "1",
+                        "status": "enabled",
+                        "created_at": new Date().toISOString(),
+                        "cost": 0,
+                        "transport": {
+                            "method": "webhook",
+                            "callback": "https://example.com/webhook",
+                        },
+                    },
+                    "event": {
+                        "type": "live",
+                        "id": stream.id,
                         "broadcaster_user_id": stream.user_id,
+                        "broadcaster_user_login": stream.user_login,
+                        "broadcaster_user_name": stream.user_name,
+                        // "title": stream.title,
+                        // "category_id": stream.game_id,
+                        // "category_name": stream.game_name,
+                        "started_at": stream.started_at,
+                        // "is_mature": stream.is_mature,
                     },
-                    "version": "1",
-                    "status": "enabled",
-                    "created_at": new Date().toISOString(),
-                    "cost": 0,
-                    "transport": {
-                        "method": "webhook",
-                        "callback": "https://example.com/webhook",
-                    },
-                },
-                "event": {
-                    "type": "live",
-                    "id": stream.id,
-                    "broadcaster_user_id": stream.user_id,
-                    "broadcaster_user_login": stream.user_login,
-                    "broadcaster_user_name": stream.user_name,
-                    // "title": stream.title,
-                    // "category_id": stream.game_id,
-                    // "category_name": stream.game_name,
-                    "started_at": stream.started_at,
-                    // "is_mature": stream.is_mature,
-                },
-            };
+                };
 
-            req.headers["twitch-eventsub-message-id"] = "fake";
-            req.headers["twitch-eventsub-signature"] = "fake";
-            req.headers["twitch-eventsub-message-retry"] = "0";
+                req.headers["twitch-eventsub-message-id"] = "fake";
+                req.headers["twitch-eventsub-signature"] = "fake";
+                req.headers["twitch-eventsub-message-retry"] = "0";
 
-            const chapter_data = {
-                started_at: JSON.stringify(parseJSON(stream.started_at)),
-                game_id: stream.game_id,
-                game_name: stream.game_name,
-                viewer_count: stream.viewer_count,
-                title: stream.title,
-                is_mature: stream.is_mature,
-                online: true,
-            } as TwitchVODChapterJSON;
-            KeyValue.getInstance().setObject(`${stream.user_login}.chapterdata`, chapter_data);
+                const chapter_data = {
+                    started_at: JSON.stringify(parseJSON(stream.started_at)),
+                    game_id: stream.game_id,
+                    game_name: stream.game_name,
+                    viewer_count: stream.viewer_count,
+                    title: stream.title,
+                    is_mature: stream.is_mature,
+                    online: true,
+                } as TwitchVODChapterJSON;
+                KeyValue.getInstance().setObject(`${stream.user_login}.chapterdata`, chapter_data);
 
-            const TA = new TwitchAutomator();
-            TA.handle(mock_data, req);
+                const TA = new TwitchAutomator();
+                TA.handle(mock_data, req);
+
+                res.send({
+                    status: "OK",
+                    message: `Forced recording of channel: ${channel.internalName}`,
+                });
+
+                return;
+
+            } else {
+                res.status(400).send({
+                    status: "ERROR",
+                    message: "No live stream found",
+                } as ApiErrorResponse);
+                return;
+            }
+
+        } else {
+            res.status(400).send({
+                status: "ERROR",
+                message: "No streams found",
+            } as ApiErrorResponse);
+            return;
+        }
+
+    } else if (YouTubeChannel.is(channel)) {
+
+        const streams = await channel.getStreams();
+
+        if (streams) {
+
+            const YA = new YouTubeAutomator();
+            YA.broadcaster_user_id = channel.internalId;
+            YA.broadcaster_user_name = channel.displayName;
+            YA.broadcaster_user_login = channel.internalName;
+            YA.channel = channel;
+            // YA.handle(mock_data, req);
+
+            KeyValue.getInstance().set(`yt.${YA.getUserID()}.vod.started_at`, streams.snippet?.publishedAt || new Date().toISOString());
+            KeyValue.getInstance().set(`yt.${YA.getUserID()}.vod.id`, streams.id?.videoId || "fake");
+
+            YA.download();
 
             res.send({
                 status: "OK",
                 message: `Forced recording of channel: ${channel.internalName}`,
             });
 
-            return;
-
         } else {
+
             res.status(400).send({
                 status: "ERROR",
-                message: "No live stream found",
+                message: "No streams found",
             } as ApiErrorResponse);
-            return;
+
         }
 
-    } else {
-        res.status(400).send({
-            status: "ERROR",
-            message: "No streams found",
-        } as ApiErrorResponse);
         return;
+
     }
 
 }

@@ -141,7 +141,13 @@ export class BaseAutomator {
     }
 
     public getVodID(): string | false {
-        return KeyValue.getInstance().get(`${this.getLogin()}.vod.id`);
+        const id = KeyValue.getInstance().get(`${this.getLogin()}.vod.id`);
+        if (id) {
+            return id;
+        } else {
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator.getVodID", `No VOD ID for ${this.getLogin()}`);
+            return false;
+        }
         // return $this->payload['id'];
     }
 
@@ -469,8 +475,8 @@ export class BaseAutomator {
         }
 
         if (!data_id) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No VOD ID supplied for download (try #${tries})`);
-            throw new Error("No data supplied");
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator", `No VOD ID supplied for download (${this.getLogin()}) (try #${tries})`);
+            throw new Error("No vod id supplied");
         }
 
         const temp_basename = this.vodBasenameTemplate();
@@ -531,6 +537,8 @@ export class BaseAutomator {
 
         // create the vod and put it inside this class
         this.vod = await this.channel.createVOD(path.join(folder_base, `${basename}.json`));
+
+        this.vod.channel_uuid = this.channel.uuid; // to be sure
 
         // if (this.vod instanceof TwitchChannel) {
         //     this.vod.meta = this.payload_eventsub;
@@ -746,6 +754,10 @@ export class BaseAutomator {
 
     }
 
+    public providerArgs(): string[] {
+        return [];
+    }
+
     /**
      * Create process and capture video
      * @throws
@@ -775,9 +787,6 @@ export class BaseAutomator {
 
             const cmd: string[] = [];
 
-            // start recording from start of stream, though twitch doesn't support this
-            cmd.push("--hls-live-restart");
-
             // How many segments from the end to start live HLS streams on.
             cmd.push("--hls-live-edge", "99999");
 
@@ -793,32 +802,13 @@ export class BaseAutomator {
             // Output container format
             cmd.push("--ffmpeg-fout", "mpegts"); // default is apparently matroska?
 
-            // disable channel hosting
-            cmd.push("--twitch-disable-hosting");
-
-            if (fs.existsSync(path.join(BaseConfigDataFolder.config, "twitch_oauth.txt"))) {
-                const token = fs.readFileSync(path.join(BaseConfigDataFolder.config, "twitch_oauth.txt"));
-                cmd.push(`--twitch-api-header=Authentication=OAuth ${token}`);
-            }
-
-            // enable low latency mode, probably not a good idea without testing
-            if (Config.getInstance().cfg("low_latency", false)) {
-                cmd.push("--twitch-low-latency");
-            }
-
-            // Skip embedded advertisement segments at the beginning or during a stream
-            if (Config.getInstance().cfg("disable_ads", false)) {
-                cmd.push("--twitch-disable-ads");
-            }
+            cmd.push(...this.providerArgs());
 
             // Retry fetching the list of available streams until streams are found 
             cmd.push("--retry-streams", "10");
 
             // stop retrying the fetch after COUNT retry attempt(s).
             cmd.push("--retry-max", "5");
-
-            // disable reruns
-            cmd.push("--twitch-disable-reruns");
 
             // logging level
             if (Config.debug) {

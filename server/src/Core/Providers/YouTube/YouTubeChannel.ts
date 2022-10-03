@@ -12,7 +12,7 @@ import { YouTubeHelper } from "../../../Providers/YouTube";
 import { BaseConfigDataFolder, BaseConfigPath } from "../../BaseConfig";
 import { Config } from "../../Config";
 import { KeyValue } from "../../KeyValue";
-import { LiveStreamDVR } from "../../LiveStreamDVR";
+import { ChannelTypes, LiveStreamDVR } from "../../LiveStreamDVR";
 import { Log, LOGLEVEL } from "../../Log";
 import { BaseChannel } from "../Base/BaseChannel";
 import { YouTubeVOD } from "./YouTubeVOD";
@@ -29,6 +29,10 @@ export class YouTubeChannel extends BaseChannel {
     public channel_data?: YouTubeChannelData;
 
     public provider: Providers = "youtube";
+
+    public static is(channel: ChannelTypes): channel is YouTubeChannel {
+        return channel instanceof YouTubeChannel;
+    }
 
     public channel_id = "";
 
@@ -511,7 +515,11 @@ export class YouTubeChannel extends BaseChannel {
         this.addVodToDatabase(path.relative(BaseConfigDataFolder.vod, filename));
         this.saveVodDatabase();
 
-        this.checkStaleVodsInMemory();
+        try {
+            this.checkStaleVodsInMemory();   
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Error while checking stale vods in memory: ${error}`);            
+        }
 
         return load_vod;
 
@@ -599,6 +607,8 @@ export class YouTubeChannel extends BaseChannel {
             searchResponse = await service.search.list({
                 channelId: this.channel_id,
                 eventType: "live",
+                type: ["video"],
+                part: ["id", "snippet"],
             });
         } catch (error) {
             console.log(error);

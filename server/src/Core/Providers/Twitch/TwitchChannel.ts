@@ -28,7 +28,7 @@ import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
 import { Job } from "../../Job";
 import { KeyValue } from "../../KeyValue";
-import { LiveStreamDVR } from "../../LiveStreamDVR";
+import { ChannelTypes, LiveStreamDVR } from "../../LiveStreamDVR";
 import { Log, LOGLEVEL } from "../../Log";
 import { Webhook } from "../../Webhook";
 import { BaseChannel } from "../Base/BaseChannel";
@@ -36,8 +36,11 @@ import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
 
 export class TwitchChannel extends BaseChannel {
-
     public provider: Providers = "twitch";
+
+    public static is(channel: ChannelTypes): channel is TwitchChannel {
+        return channel.provider === "twitch";
+    }
 
     // static channels: TwitchChannel[] = [];
     // static channels_config: ChannelConfig[] = [];
@@ -628,30 +631,7 @@ export class TwitchChannel extends BaseChannel {
         }
     }
 
-    public incrementStreamNumber(): number {
-
-        // relative season
-        const seasonIdentifier = KeyValue.getInstance().get(`${this.internalName}.season_identifier`);
-        if (seasonIdentifier && seasonIdentifier !== format(new Date(), Config.SeasonFormat)) {
-            this.current_stream_number = 1;
-            KeyValue.getInstance().setInt(`${this.internalName}.stream_number`, 1);
-            KeyValue.getInstance().set(`${this.internalName}.season_identifier`, format(new Date(), Config.SeasonFormat));
-            this.current_season = format(new Date(), Config.SeasonFormat);
-            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Season changed for ${this.internalName} to ${this.current_season}`);
-        } else {
-            this.current_stream_number += 1;
-            KeyValue.getInstance().setInt(`${this.internalName}.stream_number`, this.current_stream_number);
-        }
-
-        // absolute season
-        if (parseInt(format(new Date(), "M")) !== KeyValue.getInstance().getInt(`${this.internalName}.absolute_season_month`)) {
-            KeyValue.getInstance().setInt(`${this.internalName}.absolute_season_month`, parseInt(format(new Date(), "M")));
-            this.current_absolute_season = this.current_absolute_season ? this.current_absolute_season + 1 : 1;
-            KeyValue.getInstance().setInt(`${this.internalName}.absolute_season_identifier`, this.current_absolute_season);
-        }
-
-        return this.current_stream_number;
-    }
+    
 
     public postLoad(): void {
         this.setupStreamNumber();

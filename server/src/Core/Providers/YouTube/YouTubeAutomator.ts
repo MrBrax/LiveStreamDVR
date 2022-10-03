@@ -18,4 +18,15 @@ export class YouTubeAutomator extends BaseAutomator {
         return Promise.resolve(false);
     }
 
+    public providerArgs(): string[] {
+
+        const cmd = [];
+
+        // start recording from start of stream
+        cmd.push("--hls-live-restart");
+
+        return cmd;
+
+    }
+
 }
