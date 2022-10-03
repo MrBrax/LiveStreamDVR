@@ -10,26 +10,25 @@
     <div class="field">
         <label class="label">{{ $t('vod.export.export-type') }}</label>
         <div class="control">
-            <select
-                v-model="exportVodSettings.exporter"
-                class="input"
-            >
-                <option value="file">
-                    File
-                </option>
-                <option value="youtube">
-                    YouTube
-                </option>
-                <option value="sftp">
-                    SFTP
-                </option>
-                <option value="ftp">
-                    FTP
-                </option>
-                <option value="rclone">
-                    RClone
-                </option>
-            </select>
+            <div class="select">
+                <select v-model="exportVodSettings.exporter">
+                    <option value="file">
+                        File
+                    </option>
+                    <option value="youtube">
+                        YouTube
+                    </option>
+                    <option value="sftp">
+                        SFTP
+                    </option>
+                    <option value="ftp">
+                        FTP
+                    </option>
+                    <option value="rclone">
+                        RClone
+                    </option>
+                </select>
+            </div>
         </div>
         <p v-if="exportVodSettings.exporter == 'youtube'">
             Upload videos directly to YouTube.<br>
