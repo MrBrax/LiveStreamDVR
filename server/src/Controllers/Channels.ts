@@ -1094,6 +1094,14 @@ export async function ScanVods(req: express.Request, res: express.Response): Pro
         return;
     }
 
+    if (channel.is_capturing || channel.is_converting) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel is currently capturing. Please stop the capture first or wait until it is finished.",
+        } as ApiErrorResponse);
+        return;
+    }
+
     // channel.vods_raw = channel.rescanVods();
     // Log.logAdvanced(LOGLEVEL.INFO, "channel", `Found ${channel.vods_raw.length} VODs from recursive file search for ${channel.login}`);
     // fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${channel.login}.json`), JSON.stringify(channel.vods_raw));
