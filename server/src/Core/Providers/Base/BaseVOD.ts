@@ -151,6 +151,16 @@ export class BaseVOD {
             ignoreInitial: true,
         }).on("all", (eventType, filename) => {
 
+            if (LiveStreamDVR.shutting_down) {
+                this.stopWatching();
+                return;
+            }
+
+            if (!this.channel_uuid) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "vod.watch", `VOD ${this.basename} has no channel UUID!`);
+                return;
+            }
+
             const channel = this.getChannel();
             if (channel) {
                 if (channel.live_chat && (filename.endsWith(".chatdump.line") || filename.endsWith(".chatdump.txt"))) {
@@ -317,9 +327,11 @@ export class BaseVOD {
                 return;
             }
 
+            const base_segment = path.basename(raw_segment);
+
             // find invalid characters for windows
-            if (raw_segment.match(LiveStreamDVR.filenameIllegalChars)) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "vod.parseSegments", `Segment list containing invalid characters for ${this.basename}: ${raw_segment}`);
+            if (base_segment.match(LiveStreamDVR.filenameIllegalChars)) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "vod.parseSegments", `Segment list containing invalid characters for ${this.basename}: ${base_segment}`);
                 return false;
             }
 
@@ -327,8 +339,8 @@ export class BaseVOD {
 
             // segment.filename = realpath($this.directory . DIRECTORY_SEPARATOR . basename($v));
             // segment.basename = basename($v);
-            segment.filename = path.join(this.directory, path.basename(raw_segment));
-            segment.basename = path.basename(raw_segment);
+            segment.filename = path.join(this.directory, path.basename(base_segment));
+            segment.basename = path.basename(base_segment);
 
             if (segment.filename && fs.existsSync(segment.filename) && fs.statSync(segment.filename).size > 0) {
                 segment.filesize = fs.statSync(segment.filename).size;
@@ -1076,7 +1088,25 @@ export class BaseVOD {
     }
 
     public setupUserData(): void { return; }
-    public setupBasic(): void { return; }
+    public setupBasic(): void {
+
+        if (!this.json) {
+            throw new Error("No JSON loaded for basic setup!");
+        }
+
+        this.is_capturing = this.json.is_capturing;
+        this.is_converting = this.json.is_converting;
+        this.is_finalized = this.json.is_finalized;
+
+        this.duration = this.json.duration ?? undefined;
+
+        this.comment = this.json.comment;
+        this.prevent_deletion = this.json.prevent_deletion ?? false;
+        this.failed = this.json.failed ?? false;
+
+        this.webpath = `${Config.getInstance().cfg<string>("basepath", "")}/vods/` + path.relative(BaseConfigDataFolder.vod, this.directory);
+
+    }
     public setupProvider(): void { return; }
 
     public async delete(): Promise<boolean> {

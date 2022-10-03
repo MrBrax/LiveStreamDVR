@@ -5,7 +5,6 @@ import { randomUUID } from "crypto";
 import { format, parseJSON } from "date-fns";
 import fs from "fs";
 import fsPromises from "fs/promises";
-import readdirSyncRecursive from "fs-readdir-recursive";
 import { encode as htmlentities } from "html-entities";
 import path from "path";
 import { TwitchVODChapterJSON } from "Storage/JSON";
@@ -83,19 +82,6 @@ export class TwitchChannel extends BaseChannel {
 
     get livestreamUrl() {
         return `https://twitch.tv/${this.internalName}`;
-    }
-
-    public rescanVods(): string[] {
-        const list = readdirSyncRecursive(this.getFolder())
-            .filter(file =>
-                file.endsWith(".json") &&
-                fs.statSync(path.join(this.getFolder(), file)).size < 1024 * 1024
-            );
-        return list.map(
-            p => path.relative(
-                BaseConfigDataFolder.vod,
-                path.join(this.getFolder(), p)
-            ));
     }
 
     public async parseVODs(rescan = false): Promise<void> {

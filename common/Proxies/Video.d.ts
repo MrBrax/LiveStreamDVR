@@ -10,4 +10,5 @@ export interface ProxyVideo {
     duration: number;
     view_count: number;
     muted_segments?: MutedSegment[] | null;
+    stream_id?: string;
 }

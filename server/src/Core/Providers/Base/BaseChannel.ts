@@ -1,24 +1,24 @@
 import chokidar from "chokidar";
+import { format } from "date-fns";
+import fs from "fs";
+import readdirSyncRecursive from "fs-readdir-recursive";
+import path from "path";
 import { ApiChannels } from "../../../../../common/Api/Client";
 import { ChannelConfig, VideoQuality } from "../../../../../common/Config";
 import { LocalClip } from "../../../../../common/LocalClip";
 import { LocalVideo } from "../../../../../common/LocalVideo";
-import { ChannelUpdated } from "../../../../../common/Webhook";
-import { BaseVOD } from "./BaseVOD";
-import { BaseVODChapter } from "./BaseVODChapter";
-import { Webhook } from "../../Webhook";
-import { BaseVODChapterJSON } from "../../../Storage/JSON";
-import { Log, LOGLEVEL } from "../../../Core/Log";
-import path from "path";
-import fs from "fs";
-import { BaseConfigDataFolder } from "../../../Core/BaseConfig";
-import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
-import { TwitchHelper } from "../../../Providers/Twitch";
 import { AudioMetadata, VideoMetadata } from "../../../../../common/MediaInfo";
+import { ChannelUpdated } from "../../../../../common/Webhook";
+import { BaseConfigDataFolder } from "../../../Core/BaseConfig";
+import { Config } from "../../../Core/Config";
 import { Helper } from "../../../Core/Helper";
 import { KeyValue } from "../../../Core/KeyValue";
-import { format } from "date-fns";
-import { Config } from "../../../Core/Config";
+import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
+import { Log, LOGLEVEL } from "../../../Core/Log";
+import { BaseVODChapterJSON } from "../../../Storage/JSON";
+import { Webhook } from "../../Webhook";
+import { BaseVOD } from "./BaseVOD";
+import { BaseVODChapter } from "./BaseVODChapter";
 
 export class BaseChannel {
 
@@ -434,6 +434,19 @@ export class BaseChannel {
      */
     public getFolder(): string {
         return Helper.vodFolder(this.internalName);
+    }
+
+    public rescanVods(): string[] {
+        const list = readdirSyncRecursive(this.getFolder())
+            .filter(file =>
+                file.endsWith(".json") &&
+                fs.statSync(path.join(this.getFolder(), file)).size < 1024 * 1024
+            );
+        return list.map(
+            p => path.relative(
+                BaseConfigDataFolder.vod,
+                path.join(this.getFolder(), p)
+            ));
     }
 
 }

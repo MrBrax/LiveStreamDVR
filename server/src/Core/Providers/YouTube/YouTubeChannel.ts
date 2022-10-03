@@ -188,7 +188,7 @@ export class YouTubeChannel extends BaseChannel {
         // if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "editor", channel.login)))
         //     fs.mkdirSync(path.join(BaseConfigDataFolder.saved_clips, "editor", channel.login), { recursive: true });
 
-        // await channel.parseVODs();
+        await channel.parseVODs();
 
         // await channel.findClips();
 
@@ -494,7 +494,13 @@ export class YouTubeChannel extends BaseChannel {
         vod.streamer_name = this.displayName;
         // vod.streamer_login = this.login;
         vod.streamer_id = this.internalId;
-        vod.channel_uuid = this.uuid;
+
+        if (this.uuid) {
+            vod.channel_uuid = this.uuid;
+            Log.logAdvanced(LOGLEVEL.INFO, "channel", `Set channel uuid to ${this.uuid} for ${vod.basename}`);
+        } else {
+            throw new Error("Channel uuid is not set");
+        }
 
         vod.created_at = new Date();
 
@@ -626,6 +632,59 @@ export class YouTubeChannel extends BaseChannel {
 
     public async isLiveApi(): Promise<boolean> {
         return await this.getStreams() !== false;
+    }
+
+    public async parseVODs(rescan = false): Promise<void> {
+
+        if (fs.existsSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`)) && !rescan) {
+            let list: string[] = JSON.parse(fs.readFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`), { encoding: "utf-8" }));
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel.yt", `Found ${list.length} stored VODs in database for ${this.internalName}`);
+            // console.log(list);
+            list = list.filter(p => fs.existsSync(path.join(BaseConfigDataFolder.vod, p)));
+            // console.log(list);
+            this.vods_raw = list;
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel.yt", `Found ${this.vods_raw.length} existing VODs in database for ${this.internalName}`);
+        } else {
+            this.vods_raw = this.rescanVods();
+            Log.logAdvanced(LOGLEVEL.INFO, "channel.yt", `No VODs in database found for ${this.internalName}, migrate ${this.vods_raw.length} from recursive file search`);
+            // fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`), JSON.stringify(this.vods_raw));
+            this.saveVodDatabase();
+        }
+
+        this.vods_list = [];
+
+        for (const vod of this.vods_raw) {
+
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel.yt", `Try to parse VOD ${vod}`);
+
+            const vod_full_path = path.join(BaseConfigDataFolder.vod, vod);
+
+            let vodclass;
+
+            try {
+                vodclass = await YouTubeVOD.load(vod_full_path, true);
+            } catch (e) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "channel.yt", `Could not load VOD ${vod}: ${(e as Error).message}`, e);
+                console.error(e);
+                continue;
+            }
+
+            if (!vodclass) {
+                continue;
+            }
+
+            if (!vodclass.channel_uuid) {
+                Log.logAdvanced(LOGLEVEL.INFO, "channel.yt", `VOD '${vod}' does not have a channel UUID, setting it to '${this.uuid}'`);
+                vodclass.channel_uuid = this.uuid;
+            }
+
+            await vodclass.fixIssues();
+
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel.yt", `VOD ${vod} added to ${this.internalName}`);
+
+            this.vods_list.push(vodclass);
+        }
+        this.sortVods();
     }
 
 }

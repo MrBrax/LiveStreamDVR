@@ -11,13 +11,21 @@ import { youtube_v3 } from "@googleapis/youtube";
 import { YouTubeHelper } from "../../../Providers/YouTube";
 import { TwitchHelper } from "../../../Providers/Twitch";
 import chalk from "chalk";
+import { VideoQuality } from "../../../../../common/Config";
+import { BaseConfigCacheFolder } from "../../../Core/BaseConfig";
+import { Helper } from "../../../Core/Helper";
+import { YouTubeChannel } from "./YouTubeChannel";
 
 export class YouTubeVOD extends BaseVOD {
+
+    json?: YouTubeVODJSON;
 
     streamer_name = "";
     streamer_id = "";
 
     chapters: Array<BaseVODChapter> = [];
+
+    youtube_vod_id?: string;
 
     public async toAPI(): Promise<ApiYouTubeVod> {
         if (!this.uuid) throw new Error(`No UUID set on VOD ${this.basename}`);
@@ -132,10 +140,12 @@ export class YouTubeVOD extends BaseVOD {
             Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Saving JSON of ${this.basename} with no chapters!!`);
         }
 
+        /*
         if (!this.streamer_name && !this.created) {
             Log.logAdvanced(LOGLEVEL.FATAL, "vodclass", `Found no streamer name in class of ${this.basename}, not saving!`);
             return false;
         }
+        */
 
         // clone this.json
         const generated: YouTubeVODJSON = this.json && Object.keys(this.json).length > 0 ? JSON.parse(JSON.stringify(this.json)) : {};
@@ -187,6 +197,8 @@ export class YouTubeVOD extends BaseVOD {
 
         generated.failed = this.failed;
 
+        generated.youtube_vod_id = this.youtube_vod_id;
+
         // generated.bookmarks = this.bookmarks;
 
         Log.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `Saving JSON of ${this.basename} ${(reason ? " (" + reason + ")" : "")}`);
@@ -214,6 +226,28 @@ export class YouTubeVOD extends BaseVOD {
 
         return generated;
 
+    }
+
+    public setupProvider(): void {
+
+        if (!this.json) {
+            throw new Error("No JSON loaded for provider setup!");
+        }
+
+        this.youtube_vod_id = this.json.youtube_vod_id;
+    }
+
+    public async setupUserData(): Promise<void> {
+
+        if (!this.json) {
+            throw new Error("No JSON loaded for user data setup!");
+        }
+
+        if (this.json.channel_uuid) {
+            this.channel_uuid = this.json.channel_uuid;
+        } else {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod", `No channel UUID for VOD ${this.basename}`);
+        }
     }
 
     public static async load(filename: string, noFixIssues = false): Promise<YouTubeVOD> {
@@ -284,6 +318,10 @@ export class YouTubeVOD extends BaseVOD {
         return LiveStreamDVR.getInstance().vods.find<YouTubeVOD>((vod): vod is YouTubeVOD => vod instanceof YouTubeVOD && vod.capture_id == capture_id);
     }
 
+    public static getVodByProviderId(provider_id: string): YouTubeVOD | undefined {
+        return LiveStreamDVR.getInstance().vods.find<YouTubeVOD>((vod): vod is YouTubeVOD => vod instanceof YouTubeVOD && vod.youtube_vod_id == provider_id);
+    }
+
     static async getVideosProxy(channel_id: string): Promise<false | ProxyVideo[]> {
         if (!channel_id) throw new Error("No channel id");
 
@@ -349,6 +387,120 @@ export class YouTubeVOD extends BaseVOD {
             } as ProxyVideo;
         });
 
+    }
+
+
+    static async getVideoProxy(video_id: string): Promise<false | ProxyVideo> {
+        const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
+
+        let searchResponse;
+        try {
+            searchResponse = await service.videos.list({
+                id: [video_id],
+                part: ["contentDetails", "snippet"],
+            });
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.WARNING, "helper", `Channel video details for ${video_id} error: ${(error as Error).message}`);
+            return false;
+        }
+
+        if (!searchResponse.data) return false;
+        if (!searchResponse.data.items || searchResponse.data.items.length == 0) return false;
+
+        const item = searchResponse.data.items[0];
+
+        return {
+            id: item.id,
+            title: item.snippet?.title,
+            description: item.snippet?.description,
+            url: `https://www.youtube.com/watch?v=${item.id}`,
+            thumbnail: item.snippet?.thumbnails?.default?.url,
+            created_at: item.snippet?.publishedAt,
+            duration: item.contentDetails?.duration ? YouTubeHelper.parseYouTubeDuration(item.contentDetails?.duration) : -1,
+            view_count: -1, // what
+            stream_id: item.id,
+        } as ProxyVideo;
+    }
+
+    static async downloadVideo(video_id: string, quality: VideoQuality, filename: string): Promise<string> {
+
+        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Download VOD ${video_id}`);
+
+        const video = await this.getVideoProxy(video_id);
+
+        if (!video) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to get video ${video_id}`);
+            throw new Error(`Failed to get video ${video_id}`);
+        }
+
+        const basename = path.basename(filename);
+
+        const capture_filename = path.join(BaseConfigCacheFolder.cache, `${video_id}.ts`);
+        const converted_filename = filename;
+
+        if (!fs.existsSync(converted_filename)) {
+
+            const video_url = video.url;
+
+            const ytdl_bin = Helper.path_youtubedl();
+
+            if (!ytdl_bin) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "channel", "Failed to find ytdl binary!");
+                throw new Error("Failed to find ytdl binary!");
+            }
+
+            const cmd = [];
+
+            cmd.push(video_url);
+
+            cmd.push("-f", "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4] / bv*+ba/b");
+
+            cmd.push("-o", converted_filename);
+
+            Log.logAdvanced(LOGLEVEL.INFO, "channel", `Downloading VOD ${video_id}...`);
+
+            const ret = await Helper.execAdvanced(ytdl_bin, cmd, `download_vod_${video_id}`, (log_line: string) => {
+                const progressMatch = log_line.match(/([\d.]+)%/);
+                if (progressMatch) {
+                    const progress = parseFloat(progressMatch[1]);
+                    return progress / 100;
+                }
+            });
+
+        }
+
+        const successful = fs.existsSync(converted_filename) && fs.statSync(converted_filename).size > 0;
+
+        if (!successful) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to download VOD ${video_id}`);
+            throw new Error(`Failed to download VOD ${video_id}`);
+        }
+
+        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Downloaded VOD ${video_id}`);
+
+        return converted_filename;
+
+    }
+
+    public async finalize(): Promise<boolean> {
+
+        Log.logAdvanced(LOGLEVEL.INFO, "vod.finalize", `Finalize ${this.basename} @ ${this.directory}`);
+        try {
+            await this.getMediainfo();
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod.finalize", `Failed to get mediainfo for ${this.basename}: ${error}`);
+        }
+        
+        this.is_finalized = true;
+        return true;
+    }
+
+    public getChannel(): YouTubeChannel {
+        if (!this.channel_uuid) throw new Error("No channel UUID set for getChannel");
+        // return YouTubeChannel.getChannelByLogin(this.streamer_login);
+        const channel = LiveStreamDVR.getInstance().getChannelByUUID<YouTubeChannel>(this.channel_uuid);
+        if (!channel) throw new Error(`No channel found for getChannel (uuid: ${this.channel_uuid})`);
+        return channel;
     }
 
 }

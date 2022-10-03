@@ -90,15 +90,15 @@ export class TwitchVOD extends BaseVOD {
             throw new Error("No JSON loaded for basic setup!");
         }
 
+        super.setupBasic();
+
         // $this->is_recording = file_exists($this->directory . DIRECTORY_SEPARATOR . $this->basename . '.ts');
         // $this->is_converted = file_exists($this->directory . DIRECTORY_SEPARATOR . $this->basename . '.mp4');
 
         // $this->is_capturing 	= isset($this->json['is_capturing']) ? $this->json['is_capturing'] : false;
         // $this->is_converting 	= isset($this->json['is_converting']) ? $this->json['is_converting'] : false;
         // $this->is_finalized 	= isset($this->json['is_finalized']) ? $this->json['is_finalized'] : false;
-        this.is_capturing = this.json.is_capturing;
-        this.is_converting = this.json.is_converting;
-        this.is_finalized = this.json.is_finalized;
+        
 
         // $this->force_record				= isset($this->json['force_record']) ? $this->json['force_record'] : false;
         // $this->automator_fail			= isset($this->json['automator_fail']) ? $this->json['automator_fail'] : false;
@@ -111,17 +111,9 @@ export class TwitchVOD extends BaseVOD {
         // $this->duration 			= $this->json['duration'];
         // $this->duration_seconds 	= $this->json['duration_seconds'] ? (int)$this->json['duration_seconds'] : null;
 
-        this.duration = this.json.duration ?? undefined;
-
         // TODO: what
         // const dur = this.getDurationLive();
         // this.duration_live = dur === false ? -1 : dur;
-
-        this.webpath = `${Config.getInstance().cfg<string>("basepath", "")}/vods/` + path.relative(BaseConfigDataFolder.vod, this.directory);
-
-        this.comment = this.json.comment;
-        this.prevent_deletion = this.json.prevent_deletion ?? false;
-        this.failed = this.json.failed ?? false;
 
         this.bookmarks = this.json.bookmarks ? this.json.bookmarks.map((b => {
             return {
@@ -1930,6 +1922,10 @@ export class TwitchVOD extends BaseVOD {
         return LiveStreamDVR.getInstance().vods.find<TwitchVOD>((vod): vod is TwitchVOD => vod instanceof TwitchVOD && vod.uuid == uuid);
     }
 
+    public static getVodByProviderId(provider_id: string): TwitchVOD | undefined {
+        return LiveStreamDVR.getInstance().vods.find<TwitchVOD>((vod): vod is TwitchVOD => vod instanceof TwitchVOD && vod.twitch_vod_id == provider_id);
+    }
+
     /**
      * Download a video from Twitch to a file
      * 
@@ -2305,9 +2301,56 @@ export class TwitchVOD extends BaseVOD {
                 duration: TwitchHelper.parseTwitchDuration(item.duration),
                 view_count: item.view_count,
                 muted_segments: item.muted_segments,
+                stream_id: item.stream_id,
             } as ProxyVideo;
         });
     }
+
+    static async getVideoProxy(video_id: string): Promise<false | ProxyVideo> {
+        if (!video_id) throw new Error("No video id");
+
+        if (!TwitchHelper.axios) {
+            throw new Error("Axios is not initialized");
+        }
+
+        let response;
+
+        try {
+            response = await TwitchHelper.axios.get(`/helix/videos/?id=${video_id}`);
+        } catch (err) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Tried to get video id ${video_id} but got error ${(err as Error).message}`);
+            if (axios.isAxiosError(err)) {
+                if (err.response && err.response.status === 404) {
+                    return false;
+                }
+                throw new Error(`Tried to get video id ${video_id} but got error: ${(err as Error).message}`);
+            }
+            return false;
+        }
+
+        const json: VideosResponse = response.data;
+
+        if (json.data.length === 0) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Tried to get video id ${video_id} but got no data`);
+            return false;
+        }
+
+        const item = json.data[0];
+
+        return {
+            id: item.id,
+            title: item.title,
+            description: item.description,
+            url: `https://www.twitch.tv/v/${item.id}`,
+            thumbnail: item.thumbnail_url,
+            created_at: item.created_at,
+            duration: TwitchHelper.parseTwitchDuration(item.duration),
+            view_count: item.view_count,
+            muted_segments: item.muted_segments,
+        } as ProxyVideo;
+
+    }
+
 
     static async getClips({ broadcaster_id, game_id, id }: { broadcaster_id?: string; game_id?: string; id?: string[] | string; }, max_age?: number): Promise<false | Clip[]> {
 

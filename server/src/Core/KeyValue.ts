@@ -51,7 +51,7 @@ export class KeyValue extends EventEmitter {
 
         const data = this.data[key] !== undefined ? this.data[key] : false;
 
-        if (Config.debug) console.debug(`Getting key-value pair: ${key} = ${data}`);
+        // if (Config.debug) console.debug(`Getting key-value pair: ${key} = ${data}`);
 
         return data;
 
