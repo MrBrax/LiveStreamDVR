@@ -100,6 +100,7 @@ router.get("/twitchapi/channel/:login", AuthAdmin, TwitchAPI.TwitchAPIChannel);
 router.get("/twitchapi/clips", AuthAdmin, TwitchAPI.TwitchAPIClips);
 
 router.get("/youtubeapi/videos/:channel_id", AuthAdmin, YouTubeAPI.YouTubeAPIVideos);
+router.post("/youtubeapi/channelid", AuthAdmin, YouTubeAPI.YouTubeAPIChannelID);
 
 router.get("/keyvalue", AuthAdmin, KeyValue.GetAllKeyValues);
 router.delete("/keyvalue", AuthAdmin, KeyValue.DeleteAllKeyValues);

@@ -687,4 +687,35 @@ export class YouTubeChannel extends BaseChannel {
         this.sortVods();
     }
 
+    public static async getChannelIdFromUrl(url: string): Promise<string | false> {
+        
+        // const match = url.match(/youtube\.com\/c\/([^/]+)/);
+        // if (match) {
+        //     return match[1];
+        // }
+        
+        // to get the channel id, the page needs to be parsed. very bad but there's no api for that
+        let response;
+        try {
+            response = await axios.get(url);
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel.yt", "Could not get channel id from url", error);
+            return false;
+        } 
+
+        const html = response.data;
+
+        const match2 = html.match(/"channelId":"([^"]+)"/);
+        if (match2) {
+            return match2[1];
+        }
+
+        const match3 = html.match(/itemprop="channelId" content="([^"]+)"/);
+        if (match3) {
+            return match3[1];
+        }
+
+        return false;
+    }
+
 }
