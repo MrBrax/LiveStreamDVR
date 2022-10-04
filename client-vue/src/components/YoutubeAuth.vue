@@ -55,6 +55,17 @@
         >
             {{ status }}
         </div>
+        <div class="youtube-help">
+            <h3>Suggested configuration:</h3>
+            <ul class="list">
+                <li>
+                    <strong>Authorized JavaScript origins:</strong> {{ store.cfg("app_url") }}
+                </li>
+                <li>
+                    <strong>Redirect URI:</strong> {{ store.cfg("app_url") }}/api/v0/youtube/callback
+                </li>
+            </ul>
+        </div>
     </div>
 </template>
 
@@ -141,3 +152,8 @@ export default defineComponent({
 
 </script>
 
+<style lang="scss" scoped>
+    h3 {
+        margin: 0;
+    }
+</style>
