@@ -61,7 +61,7 @@
                 </table>
                 <p>
                     This app tries to find all the executables using system utilities. This may not work if they're on a custom PATH. Please visit
-                    <router-link :to="{ name: 'Settings' }">
+                    <router-link :to="{ name: 'SettingsConfig' }">
                         settings
                     </router-link> to manually change them.
                 </p>
@@ -223,6 +223,13 @@
                     </li>
                 </ul>
             </div>
+            <div class="block">
+                <h3>Licenses</h3>
+                <a
+                    :href="licenseUrl"
+                    target="_blank"
+                >Show licenses in a new window</a>
+            </div>
         </div>
         <div
             v-else
@@ -244,6 +251,8 @@ import { defineComponent } from "vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faRss, faBan } from "@fortawesome/free-solid-svg-icons";
 library.add(faRss, faBan);
+
+import licenses from "../../LICENSES.txt";
 
 interface SoftwareCallback {
     path: string;
@@ -315,6 +324,9 @@ export default defineComponent({
                 return "";
             }
             return Object.keys(this.aboutData.pip).join(" ");
+        },
+        licenseUrl(): string {
+            return this.store.cfg("basepath") + "/LICENSES.txt";
         },
     },
     created() {
@@ -406,6 +418,10 @@ export default defineComponent({
                 });
         },
         */
+        showLicenses() {
+            const win = window.open("", "Licenses");
+            if (win) win.document.write(licenses);
+        },
     },
 });
 </script>

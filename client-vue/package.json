@@ -9,7 +9,8 @@
     "serve": "vite",
     "build": "vue-tsc --noEmit && vite build",
     "buildwatch": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "licenses": "yarn licenses generate-disclaimer > LICENSES.txt"
   },
   "dependencies": {
     "@fontsource/poppins": "^4.5.8",
