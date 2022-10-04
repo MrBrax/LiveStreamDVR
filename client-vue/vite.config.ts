@@ -42,6 +42,13 @@ export default defineConfig({
           },
         ],
       },
+
+      // ignore api calls
+      workbox: {
+        navigateFallbackDenylist: [/\/api\//],
+        // mode: 'development',
+      },
+
     })
   ],
   resolve: {
