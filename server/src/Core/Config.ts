@@ -147,18 +147,18 @@ export class Config {
         { "key": "checkmute_method", "group": "Basic", "text": "Method to use when checking for muted vods", "type": "array", "default": "streamlink", "choices": ["api", "streamlink"], "help": "Bugged as of 2022-03-29: https://github.com/twitchdev/issues/issues/501" },
 
         // telegram
-        { "key": "telegram_enabled", "group": "Notifications", "text": "Enable Telegram notifications", "type": "boolean", "default": false },
-        { "key": "telegram_token", "group": "Notifications", "text": "Telegram token", "type": "string" },
-        { "key": "telegram_chat_id", "group": "Notifications", "text": "Telegram chat id", "type": "string" },
+        { "key": "telegram_enabled",                "group": "Notifications (Telegram)", "text": "Enable Telegram notifications", "type": "boolean", "default": false },
+        { "key": "telegram_token",                  "group": "Notifications (Telegram)", "text": "Telegram token", "type": "string" },
+        { "key": "telegram_chat_id",                "group": "Notifications (Telegram)", "text": "Telegram chat id", "type": "string" },
         
         // discord
-        { "key": "discord_enabled", "group": "Notifications", "text": "Enable Discord notifications", "type": "boolean", "default": false },
-        { "key": "discord_webhook", "group": "Notifications", "text": "Discord webhook", "type": "string" },
+        { "key": "discord_enabled",                 "group": "Notifications (Discord)", "text": "Enable Discord notifications", "type": "boolean", "default": false },
+        { "key": "discord_webhook",                 "group": "Notifications (Discord)", "text": "Discord webhook", "type": "string" },
 
         // pushover
-        { "key": "notifications.pushover.enabled", "group": "Notifications", "text": "Enable Pushover notifications", "type": "boolean", "default": false },
-        { "key": "notifications.pushover.token", "group": "Notifications", "text": "Pushover token", "type": "string" },
-        { "key": "notifications.pushover.user", "group": "Notifications", "text": "Pushover user", "type": "string" },
+        { "key": "notifications.pushover.enabled",  "group": "Notifications (Pushover)", "text": "Enable Pushover notifications", "type": "boolean", "default": false },
+        { "key": "notifications.pushover.token",    "group": "Notifications (Pushover)", "text": "Pushover token", "type": "string" },
+        { "key": "notifications.pushover.user",     "group": "Notifications (Pushover)", "text": "Pushover user", "type": "string" },
 
         { "key": "schedule_muted_vods", "group": "Schedules", "text": "Check muted vods", "type": "boolean", "default": true },
         { "key": "schedule_deleted_vods", "group": "Schedules", "text": "Check deleted vods", "type": "boolean", "default": true },
