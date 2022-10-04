@@ -292,6 +292,45 @@ export class ClientBroker {
             });
         }
 
+        if (Config.getInstance().cfg("notifications.pushover.enabled") && ClientBroker.getNotificationSettingForProvider(category, NotificationProvider.PUSHOVER)) {
+
+            // escape with backslash
+            // const escaped_title = title.replace(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/g, "\\$&");
+            // const escaped_body = body.replace(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/g, "\\$&");
+
+            axios.post("https://api.pushover.net/1/messages.json", {
+                token: Config.getInstance().cfg("notifications.pushover.token"),
+                user: Config.getInstance().cfg("notifications.pushover.user"),
+                title: title,
+                message: body,
+                url: url,
+                // html: 1,
+            }).then((res) => {
+                // console.debug("Telegram response", res);
+            }).catch((err: Error) => {
+                if (axios.isAxiosError(err)) {
+                    // const data = err.response?.data;
+                    // TwitchLog.logAdvanced(LOGLEVEL.ERROR, "webhook", `Telegram axios error: ${err.message} (${data})`, { err: err, response: data });
+                    // console.error(chalk.bgRed.whiteBright(`Telegram axios error: ${err.message} (${data})`), JSON.stringify(err, null, 2));
+
+                    if (err.response) {
+                        Log.logAdvanced(LOGLEVEL.ERROR, "webhook", `Pushover axios error response: ${err.message} (${err.response.data})`, { err: err, response: err.response.data });
+                        console.error(chalk.bgRed.whiteBright(`Pushover axios error response : ${err.message} (${err.response.data})`), JSON.stringify(err, null, 2));
+                    } else if (err.request) {
+                        Log.logAdvanced(LOGLEVEL.ERROR, "webhook", `Pushover axios error request: ${err.message} (${err.request})`, { err: err, request: err.request });
+                        console.error(chalk.bgRed.whiteBright(`Pushover axios error request: ${err.message} (${err.request})`), JSON.stringify(err, null, 2));
+                    } else {
+                        Log.logAdvanced(LOGLEVEL.ERROR, "webhook", `Pushover axios error: ${err.message}`, err);
+                        console.error(chalk.bgRed.whiteBright(`Pushover axios error: ${err.message}`), JSON.stringify(err, null, 2));
+                    }
+
+                } else {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "webhook", `Pushover error: ${err.message}`, err);
+                    console.error(chalk.bgRed.whiteBright(`Pushover error: ${err.message}`));
+                }
+            });
+        }
+
     }
 
     static getNotificationSettingForProvider(category: NotificationCategory, provider: NotificationProvider): boolean {

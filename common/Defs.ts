@@ -53,12 +53,15 @@ export enum NotificationProvider {
     TELEGRAM = 1 << 1,
     /** Discord webhook */
     DISCORD = 1 << 2,
+    /** Pushover */
+    PUSHOVER = 1 << 3,
 }
 
 export const NotificationProvidersList = [
     { id: NotificationProvider.WEBSOCKET, name: "WebSocket" },
     { id: NotificationProvider.TELEGRAM, name: "Telegram" },
     { id: NotificationProvider.DISCORD, name: "Discord" },
+    { id: NotificationProvider.PUSHOVER, name: "Pushover" },
 ];
 
 export const NotificationCategories = [
