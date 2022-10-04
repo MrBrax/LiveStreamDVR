@@ -93,13 +93,15 @@ export function Callback(req: express.Request, res: express.Response): Promise<v
                 } else if (token && YouTubeHelper.oAuth2Client) {
                     Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", "Authenticated with YouTube");
                     YouTubeHelper.oAuth2Client.setCredentials(token);
-                    res.redirect(302, "/");
+                    // res.redirect(302, "/");
                     YouTubeHelper.authenticated = true;
                     YouTubeHelper.storeToken(token);
-                    YouTubeHelper.fetchUsername().then(() => {
+                    YouTubeHelper.fetchUsername().then((username) => {
                         resolve();
+                        res.send(`Authenticated with YouTube (${username}). You can close this window now.`);
                     }).catch(err => {
                         Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", `Could not get username: ${err.message}`);
+                        res.status(500).send("Could not get username, please check the logs and settings.");
                         // res.status(400).send({
                         //     status: "ERROR",
                         //     message: `Could not get username: ${err.message}`,

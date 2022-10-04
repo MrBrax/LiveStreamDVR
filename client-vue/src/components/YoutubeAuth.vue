@@ -86,7 +86,11 @@ export default defineComponent({
         },
         doAuthenticateYouTube() {
             const url = `${this.store.cfg<string>("basepath", "")}/api/v0/youtube/authenticate`;
-            window.open(url, "_blank");
+            const width = 600;
+            const height = 600;
+            const left = (screen.width / 2) - (width / 2);
+            const top = (screen.height / 2) - (height / 2);
+            window.open(url, "_blank", `width=${width},height=${height},top=${top},left=${left}`);
         },
         doDestroyYouTube() {
             this.status = "";
