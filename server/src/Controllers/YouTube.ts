@@ -31,9 +31,17 @@ export function Authenticate(req: express.Request, res: express.Response): void 
         return;
     }
 
-    Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", `Send user to: ${url}`);
-
-    res.redirect(302, url);
+    if (req.query.rawurl) {
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", `Send raw URL to user: ${url}`);
+        res.status(200).send({
+            status: "OK",
+            data: url,
+        });
+        return;
+    } else {
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", `Send user to: ${url}`);
+        res.redirect(302, url);
+    }
 
 }
 

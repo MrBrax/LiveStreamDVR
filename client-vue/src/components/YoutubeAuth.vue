@@ -22,10 +22,22 @@
             <button
                 class="icon-button"
                 style="padding-top: 2px"
-                @click="doAuthenticateYouTube"
+                title="Authenticate with YouTube using method 1"
+                @click="doAuthenticateYouTubeMethod1"
             >
                 <img
                     src="../assets/google/btn_google_signin_dark_normal_web.png"
+                    height="36"
+                >
+            </button>
+            <button
+                class="icon-button"
+                style="padding-top: 2px"
+                title="Authenticate with YouTube using method 2"
+                @click="doAuthenticateYouTubeMethod2"
+            >
+                <img
+                    src="../assets/google/btn_google_signin_light_normal_web.png"
                     height="36"
                 >
             </button>
@@ -84,12 +96,33 @@ export default defineComponent({
                 if (err.response.data && err.response.data.message) this.status = err.response.data.message;
             });
         },
-        doAuthenticateYouTube() {
+        async doAuthenticateYouTubeMethod1() {
             const url = `${this.store.cfg<string>("basepath", "")}/api/v0/youtube/authenticate`;
             const width = 600;
             const height = 600;
             const left = (screen.width / 2) - (width / 2);
             const top = (screen.height / 2) - (height / 2);
+            console.debug("youtube auth url", url);
+            window.open(url, "_blank", `width=${width},height=${height},top=${top},left=${left}`);
+        },
+        async doAuthenticateYouTubeMethod2() {
+            
+            let res;
+            try {
+                res = await this.$http.get(`/api/v0/youtube/authenticate?rawurl=true`);
+            } catch (error) {
+                if (this.$http.isAxiosError(error)) {
+                    console.error("youtube auth error", error.response);
+                    if (error.response && error.response.data && error.response.data.message) this.status = error.response.data.message;
+                }
+                return;                    
+            }
+            const url = res.data.data;
+            const width = 600;
+            const height = 600;
+            const left = (screen.width / 2) - (width / 2);
+            const top = (screen.height / 2) - (height / 2);
+            console.debug("youtube auth url", url);
             window.open(url, "_blank", `width=${width},height=${height},top=${top},left=${left}`);
         },
         doDestroyYouTube() {
