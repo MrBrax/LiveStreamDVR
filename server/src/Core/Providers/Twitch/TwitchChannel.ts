@@ -1750,8 +1750,9 @@ export class TwitchChannel extends BaseChannel {
         if (this.channel_data && this.channel_data.cache_avatar) {
             // return `${Config.getInstance().cfg<string>("basepath", "")}/cache/avatars/${this.channel_data.cache_avatar}`;
             // return `${Config.getInstance().cfg<string>("basepath", "")}/cache/thumbs/${this.channel_data.cache_avatar}`;
-            if (Config.getInstance().cfg<string>("app_url", "")) {
-                return `${Config.getInstance().cfg<string>("app_url", "")}/cache/thumbs/${this.channel_data.cache_avatar}`;
+            const app_url = Config.getInstance().cfg<string>("app_url", "");
+            if (app_url && app_url !== "debug") {
+                return `${app_url}/cache/thumbs/${this.channel_data.cache_avatar}`;
             } else {
                 return `${Config.getInstance().cfg<string>("basepath", "")}/cache/thumbs/${this.channel_data.cache_avatar}`;
             }
