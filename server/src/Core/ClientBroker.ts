@@ -288,7 +288,11 @@ export class ClientBroker {
             } as DiscordSendMessagePayload).then((res) => {
                 // console.debug("Discord response", res);
             }).catch((err: AxiosError) => {
-                Log.logAdvanced(LOGLEVEL.ERROR, "webhook", `Discord error: ${err.message}`);
+                if (axios.isAxiosError(err)) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "webhook", `Discord error: ${err.message} (${err.response?.data})`, { err: err, response: err.response?.data });
+                } else {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "webhook", `Discord error: ${(err as Error).message}`, err);
+                }
             });
         }
 
