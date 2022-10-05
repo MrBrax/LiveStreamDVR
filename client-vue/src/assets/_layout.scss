@@ -112,4 +112,7 @@ hr {
 .list {
     padding: 1em 1.5em;
     margin: 0;
+    &.less-padding {
+        padding: 0.1em 1.5em;
+    }
 }
