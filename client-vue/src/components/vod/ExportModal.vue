@@ -264,6 +264,9 @@
                     v-model="exportVodSettings.playlist_id"
                     :disabled="LoadingPlaylists"
                 >
+                    <option value="">
+                        ({{ $t('messages.none') }})
+                    </option>
                     <option
                         v-for="(p, i) in YouTubePlaylists"
                         :key="i"
@@ -370,6 +373,7 @@ const exportVodSettings = ref<ExporterOptions>({
     privacy: "private",
     vod: "",
     remote: "",
+    playlist_id: "",
 });
 
 const YouTubePlaylists = ref<{
