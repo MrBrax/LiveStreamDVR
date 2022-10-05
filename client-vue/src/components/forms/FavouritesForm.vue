@@ -15,17 +15,31 @@
                 class="checkbox"
             >
                 <label>
+                    <img
+                        :src="game.image_url"
+                        :alt="game.name"
+                        height="20"
+                        class="cover"
+                    >
                     <input
                         :id="game.id"
                         v-model="formData.games"
                         type="checkbox"
                         :name="game.id"
                         :value="game.id"
-                    > {{ game.name }}
+                    >
+                    {{ game.name }}
                     <span
                         v-if="game.added"
                         class="game-date"
                     >{{ formatDate(game.added) }}</span>
+                    <button
+                        type="button"
+                        class="icon-button is-small"
+                        @click="refreshGame(game.id)"
+                    >
+                        <fa icon="sync" />
+                    </button>
                 </label>
             </div>
             <div v-if="!gamesData || Object.keys(gamesData).length == 0">
@@ -157,14 +171,36 @@ export default defineComponent({
             ]).finally(() => {
                 this.loading = false;
             });
-        }
+        },
+        refreshGame(id: string) {
+            this.$http
+                .get(`/api/v0/games/${id}/refresh`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    if (json.status == "OK") {
+                        this.fetchData();
+                    }
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                });
+        },
     },
 });
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .game-date {
     font-size: 0.8em;
     color: #888;
+}
+.cover {
+    margin: 0 0.3em;
+    vertical-align: middle;
+}
+
+.icon-button {
+    margin-left: 0.5em;
 }
 </style>

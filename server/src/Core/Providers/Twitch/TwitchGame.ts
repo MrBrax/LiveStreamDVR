@@ -219,7 +219,7 @@ export class TwitchGame {
             return "";
         }
         if (fs.existsSync(path.join(BaseConfigCacheFolder.public_cache_covers, `${this.id}.${path.extname(this.box_art_url).substring(1)}`))) {
-            console.debug("Using cached box art", this.box_art_url);
+            // console.debug("Using cached box art", this.box_art_url);
             return `/cache/covers/${this.id}.${path.extname(this.box_art_url).substring(1)}`;
         } else {
             this.fetchBoxArt(); // for next time
