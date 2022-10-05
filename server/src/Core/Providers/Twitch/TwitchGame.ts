@@ -6,7 +6,7 @@ import { ApiGame } from "../../../../../common/Api/Client";
 import { GamesResponse } from "../../../../../common/TwitchAPI/Games";
 import axios from "axios";
 import path from "path";
-import { Helper } from "Core/Helper";
+import { Helper } from "../../../Core/Helper";
 
 interface TwitchGameJSON {
     name: string;

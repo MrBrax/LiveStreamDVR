@@ -106,7 +106,10 @@
       "title": "Title",
       "password": "Password",
       "password-help": "Passwords in FTP are sent unencrypted in clear text.",
-      "remote": "Remote"
+      "remote": "Remote",
+      "privacy-help": "By default, only privacy uploads are supported.",
+      "playlist": "Playlist",
+      "playlist-help": "Raw playlist ID, not the URL"
     },
     "bookmarks": "Bookmarks",
     "buttons": {

@@ -11,7 +11,7 @@
         <label class="label">{{ $t('vod.export.export-type') }}</label>
         <div class="control">
             <div class="select">
-                <select v-model="exportVodSettings.exporter">
+                <select v-model="exporter">
                     <option value="file">
                         File
                     </option>
@@ -30,18 +30,18 @@
                 </select>
             </div>
         </div>
-        <p v-if="exportVodSettings.exporter == 'youtube'">
+        <p v-if="exporter == 'youtube'">
             Upload videos directly to YouTube.<br>
             The API set up is quite cumbersome, requiring your channel to be reviewed.
         </p>
-        <p v-if="exportVodSettings.exporter == 'ftp'">
+        <p v-if="exporter == 'ftp'">
             Old and outdated file transfer protocol. I would not suggest using this. If you insist, use it only on LAN.<br>
             It is not encrypted and will send both your username/password and files for MITM to see.
         </p>
-        <p v-if="exportVodSettings.exporter == 'sftp'">
+        <p v-if="exporter == 'sftp'">
             Only key-file based authentication is supported. It should be automatically handled by SSH, if you know what that means.
         </p>
-        <p v-if="exportVodSettings.exporter == 'rclone'">
+        <p v-if="exporter == 'rclone'">
             RClone is a multi-protocol file management program.<br>
             Generate a config file with <code>rclone config</code> and place <code>rclone.conf</code> in the <code>config</code> directory.<br>
             Read more at <a
@@ -96,23 +96,23 @@
                 </li>
             </ul>
             <p
-                v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp' || exportVodSettings.exporter == 'rclone'"
+                v-if="exporter == 'file' || exporter == 'sftp' || exporter == 'ftp' || exporter == 'rclone'"
                 class="template-preview"
             >
-                {{ templatePreview(exportVodSettings.title_template) }}.mp4
+                {{ templatePreview(exportVodSettings.title_template || "") }}.mp4
             </p>
             <p
-                v-else-if="exportVodSettings.exporter == 'youtube'"
+                v-else-if="exporter == 'youtube'"
                 class="template-preview"
             >
-                {{ templatePreview(exportVodSettings.title_template) }}
+                {{ templatePreview(exportVodSettings.title_template || "") }}
             </p>
         </div>
     </div>
 
     <!-- Directory -->
     <div
-        v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp' || exportVodSettings.exporter == 'rclone'"
+        v-if="exporter == 'file' || exporter == 'sftp' || exporter == 'ftp' || exporter == 'rclone'"
         class="field"
     >
         <label class="label">{{ $t('vod.export.directory') }}</label>
@@ -130,7 +130,7 @@
 
     <!-- Host -->
     <div
-        v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'"
+        v-if="exporter == 'sftp' || exporter == 'ftp'"
         class="field"
     >
         <label class="label">{{ $t('vod.export.host') }}</label>
@@ -145,7 +145,7 @@
 
     <!-- Remote -->
     <div
-        v-if="exportVodSettings.exporter == 'rclone'"
+        v-if="exporter == 'rclone'"
         class="field"
     >
         <label class="label">{{ $t('vod.export.remote') }}</label>
@@ -160,7 +160,7 @@
 
     <!-- Username -->
     <div
-        v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'"
+        v-if="exporter == 'sftp' || exporter == 'ftp'"
         class="field"
     >
         <label class="label">{{ $t('vod.export.username') }}</label>
@@ -175,7 +175,7 @@
 
     <!-- Password -->
     <div
-        v-if="exportVodSettings.exporter == 'ftp'"
+        v-if="exporter == 'ftp'"
         class="field"
     >
         <label class="label">{{ $t('vod.export.password') }}</label>
@@ -193,7 +193,7 @@
 
     <!-- YouTube Authentication -->
     <div
-        v-if="exportVodSettings.exporter == 'youtube'"
+        v-if="exporter == 'youtube'"
         class="field"
     >
         <youtube-auth />
@@ -201,7 +201,7 @@
 
     <!-- Description -->
     <div
-        v-if="exportVodSettings.exporter == 'youtube'"
+        v-if="exporter == 'youtube'"
         class="field"
     >
         <label class="label">{{ $t('vod.export.description') }}</label>
@@ -215,7 +215,7 @@
 
     <!-- Category -->
     <div
-        v-if="exportVodSettings.exporter == 'youtube'"
+        v-if="exporter == 'youtube'"
         class="field"
     >
         <label class="label">{{ $t('vod.export.category') }}</label>
@@ -236,7 +236,7 @@
 
     <!-- Tags -->
     <div
-        v-if="exportVodSettings.exporter == 'youtube'"
+        v-if="exporter == 'youtube'"
         class="field"
     >
         <label class="label">{{ $t('vod.export.tags') }}</label>
@@ -252,9 +252,27 @@
         </p>
     </div>
 
+    <!-- Playlist -->
+    <div
+        v-if="exporter == 'youtube'"
+        class="field"
+    >
+        <label class="label">{{ $t('vod.export.playlist') }}</label>
+        <div class="control">
+            <input
+                v-model="exportVodSettings.playlist_id"
+                class="input"
+                type="text"
+            >
+        </div>
+        <p class="input-help">
+            {{ $t('vod.export.playlist-help') }}
+        </p>
+    </div>
+
     <!-- Privacy -->
     <div
-        v-if="exportVodSettings.exporter == 'youtube'"
+        v-if="exporter == 'youtube'"
         class="field"
     >
         <label class="label">{{ $t('vod.export.privacy') }}</label>
@@ -272,6 +290,9 @@
                     </option>
                 </select>
             </div>
+            <p class="input-help">
+                {{ $t('vod.export.privacy-help') }}
+            </p>
         </div>
     </div>
 
@@ -297,6 +318,7 @@ import { YouTubeCategories } from "@/defs";
 import axios from 'axios';
 import { ApiResponse } from '@common/Api/Api';
 import YoutubeAuth from "@/components/YoutubeAuth.vue";
+import { ExporterOptions } from "../../../../common/Exporter";
 
 const props = defineProps<{
     vod: VODTypes;
@@ -304,8 +326,8 @@ const props = defineProps<{
 
 const store = useStore();
 
-const exportVodSettings = ref({
-    exporter: "file",
+const exportVodSettings = ref<ExporterOptions>({
+    // exporter: "file",
     title_template: "[{login}] {title} ({date})",
     directory: "",
     host: "",
@@ -320,6 +342,8 @@ const exportVodSettings = ref({
     remote: "",
 });
 
+const exporter = ref("file");
+
 function templatePreview(template: string): string {
     const replaced_string = formatString(template, Object.fromEntries(Object.entries(ExporterFilenameFields).map(([key, value]) => [key, value.display])));
     return replaced_string;
@@ -327,7 +351,7 @@ function templatePreview(template: string): string {
 
 function doExportVod() {
     if (!props.vod) return;
-    axios.post(`/api/v0/exporter?mode=vod`, exportVodSettings.value).then((response) => {
+    axios.post(`/api/v0/exporter?mode=vod&exporter=${exporter.value}`, exportVodSettings.value).then((response) => {
         const json: ApiResponse = response.data;
         if (json.message) alert(json.message);
         console.log(json);
@@ -340,7 +364,7 @@ function doExportVod() {
 }
 
 function applyDefaultExportSettings() {
-    if (store.cfg("exporter.default.exporter")) exportVodSettings.value.exporter = store.cfg("exporter.default.exporter");
+    if (store.cfg("exporter.default.exporter")) exporter.value = store.cfg("exporter.default.exporter");
     if (store.cfg("exporter.default.directory")) exportVodSettings.value.directory = store.cfg("exporter.default.directory");
     if (store.cfg("exporter.default.host")) exportVodSettings.value.host = store.cfg("exporter.default.host");
     if (store.cfg("exporter.default.username")) exportVodSettings.value.username = store.cfg("exporter.default.username");

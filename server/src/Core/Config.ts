@@ -150,7 +150,7 @@ export class Config {
         { "key": "telegram_enabled",                "group": "Notifications (Telegram)", "text": "Enable Telegram notifications", "type": "boolean", "default": false },
         { "key": "telegram_token",                  "group": "Notifications (Telegram)", "text": "Telegram token", "type": "string" },
         { "key": "telegram_chat_id",                "group": "Notifications (Telegram)", "text": "Telegram chat id", "type": "string" },
-        
+
         // discord
         { "key": "discord_enabled",                 "group": "Notifications (Discord)", "text": "Enable Discord notifications", "type": "boolean", "default": false },
         { "key": "discord_webhook",                 "group": "Notifications (Discord)", "text": "Discord webhook", "type": "string" },
@@ -215,6 +215,8 @@ export class Config {
         { "key": "exporter.default.tags",           "group": "Exporter", "text": "Default tags", "type": "string", "help": "YouTube tags." },
         { "key": "exporter.default.remote",         "group": "Exporter", "text": "Default remote", "type": "string", "help": "For RClone." },
         { "key": "exporter.auto.enabled",           "group": "Exporter", "text": "Enable auto exporter", "type": "boolean", "default": false, "help": "Enable auto exporter. Not implemented yet." },
+
+        { "key": "exporter.youtube.playlists",      "group": "Exporter", "text": "YouTube Playlists", "type": "string", "help": "Use this format: channelname=ABC123;secondchannel=DEF456" },
 
         { "key": "scheduler.clipdownload.enabled",  "group": "Scheduler (Clip Download)", "text": "Enable clip download scheduler", "type": "boolean", "default": false },
         { "key": "scheduler.clipdownload.channels", "group": "Scheduler (Clip Download)", "text": "Channels to download clips from", "type": "string", "help": "Separate by commas." },
