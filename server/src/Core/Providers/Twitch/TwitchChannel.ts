@@ -1749,7 +1749,12 @@ export class TwitchChannel extends BaseChannel {
     get profilePictureUrl(): string {
         if (this.channel_data && this.channel_data.cache_avatar) {
             // return `${Config.getInstance().cfg<string>("basepath", "")}/cache/avatars/${this.channel_data.cache_avatar}`;
-            return `${Config.getInstance().cfg<string>("basepath", "")}/cache/thumbs/${this.channel_data.cache_avatar}`;
+            // return `${Config.getInstance().cfg<string>("basepath", "")}/cache/thumbs/${this.channel_data.cache_avatar}`;
+            if (Config.getInstance().cfg<string>("app_url", "")) {
+                return `${Config.getInstance().cfg<string>("app_url", "")}/cache/thumbs/${this.channel_data.cache_avatar}`;
+            } else {
+                return `${Config.getInstance().cfg<string>("basepath", "")}/cache/thumbs/${this.channel_data.cache_avatar}`;
+            }
         }
         return this.channel_data?.profile_image_url || "";
     }
