@@ -527,12 +527,19 @@ export const useStore = defineStore("twitchAutomator", {
         }
     },
     getters: {
-        isAnyoneLive(state: StoreType): boolean {
+        isAnyoneLive(): boolean {
             return this.channelsOnline > 0;
+        },
+        isAnyoneCapturing(): boolean {
+            return this.channelsCapturing > 0;
         },
         channelsOnline(): number {
             if (!this.streamerList) return 0;
             return this.streamerList.filter((a) => a.is_live || a.is_capturing).length;
+        },
+        channelsCapturing(): number {
+            if (!this.streamerList) return 0;
+            return this.streamerList.filter((a) => a.is_capturing).length;
         },
         diskTotalSize(): number {
             if (!this.streamerList) return 0;

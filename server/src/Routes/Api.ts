@@ -1,4 +1,3 @@
-import { Config } from "Core/Config";
 import express from "express";
 import * as About from "../Controllers/About";
 import * as Auth from "../Controllers/Auth";
@@ -22,6 +21,7 @@ import * as TwitchAPI from "../Controllers/TwitchAPI";
 import * as Vod from "../Controllers/Vod";
 import * as YouTube from "../Controllers/YouTube";
 import * as YouTubeAPI from "../Controllers/YouTubeAPI";
+import { Config } from "../Core/Config";
 import { AuthAdmin, AuthCore, AuthGuest } from "../Helpers/Auth";
 
 const router = express.Router();
@@ -125,7 +125,8 @@ router.post("/tools/vod_download", AuthAdmin, Tools.DownloadVod);
 router.post("/tools/chat_download", AuthAdmin, Tools.DownloadChat);
 router.post("/tools/chat_dump", AuthAdmin, Tools.ChatDump);
 router.post("/tools/clip_download", AuthAdmin, Tools.DownloadClip);
-router.get("/tools/shutdown", AuthAdmin, Tools.Shutdown);
+router.post("/tools/shutdown", AuthAdmin, Tools.Shutdown);
+// router.post("/tools/buildclient", AuthAdmin, Tools.BuildClient);
 
 router.get("/files", AuthAdmin, Files.ListFiles);
 router.delete("/files", AuthAdmin, Files.DeleteFile);

@@ -9,7 +9,7 @@ import { version } from "../../package.json";
 import path from "path";
 import { WebSocketServer } from "ws";
 import { ChannelConfig } from "../../../common/Config";
-import { BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
+import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
 import { Job } from "./Job";
@@ -23,6 +23,7 @@ import { YouTubeVOD } from "./Providers/YouTube/YouTubeVOD";
 import { Scheduler } from "./Scheduler";
 import { Webhook } from "./Webhook";
 import { log } from "console";
+import { Helper } from "./Helper";
 
 export type ChannelTypes = TwitchChannel | YouTubeChannel;
 export type VODTypes = TwitchVOD | YouTubeVOD;
@@ -293,6 +294,21 @@ export class LiveStreamDVR {
             fs.writeFileSync(path.join(BaseConfigCacheFolder.cache, "currentversion.dat"), version);
         }
     }
+
+    /*
+    public async buildClientWithBasepath(basepath = ""): Promise<boolean> {
+        console.log(process.env.PATH);
+        const bin = "yarn";
+        const args: string[] = ["build", "--basepath", basepath ?? Config.getInstance().cfg<string>("basepath")];
+        try {
+            await Helper.execSuperAdvanced(bin, args, path.join(AppRoot, "client-vue"), process.env, "buildClientWithBasepath");
+        } catch (error) {
+            console.log(chalk.red(`Could not build client: ${(error as Error).message}`));
+            return false;
+        }
+        return true;
+    }
+    */
 
     // private migrateCacheToData(relative_path: string): void {
     //     if (fs.existsSync(path.join(BaseConfigCacheFolder.cache, relative_path))) {

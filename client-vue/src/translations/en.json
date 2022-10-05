@@ -216,7 +216,10 @@
       "clip-download": "Clip download",
       "chat-dump": "Chat dump",
       "current-jobs": "Current jobs",
-      "reset-channels": "Reset channels"
+      "reset-channels": "Reset channels",
+      "system": "System",
+      "shutdown": "Shut down",
+      "build-client": "Build client"
     },
     "editor": {
       "buttons": {

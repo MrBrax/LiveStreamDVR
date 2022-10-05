@@ -544,11 +544,11 @@ export default defineComponent({
                 if (!args) return;
                 if (name !== "updateStreamerList" && name !== "updateVod") return;
                 after(() => {
-                    this.setFaviconBadgeState(this.store.isAnyoneLive);
+                    this.setFaviconBadgeState(this.store.isAnyoneLive, this.store.isAnyoneCapturing ? "red" : "limegreen");
                 });
             });
         },
-        setFaviconBadgeState(state: boolean) {
+        setFaviconBadgeState(state: boolean, color = "red") {
             // draw favicon into canvas and add badge
             const canvas = document.createElement("canvas");
             canvas.width = 32;
@@ -558,12 +558,13 @@ export default defineComponent({
             if (ctx) {
                 ctx.drawImage(faviconCanvas, 0, 0);
                 if (state) {
-                    ctx.fillStyle = "red";
+                    ctx.fillStyle = color;
 
                     // draw circle badge
                     ctx.beginPath();
                     ctx.arc(26, 26, 6, 0, 2 * Math.PI);
                     ctx.fill();
+                    ctx.closePath();
                 }
 
                 faviconElement.href = canvas.toDataURL();
@@ -575,7 +576,7 @@ export default defineComponent({
             const app_name = this.store.app_name;
             if (channelsOnline > 0) {
                 document.title = `[${channelsOnline}] ${title} - ${app_name}`;
-                this.setFaviconBadgeState(true);
+                this.setFaviconBadgeState(true, this.store.isAnyoneCapturing ? "red" : "limegreen");
             } else{
                 document.title = `${title} - ${app_name}`;
                 this.setFaviconBadgeState(false);
