@@ -5,7 +5,6 @@ import { randomUUID } from "crypto";
 import { format, parseJSON } from "date-fns";
 import fs from "fs";
 import fsPromises from "fs/promises";
-import readdirSyncRecursive from "fs-readdir-recursive";
 import { encode as htmlentities } from "html-entities";
 import path from "path";
 import { TwitchVODChapterJSON } from "Storage/JSON";
@@ -23,12 +22,12 @@ import type { BroadcasterType, UsersResponse } from "../../../../../common/Twitc
 import type { UserData } from "../../../../../common/User";
 import { Helper } from "../../../Core/Helper";
 import { TwitchHelper } from "../../../Providers/Twitch";
-import { AppRoot, BaseConfigDataFolder, BaseConfigPath } from "../../BaseConfig";
+import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
 import { Job } from "../../Job";
 import { KeyValue } from "../../KeyValue";
-import { LiveStreamDVR } from "../../LiveStreamDVR";
+import { ChannelTypes, LiveStreamDVR } from "../../LiveStreamDVR";
 import { Log, LOGLEVEL } from "../../Log";
 import { Webhook } from "../../Webhook";
 import { BaseChannel } from "../Base/BaseChannel";
@@ -36,7 +35,6 @@ import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
 
 export class TwitchChannel extends BaseChannel {
-
     public provider: Providers = "twitch";
 
     // static channels: TwitchChannel[] = [];
@@ -80,19 +78,6 @@ export class TwitchChannel extends BaseChannel {
 
     get livestreamUrl() {
         return `https://twitch.tv/${this.internalName}`;
-    }
-
-    public rescanVods(): string[] {
-        const list = readdirSyncRecursive(this.getFolder())
-            .filter(file =>
-                file.endsWith(".json") &&
-                fs.statSync(path.join(this.getFolder(), file)).size < 1024 * 1024
-            );
-        return list.map(
-            p => path.relative(
-                BaseConfigDataFolder.vod,
-                path.join(this.getFolder(), p)
-            ));
     }
 
     public async parseVODs(rescan = false): Promise<void> {
@@ -570,9 +555,9 @@ export class TwitchChannel extends BaseChannel {
         const nfo_file = path.join(this.getFolder(), "tvshow.nfo");
 
         let avatar;
-        if (this.channel_data.cache_avatar && fs.existsSync(path.join(BaseConfigDataFolder.public_cache_avatars, this.channel_data.cache_avatar))) {
+        if (this.channel_data.cache_avatar && fs.existsSync(path.join(BaseConfigCacheFolder.public_cache_avatars, this.channel_data.cache_avatar))) {
             fs.copyFileSync(
-                path.join(BaseConfigDataFolder.public_cache_avatars, this.channel_data.cache_avatar),
+                path.join(BaseConfigCacheFolder.public_cache_avatars, this.channel_data.cache_avatar),
                 path.join(this.getFolder(), `poster${path.extname(this.channel_data.cache_avatar)}`)
             );
             avatar = `poster${path.extname(this.channel_data.cache_avatar)}`;
@@ -628,30 +613,7 @@ export class TwitchChannel extends BaseChannel {
         }
     }
 
-    public incrementStreamNumber(): number {
-
-        // relative season
-        const seasonIdentifier = KeyValue.getInstance().get(`${this.internalName}.season_identifier`);
-        if (seasonIdentifier && seasonIdentifier !== format(new Date(), Config.SeasonFormat)) {
-            this.current_stream_number = 1;
-            KeyValue.getInstance().setInt(`${this.internalName}.stream_number`, 1);
-            KeyValue.getInstance().set(`${this.internalName}.season_identifier`, format(new Date(), Config.SeasonFormat));
-            this.current_season = format(new Date(), Config.SeasonFormat);
-            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Season changed for ${this.internalName} to ${this.current_season}`);
-        } else {
-            this.current_stream_number += 1;
-            KeyValue.getInstance().setInt(`${this.internalName}.stream_number`, this.current_stream_number);
-        }
-
-        // absolute season
-        if (parseInt(format(new Date(), "M")) !== KeyValue.getInstance().getInt(`${this.internalName}.absolute_season_month`)) {
-            KeyValue.getInstance().setInt(`${this.internalName}.absolute_season_month`, parseInt(format(new Date(), "M")));
-            this.current_absolute_season = this.current_absolute_season ? this.current_absolute_season + 1 : 1;
-            KeyValue.getInstance().setInt(`${this.internalName}.absolute_season_identifier`, this.current_absolute_season);
-        }
-
-        return this.current_stream_number;
-    }
+    
 
     public postLoad(): void {
         this.setupStreamNumber();
@@ -1397,7 +1359,7 @@ export class TwitchChannel extends BaseChannel {
         // download channel logo
         if (userData.profile_image_url) {
             const logo_filename = `${userData.id}${path.extname(userData.profile_image_url)}`;
-            const logo_path = path.join(BaseConfigDataFolder.public_cache_avatars, logo_filename);
+            const logo_path = path.join(BaseConfigCacheFolder.public_cache_avatars, logo_filename);
             if (fs.existsSync(logo_path)) {
                 fs.unlinkSync(logo_path);
                 Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Deleted old avatar for ${userData.id}`);
@@ -1442,7 +1404,7 @@ export class TwitchChannel extends BaseChannel {
 
         if (userData.offline_image_url) {
             const offline_filename = `${userData.id}${path.extname(userData.offline_image_url)}`;
-            const offline_path = path.join(BaseConfigDataFolder.public_cache_banners, offline_filename);
+            const offline_path = path.join(BaseConfigCacheFolder.public_cache_banners, offline_filename);
             if (fs.existsSync(offline_path)) {
                 fs.unlinkSync(offline_path);
             }

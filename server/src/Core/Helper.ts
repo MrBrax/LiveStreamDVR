@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-import { BaseConfigDataFolder } from "./BaseConfig";
+import { BaseConfigCacheFolder, BaseConfigDataFolder } from "./BaseConfig";
 import { Config } from "./Config";
 import { Log, LOGLEVEL } from "./Log";
 import { ExecReturn, RemuxReturn } from "Providers/Twitch";
@@ -733,7 +733,7 @@ export class Helper {
         let data: MediaInfo | false = false;
 
         const filenameHash = createHash("md5").update(filename).digest("hex"); // TODO: do we need it to by dynamic?
-        const dataPath = path.join(BaseConfigDataFolder.cache, "mediainfo", `${filenameHash}.json`);
+        const dataPath = path.join(BaseConfigCacheFolder.cache, "mediainfo", `${filenameHash}.json`);
 
         if (fs.existsSync(dataPath)) {
 
@@ -888,7 +888,7 @@ export class Helper {
 
         const filenameHash = createHash("md5").update(filename + width + offset).digest("hex");
 
-        const output_image = path.join(BaseConfigDataFolder.public_cache_thumbs, `${filenameHash}.${Config.getInstance().cfg<string>("thumbnail_format", "jpg")}`);
+        const output_image = path.join(BaseConfigCacheFolder.public_cache_thumbs, `${filenameHash}.${Config.getInstance().cfg<string>("thumbnail_format", "jpg")}`);
 
         if (fs.existsSync(output_image)) {
             return path.basename(output_image);
@@ -931,7 +931,7 @@ export class Helper {
 
         const filenameHash = createHash("md5").update(filename + width).digest("hex");
 
-        const output_image = path.join(BaseConfigDataFolder.public_cache_thumbs, `${filenameHash}.${Config.getInstance().cfg<string>("thumbnail_format", "jpg")}`);
+        const output_image = path.join(BaseConfigCacheFolder.public_cache_thumbs, `${filenameHash}.${Config.getInstance().cfg<string>("thumbnail_format", "jpg")}`);
 
         if (fs.existsSync(output_image)) {
             return path.basename(output_image);

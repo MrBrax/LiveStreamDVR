@@ -82,7 +82,9 @@
       "absolute-season": "Absolute season",
       "cloud-storage": "Cloud storage",
       "chapters": "Chapters",
-      "reset-chapters": "Reset chapters"
+      "reset-chapters": "Reset chapters",
+      "edit-chapters": "Edit chapters",
+      "edit-chapters-warning": "Editing chapters can cause loss of data. Back up the JSON if you want to be sure."
     },
     "export": {
       "title-template": "Title template",
@@ -181,7 +183,8 @@
       "provider": "Provider",
       "id": "ID",
       "uuid": "UUID",
-      "id_help": "ID can be retrieved from external services. It is NOT the one in the URL of the channel."
+      "id_help": "ID can be retrieved from external services. It is NOT the one in the URL of the channel.",
+      "url": "URL"
     },
     "config": {
       "validate-external-url": "Validate external URL"
@@ -213,7 +216,10 @@
       "clip-download": "Clip download",
       "chat-dump": "Chat dump",
       "current-jobs": "Current jobs",
-      "reset-channels": "Reset channels"
+      "reset-channels": "Reset channels",
+      "system": "System",
+      "shutdown": "Shut down",
+      "build-client": "Build client"
     },
     "editor": {
       "buttons": {

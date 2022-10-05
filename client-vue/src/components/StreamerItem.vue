@@ -342,9 +342,8 @@
     </div>
 </template>
 
-<script lang="ts">
-// import { TwitchAPI.Video } from "@/twitchapi.d";
-import { defineComponent, ref } from "vue";
+<script lang="ts" setup>
+import { computed, onMounted, ref } from "vue";
 import VodItem from "@/components/VodItem.vue";
 import ModalBox from "@/components/ModalBox.vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -354,338 +353,354 @@ import { ChannelTypes, useStore, VODTypes } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
 import { LocalClip } from "@common/LocalClip";
 import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
+import axios from "axios";
 library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen);
 
-export default defineComponent({
-    name: "StreamerItem",
-    components: {
-        VodItem,
-        ModalBox,
-    },
-    props: {
-        streamer: {
-            type: Object as () => ChannelTypes,
-            required: true,
-        },
-    },
-    emits: ["refresh"],
-    setup() {
-        const videoDownloadMenu = ref<InstanceType<typeof ModalBox>>();
-        const vodItem = ref<InstanceType<typeof VodItem>>();
-        const store = useStore();
-        return { videoDownloadMenu, store, vodItem };
-    },
-    data: () => ({
-        onlineVods: [] as ProxyVideo[],
-        toggleAllVodsExpanded: false,
-        limitVods: false,
-    }),
-    computed: {
-        quality(): string | undefined {
-            if (!this.streamer || !this.streamer.quality) return "";
-            return this.streamer.quality.join(", ");
-        },
-        averageVodBitrate(): number | undefined {
-            if (!this.streamer) return;
-            const vods = this.streamer.vods_list;
-            const total = (vods as VODTypes[]).reduce((acc, vod) => {
-                if (!vod.video_metadata) return acc;
-                return acc + vod.video_metadata.bitrate;
-            }, 0);
-            return total / vods.length;
-        },
-        canAbortCapture(): boolean {
-            if (!this.streamer) return false;
-            return this.streamer.is_capturing && this.store.jobList.some((job) => this.streamer && job.name.startsWith(`capture_${this.streamer.internalName}`));
-        },
-        avatarUrl() {
-            if (!this.streamer) return;
-            // if ("channel_data" in this.streamer && this.streamer.channel_data?.cache_avatar) return `${this.store.cfg<string>("basepath", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
-            return this.streamer.profilePictureUrl;
-        },
-        areMostVodsExpanded(): boolean {
-            if (!this.streamer) return false;
-            const vods = this.vodItem as unknown as typeof VodItem[];
-            if (!vods) return false;
-            return vods.filter((vod) => vod.minimized === false).length >= this.streamer.vods_list.length / 2;
-        },
-        webPath(): string {
-            if (!this.streamer) return "";
-            return this.store.cfg<string>("basepath", "") + "/vods/" + (this.store.cfg("channel_folders") ? this.streamer.internalName : "");
-        },
-        basePath(): string {
-            return this.store.cfg<string>("basepath", "");
-        },
-        filteredVodsList(): VODTypes[] {
-            if (!this.streamer) return [];
-            if (this.limitVods || this.store.clientCfg('expandDashboardVodList')) return this.streamer.vods_list;
-            const vodsToShow = this.store.clientCfg('vodsToShowInDashboard', 4);
-            if (vodsToShow === 0) return [];
-            // return last 4 vods
-            return this.streamer.vods_list.slice(-vodsToShow);
-        },
-        providerapi(): string {
-            if (this.streamer && this.streamer.provider == "youtube") return "youtubeapi";
-            return "twitchapi";
-        }
-    },
-    mounted() {
-        this.toggleAllVodsExpanded = this.areMostVodsExpanded;
-    },
-    methods: {
-        refresh() {
-            this.$emit("refresh");
-        },
-        async abortCapture() {
-            // href="{{ url_for('api_jobs_kill', { 'job': 'capture_' ~ streamer.current_vod.basename }) }}"
+const props = defineProps<{
+    streamer: ChannelTypes;
+}>();
 
-            if (!this.streamer || !this.streamer.current_vod) return;
+const emit = defineEmits<{
+    (e: "refresh"): void;
+}>();
 
-            if (!confirm("Abort record is unstable. Continue?")) return;
+const store = useStore();
 
-            let response;
+// data
+const onlineVods = ref<ProxyVideo[]>([]);
+const toggleAllVodsExpanded = ref(false);
+const limitVods = ref(false);
 
-            try {
-                response = await this.$http.delete(`/api/v0/jobs/capture_${this.streamer.internalName}_*`);
-            } catch (error) {
-                if (this.$http.isAxiosError(error)) {
-                    console.error("abortCapture error", error.response);
-                    if (error.response && error.response.data && error.response.data.message) {
-                        alert(error.response.data.message);
-                    }
-                }
-                return;
-            }
+// setup
+const videoDownloadMenu = ref<InstanceType<typeof ModalBox>>();
+const vodItem = ref<InstanceType<typeof VodItem>>();
 
-            const data = response.data;
-
-            if (data.message) {
-                alert(data.message);
-            }
-
-            console.log("Killed", data);
-        },
-        async forceRecord() {
-            if (!this.streamer) return;
-            if (!confirm("Force record is unstable. Continue?")) return;
-
-            let response;
-
-            try {
-                response = await this.$http.post(`/api/v0/channels/${this.streamer.uuid}/force_record`);
-            } catch (error) {
-                if (this.$http.isAxiosError(error)) {
-                    console.error("forceRecord error", error.response);
-                    if (error.response && error.response.data && error.response.data.message) {
-                        alert(error.response.data.message);
-                    }
-                }
-                return;
-            }
-
-            const data = response.data;
-
-            if (data.message) {
-                alert(data.message);
-            }
-
-            console.log("Recorded", data);
-        },
-        async playlistRecord() {
-            // href="{{ url_for('api_channel_dump_playlist', { 'username': streamer.display_name }) }}"
-
-            if (!this.streamer || !this.streamer.current_vod) return;
-
-            let response;
-
-            try {
-                response = await this.$http.get(`/api/v0/channels/${this.streamer.uuid}/dump_playlist`);
-            } catch (error) {
-                if (this.$http.isAxiosError(error)) {
-                    console.error("abortCapture error", error.response);
-                    if (error.response && error.response.data && error.response.data.message) {
-                        alert(error.response.data.message);
-                    }
-                }
-                return;
-            }
-
-            const data = response.data;
-
-            if (data.message) {
-                alert(data.message);
-            }
-
-            console.log("Killed", data);
-        },
-        async fetchTwitchVods() {
-            if (!this.streamer) return;
-            let response;
-
-            try {
-                response = await this.$http.get(`/api/v0/twitchapi/videos/${this.streamer.login}`);
-            } catch (error) {
-                if (this.$http.isAxiosError(error)) {
-                    console.error("fetchTwitchVods error", error.response);
-                    if (error.response && error.response.data && error.response.data.message) {
-                        alert(error.response.data.message);
-                    }
-                }
-                return;
-            }
-
-            const data = response.data;
-
-            if (data.message) {
-                alert(data.message);
-            }
-
-            console.log("Fetched", data);
-            this.onlineVods = data.data;
-        },
-        async fetchYouTubeVods() {
-            if (!this.streamer || !(this.streamer instanceof YouTubeChannel)) return;
-            let response;
-
-            try {
-                response = await this.$http.get(`/api/v0/youtubeapi/videos/${this.streamer.channel_id}`);
-            } catch (error) {
-                if (this.$http.isAxiosError(error)) {
-                    console.error("fetchYouTubeVods error", error.response);
-                    if (error.response && error.response.data && error.response.data.message) {
-                        alert(error.response.data.message);
-                    }
-                }
-                return;
-            }
-
-            const data = response.data;
-
-            if (data.message) {
-                alert(data.message);
-            }
-
-            console.log("Fetched", data);
-            this.onlineVods = data.data;
-        },
-        async downloadVideo(id: string) {
-            if (!this.streamer) return;
-
-            let response;
-
-            try {
-                response = await this.$http.get(`/api/v0/channels/${this.streamer.uuid}/download/${id}`);
-            } catch (error) {
-                if (this.$http.isAxiosError(error)) {
-                    console.error("downloadVideo error", error.response);
-                    if (error.response && error.response.data && error.response.data.message) {
-                        alert(error.response.data.message);
-                    }
-                }
-                return;
-            }
-
-            const data = response.data;
-
-            if (data.message) {
-                alert(data.message);
-            }
-
-            console.log("Downloaded", data);
-        },
-        async doChannelCleanup() {
-            if (!this.streamer) return;
-
-            if (!confirm("Do you want to clean up vods that don't meet your criteria? There is no undo.")) return;
-
-            let response;
-
-            try {
-                response = await this.$http.post(`/api/v0/channels/${this.streamer.uuid}/cleanup`);
-            } catch (error) {
-                if (this.$http.isAxiosError(error)) {
-                    console.error("doChannelCleanup error", error.response);
-                    if (error.response && error.response.data && error.response.data.message) {
-                        alert(error.response.data.message);
-                    }
-                }
-                return;
-            }
-
-            const data = response.data;
-
-            if (data.message) {
-                alert(data.message);
-            }
-
-            console.log("Cleaned", data);
-        },
-        async doChannelRefresh() {
-            if (!this.streamer) return;
-            this.$http
-                .post(`/api/v0/channels/${this.streamer.uuid}/refresh`)
-                .then((response) => {
-                    const json: ApiResponse = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                    this.store.fetchStreamerList();
-                })
-                .catch((error) => {
-                    if (this.$http.isAxiosError(error)) {
-                        console.error("doChannelRefresh error", error.response);
-                        if (error.response && error.response.data && error.response.data.message) {
-                            alert(error.response.data.message);
-                        }
-                    }
-                });
-        },
-        async doScanVods() {
-            if (!this.streamer) return;
-            if (!confirm("Do you want to rescan for VODs? It might not find everything.")) return;
-            this.$http
-                .post(`/api/v0/channels/${this.streamer.uuid}/scan`)
-                .then((response) => {
-                    const json: ApiResponse = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                    this.store.fetchStreamerList();
-                })
-                .catch((error) => {
-                    if (this.$http.isAxiosError(error)) {
-                        console.error("doChannelRefresh error", error.response);
-                        if (error.response && error.response.data && error.response.data.message) {
-                            alert(error.response.data.message);
-                        }
-                    }
-                });
-        },
-        imageUrl(url: string, width: number, height: number) {
-            if (!url) return "";
-            return url.replace(/%\{width\}/g, width.toString()).replace(/%\{height\}/g, height.toString());
-        },
-        clipLink(clip: LocalClip): string {
-            const path = clip.folder + "/" + clip.basename;
-            return `${this.store.cfg<string>("basepath", "")}/saved_clips/${path}`;
-        },
-        doToggleExpandVods() {
-            // loop through all vods and set the expanded state
-            const vods = this.vodItem as unknown as typeof VodItem[];
-            if (vods){
-                for(const vod of vods) {
-                    vod.minimized = this.toggleAllVodsExpanded;
-                }
-            }
-            this.toggleAllVodsExpanded = !this.toggleAllVodsExpanded;
-        },
-        visibilityChanged(basename: string, isVisible: boolean, entry: IntersectionObserverEntry) {
-            // console.log(basename, isVisible, entry);
-            if (isVisible) this.store.setVisibleVod(basename);
-        },
-        toggleLimitVods() {
-            this.limitVods = !this.limitVods;
-        }
-    },
+const quality = computed(() => {
+    if (!props.streamer || !props.streamer.quality) return "";
+    return props.streamer.quality.join(", ")
 });
+
+const averageVodBitrate = computed(() => {
+    if (!props.streamer) return;
+    const vods = props.streamer.vods_list;
+    const total = (vods as VODTypes[]).reduce((acc, vod) => {
+        if (!vod.video_metadata) return acc;
+        return acc + vod.video_metadata.bitrate;
+    }, 0);
+    return total / vods.length;
+});
+
+const canAbortCapture = computed(() => {
+    if (!props.streamer) return false;
+    return props.streamer.is_capturing && store.jobList.some((job) => props.streamer && job.name.startsWith(`capture_${props.streamer.internalName}`));
+});
+
+const avatarUrl = computed(() => {
+    if (!props.streamer) return;
+    // if ("channel_data" in this.streamer && this.streamer.channel_data?.cache_avatar) return `${this.store.cfg<string>("basepath", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
+    return props.streamer.profilePictureUrl;
+});
+
+const areMostVodsExpanded = computed(() => {
+    if (!props.streamer) return false;
+    const vods = onlineVods.value as unknown as typeof VodItem[];
+    if (!vods) return false;
+    return vods.filter((vod) => vod.minimized === false).length >= props.streamer.vods_list.length / 2;
+});
+
+const webPath = computed(() => {
+    if (!props.streamer) return "";
+    return store.cfg<string>("basepath", "") + "/vods/" + (store.cfg("channel_folders") ? props.streamer.internalName : "");
+});
+
+const basePath = computed(() => {
+    return store.cfg<string>("basepath", "");
+});
+
+const filteredVodsList = computed(() => {
+    if (!props.streamer) return [];
+    if (limitVods.value || store.clientCfg('expandDashboardVodList')) return props.streamer.vods_list;
+    const vodsToShow = store.clientCfg('vodsToShowInDashboard', 4);
+    if (vodsToShow === 0) return [];
+    // return last 4 vods
+    return props.streamer.vods_list.slice(-vodsToShow);
+});
+
+const providerapi = computed(() => {
+    if (props.streamer && props.streamer.provider == "youtube") return "youtubeapi";
+    return "twitchapi";
+});
+
+onMounted(() => {
+    toggleAllVodsExpanded.value = areMostVodsExpanded.value;
+});
+
+function refresh() {
+    emit("refresh");
+}
+
+async function abortCapture() {
+    // href="{{ url_for('api_jobs_kill', { 'job': 'capture_' ~ streamer.current_vod.basename }) }}"
+
+    if (!props.streamer || !props.streamer.current_vod) return;
+
+    if (!confirm("Abort record is unstable. Continue?")) return;
+
+    let response;
+
+    try {
+        response = await axios.delete(`/api/v0/jobs/capture_${props.streamer.internalName}_*`);
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("abortCapture error", error.response);
+            if (error.response && error.response.data && error.response.data.message) {
+                alert(error.response.data.message);
+            }
+        }
+        return;
+    }
+
+    const data = response.data;
+
+    if (data.message) {
+        alert(data.message);
+    }
+
+    console.log("Killed", data);
+}
+
+async function forceRecord() {
+    if (!props.streamer) return;
+    if (!confirm("Force record is unstable. Continue?")) return;
+
+    let response;
+
+    try {
+        response = await axios.post(`/api/v0/channels/${props.streamer.uuid}/force_record`);
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("forceRecord error", error.response);
+            if (error.response && error.response.data && error.response.data.message) {
+                alert(error.response.data.message);
+            }
+        }
+        return;
+    }
+
+    const data = response.data;
+
+    if (data.message) {
+        alert(data.message);
+    }
+
+    console.log("Recorded", data);
+}
+
+async function playlistRecord() {
+    // href="{{ url_for('api_channel_dump_playlist', { 'username': streamer.display_name }) }}"
+
+    if (!props.streamer || !props.streamer.current_vod) return;
+
+    let response;
+
+    try {
+        response = await axios.get(`/api/v0/channels/${props.streamer.uuid}/dump_playlist`);
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("abortCapture error", error.response);
+            if (error.response && error.response.data && error.response.data.message) {
+                alert(error.response.data.message);
+            }
+        }
+        return;
+    }
+
+    const data = response.data;
+
+    if (data.message) {
+        alert(data.message);
+    }
+
+    console.log("Killed", data);
+}
+
+async function fetchTwitchVods() {
+    if (!props.streamer) return;
+    let response;
+
+    try {
+        response = await axios.get(`/api/v0/twitchapi/videos/${props.streamer.login}`);
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("fetchTwitchVods error", error.response);
+            if (error.response && error.response.data && error.response.data.message) {
+                alert(error.response.data.message);
+            }
+        }
+        return;
+    }
+
+    const data = response.data;
+
+    if (data.message) {
+        alert(data.message);
+    }
+
+    console.log("Fetched", data);
+    onlineVods.value = data.data;
+}
+
+async function fetchYouTubeVods() {
+    if (!props.streamer || !(props.streamer instanceof YouTubeChannel)) return;
+    let response;
+
+    try {
+        response = await axios.get(`/api/v0/youtubeapi/videos/${props.streamer.channel_id}`);
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("fetchYouTubeVods error", error.response);
+            if (error.response && error.response.data && error.response.data.message) {
+                alert(error.response.data.message);
+            }
+        }
+        return;
+    }
+
+    const data = response.data;
+
+    if (data.message) {
+        alert(data.message);
+    }
+
+    console.log("Fetched", data);
+    onlineVods.value = data.data;
+}
+
+async function downloadVideo(id: string) {
+    if (!props.streamer) return;
+
+    let response;
+
+    try {
+        response = await axios.get(`/api/v0/channels/${props.streamer.uuid}/download/${id}`);
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("downloadVideo error", error.response);
+            if (error.response && error.response.data && error.response.data.message) {
+                alert(error.response.data.message);
+            }
+        }
+        return;
+    }
+
+    const data = response.data;
+
+    if (data.message) {
+        alert(data.message);
+    }
+
+    console.log("Downloaded", data);
+}
+
+async function doChannelCleanup() {
+    if (!props.streamer) return;
+
+    if (!confirm("Do you want to clean up vods that don't meet your criteria? There is no undo.")) return;
+
+    let response;
+
+    try {
+        response = await axios.post(`/api/v0/channels/${props.streamer.uuid}/cleanup`);
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("doChannelCleanup error", error.response);
+            if (error.response && error.response.data && error.response.data.message) {
+                alert(error.response.data.message);
+            }
+        }
+        return;
+    }
+
+    const data = response.data;
+
+    if (data.message) {
+        alert(data.message);
+    }
+
+    console.log("Cleaned", data);
+}
+
+async function doChannelRefresh() {
+    if (!props.streamer) return;
+    axios
+        .post(`/api/v0/channels/${props.streamer.uuid}/refresh`)
+        .then((response) => {
+            const json: ApiResponse = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            store.fetchStreamerList();
+        })
+        .catch((error) => {
+            if (axios.isAxiosError(error)) {
+                console.error("doChannelRefresh error", error.response);
+                if (error.response && error.response.data && error.response.data.message) {
+                    alert(error.response.data.message);
+                }
+            }
+        });
+}
+
+async function doScanVods() {
+    if (!props.streamer) return;
+    if (!confirm("Do you want to rescan for VODs? It might not find everything.")) return;
+    axios
+        .post(`/api/v0/channels/${props.streamer.uuid}/scan`)
+        .then((response) => {
+            const json: ApiResponse = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            store.fetchStreamerList();
+        })
+        .catch((error) => {
+            if (axios.isAxiosError(error)) {
+                console.error("doChannelRefresh error", error.response);
+                if (error.response && error.response.data && error.response.data.message) {
+                    alert(error.response.data.message);
+                }
+            }
+        });
+}
+
+function imageUrl(url: string, width: number, height: number) {
+    if (!url) return "";
+    return url.replace(/%\{width\}/g, width.toString()).replace(/%\{height\}/g, height.toString());
+}
+
+function clipLink(clip: LocalClip): string {
+    const path = clip.folder + "/" + clip.basename;
+    return `${store.cfg<string>("basepath", "")}/saved_clips/${path}`;
+}
+
+function doToggleExpandVods() {
+    // loop through all vods and set the expanded state
+    const vods = vodItem as unknown as typeof VodItem[];
+    if (vods){
+        for(const vod of vods) {
+            vod.minimized = toggleAllVodsExpanded;
+        }
+    }
+    toggleAllVodsExpanded.value = !toggleAllVodsExpanded.value;
+}
+
+function visibilityChanged(basename: string, isVisible: boolean, entry: IntersectionObserverEntry) {
+    // console.log(basename, isVisible, entry);
+    if (isVisible) store.setVisibleVod(basename);
+}
+
+function toggleLimitVods() {
+    limitVods.value = !limitVods.value;
+}
+
 </script>
 
 <style lang="scss" scoped>

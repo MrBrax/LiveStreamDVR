@@ -325,4 +325,33 @@ export class TwitchAutomator extends BaseAutomator {
 
     }
 
+    public providerArgs(): string[] {
+
+        const cmd = [];
+
+        // disable channel hosting
+        cmd.push("--twitch-disable-hosting");
+
+        if (fs.existsSync(path.join(BaseConfigDataFolder.config, "twitch_oauth.txt"))) {
+            const token = fs.readFileSync(path.join(BaseConfigDataFolder.config, "twitch_oauth.txt"));
+            cmd.push(`--twitch-api-header=Authentication=OAuth ${token}`);
+        }
+
+        // enable low latency mode, probably not a good idea without testing
+        if (Config.getInstance().cfg("low_latency", false)) {
+            cmd.push("--twitch-low-latency");
+        }
+
+        // Skip embedded advertisement segments at the beginning or during a stream
+        if (Config.getInstance().cfg("disable_ads", false)) {
+            cmd.push("--twitch-disable-ads");
+        }
+
+        // disable reruns
+        cmd.push("--twitch-disable-reruns");
+
+        return cmd;
+
+    }
+
 }

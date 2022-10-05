@@ -78,6 +78,7 @@ export interface TwitchVODJSON extends VODJSON {
 
 export interface YouTubeVODJSON extends VODJSON {
     channel_id?: string;
+    youtube_vod_id?: string;
 }
 
 export interface BaseVODChapterJSON {

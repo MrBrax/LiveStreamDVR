@@ -68,20 +68,48 @@
 
         <section class="section">
             <div class="section-title">
-                <h1>{{ $t('views.tools.reset-channels') }}</h1>
+                <h1>{{ $t('views.tools.system') }}</h1>
             </div>
             <div class="section-content">
-                <button
-                    type="button"
-                    class="button is-danger"
-                    @click="resetChannels"
-                >
-                    <span class="icon"><fa icon="sync" /></span>
-                    <span>{{ $t('buttons.reset') }}</span>
-                </button>
-                <p>
-                    {{ $t('messages.this-is-a-bad-idea-if-any-of-your-channels-are-live') }}
-                </p>
+                <div class="field">
+                    <div class="control">
+                        <button
+                            type="button"
+                            class="button is-danger"
+                            @click="resetChannels"
+                        >
+                            <span class="icon"><fa icon="sync" /></span>
+                            <span>{{ $t('views.tools.reset-channels') }}</span>
+                        </button>
+                        <p class="input-help">
+                            {{ $t('messages.this-is-a-bad-idea-if-any-of-your-channels-are-live') }}
+                        </p>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <button
+                            type="button"
+                            class="button is-danger"
+                            @click="shutdown"
+                        >
+                            <span class="icon"><fa icon="power-off" /></span>
+                            <span>{{ $t('views.tools.shutdown') }}</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <button
+                            type="button"
+                            class="button is-confirm"
+                            @click="buildClient"
+                        >
+                            <span class="icon"><fa icon="sync" /></span>
+                            <span>{{ $t('views.tools.build-client') }}</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -224,11 +252,11 @@ import ToolsClipDownloadForm from "../components/forms/ToolsClipDownloadForm.vue
 import DurationDisplay from "@/components/DurationDisplay.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faHeart, faStop, faSkull, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faHeart, faStop, faSkull, faTrash, faPowerOff } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
 import { JobStatus } from "@common/Defs";
 
-library.add(faHeart, faStop, faSkull, faTrash);
+library.add(faHeart, faStop, faSkull, faTrash, faPowerOff);
 
 interface PayloadDump {
     headers: Record<string, string>;
@@ -333,6 +361,36 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("tools reset channels error", err.response);
+                });
+        },
+        shutdown() {
+            if (!confirm("Shutdown?")) return;
+
+            this.$http
+                .post(`/api/v0/tools/shutdown`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                })
+                .catch((err) => {
+                    console.error("tools shutdown error", err.response);
+                });
+        },
+        buildClient() {
+            if (!confirm("Build client?")) return;
+
+            const basepath = prompt("Base path", "/");
+
+            this.$http
+                .post(`/api/v0/tools/buildclient?basepath=${basepath}`)
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                })
+                .catch((err) => {
+                    console.error("tools build client error", err.response);
                 });
         },
     },

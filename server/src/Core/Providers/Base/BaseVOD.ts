@@ -6,24 +6,25 @@ import path from "path";
 import { BaseVODChapterJSON, VODJSON } from "Storage/JSON";
 import { ApiBaseVod } from "../../../../../common/Api/Client";
 import { VideoQuality } from "../../../../../common/Config";
-import { MuteStatus } from "../../../../../common/Defs";
+import { MuteStatus, Providers } from "../../../../../common/Defs";
 import { AudioMetadata, VideoMetadata } from "../../../../../common/MediaInfo";
 import { VodUpdated } from "../../../../../common/Webhook";
-import { BaseConfigDataFolder } from "../../BaseConfig";
+import { FFmpegMetadata } from "../../../Core/FFmpegMetadata";
+import { Helper } from "../../../Core/Helper";
+import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
+import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
-import { TwitchHelper } from "../../../Providers/Twitch";
 import { LiveStreamDVR, VODTypes } from "../../LiveStreamDVR";
 import { Log, LOGLEVEL } from "../../Log";
 import { Webhook } from "../../Webhook";
 import { BaseChannel } from "./BaseChannel";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { BaseVODSegment } from "./BaseVODSegment";
-import { Helper } from "../../../Core/Helper";
 
 export class BaseVOD {
 
-    // public provider: Providers;
+    public provider: Providers = "base";
 
     loaded = false;
 
@@ -151,6 +152,16 @@ export class BaseVOD {
             ignoreInitial: true,
         }).on("all", (eventType, filename) => {
 
+            if (LiveStreamDVR.shutting_down) {
+                this.stopWatching();
+                return;
+            }
+
+            if (!this.channel_uuid) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "vod.watch", `VOD ${this.basename} has no channel UUID!`);
+                return;
+            }
+
             const channel = this.getChannel();
             if (channel) {
                 if (channel.live_chat && (filename.endsWith(".chatdump.line") || filename.endsWith(".chatdump.txt"))) {
@@ -216,7 +227,7 @@ export class BaseVOD {
     }
 
     public getChannel(): BaseChannel {
-        throw new Error("Not implemented");
+        throw new Error("getChannel not implemented");
     }
 
     public realpath(expanded_path: string): string {
@@ -317,9 +328,11 @@ export class BaseVOD {
                 return;
             }
 
+            const base_segment = path.basename(raw_segment);
+
             // find invalid characters for windows
-            if (raw_segment.match(LiveStreamDVR.filenameIllegalChars)) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "vod.parseSegments", `Segment list containing invalid characters for ${this.basename}: ${raw_segment}`);
+            if (base_segment.match(LiveStreamDVR.filenameIllegalChars)) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "vod.parseSegments", `Segment list containing invalid characters for ${this.basename}: ${base_segment}`);
                 return false;
             }
 
@@ -327,8 +340,8 @@ export class BaseVOD {
 
             // segment.filename = realpath($this.directory . DIRECTORY_SEPARATOR . basename($v));
             // segment.basename = basename($v);
-            segment.filename = path.join(this.directory, path.basename(raw_segment));
-            segment.basename = path.basename(raw_segment);
+            segment.filename = path.join(this.directory, path.basename(base_segment));
+            segment.basename = path.basename(base_segment);
 
             if (segment.filename && fs.existsSync(segment.filename) && fs.statSync(segment.filename).size > 0) {
                 segment.filesize = fs.statSync(segment.filename).size;
@@ -393,7 +406,7 @@ export class BaseVOD {
         }
 
         args.push("--mode", "ChatRender");
-        args.push("--temp-path", BaseConfigDataFolder.cache);
+        args.push("--temp-path", BaseConfigCacheFolder.cache);
         args.push("--ffmpeg-path", ffmpeg_bin);
         args.push("--input", path.normalize(use_downloaded ? this.path_chat : this.path_chatdump));
         args.push("--chat-height", (chat_height ? chat_height : this.video_metadata.height).toString());
@@ -410,8 +423,8 @@ export class BaseVOD {
         Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Running ${bin} ${args.join(" ")}`);
 
         const env = {
-            DOTNET_BUNDLE_EXTRACT_BASE_DIR: BaseConfigDataFolder.dotnet,
-            TEMP: BaseConfigDataFolder.cache,
+            DOTNET_BUNDLE_EXTRACT_BASE_DIR: BaseConfigCacheFolder.dotnet,
+            TEMP: BaseConfigCacheFolder.cache,
         };
 
         return new Promise((resolve, reject) => {
@@ -699,8 +712,56 @@ export class BaseVOD {
 
     }
 
+    /**
+     * Save chapter data in ffmpeg format for use in remuxing.
+     * @see {@link https://ikyle.me/blog/2020/add-mp4-chapters-ffmpeg}
+     * @returns Save success
+     */
     public saveFFMPEGChapters(): boolean {
-        throw new Error("Not implemented");
+
+        if (!this.directory) {
+            throw new Error("TwitchVOD.saveFFMPEGChapters: directory is not set");
+        }
+
+        if (!this.chapters || this.chapters.length == 0) {
+            // throw new Error('TwitchVOD.saveFFMPEGChapters: chapters are not set');
+            return false;
+        }
+
+        Log.logAdvanced(LOGLEVEL.INFO, "vod.saveFFMPEGChapters", `Saving FFMPEG chapters file for ${this.basename} to ${this.path_ffmpegchapters}`);
+
+        const meta = new FFmpegMetadata()
+            .setArtist(this.getChannel().displayName);
+        
+        if (isTwitchVOD(this)) {
+            meta.setTitle(this.twitch_vod_title ?? this.chapters[0].title);
+        }
+
+        if (this.started_at) meta.setDate(this.started_at);
+
+        this.chapters.forEach((chapter) => {
+            const offset = chapter.offset || 0;
+            const duration = chapter.duration || 0;
+            const start = Math.floor(offset * 1000);
+            const end = Math.floor((offset + duration) * 1000);
+            const title = isTwitchVODChapter(chapter) ? `${chapter.title} (${chapter.game_name})` : chapter.title;
+            meta.addChapter(start, end, title, "1/1000", [
+                isTwitchVODChapter(chapter) ? `Game ID: ${chapter.game_id}` : "",
+                isTwitchVODChapter(chapter) ? `Game Name: ${chapter.game_name}` : "",
+                `Title: ${chapter.title}`,
+                `Offset: ${offset}`,
+                `Duration: ${duration}`,
+                isTwitchVODChapter(chapter) ? `Viewer count: ${chapter.viewer_count}` : "",
+                `Started at: ${chapter.started_at.toISOString()}`,
+            ]);
+        });
+
+        fs.writeFileSync(this.path_ffmpegchapters, meta.getString(), { encoding: "utf8" });
+
+        this.setPermissions();
+
+        return fs.existsSync(this.path_ffmpegchapters);
+
     }
 
     public reencodeSegments(addToSegments = false, deleteOriginal = false): Promise<boolean> {
@@ -895,7 +956,61 @@ export class BaseVOD {
         }
     }
 
-    public saveLosslessCut(): boolean { return false; }
+    public saveLosslessCut(): boolean {
+
+        if (!this.directory) {
+            throw new Error("TwitchVOD.saveLosslessCut: directory is not set");
+        }
+
+        if (!this.chapters || this.chapters.length == 0) {
+            // throw new Error('TwitchVOD.saveLosslessCut: chapters are not set');
+            return false;
+        }
+
+        // $csv_path = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv';
+        const csv_path = path.join(this.directory, `${this.basename}-llc-edl.csv`);
+
+        Log.logAdvanced(LOGLEVEL.INFO, "vod.saveLosslessCut", `Saving lossless cut csv for ${this.basename} to ${csv_path}`);
+
+        let data = "";
+
+        this.chapters.forEach((chapter, i) => {
+            let offset = chapter.offset;
+            if (offset === undefined) return;
+
+            offset -= this.chapters[0].offset || 0;
+
+            data += offset + ","; // offset
+
+            if (i < this.chapters.length - 1) { // not last chapter
+                data += (offset + (chapter.duration || 0)) + ",";
+            } else { // last chapter
+                data += ",";
+            }
+
+            data += "\"";
+            let label = "";
+            
+            if (isTwitchVODChapter(chapter)) {
+                `${chapter.game_name || chapter.game_id} (${chapter.title})`;
+                label = label.replace(/"/g, "\\\"");
+            } else {
+                label = chapter.title;
+            }
+
+            data += label;
+            data += "\"";
+
+            data += "\n";
+        });
+
+        fs.writeFileSync(csv_path, data);
+
+        this.setPermissions();
+
+        return fs.existsSync(csv_path);
+    }
+
     public saveVTTChapters(): boolean { return false; }
     public saveKodiNfo(): boolean { return false; }
 
@@ -1076,7 +1191,25 @@ export class BaseVOD {
     }
 
     public setupUserData(): void { return; }
-    public setupBasic(): void { return; }
+    public setupBasic(): void {
+
+        if (!this.json) {
+            throw new Error("No JSON loaded for basic setup!");
+        }
+
+        this.is_capturing = this.json.is_capturing;
+        this.is_converting = this.json.is_converting;
+        this.is_finalized = this.json.is_finalized;
+
+        this.duration = this.json.duration ?? undefined;
+
+        this.comment = this.json.comment;
+        this.prevent_deletion = this.json.prevent_deletion ?? false;
+        this.failed = this.json.failed ?? false;
+
+        this.webpath = `${Config.getInstance().cfg<string>("basepath", "")}/vods/` + path.relative(BaseConfigDataFolder.vod, this.directory);
+
+    }
     public setupProvider(): void { return; }
 
     public async delete(): Promise<boolean> {
@@ -1206,5 +1339,41 @@ export class BaseVOD {
     public async downloadChat(method: "td" | "tcd" = "td"): Promise<boolean> { return await Promise.resolve(false); }
     public async checkMutedVod(save = false): Promise<MuteStatus> { return await Promise.resolve(MuteStatus.UNKNOWN); }
     public async matchProviderVod(force = false): Promise<boolean | undefined> { return await Promise.resolve(false); }
+
+    public addChapter(chapter: BaseVODChapter): void {
+        Log.logAdvanced(LOGLEVEL.INFO, "vod.addChapter", `Adding chapter ${chapter.title} to ${this.basename}`);
+        this.chapters.push(chapter);
+        this.chapters_raw.push(chapter.toJSON()); // needed?
+        this.calculateChapters();
+    }
+
+    public backupJSON(): void {
+        if (fs.existsSync(this.filename)) {
+            const backup_file = path.join(BaseConfigDataFolder.backup, `${this.basename}.${Date.now()}.json`);
+            Log.logAdvanced(LOGLEVEL.INFO, "vod.backupJSON", `Backing up ${this.basename} to ${backup_file}`);
+            fs.copyFileSync(this.filename, backup_file);
+        }
+    }
+
+    public setPermissions(): void {
+
+        if (
+            !Config.getInstance().cfg("file_permissions") ||
+            !Config.getInstance().cfg("file_chown_uid") ||
+            !Config.getInstance().cfg("file_chown_gid") ||
+            !Config.getInstance().cfg("file_chmod")
+        ) {
+            return;
+        }
+
+        for (const file of this.associatedFiles) {
+            const fullpath = path.join(this.directory, file);
+            if (fs.existsSync(fullpath)) {
+                fs.chownSync(fullpath, Config.getInstance().cfg("file_chown_uid"), Config.getInstance().cfg("file_chown_gid"));
+                fs.chmodSync(fullpath, Config.getInstance().cfg("file_chmod"));
+            }
+        }
+
+    }
 
 }

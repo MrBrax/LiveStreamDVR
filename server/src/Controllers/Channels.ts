@@ -8,21 +8,24 @@ import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiResp
 import { TwitchChannelConfig, VideoQuality, YouTubeChannelConfig } from "../../../common/Config";
 import { Providers, VideoQualityArray } from "../../../common/Defs";
 import { formatString } from "../../../common/Format";
+import { ProxyVideo } from "../../../common/Proxies/Video";
 import { VodBasenameTemplate } from "../../../common/Replacements";
 import { EventSubStreamOnline } from "../../../common/TwitchAPI/EventSub/StreamOnline";
-import { Video } from "../../../common/TwitchAPI/Video";
-import { BaseConfigDataFolder } from "../Core/BaseConfig";
+import { BaseConfigCacheFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
-import { TwitchHelper } from "../Providers/Twitch";
 import { KeyValue } from "../Core/KeyValue";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { Log, LOGLEVEL } from "../Core/Log";
 import { TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
+import { YouTubeAutomator } from "../Core/Providers/YouTube/YouTubeAutomator";
 import { YouTubeChannel } from "../Core/Providers/YouTube/YouTubeChannel";
+import { YouTubeVOD } from "../Core/Providers/YouTube/YouTubeVOD";
 import { Webhook } from "../Core/Webhook";
 import { generateStreamerList } from "../Helpers/StreamerList";
+import { isTwitchChannel, isYouTubeChannel } from "../Helpers/Types";
+import { TwitchHelper } from "../Providers/Twitch";
 import { TwitchVODChapterJSON } from "../Storage/JSON";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
@@ -421,61 +424,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
     const video_id = req.params.video_id;
     const quality = req.query.quality && VideoQualityArray.includes(req.query.quality as string) ? req.query.quality as VideoQuality : "best";
 
-    if (TwitchVOD.hasVod(video_id)) {
-        res.status(400).send({
-            status: "ERROR",
-            message: "Video already downloaded",
-        } as ApiErrorResponse);
-        return;
-    }
-
-    let video: Video | false;
-    try {
-        video = await TwitchVOD.getVideo(video_id);
-    } catch (error) {
-        res.status(400).send({
-            status: "ERROR",
-            message: `Error while fetching video data: ${(error as Error).message}`,
-        } as ApiErrorResponse);
-        return;
-    }
-
-    if (!video) {
-        res.status(400).send({
-            status: "ERROR",
-            message: "Video not found",
-        } as ApiErrorResponse);
-        return;
-    }
-
-    // const basename = `${channel.login}_${replaceAll(video.created_at, ":", "-")}_${video.stream_id}`;
-
-
-
-    /*
-
-    const variables: VodBasenameTemplate = {
-        login: channel.login,
-        date: video.created_at.replaceAll(":", "_"),
-        year: isValid(date) ? format(date, "yyyy") : "",
-        year_short: isValid(date) ? format(date, "yy") : "",
-        month: isValid(date) ? format(date, "MM") : "",
-        day: isValid(date) ? format(date, "dd") : "",
-        hour: isValid(date) ? format(date, "HH") : "",
-        minute: isValid(date) ? format(date, "mm") : "",
-        second: isValid(date) ? format(date, "ss") : "",
-        id: video.stream_id?.toString() || randomUUID(), // bad solution
-        season: channel.current_season,
-        absolute_season: channel.current_absolute_season ? channel.current_absolute_season.toString().padStart(2, "0") : "",
-        // episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
-        episode: "0", // episode won't work with random downloads
-    };
-
-    const basename = sanitize(formatString(Config.getInstance().cfg("filename_vod"), variables));
-    const basefolder = "";
-    */
-
-    const template = (what: string) => {
+    const template = (video: ProxyVideo, what: string) => {
         if (!video) return "";
 
         const date = parseJSON(video.created_at);
@@ -506,43 +455,85 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         return sanitize(formatString(Config.getInstance().cfg(what), variables));
     };
 
-    const basename = template("filename_vod");
-    const basefolder = path.join(channel.getFolder(), template("filename_vod_folder"));
+    if (isTwitchChannel(channel)) {
 
-    const filepath = path.join(basefolder, `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
+        if (TwitchVOD.getVodByProviderId(video_id)) {
+            res.status(400).send({
+                status: "ERROR",
+                message: "Video already downloaded",
+            } as ApiErrorResponse);
+            return;
+        }
 
-    if (TwitchVOD.hasVod(basename)) {
-        res.status(400).send({
-            status: "ERROR",
-            message: `VOD already exists: ${basename}`,
-        } as ApiErrorResponse);
-        return;
-    }
+        let video: ProxyVideo | false;
+        try {
+            video = await TwitchVOD.getVideoProxy(video_id);
+        } catch (error) {
+            res.status(400).send({
+                status: "ERROR",
+                message: `Error while fetching video data: ${(error as Error).message}`,
+            } as ApiErrorResponse);
+            return;
+        }
 
-    if (!fs.existsSync(path.dirname(filepath))) {
-        fs.mkdirSync(path.dirname(filepath), { recursive: true });
-    }
+        if (!video) {
+            res.status(400).send({
+                status: "ERROR",
+                message: "Video not found",
+            } as ApiErrorResponse);
+            return;
+        }
 
-    let status = false;
+        // const basename = `${channel.login}_${replaceAll(video.created_at, ":", "-")}_${video.stream_id}`;
 
-    try {
-        status = await TwitchVOD.downloadVideo(video_id, quality, filepath) != "";
-    } catch (error) {
-        Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.download", `Failed to download video: ${(error as Error).message}`);
-        res.status(400).send({
-            status: "ERROR",
-            message: (error as Error).message,
-        } as ApiErrorResponse);
-        return;
-    }
 
-    if (status) {
 
-        let vod;
+        /*
+
+        const variables: VodBasenameTemplate = {
+            login: channel.login,
+            date: video.created_at.replaceAll(":", "_"),
+            year: isValid(date) ? format(date, "yyyy") : "",
+            year_short: isValid(date) ? format(date, "yy") : "",
+            month: isValid(date) ? format(date, "MM") : "",
+            day: isValid(date) ? format(date, "dd") : "",
+            hour: isValid(date) ? format(date, "HH") : "",
+            minute: isValid(date) ? format(date, "mm") : "",
+            second: isValid(date) ? format(date, "ss") : "",
+            id: video.stream_id?.toString() || randomUUID(), // bad solution
+            season: channel.current_season,
+            absolute_season: channel.current_absolute_season ? channel.current_absolute_season.toString().padStart(2, "0") : "",
+            // episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
+            episode: "0", // episode won't work with random downloads
+        };
+
+        const basename = sanitize(formatString(Config.getInstance().cfg("filename_vod"), variables));
+        const basefolder = "";
+        */
+
+        const basename = template(video, "filename_vod");
+        const basefolder = path.join(channel.getFolder(), template(video, "filename_vod_folder"));
+
+        const filepath = path.join(basefolder, `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
+
+        if (TwitchVOD.hasVod(basename)) {
+            res.status(400).send({
+                status: "ERROR",
+                message: `VOD already exists: ${basename}`,
+            } as ApiErrorResponse);
+            return;
+        }
+
+        if (!fs.existsSync(path.dirname(filepath))) {
+            fs.mkdirSync(path.dirname(filepath), { recursive: true });
+        }
+
+        let status = false;
 
         try {
-            vod = await channel.createVOD(path.join(basefolder, `${basename}.json`));
+            status = await TwitchVOD.downloadVideo(video_id, quality, filepath) != "";
         } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.download", `Failed to download video: ${(error as Error).message}`);
             res.status(400).send({
                 status: "ERROR",
                 message: (error as Error).message,
@@ -550,28 +541,160 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             return;
         }
 
-        // vod.meta = video;
-        // vod.streamer_name = channel.display_name || channel.login;
-        // vod.streamer_login = channel.login;
-        // vod.streamer_id = channel.userid || "";
-        vod.started_at = parseJSON(video.created_at);
+        if (status) {
 
-        const duration = TwitchHelper.parseTwitchDuration(video.duration);
-        vod.ended_at = new Date(vod.started_at.getTime() + (duration * 1000));
-        await vod.saveJSON("manual creation");
+            let vod;
 
-        vod.addSegment(path.basename(filepath));
-        vod.finalize();
-        await vod.saveJSON("manual finalize");
+            try {
+                vod = await channel.createVOD(path.join(basefolder, `${basename}.json`));
+            } catch (error) {
+                res.status(400).send({
+                    status: "ERROR",
+                    message: (error as Error).message,
+                } as ApiErrorResponse);
+                return;
+            }
 
-        Webhook.dispatch("end_download", {
-            vod: await vod.toAPI(),
-        });
+            // vod.meta = video;
+            // vod.streamer_name = channel.display_name || channel.login;
+            // vod.streamer_login = channel.login;
+            // vod.streamer_id = channel.userid || "";
+            vod.started_at = parseJSON(video.created_at);
+
+            // const duration = TwitchHelper.parseTwitchDuration(video.duration);
+            vod.ended_at = new Date(vod.started_at.getTime() + (video.duration * 1000));
+            await vod.saveJSON("manual creation");
+
+            vod.addSegment(path.basename(filepath));
+            await vod.finalize();
+            await vod.saveJSON("manual finalize");
+
+            Webhook.dispatch("end_download", {
+                vod: await vod.toAPI(),
+            });
+
+        } else {
+            res.status(400).send({
+                status: "ERROR",
+                message: "Video download failed",
+            } as ApiErrorResponse);
+            return;
+        }
+
+    } else if (isYouTubeChannel(channel)) {
+
+        if (YouTubeVOD.getVodByProviderId(video_id)) {
+            res.status(400).send({
+                status: "ERROR",
+                message: "Video already downloaded",
+            } as ApiErrorResponse);
+            return;
+        }
+
+        let video: ProxyVideo | false;
+        try {
+            video = await YouTubeVOD.getVideoProxy(video_id);
+        } catch (error) {
+            res.status(400).send({
+                status: "ERROR",
+                message: `Error while fetching video data: ${(error as Error).message}`,
+            } as ApiErrorResponse);
+            return;
+        }
+
+        if (!video) {
+            res.status(400).send({
+                status: "ERROR",
+                message: "Video not found",
+            } as ApiErrorResponse);
+            return;
+        }
+
+        console.debug("video", video);
+
+        const basename = template(video, "filename_vod");
+        const basefolder = path.join(channel.getFolder(), template(video, "filename_vod_folder"));
+
+        const filepath = path.join(basefolder, `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
+
+        if (YouTubeVOD.hasVod(basename)) {
+            res.status(400).send({
+                status: "ERROR",
+                message: `VOD already exists: ${basename}`,
+            } as ApiErrorResponse);
+            return;
+        }
+
+        if (!fs.existsSync(path.dirname(filepath))) {
+            fs.mkdirSync(path.dirname(filepath), { recursive: true });
+        }
+
+        let status = false;
+
+        try {
+            status = await YouTubeVOD.downloadVideo(video_id, quality, filepath) != "";
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "route.channels.download", `Failed to download video: ${(error as Error).message}`);
+            res.status(400).send({
+                status: "ERROR",
+                message: (error as Error).message,
+            } as ApiErrorResponse);
+            return;
+        }
+
+        if (status) {
+
+            let vod;
+
+            try {
+                vod = await channel.createVOD(path.join(basefolder, `${basename}.json`));
+            } catch (error) {
+                res.status(400).send({
+                    status: "ERROR",
+                    message: (error as Error).message,
+                } as ApiErrorResponse);
+                return;
+            }
+
+            // vod.meta = video;
+            // vod.streamer_name = channel.display_name || channel.login;
+            // vod.streamer_login = channel.login;
+            // vod.streamer_id = channel.userid || "";
+            vod.started_at = parseJSON(video.created_at);
+
+            // const duration = TwitchHelper.parseTwitchDuration(video.duration);
+            vod.ended_at = new Date(vod.started_at.getTime() + (video.duration * 1000));
+            await vod.saveJSON("manual creation");
+
+            vod.addSegment(path.basename(filepath));
+            await vod.finalize();
+            await vod.saveJSON("manual finalize");
+
+            if (!vod.channel_uuid) {
+                Log.logAdvanced(LOGLEVEL.FATAL, "route.channels.download", `Channel UUID is empty for VOD ${vod.uuid}`);
+                res.status(500).send({
+                    status: "ERROR",
+                    message: "Channel UUID is empty",
+                } as ApiErrorResponse);
+                return;
+            }
+
+            Webhook.dispatch("end_download", {
+                vod: await vod.toAPI(),
+            });
+
+        } else {
+            res.status(400).send({
+                status: "ERROR",
+                message: "Video download failed",
+            } as ApiErrorResponse);
+            return;
+        }
 
     } else {
         res.status(400).send({
             status: "ERROR",
-            message: "Video download failed",
+            message: "Channel is not supported",
         } as ApiErrorResponse);
         return;
     }
@@ -723,80 +846,118 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
         return;
     }
 
-    const streams = await TwitchChannel.getStreams(channel.internalId);
+    if (isTwitchChannel(channel)) {
 
-    if (streams) {
-        const stream = streams.find((s) => s.type === "live");
-        if (stream) {
-            const mock_data: EventSubStreamOnline = {
-                "subscription": {
-                    "id": "fake",
-                    "type": "stream.online",
-                    "condition": {
+        const streams = await TwitchChannel.getStreams(channel.internalId);
+
+        if (streams) {
+            const stream = streams.find((s) => s.type === "live");
+            if (stream) {
+                const mock_data: EventSubStreamOnline = {
+                    "subscription": {
+                        "id": "fake",
+                        "type": "stream.online",
+                        "condition": {
+                            "broadcaster_user_id": stream.user_id,
+                        },
+                        "version": "1",
+                        "status": "enabled",
+                        "created_at": new Date().toISOString(),
+                        "cost": 0,
+                        "transport": {
+                            "method": "webhook",
+                            "callback": "https://example.com/webhook",
+                        },
+                    },
+                    "event": {
+                        "type": "live",
+                        "id": stream.id,
                         "broadcaster_user_id": stream.user_id,
+                        "broadcaster_user_login": stream.user_login,
+                        "broadcaster_user_name": stream.user_name,
+                        // "title": stream.title,
+                        // "category_id": stream.game_id,
+                        // "category_name": stream.game_name,
+                        "started_at": stream.started_at,
+                        // "is_mature": stream.is_mature,
                     },
-                    "version": "1",
-                    "status": "enabled",
-                    "created_at": new Date().toISOString(),
-                    "cost": 0,
-                    "transport": {
-                        "method": "webhook",
-                        "callback": "https://example.com/webhook",
-                    },
-                },
-                "event": {
-                    "type": "live",
-                    "id": stream.id,
-                    "broadcaster_user_id": stream.user_id,
-                    "broadcaster_user_login": stream.user_login,
-                    "broadcaster_user_name": stream.user_name,
-                    // "title": stream.title,
-                    // "category_id": stream.game_id,
-                    // "category_name": stream.game_name,
-                    "started_at": stream.started_at,
-                    // "is_mature": stream.is_mature,
-                },
-            };
+                };
 
-            req.headers["twitch-eventsub-message-id"] = "fake";
-            req.headers["twitch-eventsub-signature"] = "fake";
-            req.headers["twitch-eventsub-message-retry"] = "0";
+                req.headers["twitch-eventsub-message-id"] = "fake";
+                req.headers["twitch-eventsub-signature"] = "fake";
+                req.headers["twitch-eventsub-message-retry"] = "0";
 
-            const chapter_data = {
-                started_at: JSON.stringify(parseJSON(stream.started_at)),
-                game_id: stream.game_id,
-                game_name: stream.game_name,
-                viewer_count: stream.viewer_count,
-                title: stream.title,
-                is_mature: stream.is_mature,
-                online: true,
-            } as TwitchVODChapterJSON;
-            KeyValue.getInstance().setObject(`${stream.user_login}.chapterdata`, chapter_data);
+                const chapter_data = {
+                    started_at: JSON.stringify(parseJSON(stream.started_at)),
+                    game_id: stream.game_id,
+                    game_name: stream.game_name,
+                    viewer_count: stream.viewer_count,
+                    title: stream.title,
+                    is_mature: stream.is_mature,
+                    online: true,
+                } as TwitchVODChapterJSON;
+                KeyValue.getInstance().setObject(`${stream.user_login}.chapterdata`, chapter_data);
 
-            const TA = new TwitchAutomator();
-            TA.handle(mock_data, req);
+                const TA = new TwitchAutomator();
+                TA.handle(mock_data, req);
+
+                res.send({
+                    status: "OK",
+                    message: `Forced recording of channel: ${channel.internalName}`,
+                });
+
+                return;
+
+            } else {
+                res.status(400).send({
+                    status: "ERROR",
+                    message: "No live stream found",
+                } as ApiErrorResponse);
+                return;
+            }
+
+        } else {
+            res.status(400).send({
+                status: "ERROR",
+                message: "No streams found",
+            } as ApiErrorResponse);
+            return;
+        }
+
+    } else if (isYouTubeChannel(channel)) {
+
+        const streams = await channel.getStreams();
+
+        if (streams) {
+
+            const YA = new YouTubeAutomator();
+            YA.broadcaster_user_id = channel.internalId;
+            YA.broadcaster_user_name = channel.displayName;
+            YA.broadcaster_user_login = channel.internalName;
+            YA.channel = channel;
+            // YA.handle(mock_data, req);
+
+            KeyValue.getInstance().set(`yt.${YA.getUserID()}.vod.started_at`, streams.snippet?.publishedAt || new Date().toISOString());
+            KeyValue.getInstance().set(`yt.${YA.getUserID()}.vod.id`, streams.id?.videoId || "fake");
+
+            YA.download();
 
             res.send({
                 status: "OK",
                 message: `Forced recording of channel: ${channel.internalName}`,
             });
 
-            return;
-
         } else {
+
             res.status(400).send({
                 status: "ERROR",
-                message: "No live stream found",
+                message: "No streams found",
             } as ApiErrorResponse);
-            return;
+
         }
 
-    } else {
-        res.status(400).send({
-            status: "ERROR",
-            message: "No streams found",
-        } as ApiErrorResponse);
         return;
+
     }
 
 }
@@ -895,7 +1056,7 @@ export function GetHistory(req: express.Request, res: express.Response): void {
 
     const history: HistoryEntry[] = [];
 
-    const file = path.join(BaseConfigDataFolder.history, `${channel.internalName}.jsonline`);
+    const file = path.join(BaseConfigCacheFolder.history, `${channel.internalName}.jsonline`);
     if (!fs.existsSync(file)) {
         res.status(400).send({
             status: "ERROR",
@@ -930,6 +1091,14 @@ export async function ScanVods(req: express.Request, res: express.Response): Pro
         res.status(400).send({
             status: "ERROR",
             message: "Channel not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (channel.is_capturing || channel.is_converting) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel is currently capturing. Please stop the capture first or wait until it is finished.",
         } as ApiErrorResponse);
         return;
     }

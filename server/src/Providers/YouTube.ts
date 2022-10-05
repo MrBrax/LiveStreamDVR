@@ -1,4 +1,4 @@
-import { BaseConfigDataFolder } from "../Core/BaseConfig";
+import { BaseConfigCacheFolder } from "../Core/BaseConfig";
 // import { OAuth2Client } from "google-auth-library";
 import { OAuth2Client } from "googleapis-common";
 import type { Credentials } from "google-auth-library";
@@ -17,15 +17,15 @@ export class YouTubeHelper {
         "https://www.googleapis.com/auth/youtube.readonly",
     ];
 
-    static readonly accessTokenFile = path.join(BaseConfigDataFolder.cache, "youtube_oauth.json");
-    static readonly accessTokenRefreshFile = path.join(BaseConfigDataFolder.cache, "youtube_oauth_refresh.bin");
+    static readonly accessTokenFile = path.join(BaseConfigCacheFolder.cache, "youtube_oauth.json");
+    static readonly accessTokenRefreshFile = path.join(BaseConfigCacheFolder.cache, "youtube_oauth_refresh.bin");
     static readonly accessTokenExpire = 60 * 60 * 24 * 60 * 1000; // 60 days
     // static readonly accessTokenRefresh = 60 * 60 * 24 * 30 * 1000; // 30 days
 
     static oAuth2Client?: OAuth2Client;
     static authenticated = false;
     static username = "";
-    static username_file = path.join(BaseConfigDataFolder.cache, "youtube_username.txt");
+    static username_file = path.join(BaseConfigCacheFolder.cache, "youtube_username.txt");
     static accessTokenTime = 0;
     private static accessToken?: Credentials;
     private static accessTokenRefresh?: string;
@@ -38,6 +38,8 @@ export class YouTubeHelper {
         if (app_url == "debug") {
             app_url = "http://localhost:8081";
         }
+
+        const full_app_url = `${app_url}/api/v0/youtube/callback`;
 
         this.authenticated = false;
         this.oAuth2Client = undefined;
@@ -55,8 +57,10 @@ export class YouTubeHelper {
             client_id,
             client_secret,
             // "http://localhost:8081/api/v0/youtube/callback"
-            `${app_url}/api/v0/youtube/callback`
+            full_app_url
         );
+
+        Log.logAdvanced(LOGLEVEL.INFO, "YouTubeHelper", `Created OAuth2Client with redirect ${full_app_url}`);
 
         this.oAuth2Client.on("tokens", (tokens) => {
             if (tokens.refresh_token) {
@@ -94,6 +98,8 @@ export class YouTubeHelper {
             Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeHelper", "No refresh token found");
         }
 
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTubeHelper", `YouTubeHelper setup complete, authenticated: ${this.authenticated}`);
+
         /*
         this.oAuth2Client.setCredentials({
             refresh_token: fs.readFileSync(this.accessTokenRefreshFile, { encoding: "utf-8" }),
@@ -109,7 +115,7 @@ export class YouTubeHelper {
     }
 
     static loadToken(): Credentials | undefined {
-        
+
         if (!fs.existsSync(this.accessTokenFile)) {
             Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `No token found in ${this.accessTokenFile}`);
             return undefined;
@@ -118,7 +124,7 @@ export class YouTubeHelper {
         const json = fs.readFileSync(this.accessTokenFile, "utf8");
 
         const creds: Credentials = JSON.parse(json);
-        
+
         if (creds.expiry_date && new Date().getTime() > creds.expiry_date) {
             Log.logAdvanced(LOGLEVEL.WARNING, "YouTubeHelper", `Token expired at ${creds.expiry_date}`);
             fs.unlinkSync(this.accessTokenFile);

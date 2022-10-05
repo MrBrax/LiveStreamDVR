@@ -9,7 +9,7 @@ import { version } from "../../package.json";
 import path from "path";
 import { WebSocketServer } from "ws";
 import { ChannelConfig } from "../../../common/Config";
-import { BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
+import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
 import { Job } from "./Job";
@@ -22,6 +22,8 @@ import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { YouTubeVOD } from "./Providers/YouTube/YouTubeVOD";
 import { Scheduler } from "./Scheduler";
 import { Webhook } from "./Webhook";
+import { log } from "console";
+import { Helper } from "./Helper";
 
 export type ChannelTypes = TwitchChannel | YouTubeChannel;
 export type VODTypes = TwitchVOD | YouTubeVOD;
@@ -114,6 +116,8 @@ export class LiveStreamDVR {
         if (this.channels_config.length > 0) {
             for (const channel of this.channels_config) {
 
+                Log.logAdvanced(LOGLEVEL.INFO, "channel", `Loading channel ${channel.uuid}, provider ${channel.provider}...`);
+
                 if (!channel.provider || channel.provider == "twitch") {
 
                     let ch: TwitchChannel;
@@ -121,7 +125,7 @@ export class LiveStreamDVR {
                     try {
                         ch = await TwitchChannel.loadFromLogin(channel.login);
                     } catch (th) {
-                        Log.logAdvanced(LOGLEVEL.FATAL, "config", `TW Channel ${channel.login} could not be loaded: ${th}`);
+                        Log.logAdvanced(LOGLEVEL.FATAL, "dvr.load.tw", `TW Channel ${channel.login} could not be loaded: ${th}`);
                         console.error(th);
                         continue;
                         // break;
@@ -131,12 +135,12 @@ export class LiveStreamDVR {
                         this.channels.push(ch);
                         ch.postLoad();
                         ch.vods_list.forEach(vod => vod.postLoad());
-                        Log.logAdvanced(LOGLEVEL.SUCCESS, "config", `Loaded channel ${channel.login} with ${ch.vods_list?.length} vods`);
+                        Log.logAdvanced(LOGLEVEL.SUCCESS, "dvr.load.tw", `Loaded channel ${channel.login} with ${ch.vods_list?.length} vods`);
                         if (ch.no_capture) {
-                            Log.logAdvanced(LOGLEVEL.WARNING, "config", `Channel ${channel.login} is configured to not capture streams.`);
+                            Log.logAdvanced(LOGLEVEL.WARNING, "dvr.load.tw", `Channel ${channel.login} is configured to not capture streams.`);
                         }
                     } else {
-                        Log.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be added, please check logs.`);
+                        Log.logAdvanced(LOGLEVEL.FATAL, "dvr.load.tw", `Channel ${channel.login} could not be added, please check logs.`);
                         break;
                     }
 
@@ -147,7 +151,7 @@ export class LiveStreamDVR {
                     try {
                         ch = await YouTubeChannel.loadFromId(channel.channel_id);
                     } catch (th) {
-                        Log.logAdvanced(LOGLEVEL.FATAL, "config", `YT Channel ${channel.channel_id} could not be loaded: ${th}`);
+                        Log.logAdvanced(LOGLEVEL.FATAL, "dvr.load.yt", `YT Channel ${channel.channel_id} could not be loaded: ${th}`);
                         console.error(th);
                         continue;
                         // break;
@@ -157,12 +161,12 @@ export class LiveStreamDVR {
                         this.channels.push(ch);
                         ch.postLoad();
                         ch.vods_list.forEach(vod => vod.postLoad());
-                        Log.logAdvanced(LOGLEVEL.SUCCESS, "config", `Loaded channel ${channel.channel_id} with ${ch.vods_list?.length} vods`);
+                        Log.logAdvanced(LOGLEVEL.SUCCESS, "dvr.load.yt", `Loaded channel ${ch.displayName} with ${ch.vods_list?.length} vods`);
                         if (ch.no_capture) {
-                            Log.logAdvanced(LOGLEVEL.WARNING, "config", `Channel ${channel.channel_id} is configured to not capture streams.`);
+                            Log.logAdvanced(LOGLEVEL.WARNING, "dvr.load.yt", `Channel ${ch.displayName} is configured to not capture streams.`);
                         }
                     } else {
-                        Log.logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.channel_id} could not be added, please check logs.`);
+                        Log.logAdvanced(LOGLEVEL.FATAL, "dvr.load.yt", `Channel ${channel.channel_id} could not be added, please check logs.`);
                         break;
                     }
 
@@ -270,9 +274,9 @@ export class LiveStreamDVR {
     }
 
     public static checkVersion(): void {
-        if (fs.existsSync(path.join(BaseConfigDataFolder.cache))) {
-            if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"))) {
-                const old_version = fs.readFileSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"), { encoding: "utf-8" });
+        if (fs.existsSync(path.join(BaseConfigCacheFolder.cache))) {
+            if (fs.existsSync(path.join(BaseConfigCacheFolder.cache, "currentversion.dat"))) {
+                const old_version = fs.readFileSync(path.join(BaseConfigCacheFolder.cache, "currentversion.dat"), { encoding: "utf-8" });
                 let compare;
                 try {
                     compare = compareVersions(version, old_version) == -1 && !this.argv["ignore-version"];
@@ -287,8 +291,29 @@ export class LiveStreamDVR {
                     process.exit(1);
                 }
             }
-            fs.writeFileSync(path.join(BaseConfigDataFolder.cache, "currentversion.dat"), version);
+            fs.writeFileSync(path.join(BaseConfigCacheFolder.cache, "currentversion.dat"), version);
         }
     }
+
+    /*
+    public async buildClientWithBasepath(basepath = ""): Promise<boolean> {
+        console.log(process.env.PATH);
+        const bin = "yarn";
+        const args: string[] = ["build", "--basepath", basepath ?? Config.getInstance().cfg<string>("basepath")];
+        try {
+            await Helper.execSuperAdvanced(bin, args, path.join(AppRoot, "client-vue"), process.env, "buildClientWithBasepath");
+        } catch (error) {
+            console.log(chalk.red(`Could not build client: ${(error as Error).message}`));
+            return false;
+        }
+        return true;
+    }
+    */
+
+    // private migrateCacheToData(relative_path: string): void {
+    //     if (fs.existsSync(path.join(BaseConfigCacheFolder.cache, relative_path))) {
+    //         fs.renameSync(path.join(BaseConfigCacheFolder.cache, relative_path), path.join(BaseConfigDataFolder., relative_path));
+    //     }
+    // }
 
 }

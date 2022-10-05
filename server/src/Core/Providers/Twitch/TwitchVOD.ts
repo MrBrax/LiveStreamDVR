@@ -11,27 +11,27 @@ import { ApiTwitchVod } from "../../../../../common/Api/Client";
 import { TwitchVODBookmark } from "../../../../../common/Bookmark";
 import type { TwitchComment, TwitchCommentDump } from "../../../../../common/Comments";
 import { VideoQuality } from "../../../../../common/Config";
-import { JobStatus, MuteStatus } from "../../../../../common/Defs";
+import { JobStatus, MuteStatus, Providers } from "../../../../../common/Defs";
 import { AudioStream, FFProbe, VideoStream } from "../../../../../common/FFProbe";
 import { VideoMetadata } from "../../../../../common/MediaInfo";
+import { ProxyVideo } from "../../../../../common/Proxies/Video";
 import { Clip, ClipsResponse } from "../../../../../common/TwitchAPI/Clips";
 import { Video, VideosResponse } from "../../../../../common/TwitchAPI/Video";
+import { Helper } from "../../../Core/Helper";
+import { TwitchHelper } from "../../../Providers/Twitch";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../../../Storage/JSON";
-import { AppName, BaseConfigDataFolder } from "../../BaseConfig";
+import { AppName, BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
 import { FFmpegMetadata } from "../../FFmpegMetadata";
-import { TwitchHelper } from "../../../Providers/Twitch";
 import { Job } from "../../Job";
 import { LiveStreamDVR } from "../../LiveStreamDVR";
 import { Log, LOGLEVEL } from "../../Log";
+import { Webhook } from "../../Webhook";
+import { BaseVOD } from "../Base/BaseVOD";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVODChapter } from "./TwitchVODChapter";
-import { BaseVOD } from "../Base/BaseVOD";
-import { Webhook } from "../../Webhook";
-import { ProxyVideo } from "../../../../../common/Proxies/Video";
-import { Helper } from "../../../Core/Helper";
 
 /**
  * Twitch VOD
@@ -39,6 +39,8 @@ import { Helper } from "../../../Core/Helper";
  * @warning **Do NOT create this class directly. Use TwitchChannel.createVOD() instead.**
  */
 export class TwitchVOD extends BaseVOD {
+
+    public provider: Providers = "twitch";
 
     json?: TwitchVODJSON;
     // meta?: EventSubResponse;
@@ -90,15 +92,15 @@ export class TwitchVOD extends BaseVOD {
             throw new Error("No JSON loaded for basic setup!");
         }
 
+        super.setupBasic();
+
         // $this->is_recording = file_exists($this->directory . DIRECTORY_SEPARATOR . $this->basename . '.ts');
         // $this->is_converted = file_exists($this->directory . DIRECTORY_SEPARATOR . $this->basename . '.mp4');
 
         // $this->is_capturing 	= isset($this->json['is_capturing']) ? $this->json['is_capturing'] : false;
         // $this->is_converting 	= isset($this->json['is_converting']) ? $this->json['is_converting'] : false;
         // $this->is_finalized 	= isset($this->json['is_finalized']) ? $this->json['is_finalized'] : false;
-        this.is_capturing = this.json.is_capturing;
-        this.is_converting = this.json.is_converting;
-        this.is_finalized = this.json.is_finalized;
+        
 
         // $this->force_record				= isset($this->json['force_record']) ? $this->json['force_record'] : false;
         // $this->automator_fail			= isset($this->json['automator_fail']) ? $this->json['automator_fail'] : false;
@@ -111,17 +113,9 @@ export class TwitchVOD extends BaseVOD {
         // $this->duration 			= $this->json['duration'];
         // $this->duration_seconds 	= $this->json['duration_seconds'] ? (int)$this->json['duration_seconds'] : null;
 
-        this.duration = this.json.duration ?? undefined;
-
         // TODO: what
         // const dur = this.getDurationLive();
         // this.duration_live = dur === false ? -1 : dur;
-
-        this.webpath = `${Config.getInstance().cfg<string>("basepath", "")}/vods/` + path.relative(BaseConfigDataFolder.vod, this.directory);
-
-        this.comment = this.json.comment;
-        this.prevent_deletion = this.json.prevent_deletion ?? false;
-        this.failed = this.json.failed ?? false;
 
         this.bookmarks = this.json.bookmarks ? this.json.bookmarks.map((b => {
             return {
@@ -612,103 +606,6 @@ export class TwitchVOD extends BaseVOD {
 
     }
 
-    public saveLosslessCut(): boolean {
-
-        if (!this.directory) {
-            throw new Error("TwitchVOD.saveLosslessCut: directory is not set");
-        }
-
-        if (!this.chapters || this.chapters.length == 0) {
-            // throw new Error('TwitchVOD.saveLosslessCut: chapters are not set');
-            return false;
-        }
-
-        // $csv_path = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv';
-        const csv_path = path.join(this.directory, `${this.basename}-llc-edl.csv`);
-
-        Log.logAdvanced(LOGLEVEL.INFO, "vod.saveLosslessCut", `Saving lossless cut csv for ${this.basename} to ${csv_path}`);
-
-        let data = "";
-
-        this.chapters.forEach((chapter, i) => {
-            let offset = chapter.offset;
-            if (offset === undefined) return;
-
-            offset -= this.chapters[0].offset || 0;
-
-            data += offset + ","; // offset
-
-            if (i < this.chapters.length - 1) { // not last chapter
-                data += (offset + (chapter.duration || 0)) + ",";
-            } else { // last chapter
-                data += ",";
-            }
-
-            data += "\"";
-            let label = `${chapter.game_name || chapter.game_id} (${chapter.title})`;
-            label = label.replace(/"/g, "\\\"");
-            data += label;
-            data += "\"";
-
-            data += "\n";
-        });
-
-        fs.writeFileSync(csv_path, data);
-
-        this.setPermissions();
-
-        return fs.existsSync(csv_path);
-    }
-
-    /**
-     * Save chapter data in ffmpeg format for use in remuxing.
-     * @see {@link https://ikyle.me/blog/2020/add-mp4-chapters-ffmpeg}
-     * @returns Save success
-     */
-    public saveFFMPEGChapters(): boolean {
-
-        if (!this.directory) {
-            throw new Error("TwitchVOD.saveFFMPEGChapters: directory is not set");
-        }
-
-        if (!this.chapters || this.chapters.length == 0) {
-            // throw new Error('TwitchVOD.saveFFMPEGChapters: chapters are not set');
-            return false;
-        }
-
-        Log.logAdvanced(LOGLEVEL.INFO, "vod.saveFFMPEGChapters", `Saving FFMPEG chapters file for ${this.basename} to ${this.path_ffmpegchapters}`);
-
-        const meta = new FFmpegMetadata()
-            .setArtist(this.getChannel().displayName)
-            .setTitle(this.twitch_vod_title ?? this.chapters[0].title);
-
-        if (this.started_at) meta.setDate(this.started_at);
-
-        this.chapters.forEach((chapter) => {
-            const offset = chapter.offset || 0;
-            const duration = chapter.duration || 0;
-            const start = Math.floor(offset * 1000);
-            const end = Math.floor((offset + duration) * 1000);
-            const title = `${chapter.title} (${chapter.game_name})`;
-            meta.addChapter(start, end, title, "1/1000", [
-                `Game ID: ${chapter.game_id}`,
-                `Game Name: ${chapter.game_name}`,
-                `Title: ${chapter.title}`,
-                `Offset: ${offset}`,
-                `Duration: ${duration}`,
-                `Viewer count: ${chapter.viewer_count}`,
-                `Started at: ${chapter.started_at.toISOString()}`,
-            ]);
-        });
-
-        fs.writeFileSync(this.path_ffmpegchapters, meta.getString(), { encoding: "utf8" });
-
-        this.setPermissions();
-
-        return fs.existsSync(this.path_ffmpegchapters);
-
-    }
-
     public saveVTTChapters(): boolean {
 
         if (!this.directory) {
@@ -1079,28 +976,6 @@ export class TwitchVOD extends BaseVOD {
         return generated;
 
     }
-
-    public setPermissions(): void {
-
-        if (
-            !Config.getInstance().cfg("file_permissions") ||
-            !Config.getInstance().cfg("file_chown_uid") ||
-            !Config.getInstance().cfg("file_chown_gid") ||
-            !Config.getInstance().cfg("file_chmod")
-        ) {
-            return;
-        }
-
-        for (const file of this.associatedFiles) {
-            const fullpath = path.join(this.directory, file);
-            if (fs.existsSync(fullpath)) {
-                fs.chownSync(fullpath, Config.getInstance().cfg("file_chown_uid"), Config.getInstance().cfg("file_chown_gid"));
-                fs.chmodSync(fullpath, Config.getInstance().cfg("file_chmod"));
-            }
-        }
-
-    }
-
 
 
     /**
@@ -1488,8 +1363,8 @@ export class TwitchVOD extends BaseVOD {
         if (!files.ref || !files.act) return;
 
         for (const f of ["ref", "act"]) {
-            if (!fs.existsSync(path.join(BaseConfigDataFolder.cache, `${f}.wav`))) {
-                const wavconvert = await Helper.execSimple("ffmpeg", ["-i", files[f as "act" | "ref"], "-t", "00:05:00", "-vn", path.join(BaseConfigDataFolder.cache, `${f}.wav`)], `${f} ffmpeg convert`);
+            if (!fs.existsSync(path.join(BaseConfigCacheFolder.cache, `${f}.wav`))) {
+                const wavconvert = await Helper.execSimple("ffmpeg", ["-i", files[f as "act" | "ref"], "-t", "00:05:00", "-vn", path.join(BaseConfigCacheFolder.cache, `${f}.wav`)], `${f} ffmpeg convert`);
             }
         }
 
@@ -1930,6 +1805,10 @@ export class TwitchVOD extends BaseVOD {
         return LiveStreamDVR.getInstance().vods.find<TwitchVOD>((vod): vod is TwitchVOD => vod instanceof TwitchVOD && vod.uuid == uuid);
     }
 
+    public static getVodByProviderId(provider_id: string): TwitchVOD | undefined {
+        return LiveStreamDVR.getInstance().vods.find<TwitchVOD>((vod): vod is TwitchVOD => vod instanceof TwitchVOD && vod.twitch_vod_id == provider_id);
+    }
+
     /**
      * Download a video from Twitch to a file
      * 
@@ -1952,7 +1831,7 @@ export class TwitchVOD extends BaseVOD {
 
         const basename = path.basename(filename);
 
-        const capture_filename = path.join(BaseConfigDataFolder.cache, `${video_id}.ts`);
+        const capture_filename = path.join(BaseConfigCacheFolder.cache, `${video_id}.ts`);
         const converted_filename = filename;
 
         // download vod
@@ -2027,7 +1906,7 @@ export class TwitchVOD extends BaseVOD {
 
             let chapters_file = "";
             if (Config.getInstance().cfg("create_video_chapters")) {
-                chapters_file = path.join(BaseConfigDataFolder.cache, `${video_id}.ffmpeg.txt`);
+                chapters_file = path.join(BaseConfigCacheFolder.cache, `${video_id}.ffmpeg.txt`);
                 const end = TwitchHelper.parseTwitchDuration(video.duration);
                 const meta = new FFmpegMetadata().setArtist(video.user_name).setTitle(video.title).addChapter(0, end, video.title, "1/1000");
                 fs.writeFileSync(chapters_file, meta.getString());
@@ -2097,7 +1976,7 @@ export class TwitchVOD extends BaseVOD {
 
         const basename = path.basename(filename);
 
-        const capture_filename = path.join(BaseConfigDataFolder.cache, `${clip_id}.ts`);
+        const capture_filename = path.join(BaseConfigCacheFolder.cache, `${clip_id}.ts`);
         const converted_filename = filename;
 
         // download vod
@@ -2170,7 +2049,7 @@ export class TwitchVOD extends BaseVOD {
                 .setTitle(clip.title)
                 .setComment(`Clipped by ${clip.creator_name}.\nSource: ${clip.url}\nClip ID: ${clip.id}`)
                 .setDate(parseJSON(clip.created_at))
-                .writeToFile(path.join(BaseConfigDataFolder.cache, `${clip_id}.ffmpeg.txt`));
+                .writeToFile(path.join(BaseConfigCacheFolder.cache, `${clip_id}.ffmpeg.txt`));
 
             let ret;
             try {
@@ -2305,9 +2184,56 @@ export class TwitchVOD extends BaseVOD {
                 duration: TwitchHelper.parseTwitchDuration(item.duration),
                 view_count: item.view_count,
                 muted_segments: item.muted_segments,
+                stream_id: item.stream_id,
             } as ProxyVideo;
         });
     }
+
+    static async getVideoProxy(video_id: string): Promise<false | ProxyVideo> {
+        if (!video_id) throw new Error("No video id");
+
+        if (!TwitchHelper.axios) {
+            throw new Error("Axios is not initialized");
+        }
+
+        let response;
+
+        try {
+            response = await TwitchHelper.axios.get(`/helix/videos/?id=${video_id}`);
+        } catch (err) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Tried to get video id ${video_id} but got error ${(err as Error).message}`);
+            if (axios.isAxiosError(err)) {
+                if (err.response && err.response.status === 404) {
+                    return false;
+                }
+                throw new Error(`Tried to get video id ${video_id} but got error: ${(err as Error).message}`);
+            }
+            return false;
+        }
+
+        const json: VideosResponse = response.data;
+
+        if (json.data.length === 0) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Tried to get video id ${video_id} but got no data`);
+            return false;
+        }
+
+        const item = json.data[0];
+
+        return {
+            id: item.id,
+            title: item.title,
+            description: item.description,
+            url: `https://www.twitch.tv/v/${item.id}`,
+            thumbnail: item.thumbnail_url,
+            created_at: item.created_at,
+            duration: TwitchHelper.parseTwitchDuration(item.duration),
+            view_count: item.view_count,
+            muted_segments: item.muted_segments,
+        } as ProxyVideo;
+
+    }
+
 
     static async getClips({ broadcaster_id, game_id, id }: { broadcaster_id?: string; game_id?: string; id?: string[] | string; }, max_age?: number): Promise<false | Clip[]> {
 
@@ -2384,15 +2310,15 @@ export class TwitchVOD extends BaseVOD {
 
             const args: string[] = [];
             args.push("--mode", "ChatDownload");
-            args.push("--temp-path", BaseConfigDataFolder.cache);
+            args.push("--temp-path", BaseConfigCacheFolder.cache);
             args.push("--ffmpeg-path", Helper.path_ffmpeg() || "");
             args.push("--id", vod_id);
             args.push("-o", output);
 
             const env = {
-                DOTNET_BUNDLE_EXTRACT_BASE_DIR: BaseConfigDataFolder.dotnet,
-                TEMP: BaseConfigDataFolder.cache,
-                PWD: BaseConfigDataFolder.dotnet,
+                DOTNET_BUNDLE_EXTRACT_BASE_DIR: BaseConfigCacheFolder.dotnet,
+                TEMP: BaseConfigCacheFolder.cache,
+                PWD: BaseConfigCacheFolder.dotnet,
             };
 
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Downloading chat for ${vod_id}`);
@@ -2456,7 +2382,7 @@ export class TwitchVOD extends BaseVOD {
                 return;
             }
 
-            const temp_filepath = path.join(BaseConfigDataFolder.cache, `${vod_id}.json`);
+            const temp_filepath = path.join(BaseConfigCacheFolder.cache, `${vod_id}.json`);
 
             if (fs.existsSync(temp_filepath)) {
                 fs.renameSync(temp_filepath, output);
@@ -2474,7 +2400,7 @@ export class TwitchVOD extends BaseVOD {
                 args.push("--verbose");
                 args.push("--debug");
             }
-            args.push("--output", BaseConfigDataFolder.cache);
+            args.push("--output", BaseConfigCacheFolder.cache);
 
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Downloading chat for ${vod_id}`);
 

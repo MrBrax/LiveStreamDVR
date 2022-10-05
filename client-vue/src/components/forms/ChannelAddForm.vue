@@ -23,7 +23,7 @@
                 </select>
             </div>
             <p class="input-help">
-                YouTube will not work until they add webhooks for livestreams. It is only here as a proof of concept.
+                YouTube will not work properly until they add webhooks for livestreams. It works with manual recordings and videos.
             </p>
         </div>
 
@@ -62,6 +62,32 @@
             v-if="formData.provider == 'youtube'"
             class="field"
         >
+            <label class="label">{{ $t('forms.channel.url') }}</label>
+            <div class="control has-addon">
+                <input
+                    v-model="channelUrl"
+                    class="input"
+                    type="text"
+                    :disabled="fetchingUrl"
+                >
+                <button
+                    class="button is-confirm"
+                    type="button"
+                    @click="getChannelId"
+                >
+                    <span class="icon"><fa
+                        icon="sync"
+                        :spin="fetchingUrl"
+                    /></span>
+                    <span>{{ $t('buttons.fetch') }}</span>
+                </button>
+            </div>
+        </div>
+
+        <div
+            v-if="formData.provider == 'youtube'"
+            class="field"
+        >
             <label class="label">{{ $t('forms.channel.id') }} <span class="required">*</span></label>
             <div class="control has-addon">
                 <input
@@ -71,6 +97,7 @@
                     type="text"
                     name="channel_id"
                     required
+                    :disabled="fetchingUrl"
                 >
                 <!--
                 <button class="button is-confirm" type="button" @click="fetchLogin" :disabled="!formData.login">
@@ -336,6 +363,8 @@ export default defineComponent({
         },
         channelData: UserData | undefined;
         userExists: boolean | undefined;
+        channelUrl: string;
+        fetchingUrl: boolean;
     } {
         return {
             formStatusText: "Ready",
@@ -358,6 +387,8 @@ export default defineComponent({
             },
             channelData: undefined,
             userExists: undefined,
+            channelUrl: "",
+            fetchingUrl: false,
         };
     },
     computed: {
@@ -483,7 +514,21 @@ export default defineComponent({
                     console.error("no field or no response", field, err.response);
                 }
             });
-        }
+        },
+        getChannelId() {
+            this.fetchingUrl = true;
+            this.$http.post(`/api/v0/youtubeapi/channelid`, { url: this.channelUrl } ).then((response) => {
+                const json = response.data;
+                if (json.status == "OK") {
+                    this.formData.channel_id = json.data;
+                }
+                console.log("channel id", json);
+            }).catch((err: AxiosError) => {
+                console.error("channel id error", err.response);
+            }).finally(() => {
+                this.fetchingUrl = false;
+            });
+        },
     },
 });
 </script>

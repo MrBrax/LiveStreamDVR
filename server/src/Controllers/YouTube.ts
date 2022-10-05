@@ -10,6 +10,7 @@ export function Authenticate(req: express.Request, res: express.Response): void 
             status: "ERROR",
             message: "YouTube client not configured. Set it up in the settings page.",
         });
+        Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", "YouTube client not configured. Set it up in the settings page.");
         return;
     }
 
@@ -18,9 +19,29 @@ export function Authenticate(req: express.Request, res: express.Response): void 
     const url = YouTubeHelper.oAuth2Client.generateAuthUrl({
         access_type: "offline",
         scope: YouTubeHelper.SCOPES,
+        // prompt: "consent", // necessary?
     });
 
-    res.redirect(302, url);
+    if (!url) {
+        res.status(500).send({
+            status: "ERROR",
+            message: "No URL received from OAuth. Check your settings.",
+        });
+        Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", "No URL received from OAuth, user stuck.");
+        return;
+    }
+
+    if (req.query.rawurl) {
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", `Send raw URL to user: ${url}`);
+        res.status(200).send({
+            status: "OK",
+            data: url,
+        });
+        return;
+    } else {
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", `Send user to: ${url}`);
+        res.redirect(302, url);
+    }
 
 }
 
@@ -80,13 +101,15 @@ export function Callback(req: express.Request, res: express.Response): Promise<v
                 } else if (token && YouTubeHelper.oAuth2Client) {
                     Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", "Authenticated with YouTube");
                     YouTubeHelper.oAuth2Client.setCredentials(token);
-                    res.redirect(302, "/");
+                    // res.redirect(302, "/");
                     YouTubeHelper.authenticated = true;
                     YouTubeHelper.storeToken(token);
-                    YouTubeHelper.fetchUsername().then(() => {
+                    YouTubeHelper.fetchUsername().then((username) => {
                         resolve();
+                        res.send(`Authenticated with YouTube (${username}). You can close this window now.`);
                     }).catch(err => {
                         Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", `Could not get username: ${err.message}`);
+                        res.status(500).send("Could not get username, please check the logs and settings.");
                         // res.status(400).send({
                         //     status: "ERROR",
                         //     message: `Could not get username: ${err.message}`,

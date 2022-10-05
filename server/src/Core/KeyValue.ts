@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import fs from "fs";
 import path from "path";
-import { BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
+import { BaseConfigCacheFolder, BaseConfigPath } from "./BaseConfig";
 import EventEmitter from "events";
 import { Config } from "./Config";
 
@@ -49,7 +49,11 @@ export class KeyValue extends EventEmitter {
 
         key = key.replaceAll("/", "");
 
-        return this.data[key] !== undefined ? this.data[key] : false;
+        const data = this.data[key] !== undefined ? this.data[key] : false;
+
+        // if (Config.debug) console.debug(`Getting key-value pair: ${key} = ${data}`);
+
+        return data;
 
     }
 
@@ -172,13 +176,13 @@ export class KeyValue extends EventEmitter {
 
     migrateFromFileBasedKeyValue() {
         console.log(chalk.blue("Migrating key-value pairs..."));
-        const files = fs.readdirSync(BaseConfigDataFolder.keyvalue).filter(file => !file.endsWith(".json"));
+        const files = fs.readdirSync(BaseConfigCacheFolder.keyvalue).filter(file => !file.endsWith(".json"));
         let migrated = 0;
         for (const file of files) {
             // const key = file.replace(".json", "");
-            const value = fs.readFileSync(path.join(BaseConfigDataFolder.keyvalue, file), "utf8");
+            const value = fs.readFileSync(path.join(BaseConfigCacheFolder.keyvalue, file), "utf8");
             this.set(file, value);
-            fs.unlinkSync(path.join(BaseConfigDataFolder.keyvalue, file));
+            fs.unlinkSync(path.join(BaseConfigCacheFolder.keyvalue, file));
             migrated++;
         }
         if (migrated > 0) {

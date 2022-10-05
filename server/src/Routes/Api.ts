@@ -21,6 +21,7 @@ import * as TwitchAPI from "../Controllers/TwitchAPI";
 import * as Vod from "../Controllers/Vod";
 import * as YouTube from "../Controllers/YouTube";
 import * as YouTubeAPI from "../Controllers/YouTubeAPI";
+import { Config } from "../Core/Config";
 import { AuthAdmin, AuthCore, AuthGuest } from "../Helpers/Auth";
 
 const router = express.Router();
@@ -100,6 +101,7 @@ router.get("/twitchapi/channel/:login", AuthAdmin, TwitchAPI.TwitchAPIChannel);
 router.get("/twitchapi/clips", AuthAdmin, TwitchAPI.TwitchAPIClips);
 
 router.get("/youtubeapi/videos/:channel_id", AuthAdmin, YouTubeAPI.YouTubeAPIVideos);
+router.post("/youtubeapi/channelid", AuthAdmin, YouTubeAPI.YouTubeAPIChannelID);
 
 router.get("/keyvalue", AuthAdmin, KeyValue.GetAllKeyValues);
 router.delete("/keyvalue", AuthAdmin, KeyValue.DeleteAllKeyValues);
@@ -123,7 +125,8 @@ router.post("/tools/vod_download", AuthAdmin, Tools.DownloadVod);
 router.post("/tools/chat_download", AuthAdmin, Tools.DownloadChat);
 router.post("/tools/chat_dump", AuthAdmin, Tools.ChatDump);
 router.post("/tools/clip_download", AuthAdmin, Tools.DownloadClip);
-router.get("/tools/shutdown", AuthAdmin, Tools.Shutdown);
+router.post("/tools/shutdown", AuthAdmin, Tools.Shutdown);
+// router.post("/tools/buildclient", AuthAdmin, Tools.BuildClient);
 
 router.get("/files", AuthAdmin, Files.ListFiles);
 router.delete("/files", AuthAdmin, Files.DeleteFile);
@@ -139,5 +142,14 @@ router.get("/auth/check", Auth.CheckLogin);
 
 router.get("/telemetry/show", AuthAdmin, Telemetry.ShowTelemetry);
 router.post("/telemetry/send", AuthAdmin, Telemetry.SendTelemetry);
+
+// 404
+router.use(function(req, res, next) {
+    res.status(404).send(
+        `<h1>404 Not Found</h1>Endpoint <code>${req.originalUrl}</code> using method <code>${req.method}</code> does not exist.<br>` +
+        "If you think this is a bug (did you not type the URL manually?), please report it to the developers." +
+        (!Config.getInstance().cfg("password") ? `<hr>Version: ${process.env.npm_package_version}, debug ${Config.debug ? "enabled" : "disabled"}. ${new Date().toISOString()}` : "")
+    );
+});
 
 export default router;

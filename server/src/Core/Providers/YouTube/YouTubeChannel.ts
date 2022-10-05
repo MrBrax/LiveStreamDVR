@@ -12,11 +12,10 @@ import { YouTubeHelper } from "../../../Providers/YouTube";
 import { BaseConfigDataFolder, BaseConfigPath } from "../../BaseConfig";
 import { Config } from "../../Config";
 import { KeyValue } from "../../KeyValue";
-import { LiveStreamDVR } from "../../LiveStreamDVR";
+import { ChannelTypes, LiveStreamDVR } from "../../LiveStreamDVR";
 import { Log, LOGLEVEL } from "../../Log";
 import { BaseChannel } from "../Base/BaseChannel";
 import { YouTubeVOD } from "./YouTubeVOD";
-import { Helper } from "../../../Core/Helper";
 
 interface YouTubeChannelData extends youtube_v3.Schema$ChannelSnippet {
     _updated: number;
@@ -185,7 +184,7 @@ export class YouTubeChannel extends BaseChannel {
         // if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "editor", channel.login)))
         //     fs.mkdirSync(path.join(BaseConfigDataFolder.saved_clips, "editor", channel.login), { recursive: true });
 
-        // await channel.parseVODs();
+        await channel.parseVODs();
 
         // await channel.findClips();
 
@@ -491,7 +490,13 @@ export class YouTubeChannel extends BaseChannel {
         vod.streamer_name = this.displayName;
         // vod.streamer_login = this.login;
         vod.streamer_id = this.internalId;
-        vod.channel_uuid = this.uuid;
+
+        if (this.uuid) {
+            vod.channel_uuid = this.uuid;
+            Log.logAdvanced(LOGLEVEL.INFO, "channel", `Set channel uuid to ${this.uuid} for ${vod.basename}`);
+        } else {
+            throw new Error("Channel uuid is not set");
+        }
 
         vod.created_at = new Date();
 
@@ -512,7 +517,11 @@ export class YouTubeChannel extends BaseChannel {
         this.addVodToDatabase(path.relative(BaseConfigDataFolder.vod, filename));
         this.saveVodDatabase();
 
-        this.checkStaleVodsInMemory();
+        try {
+            this.checkStaleVodsInMemory();   
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Error while checking stale vods in memory: ${error}`);            
+        }
 
         return load_vod;
 
@@ -600,6 +609,8 @@ export class YouTubeChannel extends BaseChannel {
             searchResponse = await service.search.list({
                 channelId: this.channel_id,
                 eventType: "live",
+                type: ["video"],
+                part: ["id", "snippet"],
             });
         } catch (error) {
             console.log(error);
@@ -617,6 +628,90 @@ export class YouTubeChannel extends BaseChannel {
 
     public async isLiveApi(): Promise<boolean> {
         return await this.getStreams() !== false;
+    }
+
+    public async parseVODs(rescan = false): Promise<void> {
+
+        if (fs.existsSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`)) && !rescan) {
+            let list: string[] = JSON.parse(fs.readFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`), { encoding: "utf-8" }));
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel.yt", `Found ${list.length} stored VODs in database for ${this.internalName}`);
+            // console.log(list);
+            list = list.filter(p => fs.existsSync(path.join(BaseConfigDataFolder.vod, p)));
+            // console.log(list);
+            this.vods_raw = list;
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel.yt", `Found ${this.vods_raw.length} existing VODs in database for ${this.internalName}`);
+        } else {
+            this.vods_raw = this.rescanVods();
+            Log.logAdvanced(LOGLEVEL.INFO, "channel.yt", `No VODs in database found for ${this.internalName}, migrate ${this.vods_raw.length} from recursive file search`);
+            // fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`), JSON.stringify(this.vods_raw));
+            this.saveVodDatabase();
+        }
+
+        this.vods_list = [];
+
+        for (const vod of this.vods_raw) {
+
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel.yt", `Try to parse VOD ${vod}`);
+
+            const vod_full_path = path.join(BaseConfigDataFolder.vod, vod);
+
+            let vodclass;
+
+            try {
+                vodclass = await YouTubeVOD.load(vod_full_path, true);
+            } catch (e) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "channel.yt", `Could not load VOD ${vod}: ${(e as Error).message}`, e);
+                console.error(e);
+                continue;
+            }
+
+            if (!vodclass) {
+                continue;
+            }
+
+            if (!vodclass.channel_uuid) {
+                Log.logAdvanced(LOGLEVEL.INFO, "channel.yt", `VOD '${vod}' does not have a channel UUID, setting it to '${this.uuid}'`);
+                vodclass.channel_uuid = this.uuid;
+            }
+
+            await vodclass.fixIssues();
+
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel.yt", `VOD ${vod} added to ${this.internalName}`);
+
+            this.vods_list.push(vodclass);
+        }
+        this.sortVods();
+    }
+
+    public static async getChannelIdFromUrl(url: string): Promise<string | false> {
+        
+        // const match = url.match(/youtube\.com\/c\/([^/]+)/);
+        // if (match) {
+        //     return match[1];
+        // }
+        
+        // to get the channel id, the page needs to be parsed. very bad but there's no api for that
+        let response;
+        try {
+            response = await axios.get(url);
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel.yt", "Could not get channel id from url", error);
+            return false;
+        } 
+
+        const html = response.data;
+
+        const match2 = html.match(/"channelId":"([^"]+)"/);
+        if (match2) {
+            return match2[1];
+        }
+
+        const match3 = html.match(/itemprop="channelId" content="([^"]+)"/);
+        if (match3) {
+            return match3[1];
+        }
+
+        return false;
     }
 
 }

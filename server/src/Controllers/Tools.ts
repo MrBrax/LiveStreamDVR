@@ -307,6 +307,37 @@ export async function DownloadClip(req: express.Request, res: express.Response):
 }
 
 export function Shutdown(req: express.Request, res: express.Response): void {
-    res.end("goodbye");
+
+    const force = req.query.force == "true";
+
+    if (!force && LiveStreamDVR.getInstance().channels.some(c => c.is_capturing || c.is_converting)) {
+        res.status(500).send({
+            status: "ERROR",
+            message: "There are still active streams",
+        });
+        return;
+    }
+        
+    res.send({
+        status: "OK",
+        message: "Shutting down",
+    });
+
     LiveStreamDVR.shutdown("tools");
+
 }
+
+/*
+export async function BuildClient(req: express.Request, res: express.Response): Promise<void> {
+
+    const basepath = req.query.basepath as string || "/";
+
+    await LiveStreamDVR.getInstance().buildClientWithBasepath(basepath);
+
+    res.send({
+        status: "OK",
+        message: "Client built",
+    });
+
+}
+*/

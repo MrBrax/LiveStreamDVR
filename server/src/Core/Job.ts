@@ -1,8 +1,7 @@
 import path from "path";
 import fs from "fs";
-import { BaseConfigDataFolder } from "./BaseConfig";
+import { BaseConfigCacheFolder, BaseConfigDataFolder } from "./BaseConfig";
 import { LOGLEVEL, Log } from "./Log";
-import { TwitchHelper } from "../Providers/Twitch";
 import { parseJSON } from "date-fns";
 import { ChildProcessWithoutNullStreams } from "child_process";
 import { EventEmitter } from "events";
@@ -74,7 +73,7 @@ export class Job extends EventEmitter {
     }
 
     public static loadJobsFromCache() {
-        const jobs = fs.readdirSync(BaseConfigDataFolder.pids).filter(f => f.endsWith(".json"));
+        const jobs = fs.readdirSync(BaseConfigCacheFolder.pids).filter(f => f.endsWith(".json"));
         for (const job_data of jobs) {
             Job.load(job_data.replace(".json", ""));
         }
@@ -114,7 +113,7 @@ export class Job extends EventEmitter {
 
     public static create(name: string): Job {
 
-        const basepath = BaseConfigDataFolder.pids;
+        const basepath = BaseConfigCacheFolder.pids;
 
         // if(file_exists(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . ".json")){
         // 	TwitchLog.logAdvanced(LOGLEVEL.WARNING, "job", "Creating job {$name} overwrites existing!");
@@ -143,7 +142,7 @@ export class Job extends EventEmitter {
             return memJob;
         }
 
-        const basepath = BaseConfigDataFolder.pids;
+        const basepath = BaseConfigCacheFolder.pids;
 
         const job = new this();
         job.name = name;

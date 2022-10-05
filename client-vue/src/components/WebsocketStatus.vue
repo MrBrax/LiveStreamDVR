@@ -21,13 +21,13 @@
     </div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import { useStore } from "@/store";
-import { defineComponent } from "vue";
 import { faTimes, faSync, faExclamationTriangle, faClock, faCircle } from "@fortawesome/free-solid-svg-icons";
 import { library } from "@fortawesome/fontawesome-svg-core";
 library.add(faSync, faTimes, faExclamationTriangle, faClock, faCircle);
 
+/*
 export default defineComponent({
     name: "WebsocketStatus",
     props: {
@@ -60,4 +60,34 @@ export default defineComponent({
         return { store };
     },
 });
+*/
+
+const store = useStore();
+
+const props = defineProps({
+    websocket: {
+        type: WebSocket,
+        required: true,
+    },
+    websocketConnected: {
+        type: Boolean,
+        required: true,
+    },
+    websocketConnecting: {
+        type: Boolean,
+        required: true,
+    },
+    timer: {
+        type: Number,
+        required: true,
+    },
+    tickerInterval: {
+        type: Number,
+        required: true,
+    },
+    loading: {
+        type: Boolean,
+    },
+});
+
 </script>
