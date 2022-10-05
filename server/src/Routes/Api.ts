@@ -121,6 +121,7 @@ router.get("/debug/jobprogress", AuthAdmin, Debug.JobProgress);
 
 router.get("/notifications", AuthAdmin, Notifications.GetNotificationSettings);
 router.put("/notifications", AuthAdmin, Notifications.SaveNotificationSettings);
+router.post("/notifications/test", AuthAdmin, Notifications.TestNotificationSettings);
 
 router.post("/tools/reset_channels", AuthAdmin, Tools.ResetChannels);
 router.post("/tools/vod_download", AuthAdmin, Tools.DownloadVod);

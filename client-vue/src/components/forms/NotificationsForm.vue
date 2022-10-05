@@ -52,6 +52,40 @@
             </div>
         </div>
     </form>
+    <hr>
+    <div>
+        <h2 class="title is-2">Test</h2>
+        <!--
+        <div class="select">
+            <select v-model="test.provider">
+                <option
+                    v-for="provider in NotificationProvidersList"
+                    :key="provider.id"
+                    :value="provider.id"
+                >
+                    {{ provider.name }}
+                </option>
+            </select>
+        </div>
+        -->
+        <div class="field">
+            <div class="select">
+                <select v-model="test.category">
+                    <option
+                        v-for="cat in NotificationCategories"
+                        :key="cat.id"
+                        :value="cat.id"
+                    >
+                        {{ cat.name }}
+                    </option>
+                </select>
+            </div>
+        </div>
+        <button
+            class="button is-confirm"
+            @click="testNotification"
+        >Test</button>
+    </div>
 </template>
 
 <script lang="ts">
@@ -72,11 +106,19 @@ export default defineComponent({
         formStatusText: string;
         formStatus: string;
         formData: Record<string, Record<string, boolean>>;
+        test: {
+            provider: string;
+            category: string;
+        };
     } {
         return {
             formStatusText: "Ready",
             formStatus: "",
             formData: {},
+            test: {
+                provider: "",
+                category: "",
+            },
         };
     },
     computed: {
@@ -169,6 +211,33 @@ export default defineComponent({
 
             event.preventDefault();
             return false;
+        },
+        testNotification() {
+            this.$http
+                .post(`/api/v0/notifications/test`, {
+                    provider: this.test.provider,
+                    category: this.test.category,
+                })
+                .then((response) => {
+                    const json: ApiResponse = response.data;
+                    console.debug("notifications", json);
+                    this.formStatusText = json.message || "Unknown";
+                    this.formStatus = json.status;
+                    if (json.status == "OK") {
+                        this.$emit("formSuccess", json);
+                        this.fetchData();
+                    }
+                })
+                .catch((err) => {
+                    console.error("form error", err.response);
+                    if (err.response.data.status == "ERROR") {
+                        this.formStatusText = err.response.data.message;
+                        this.formStatus = err.response.data.status;
+                    } else {
+                        this.formStatusText = err.response.data;
+                        this.formStatus = "ERROR";
+                    }
+                });
         },
     },
 });
