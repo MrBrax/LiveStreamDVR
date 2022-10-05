@@ -17,3 +17,24 @@ export function ListGames(req: express.Request, res: express.Response): void {
     } as ApiGamesResponse);
 
 }
+
+export async function RefreshGame(req: express.Request, res: express.Response): Promise<void> {
+
+    const game_id = req.params.id;
+
+    if (!game_id) {
+        res.status(400).send({
+            status: "ERROR",
+            error: "Missing game ID",
+        });
+        return;
+    }
+
+    const game = await TwitchGame.getGameAsync(game_id, true);
+
+    res.send({
+        data: game ? game.toAPI() : null,
+        status: "OK",
+    });
+
+}

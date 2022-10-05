@@ -70,6 +70,8 @@ router.get("/vod/:uuid/sync", AuthAdmin, Vod.GetSync);
 router.post("/vod/:uuid/rename", AuthAdmin, Vod.RenameVod);
 
 router.get("/games", AuthGuest, Games.ListGames);
+// router.get("/games/:id", AuthGuest, Games.GetGame);
+router.get("/games/:id/refresh", AuthAdmin, Games.RefreshGame);
 
 router.post("/exporter", AuthAdmin, Exporter.ExportFile);
 

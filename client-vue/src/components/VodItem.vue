@@ -59,10 +59,10 @@
                         class="boxart-item"
                     >
                         <img
-                            v-if="game.box_art_url"
+                            v-if="game.image_url"
                             :title="game.name"
                             :alt="game.name"
-                            :src="game.getBoxArtUrl(140, 190)"
+                            :src="game.image_url"
                             loading="lazy"
                         >
                         <span v-else>{{ game.name }}</span>
@@ -1003,9 +1003,9 @@ title="Retry VOD match"
                             <!-- chapter name -->
                             <td data-contents="name">
                                 <img
-                                    v-if="chapter.box_art_url"
+                                    v-if="chapter.image_url"
                                     class="boxart"
-                                    :src="chapter.box_art_url"
+                                    :src="chapter.image_url"
                                     :alt="chapter.game_name"
                                     loading="lazy"
                                 >

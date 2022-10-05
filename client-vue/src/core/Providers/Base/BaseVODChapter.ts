@@ -56,4 +56,8 @@ export class BaseVODChapter {
     get box_art_url(): string {
         return this.getBoxArtUrl();
     }
+
+    get image_url(): string {
+        return this.box_art_url;
+    }
 }

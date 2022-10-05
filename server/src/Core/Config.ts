@@ -7,7 +7,7 @@ import path from "path";
 import express from "express";
 import { SettingField } from "../../../common/Config";
 import { ClipBasenameFields, VodBasenameFields } from "../../../common/ReplacementsConsts";
-import { AppRoot, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot, HomeRoot } from "./BaseConfig";
+import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot, HomeRoot } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { TwitchHelper } from "../Providers/Twitch";
 import { KeyValue } from "./KeyValue";
@@ -622,6 +622,14 @@ export class Config {
                 console.warn(chalk.yellow(`Data folder '${folder}' does not exist, creating.`));
                 fs.mkdirSync(folder, { recursive: true });
                 console.log(chalk.green(`Created data folder: ${folder}`));
+            }
+        }
+
+        for (const folder of Object.values(BaseConfigCacheFolder)) {
+            if (!fs.existsSync(folder)) {
+                console.warn(chalk.yellow(`Cache folder '${folder}' does not exist, creating.`));
+                fs.mkdirSync(folder, { recursive: true });
+                console.log(chalk.green(`Created cache folder: ${folder}`));
             }
         }
 
