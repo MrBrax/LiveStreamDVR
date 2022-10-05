@@ -138,6 +138,8 @@ router.get("/youtube/authenticate", AuthAdmin, YouTube.Authenticate);
 router.get("/youtube/callback", AuthAdmin, YouTube.Callback);
 router.get("/youtube/status", AuthAdmin, YouTube.Status);
 router.get("/youtube/destroy", AuthAdmin, YouTube.DestroySession);
+router.get("/youtube/playlists", AuthAdmin, YouTube.GetPlaylists);
+router.post("/youtube/playlists", AuthAdmin, YouTube.CreatePlaylist);
 
 router.post("/auth/login", Auth.Login);
 router.post("/auth/logout", Auth.Logout);

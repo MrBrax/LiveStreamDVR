@@ -193,3 +193,54 @@ export async function Status(req: express.Request, res: express.Response): Promi
     }
 
 }
+
+export async function GetPlaylists(req: express.Request, res: express.Response): Promise<void> {
+
+    let playlists = [];
+    try {
+        playlists = await YouTubeHelper.getPlaylists();
+    } catch (error) {
+        res.status(500).send({
+            status: "ERROR",
+            message: `Could not fetch playlists: ${(error as Error).message}`,
+        });
+        return;
+    }
+
+    res.send({
+        status: "OK",
+        data: playlists,
+    });
+
+}
+
+export async function CreatePlaylist(req: express.Request, res: express.Response): Promise<void> {
+
+    const title = req.body.title as string | undefined;
+    const description = req.body.description as string || "";
+
+    if (!title) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "No title provided",
+        });
+        return;
+    }
+
+    let playlist = null;
+    try {
+        playlist = await YouTubeHelper.createPlaylist(title, description);
+    } catch (error) {
+        res.status(500).send({
+            status: "ERROR",
+            message: `Could not create playlist: ${(error as Error).message}`,
+        });
+        return;
+    }
+
+    res.send({
+        status: "OK",
+        data: playlist,
+    });
+
+}

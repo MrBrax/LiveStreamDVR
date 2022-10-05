@@ -258,12 +258,42 @@
         class="field"
     >
         <label class="label">{{ $t('vod.export.playlist') }}</label>
-        <div class="control">
-            <input
-                v-model="exportVodSettings.playlist_id"
-                class="input"
-                type="text"
+        <div class="control has-addon">
+            <div class="select">
+                <select
+                    v-model="exportVodSettings.playlist_id"
+                    :disabled="LoadingPlaylists"
+                >
+                    <option
+                        v-for="(p, i) in YouTubePlaylists"
+                        :key="i"
+                        :value="p.id"
+                    >
+                        {{ p.snippet.title }}
+                    </option>
+                </select>
+            </div>
+            <button
+                class="button is-confirm"
+                :title="$t('vod.export.get-playlists')"
+                @click="getYouTubePlaylists"
             >
+                <span class="icon">
+                    <fa
+                        icon="sync"
+                        :spin="LoadingPlaylists"
+                    />
+                </span>
+            </button>
+            <button
+                class="button is-confirm"
+                :title="$t('vod.export.create-playlist')"
+                @click="createYouTubePlaylist"
+            >
+                <span class="icon">
+                    <fa icon="plus" />
+                </span>
+            </button>
         </div>
         <p class="input-help">
             {{ $t('vod.export.playlist-help') }}
@@ -342,6 +372,55 @@ const exportVodSettings = ref<ExporterOptions>({
     remote: "",
 });
 
+const YouTubePlaylists = ref<{
+    contentDetails: {
+        itemCount: number;
+    };
+    etag: string;
+    id: string;
+    kind: string;
+    snippet: {
+        channelId: string;
+        channelTitle: string;
+        description: string;
+        localized: {
+            description: string;
+            title: string;
+        };
+        publishedAt: string;
+        thumbnails: {
+            default: {
+                height: number;
+                url: string;
+                width: number;
+            };
+            high: {
+                height: number;
+                url: string;
+                width: number;
+            };
+            maxres: {
+                height: number;
+                url: string;
+                width: number;
+            };
+            medium: {
+                height: number;
+                url: string;
+                width: number;
+            };
+            standard: {
+                height: number;
+                url: string;
+                width: number;
+            };
+        };
+        title: string;
+    };
+}[]>([]);
+
+const LoadingPlaylists = ref(false);
+
 const exporter = ref("file");
 
 function templatePreview(template: string): string {
@@ -356,6 +435,56 @@ function doExportVod() {
         if (json.message) alert(json.message);
         console.log(json);
         if (props.vod) store.fetchAndUpdateVod(props.vod.uuid);
+        // if (this.editVodMenu) this.editVodMenu.show = false;
+    }).catch((err) => {
+        console.error("form error", err.response);
+        if (err.response.data && err.response.data.message) alert(err.response.data.message);
+    });
+}
+
+function getYouTubePlaylists() {
+    LoadingPlaylists.value = true;
+    axios.get(`/api/v0/youtube/playlists`).then((response) => {
+        const json: ApiResponse = response.data;
+        if (json.message) alert(json.message);
+        console.log(json);
+        if (json.data) {
+            YouTubePlaylists.value = json.data;
+            if (!exportVodSettings.value.playlist_id && YouTubePlaylists.value.length > 0) {
+                exportVodSettings.value.playlist_id = YouTubePlaylists.value[0].id;
+                console.log("set playlist id", exportVodSettings.value.playlist_id);
+            }
+        }
+        // if (this.editVodMenu) this.editVodMenu.show = false;
+    }).catch((err) => {
+        console.error("form error", err.response);
+        if (err.response.data && err.response.data.message) alert(err.response.data.message);
+    }).finally(() => {
+        LoadingPlaylists.value = false;
+    });
+}
+
+function createYouTubePlaylist() {
+    const title = prompt("Playlist Title");
+    if (!title) return;
+    const description = prompt("Playlist Description");
+    axios.post(`/api/v0/youtube/playlists`, {
+        title: title,
+        description: description,
+        // privacy: exportVodSettings.value.privacy,
+    }).then((response) => {
+        const json: ApiResponse = response.data;
+        if (json.message) alert(json.message);
+        console.log(json);
+        if (json.data) {
+            exportVodSettings.value.playlist_id = json.data.id;
+            // YouTubePlaylists.value.push(json.data);
+            LoadingPlaylists.value = true;
+            setTimeout(() => {
+                getYouTubePlaylists();
+            }, 3000);
+            // getYouTubePlaylists(); // just to be sure
+        }
         // if (this.editVodMenu) this.editVodMenu.show = false;
     }).catch((err) => {
         console.error("form error", err.response);

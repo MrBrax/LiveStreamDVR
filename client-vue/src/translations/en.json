@@ -109,7 +109,9 @@
       "remote": "Remote",
       "privacy-help": "By default, only privacy uploads are supported.",
       "playlist": "Playlist",
-      "playlist-help": "Raw playlist ID, not the URL"
+      "playlist-help": "Raw playlist ID, not the URL",
+      "get-playlists": "Get playlists",
+      "create-playlist": "Create playlist"
     },
     "bookmarks": "Bookmarks",
     "buttons": {
