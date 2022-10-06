@@ -46,10 +46,20 @@ export default defineConfig({
 
       // ignore api calls
       workbox: {
-        navigateFallbackDenylist: [/\/api\//, /\/socket\//],
+        navigateFallbackDenylist: [
+          /\/api\//,
+          /\/socket\//,
+          /\/cache\//,
+          /\/vodplayer\//,
+          /\/vods\//,
+          /\/saved_vods\//,
+          /\/saved_clips\//,
+          /\/cache\//,
+          /\/logs\//,
+        ],
         mode: process.env.NODE_ENV === 'development' ? 'development' : 'production',
         globPatterns: [
-          '**/*.{js,css,html,ico,png,svg,webmanifest,xml,txt}',
+          '**/*.{js,css,html,ico,png,jpg,webp,svg,webmanifest,xml,txt}',
         ],
       },
 
