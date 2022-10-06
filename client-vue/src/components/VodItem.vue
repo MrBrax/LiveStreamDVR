@@ -494,23 +494,36 @@ title="Retry VOD match"
                         </button>
                     </li>
                 </ul>
-                <!--
+                
                 <details class="details">
                     <summary>Create</summary>
                     <div class="field">
                         <label class="label">Name</label>
-                        <input class="input" type="text" v-model="newBookmark.name">
+                        <input
+                            v-model="newBookmark.name"
+                            class="input"
+                            type="text"
+                        >
                     </div>
-                    <div class="field" v-if="vod.is_finalized">
+                    <div
+                        v-if="vod.is_finalized"
+                        class="field"
+                    >
                         <label class="label">Offset</label>
-                        <input class="input" v-model="newBookmark.offset" type="number">
+                        <input
+                            v-model="newBookmark.offset"
+                            class="input"
+                            type="number"
+                        >
                     </div>
-                    <button class="button is-small is-confirm" @click="doMakeBookmark">
+                    <button
+                        class="button is-small is-confirm"
+                        @click="doMakeBookmark"
+                    >
                         <span class="icon"><fa icon="plus" /></span>
                         <span>Create</span>
                     </button>
                 </details>
-                -->
             </div>
 
             <!-- controls -->
