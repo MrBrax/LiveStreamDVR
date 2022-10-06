@@ -52,6 +52,8 @@ beforeAll(async () => {
     jest.spyOn(KeyValue.prototype, "save").mockImplementation(() => true);
     jest.spyOn(KeyValue.prototype, "load").mockImplementation(() => true);
 
+    jest.spyOn(Config.prototype, "saveConfig").mockImplementation(() => true);
+
     // mock twitchvod delete function
     // mockTwitchVOD.delete.mockImplementation(async (vod_id) => {
 

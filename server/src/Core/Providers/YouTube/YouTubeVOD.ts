@@ -295,7 +295,7 @@ export class YouTubeVOD extends BaseVOD {
         vod.setupBasic();
         vod.setupProvider();
         await vod.setupAssoc();
-        vod.setupFiles();
+        await vod.setupFiles();
 
         // add to cache
         this.addVod(vod);

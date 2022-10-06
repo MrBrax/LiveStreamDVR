@@ -520,25 +520,25 @@ export class TwitchVOD extends BaseVOD {
 
         // generate chapter related files
         try {
-            this.saveLosslessCut();
+            await this.saveLosslessCut();
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vod.finalize", `Failed to save lossless cut for ${this.basename}: ${error}`);
         }
 
         try {
-            this.saveFFMPEGChapters();
+            await this.saveFFMPEGChapters();
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vod.finalize", `Failed to save ffmpeg chapters for ${this.basename}: ${error}`);
         }
 
         try {
-            this.saveVTTChapters();
+            await this.saveVTTChapters();
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vod.finalize", `Failed to save vtt chapters for ${this.basename}: ${error}`);
         }
 
         try {
-            this.saveKodiNfo();
+            await this.saveKodiNfo();
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vod.finalize", `Failed to save kodi nfo for ${this.basename}: ${error}`);
         }
@@ -606,7 +606,7 @@ export class TwitchVOD extends BaseVOD {
 
     }
 
-    public saveVTTChapters(): boolean {
+    public async saveVTTChapters(): Promise<boolean> {
 
         if (!this.directory) {
             throw new Error("TwitchVOD.saveVTTChapters: directory is not set");
@@ -636,15 +636,19 @@ export class TwitchVOD extends BaseVOD {
 
         });
 
+        await this.stopWatching();
+
         fs.writeFileSync(this.path_vttchapters, data, { encoding: "utf8" });
 
         this.setPermissions();
+
+        await this.startWatching();
 
         return fs.existsSync(this.path_vttchapters);
 
     }
 
-    public saveKodiNfo(): boolean {
+    public async saveKodiNfo(): Promise<boolean> {
 
         if (!Config.getInstance().cfg("create_kodi_nfo")) return false;
 
@@ -706,9 +710,13 @@ export class TwitchVOD extends BaseVOD {
 
         data += "</episodedetails>\n";
 
+        await this.stopWatching();
+
         fs.writeFileSync(this.path_kodinfo, data, { encoding: "utf8" });
 
         this.setPermissions();
+
+        await this.startWatching();
 
         return fs.existsSync(this.path_kodinfo);
 
@@ -1631,7 +1639,7 @@ export class TwitchVOD extends BaseVOD {
         vod.setupBasic();
         vod.setupProvider();
         await vod.setupAssoc();
-        vod.setupFiles();
+        await vod.setupFiles();
 
         // add to cache
         this.addVod(vod);

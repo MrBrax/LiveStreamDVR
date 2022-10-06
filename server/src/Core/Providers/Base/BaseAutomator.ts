@@ -1132,7 +1132,7 @@ export class BaseAutomator {
         });
 
         let mf;
-        if (Config.getInstance().cfg("create_video_chapters") && this.vod.saveFFMPEGChapters()) {
+        if (Config.getInstance().cfg("create_video_chapters") && await this.vod.saveFFMPEGChapters()) {
             mf = this.vod.path_ffmpegchapters;
         }
 

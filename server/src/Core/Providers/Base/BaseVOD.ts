@@ -717,7 +717,7 @@ export class BaseVOD {
      * @see {@link https://ikyle.me/blog/2020/add-mp4-chapters-ffmpeg}
      * @returns Save success
      */
-    public saveFFMPEGChapters(): boolean {
+    public async saveFFMPEGChapters(): Promise<boolean> {
 
         if (!this.directory) {
             throw new Error("TwitchVOD.saveFFMPEGChapters: directory is not set");
@@ -756,9 +756,13 @@ export class BaseVOD {
             ]);
         });
 
+        await this.stopWatching();
+
         fs.writeFileSync(this.path_ffmpegchapters, meta.getString(), { encoding: "utf8" });
 
         this.setPermissions();
+
+        await this.startWatching();
 
         return fs.existsSync(this.path_ffmpegchapters);
 
@@ -916,7 +920,7 @@ export class BaseVOD {
         return;
     }
 
-    public setupFiles(): void {
+    public async setupFiles(): Promise<void> {
 
         if (!this.directory) {
             throw new Error("No directory set!");
@@ -939,16 +943,16 @@ export class BaseVOD {
         if (this.is_finalized) {
             try {
                 if (!fs.existsSync(this.path_losslesscut)) {
-                    this.saveLosslessCut();
+                    await this.saveLosslessCut();
                 }
                 if (!fs.existsSync(this.path_ffmpegchapters)) {
-                    this.saveFFMPEGChapters();
+                    await this.saveFFMPEGChapters();
                 }
                 if (!fs.existsSync(this.path_vttchapters)) {
-                    this.saveVTTChapters();
+                    await this.saveVTTChapters();
                 }
                 if (!fs.existsSync(this.path_kodinfo) && Config.getInstance().cfg("create_kodi_nfo")) {
-                    this.saveKodiNfo();
+                    await this.saveKodiNfo();
                 }
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Could not save associated files for ${this.basename}: ${(error as Error).message}`);
@@ -956,7 +960,7 @@ export class BaseVOD {
         }
     }
 
-    public saveLosslessCut(): boolean {
+    public async saveLosslessCut(): Promise<boolean> {
 
         if (!this.directory) {
             throw new Error("TwitchVOD.saveLosslessCut: directory is not set");
@@ -1004,15 +1008,19 @@ export class BaseVOD {
             data += "\n";
         });
 
+        await this.stopWatching();
+
         fs.writeFileSync(csv_path, data);
 
         this.setPermissions();
 
+        await this.startWatching();
+
         return fs.existsSync(csv_path);
     }
 
-    public saveVTTChapters(): boolean { return false; }
-    public saveKodiNfo(): boolean { return false; }
+    public async saveVTTChapters(): Promise<boolean> { return await Promise.resolve(false); }
+    public async saveKodiNfo(): Promise<boolean> { return await Promise.resolve(false); }
 
     public static hasVod(basename: string): boolean {
         return LiveStreamDVR.getInstance().vods.findIndex(vod => vod.basename == basename) != -1;
@@ -1331,7 +1339,7 @@ export class BaseVOD {
 
         this.basename = new_basename;
         this.filename = this.filename.replaceAll(old_basename, new_basename);
-        this.setupFiles();
+        await this.setupFiles();
         this.segments_raw = new_segments;
         this.parseSegments(this.segments_raw);
         await this.saveJSON("basename rename");
