@@ -96,6 +96,57 @@
             </div>
         </div>
         <div class="field">
+            <label class="label">Side menu</label>
+            <div class="control">
+                <label>
+                    <input
+                        v-model="sideMenuShow.vod_date"
+                        type="checkbox"
+                    > Date
+                </label>
+            </div>
+            <div class="control">
+                <label>
+                    <input
+                        v-model="sideMenuShow.vod_duration"
+                        type="checkbox"
+                    > Duration
+                </label>
+            </div>
+            <div class="control">
+                <label>
+                    <input
+                        v-model="sideMenuShow.vod_size"
+                        type="checkbox"
+                    > Size
+                </label>
+            </div>
+            <div class="control">
+                <label>
+                    <input
+                        v-model="sideMenuShow.vod_basename"
+                        type="checkbox"
+                    > Basename
+                </label>
+            </div>
+            <div class="control">
+                <label>
+                    <input
+                        v-model="sideMenuShow.vod_sxe"
+                        type="checkbox"
+                    > Season / Episode (Year+Month)
+                </label>
+            </div>
+            <div class="control">
+                <label>
+                    <input
+                        v-model="sideMenuShow.vod_sxe_absolute"
+                        type="checkbox"
+                    > Season / Episode (Absolute)
+                </label>
+            </div>
+        </div>
+        <div class="field">
             <button
                 class="button is-confirm"
                 @click="saveClientConfig"
@@ -147,10 +198,26 @@ export default defineComponent({
     data(): {
         currentConfig: ClientSettings;
         updateConfig: ClientSettings;
+        sideMenuShow: {
+            vod_date: boolean;
+            vod_sxe: boolean;
+            vod_sxe_absolute: boolean;
+            vod_size: boolean;
+            vod_duration:  boolean;
+            vod_basename: boolean;
+        };
     } {
         return {
             currentConfig: {...defaultConfig},
             updateConfig: {...defaultConfig},
+            sideMenuShow: {
+                vod_date: false,
+                vod_sxe: false,
+                vod_sxe_absolute: false,
+                vod_size: false,
+                vod_duration: false,
+                vod_basename: false,
+            },
         };
     },
     computed: {
