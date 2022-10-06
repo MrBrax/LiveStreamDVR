@@ -7,12 +7,12 @@
     >
         <div
             v-if="gamesData && favouritesData"
-            class="field favourites_list"
+            :class="{favourites_list: true, 'is-grid': isGrid}"
         >
             <div
                 v-for="game in sortedGames"
                 :key="game.id"
-                class="checkbox"
+                :class="{favourites_list__item: true, is_active: formData.games.includes(game.id)}"
             >
                 <label>
                     <img
@@ -21,14 +21,18 @@
                         height="20"
                         class="cover"
                     >
-                    <input
-                        :id="game.id"
-                        v-model="formData.games"
-                        type="checkbox"
-                        :name="game.id"
-                        :value="game.id"
-                    >
-                    {{ game.name }}
+                    <span class="input-combo">
+                        <input
+                            :id="game.id"
+                            v-model="formData.games"
+                            type="checkbox"
+                            :name="game.id"
+                            :value="game.id"
+                        >
+                        <span class="game-name">
+                            {{ game.name }}
+                        </span>
+                    </span>
                     <span
                         v-if="game.added"
                         class="game-date"
@@ -45,6 +49,15 @@
             <div v-if="!gamesData || Object.keys(gamesData).length == 0">
                 <p>{{ $t('forms.favourites.no-games-in-cache-when-streamers-change-games-they-will-be-added-to-the-cache') }}</p>
             </div>
+        </div>
+        <div class="field">
+            <label>
+                <input
+                    v-model="isGrid"
+                    type="checkbox"
+                >
+                {{ $t('forms.favourites.display-as-grid') }}
+            </label>
         </div>
         <div class="field form-submit">
             <div class="control">
@@ -85,6 +98,7 @@ export default defineComponent({
         },
         favouritesData: string[];
         gamesData: Record<string, ApiGame>;
+        isGrid: boolean;
     } {
         return {
             loading: false,
@@ -95,6 +109,7 @@ export default defineComponent({
             },
             favouritesData: [],
             gamesData: {},
+            isGrid: false,
         };
     },
 
@@ -191,6 +206,51 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+
+.favourites_list {
+    max-height: 600px;
+    overflow-y: scroll;
+    margin-bottom: 1em;
+
+    .favourites_list__item {
+        padding: 0.2em 0;
+        input {
+            margin-right: 0.2em;
+        }
+        .game-date {
+            display: inline-block;
+            margin-left: 0.3em;
+        }
+        &.is_active {
+            background-color: rgba(43, 236, 59, 0.1);
+        }
+    }
+
+    &.is-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-gap: 1rem;
+        margin: 1rem 0;
+        .favourites_list__item {
+            text-align: center;
+            .cover {
+                height: 96px;
+                margin-bottom: 0.5em;
+            }
+            .game-date {
+                display: block;
+                margin: 0;
+            }
+            .input-combo {
+                display: block;
+            }
+            input {
+                margin-right: 0.3em;
+            }
+        }
+    }
+}
+
 .game-date {
     font-size: 0.8em;
     color: #888;

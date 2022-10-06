@@ -200,7 +200,8 @@
       "value": "Value"
     },
     "favourites": {
-      "no-games-in-cache-when-streamers-change-games-they-will-be-added-to-the-cache": "No games in cache. When streamers change games, they will be added to the cache."
+      "no-games-in-cache-when-streamers-change-games-they-will-be-added-to-the-cache": "No games in cache. When streamers change games, they will be added to the cache.",
+      "display-as-grid": "Display as grid"
     }
   },
   "views": {
