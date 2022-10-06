@@ -301,6 +301,9 @@
         <p class="input-help">
             {{ $t('vod.export.playlist-help') }}
         </p>
+        <p class="input-help">
+            ID: <code>{{ exportVodSettings.playlist_id }}</code>
+        </p>
     </div>
 
     <!-- Privacy -->
