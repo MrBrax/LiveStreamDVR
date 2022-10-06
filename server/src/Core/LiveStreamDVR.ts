@@ -63,14 +63,14 @@ export class LiveStreamDVR {
             return false;
         }
 
-        Log.logAdvanced(LOGLEVEL.INFO, "channel", "Loading channel configs...");
+        Log.logAdvanced(LOGLEVEL.INFO, "dvr", "Loading channel configs...");
 
         const data: ChannelConfig[] = JSON.parse(fs.readFileSync(BaseConfigPath.channel, "utf8"));
 
         let needsSave = false;
         for (const channel of data) {
             if ((!("quality" in channel) || !channel.quality) && channel.provider == "twitch") {
-                Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel.login} has no quality set, setting to default`);
+                Log.logAdvanced(LOGLEVEL.WARNING, "dvr", `Channel ${channel.login} has no quality set, setting to default`);
                 channel.quality = ["best"];
                 needsSave = true;
             }
@@ -86,7 +86,7 @@ export class LiveStreamDVR {
 
         this.channels_config = data;
 
-        Log.logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${this.channels_config.length} channel configs!`);
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "dvr", `Loaded ${this.channels_config.length} channel configs!`);
 
         if (needsSave) {
             this.saveChannelsConfig();
@@ -97,7 +97,7 @@ export class LiveStreamDVR {
             for (const folder of folders) {
                 if (folder == ".gitkeep") continue;
                 if (!this.channels_config.find(ch => ch.provider == "twitch" && ch.login === folder)) {
-                    Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel folder ${folder} is not in channel config, left over?`);
+                    Log.logAdvanced(LOGLEVEL.WARNING, "dvr", `Channel folder ${folder} is not in channel config, left over?`);
                 }
             }
         }
@@ -112,11 +112,11 @@ export class LiveStreamDVR {
      * @returns Amount of loaded channels
      */
     public async loadChannels(): Promise<number> {
-        Log.logAdvanced(LOGLEVEL.INFO, "channel", "Loading channels...");
+        Log.logAdvanced(LOGLEVEL.INFO, "dvr", "Loading channels...");
         if (this.channels_config.length > 0) {
             for (const channel of this.channels_config) {
 
-                Log.logAdvanced(LOGLEVEL.INFO, "channel", `Loading channel ${channel.uuid}, provider ${channel.provider}...`);
+                Log.logAdvanced(LOGLEVEL.INFO, "dvr", `Loading channel ${channel.uuid}, provider ${channel.provider}...`);
 
                 if (!channel.provider || channel.provider == "twitch") {
 
@@ -173,12 +173,12 @@ export class LiveStreamDVR {
                 }
             }
         }
-        Log.logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${this.channels.length} channels!`);
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "dvr", `Loaded ${this.channels.length} channels!`);
         return this.channels.length;
     }
 
     public saveChannelsConfig(): boolean {
-        Log.logAdvanced(LOGLEVEL.INFO, "channel", "Saving channel config");
+        Log.logAdvanced(LOGLEVEL.INFO, "dvr", "Saving channel config");
         fs.writeFileSync(BaseConfigPath.channel, JSON.stringify(this.channels_config, null, 4));
         return fs.existsSync(BaseConfigPath.channel) && fs.readFileSync(BaseConfigPath.channel, "utf8") === JSON.stringify(this.channels_config, null, 4);
     }
@@ -191,10 +191,10 @@ export class LiveStreamDVR {
         this.vods.forEach((vod) => {
             const channel = vod.getChannel();
             if (!channel) {
-                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Channel ${vod.getChannel().internalName} removed but VOD ${vod.basename} still lingering`);
+                Log.logAdvanced(LOGLEVEL.WARNING, "dvr", `Channel ${vod.getChannel().internalName} removed but VOD ${vod.basename} still lingering`);
             }
             if (!fs.existsSync(vod.filename)) {
-                Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${vod.basename} in memory but not on disk`);
+                Log.logAdvanced(LOGLEVEL.WARNING, "dvr", `VOD ${vod.basename} in memory but not on disk`);
             }
         });
     }
@@ -226,7 +226,7 @@ export class LiveStreamDVR {
         const vod = this.getVodByUUID(uuid);
         if (vod) {
             this.vods = this.vods.filter(vod => vod.uuid != uuid);
-            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD ${vod.basename} removed from memory!`);
+            Log.logAdvanced(LOGLEVEL.INFO, "dvr", `VOD ${vod.basename} removed from memory!`);
             Webhook.dispatch("vod_removed", { basename: vod.basename });
             return true;
         }

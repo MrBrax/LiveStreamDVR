@@ -7,6 +7,7 @@ import { GamesResponse } from "../../../../../common/TwitchAPI/Games";
 import axios from "axios";
 import path from "path";
 import { Helper } from "../../../Core/Helper";
+import { Config } from "../../../Core/Config";
 
 interface TwitchGameJSON {
     name: string;
@@ -220,7 +221,12 @@ export class TwitchGame {
         }
         if (fs.existsSync(path.join(BaseConfigCacheFolder.public_cache_covers, `${this.id}.${path.extname(this.box_art_url).substring(1)}`))) {
             // console.debug("Using cached box art", this.box_art_url);
-            return `/cache/covers/${this.id}.${path.extname(this.box_art_url).substring(1)}`;
+            const app_url = Config.getInstance().cfg<string>("app_url", "");
+            if (app_url && app_url !== "debug") {
+                return `${app_url}/cache/covers/${this.id}.${path.extname(this.box_art_url).substring(1)}`;
+            } else {
+                return `${Config.getInstance().cfg<string>("basepath", "")}/cache/covers/${this.id}.${path.extname(this.box_art_url).substring(1)}`;
+            }
         } else {
             this.fetchBoxArt(); // for next time
         }
