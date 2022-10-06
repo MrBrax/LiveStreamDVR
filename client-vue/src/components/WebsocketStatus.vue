@@ -67,7 +67,8 @@ const store = useStore();
 const props = defineProps({
     websocket: {
         type: WebSocket,
-        required: true,
+        default: undefined,
+        // required: true,
     },
     websocketConnected: {
         type: Boolean,
