@@ -216,7 +216,8 @@ export class LiveStreamDVR {
 
 
     /**
-     * Remove a vod from the vods list
+     * Remove a vod from the vods list.
+     * It is not deleted from disk.
      * 
      * @param uuid 
      * @returns 

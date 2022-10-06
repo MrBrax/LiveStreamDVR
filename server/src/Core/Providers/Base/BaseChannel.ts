@@ -273,7 +273,8 @@ export class BaseChannel {
     }
 
     /**
-     * Remove a vod from the channel and the main vods list
+     * Remove a vod from the channel and the main vods list.
+     * It is not deleted from the disk.
      * 
      * @param basename 
      * @returns 
@@ -288,6 +289,8 @@ export class BaseChannel {
         if (!vod) return false;
 
         Log.logAdvanced(LOGLEVEL.INFO, "channel", `Remove VOD JSON for ${this.internalName}: ${uuid}`);
+        
+        vod.stopWatching();
 
         this.vods_list = this.vods_list.filter(v => v.uuid !== uuid);
 
@@ -299,6 +302,8 @@ export class BaseChannel {
         LiveStreamDVR.getInstance().removeVod(uuid);
 
         this.checkStaleVodsInMemory();
+
+        this.broadcastUpdate();
 
         return true;
 

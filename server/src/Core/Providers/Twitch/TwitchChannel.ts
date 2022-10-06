@@ -886,7 +886,7 @@ export class TwitchChannel extends BaseChannel {
         });
     }
 
-    private addAllLocalVideos() {
+    public addAllLocalVideos() {
         if (!Config.getInstance().cfg("channel_folders")) return; // don't watch if no channel folders are enabled
         if (!Config.getInstance().cfg("localvideos.enabled")) return;
         const folder = this.getFolder();

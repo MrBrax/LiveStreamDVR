@@ -1400,9 +1400,10 @@ export class TwitchVOD extends BaseVOD {
 
             if (Config.debug) console.log(`VOD file ${filename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})!`);
 
+            // main json file changed
             if (filename === this.filename) {
                 if (!fs.existsSync(this.filename)) {
-                    Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD JSON ${this.basename} deleted!`);
+                    Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD JSON ${this.basename} deleted (${eventType})!`);
                     if (LiveStreamDVR.getInstance().vods.find(v => v.basename == this.basename)) {
                         Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${this.basename} still in memory!`);
 
@@ -1416,6 +1417,7 @@ export class TwitchVOD extends BaseVOD {
 
                     const channel = this.getChannel();
                     if (channel) {
+                        channel.removeVod(this.uuid);
                         setTimeout(() => {
                             if (!channel) return;
                             channel.checkStaleVodsInMemory();
@@ -1433,6 +1435,22 @@ export class TwitchVOD extends BaseVOD {
                     undefined,
                     "system"
                 );
+
+                if (eventType === "unlink" || eventType === "unlinkDir") {
+                    const seg = this.segments.find(s => s.filename === filename);
+                    if (seg && !fs.existsSync(filename)) {
+                        seg.deleted = true;
+                        // this.saveJSON("segment deleted");
+                    }
+                } else if (eventType === "add") {
+                    const seg = this.segments.find(s => s.filename === filename);
+                    if (seg && fs.existsSync(filename)) {
+                        seg.deleted = false;
+                        this.getMediainfo();
+                        // this.saveJSON("segment added");
+                    }
+                }
+
             } else {
                 if (Config.debug) console.debug(`VOD file ${filename} changed (${eventType})!`);
                 Log.logAdvanced(LOGLEVEL.INFO, "vod.watch", `VOD file ${filename} changed (${eventType})!`);

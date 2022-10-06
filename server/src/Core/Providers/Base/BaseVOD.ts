@@ -1212,6 +1212,12 @@ export class BaseVOD {
     }
     public setupProvider(): void { return; }
 
+    /**
+     * Delete VOD from disk and all associated files.
+     * Also removes the VOD from the channel database.
+     * 
+     * @returns {Promise<boolean>} True if successful, false if not.
+     */
     public async delete(): Promise<boolean> {
 
         if (!this.directory) {
