@@ -61,10 +61,10 @@ test('FavouritesForm', async () => {
 
 
     // expect favourites list to have two items
-    expect(wrapper.findAll(".favourites_list .checkbox")).toHaveLength(2);
-    expect(wrapper.findAll(".favourites_list .checkbox")[0].text()).toContain('Test Game 1');
-    expect(wrapper.findAll(".favourites_list .checkbox")[1].text()).toContain('Test Game 2');
-    expect(wrapper.findAll(".favourites_list .checkbox input")[0].attributes('name')).toBe('123');
+    // expect(wrapper.findAll(".favourites_list .checkbox")).toHaveLength(2);
+    expect(wrapper.findAll(".favourites_list .favourites_list__item")[0].text()).toContain('Test Game 1');
+    expect(wrapper.findAll(".favourites_list .favourites_list__item")[1].text()).toContain('Test Game 2');
+    expect(wrapper.findAll(".favourites_list .favourites_list__item input")[0].attributes('name')).toBe('123');
 
     await wrapper.get('input[name="123"]').setValue();
     expect(wrapper.vm.formData).toEqual({ games: ["123"] });

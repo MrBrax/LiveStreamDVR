@@ -252,7 +252,7 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faRss, faBan } from "@fortawesome/free-solid-svg-icons";
 library.add(faRss, faBan);
 
-import licenses from "../../LICENSES.txt";
+// import licenses from "../../LICENSES.txt";
 
 interface SoftwareCallback {
     path: string;
@@ -326,7 +326,8 @@ export default defineComponent({
             return Object.keys(this.aboutData.pip).join(" ");
         },
         licenseUrl(): string {
-            return this.store.cfg("basepath") + "/LICENSES.txt";
+            // return this.store.cfg("basepath") + "/LICENSES.txt";
+            return new URL("../../LICENSES.txt", import.meta.url).href;
         },
     },
     created() {
@@ -418,10 +419,6 @@ export default defineComponent({
                 });
         },
         */
-        showLicenses() {
-            const win = window.open("", "Licenses");
-            if (win) win.document.write(licenses);
-        },
     },
 });
 </script>
