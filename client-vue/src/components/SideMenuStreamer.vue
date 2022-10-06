@@ -165,11 +165,11 @@
                     ><fa :icon="fileIcon(vod)" /></span>
 
                     <!-- basename -->
-                    <span v-if="show.vod_basename">{{ vod.basename }}</span>
+                    <span v-if="store.sidemenuShow.vod_basename">{{ vod.basename }}</span>
 
                     <!-- SxE -->
                     <span
-                        v-if="show.vod_sxe"
+                        v-if="store.sidemenuShow.vod_sxe"
                         class="sxe"
                     >
                         S{{ vod.stream_season }}E{{ vod.stream_number }}
@@ -177,7 +177,7 @@
 
                     <!-- SxE absolute -->
                     <span
-                        v-if="show.vod_sxe_absolute"
+                        v-if="store.sidemenuShow.vod_sxe_absolute"
                         class="sxe"
                     >
                         S{{ vod.stream_absolute_season }}E{{ vod.stream_number }}
@@ -185,15 +185,15 @@
 
                     <!-- started at -->
                     <!-- absolute time -->
-                    <span v-if="!store.clientCfg('useRelativeTime') && vod.started_at && show.vod_date">{{ formatDate(vod.started_at) }}</span>
+                    <span v-if="!store.clientCfg('useRelativeTime') && vod.started_at && store.sidemenuShow.vod_date">{{ formatDate(vod.started_at) }}</span>
 
                     <!-- relative time -->
-                    <span v-if="store.clientCfg('useRelativeTime') && vod.started_at && show.vod_date">{{ humanDate(vod.started_at, true) }}</span>
+                    <span v-if="store.clientCfg('useRelativeTime') && vod.started_at && store.sidemenuShow.vod_date">{{ humanDate(vod.started_at, true) }}</span>
 
                     <!-- when capturing -->
                     <template v-if="vod.is_capturing">
                         <span
-                            v-if="show.vod_duration"
+                            v-if="store.sidemenuShow.vod_duration"
                             class="duration"
                         >
                             (<duration-display
@@ -202,7 +202,7 @@
                             />)
                         </span><!-- duration -->
                         <span
-                            v-if="vod.getRecordingSize() && show.vod_size"
+                            v-if="vod.getRecordingSize() && store.sidemenuShow.vod_size"
                             class="size"
                         > {{ formatBytes(vod.getRecordingSize() || 0, 2) }}+</span><!-- filesize -->
                     </template>
@@ -211,7 +211,7 @@
                     <template v-else>
                         <!-- duration -->
                         <span
-                            v-if="vod.duration && show.vod_duration"
+                            v-if="vod.duration && store.sidemenuShow.vod_duration"
                             class="duration"
                         >
                             ({{ store.clientCfg('useRelativeTime') ? niceDuration(vod.duration) : humanDuration(vod.duration) }})
@@ -219,7 +219,7 @@
 
                         <!-- filesize -->
                         <span
-                            v-if="vod.total_size && show.vod_size"
+                            v-if="vod.total_size && store.sidemenuShow.vod_size"
                             class="size"
                         >{{ formatBytes(vod.total_size, 2) }}</span>
                     </template>
@@ -345,14 +345,14 @@ export default defineComponent({
     data() {
         return {
             expanded: false,
-            show: {
-                vod_date: true,
-                vod_sxe: false,
-                vod_sxe_absolute: false,
-                vod_size: true,
-                vod_duration: true,
-                vod_basename: false,
-            }
+            // show: {
+            //     vod_date: true,
+            //     vod_sxe: false,
+            //     vod_sxe_absolute: false,
+            //     vod_size: true,
+            //     vod_duration: true,
+            //     vod_basename: false,
+            // }
         };
     },
     computed: {

@@ -237,10 +237,13 @@ export default defineComponent({
         const currentConfig: ClientSettings = {...this.store.clientConfig};
         this.updateConfig = currentConfig;
         this.currentConfig = currentConfig;
+
+        this.sideMenuShow = {...this.store.sidemenuShow};
     },
     methods: {
         saveClientConfig() {
             this.store.updateClientConfig(this.updateConfig);
+            this.store.sidemenuShow = this.sideMenuShow; // TODO: move to store
             this.store.saveClientConfig();
             this.$i18n.locale = this.updateConfig.language;
             if (this.currentConfig.enableNotifications !== this.updateConfig.enableNotifications && this.updateConfig.enableNotifications) {

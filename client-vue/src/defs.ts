@@ -1,4 +1,4 @@
-import { ClientSettings } from "./twitchautomator";
+import { ClientSettings, SidemenuShow } from "./twitchautomator";
 
 export const defaultConfig: ClientSettings = {
     useSpeech: false,
@@ -23,6 +23,15 @@ export const defaultConfig: ClientSettings = {
     expandDashboardVodList: true,
     vodsToShowInDashboard: 4,
     jobStatusExpandedByDefault: false,
+};
+
+export const defaultSidemenuShow: SidemenuShow = {
+    vod_date: true,
+    vod_sxe: false,
+    vod_sxe_absolute: false,
+    vod_size: true,
+    vod_duration: true,
+    vod_basename: false,
 };
 
 interface ClientSettingField {
