@@ -194,22 +194,3 @@ export default defineComponent({
     }
 });
 </script>
-
-<style lang="scss" scoped>
-.streamer-jumpto-vod {
-    .size {
-        &::before {
-            // &middot;
-            content: " • ";
-            font-size: 0.7em;
-        }
-    }
-    .duration {
-        &::before {
-            // &middot;
-            content: " • ";
-            font-size: 0.7em;
-        }
-    }
-}
-</style>

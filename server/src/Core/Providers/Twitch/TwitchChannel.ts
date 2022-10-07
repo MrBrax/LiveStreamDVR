@@ -934,6 +934,10 @@ export class TwitchChannel extends BaseChannel {
         channel.channel_data = channel_data;
         channel.config = channel_config;
 
+        if (!channel.uuid) {
+            throw new Error(`Channel ${channel_login} has no uuid`);
+        }
+
         channel.login = channel_data.login;
         channel.display_name = channel_data.display_name;
         // channel.description = channel_data.description;

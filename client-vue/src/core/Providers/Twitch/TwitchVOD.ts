@@ -133,6 +133,14 @@ export default class TwitchVOD extends BaseVOD {
         }
     }
 
-    
+    public getTitle() {
+        if (this.twitch_vod_title) {
+            return this.twitch_vod_title;
+        }
+        if (this.chapters && this.chapters.length > 0) {
+            return this.chapters[0].title;
+        }
+        return this.basename;
+    }
 
 }

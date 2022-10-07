@@ -85,4 +85,11 @@ export default class BaseVOD {
         return this.recordingSize;
     }
 
+    public getTitle() {
+        if (this.chapters && this.chapters.length > 0) {
+            return this.chapters[0].title;
+        }
+        return this.basename;
+    }
+
 }

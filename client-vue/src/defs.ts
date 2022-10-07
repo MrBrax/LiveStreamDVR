@@ -32,6 +32,8 @@ export const defaultSidemenuShow: SidemenuShow = {
     vod_size: true,
     vod_duration: true,
     vod_basename: false,
+    vod_icon: true,
+    vod_title: false,
 };
 
 interface ClientSettingField {

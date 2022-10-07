@@ -79,7 +79,7 @@ export class LiveStreamDVR {
             }
             if (!channel.uuid) {
                 channel.uuid = randomUUID();
-                console.log(`Channel does not have an UUID, generated: ${channel.uuid}`);
+                Log.logAdvanced(LOGLEVEL.WARNING, "dvr", `Channel does not have an UUID, generated: ${channel.uuid}`);
                 needsSave = true;
             }
         }
@@ -132,7 +132,7 @@ export class LiveStreamDVR {
                     }
 
                     if (ch) {
-                        this.channels.push(ch);
+                        this.addChannel(ch);
                         ch.postLoad();
                         ch.getVods().forEach(vod => vod.postLoad());
                         Log.logAdvanced(LOGLEVEL.SUCCESS, "dvr.load.tw", `Loaded channel ${channel.login} with ${ch.getVods().length} vods`);
@@ -158,7 +158,7 @@ export class LiveStreamDVR {
                     }
 
                     if (ch) {
-                        this.channels.push(ch);
+                        this.addChannel(ch);
                         ch.postLoad();
                         ch.getVods().forEach(vod => vod.postLoad());
                         Log.logAdvanced(LOGLEVEL.SUCCESS, "dvr.load.yt", `Loaded channel ${ch.displayName} with ${ch.getVods().length} vods`);
@@ -213,6 +213,9 @@ export class LiveStreamDVR {
     }
 
     public addChannel(channel: ChannelTypes): void {
+        if (!channel.uuid) {
+            Log.logAdvanced(LOGLEVEL.WARNING, "dvr", `Channel ${channel.internalName} does not have an UUID!`);
+        }
         this.channels.push(channel);
     }
 
