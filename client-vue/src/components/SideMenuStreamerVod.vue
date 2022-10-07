@@ -74,7 +74,7 @@
             v-if="store.sidemenuShow.vod_sxe_absolute"
             class="sxe"
         >
-            S{{ vod.stream_absolute_season }}E{{ vod.stream_number }}
+            S{{ vod.stream_absolute_season?.toString().padStart(2, "0") }}E{{ vod.stream_number?.toString().padStart(2, "0") }}
         </span>
 
         <!-- started at -->
