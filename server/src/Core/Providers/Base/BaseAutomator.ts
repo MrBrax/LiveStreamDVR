@@ -588,6 +588,8 @@ export class BaseAutomator {
             this.capture_filename = path.join(folder_base, `${basename}.ts`);
         }
 
+        this.vod.capturingFilename = this.capture_filename;
+
         this.converted_filename = path.join(folder_base, `${basename}.${container_ext}`);
         this.chat_filename = path.join(folder_base, `${basename}.chatdump`);
 

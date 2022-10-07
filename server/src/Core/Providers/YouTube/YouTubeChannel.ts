@@ -185,7 +185,7 @@ export class YouTubeChannel extends BaseChannel {
         // if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "editor", channel.login)))
         //     fs.mkdirSync(path.join(BaseConfigDataFolder.saved_clips, "editor", channel.login), { recursive: true });
 
-        await channel.parseVODs();
+        // await channel.parseVODs();
 
         // await channel.findClips();
 
@@ -364,12 +364,13 @@ export class YouTubeChannel extends BaseChannel {
     //     return Helper.vodFolder(this.internalName);
     // }
 
-    public postLoad(): void {
+    public async postLoad(): Promise<void> {
         // this.setupStreamNumber();
         // if (!KeyValue.getInstance().has(`${this.login}.saves_vods`)) {
         //     this.checkIfChannelSavesVods();
         // }
         // this.addAllLocalVideos();
+        await this.parseVODs();
         this.startWatching();
     }
 

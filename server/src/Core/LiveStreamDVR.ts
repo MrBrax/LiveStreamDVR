@@ -133,7 +133,7 @@ export class LiveStreamDVR {
 
                     if (ch) {
                         this.addChannel(ch);
-                        ch.postLoad();
+                        await ch.postLoad();
                         ch.getVods().forEach(vod => vod.postLoad());
                         Log.logAdvanced(LOGLEVEL.SUCCESS, "dvr.load.tw", `Loaded channel ${channel.login} with ${ch.getVods().length} vods`);
                         if (ch.no_capture) {
@@ -159,7 +159,7 @@ export class LiveStreamDVR {
 
                     if (ch) {
                         this.addChannel(ch);
-                        ch.postLoad();
+                        await ch.postLoad();
                         ch.getVods().forEach(vod => vod.postLoad());
                         Log.logAdvanced(LOGLEVEL.SUCCESS, "dvr.load.yt", `Loaded channel ${ch.displayName} with ${ch.getVods().length} vods`);
                         if (ch.no_capture) {

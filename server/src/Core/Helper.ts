@@ -438,7 +438,7 @@ export class Helper {
             }
 
             if (Config.getInstance().cfg("debug")) {
-                opts.push("-report");
+                // opts.push("-report"); // can't set output file
                 opts.push("-progress", path.join(BaseConfigDataFolder.logs_software, "ffmpeg_progress.log"));
                 opts.push("-vstats");
                 opts.push("-vstats_file", path.join(BaseConfigDataFolder.logs_software, "ffmpeg_vstats.log"));
