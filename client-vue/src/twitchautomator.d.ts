@@ -36,6 +36,8 @@ export type SidemenuShow = {
     vod_size: boolean;
     vod_duration: boolean;
     vod_basename: boolean;
+    vod_icon: boolean;
+    vod_title: boolean;
 };
 
 export const phpDateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000

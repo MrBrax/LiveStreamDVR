@@ -19,7 +19,7 @@
     >
         <!-- capturing -->
         <span
-            v-if="vod.is_capturing"
+            v-if="vod.is_capturing && store.sidemenuShow.vod_icon"
             class="icon"
         ><fa
             icon="sync"
@@ -28,7 +28,7 @@
 
         <!-- converting -->
         <span
-            v-else-if="vod.is_converting"
+            v-else-if="vod.is_converting && store.sidemenuShow.vod_icon"
             class="icon"
         ><fa
             icon="cog"
@@ -37,29 +37,35 @@
 
         <!-- favourite -->
         <span
-            v-else-if="isTwitchVOD(vod) && vod.hasFavouriteGame()"
+            v-else-if="isTwitchVOD(vod) && vod.hasFavouriteGame() && store.sidemenuShow.vod_icon"
             class="icon"
         ><fa icon="star" /></span>
 
         <span
-            v-else-if="vod.failed"
+            v-else-if="vod.failed && store.sidemenuShow.vod_icon"
             class="icon is-error"
         ><fa icon="exclamation-triangle" /></span>
 
         <!-- waiting after capture -->
         <span
-            v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized"
+            v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized && store.sidemenuShow.vod_icon"
             class="icon"
         ><fa :icon="['far', 'hourglass']" /></span>
 
         <!-- video -->
         <span
-            v-else-if="vod.is_finalized"
+            v-else-if="vod.is_finalized && store.sidemenuShow.vod_icon"
             class="icon"
         ><fa :icon="fileIcon(vod)" /></span>
 
         <!-- basename -->
         <span v-if="store.sidemenuShow.vod_basename">{{ vod.basename }}</span>
+
+        <!-- title -->
+        <span
+            v-if="store.sidemenuShow.vod_title"
+            class="vod-title"
+        >{{ vod.getTitle() }}</span>
 
         <!-- SxE -->
         <span
@@ -238,3 +244,193 @@ function isRiskOfBeingDeleted(vod: TwitchVOD) {
 }
 
 </script>
+
+<style lang="scss" scoped>
+
+$favourite-base: #356e35;
+$converting-base: #bb15ca;
+$recording-base: #ca1515;
+$waiting-base: #2b2b2b;
+
+.streamer-jumpto-vod {
+    display: flex;
+    // center vertically
+    align-items: center;
+    gap: 0.25em;
+
+    font-family: "Roboto Condensed";
+    $base-bg: #09182c;
+    background-color: $base-bg;
+    // border-color: darken($base-bg, 5%);
+    // color: #ddd;
+    color: rgba(255, 255, 255, 0.5);
+    // display: block;
+    text-decoration: none;
+    padding: 3px 5px;
+    font-size: 0.8em;
+    transition: 0.1s border-width ease-in-out;
+
+    &.is-favourite {
+        background-color: $favourite-base;
+
+        &:hover {
+            background-color: lighten($favourite-base, 5%);
+        }
+
+        .tooltip {
+            background-color: rgba(darken($favourite-base, 15%), 0.98);
+        }
+    }
+
+    &.is-live {
+        background-color: $recording-base;
+        color: #eee;
+
+        // text-shadow: 1px 1px 2px darken($recording-base, 10%);
+        &.is-animated {
+            animation: 1s ease-in-out infinite recording; // TODO: keep?
+        }
+
+        &:hover {
+            background-color: lighten($recording-base, 5%);
+        }
+
+        .tooltip {
+            background-color: rgba($recording-base, 0.95);
+        }
+    }
+
+    &.is-converting {
+        background-color: $converting-base;
+
+        &:hover {
+            background-color: lighten($converting-base, 5%);
+        }
+
+        .tooltip {
+            background-color: rgba($converting-base, 0.95);
+        }
+    }
+
+    &.is-waiting {
+        background-color: $waiting-base;
+
+        &:hover {
+            background-color: lighten($waiting-base, 5%);
+        }
+
+        .tooltip {
+            background-color: rgba($waiting-base, 0.95);
+        }
+    }
+
+    &.is-active {
+        &.is-favourite {
+            border-color: lighten($favourite-base, 60%);
+        }
+
+        &.is-live {
+            border-color: lighten($recording-base, 60%);
+        }
+
+        &.is-converting {
+            border-color: lighten($converting-base, 60%);
+        }
+
+        border-left: 2px solid lighten($base-bg, 60%);
+        color: #fff;
+    }
+
+    .flags {
+        text-align: right;
+        flex: 1;
+        display: flex;
+        justify-content: flex-end;
+
+        .icon {
+            margin: 0;
+            padding: 0;
+        }
+    }
+
+    .tooltip {
+        position: absolute;
+        // left: $sidemenu-width + 10px;
+        left: calc(var(--sidemenu-width) + 10px);
+
+        &.is-static {
+            position: fixed;
+            top: 10px;
+        }
+
+        background-color: rgba(0, 0, 0, 0.98);
+        border-radius: 3px;
+        padding: 8px;
+        display: none;
+        word-wrap: none;
+        width: max-content;
+
+        .boxart-carousel {
+            margin: 5px 0;
+        }
+
+        .stream-channel {
+            font-size: 1.1em;
+            font-weight: 700;
+        }
+
+        .stream-name {
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /*
+        .stream-title {
+            
+        }
+        */
+    }
+
+    &:hover>.tooltip {
+        display: block;
+    }
+
+    .size {
+        color: rgba(159, 218, 173, 0.5);
+        // &::before {
+        //     // &middot;
+        //     content: " • ";
+        //     font-size: 0.7em;
+        // }
+    }
+    .duration {
+        color: rgba(212, 218, 159, 0.7);
+        // &::before {
+        //     // &middot;
+        //     content: " • ";
+        //     font-size: 0.7em;
+        // }
+    }
+
+    &:hover {
+        color: #fff;
+        background-color: lighten($base-bg, 5%);
+        .size {
+            color: rgba(220, 240, 225, 1);
+        }
+        .duration {
+            color: rgba(240, 240, 225, 1);
+        }
+    }
+
+}
+
+
+.vod-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 40%;
+    display: inline-block;
+}
+</style>

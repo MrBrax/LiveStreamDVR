@@ -100,6 +100,14 @@
             <div class="control">
                 <label>
                     <input
+                        v-model="sideMenuShow.vod_icon"
+                        type="checkbox"
+                    > Icon
+                </label>
+            </div>
+            <div class="control">
+                <label>
+                    <input
                         v-model="sideMenuShow.vod_date"
                         type="checkbox"
                     > Date
@@ -145,6 +153,14 @@
                     > Season / Episode (Absolute)
                 </label>
             </div>
+            <div class="control">
+                <label>
+                    <input
+                        v-model="sideMenuShow.vod_title"
+                        type="checkbox"
+                    > Title
+                </label>
+            </div>
         </div>
         <div class="field">
             <button
@@ -181,8 +197,8 @@
 <script lang="ts">
 import { useStore } from "@/store";
 import { defineComponent } from "vue";
-import { defaultConfig, defaultConfigFields } from "@/defs";
-import { ClientSettings } from "@/twitchautomator";
+import { defaultConfig, defaultConfigFields, defaultSidemenuShow } from "@/defs";
+import { ClientSettings, SidemenuShow } from "@/twitchautomator";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faBell, faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
@@ -198,26 +214,12 @@ export default defineComponent({
     data(): {
         currentConfig: ClientSettings;
         updateConfig: ClientSettings;
-        sideMenuShow: {
-            vod_date: boolean;
-            vod_sxe: boolean;
-            vod_sxe_absolute: boolean;
-            vod_size: boolean;
-            vod_duration:  boolean;
-            vod_basename: boolean;
-        };
+        sideMenuShow: SidemenuShow;
     } {
         return {
             currentConfig: {...defaultConfig},
             updateConfig: {...defaultConfig},
-            sideMenuShow: {
-                vod_date: false,
-                vod_sxe: false,
-                vod_sxe_absolute: false,
-                vod_size: false,
-                vod_duration: false,
-                vod_basename: false,
-            },
+            sideMenuShow: {...defaultSidemenuShow},
         };
     },
     computed: {
