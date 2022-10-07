@@ -101,7 +101,7 @@ export class TwitchVOD extends BaseVOD {
         // $this->is_capturing 	= isset($this->json['is_capturing']) ? $this->json['is_capturing'] : false;
         // $this->is_converting 	= isset($this->json['is_converting']) ? $this->json['is_converting'] : false;
         // $this->is_finalized 	= isset($this->json['is_finalized']) ? $this->json['is_finalized'] : false;
-        
+
 
         // $this->force_record				= isset($this->json['force_record']) ? $this->json['force_record'] : false;
         // $this->automator_fail			= isset($this->json['automator_fail']) ? $this->json['automator_fail'] : false;
@@ -1447,10 +1447,16 @@ export class TwitchVOD extends BaseVOD {
                 );
 
                 if (eventType === "unlink" || eventType === "unlinkDir") {
-                    const seg = this.segments.find(s => s.filename === filename);
-                    if (seg && !fs.existsSync(filename)) {
-                        seg.deleted = true;
-                        // this.saveJSON("segment deleted");
+
+                    if (Config.getInstance().cfg("storage.deleted_cloud")) {
+                        this.cloud_storage = true;
+                        if (fs.existsSync(this.filename)) this.saveJSON("cloud storage set"); // only save when file exists
+                    } else {
+                        const seg = this.segments.find(s => s.filename === filename);
+                        if (seg && !fs.existsSync(filename)) {
+                            seg.deleted = true;
+                            // this.saveJSON("segment deleted");
+                        }
                     }
                 } else if (eventType === "add") {
                     const seg = this.segments.find(s => s.filename === filename);
@@ -1938,8 +1944,8 @@ export class TwitchVOD extends BaseVOD {
                 const end = TwitchHelper.parseTwitchDuration(video.duration);
                 const meta = new FFmpegMetadata()
                     .setArtist(video.user_name)
-                    .setTitle(video.title)
-                
+                    .setTitle(video.title);
+
                 try {
                     meta.addChapter(0, end, video.title, "1/1000");
                 } catch (e) {

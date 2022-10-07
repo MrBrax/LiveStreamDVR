@@ -90,6 +90,7 @@ export class Config {
         { "key": "keep_muted_vods", "group": "Storage", "text": "Keep muted VODs", "type": "boolean", "default": false },
         { "key": "keep_commented_vods", "group": "Storage", "text": "Keep commented VODs", "type": "boolean", "default": false },
         { "key": "delete_only_one_vod", "group": "Storage", "text": "Delete only one VOD when cleaning up like old times", "type": "boolean", "default": false },
+        { "key": "storage.deleted_cloud", "group": "Storage", "text": "Flag VODs with deleted segments as cloud only", "type": "boolean", "default": false },
 
         { "key": "hls_timeout", "group": "Capture", "text": "HLS Timeout in seconds (ads)", "type": "number", "default": 200 },
         { "key": "download_retries", "group": "Capture", "text": "Download/capture retries", "type": "number", "default": 5 },
