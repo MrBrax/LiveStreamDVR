@@ -371,6 +371,22 @@ export class TwitchVOD extends BaseVOD {
 
         }
 
+        chapters.forEach((chapter, index) => {
+            const previousChapter = chapters[index - 1];
+            const nextChapter = chapters[index + 1];
+
+            if (previousChapter) {
+                if (previousChapter.started_at < chapter.started_at) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "vod.parseChapters", `Chapter ${chapter.title} has a previous chapter with a later start time for ${this.basename}`);
+                }
+            }
+            if (nextChapter) {
+                if (nextChapter.started_at < chapter.started_at) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "vod.parseChapters", `Chapter ${chapter.title} has a next chapter with an earlier start time for ${this.basename}`);
+                }
+            }
+        });
+
         /*
         this.chapters.forEach((chapter, index) => {
 
@@ -1567,7 +1583,15 @@ export class TwitchVOD extends BaseVOD {
     }
 
     public setupStreamNumber(): void {
-        const channel = this.getChannel();
+
+        let channel;
+
+        try {
+            channel = this.getChannel();
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod", `Error getting channel for setupStreamNumber: ${(error as Error).message}`);
+        }
+
         if (channel && channel.current_stream_number !== undefined && this.stream_number === undefined) {
             this.stream_number = channel.incrementStreamNumber();
             // this.stream_number = channel.current_stream_number;
