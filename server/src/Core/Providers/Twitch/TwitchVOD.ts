@@ -376,13 +376,13 @@ export class TwitchVOD extends BaseVOD {
             const nextChapter = chapters[index + 1];
 
             if (previousChapter) {
-                if (previousChapter.started_at < chapter.started_at) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "vod.parseChapters", `Chapter ${chapter.title} has a previous chapter with a later start time for ${this.basename}`);
+                if (previousChapter.started_at.getTime() > chapter.started_at.getTime()) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "vod.parseChapters", `Chapter ${chapter.title} has a previous chapter with a later start time for ${this.basename} (previous: ${previousChapter.started_at}, current: ${chapter.started_at})`);
                 }
             }
             if (nextChapter) {
-                if (nextChapter.started_at < chapter.started_at) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "vod.parseChapters", `Chapter ${chapter.title} has a next chapter with an earlier start time for ${this.basename}`);
+                if (nextChapter.started_at.getTime() < chapter.started_at.getTime()) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "vod.parseChapters", `Chapter ${chapter.title} has a next chapter with an earlier start time for ${this.basename} (next: ${nextChapter.started_at}, current: ${chapter.started_at})`);
                 }
             }
         });
