@@ -745,15 +745,20 @@ export class BaseVOD {
             const start = Math.floor(offset * 1000);
             const end = Math.floor((offset + duration) * 1000);
             const title = isTwitchVODChapter(chapter) ? `${chapter.title} (${chapter.game_name})` : chapter.title;
-            meta.addChapter(start, end, title, "1/1000", [
-                isTwitchVODChapter(chapter) ? `Game ID: ${chapter.game_id}` : "",
-                isTwitchVODChapter(chapter) ? `Game Name: ${chapter.game_name}` : "",
-                `Title: ${chapter.title}`,
-                `Offset: ${offset}`,
-                `Duration: ${duration}`,
-                isTwitchVODChapter(chapter) ? `Viewer count: ${chapter.viewer_count}` : "",
-                `Started at: ${chapter.started_at.toISOString()}`,
-            ]);
+            try {
+                meta.addChapter(start, end, title, "1/1000", [
+                    isTwitchVODChapter(chapter) ? `Game ID: ${chapter.game_id}` : "",
+                    isTwitchVODChapter(chapter) ? `Game Name: ${chapter.game_name}` : "",
+                    `Title: ${chapter.title}`,
+                    `Offset: ${offset}`,
+                    `Duration: ${duration}`,
+                    isTwitchVODChapter(chapter) ? `Viewer count: ${chapter.viewer_count}` : "",
+                    `Started at: ${chapter.started_at.toISOString()}`,
+                ]);
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "vod.saveFFMPEGChapters", `Error while adding chapter ${chapter.title} to FFMPEG chapters file for ${this.basename}: ${(error as Error).message}`);
+            }
+            
         });
 
         await this.stopWatching();

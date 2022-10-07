@@ -433,8 +433,15 @@ export class Helper {
                 opts.push("-y");
             }
 
-            if (Config.getInstance().cfg("debug") || Config.getInstance().cfg("app_verbose")) {
+            if (Config.getInstance().cfg("app_verbose")) {
                 opts.push("-loglevel", "repeat+level+verbose");
+            }
+
+            if (Config.getInstance().cfg("debug")) {
+                opts.push("-report");
+                opts.push("-progress", path.join(BaseConfigDataFolder.logs_software, "ffmpeg_progress.log"));
+                opts.push("-vstats");
+                opts.push("-vstats_file", path.join(BaseConfigDataFolder.logs_software, "ffmpeg_vstats.log"));
             }
 
             opts.push(output);

@@ -1935,7 +1935,16 @@ export class TwitchVOD extends BaseVOD {
             if (Config.getInstance().cfg("create_video_chapters")) {
                 chapters_file = path.join(BaseConfigCacheFolder.cache, `${video_id}.ffmpeg.txt`);
                 const end = TwitchHelper.parseTwitchDuration(video.duration);
-                const meta = new FFmpegMetadata().setArtist(video.user_name).setTitle(video.title).addChapter(0, end, video.title, "1/1000");
+                const meta = new FFmpegMetadata()
+                    .setArtist(video.user_name)
+                    .setTitle(video.title)
+                
+                try {
+                    meta.addChapter(0, end, video.title, "1/1000");
+                } catch (e) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to add chapter to ${basename}: ${(e as Error).message}`);
+                }
+
                 fs.writeFileSync(chapters_file, meta.getString());
             }
 
