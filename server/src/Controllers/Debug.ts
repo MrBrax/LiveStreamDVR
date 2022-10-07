@@ -10,14 +10,14 @@ import { Job } from "../Core/Job";
 export function ListVodsInMemory(req: express.Request, res: express.Response): void {
     res.send({
         status: "OK",
-        data: LiveStreamDVR.getInstance().vods,
+        data: LiveStreamDVR.getInstance().getVods(),
     });
 }
 
 export function ListChannelsInMemory(req: express.Request, res: express.Response): void {
     res.send({
         status: "OK",
-        data: LiveStreamDVR.getInstance().channels,
+        data: LiveStreamDVR.getInstance().getChannels(),
     });
 }
 
@@ -45,10 +45,10 @@ export async function VodDownloadAtEnd(req: express.Request, res: express.Respon
 export async function ReencodeVod(req: express.Request, res: express.Response): Promise<void> {
     const basename = req.params.basename as string;
 
-    const vod = LiveStreamDVR.getInstance().vods.find((v) => v.basename === basename);
+    const vod = LiveStreamDVR.getInstance().getVods().find((v) => v.basename === basename);
 
     if (!vod) {
-        res.status(500).send(LiveStreamDVR.getInstance().vods.map((v) => v.basename));
+        res.status(500).send(LiveStreamDVR.getInstance().getVods().map((v) => v.basename));
         return;
     }
 

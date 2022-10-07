@@ -29,4 +29,13 @@ export type ClientSettings = {
     jobStatusExpandedByDefault: boolean;
 };
 
+export type SidemenuShow = {
+    vod_date: boolean;
+    vod_sxe: boolean;
+    vod_sxe_absolute: boolean;
+    vod_size: boolean;
+    vod_duration: boolean;
+    vod_basename: boolean;
+};
+
 export const phpDateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000

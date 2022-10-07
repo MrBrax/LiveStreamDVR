@@ -8,6 +8,7 @@ import path from "path";
 import { Config } from "../Core/Config";
 import { Log, LOGLEVEL } from "../Core/Log";
 import fs from "fs";
+import { youtube_v3 } from "@googleapis/youtube";
 
 export class YouTubeHelper {
 
@@ -15,6 +16,11 @@ export class YouTubeHelper {
         "https://www.googleapis.com/auth/youtube.upload",
         "https://www.googleapis.com/auth/userinfo.profile",
         "https://www.googleapis.com/auth/youtube.readonly",
+
+        // create playlists
+        // "https://www.googleapis.com/auth/youtube", // this might be too much?
+        // "https://www.googleapis.com/auth/youtube.force-ssl",
+        "https://www.googleapis.com/auth/youtubepartner",
     ];
 
     static readonly accessTokenFile = path.join(BaseConfigCacheFolder.cache, "youtube_oauth.json");
@@ -226,6 +232,68 @@ export class YouTubeHelper {
             }
         }
         return seconds;
+    }
+
+    public static getPlaylists(): Promise<youtube_v3.Schema$Playlist[]> {
+
+        return new Promise((resolve, reject) => {
+
+            const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
+
+            service.playlists.list({
+                part: ["snippet", "contentDetails"],
+                mine: true,
+                maxResults: 50,
+            }).then((response) => {
+
+                if (!response || !response.data || !response.data.items) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeHelper", "No response from API");
+                    reject(new Error("No response from API"));
+                    return;
+                }
+
+                resolve(response.data.items);
+
+            }).catch((error) => {
+                Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeHelper", `Failed to fetch playlists: ${(error as Error).message}`);
+                reject(error);
+            });
+
+        });
+
+    }
+
+    public static createPlaylist(name: string, description: string): Promise<youtube_v3.Schema$Playlist> {
+
+        return new Promise((resolve, reject) => {
+
+            const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
+
+            service.playlists.insert({
+                part: ["snippet", "contentDetails"],
+                requestBody: {
+                    snippet: {
+                        title: name,
+                        description,
+                    },
+                },
+            }).then((response) => {
+
+                if (!response || !response.data) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeHelper", "No response from API");
+                    reject(new Error("No response from API"));
+                    return;
+                }
+
+                resolve(response.data);
+
+            }).catch((error) => {
+                Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeHelper", `Failed to create playlist: ${(error as Error).message}`);
+                reject(error);
+            });
+
+        });
+
     }
 
 }

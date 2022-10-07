@@ -15,7 +15,8 @@
     "this-is-a-bad-idea-if-any-of-your-channels-are-live": "This is a bad idea if any of your channels are live.",
     "login-mismatch-fixing": "Login mismatch, fixing",
     "login": "You need to be logged in to view this resource.",
-    "local-videos": "Local videos"
+    "local-videos": "Local videos",
+    "none": "None"
   },
   "vod": {
     "add_comment": "Add a comment",
@@ -106,7 +107,12 @@
       "title": "Title",
       "password": "Password",
       "password-help": "Passwords in FTP are sent unencrypted in clear text.",
-      "remote": "Remote"
+      "remote": "Remote",
+      "privacy-help": "By default, only privacy uploads are supported.",
+      "playlist": "Playlist",
+      "playlist-help": "Raw playlist ID, not the URL",
+      "get-playlists": "Get playlists",
+      "create-playlist": "Create playlist"
     },
     "bookmarks": "Bookmarks",
     "buttons": {
@@ -194,7 +200,8 @@
       "value": "Value"
     },
     "favourites": {
-      "no-games-in-cache-when-streamers-change-games-they-will-be-added-to-the-cache": "No games in cache. When streamers change games, they will be added to the cache."
+      "no-games-in-cache-when-streamers-change-games-they-will-be-added-to-the-cache": "No games in cache. When streamers change games, they will be added to the cache.",
+      "display-as-grid": "Display as grid"
     }
   },
   "views": {

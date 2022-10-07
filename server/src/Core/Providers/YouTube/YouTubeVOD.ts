@@ -1,21 +1,21 @@
-import path from "path";
-import fs from "fs";
-import { ApiYouTubeVod } from "../../../../../common/Api/Client";
-import { ProxyVideo } from "../../../../../common/Proxies/Video";
-import { BaseVOD } from "../Base/BaseVOD";
-import { VODJSON, YouTubeVODJSON } from "../../../Storage/JSON";
-import { Log, LOGLEVEL } from "../../../Core/Log";
-import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
-import { BaseVODChapter } from "../Base/BaseVODChapter";
 import { youtube_v3 } from "@googleapis/youtube";
-import { YouTubeHelper } from "../../../Providers/YouTube";
-import { TwitchHelper } from "../../../Providers/Twitch";
 import chalk from "chalk";
+import fs from "fs";
+import path from "path";
+import { ApiYouTubeVod } from "../../../../../common/Api/Client";
 import { VideoQuality } from "../../../../../common/Config";
+import { Providers } from "../../../../../common/Defs";
+import { ProxyVideo } from "../../../../../common/Proxies/Video";
 import { BaseConfigCacheFolder } from "../../../Core/BaseConfig";
 import { Helper } from "../../../Core/Helper";
+import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
+import { Log, LOGLEVEL } from "../../../Core/Log";
+import { isYouTubeVOD } from "../../../Helpers/Types";
+import { YouTubeHelper } from "../../../Providers/YouTube";
+import { VODJSON, YouTubeVODJSON } from "../../../Storage/JSON";
+import { BaseVOD } from "../Base/BaseVOD";
+import { BaseVODChapter } from "../Base/BaseVODChapter";
 import { YouTubeChannel } from "./YouTubeChannel";
-import { Providers } from "../../../../../common/Defs";
 
 export class YouTubeVOD extends BaseVOD {
 
@@ -295,7 +295,7 @@ export class YouTubeVOD extends BaseVOD {
         vod.setupBasic();
         vod.setupProvider();
         await vod.setupAssoc();
-        vod.setupFiles();
+        await vod.setupFiles();
 
         // add to cache
         this.addVod(vod);
@@ -318,11 +318,11 @@ export class YouTubeVOD extends BaseVOD {
     }
 
     public static getVodByCaptureId(capture_id: string): YouTubeVOD | undefined {
-        return LiveStreamDVR.getInstance().vods.find<YouTubeVOD>((vod): vod is YouTubeVOD => vod instanceof YouTubeVOD && vod.capture_id == capture_id);
+        return LiveStreamDVR.getInstance().getVods().find<YouTubeVOD>((vod): vod is YouTubeVOD => isYouTubeVOD(vod) && vod.capture_id == capture_id);
     }
 
     public static getVodByProviderId(provider_id: string): YouTubeVOD | undefined {
-        return LiveStreamDVR.getInstance().vods.find<YouTubeVOD>((vod): vod is YouTubeVOD => vod instanceof YouTubeVOD && vod.youtube_vod_id == provider_id);
+        return LiveStreamDVR.getInstance().getVods().find<YouTubeVOD>((vod): vod is YouTubeVOD => isYouTubeVOD(vod) && vod.youtube_vod_id == provider_id);
     }
 
     static async getVideosProxy(channel_id: string): Promise<false | ProxyVideo[]> {

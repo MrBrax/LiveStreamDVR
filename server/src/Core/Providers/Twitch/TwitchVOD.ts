@@ -4,6 +4,7 @@ import chokidar from "chokidar";
 import { randomUUID } from "crypto";
 import { format, parse, parseJSON } from "date-fns";
 import fs from "fs";
+import { isTwitchVOD } from "../../../Helpers/Types";
 import { encode as htmlentities } from "html-entities";
 import path from "path";
 import { trueCasePathSync } from "true-case-path";
@@ -100,7 +101,7 @@ export class TwitchVOD extends BaseVOD {
         // $this->is_capturing 	= isset($this->json['is_capturing']) ? $this->json['is_capturing'] : false;
         // $this->is_converting 	= isset($this->json['is_converting']) ? $this->json['is_converting'] : false;
         // $this->is_finalized 	= isset($this->json['is_finalized']) ? $this->json['is_finalized'] : false;
-        
+
 
         // $this->force_record				= isset($this->json['force_record']) ? $this->json['force_record'] : false;
         // $this->automator_fail			= isset($this->json['automator_fail']) ? $this->json['automator_fail'] : false;
@@ -520,25 +521,25 @@ export class TwitchVOD extends BaseVOD {
 
         // generate chapter related files
         try {
-            this.saveLosslessCut();
+            await this.saveLosslessCut();
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vod.finalize", `Failed to save lossless cut for ${this.basename}: ${error}`);
         }
 
         try {
-            this.saveFFMPEGChapters();
+            await this.saveFFMPEGChapters();
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vod.finalize", `Failed to save ffmpeg chapters for ${this.basename}: ${error}`);
         }
 
         try {
-            this.saveVTTChapters();
+            await this.saveVTTChapters();
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vod.finalize", `Failed to save vtt chapters for ${this.basename}: ${error}`);
         }
 
         try {
-            this.saveKodiNfo();
+            await this.saveKodiNfo();
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vod.finalize", `Failed to save kodi nfo for ${this.basename}: ${error}`);
         }
@@ -606,7 +607,7 @@ export class TwitchVOD extends BaseVOD {
 
     }
 
-    public saveVTTChapters(): boolean {
+    public async saveVTTChapters(): Promise<boolean> {
 
         if (!this.directory) {
             throw new Error("TwitchVOD.saveVTTChapters: directory is not set");
@@ -636,15 +637,19 @@ export class TwitchVOD extends BaseVOD {
 
         });
 
+        await this.stopWatching();
+
         fs.writeFileSync(this.path_vttchapters, data, { encoding: "utf8" });
 
         this.setPermissions();
+
+        await this.startWatching();
 
         return fs.existsSync(this.path_vttchapters);
 
     }
 
-    public saveKodiNfo(): boolean {
+    public async saveKodiNfo(): Promise<boolean> {
 
         if (!Config.getInstance().cfg("create_kodi_nfo")) return false;
 
@@ -706,9 +711,13 @@ export class TwitchVOD extends BaseVOD {
 
         data += "</episodedetails>\n";
 
+        await this.stopWatching();
+
         fs.writeFileSync(this.path_kodinfo, data, { encoding: "utf8" });
 
         this.setPermissions();
+
+        await this.startWatching();
 
         return fs.existsSync(this.path_kodinfo);
 
@@ -805,6 +814,7 @@ export class TwitchVOD extends BaseVOD {
 
             stream_number: this.stream_number,
             stream_season: this.stream_season,
+            stream_absolute_season: this.stream_absolute_season,
 
             comment: this.comment,
 
@@ -1400,10 +1410,11 @@ export class TwitchVOD extends BaseVOD {
 
             if (Config.debug) console.log(`VOD file ${filename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})!`);
 
+            // main json file changed
             if (filename === this.filename) {
                 if (!fs.existsSync(this.filename)) {
-                    Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD JSON ${this.basename} deleted!`);
-                    if (LiveStreamDVR.getInstance().vods.find(v => v.basename == this.basename)) {
+                    Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD JSON ${this.basename} deleted (${eventType})!`);
+                    if (LiveStreamDVR.getInstance().getVodByUUID(this.uuid) !== false) {
                         Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${this.basename} still in memory!`);
 
                         // const channel = TwitchChannel.getChannelByLogin(this.streamer_login);
@@ -1416,6 +1427,7 @@ export class TwitchVOD extends BaseVOD {
 
                     const channel = this.getChannel();
                     if (channel) {
+                        channel.removeVod(this.uuid);
                         setTimeout(() => {
                             if (!channel) return;
                             channel.checkStaleVodsInMemory();
@@ -1433,6 +1445,28 @@ export class TwitchVOD extends BaseVOD {
                     undefined,
                     "system"
                 );
+
+                if (eventType === "unlink" || eventType === "unlinkDir") {
+
+                    if (Config.getInstance().cfg("storage.deleted_cloud")) {
+                        this.cloud_storage = true;
+                        if (fs.existsSync(this.filename)) this.saveJSON("cloud storage set"); // only save when file exists
+                    } else {
+                        const seg = this.segments.find(s => s.filename === filename);
+                        if (seg && !fs.existsSync(filename)) {
+                            seg.deleted = true;
+                            // this.saveJSON("segment deleted");
+                        }
+                    }
+                } else if (eventType === "add") {
+                    const seg = this.segments.find(s => s.filename === filename);
+                    if (seg && fs.existsSync(filename)) {
+                        seg.deleted = false;
+                        this.getMediainfo();
+                        // this.saveJSON("segment added");
+                    }
+                }
+
             } else {
                 if (Config.debug) console.debug(`VOD file ${filename} changed (${eventType})!`);
                 Log.logAdvanced(LOGLEVEL.INFO, "vod.watch", `VOD file ${filename} changed (${eventType})!`);
@@ -1613,7 +1647,7 @@ export class TwitchVOD extends BaseVOD {
         vod.setupBasic();
         vod.setupProvider();
         await vod.setupAssoc();
-        vod.setupFiles();
+        await vod.setupFiles();
 
         // add to cache
         this.addVod(vod);
@@ -1793,20 +1827,20 @@ export class TwitchVOD extends BaseVOD {
      */
     public static getVod(basename: string): TwitchVOD | undefined {
         if (TwitchVOD.hasVod(basename)) {
-            return LiveStreamDVR.getInstance().vods.find<TwitchVOD>((vod): vod is TwitchVOD => vod instanceof TwitchVOD && vod.basename == basename);
+            return LiveStreamDVR.getInstance().getVods().find<TwitchVOD>((vod): vod is TwitchVOD => isTwitchVOD(vod) && vod.basename == basename);
         }
     }
 
     public static getVodByCaptureId(capture_id: string): TwitchVOD | undefined {
-        return LiveStreamDVR.getInstance().vods.find<TwitchVOD>((vod): vod is TwitchVOD => vod instanceof TwitchVOD && vod.capture_id == capture_id);
+        return LiveStreamDVR.getInstance().getVods().find<TwitchVOD>((vod): vod is TwitchVOD => isTwitchVOD(vod) && vod.capture_id == capture_id);
     }
 
     public static getVodByUUID(uuid: string): TwitchVOD | undefined {
-        return LiveStreamDVR.getInstance().vods.find<TwitchVOD>((vod): vod is TwitchVOD => vod instanceof TwitchVOD && vod.uuid == uuid);
+        return LiveStreamDVR.getInstance().getVods().find<TwitchVOD>((vod): vod is TwitchVOD => isTwitchVOD(vod) && vod.uuid == uuid);
     }
 
     public static getVodByProviderId(provider_id: string): TwitchVOD | undefined {
-        return LiveStreamDVR.getInstance().vods.find<TwitchVOD>((vod): vod is TwitchVOD => vod instanceof TwitchVOD && vod.twitch_vod_id == provider_id);
+        return LiveStreamDVR.getInstance().getVods().find<TwitchVOD>((vod): vod is TwitchVOD => isTwitchVOD(vod) && vod.twitch_vod_id == provider_id);
     }
 
     /**
@@ -1908,7 +1942,16 @@ export class TwitchVOD extends BaseVOD {
             if (Config.getInstance().cfg("create_video_chapters")) {
                 chapters_file = path.join(BaseConfigCacheFolder.cache, `${video_id}.ffmpeg.txt`);
                 const end = TwitchHelper.parseTwitchDuration(video.duration);
-                const meta = new FFmpegMetadata().setArtist(video.user_name).setTitle(video.title).addChapter(0, end, video.title, "1/1000");
+                const meta = new FFmpegMetadata()
+                    .setArtist(video.user_name)
+                    .setTitle(video.title);
+
+                try {
+                    meta.addChapter(0, end, video.title, "1/1000");
+                } catch (e) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to add chapter to ${basename}: ${(e as Error).message}`);
+                }
+
                 fs.writeFileSync(chapters_file, meta.getString());
             }
 

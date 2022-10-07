@@ -5,6 +5,7 @@ export class TwitchGame {
     public id!: string;
     public name!: string;
     public box_art_url!: string;
+    public image_url!: string;
     public added!: Date;
 
     public static makeFromApiResponse(apiResponse: ApiGame): TwitchGame {
@@ -12,6 +13,7 @@ export class TwitchGame {
         game.id = apiResponse.id;
         game.name = apiResponse.name;
         game.box_art_url = apiResponse.box_art_url;
+        game.image_url = apiResponse.image_url;
         game.added = new Date(apiResponse.added);
         return game;
     }

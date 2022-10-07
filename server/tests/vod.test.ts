@@ -15,10 +15,19 @@ import { TwitchAutomator } from "../src/Core/Providers/Twitch/TwitchAutomator";
 // jest.mock("../src/Core/Providers/Twitch/TwitchVOD");
 
 beforeAll(async () => {
+
+    jest.spyOn(TwitchChannel, "channelLoginFromId").mockImplementation((channel_id: string) => { return Promise.resolve("testuser"); });
+    jest.spyOn(TwitchChannel, "channelDisplayNameFromId").mockImplementation((channel_id: string) => { return Promise.resolve("TestUser"); });
+
+    jest.spyOn(KeyValue.prototype, "save").mockImplementation(() => true);
+    jest.spyOn(KeyValue.prototype, "load").mockImplementation(() => true);
+
+    jest.spyOn(Config.prototype, "saveConfig").mockImplementation(() => true);
+
     const channels_config = JSON.parse(fs.readFileSync("./tests/mockdata/channels.json", "utf8"));
     await Config.init();
     LiveStreamDVR.getInstance().channels_config = channels_config;
-    LiveStreamDVR.getInstance().channels = [];
+    LiveStreamDVR.getInstance().clearChannels();
 
     const mock_channel = new TwitchChannel();
     mock_channel.userid = "1";
@@ -39,18 +48,13 @@ beforeAll(async () => {
         description: "",
         view_count: 0,
     };
-    LiveStreamDVR.getInstance().channels.push(mock_channel);
 
     jest.spyOn(mock_channel, "saveVodDatabase").mockImplementation(() => {
         console.debug("save vod database");
         return;
     });
-
-    jest.spyOn(TwitchChannel, "channelLoginFromId").mockImplementation((channel_id: string) => { return Promise.resolve("testuser"); });
-    jest.spyOn(TwitchChannel, "channelDisplayNameFromId").mockImplementation((channel_id: string) => { return Promise.resolve("TestUser"); });
-
-    jest.spyOn(KeyValue.prototype, "save").mockImplementation(() => true);
-    jest.spyOn(KeyValue.prototype, "load").mockImplementation(() => true);
+    
+    LiveStreamDVR.getInstance().addChannel(mock_channel);
 
     // mock twitchvod delete function
     // mockTwitchVOD.delete.mockImplementation(async (vod_id) => {
@@ -61,7 +65,7 @@ describe("VOD", () => {
 
     it("episode number", async () => {
 
-        const channel = LiveStreamDVR.getInstance().channels[0] as TwitchChannel;
+        const channel = LiveStreamDVR.getInstance().getChannels()[0] as TwitchChannel;
         channel.setupStreamNumber();
         
         expect(channel.current_season).toBe(format(new Date(), Config.SeasonFormat));

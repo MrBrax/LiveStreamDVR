@@ -79,6 +79,13 @@ const routes: Array<RouteRecordRaw> = [
         name: "Files",
         component: () => import(/* webpackChunkName: "files" */ "../views/FilesView.vue"),
     },
+
+    // catch all 404
+    {
+        path: "/:pathMatch(.*)*",
+        name: "NotFound",
+        component: () => import(/* webpackChunkName: "notfound" */ "../views/NotFoundView.vue"),
+    },
 ];
 
 const router = createRouter({

@@ -13,11 +13,11 @@ beforeAll(async () => {
     const channels_config = JSON.parse(fs.readFileSync("./tests/mockdata/channels.json", "utf8"));
     await Config.init();
     LiveStreamDVR.getInstance().channels_config = channels_config;
-    LiveStreamDVR.getInstance().channels = [];
+    LiveStreamDVR.getInstance().clearChannels();
 
     const mock_channel = new TwitchChannel();
     mock_channel.login = "testuser";
-    LiveStreamDVR.getInstance().channels.push(mock_channel);
+    LiveStreamDVR.getInstance().addChannel(mock_channel);
 
     // mock twitchvod delete function
     // mockTwitchVOD.delete.mockImplementation(async (vod_id) => {
@@ -27,7 +27,7 @@ beforeAll(async () => {
 describe("Channel", () => {
 
     it("cleanup", async () => {
-        const channel = LiveStreamDVR.getInstance().channels[0] as TwitchChannel;
+        const channel = LiveStreamDVR.getInstance().getChannels()[0] as TwitchChannel;
 
         const spies = [];
 

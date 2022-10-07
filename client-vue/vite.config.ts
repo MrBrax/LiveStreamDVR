@@ -27,6 +27,7 @@ export default defineConfig({
       manifest: {
         name: 'LiveStreamDVR',
         short_name: 'LSDVR',
+        id: 'com.lsdvr.app',
         description: 'Record your favorite live streams',
         theme_color: '#ffffff',
         icons: [
@@ -45,8 +46,21 @@ export default defineConfig({
 
       // ignore api calls
       workbox: {
-        navigateFallbackDenylist: [/\/api\//],
-        // mode: 'development',
+        navigateFallbackDenylist: [
+          /\/api\//,
+          /\/socket\//,
+          /\/cache\//,
+          /\/vodplayer\//,
+          /\/vods\//,
+          /\/saved_vods\//,
+          /\/saved_clips\//,
+          /\/cache\//,
+          /\/logs\//,
+        ],
+        mode: process.env.NODE_ENV === 'development' ? 'development' : 'production',
+        globPatterns: [
+          '**/*.{js,css,html,ico,png,jpg,webp,svg,webmanifest,xml,txt}',
+        ],
       },
 
     })

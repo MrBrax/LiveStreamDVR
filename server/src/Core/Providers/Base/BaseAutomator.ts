@@ -11,7 +11,7 @@ import { KeyValue } from "../../KeyValue";
 import { Job } from "../../Job";
 import { TwitchChannel } from "../Twitch/TwitchChannel";
 import { Config } from "../../Config";
-import { TwitchHelper, RemuxReturn } from "../../../Providers/Twitch";
+import { RemuxReturn } from "../../../Providers/Twitch";
 import { LOGLEVEL, Log } from "../../Log";
 import { TwitchVOD } from "../Twitch/TwitchVOD";
 import { TwitchVODChapter } from "../Twitch/TwitchVODChapter";
@@ -22,10 +22,11 @@ import { Sleep } from "../../../Helpers/Sleep";
 import { ClientBroker } from "../../ClientBroker";
 import sanitize from "sanitize-filename";
 import { formatString } from "../../../../../common/Format";
-import { Exporter, ExporterOptions, GetExporter } from "../../../Controllers/Exporter";
+import { Exporter, GetExporter } from "../../../Controllers/Exporter";
 import { VodBasenameTemplate } from "../../../../../common/Replacements";
 import { ChannelTypes, VODTypes } from "../../../Core/LiveStreamDVR";
 import { Helper } from "../../../Core/Helper";
+import { ExporterOptions } from "../../../../../common/Exporter";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
@@ -1131,7 +1132,7 @@ export class BaseAutomator {
         });
 
         let mf;
-        if (Config.getInstance().cfg("create_video_chapters") && this.vod.saveFFMPEGChapters()) {
+        if (Config.getInstance().cfg("create_video_chapters") && await this.vod.saveFFMPEGChapters()) {
             mf = this.vod.path_ffmpegchapters;
         }
 

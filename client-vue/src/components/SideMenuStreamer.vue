@@ -105,177 +105,10 @@
                 v-for="vod in filteredVodsList"
                 :key="vod.basename"
             >
-                <router-link
-                    v-if="streamer"
-                    :to="
-                        store.clientCfg('singlePage')
-                            ? { name: 'Dashboard', query: { channel: streamer.uuid }, hash: '#vod_' + vod.uuid }
-                            : { name: 'Dashboard', hash: '#vod_' + vod.uuid }
-                    "
-                    :class="{
-                        'is-active': store.visibleVod == vod.basename,
-                        'is-favourite': isTwitchVOD(vod) ? vod.hasFavouriteGame() : false,
-                        'is-live': vod.is_capturing,
-                        'is-animated': store.clientCfg('animationsEnabled'),
-                        'is-converting': vod.is_converting,
-                        'is-waiting': !vod.is_capturing && !vod.is_converting && !vod.is_finalized,
-                        'streamer-jumpto-vod': true,
-                    }"
-                    :title="vod.started_at ? formatDate(vod.started_at) : 'Unknown'"
-                >
-                    <!-- capturing -->
-                    <span
-                        v-if="vod.is_capturing"
-                        class="icon"
-                    ><fa
-                        icon="sync"
-                        spin
-                    /></span>
-
-                    <!-- converting -->
-                    <span
-                        v-else-if="vod.is_converting"
-                        class="icon"
-                    ><fa
-                        icon="cog"
-                        spin
-                    /></span>
-
-                    <!-- favourite -->
-                    <span
-                        v-else-if="isTwitchVOD(vod) && vod.hasFavouriteGame()"
-                        class="icon"
-                    ><fa icon="star" /></span>
-
-                    <span
-                        v-else-if="vod.failed"
-                        class="icon is-error"
-                    ><fa icon="exclamation-triangle" /></span>
-
-                    <!-- waiting after capture -->
-                    <span
-                        v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized"
-                        class="icon"
-                    ><fa :icon="['far', 'hourglass']" /></span>
-
-                    <!-- video -->
-                    <span
-                        v-else-if="vod.is_finalized"
-                        class="icon"
-                    ><fa :icon="fileIcon(vod)" /></span>
-
-                    <!-- started at -->
-
-                    <!-- absolute time -->
-                    <span v-if="!store.clientCfg('useRelativeTime') && vod.started_at">{{ formatDate(vod.started_at) }}</span>
-
-                    <!-- relative time -->
-                    <span v-if="store.clientCfg('useRelativeTime') && vod.started_at">{{ humanDate(vod.started_at, true) }}</span>
-
-                    <!-- when capturing -->
-                    <template v-if="vod.is_capturing">
-                        <span>
-                            &middot; (<duration-display
-                                :start-date="streamer.current_vod?.started_at"
-                                :output-style="store.clientCfg('useRelativeTime') ? 'human' : 'numbers'"
-                            />)</span><!-- duration -->
-                        <span v-if="vod.getRecordingSize()"> &middot; {{ formatBytes(vod.getRecordingSize() || 0, 2) }}+</span><!-- filesize -->
-                    </template>
-
-                    <!-- when not capturing -->
-                    <template v-else>
-                        <!-- duration -->
-                        <span v-if="vod.duration">
-                            &middot; ({{ store.clientCfg('useRelativeTime') ? niceDuration(vod.duration) : humanDuration(vod.duration) }})
-                        </span>
-
-                        <!-- filesize -->
-                        <span v-if="vod.total_size"> &middot; {{ formatBytes(vod.total_size, 2) }}</span>
-                    </template>
-
-                    <!-- flags -->
-                    <template v-if="vod.is_finalized">
-                        <span class="flags">
-                            <span
-                                v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === false"
-                                class="icon is-error"
-                                title="Deleted from provider"
-                            ><fa icon="trash" /></span><!-- vod deleted -->
-                            <span
-                                v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === true && isRiskOfBeingDeleted(vod)"
-                                class="icon is-warning"
-                                title="Is risking deletion from provider"
-                            >
-                                <fa icon="trash-arrow-up" />
-                            </span><!-- vod deleted -->
-                            <span
-                                v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === null"
-                                class="icon is-error"
-                                title="Not checked"
-                            ><fa icon="question" /></span><!-- vod not checked -->
-                            <span
-                                v-if="isTwitchVOD(vod) && vod.twitch_vod_muted === MuteStatus.MUTED"
-                                class="icon is-error"
-                                title="Muted"
-                            ><fa icon="volume-mute" /></span><!-- vod muted -->
-                            <span
-                                v-if="vod.is_capture_paused"
-                                class="icon is-error"
-                                title="Paused"
-                            ><fa icon="pause" /></span><!-- capturing paused -->
-                            <span
-                                v-if="vod.prevent_deletion"
-                                class="icon is-success"
-                                title="Preventing deletion"
-                            ><fa icon="lock" /></span><!-- prevent deletion -->
-                            <span
-                                v-if="vod.hasDeletedSegment"
-                                class="icon is-error"
-                                title="Deleted segment"
-                            ><fa icon="film" /></span><!-- deleted segment -->
-                            <span
-                                v-if="vod.comment"
-                                class="icon is-success"
-                                title="Has comment"
-                            ><fa icon="comment" /></span><!-- has comment -->
-                        </span>
-                    </template>
-
-                    <!-- tooltip -->
-                    <div :class="{ tooltip: true, 'is-static': store.clientCfg('tooltipStatic') }">
-                        <div class="stream-channel">
-                            {{ streamer.display_name }}
-                            <template v-if="streamer.login.toLowerCase() != streamer.display_name.toLowerCase()">
-                                ({{ streamer.login }})
-                            </template>
-                        </div>
-                        <div class="stream-name">
-                            {{ vod.basename }}
-                        </div>
-                        <div
-                            v-if="isTwitchVOD(vod)"
-                            class="boxart-carousel is-small"
-                        >
-                            <div
-                                v-for="game in vod.getUniqueGames()"
-                                :key="game.name"
-                                :class="{ 'boxart-item': true, 'is-favourite': store.config && store.favourite_games.includes(game.id) }"
-                            >
-                                <img
-                                    v-if="game.box_art_url"
-                                    :title="game.name"
-                                    :alt="game.name"
-                                    :src="game.getBoxArtUrl(140, 190)"
-                                    loading="lazy"
-                                >
-                                <span class="boxart-name">{{ game.name }}</span>
-                            </div>
-                        </div>
-                        <div class="stream-title">
-                            {{ isTwitchVOD(vod) ? vod.stream_title : "" }}
-                        </div>
-                    </div>
-                </router-link>
+                <side-menu-streamer-vod
+                    :streamer="streamer"
+                    :vod="vod"
+                />
             </li>
         </transition-group>
     </div>
@@ -285,6 +118,7 @@
 import { defineComponent } from "vue";
 
 import DurationDisplay from "@/components/DurationDisplay.vue";
+import SideMenuStreamerVod from "./SideMenuStreamerVod.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
@@ -300,6 +134,7 @@ export default defineComponent({
     name: "SideMenuStreamer",
     components: {
         DurationDisplay,
+        SideMenuStreamerVod,
     },
     props: {
         streamer: {
@@ -314,6 +149,14 @@ export default defineComponent({
     data() {
         return {
             expanded: false,
+            // show: {
+            //     vod_date: true,
+            //     vod_sxe: false,
+            //     vod_sxe_absolute: false,
+            //     vod_size: true,
+            //     vod_duration: true,
+            //     vod_basename: false,
+            // }
         };
     },
     computed: {
@@ -345,28 +188,28 @@ export default defineComponent({
         }
     },
     methods: {
-        isRiskOfBeingDeleted(vod: TwitchVOD) {
-            if (!vod.started_at) return false;
-
-            const channel = vod.getChannel();
-            if (channel) {
-                if (channel.broadcaster_type === "partner") return false; // partner vods are never deleted, i think?
-            }
-
-            // 14 days minus 2 days for some slack
-            const maxVodAge = TwitchVodAge - 2 * 24 * 60 * 60 * 1000;
-
-            // if the vod is older than 12 days, it is considered risky
-            return Date.now() - vod.started_at.getTime() >= maxVodAge;
-        },
         toggleExpand() {
             this.expanded = !this.expanded;
         },
-        fileIcon(vod: VODTypes): string {
-            if (!this.streamer) return "";
-            if (vod.video_metadata?.type === "audio") return "headphones";
-            return "film";
-        }
     }
 });
 </script>
+
+<style lang="scss" scoped>
+.streamer-jumpto-vod {
+    .size {
+        &::before {
+            // &middot;
+            content: " • ";
+            font-size: 0.7em;
+        }
+    }
+    .duration {
+        &::before {
+            // &middot;
+            content: " • ";
+            font-size: 0.7em;
+        }
+    }
+}
+</style>

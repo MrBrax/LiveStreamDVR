@@ -174,7 +174,7 @@ export class BaseVOD {
             if (filename === this.filename) {
                 if (!fs.existsSync(this.filename)) {
                     Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD JSON ${this.basename} deleted!`);
-                    if (LiveStreamDVR.getInstance().vods.find(v => v.basename == this.basename)) {
+                    if (LiveStreamDVR.getInstance().getVods().find(v => v.basename == this.basename)) {
                         Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${this.basename} still in memory!`);
 
                         // const channel = TwitchChannel.getChannelByLogin(this.streamer_login);
@@ -717,7 +717,7 @@ export class BaseVOD {
      * @see {@link https://ikyle.me/blog/2020/add-mp4-chapters-ffmpeg}
      * @returns Save success
      */
-    public saveFFMPEGChapters(): boolean {
+    public async saveFFMPEGChapters(): Promise<boolean> {
 
         if (!this.directory) {
             throw new Error("TwitchVOD.saveFFMPEGChapters: directory is not set");
@@ -745,20 +745,29 @@ export class BaseVOD {
             const start = Math.floor(offset * 1000);
             const end = Math.floor((offset + duration) * 1000);
             const title = isTwitchVODChapter(chapter) ? `${chapter.title} (${chapter.game_name})` : chapter.title;
-            meta.addChapter(start, end, title, "1/1000", [
-                isTwitchVODChapter(chapter) ? `Game ID: ${chapter.game_id}` : "",
-                isTwitchVODChapter(chapter) ? `Game Name: ${chapter.game_name}` : "",
-                `Title: ${chapter.title}`,
-                `Offset: ${offset}`,
-                `Duration: ${duration}`,
-                isTwitchVODChapter(chapter) ? `Viewer count: ${chapter.viewer_count}` : "",
-                `Started at: ${chapter.started_at.toISOString()}`,
-            ]);
+            try {
+                meta.addChapter(start, end, title, "1/1000", [
+                    isTwitchVODChapter(chapter) ? `Game ID: ${chapter.game_id}` : "",
+                    isTwitchVODChapter(chapter) ? `Game Name: ${chapter.game_name}` : "",
+                    `Title: ${chapter.title}`,
+                    `Offset: ${offset}`,
+                    `Duration: ${duration}`,
+                    isTwitchVODChapter(chapter) ? `Viewer count: ${chapter.viewer_count}` : "",
+                    `Started at: ${chapter.started_at.toISOString()}`,
+                ]);
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "vod.saveFFMPEGChapters", `Error while adding chapter ${chapter.title} to FFMPEG chapters file for ${this.basename}: ${(error as Error).message}`);
+            }
+            
         });
+
+        await this.stopWatching();
 
         fs.writeFileSync(this.path_ffmpegchapters, meta.getString(), { encoding: "utf8" });
 
         this.setPermissions();
+
+        await this.startWatching();
 
         return fs.existsSync(this.path_ffmpegchapters);
 
@@ -916,7 +925,7 @@ export class BaseVOD {
         return;
     }
 
-    public setupFiles(): void {
+    public async setupFiles(): Promise<void> {
 
         if (!this.directory) {
             throw new Error("No directory set!");
@@ -939,16 +948,16 @@ export class BaseVOD {
         if (this.is_finalized) {
             try {
                 if (!fs.existsSync(this.path_losslesscut)) {
-                    this.saveLosslessCut();
+                    await this.saveLosslessCut();
                 }
                 if (!fs.existsSync(this.path_ffmpegchapters)) {
-                    this.saveFFMPEGChapters();
+                    await this.saveFFMPEGChapters();
                 }
                 if (!fs.existsSync(this.path_vttchapters)) {
-                    this.saveVTTChapters();
+                    await this.saveVTTChapters();
                 }
                 if (!fs.existsSync(this.path_kodinfo) && Config.getInstance().cfg("create_kodi_nfo")) {
-                    this.saveKodiNfo();
+                    await this.saveKodiNfo();
                 }
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Could not save associated files for ${this.basename}: ${(error as Error).message}`);
@@ -956,7 +965,7 @@ export class BaseVOD {
         }
     }
 
-    public saveLosslessCut(): boolean {
+    public async saveLosslessCut(): Promise<boolean> {
 
         if (!this.directory) {
             throw new Error("TwitchVOD.saveLosslessCut: directory is not set");
@@ -1004,18 +1013,28 @@ export class BaseVOD {
             data += "\n";
         });
 
+        await this.stopWatching();
+
         fs.writeFileSync(csv_path, data);
 
         this.setPermissions();
 
+        await this.startWatching();
+
         return fs.existsSync(csv_path);
     }
 
-    public saveVTTChapters(): boolean { return false; }
-    public saveKodiNfo(): boolean { return false; }
+    public async saveVTTChapters(): Promise<boolean> { return await Promise.resolve(false); }
+    public async saveKodiNfo(): Promise<boolean> { return await Promise.resolve(false); }
 
+    /**
+     * 
+     * @param basename 
+     * @deprecated
+     * @returns 
+     */
     public static hasVod(basename: string): boolean {
-        return LiveStreamDVR.getInstance().vods.findIndex(vod => vod.basename == basename) != -1;
+        return LiveStreamDVR.getInstance().getVods().findIndex(vod => vod.basename == basename) != -1;
     }
 
     public static addVod(vod: VODTypes): boolean {
@@ -1026,7 +1045,7 @@ export class BaseVOD {
         if (this.hasVod(vod.basename))
             throw new Error(`VOD ${vod.basename} is already in cache!`);
 
-        LiveStreamDVR.getInstance().vods.push(vod);
+        LiveStreamDVR.getInstance().addVod(vod);
 
         return this.hasVod(vod.basename);
     }
@@ -1073,6 +1092,7 @@ export class BaseVOD {
         }
 
         this.stream_number = this.json.stream_number !== undefined ? this.json.stream_number : undefined;
+        this.stream_absolute_season = this.json.stream_absolute_season !== undefined ? this.json.stream_absolute_season : undefined;
 
     }
 
@@ -1212,6 +1232,12 @@ export class BaseVOD {
     }
     public setupProvider(): void { return; }
 
+    /**
+     * Delete VOD from disk and all associated files.
+     * Also removes the VOD from the channel database.
+     * 
+     * @returns {Promise<boolean>} True if successful, false if not.
+     */
     public async delete(): Promise<boolean> {
 
         if (!this.directory) {
@@ -1325,7 +1351,7 @@ export class BaseVOD {
 
         this.basename = new_basename;
         this.filename = this.filename.replaceAll(old_basename, new_basename);
-        this.setupFiles();
+        await this.setupFiles();
         this.segments_raw = new_segments;
         this.parseSegments(this.segments_raw);
         await this.saveJSON("basename rename");

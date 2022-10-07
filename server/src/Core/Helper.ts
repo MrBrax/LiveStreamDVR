@@ -433,8 +433,15 @@ export class Helper {
                 opts.push("-y");
             }
 
-            if (Config.getInstance().cfg("debug") || Config.getInstance().cfg("app_verbose")) {
+            if (Config.getInstance().cfg("app_verbose")) {
                 opts.push("-loglevel", "repeat+level+verbose");
+            }
+
+            if (Config.getInstance().cfg("debug")) {
+                opts.push("-report");
+                opts.push("-progress", path.join(BaseConfigDataFolder.logs_software, "ffmpeg_progress.log"));
+                opts.push("-vstats");
+                opts.push("-vstats_file", path.join(BaseConfigDataFolder.logs_software, "ffmpeg_vstats.log"));
             }
 
             opts.push(output);
@@ -931,7 +938,9 @@ export class Helper {
 
         const filenameHash = createHash("md5").update(filename + width).digest("hex");
 
-        const output_image = path.join(BaseConfigCacheFolder.public_cache_thumbs, `${filenameHash}.${Config.getInstance().cfg<string>("thumbnail_format", "jpg")}`);
+        const thumbnail_format = Config.getInstance().cfg<string>("thumbnail_format", "jpg");
+
+        const output_image = path.join(BaseConfigCacheFolder.public_cache_thumbs, `${filenameHash}.${thumbnail_format}`);
 
         if (fs.existsSync(output_image)) {
             return path.basename(output_image);
@@ -940,11 +949,27 @@ export class Helper {
         const ffmpeg_path = Helper.path_ffmpeg();
         if (!ffmpeg_path) throw new Error("Failed to find ffmpeg");
 
+        let codec = "";
+        if (thumbnail_format == "jpg") {
+            codec = "jpeg";
+        } else if (thumbnail_format == "png") {
+            codec = "png";
+        } else if (thumbnail_format == "webp") {
+            codec = "webp";
+        } else {
+            throw new Error(`Unsupported thumbnail format: ${thumbnail_format}`);
+        }
+
         const output = await Helper.execSimple(ffmpeg_path, [
             "-i", filename,
             "-vf", `scale=${width}:-1`,
+            "-codec", codec,        
             output_image,
         ], "ffmpeg image thumbnail");
+
+        if ((output.stderr.join("") + output.stdout.join("")).includes("Default encoder for format")) {
+            throw new Error("Unsupported codec for image thumbnail");
+        }
 
         if (output && fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
             return path.basename(output_image);

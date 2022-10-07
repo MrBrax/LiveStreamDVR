@@ -70,6 +70,8 @@ router.get("/vod/:uuid/sync", AuthAdmin, Vod.GetSync);
 router.post("/vod/:uuid/rename", AuthAdmin, Vod.RenameVod);
 
 router.get("/games", AuthGuest, Games.ListGames);
+// router.get("/games/:id", AuthGuest, Games.GetGame);
+router.get("/games/:id/refresh", AuthAdmin, Games.RefreshGame);
 
 router.post("/exporter", AuthAdmin, Exporter.ExportFile);
 
@@ -119,6 +121,7 @@ router.get("/debug/jobprogress", AuthAdmin, Debug.JobProgress);
 
 router.get("/notifications", AuthAdmin, Notifications.GetNotificationSettings);
 router.put("/notifications", AuthAdmin, Notifications.SaveNotificationSettings);
+router.post("/notifications/test", AuthAdmin, Notifications.TestNotificationSettings);
 
 router.post("/tools/reset_channels", AuthAdmin, Tools.ResetChannels);
 router.post("/tools/vod_download", AuthAdmin, Tools.DownloadVod);
@@ -135,6 +138,8 @@ router.get("/youtube/authenticate", AuthAdmin, YouTube.Authenticate);
 router.get("/youtube/callback", AuthAdmin, YouTube.Callback);
 router.get("/youtube/status", AuthAdmin, YouTube.Status);
 router.get("/youtube/destroy", AuthAdmin, YouTube.DestroySession);
+router.get("/youtube/playlists", AuthAdmin, YouTube.GetPlaylists);
+router.post("/youtube/playlists", AuthAdmin, YouTube.CreatePlaylist);
 
 router.post("/auth/login", Auth.Login);
 router.post("/auth/logout", Auth.Logout);

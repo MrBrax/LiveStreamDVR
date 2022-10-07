@@ -105,6 +105,9 @@ export class FFmpegMetadata {
     }
 
     addChapter(start: number, end: number, title: string, timebase: string, meta?: string[]): this {
+        if (end < start) {
+            throw new Error("End time must be greater than start time");
+        }
         this.chapters.push({
             start: start,
             end: end,
@@ -143,6 +146,8 @@ export class FFmpegMetadata {
         }
         result += "\n";
 
+        // this.chapters.sort((a, b) => a.start - b.start);
+
         if (this.chapters.length > 0) {
             for (const chapter of this.chapters) {
                 result += "[CHAPTER]\n";
@@ -154,7 +159,7 @@ export class FFmpegMetadata {
                 result += `TIMEBASE=${chapter.timebase}\n`;
                 result += `START=${chapter.start}\n`;
                 result += `END=${chapter.end}\n`;
-                result += `title=${this.sanitize(chapter.title)}\n`;
+                result += `title=${this.sanitize(chapter.title)}\n\n`;
             }
         }
         return result;

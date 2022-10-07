@@ -7,7 +7,6 @@ import fs from "fs";
 import fsPromises from "fs/promises";
 import { encode as htmlentities } from "html-entities";
 import path from "path";
-import { TwitchVODChapterJSON } from "Storage/JSON";
 import { Readable } from "stream";
 import type { ApiTwitchChannel } from "../../../../../common/Api/Client";
 import { TwitchChannelConfig, VideoQuality } from "../../../../../common/Config";
@@ -21,13 +20,15 @@ import type { SubscriptionRequest, SubscriptionResponse } from "../../../../../c
 import type { BroadcasterType, UsersResponse } from "../../../../../common/TwitchAPI/Users";
 import type { UserData } from "../../../../../common/User";
 import { Helper } from "../../../Core/Helper";
+import { isTwitchChannel } from "../../../Helpers/Types";
 import { TwitchHelper } from "../../../Providers/Twitch";
+import { TwitchVODChapterJSON } from "../../../Storage/JSON";
 import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
 import { Job } from "../../Job";
 import { KeyValue } from "../../KeyValue";
-import { ChannelTypes, LiveStreamDVR } from "../../LiveStreamDVR";
+import { LiveStreamDVR } from "../../LiveStreamDVR";
 import { Log, LOGLEVEL } from "../../Log";
 import { Webhook } from "../../Webhook";
 import { BaseChannel } from "../Base/BaseChannel";
@@ -155,7 +156,7 @@ export class TwitchChannel extends BaseChannel {
 
             Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `VOD ${vod} added to ${this.internalName}`);
 
-            this.vods_list.push(vodclass);
+            this.addVod(vodclass);
         }
         this.sortVods();
     }
@@ -175,7 +176,7 @@ export class TwitchChannel extends BaseChannel {
         if (!this.userid || !this.login || !this.display_name)
             console.error(chalk.red(`Channel ${this.login} is missing userid, login or display_name`));
 
-        const vods_list = await Promise.all(this.vods_list?.map(async (vod) => await vod.toAPI()));
+        const vods_list = await Promise.all(this.getVods().map(async (vod) => await vod.toAPI()));
 
         return {
             uuid: this.uuid || "-1",
@@ -225,6 +226,7 @@ export class TwitchChannel extends BaseChannel {
 
             current_stream_number: this.current_stream_number,
             current_season: this.current_season,
+            current_absolute_season: this.current_absolute_season,
 
             chapter_data: this.getChapterData(),
 
@@ -315,7 +317,7 @@ export class TwitchChannel extends BaseChannel {
         const load_vod = await TwitchVOD.load(vod.filename, true);
 
         // TwitchVOD.addVod(vod);
-        this.vods_list.push(load_vod);
+        this.addVod(load_vod);
         this.sortVods();
 
         // add to database
@@ -333,8 +335,8 @@ export class TwitchChannel extends BaseChannel {
 
         // const vods_on_disk = fs.readdirSync(Helper.vodFolder(this.login)).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".json") && !f.endsWith("_chat.json"));
         const vods_on_disk = this.rescanVods();
-        const vods_in_channel_memory = this.vods_list;
-        const vods_in_main_memory = LiveStreamDVR.getInstance().vods.filter(v => v instanceof TwitchVOD && v.channel_uuid === this.uuid);
+        const vods_in_channel_memory = this.getVods();
+        const vods_in_main_memory = LiveStreamDVR.getInstance().getVodsByChannelUUID(this.uuid);
 
         if (vods_on_disk.length !== vods_in_channel_memory.length) {
             Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Vod on disk and vod in memory are not the same for ${this.internalName}`);
@@ -372,7 +374,7 @@ export class TwitchChannel extends BaseChannel {
     }
 
     public hasVod(video_id: string): boolean {
-        return this.vods_list.find(v => v.twitch_vod_id && v.twitch_vod_id === video_id) != undefined;
+        return this.getVods().find(v => v.twitch_vod_id && v.twitch_vod_id === video_id) != undefined;
     }
 
     /**
@@ -569,7 +571,7 @@ export class TwitchChannel extends BaseChannel {
         nfo_content += `<uniqueid type="twitch>${this.userid}</uniqueid>\n`;
         if (avatar) nfo_content += `<thumb aspect="poster">${avatar}</thumb>\n`;
         // nfo_content += `<thumb aspect="fanart">${this.channel_data.profile_banner_url}</thumb>\n`;
-        nfo_content += `<episode>${this.vods_list.length}</episode>\n`;
+        nfo_content += `<episode>${this.getVods().length}</episode>\n`;
         nfo_content += `<plot>${htmlentities(this.channel_data.description)}</plot>\n`;
         nfo_content += "<actor>\n";
         nfo_content += `\t<name>${this.channel_data.display_name}</name>\n`;
@@ -654,7 +656,7 @@ export class TwitchChannel extends BaseChannel {
         }
 
         // rename vods
-        for (const vod of this.vods_list) {
+        for (const vod of this.getVods()) {
             vod.changeBaseName(vod.basename.replace(old_login, new_login));
         }
 
@@ -721,7 +723,7 @@ export class TwitchChannel extends BaseChannel {
         const latestVodDateTotal = new Date(latestVodDate.getTime() + (latestVodDuration * 1000));
         const latestVodDateDiff = Math.abs(now.getTime() - latestVodDateTotal.getTime());
 
-        const localVod = this.vods_list.find((v) => v.twitch_vod_id === latestVodData.id || (v.created_at?.getTime() && now.getTime() - v.created_at?.getTime() < latestVodDateDiff));
+        const localVod = this.getVods().find((v) => v.twitch_vod_id === latestVodData.id || (v.created_at?.getTime() && now.getTime() - v.created_at?.getTime() < latestVodDateDiff));
         if (localVod) {
             await localVod.downloadVod(quality);
             return localVod.path_downloaded_vod;
@@ -812,7 +814,7 @@ export class TwitchChannel extends BaseChannel {
 
                 if (Config.getInstance().cfg("localvideos.enabled")) {
 
-                    const allVodFiles = this.vods_list.map((v) => v.associatedFiles.map((f) => path.basename(f))).flat();
+                    const allVodFiles = this.getVods().map((v) => v.associatedFiles.map((f) => path.basename(f))).flat();
 
                     if (allVodFiles.includes(filename)) {
                         return; // skip actual vods
@@ -886,12 +888,12 @@ export class TwitchChannel extends BaseChannel {
         });
     }
 
-    private addAllLocalVideos() {
+    public addAllLocalVideos() {
         if (!Config.getInstance().cfg("channel_folders")) return; // don't watch if no channel folders are enabled
         if (!Config.getInstance().cfg("localvideos.enabled")) return;
         const folder = this.getFolder();
         const files = fs.readdirSync(folder);
-        const allVodFiles = this.vods_list.map((v) => v.associatedFiles.map((f) => path.basename(f))).flat();
+        const allVodFiles = this.getVods().map((v) => v.associatedFiles.map((f) => path.basename(f))).flat();
         for (const file of files) {
             if (!file.endsWith(".mp4")) continue;
             if (allVodFiles.includes(path.basename(file))) continue;
@@ -911,7 +913,7 @@ export class TwitchChannel extends BaseChannel {
 
         Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Load channel ${channel_id}`);
 
-        const channel_memory = LiveStreamDVR.getInstance().channels.find<TwitchChannel>((channel): channel is TwitchChannel => channel instanceof TwitchChannel && channel.userid === channel_id);
+        const channel_memory = LiveStreamDVR.getInstance().getChannels().find<TwitchChannel>((channel): channel is TwitchChannel => isTwitchChannel(channel) && channel.userid === channel_id);
         if (channel_memory) {
             Log.logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel_id} already loaded`);
             return channel_memory;
@@ -1005,7 +1007,7 @@ export class TwitchChannel extends BaseChannel {
         if (exists_config) throw new Error(`Channel ${config.login} already exists in config`);
 
         // const exists_channel = TwitchChannel.channels.find(ch => ch.login === config.login);
-        const exists_channel = LiveStreamDVR.getInstance().channels.find<TwitchChannel>((channel): channel is TwitchChannel => channel instanceof TwitchChannel && channel.login === config.login);
+        const exists_channel = LiveStreamDVR.getInstance().getChannels().find<TwitchChannel>((channel): channel is TwitchChannel => isTwitchChannel(channel) && channel.login === config.login);
         if (exists_channel) throw new Error(`Channel ${config.login} already exists in channels`);
 
         const data = await TwitchChannel.getUserDataByLogin(config.login);
@@ -1044,7 +1046,7 @@ export class TwitchChannel extends BaseChannel {
             throw new Error("Can't subscribe due to either no app_url or isolated mode disabled.");
         }
 
-        LiveStreamDVR.getInstance().channels.push(channel);
+        LiveStreamDVR.getInstance().addChannel(channel);
 
         if (TwitchHelper.axios) { // bad hack?
             const streams = await TwitchChannel.getStreams(channel.internalId);
@@ -1162,7 +1164,9 @@ export class TwitchChannel extends BaseChannel {
 
     public static getChannels(): TwitchChannel[] {
         // return this.channels;
-        return LiveStreamDVR.getInstance().channels.filter<TwitchChannel>((channel): channel is TwitchChannel => channel instanceof TwitchChannel) || [];
+        return LiveStreamDVR
+            .getInstance()
+            .getChannels().filter<TwitchChannel>((channel): channel is TwitchChannel => isTwitchChannel(channel)) || [];
     }
 
     public static isType(channel: any): channel is TwitchChannel {
@@ -1179,7 +1183,10 @@ export class TwitchChannel extends BaseChannel {
      * @returns {TwitchChannel} Channel object
      */
     public static getChannelByLogin(login: string): TwitchChannel | undefined {
-        return LiveStreamDVR.getInstance().channels.find<TwitchChannel>((ch): ch is TwitchChannel => ch instanceof TwitchChannel && ch.login === login);
+        return LiveStreamDVR
+            .getInstance()
+            .getChannels()
+            .find<TwitchChannel>((ch): ch is TwitchChannel => ch instanceof TwitchChannel && ch.login === login);
     }
 
     public static async getStreams(streamer_id: string): Promise<Stream[] | false> {
@@ -1715,15 +1722,28 @@ export class TwitchChannel extends BaseChannel {
 
     }
 
-    
+    public getVods(): TwitchVOD[] {
+        return this.vods_list;
+    }
+
+    public getVodByIndex(index: number): TwitchVOD | undefined {
+        if (index < 0 || index >= this.vods_list.length) {
+            return undefined;
+        }
+        return this.vods_list[index];
+    }
+
+    public addVod(vod: TwitchVOD): void {
+        this.vods_list.push(vod);
+    }
 
     get current_vod(): TwitchVOD | undefined {
-        return this.vods_list?.find(vod => vod.is_capturing);
+        return this.getVods().find(vod => vod.is_capturing);
     }
 
     get latest_vod(): TwitchVOD | undefined {
-        if (!this.vods_list || this.vods_list.length == 0) return undefined;
-        return this.vods_list[this.vods_list.length - 1]; // is this reliable?
+        if (!this.getVods() || this.getVods().length == 0) return undefined;
+        return this.getVodByIndex(this.getVods().length - 1); // is this reliable?
     }
 
     get displayName(): string {
@@ -1749,7 +1769,13 @@ export class TwitchChannel extends BaseChannel {
     get profilePictureUrl(): string {
         if (this.channel_data && this.channel_data.cache_avatar) {
             // return `${Config.getInstance().cfg<string>("basepath", "")}/cache/avatars/${this.channel_data.cache_avatar}`;
-            return `${Config.getInstance().cfg<string>("basepath", "")}/cache/thumbs/${this.channel_data.cache_avatar}`;
+            // return `${Config.getInstance().cfg<string>("basepath", "")}/cache/thumbs/${this.channel_data.cache_avatar}`;
+            const app_url = Config.getInstance().cfg<string>("app_url", "");
+            if (app_url && app_url !== "debug") {
+                return `${app_url}/cache/thumbs/${this.channel_data.cache_avatar}`;
+            } else {
+                return `${Config.getInstance().cfg<string>("basepath", "")}/cache/thumbs/${this.channel_data.cache_avatar}`;
+            }
         }
         return this.channel_data?.profile_image_url || "";
     }

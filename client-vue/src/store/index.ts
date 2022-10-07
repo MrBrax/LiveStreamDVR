@@ -2,10 +2,10 @@ import { ApiJob, ApiLogLine, ApiChannels, ApiVods } from "../../../common/Api/Cl
 import { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiJobsResponse, ApiSettingsResponse, ApiVodResponse } from "../../../common/Api/Api";
 import axios from "axios";
 import { defineStore } from "pinia";
-import { ClientSettings } from "@/twitchautomator";
+import { ClientSettings, SidemenuShow } from "@/twitchautomator";
 import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
-import { defaultConfig } from "@/defs";
+import { defaultConfig, defaultSidemenuShow } from "@/defs";
 import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
 import { TwitchVODChapter } from "@/core/Providers/Twitch/TwitchVODChapter";
@@ -25,6 +25,7 @@ interface StoreType {
     favourite_games: string[];
     version: string;
     clientConfig: ClientSettings | undefined;
+    sidemenuShow: SidemenuShow;
     serverType: string;
     websocketUrl: string;
     errors: string[];
@@ -50,6 +51,7 @@ export const useStore = defineStore("twitchAutomator", {
             favourite_games: [],
             version: "?",
             clientConfig: undefined,
+            sidemenuShow: defaultSidemenuShow,
             serverType: "",
             websocketUrl: "",
             errors: [],
@@ -210,7 +212,7 @@ export const useStore = defineStore("twitchAutomator", {
 
             // check if vod is already in the streamer's vods
             const vodIndex = streamer.vods_list.findIndex((v) => v.uuid === vod.uuid);
-            
+
             if (vodIndex === -1) {
                 console.debug("inserting vod", vod);
                 if (streamer instanceof TwitchChannel) {
@@ -414,7 +416,7 @@ export const useStore = defineStore("twitchAutomator", {
             const now = Date.now();
             const start = parseJSON(job.dt_started_at).getTime();
             const elapsedSeconds = (now - start);
-            const calc = elapsedSeconds * (1/(job.progress) - 1);
+            const calc = elapsedSeconds * (1 / (job.progress) - 1);
             console.debug(job_name, job.dt_started_at, elapsedSeconds, job.progress, calc);
             return calc;
         },
@@ -460,11 +462,18 @@ export const useStore = defineStore("twitchAutomator", {
                 console.debug(`Setting axios language to ${currentClientConfig.language}`);
             }
 
+            const currentSidemenuShow: SidemenuShow = localStorage.getItem("twitchautomator_sidemenu")
+                ? JSON.parse(localStorage.getItem("twitchautomator_sidemenu") as string)
+                : defaultSidemenuShow;
+
+            this.sidemenuShow = currentSidemenuShow;
+
             this.updateClientConfig(currentClientConfig);
             if (init) this.saveClientConfig();
         },
         saveClientConfig() {
             localStorage.setItem("twitchautomator_config", JSON.stringify(this.clientConfig));
+            localStorage.setItem("twitchautomator_sidemenu", JSON.stringify(this.sidemenuShow));
             console.log("Saved client config");
         },
         getStreamers(): ChannelTypes[] {

@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import sanitize from "sanitize-filename";
 import { ApiErrorResponse, ApiResponse } from "../../../common/Api/Api";
+import { ExporterOptions } from "../../../common/Exporter";
 import { BaseConfigDataFolder, DataRoot } from "../Core/BaseConfig";
 import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import { FileExporter } from "../Exporters/File";
@@ -13,23 +14,6 @@ import { validatePath } from "./Files";
 
 export type Exporter = FileExporter | YouTubeExporter | SFTPExporter | FTPExporter | RCloneExporter;
 
-export interface ExporterOptions {
-    vod?: string;
-    directory?: string;
-    host?: string;
-    username?: string;
-    password?: string;
-    description?: string;
-    tags?: string;
-    category?: string;
-    privacy?: "public" | "private" | "unlisted";
-    file_folder?: string;
-    file_name?: string;
-    file_source?: "segment" | "downloaded" | "burned";
-    title_template?: string;
-    title?: string;
-    remote?: string;
-}
 
 export function GetExporter(name: string, mode: string, options: ExporterOptions): Exporter {
 
@@ -84,6 +68,7 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
                 exporter.setTags(options.tags ? (options.tags as string).split(",").map(tag => tag.trim()) : []);
                 exporter.setCategory(options.category);
                 exporter.setPrivacy(options.privacy);
+                if (options.playlist_id) exporter.setPlaylist(options.playlist_id);
             }
         } else if (name == "rclone") {
             if (!output_directory) throw new Error("No directory set");
@@ -167,7 +152,7 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
 export async function ExportFile(req: express.Request, res: express.Response): Promise<void> {
 
     const mode = req.query.mode as string;
-    const input_exporter = req.body.exporter;
+    const input_exporter = req.query.exporter as string;
 
     if (!input_exporter) {
         res.status(400).send({

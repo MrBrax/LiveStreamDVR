@@ -44,6 +44,24 @@ export class TwitchAutomator extends BaseAutomator {
         const subscriptionType      = request.header("Twitch-Eventsub-Subscription-Type");
         const subscriptionVersion   = request.header("Twitch-Eventsub-Subscription-Version");
 
+        if (messageRetry !== undefined && parseInt(messageRetry) > 0) {
+            Log.logAdvanced(LOGLEVEL.WARNING, "hook", `Message ${messageId} is a retry (${messageRetry})`);
+            if (Config.getInstance().cfg("capture.retry_on_error", true)) {
+                Log.logAdvanced(LOGLEVEL.INFO, "hook", `Retrying message ${messageId}`);
+            } else {
+                Log.logAdvanced(LOGLEVEL.WARNING, "hook", `Not retrying message ${messageId}`);
+                return false;
+            }
+        }
+
+        try {
+            KeyValue.getInstance().setBool(`tw.eventsub.${messageId}.ack`, true);
+            KeyValue.getInstance().setDate(`tw.eventsub.${messageId}.time`, new Date());
+            KeyValue.getInstance().cleanWildcard("tw.eventsub.", 60 * 60 * 24);
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.WARNING, "hook", `Failed to set eventsub message ${messageId} KeyValues: ${(error as Error).message}`);
+        }
+        
         // const message_retry = request.header("Twitch-Eventsub-Message-Retry") || null;
 
         this.payload_eventsub = data;

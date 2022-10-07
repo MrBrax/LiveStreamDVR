@@ -186,6 +186,7 @@ export interface ApiBaseChannel {
 
     current_stream_number?: number;
     current_season?: string;
+    current_absolute_season?: number;
     saves_vods: boolean;
 
     displayName: string;

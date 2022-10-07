@@ -14,6 +14,7 @@
         <div class="buttons">
             <button
                 class="button is-confirm"
+                :disabled="loading"
                 @click="doCheckYouTubeStatus"
             >
                 <span class="icon"><fa icon="sync" /></span>
@@ -23,6 +24,7 @@
                 class="icon-button"
                 style="padding-top: 2px"
                 title="Authenticate with YouTube using method 1"
+                :disabled="loading"
                 @click="doAuthenticateYouTubeMethod1"
             >
                 <img
@@ -34,6 +36,7 @@
                 class="icon-button"
                 style="padding-top: 2px"
                 title="Authenticate with YouTube using method 2"
+                :disabled="loading"
                 @click="doAuthenticateYouTubeMethod2"
             >
                 <img
@@ -43,6 +46,7 @@
             </button>
             <button
                 class="button is-danger"
+                :disabled="loading"
                 @click="doDestroyYouTube"
             >
                 <span class="icon"><fa icon="right-from-bracket" /></span>
@@ -53,11 +57,21 @@
             v-if="status"
             class="youtube-status"
         >
+            <span
+                v-if="loading"
+                class="icon"
+            >
+                <fa
+                    icon="spinner"
+                    spin
+                />
+            </span>
             {{ status }}
         </div>
+        <hr>
         <div class="youtube-help">
             <h3>Suggested configuration:</h3>
-            <ul class="list">
+            <ul class="list less-padding">
                 <li>
                     <strong>Authorized JavaScript origins:</strong> {{ store.cfg("app_url") }}
                 </li>
@@ -75,12 +89,13 @@ import { ApiResponse } from "@common/Api/Api";
 import { useStore } from "@/store";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
-    faRightFromBracket
+    faRightFromBracket,
+    faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
 import {
     faYoutube
 } from "@fortawesome/free-brands-svg-icons";
-library.add(faRightFromBracket, faYoutube);
+library.add(faRightFromBracket, faYoutube, faSpinner);
 
 export default defineComponent({
     name: "YoutubeAuth",
@@ -93,11 +108,13 @@ export default defineComponent({
     data() {
         return {
             status: "",
+            loading: false,
         };
     },
     methods: {
         doCheckYouTubeStatus() {
-            this.status = "";
+            this.status = "Checking YouTube status...";
+            this.loading = true;
             this.$http.get(`/api/v0/youtube/status`).then((response) => {
                 const json: ApiResponse = response.data;
                 if (json.message) this.status = json.message;
@@ -105,6 +122,8 @@ export default defineComponent({
             }).catch((err) => {
                 console.error("youtube check error", err.response);
                 if (err.response.data && err.response.data.message) this.status = err.response.data.message;
+            }).finally(() => {
+                this.loading = false;
             });
         },
         async doAuthenticateYouTubeMethod1() {
@@ -117,6 +136,9 @@ export default defineComponent({
             window.open(url, "_blank", `width=${width},height=${height},top=${top},left=${left}`);
         },
         async doAuthenticateYouTubeMethod2() {
+
+            this.status = "Fetching YouTube authentication URL...";
+            this.loading = true;
             
             let res;
             try {
@@ -126,8 +148,10 @@ export default defineComponent({
                     console.error("youtube auth error", error.response);
                     if (error.response && error.response.data && error.response.data.message) this.status = error.response.data.message;
                 }
+                this.loading = false;
                 return;                    
             }
+            this.loading = false;
             const url = res.data.data;
             const width = 600;
             const height = 600;
@@ -137,7 +161,8 @@ export default defineComponent({
             window.open(url, "_blank", `width=${width},height=${height},top=${top},left=${left}`);
         },
         doDestroyYouTube() {
-            this.status = "";
+            this.status = "Destroying YouTube session...";
+            this.loading = true;
             this.$http.get(`/api/v0/youtube/destroy`).then((response) => {
                 const json: ApiResponse = response.data;
                 if (json.message) this.status = json.message;
@@ -145,6 +170,8 @@ export default defineComponent({
             }).catch((err) => {
                 console.error("youtube destroy error", err.response);
                 if (err.response.data && err.response.data.message) this.status = err.response.data.message;
+            }).finally(() => {
+                this.loading = false;
             });
         },
     }

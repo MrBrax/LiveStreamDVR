@@ -4,6 +4,7 @@ import path from "path";
 import { BaseConfigCacheFolder, BaseConfigPath } from "./BaseConfig";
 import EventEmitter from "events";
 import { Config } from "./Config";
+import { isDate } from "date-fns";
 
 export class KeyValue extends EventEmitter {
 
@@ -131,6 +132,35 @@ export class KeyValue extends EventEmitter {
 
     setInt(key: string, value: number) {
         this.set(key, value.toString());
+    }
+
+    setDate(key: string, date: Date) {
+        if (!date || isNaN(date.getTime()) || !isDate(date)) {
+            throw new Error("Invalid date");
+        }
+        this.set(key, date.toISOString());
+    }
+
+    getDate(key: string): Date | false {
+        const value = this.get(key);
+        if (value === false) {
+            return false;
+        }
+        return new Date(value);
+    }
+
+    cleanWildcard(keyWildcard: string, limitSeconds: number) {
+        const keys = Object.keys(this.data);
+        for (const key of keys) {
+            if (key.startsWith(keyWildcard) && key.endsWith(".time")) {
+                const date = this.getDate(key);
+                if (date !== false) {
+                    if (date.getTime() < Date.now() - (limitSeconds * 1000)) {
+                        this.delete(key);
+                    }
+                }
+            }
+        }
     }
 
     /**

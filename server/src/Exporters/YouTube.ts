@@ -5,6 +5,7 @@ import { YouTubeHelper } from "../Providers/YouTube";
 import fs from "fs";
 import { Log, LOGLEVEL } from "../Core/Log";
 import { Job } from "../Core/Job";
+import { Config } from "../Core/Config";
 import path from "path";
 
 export class YouTubeExporter extends BaseExporter {
@@ -17,6 +18,8 @@ export class YouTubeExporter extends BaseExporter {
     public tags: string[] = [];
     public category = "";
     public privacy: "private" | "unlisted" | "public" = "private";
+
+    public playlist_id = "";
 
     setDescription(description: string): void {
         this.description = description;
@@ -32,6 +35,10 @@ export class YouTubeExporter extends BaseExporter {
 
     setPrivacy(value: "private" | "unlisted" | "public"): void {
         this.privacy = value;
+    }
+
+    setPlaylist(playlist_id: string): void {
+        this.playlist_id = playlist_id;
     }
 
     export(): Promise<boolean | string> {
@@ -82,8 +89,20 @@ export class YouTubeExporter extends BaseExporter {
                 } else if (response) {
                     Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", `Video uploaded: ${response.data.id}`);
                     this.video_id = response.data.id || "";
-                    job.clear();
-                    resolve(this.video_id);
+                    if (response.data.id && this.playlist_id) {
+                        this.addToPlaylist(response.data.id, this.playlist_id).then((success) => {
+                            Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", `Video added to playlist: ${success}`);
+                            resolve(success);
+                        }).catch((err) => {
+                            Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", `Could not add video to playlist: ${err}`);
+                            reject(err);
+                        }).finally(() => {
+                            job.clear();
+                        });
+                    } else {
+                        job.clear();
+                        resolve(this.video_id);
+                    }
                 }
             });
 
@@ -123,5 +142,71 @@ export class YouTubeExporter extends BaseExporter {
             });
 
         });
+    }
+
+    addToPlaylist(video_id: string, playlist_id: string): Promise<boolean> {
+
+        return new Promise<boolean>((resolve, reject) => {
+
+            if (!YouTubeHelper.oAuth2Client) throw new Error("No YouTube client");
+
+            const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
+
+            Log.logAdvanced(LOGLEVEL.INFO, "YouTubeExporter", `Adding ${video_id} to playlist...`);
+
+            if (this.playlist_id == "") {
+                const raw_playlist_config = Config.getInstance().cfg<string>("exporter.youtube.playlists");
+                if (raw_playlist_config) {
+                    const raw_playlist_entries = raw_playlist_config.split(";");
+                    const playlist_entries = raw_playlist_entries.map((entry) => {
+                        const parts = entry.split("=");
+                        return {
+                            channel: parts[0],
+                            playlist: parts[1],
+                        };
+                    });
+
+                    const playlist_entry = playlist_entries.find((entry) => entry.channel == this.vod?.getChannel().internalName);
+
+                    if (playlist_entry) {
+                        this.playlist_id = playlist_entry.playlist;
+                        Log.logAdvanced(LOGLEVEL.INFO, "YouTubeExporter", `Found playlist ${this.playlist_id} for channel ${this.vod?.getChannel().internalName}`);
+                    } else {
+                        Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeExporter", `No playlist configured for channel ${this.vod?.getChannel().internalName}`);
+                        resolve(false);
+                        return;
+                    }
+                } else {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeExporter", "No playlists configured");
+                    resolve(false);
+                    return;
+                }
+            }
+
+            service.playlistItems.insert({
+                auth: YouTubeHelper.oAuth2Client,
+                part: ["snippet"],
+                requestBody: {
+                    snippet: {
+                        playlistId: playlist_id,
+                        resourceId: {
+                            kind: "youtube#video",
+                            videoId: video_id,
+                        },
+                    },
+                },
+            }, (err, response): void => {
+                if (err) {
+                    Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", `Could not add video to playlist: ${err}`);
+                    reject(err);
+                    return;
+                } else if (response) {
+                    Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", "Video added to playlist", response.data);
+                    resolve(true);
+                }
+            });
+
+        });
+
     }
 }

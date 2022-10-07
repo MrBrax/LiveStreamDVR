@@ -14,9 +14,9 @@ export async function fCheckDeletedVods(): Promise<string> {
     for (const channel of streamerList.channels) {
 
         if (!(channel instanceof TwitchChannel)) continue;
-        if (!channel.vods_list) continue;
+        if (!channel.getVods() || channel.getVods().length == 0) continue;
 
-        for (const vod of channel.vods_list) {
+        for (const vod of channel.getVods()) {
 
             if (!vod.is_finalized) continue;
 
@@ -59,9 +59,9 @@ export async function fCheckMutedVods(force = false): Promise<string> {
     for (const channel of streamerList.channels) {
 
         if (!(channel instanceof TwitchChannel)) continue;
-        if (!channel.vods_list) continue;
+        if (!channel.getVods() || channel.getVods().length == 0) continue;
 
-        for (const vod of channel.vods_list) {
+        for (const vod of channel.getVods()) {
 
             if (!vod.is_finalized) continue;
 
@@ -128,9 +128,9 @@ export async function fMatchVods(force = false): Promise<string> {
 
         if (!(channel instanceof TwitchChannel)) continue;
 
-        if (!channel.vods_list) continue;
+        if (!channel.getVods() || channel.getVods().length == 0) continue;
 
-        for (const vod of channel.vods_list) {
+        for (const vod of channel.getVods()) {
 
             if (!vod.is_finalized) continue;
 

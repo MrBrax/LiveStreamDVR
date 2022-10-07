@@ -115,6 +115,16 @@ Config.init().then(() => {
     // bind the api routes
     baserouter.use("/api/v0", ApiRouter);
 
+    // send index.html for all other routes, so that SPA routes are handled correctly
+    baserouter.use((req, res, next) => {
+        const ext = path.extname(req.path);
+        if (!([ ".js", ".css", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".ico", ".woff", ".woff2", ".ttf", ".otf", ".eot", ".map", ".webmanifest", ".xml", ".json" ].includes(ext))) {
+            res.sendFile(path.join(BaseConfigFolder.client, "index.html"));
+        } else {
+            next();
+        }
+    });
+
     // static files and storage
     baserouter.use(express.static(BaseConfigFolder.client));
     baserouter.use("/vodplayer", express.static(BaseConfigFolder.vodplayer));
@@ -126,9 +136,9 @@ Config.init().then(() => {
         baserouter.use("/logs", express.static(BaseConfigDataFolder.logs));
     }
 
-    // send index.html for all other routes, so that SPA routes are handled correctly
-    baserouter.use("*", (req, res) => {
-        res.sendFile(path.join(BaseConfigFolder.client, "index.html"));
+    // 404 handler
+    baserouter.use((req, res) => {
+        res.status(404).send("404 - Not Found");
     });
 
     // for the base path to work

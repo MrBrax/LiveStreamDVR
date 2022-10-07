@@ -103,6 +103,12 @@ export class BaseChannel {
         throw new Error("Method not implemented.");
     }
 
+    /**
+     * Send the channel.toAPI call to all connected clients over websockets.
+     * A debounce is used to prevent spamming the clients.
+     * 
+     * @returns 
+     */
     public broadcastUpdate(): void {
         if (process.env.NODE_ENV === "test") return;
         if (this._updateTimer) {
@@ -140,15 +146,15 @@ export class BaseChannel {
      * Get the current capturing vod
      */
     get current_vod(): BaseVOD | undefined {
-        return this.vods_list?.find(vod => vod.is_capturing);
+        return this.getVods().find(vod => vod.is_capturing);
     }
 
     /**
      * Get the latest vod of the channel regardless of its status
      */
     get latest_vod(): BaseVOD | undefined {
-        if (!this.vods_list || this.vods_list.length == 0) return undefined;
-        return this.vods_list[this.vods_list.length - 1]; // is this reliable?
+        if (!this.getVods() || this.getVods().length == 0) return undefined;
+        return this.getVodByIndex(this.getVods().length - 1); // is this reliable?
     }
 
     /**
@@ -165,7 +171,7 @@ export class BaseChannel {
      * @returns {boolean}
      */
     get is_converting(): boolean {
-        return this.vods_list?.some(vod => vod.is_converting) ?? false;
+        return this.getVods().some(vod => vod.is_converting) ?? false;
     }
 
     get current_chapter(): BaseVODChapter | undefined {
@@ -175,7 +181,7 @@ export class BaseChannel {
     }
 
     get vods_size(): number {
-        return this.vods_list?.reduce((acc, vod) => acc + (vod.segments?.reduce((acc, seg) => acc + (seg && seg.filesize ? seg.filesize : 0), 0) ?? 0), 0) ?? 0;
+        return this.getVods().reduce((acc, vod) => acc + (vod.segments?.reduce((acc, seg) => acc + (seg && seg.filesize ? seg.filesize : 0), 0) ?? 0), 0) ?? 0;
     }
 
     public getChapterData(): BaseVODChapterJSON | undefined {
@@ -252,7 +258,7 @@ export class BaseChannel {
      * @returns 
      */
     public async deleteAllVods(): Promise<boolean> {
-        const total_vods = this.vods_list.length;
+        const total_vods = this.getVods().length;
 
         if (total_vods === 0) {
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `No vods to delete for ${this.internalName}`);
@@ -260,7 +266,7 @@ export class BaseChannel {
         }
 
         let deleted_vods = 0;
-        for (const vod of this.vods_list) {
+        for (const vod of this.getVods()) {
             try {
                 await vod.delete();
             } catch (error) {
@@ -273,7 +279,8 @@ export class BaseChannel {
     }
 
     /**
-     * Remove a vod from the channel and the main vods list
+     * Remove a vod from the channel and the main vods list.
+     * It is not deleted from the disk.
      * 
      * @param basename 
      * @returns 
@@ -284,10 +291,12 @@ export class BaseChannel {
         if (!this.internalName) throw new Error("Channel login is not set");
         if (!this.displayName) throw new Error("Channel display_name is not set");
 
-        const vod = this.vods_list.find(v => v.uuid === uuid);
+        const vod = this.getVods().find(v => v.uuid === uuid);
         if (!vod) return false;
 
         Log.logAdvanced(LOGLEVEL.INFO, "channel", `Remove VOD JSON for ${this.internalName}: ${uuid}`);
+        
+        vod.stopWatching();
 
         this.vods_list = this.vods_list.filter(v => v.uuid !== uuid);
 
@@ -300,6 +309,8 @@ export class BaseChannel {
 
         this.checkStaleVodsInMemory();
 
+        this.broadcastUpdate();
+
         return true;
 
     }
@@ -310,6 +321,17 @@ export class BaseChannel {
 
     public removeVodFromDatabase(filename: string) {
         this.vods_raw = this.vods_raw.filter(p => p !== filename);
+    }
+
+    public getVods(): BaseVOD[] {
+        return this.vods_list;
+    }
+
+    public getVodByIndex(index: number): BaseVOD | undefined {
+        if (index < 0 || index >= this.vods_list.length) {
+            return undefined;
+        }
+        return this.vods_list[index];
     }
 
     public saveVodDatabase() {
@@ -330,9 +352,9 @@ export class BaseChannel {
             LiveStreamDVR.getInstance().channels_config.splice(index_config, 1);
         }
 
-        const index_channel = LiveStreamDVR.getInstance().channels.findIndex(ch => ch.uuid === uuid);
+        const index_channel = LiveStreamDVR.getInstance().getVods().findIndex(ch => ch.uuid === uuid);
         if (index_channel !== -1) {
-            LiveStreamDVR.getInstance().channels.splice(index_channel, 1);
+            LiveStreamDVR.getInstance().removeVodByIndex(index_channel);
         }
 
         // TODO: unsub
@@ -416,13 +438,18 @@ export class BaseChannel {
 
     public parseVODs(rescan = false): Promise<void> { return Promise.resolve(); }
 
+    /**
+     * Remove all vods from memory, keep the files and database intact.
+     * Also stops watching the filesystem for changes.
+     */
     public clearVODs(): void {
-        LiveStreamDVR.getInstance().vods.forEach(v => {
+        LiveStreamDVR.getInstance().getVodsByChannelUUID(this.uuid).forEach(v => {
             // if (!(v instanceof TwitchVOD)) return;
-            if (v.channel_uuid !== this.uuid) return;
+            // if (v.channel_uuid !== this.uuid) return;
             v.stopWatching();
         });
-        LiveStreamDVR.getInstance().vods = LiveStreamDVR.getInstance().vods.filter(v => v.channel_uuid !== this.uuid);
+        // LiveStreamDVR.getInstance().vods = LiveStreamDVR.getInstance().vods.filter(v => v.channel_uuid !== this.uuid);
+        LiveStreamDVR.getInstance().removeAllVodsByChannelUUID(this.uuid);
         this.vods_raw = [];
         this.vods_list = [];
     }
@@ -447,6 +474,10 @@ export class BaseChannel {
                 BaseConfigDataFolder.vod,
                 path.join(this.getFolder(), p)
             ));
+    }
+
+    public addVod(vod: BaseVOD): void {
+        this.vods_list.push(vod);
     }
 
 }

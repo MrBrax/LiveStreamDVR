@@ -1113,6 +1113,13 @@ export async function ScanVods(req: express.Request, res: express.Response): Pro
     await channel.parseVODs(true);
     // console.log("vod amount sanity check 3", TwitchVOD.vods.length);
 
+    if (isTwitchChannel(channel)) {
+        channel.video_list = [];
+        channel.addAllLocalVideos();
+    }
+
+    channel.broadcastUpdate();
+
     res.send({
         status: "OK",
         message: `Channel '${channel.internalName}' scanned, found ${channel.vods_raw.length} VODs.`,

@@ -16,6 +16,7 @@ import { ChannelTypes, LiveStreamDVR } from "../../LiveStreamDVR";
 import { Log, LOGLEVEL } from "../../Log";
 import { BaseChannel } from "../Base/BaseChannel";
 import { YouTubeVOD } from "./YouTubeVOD";
+import { isYouTubeChannel } from "../../../Helpers/Types";
 
 interface YouTubeChannelData extends youtube_v3.Schema$ChannelSnippet {
     _updated: number;
@@ -43,7 +44,7 @@ export class YouTubeChannel extends BaseChannel {
 
 
     public static getChannels(): YouTubeChannel[] {
-        return LiveStreamDVR.getInstance().channels.filter<YouTubeChannel>((channel): channel is YouTubeChannel => channel instanceof YouTubeChannel) || [];
+        return LiveStreamDVR.getInstance().getChannels().filter<YouTubeChannel>((channel): channel is YouTubeChannel => isYouTubeChannel(channel)) || [];
     }
 
     static async create(config: YouTubeChannelConfig): Promise<YouTubeChannel> {
@@ -51,7 +52,7 @@ export class YouTubeChannel extends BaseChannel {
         if (exists_config) throw new Error(`Channel ${config.channel_id} already exists in config`);
 
         // const exists_channel = TwitchChannel.channels.find(ch => ch.login === config.login);
-        const exists_channel = LiveStreamDVR.getInstance().channels.find<YouTubeChannel>((channel): channel is YouTubeChannel => channel instanceof YouTubeChannel && channel.channel_id === config.channel_id);
+        const exists_channel = LiveStreamDVR.getInstance().getChannels().find<YouTubeChannel>((channel): channel is YouTubeChannel => isYouTubeChannel(channel) && channel.channel_id === config.channel_id);
         if (exists_channel) throw new Error(`Channel ${config.channel_id} already exists in channels`);
 
         const data = await YouTubeChannel.getUserDataById(config.channel_id);
@@ -90,7 +91,7 @@ export class YouTubeChannel extends BaseChannel {
             throw new Error("Can't subscribe due to either no app_url or isolated mode disabled.");
         }
 
-        LiveStreamDVR.getInstance().channels.push(channel);
+        LiveStreamDVR.getInstance().addChannel(channel);
 
         /*
         if (Helper.axios) { // bad hack?
@@ -118,7 +119,7 @@ export class YouTubeChannel extends BaseChannel {
 
         Log.logAdvanced(LOGLEVEL.DEBUG, "yt.channel", `Load channel ${channel_id}`);
 
-        const channel_memory = LiveStreamDVR.getInstance().channels.find<YouTubeChannel>((channel): channel is YouTubeChannel => channel instanceof YouTubeChannel && channel.channel_id === channel_id);
+        const channel_memory = LiveStreamDVR.getInstance().getChannels().find<YouTubeChannel>((channel): channel is YouTubeChannel => isYouTubeChannel(channel) && channel.channel_id === channel_id);
         if (channel_memory) {
             Log.logAdvanced(LOGLEVEL.WARNING, "yt.channel", `Channel ${channel_id} already loaded`);
             return channel_memory;
@@ -284,7 +285,7 @@ export class YouTubeChannel extends BaseChannel {
     }
 
     static getChannelById(channel_id: string): YouTubeChannel | undefined {
-        return LiveStreamDVR.getInstance().channels.find<YouTubeChannel>((ch): ch is YouTubeChannel => ch instanceof YouTubeChannel && ch.channel_id === channel_id);
+        return LiveStreamDVR.getInstance().getChannels().find<YouTubeChannel>((ch): ch is YouTubeChannel => isYouTubeChannel(ch) && ch.channel_id === channel_id);
     }
 
     public static loadChannelsCache(): boolean {
@@ -372,8 +373,19 @@ export class YouTubeChannel extends BaseChannel {
         this.startWatching();
     }
 
+    public getVods(): YouTubeVOD[] {
+        return this.vods_list;
+    }
+
+    public getVodByIndex(index: number): YouTubeVOD | undefined {
+        if (index < 0 || index >= this.vods_list.length) {
+            return undefined;
+        }
+        return this.vods_list[index];
+    }
+
     get current_vod(): YouTubeVOD | undefined {
-        return this.vods_list?.find(vod => vod.is_capturing);
+        return this.getVods().find(vod => vod.is_capturing);
     }
 
     public async toAPI(): Promise<ApiYouTubeChannel> {
@@ -381,7 +393,7 @@ export class YouTubeChannel extends BaseChannel {
         // if (!this.userid || !this.login || !this.display_name)
         //     console.error(chalk.red(`Channel ${this.login} is missing userid, login or display_name`));
 
-        const vods_list = await Promise.all(this.vods_list?.map(async (vod) => await vod.toAPI()));
+        const vods_list = await Promise.all(this.getVods().map(async (vod) => await vod.toAPI()));
 
         return {
             uuid: this.uuid || "-1",
@@ -460,8 +472,8 @@ export class YouTubeChannel extends BaseChannel {
     }
 
     get latest_vod(): YouTubeVOD | undefined {
-        if (!this.vods_list || this.vods_list.length == 0) return undefined;
-        return this.vods_list[this.vods_list.length - 1]; // is this reliable?
+        if (!this.getVods() || this.getVods().length == 0) return undefined;
+        return this.getVodByIndex(this.getVods().length - 1); // is this reliable?
     }
 
     /**
@@ -508,7 +520,7 @@ export class YouTubeChannel extends BaseChannel {
         const load_vod = await YouTubeVOD.load(vod.filename, true);
 
         // TwitchVOD.addVod(vod);
-        this.vods_list.push(load_vod);
+        this.addVod(load_vod);
         this.sortVods();
 
         // add to database
@@ -678,7 +690,7 @@ export class YouTubeChannel extends BaseChannel {
 
             Log.logAdvanced(LOGLEVEL.DEBUG, "channel.yt", `VOD ${vod} added to ${this.internalName}`);
 
-            this.vods_list.push(vodclass);
+            this.addVod(vodclass);
         }
         this.sortVods();
     }

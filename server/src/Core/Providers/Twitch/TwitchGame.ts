@@ -1,9 +1,13 @@
 import fs from "fs";
 import { TwitchHelper } from "../../../Providers/Twitch";
-import { BaseConfigPath } from "../../BaseConfig";
+import { BaseConfigCacheFolder, BaseConfigPath } from "../../BaseConfig";
 import { LOGLEVEL, Log } from "../../Log";
 import { ApiGame } from "../../../../../common/Api/Client";
 import { GamesResponse } from "../../../../../common/TwitchAPI/Games";
+import axios from "axios";
+import path from "path";
+import { Helper } from "../../../Core/Helper";
+import { Config } from "../../../Core/Config";
 
 interface TwitchGameJSON {
     name: string;
@@ -65,7 +69,7 @@ export class TwitchGame {
         return this.game_db[game_id];
     }
 
-    public static async getGameAsync(game_id: string): Promise<TwitchGame | null> {
+    public static async getGameAsync(game_id: string, force = false): Promise<TwitchGame | null> {
 
         if (!game_id) {
             Log.logAdvanced(LOGLEVEL.ERROR, "helper", "No game id supplied for game fetch!");
@@ -74,7 +78,7 @@ export class TwitchGame {
 
         const cachedGame = this.getGameFromCache(game_id);
 
-        if (cachedGame) {
+        if (cachedGame && !force) {
             if (cachedGame && cachedGame.added && Date.now() > cachedGame.added.getTime() + (60 * 60 * 24 * 60 * 1000)) { // two months?
                 Log.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} needs refreshing (${cachedGame.added.toISOString()}).`);
             } else if (cachedGame && cachedGame.added) { // check if date is set
@@ -119,6 +123,13 @@ export class TwitchGame {
             game.name = game_data.name;
             game.box_art_url = game_data.box_art_url;
             game.added = new Date();
+
+            try {
+                await game.fetchBoxArt();
+            } catch (error) {
+                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to fetch box art for game ${game_id}: ${error}`);
+            }
+            
             game.save();
 
             // $game_db[ $id ] = $game_data["name"];
@@ -171,6 +182,32 @@ export class TwitchGame {
 
     }
 
+    public fetchBoxArt(): Promise<string> {
+        return new Promise((resolve, reject) => {
+            if (!this.box_art_url) {
+                reject("No box art url set!");
+            }
+            const url = this.box_art_url.replace("{width}", "140").replace("{height}", "190");
+            const file = path.join(BaseConfigCacheFolder.public_cache_covers, `${this.id}.${path.extname(url).substring(1)}`);
+            if (fs.existsSync(file)) {
+                resolve(file);
+            } else {
+                const writer = fs.createWriteStream(file);
+                writer.on("finish", () => {
+                    resolve(file);
+                });
+                writer.on("error", (err) => {
+                    reject(err);
+                });
+                axios.get(url, { responseType: "stream" }).then((response) => {
+                    response.data.pipe(writer);
+                }).catch((err) => {
+                    reject(err);
+                });
+            }
+        });
+    }
+
     /**
      * Make box art url from dimensions.
      * 
@@ -182,7 +219,34 @@ export class TwitchGame {
         if (!this.box_art_url) {
             return "";
         }
+        if (fs.existsSync(path.join(BaseConfigCacheFolder.public_cache_covers, `${this.id}.${path.extname(this.box_art_url).substring(1)}`))) {
+            // console.debug("Using cached box art", this.box_art_url);
+            const app_url = Config.getInstance().cfg<string>("app_url", "");
+            if (app_url && app_url !== "debug") {
+                return `${app_url}/cache/covers/${this.id}.${path.extname(this.box_art_url).substring(1)}`;
+            } else {
+                return `${Config.getInstance().cfg<string>("basepath", "")}/cache/covers/${this.id}.${path.extname(this.box_art_url).substring(1)}`;
+            }
+        } else {
+            this.fetchBoxArt(); // for next time
+        }
         return this.box_art_url.replace("{width}", width.toString()).replace("{height}", height.toString()); // does {width} have a % next to it?
+    }
+
+    public async getThumbnailUrl(): Promise<string> {
+
+        if (!this.id) {
+            throw new Error("Cannot get thumbnail url without id!");
+        }
+
+        const file = path.join(BaseConfigCacheFolder.public_cache_covers, `${this.id}.${path.extname(this.box_art_url).substring(1)}`);
+
+        if (fs.existsSync(file)) {
+            return await Helper.imageThumbnail(file, 64);
+        }
+
+        throw new Error("Thumbnail not found!");
+
     }
 
     public isFavourite(): boolean {

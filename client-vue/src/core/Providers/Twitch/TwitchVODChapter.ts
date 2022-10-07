@@ -44,4 +44,8 @@ export class TwitchVODChapter extends BaseVODChapter {
     get box_art_url(): string {
         return this.getBoxArtUrl();
     }
+
+    get image_url(): string {
+        return this.game?.image_url ?? this.box_art_url;
+    }
 }

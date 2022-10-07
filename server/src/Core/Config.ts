@@ -7,7 +7,7 @@ import path from "path";
 import express from "express";
 import { SettingField } from "../../../common/Config";
 import { ClipBasenameFields, VodBasenameFields } from "../../../common/ReplacementsConsts";
-import { AppRoot, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot, HomeRoot } from "./BaseConfig";
+import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot, HomeRoot } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { TwitchHelper } from "../Providers/Twitch";
 import { KeyValue } from "./KeyValue";
@@ -90,6 +90,7 @@ export class Config {
         { "key": "keep_muted_vods", "group": "Storage", "text": "Keep muted VODs", "type": "boolean", "default": false },
         { "key": "keep_commented_vods", "group": "Storage", "text": "Keep commented VODs", "type": "boolean", "default": false },
         { "key": "delete_only_one_vod", "group": "Storage", "text": "Delete only one VOD when cleaning up like old times", "type": "boolean", "default": false },
+        { "key": "storage.deleted_cloud", "group": "Storage", "text": "Flag VODs with deleted segments as cloud only", "type": "boolean", "default": false },
 
         { "key": "hls_timeout", "group": "Capture", "text": "HLS Timeout in seconds (ads)", "type": "number", "default": 200 },
         { "key": "download_retries", "group": "Capture", "text": "Download/capture retries", "type": "number", "default": 5 },
@@ -97,6 +98,7 @@ export class Config {
         { "key": "disable_ads", "group": "Capture", "text": "Try to remove ads from captured file", "type": "boolean", "default": true, "help": "This removes the \"Commercial break in progress\", but stream is probably going to be cut off anyway" },
 
         { "key": "capture.use_cache", "group": "Capture", "text": "Use cache", "type": "boolean", "default": false, "help": "Use cache directory for in-progress captures" },
+        { "key": "capture.retry_on_error", "group": "Capture", "text": "Retry on error", "type": "boolean", "default": true, "help": "Retry on any kind of error. If an eventsub message is missed, it will be retried." },
 
         // { "key": "sub_lease", "group": "Advanced", "text": "Subscription lease", "type": "number", "default": 604800 },
         { "key": "api_client_id", "group": "Basic", "text": "Twitch client ID", "type": "string", "required": true },
@@ -150,7 +152,7 @@ export class Config {
         { "key": "telegram_enabled",                "group": "Notifications (Telegram)", "text": "Enable Telegram notifications", "type": "boolean", "default": false },
         { "key": "telegram_token",                  "group": "Notifications (Telegram)", "text": "Telegram token", "type": "string" },
         { "key": "telegram_chat_id",                "group": "Notifications (Telegram)", "text": "Telegram chat id", "type": "string" },
-        
+
         // discord
         { "key": "discord_enabled",                 "group": "Notifications (Discord)", "text": "Enable Discord notifications", "type": "boolean", "default": false },
         { "key": "discord_webhook",                 "group": "Notifications (Discord)", "text": "Discord webhook", "type": "string" },
@@ -215,6 +217,8 @@ export class Config {
         { "key": "exporter.default.tags",           "group": "Exporter", "text": "Default tags", "type": "string", "help": "YouTube tags." },
         { "key": "exporter.default.remote",         "group": "Exporter", "text": "Default remote", "type": "string", "help": "For RClone." },
         { "key": "exporter.auto.enabled",           "group": "Exporter", "text": "Enable auto exporter", "type": "boolean", "default": false, "help": "Enable auto exporter. Not implemented yet." },
+
+        { "key": "exporter.youtube.playlists",      "group": "Exporter", "text": "YouTube playlists", "type": "string", "help": "Use this format: channelname=ABC123;secondchannel=DEF456" },
 
         { "key": "scheduler.clipdownload.enabled",  "group": "Scheduler (Clip Download)", "text": "Enable clip download scheduler", "type": "boolean", "default": false },
         { "key": "scheduler.clipdownload.channels", "group": "Scheduler (Clip Download)", "text": "Channels to download clips from", "type": "string", "help": "Separate by commas." },
@@ -625,6 +629,14 @@ export class Config {
             }
         }
 
+        for (const folder of Object.values(BaseConfigCacheFolder)) {
+            if (!fs.existsSync(folder)) {
+                console.warn(chalk.yellow(`Cache folder '${folder}' does not exist, creating.`));
+                fs.mkdirSync(folder, { recursive: true });
+                console.log(chalk.green(`Created cache folder: ${folder}`));
+            }
+        }
+
     }
 
     generateEventSubSecret() {
@@ -826,8 +838,9 @@ export class Config {
     static async resetChannels() {
         TwitchChannel.channels_cache = {};
         LiveStreamDVR.getInstance().channels_config = [];
-        LiveStreamDVR.getInstance().channels = [];
-        LiveStreamDVR.getInstance().vods = [];
+        LiveStreamDVR.getInstance().getChannels().forEach((channel) => channel.clearVODs());
+        LiveStreamDVR.getInstance().clearChannels();
+        LiveStreamDVR.getInstance().clearVods();
         LiveStreamDVR.getInstance().loadChannelsConfig();
         TwitchChannel.loadChannelsCache();
         YouTubeChannel.loadChannelsCache();
@@ -925,8 +938,8 @@ export class Config {
     }
 
     static get can_shutdown(): boolean {
-        if (!LiveStreamDVR.getInstance().channels || LiveStreamDVR.getInstance().channels.length === 0) return true;
-        return !LiveStreamDVR.getInstance().channels.some(c => c.is_live);
+        if (!LiveStreamDVR.getInstance().getChannels() || LiveStreamDVR.getInstance().getChannels().length === 0) return true;
+        return !LiveStreamDVR.getInstance().getChannels().some(c => c.is_live);
     }
 
     async getGitHash() {
