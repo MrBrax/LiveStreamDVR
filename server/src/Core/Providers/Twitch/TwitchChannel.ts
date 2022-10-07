@@ -226,6 +226,7 @@ export class TwitchChannel extends BaseChannel {
 
             current_stream_number: this.current_stream_number,
             current_season: this.current_season,
+            current_absolute_season: this.current_absolute_season,
 
             chapter_data: this.getChapterData(),
 

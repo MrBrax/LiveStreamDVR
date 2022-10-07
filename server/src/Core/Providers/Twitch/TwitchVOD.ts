@@ -814,6 +814,7 @@ export class TwitchVOD extends BaseVOD {
 
             stream_number: this.stream_number,
             stream_season: this.stream_season,
+            stream_absolute_season: this.stream_absolute_season,
 
             comment: this.comment,
 

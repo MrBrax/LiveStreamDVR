@@ -1092,6 +1092,7 @@ export class BaseVOD {
         }
 
         this.stream_number = this.json.stream_number !== undefined ? this.json.stream_number : undefined;
+        this.stream_absolute_season = this.json.stream_absolute_season !== undefined ? this.json.stream_absolute_season : undefined;
 
     }
 
