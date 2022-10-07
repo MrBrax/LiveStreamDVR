@@ -136,7 +136,7 @@ describe("channels", () => {
         expect(res3.body.data).toHaveProperty("display_name");
         expect(res3.status).toBe(200);
 
-        LiveStreamDVR.getInstance().channels = [];
+        LiveStreamDVR.getInstance().clearChannels();
         LiveStreamDVR.getInstance().channels_config = [];
 
     });

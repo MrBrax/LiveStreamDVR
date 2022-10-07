@@ -4,6 +4,7 @@ import chokidar from "chokidar";
 import { randomUUID } from "crypto";
 import { format, parse, parseJSON } from "date-fns";
 import fs from "fs";
+import { isTwitchVOD } from "../../../Helpers/Types";
 import { encode as htmlentities } from "html-entities";
 import path from "path";
 import { trueCasePathSync } from "true-case-path";
@@ -1412,7 +1413,7 @@ export class TwitchVOD extends BaseVOD {
             if (filename === this.filename) {
                 if (!fs.existsSync(this.filename)) {
                     Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD JSON ${this.basename} deleted (${eventType})!`);
-                    if (LiveStreamDVR.getInstance().vods.find(v => v.basename == this.basename)) {
+                    if (LiveStreamDVR.getInstance().getVodByUUID(this.uuid) !== false) {
                         Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${this.basename} still in memory!`);
 
                         // const channel = TwitchChannel.getChannelByLogin(this.streamer_login);
@@ -1819,20 +1820,20 @@ export class TwitchVOD extends BaseVOD {
      */
     public static getVod(basename: string): TwitchVOD | undefined {
         if (TwitchVOD.hasVod(basename)) {
-            return LiveStreamDVR.getInstance().vods.find<TwitchVOD>((vod): vod is TwitchVOD => vod instanceof TwitchVOD && vod.basename == basename);
+            return LiveStreamDVR.getInstance().getVods().find<TwitchVOD>((vod): vod is TwitchVOD => isTwitchVOD(vod) && vod.basename == basename);
         }
     }
 
     public static getVodByCaptureId(capture_id: string): TwitchVOD | undefined {
-        return LiveStreamDVR.getInstance().vods.find<TwitchVOD>((vod): vod is TwitchVOD => vod instanceof TwitchVOD && vod.capture_id == capture_id);
+        return LiveStreamDVR.getInstance().getVods().find<TwitchVOD>((vod): vod is TwitchVOD => isTwitchVOD(vod) && vod.capture_id == capture_id);
     }
 
     public static getVodByUUID(uuid: string): TwitchVOD | undefined {
-        return LiveStreamDVR.getInstance().vods.find<TwitchVOD>((vod): vod is TwitchVOD => vod instanceof TwitchVOD && vod.uuid == uuid);
+        return LiveStreamDVR.getInstance().getVods().find<TwitchVOD>((vod): vod is TwitchVOD => isTwitchVOD(vod) && vod.uuid == uuid);
     }
 
     public static getVodByProviderId(provider_id: string): TwitchVOD | undefined {
-        return LiveStreamDVR.getInstance().vods.find<TwitchVOD>((vod): vod is TwitchVOD => vod instanceof TwitchVOD && vod.twitch_vod_id == provider_id);
+        return LiveStreamDVR.getInstance().getVods().find<TwitchVOD>((vod): vod is TwitchVOD => isTwitchVOD(vod) && vod.twitch_vod_id == provider_id);
     }
 
     /**

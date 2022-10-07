@@ -836,8 +836,9 @@ export class Config {
     static async resetChannels() {
         TwitchChannel.channels_cache = {};
         LiveStreamDVR.getInstance().channels_config = [];
-        LiveStreamDVR.getInstance().channels = [];
-        LiveStreamDVR.getInstance().vods = [];
+        LiveStreamDVR.getInstance().getChannels().forEach((channel) => channel.clearVODs());
+        LiveStreamDVR.getInstance().clearChannels();
+        LiveStreamDVR.getInstance().clearVods();
         LiveStreamDVR.getInstance().loadChannelsConfig();
         TwitchChannel.loadChannelsCache();
         YouTubeChannel.loadChannelsCache();
@@ -935,8 +936,8 @@ export class Config {
     }
 
     static get can_shutdown(): boolean {
-        if (!LiveStreamDVR.getInstance().channels || LiveStreamDVR.getInstance().channels.length === 0) return true;
-        return !LiveStreamDVR.getInstance().channels.some(c => c.is_live);
+        if (!LiveStreamDVR.getInstance().getChannels() || LiveStreamDVR.getInstance().getChannels().length === 0) return true;
+        return !LiveStreamDVR.getInstance().getChannels().some(c => c.is_live);
     }
 
     async getGitHash() {

@@ -310,7 +310,7 @@ export function Shutdown(req: express.Request, res: express.Response): void {
 
     const force = req.query.force == "true";
 
-    if (!force && LiveStreamDVR.getInstance().channels.some(c => c.is_capturing || c.is_converting)) {
+    if (!force && LiveStreamDVR.getInstance().getChannels().some(c => c.is_capturing || c.is_converting)) {
         res.status(500).send({
             status: "ERROR",
             message: "There are still active streams",

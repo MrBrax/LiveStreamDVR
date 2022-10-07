@@ -10,7 +10,7 @@ import path from "path";
 import { WebSocketServer } from "ws";
 import { ChannelConfig } from "../../../common/Config";
 import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
-import { ClientBroker } from "./ClientBroker";
+import { ClientBroker } from "@/Core/ClientBroker";
 import { Config } from "./Config";
 import { Job } from "./Job";
 import { Log, LOGLEVEL } from "./Log";
@@ -34,8 +34,8 @@ export class LiveStreamDVR {
     public static filenameIllegalChars = /[:*?"<>|]/g;
 
     channels_config: ChannelConfig[] = [];
-    channels: ChannelTypes[] = [];
-    vods: VODTypes[] = [];
+    private channels: ChannelTypes[] = [];
+    private vods: VODTypes[] = [];
 
     static server: Server;
     static websocketServer: WebSocketServer;
@@ -134,8 +134,8 @@ export class LiveStreamDVR {
                     if (ch) {
                         this.channels.push(ch);
                         ch.postLoad();
-                        ch.vods_list.forEach(vod => vod.postLoad());
-                        Log.logAdvanced(LOGLEVEL.SUCCESS, "dvr.load.tw", `Loaded channel ${channel.login} with ${ch.vods_list?.length} vods`);
+                        ch.getVods().forEach(vod => vod.postLoad());
+                        Log.logAdvanced(LOGLEVEL.SUCCESS, "dvr.load.tw", `Loaded channel ${channel.login} with ${ch.getVods().length} vods`);
                         if (ch.no_capture) {
                             Log.logAdvanced(LOGLEVEL.WARNING, "dvr.load.tw", `Channel ${channel.login} is configured to not capture streams.`);
                         }
@@ -160,8 +160,8 @@ export class LiveStreamDVR {
                     if (ch) {
                         this.channels.push(ch);
                         ch.postLoad();
-                        ch.vods_list.forEach(vod => vod.postLoad());
-                        Log.logAdvanced(LOGLEVEL.SUCCESS, "dvr.load.yt", `Loaded channel ${ch.displayName} with ${ch.vods_list?.length} vods`);
+                        ch.getVods().forEach(vod => vod.postLoad());
+                        Log.logAdvanced(LOGLEVEL.SUCCESS, "dvr.load.yt", `Loaded channel ${ch.displayName} with ${ch.getVods().length} vods`);
                         if (ch.no_capture) {
                             Log.logAdvanced(LOGLEVEL.WARNING, "dvr.load.yt", `Channel ${ch.displayName} is configured to not capture streams.`);
                         }
@@ -208,10 +208,62 @@ export class LiveStreamDVR {
         return search as T;
     }
 
+    public addVod(vod: VODTypes): void {
+        this.vods.push(vod);
+    }
+
+    public addChannel(channel: ChannelTypes): void {
+        this.channels.push(channel);
+    }
+
+    public getVods(): VODTypes[] {
+        return this.vods;
+    }
+
     public getVodByUUID<T extends VODTypes>(uuid: string): T | false {
-        const search = this.vods.find(c => c.uuid == uuid);
+        const search = this.getVods().find(c => c.uuid == uuid);
         if (!search) return false;
         return search as T;
+    }
+
+    public getVodsByChannelUUID<T extends VODTypes>(uuid: string): T[] {
+        return this.getVods().filter(c => c.channel_uuid == uuid) as T[];
+    }
+
+    public removeVodByIndex(index: number): void {
+        this.vods.splice(index, 1);
+    }
+
+    public removeVodByUUID(uuid: string): void {
+        const index = this.vods.findIndex(c => c.uuid == uuid);
+        if (index > -1) {
+            this.removeVodByIndex(index);
+        }
+    }
+
+    public removeVodByChannelUUID(uuid: string): void {
+        const index = this.vods.findIndex(c => c.channel_uuid == uuid);
+        if (index > -1) {
+            this.removeVodByIndex(index);
+        }
+    }
+
+    public removeAllVodsByChannelUUID(uuid: string): void {
+        const index = this.vods.findIndex(c => c.channel_uuid == uuid);
+        if (index > -1) {
+            this.removeVodByIndex(index);
+            this.removeAllVodsByChannelUUID(uuid);
+        }
+    }
+
+    public clearChannels(): void {
+        this.channels.forEach(c => c.clearVODs());
+        this.channels = [];
+    }
+
+    public clearVods(): void {
+        this.vods.forEach(vod => vod.stopWatching());
+        this.vods = [];
     }
 
 

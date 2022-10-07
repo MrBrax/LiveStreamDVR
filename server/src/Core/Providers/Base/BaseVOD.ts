@@ -174,7 +174,7 @@ export class BaseVOD {
             if (filename === this.filename) {
                 if (!fs.existsSync(this.filename)) {
                     Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD JSON ${this.basename} deleted!`);
-                    if (LiveStreamDVR.getInstance().vods.find(v => v.basename == this.basename)) {
+                    if (LiveStreamDVR.getInstance().getVods().find(v => v.basename == this.basename)) {
                         Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `VOD ${this.basename} still in memory!`);
 
                         // const channel = TwitchChannel.getChannelByLogin(this.streamer_login);
@@ -1022,8 +1022,14 @@ export class BaseVOD {
     public async saveVTTChapters(): Promise<boolean> { return await Promise.resolve(false); }
     public async saveKodiNfo(): Promise<boolean> { return await Promise.resolve(false); }
 
+    /**
+     * 
+     * @param basename 
+     * @deprecated
+     * @returns 
+     */
     public static hasVod(basename: string): boolean {
-        return LiveStreamDVR.getInstance().vods.findIndex(vod => vod.basename == basename) != -1;
+        return LiveStreamDVR.getInstance().getVods().findIndex(vod => vod.basename == basename) != -1;
     }
 
     public static addVod(vod: VODTypes): boolean {
@@ -1034,7 +1040,7 @@ export class BaseVOD {
         if (this.hasVod(vod.basename))
             throw new Error(`VOD ${vod.basename} is already in cache!`);
 
-        LiveStreamDVR.getInstance().vods.push(vod);
+        LiveStreamDVR.getInstance().addVod(vod);
 
         return this.hasVod(vod.basename);
     }

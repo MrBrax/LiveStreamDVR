@@ -20,8 +20,8 @@ function GetTelemetry() {
     const { total_size } = generateStreamerList();
     const data = {
         uid: 0, // TODO: make an unique uid for telemetry, is this ok to do?
-        channel_amount: LiveStreamDVR.getInstance().channels.length,
-        vods_amount: LiveStreamDVR.getInstance().channels.map(c => c.vods_list.length),
+        channel_amount: LiveStreamDVR.getInstance().getChannels().length,
+        vods_amount: LiveStreamDVR.getInstance().getChannels().map(c => c.getVods().length),
         uses_proxy: Config.getInstance().cfg("trust_proxy"),
         notifications: ClientBroker.notificationSettings,
         windows: Helper.is_windows(),

@@ -343,7 +343,7 @@ export class TwitchHelper {
         if (!Config.getInstance().cfg("app_url") && Config.getInstance().cfg("app_url") !== "debug") errors.push("No app url set in the config.");
         if (!Config.getInstance().cfg("api_client_id")) errors.push("No client id set in the config.");
         if (!Config.getInstance().cfg("api_secret")) errors.push("No client secret set in the config.");
-        if (LiveStreamDVR.getInstance().channels.length == 0) errors.push("No channels set in the config.");
+        if (LiveStreamDVR.getInstance().getChannels().length == 0) errors.push("No channels set in the config.");
 
         if (!Helper.path_ffmpeg()) errors.push("Failed to find ffmpeg");
         if (!Helper.path_streamlink()) errors.push("Failed to find streamlink");
@@ -373,7 +373,7 @@ export class TwitchHelper {
 
         if (Config.debug) {
 
-            for (const vod of LiveStreamDVR.getInstance().vods) {
+            for (const vod of LiveStreamDVR.getInstance().getVods()) {
 
                 if (!vod.is_finalized) continue;
 
