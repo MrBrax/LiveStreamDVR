@@ -10,7 +10,7 @@ import path from "path";
 import { WebSocketServer } from "ws";
 import { ChannelConfig } from "../../../common/Config";
 import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
-import { ClientBroker } from "@/Core/ClientBroker";
+import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
 import { Job } from "./Job";
 import { Log, LOGLEVEL } from "./Log";
