@@ -97,6 +97,7 @@ export class Config {
         { "key": "disable_ads", "group": "Capture", "text": "Try to remove ads from captured file", "type": "boolean", "default": true, "help": "This removes the \"Commercial break in progress\", but stream is probably going to be cut off anyway" },
 
         { "key": "capture.use_cache", "group": "Capture", "text": "Use cache", "type": "boolean", "default": false, "help": "Use cache directory for in-progress captures" },
+        { "key": "capture.retry_on_error", "group": "Capture", "text": "Retry on error", "type": "boolean", "default": true, "help": "Retry on any kind of error. If an eventsub message is missed, it will be retried." },
 
         // { "key": "sub_lease", "group": "Advanced", "text": "Subscription lease", "type": "number", "default": 604800 },
         { "key": "api_client_id", "group": "Basic", "text": "Twitch client ID", "type": "string", "required": true },
