@@ -304,6 +304,10 @@ export class LiveStreamDVR {
             }, 10000);
         }
 
+        if (this.debugConnectionInterval) {
+            clearInterval(this.debugConnectionInterval);
+        }
+
         // this will not be called until all connections are closed
         this.server.close(async (error) => {
             if (error) {
@@ -371,5 +375,21 @@ export class LiveStreamDVR {
     //         fs.renameSync(path.join(BaseConfigCacheFolder.cache, relative_path), path.join(BaseConfigDataFolder., relative_path));
     //     }
     // }
+
+    private static debugConnectionInterval: NodeJS.Timeout | undefined = undefined;
+    public static postInit() {
+        if (Config.debug) {
+            this.debugConnectionInterval = setInterval(() => {
+                this.server.getConnections((error, count) => {
+                    if (error) {
+                        console.log(chalk.red(error));
+                    } else {
+                        console.log(chalk.yellow(`[Debug][${new Date().toISOString()}] Currently ${count} HTTP/WebSocket connections`));
+                    }
+                });
+            }, 30000);
+        }
+
+    }
 
 }

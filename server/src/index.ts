@@ -236,6 +236,8 @@ Config.init().then(() => {
         LiveStreamDVR.shutdown("sigint");
     });
 
+    LiveStreamDVR.postInit();
+
     // fs.writeFileSync(path.join(BaseConfigDataFolder.cache, "lock"), "1");
 
     /*
