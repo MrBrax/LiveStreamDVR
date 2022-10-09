@@ -143,7 +143,7 @@ export class TwitchVOD extends BaseVOD {
         if (this.json.channel_uuid) {
             this.channel_uuid = this.json.channel_uuid;
         } else {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vod", `No channel UUID for VOD ${this.basename}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod", `No stored channel UUID for VOD ${this.basename}`);
         }
     }
 

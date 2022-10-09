@@ -378,18 +378,19 @@ export class LiveStreamDVR {
 
     private static debugConnectionInterval: NodeJS.Timeout | undefined = undefined;
     public static postInit() {
-        if (Config.debug) {
-            this.debugConnectionInterval = setInterval(() => {
-                this.server.getConnections((error, count) => {
-                    if (error) {
-                        console.log(chalk.red(error));
-                    } else {
+        this.debugConnectionInterval = setInterval(() => {
+            this.server.getConnections((error, count) => {
+                if (error) {
+                    console.log(chalk.red(error));
+                } else {
+                    if (Config.debug) {
                         console.log(chalk.yellow(`[Debug][${new Date().toISOString()}] Currently ${count} HTTP/WebSocket connections`));
+                    } else if (count > 5) {
+                        console.log(chalk.yellow(`[Warn][${new Date().toISOString()}] Currently ${count} HTTP/WebSocket connections`));
                     }
-                });
-            }, 30000);
-        }
-
+                }
+            });
+        }, 60000);
     }
 
 }
