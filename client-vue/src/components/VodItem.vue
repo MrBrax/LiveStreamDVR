@@ -1187,50 +1187,60 @@ title="Retry VOD match"
             <div class="columns">
                 <div class="column">
                     <h3>VOD source</h3>
-                    <label>
-                        <input
-                            v-model="playerSettings.vodSource"
-                            type="radio"
-                            value="captured"
-                        > Captured
-                    </label>
-                    <br>
-                    <label>
-                        <input
-                            v-model="playerSettings.vodSource"
-                            type="radio"
-                            value="downloaded"
-                            :disabled="!vod?.is_vod_downloaded"
-                        > Downloaded
-                    </label>
+                    <ul class="radio-list">
+                        <li>
+                            <label>
+                                <input
+                                    v-model="playerSettings.vodSource"
+                                    type="radio"
+                                    value="captured"
+                                > Captured
+                            </label>
+                        </li>
+                        <li>
+                            <label>
+                                <input
+                                    v-model="playerSettings.vodSource"
+                                    type="radio"
+                                    value="downloaded"
+                                    :disabled="!vod?.is_vod_downloaded"
+                                > Downloaded
+                            </label>
+                        </li>
+                    </ul>
                 </div>
                 <div class="column">
                     <h3>Chat source</h3>
-                    <label>
-                        <input
-                            v-model="playerSettings.chatSource"
-                            type="radio"
-                            value="captured"
-                        > Captured
-                    </label>
-                    <br>
-                    <label>
-                        <input
-                            v-model="playerSettings.chatSource"
-                            type="radio"
-                            value="downloaded"
-                            :disabled="!vod?.is_chat_downloaded"
-                        > Downloaded
-                    </label>
+                    <ul class="radio-list">
+                        <li>
+                            <label>
+                                <input
+                                    v-model="playerSettings.chatSource"
+                                    type="radio"
+                                    value="captured"
+                                > Captured
+                            </label>
+                        </li>
+                        <li>
+                            <label>
+                                <input
+                                    v-model="playerSettings.chatSource"
+                                    type="radio"
+                                    value="downloaded"
+                                    :disabled="!vod?.is_chat_downloaded"
+                                > Downloaded
+                            </label>
+                        </li>
+                    </ul>
                 </div>
             </div>
             <br>
             <div class="field">
                 <button
-                    class="button"
+                    class="button is-confirm"
                     @click="openPlayer"
                 >
-                    <fa icon="play" />
+                    <span class="icon"><fa icon="play" /></span>
                     <span>Play</span>
                 </button>
             </div>

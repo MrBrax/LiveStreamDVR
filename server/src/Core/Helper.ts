@@ -922,7 +922,7 @@ export class Helper {
 
     public static async imageThumbnail(filename: string, width: number): Promise<string> {
 
-        Log.logAdvanced(LOGLEVEL.INFO, "helper.thumbnail", `Run imagemagick on ${filename}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "helper.thumbnail", `Run thumbnail on ${filename}`);
 
         if (!filename) {
             throw new Error("No filename supplied for thumbnail");
@@ -949,6 +949,7 @@ export class Helper {
         const ffmpeg_path = Helper.path_ffmpeg();
         if (!ffmpeg_path) throw new Error("Failed to find ffmpeg");
 
+        /*
         let codec = "";
         if (thumbnail_format == "jpg") {
             codec = "jpeg";
@@ -959,13 +960,21 @@ export class Helper {
         } else {
             throw new Error(`Unsupported thumbnail format: ${thumbnail_format}`);
         }
+        */
 
-        const output = await Helper.execSimple(ffmpeg_path, [
-            "-i", filename,
-            "-vf", `scale=${width}:-1`,
-            "-codec", codec,        
-            output_image,
-        ], "ffmpeg image thumbnail");
+        let output: ExecReturn;
+
+        try {
+            output = await Helper.execSimple(ffmpeg_path, [
+                "-i", filename,
+                "-vf", `scale=${width}:-1`,
+                // "-codec", codec,        
+                output_image,
+            ], "ffmpeg image thumbnail");
+        } catch (error) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper.thumbnail", `Failed to create thumbnail: ${error}`, error);
+            throw error;            
+        }
 
         if ((output.stderr.join("") + output.stdout.join("")).includes("Default encoder for format")) {
             throw new Error("Unsupported codec for image thumbnail");
@@ -974,6 +983,7 @@ export class Helper {
         if (output && fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
             return path.basename(output_image);
         } else {
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper.thumbnail", `Failed to create thumbnail for ${filename}`, output);
             throw new Error("No output from ffmpeg");
         }
 
