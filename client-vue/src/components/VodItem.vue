@@ -1822,7 +1822,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-
+@import "../assets/_variables";
 
 .video {
     margin-bottom: 10px;
