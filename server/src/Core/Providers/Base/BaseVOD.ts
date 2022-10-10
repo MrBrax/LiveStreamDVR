@@ -1601,7 +1601,24 @@ export class BaseVOD {
         }
 
         // if (!this.is_finalized && !this.is_converted && !this.is_converting && !this.is_capturing && !this.is_converted && !this.failed) {
-        console.debug(`fix;; ${this.basename} is finalized: ${this.is_finalized}, converting: ${this.is_converting}, capturing: ${this.is_capturing}, converted: ${this.is_converted}, failed: ${this.failed}`);
+        // console.debug(`fix;; ${this.basename} is finalized: ${this.is_finalized}, converting: ${this.is_converting}, capturing: ${this.is_capturing}, converted: ${this.is_converted}, failed: ${this.failed}`);
+
+        Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `fixIssues meta dump for ${this.basename} (${this.uuid})`, {
+            "channel_uuid": this.channel_uuid,
+            "channel_name": this.getChannel().internalName,
+            "uuid": this.uuid,
+
+            "basename": this.basename,
+            "is_capturing": this.is_capturing,
+            "is_converting": this.is_converting,
+            "is_converted": this.is_converted,
+            "is_finalized": this.is_finalized,
+            "chapter_count": this.chapters.length,
+            "segment_count": this.segments.length,
+            "has_started_at": this.started_at !== undefined,
+            "has_ended_at": this.ended_at !== undefined,
+            "not_started": this.not_started,
+        });
 
     }
 
