@@ -155,3 +155,38 @@
         padding-left: 1em;
     }
 }
+
+ul.radio-list {
+    list-style: none;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    li:not(:last-child) {
+        margin-bottom: 0.5em;
+    }
+    li label {
+        display: block;
+        padding: 0.5em;
+        border-radius: 0.5em;
+        cursor: pointer;
+        background-color: rgba(0, 0, 0, 0.1);
+        
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.15);
+        }
+
+        &:active {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        input {
+            margin-right: 0.2em;
+            vertical-align: middle;
+        }
+
+        // no default support for :has in firefox at the moment of writing, holla for the future
+        &:has(input:checked) {
+            background-color: rgba(0, 0, 255, 0.2);
+        }
+    }
+}
