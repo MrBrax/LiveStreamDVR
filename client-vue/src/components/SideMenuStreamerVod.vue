@@ -97,9 +97,11 @@
                 class="duration"
             >
                 (<duration-display
+                    v-if="streamer.current_vod?.started_at"
                     :start-date="streamer.current_vod?.started_at"
                     :output-style="store.clientCfg('useRelativeTime') ? 'human' : 'numbers'"
-                />)
+                />
+                <span v-else>Unknown</span>)
             </span><!-- duration -->
             <span
                 v-if="vod.getRecordingSize() && store.sidemenuShow.vod_size"
@@ -111,10 +113,15 @@
         <template v-else>
             <!-- duration -->
             <span
-                v-if="vod.duration && store.sidemenuShow.vod_duration"
+                v-if="store.sidemenuShow.vod_duration"
                 class="duration"
             >
-                ({{ store.clientCfg('useRelativeTime') ? niceDuration(vod.duration) : humanDuration(vod.duration) }})
+                <template v-if="vod.duration">
+                    ({{ store.clientCfg('useRelativeTime') ? niceDuration(vod.duration) : humanDuration(vod.duration) }})
+                </template>
+                <template v-else>
+                    (Unknown)
+                </template>
             </span>
 
             <!-- filesize -->
@@ -214,6 +221,7 @@ import { ref, defineProps } from "vue";
 import { ChannelTypes, useStore, VODTypes } from "@/store";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import { MuteStatus, nonGameCategories, TwitchVodAge } from "../../../common/Defs";
+import DurationDisplay from "./DurationDisplay.vue";
 
 const store = useStore();
 

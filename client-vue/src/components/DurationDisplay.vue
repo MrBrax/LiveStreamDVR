@@ -4,7 +4,7 @@
 
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref, watch } from "vue";
-import { parseJSON } from "date-fns";
+import { isDate, parseJSON } from "date-fns";
 import { formatDuration, niceDuration, shortDuration } from "@/mixins/newhelpers";
 
 const props = defineProps({
@@ -37,8 +37,15 @@ onUnmounted(() => {
 });
 
 const refreshTime = () => {
-    if (!props.startDate || props.startDate == "0") return;
+    if (!props.startDate || props.startDate == "0") {
+        timeString.value = "??:??";
+        return;
+    }
     const dateObj = parseJSON(props.startDate);
+    if (!isDate(dateObj)) {
+        timeString.value = "??:??";
+        return;
+    }
     // const dur = intervalToDuration({ start: dateObj, end: new Date() });
     const totalSeconds = Math.abs(Math.floor((new Date().getTime() - dateObj.getTime()) / 1000));
     if (props.outputStyle == "human") {

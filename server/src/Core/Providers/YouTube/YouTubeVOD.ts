@@ -76,7 +76,7 @@ export class YouTubeVOD extends BaseVOD {
             // // api_getDuration: this.duration, // this.getDuration(),
             // api_getDuration: await this.getDuration(true),
             // api_getCapturingStatus: await this.getCapturingStatus(),
-            // api_getRecordingSize: this.getRecordingSize(),
+            api_getRecordingSize: this.getRecordingSize(),
             // api_getChatDumpStatus: await this.getChatDumpStatus(),
             // api_getDurationLive: this.getDurationLive(),
             // api_getConvertingStatus: await this.getConvertingStatus(),
@@ -347,7 +347,7 @@ export class YouTubeVOD extends BaseVOD {
 
         if (!searchResponse.data) return false;
         if (!searchResponse.data.items || searchResponse.data.items.length == 0) return false;
-        
+
         const ids: string[] = [];
         searchResponse.data.items.forEach(item => {
             if (item && item.id && item.id.videoId) ids.push(item.id.videoId);
@@ -493,7 +493,7 @@ export class YouTubeVOD extends BaseVOD {
         } catch (error) {
             Log.logAdvanced(LOGLEVEL.ERROR, "vod.finalize", `Failed to get mediainfo for ${this.basename}: ${error}`);
         }
-        
+
         this.is_finalized = true;
         return true;
     }

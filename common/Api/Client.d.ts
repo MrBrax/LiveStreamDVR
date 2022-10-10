@@ -96,6 +96,8 @@ export interface ApiBaseVod {
     failed?: boolean;
     cloud_storage?: boolean;
 
+    api_getRecordingSize: number | false;
+
 }
 
 export interface ApiTwitchVod extends ApiBaseVod {
@@ -124,7 +126,6 @@ export interface ApiTwitchVod extends ApiBaseVod {
     api_getDuration: number | null;
     api_getCapturingStatus: JobStatus;
     api_getConvertingStatus: JobStatus;
-    api_getRecordingSize: number | false;
     api_getChatDumpStatus: JobStatus;
     api_getDurationLive: number | false;
 

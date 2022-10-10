@@ -54,7 +54,7 @@ export default class YouTubeVOD extends BaseVOD {
         vod.streamer_id = apiResponse.streamer_id;
         vod.webpath = apiResponse.webpath;
         // vod.convertingStatus = apiResponse.api_getConvertingStatus;
-        // vod.recordingSize = apiResponse.api_getRecordingSize;
+        vod.recordingSize = apiResponse.api_getRecordingSize;
         // vod.capturingStatus = apiResponse.api_getCapturingStatus;
         // vod.chatDumpStatus = apiResponse.api_getChatDumpStatus;
         vod.total_size = apiResponse.total_size;

@@ -1,12 +1,13 @@
 import chalk from "chalk";
 import chokidar from "chokidar";
+import { Job } from "../../../Core/Job";
 import { format, parseJSON } from "date-fns";
 import fs from "fs";
 import path from "path";
 import { BaseVODChapterJSON, VODJSON } from "Storage/JSON";
 import { ApiBaseVod } from "../../../../../common/Api/Client";
 import { VideoQuality } from "../../../../../common/Config";
-import { MuteStatus, Providers } from "../../../../../common/Defs";
+import { JobStatus, MuteStatus, Providers } from "../../../../../common/Defs";
 import { AudioMetadata, VideoMetadata } from "../../../../../common/MediaInfo";
 import { VodUpdated } from "../../../../../common/Webhook";
 import { FFmpegMetadata } from "../../../Core/FFmpegMetadata";
@@ -21,6 +22,7 @@ import { Webhook } from "../../Webhook";
 import { BaseChannel } from "./BaseChannel";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { BaseVODSegment } from "./BaseVODSegment";
+import { randomUUID } from "crypto";
 
 export class BaseVOD {
 
@@ -117,6 +119,8 @@ export class BaseVOD {
     public fileWatcher?: chokidar.FSWatcher;
     public _writeJSON = false;
     public _updateTimer: NodeJS.Timeout | undefined;
+
+    public capturingFilename?: string;
 
     /**
      * Set up date related data
@@ -355,9 +359,6 @@ export class BaseVOD {
         }
 
         this.segments = segments;
-    }
-    rebuildSegmentList() {
-        throw new Error("Method not implemented.");
     }
 
     public getStartOffset(): number | false {
@@ -921,10 +922,6 @@ export class BaseVOD {
         return format(this.started_at, Config.SeasonFormat);
     }
 
-    async fixIssues(): Promise<void> {
-        return;
-    }
-
     public async setupFiles(): Promise<void> {
 
         if (!this.directory) {
@@ -1399,6 +1396,261 @@ export class BaseVOD {
                 fs.chmodSync(fullpath, Config.getInstance().cfg("file_chmod"));
             }
         }
+
+    }
+
+    public getRecordingSize(): number | false {
+        if (!this.is_capturing) return false;
+        const filename = this.capturingFilename ?? path.join(this.directory, `${this.basename}.ts`);
+        if (!fs.existsSync(filename)) return false;
+        return fs.statSync(filename).size;
+    }
+
+    public async getCapturingStatus(use_command = false): Promise<JobStatus> {
+        const job = Job.findJob(`capture_${this.basename}`);
+        return job ? await job.getStatus(use_command) : JobStatus.STOPPED;
+    }
+
+    public async getConvertingStatus(): Promise<JobStatus> {
+        const job = Job.findJob(`convert_${this.basename}`);
+        return job ? await job.getStatus() : JobStatus.STOPPED;
+    }
+
+
+    public async fixIssues(): Promise<void> {
+
+        Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Run fixIssues for VOD ${this.basename}`);
+
+        // if (!this.getChannel()) {
+        //     Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `VOD ${this.basename} has no channel!`);
+        //     return;
+        // }
+
+        if (this.not_started) {
+            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD ${this.basename} not started yet, skipping fix!`);
+            return;
+        }
+
+        // fix illegal characters
+        if (this.basename.match(LiveStreamDVR.filenameIllegalChars)) {
+            console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} contains invalid characters!`));
+            const new_basename = this.basename.replaceAll(LiveStreamDVR.filenameIllegalChars, "_");
+            this.changeBaseName(new_basename);
+        }
+
+        // if finalized but no segments
+        if (this.is_finalized && (!this.segments || this.segments.length === 0)) {
+            console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} is finalized but no segments found, rebuilding!`));
+            const segs = await this.rebuildSegmentList();
+            if (segs) {
+                await this.saveJSON("fix rebuild segment list");
+            } else {
+                console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} could not be rebuilt!`));
+            }
+        }
+
+        // finalize if finished converting and not yet finalized
+        if (this.is_converted && !this.is_finalized && this.segments.length > 0) {
+            console.log(chalk.bgBlue.whiteBright(`${this.basename} is finished converting but not finalized, finalizing now!`));
+            await this.finalize();
+            await this.saveJSON("fix finalize");
+        }
+
+        // if capturing but process not running
+        if (this.is_capturing && await this.getCapturingStatus(true) !== JobStatus.RUNNING) {
+            console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} is capturing but process not running. Setting to false for fixing.`));
+            this.is_capturing = false;
+            await this.saveJSON("fix set capturing to false");
+        }
+
+        // if converting but process not running
+        if (this.is_converting && await this.getConvertingStatus() !== JobStatus.RUNNING) {
+            console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} is converting but process not running. Setting to false for fixing.`));
+            this.is_converting = false;
+            await this.saveJSON("fix set converting to false");
+        }
+
+        // if not finalized and no segments found
+        if (!this.is_finalized && (!this.segments || this.segments.length === 0)) {
+            console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} is not finalized and no segments found.`));
+            await this.rebuildSegmentList();
+        }
+
+        // remux if not yet remuxed
+        if (!this.is_capturing && !this.is_converted && !this.is_finalized) {
+            if (fs.existsSync(path.join(this.directory, `${this.basename}.ts`))) {
+                console.log(chalk.bgBlue.whiteBright(`${this.basename} is not yet remuxed, remuxing now!`));
+
+                let channel;
+                try {
+                    channel = this.getChannel();
+                } catch (error) {
+                    console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} has no channel!`));
+                }
+
+                if (channel) {
+                    const container_ext =
+                        channel && channel.quality && channel.quality[0] === "audio_only" ?
+                            Config.AudioContainer :
+                            Config.getInstance().cfg("vod_container", "mp4");
+
+                    const in_file = path.join(this.directory, `${this.basename}.ts`);
+                    const out_file = path.join(this.directory, `${this.basename}.${container_ext}`);
+
+                    if (fs.existsSync(out_file)) {
+                        console.log(chalk.bgRed.whiteBright(`fix;; Converted file '${out_file}' for '${this.basename}' already exists, skipping remux!`));
+                    } else {
+                        this.is_converting = true;
+                        Helper.remuxFile(in_file, out_file)
+                            .then(async status => {
+                                console.log(chalk.bgBlue.whiteBright(`${this.basename} remux status: ${status.success}`));
+                                this.addSegment(`${this.basename}.${container_ext}`);
+                                this.is_converting = false;
+                                await this.finalize();
+                                await this.saveJSON("fix remux");
+                            }).catch(async e => {
+                                console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} remux failed: ${e.message}`));
+                                this.is_converting = false;
+                                await this.saveJSON("fix remux failed");
+                            });
+                    }
+                }
+            } else {
+                console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} is not yet remuxed but no ts file found, skipping!`));
+
+                if (fs.existsSync(path.join(this.directory, `${this.basename}.mp4`))) {
+                    console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} has an mp4 file but is not finalized!`));
+                    this.addSegment(`${this.basename}.mp4`);
+                    await this.finalize();
+                    await this.saveJSON("fix no segment added");
+                }
+            }
+        }
+
+        // if no ended_at set
+        if (this.is_finalized && !this.ended_at) {
+            console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} is finalized but no ended_at found, fixing!`));
+            const duration = await this.getDuration();
+            if (duration && this.started_at) {
+                this.ended_at = new Date(this.started_at.getTime() + (duration * 1000));
+                await this.saveJSON("fix set ended_at");
+            } else {
+                console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} has no duration or started_at, skipping!`));
+            }
+        }
+
+        // add default chapter
+        if (this.is_finalized && (!this.chapters || this.chapters.length === 0) && isTwitchVOD(this)) {
+            console.log(chalk.bgBlue.whiteBright(`${this.basename} is finalized but no chapters found, fixing now!`));
+            await this.generateDefaultChapter();
+            await this.saveJSON("fix chapters");
+        }
+
+        // if all else fails
+        if (this.not_started && !this.is_finalized && !this.is_converted && !this.is_capturing && !this.is_converting && this.segments.length === 0 && !this.failed) {
+            console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} is not finalized, converting, capturing or converting, failed recording?`));
+            this.failed = true;
+            await this.saveJSON("fix set failed true");
+        }
+
+        // if failed but actually not
+        if (this.failed && this.is_finalized && this.segments.length > 0) {
+            console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} is failed but is finalized, fixing!`));
+            this.failed = false;
+            await this.saveJSON("fix set failed false");
+        }
+
+        // if segments don't begin with login
+        if (this.is_finalized && this.segments.length > 0) {
+            /*
+            let error_segments = 0;
+            for (const seg of this.segments_raw) {
+                if (!path.basename(seg).startsWith(`${this.streamer_login}_`)) {
+                    console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} segment ${seg} does not start with login ${this.streamer_login}!`));
+                    error_segments++;
+                    // this.segments_raw[index] = replaceAll(segment, `${this.streamer_login}_`, `${this.streamer_login}_${this.streamer_login}_`);
+                }
+            }
+            if (error_segments == this.segments_raw.length) {
+                console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} has no segments starting with login ${this.streamer_login}, fixing!`));
+                this.rebuildSegmentList();
+            }*/
+            /*
+            for (const seg of this.segments) {
+                if (!seg.filename) continue;
+                const dir = path.dirname(seg.filename);
+                if (dir !== Helper.vodFolder(this.streamer_login) && seg.deleted) { // TODO: channel might not be added yet
+                    // rebuild here
+                    await this.rebuildSegmentList();
+                    continue;
+                }
+            }
+            */
+        }
+
+        // if finalized but has segments and duration is 0
+        if (this.is_finalized && this.segments.length > 0 && this.duration === 0) {
+            console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} is finalized but has segments and duration is 0, fixing!`));
+            const duration = await this.getDuration(true);
+            console.log(chalk.bgBlue.whiteBright(`${this.basename} duration: ${duration}`));
+        }
+
+        if (!this.uuid) {
+            this.uuid = randomUUID();
+            await this.saveJSON("new uuid");
+        }
+
+        // if (!this.is_finalized && !this.is_converted && !this.is_converting && !this.is_capturing && !this.is_converted && !this.failed) {
+        console.debug(`fix;; ${this.basename} is finalized: ${this.is_finalized}, converting: ${this.is_converting}, capturing: ${this.is_capturing}, converted: ${this.is_converted}, failed: ${this.failed}`);
+
+    }
+
+    /**
+     * Rebuild segment list from video files named as basename and parse it
+     * @saves
+     * @returns 
+     */
+    public async rebuildSegmentList(): Promise<boolean> {
+
+        Log.logAdvanced(LOGLEVEL.INFO, "vod.rebuildSegmentList", `Rebuilding segment list for ${this.basename}`);
+
+        let files: string[];
+
+        if (this.directory !== Helper.vodFolder(this.getChannel().internalName)) { // is not in vod folder root, TODO: channel might not be added yet
+            Log.logAdvanced(LOGLEVEL.INFO, "vod.rebuildSegmentList", `VOD ${this.basename} has its own folder, find all files.`);
+            files = fs.readdirSync(this.directory).filter(file =>
+                (
+                    file.endsWith(`.${Config.getInstance().cfg("vod_container", "mp4")}`) ||
+                    file.endsWith(Config.AudioContainer)
+                ) &&
+                !file.includes("_vod") && !file.includes("_chat") && !file.includes("_chat_mask") && !file.includes("_burned")
+            );
+        } else {
+            Log.logAdvanced(LOGLEVEL.INFO, "vod.rebuildSegmentList", `VOD ${this.basename} does not have a folder, find by basename.`);
+            files = fs.readdirSync(this.directory).filter(file =>
+                file.startsWith(this.basename) &&
+                (
+                    file.endsWith(`.${Config.getInstance().cfg("vod_container", "mp4")}`) ||
+                    file.endsWith(Config.AudioContainer)
+                ) &&
+                !file.includes("_vod") && !file.includes("_chat") && !file.includes("_chat_mask") && !file.includes("_burned")
+            );
+        }
+
+        if (!files || files.length == 0) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "vod.rebuildSegmentList", `No segments found for ${this.basename}, can't rebuild segment list`);
+            return false;
+        }
+
+        this.segments_raw = [];
+        this.segments = [];
+
+        files.forEach(file => this.addSegment(path.basename(file)));
+
+        // this.parseSegments(this.segments_raw);
+        await this.saveJSON("segments rebuild");
+
+        return true;
 
     }
 

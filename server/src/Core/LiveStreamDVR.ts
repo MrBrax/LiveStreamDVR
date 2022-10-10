@@ -133,7 +133,7 @@ export class LiveStreamDVR {
 
                     if (ch) {
                         this.addChannel(ch);
-                        ch.postLoad();
+                        await ch.postLoad();
                         ch.getVods().forEach(vod => vod.postLoad());
                         Log.logAdvanced(LOGLEVEL.SUCCESS, "dvr.load.tw", `Loaded channel ${channel.login} with ${ch.getVods().length} vods`);
                         if (ch.no_capture) {
@@ -159,7 +159,7 @@ export class LiveStreamDVR {
 
                     if (ch) {
                         this.addChannel(ch);
-                        ch.postLoad();
+                        await ch.postLoad();
                         ch.getVods().forEach(vod => vod.postLoad());
                         Log.logAdvanced(LOGLEVEL.SUCCESS, "dvr.load.yt", `Loaded channel ${ch.displayName} with ${ch.getVods().length} vods`);
                         if (ch.no_capture) {
@@ -304,6 +304,10 @@ export class LiveStreamDVR {
             }, 10000);
         }
 
+        if (this.debugConnectionInterval) {
+            clearInterval(this.debugConnectionInterval);
+        }
+
         // this will not be called until all connections are closed
         this.server.close(async (error) => {
             if (error) {
@@ -371,5 +375,22 @@ export class LiveStreamDVR {
     //         fs.renameSync(path.join(BaseConfigCacheFolder.cache, relative_path), path.join(BaseConfigDataFolder., relative_path));
     //     }
     // }
+
+    private static debugConnectionInterval: NodeJS.Timeout | undefined = undefined;
+    public static postInit() {
+        this.debugConnectionInterval = setInterval(() => {
+            this.server.getConnections((error, count) => {
+                if (error) {
+                    console.log(chalk.red(error));
+                } else {
+                    if (Config.debug) {
+                        console.log(chalk.yellow(`[Debug][${new Date().toISOString()}] Currently ${count} HTTP/WebSocket connections`));
+                    } else if (count > 5) {
+                        console.log(chalk.yellow(`[Warn][${new Date().toISOString()}] Currently ${count} HTTP/WebSocket connections`));
+                    }
+                }
+            });
+        }, 60000);
+    }
 
 }

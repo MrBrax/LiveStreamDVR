@@ -621,7 +621,7 @@ export function AddBookmark(req: express.Request, res: express.Response): void {
         return;
     }
 
-    const date = req.body.date ? new Date(req.body.date) : undefined;
+    const date = req.body.date ? new Date(req.body.date) : new Date();
     const offset = req.body.offset ? parseInt(req.body.offset) : undefined;
 
     if (!date && !offset) {

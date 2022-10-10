@@ -615,9 +615,8 @@ export class TwitchChannel extends BaseChannel {
         }
     }
 
-    
-
-    public postLoad(): void {
+    public async postLoad(): Promise<void> {
+        await this.parseVODs();
         this.setupStreamNumber();
         if (!KeyValue.getInstance().has(`${this.internalName}.saves_vods`)) {
             this.checkIfChannelSavesVods();
@@ -983,7 +982,7 @@ export class TwitchChannel extends BaseChannel {
         // if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "editor", channel.login)))
         //     fs.mkdirSync(path.join(BaseConfigDataFolder.saved_clips, "editor", channel.login), { recursive: true });
 
-        await channel.parseVODs();
+        // await channel.parseVODs();
 
         await channel.findClips();
 

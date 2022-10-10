@@ -115,18 +115,7 @@ Config.init().then(() => {
     // bind the api routes
     baserouter.use("/api/v0", ApiRouter);
 
-    // send index.html for all other routes, so that SPA routes are handled correctly
-    baserouter.use((req, res, next) => {
-        const ext = path.extname(req.path);
-        if (!([ ".js", ".css", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".ico", ".woff", ".woff2", ".ttf", ".otf", ".eot", ".map", ".webmanifest", ".xml", ".json" ].includes(ext))) {
-            res.sendFile(path.join(BaseConfigFolder.client, "index.html"));
-        } else {
-            next();
-        }
-    });
-
     // static files and storage
-    baserouter.use(express.static(BaseConfigFolder.client));
     baserouter.use("/vodplayer", express.static(BaseConfigFolder.vodplayer));
     baserouter.use("/vods", express.static(BaseConfigDataFolder.vod));
     baserouter.use("/saved_vods", express.static(BaseConfigDataFolder.saved_vods));
@@ -136,9 +125,52 @@ Config.init().then(() => {
         baserouter.use("/logs", express.static(BaseConfigDataFolder.logs));
     }
 
+    baserouter.use(express.static(BaseConfigFolder.client));
+
+    // send index.html for all other routes, so that SPA routes are handled correctly
+    baserouter.use((req, res, next) => {
+        /*const ext = path.extname(req.path);
+
+        if (!([ ".js", ".css", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".ico", ".woff", ".woff2", ".ttf", ".otf", ".eot", ".map", ".webmanifest", ".xml", ".json", ".mp4", ".mkv", ".ts" ].includes(ext))) {
+            // vodplayer
+            if (req.path.includes("/vodplayer/")) {
+                res.sendFile(path.join(BaseConfigFolder.vodplayer, "index.html"));
+            } else {
+                res.sendFile(path.join(BaseConfigFolder.client, "index.html"));
+            }
+        } else {
+            next();
+        }*/
+
+        const fpath = req.path;
+
+        // console.log(fpath, fpath.startsWith(`${basepath}/api/`), `${basepath}/api/`);
+        // console.log(fpath.startsWith(`${basepath}/vodplayer/`), fpath, `${basepath}/vodplayer/`);
+
+        if (
+            fpath.startsWith(`${basepath}/api/`) ||
+            fpath.startsWith(`${basepath}/vods/`) ||
+            fpath.startsWith(`${basepath}/saved_vods/`) ||
+            fpath.startsWith(`${basepath}/saved_clips/`) ||
+            fpath.startsWith(`${basepath}/cache/`) ||
+            fpath.startsWith(`${basepath}/logs/`)
+        ) {
+            next();
+            return;
+        }
+
+        if (fpath.startsWith(`${basepath}/vodplayer/`)) {
+            res.sendFile(path.join(BaseConfigFolder.vodplayer, "index.html"));
+            return;
+        }
+
+        res.sendFile(path.join(BaseConfigFolder.client, "index.html"));
+        // next();
+    });
+
     // 404 handler
     baserouter.use((req, res) => {
-        res.status(404).send("404 - Not Found");
+        res.status(404).send(`404 - Not Found - ${req.url}`);
     });
 
     // for the base path to work
@@ -235,6 +267,8 @@ Config.init().then(() => {
         console.log(`Sigint received, shutting down (signal ${signal})`);
         LiveStreamDVR.shutdown("sigint");
     });
+
+    LiveStreamDVR.postInit();
 
     // fs.writeFileSync(path.join(BaseConfigDataFolder.cache, "lock"), "1");
 
