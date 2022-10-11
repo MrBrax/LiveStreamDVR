@@ -412,12 +412,19 @@ export class Config {
 
         const data = fs.readFileSync(BaseConfigPath.config, "utf8");
 
-        this.config = JSON.parse(data);
+        let config;
+        try {
+            config = JSON.parse(data);
+        } catch (e) {
+            console.error(chalk.bgRed.whiteBright("Error parsing config file"), e);
+            process.exit(1);
+            return;
+        }
 
-        if (this.config) {
+        if (config) {
             for (const field of Config.MigrateOptions) {
-                if (this.config[field.from] !== undefined) {
-                    this.config[field.to] = this.config[field.from];
+                if (config[field.from] !== undefined) {
+                    config[field.to] = config[field.from];
                     // delete this.config[field.from];
                     Log.logAdvanced(LOGLEVEL.INFO, "config", `Migrated setting '${field.from}' to '${field.from}'.`);
                 }
@@ -425,25 +432,27 @@ export class Config {
         }
 
         // delete invalid settings
-        for (const key in this.config) {
+        for (const key in config) {
             if (!Config.settingExists(key)) {
                 console.warn(chalk.yellow(`Saved setting '${key}' does not exist, deprecated? Discarding.`));
-                delete this.config[key];
+                delete config[key];
             }
         }
 
-        if (!this.config) {
+        if (!config) {
             throw new Error("Config is empty even after reading it");
         }
 
         let changed = false;
         for (const setting of Config.settingsFields) {
-            if (this.config[setting.key] === undefined) {
-                this.config[setting.key] = setting.default as any;
+            if (config[setting.key] === undefined) {
+                config[setting.key] = setting.default as any;
                 console.log(chalk.yellow(`Setting '${setting.key}' not configured, using default value '${setting.default}'.`));
                 changed = true;
             }
         }
+
+        this.config = config;
 
         if (changed) {
             this.saveConfig("missing default values");
