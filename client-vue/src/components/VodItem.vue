@@ -362,6 +362,28 @@ title="Retry VOD match"
                             </li>
                         </ul>
                     </div>
+
+                    <!-- Export Data -->
+                    <div
+                        v-if="vod.exportData && Object.keys(vod.exportData).length > 0"
+                        class="info-column"
+                    >
+                        <h4>{{ $t('vod.video-info.export-data.title') }}</h4>
+                        <ul class="video-info">
+                            <li v-if="vod.exportData.exported_at">
+                                <strong>{{ $t('vod.video-info.export-data.exported-at') }}:</strong>
+                                {{ formatDate(vod.exportData.exported_at) }}
+                            </li>
+                            <li>
+                                <strong>{{ $t('vod.video-info.export-data.youtube-id') }}:</strong>
+                                {{ vod.exportData.youtube_id }}
+                            </li>
+                            <li>
+                                <strong>{{ $t('vod.video-info.export-data.youtube-playlist-id') }}:</strong>
+                                {{ vod.exportData.youtube_playlist_id }}
+                            </li>
+                        </ul>
+                    </div>
                 </div>
 
                 <div

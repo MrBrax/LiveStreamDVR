@@ -207,6 +207,8 @@ export default defineComponent({
     */
     &.streamer {
 
+        display: flex;
+
         /*
         a {
             padding: 5px 8px 12px 8px;

@@ -347,14 +347,14 @@ import { computed, onMounted, ref } from "vue";
 import VodItem from "@/components/VodItem.vue";
 import ModalBox from "@/components/ModalBox.vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen } from "@fortawesome/free-solid-svg-icons";
+import { faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { ProxyVideo } from "@common/Proxies/Video";
 import { ChannelTypes, useStore, VODTypes } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
 import { LocalClip } from "@common/LocalClip";
 import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
 import axios from "axios";
-library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen);
+library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen, faTrash);
 
 const props = defineProps<{
     streamer: ChannelTypes;

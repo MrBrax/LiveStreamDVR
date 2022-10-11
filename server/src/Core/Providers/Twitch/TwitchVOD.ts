@@ -793,6 +793,8 @@ export class TwitchVOD extends BaseVOD {
 
             cloud_storage: this.cloud_storage,
 
+            export_data: this.exportData,
+
             // game_offset: this.game_offset || 0,
             // twitch_vod_url: this.twitch_vod_url,
             // twitch_vod_exists: this.twitch_vod_exists,

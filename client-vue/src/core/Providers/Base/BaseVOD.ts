@@ -1,4 +1,5 @@
 import { JobStatus, Providers } from "@common/Defs";
+import { ExportData } from "@common/Exporter";
 import { VideoMetadata, AudioMetadata } from "@common/MediaInfo";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { BaseVODSegment } from "./BaseVODSegment";
@@ -52,6 +53,8 @@ export default class BaseVOD {
     prevent_deletion = false;
 
     failed = false;
+
+    exportData?: ExportData;
 
     get current_chapter(): BaseVODChapter | undefined {
         if (this.chapters.length > 0) {
