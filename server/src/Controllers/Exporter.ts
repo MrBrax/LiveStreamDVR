@@ -214,6 +214,11 @@ export async function ExportFile(req: express.Request, res: express.Response): P
         return;
     }
 
+    if (exporter.vod && success) {
+        exporter.vod.exportData.exported_at = new Date().toISOString();
+        exporter.vod.saveJSON("export successful");
+    }
+
     res.send({
         status: "OK",
         message: typeof success == "string" ? `Export successful: ${success}` : "Export successful",

@@ -899,6 +899,8 @@ export class TwitchVOD extends BaseVOD {
 
         generated.cloud_storage = this.cloud_storage;
 
+        generated.export_data = this.exportData;
+
         // generated.twitch_vod_status = this.twitch_vod_status;
 
         // generated.video_fail2 = this.video_fail2;

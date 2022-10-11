@@ -90,7 +90,9 @@ export class YouTubeExporter extends BaseExporter {
                     Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", `Video uploaded: ${response.data.id}`);
                     this.video_id = response.data.id || "";
                     if (response.data.id && this.playlist_id) {
+                        if (this.vod) this.vod.exportData.youtube_id = response.data.id;
                         this.addToPlaylist(response.data.id, this.playlist_id).then((success) => {
+                            if (this.vod) this.vod.exportData.youtube_playlist_id = this.playlist_id;
                             Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", `Video added to playlist: ${success}`);
                             resolve(this.video_id);
                         }).catch((err) => {
@@ -101,6 +103,7 @@ export class YouTubeExporter extends BaseExporter {
                         });
                     } else if (response.data.id) {
                         job.clear();
+                        if (this.vod) this.vod.exportData.youtube_id = response.data.id;
                         Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", `Video uploaded, no playlist: ${response.data.id}`);
                         resolve(this.video_id);
                     } else {

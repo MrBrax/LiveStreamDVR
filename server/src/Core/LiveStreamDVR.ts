@@ -5,16 +5,20 @@ import fs from "fs";
 import { Server } from "http";
 import minimist from "minimist";
 // import { version } from "os";
-import { version } from "../../package.json";
 import path from "path";
 import { WebSocketServer } from "ws";
 import { ChannelConfig } from "../../../common/Config";
-import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
+import { SubStatus } from "../../../common/Defs";
+import { version } from "../../package.json";
+import { BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
+import { Helper } from "./Helper";
 import { Job } from "./Job";
+import { KeyValue } from "./KeyValue";
 import { Log, LOGLEVEL } from "./Log";
 import { BaseVODChapter } from "./Providers/Base/BaseVODChapter";
+import { TwitchHelper } from "../Providers/Twitch";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
 import { TwitchVODChapter } from "./Providers/Twitch/TwitchVODChapter";
@@ -22,8 +26,6 @@ import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { YouTubeVOD } from "./Providers/YouTube/YouTubeVOD";
 import { Scheduler } from "./Scheduler";
 import { Webhook } from "./Webhook";
-import { log } from "console";
-import { Helper } from "./Helper";
 
 export type ChannelTypes = TwitchChannel | YouTubeChannel;
 export type VODTypes = TwitchVOD | YouTubeVOD;
@@ -391,6 +393,88 @@ export class LiveStreamDVR {
                 }
             });
         }, 60000);
+    }
+
+    public static getErrors(): string[] {
+        const errors = [];
+        if (!TwitchHelper.axios) errors.push("Axios is not initialized. Make sure the client id and secret are set in the config.");
+        if (!Config.getInstance().cfg("app_url") && Config.getInstance().cfg("app_url") !== "debug") errors.push("No app url set in the config.");
+        if (!Config.getInstance().cfg("api_client_id")) errors.push("No client id set in the config.");
+        if (!Config.getInstance().cfg("api_secret")) errors.push("No client secret set in the config.");
+        if (LiveStreamDVR.getInstance().getChannels().length == 0) errors.push("No channels set in the config.");
+
+        if (!Helper.path_ffmpeg()) errors.push("Failed to find ffmpeg");
+        if (!Helper.path_streamlink()) errors.push("Failed to find streamlink");
+        if (!Helper.path_mediainfo()) errors.push("Failed to find mediainfo");
+
+        for (const field of Config.settingsFields) {
+            if (field.deprecated && Config.getInstance().cfg(field.key) !== field.default) {
+                if (typeof field.deprecated === "string") {
+                    errors.push(`${field.key} is deprecated: ${field.deprecated}`);
+                } else {
+                    errors.push(`'${field.key}' is deprecated and will be removed in the future.`);
+                }
+            }
+        }
+
+        for (const channel of TwitchChannel.getChannels()) {
+            for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
+                if (KeyValue.getInstance().get(`${channel.internalId}.substatus.${sub_type}`) === SubStatus.WAITING) {
+                    errors.push(`${channel.internalName} is waiting for subscription ${sub_type}. Please check the config.`);
+                } else if (KeyValue.getInstance().get(`${channel.internalId}.substatus.${sub_type}`) === SubStatus.FAILED) {
+                    errors.push(`${channel.internalName} failed to subscribe ${sub_type}. Please check the config.`);
+                } else if (KeyValue.getInstance().get(`${channel.internalId}.substatus.${sub_type}`) === SubStatus.NONE || !KeyValue.getInstance().has(`${channel.internalId}.substatus.${sub_type}`)) {
+                    errors.push(`${channel.internalName} is not subscribed to ${sub_type}. Please check the config and subscribe.`);
+                }
+            }
+        }
+
+        for (const vod of LiveStreamDVR.getInstance().getVods()) {
+            if (vod.segments.length > 1) {
+                if (!vod.segments.some(s => s.filename?.endsWith("_vod.mp4"))) {
+                    errors.push(`VOD ${vod.basename} has more than one segment.`);
+                }
+            }
+        }
+
+        if (Config.debug) {
+
+            for (const vod of LiveStreamDVR.getInstance().getVods()) {
+
+                if (!vod.is_finalized) continue;
+
+                if (!vod.duration) continue;
+
+                if (!vod.chapters || vod.chapters.length == 0) continue;
+
+                const firstChapter = vod.chapters[0];
+                const lastChapter = vod.chapters[vod.chapters.length - 1];
+
+                if (firstChapter.offset && firstChapter.offset > 0) {
+                    errors.push(`${vod.basename} first chapter starts at ${firstChapter.offset} seconds. Missing pre-stream chapter update?`);
+                }
+
+                // This check does not work since the start/end time of the livestream is not the same as the duration of the VOD
+                // if (lastChapter.offset && lastChapter.duration && Math.round(lastChapter.offset + lastChapter.duration) != vod.duration) {
+                //     errors.push(`${vod.basename} last chapter ends at ${Math.round(lastChapter.offset + lastChapter.duration)} seconds but the VOD duration is ${vod.duration} seconds.`);
+                // }
+
+                const chaptersDuration = (vod.chapters as ChapterTypes[]).reduce((prev, cur) => prev + (cur.duration || 0), 0);
+                if (vod.duration - chaptersDuration > 0) {
+                    errors.push(`${vod.basename} has a duration of ${vod.duration} but the chapters are not aligned (${chaptersDuration}).`);
+                }
+
+                for (const chapter of vod.chapters) {
+                    if (!chapter.duration || chapter.duration == 0) {
+                        errors.push(`${vod.basename} chapter ${chapter.title} has no duration.`);
+                    }
+                }
+
+            }
+
+        }
+
+        return errors;
     }
 
 }

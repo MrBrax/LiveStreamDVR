@@ -23,6 +23,7 @@ import { BaseChannel } from "./BaseChannel";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { BaseVODSegment } from "./BaseVODSegment";
 import { randomUUID } from "crypto";
+import { ExportData } from "../../../../../common/Exporter";
 
 export class BaseVOD {
 
@@ -121,6 +122,8 @@ export class BaseVOD {
     public _updateTimer: NodeJS.Timeout | undefined;
 
     public capturingFilename?: string;
+
+    public exportData: ExportData = {};
 
     /**
      * Set up date related data
@@ -1233,6 +1236,10 @@ export class BaseVOD {
         this.failed = this.json.failed ?? false;
 
         this.webpath = `${Config.getInstance().cfg<string>("basepath", "")}/vods/` + path.relative(BaseConfigDataFolder.vod, this.directory);
+
+        if (this.json.export_data) {
+            this.exportData = this.json.export_data;
+        }
 
     }
     public setupProvider(): void { return; }

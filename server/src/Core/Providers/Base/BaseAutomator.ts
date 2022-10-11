@@ -480,6 +480,10 @@ export class BaseAutomator {
             throw new Error("No vod id supplied");
         }
 
+        if (KeyValue.getInstance().has(`${this.getLogin()}.vod.id`)) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator", `VOD ID already exists for ${this.getLogin()}`);
+        }
+
         const temp_basename = this.vodBasenameTemplate();
 
         // if running
