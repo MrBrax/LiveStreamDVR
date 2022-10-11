@@ -28,6 +28,32 @@ export async function YouTubeAPIVideos(req: express.Request, res: express.Respon
 
 }
 
+export async function YouTubeAPIVideo(req: express.Request, res: express.Response): Promise<void> {
+
+    const video_id = req.params.video_id;
+
+    if (!video_id) {
+        res.status(400).send({ status: "ERROR", message: "Invalid video id" });
+        return;
+    }
+
+    const video = await YouTubeVOD.getVideo(video_id);
+
+    if (video === false) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "No response from API",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    res.send({
+        data: video,
+        status: "OK",
+    });
+
+}
+
 export async function YouTubeAPIChannelID(req: express.Request, res: express.Response): Promise<void> {
 
     const url = req.body.url;
