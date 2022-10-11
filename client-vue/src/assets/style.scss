@@ -100,6 +100,9 @@ a {
     &.clickable {
         cursor: pointer;
     }
+    &.is-error {
+        color: #f00;
+    }
 }
 
 /*
@@ -109,8 +112,7 @@ svg[data-icon] {
 }
 */
 
-.text-error,
-.is-error {
+.text-is-error {
     color: #f00;
     &.flashing {
         animation: 1s ease-in-out infinite live;

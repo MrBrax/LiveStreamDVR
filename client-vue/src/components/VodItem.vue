@@ -105,7 +105,7 @@
                                 <span v-if="vod.created_at">{{ formatDate(vod.created_at, "yyyy-MM-dd HH:mm:ss") }}</span>
                                 <span
                                     v-else
-                                    class="is-error"
+                                    class="text-is-error"
                                 >No created_at</span>
                             </li>
                             <li v-if="showAdvanced">
@@ -113,7 +113,7 @@
                                 <span v-if="vod.started_at">{{ formatDate(vod.started_at, "yyyy-MM-dd HH:mm:ss") }}</span>
                                 <span
                                     v-else
-                                    class="is-error"
+                                    class="text-is-error"
                                 >No started_at</span>
                             </li>
                             <li v-if="showAdvanced">
@@ -121,7 +121,7 @@
                                 <span v-if="vod.capture_started">{{ formatDate(vod.capture_started, "yyyy-MM-dd HH:mm:ss") }}</span>
                                 <span
                                     v-else
-                                    class="is-error"
+                                    class="text-is-error"
                                 >No capture_started</span>
                             </li>
                             <li v-if="showAdvanced">
@@ -129,7 +129,7 @@
                                 <span v-if="vod.capture_started2">{{ formatDate(vod.capture_started2, "yyyy-MM-dd HH:mm:ss") }}</span>
                                 <span
                                     v-else
-                                    class="is-error"
+                                    class="text-is-error"
                                 >No capture_started2</span>
                             </li>
                             <li>
@@ -137,7 +137,7 @@
                                 <span v-if="vod.ended_at">{{ formatDate(vod.ended_at, "yyyy-MM-dd HH:mm:ss") }}</span>
                                 <span
                                     v-else
-                                    class="is-error"
+                                    class="text-is-error"
                                 >No ended_at</span>
                             </li>
                             <template v-if="vod.capture_started && vod.conversion_started">
@@ -159,7 +159,7 @@
                                     {{ humanDuration(vod.twitch_vod_duration - vod.getDuration()) }}
                                     <strong
                                         v-if="vod.twitch_vod_duration - vod.getDuration() > 600"
-                                        class="is-error"
+                                        class="text-is-error"
                                     ><br>A lot missing!</strong>
                                 </span>
                                 <span
@@ -320,7 +320,7 @@
                                     <span
                                         v-if="vod.twitch_vod_muted === MuteStatus.MUTED"
                                         class="px-1"
-                                    ><strong class="is-error">{{ $t('boolean.yes') }}</strong></span>
+                                    ><strong class="text-is-error">{{ $t('boolean.yes') }}</strong></span>
                                     <span
                                         v-else-if="vod.twitch_vod_muted === MuteStatus.UNMUTED"
                                         class="px-1"
@@ -333,7 +333,7 @@
                             </template>
                             <template v-else-if="vod.twitch_vod_exists === false">
                                 <li>
-                                    <strong class="is-error">{{ $t('vod.video-info.vod-is-deleted') }}</strong>
+                                    <strong class="text-is-error">{{ $t('vod.video-info.vod-is-deleted') }}</strong>
                                     &nbsp;<a
 href="javascript:void(0)"
 title="Retry VOD match"
@@ -429,13 +429,13 @@ title="Retry VOD match"
                             <span v-if="!segment.deleted && segment.filesize"> ({{ formatBytes(segment.filesize) }}) </span>
                         </a>
                         <span v-if="segment.deleted && !vod.cloud_storage">
-                            <strong class="is-error">&nbsp;(deleted)</strong>
+                            <strong class="text-is-error">&nbsp;(deleted)</strong>
                         </span>
                         <span v-else-if="segment.deleted && vod.cloud_storage">
-                            <strong class="is-error">&nbsp;<fa icon="cloud" /></strong> 
+                            <strong class="text-is-error">&nbsp;<fa icon="cloud" /></strong> 
                         </span>
                         <span v-else-if="!segment.filesize">
-                            <strong class="is-error">&nbsp;(filesize missing)</strong>
+                            <strong class="text-is-error">&nbsp;(filesize missing)</strong>
                         </span>
                     </li>
 
@@ -470,7 +470,7 @@ title="Retry VOD match"
                     </li>
                 </ul>
                 <span v-if="vod.segments.length === 0">
-                    <strong class="is-error">No segments found</strong>
+                    <strong class="text-is-error">No segments found</strong>
                 </span>
             </div>
 
@@ -854,7 +854,7 @@ title="Retry VOD match"
                             Running (pid {{ vod.getConvertingStatus() }})
                         </span>
                         <span v-else>
-                            <strong class="is-error flashing">
+                            <strong class="text-is-error flashing">
                                 <span class="icon"><fa icon="exclamation-triangle" /></span> Not running, did it crash?
                             </strong>
                         </span>
@@ -886,7 +886,7 @@ title="Retry VOD match"
                                 {{ vod.getCapturingStatus() }})
                             </span>
                             <span v-else>
-                                <strong class="is-error flashing">
+                                <strong class="text-is-error flashing">
                                     <span class="icon"><fa icon="exclamation-triangle" /></span>
                                     Video capture not running, did it crash?
                                 </strong>
@@ -903,7 +903,7 @@ title="Retry VOD match"
                                     {{ vod.getChatDumpStatus() }})
                                 </span>
                                 <span v-else>
-                                    <strong class="is-error flashing">
+                                    <strong class="text-is-error flashing">
                                         <span class="icon"><fa icon="exclamation-triangle" /></span>
                                         Chat dump not running, did it crash?
                                     </strong>
@@ -1131,7 +1131,7 @@ title="Retry VOD match"
                     </tbody>
                 </table>
                 <div v-else>
-                    <div class="is-error padding-1">
+                    <div class="text-is-error padding-1">
                         No chapters found
                     </div>
                 </div>
@@ -1318,10 +1318,10 @@ title="Retry VOD match"
     </div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import type { VodBasenameTemplate } from "@common/Replacements";
 import { VodBasenameFields, ExporterFilenameFields } from "@common/ReplacementsConsts";
-import { defineComponent, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import DurationDisplay from "@/components/DurationDisplay.vue";
 // import { format, toDate, parse } from 'date-fns';
 
@@ -1357,9 +1357,11 @@ import EditModal from "./vod/EditModal.vue";
 import { MuteStatus, VideoQualityArray } from "../../../common/Defs";
 import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import { formatString } from "@common/Format";
-import { YouTubeCategories } from "@/defs";
 import { format } from "date-fns";
 import { TwitchVODChapter } from "@/core/Providers/Twitch/TwitchVODChapter";
+import axios from "axios";
+import { useRoute } from "vue-router";
+import { isTwitchVOD } from "@/mixins/newhelpers";
 library.add(
     faFileVideo,
     faCut,
@@ -1384,457 +1386,449 @@ library.add(
     faKey
 );
 
-export default defineComponent({
-    name: "VodItem",
-    components: {
-        DurationDisplay,
-        ModalBox,
-        RenderModal,
-        ExportModal,
-        EditModal,
+const props = defineProps({
+    vod: {
+        type: Object as () => VODTypes,
+        required: true,
     },
-    props: {
-        vod: {
-            type: Object as () => VODTypes,
-            required: true,
-        },
-    },
-    emits: ["forceFetchData", "refresh"],
-    setup() {
-        const store = useStore();
-        const burnMenu = ref<InstanceType<typeof ModalBox>>();
-        const chatDownloadMenu = ref<InstanceType<typeof ModalBox>>();
-        const vodDownloadMenu = ref<InstanceType<typeof ModalBox>>();
-        const playerMenu = ref<InstanceType<typeof ModalBox>>();
-        const editVodMenu = ref<InstanceType<typeof ModalBox>>();
-        const exportVodMenu = ref<InstanceType<typeof ModalBox>>();
-        const renameVodMenu = ref<InstanceType<typeof ModalBox>>();
-        return {
-            store,
-            burnMenu,
-            chatDownloadMenu,
-            vodDownloadMenu,
-            playerMenu,
-            MuteStatus,
-            VideoQualityArray,
-            editVodMenu,
-            exportVodMenu,
-            renameVodMenu,
-            YouTubeCategories,
-            VodBasenameFields,
-            ExporterFilenameFields
-        };
-    },
-    data() {
-        return {
-            config: [],
-            taskStatus: {
-                vodMuteCheck: false,
-                archive: false,
-                downloadChat: false,
-                renderChat: false,
-                downloadVod: false,
-                fullBurn: false,
-                delete: false,
-                fixIssues: false,
-            },
-            chatDownloadMethod: "tcd",
-            showAdvanced: false,
-            minimized: this.getDefaultMinimized(),
-            vodDownloadSettings: {
-                quality: "best",
-            },
-            playerSettings: {
-                vodSource: "captured",
-                chatSource: "captured",
-            },
-            renameVodSettings: {
-                template: "",
-            },
-            newBookmark: {
-                name: "",
-                offset: 0,
-            }
-        };
-    },
-    computed: {
-        compDownloadChat(): boolean {
-            if (!this.store.jobList) return false;
-            for (const job of this.store.jobList) {
-                if (job.name == `tcd_${this.vod?.basename}`) {
-                    return true;
-                }
-            }
-            return false;
-        },
-        hasViewerCount(): boolean {
-            if (!this.vod) return false;
-            if (!this.vod.chapters) return false;
-            return this.vod.chapters.some((chapter) => {
-                return chapter.viewer_count && chapter.viewer_count > 0;
-            });
-        },
-        audioOnly(): boolean {
-            if (!this.vod) return false;
-            if (!this.vod.video_metadata) return false;
-            return this.vod.video_metadata.type == 'audio';
-        },
-        renameVodTemplatePreview(): string {
-            if (!this.vod) return "";
-            const date = this.vod.started_at;
-            const replacements: VodBasenameTemplate = {
-                login:              this.vod.provider == 'twitch' ? this.vod.streamer_login : "",
-                internalName:       this.vod.getChannel().internalName,
-                displayName:        this.vod.getChannel().displayName,
-                date:               date ? format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'").replaceAll(":", "_") : "",
-                year:               date ? format(date, "yyyy") : "",
-                year_short:         date ? format(date, "yy") : "",
-                month:              date ? format(date, "MM") : "",
-                day:                date ? format(date, "dd") : "",
-                hour:               date ? format(date, "HH") : "",
-                minute:             date ? format(date, "mm") : "",
-                second:             date ? format(date, "ss") : "",
-                id:                 "1234",
-                season:             this.vod.stream_season || "",
-                absolute_season:    this.vod.stream_absolute_season ? this.vod.stream_absolute_season.toString().padStart(2, "0") : "",
-                episode:            this.vod.stream_number ? this.vod.stream_number.toString().padStart(2, "0") : "",
-            };
-            const replaced_string = formatString(this.renameVodSettings.template, replacements);
-            return replaced_string;
-        }
-    },
-    watch: {
-        // watch hash
-        $route(to, from) {
-            if (to.hash !== from.hash) {
-                const basename = to.hash.substr(5);
-                if (basename == this.vod?.basename) this.minimized = false;
-            }
-        },
-    },
-    mounted() {
-        if (this.vod) {
-            if (!this.vod.chapters) {
-                console.error("No chapters found for vod", this.vod.basename, this.vod);
-            } else if (this.vod.chapters && this.vod.chapters.length == 0) {
-                console.error("Chapters array found but empty for vod", this.vod.basename, this.vod);
-            }
-        }
-        this.renameVodSettings.template = this.store.cfg("filename_vod", "");
-    },
-    methods: {
-        doArchive() {
-            if (!this.vod) return;
-            if (!confirm(`Do you want to archive "${this.vod?.basename}"?`)) return;
-            this.taskStatus.archive = true;
-            this.$http
-                .post(`/api/v0/vod/${this.vod.uuid}/save`)
-                .then((response) => {
-                    const json: ApiResponse = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                    this.taskStatus.archive = false;
-                    this.$emit("refresh");
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
-                    this.taskStatus.archive = false;
-                });
-        },
-        doDownloadChat(method = "tcd") {
-            if (!this.vod) return;
-            if (!confirm(`Do you want to download the chat for "${this.vod.basename}" with ${method}?`)) return;
-            this.taskStatus.downloadChat = true;
-            this.$http
-                .post(`/api/v0/vod/${this.vod.uuid}/download_chat?method=${method}`)
-                .then((response) => {
-                    const json: ApiResponse = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                    this.taskStatus.downloadChat = false;
-                    this.$emit("refresh");
-                    if (this.vod) this.store.fetchAndUpdateVod(this.vod.uuid);
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
-                    this.taskStatus.downloadChat = false;
-                });
-        },
-        // doRenderChat(useVod = false) {
-        //     /** TODO: implement */
-        //     alert(`RenderChat not implemented: ${useVod}`);
-        // },
-        doDownloadVod() {
-            if (!this.vod) return;
-            if (!VideoQualityArray.includes(this.vodDownloadSettings.quality)) {
-                alert(`Invalid quality: ${this.vodDownloadSettings.quality}`);
-                return;
-            }
+});
+const emit = defineEmits(["forceFetchData", "refresh"]);
+    
+const store = useStore();
+const route = useRoute();
+const burnMenu = ref<InstanceType<typeof ModalBox>>();
+const chatDownloadMenu = ref<InstanceType<typeof ModalBox>>();
+const vodDownloadMenu = ref<InstanceType<typeof ModalBox>>();
+const playerMenu = ref<InstanceType<typeof ModalBox>>();
+const editVodMenu = ref<InstanceType<typeof ModalBox>>();
+const exportVodMenu = ref<InstanceType<typeof ModalBox>>();
+const renameVodMenu = ref<InstanceType<typeof ModalBox>>();
 
-            this.taskStatus.downloadVod = true;
-            this.$http
-                .post(`/api/v0/vod/${this.vod.uuid}/download?quality=${this.vodDownloadSettings.quality}`)
-                .then((response) => {
-                    const json: ApiResponse = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                    this.taskStatus.downloadVod = false;
-                    this.$emit("refresh");
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
-                    this.taskStatus.downloadVod = false;
-                });
-        },
-        doCheckMute() {
-            if (!this.vod) return;
-            this.taskStatus.vodMuteCheck = true;
-            this.$http
-                .post(`/api/v0/vod/${this.vod.uuid}/check_mute`)
-                .then((response) => {
-                    const json: ApiResponse = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
 
-                    if (json.data) {
-                        if (json.data.muted === null || json.data.muted === MuteStatus.UNKNOWN) {
-                            alert(`The vod "${this.vod?.basename}" could not be checked.`);
-                        } else {
-                            alert(`The vod "${this.vod?.basename}" is${json.data.muted === MuteStatus.MUTED ? "" : " not"} muted.`);
-                        }
-                    }
-                    this.taskStatus.vodMuteCheck = false;
-                    this.$emit("refresh");
-                })
-                .catch((err) => {
-                    console.error("doCheckMute error", err.response);
-                    if (err.response.data) {
-                        const json = err.response.data;
-                        if (json.message) alert(json.message);
-                    }
-                    this.taskStatus.vodMuteCheck = false;
-                });
-        },
-        // doFullBurn() {
-        //     /** TODO: implement */
-        //     alert("FullBurn");
-        // },
-        doDelete() {
-            if (!this.vod) return;
-            if (!confirm(`Do you want to delete "${this.vod?.basename}"?`)) return;
-            if (this.isTwitchVOD(this.vod) && this.vod.twitch_vod_exists === false && !confirm(`The VOD "${this.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
-            this.taskStatus.delete = true;
-            this.$http
-                .delete(`/api/v0/vod/${this.vod.uuid}`)
-                .then((response) => {
-                    const json: ApiResponse = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                    this.taskStatus.delete = false;
-                    this.$emit("refresh");
-                    if (this.vod && this.isTwitchVOD(this.vod)) this.store.fetchAndUpdateStreamer(this.vod.channel_uuid);
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
-                    this.taskStatus.delete = false;
-                });
-        },
-        doDeleteSegment(index = 0) {
-            if (!this.vod) return;
-            if (!confirm(`Do you want to delete segment ${index} of "${this.vod?.basename}"?`)) return;
-            const keepEntry = confirm(`Do you want to keep the entry and mark it as cloud storage?`);
-            if (this.isTwitchVOD(this.vod) && this.vod.twitch_vod_exists === false && !confirm(`The VOD "${this.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
-            this.$http
-                .post(`/api/v0/vod/${this.vod.uuid}/delete_segment?segment=${index}&keep_entry=${keepEntry ? "true" : "false"}`)
-                .then((response) => {
-                    const json: ApiResponse = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                    this.$emit("refresh");
-                    if (this.vod && this.isTwitchVOD(this.vod)) this.store.fetchAndUpdateStreamer(this.vod.channel_uuid);
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
-                    this.taskStatus.delete = false;
-                });
-        },
-        doFixIssues() {
-            if (!this.vod) return;
-            this.taskStatus.fixIssues = true;
-            this.$http
-                .post(`/api/v0/vod/${this.vod.uuid}/fix_issues`)
-                .then((response) => {
-                    const json: ApiResponse = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                    this.taskStatus.fixIssues = false;
-                    this.$emit("refresh");
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
-                    this.taskStatus.fixIssues = false;
-                });
-        },
-        /*
-        unbreak() {
-            if (!this.vod) return;
-            // this.burnLoading = true;
-            console.debug("doUnbreak", this.vod);
-            this.$http
-                .post(`/api/v0/vod/${this.vod.uuid}/unbreak`)
-                .then((response) => {
-                    const json: ApiResponse = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                    this.$emit("refresh");
-                })
-                .catch((err) => {
-                    console.error("unbreak response error", err.response);
-                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
-                })
-                .finally(() => {
-                    // this.burnLoading = false;
-                });
-        },
-        */
-        addFavouriteGame(game_id: string) {
-            if (!this.store.config) return;
+const config = ref<ApiSettingsResponse>();
+const taskStatus = ref({
+    /** @deprecated */
+    vodMuteCheck: false,
+    archive: false,
+    downloadChat: false,
+    renderChat: false,
+    downloadVod: false,
+    fullBurn: false,
+    delete: false,
+    fixIssues: false,
+});
+const chatDownloadMethod = ref("tcd");
+const showAdvanced = ref(false);
+const minimized = ref(getDefaultMinimized());
+const vodDownloadSettings = ref({
+    quality: "best",
+});
+const playerSettings = ref({
+    vodSource: "captured",
+    chatSource: "captured",
+});
+const renameVodSettings = ref({
+    template: "",
+});
+const newBookmark = ref({
+    name: "",
+    offset: 0,
+});
 
-            this.$http
-                .patch(`/api/v0/favourites`, { game: game_id })
-                .then((response) => {
-                    const json: ApiResponse = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-
-                    // fetch the new config
-                    this.$http.get(`/api/v0/settings`).then((response) => {
-                        const settings_json: ApiSettingsResponse = response.data;
-                        this.store.updateConfig(settings_json.data.config);
-                        this.store.updateFavouriteGames(settings_json.data.favourite_games);
-                    });
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
-                });
-        },
-        playerLink(offset = 0, chatdownload = false): string {
-            if (!this.store.config) return "#";
-            const video_path = `${this.vod?.webpath}/${this.vod?.basename}.mp4`;
-            const chat_path = `${this.vod?.webpath}/${this.vod?.basename}.${chatdownload ? "chat" : "chatdump"}`;
-            return `${this.store.cfg<string>("basepath", "")}/vodplayer/index.html#source=file_http&video_path=${video_path}&chatfile=${chat_path}&offset=${offset}`;
-        },
-        twitchVideoLink(video_id: string): string {
-            return `https://www.twitch.tv/videos/${video_id}`;
-        },
-        matchVod() {
-            if (!this.vod) return;
-            this.$http
-                .post(`/api/v0/vod/${this.vod.uuid}/match`)
-                .then((response) => {
-                    const json: ApiResponse = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                    this.$emit("refresh");
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
-                });
-        },
-        getDefaultMinimized() {
-            if (this.store.clientCfg("minimizeVodsByDefault")) {
-                return !this.vod?.is_capturing;
-            }
-            return false;
-        },
-        openPlayer() {
-            let url = `${this.store.cfg<string>("basepath", "")}/vodplayer/index.html#&`;
-            url += "source=file_http";
-            if (this.playerSettings.vodSource == "captured"){
-                url += `&video_path=${this.vod?.webpath}/${this.vod?.basename}.mp4`;
-            } else {
-                url += `&video_path=${this.vod?.webpath}/${this.vod?.basename}_vod.mp4`;
-            }
-
-            if (this.playerSettings.chatSource == "captured"){
-                url += `&chatfile=${this.vod?.webpath}/${this.vod?.basename}.chatdump`;
-            } else {
-                url += `&chatfile=${this.vod?.webpath}/${this.vod?.basename}_chat.json`;
-            }
-
-            // url.searchParams.set("offset", this.playerSettings.offset.toString());
-            window.open(url.toString(), "_blank");
-
-        },
-        templatePreview(template: string): string {
-            /*
-            const replacements = {
-                login: "TestLogin",
-                title: "TestTitle",
-                date: "2020-01-01",
-                resolution: "1080p",
-                stream_number: "102",
-                comment: "TestComment", 
-            };
-            const replaced_string = formatString(template, replacements);
-            return replaced_string;
-            */
-            const replaced_string = formatString(template, Object.fromEntries(Object.entries(ExporterFilenameFields).map(([key, value]) => [key, value.display])));
-            return replaced_string;
-        },
-        doMakeBookmark() {
-            if (!this.vod) return;
-            this.$http.post(`/api/v0/vod/${this.vod.uuid}/bookmark`, this.newBookmark).then((response) => {
-                const json: ApiResponse = response.data;
-                if (json.message) alert(json.message);
-                console.log(json);
-                if (this.vod) this.store.fetchAndUpdateVod(this.vod.uuid);
-                // if (this.editVodMenu) this.editVodMenu.show = false;
-            }).catch((err) => {
-                console.error("form error", err.response);
-                if (err.response.data && err.response.data.message) alert(err.response.data.message);
-            });
-        },
-        doDeleteBookmark(i: number) {
-            if (!this.vod) return;
-            this.$http.delete(`/api/v0/vod/${this.vod.uuid}/bookmark?index=${i}`).then((response) => {
-                const json: ApiResponse = response.data;
-                if (json.message) alert(json.message);
-                console.log(json);
-                if (this.vod) this.store.fetchAndUpdateVod(this.vod.uuid);
-                // if (this.editVodMenu) this.editVodMenu.show = false;
-            }).catch((err) => {
-                console.error("form error", err.response);
-                if (err.response.data && err.response.data.message) alert(err.response.data.message);
-            });
-        },
-        
-        doRenameVod() {
-            if (!this.vod) return;
-            this.$http.post(`/api/v0/vod/${this.vod.uuid}/rename`, this.renameVodSettings).then((response) => {
-                const json: ApiResponse = response.data;
-                if (json.message) alert(json.message);
-                console.log(json);
-                this.store.fetchAndUpdateStreamerList();
-                if (this.renameVodMenu) this.renameVodMenu.show = false;
-            }).catch((err) => {
-                console.error("form error", err.response);
-                if (err.response.data && err.response.data.message) alert(err.response.data.message);
-            });
-        },
-        isTwitchChapter(chapter: ChapterTypes): chapter is TwitchVODChapter {
-            return chapter instanceof TwitchVODChapter;
+    
+    
+const compDownloadChat = computed(() => {
+    if (!store.jobList) return false;
+    for (const job of store.jobList) {
+        if (job.name == `tcd_${props.vod.basename}`) {
+            return true;
         }
     }
+    return false;
 });
+
+const hasViewerCount = computed(() => {
+    if (!props.vod) return false;
+    if (!props.vod.chapters) return false;
+    return props.vod.chapters.some((chapter) => {
+        return chapter.viewer_count && chapter.viewer_count > 0;
+    });
+});
+
+const audioOnly = computed(() => {
+    if (!props.vod) return false;
+    if (!props.vod.video_metadata) return false;
+    return props.vod.video_metadata.type == 'audio';
+});
+
+const renameVodTemplatePreview = computed(() => {
+    if (!props.vod) return "";
+    const date = props.vod.started_at;
+    const replacements: VodBasenameTemplate = {
+        login:              props.vod.provider == 'twitch' ? props.vod.streamer_login : "",
+        internalName:       props.vod.getChannel().internalName,
+        displayName:        props.vod.getChannel().displayName,
+        date:               date ? format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'").replaceAll(":", "_") : "",
+        year:               date ? format(date, "yyyy") : "",
+        year_short:         date ? format(date, "yy") : "",
+        month:              date ? format(date, "MM") : "",
+        day:                date ? format(date, "dd") : "",
+        hour:               date ? format(date, "HH") : "",
+        minute:             date ? format(date, "mm") : "",
+        second:             date ? format(date, "ss") : "",
+        id:                 "1234",
+        season:             props.vod.stream_season || "",
+        absolute_season:    props.vod.stream_absolute_season ? props.vod.stream_absolute_season.toString().padStart(2, "0") : "",
+        episode:            props.vod.stream_number ? props.vod.stream_number.toString().padStart(2, "0") : "",
+    };
+    const replaced_string = formatString(renameVodSettings.value.template, replacements);
+    return replaced_string;
+});
+
+/*  
+watch: {
+    // watch hash
+    $route(to, from) {
+        if (to.hash !== from.hash) {
+            const basename = to.hash.substr(5);
+            if (basename == props.vod.basename) this.minimized = false;
+        }
+    },
+},
+*/
+
+watch(() => route.hash, (to, from) => {
+    if (to !== from) {
+        const uuid = to.substring(5);
+        if (uuid == props.vod.uuid) minimized.value = false;
+    }
+});
+
+onMounted(() => {
+    if (props.vod) {
+        if (!props.vod.chapters) {
+            console.error("No chapters found for vod", props.vod.basename, props.vod);
+        } else if (props.vod.chapters && props.vod.chapters.length == 0) {
+            console.error("Chapters array found but empty for vod", props.vod.basename, props.vod);
+        }
+    }
+    renameVodSettings.value.template = store.cfg("filename_vod", "");
+});
+
+
+function doArchive() {
+    if (!props.vod) return;
+    if (!confirm(`Do you want to archive "${props.vod?.basename}"?`)) return;
+    // taskStatus.archive = true;
+    axios
+        .post(`/api/v0/vod/${props.vod.uuid}/save`)
+        .then((response) => {
+            const json: ApiResponse = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            // this.taskStatus.archive = false;
+            emit("refresh");
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) alert(err.response.data.message);
+            // this.taskStatus.archive = false;
+        });
+}
+
+function doDownloadChat(method = "tcd") {
+    if (!props.vod) return;
+    if (!confirm(`Do you want to download the chat for "${props.vod.basename}" with ${method}?`)) return;
+    axios
+        .post(`/api/v0/vod/${props.vod.uuid}/download_chat?method=${method}`)
+        .then((response) => {
+            const json: ApiResponse = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            emit("refresh");
+            if (props.vod) store.fetchAndUpdateVod(props.vod.uuid);
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) alert(err.response.data.message);
+        });
+}
+
+// doRenderChat(useVod = false) {
+//     /** TODO: implement */
+//     alert(`RenderChat not implemented: ${useVod}`);
+// },
+
+function doDownloadVod() {
+    if (!props.vod) return;
+    if (!VideoQualityArray.includes(vodDownloadSettings.value.quality)) {
+        alert(`Invalid quality: ${vodDownloadSettings.value.quality}`);
+        return;
+    }
+
+    axios
+        .post(`/api/v0/vod/${props.vod.uuid}/download?quality=${vodDownloadSettings.value.quality}`)
+        .then((response) => {
+            const json: ApiResponse = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            emit("refresh");
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) alert(err.response.data.message);
+        });
+}
+
+function doCheckMute() {
+    if (!props.vod) return;
+    axios
+        .post(`/api/v0/vod/${props.vod.uuid}/check_mute`)
+        .then((response) => {
+            const json: ApiResponse = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+
+            if (json.data) {
+                if (json.data.muted === null || json.data.muted === MuteStatus.UNKNOWN) {
+                    alert(`The vod "${props.vod?.basename}" could not be checked.`);
+                } else {
+                    alert(`The vod "${props.vod?.basename}" is${json.data.muted === MuteStatus.MUTED ? "" : " not"} muted.`);
+                }
+            }
+            emit("refresh");
+        })
+        .catch((err) => {
+            console.error("doCheckMute error", err.response);
+            if (err.response.data) {
+                const json = err.response.data;
+                if (json.message) alert(json.message);
+            }
+        });
+}
+
+// doFullBurn() {
+//     /** TODO: implement */
+//     alert("FullBurn");
+// },
+
+function doDelete() {
+    if (!props.vod) return;
+    if (!confirm(`Do you want to delete "${props.vod?.basename}"?`)) return;
+    if (isTwitchVOD(props.vod) && props.vod.twitch_vod_exists === false && !confirm(`The VOD "${props.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
+    axios
+        .delete(`/api/v0/vod/${props.vod.uuid}`)
+        .then((response) => {
+            const json: ApiResponse = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            emit("refresh");
+            if (props.vod && isTwitchVOD(props.vod)) store.fetchAndUpdateStreamer(props.vod.channel_uuid);
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) alert(err.response.data.message);
+        });
+}
+
+function doDeleteSegment(index = 0) {
+    if (!props.vod) return;
+    if (!confirm(`Do you want to delete segment ${index} of "${props.vod?.basename}"?`)) return;
+    const keepEntry = confirm(`Do you want to keep the entry and mark it as cloud storage?`);
+    if (isTwitchVOD(props.vod) && props.vod.twitch_vod_exists === false && !confirm(`The VOD "${props.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
+    axios
+        .post(`/api/v0/vod/${props.vod.uuid}/delete_segment?segment=${index}&keep_entry=${keepEntry ? "true" : "false"}`)
+        .then((response) => {
+            const json: ApiResponse = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            emit("refresh");
+            if (props.vod && isTwitchVOD(props.vod)) store.fetchAndUpdateStreamer(props.vod.channel_uuid);
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) alert(err.response.data.message);
+        });
+}
+
+function doFixIssues() {
+    if (!props.vod) return;
+    axios
+        .post(`/api/v0/vod/${props.vod.uuid}/fix_issues`)
+        .then((response) => {
+            const json: ApiResponse = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            emit("refresh");
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) alert(err.response.data.message);
+        });
+}
+
+/*
+unbreak() {
+    if (!this.vod) return;
+    // this.burnLoading = true;
+    console.debug("doUnbreak", this.vod);
+    axios
+        .post(`/api/v0/vod/${this.vod.uuid}/unbreak`)
+        .then((response) => {
+            const json: ApiResponse = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            emit("refresh");
+        })
+        .catch((err) => {
+            console.error("unbreak response error", err.response);
+            if (err.response.data && err.response.data.message) alert(err.response.data.message);
+        })
+        .finally(() => {
+            // this.burnLoading = false;
+        });
+},
+*/
+
+function addFavouriteGame(game_id: string) {
+    if (!store.config) return;
+    axios
+        .patch(`/api/v0/favourites`, { game: game_id })
+        .then((response) => {
+            const json: ApiResponse = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+
+            // fetch the new config
+            axios.get(`/api/v0/settings`).then((response) => {
+                const settings_json: ApiSettingsResponse = response.data;
+                store.updateConfig(settings_json.data.config);
+                store.updateFavouriteGames(settings_json.data.favourite_games);
+            });
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) alert(err.response.data.message);
+        });
+}
+
+function playerLink(offset = 0, chatdownload = false): string {
+    if (!store.config) return "#";
+    const video_path = `${props.vod.webpath}/${props.vod.basename}.mp4`;
+    const chat_path = `${props.vod.webpath}/${props.vod.basename}.${chatdownload ? "chat" : "chatdump"}`;
+    return `${store.cfg<string>("basepath", "")}/vodplayer/index.html#source=file_http&video_path=${video_path}&chatfile=${chat_path}&offset=${offset}`;
+}
+
+function twitchVideoLink(video_id: string): string {
+    return `https://www.twitch.tv/videos/${video_id}`;
+}
+
+function matchVod() {
+    if (!props.vod) return;
+    axios
+        .post(`/api/v0/vod/${props.vod.uuid}/match`)
+        .then((response) => {
+            const json: ApiResponse = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            emit("refresh");
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) alert(err.response.data.message);
+        });
+}
+
+function getDefaultMinimized() {
+    if (store.clientCfg("minimizeVodsByDefault")) {
+        return !props.vod.is_capturing;
+    }
+    return false;
+}
+
+function openPlayer() {
+    let url = `${store.cfg<string>("basepath", "")}/vodplayer/index.html#&`;
+    url += "source=file_http";
+    if (playerSettings.value.vodSource == "captured"){
+        url += `&video_path=${props.vod.webpath}/${props.vod.basename}.mp4`;
+    } else {
+        url += `&video_path=${props.vod.webpath}/${props.vod.basename}_vod.mp4`;
+    }
+
+    if (playerSettings.value.chatSource == "captured"){
+        url += `&chatfile=${props.vod.webpath}/${props.vod.basename}.chatdump`;
+    } else {
+        url += `&chatfile=${props.vod.webpath}/${props.vod.basename}_chat.json`;
+    }
+
+    // url.searchParams.set("offset", this.playerSettings.offset.toString());
+    window.open(url.toString(), "_blank");
+
+}
+
+function templatePreview(template: string): string {
+    /*
+    const replacements = {
+        login: "TestLogin",
+        title: "TestTitle",
+        date: "2020-01-01",
+        resolution: "1080p",
+        stream_number: "102",
+        comment: "TestComment", 
+    };
+    const replaced_string = formatString(template, replacements);
+    return replaced_string;
+    */
+    const replaced_string = formatString(template, Object.fromEntries(Object.entries(ExporterFilenameFields).map(([key, value]) => [key, value.display])));
+    return replaced_string;
+}
+
+function doMakeBookmark() {
+    if (!props.vod) return;
+    axios.post(`/api/v0/vod/${props.vod.uuid}/bookmark`, newBookmark.value).then((response) => {
+        const json: ApiResponse = response.data;
+        if (json.message) alert(json.message);
+        console.log(json);
+        if (props.vod) store.fetchAndUpdateVod(props.vod.uuid);
+        // if (this.editVodMenu) this.editVodMenu.show = false;
+    }).catch((err) => {
+        console.error("form error", err.response);
+        if (err.response.data && err.response.data.message) alert(err.response.data.message);
+    });
+}
+
+function doDeleteBookmark(i: number) {
+    if (!props.vod) return;
+    axios.delete(`/api/v0/vod/${props.vod.uuid}/bookmark?index=${i}`).then((response) => {
+        const json: ApiResponse = response.data;
+        if (json.message) alert(json.message);
+        console.log(json);
+        if (props.vod) store.fetchAndUpdateVod(props.vod.uuid);
+        // if (this.editVodMenu) this.editVodMenu.show = false;
+    }).catch((err) => {
+        console.error("form error", err.response);
+        if (err.response.data && err.response.data.message) alert(err.response.data.message);
+    });
+}
+
+function doRenameVod() {
+    if (!props.vod) return;
+    axios.post(`/api/v0/vod/${props.vod.uuid}/rename`, renameVodSettings.value).then((response) => {
+        const json: ApiResponse = response.data;
+        if (json.message) alert(json.message);
+        console.log(json);
+        store.fetchAndUpdateStreamerList();
+        if (renameVodMenu.value) renameVodMenu.value.show = false;
+    }).catch((err) => {
+        console.error("form error", err.response);
+        if (err.response.data && err.response.data.message) alert(err.response.data.message);
+    });
+}
+
+function isTwitchChapter(chapter: ChapterTypes): chapter is TwitchVODChapter {
+    return chapter instanceof TwitchVODChapter;
+}
+    
 </script>
 
 <style lang="scss" scoped>

@@ -48,7 +48,7 @@
                         <span v-if="streamer.api_getSubscriptionStatus">{{ $t("messages.subscribed") }}</span>
                         <span
                             v-else
-                            class="is-error"
+                            class="text-is-error"
                             title="Could just be that subscriptions were made before this feature was implemented."
                         >
                             {{ $t('streamer.one-or-more-subscriptions-missing') }}
@@ -65,7 +65,7 @@
                         &middot;
                         <span
                             v-if="!streamer.saves_vods"
-                            class="is-error"
+                            class="text-is-error"
                         >{{ $t("streamer.no-save-vods") }}</span>
                     </span>
                     &middot;
@@ -321,7 +321,7 @@
                         <li>{{ formatDuration(vod.duration) }}</li>
                         <li>{{ formatNumber(vod.view_count, 0) }} views</li>
                         <li v-if="vod.muted_segments && vod.muted_segments.length > 0">
-                            <span class="is-error">Muted segments: {{ vod.muted_segments.length }}</span>
+                            <span class="text-is-error">Muted segments: {{ vod.muted_segments.length }}</span>
                         </li>
                         <!--<li>Estimated size: {{ formatBytes(((averageVodBitrate || 6000000) / 10) * parseTwitchDuration(vod.duration)) }}</li>-->
                     </ul>
