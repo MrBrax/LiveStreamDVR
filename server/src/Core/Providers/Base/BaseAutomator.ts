@@ -698,7 +698,7 @@ export class BaseAutomator {
             }
 
             // add the captured segment to the vod info
-            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Conversion done, add segments to ${basename}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Conversion done, add segment '${this.converted_filename}' to '${basename}'`);
 
             this.vod.is_converting = false;
             this.vod.addSegment(path.basename(this.converted_filename));

@@ -791,33 +791,49 @@ title="Retry VOD match"
             </div>
 
             <div
-                v-if="vod.failed && !vod.is_finalized && !vod.is_capturing"
+                v-if="(vod.failed && !vod.is_finalized && !vod.is_capturing) || vod.hasError()"
                 class="video-error"
             >
                 <strong>
                     <span class="icon"><fa icon="exclamation-triangle" /></span> {{ $t('vod.failed') }}
                 </strong>&nbsp;
-                <!-- Delete -->
-                <button
-                    class="button is-danger is-small"
-                    :disabled="vod.prevent_deletion"
-                    @click="doDelete"
-                >
-                    <span class="icon">
-                        <fa
-                            v-if="!taskStatus.delete"
-                            icon="trash"
-                            type="fa"
-                        />
-                        <fa
-                            v-else
-                            icon="sync"
-                            type="fa"
-                            spin
-                        />
-                    </span>
-                    <span>{{ $t('buttons.delete') }}</span>
-                </button>
+                <div class="buttons">
+                    <!-- Delete -->
+                    <button
+                        class="button is-danger is-small"
+                        :disabled="vod.prevent_deletion"
+                        @click="doDelete"
+                    >
+                        <span class="icon">
+                            <fa
+                                v-if="!taskStatus.delete"
+                                icon="trash"
+                                type="fa"
+                            />
+                            <fa
+                                v-else
+                                icon="sync"
+                                type="fa"
+                                spin
+                            />
+                        </span>
+                        <span>{{ $t('buttons.delete') }}</span>
+                    </button>
+
+                    <!-- Fix issues -->
+                    <button
+                        class="button is-confirm is-small"
+                        @click="doFixIssues"
+                    >
+                        <span class="icon">
+                            <fa
+                                icon="wrench"
+                                type="fa"
+                            />
+                        </span>
+                        <span>{{ $t('vod.controls.fix-issues') }}</span>
+                    </button>
+                </div>
             </div>
             <div
                 v-else-if="!vod.is_finalized"

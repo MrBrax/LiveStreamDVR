@@ -92,4 +92,10 @@ export default class BaseVOD {
         return this.basename;
     }
 
+    public hasError() {
+        if (this.failed) return true;
+        if (!this.is_finalized && !this.is_capturing && !this.is_converting && this.segments.length == 0) return true;
+        return false;        
+    }
+
 }
