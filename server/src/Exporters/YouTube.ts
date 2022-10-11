@@ -92,16 +92,21 @@ export class YouTubeExporter extends BaseExporter {
                     if (response.data.id && this.playlist_id) {
                         this.addToPlaylist(response.data.id, this.playlist_id).then((success) => {
                             Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", `Video added to playlist: ${success}`);
-                            resolve(success);
+                            resolve(this.video_id);
                         }).catch((err) => {
-                            Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", `Could not add video to playlist: ${err}`);
+                            Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", `Could not add video to playlist: ${err}`, err);
                             reject(err);
                         }).finally(() => {
                             job.clear();
                         });
+                    } else if (response.data.id) {
+                        job.clear();
+                        Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", `Video uploaded, no playlist: ${response.data.id}`);
+                        resolve(this.video_id);
                     } else {
                         job.clear();
-                        resolve(this.video_id);
+                        Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", "Could not upload video, no ID gotten.", response);
+                        reject("Could not upload video");
                     }
                 }
             });
