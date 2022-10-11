@@ -194,3 +194,320 @@ export default defineComponent({
     }
 });
 </script>
+
+<style lang="scss" scoped>
+@import "../assets/_variables";
+
+.top-menu-item {
+
+    font-size: 1.2em;
+
+    /**
+    * Side menu channel with avatar, name, and status
+    */
+    &.streamer {
+
+        /*
+        a {
+            padding: 5px 8px 12px 8px;
+        }
+        */
+        a {
+            color: #777;
+            text-decoration: none;
+            display: inline-block;
+            padding: 5px 8px;
+        }
+
+        flex-direction: row;
+
+        // background-size: cover;
+        // background-position: center;
+        // background-repeat: no-repeat;
+
+        .streamer-link {
+            flex-grow: 1;
+            // backdrop-filter: blur(5px) brightness(0.2);
+        }
+
+        &:hover {
+            .avatar {
+                transform: scale(110%);
+            }
+
+            .username {
+                color: #fff;
+            }
+
+            background-color: #111;
+
+            .subtitle {
+                color: #868686;
+            }
+        }
+
+        &.is-live {
+            a {
+                background-color: #0e361e;
+            }
+
+            .username {
+                color: #1dd14a;
+                font-weight: 700;
+            }
+
+            .subtitle,
+            .vodcount {
+                color: #0aa44a;
+            }
+
+            .streamer-expand-container {
+                background-color: #0e361e;
+
+                .streamer-expand-main {
+                    color: #23c687;
+
+                    &:hover {
+                        background-color: #166c44;
+                    }
+                }
+            }
+
+            // main hover
+            .streamer-link:hover {
+                background-color: #0e361e;
+
+                .username {
+                    color: #fff;
+                }
+
+                .subtitle {
+                    color: #2c8f64;
+                }
+            }
+        }
+
+        &.is-capturing {
+            a {
+                background-color: #2b0e0e;
+            }
+
+            .username {
+                color: #f00;
+                font-weight: 700;
+            }
+
+            &.is-animated a {
+                animation: live ease-in-out 1s infinite;
+            }
+
+            .subtitle,
+            .vodcount {
+                color: #b30000;
+            }
+
+            .streamer-expand-container {
+                background-color: #2b0e0e;
+
+                .streamer-expand-main {
+                    color: #f34d4d;
+
+                    &:hover {
+                        background-color: #4d0b0b;
+                    }
+                }
+            }
+
+            // main hover
+            .streamer-link:hover {
+                background-color: #3b1313;
+
+                .username {
+                    color: #ffc555;
+                }
+
+                .subtitle {
+                    color: #9d8f1a;
+                }
+            }
+        }
+
+        &.is-converting {
+            a {
+                background-color: darken($converting-base, 30%);
+            }
+
+            .username {
+                color: lighten($converting-base, 30%);
+                font-weight: 700;
+            }
+
+            .subtitle,
+            .vodcount {
+                color: lighten($converting-base, 10%);
+            }
+
+            .streamer-expand-container {
+                background-color: darken($converting-base, 30%);
+
+                .streamer-expand-main {
+                    color: lighten($converting-base, 30%);
+
+                    &:hover {
+                        background-color: darken($converting-base, 20%);
+                    }
+                }
+            }
+
+            // main hover
+            .streamer-link:hover {
+                background-color: darken($converting-base, 25%);
+
+                .username {
+                    color: #fff;
+                }
+
+                .subtitle {
+                    color: lighten($converting-base, 10%);
+                }
+            }
+        }
+
+        &.no-capture {
+            .username {
+                text-decoration: line-through;
+            }
+
+            // &.is-live {
+            //     a {
+            //         background-color: #0e361e;
+            //     }
+            // }
+        }
+
+        .avatar {
+            // height: 100%;
+            display: inline-block;
+            height: 20px;
+            vertical-align: -4px;
+
+            margin-right: 5px;
+
+            overflow: hidden;
+            border-radius: 100%;
+
+            transition: ease-in-out 0.2s transform;
+
+            img {
+                opacity: 0.7;
+                height: 100%;
+            }
+        }
+
+        .vodcount {
+            display: inline-block;
+            margin-left: 5px;
+            font-size: 90%;
+            color: #666;
+        }
+
+        .subtitle {
+            font-family: "Roboto Condensed", "Roboto", "Arial";
+            font-weight: 500;
+            display: block;
+            font-size: 80%;
+            line-height: 1em;
+            color: #444;
+            padding-bottom: 0.1em;
+
+            &:empty,
+            &:-moz-only-whitespace {
+                // TODO: multiplatform
+                display: none;
+            }
+        }
+
+        .streamer-expand-container {
+            display: flex;
+            // center contents
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .streamer-expand-main {
+            color: #8096be;
+            display: flex;
+            flex-grow: 1;
+
+            background-color: transparent;
+            border: none;
+
+            // center contents
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 0.2em 0.5em 0em 0.5em;
+            line-height: 0.3em;
+
+            cursor: pointer;
+
+            .amount {
+                font-size: 80%;
+            }
+
+            &:hover {
+                background-color: #0c1e35;
+                color: #fff;
+            }
+
+            transition: 0.1s ease-in-out;
+
+            border-radius: 3px;
+
+            margin: 2px;
+        }
+
+        &.no-capture &.is-live {
+            .streamer-expand-container {
+                background-color: #0e2b14;
+            }
+
+            .username {
+                color: #15b300;
+            }
+        }
+
+        .streamer-expand-hide {
+            height: 3px;
+            // #000 to #09182c
+            background-image: linear-gradient(to bottom, darken(#09182c, 5%), #09182c);
+            // border-top: 1px dotted #2d5589;
+        }
+
+        &.is-active {
+            a {
+                color: #fff;
+            }
+        }
+    }
+
+    /**
+    * Side menu channel vod list
+    */
+    &.streamer-jumpto {
+        .icon {
+            margin-right: 0.2em;
+        }
+
+        ul {
+            list-style: none;
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+    }
+
+}
+
+</style>
