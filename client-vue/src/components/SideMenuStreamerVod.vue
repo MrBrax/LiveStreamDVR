@@ -218,11 +218,16 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, defineProps } from "vue";
+// import { ref } from "vue";
 import { ChannelTypes, useStore, VODTypes } from "@/store";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
-import { MuteStatus, nonGameCategories, TwitchVodAge } from "../../../common/Defs";
+import { MuteStatus, TwitchVodAge } from "../../../common/Defs";
 import DurationDisplay from "./DurationDisplay.vue";
+
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faTrash, faVolumeMute } from "@fortawesome/free-solid-svg-icons";
+library.add(faTrash, faVolumeMute);
+
 
 const store = useStore();
 

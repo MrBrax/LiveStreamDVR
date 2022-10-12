@@ -44,7 +44,7 @@
                 <template v-if="!store.clientCfg('singlePage')">
                     <streamer
                         v-for="streamer in sortedStreamers"
-                        :key="streamer.userid"
+                        :key="streamer.uuid"
                         :streamer="streamer"
                     />
                 </template>

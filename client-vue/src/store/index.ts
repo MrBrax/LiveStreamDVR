@@ -132,6 +132,11 @@ export const useStore = defineStore("twitchAutomator", {
                     }
                 }).filter(c => c !== undefined);
 
+                if (!channels) {
+                    console.error("No channels found");
+                    return;
+                }
+
                 this.streamerList = channels;
                 this.streamerListLoaded = true;
                 this.diskFreeSize = data.free_size;

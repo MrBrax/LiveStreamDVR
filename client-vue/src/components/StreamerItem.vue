@@ -262,19 +262,29 @@
                 name="list"
                 tag="div"
             >
-                <vod-item
+                <template
                     v-for="vod in filteredVodsList"
-                    :key="vod.basename"
-                    ref="vodItem"
-                    v-observe-visibility="{
-                        callback: (s: boolean, e: IntersectionObserverEntry) => visibilityChanged(vod.basename, s, e),
-                        intersection: {
-                            threshold: 0.9,
-                        }
-                    }"
-                    :vod="vod"
-                    @refresh="refresh"
-                />
+                    :key="vod.uuid"
+                >
+                    <vod-item
+                        v-if="vod"
+                        ref="vodItem"
+                        v-observe-visibility="{
+                            callback: (s: boolean, e: IntersectionObserverEntry) => visibilityChanged(vod.basename, s, e),
+                            intersection: {
+                                threshold: 0.9,
+                            }
+                        }"
+                        :vod="vod"
+                        @refresh="refresh"
+                    />
+                    <div
+                        v-else
+                        class="notice"
+                    >
+                        No VOD
+                    </div>
+                </template>
             </transition-group>
         </div>
         <modal-box

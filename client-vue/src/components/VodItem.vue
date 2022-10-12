@@ -1338,6 +1338,9 @@ title="Retry VOD match"
             </div>
         </modal-box>
     </div>
+    <div v-else>
+        No VOD found
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -1411,7 +1414,8 @@ library.add(
 const props = defineProps({
     vod: {
         type: Object as () => VODTypes,
-        required: true,
+        default: null,
+        // required: true,
     },
 });
 const emit = defineEmits(["forceFetchData", "refresh"]);
@@ -1522,7 +1526,7 @@ watch: {
 watch(() => route.hash, (to, from) => {
     if (to !== from) {
         const uuid = to.substring(5);
-        if (uuid == props.vod.uuid) minimized.value = false;
+        if (props.vod && uuid == props.vod.uuid) minimized.value = false;
     }
 });
 
@@ -1533,6 +1537,8 @@ onMounted(() => {
         } else if (props.vod.chapters && props.vod.chapters.length == 0) {
             console.error("Chapters array found but empty for vod", props.vod.basename, props.vod);
         }
+    } else {
+        console.error("No vod found");
     }
     renameVodSettings.value.template = store.cfg("filename_vod", "");
 });
@@ -1735,7 +1741,7 @@ function addFavouriteGame(game_id: string) {
 }
 
 function playerLink(offset = 0, chatdownload = false): string {
-    if (!store.config) return "#";
+    if (!props.vod || !store.config) return "#";
     const video_path = `${props.vod.webpath}/${props.vod.basename}.mp4`;
     const chat_path = `${props.vod.webpath}/${props.vod.basename}.${chatdownload ? "chat" : "chatdump"}`;
     return `${store.cfg<string>("basepath", "")}/vodplayer/index.html#source=file_http&video_path=${video_path}&chatfile=${chat_path}&offset=${offset}`;
@@ -1762,6 +1768,7 @@ function matchVod() {
 }
 
 function getDefaultMinimized() {
+    if (!props.vod) return false;
     if (store.clientCfg("minimizeVodsByDefault")) {
         return !props.vod.is_capturing;
     }
@@ -1769,6 +1776,7 @@ function getDefaultMinimized() {
 }
 
 function openPlayer() {
+    if (!props.vod) return;
     let url = `${store.cfg<string>("basepath", "")}/vodplayer/index.html#&`;
     url += "source=file_http";
     if (playerSettings.value.vodSource == "captured"){
