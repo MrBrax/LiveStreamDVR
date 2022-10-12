@@ -85,6 +85,7 @@ export default class TwitchVOD extends BaseVOD {
         vod.failed = apiResponse.failed || false;
         vod.bookmarks = apiResponse.bookmarks || [];
         vod.cloud_storage = apiResponse.cloud_storage || false;
+        vod.exportData = apiResponse.export_data || {};
         return vod;
     }
 

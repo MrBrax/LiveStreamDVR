@@ -446,3 +446,81 @@ export default defineComponent({
     },
 });
 </script>
+
+<style lang="scss" scoped>
+@import "../assets/_variables";
+
+.videoplayer {
+    width: 1280px;
+
+    #timeline {
+        background: #444;
+        height: 20px;
+        position: relative;
+    }
+
+    #timeline-cut {
+        background-color: #f00;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+    }
+
+    #timeline-playhead {
+        background-color: #fff;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+    }
+}
+
+.videoplayer-controls {
+    background-color: #222;
+    padding: 0.5em;
+}
+
+.videoplayer-chapters {
+    display: flex;
+    width: 100%;
+}
+
+.videoplayer-chapter {
+    font-family: "Roboto Condensed", "Roboto", "Arial";
+    padding: 5px;
+    background: rgba(128, 128, 128, 0.3);
+    border-right: 1px solid #aaa;
+    //flex-shrink: 1;
+    //flex-grow: 1;
+    word-break: break-all;
+    white-space: nowrap;
+    overflow: hidden;
+    max-height: 100px;
+
+    &:hover {
+        background: rgba(128, 128, 128, 0.5);
+        cursor: pointer;
+    }
+}
+
+.videoplayer-chapter-title {
+    font-weight: 700;
+}
+
+.videoplayer-chapter-game {
+    font-weight: 400;
+    font-size: 90%;
+    color: #444;
+}
+
+.videoplayer-form {
+    padding: 1em;
+    margin-top: 1em;
+}
+
+.videoplayer-time {
+    font-size: 120%;
+    padding: 0.5em;
+}
+
+</style>

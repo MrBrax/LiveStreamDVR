@@ -13,6 +13,7 @@
             'is-animated': store.clientCfg('animationsEnabled'),
             'is-converting': vod.is_converting,
             'is-waiting': !vod.is_capturing && !vod.is_converting && !vod.is_finalized,
+            'is-error': vod.failed || vod.hasError(),
             'streamer-jumpto-vod': true,
         }"
         :title="vod.started_at ? formatDate(vod.started_at) : 'Unknown'"
@@ -42,7 +43,7 @@
         ><fa icon="star" /></span>
 
         <span
-            v-else-if="vod.failed && store.sidemenuShow.vod_icon"
+            v-else-if="(vod.failed || vod.hasError()) && store.sidemenuShow.vod_icon"
             class="icon is-error"
         ><fa icon="exclamation-triangle" /></span>
 
@@ -217,11 +218,16 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, defineProps } from "vue";
+// import { ref } from "vue";
 import { ChannelTypes, useStore, VODTypes } from "@/store";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
-import { MuteStatus, nonGameCategories, TwitchVodAge } from "../../../common/Defs";
+import { MuteStatus, TwitchVodAge } from "../../../common/Defs";
 import DurationDisplay from "./DurationDisplay.vue";
+
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faTrash, faVolumeMute } from "@fortawesome/free-solid-svg-icons";
+library.add(faTrash, faVolumeMute);
+
 
 const store = useStore();
 
@@ -347,6 +353,19 @@ $waiting-base: #2b2b2b;
 
         border-left: 2px solid lighten($base-bg, 60%);
         color: #fff;
+    }
+
+    &.is-error {
+        background-color: darken($recording-base, 30%);
+        color: #eee;
+
+        &:hover {
+            background-color: darken($recording-base, 25%);
+        }
+
+        .tooltip {
+            background-color: rgba($recording-base, 0.95);
+        }
     }
 
     .flags {

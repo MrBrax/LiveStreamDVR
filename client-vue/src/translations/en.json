@@ -44,7 +44,13 @@
       "downloaded": "Downloaded",
       "vod-is-deleted": "VOD is deleted",
       "the-vod-probably-never-got-saved": "The VOD probably never got saved.",
-      "vod-has-not-been-checked": "VOD has not been checked"
+      "vod-has-not-been-checked": "VOD has not been checked",
+      "export-data": {
+        "title": "Export data",
+        "exported-at": "Exported at",
+        "youtube-id": "YouTube ID",
+        "youtube-playlist-id": "YouTube Playlist ID"
+      }
     },
     "segments": "Segments",
     "controls": {

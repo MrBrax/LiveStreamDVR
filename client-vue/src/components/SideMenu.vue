@@ -220,6 +220,7 @@ export default defineComponent({
                     });
                 }
             }
+            /*
             switch (key) {
                 case "q":
                     this.$router.push({ name: "Dashboard" });
@@ -241,6 +242,7 @@ export default defineComponent({
                     break;
                 
             }
+            */
             this.keyMeme.push(key); if (this.keyMeme.length > 10) this.keyMeme.splice(0, 1);
             if (this.keyMeme.join(" ") == "ArrowUp ArrowUp ArrowDown ArrowDown ArrowLeft ArrowRight ArrowLeft ArrowRight b a") document.location = 'https://youtu.be/dQw4w9WgXcQ';
         });
@@ -258,3 +260,197 @@ export default defineComponent({
     },
 });
 </script>
+
+<style lang="scss" scoped>
+@import "../assets/_variables";
+
+.side-menu {
+    position: fixed;
+    z-index: 999;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--sidemenu-width);
+
+    background-color: #000;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    // flex-wrap: wrap;
+    // overflow-y: auto;
+
+    &.collapsed {
+        width: 150px;
+
+        .streamer-jumpto {
+            display: none;
+        }
+
+        .top-menu-item.title span.title {
+            display: none;
+        }
+
+        .menu-bottom {
+            flex-wrap: wrap;
+        }
+    }
+
+    &.side {
+        // position: static;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        right: auto;
+        height: 100vh;
+        width: 300px;
+        display: block;
+    }
+
+    .menu-middle {
+        overflow-y: scroll;
+        flex-grow: 1;
+        scrollbar-color: #4a4a4a #222;
+
+        &::-webkit-scrollbar {
+            height: 12px;
+            width: 12px;
+            background: #222;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: #4a4a4a;
+            -webkit-border-radius: 1ex;
+            -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
+        }
+
+        &::-webkit-scrollbar-corner {
+            background: #4a4a4a;
+        }
+    }
+
+    .menu-bottom {
+        display: flex;
+        text-align: center;
+        height: 50px;
+
+        .top-menu-item {
+            height: 50px;
+            flex-grow: 1;
+
+            a {
+                width: 100%;
+            }
+        }
+
+        .router-link-active {
+            color: #fff;
+        }
+    }
+}
+
+// TODO: make this more dynamic
+.top-menu-item {
+    font-size: 1.05rem;
+
+    // padding: 5px 8px;
+
+    display: flex;
+    flex-direction: column;
+    // justify-content: center;
+    // align-items: center;
+
+    &.title {
+        font-weight: 700;
+
+        .link {
+            color: #fff;
+            padding: 13px 8px;
+        }
+
+        .favicon {
+            transition: ease-in-out 0.5s transform;
+        }
+
+        // .favicon { animation: 1s speeen linear; }
+        &:hover .favicon {
+            animation: 1s speen linear infinite;
+        }
+
+        span.dev {
+            color: #ff0;
+        }
+    }
+
+    a.link {
+        color: #777;
+        text-decoration: none;
+        display: inline-block;
+        padding: 5px 8px;
+
+        &:hover {
+            color: #fff;
+            background-color: #111;
+        }
+    }
+
+    &.divider {
+        flex-grow: 1;
+    }
+
+    &.right {
+
+        // flex-grow: 1;
+        // text-align: right;
+        a {
+            padding: 14px 8px;
+        }
+    }
+
+    .small {
+        color: #555;
+        font-size: 80%;
+    }
+
+    &.icon {
+        &.is-live:not(.is-active) a {
+            color: #ec2f2f;
+            // animation: 0.5s vibrate linear infinite;
+        }
+
+        a {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+    }
+
+    .favicon {
+        width: 24px;
+        height: 24px;
+        vertical-align: -5px;
+        margin: 0 8px 0 3px;
+    }
+
+    a.linkback {
+        font-weight: 700;
+        color: #e0e00d;
+
+        /* forgive me padre for i have sinned */
+        &:hover {
+            color: #fff;
+        }
+    }
+}
+
+.menu-auth {
+    form {
+        display: flex;
+        padding: 0.2em 1em;
+        gap: 0.5em;
+
+        .field:not(:last-child) {
+            margin: 0;
+        }
+    }
+}
+
+</style>

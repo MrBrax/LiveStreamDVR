@@ -1,10 +1,7 @@
 import { BaseConfigCacheFolder } from "../Core/BaseConfig";
-// import { OAuth2Client } from "google-auth-library";
 import { OAuth2Client } from "googleapis-common";
 import type { Credentials } from "google-auth-library";
 import path from "path";
-// import { oauth2_v2 } from "@googleapis/oauth2/v2";
-// import { youtube_v3 } from "@googleapis/youtube";
 import { Config } from "../Core/Config";
 import { Log, LOGLEVEL } from "../Core/Log";
 import fs from "fs";
@@ -295,5 +292,27 @@ export class YouTubeHelper {
         });
 
     }
+
+    /*
+    public static async getGameFromVideo(videoId: string): Promise<string> {
+
+        const url = `https://www.youtube.com/watch?v=${videoId}`;
+        
+        const res = await axios.get(url);
+        console.log(res.data);
+
+        const root = parse(res.data);
+        console.log(root);
+
+        console.log(root.querySelector("ytd-rich-metadata-renderer"));
+
+        const game = root.querySelector("ytd-rich-metadata-renderer[component-style='RICH_METADATA_RENDERER_STYLE_BOX_ART']");
+
+        console.log(game);
+
+        return game?.innerHTML ?? "";
+
+    }
+    */
 
 }

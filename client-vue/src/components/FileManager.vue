@@ -141,8 +141,9 @@
         </div>
     </div>
     <modal-box
-        ref="exportFileMenu"
+        :show="showExportFileDialogEl"
         title="Export File"
+        @close="showExportFileDialogEl = false"
     >
         <pre>{{ exportVodSettings.file_folder }}/{{ exportVodSettings.file_name }}</pre>
 
@@ -151,26 +152,25 @@
             <div class="field">
                 <label class="label">{{ $t('vod.export.export-type') }}</label>
                 <div class="control">
-                    <select
-                        v-model="exportVodSettings.exporter"
-                        class="input"
-                    >
-                        <option value="file">
-                            File
-                        </option>
-                        <option value="youtube">
-                            YouTube
-                        </option>
-                        <option value="sftp">
-                            SFTP
-                        </option>
-                        <option value="ftp">
-                            FTP
-                        </option>
-                        <option value="rclone">
-                            RClone
-                        </option>
-                    </select>
+                    <div class="select">
+                        <select v-model="exportVodSettings.exporter">
+                            <option value="file">
+                                File
+                            </option>
+                            <option value="youtube">
+                                YouTube
+                            </option>
+                            <option value="sftp">
+                                SFTP
+                            </option>
+                            <option value="ftp">
+                                FTP
+                            </option>
+                            <option value="rclone">
+                                RClone
+                            </option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -270,22 +270,7 @@
                 v-if="exportVodSettings.exporter == 'youtube'"
                 class="field"
             >
-                <div class="buttons">
-                    <button
-                        class="button is-confirm"
-                        @click="doCheckYouTubeStatus"
-                    >
-                        <span class="icon"><fa icon="sync" /></span>
-                        <span>{{ $t("buttons.checkstatus") }}</span>
-                    </button>
-                    <button
-                        class="button is-confirm"
-                        @click="doAuthenticateYouTube"
-                    >
-                        <span class="icon"><fa icon="key" /></span>
-                        <span>{{ $t("buttons.authenticate") }}</span>
-                    </button>
-                </div>
+                <youtube-auth />
             </div>
 
             <!-- Description -->
@@ -381,12 +366,13 @@ import { useStore } from "@/store";
 import { AxiosError } from "axios";
 import { defineComponent, ref } from "vue";
 import ModalBox from "./ModalBox.vue";
+import YoutubeAuth from "./YoutubeAuth.vue";
 import { YouTubeCategories } from "@/defs";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFileLines } from "@fortawesome/free-solid-svg-icons";
+import { faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFileLines, faDownload, faUpload } from "@fortawesome/free-solid-svg-icons";
 import { ApiResponse } from "@common/Api/Api";
-library.add(faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFileLines);
+library.add(faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFileLines, faDownload, faUpload);
 
 interface ApiFile {
     name: string;
@@ -401,6 +387,7 @@ export default defineComponent({
     name: "FileManager",
     components: {
         ModalBox,
+        YoutubeAuth,
     },
     props: {
         path: {
@@ -422,8 +409,7 @@ export default defineComponent({
     },
     setup() {
         const store = useStore();
-        const exportFileMenu = ref<InstanceType<typeof ModalBox>>();
-        return { store, exportFileMenu, YouTubeCategories };
+        return { store, YouTubeCategories };
     },
     data(): {
         files: ApiFile[];
@@ -445,6 +431,7 @@ export default defineComponent({
             remote: string;
             password: string;
         };
+        showExportFileDialogEl: boolean;
     } {
         return {
             files: [],
@@ -466,6 +453,7 @@ export default defineComponent({
                 remote: "",
                 password: "",
             },
+            showExportFileDialogEl: false,
         };
     },
     computed: {
@@ -548,12 +536,11 @@ export default defineComponent({
             }
         },
         showExportFileDialog(file: ApiFile) {
-            if (!this.exportFileMenu) return;
             // this.exportFileMenu.value = this.$refs.exportFileMenu as InstanceType<typeof ModalBox>;
             // this.exportFileMenu.value.show();
             this.exportVodSettings.file_folder = this.path;
             this.exportVodSettings.file_name = file.name;
-            this.exportFileMenu.show = true;
+            this.showExportFileDialogEl = true;
         },
         doExportFile() {
             // if (!this.vod) return;

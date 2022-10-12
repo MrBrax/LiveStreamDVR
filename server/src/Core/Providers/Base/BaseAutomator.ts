@@ -480,6 +480,10 @@ export class BaseAutomator {
             throw new Error("No vod id supplied");
         }
 
+        if (KeyValue.getInstance().has(`${this.getLogin()}.vod.id`)) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "automator", `VOD ID already exists for ${this.getLogin()}`);
+        }
+
         const temp_basename = this.vodBasenameTemplate();
 
         // if running
@@ -698,10 +702,16 @@ export class BaseAutomator {
             }
 
             // add the captured segment to the vod info
-            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Conversion done, add segments to ${basename}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "automator", `Conversion done, add segment '${this.converted_filename}' to '${basename}'`);
 
             this.vod.is_converting = false;
             this.vod.addSegment(path.basename(this.converted_filename));
+
+            if (this.vod.segments.length > 1) {
+                Log.logAdvanced(LOGLEVEL.WARNING, "automator", `More than one segment for ${basename}, this should not happen!`);
+                ClientBroker.notify("Segment error", `More than one segment (${this.vod.segments.length}) for ${basename}, this should not happen!`, "", "system");
+            }
+
             await this.vod.saveJSON("add segment");
 
         } else {

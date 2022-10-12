@@ -236,6 +236,10 @@ export class Job extends EventEmitter {
             throw new Error("name not set");
         }
 
+        if (this.dummy) {
+            return false;
+        }
+
         Log.logAdvanced(LOGLEVEL.INFO, "job", `Save job ${this.name} with PID ${this.pid} to ${this.pidfile}`, this.metadata);
 
         Webhook.dispatch("job_save", {

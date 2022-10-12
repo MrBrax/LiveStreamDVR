@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import chokidar from "chokidar";
-import { Job } from "../../../Core/Job";
+import { randomUUID } from "crypto";
 import { format, parseJSON } from "date-fns";
 import fs from "fs";
 import path from "path";
@@ -8,10 +8,12 @@ import { BaseVODChapterJSON, VODJSON } from "Storage/JSON";
 import { ApiBaseVod } from "../../../../../common/Api/Client";
 import { VideoQuality } from "../../../../../common/Config";
 import { JobStatus, MuteStatus, Providers } from "../../../../../common/Defs";
+import { ExportData } from "../../../../../common/Exporter";
 import { AudioMetadata, VideoMetadata } from "../../../../../common/MediaInfo";
 import { VodUpdated } from "../../../../../common/Webhook";
 import { FFmpegMetadata } from "../../../Core/FFmpegMetadata";
 import { Helper } from "../../../Core/Helper";
+import { Job } from "../../../Core/Job";
 import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
@@ -22,7 +24,6 @@ import { Webhook } from "../../Webhook";
 import { BaseChannel } from "./BaseChannel";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { BaseVODSegment } from "./BaseVODSegment";
-import { randomUUID } from "crypto";
 
 export class BaseVOD {
 
@@ -121,6 +122,8 @@ export class BaseVOD {
     public _updateTimer: NodeJS.Timeout | undefined;
 
     public capturingFilename?: string;
+
+    public exportData: ExportData = {};
 
     /**
      * Set up date related data
@@ -298,9 +301,16 @@ export class BaseVOD {
      * @param segment 
      */
     public addSegment(segment: string): void {
+
         Log.logAdvanced(LOGLEVEL.INFO, "vod.addSegment", `Adding segment ${segment} to ${this.basename}`);
+
+        if (this.segments && this.segments.length > 1) {
+            Log.logAdvanced(LOGLEVEL.WARNING, "vod.addSegment", `VOD ${this.basename} already has segments, adding ${segment}`);
+        }
+
         this.segments_raw.push(segment);
         this.parseSegments(this.segments_raw);
+
     }
 
     public parseSegments(array: string[]): false | undefined {
@@ -733,7 +743,7 @@ export class BaseVOD {
 
         const meta = new FFmpegMetadata()
             .setArtist(this.getChannel().displayName);
-        
+
         if (isTwitchVOD(this)) {
             meta.setTitle(this.twitch_vod_title ?? this.chapters[0].title);
         }
@@ -759,7 +769,7 @@ export class BaseVOD {
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "vod.saveFFMPEGChapters", `Error while adding chapter ${chapter.title} to FFMPEG chapters file for ${this.basename}: ${(error as Error).message}`);
             }
-            
+
         });
 
         await this.stopWatching();
@@ -910,6 +920,10 @@ export class BaseVOD {
 
     }
 
+    /**
+     * Is ts filed converted?
+     * GETTER
+     */
     get is_converted(): boolean {
         if (!this.directory) return false;
         if (!this.segments || this.segments.length == 0) return false;
@@ -917,6 +931,10 @@ export class BaseVOD {
         return this.segments.some(segment => segment.filename && fs.existsSync(segment.filename) && fs.statSync(segment.filename).size > 0);
     }
 
+    /**
+     * Stream season
+     * GETTER
+     */
     get stream_season(): string | undefined {
         if (!this.started_at) return undefined;
         return format(this.started_at, Config.SeasonFormat);
@@ -996,7 +1014,7 @@ export class BaseVOD {
 
             data += "\"";
             let label = "";
-            
+
             if (isTwitchVODChapter(chapter)) {
                 `${chapter.game_name || chapter.game_id} (${chapter.title})`;
                 label = label.replace(/"/g, "\\\"");
@@ -1226,6 +1244,10 @@ export class BaseVOD {
 
         this.webpath = `${Config.getInstance().cfg<string>("basepath", "")}/vods/` + path.relative(BaseConfigDataFolder.vod, this.directory);
 
+        if (this.json.export_data) {
+            this.exportData = this.json.export_data;
+        }
+
     }
     public setupProvider(): void { return; }
 
@@ -1433,59 +1455,67 @@ export class BaseVOD {
 
         // fix illegal characters
         if (this.basename.match(LiveStreamDVR.filenameIllegalChars)) {
-            console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} contains invalid characters!`));
+            console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} contains invalid characters!`));
             const new_basename = this.basename.replaceAll(LiveStreamDVR.filenameIllegalChars, "_");
             this.changeBaseName(new_basename);
         }
 
+        if (!this.is_capturing && !this.is_converting && !this.is_finalized && this.segments && this.segments.length > 0) {
+            this.segments.forEach((segment) => {
+                if (segment.filename && path.extname(segment.filename) !== ".ts") {
+                    console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} has non-ts segments but is not converting!`));
+                }
+            });
+        }
+
         // if finalized but no segments
         if (this.is_finalized && (!this.segments || this.segments.length === 0)) {
-            console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} is finalized but no segments found, rebuilding!`));
+            console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is finalized but no segments found, rebuilding!`));
             const segs = await this.rebuildSegmentList();
             if (segs) {
                 await this.saveJSON("fix rebuild segment list");
             } else {
-                console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} could not be rebuilt!`));
+                console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} could not be rebuilt!`));
             }
         }
 
         // finalize if finished converting and not yet finalized
         if (this.is_converted && !this.is_finalized && this.segments.length > 0) {
-            console.log(chalk.bgBlue.whiteBright(`${this.basename} is finished converting but not finalized, finalizing now!`));
+            console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is finished converting but not finalized, finalizing now!`));
             await this.finalize();
             await this.saveJSON("fix finalize");
         }
 
         // if capturing but process not running
         if (this.is_capturing && await this.getCapturingStatus(true) !== JobStatus.RUNNING) {
-            console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} is capturing but process not running. Setting to false for fixing.`));
+            console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is capturing but process not running. Setting to false for fixing.`));
             this.is_capturing = false;
             await this.saveJSON("fix set capturing to false");
         }
 
         // if converting but process not running
         if (this.is_converting && await this.getConvertingStatus() !== JobStatus.RUNNING) {
-            console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} is converting but process not running. Setting to false for fixing.`));
+            console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is converting but process not running. Setting to false for fixing.`));
             this.is_converting = false;
             await this.saveJSON("fix set converting to false");
         }
 
         // if not finalized and no segments found
         if (!this.is_finalized && (!this.segments || this.segments.length === 0)) {
-            console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} is not finalized and no segments found.`));
+            console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is not finalized and no segments found.`));
             await this.rebuildSegmentList();
         }
 
         // remux if not yet remuxed
         if (!this.is_capturing && !this.is_converted && !this.is_finalized) {
             if (fs.existsSync(path.join(this.directory, `${this.basename}.ts`))) {
-                console.log(chalk.bgBlue.whiteBright(`${this.basename} is not yet remuxed, remuxing now!`));
+                console.log(chalk.bgRed.whiteBright(`${this.basename} is not yet remuxed, remuxing now!`));
 
                 let channel;
                 try {
                     channel = this.getChannel();
                 } catch (error) {
-                    console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} has no channel!`));
+                    console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} has no channel!`));
                 }
 
                 if (channel) {
@@ -1498,28 +1528,28 @@ export class BaseVOD {
                     const out_file = path.join(this.directory, `${this.basename}.${container_ext}`);
 
                     if (fs.existsSync(out_file)) {
-                        console.log(chalk.bgRed.whiteBright(`fix;; Converted file '${out_file}' for '${this.basename}' already exists, skipping remux!`));
+                        console.log(chalk.bgRed.whiteBright(`🛠️ Converted file '${out_file}' for '${this.basename}' already exists, skipping remux!`));
                     } else {
                         this.is_converting = true;
                         Helper.remuxFile(in_file, out_file)
                             .then(async status => {
-                                console.log(chalk.bgBlue.whiteBright(`${this.basename} remux status: ${status.success}`));
+                                console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} remux status: ${status.success}`));
                                 this.addSegment(`${this.basename}.${container_ext}`);
                                 this.is_converting = false;
                                 await this.finalize();
                                 await this.saveJSON("fix remux");
                             }).catch(async e => {
-                                console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} remux failed: ${e.message}`));
+                                console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} remux failed: ${e.message}`));
                                 this.is_converting = false;
                                 await this.saveJSON("fix remux failed");
                             });
                     }
                 }
             } else {
-                console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} is not yet remuxed but no ts file found, skipping!`));
+                console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is not yet remuxed but no ts file found, skipping!`));
 
                 if (fs.existsSync(path.join(this.directory, `${this.basename}.mp4`))) {
-                    console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} has an mp4 file but is not finalized!`));
+                    console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} has an mp4 file but is not finalized!`));
                     this.addSegment(`${this.basename}.mp4`);
                     await this.finalize();
                     await this.saveJSON("fix no segment added");
@@ -1529,33 +1559,33 @@ export class BaseVOD {
 
         // if no ended_at set
         if (this.is_finalized && !this.ended_at) {
-            console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} is finalized but no ended_at found, fixing!`));
+            console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is finalized but no ended_at found, fixing!`));
             const duration = await this.getDuration();
             if (duration && this.started_at) {
                 this.ended_at = new Date(this.started_at.getTime() + (duration * 1000));
                 await this.saveJSON("fix set ended_at");
             } else {
-                console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} has no duration or started_at, skipping!`));
+                console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} has no duration or started_at, skipping!`));
             }
         }
 
         // add default chapter
         if (this.is_finalized && (!this.chapters || this.chapters.length === 0) && isTwitchVOD(this)) {
-            console.log(chalk.bgBlue.whiteBright(`${this.basename} is finalized but no chapters found, fixing now!`));
+            console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is finalized but no chapters found, fixing now!`));
             await this.generateDefaultChapter();
             await this.saveJSON("fix chapters");
         }
 
         // if all else fails
         if (this.not_started && !this.is_finalized && !this.is_converted && !this.is_capturing && !this.is_converting && this.segments.length === 0 && !this.failed) {
-            console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} is not finalized, converting, capturing or converting, failed recording?`));
+            console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is not finalized, converting, capturing or converting, failed recording?`));
             this.failed = true;
             await this.saveJSON("fix set failed true");
         }
 
         // if failed but actually not
         if (this.failed && this.is_finalized && this.segments.length > 0) {
-            console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} is failed but is finalized, fixing!`));
+            console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is failed but is finalized, fixing!`));
             this.failed = false;
             await this.saveJSON("fix set failed false");
         }
@@ -1566,13 +1596,13 @@ export class BaseVOD {
             let error_segments = 0;
             for (const seg of this.segments_raw) {
                 if (!path.basename(seg).startsWith(`${this.streamer_login}_`)) {
-                    console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} segment ${seg} does not start with login ${this.streamer_login}!`));
+                    console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} segment ${seg} does not start with login ${this.streamer_login}!`));
                     error_segments++;
                     // this.segments_raw[index] = replaceAll(segment, `${this.streamer_login}_`, `${this.streamer_login}_${this.streamer_login}_`);
                 }
             }
             if (error_segments == this.segments_raw.length) {
-                console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} has no segments starting with login ${this.streamer_login}, fixing!`));
+                console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} has no segments starting with login ${this.streamer_login}, fixing!`));
                 this.rebuildSegmentList();
             }*/
             /*
@@ -1590,9 +1620,9 @@ export class BaseVOD {
 
         // if finalized but has segments and duration is 0
         if (this.is_finalized && this.segments.length > 0 && this.duration === 0) {
-            console.log(chalk.bgRed.whiteBright(`fix;; ${this.basename} is finalized but has segments and duration is 0, fixing!`));
+            console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is finalized but has segments and duration is 0, fixing!`));
             const duration = await this.getDuration(true);
-            console.log(chalk.bgBlue.whiteBright(`${this.basename} duration: ${duration}`));
+            console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} duration: ${duration}`));
         }
 
         if (!this.uuid) {
@@ -1601,7 +1631,24 @@ export class BaseVOD {
         }
 
         // if (!this.is_finalized && !this.is_converted && !this.is_converting && !this.is_capturing && !this.is_converted && !this.failed) {
-        console.debug(`fix;; ${this.basename} is finalized: ${this.is_finalized}, converting: ${this.is_converting}, capturing: ${this.is_capturing}, converted: ${this.is_converted}, failed: ${this.failed}`);
+        // console.debug(`🛠️ ${this.basename} is finalized: ${this.is_finalized}, converting: ${this.is_converting}, capturing: ${this.is_capturing}, converted: ${this.is_converted}, failed: ${this.failed}`);
+
+        Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `fixIssues meta dump for ${this.basename} (${this.uuid})`, {
+            "channel_uuid": this.channel_uuid,
+            "channel_name": this.getChannel().internalName,
+            "uuid": this.uuid,
+
+            "basename": this.basename,
+            "is_capturing": this.is_capturing,
+            "is_converting": this.is_converting,
+            "is_converted": this.is_converted,
+            "is_finalized": this.is_finalized,
+            "chapter_count": this.chapters.length,
+            "segment_count": this.segments.length,
+            "has_started_at": this.started_at !== undefined,
+            "has_ended_at": this.ended_at !== undefined,
+            "not_started": this.not_started,
+        });
 
     }
 

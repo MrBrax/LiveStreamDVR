@@ -1,4 +1,5 @@
 import { JobStatus, Providers } from "@common/Defs";
+import { ExportData } from "@common/Exporter";
 import { VideoMetadata, AudioMetadata } from "@common/MediaInfo";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { BaseVODSegment } from "./BaseVODSegment";
@@ -53,6 +54,8 @@ export default class BaseVOD {
 
     failed = false;
 
+    exportData?: ExportData;
+
     get current_chapter(): BaseVODChapter | undefined {
         if (this.chapters.length > 0) {
             return this.chapters[this.chapters.length - 1];
@@ -90,6 +93,12 @@ export default class BaseVOD {
             return this.chapters[0].title;
         }
         return this.basename;
+    }
+
+    public hasError() {
+        if (this.failed) return true;
+        if (!this.is_finalized && !this.is_capturing && !this.is_converting && this.segments.length == 0) return true;
+        return false;        
     }
 
 }

@@ -16,3 +16,9 @@ export interface ExporterOptions {
     remote?: string;
     playlist_id?: string;
 }
+
+export interface ExportData {
+    exported_at?: string;
+    youtube_id?: string;
+    youtube_playlist_id?: string;
+}

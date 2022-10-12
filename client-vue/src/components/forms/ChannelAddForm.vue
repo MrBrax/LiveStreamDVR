@@ -134,7 +134,7 @@
             v-if="userExists === false"
             class="field"
         >
-            <div class="is-error">
+            <div class="text-is-error">
                 {{ $t('forms.channel.login-does-not-exist', [formData.login]) }}
             </div>
         </div>

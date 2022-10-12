@@ -392,8 +392,7 @@ export class YouTubeVOD extends BaseVOD {
 
     }
 
-
-    static async getVideoProxy(video_id: string): Promise<false | ProxyVideo> {
+    static async getVideo(video_id: string): Promise<false | youtube_v3.Schema$Video> {
         const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
 
         let searchResponse;
@@ -410,7 +409,15 @@ export class YouTubeVOD extends BaseVOD {
         if (!searchResponse.data) return false;
         if (!searchResponse.data.items || searchResponse.data.items.length == 0) return false;
 
-        const item = searchResponse.data.items[0];
+        return searchResponse.data.items[0];
+
+    }
+
+    static async getVideoProxy(video_id: string): Promise<false | ProxyVideo> {
+        
+        const item = await this.getVideo(video_id);
+
+        if (!item) return false;
 
         return {
             id: item.id,

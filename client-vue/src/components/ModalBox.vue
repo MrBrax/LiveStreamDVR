@@ -1,31 +1,33 @@
 <template>
-    <transition name="modal-transition">
-        <div
-            v-if="show"
-            class="modal-box"
-            @click.self="show = false"
-        >
+    <teleport to="body">
+        <transition name="modal-transition">
             <div
-                class="modal-box__container"
-                :style="{ maxWidth: maxWidth }"
+                v-if="show"
+                class="modal-box"
+                @click.self="$emit('close')"
             >
-                <div class="modal-box__header">
-                    <div class="modal-box__title">
-                        {{ title }}
+                <div
+                    class="modal-box__container"
+                    :style="{ maxWidth: maxWidth }"
+                >
+                    <div class="modal-box__header">
+                        <div class="modal-box__title">
+                            {{ title }}
+                        </div>
+                        <div
+                            class="modal-box__close"
+                            @click="$emit('close')"
+                        >
+                            <fa icon="times" />
+                        </div>
                     </div>
-                    <div
-                        class="modal-box__close"
-                        @click="show = false"
-                    >
-                        <fa icon="times" />
+                    <div class="modal-box__body">
+                        <slot />
                     </div>
-                </div>
-                <div class="modal-box__body">
-                    <slot />
                 </div>
             </div>
-        </div>
-    </transition>
+        </transition>
+    </teleport>
 </template>
 
 <script lang="ts">
@@ -44,17 +46,17 @@ export default defineComponent({
             type: String,
             default: "800px",
         },
-        // show: {
-        //     type: Boolean,
-        //     default: false,
-        // },
+        show: {
+            type: Boolean,
+            default: false,
+        },
     },
     emits: ["close"],
-    data() {
-        return {
-            show: false,
-        };
-    },
+    // data() {
+    //     return {
+    //         show: false,
+    //     };
+    // },
     methods: {
         close() {
             this.$emit("close");

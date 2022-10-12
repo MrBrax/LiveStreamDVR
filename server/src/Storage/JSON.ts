@@ -3,6 +3,7 @@ import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { MuteStatus, Providers } from "../../../common/Defs";
 import { AudioMetadata, VideoMetadata } from "../../../common/MediaInfo";
 import { TwitchVODBookmark } from "../../../common/Bookmark";
+import { ExportData } from "../../../common/Exporter";
 
 export interface VODJSON {
 
@@ -50,6 +51,8 @@ export interface VODJSON {
     failed?: boolean;
 
     cloud_storage?: boolean;
+
+    export_data?: ExportData;
 
 }
 export interface TwitchVODJSON extends VODJSON {

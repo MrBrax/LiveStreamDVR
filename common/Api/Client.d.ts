@@ -8,6 +8,7 @@ import { TwitchVODChapterJSON, BaseVODChapterJSON } from "../../server/src/Stora
 import { TwitchVODBookmark } from "../Bookmark";
 import { LocalVideo } from "../LocalVideo";
 import { LocalClip } from "../LocalClip";
+import { ExportData } from "../Exporter";
 
 export type ApiVodSegment = {
     basename: string;
@@ -97,6 +98,8 @@ export interface ApiBaseVod {
     cloud_storage?: boolean;
 
     api_getRecordingSize: number | false;
+
+    export_data?: ExportData;
 
 }
 

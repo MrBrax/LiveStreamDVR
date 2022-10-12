@@ -29,7 +29,7 @@ export function GetSettings(req: express.Request, res: express.Response): void {
             version: version,
             server: "ts-server",
             websocket_url: Config.getInstance().getWebsocketClientUrl(),
-            errors: TwitchHelper.getErrors(),
+            errors: LiveStreamDVR.getErrors(),
             server_git_hash: Config.getInstance().gitHash,
             quotas: {
                 twitch: {
