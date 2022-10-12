@@ -82,7 +82,7 @@
             title="Expand/collapse all vods"
             @click="emit('toggleExpandVods')"
         >
-            <span class="icon"><fa :icon="toggleAllVodsExpanded ? 'chevron-up' : 'chevron-down'" /></span>
+            <span class="icon"><fa :icon="!toggleAllVodsExpanded ? 'chevron-up' : 'chevron-down'" /></span>
         </button>
     </span>
 </template>

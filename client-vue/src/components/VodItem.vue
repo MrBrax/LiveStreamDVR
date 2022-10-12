@@ -18,7 +18,7 @@
         <!-- title -->
         <div
             class="video-title"
-            @click="minimized = !minimized"
+            @click="emit('toggleMinimize')"
         >
             <div class="video-title-text">
                 <h3>
@@ -581,8 +581,12 @@ const props = defineProps({
         default: null,
         // required: true,
     },
+    minimized: {
+        type: Boolean,
+        default: false,
+    },
 });
-const emit = defineEmits(["forceFetchData", "refresh"]);
+const emit = defineEmits(["forceFetchData", "refresh", "toggleMinimize"]);
 
 const store = useStore();
 const route = useRoute();
@@ -608,7 +612,7 @@ const taskStatus = ref({
 });
 const chatDownloadMethod = ref("tcd");
 const showAdvanced = ref(false);
-const minimized = ref(getDefaultMinimized());
+// const minimized = ref(getDefaultMinimized());
 const vodDownloadSettings = ref({
     quality: "best",
 });
@@ -672,12 +676,14 @@ watch: {
 },
 */
 
+/*
 watch(() => route.hash, (to, from) => {
     if (to !== from) {
         const uuid = to.substring(5);
         if (props.vod && uuid == props.vod.uuid) minimized.value = false;
     }
 });
+*/
 
 onMounted(() => {
     if (props.vod) {

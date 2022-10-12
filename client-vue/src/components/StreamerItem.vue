@@ -127,7 +127,6 @@
                 <vod-item
                     v-for="vod in filteredVodsList"
                     :key="vod.uuid"
-                    ref="vodItem"
                     v-observe-visibility="{
                         callback: (s: boolean, e: IntersectionObserverEntry) => visibilityChanged(vod.basename, s, e),
                         intersection: {
@@ -135,6 +134,8 @@
                         }
                     }"
                     :vod="vod"
+                    :minimized="toggleVodMinimizedStatus[vod.uuid]"
+                    @toggle-minimize="toggleVodMinimizedStatus[vod.uuid] = !toggleVodMinimizedStatus[vod.uuid]"
                     @refresh="refresh"
                 />
             </transition-group>
@@ -236,10 +237,12 @@ const onlineVods = ref<ProxyVideo[]>([]);
 const toggleAllVodsExpanded = ref(false);
 const limitVods = ref(false);
 
+const toggleVodMinimizedStatus = ref<Record<string, boolean>>({});
+
 // setup
 // const videoDownloadMenu = ref<InstanceType<typeof ModalBox>>();
 const showVideoDownloadMenu = ref(false);
-// const vodItem = ref<InstanceType<typeof VodItem>>();
+const vodItem = ref<InstanceType<typeof VodItem>>();
 
 const quality = computed(() => {
     if (!props.streamer || !props.streamer.quality) return "";
@@ -266,7 +269,7 @@ const avatarUrl = computed(() => {
 
 const areMostVodsExpanded = computed(() => {
     if (!props.streamer) return false;
-    const vods = onlineVods.value as unknown as typeof VodItem[];
+    const vods = vodItem.value as unknown as typeof VodItem[];
     if (!vods) return false;
     return vods.filter((vod) => vod.minimized === false).length >= props.streamer.vods_list.length / 2;
 });
@@ -290,7 +293,19 @@ const providerapi = computed(() => {
 });
 
 onMounted(() => {
+
     toggleAllVodsExpanded.value = areMostVodsExpanded.value;
+
+    for (const vod of props.streamer.vods_list) {
+
+        if (store.clientCfg("minimizeVodsByDefault")) {
+            toggleVodMinimizedStatus.value[vod.uuid] = !vod.is_capturing;
+            continue;
+        }
+
+        toggleVodMinimizedStatus.value[vod.uuid] = false;
+
+    }
 });
 
 function refresh() {
@@ -375,8 +390,6 @@ async function downloadVideo(id: string) {
     console.log("Downloaded", data);
 }
 
-
-
 function imageUrl(url: string, width: number, height: number) {
     if (!url) return "";
     return url.replace(/%\{width\}/g, width.toString()).replace(/%\{height\}/g, height.toString());
@@ -384,11 +397,15 @@ function imageUrl(url: string, width: number, height: number) {
 
 function doToggleExpandVods() {
     if (!props.streamer) return;
+
     toggleAllVodsExpanded.value = !toggleAllVodsExpanded.value;
+
+    for (const vod of props.streamer.vods_list) {
+        toggleVodMinimizedStatus.value[vod.uuid] = toggleAllVodsExpanded.value;
+    }
+
     // loop through all vods and set the expanded state
     /*
-    const vods = vodItem as unknown as typeof VodItem[];
-    console.log(vods);
     if (vods){
         for(const vod of vods) {
             vod.minimized = toggleAllVodsExpanded;
