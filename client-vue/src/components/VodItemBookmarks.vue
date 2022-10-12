@@ -19,12 +19,16 @@
                 </button>
             </li>
         </ul>
-        
+
         <details class="details">
             <summary>Create</summary>
             <div class="field">
-                <label class="label">Name</label>
+                <label
+                    class="label"
+                    :for="'name.' + vod.uuid"
+                >Name</label>
                 <input
+                    :id="'name.' + vod.uuid"
                     v-model="newBookmark.name"
                     class="input"
                     type="text"
@@ -34,8 +38,12 @@
                 v-if="vod.is_finalized"
                 class="field"
             >
-                <label class="label">Offset</label>
+                <label
+                    class="label"
+                    :for="'offset.' + vod.uuid"
+                >Offset</label>
                 <input
+                    :id="'offset.' + vod.uuid"
                     v-model="newBookmark.offset"
                     class="input"
                     type="number"

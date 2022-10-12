@@ -68,6 +68,7 @@
             <button
                 v-if="store.jobList.length > 1"
                 class="icon-button icon-button-big"
+                title="Toggle job list"
                 @click="expanded = !expanded"
             >
                 <fa
