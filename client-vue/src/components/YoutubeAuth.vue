@@ -83,8 +83,8 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
+import { ref } from "vue";
 import { ApiResponse } from "@common/Api/Api";
 import { useStore } from "@/store";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -95,87 +95,80 @@ import {
 import {
     faYoutube
 } from "@fortawesome/free-brands-svg-icons";
+import axios from "axios";
 library.add(faRightFromBracket, faYoutube, faSpinner);
 
-export default defineComponent({
-    name: "YoutubeAuth",
-    setup() {
-        const store = useStore();
-        return {
-            store,
-        };
-    },
-    data() {
-        return {
-            status: "",
-            loading: false,
-        };
-    },
-    methods: {
-        doCheckYouTubeStatus() {
-            this.status = "Checking YouTube status...";
-            this.loading = true;
-            this.$http.get(`/api/v0/youtube/status`).then((response) => {
-                const json: ApiResponse = response.data;
-                if (json.message) this.status = json.message;
-                console.log(json);
-            }).catch((err) => {
-                console.error("youtube check error", err.response);
-                if (err.response.data && err.response.data.message) this.status = err.response.data.message;
-            }).finally(() => {
-                this.loading = false;
-            });
-        },
-        async doAuthenticateYouTubeMethod1() {
-            const url = `${this.store.cfg<string>("basepath", "")}/api/v0/youtube/authenticate`;
-            const width = 600;
-            const height = 600;
-            const left = (screen.width / 2) - (width / 2);
-            const top = (screen.height / 2) - (height / 2);
-            console.debug("youtube auth url", url);
-            window.open(url, "_blank", `width=${width},height=${height},top=${top},left=${left}`);
-        },
-        async doAuthenticateYouTubeMethod2() {
+const store = useStore();
+        
 
-            this.status = "Fetching YouTube authentication URL...";
-            this.loading = true;
-            
-            let res;
-            try {
-                res = await this.$http.get(`/api/v0/youtube/authenticate?rawurl=true`);
-            } catch (error) {
-                if (this.$http.isAxiosError(error)) {
-                    console.error("youtube auth error", error.response);
-                    if (error.response && error.response.data && error.response.data.message) this.status = error.response.data.message;
-                }
-                this.loading = false;
-                return;                    
-            }
-            this.loading = false;
-            const url = res.data.data;
-            const width = 600;
-            const height = 600;
-            const left = (screen.width / 2) - (width / 2);
-            const top = (screen.height / 2) - (height / 2);
-            console.debug("youtube auth url", url);
-            window.open(url, "_blank", `width=${width},height=${height},top=${top},left=${left}`);
-        },
-        doDestroyYouTube() {
-            this.status = "Destroying YouTube session...";
-            this.loading = true;
-            this.$http.get(`/api/v0/youtube/destroy`).then((response) => {
-                const json: ApiResponse = response.data;
-                if (json.message) this.status = json.message;
-                console.log(json);
-            }).catch((err) => {
-                console.error("youtube destroy error", err.response);
-                if (err.response.data && err.response.data.message) this.status = err.response.data.message;
-            }).finally(() => {
-                this.loading = false;
-            });
-        },
+const status = ref("");
+const loading = ref(false);
+    
+function doCheckYouTubeStatus(): void {
+    status.value = "Checking YouTube status...";
+    loading.value = true;
+    axios.get(`/api/v0/youtube/status`).then((response) => {
+        const json: ApiResponse = response.data;
+        if (json.message) status.value = json.message;
+        console.log(json);
+    }).catch((err) => {
+        console.error("youtube check error", err.response);
+        if (err.response.data && err.response.data.message) status.value = err.response.data.message;
+    }).finally(() => {
+        loading.value = false;
+    });
+}
+
+async function doAuthenticateYouTubeMethod1(): Promise<void> {
+    const url = `${store.cfg<string>("basepath", "")}/api/v0/youtube/authenticate`;
+    const width = 600;
+    const height = 600;
+    const left = (screen.width / 2) - (width / 2);
+    const top = (screen.height / 2) - (height / 2);
+    console.debug("youtube auth url", url);
+    window.open(url, "_blank", `width=${width},height=${height},top=${top},left=${left}`);
+}
+
+async function doAuthenticateYouTubeMethod2(): Promise<void> {
+
+    status.value = "Fetching YouTube authentication URL...";
+    loading.value = true;
+    
+    let res;
+    try {
+        res = await axios.get(`/api/v0/youtube/authenticate?rawurl=true`);
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("youtube auth error", error.response);
+            if (error.response && error.response.data && error.response.data.message) status.value = error.response.data.message;
+        }
+        loading.value = false;
+        return;                    
     }
-});
+    loading.value = false;
+    const url = res.data.data;
+    const width = 600;
+    const height = 600;
+    const left = (screen.width / 2) - (width / 2);
+    const top = (screen.height / 2) - (height / 2);
+    console.debug("youtube auth url", url);
+    window.open(url, "_blank", `width=${width},height=${height},top=${top},left=${left}`);
+}
+
+function doDestroyYouTube(): void {
+    status.value = "Destroying YouTube session...";
+    loading.value = true;
+    axios.get(`/api/v0/youtube/destroy`).then((response) => {
+        const json: ApiResponse = response.data;
+        if (json.message) status.value = json.message;
+        console.log(json);
+    }).catch((err) => {
+        console.error("youtube destroy error", err.response);
+        if (err.response.data && err.response.data.message) status.value = err.response.data.message;
+    }).finally(() => {
+        loading.value = false;
+    });
+}
 
 </script>
 

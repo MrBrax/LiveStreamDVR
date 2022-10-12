@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import chokidar from "chokidar";
-import { Job } from "../../../Core/Job";
+import { randomUUID } from "crypto";
 import { format, parseJSON } from "date-fns";
 import fs from "fs";
 import path from "path";
@@ -8,10 +8,12 @@ import { BaseVODChapterJSON, VODJSON } from "Storage/JSON";
 import { ApiBaseVod } from "../../../../../common/Api/Client";
 import { VideoQuality } from "../../../../../common/Config";
 import { JobStatus, MuteStatus, Providers } from "../../../../../common/Defs";
+import { ExportData } from "../../../../../common/Exporter";
 import { AudioMetadata, VideoMetadata } from "../../../../../common/MediaInfo";
 import { VodUpdated } from "../../../../../common/Webhook";
 import { FFmpegMetadata } from "../../../Core/FFmpegMetadata";
 import { Helper } from "../../../Core/Helper";
+import { Job } from "../../../Core/Job";
 import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
@@ -22,8 +24,6 @@ import { Webhook } from "../../Webhook";
 import { BaseChannel } from "./BaseChannel";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { BaseVODSegment } from "./BaseVODSegment";
-import { randomUUID } from "crypto";
-import { ExportData } from "../../../../../common/Exporter";
 
 export class BaseVOD {
 
@@ -301,9 +301,16 @@ export class BaseVOD {
      * @param segment 
      */
     public addSegment(segment: string): void {
+
         Log.logAdvanced(LOGLEVEL.INFO, "vod.addSegment", `Adding segment ${segment} to ${this.basename}`);
+
+        if (this.segments && this.segments.length > 1) {
+            Log.logAdvanced(LOGLEVEL.WARNING, "vod.addSegment", `VOD ${this.basename} already has segments, adding ${segment}`);
+        }
+
         this.segments_raw.push(segment);
         this.parseSegments(this.segments_raw);
+
     }
 
     public parseSegments(array: string[]): false | undefined {
@@ -736,7 +743,7 @@ export class BaseVOD {
 
         const meta = new FFmpegMetadata()
             .setArtist(this.getChannel().displayName);
-        
+
         if (isTwitchVOD(this)) {
             meta.setTitle(this.twitch_vod_title ?? this.chapters[0].title);
         }
@@ -762,7 +769,7 @@ export class BaseVOD {
             } catch (error) {
                 Log.logAdvanced(LOGLEVEL.ERROR, "vod.saveFFMPEGChapters", `Error while adding chapter ${chapter.title} to FFMPEG chapters file for ${this.basename}: ${(error as Error).message}`);
             }
-            
+
         });
 
         await this.stopWatching();
@@ -1007,7 +1014,7 @@ export class BaseVOD {
 
             data += "\"";
             let label = "";
-            
+
             if (isTwitchVODChapter(chapter)) {
                 `${chapter.game_name || chapter.game_id} (${chapter.title})`;
                 label = label.replace(/"/g, "\\\"");

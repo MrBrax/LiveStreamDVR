@@ -32,7 +32,8 @@
         </div>
         <p v-if="exporter == 'youtube'">
             Upload videos directly to YouTube.<br>
-            The API set up is quite cumbersome, requiring your channel to be reviewed.
+            The API set up is quite cumbersome, requiring your channel to be reviewed.<br>
+            Each upload uses a quota of 1600 units at the time of writing, and an account has a quota of 10,000 units per day.
         </p>
         <p v-if="exporter == 'ftp'">
             Old and outdated file transfer protocol. I would not suggest using this. If you insist, use it only on LAN.<br>
