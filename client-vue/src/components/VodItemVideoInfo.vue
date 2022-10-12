@@ -339,3 +339,41 @@ function matchVod() {
 }
 
 </script>
+
+<style lang="scss" scoped>
+
+.info-columns {
+    margin-top: 1em;
+    display: flex;
+
+    padding: 0.5em;
+
+    h4 {
+        font-size: 110%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .info-column {
+        flex-grow: 1;
+        padding-right: 2em;
+
+        &:last-child {
+            padding-right: 0;
+        }
+    }
+
+    .video-info {
+        color: var(--text-darker);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        list-style-type: none;
+        line-height: 1.4em;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        word-break: break-word;
+    }
+}
+
+</style>

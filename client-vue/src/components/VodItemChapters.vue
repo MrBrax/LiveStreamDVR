@@ -259,3 +259,53 @@ function addFavouriteGame(game_id: string) {
 }
 
 </script>
+
+<style lang="scss" scoped>
+
+.game-list {
+
+    width: 100%;
+    border-collapse: collapse;
+
+    tr:nth-child(2n) {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    /*
+    thead {
+        background-color: #1e4599;
+        color: #eee;
+    }
+    */
+    td:nth-child(4) {
+        color: #444;
+    }
+
+    tr.favourite {
+        background-color: var(--gamelist-favourite);
+
+        td {
+            background-color: var(--gamelist-favourite);
+        }
+    }
+
+    tr.current {
+        background-color: var(--gamelist-current);
+    }
+
+    a {
+        // color: blue;
+        text-decoration: none;
+
+        // &:hover {
+        //     color: #4481d1;
+        // }
+        // 
+        // &:visited {
+        //     color: purple;
+        // }
+    }
+
+}
+
+</style>

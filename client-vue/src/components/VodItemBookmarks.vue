@@ -103,3 +103,13 @@ function doDeleteBookmark(i: number) {
 }
 
 </script>
+
+<style lang="scss" scoped>
+.video-bookmarks {
+    padding: 1em;
+    background-color: var(--video-bookmarks-background-color);
+    // border-top: 1px solid #d6dbf2;
+    // border-left: 1px solid #e3e3e3;
+    // border-right: 1px solid #e3e3e3;
+}
+</style>

@@ -79,3 +79,14 @@ const props = defineProps({
 const store = useStore();
 
 </script>
+
+
+<style lang="scss" scoped>
+.video-segments {
+    padding: 1em;
+    background-color: var(--video-segments-background-color);
+    // border-top: 1px solid #d6dbf2;
+    // border-left: 1px solid #e3e3e3;
+    // border-right: 1px solid #e3e3e3;
+}
+</style>

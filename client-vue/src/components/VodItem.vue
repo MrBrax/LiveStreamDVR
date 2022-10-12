@@ -841,6 +841,8 @@ const editVodMenu = ref<InstanceType<typeof ModalBox>>();
 const exportVodMenu = ref<InstanceType<typeof ModalBox>>();
 const renameVodMenu = ref<InstanceType<typeof ModalBox>>();
 
+const showBurnMenu = ref(false);
+
 
 const config = ref<ApiSettingsResponse>();
 const taskStatus = ref({
@@ -1329,22 +1331,6 @@ function isTwitchChapter(chapter: ChapterTypes): chapter is TwitchVODChapter {
     // border-right: 1px solid #e3e3e3;
 }
 
-.video-segments {
-    padding: 10px;
-    background-color: var(--video-segments-background-color);
-    // border-top: 1px solid #d6dbf2;
-    // border-left: 1px solid #e3e3e3;
-    // border-right: 1px solid #e3e3e3;
-}
-
-.video-bookmarks {
-    padding: 10px;
-    background-color: var(--video-bookmarks-background-color);
-    // border-top: 1px solid #d6dbf2;
-    // border-left: 1px solid #e3e3e3;
-    // border-right: 1px solid #e3e3e3;
-}
-
 .video-chapters {
     // border-left: 1px solid #e3e3e3;
     // border-right: 1px solid #e3e3e3;
@@ -1395,83 +1381,6 @@ function isTwitchChapter(chapter: ChapterTypes): chapter is TwitchVODChapter {
         border-width: 10px 10px 0 10px;
         border-color: var(--video-comment-background-color) transparent transparent transparent;
 
-    }
-}
-
-.info-columns {
-    margin-top: 5px;
-    display: flex;
-
-    h4 {
-        font-size: 110%;
-        margin: 0;
-        padding: 0;
-    }
-
-    .info-column {
-        flex-grow: 1;
-        padding-right: 20px;
-
-        &:last-child {
-            padding-right: 0;
-        }
-    }
-
-    .video-info {
-        color: var(--text-darker);
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        list-style-type: none;
-        line-height: 1.4em;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        word-break: break-word;
-    }
-}
-
-.game-list {
-
-    width: 100%;
-    border-collapse: collapse;
-
-    tr:nth-child(2n) {
-        background: rgba(0, 0, 0, 0.05);
-    }
-
-    /*
-	thead {
-		background-color: #1e4599;
-		color: #eee;
-	}
-	*/
-    td:nth-child(4) {
-        color: #444;
-    }
-
-    tr.favourite {
-        background-color: var(--gamelist-favourite);
-
-        td {
-            background-color: var(--gamelist-favourite);
-        }
-    }
-
-    tr.current {
-        background-color: var(--gamelist-current);
-    }
-
-    a {
-        // color: blue;
-        text-decoration: none;
-
-        // &:hover {
-        //     color: #4481d1;
-        // }
-        // 
-        // &:visited {
-        //     color: purple;
-        // }
     }
 }
 
