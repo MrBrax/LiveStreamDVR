@@ -5,12 +5,14 @@ import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import { format } from "date-fns";
 import { ExporterFilenameTemplate } from "../../../common/Replacements";
 import { formatString } from "../../../common/Format";
+import { VODTypes } from "../Core/LiveStreamDVR";
+import { isTwitchVOD } from "../Helpers/Types";
 
 export class BaseExporter {
 
     public type = "Base";
 
-    public vod?: TwitchVOD;
+    public vod?: VODTypes;
     public filename = "";
     public template_filename = "";
     public output_filename = "";
@@ -24,7 +26,7 @@ export class BaseExporter {
         this.directoryMode = state;
     }
 
-    loadVOD(vod: TwitchVOD): boolean {
+    loadVOD(vod: VODTypes): boolean {
         if (!vod.filename) throw new Error("No filename");
         if (!vod.segments || vod.segments.length == 0) throw new Error("No segments");
         if (vod.segments[0].filename) {
@@ -81,11 +83,11 @@ export class BaseExporter {
         if (!this.vod.started_at) throw new Error("No started_at");
 
         let title = "Title";
-        if (this.vod.twitch_vod_title) title = this.vod.twitch_vod_title;
+        if (isTwitchVOD(this.vod) && this.vod.twitch_vod_title) title = this.vod.twitch_vod_title;
         if (this.vod.chapters[0]) title = this.vod.chapters[0].title;
 
         const replacements: ExporterFilenameTemplate = {
-            login: this.vod.streamer_login,
+            login: this.vod.getChannel().internalName,
             internalName: this.vod.getChannel().internalName,
             displayName: this.vod.getChannel().displayName,
             title: title,

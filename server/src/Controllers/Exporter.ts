@@ -4,7 +4,7 @@ import sanitize from "sanitize-filename";
 import { ApiErrorResponse, ApiResponse } from "../../../common/Api/Api";
 import { ExporterOptions } from "../../../common/Exporter";
 import { BaseConfigDataFolder, DataRoot } from "../Core/BaseConfig";
-import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
+import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { FileExporter } from "../Exporters/File";
 import { FTPExporter } from "../Exporters/FTP";
 import { RCloneExporter } from "../Exporters/RClone";
@@ -93,10 +93,10 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
             throw new Error("No VOD chosen");
         }
 
-        const vod = TwitchVOD.getVod(options.vod);
+        const vod = LiveStreamDVR.getInstance().getVodByUUID(options.vod);
 
         if (!vod) {
-            throw new Error("Vod not found");
+            throw new Error(`Vod not found: ${options.vod}`);
         }
 
         if (!vod.is_finalized) {

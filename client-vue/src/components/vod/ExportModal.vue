@@ -512,7 +512,7 @@ function applyDefaultExportSettings() {
 
 onMounted(() => {
     if (props.vod) {
-        exportVodSettings.value.vod = props.vod.basename;
+        exportVodSettings.value.vod = props.vod.uuid;
         applyDefaultExportSettings();
     }
 });

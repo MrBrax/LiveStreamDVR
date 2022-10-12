@@ -220,6 +220,7 @@ export default defineComponent({
                     });
                 }
             }
+            /*
             switch (key) {
                 case "q":
                     this.$router.push({ name: "Dashboard" });
@@ -241,6 +242,7 @@ export default defineComponent({
                     break;
                 
             }
+            */
             this.keyMeme.push(key); if (this.keyMeme.length > 10) this.keyMeme.splice(0, 1);
             if (this.keyMeme.join(" ") == "ArrowUp ArrowUp ArrowDown ArrowDown ArrowLeft ArrowRight ArrowLeft ArrowRight b a") document.location = 'https://youtu.be/dQw4w9WgXcQ';
         });

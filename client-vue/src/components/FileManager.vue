@@ -151,26 +151,25 @@
             <div class="field">
                 <label class="label">{{ $t('vod.export.export-type') }}</label>
                 <div class="control">
-                    <select
-                        v-model="exportVodSettings.exporter"
-                        class="input"
-                    >
-                        <option value="file">
-                            File
-                        </option>
-                        <option value="youtube">
-                            YouTube
-                        </option>
-                        <option value="sftp">
-                            SFTP
-                        </option>
-                        <option value="ftp">
-                            FTP
-                        </option>
-                        <option value="rclone">
-                            RClone
-                        </option>
-                    </select>
+                    <div class="select">
+                        <select v-model="exportVodSettings.exporter">
+                            <option value="file">
+                                File
+                            </option>
+                            <option value="youtube">
+                                YouTube
+                            </option>
+                            <option value="sftp">
+                                SFTP
+                            </option>
+                            <option value="ftp">
+                                FTP
+                            </option>
+                            <option value="rclone">
+                                RClone
+                            </option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -270,22 +269,7 @@
                 v-if="exportVodSettings.exporter == 'youtube'"
                 class="field"
             >
-                <div class="buttons">
-                    <button
-                        class="button is-confirm"
-                        @click="doCheckYouTubeStatus"
-                    >
-                        <span class="icon"><fa icon="sync" /></span>
-                        <span>{{ $t("buttons.checkstatus") }}</span>
-                    </button>
-                    <button
-                        class="button is-confirm"
-                        @click="doAuthenticateYouTube"
-                    >
-                        <span class="icon"><fa icon="key" /></span>
-                        <span>{{ $t("buttons.authenticate") }}</span>
-                    </button>
-                </div>
+                <youtube-auth />
             </div>
 
             <!-- Description -->
@@ -381,6 +365,7 @@ import { useStore } from "@/store";
 import { AxiosError } from "axios";
 import { defineComponent, ref } from "vue";
 import ModalBox from "./ModalBox.vue";
+import YoutubeAuth from "./YoutubeAuth.vue";
 import { YouTubeCategories } from "@/defs";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -401,6 +386,7 @@ export default defineComponent({
     name: "FileManager",
     components: {
         ModalBox,
+        YoutubeAuth,
     },
     props: {
         path: {
