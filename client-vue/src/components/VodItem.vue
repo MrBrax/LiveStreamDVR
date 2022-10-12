@@ -79,7 +79,7 @@
                     <p>
                         <a
                             href="#"
-                            @click.prevent="editVodMenu ? (editVodMenu.show = true) : ''"
+                            @click.prevent="showModal.edit = true"
                         >
                             <fa icon="comment-dots" />
                             {{ $t("vod.add_comment") }}
@@ -141,269 +141,14 @@
 
             <vod-item-bookmarks :vod="vod" />
 
-            <!-- controls -->
-            <div
-                v-if="vod.is_finalized"
-                class="video-controls buttons"
-            >
-                <button
-                    :class="{ 'button': true, 'details-toggle': true, 'is-active': showAdvanced }"
-                    title="Show advanced"
-                    @click="showAdvanced = !showAdvanced"
-                >
-                    <span class="icon">
-                        <fa
-                            v-if="showAdvanced"
-                            icon="minus"
-                        />
-                        <fa
-                            v-else
-                            icon="plus"
-                        />
-                    </span>
-                </button>
-                <!-- Editor -->
-                <router-link
-                    v-if="vod.video_metadata && vod.video_metadata.type !== 'audio'"
-                    class="button is-blue"
-                    :to="{ name: 'Editor', params: { uuid: vod?.uuid } }"
-                >
-                    <span class="icon"><fa
-                        icon="cut"
-                        type="fa"
-                    /></span>
-                    <span>{{ $t('vod.controls.editor') }}</span>
-                </router-link>
-
-                <!-- Player -->
-                <a
-                    v-if="vod.is_chat_downloaded || vod.is_chatdump_captured"
-                    class="button is-blue"
-                    target="_blank"
-                    @click="playerMenu ? (playerMenu.show = true) : ''"
-                >
-                    <span class="icon"><fa
-                        icon="play"
-                        type="fa"
-                    /></span>
-                    <span>{{ $t('vod.controls.player') }}</span>
-                </a>
-
-                <!-- JSON -->
-                <a
-                    v-if="showAdvanced"
-                    class="button"
-                    :href="vod?.webpath + '/' + vod?.basename + '.json'"
-                    target="_blank"
-                >
-                    <span class="icon"><fa
-                        icon="database"
-                        type="fa"
-                    /></span>
-                    <span>JSON</span>
-                </a>
-
-                <!-- Archive -->
-                <a
-                    class="button"
-                    @click="doArchive"
-                >
-                    <span class="icon">
-                        <fa
-                            v-if="!taskStatus.archive"
-                            icon="archive"
-                            type="fa"
-                        />
-                        <fa
-                            v-else
-                            icon="sync"
-                            type="fa"
-                            spin
-                        />
-                    </span>
-                    <span>{{ $t('vod.controls.archive') }}</span>
-                </a>
-
-                <!-- Download chat-->
-                <a
-                    v-if="vod.provider == 'twitch' && vod.twitch_vod_id && !vod?.is_chat_downloaded"
-                    class="button"
-                    @click="chatDownloadMenu ? (chatDownloadMenu.show = true) : ''"
-                >
-                    <span class="icon">
-                        <fa
-                            v-if="!taskStatus.downloadChat && !compDownloadChat"
-                            icon="comments"
-                            type="fa"
-                        />
-                        <fa
-                            v-else
-                            icon="sync"
-                            type="fa"
-                            spin
-                        />
-                    </span>
-                    <span>{{ $t('vod.controls.download-chat') }}</span>
-                </a>
-
-                <template v-if="vod.provider == 'twitch' && vod.twitch_vod_id">
-                    <!-- Download VOD -->
-                    <a
-                        v-if="!vod.is_vod_downloaded"
-                        class="button"
-                        @click="vodDownloadMenu ? (vodDownloadMenu.show = true) : ''"
-                    >
-                        <span class="icon">
-                            <fa
-                                v-if="!taskStatus.downloadVod"
-                                icon="download"
-                                type="fa"
-                            />
-                            <fa
-                                v-else
-                                icon="sync"
-                                type="fa"
-                                spin
-                            />
-                        </span>
-                        <span v-if="vod.twitch_vod_muted == MuteStatus.MUTED">{{ $t('vod.controls.download-vod-muted') }}</span>
-                        <span v-else>{{ $t('vod.controls.download-vod') }}</span>
-                    </a>
-                    <!-- Check mute -->
-                    <a
-                        v-if="showAdvanced"
-                        class="button"
-                        @click="doCheckMute"
-                    >
-                        <span class="icon">
-                            <fa
-                                v-if="!taskStatus.vodMuteCheck"
-                                icon="volume-mute"
-                                type="fa"
-                            />
-                            <fa
-                                v-else
-                                icon="sync"
-                                type="fa"
-                                spin
-                            />
-                        </span>
-                        <span>{{ $t('vod.controls.check-mute') }}</span>
-                    </a>
-                </template>
-
-                <a
-                    v-if="vod.video_metadata && vod.video_metadata.type !== 'audio'"
-                    class="button"
-                    @click="burnMenu ? (burnMenu.show = true) : ''"
-                >
-                    <span class="icon">
-                        <fa
-                            icon="burn"
-                            type="fa"
-                        />
-                    </span>
-                    <span>{{ $t('vod.controls.render-menu') }}</span>
-                </a>
-
-                <!-- Fix issues -->
-                <a
-                    v-if="showAdvanced"
-                    class="button"
-                    @click="doFixIssues"
-                >
-                    <span class="icon">
-                        <fa
-                            icon="wrench"
-                            type="fa"
-                        />
-                    </span>
-                    <span>{{ $t('vod.controls.fix-issues') }}</span>
-                </a>
-
-                <!-- Vod export menu -->
-                <button
-                    v-if="showAdvanced"
-                    class="button is-confirm"
-                    @click="exportVodMenu ? (exportVodMenu.show = true) : ''"
-                >
-                    <span class="icon">
-                        <fa
-                            icon="upload"
-                            type="fa"
-                        />
-                    </span>
-                    <span>{{ $t('buttons.export') }}</span>
-                </button>
-
-                <!-- Vod edit menu -->
-                <button
-                    v-if="showAdvanced"
-                    class="button is-confirm"
-                    @click="editVodMenu ? (editVodMenu.show = true) : ''"
-                >
-                    <span class="icon">
-                        <fa
-                            icon="pencil"
-                            type="fa"
-                        />
-                    </span>
-                    <span>{{ $t('buttons.edit') }}</span>
-                </button>
-
-                <!-- Rename vod menu -->
-                <button
-                    v-if="showAdvanced"
-                    class="button is-confirm"
-                    @click="renameVodMenu ? (renameVodMenu.show = true) : ''"
-                >
-                    <span class="icon">
-                        <fa
-                            icon="pencil"
-                            type="fa"
-                        />
-                    </span>
-                    <span>{{ $t('buttons.rename') }}</span>
-                </button>
-
-                <!-- Delete segment -->
-                <button
-                    v-if="showAdvanced"
-                    class="button is-danger"
-                    :disabled="vod.prevent_deletion"
-                    @click="doDeleteSegment(0)"
-                >
-                    <span class="icon">
-                        <fa
-                            icon="trash"
-                            type="fa"
-                        />
-                    </span>
-                    <span>{{ $t('buttons.delete-segment') }}</span>
-                </button>
-
-                <!-- Delete -->
-                <button
-                    class="button is-danger"
-                    :disabled="vod.prevent_deletion"
-                    @click="doDelete"
-                >
-                    <span class="icon">
-                        <fa
-                            v-if="!taskStatus.delete"
-                            icon="trash"
-                            type="fa"
-                        />
-                        <fa
-                            v-else
-                            icon="sync"
-                            type="fa"
-                            spin
-                        />
-                    </span>
-                    <span>{{ $t('buttons.delete') }}</span>
-                </button>
-            </div>
+            <vod-item-controls
+                :vod="vod"
+                @show-modal="showModalEv($event as any)"
+                @toggle-advanced="showAdvanced = !showAdvanced"
+                @delete="doDelete"
+                @fix-issues="doFixIssues"
+                @check-mute="doCheckMute"
+            />
 
             <div
                 v-if="(vod.failed && !vod.is_finalized && !vod.is_capturing) || vod.hasError()"
@@ -567,15 +312,16 @@
             />
         </div>
         <modal-box
-            v-if="vod && vod.is_finalized && vod.video_metadata && vod.video_metadata.type !== 'audio'"
-            ref="burnMenu"
+            :show="showModal.burn && vod && vod.is_finalized && vod.video_metadata && vod.video_metadata.type !== 'audio'"
             title="Render Menu"
+            @close="showModal.burn = false"
         >
             <render-modal :vod="vod" />
         </modal-box>
         <modal-box
-            ref="chatDownloadMenu"
+            :show="showModal.chatDownload"
             title="Chat download"
+            @close="showModal.chatDownload = false"
         >
             <div class="buttons is-centered">
                 <button
@@ -595,24 +341,26 @@
             </div>
         </modal-box>
         <modal-box
-            ref="vodDownloadMenu"
+            :show="showModal.vodDownload"
             title="VOD download"
+            @close="showModal.vodDownload = false"
         >
             <div class="is-centered">
                 <div class="field">
                     <label class="label">Quality</label>
-                    <select
-                        v-model="vodDownloadSettings.quality"
-                        class="input"
-                    >
-                        <option
-                            v-for="quality in VideoQualityArray"
-                            :key="quality"
-                            :value="quality"
+                    <div class="select">
+                        <select
+                            v-model="vodDownloadSettings.quality"
                         >
-                            {{ quality }}
-                        </option>
-                    </select>
+                            <option
+                                v-for="quality in VideoQualityArray"
+                                :key="quality"
+                                :value="quality"
+                            >
+                                {{ quality }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
                 <div class="field">
                     <button
@@ -626,8 +374,9 @@
             </div>
         </modal-box>
         <modal-box
-            ref="playerMenu"
+            :show="showModal.player"
             title="Player"
+            @close="showModal.player = false"
         >
             <div class="columns">
                 <div class="column">
@@ -691,24 +440,27 @@
             </div>
         </modal-box>
         <modal-box
-            ref="editVodMenu"
+            :show="showModal.edit"
             :title="$t('vod.edit.edit-vod')"
             max-width="1200px"
+            @close="showModal.edit = false"
         >
             <edit-modal
                 :vod="vod"
-                @close="editVodMenu ? editVodMenu.show = false : ''"
+                @close="showModal.edit = false"
             />
         </modal-box>
         <modal-box
-            ref="exportVodMenu"
+            :show="showModal.export"
             title="Export VOD"
+            @close="showModal.export = false"
         >
             <export-modal :vod="vod" />
         </modal-box>
         <modal-box
-            ref="renameVodMenu"
+            :show="showModal.rename"
             :title="$t('vod.edit.rename-vod')"
+            @close="showModal.rename = false"
         >
             <div class="field">
                 {{ $t('vod.rename.current-name-vod-basename', [vod?.basename]) }}
@@ -798,6 +550,7 @@ import axios from "axios";
 import { useRoute } from "vue-router";
 import { isTwitchVOD } from "@/mixins/newhelpers";
 import VodItemVideoInfo from "./VodItemVideoInfo.vue";
+import VodItemControls from "./VodItemControls.vue";
 library.add(
     faFileVideo,
     faCut,
@@ -830,19 +583,16 @@ const props = defineProps({
     },
 });
 const emit = defineEmits(["forceFetchData", "refresh"]);
-    
+
 const store = useStore();
 const route = useRoute();
-const burnMenu = ref<InstanceType<typeof ModalBox>>();
-const chatDownloadMenu = ref<InstanceType<typeof ModalBox>>();
-const vodDownloadMenu = ref<InstanceType<typeof ModalBox>>();
-const playerMenu = ref<InstanceType<typeof ModalBox>>();
-const editVodMenu = ref<InstanceType<typeof ModalBox>>();
-const exportVodMenu = ref<InstanceType<typeof ModalBox>>();
-const renameVodMenu = ref<InstanceType<typeof ModalBox>>();
-
-const showBurnMenu = ref(false);
-
+// const burnMenu = ref<InstanceType<typeof ModalBox>>();
+// const chatDownloadMenu = ref<InstanceType<typeof ModalBox>>();
+// const vodDownloadMenu = ref<InstanceType<typeof ModalBox>>();
+// const playerMenu = ref<InstanceType<typeof ModalBox>>();
+// const editVodMenu = ref<InstanceType<typeof ModalBox>>();
+// const exportVodMenu = ref<InstanceType<typeof ModalBox>>();
+// const renameVodMenu = ref<InstanceType<typeof ModalBox>>();
 
 const config = ref<ApiSettingsResponse>();
 const taskStatus = ref({
@@ -870,14 +620,14 @@ const renameVodSettings = ref({
     template: "",
 });
 
-const compDownloadChat = computed(() => {
-    if (!store.jobList) return false;
-    for (const job of store.jobList) {
-        if (job.name == `tcd_${props.vod.basename}`) {
-            return true;
-        }
-    }
-    return false;
+const showModal = ref({
+    burn: false,
+    chatDownload: false,
+    vodDownload: false,
+    player: false,
+    edit: false,
+    export: false,
+    rename: false,
 });
 
 const audioOnly = computed(() => {
@@ -1034,37 +784,12 @@ function doCheckMute() {
         });
 }
 
-// doFullBurn() {
-//     /** TODO: implement */
-//     alert("FullBurn");
-// },
-
 function doDelete() {
     if (!props.vod) return;
     if (!confirm(`Do you want to delete "${props.vod?.basename}"?`)) return;
     if (isTwitchVOD(props.vod) && props.vod.twitch_vod_exists === false && !confirm(`The VOD "${props.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
     axios
         .delete(`/api/v0/vod/${props.vod.uuid}`)
-        .then((response) => {
-            const json: ApiResponse = response.data;
-            if (json.message) alert(json.message);
-            console.log(json);
-            emit("refresh");
-            if (props.vod && isTwitchVOD(props.vod)) store.fetchAndUpdateStreamer(props.vod.channel_uuid);
-        })
-        .catch((err) => {
-            console.error("form error", err.response);
-            if (err.response.data && err.response.data.message) alert(err.response.data.message);
-        });
-}
-
-function doDeleteSegment(index = 0) {
-    if (!props.vod) return;
-    if (!confirm(`Do you want to delete segment ${index} of "${props.vod?.basename}"?`)) return;
-    const keepEntry = confirm(`Do you want to keep the entry and mark it as cloud storage?`);
-    if (isTwitchVOD(props.vod) && props.vod.twitch_vod_exists === false && !confirm(`The VOD "${props.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
-    axios
-        .post(`/api/v0/vod/${props.vod.uuid}/delete_segment?segment=${index}&keep_entry=${keepEntry ? "true" : "false"}`)
         .then((response) => {
             const json: ApiResponse = response.data;
             if (json.message) alert(json.message);
@@ -1171,11 +896,19 @@ function doRenameVod() {
         if (json.message) alert(json.message);
         console.log(json);
         store.fetchAndUpdateStreamerList();
-        if (renameVodMenu.value) renameVodMenu.value.show = false;
+        showModal.value.rename = false;
     }).catch((err) => {
         console.error("form error", err.response);
         if (err.response.data && err.response.data.message) alert(err.response.data.message);
     });
+}
+
+function showModalEv(modal: keyof typeof showModal.value) {
+    if (showModal.value[modal] === undefined) {
+        console.error("showModalEv: unknown modal", modal);
+        return;
+    }
+    showModal.value[modal] = true;
 }
 
 function twitchVideoLink(video_id: string): string {

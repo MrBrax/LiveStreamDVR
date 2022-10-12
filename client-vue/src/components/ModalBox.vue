@@ -1,10 +1,10 @@
 <template>
-    <transition name="modal-transition">
-        <teleport to="body">
+    <teleport to="body">
+        <transition name="modal-transition">
             <div
                 v-if="show"
                 class="modal-box"
-                @click.self="show = false"
+                @click.self="$emit('close')"
             >
                 <div
                     class="modal-box__container"
@@ -16,7 +16,7 @@
                         </div>
                         <div
                             class="modal-box__close"
-                            @click="show = false"
+                            @click="$emit('close')"
                         >
                             <fa icon="times" />
                         </div>
@@ -26,8 +26,8 @@
                     </div>
                 </div>
             </div>
-        </teleport>
-    </transition>
+        </transition>
+    </teleport>
 </template>
 
 <script lang="ts">
@@ -46,17 +46,17 @@ export default defineComponent({
             type: String,
             default: "800px",
         },
-        // show: {
-        //     type: Boolean,
-        //     default: false,
-        // },
+        show: {
+            type: Boolean,
+            default: false,
+        },
     },
     emits: ["close"],
-    data() {
-        return {
-            show: false,
-        };
-    },
+    // data() {
+    //     return {
+    //         show: false,
+    //     };
+    // },
     methods: {
         close() {
             this.$emit("close");

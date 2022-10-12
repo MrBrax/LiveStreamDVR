@@ -121,7 +121,7 @@
                         <button
                             class="icon-button white"
                             title="Video download"
-                            @click="videoDownloadMenu ? (videoDownloadMenu.show = true) : ''"
+                            @click="showVideoDownloadMenu = true"
                         >
                             <span class="icon"><fa icon="download" /></span>
                         </button>
@@ -278,8 +278,9 @@
             </transition-group>
         </div>
         <modal-box
-            ref="videoDownloadMenu"
+            :show="showVideoDownloadMenu"
             title="Video download"
+            @close="showVideoDownloadMenu = false"
         >
             <div class="video-download-menu">
                 <p>
@@ -372,7 +373,8 @@ const toggleAllVodsExpanded = ref(false);
 const limitVods = ref(false);
 
 // setup
-const videoDownloadMenu = ref<InstanceType<typeof ModalBox>>();
+// const videoDownloadMenu = ref<InstanceType<typeof ModalBox>>();
+const showVideoDownloadMenu = ref(false);
 const vodItem = ref<InstanceType<typeof VodItem>>();
 
 const quality = computed(() => {

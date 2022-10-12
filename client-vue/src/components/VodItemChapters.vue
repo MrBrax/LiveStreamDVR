@@ -198,6 +198,7 @@ import { ChapterTypes, useStore, VODTypes } from '@/store';
 import { ApiResponse, ApiSettingsResponse } from '@common/Api/Api';
 import axios from 'axios';
 import { computed } from 'vue';
+import DurationDisplay from "@/components/DurationDisplay.vue";
 
 function isTwitchChapter(chapter: ChapterTypes): chapter is TwitchVODChapter {
     return chapter instanceof TwitchVODChapter;

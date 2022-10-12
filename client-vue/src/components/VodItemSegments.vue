@@ -66,7 +66,10 @@
 </template>
 
 <script lang="ts" setup>
+import { isTwitchVOD } from '@/mixins/newhelpers';
 import { useStore, VODTypes } from '@/store';
+import { ApiResponse } from '@common/Api/Api';
+import axios from 'axios';
 
 const props = defineProps({
     vod: {
@@ -77,6 +80,26 @@ const props = defineProps({
 });
 
 const store = useStore();
+
+function doDeleteSegment(index = 0) {
+    if (!props.vod) return;
+    if (!confirm(`Do you want to delete segment ${index} of "${props.vod?.basename}"?`)) return;
+    const keepEntry = confirm(`Do you want to keep the entry and mark it as cloud storage?`);
+    if (isTwitchVOD(props.vod) && props.vod.twitch_vod_exists === false && !confirm(`The VOD "${props.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
+    axios
+        .post(`/api/v0/vod/${props.vod.uuid}/delete_segment?segment=${index}&keep_entry=${keepEntry ? "true" : "false"}`)
+        .then((response) => {
+            const json: ApiResponse = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            // emit("refresh");
+            if (props.vod && isTwitchVOD(props.vod)) store.fetchAndUpdateStreamer(props.vod.channel_uuid);
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) alert(err.response.data.message);
+        });
+}
 
 </script>
 
