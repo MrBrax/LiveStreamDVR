@@ -143,6 +143,7 @@
 
             <vod-item-controls
                 :vod="vod"
+                :show-advanced="showAdvanced"
                 @show-modal="showModalEv($event as any)"
                 @toggle-advanced="showAdvanced = !showAdvanced"
                 @delete="doDelete"

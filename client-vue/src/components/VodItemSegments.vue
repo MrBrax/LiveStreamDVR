@@ -7,7 +7,7 @@
         <strong>{{ $t('vod.segments') }}</strong>
         <ul class="list-segments">
             <li
-                v-for="segment in vod.segments"
+                v-for="(segment, i) of vod.segments"
                 :key="segment.basename"
             >
                 <a
@@ -16,8 +16,17 @@
                     @click.prevent="store.playMedia(vod?.webpath + '/' + segment.basename)"
                 >
                     <span class="text-overflow">{{ segment.basename }}</span>
-                    <span v-if="!segment.deleted && segment.filesize"> ({{ formatBytes(segment.filesize) }}) </span>
+                    <span v-if="!segment.deleted && segment.filesize"> ({{ formatBytes(segment.filesize) }})</span>
+                    <!-- delete -->
                 </a>
+                <button
+                    v-if="!segment.deleted"
+                    class="icon-button is-small delete-button"
+                    title="Delete segment"
+                    @click.prevent="doDeleteSegment(i)"
+                >
+                    <span class="icon"><fa icon="xmark" /></span>
+                </button>
                 <span v-if="segment.deleted && !vod.cloud_storage">
                     <strong class="text-is-error">&nbsp;(deleted)</strong>
                 </span>
@@ -112,4 +121,13 @@ function doDeleteSegment(index = 0) {
     // border-left: 1px solid #e3e3e3;
     // border-right: 1px solid #e3e3e3;
 }
+
+.delete-button {
+    margin-left: 0.5em;
+    color: #d34040;
+    &:hover {
+        color: #fa9d9d;
+    }
+}
+
 </style>

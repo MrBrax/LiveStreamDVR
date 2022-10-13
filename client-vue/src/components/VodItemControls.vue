@@ -310,3 +310,24 @@ function doArchive() {
 }
 
 </script>
+
+<style lang="scss" scoped>
+
+.details-toggle {
+    // padding: 0.2em 0.5em;
+    text-align: center;
+    background-color: #eaeaea;
+    // border-radius: 2px;
+    border: 1px solid #aaa;
+    margin: 1px;
+    box-shadow: inset 0 -2px 0px rgba(0, 0, 0, 0.05);
+    transition: all 0.1s ease-in-out;
+    &.is-active {
+        background-color: #b4b4b4;
+        border-color: #8d8d8d;
+        color: #333;
+        box-shadow: inset 0 2px 0px rgba(0, 0, 0, 0.05);
+    }
+}
+
+</style>
