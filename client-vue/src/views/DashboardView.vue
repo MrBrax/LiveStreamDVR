@@ -50,6 +50,7 @@
                 </template>
                 <template v-else>
                     <streamer
+                        v-if="singleStreamer"
                         :streamer="singleStreamer"
                         @refresh="store.fetchAndUpdateStreamerList"
                     />

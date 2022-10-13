@@ -1182,52 +1182,46 @@
 "@vitejs/plugin-vue@^3.1.2":
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/@vitejs/plugin-vue/-/plugin-vue-3.1.2.tgz#3cd52114e8871a0b5e7bd7d837469c032e503036"
-  integrity sha512-3zxKNlvA3oNaKDYX0NBclgxTQ1xaFdL7PzwF6zj9tGFziKwmBa3Q/6XcJQxudlT81WxDjEhHmevvIC4Orc1LhQ==
 
-"@volar/code-gen@0.40.1":
-  version "0.40.1"
-  resolved "https://registry.yarnpkg.com/@volar/code-gen/-/code-gen-0.40.1.tgz#30637162626bd2ea6e3c3c3cedab291494870c25"
+"@volar/language-core@1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@volar/language-core/-/language-core-1.0.7.tgz#08dd6d135e57fdc05ce1facc5430ec30e8716392"
   dependencies:
-    "@volar/source-map" "0.40.1"
+    "@volar/source-map" "1.0.7"
+    "@vue/reactivity" "^3.2.40"
+    muggle-string "^0.1.0"
 
-"@volar/source-map@0.40.1":
-  version "0.40.1"
-  resolved "https://registry.yarnpkg.com/@volar/source-map/-/source-map-0.40.1.tgz#9fcefb21ce0e0ca272f76129b6a98b6f08f4debb"
-
-"@volar/typescript-faster@0.40.1":
-  version "0.40.1"
-  resolved "https://registry.yarnpkg.com/@volar/typescript-faster/-/typescript-faster-0.40.1.tgz#99a37f0386934d971b71586ee0dcdd20b3537d90"
+"@volar/source-map@1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@volar/source-map/-/source-map-1.0.7.tgz#da4fa668222cf318d8a0180b8318b08f86dfce72"
   dependencies:
-    semver "^7.3.7"
+    muggle-string "^0.1.0"
 
-"@volar/vue-language-core@0.40.1":
-  version "0.40.1"
-  resolved "https://registry.yarnpkg.com/@volar/vue-language-core/-/vue-language-core-0.40.1.tgz#a11429b59351202af1a89167039a07b4bffbcefc"
+"@volar/typescript@1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@volar/typescript/-/typescript-1.0.7.tgz#e98cd7fb780bb7c642c0ec9a9fbe633dbfdc13a2"
   dependencies:
-    "@volar/code-gen" "0.40.1"
-    "@volar/source-map" "0.40.1"
-    "@vue/compiler-core" "^3.2.37"
-    "@vue/compiler-dom" "^3.2.37"
-    "@vue/compiler-sfc" "^3.2.37"
-    "@vue/reactivity" "^3.2.37"
-    "@vue/shared" "^3.2.37"
+    "@volar/language-core" "1.0.7"
 
-"@volar/vue-typescript@0.40.1":
-  version "0.40.1"
-  resolved "https://registry.yarnpkg.com/@volar/vue-typescript/-/vue-typescript-0.40.1.tgz#5c6e9dd6a5a5e9ec47c90c70c98d2c97f1e8a20d"
+"@volar/vue-language-core@1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@volar/vue-language-core/-/vue-language-core-1.0.7.tgz#3aa1c85221568972a0b1f34240810e6081700200"
   dependencies:
-    "@volar/code-gen" "0.40.1"
-    "@volar/typescript-faster" "0.40.1"
-    "@volar/vue-language-core" "0.40.1"
+    "@volar/language-core" "1.0.7"
+    "@volar/source-map" "1.0.7"
+    "@vue/compiler-dom" "^3.2.40"
+    "@vue/compiler-sfc" "^3.2.40"
+    "@vue/reactivity" "^3.2.40"
+    "@vue/shared" "^3.2.40"
+    minimatch "^5.1.0"
+    vue-template-compiler "^2.7.10"
 
-"@vue/compiler-core@3.2.37", "@vue/compiler-core@^3.2.37":
-  version "3.2.37"
-  resolved "https://registry.yarnpkg.com/@vue/compiler-core/-/compiler-core-3.2.37.tgz#b3c42e04c0e0f2c496ff1784e543fbefe91e215a"
+"@volar/vue-typescript@1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@volar/vue-typescript/-/vue-typescript-1.0.7.tgz#656b7838260643072fb70286574be11778e587fa"
   dependencies:
-    "@babel/parser" "^7.16.4"
-    "@vue/shared" "3.2.37"
-    estree-walker "^2.0.2"
-    source-map "^0.6.1"
+    "@volar/typescript" "1.0.7"
+    "@volar/vue-language-core" "1.0.7"
 
 "@vue/compiler-core@3.2.40":
   version "3.2.40"
@@ -1238,21 +1232,14 @@
     estree-walker "^2.0.2"
     source-map "^0.6.1"
 
-"@vue/compiler-dom@3.2.37", "@vue/compiler-dom@^3.2.37":
-  version "3.2.37"
-  resolved "https://registry.yarnpkg.com/@vue/compiler-dom/-/compiler-dom-3.2.37.tgz#10d2427a789e7c707c872da9d678c82a0c6582b5"
-  dependencies:
-    "@vue/compiler-core" "3.2.37"
-    "@vue/shared" "3.2.37"
-
-"@vue/compiler-dom@3.2.40":
+"@vue/compiler-dom@3.2.40", "@vue/compiler-dom@^3.2.40":
   version "3.2.40"
   resolved "https://registry.yarnpkg.com/@vue/compiler-dom/-/compiler-dom-3.2.40.tgz#c225418773774db536174d30d3f25ba42a33e7e4"
   dependencies:
     "@vue/compiler-core" "3.2.40"
     "@vue/shared" "3.2.40"
 
-"@vue/compiler-sfc@3.2.40":
+"@vue/compiler-sfc@3.2.40", "@vue/compiler-sfc@^3.2.40":
   version "3.2.40"
   resolved "https://registry.yarnpkg.com/@vue/compiler-sfc/-/compiler-sfc-3.2.40.tgz#61823283efc84d25d9d2989458f305d32a2ed141"
   dependencies:
@@ -1266,28 +1253,6 @@
     magic-string "^0.25.7"
     postcss "^8.1.10"
     source-map "^0.6.1"
-
-"@vue/compiler-sfc@^3.2.37":
-  version "3.2.37"
-  resolved "https://registry.yarnpkg.com/@vue/compiler-sfc/-/compiler-sfc-3.2.37.tgz#3103af3da2f40286edcd85ea495dcb35bc7f5ff4"
-  dependencies:
-    "@babel/parser" "^7.16.4"
-    "@vue/compiler-core" "3.2.37"
-    "@vue/compiler-dom" "3.2.37"
-    "@vue/compiler-ssr" "3.2.37"
-    "@vue/reactivity-transform" "3.2.37"
-    "@vue/shared" "3.2.37"
-    estree-walker "^2.0.2"
-    magic-string "^0.25.7"
-    postcss "^8.1.10"
-    source-map "^0.6.1"
-
-"@vue/compiler-ssr@3.2.37":
-  version "3.2.37"
-  resolved "https://registry.yarnpkg.com/@vue/compiler-ssr/-/compiler-ssr-3.2.37.tgz#4899d19f3a5fafd61524a9d1aee8eb0505313cff"
-  dependencies:
-    "@vue/compiler-dom" "3.2.37"
-    "@vue/shared" "3.2.37"
 
 "@vue/compiler-ssr@3.2.40":
   version "3.2.40"
@@ -1316,16 +1281,6 @@
     "@typescript-eslint/parser" "^5.0.0"
     vue-eslint-parser "^9.0.0"
 
-"@vue/reactivity-transform@3.2.37":
-  version "3.2.37"
-  resolved "https://registry.yarnpkg.com/@vue/reactivity-transform/-/reactivity-transform-3.2.37.tgz#0caa47c4344df4ae59f5a05dde2a8758829f8eca"
-  dependencies:
-    "@babel/parser" "^7.16.4"
-    "@vue/compiler-core" "3.2.37"
-    "@vue/shared" "3.2.37"
-    estree-walker "^2.0.2"
-    magic-string "^0.25.7"
-
 "@vue/reactivity-transform@3.2.40":
   version "3.2.40"
   resolved "https://registry.yarnpkg.com/@vue/reactivity-transform/-/reactivity-transform-3.2.40.tgz#dc24b9074b26f0d9dd2034c6349f5bb2a51c86ac"
@@ -1336,17 +1291,11 @@
     estree-walker "^2.0.2"
     magic-string "^0.25.7"
 
-"@vue/reactivity@3.2.40":
+"@vue/reactivity@3.2.40", "@vue/reactivity@^3.2.40":
   version "3.2.40"
   resolved "https://registry.yarnpkg.com/@vue/reactivity/-/reactivity-3.2.40.tgz#ae65496f5b364e4e481c426f391568ed7d133cca"
   dependencies:
     "@vue/shared" "3.2.40"
-
-"@vue/reactivity@^3.2.37":
-  version "3.2.37"
-  resolved "https://registry.yarnpkg.com/@vue/reactivity/-/reactivity-3.2.37.tgz#5bc3847ac58828e2b78526e08219e0a1089f8848"
-  dependencies:
-    "@vue/shared" "3.2.37"
 
 "@vue/runtime-core@3.2.40":
   version "3.2.40"
@@ -1370,11 +1319,7 @@
     "@vue/compiler-ssr" "3.2.40"
     "@vue/shared" "3.2.40"
 
-"@vue/shared@3.2.37", "@vue/shared@^3.2.37":
-  version "3.2.37"
-  resolved "https://registry.yarnpkg.com/@vue/shared/-/shared-3.2.37.tgz#8e6adc3f2759af52f0e85863dfb0b711ecc5c702"
-
-"@vue/shared@3.2.40":
+"@vue/shared@3.2.40", "@vue/shared@^3.2.40":
   version "3.2.40"
   resolved "https://registry.yarnpkg.com/@vue/shared/-/shared-3.2.40.tgz#e57799da2a930b975321981fcee3d1e90ed257ae"
 
@@ -1753,6 +1698,10 @@ data-urls@^3.0.1:
 date-fns@^2.29.3:
   version "2.29.3"
   resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-2.29.3.tgz#27402d2fc67eb442b511b70bbdf98e6411cd68a8"
+
+de-indent@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/de-indent/-/de-indent-1.0.2.tgz#b2038e846dc33baa5796128d0804b455b8c1e21d"
 
 debug@4, debug@^4.1.0, debug@^4.3.4:
   version "4.3.4"
@@ -2518,6 +2467,10 @@ has@^1.0.3:
   dependencies:
     function-bind "^1.1.1"
 
+he@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/he/-/he-1.2.0.tgz#84ae65fa7eafb165fddb61566ae14baf05664f0f"
+
 html-encoding-sniffer@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/html-encoding-sniffer/-/html-encoding-sniffer-3.0.0.tgz#2cb1a8cf0db52414776e5b2a7a04d5dd98158de9"
@@ -2942,7 +2895,7 @@ minimatch@^3.1.1, minimatch@^3.1.2:
   dependencies:
     brace-expansion "^1.1.7"
 
-minimatch@^5.0.1:
+minimatch@^5.0.1, minimatch@^5.1.0:
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-5.1.0.tgz#1717b464f4971b144f6aabe8f2d0b8e4511e09c7"
   dependencies:
@@ -2951,6 +2904,10 @@ minimatch@^5.0.1:
 ms@2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
+
+muggle-string@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/muggle-string/-/muggle-string-0.1.0.tgz#1fda8a281c8b27bb8b70466dbc9f27586a8baa6c"
 
 nanoid@^3.1.30:
   version "3.2.0"
@@ -3301,9 +3258,9 @@ safe-regex-test@^1.0.0:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/safer-buffer/-/safer-buffer-2.1.2.tgz#44fa161b0187b9549dd84bb91802f9bd8385cd6a"
 
-sass@^1.32.7:
-  version "1.49.0"
-  resolved "https://registry.yarnpkg.com/sass/-/sass-1.49.0.tgz#65ec1b1d9a6bc1bae8d2c9d4b392c13f5d32c078"
+sass@^1.55.0:
+  version "1.55.0"
+  resolved "https://registry.yarnpkg.com/sass/-/sass-1.55.0.tgz#0c4d3c293cfe8f8a2e8d3b666e1cf1bff8065d1c"
   dependencies:
     chokidar ">=3.0.0 <4.0.0"
     immutable "^4.0.0"
@@ -3754,12 +3711,19 @@ vue-router@^4.1.5:
   dependencies:
     "@vue/devtools-api" "^6.1.4"
 
-vue-tsc@^0.40.1:
-  version "0.40.1"
-  resolved "https://registry.yarnpkg.com/vue-tsc/-/vue-tsc-0.40.1.tgz#96470c63d47d060178639d08ac18f1b1f8834d2c"
+vue-template-compiler@^2.7.10:
+  version "2.7.12"
+  resolved "https://registry.yarnpkg.com/vue-template-compiler/-/vue-template-compiler-2.7.12.tgz#762476971b13eb5ea5c786886be28395f345c1e1"
   dependencies:
-    "@volar/vue-language-core" "0.40.1"
-    "@volar/vue-typescript" "0.40.1"
+    de-indent "^1.0.2"
+    he "^1.2.0"
+
+vue-tsc@^1.0.7:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/vue-tsc/-/vue-tsc-1.0.7.tgz#1476c0a47998fb0861122d05bbdbe4b80fc19977"
+  dependencies:
+    "@volar/vue-language-core" "1.0.7"
+    "@volar/vue-typescript" "1.0.7"
 
 vue@^3.2.40:
   version "3.2.40"

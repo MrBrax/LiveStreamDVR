@@ -47,11 +47,11 @@
     "git-describe": "^4.1.0",
     "jsdom": "^19.0.0",
     "prettier": "^2.5.0",
-    "sass": "^1.32.7",
+    "sass": "^1.55.0",
     "typescript": "^4.8.2",
     "vite": "^3.1.7",
     "vite-plugin-pwa": "^0.13.1",
     "vitest": "^0.23.4",
-    "vue-tsc": "^0.40.1"
+    "vue-tsc": "^1.0.7"
   }
 }

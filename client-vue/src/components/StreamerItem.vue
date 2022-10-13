@@ -242,7 +242,7 @@ const toggleVodMinimizedStatus = ref<Record<string, boolean>>({});
 // setup
 // const videoDownloadMenu = ref<InstanceType<typeof ModalBox>>();
 const showVideoDownloadMenu = ref(false);
-const vodItem = ref<InstanceType<typeof VodItem>>();
+// const vodItem = ref<InstanceType<typeof VodItem>>();
 
 const quality = computed(() => {
     if (!props.streamer || !props.streamer.quality) return "";
@@ -269,16 +269,14 @@ const avatarUrl = computed(() => {
 
 const areMostVodsExpanded = computed(() => {
     if (!props.streamer) return false;
-    const vods = vodItem.value as unknown as typeof VodItem[];
-    if (!vods) return false;
-    return vods.filter((vod) => vod.minimized === false).length >= props.streamer.vods_list.length / 2;
+    return Object.values(toggleVodMinimizedStatus.value).filter((val) => val === false).length >= props.streamer.vods_list.length / 2;
 });
 
 const basePath = computed(() => {
     return store.cfg<string>("basepath", "");
 });
 
-const filteredVodsList = computed(() => {
+const filteredVodsList = computed((): VODTypes[] => {
     if (!props.streamer) return [];
     if (limitVods.value || store.clientCfg('expandDashboardVodList')) return props.streamer.vods_list;
     const vodsToShow = store.clientCfg('vodsToShowInDashboard', 4);
