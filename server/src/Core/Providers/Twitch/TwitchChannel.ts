@@ -137,7 +137,11 @@ export class TwitchChannel extends BaseChannel {
                 vodclass.channel_uuid = this.uuid;
             }
 
-            await vodclass.fixIssues();
+            // await vodclass.fixIssues();
+            let noIssues = false;
+            do {
+                noIssues = await vodclass.fixIssues();
+            } while (!noIssues);
 
             // if (vodclass.is_capturing) {
             //     $this->is_live = true;

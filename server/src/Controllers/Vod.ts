@@ -424,7 +424,10 @@ export async function FixIssues(req: express.Request, res: express.Response): Pr
         return;
     }
 
-    await vod.fixIssues();
+    let noIssues = false;
+    do {
+        noIssues = await vod.fixIssues();
+    } while (!noIssues);
 
     res.send({
         status: "OK",

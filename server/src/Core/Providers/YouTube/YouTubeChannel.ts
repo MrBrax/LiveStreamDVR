@@ -687,7 +687,10 @@ export class YouTubeChannel extends BaseChannel {
                 vodclass.channel_uuid = this.uuid;
             }
 
-            await vodclass.fixIssues();
+            let noIssues = false;
+            do {
+                noIssues = await vodclass.fixIssues();
+            } while (!noIssues);
 
             Log.logAdvanced(LOGLEVEL.DEBUG, "channel.yt", `VOD ${vod} added to ${this.internalName}`);
 

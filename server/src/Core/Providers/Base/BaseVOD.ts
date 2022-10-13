@@ -1439,7 +1439,13 @@ export class BaseVOD {
     }
 
 
-    public async fixIssues(): Promise<void> {
+    public issueFixes = 0;
+    /**
+     * Fix issues
+     * 
+     * @returns true if no more issues need fixing, false if more issues need fixing
+     */
+    public async fixIssues(): Promise<boolean> {
 
         Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Run fixIssues for VOD ${this.basename}`);
 
@@ -1450,7 +1456,8 @@ export class BaseVOD {
 
         if (this.not_started) {
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD ${this.basename} not started yet, skipping fix!`);
-            return;
+            this.issueFixes = 0;
+            return true;
         }
 
         // fix illegal characters
@@ -1458,6 +1465,8 @@ export class BaseVOD {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} contains invalid characters!`));
             const new_basename = this.basename.replaceAll(LiveStreamDVR.filenameIllegalChars, "_");
             this.changeBaseName(new_basename);
+            this.issueFixes++;
+            return false;
         }
 
         if (!this.is_capturing && !this.is_converting && !this.is_finalized && this.segments && this.segments.length > 0) {
@@ -1474,6 +1483,8 @@ export class BaseVOD {
             const segs = await this.rebuildSegmentList();
             if (segs) {
                 await this.saveJSON("fix rebuild segment list");
+                this.issueFixes++;
+                return false;
             } else {
                 console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} could not be rebuilt!`));
             }
@@ -1484,6 +1495,8 @@ export class BaseVOD {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is finished converting but not finalized, finalizing now!`));
             await this.finalize();
             await this.saveJSON("fix finalize");
+            this.issueFixes++;
+            return false;
         }
 
         // if capturing but process not running
@@ -1491,6 +1504,8 @@ export class BaseVOD {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is capturing but process not running. Setting to false for fixing.`));
             this.is_capturing = false;
             await this.saveJSON("fix set capturing to false");
+            this.issueFixes++;
+            return false;
         }
 
         // if converting but process not running
@@ -1498,12 +1513,17 @@ export class BaseVOD {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is converting but process not running. Setting to false for fixing.`));
             this.is_converting = false;
             await this.saveJSON("fix set converting to false");
+            this.issueFixes++;
+            return false;
         }
 
         // if not finalized and no segments found
         if (!this.is_finalized && (!this.segments || this.segments.length === 0)) {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is not finalized and no segments found.`));
             await this.rebuildSegmentList();
+            await this.saveJSON("fix rebuild segment list");
+            this.issueFixes++;
+            return false;
         }
 
         // remux if not yet remuxed
@@ -1543,6 +1563,8 @@ export class BaseVOD {
                                 this.is_converting = false;
                                 await this.saveJSON("fix remux failed");
                             });
+                        this.issueFixes++;
+                        return true; // only true because of async
                     }
                 }
             } else {
@@ -1553,6 +1575,8 @@ export class BaseVOD {
                     this.addSegment(`${this.basename}.mp4`);
                     await this.finalize();
                     await this.saveJSON("fix no segment added");
+                    this.issueFixes++;
+                    return false;
                 }
             }
         }
@@ -1564,6 +1588,8 @@ export class BaseVOD {
             if (duration && this.started_at) {
                 this.ended_at = new Date(this.started_at.getTime() + (duration * 1000));
                 await this.saveJSON("fix set ended_at");
+                this.issueFixes++;
+                return false;
             } else {
                 console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} has no duration or started_at, skipping!`));
             }
@@ -1574,6 +1600,8 @@ export class BaseVOD {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is finalized but no chapters found, fixing now!`));
             await this.generateDefaultChapter();
             await this.saveJSON("fix chapters");
+            this.issueFixes++;
+            return false;
         }
 
         // if all else fails
@@ -1581,6 +1609,8 @@ export class BaseVOD {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is not finalized, converting, capturing or converting, failed recording?`));
             this.failed = true;
             await this.saveJSON("fix set failed true");
+            this.issueFixes++;
+            return false;
         }
 
         // if failed but actually not
@@ -1588,6 +1618,8 @@ export class BaseVOD {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is failed but is finalized, fixing!`));
             this.failed = false;
             await this.saveJSON("fix set failed false");
+            this.issueFixes++;
+            return false;
         }
 
         // if segments don't begin with login
@@ -1623,11 +1655,17 @@ export class BaseVOD {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is finalized but has segments and duration is 0, fixing!`));
             const duration = await this.getDuration(true);
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} duration: ${duration}`));
+            if (duration) {
+                this.issueFixes++;
+                return false;
+            }
         }
 
         if (!this.uuid) {
             this.uuid = randomUUID();
             await this.saveJSON("new uuid");
+            this.issueFixes++;
+            return false;
         }
 
         // if (!this.is_finalized && !this.is_converted && !this.is_converting && !this.is_capturing && !this.is_converted && !this.failed) {
@@ -1649,6 +1687,13 @@ export class BaseVOD {
             "has_ended_at": this.ended_at !== undefined,
             "not_started": this.not_started,
         });
+
+        if (this.issueFixes > 0) {
+            console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} fixed ${this.issueFixes} issues!`));
+        }
+        
+        this.issueFixes = 0; // TODO: should it be set to 0?
+        return true;
 
     }
 
