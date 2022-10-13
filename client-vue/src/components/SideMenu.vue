@@ -453,4 +453,57 @@ export default defineComponent({
     }
 }
 
+@media screen and (orientation: portrait) {
+    .side-menu {
+        width: auto;
+        height: auto;
+        position: static;
+        display: block;
+
+        .menu-middle {
+            /*
+            position: sticky;
+            top: 0px;
+            left: 0px;
+            right: 0px;
+            */
+            display: flex;
+            flex-wrap: wrap;
+            padding: 0 5px 5px 5px;
+            overflow: unset;
+        }
+
+        .menu-bottom {
+            background-color: #000;
+            min-height: 50px;
+            position: fixed;
+            bottom: 0px;
+            left: 0px;
+            right: 0px;
+
+            .top-menu-item[data-menuitem="github"] {
+                display: none;
+            }
+
+            .top-menu-item {
+
+                .icon {
+                    transition: all 0.1s ease-in-out;
+                }
+
+                &.active {
+                    a {
+                        .icon {
+                            transform: scale(120%);
+                        }
+                    }
+                }
+
+            }
+
+        }
+
+    }
+}
+
 </style>

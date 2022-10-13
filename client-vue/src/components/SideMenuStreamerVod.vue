@@ -452,7 +452,6 @@ $waiting-base: #2b2b2b;
 
 }
 
-
 .vod-title {
     white-space: nowrap;
     overflow: hidden;
@@ -460,4 +459,9 @@ $waiting-base: #2b2b2b;
     max-width: 40%;
     display: inline-block;
 }
+
+@media screen and (orientation: portrait) {
+    
+}
+
 </style>

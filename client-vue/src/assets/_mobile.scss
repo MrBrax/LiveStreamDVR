@@ -1,4 +1,21 @@
+// desktop
+@media (min-width: 768px) {
+  .is-mobile {
+    display: none !important;
+  }
+}
+
+// mobile
 @media screen and (orientation: portrait) {
+
+    .is-mobile {
+        display: unset;
+    }
+
+    .is-desktop {
+        display: none !important;
+    }
+
     body {
         font-size: 1rem;
         padding-bottom: 60px;
@@ -21,57 +38,6 @@
         flex-direction: column;
     }
 
-    .side-menu {
-        width: auto;
-        height: auto;
-        position: static;
-        display: block;
-
-        .menu-middle {
-            /*
-            position: sticky;
-            top: 0px;
-            left: 0px;
-            right: 0px;
-            */
-            display: flex;
-            flex-wrap: wrap;
-            padding: 0 5px 5px 5px;
-            overflow: unset;
-        }
-
-        .menu-bottom {
-            background-color: #000;
-            min-height: 50px;
-            position: fixed;
-            bottom: 0px;
-            left: 0px;
-            right: 0px;
-
-            .top-menu-item[data-menuitem="github"] {
-                display: none;
-            }
-
-            .top-menu-item {
-
-                .icon {
-                    transition: all 0.1s ease-in-out;
-                }
-
-                &.active {
-                    a {
-                        .icon {
-                            transform: scale(120%);
-                        }
-                    }
-                }
-
-            }
-
-        }
-
-    }
-
     .top-menu-item {
         display: block;
         align-items: baseline;
@@ -81,99 +47,6 @@
             display: block;
         }
 
-        &.streamer {
-            padding: 5px;
-
-            align-content: center;
-            justify-content: center;
-
-            &:hover {
-                .avatar {
-                    border-width: 3px;
-                    border-color: #ccc;
-                }
-            }
-
-            a {
-                width: 40px;
-                height: 40px;
-                padding: 0;
-                margin: 0;
-                position: relative;
-            }
-
-            .avatar {
-                height: 40px;
-                margin: 0;
-                padding: 0;
-                border-width: 0px;
-                border-style: solid;
-                transition: 0.05s all ease-in-out;
-            }
-
-            .username {
-                display: none;
-            }
-
-            .vodcount {
-                // transform: translateX(-20px);
-
-                font-size: 0.7em;
-
-                background: #333;
-                padding: 1px 3px;
-                border-radius: 50%;
-                color: #ddd;
-
-                position: relative;
-                left: 20px;
-                top: -20px;
-
-                /*
-				font-size: 85%;
-				&:after { content: ' vods'; }
-				&:before { content: '· '; }
-				*/
-
-                &[data-count="0"] {
-                    color: #999;
-                }
-            }
-
-            .subtitle {
-                display: none;
-                /*
-				display: inline-block;
-				font-size: 80%;
-				&:before { content: '·'; }
-				*/
-            }
-
-            &.is-live {
-                a {
-                    background-color: unset;
-                    animation: none;
-                }
-
-                .avatar {
-                    border-width: 3px;
-                    border-color: #f00;
-                }
-
-                .vodcount {
-                    color: #f00;
-                }
-            }
-
-            .streamer-expand-container {
-                display: none;
-            }
-
-        }
-    }
-
-    .streamer-jumpto {
-        display: none;
     }
 
     .streamer-title {
