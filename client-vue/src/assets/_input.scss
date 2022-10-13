@@ -11,8 +11,6 @@
     color: var(--input-color);
     border: 1px solid var(--input-border-color);
 
-    width: 100%;
-
     &:invalid {
         border-color: #c10b0b;
 
@@ -199,5 +197,12 @@
 
     &:hover {
         color: #2f6d68;
+    }
+}
+
+label.checkbox {
+    input {
+        accent-color: var(--accent-color);
+        background-color: #f00;
     }
 }

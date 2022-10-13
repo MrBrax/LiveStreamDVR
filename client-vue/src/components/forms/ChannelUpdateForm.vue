@@ -143,7 +143,6 @@
                 <label class="checkbox">
                     <input
                         v-model="formData.download_chat"
-                        class="input"
                         type="checkbox"
                         name="download_chat"
                     >
@@ -155,7 +154,6 @@
                 <label class="checkbox">
                     <input
                         v-model="formData.live_chat"
-                        class="input"
                         type="checkbox"
                         name="live_chat"
                     >
@@ -170,7 +168,6 @@
                 <label class="checkbox">
                     <input
                         v-model="formData.burn_chat"
-                        class="input"
                         type="checkbox"
                         name="burn_chat"
                     >
@@ -185,7 +182,6 @@
                 <label class="checkbox">
                     <input
                         v-model="formData.no_capture"
-                        class="input"
                         type="checkbox"
                         name="no_capture"
                     >

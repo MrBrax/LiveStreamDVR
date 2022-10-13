@@ -98,7 +98,7 @@
         <div class="field">
             <label class="label">Side menu</label>
             <div class="control">
-                <label>
+                <label class="checkbox">
                     <input
                         v-model="sideMenuShow.vod_icon"
                         type="checkbox"
@@ -106,7 +106,7 @@
                 </label>
             </div>
             <div class="control">
-                <label>
+                <label class="checkbox">
                     <input
                         v-model="sideMenuShow.vod_date"
                         type="checkbox"
@@ -114,7 +114,7 @@
                 </label>
             </div>
             <div class="control">
-                <label>
+                <label class="checkbox">
                     <input
                         v-model="sideMenuShow.vod_duration"
                         type="checkbox"
@@ -122,7 +122,7 @@
                 </label>
             </div>
             <div class="control">
-                <label>
+                <label class="checkbox">
                     <input
                         v-model="sideMenuShow.vod_size"
                         type="checkbox"
@@ -130,7 +130,7 @@
                 </label>
             </div>
             <div class="control">
-                <label>
+                <label class="checkbox">
                     <input
                         v-model="sideMenuShow.vod_basename"
                         type="checkbox"
@@ -138,7 +138,7 @@
                 </label>
             </div>
             <div class="control">
-                <label>
+                <label class="checkbox">
                     <input
                         v-model="sideMenuShow.vod_sxe"
                         type="checkbox"
@@ -146,7 +146,7 @@
                 </label>
             </div>
             <div class="control">
-                <label>
+                <label class="checkbox">
                     <input
                         v-model="sideMenuShow.vod_sxe_absolute"
                         type="checkbox"
@@ -154,7 +154,7 @@
                 </label>
             </div>
             <div class="control">
-                <label>
+                <label class="checkbox">
                     <input
                         v-model="sideMenuShow.vod_title"
                         type="checkbox"
@@ -201,8 +201,8 @@ import { defaultConfig, defaultConfigFields, defaultSidemenuShow } from "@/defs"
 import { ClientSettings, SidemenuShow } from "@/twitchautomator";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faBell, faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
-library.add(faBell, faArrowRightFromBracket);
+import { faBell, faArrowRightFromBracket, faSave } from "@fortawesome/free-solid-svg-icons";
+library.add(faBell, faArrowRightFromBracket, faSave);
 
 export default defineComponent({
     name: "ClientSettingsForm",
