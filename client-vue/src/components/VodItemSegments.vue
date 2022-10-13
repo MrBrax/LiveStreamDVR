@@ -16,7 +16,7 @@
                     @click.prevent="store.playMedia(vod?.webpath + '/' + segment.basename)"
                 >
                     <span class="text-overflow">{{ segment.basename }}</span>
-                    <span v-if="!segment.deleted && segment.filesize"> ({{ formatBytes(segment.filesize) }})</span>
+                    <template v-if="!segment.deleted && segment.filesize"> ({{ formatBytes(segment.filesize) }})</template>
                     <!-- delete -->
                 </a>
                 <button
@@ -27,15 +27,18 @@
                 >
                     <span class="icon"><fa icon="xmark" /></span>
                 </button>
-                <span v-if="segment.deleted && !vod.cloud_storage">
-                    <strong class="text-is-error">&nbsp;(deleted)</strong>
-                </span>
-                <span v-else-if="segment.deleted && vod.cloud_storage">
-                    <strong class="text-is-error">&nbsp;<fa icon="cloud" /></strong> 
-                </span>
-                <span v-else-if="!segment.filesize">
-                    <strong class="text-is-error">&nbsp;(filesize missing)</strong>
-                </span>
+                <strong
+                    v-if="segment.deleted && !vod.cloud_storage"
+                    class="text-is-error"
+                >&nbsp;(deleted)</strong>
+                <strong
+                    v-else-if="segment.deleted && vod.cloud_storage"
+                    class="text-is-error"
+                >&nbsp;<fa icon="cloud" /></strong> 
+                <strong
+                    v-else-if="!segment.filesize"
+                    class="text-is-error"
+                >&nbsp;(filesize missing)</strong>
             </li>
 
             <li v-if="vod.is_vod_downloaded">

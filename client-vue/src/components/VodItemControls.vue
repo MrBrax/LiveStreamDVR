@@ -34,7 +34,7 @@
         </router-link>
 
         <!-- Player -->
-        <a
+        <button
             v-if="vod.is_chat_downloaded || vod.is_chatdump_captured"
             class="button is-blue"
             target="_blank"
@@ -45,7 +45,7 @@
                 type="fa"
             /></span>
             <span>{{ $t('vod.controls.player') }}</span>
-        </a>
+        </button>
 
         <!-- JSON -->
         <a
@@ -62,7 +62,7 @@
         </a>
 
         <!-- Archive -->
-        <a
+        <button
             class="button"
             @click="doArchive"
         >
@@ -73,10 +73,10 @@
                 />
             </span>
             <span>{{ $t('vod.controls.archive') }}</span>
-        </a>
+        </button>
 
         <!-- Download chat-->
-        <a
+        <button
             v-if="vod.provider == 'twitch' && vod.twitch_vod_id && !vod?.is_chat_downloaded"
             class="button"
             @click="emit('showModal', 'chatDownload')"
@@ -95,11 +95,11 @@
                 />
             </span>
             <span>{{ $t('vod.controls.download-chat') }}</span>
-        </a>
+        </button>
 
         <template v-if="vod.provider == 'twitch' && vod.twitch_vod_id">
             <!-- Download VOD -->
-            <a
+            <button
                 v-if="!vod.is_vod_downloaded"
                 class="button"
                 @click="emit('showModal', 'vodDownload')"
@@ -112,9 +112,9 @@
                 </span>
                 <span v-if="vod.twitch_vod_muted == MuteStatus.MUTED">{{ $t('vod.controls.download-vod-muted') }}</span>
                 <span v-else>{{ $t('vod.controls.download-vod') }}</span>
-            </a>
+            </button>
             <!-- Check mute -->
-            <a
+            <button
                 v-if="showAdvanced"
                 class="button"
                 @click="emit('checkMute')"
@@ -126,10 +126,10 @@
                     />
                 </span>
                 <span>{{ $t('vod.controls.check-mute') }}</span>
-            </a>
+            </button>
         </template>
 
-        <a
+        <button
             v-if="vod.video_metadata && vod.video_metadata.type !== 'audio'"
             class="button"
             @click="emit('showModal', 'burn')"
@@ -141,10 +141,10 @@
                 />
             </span>
             <span>{{ $t('vod.controls.render-menu') }}</span>
-        </a>
+        </button>
 
         <!-- Fix issues -->
-        <a
+        <button
             v-if="showAdvanced"
             class="button"
             @click="emit('fixIssues')"
@@ -156,7 +156,7 @@
                 />
             </span>
             <span>{{ $t('vod.controls.fix-issues') }}</span>
-        </a>
+        </button>
 
         <!-- Vod export menu -->
         <button

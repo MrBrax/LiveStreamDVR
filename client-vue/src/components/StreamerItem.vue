@@ -45,7 +45,7 @@
                     >{{ formatBytes(streamer.vods_size) }}</span><!-- total size -->
                     &middot;
                     <span class="streamer-subbed-status">
-                        <span v-if="streamer.api_getSubscriptionStatus">{{ $t("messages.subscribed") }}</span>
+                        <template v-if="streamer.api_getSubscriptionStatus">{{ $t("messages.subscribed") }}</template>
                         <span
                             v-else
                             class="text-is-error"
@@ -58,8 +58,8 @@
                         class="streamer-type"
                         title="Broadcaster type"
                     >
-                        <span v-if="streamer.broadcaster_type">{{ streamer.broadcaster_type }}</span>
-                        <span v-else>Free</span>
+                        <template v-if="streamer.broadcaster_type">{{ streamer.broadcaster_type }}</template>
+                        <template v-else>Free</template>
                     </span>
                     <span class="streamer-saves-vods">
                         &middot;

@@ -9,27 +9,25 @@
             <span class="icon"><fa icon="pencil" /></span>
         </router-link>
 
-        <span v-if="canAbortCapture">
-            <!-- abort recording -->
-            <button
-                class="icon-button white"
-                title="Abort record"
-                @click="abortCapture"
-            >
-                <span class="icon"><fa icon="video-slash" /></span>
-            </button>
-        </span>
+        <!-- abort recording -->
+        <button
+            v-if="canAbortCapture"
+            class="icon-button white"
+            title="Abort record"
+            @click="abortCapture"
+        >
+            <span class="icon"><fa icon="video-slash" /></span>
+        </button>
 
-        <span v-else>
-            <!-- force recording -->
-            <button
-                class="icon-button white"
-                title="Force record"
-                @click="forceRecord"
-            >
-                <span class="icon"><fa icon="video" /></span>
-            </button>
-        </span>
+        <!-- force recording -->
+        <button
+            v-else
+            class="icon-button white"
+            title="Force record"
+            @click="forceRecord"
+        >
+            <span class="icon"><fa icon="video" /></span>
+        </button>
 
         <!-- dump playlist -->
         <button

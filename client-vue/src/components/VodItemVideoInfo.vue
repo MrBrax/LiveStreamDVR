@@ -262,14 +262,16 @@
                         ><fa icon="sync" /></a>
                     </li>
                     <li>
-                        <span v-if="vod.twitch_vod_id">
+                        <template v-if="vod.twitch_vod_id">
                             The ID was <a
                                 :href="twitchVideoLink(vod.twitch_vod_id)"
                                 rel="noreferrer"
                                 target="_blank"
                             >{{ vod.twitch_vod_id }}</a>.
-                        </span>
-                        <span v-else>{{ $t('vod.video-info.the-vod-probably-never-got-saved') }}</span>
+                        </template>
+                        <template v-else>
+                            {{ $t('vod.video-info.the-vod-probably-never-got-saved') }}
+                        </template>
                     </li>
                 </template>
                 <template v-else>
