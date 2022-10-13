@@ -47,13 +47,15 @@
                         data-contents="started_at"
                         :title="chapter.started_at.toISOString()"
                     >
-                        <span v-if="store.clientCfg('useRelativeTime')">
+                        <template v-if="store.clientCfg('useRelativeTime')">
                             <duration-display
                                 :start-date="chapter.started_at.toISOString()"
                                 output-style="human"
                             /> ago
-                        </span>
-                        <span v-else>{{ formatDate(chapter.started_at, "HH:mm:ss") }}</span>
+                        </template>
+                        <template v-else>
+                            {{ formatDate(chapter.started_at, "HH:mm:ss") }}
+                        </template>
                     </td>
 
                     <!-- end time -->
@@ -61,9 +63,9 @@
                         v-if="showAdvanced"
                         data-contents="ended_at"
                     >
-                        <span v-if="chapter.offset !== undefined && chapter.duration !== undefined">
+                        <template v-if="chapter.offset !== undefined && chapter.duration !== undefined">
                             {{ humanDuration(chapter.offset + chapter.duration) }}
-                        </span>
+                        </template>
                     </td>
 
                     <!-- duration -->
@@ -74,12 +76,12 @@
                         >
                             {{ niceDuration(chapter.duration) }}
                         </span>
-                        <span v-else>
+                        <template v-else>
                             <duration-display
                                 :start-date="chapter.started_at.toISOString()"
                                 output-style="human"
                             />
-                        </span>
+                        </template>
                     </td>
 
                     <!-- chapter name -->
@@ -130,9 +132,10 @@
                                 </a>
                             </span>
                         </template>
-                        <template v-else>
-                            <span class="game-name px-1">{{ chapter.game_name ? chapter.game_name : "None" }}</span>
-                        </template>
+                        <span
+                            v-else
+                            class="game-name px-1"
+                        >{{ chapter.game_name ? chapter.game_name : "None" }}</span>
                         <!-- favourite button -->
                         <button
                             v-if="store.config && isTwitchChapter(chapter) && chapter.game_id && !store.favourite_games.includes(chapter.game_id.toString())"
@@ -145,21 +148,32 @@
                     </td>
 
                     <!-- title -->
-                    <td>
-                        <span class="text-overflow text-long is-text-darker">{{ chapter.title }}</span>
+                    <td
+                        class="text-overflow text-long is-text-darker"
+                        data-contents="title"
+                    >
+                        {{ chapter.title }}
                     </td>
 
                     <!-- viewer count -->
-                    <td v-if="hasViewerCount">
-                        <span
+                    <td
+                        v-if="hasViewerCount"
+                        class="is-text-grey"
+                        data-contents="viewers"
+                    >
+                        <template
                             v-if="chapter.viewer_count"
-                            class="grey"
-                        >{{ formatNumber(chapter.viewer_count) }}</span>
+                        >
+                            {{ formatNumber(chapter.viewer_count) }}
+                        </template>
                     </td>
 
                     <!-- mature -->
-                    <td>
-                        <span v-if="isTwitchChapter(chapter) && chapter.is_mature">🔞</span>
+                    <td
+                        v-if="isTwitchChapter(chapter) && chapter.is_mature"
+                        data-contents="mature"
+                    >
+                        🔞
                     </td>
                 </tr>
 
@@ -167,8 +181,11 @@
                     <td :title="formatDate(vod.ended_at)">
                         {{ vod.getWebhookDuration() }}
                     </td>
-                    <td colspan="10">
-                        <em>{{ $t('vod.chapters.end') }}</em>
+                    <td
+                        colspan="10"
+                        class="has-text-italic"
+                    >
+                        {{ $t('vod.chapters.end') }}
                     </td>
                 </tr>
 
@@ -177,16 +194,20 @@
                         <!--{{ humanDuration(vod?.api_getDurationLive) }}-->
                         <duration-display :start-date="vod.started_at.toISOString()" />
                     </td>
-                    <td colspan="10">
-                        <em><strong>{{ $t('vod.chapters.ongoing') }}</strong></em>
+                    <td
+                        colspan="10"
+                        class="has-text-italic has-text-bold"
+                    >
+                        {{ $t('vod.chapters.ongoing') }}
                     </td>
                 </tr>
             </tbody>
         </table>
-        <div v-else>
-            <div class="text-is-error padding-1">
-                No chapters found
-            </div>
+        <div
+            v-else
+            class="text-is-error padding-1"
+        >
+            No chapters found
         </div>
     </div>
 </template>
