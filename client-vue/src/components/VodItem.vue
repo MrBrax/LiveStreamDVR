@@ -167,15 +167,8 @@
                     >
                         <span class="icon">
                             <fa
-                                v-if="!taskStatus.delete"
                                 icon="trash"
                                 type="fa"
-                            />
-                            <fa
-                                v-else
-                                icon="sync"
-                                type="fa"
-                                spin
                             />
                         </span>
                         <span>{{ $t('buttons.delete') }}</span>
@@ -506,10 +499,8 @@
 <script lang="ts" setup>
 import type { VodBasenameTemplate } from "@common/Replacements";
 import { VodBasenameFields, ExporterFilenameFields } from "@common/ReplacementsConsts";
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref } from "vue";
 import DurationDisplay from "@/components/DurationDisplay.vue";
-// import { format, toDate, parse } from 'date-fns';
-
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
     faFileVideo,
@@ -534,7 +525,7 @@ import {
     faUpload,
     faKey,
 } from "@fortawesome/free-solid-svg-icons";
-import { ChapterTypes, useStore, VODTypes } from "@/store";
+import { useStore, VODTypes } from "@/store";
 import ModalBox from "./ModalBox.vue";
 import VodItemSegments from "./VodItemSegments.vue";
 import VodItemBookmarks from "./VodItemBookmarks.vue";
@@ -546,7 +537,6 @@ import { MuteStatus, VideoQualityArray } from "../../../common/Defs";
 import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import { formatString } from "@common/Format";
 import { format } from "date-fns";
-import { TwitchVODChapter } from "@/core/Providers/Twitch/TwitchVODChapter";
 import axios from "axios";
 import { useRoute } from "vue-router";
 import { isTwitchVOD } from "@/mixins/newhelpers";
@@ -590,18 +580,13 @@ const props = defineProps({
 const emit = defineEmits(["forceFetchData", "refresh", "toggleMinimize"]);
 
 const store = useStore();
+
 const route = useRoute();
-// const burnMenu = ref<InstanceType<typeof ModalBox>>();
-// const chatDownloadMenu = ref<InstanceType<typeof ModalBox>>();
-// const vodDownloadMenu = ref<InstanceType<typeof ModalBox>>();
-// const playerMenu = ref<InstanceType<typeof ModalBox>>();
-// const editVodMenu = ref<InstanceType<typeof ModalBox>>();
-// const exportVodMenu = ref<InstanceType<typeof ModalBox>>();
-// const renameVodMenu = ref<InstanceType<typeof ModalBox>>();
 
 const config = ref<ApiSettingsResponse>();
+/*
 const taskStatus = ref({
-    /** @deprecated */
+    /** @deprecated *
     vodMuteCheck: false,
     archive: false,
     downloadChat: false,
@@ -611,16 +596,21 @@ const taskStatus = ref({
     delete: false,
     fixIssues: false,
 });
-const chatDownloadMethod = ref("tcd");
+*/
+
 const showAdvanced = ref(false);
+
 // const minimized = ref(getDefaultMinimized());
+
 const vodDownloadSettings = ref({
     quality: "best",
 });
+
 const playerSettings = ref({
     vodSource: "captured",
     chatSource: "captured",
 });
+
 const renameVodSettings = ref({
     template: "",
 });
@@ -633,12 +623,6 @@ const showModal = ref({
     edit: false,
     export: false,
     rename: false,
-});
-
-const audioOnly = computed(() => {
-    if (!props.vod) return false;
-    if (!props.vod.video_metadata) return false;
-    return props.vod.video_metadata.type == 'audio';
 });
 
 const renameVodTemplatePreview = computed(() => {
@@ -699,28 +683,7 @@ onMounted(() => {
     renameVodSettings.value.template = store.cfg("filename_vod", "");
 });
 
-
-function doArchive() {
-    if (!props.vod) return;
-    if (!confirm(`Do you want to archive "${props.vod?.basename}"?`)) return;
-    // taskStatus.archive = true;
-    axios
-        .post(`/api/v0/vod/${props.vod.uuid}/save`)
-        .then((response) => {
-            const json: ApiResponse = response.data;
-            if (json.message) alert(json.message);
-            console.log(json);
-            // this.taskStatus.archive = false;
-            emit("refresh");
-        })
-        .catch((err) => {
-            console.error("form error", err.response);
-            if (err.response.data && err.response.data.message) alert(err.response.data.message);
-            // this.taskStatus.archive = false;
-        });
-}
-
-function doDownloadChat(method = "tcd") {
+function doDownloadChat(method = "tcd"): void {
     if (!props.vod) return;
     if (!confirm(`Do you want to download the chat for "${props.vod.basename}" with ${method}?`)) return;
     axios
@@ -738,12 +701,7 @@ function doDownloadChat(method = "tcd") {
         });
 }
 
-// doRenderChat(useVod = false) {
-//     /** TODO: implement */
-//     alert(`RenderChat not implemented: ${useVod}`);
-// },
-
-function doDownloadVod() {
+function doDownloadVod(): void {
     if (!props.vod) return;
     if (!VideoQualityArray.includes(vodDownloadSettings.value.quality)) {
         alert(`Invalid quality: ${vodDownloadSettings.value.quality}`);
@@ -764,7 +722,7 @@ function doDownloadVod() {
         });
 }
 
-function doCheckMute() {
+function doCheckMute(): void {
     if (!props.vod) return;
     axios
         .post(`/api/v0/vod/${props.vod.uuid}/check_mute`)
@@ -791,7 +749,7 @@ function doCheckMute() {
         });
 }
 
-function doDelete() {
+function doDelete(): void {
     if (!props.vod) return;
     if (!confirm(`Do you want to delete "${props.vod?.basename}"?`)) return;
     if (isTwitchVOD(props.vod) && props.vod.twitch_vod_exists === false && !confirm(`The VOD "${props.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
@@ -810,7 +768,7 @@ function doDelete() {
         });
 }
 
-function doFixIssues() {
+function doFixIssues(): void {
     if (!props.vod) return;
     axios
         .post(`/api/v0/vod/${props.vod.uuid}/fix_issues`)
@@ -826,39 +784,7 @@ function doFixIssues() {
         });
 }
 
-/*
-unbreak() {
-    if (!this.vod) return;
-    // this.burnLoading = true;
-    console.debug("doUnbreak", this.vod);
-    axios
-        .post(`/api/v0/vod/${this.vod.uuid}/unbreak`)
-        .then((response) => {
-            const json: ApiResponse = response.data;
-            if (json.message) alert(json.message);
-            console.log(json);
-            emit("refresh");
-        })
-        .catch((err) => {
-            console.error("unbreak response error", err.response);
-            if (err.response.data && err.response.data.message) alert(err.response.data.message);
-        })
-        .finally(() => {
-            // this.burnLoading = false;
-        });
-},
-*/
-
-
-function getDefaultMinimized() {
-    if (!props.vod) return false;
-    if (store.clientCfg("minimizeVodsByDefault")) {
-        return !props.vod.is_capturing;
-    }
-    return false;
-}
-
-function openPlayer() {
+function openPlayer(): void {
     if (!props.vod) return;
     let url = `${store.cfg<string>("basepath", "")}/vodplayer/index.html#&`;
     url += "source=file_http";
@@ -896,7 +822,7 @@ function templatePreview(template: string): string {
     return replaced_string;
 }
 
-function doRenameVod() {
+function doRenameVod(): void {
     if (!props.vod) return;
     axios.post(`/api/v0/vod/${props.vod.uuid}/rename`, renameVodSettings.value).then((response) => {
         const json: ApiResponse = response.data;
@@ -910,20 +836,12 @@ function doRenameVod() {
     });
 }
 
-function showModalEv(modal: keyof typeof showModal.value) {
+function showModalEv(modal: keyof typeof showModal.value): void {
     if (showModal.value[modal] === undefined) {
         console.error("showModalEv: unknown modal", modal);
         return;
     }
     showModal.value[modal] = true;
-}
-
-function twitchVideoLink(video_id: string): string {
-    return `https://www.twitch.tv/videos/${video_id}`;
-}
-
-function isTwitchChapter(chapter: ChapterTypes): chapter is TwitchVODChapter {
-    return chapter instanceof TwitchVODChapter;
 }
 
 </script>

@@ -124,10 +124,15 @@ function doDeleteSegment(index = 0) {
 
 .delete-button {
     margin-left: 0.5em;
-    color: #d34040;
+    color: #f83333;
     &:hover {
-        color: #fa9d9d;
+        color: #ffd0d0;
     }
+}
+
+.list-segments {
+    margin: 0.5em 0;
+    padding: 0 1.5em;
 }
 
 </style>
