@@ -187,9 +187,11 @@ export async function DeleteChannel(req: express.Request, res: express.Response)
         }
     }
 
+    const name = channel.internalName;
+
     channel.delete();
 
-    Log.logAdvanced(LOGLEVEL.INFO, "route.channels.delete", `Channel ${req.params.login} deleted`);
+    Log.logAdvanced(LOGLEVEL.INFO, "route.channels.delete", `Channel ${name} deleted`);
 
     res.send({
         status: "OK",

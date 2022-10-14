@@ -221,6 +221,10 @@ export class LiveStreamDVR {
         this.channels.push(channel);
     }
 
+    public removeChannelByIndex(index: number): void {
+        this.channels.splice(index, 1);
+    }
+
     public getVods(): VODTypes[] {
         return this.vods;
     }

@@ -1684,6 +1684,9 @@ export class TwitchChannel extends BaseChannel {
     }
 
     public async unsubscribe(): Promise<boolean> {
+        if (Config.getInstance().cfg("app_url") === "debug") {
+            return false;
+        }
         return await TwitchChannel.unsubscribeFromId(this.internalId);
     }
 
