@@ -1734,7 +1734,7 @@ export class BaseVOD {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} fixed ${this.issueFixCount} issues!`));
         }
         
-        this.issueFixCount = 0; // TODO: should it be set to 0?
+        // this.issueFixCount = 0; // TODO: should it be set to 0?
         return true;
 
     }
