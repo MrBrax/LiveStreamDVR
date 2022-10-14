@@ -287,6 +287,14 @@ body.is-dark {
     --template-preview-background-color: #444;
 
     --video-comment-background-color: #666;
+
+    --log-color-default: #7c7c7c;
+    --log-color-success: #3ea335;
+    --log-color-fatal: #ff0000;
+    --log-color-warning: #ff7300;
+    --log-color-error: #ff0000;
+    --log-color-debug: #9c9c9c;
+
 }
 
 body.is-hotdogstand {
@@ -363,4 +371,11 @@ body.is-basalt {
     --template-preview-background-color: #444;
 
     --video-comment-background-color: #666;
+
+    --log-color-default: #7c7c7c;
+    --log-color-success: #3ea335;
+    --log-color-fatal: #ff0000;
+    --log-color-warning: #ff7300;
+    --log-color-error: #ff0000;
+    --log-color-debug: #9c9c9c;
 }

@@ -221,31 +221,36 @@ export default defineComponent({
     }
 
     .log-line {
-        color: #333;
+        color: var(--log-color-default);
 
         &.log-line-success {
-            color: #3ea335;
+            // color: #3ea335;
+            color: var(--log-color-success);
             font-weight: 700;
         }
 
         &.log-line-fatal {
-            color: #ff0000;
+            // color: #ff0000;
+            color: var(--log-color-fatal);
             font-weight: 700;
             animation: 0.5s live infinite ease-in-out;
         }
 
         &.log-line-warning {
-            color: #ff7300;
+            // color: #ff7300;
+            color: var(--log-color-warning);
             font-weight: 700;
         }
 
         &.log-line-error {
-            color: #f00;
+            // color: #f00;
+            color: var(--log-color-error);
             font-weight: 700;
         }
 
         &.log-line-debug {
-            color: #9c9c9c;
+            // color: #9c9c9c;
+            color: var(--log-color-debug);
             font-weight: 200;
         }
 
