@@ -61,12 +61,11 @@
                         <template v-if="streamer.broadcaster_type">{{ streamer.broadcaster_type }}</template>
                         <template v-else>Free</template>
                     </span>
-                    <span class="streamer-saves-vods">
-                        &middot;
-                        <span
-                            v-if="!streamer.saves_vods"
-                            class="text-is-error"
-                        >{{ $t("streamer.no-save-vods") }}</span>
+                    <span
+                        v-if="!streamer.saves_vods"
+                        class="streamer-saves-vods text-is-error"
+                    >
+                        &middot; {{ $t("streamer.no-save-vods") }}
                     </span>
                     &middot;
                     <span
@@ -556,6 +555,10 @@ function toggleLimitVods() {
             padding-left: 0.5em;
         }
     }
+}
+
+.streamer-type::first-letter {
+    text-transform: capitalize;
 }
 
 </style>
