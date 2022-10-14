@@ -966,19 +966,6 @@ function showModalEv(modal: keyof typeof showModal.value): void {
     // border-right: 1px solid #e3e3e3;
 }
 
-.video-controls {
-    padding: 10px;
-    background-color: var(--video-controls-background-color);
-    // border-top: 1px solid #d6dbf2;
-    // border-bottom: 1px solid #d6dbf2;
-    // border-left: 1px solid #e3e3e3;
-    // border-right: 1px solid #e3e3e3;
-
-    .icon {
-        margin-right: 0.3em;
-    }
-}
-
 .video-status {
     padding: 10px;
     background-color: #b3ddad;

@@ -313,6 +313,19 @@ function doArchive() {
 
 <style lang="scss" scoped>
 
+.video-controls {
+    padding: 1em 1em 0.5em 1em;
+    background-color: var(--video-controls-background-color);
+    // border-top: 1px solid #d6dbf2;
+    // border-bottom: 1px solid #d6dbf2;
+    // border-left: 1px solid #e3e3e3;
+    // border-right: 1px solid #e3e3e3;
+
+    .icon {
+        margin-right: 0.3em;
+    }
+}
+
 .details-toggle {
     // padding: 0.2em 0.5em;
     text-align: center;
