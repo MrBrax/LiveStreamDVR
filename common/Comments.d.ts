@@ -17,23 +17,23 @@ export interface TwitchCommentDump {
         viewable: string;
 
         /** TwitchDownloader */
-        start: number;
+        start?: number;
         /** TwitchDownloader */
-        end: number;
+        end?: number;
 
         /** @deprecated */
-        length: string;
+        length?: string;
         /** @deprecated */
-        channel: {
+        channel?: {
             _id: string;
             display_name: string;
         };
         /** @deprecated */
-        _id: string;
+        _id?: string;
     };
 
     /** @deprecated */
-    streamer: {
+    streamer?: {
         name: string;
         id: string; // ?
     };
@@ -66,7 +66,7 @@ export interface TwitchComment {
     };
     message: {
         body: string;
-        emoticons: null; // TODO:
+        emoticons: TwitchCommentEmoticons[]; // TODO:
 
         user_notice_params?: {
             "msg-id": string | null;
@@ -92,8 +92,14 @@ export interface TwitchCommentUserBadge {
 
 export interface TwitchCommentMessageFragment {
     text: string;
-    emoticon: {
+    emoticon?: {
         emoticon_id: string;
-        emoticon_set_id: string;
-    } | null;
+        emoticon_set_id?: string;
+    };
+}
+
+export interface TwitchCommentEmoticons {
+    _id: string;
+    begin: number;
+    end: number;
 }

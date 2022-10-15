@@ -1,16 +1,33 @@
 import chalk from "chalk";
+import { randomUUID } from "crypto";
 import { EventEmitter } from "events";
+import fs from "fs";
 import { WebSocket } from "ws";
+import { TwitchComment, TwitchCommentDump, TwitchCommentMessageFragment } from "../../../common/Comments";
+import { TwitchHelper } from "./Twitch";
 
 interface TwitchIRCMessage {
-    tags?: Record<string, TagTypes>;
+    // tags?: Record<string, TagTypes>;
+    tags?: Tags;
     source?: Source;
     command?: Command;
     parameters?: string;
 }
 
 interface Tags {
-    [key: string]: string;
+    badges?: Badge;
+    color?: string;
+    "display-name"?: string;
+    "emote-only"?: string;
+    emotes?: Emote;
+    id?: string;
+    mod?: string;
+    "room-id"?: string;
+    subscriber?: string;
+    turbo?: string;
+    "tmi-sent-ts"?: string;
+    "user-id"?: string;
+    "user-type"?: string;
 }
 
 interface Badge {
@@ -47,18 +64,24 @@ type TagTypes = string | Badge | Emote | string[] | null;
 
 export class TwitchChat extends EventEmitter {
     public ws: WebSocket;
-    public channel = "";
+    public channel_login = "";
+    public channel_id = "";
+    public cap = false;
+    public dumpStream: fs.WriteStream | undefined;
+    public dumpFilename: string | undefined;
+    public dumpStart: Date | undefined;
 
-    constructor(channel: string) {
+    constructor(channel_login: string, channel_id: string) {
         super();
-        this.channel = channel;
+        this.channel_login = channel_login;
+        this.channel_id = channel_id;
         this.ws = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
         this.ws.onopen = () => {
             this.ws.send("PASS blah");
             this.ws.send(
                 `NICK justinfan${Math.floor(Math.random() * 1000000)}`
             );
-            this.ws.send(`JOIN #${this.channel}`);
+            this.ws.send(`JOIN #${this.channel_login}`);
             this.ws.send("CAP REQ :twitch.tv/commands twitch.tv/tags");
         };
         this.ws.onmessage = (event) => {
@@ -77,12 +100,29 @@ export class TwitchChat extends EventEmitter {
                     }
                     */
                     this.emit("message", parsedMessage);
+
                     if (parsedMessage.command?.command == "PING") {
                         this.ws.send("PONG :tmi.twitch.tv");
                         console.log(chalk.green("PONG"));
                     }
+
+                    if (parsedMessage.command?.isCapRequestEnabled) {
+                        console.log(chalk.green("CAP REQ ACK"));
+                        this.cap = true;
+                    }
+
+                    if (this.dumpStream && this.dumpStart && parsedMessage.command?.command === "PRIVMSG") {
+                        const offset = (new Date().getTime() - this.dumpStart.getTime()) / 1000;
+                        this.dumpStream.write(JSON.stringify(this.messageToDump(parsedMessage, this.channel_id, offset)) + "\n");
+                    }
+
                 }
             });
+        };
+        this.ws.onclose = () => {
+            console.log("Connection closed");
+            this.stopDump();
+            this.emit("close");
         };
     }
 
@@ -185,7 +225,7 @@ export class TwitchChat extends EventEmitter {
 
         return parsedMessage;
     }
-    
+
     parseTags(tags: string) {
         // badge-info=;badges=broadcaster/1;color=#0000FF;...
 
@@ -300,7 +340,7 @@ export class TwitchChat extends EventEmitter {
             parsedCommand = {
                 command: commandParts[0],
             };
-            break;               
+            break;
         case "USERSTATE":   // Included only if you request the /commands capability.
         case "ROOMSTATE":   // But it has no meaning without also including the /tags capabilities.
             parsedCommand = {
@@ -334,10 +374,10 @@ export class TwitchChat extends EventEmitter {
             console.log(`numeric message: ${commandParts[0]}`);
             return undefined;
         default:
-            console.log(`\nUnexpected command: ${commandParts[0]}\n`);
+            console.log(`\nUnexpected command: ${commandParts[0]} (${rawCommandComponent}) \n`);
             return undefined;
         }
-    
+
         return parsedCommand;
     }
     parseSource(rawSourceComponent: string): Source | undefined {
@@ -368,6 +408,149 @@ export class TwitchChat extends EventEmitter {
         }
 
         return command;
+    }
+
+    messageToDump(message: TwitchIRCMessage, channel_id: string, offset_seconds: number): TwitchComment {
+
+        if (!message.parameters) {
+            throw new Error("messageToDump: message.parameters is undefined");
+        }
+
+        const emoticons = [];
+        if (message.tags?.emotes) {
+            for (const emote in message.tags.emotes) {
+                emoticons.push({
+                    "_id": emote,
+                    "begin": parseInt(message.tags.emotes[emote][0].startPosition),
+                    "end": parseInt(message.tags.emotes[emote][0].endPosition),
+                });
+            }
+        }
+
+        const fragments: TwitchCommentMessageFragment[] = [];
+        const words = message.parameters.split(" ");
+
+        for (let i = 0; i < words.length; i++) {
+            const word = words[i];
+            const fragment: TwitchCommentMessageFragment = {
+                "text": word,
+                "emoticon": undefined,
+            };
+
+            if (emoticons.length > 0) {
+                for (let j = 0; j < emoticons.length; j++) {
+                    const emoticon = emoticons[j];
+                    if (emoticon.begin <= fragment.text.length) {
+                        fragment.emoticon = {
+                            "emoticon_id": emoticon._id,
+                        };
+                        break;
+                    }
+                }
+            }
+
+            fragments.push(fragment);
+        }
+
+        // merge fragments with only text
+        const mergedFragments: TwitchCommentMessageFragment[] = [];
+        let currentFragment: TwitchCommentMessageFragment | undefined = undefined;
+        for (let i = 0; i < fragments.length; i++) {
+            const fragment = fragments[i];
+            if (fragment.emoticon) {
+                if (currentFragment) {
+                    mergedFragments.push(currentFragment);
+                }
+                currentFragment = fragment;
+            } else {
+                if (currentFragment) {
+                    currentFragment.text += " " + fragment.text;
+                }
+                else {
+                    currentFragment = fragment;
+                }
+            }
+        }
+        if (currentFragment) {
+            mergedFragments.push(currentFragment);
+        }
+
+        return {
+            _id: randomUUID().substring(0, 8),
+            channel_id: channel_id,
+            content_id: "",
+            content_offset_seconds: offset_seconds,
+            content_type: "video",
+            commenter: {
+                _id: "",
+                bio: "",
+                created_at: "",
+                display_name: message.source?.nick || "",
+                logo: "",
+                name: message.source?.nick || "",
+                type: "",
+                updated_at: "",
+            },
+            message: {
+                body: message.parameters || "",
+                emoticons: emoticons,
+                fragments: mergedFragments,
+                user_badges: [],
+                user_color: "",
+            },
+            created_at: new Date().toISOString(),
+            source: "twitch",
+            state: "published",
+            updated_at: new Date().toISOString(),
+        };
+    }
+
+    public startDump(filename: string) {
+        if (fs.existsSync(filename)) {
+            throw new Error(`File ${filename} already exists`);
+        }
+        this.dumpFilename = filename;
+        this.dumpStream = fs.createWriteStream(`${this.dumpFilename}.line`, { flags: "a" });
+        this.dumpStart = new Date();
+        console.log(`Starting chat dump to of ${this.channel_login} to ${this.dumpFilename}.`);
+    }
+
+    public stopDump() {
+        if (this.dumpStream && this.dumpFilename && this.dumpStart) {
+            this.dumpStream.close();
+            const dumpData = fs.readFileSync(`${this.dumpStream.path}`);
+            const dumpLines = dumpData.toString().split("\n").filter((line) => line.length > 0);
+            const dumpAllComments = dumpLines.map((line) => JSON.parse(line));
+
+            const finalDump: TwitchCommentDump = {
+                comments: dumpAllComments,
+                video: {
+                    created_at: "",
+                    description: "",
+                    duration: TwitchHelper.twitchDuration(Math.round((new Date().getTime() - this.dumpStart.getTime()) / 1000)),
+                    id: "",
+                    language: "",
+                    published_at: "",
+                    thumbnail_url: "",
+                    title: "Chat Dump",
+                    type: "archive",
+                    url: "",
+                    user_id: this.channel_id,
+                    user_name: this.channel_login,
+                    view_count: 0,
+                    viewable: "",
+
+                    start: 0,
+                    end: (new Date().getTime() - this.dumpStart.getTime()) / 1000,
+                },
+            };
+            fs.writeFileSync(this.dumpFilename, JSON.stringify(finalDump));
+            fs.unlinkSync(this.dumpStream.path);
+            this.dumpStream = undefined;
+            console.log(`Chat dump of ${this.channel_login} to ${this.dumpFilename} stopped.`);
+        } else {
+            console.log(`Chat dump of ${this.channel_login} to ${this.dumpFilename} was not started.`);
+        }
     }
 
 }
