@@ -7,7 +7,7 @@
         <strong>{{ $t('vod.segments') }}</strong>
         <ul class="list-segments">
             <li
-                v-for="segment in vod.segments"
+                v-for="(segment, i) of vod.segments"
                 :key="segment.basename"
             >
                 <a
@@ -16,17 +16,29 @@
                     @click.prevent="store.playMedia(vod?.webpath + '/' + segment.basename)"
                 >
                     <span class="text-overflow">{{ segment.basename }}</span>
-                    <span v-if="!segment.deleted && segment.filesize"> ({{ formatBytes(segment.filesize) }}) </span>
+                    <template v-if="!segment.deleted && segment.filesize"> ({{ formatBytes(segment.filesize) }})</template>
+                    <!-- delete -->
                 </a>
-                <span v-if="segment.deleted && !vod.cloud_storage">
-                    <strong class="text-is-error">&nbsp;(deleted)</strong>
-                </span>
-                <span v-else-if="segment.deleted && vod.cloud_storage">
-                    <strong class="text-is-error">&nbsp;<fa icon="cloud" /></strong> 
-                </span>
-                <span v-else-if="!segment.filesize">
-                    <strong class="text-is-error">&nbsp;(filesize missing)</strong>
-                </span>
+                <button
+                    v-if="!segment.deleted"
+                    class="icon-button is-small delete-button"
+                    title="Delete segment"
+                    @click.prevent="doDeleteSegment(i)"
+                >
+                    <span class="icon"><fa icon="xmark" /></span>
+                </button>
+                <strong
+                    v-if="segment.deleted && !vod.cloud_storage"
+                    class="text-is-error"
+                >&nbsp;(deleted)</strong>
+                <strong
+                    v-else-if="segment.deleted && vod.cloud_storage"
+                    class="text-is-error"
+                >&nbsp;<fa icon="cloud" /></strong> 
+                <strong
+                    v-else-if="!segment.filesize"
+                    class="text-is-error"
+                >&nbsp;(filesize missing)</strong>
             </li>
 
             <li v-if="vod.is_vod_downloaded">
@@ -112,4 +124,18 @@ function doDeleteSegment(index = 0) {
     // border-left: 1px solid #e3e3e3;
     // border-right: 1px solid #e3e3e3;
 }
+
+.delete-button {
+    margin-left: 0.5em;
+    color: #f83333;
+    &:hover {
+        color: #ffd0d0;
+    }
+}
+
+.list-segments {
+    margin: 0.5em 0;
+    padding: 0 1.5em;
+}
+
 </style>

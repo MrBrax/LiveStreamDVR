@@ -1439,9 +1439,21 @@ export class BaseVOD {
     }
 
 
-    public async fixIssues(): Promise<void> {
+    public issueFixCount = 0;
+    public issueFixes: Record<string, boolean> = {};
+    /**
+     * Fix issues
+     * 
+     * @returns true if no more issues need fixing, false if more issues need fixing
+     */
+    public async fixIssues(): Promise<boolean> {
 
         Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Run fixIssues for VOD ${this.basename}`);
+
+        if (this.issueFixCount > 10) {
+            Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Too many issue fixes for VOD ${this.basename}`);
+            return true;
+        }
 
         // if (!this.getChannel()) {
         //     Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `VOD ${this.basename} has no channel!`);
@@ -1450,14 +1462,18 @@ export class BaseVOD {
 
         if (this.not_started) {
             Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `VOD ${this.basename} not started yet, skipping fix!`);
-            return;
+            this.issueFixCount = 0;
+            return true;
         }
 
         // fix illegal characters
-        if (this.basename.match(LiveStreamDVR.filenameIllegalChars)) {
+        if (this.basename.match(LiveStreamDVR.filenameIllegalChars) && !this.issueFixes["illegal_chars"]) {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} contains invalid characters!`));
             const new_basename = this.basename.replaceAll(LiveStreamDVR.filenameIllegalChars, "_");
             this.changeBaseName(new_basename);
+            this.issueFixCount++;
+            this.issueFixes["illegal_chars"] = true;
+            return false;
         }
 
         if (!this.is_capturing && !this.is_converting && !this.is_finalized && this.segments && this.segments.length > 0) {
@@ -1469,45 +1485,69 @@ export class BaseVOD {
         }
 
         // if finalized but no segments
-        if (this.is_finalized && (!this.segments || this.segments.length === 0)) {
+        if (this.is_finalized && (!this.segments || this.segments.length === 0) && !this.issueFixes["finalized_no_segments"]) {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is finalized but no segments found, rebuilding!`));
             const segs = await this.rebuildSegmentList();
             if (segs) {
                 await this.saveJSON("fix rebuild segment list");
+                this.issueFixCount++;
+                this.issueFixes["finalized_no_segments"] = true;
+                return false;
             } else {
                 console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} could not be rebuilt!`));
+                this.issueFixes["finalized_no_segments"] = true;
             }
         }
 
         // finalize if finished converting and not yet finalized
-        if (this.is_converted && !this.is_finalized && this.segments.length > 0) {
+        if (this.is_converted && !this.is_finalized && this.segments.length > 0 && !this.issueFixes["converted_finalize"]) {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is finished converting but not finalized, finalizing now!`));
             await this.finalize();
             await this.saveJSON("fix finalize");
+            this.issueFixCount++;
+            this.issueFixes["converted_finalize"] = true;
+            return false;
         }
 
         // if capturing but process not running
-        if (this.is_capturing && await this.getCapturingStatus(true) !== JobStatus.RUNNING) {
+        if (this.is_capturing && await this.getCapturingStatus(true) !== JobStatus.RUNNING && !this.issueFixes["capture_not_running"]){
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is capturing but process not running. Setting to false for fixing.`));
             this.is_capturing = false;
             await this.saveJSON("fix set capturing to false");
+            this.issueFixCount++;
+            this.issueFixes["capture_not_running"] = true;
+            return false;
         }
 
         // if converting but process not running
-        if (this.is_converting && await this.getConvertingStatus() !== JobStatus.RUNNING) {
+        if (this.is_converting && await this.getConvertingStatus() !== JobStatus.RUNNING && !this.issueFixes["convert_not_running"]) {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is converting but process not running. Setting to false for fixing.`));
             this.is_converting = false;
             await this.saveJSON("fix set converting to false");
+            this.issueFixCount++;
+            this.issueFixes["convert_not_running"] = true;
+            return false;
         }
 
         // if not finalized and no segments found
-        if (!this.is_finalized && (!this.segments || this.segments.length === 0)) {
+        if (!this.is_finalized && (!this.segments || this.segments.length === 0) && !this.issueFixes["not_finalized_no_segments"]) {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is not finalized and no segments found.`));
             await this.rebuildSegmentList();
+            if (this.segments.length > 0) {
+                await this.saveJSON("fix rebuild segment list");
+                this.issueFixCount++;
+                this.issueFixes["not_finalized_no_segments"] = true;
+                return false;
+            } else {
+                console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} could not be rebuilt!`));
+                // this.issueFixCount++;
+                this.issueFixes["not_finalized_no_segments"] = true;
+                return false;
+            }
         }
 
         // remux if not yet remuxed
-        if (!this.is_capturing && !this.is_converted && !this.is_finalized) {
+        if (!this.is_capturing && !this.is_converted && !this.is_finalized && !this.issueFixes["not_remuxed"]) {
             if (fs.existsSync(path.join(this.directory, `${this.basename}.ts`))) {
                 console.log(chalk.bgRed.whiteBright(`${this.basename} is not yet remuxed, remuxing now!`));
 
@@ -1543,6 +1583,9 @@ export class BaseVOD {
                                 this.is_converting = false;
                                 await this.saveJSON("fix remux failed");
                             });
+                        this.issueFixCount++;
+                        this.issueFixes["not_remuxed"] = true;
+                        return false;
                     }
                 }
             } else {
@@ -1553,41 +1596,67 @@ export class BaseVOD {
                     this.addSegment(`${this.basename}.mp4`);
                     await this.finalize();
                     await this.saveJSON("fix no segment added");
+                    this.issueFixCount++;
+                    this.issueFixes["not_remuxed"] = true;
+                    return false;
                 }
             }
+            this.issueFixes["not_remuxed"] = true;
         }
 
         // if no ended_at set
-        if (this.is_finalized && !this.ended_at) {
+        if (this.is_finalized && !this.ended_at && !this.issueFixes["no_ended_at"]) {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is finalized but no ended_at found, fixing!`));
             const duration = await this.getDuration();
             if (duration && this.started_at) {
                 this.ended_at = new Date(this.started_at.getTime() + (duration * 1000));
                 await this.saveJSON("fix set ended_at");
+                this.issueFixCount++;
+                this.issueFixes["no_ended_at"] = true;
+                return false;
             } else {
                 console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} has no duration or started_at, skipping!`));
             }
+            this.issueFixes["no_ended_at"] = true;
         }
 
         // add default chapter
-        if (this.is_finalized && (!this.chapters || this.chapters.length === 0) && isTwitchVOD(this)) {
+        if (this.is_finalized && (!this.chapters || this.chapters.length === 0) && isTwitchVOD(this) && !this.issueFixes["no_default_chapter"]) {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is finalized but no chapters found, fixing now!`));
             await this.generateDefaultChapter();
             await this.saveJSON("fix chapters");
+            this.issueFixCount++;
+            this.issueFixes["no_default_chapter"] = true;
+            return false;
         }
 
         // if all else fails
-        if (this.not_started && !this.is_finalized && !this.is_converted && !this.is_capturing && !this.is_converting && this.segments.length === 0 && !this.failed) {
+        if (
+            this.not_started &&
+            !this.is_finalized &&
+            !this.is_converted &&
+            !this.is_capturing &&
+            !this.is_converting &&
+            this.segments.length === 0
+            && !this.failed &&
+            !this.issueFixes["all_else_fails"]
+        ) {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is not finalized, converting, capturing or converting, failed recording?`));
             this.failed = true;
             await this.saveJSON("fix set failed true");
+            this.issueFixCount++;
+            this.issueFixes["all_else_fails"] = true;
+            return false;
         }
 
         // if failed but actually not
-        if (this.failed && this.is_finalized && this.segments.length > 0) {
+        if (this.failed && this.is_finalized && this.segments.length > 0 && !this.issueFixes["failed_but_not"]) {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is failed but is finalized, fixing!`));
             this.failed = false;
             await this.saveJSON("fix set failed false");
+            this.issueFixCount++;
+            this.issueFixes["failed_but_not"] = true;
+            return false;
         }
 
         // if segments don't begin with login
@@ -1619,15 +1688,26 @@ export class BaseVOD {
         }
 
         // if finalized but has segments and duration is 0
-        if (this.is_finalized && this.segments.length > 0 && this.duration === 0) {
+        if (this.is_finalized && this.segments.length > 0 && this.duration === 0 && !this.issueFixes["finalized_but_no_duration"]) {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} is finalized but has segments and duration is 0, fixing!`));
             const duration = await this.getDuration(true);
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} duration: ${duration}`));
+            if (duration) {
+                this.issueFixCount++;
+                this.issueFixes["finalized_but_no_duration"] = true;
+                return false;
+            } else {
+                console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} has no duration`));
+                this.issueFixes["finalized_but_no_duration"] = true;
+            }
         }
 
-        if (!this.uuid) {
+        if (!this.uuid && !this.issueFixes["no_uuid"]) {
             this.uuid = randomUUID();
             await this.saveJSON("new uuid");
+            this.issueFixCount++;
+            this.issueFixes["no_uuid"] = true;
+            return false;
         }
 
         // if (!this.is_finalized && !this.is_converted && !this.is_converting && !this.is_capturing && !this.is_converted && !this.failed) {
@@ -1649,6 +1729,13 @@ export class BaseVOD {
             "has_ended_at": this.ended_at !== undefined,
             "not_started": this.not_started,
         });
+
+        if (this.issueFixCount > 0) {
+            console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} fixed ${this.issueFixCount} issues!`));
+        }
+        
+        // this.issueFixCount = 0; // TODO: should it be set to 0?
+        return true;
 
     }
 

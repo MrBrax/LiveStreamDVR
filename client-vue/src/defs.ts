@@ -36,38 +36,48 @@ export const defaultSidemenuShow: SidemenuShow = {
     vod_title: false,
 };
 
-interface ClientSettingField {
+export interface ClientSettingField<T> {
     name: string;
-    type: string;
+    type: T;
     default: any;
     help?: string;
     choices?: Record<string, string>;
     hidden?: boolean;
+    category?: string;
 }
 
-export const defaultConfigFields: Record<keyof ClientSettings, ClientSettingField> = {
-    useSpeech: { type: "boolean", default: false, name: "Use speech to announce new streams" },
-    singlePage: { type: "boolean", default: false, name: "Use a single page for all channels" },
-    enableNotifications: { type: "boolean", default: false, name: "Enable desktop notifications" },
-    animationsEnabled: { type: "boolean", default: true, name: "Enable animations", help: "Flashing and fading animations for example." },
-    tooltipStatic: { type: "boolean", default: false, name: "Make tooltips static", help: "Tooltips will stay at the top of the page." },
-    useRelativeTime: { type: "boolean", default: false, name: "Use relative time for all times" },
+export const defaultConfigFields: Record<keyof ClientSettings, ClientSettingField<string | boolean | number>> = {
+    useSpeech: { type: "boolean", default: false, name: "Use speech to announce new streams", category: "Notifications" },
+    singlePage: { type: "boolean", default: false, name: "Use a single page for all channels", category: "Interface" },
+    enableNotifications: { type: "boolean", default: false, name: "Enable desktop notifications", category: "Notifications" },
+    animationsEnabled: { type: "boolean", default: true, name: "Enable animations", help: "Flashing and fading animations for example.", category: "Interface" },
+    tooltipStatic: { type: "boolean", default: false, name: "Make tooltips static", help: "Tooltips will stay at the top of the page.", category: "Interface" },
+    useRelativeTime: { type: "boolean", default: false, name: "Use relative time for all times", help: "For example, '2 hours ago' instead of '2020-11-03 02:48:01'", category: "Interface" },
     // showAdvancedInfo: { type: "boolean", default: false, name: "Show advanced information in the stream list" },
-    useWebsockets: { type: "boolean", default: true, name: "Use websockets to update the GUI", help: "Get instant updates for channel and vods." },
-    useBackgroundRefresh: { type: "boolean", default: true, name: "Use a background refresh to update VODs", help: "Update channels every 15 minutes." },
-    useBackgroundTicker: { type: "boolean", default: true, name: "Use a background ticker to update the GUI", help: "Use an interval to update channels and vods." },
-    websocketAddressOverride: { type: "string", default: "", name: "Override the websocket address" },
-    expandVodList: { type: "boolean", default: true, name: "Always expand the VOD list in the menu" },
-    vodsToShowInMenu: { type: "number", default: 4, name: "Number of VODs to show in the menu" },
+    useWebsockets: { type: "boolean", default: true, name: "Use websockets to update the GUI", help: "Get instant updates for channel and vods.", category: "LiveUpdate" },
+    useBackgroundRefresh: { type: "boolean", default: true, name: "Use a background refresh to update VODs", help: "Update channels every 15 minutes.", category: "LiveUpdate" },
+    useBackgroundTicker: { type: "boolean", default: true, name: "Use a background ticker to update the GUI", help: "Use an interval to update channels and vods.", category: "LiveUpdate" },
+    websocketAddressOverride: { type: "string", default: "", name: "Override the websocket address", category: "LiveUpdate" },
+    expandVodList: { type: "boolean", default: true, name: "Always expand the VOD list in the menu", category: "Menu" },
+    vodsToShowInMenu: { type: "number", default: 4, name: "Number of VODs to show in the menu", category: "Menu" },
     // alwaysShowCapturingVodInMenu: { type: "boolean", default: false, name: "Always show the capturing VOD in the menu" },
-    minimizeVodsByDefault: { type: "boolean", default: false, name: "Minimize VODs by default" },
-    language: { type: "string", default: "en", name: "Language", hidden: true },
-    theme: { type: "choice", default: "auto", name: "Theme", choices: { auto: "Auto", default: "Default", dark: "Dark", hotdogstand: "Hot dog stand", windows95: "Windows 95", basalt: "Basalt", } },
-    showOfflineCategoryInSidebar: { type: "boolean", default: true, name: "Show the offline category of channels in the sidebar" },
-    sidemenuWidth: { type: "number", default: 330, name: "Width of the sidebar menu" },
-    expandDashboardVodList: { type: "boolean", default: true, name: "Always expand the VOD list in the dashboard"},
-    vodsToShowInDashboard: {  type: "number", default: 4, name: "Number of VODs to show in the dashboard" },
-    jobStatusExpandedByDefault: { type: "boolean", default: false, name: "Expand the job status by default" },
+    minimizeVodsByDefault: { type: "boolean", default: false, name: "Minimize VODs by default", category: "Dashboard" },
+    language: { type: "string", default: "en", name: "Language", hidden: true, category: "Interface" },
+    theme: {
+        type: "choice", default: "auto", name: "Theme", choices: {
+            auto: "Auto",
+            default: "Default",
+            dark: "Dark",
+            hotdogstand: "Hot dog stand",
+            windows95: "Windows 95",
+            basalt: "Basalt",
+        }, category: "Interface"
+    },
+    showOfflineCategoryInSidebar: { type: "boolean", default: true, name: "Show the offline category of channels in the sidebar", category: "Menu" },
+    sidemenuWidth: { type: "number", default: 330, name: "Width of the sidebar menu", category: "Menu" },
+    expandDashboardVodList: { type: "boolean", default: true, name: "Always expand the VOD list in the dashboard", category: "Dashboard" },
+    vodsToShowInDashboard: { type: "number", default: 4, name: "Number of VODs to show in the dashboard", category: "Dashboard" },
+    jobStatusExpandedByDefault: { type: "boolean", default: false, name: "Expand the job status by default", category: "Interface" },
 };
 
 export const YouTubeCategories = {

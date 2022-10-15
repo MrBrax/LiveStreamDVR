@@ -12,40 +12,50 @@
                     {{ vod.getWebhookDuration() }}
                 </li>
                 <li>
-                    <strong>{{ $t('vod.video-info.created') }}:</strong>
-                    <span v-if="vod.created_at">{{ formatDate(vod.created_at, "yyyy-MM-dd HH:mm:ss") }}</span>
+                    <strong>{{ $t('vod.video-info.created') }}:</strong> 
+                    <template v-if="vod.created_at">
+                        {{ formatDate(vod.created_at, "yyyy-MM-dd HH:mm:ss") }}
+                    </template>
                     <span
                         v-else
                         class="text-is-error"
                     >No created_at</span>
                 </li>
                 <li v-if="showAdvanced">
-                    <strong>{{ $t('vod.video-info.went-live') }}:</strong>
-                    <span v-if="vod.started_at">{{ formatDate(vod.started_at, "yyyy-MM-dd HH:mm:ss") }}</span>
+                    <strong>{{ $t('vod.video-info.went-live') }}:</strong> 
+                    <template v-if="vod.started_at">
+                        {{ formatDate(vod.started_at, "yyyy-MM-dd HH:mm:ss") }}
+                    </template>
                     <span
                         v-else
                         class="text-is-error"
                     >No started_at</span>
                 </li>
                 <li v-if="showAdvanced">
-                    <strong>{{ $t('vod.video-info.capture-launched') }}:</strong>
-                    <span v-if="vod.capture_started">{{ formatDate(vod.capture_started, "yyyy-MM-dd HH:mm:ss") }}</span>
+                    <strong>{{ $t('vod.video-info.capture-launched') }}:</strong> 
+                    <template v-if="vod.capture_started">
+                        {{ formatDate(vod.capture_started, "yyyy-MM-dd HH:mm:ss") }}
+                    </template>
                     <span
                         v-else
                         class="text-is-error"
                     >No capture_started</span>
                 </li>
                 <li v-if="showAdvanced">
-                    <strong>{{ $t('vod.video-info.wrote-file') }}:</strong>
-                    <span v-if="vod.capture_started2">{{ formatDate(vod.capture_started2, "yyyy-MM-dd HH:mm:ss") }}</span>
+                    <strong>{{ $t('vod.video-info.wrote-file') }}:</strong> 
+                    <template v-if="vod.capture_started2">
+                        {{ formatDate(vod.capture_started2, "yyyy-MM-dd HH:mm:ss") }}
+                    </template>
                     <span
                         v-else
                         class="text-is-error"
                     >No capture_started2</span>
                 </li>
                 <li>
-                    <strong>{{ $t('vod.video-info.stream-end') }}:</strong>
-                    <span v-if="vod.ended_at">{{ formatDate(vod.ended_at, "yyyy-MM-dd HH:mm:ss") }}</span>
+                    <strong>{{ $t('vod.video-info.stream-end') }}:</strong> 
+                    <template v-if="vod.ended_at">
+                        {{ formatDate(vod.ended_at, "yyyy-MM-dd HH:mm:ss") }}
+                    </template>
                     <span
                         v-else
                         class="text-is-error"
@@ -252,14 +262,16 @@
                         ><fa icon="sync" /></a>
                     </li>
                     <li>
-                        <span v-if="vod.twitch_vod_id">
+                        <template v-if="vod.twitch_vod_id">
                             The ID was <a
                                 :href="twitchVideoLink(vod.twitch_vod_id)"
                                 rel="noreferrer"
                                 target="_blank"
                             >{{ vod.twitch_vod_id }}</a>.
-                        </span>
-                        <span v-else>{{ $t('vod.video-info.the-vod-probably-never-got-saved') }}</span>
+                        </template>
+                        <template v-else>
+                            {{ $t('vod.video-info.the-vod-probably-never-got-saved') }}
+                        </template>
                     </li>
                 </template>
                 <template v-else>
@@ -353,6 +365,11 @@ function matchVod() {
         margin: 0;
         padding: 0;
     }
+
+    // strong {
+    //     font-weight: bold;
+    //     margin-right: 0.2em;
+    // }
 
     .info-column {
         flex-grow: 1;

@@ -16,14 +16,12 @@ const interval = ref(0);
 const timeString = ref("??:??");
 
 watch(() => props.startDate, (a, b) => {
-    console.debug("DurationDisplay: startDate changed", a, b);
     refreshTime();
 });
 
 
 onMounted(() => {
     refreshTime();
-    console.debug("Starting interval");
     interval.value = window.setInterval(() => {
         refreshTime();
     }, 1000);

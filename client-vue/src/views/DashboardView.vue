@@ -1,24 +1,22 @@
 <template>
     <div class="container vertical">
-        <section
+        <article
             v-if="store.errors && store.errors.length > 0 && store.authElement"
-            class="section"
+            class="errors"
             aria-label="Errors"
         >
-            <div class="errors">
-                <details class="details">
-                    <summary>Errors ({{ store.errors.length }})</summary>
-                    <ul>
-                        <li
-                            v-for="error in store.errors"
-                            :key="error"
-                        >
-                            {{ error }}
-                        </li>
-                    </ul>
-                </details>
-            </div>
-        </section>
+            <details class="details">
+                <summary>Errors ({{ store.errors.length }})</summary>
+                <ul>
+                    <li
+                        v-for="error in store.errors"
+                        :key="error"
+                    >
+                        {{ error }}
+                    </li>
+                </ul>
+            </details>
+        </article>
         <section
             v-if="store.cfg('motd')"
             class="section"
@@ -50,6 +48,7 @@
                 </template>
                 <template v-else>
                     <streamer
+                        v-if="singleStreamer"
                         :streamer="singleStreamer"
                         @refresh="store.fetchAndUpdateStreamerList"
                     />

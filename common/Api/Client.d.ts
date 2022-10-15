@@ -42,6 +42,7 @@ export type ApiGame = {
     favourite: boolean;
     image_url: string;
     added: string;
+    deleted?: boolean;
 };
 
 export interface ApiBaseVod {

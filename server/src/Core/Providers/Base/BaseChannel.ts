@@ -352,9 +352,9 @@ export class BaseChannel {
             LiveStreamDVR.getInstance().channels_config.splice(index_config, 1);
         }
 
-        const index_channel = LiveStreamDVR.getInstance().getVods().findIndex(ch => ch.uuid === uuid);
+        const index_channel = LiveStreamDVR.getInstance().getChannels().findIndex(ch => ch.uuid === uuid);
         if (index_channel !== -1) {
-            LiveStreamDVR.getInstance().removeVodByIndex(index_channel);
+            LiveStreamDVR.getInstance().removeChannelByIndex(index_channel);
         }
 
         // TODO: unsub

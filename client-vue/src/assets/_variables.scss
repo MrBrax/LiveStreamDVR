@@ -39,6 +39,7 @@ $boxart-height: 190px;
     --input-focus-color: #000;
     --input-focus-border-color: #555;
     --input-focus-background-color: #eff6ff;
+    --accent-color: #277dec;
 
     --label-color: #363636;
 
@@ -67,4 +68,12 @@ $boxart-height: 190px;
     --template-preview-background-color: #eeeeee;
 
     --video-comment-background-color: #fff;
+
+    --log-color-default: #333333;
+    --log-color-success: #3ea335;
+    --log-color-fatal: #ff0000;
+    --log-color-warning: #ff7300;
+    --log-color-error: #ff0000;
+    --log-color-debug: #9c9c9c;
+
 }

@@ -29,6 +29,13 @@
                             :name="game.id"
                             :value="game.id"
                         >
+                        <span
+                            v-if="game.deleted"
+                            class="icon is-error"
+                            title="Deleted"
+                        >
+                            <fa icon="trash" />
+                        </span>
                         <span class="game-name">
                             {{ game.name }}
                         </span>

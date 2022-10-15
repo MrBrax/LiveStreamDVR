@@ -34,7 +34,7 @@
         </router-link>
 
         <!-- Player -->
-        <a
+        <button
             v-if="vod.is_chat_downloaded || vod.is_chatdump_captured"
             class="button is-blue"
             target="_blank"
@@ -45,7 +45,7 @@
                 type="fa"
             /></span>
             <span>{{ $t('vod.controls.player') }}</span>
-        </a>
+        </button>
 
         <!-- JSON -->
         <a
@@ -62,7 +62,7 @@
         </a>
 
         <!-- Archive -->
-        <a
+        <button
             class="button"
             @click="doArchive"
         >
@@ -73,10 +73,10 @@
                 />
             </span>
             <span>{{ $t('vod.controls.archive') }}</span>
-        </a>
+        </button>
 
         <!-- Download chat-->
-        <a
+        <button
             v-if="vod.provider == 'twitch' && vod.twitch_vod_id && !vod?.is_chat_downloaded"
             class="button"
             @click="emit('showModal', 'chatDownload')"
@@ -95,11 +95,11 @@
                 />
             </span>
             <span>{{ $t('vod.controls.download-chat') }}</span>
-        </a>
+        </button>
 
         <template v-if="vod.provider == 'twitch' && vod.twitch_vod_id">
             <!-- Download VOD -->
-            <a
+            <button
                 v-if="!vod.is_vod_downloaded"
                 class="button"
                 @click="emit('showModal', 'vodDownload')"
@@ -112,9 +112,9 @@
                 </span>
                 <span v-if="vod.twitch_vod_muted == MuteStatus.MUTED">{{ $t('vod.controls.download-vod-muted') }}</span>
                 <span v-else>{{ $t('vod.controls.download-vod') }}</span>
-            </a>
+            </button>
             <!-- Check mute -->
-            <a
+            <button
                 v-if="showAdvanced"
                 class="button"
                 @click="emit('checkMute')"
@@ -126,10 +126,10 @@
                     />
                 </span>
                 <span>{{ $t('vod.controls.check-mute') }}</span>
-            </a>
+            </button>
         </template>
 
-        <a
+        <button
             v-if="vod.video_metadata && vod.video_metadata.type !== 'audio'"
             class="button"
             @click="emit('showModal', 'burn')"
@@ -141,10 +141,10 @@
                 />
             </span>
             <span>{{ $t('vod.controls.render-menu') }}</span>
-        </a>
+        </button>
 
         <!-- Fix issues -->
-        <a
+        <button
             v-if="showAdvanced"
             class="button"
             @click="emit('fixIssues')"
@@ -156,7 +156,7 @@
                 />
             </span>
             <span>{{ $t('vod.controls.fix-issues') }}</span>
-        </a>
+        </button>
 
         <!-- Vod export menu -->
         <button
@@ -310,3 +310,37 @@ function doArchive() {
 }
 
 </script>
+
+<style lang="scss" scoped>
+
+.video-controls {
+    padding: 1em 1em 0.5em 1em;
+    background-color: var(--video-controls-background-color);
+    // border-top: 1px solid #d6dbf2;
+    // border-bottom: 1px solid #d6dbf2;
+    // border-left: 1px solid #e3e3e3;
+    // border-right: 1px solid #e3e3e3;
+
+    .icon {
+        margin-right: 0.3em;
+    }
+}
+
+.details-toggle {
+    // padding: 0.2em 0.5em;
+    text-align: center;
+    background-color: #eaeaea;
+    // border-radius: 2px;
+    border: 1px solid #aaa;
+    margin: 1px;
+    box-shadow: inset 0 -2px 0px rgba(0, 0, 0, 0.05);
+    transition: all 0.1s ease-in-out;
+    &.is-active {
+        background-color: #b4b4b4;
+        border-color: #8d8d8d;
+        color: #333;
+        box-shadow: inset 0 2px 0px rgba(0, 0, 0, 0.05);
+    }
+}
+
+</style>

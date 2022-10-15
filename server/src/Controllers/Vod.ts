@@ -424,11 +424,21 @@ export async function FixIssues(req: express.Request, res: express.Response): Pr
         return;
     }
 
-    await vod.fixIssues();
+    if (req.query.force) {
+        vod.issueFixes = {};
+    }
+
+    vod.issueFixCount = 0;
+
+    let noIssues = false;
+
+    do {
+        noIssues = await vod.fixIssues();
+    } while (!noIssues);
 
     res.send({
         status: "OK",
-        message: "Issues fixed, possibly.",
+        message: `${vod.issueFixCount} issues fixed (${Object.keys(vod.issueFixes).join(", ")})`,
     } as ApiResponse);
 
 }

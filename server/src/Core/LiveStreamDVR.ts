@@ -221,6 +221,10 @@ export class LiveStreamDVR {
         this.channels.push(channel);
     }
 
+    public removeChannelByIndex(index: number): void {
+        this.channels.splice(index, 1);
+    }
+
     public getVods(): VODTypes[] {
         return this.vods;
     }
@@ -434,6 +438,15 @@ export class LiveStreamDVR {
                 if (!vod.segments.some(s => s.filename?.endsWith("_vod.mp4"))) {
                     errors.push(`VOD ${vod.basename} has more than one segment.`);
                 }
+            } else if (vod.segments.length > 0) {
+                vod.segments.forEach(s => {
+                    if (s.filename?.endsWith("_vod.mp4")) return;
+                    if (s.basename && path.parse(s.basename).name !== vod.basename) {
+                        errors.push(`VOD ${vod.basename} has a segment with a different basename: ${s.basename}`);
+                    }
+                });
+            } else {
+                errors.push(`VOD ${vod.basename} has no segments.`);
             }
         }
 

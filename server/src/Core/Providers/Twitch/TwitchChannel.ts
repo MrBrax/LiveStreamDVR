@@ -137,7 +137,11 @@ export class TwitchChannel extends BaseChannel {
                 vodclass.channel_uuid = this.uuid;
             }
 
-            await vodclass.fixIssues();
+            // await vodclass.fixIssues();
+            let noIssues = false;
+            do {
+                noIssues = await vodclass.fixIssues();
+            } while (!noIssues);
 
             // if (vodclass.is_capturing) {
             //     $this->is_live = true;
@@ -1680,6 +1684,9 @@ export class TwitchChannel extends BaseChannel {
     }
 
     public async unsubscribe(): Promise<boolean> {
+        if (Config.getInstance().cfg("app_url") === "debug") {
+            return false;
+        }
         return await TwitchChannel.unsubscribeFromId(this.internalId);
     }
 

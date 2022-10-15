@@ -13,6 +13,7 @@ interface TwitchGameJSON {
     name: string;
     box_art_url: string;
     added: string;
+    deleted?: boolean;
 }
 
 export class TwitchGame {
@@ -24,6 +25,8 @@ export class TwitchGame {
     public name!: string;
     public box_art_url!: string;
     public added!: Date;
+
+    public deleted = false;
 
     public static populateGameDatabase(): void {
         if (!fs.existsSync(BaseConfigPath.gameDb)) return;
@@ -37,6 +40,7 @@ export class TwitchGame {
             game.name = raw_game.name;
             game.box_art_url = raw_game.box_art_url;
             game.added = new Date(raw_game.added);
+            if (raw_game.deleted) game.deleted = raw_game.deleted;
             this.game_db[id] = game;
         }
         Log.logAdvanced(LOGLEVEL.INFO, "helper", `Game database populated with ${Object.keys(this.game_db).length} games.`);
@@ -80,11 +84,15 @@ export class TwitchGame {
 
         if (cachedGame && !force) {
             if (cachedGame && cachedGame.added && Date.now() > cachedGame.added.getTime() + (60 * 60 * 24 * 60 * 1000)) { // two months?
-                Log.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} needs refreshing (${cachedGame.added.toISOString()}).`);
+                Log.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} (${cachedGame.name}) needs refreshing (${cachedGame.added.toISOString()}).`);
             } else if (cachedGame && cachedGame.added) { // check if date is set
                 return this.game_db[game_id];
             } else {
                 Log.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} needs refreshing (no date set).`);
+            }
+            if (cachedGame.deleted) {
+                Log.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} is marked as deleted, return cached game.`);
+                return this.game_db[game_id];
             }
         }
 
@@ -140,7 +148,13 @@ export class TwitchGame {
 
         } else {
 
-            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Invalid game returned in query for ${game_id} (${json})`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Invalid game returned in query for ${game_id}`, json);
+
+            if (cachedGame) {
+                Log.logAdvanced(LOGLEVEL.INFO, "helper", `Cached game ${cachedGame.name} must have been deleted, marking as deleted.`);
+                cachedGame.deleted = true;
+                cachedGame.save();
+            }
 
             return null;
         }
@@ -174,6 +188,7 @@ export class TwitchGame {
                 name: game.name || "",
                 box_art_url: game.box_art_url || "",
                 added: game.added.toISOString(),
+                deleted: game.deleted || undefined,
             };
             json_db[id] = json_game;
         }
@@ -288,6 +303,7 @@ export class TwitchGame {
             favourite: this.isFavourite(),
             image_url: this.getBoxArtUrl(140, 190),
             added: this.added.toISOString(),
+            deleted: this.deleted || undefined,
         };
     }
 

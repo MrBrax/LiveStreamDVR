@@ -1446,7 +1446,12 @@ export class TwitchVOD extends BaseVOD {
 
         await vod.startWatching();
 
-        if (!noFixIssues) await vod.fixIssues();
+        if (!noFixIssues) {
+            let noIssues = false;
+            do {
+                noIssues = await vod.fixIssues();
+            } while (!noIssues);
+        }
 
         if (!vod.not_started && !vod.is_finalized) {
             Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Loaded VOD ${vod.basename} is not finalized!`);

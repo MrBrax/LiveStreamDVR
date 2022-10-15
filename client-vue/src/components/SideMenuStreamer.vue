@@ -22,9 +22,19 @@
             class="streamer-link"
         >
             <span
-                class="avatar"
+                class="avatar is-desktop"
                 aria-label="Streamer Avatar"
                 @click.prevent="streamer && store.fetchAndUpdateStreamer(streamer.uuid)"
+            >
+                <img
+                    :src="avatarUrl"
+                    :alt="streamer.internalName"
+                >
+            </span>
+            <!-- TODO: find another way to disable click on mobile -->
+            <span
+                class="avatar is-mobile"
+                aria-label="Streamer Avatar"
             >
                 <img
                     :src="avatarUrl"
@@ -510,6 +520,104 @@ export default defineComponent({
         }
     }
 
+}
+
+@media screen and (orientation: portrait) {
+    .streamer-jumpto {
+        display: none;
+    }
+
+    .top-menu-item {
+        &.streamer {
+            padding: 5px;
+
+            align-content: center;
+            justify-content: center;
+
+            &:hover {
+                .avatar {
+                    border-width: 3px;
+                    border-color: #ccc;
+                }
+            }
+
+            a {
+                width: 40px;
+                height: 40px;
+                padding: 0;
+                margin: 0;
+                position: relative;
+            }
+
+            .avatar {
+                height: 40px;
+                margin: 0;
+                padding: 0;
+                border-width: 0px;
+                border-style: solid;
+                transition: 0.05s all ease-in-out;
+            }
+
+            .username {
+                display: none;
+            }
+
+            .vodcount {
+                // transform: translateX(-20px);
+
+                font-size: 0.7em;
+
+                background: #333;
+                padding: 1px 3px;
+                border-radius: 50%;
+                color: #ddd;
+
+                position: relative;
+                left: 20px;
+                top: -20px;
+
+                /*
+				font-size: 85%;
+				&:after { content: ' vods'; }
+				&:before { content: '· '; }
+				*/
+
+                &[data-count="0"] {
+                    color: #999;
+                }
+            }
+
+            .subtitle {
+                display: none;
+                /*
+				display: inline-block;
+				font-size: 80%;
+				&:before { content: '·'; }
+				*/
+            }
+
+            &.is-live {
+                a {
+                    background-color: unset;
+                    animation: none;
+                }
+
+                .avatar {
+                    border-width: 3px;
+                    border-color: #f00;
+                }
+
+                .vodcount {
+                    color: #f00;
+                }
+            }
+
+            .streamer-expand-container {
+                display: none;
+            }
+
+        }
+    }
 }
 
 </style>

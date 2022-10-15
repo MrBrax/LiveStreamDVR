@@ -1,6 +1,6 @@
 <template>
-    <div>
-        <div class="field is-horizontal">
+    <div class="field is-horizontal">
+        <div class="control has-addon">
             <div class="select is-small">
                 <select v-model="logFilename">
                     <option
@@ -12,7 +12,7 @@
                 </select>
             </div>
             <button
-                class="button is-small"
+                class="button is-small is-confirm"
                 type="button"
                 @click="fetchLog(true)"
             >
@@ -186,3 +186,86 @@ export default defineComponent({
     },
 });
 </script>
+
+<style lang="scss" scoped>
+.log_viewer {
+    font-family: Consolas, monospace;
+    font-size: 80%;
+    color: #333;
+    max-height: 600px;
+    // max-width: 600px;
+    overflow-x: scroll;
+    overflow-y: scroll;
+
+    table {
+        font-family: Consolas, monospace;
+        font-size: inherit;
+        color: #333;
+
+        td {
+            padding: 0 10px 0 0;
+            margin: 0;
+            vertical-align: top;
+
+            &:nth-child(1) {
+                width: 160px;
+            }
+
+            // date column
+        }
+
+        tr {
+            padding: 0;
+            margin: 0;
+        }
+    }
+
+    .log-line {
+        color: var(--log-color-default);
+
+        &.log-line-success {
+            // color: #3ea335;
+            color: var(--log-color-success);
+            font-weight: 700;
+        }
+
+        &.log-line-fatal {
+            // color: #ff0000;
+            color: var(--log-color-fatal);
+            font-weight: 700;
+            animation: 0.5s live infinite ease-in-out;
+        }
+
+        &.log-line-warning {
+            // color: #ff7300;
+            color: var(--log-color-warning);
+            font-weight: 700;
+        }
+
+        &.log-line-error {
+            // color: #f00;
+            color: var(--log-color-error);
+            font-weight: 700;
+        }
+
+        &.log-line-debug {
+            // color: #9c9c9c;
+            color: var(--log-color-debug);
+            font-weight: 200;
+        }
+
+        &.log-line-interactive {
+            cursor: pointer;
+        }
+    }
+
+    a {
+        color: inherit;
+        text-decoration: none;
+
+        &:hover {
+            color: red;
+        }
+    }
+}
+</style>
