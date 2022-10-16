@@ -3,7 +3,7 @@ import { randomUUID } from "crypto";
 import { EventEmitter } from "events";
 import fs from "fs";
 import { WebSocket } from "ws";
-import { TwitchComment, TwitchCommentDump, TwitchCommentMessageFragment } from "../../../common/Comments";
+import { TwitchComment, TwitchCommentDumpTD, TwitchCommentMessageFragment } from "../../../common/Comments";
 import { TwitchHelper } from "./Twitch";
 
 interface TwitchIRCMessage {
@@ -21,13 +21,27 @@ interface Tags {
     "emote-only"?: string;
     emotes?: Emote;
     id?: string;
-    mod?: string;
+    mod?: string; // number
     "room-id"?: string;
     subscriber?: string;
     turbo?: string;
     "tmi-sent-ts"?: string;
     "user-id"?: string;
     "user-type"?: string;
+    "badge-info"?: string;
+    login?: string;
+
+    "msg-id"?: string;
+    "msg-param-cumulative-months"?: string;
+    "msg-param-months"?: string;
+    "msg-param-multimonth-duration"?: string;
+    "msg-param-multimonth-tenure"?: string;
+    "msg-param-should-share-streak"?: string;
+    "msg-param-streak-months"?: string;
+    "msg-param-sub-plan-name"?: string;
+    "msg-param-sub-plan"?: string;
+    "msg-param-was-gifted"?: string;
+    "system-msg"?: string;
 }
 
 interface Badge {
@@ -71,17 +85,18 @@ export class TwitchChat extends EventEmitter {
     public dumpFilename: string | undefined;
     public dumpStart: Date | undefined;
 
+    public static readonly liveTerms = ["live", "hi youtube", "hi yt", "pog", "pogchamp"];
+    public lastLiveEmit: Date | undefined;
+    public lastTenMessages: TwitchIRCMessage[] = [];
+
     constructor(channel_login: string, channel_id: string) {
         super();
         this.channel_login = channel_login;
         this.channel_id = channel_id;
         this.ws = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
         this.ws.onopen = () => {
-            this.ws.send("PASS blah");
-            this.ws.send(
-                `NICK justinfan${Math.floor(Math.random() * 1000000)}`
-            );
-            this.ws.send(`JOIN #${this.channel_login}`);
+            this.loginAnonymous();
+            this.join(this.channel_login);
             this.ws.send("CAP REQ :twitch.tv/commands twitch.tv/tags");
         };
         this.ws.onmessage = (event) => {
@@ -116,6 +131,40 @@ export class TwitchChat extends EventEmitter {
                         this.dumpStream.write(JSON.stringify(this.messageToDump(parsedMessage, this.channel_id, offset)) + "\n");
                     }
 
+                    this.lastTenMessages.push(parsedMessage);
+                    if (this.lastTenMessages.length > 10) {
+                        this.lastTenMessages.shift();
+                    }
+
+                    // if more than half of the last 10 messages contain a live term, emit live
+                    if (this.lastTenMessages.filter(message => TwitchChat.liveTerms.some(term => message.parameters?.includes(term))).length > 5) {
+                        if (!this.lastLiveEmit || (new Date().getTime() - this.lastLiveEmit.getTime()) > 1000 * 60) {
+                            this.emit("live", parsedMessage);
+                            this.lastLiveEmit = new Date();
+                        }
+                    }
+
+                    if (parsedMessage.command?.command === "CLEARCHAT") {
+                        this.emit("ban", parsedMessage.parameters, parsedMessage);
+                    }
+
+                    if (parsedMessage.command?.command === "USERNOTICE") {
+                        // if (parsedMessage.tags?.msg_id === "sub") {
+                        //     this.emit("sub", parsedMessage.source?.nick);
+                        // }
+                        console.debug(parsedMessage.tags);
+                        if (parsedMessage.tags?.["msg-id"] === "sub" || parsedMessage.tags?.["msg-id"] === "resub" || parsedMessage.tags?.["msg-id"] === "subgift") {
+                            this.emit(
+                                "sub",
+                                parsedMessage.tags["display-name"],
+                                parseInt(parsedMessage.tags["msg-param-cumulative-months"] || "0"),
+                                parsedMessage.tags["msg-param-sub-plan-name"]?.replace("\\\\s", " "),
+                                parsedMessage.parameters,
+                                parsedMessage
+                            );
+                        }
+                    }
+
                 }
             });
         };
@@ -128,6 +177,19 @@ export class TwitchChat extends EventEmitter {
 
     public close() {
         this.ws.close();
+    }
+
+    public send(message: string) {
+        this.ws.send(`PRIVMSG #${this.channel_login} :${message}`);
+    }
+
+    public loginAnonymous() {
+        this.ws.send("PASS blah");
+        this.ws.send(`NICK justinfan${Math.floor(Math.random() * 1000000)}`);
+    }
+
+    public join(channel: string) {
+        this.ws.send(`JOIN #${channel}`);
     }
 
     // Parses an IRC message and returns a JSON object with the message's
@@ -314,13 +376,19 @@ export class TwitchChat extends EventEmitter {
         case "JOIN":
         case "PART":
         case "NOTICE":
-        case "CLEARCHAT":
+        case "CLEARCHAT": // user gets banned lol
         case "HOSTTARGET":
         case "PRIVMSG":
             parsedCommand = {
                 command: commandParts[0],
                 channel: commandParts[1],
             };
+            break;
+        case "USERNOTICE":
+            parsedCommand = {
+                command: commandParts[0],
+            };
+            console.log("USERNOTICE", commandParts, rawCommandComponent);
             break;
         case "PING":
             parsedCommand = {
@@ -434,7 +502,7 @@ export class TwitchChat extends EventEmitter {
             const word = words[i];
             const fragment: TwitchCommentMessageFragment = {
                 "text": word,
-                "emoticon": undefined,
+                "emoticon": null,
             };
 
             if (emoticons.length > 0) {
@@ -476,19 +544,19 @@ export class TwitchChat extends EventEmitter {
         }
 
         return {
-            _id: randomUUID().substring(0, 8),
-            channel_id: channel_id,
+            _id: message.tags?.id || randomUUID().substring(0, 8),
+            channel_id: message.tags?.["room-id"] || channel_id,
             content_id: "",
             content_offset_seconds: offset_seconds,
             content_type: "video",
             commenter: {
-                _id: "",
+                _id: message.tags?.["user-id"] || "",
                 bio: "",
                 created_at: "",
-                display_name: message.source?.nick || "",
+                display_name: message.tags?.["display-name"] || message.source?.nick || "",
                 logo: "",
                 name: message.source?.nick || "",
-                type: "",
+                type: "user",
                 updated_at: "",
             },
             message: {
@@ -496,16 +564,20 @@ export class TwitchChat extends EventEmitter {
                 emoticons: emoticons,
                 fragments: mergedFragments,
                 user_badges: [],
-                user_color: "",
+                user_color: message.tags?.color || "",
             },
             created_at: new Date().toISOString(),
-            source: "twitch",
+            source: "chat",
             state: "published",
             updated_at: new Date().toISOString(),
+            more_replies: false,
         };
     }
 
     public startDump(filename: string) {
+        if (this.dumpFilename) {
+            throw new Error("Dump already started");
+        }
         if (fs.existsSync(filename)) {
             throw new Error(`File ${filename} already exists`);
         }
@@ -522,15 +594,15 @@ export class TwitchChat extends EventEmitter {
             const dumpLines = dumpData.toString().split("\n").filter((line) => line.length > 0);
             const dumpAllComments = dumpLines.map((line) => JSON.parse(line));
 
-            const finalDump: TwitchCommentDump = {
+            const finalDump: TwitchCommentDumpTD = {
                 comments: dumpAllComments,
                 video: {
-                    created_at: "",
+                    created_at: this.dumpStart.toISOString(),
                     description: "",
                     duration: TwitchHelper.twitchDuration(Math.round((new Date().getTime() - this.dumpStart.getTime()) / 1000)),
                     id: "",
                     language: "",
-                    published_at: "",
+                    published_at: this.dumpStart.toISOString(),
                     thumbnail_url: "",
                     title: "Chat Dump",
                     type: "archive",
@@ -543,11 +615,17 @@ export class TwitchChat extends EventEmitter {
                     start: 0,
                     end: (new Date().getTime() - this.dumpStart.getTime()) / 1000,
                 },
+                streamer: {
+                    name: this.channel_login,
+                    id: parseInt(this.channel_id),
+                },
             };
             fs.writeFileSync(this.dumpFilename, JSON.stringify(finalDump));
             fs.unlinkSync(this.dumpStream.path);
-            this.dumpStream = undefined;
             console.log(`Chat dump of ${this.channel_login} to ${this.dumpFilename} stopped.`);
+            this.dumpStream = undefined;
+            this.dumpFilename = undefined;
+            this.dumpStart = undefined;
         } else {
             console.log(`Chat dump of ${this.channel_login} to ${this.dumpFilename} was not started.`);
         }
@@ -556,5 +634,24 @@ export class TwitchChat extends EventEmitter {
 }
 
 export declare interface TwitchChat {
+
+    /**
+     * When a message is posted to the chat
+     */
     on(event: "message", listener: (message: TwitchIRCMessage) => void): this;
+
+    /**
+     * Live prediction event based on chat messages
+     */
+    on(event: "live", listener: (message: TwitchIRCMessage) => void): this;
+
+    /**
+     * When an user gets banned (timeout), actually when their messages get geleted
+     */
+    on(event: "ban", listener: (nick: string, message: TwitchIRCMessage) => void): this;
+
+    /**
+     * When an user subscribes to the channel or gifts subscriptions
+     */
+    on(event: "sub", listener: (displayName: string, months: number, planName: string, subMessage: string, message: TwitchIRCMessage) => void): this;
 }

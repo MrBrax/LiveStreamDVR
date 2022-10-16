@@ -7,7 +7,7 @@ import { Subscriptions } from "../../../common/TwitchAPI/Subscriptions";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
 import { LOGLEVEL, Log } from "../Core/Log";
-import { TwitchCommentDump } from "../../../common/Comments";
+import { TwitchCommentDumpTD } from "../../../common/Comments";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { KeyValue } from "../Core/KeyValue";
 import { SubStatus } from "../../../common/Defs";
@@ -203,7 +203,7 @@ export class TwitchHelper {
             throw new Error(`Output file ${output} already exists`);
         }
 
-        const json: TwitchCommentDump = JSON.parse(fs.readFileSync(input, "utf8"));
+        const json: TwitchCommentDumpTD = JSON.parse(fs.readFileSync(input, "utf8"));
 
         // delete comments outside of the time range
         json.comments = json.comments.filter((comment) => {
