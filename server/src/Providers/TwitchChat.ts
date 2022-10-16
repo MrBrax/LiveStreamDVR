@@ -124,6 +124,7 @@ export class TwitchChat extends EventEmitter {
                     if (parsedMessage.command?.isCapRequestEnabled) {
                         console.log(chalk.green("CAP REQ ACK"));
                         this.cap = true;
+                        this.emit("connected");
                     }
 
                     if (this.dumpStream && this.dumpStart && parsedMessage.command?.command === "PRIVMSG") {
@@ -145,6 +146,7 @@ export class TwitchChat extends EventEmitter {
                     }
 
                     if (parsedMessage.command?.command === "CLEARCHAT") {
+                        console.log(parsedMessage.tags);
                         this.emit("ban", parsedMessage.parameters, parsedMessage);
                     }
 
@@ -158,7 +160,7 @@ export class TwitchChat extends EventEmitter {
                                 "sub",
                                 parsedMessage.tags["display-name"],
                                 parseInt(parsedMessage.tags["msg-param-cumulative-months"] || "0"),
-                                parsedMessage.tags["msg-param-sub-plan-name"]?.replace("\\\\s", " "),
+                                parsedMessage.tags["msg-param-sub-plan-name"]?.replace(/\\\\s/g, " ").replace(/\\s/g, " "),
                                 parsedMessage.parameters,
                                 parsedMessage
                             );
@@ -654,4 +656,6 @@ export declare interface TwitchChat {
      * When an user subscribes to the channel or gifts subscriptions
      */
     on(event: "sub", listener: (displayName: string, months: number, planName: string, subMessage: string, message: TwitchIRCMessage) => void): this;
+
+    on(event: "connected", listener: () => void): this;
 }
