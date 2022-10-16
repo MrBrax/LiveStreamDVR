@@ -434,6 +434,7 @@ export class LiveStreamDVR {
         }
 
         for (const vod of LiveStreamDVR.getInstance().getVods()) {
+            if (!vod.is_finalized) continue;
             if (vod.segments.length > 1) {
                 if (!vod.segments.some(s => s.filename?.endsWith("_vod.mp4"))) {
                     errors.push(`VOD ${vod.basename} has more than one segment.`);

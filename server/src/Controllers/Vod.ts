@@ -433,7 +433,7 @@ export async function FixIssues(req: express.Request, res: express.Response): Pr
     let noIssues = false;
 
     do {
-        noIssues = await vod.fixIssues();
+        noIssues = await vod.fixIssues("FixIssues API call");
     } while (!noIssues);
 
     res.send({

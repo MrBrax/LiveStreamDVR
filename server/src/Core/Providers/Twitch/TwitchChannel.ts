@@ -140,7 +140,7 @@ export class TwitchChannel extends BaseChannel {
             // await vodclass.fixIssues();
             let noIssues = false;
             do {
-                noIssues = await vodclass.fixIssues();
+                noIssues = await vodclass.fixIssues("channel parseVODs");
             } while (!noIssues);
 
             // if (vodclass.is_capturing) {

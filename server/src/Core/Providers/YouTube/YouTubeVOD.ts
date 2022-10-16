@@ -305,7 +305,7 @@ export class YouTubeVOD extends BaseVOD {
         if (!noFixIssues){
             let noIssues = false;
             do {
-                noIssues = await vod.fixIssues();
+                noIssues = await vod.fixIssues("VOD load");
             } while (!noIssues);
         }
 

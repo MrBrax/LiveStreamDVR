@@ -1384,6 +1384,8 @@ export class TwitchVOD extends BaseVOD {
 
     public static async load(filename: string, noFixIssues = false): Promise<TwitchVOD> {
 
+        Log.logAdvanced(LOGLEVEL.DEBUG, "vod", `Loading VOD ${filename}`);
+
         const basename = path.basename(filename);
 
         // check if file exists
@@ -1449,7 +1451,7 @@ export class TwitchVOD extends BaseVOD {
         if (!noFixIssues) {
             let noIssues = false;
             do {
-                noIssues = await vod.fixIssues();
+                noIssues = await vod.fixIssues("VOD load");
             } while (!noIssues);
         }
 
@@ -1461,6 +1463,8 @@ export class TwitchVOD extends BaseVOD {
         // vod.getFFProbe();
 
         vod.loaded = true;
+
+        Log.logAdvanced(LOGLEVEL.DEBUG, "vod", `Loaded VOD ${filename}`);
 
         return vod;
 

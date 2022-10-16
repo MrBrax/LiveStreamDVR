@@ -1137,7 +1137,7 @@ export class BaseAutomator {
 
     async convertVideo(): Promise<boolean> {
 
-        if (!this.vod) return false;
+        if (!this.vod) throw new Error("VOD not set");
 
         Webhook.dispatch("start_convert", {
             vod: await this.vod.toAPI(),

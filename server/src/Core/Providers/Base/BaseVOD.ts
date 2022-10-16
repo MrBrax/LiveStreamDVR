@@ -1446,9 +1446,9 @@ export class BaseVOD {
      * 
      * @returns true if no more issues need fixing, false if more issues need fixing
      */
-    public async fixIssues(): Promise<boolean> {
+    public async fixIssues(source?: string): Promise<boolean> {
 
-        Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Run fixIssues for VOD ${this.basename}`);
+        Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Run fixIssues for VOD ${this.basename} (${source})`);
 
         if (this.issueFixCount > 10) {
             Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Too many issue fixes for VOD ${this.basename}`);
@@ -1733,7 +1733,7 @@ export class BaseVOD {
         if (this.issueFixCount > 0) {
             console.log(chalk.bgRed.whiteBright(`🛠️ ${this.basename} fixed ${this.issueFixCount} issues!`));
         }
-        
+
         // this.issueFixCount = 0; // TODO: should it be set to 0?
         return true;
 
