@@ -12,6 +12,7 @@ interface TwitchIRCMessage {
     source?: Source;
     command?: Command;
     parameters?: string;
+    user?: TwitchIRCUser;
 }
 
 interface Tags {
@@ -42,6 +43,8 @@ interface Tags {
     "msg-param-sub-plan"?: string;
     "msg-param-was-gifted"?: string;
     "system-msg"?: string;
+    "ban-duration"?: string;
+    "target-user-id"?: string;
 }
 
 interface Badge {
@@ -70,6 +73,26 @@ interface Source {
     host?: string;
 }
 
+interface TwitchIRCUser {
+    nick: string;
+    id: string;
+    login: string;
+    displayName: string;
+    color: string;
+    badges: Badge;
+    // isMod: boolean;
+    // isSubscriber: boolean;
+    // isTurbo: boolean;
+    // isBroadcaster: boolean;
+    // isVip: boolean;
+    // isStaff: boolean;
+    // isGlobalMod: boolean;
+    // isBot: boolean;
+    ban_date?: Date;
+    ban_duration?: number;
+    messageCount: number;
+}
+
 // interface Parameters {
 // 
 // }
@@ -88,6 +111,7 @@ export class TwitchChat extends EventEmitter {
     public static readonly liveTerms = ["live", "hi youtube", "hi yt", "pog", "pogchamp"];
     public lastLiveEmit: Date | undefined;
     public lastTenMessages: TwitchIRCMessage[] = [];
+    public users: Record<string, TwitchIRCUser> = {};
 
     constructor(channel_login: string, channel_id: string) {
         super();
@@ -114,6 +138,26 @@ export class TwitchChat extends EventEmitter {
                         console.log("\t", chalk.red(event.data.toString().trim()));
                     }
                     */
+
+                    const userId = parsedMessage.tags?.["user-id"];
+
+                    if (userId) {
+                        if (!this.users[userId]) {
+                            this.users[userId] = {
+                                nick: parsedMessage.tags?.login || "",
+                                id: parsedMessage.tags?.["user-id"] || "",
+                                login: parsedMessage.tags?.login || "",
+                                displayName: parsedMessage.tags?.["display-name"] || "",
+                                color: parsedMessage.tags?.color || "",
+                                badges: parsedMessage.tags?.badges || {},
+                                messageCount: 0,
+                            };
+                        } else {
+                            this.users[userId].messageCount++;
+                        }
+                        parsedMessage.user = this.users[userId];
+                    }
+
                     this.emit("message", parsedMessage);
 
                     if (parsedMessage.command?.command == "PING") {
@@ -146,8 +190,22 @@ export class TwitchChat extends EventEmitter {
                     }
 
                     if (parsedMessage.command?.command === "CLEARCHAT") {
-                        console.log(parsedMessage.tags);
-                        this.emit("ban", parsedMessage.parameters, parsedMessage);
+                        const targetUserId = parsedMessage.tags?.["target-user-id"];
+
+                        if (parsedMessage.parameters && targetUserId && this.users[targetUserId]) {
+                            const user = this.users[targetUserId];
+                            user.ban_date = new Date();
+                            user.ban_duration = parseInt(parsedMessage.tags?.["ban-duration"] || "0");
+                        }
+
+                        this.emit(
+                            "ban",
+                            parsedMessage.parameters,
+                            parseInt(parsedMessage.tags?.["ban-duration"] || "0"),
+                            parsedMessage
+                        );
+
+                        console.debug(`${this.users.length} users`);
                     }
 
                     if (parsedMessage.command?.command === "USERNOTICE") {
@@ -155,6 +213,11 @@ export class TwitchChat extends EventEmitter {
                         //     this.emit("sub", parsedMessage.source?.nick);
                         // }
                         console.debug(parsedMessage.tags);
+
+                        if (userId && this.users[userId]) {
+                            this.users[userId].login = parsedMessage.tags?.login || "";
+                        }
+
                         if (parsedMessage.tags?.["msg-id"] === "sub" || parsedMessage.tags?.["msg-id"] === "resub" || parsedMessage.tags?.["msg-id"] === "subgift") {
                             this.emit(
                                 "sub",
@@ -650,7 +713,7 @@ export declare interface TwitchChat {
     /**
      * When an user gets banned (timeout), actually when their messages get geleted
      */
-    on(event: "ban", listener: (nick: string, message: TwitchIRCMessage) => void): this;
+    on(event: "ban", listener: (nick: string, duration: number, message: TwitchIRCMessage) => void): this;
 
     /**
      * When an user subscribes to the channel or gifts subscriptions
