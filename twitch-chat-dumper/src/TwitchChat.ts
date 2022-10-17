@@ -3,8 +3,31 @@ import { randomUUID } from "crypto";
 import { EventEmitter } from "events";
 import fs from "fs";
 import { WebSocket } from "ws";
-import { TwitchComment, TwitchCommentDumpTD, TwitchCommentMessageFragment } from "../../../common/Comments";
-import { TwitchHelper } from "./Twitch";
+import { TwitchComment, TwitchCommentDumpTD, TwitchCommentMessageFragment, TwitchCommentEmoticons, TwitchCommentUserBadge } from "../../common/Comments";
+
+function getNiceDuration(duration: number) {
+    // format 1d 2h 3m 4s
+
+    const days = Math.floor(duration / (60 * 60 * 24));
+    const hours = Math.floor((duration - (days * 60 * 60 * 24)) / (60 * 60));
+    const minutes = Math.floor((duration - (days * 60 * 60 * 24) - (hours * 60 * 60)) / 60);
+    const seconds = duration - (days * 60 * 60 * 24) - (hours * 60 * 60) - (minutes * 60);
+
+    let str = "";
+
+    if (days > 0) str += days + "d ";
+    if (hours > 0) str += hours + "h ";
+    if (minutes > 0) str += minutes + "m ";
+    if (seconds > 0) str += seconds + "s";
+
+    return str.trim();
+
+}
+
+function twitchDuration(seconds: number): string {
+    return getNiceDuration(seconds).replaceAll(" ", "").trim();
+    // return trim(str_replace(" ", "", self::getNiceDuration($seconds)));
+}
 
 interface TwitchIRCMessage {
     // tags?: Record<string, TagTypes>;
@@ -13,6 +36,8 @@ interface TwitchIRCMessage {
     command?: Command;
     parameters?: string;
     user?: TwitchIRCUser;
+    date?: Date;
+    isItalic?: boolean;
 }
 
 interface Tags {
@@ -29,7 +54,7 @@ interface Tags {
     "tmi-sent-ts"?: string;
     "user-id"?: string;
     "user-type"?: string;
-    "badge-info"?: string;
+    "badge-info"?: Record<string, string>;
     login?: string;
 
     "msg-id"?: string;
@@ -80,9 +105,9 @@ interface TwitchIRCUser {
     displayName: string;
     color: string;
     badges: Badge;
-    // isMod: boolean;
-    // isSubscriber: boolean;
-    // isTurbo: boolean;
+    isMod: boolean;
+    isSubscriber: boolean;
+    isTurbo: boolean;
     // isBroadcaster: boolean;
     // isVip: boolean;
     // isStaff: boolean;
@@ -112,11 +137,13 @@ export class TwitchChat extends EventEmitter {
     public lastLiveEmit: Date | undefined;
     public lastTenMessages: TwitchIRCMessage[] = [];
     public users: Record<string, TwitchIRCUser> = {};
+    public startDate = new Date();
 
-    constructor(channel_login: string, channel_id: string) {
+    constructor(channel_login: string, channel_id?: string, start_date?: string) {
         super();
         this.channel_login = channel_login;
-        this.channel_id = channel_id;
+        if (channel_id) this.channel_id = channel_id;
+        if (start_date) this.startDate = new Date(start_date);
         this.ws = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
         this.ws.onopen = () => {
             this.loginAnonymous();
@@ -124,7 +151,7 @@ export class TwitchChat extends EventEmitter {
             this.ws.send("CAP REQ :twitch.tv/commands twitch.tv/tags");
         };
         this.ws.onmessage = (event) => {
-            const messages = event.data.toString().split("\r\n");  // The IRC message may contain one or more messages.
+            const messages = event.data.toString("utf-8").split("\r\n");  // The IRC message may contain one or more messages.
             messages.forEach(message => {
                 if (message === "") return;
                 // console.log(event.data);
@@ -140,6 +167,11 @@ export class TwitchChat extends EventEmitter {
                     */
 
                     const userId = parsedMessage.tags?.["user-id"];
+                    const roomId = parsedMessage.tags?.["room-id"];
+
+                    if (parsedMessage.tags?.["tmi-sent-ts"]) {
+                        parsedMessage.date = new Date(parseInt(parsedMessage.tags["tmi-sent-ts"]));
+                    }
 
                     if (userId) {
                         if (!this.users[userId]) {
@@ -149,15 +181,36 @@ export class TwitchChat extends EventEmitter {
                                 login: parsedMessage.tags?.login || "",
                                 displayName: parsedMessage.tags?.["display-name"] || "",
                                 color: parsedMessage.tags?.color || "",
-                                badges: parsedMessage.tags?.badges || {},
+                                badges: parsedMessage.tags?.["badge-info"] || parsedMessage.tags?.badges || {},
                                 messageCount: 0,
+                                isMod: parsedMessage.tags?.mod === "1",
+                                isSubscriber: parsedMessage.tags?.subscriber === "1",
+                                isTurbo: parsedMessage.tags?.turbo === "1",
                             };
                         } else {
                             this.users[userId].messageCount++;
                         }
                         parsedMessage.user = this.users[userId];
+
+                        if (parsedMessage.tags?.mod === "1") {
+                            this.users[userId].isMod = true;
+                        }
+                        if (parsedMessage.tags?.subscriber === "1") {
+                            this.users[userId].isSubscriber = true;
+                        }
+                        if (parsedMessage.tags?.turbo === "1") {
+                            this.users[userId].isTurbo = true;
+                        }
                     }
 
+                    if (roomId) {
+                        this.channel_id = roomId;
+                    }
+
+                    if (parsedMessage.command?.command === "PRIVMSG") {
+                        this.emit("chat", parsedMessage);
+                    }
+                    
                     this.emit("message", parsedMessage);
 
                     if (parsedMessage.command?.command == "PING") {
@@ -172,7 +225,7 @@ export class TwitchChat extends EventEmitter {
                     }
 
                     if (this.dumpStream && this.dumpStart && parsedMessage.command?.command === "PRIVMSG") {
-                        const offset = (new Date().getTime() - this.dumpStart.getTime()) / 1000;
+                        const offset = (new Date().getTime() - this.startDate.getTime()) / 1000;
                         this.dumpStream.write(JSON.stringify(this.messageToDump(parsedMessage, this.channel_id, offset)) + "\n");
                     }
 
@@ -205,7 +258,7 @@ export class TwitchChat extends EventEmitter {
                             parsedMessage
                         );
 
-                        console.debug(`${this.users.length} users`);
+                        console.debug(`${Object.keys(this.users).length} users`);
                     }
 
                     if (parsedMessage.command?.command === "USERNOTICE") {
@@ -242,6 +295,9 @@ export class TwitchChat extends EventEmitter {
 
     public close() {
         this.ws.close();
+        if (this.dumpStream) {
+            this.stopDump();
+        }
     }
 
     public send(message: string) {
@@ -277,10 +333,10 @@ export class TwitchChat extends EventEmitter {
 
         // The raw components of the IRC message.
 
-        let rawTagsComponent = undefined;
-        let rawSourceComponent = undefined;
-        let rawCommandComponent = undefined;
-        let rawParametersComponent = undefined;
+        let rawTagsComponent: string | undefined = undefined;
+        let rawSourceComponent: string | undefined = undefined;
+        let rawCommandComponent: string | undefined = undefined;
+        let rawParametersComponent: string | undefined = undefined;
 
         // If the message includes tags, get the tags component of the IRC message.
 
@@ -348,6 +404,18 @@ export class TwitchChat extends EventEmitter {
                     parsedMessage.command
                 );
             }
+            
+            if (rawParametersComponent && rawParametersComponent.charCodeAt(0) === 1 && rawParametersComponent.charCodeAt(rawParametersComponent.length - 1) === 1) {
+                parsedMessage.parameters = rawParametersComponent.slice(1, rawParametersComponent.length - 1);
+                if (parsedMessage.parameters.startsWith("ACTION")) {
+                    parsedMessage.parameters = parsedMessage.parameters.slice(6).trim();
+                    // parsedMessage.command = {
+                    //     command: "ACTION",
+                    // };
+                    parsedMessage.isItalic = true;
+                }
+            }
+            
         }
 
         return parsedMessage;
@@ -434,7 +502,7 @@ export class TwitchChat extends EventEmitter {
     }
 
     parseCommand(rawCommandComponent: string): Command | undefined {
-        let parsedCommand = undefined;
+        let parsedCommand: Command | undefined = undefined;
         const commandParts = rawCommandComponent.split(" ");
 
         switch (commandParts[0]) {
@@ -549,7 +617,7 @@ export class TwitchChat extends EventEmitter {
             throw new Error("messageToDump: message.parameters is undefined");
         }
 
-        const emoticons = [];
+        const emoticons: TwitchCommentEmoticons[] = [];
         if (message.tags?.emotes) {
             for (const emote in message.tags.emotes) {
                 emoticons.push({
@@ -608,6 +676,25 @@ export class TwitchChat extends EventEmitter {
             mergedFragments.push(currentFragment);
         }
 
+        const badges: TwitchCommentUserBadge[] = [];
+        if (message.tags?.badges) {
+            for (const badge in message.tags.badges) {
+                badges.push({
+                    "_id": badge,
+                    "version": message.tags.badges[badge],
+                });
+            }
+        }
+
+        if (message.tags?.["badge-info"]) {
+            for (const badge in message.tags["badge-info"]) {
+                badges.push({
+                    "_id": badge,
+                    "version": message.tags["badge-info"][badge],
+                });
+            }
+        }
+
         return {
             _id: message.tags?.id || randomUUID().substring(0, 8),
             channel_id: message.tags?.["room-id"] || channel_id,
@@ -617,24 +704,24 @@ export class TwitchChat extends EventEmitter {
             commenter: {
                 _id: message.tags?.["user-id"] || "",
                 bio: "",
-                created_at: "",
+                created_at: (message.date || new Date()).toISOString(),
                 display_name: message.tags?.["display-name"] || message.source?.nick || "",
                 logo: "",
                 name: message.source?.nick || "",
                 type: "user",
-                updated_at: "",
+                updated_at: (message.date || new Date()).toISOString(),
             },
             message: {
                 body: message.parameters || "",
                 emoticons: emoticons,
                 fragments: mergedFragments,
-                user_badges: [],
-                user_color: message.tags?.color || "",
+                user_badges: badges || null,
+                user_color: message.tags?.color || "#FFFFFF",
             },
-            created_at: new Date().toISOString(),
+            created_at: (message.date || new Date()).toISOString(),
             source: "chat",
             state: "published",
-            updated_at: new Date().toISOString(),
+            updated_at: (message.date || new Date()).toISOString(),
             more_replies: false,
         };
     }
@@ -664,7 +751,7 @@ export class TwitchChat extends EventEmitter {
                 video: {
                     created_at: this.dumpStart.toISOString(),
                     description: "",
-                    duration: TwitchHelper.twitchDuration(Math.round((new Date().getTime() - this.dumpStart.getTime()) / 1000)),
+                    duration: twitchDuration(Math.round((new Date().getTime() - this.dumpStart.getTime()) / 1000)),
                     id: "",
                     language: "",
                     published_at: this.dumpStart.toISOString(),
@@ -701,9 +788,11 @@ export class TwitchChat extends EventEmitter {
 export declare interface TwitchChat {
 
     /**
-     * When a message is posted to the chat
+     * When a message is posted to the chat, including commands.
      */
     on(event: "message", listener: (message: TwitchIRCMessage) => void): this;
+
+    on(event: "chat", listener: (message: TwitchIRCMessage) => void): this;
 
     /**
      * Live prediction event based on chat messages
