@@ -337,13 +337,13 @@ export async function RenderWizard(req: express.Request, res: express.Response):
     let status_renderchat = false;
     let status_burnchat = false;
 
-    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Start render wizard for vod ${vod}`);
-    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `chat_width: ${chat_width}`);
-    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `chat_height: ${chat_height}`);
-    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `render_chat: ${render_chat}`);
-    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `burn_chat: ${burn_chat}`);
-    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `vod_source: ${vod_source}`);
-    Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `chat_source: ${chat_source}`);
+    Log.logAdvanced(LOGLEVEL.INFO, "route.vod.RenderWizard", `Start render wizard for vod ${vod}`);
+    Log.logAdvanced(LOGLEVEL.INFO, "route.vod.RenderWizard", `chat_width: ${chat_width}`);
+    Log.logAdvanced(LOGLEVEL.INFO, "route.vod.RenderWizard", `chat_height: ${chat_height}`);
+    Log.logAdvanced(LOGLEVEL.INFO, "route.vod.RenderWizard", `render_chat: ${render_chat}`);
+    Log.logAdvanced(LOGLEVEL.INFO, "route.vod.RenderWizard", `burn_chat: ${burn_chat}`);
+    Log.logAdvanced(LOGLEVEL.INFO, "route.vod.RenderWizard", `vod_source: ${vod_source}`);
+    Log.logAdvanced(LOGLEVEL.INFO, "route.vod.RenderWizard", `chat_source: ${chat_source}`);
 
     if (render_chat) {
         try {

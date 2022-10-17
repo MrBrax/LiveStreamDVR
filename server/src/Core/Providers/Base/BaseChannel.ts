@@ -205,7 +205,7 @@ export class BaseChannel {
             KeyValue.getInstance().setInt(`${this.internalName}.stream_number`, 1);
             KeyValue.getInstance().set(`${this.internalName}.season_identifier`, format(new Date(), Config.SeasonFormat));
             this.current_season = format(new Date(), Config.SeasonFormat);
-            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Season changed for ${this.internalName} to ${this.current_season}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "channel.incrementStreamNumber", `Season changed for ${this.internalName} to ${this.current_season}`);
         } else {
             this.current_stream_number += 1;
             KeyValue.getInstance().setInt(`${this.internalName}.stream_number`, this.current_stream_number);
@@ -261,7 +261,7 @@ export class BaseChannel {
         const total_vods = this.getVods().length;
 
         if (total_vods === 0) {
-            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `No vods to delete for ${this.internalName}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "channel.deleteAllVods", `No vods to delete for ${this.internalName}`);
             throw new Error(`No vods to delete for ${this.internalName}`);
         }
 
@@ -270,7 +270,7 @@ export class BaseChannel {
             try {
                 await vod.delete();
             } catch (error) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "vodclass", `Failed to delete vod ${vod.basename}: ${(error as Error).message}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "channel.deleteAllVods", `Failed to delete vod ${vod.basename}: ${(error as Error).message}`);
                 continue;
             }
             deleted_vods++;
@@ -416,7 +416,7 @@ export class BaseChannel {
         }
 
         // this.clips_list = all_clips.map(f => path.relative(BaseConfigDataFolder.saved_clips, f));
-        Log.logAdvanced(LOGLEVEL.DEBUG, "vodclass", `Found ${this.clips_list.length} clips for ${this.internalName}`);
+        Log.logAdvanced(LOGLEVEL.DEBUG, "channel.findClips", `Found ${this.clips_list.length} clips for ${this.internalName}`);
         this.broadcastUpdate();
     }
 

@@ -30,7 +30,7 @@ export class TwitchGame {
 
     public static populateGameDatabase(): void {
         if (!fs.existsSync(BaseConfigPath.gameDb)) return;
-        Log.logAdvanced(LOGLEVEL.INFO, "helper", "Populating game database...");
+        Log.logAdvanced(LOGLEVEL.INFO, "game", "Populating game database...");
         this.game_db = {};
         const raw_games: Record<string, TwitchGameJSON> = JSON.parse(fs.readFileSync(BaseConfigPath.gameDb, "utf8"));
         for (const id in raw_games) {
@@ -43,17 +43,17 @@ export class TwitchGame {
             if (raw_game.deleted) game.deleted = raw_game.deleted;
             this.game_db[id] = game;
         }
-        Log.logAdvanced(LOGLEVEL.INFO, "helper", `Game database populated with ${Object.keys(this.game_db).length} games.`);
+        Log.logAdvanced(LOGLEVEL.INFO, "game", `Game database populated with ${Object.keys(this.game_db).length} games.`);
     }
 
     public static populateFavouriteGames(): void {
         if (!fs.existsSync(BaseConfigPath.favouriteGames)) {
-            Log.logAdvanced(LOGLEVEL.INFO, "helper", "Favourite games file not found, creating...");
+            Log.logAdvanced(LOGLEVEL.INFO, "game", "Favourite games file not found, creating...");
             fs.writeFileSync(BaseConfigPath.favouriteGames, "[]");
         }
-        Log.logAdvanced(LOGLEVEL.INFO, "helper", "Populating favourite games...");
+        Log.logAdvanced(LOGLEVEL.INFO, "game", "Populating favourite games...");
         this.favourite_games = JSON.parse(fs.readFileSync(BaseConfigPath.favouriteGames, "utf8"));
-        Log.logAdvanced(LOGLEVEL.INFO, "helper", `Favourite games populated with ${this.favourite_games.length} games.`);
+        Log.logAdvanced(LOGLEVEL.INFO, "game", `Favourite games populated with ${this.favourite_games.length} games.`);
     }
 
     /**
@@ -66,7 +66,7 @@ export class TwitchGame {
             throw new Error("Game database not initialized!");
         }
         if (!this.game_db[game_id]) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "helper", `Game id ${game_id} not in cache.`);
+            Log.logAdvanced(LOGLEVEL.WARNING, "game", `Game id ${game_id} not in cache.`);
             return null;
         }
 
@@ -76,7 +76,7 @@ export class TwitchGame {
     public static async getGameAsync(game_id: string, force = false): Promise<TwitchGame | null> {
 
         if (!game_id) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "helper", "No game id supplied for game fetch!");
+            Log.logAdvanced(LOGLEVEL.ERROR, "game", "No game id supplied for game fetch!");
             return null;
         }
 
@@ -84,19 +84,19 @@ export class TwitchGame {
 
         if (cachedGame && !force) {
             if (cachedGame && cachedGame.added && Date.now() > cachedGame.added.getTime() + (60 * 60 * 24 * 60 * 1000)) { // two months?
-                Log.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} (${cachedGame.name}) needs refreshing (${cachedGame.added.toISOString()}).`);
+                Log.logAdvanced(LOGLEVEL.INFO, "game", `Game id ${game_id} (${cachedGame.name}) needs refreshing (${cachedGame.added.toISOString()}).`);
             } else if (cachedGame && cachedGame.added) { // check if date is set
                 return this.game_db[game_id];
             } else {
-                Log.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} needs refreshing (no date set).`);
+                Log.logAdvanced(LOGLEVEL.INFO, "game", `Game id ${game_id} needs refreshing (no date set).`);
             }
             if (cachedGame.deleted) {
-                Log.logAdvanced(LOGLEVEL.INFO, "helper", `Game id ${game_id} is marked as deleted, return cached game.`);
+                Log.logAdvanced(LOGLEVEL.INFO, "game", `Game id ${game_id} is marked as deleted, return cached game.`);
                 return this.game_db[game_id];
             }
         }
 
-        Log.logAdvanced(LOGLEVEL.DEBUG, "helper", `Game id ${game_id} not in cache, fetching...`);
+        Log.logAdvanced(LOGLEVEL.DEBUG, "game", `Game id ${game_id} not in cache, fetching...`);
 
         if (!TwitchHelper.axios) {
             throw new Error("Axios is not initialized");
@@ -106,7 +106,7 @@ export class TwitchGame {
         try {
             response = await TwitchHelper.axios.get(`/helix/games?id=${game_id}`);
         } catch (th) {
-            Log.logAdvanced(LOGLEVEL.FATAL, "helper", `Tried to get game data for ${game_id} but server returned: ${th}`);
+            Log.logAdvanced(LOGLEVEL.FATAL, "game", `Tried to get game data for ${game_id} but server returned: ${th}`);
             return null;
         }
 
@@ -135,23 +135,23 @@ export class TwitchGame {
             try {
                 await game.fetchBoxArt();
             } catch (error) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to fetch box art for game ${game_id}: ${error}`);
+                Log.logAdvanced(LOGLEVEL.ERROR, "game", `Failed to fetch box art for game ${game_id}: ${error}`);
             }
             
             game.save();
 
             // $game_db[ $id ] = $game_data["name"];
 
-            Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `New game saved to cache: ${game.name}`);
+            Log.logAdvanced(LOGLEVEL.SUCCESS, "game", `New game saved to cache: ${game.name}`);
 
             return game;
 
         } else {
 
-            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Invalid game returned in query for ${game_id}`, json);
+            Log.logAdvanced(LOGLEVEL.ERROR, "game", `Invalid game returned in query for ${game_id}`, json);
 
             if (cachedGame) {
-                Log.logAdvanced(LOGLEVEL.INFO, "helper", `Cached game ${cachedGame.name} must have been deleted, marking as deleted.`);
+                Log.logAdvanced(LOGLEVEL.INFO, "game", `Cached game ${cachedGame.name} must have been deleted, marking as deleted.`);
                 cachedGame.deleted = true;
                 cachedGame.save();
             }
@@ -290,7 +290,7 @@ export class TwitchGame {
     }
 
     public static saveFavouriteGames(): void {
-        Log.logAdvanced(LOGLEVEL.INFO, "helper", "Saving favourite games...");
+        Log.logAdvanced(LOGLEVEL.INFO, "game", "Saving favourite games...");
         fs.writeFileSync(BaseConfigPath.favouriteGames, JSON.stringify(TwitchGame.favourite_games));
     }
 
