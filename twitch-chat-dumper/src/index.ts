@@ -5,8 +5,20 @@ import { TwitchChat } from './TwitchChat';
 
 const argv = minimist(process.argv.slice(2));
 
+/*
+    --channel
+    --userid
+    --date
+    --output
+*/
+
+const channel = argv.channel;
+const userid = argv.userid;
+const date = argv.date;
+const output = argv.output;
+
 // const dumper = new ChatDumper(argv.channel, argv.output, argv.overwrite, argv.notext);
-const dumper = new TwitchChat(argv.channel);
+const dumper = new TwitchChat(channel, userid, date);
 
 process.on('exit', function () {
     console.log('Exit fired, save JSON before shutting down');
@@ -65,16 +77,23 @@ process.on('SIGWINCH', function () {
 })
 
 try {
-    dumper.startDump(argv.output);
+    dumper.startDump(output);
 } catch (error) {
     console.log(`Could not start dumper: ${(error as Error).message}`)
 }
 
 dumper.on("chat", (message) => {
     const text = message.isItalic ? chalk.italic(message.parameters) : message.parameters;
+    // if (message.tags?.emotes) {
+    //     console.debug(message.tags.emotes);
+    // }
     console.log(`${chalk.red(message.date?.toISOString())} <${dumper.channel_login}> ${Object.keys(message.user?.badges || []).join(",")} ${chalk.hex(message.user?.color || "#FFFFFF")(message.user?.displayName)}: ${text}`);
 });
 
-dumper.on("message", (message) => {
-    // console.debug(message);
+dumper.on("command", (message) => {
+    console.debug(message);
+});
+
+dumper.on("ban", (nick, duration, message) => {
+    console.log(`Banned ${nick} for ${duration} seconds: ${message.parameters}`);
 });

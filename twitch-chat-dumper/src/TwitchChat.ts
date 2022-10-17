@@ -38,6 +38,7 @@ interface TwitchIRCMessage {
     user?: TwitchIRCUser;
     date?: Date;
     isItalic?: boolean;
+    isAction?: boolean;
 }
 
 interface Tags {
@@ -139,6 +140,10 @@ export class TwitchChat extends EventEmitter {
     public users: Record<string, TwitchIRCUser> = {};
     public startDate = new Date();
 
+    get bannedUserCount() {
+        return Object.values(this.users).filter(u => u.ban_date && u.ban_date.getTime() + (u.ban_duration || 0) > Date.now()).length;
+    }
+
     constructor(channel_login: string, channel_id?: string, start_date?: string) {
         super();
         this.channel_login = channel_login;
@@ -209,6 +214,8 @@ export class TwitchChat extends EventEmitter {
 
                     if (parsedMessage.command?.command === "PRIVMSG") {
                         this.emit("chat", parsedMessage);
+                    } else {
+                        this.emit("command", parsedMessage);
                     }
                     
                     this.emit("message", parsedMessage);
@@ -405,6 +412,7 @@ export class TwitchChat extends EventEmitter {
                 );
             }
             
+            // action message
             if (rawParametersComponent && rawParametersComponent.charCodeAt(0) === 1 && rawParametersComponent.charCodeAt(rawParametersComponent.length - 1) === 1) {
                 parsedMessage.parameters = rawParametersComponent.slice(1, rawParametersComponent.length - 1);
                 if (parsedMessage.parameters.startsWith("ACTION")) {
@@ -413,8 +421,14 @@ export class TwitchChat extends EventEmitter {
                     //     command: "ACTION",
                     // };
                     parsedMessage.isItalic = true;
+                    parsedMessage.isAction = true;
                 }
             }
+
+            // clean up message text from hidden characters
+            // if (parsedMessage.parameters) {
+            //     parsedMessage.parameters = parsedMessage.parameters.replace(/[\u0000-\u001f]/g, "");
+            // }
             
         }
 
@@ -620,11 +634,13 @@ export class TwitchChat extends EventEmitter {
         const emoticons: TwitchCommentEmoticons[] = [];
         if (message.tags?.emotes) {
             for (const emote in message.tags.emotes) {
-                emoticons.push({
-                    "_id": emote,
-                    "begin": parseInt(message.tags.emotes[emote][0].startPosition),
-                    "end": parseInt(message.tags.emotes[emote][0].endPosition),
-                });
+                for (const pos of message.tags.emotes[emote]) {
+                    emoticons.push({
+                        _id: emote,
+                        begin: parseInt(pos.startPosition),
+                        end: parseInt(pos.endPosition),
+                    });
+                }
             }
         }
 
@@ -717,6 +733,7 @@ export class TwitchChat extends EventEmitter {
                 fragments: mergedFragments,
                 user_badges: badges || null,
                 user_color: message.tags?.color || "#FFFFFF",
+                is_action: message.isAction || false,
             },
             created_at: (message.date || new Date()).toISOString(),
             source: "chat",
@@ -793,6 +810,7 @@ export declare interface TwitchChat {
     on(event: "message", listener: (message: TwitchIRCMessage) => void): this;
 
     on(event: "chat", listener: (message: TwitchIRCMessage) => void): this;
+    on(event: "command", listener: (message: TwitchIRCMessage) => void): this;
 
     /**
      * Live prediction event based on chat messages
