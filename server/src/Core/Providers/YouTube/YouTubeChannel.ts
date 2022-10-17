@@ -586,7 +586,7 @@ export class YouTubeChannel extends BaseChannel {
 
     public async refreshData(): Promise<boolean> {
         if (!this.channel_id) throw new Error("Channel id not set");
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Refreshing data for ${this.internalName}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "channel.refreshData", `Refreshing data for ${this.internalName}`);
 
         const channel_data = await YouTubeChannel.getUserDataById(this.channel_id, true);
 
@@ -689,7 +689,7 @@ export class YouTubeChannel extends BaseChannel {
 
             let noIssues = false;
             do {
-                noIssues = await vodclass.fixIssues();
+                noIssues = await vodclass.fixIssues("Channel parseVODs");
             } while (!noIssues);
 
             Log.logAdvanced(LOGLEVEL.DEBUG, "channel.yt", `VOD ${vod} added to ${this.internalName}`);

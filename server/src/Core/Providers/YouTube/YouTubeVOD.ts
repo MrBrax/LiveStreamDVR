@@ -136,16 +136,16 @@ export class YouTubeVOD extends BaseVOD {
         }
 
         // if (!this.created && (this.is_capturing || this.is_converting || !this.is_finalized)) {
-        //     TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Saving JSON of ${this.basename} while not finalized!`);
+        //     TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vod", `Saving JSON of ${this.basename} while not finalized!`);
         // }
 
         if (!this.not_started && (!this.chapters || this.chapters.length == 0)) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Saving JSON of ${this.basename} with no chapters!!`);
+            Log.logAdvanced(LOGLEVEL.WARNING, "vod", `Saving JSON of ${this.basename} with no chapters!!`);
         }
 
         /*
         if (!this.streamer_name && !this.created) {
-            Log.logAdvanced(LOGLEVEL.FATAL, "vodclass", `Found no streamer name in class of ${this.basename}, not saving!`);
+            Log.logAdvanced(LOGLEVEL.FATAL, "vod", `Found no streamer name in class of ${this.basename}, not saving!`);
             return false;
         }
         */
@@ -204,7 +204,7 @@ export class YouTubeVOD extends BaseVOD {
 
         // generated.bookmarks = this.bookmarks;
 
-        Log.logAdvanced(LOGLEVEL.SUCCESS, "vodclass", `Saving JSON of ${this.basename} ${(reason ? " (" + reason + ")" : "")}`);
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "vod", `Saving JSON of ${this.basename} ${(reason ? " (" + reason + ")" : "")}`);
 
         //file_put_contents(this.filename, json_encode(generated));
         // this.setPermissions();
@@ -216,7 +216,7 @@ export class YouTubeVOD extends BaseVOD {
         try {
             fs.writeFileSync(this.filename, JSON.stringify(generated, null, 4));
         } catch (error) {
-            Log.logAdvanced(LOGLEVEL.FATAL, "vodclass", `Failed to save JSON of ${this.basename}: ${(error as Error).message}`);
+            Log.logAdvanced(LOGLEVEL.FATAL, "vod", `Failed to save JSON of ${this.basename}: ${(error as Error).message}`);
             console.log(chalk.bgRedBright.whiteBright(`Failed to save JSON of ${this.basename}: ${(error as Error).message}`));
             return false;
         }
@@ -305,12 +305,12 @@ export class YouTubeVOD extends BaseVOD {
         if (!noFixIssues){
             let noIssues = false;
             do {
-                noIssues = await vod.fixIssues();
+                noIssues = await vod.fixIssues("VOD load");
             } while (!noIssues);
         }
 
         if (!vod.not_started && !vod.is_finalized) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "vodclass", `Loaded VOD ${vod.basename} is not finalized!`);
+            Log.logAdvanced(LOGLEVEL.WARNING, "vod", `Loaded VOD ${vod.basename} is not finalized!`);
         }
 
         // vod.compareDumpedChatAndDownloadedChat();

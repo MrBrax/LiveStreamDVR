@@ -7,7 +7,7 @@ import { Subscriptions } from "../../../common/TwitchAPI/Subscriptions";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
 import { LOGLEVEL, Log } from "../Core/Log";
-import { TwitchCommentDump } from "../../../common/Comments";
+import { TwitchCommentDumpTD } from "../../../common/Comments";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { KeyValue } from "../Core/KeyValue";
 import { SubStatus } from "../../../common/Defs";
@@ -58,17 +58,17 @@ export class TwitchHelper {
         if (fs.existsSync(this.accessTokenFile)) {
 
             if (Date.now() > fs.statSync(this.accessTokenFile).mtimeMs + this.accessTokenRefresh) {
-                Log.logAdvanced(LOGLEVEL.INFO, "helper", `Deleting old access token, too old: ${format(fs.statSync(this.accessTokenFile).mtimeMs, this.PHP_DATE_FORMAT)}`);
+                Log.logAdvanced(LOGLEVEL.INFO, "tw.helper", `Deleting old access token, too old: ${format(fs.statSync(this.accessTokenFile).mtimeMs, this.PHP_DATE_FORMAT)}`);
                 fs.unlinkSync(this.accessTokenFile);
             } else if (!force) {
-                Log.logAdvanced(LOGLEVEL.DEBUG, "helper", "Fetched access token from cache");
+                Log.logAdvanced(LOGLEVEL.DEBUG, "tw.helper", "Fetched access token from cache");
                 return fs.readFileSync(this.accessTokenFile, "utf8");
             }
 
         }
 
         if (!Config.getInstance().cfg("api_secret") || !Config.getInstance().cfg("api_client_id")) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "helper", "Missing either api secret or client id, aborting fetching of access token!");
+            Log.logAdvanced(LOGLEVEL.ERROR, "tw.helper", "Missing either api secret or client id, aborting fetching of access token!");
             throw new Error("Missing either api secret or client id, aborting fetching of access token!");
         }
 
@@ -89,7 +89,7 @@ export class TwitchHelper {
                 ]
             ]);
         } catch (\Throwable $th) {
-            TwitchLog.logAdvanced(LOGLEVEL.FATAL, "helper", "Tried to get oauth token but server returned: " . $th->getMessage());
+            TwitchLog.logAdvanced(LOGLEVEL.FATAL, "tw.helper", "Tried to get oauth token but server returned: " . $th->getMessage());
             sleep(5);
             return false;
         }
@@ -106,14 +106,14 @@ export class TwitchHelper {
         });
 
         if (response.status != 200) {
-            Log.logAdvanced(LOGLEVEL.FATAL, "helper", "Tried to get oauth token but server returned: " + response.statusText);
+            Log.logAdvanced(LOGLEVEL.FATAL, "tw.helper", "Tried to get oauth token but server returned: " + response.statusText);
             throw new Error("Tried to get oauth token but server returned: " + response.statusText);
         }
 
         const json = response.data;
 
         if (!json || !json.access_token) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Failed to fetch access token: ${json}`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "tw.helper", `Failed to fetch access token: ${json}`);
             throw new Error(`Failed to fetch access token: ${json}`);
         }
 
@@ -123,7 +123,7 @@ export class TwitchHelper {
 
         fs.writeFileSync(this.accessTokenFile, access_token);
 
-        Log.logAdvanced(LOGLEVEL.INFO, "helper", "Fetched new access token");
+        Log.logAdvanced(LOGLEVEL.INFO, "tw.helper", "Fetched new access token");
 
         return access_token;
     }
@@ -163,7 +163,7 @@ export class TwitchHelper {
 
     public static async eventSubUnsubscribe(subscription_id: string) {
 
-        Log.logAdvanced(LOGLEVEL.INFO, "helper", `Unsubscribing from eventsub id ${subscription_id}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "tw.helper", `Unsubscribing from eventsub id ${subscription_id}`);
 
         if (!this.axios) {
             throw new Error("Axios is not initialized");
@@ -175,16 +175,16 @@ export class TwitchHelper {
             // $response = $this->$guzzler->request("DELETE", "/helix/eventsub/subscriptions?id={$subscription_id}");
             response = await this.axios.delete(`/helix/eventsub/subscriptions?id=${subscription_id}`);
         } catch (th) {
-            Log.logAdvanced(LOGLEVEL.FATAL, "helper", `Unsubscribe from eventsub ${subscription_id} error: ${th}`);
+            Log.logAdvanced(LOGLEVEL.FATAL, "tw.helper", `Unsubscribe from eventsub ${subscription_id} error: ${th}`);
             return false;
         }
 
         if (response.status > 299) {
-            Log.logAdvanced(LOGLEVEL.FATAL, "helper", `Unsubscribe from eventsub ${subscription_id} error: ${response.statusText}`);
+            Log.logAdvanced(LOGLEVEL.FATAL, "tw.helper", `Unsubscribe from eventsub ${subscription_id} error: ${response.statusText}`);
             return false;
         }
 
-        Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Unsubscribed from eventsub ${subscription_id} successfully`);
+        Log.logAdvanced(LOGLEVEL.SUCCESS, "tw.helper", `Unsubscribed from eventsub ${subscription_id} successfully`);
 
         return true;
 
@@ -203,7 +203,7 @@ export class TwitchHelper {
             throw new Error(`Output file ${output} already exists`);
         }
 
-        const json: TwitchCommentDump = JSON.parse(fs.readFileSync(input, "utf8"));
+        const json: TwitchCommentDumpTD = JSON.parse(fs.readFileSync(input, "utf8"));
 
         // delete comments outside of the time range
         json.comments = json.comments.filter((comment) => {
@@ -232,7 +232,7 @@ export class TwitchHelper {
      */
     public static async getSubs(): Promise<Subscriptions | false> {
 
-        Log.logAdvanced(LOGLEVEL.INFO, "helper.getSubs", "Requesting subscriptions list");
+        Log.logAdvanced(LOGLEVEL.INFO, "tw.helper.getSubs", "Requesting subscriptions list");
 
         if (!this.axios) {
             throw new Error("Axios is not initialized");
@@ -243,13 +243,13 @@ export class TwitchHelper {
         try {
             response = await this.axios.get("/helix/eventsub/subscriptions");
         } catch (err) {
-            Log.logAdvanced(LOGLEVEL.FATAL, "helper.getSubs", `Subs return: ${err}`);
+            Log.logAdvanced(LOGLEVEL.FATAL, "tw.helper.getSubs", `Subs return: ${err}`);
             return false;
         }
 
         const json: Subscriptions = response.data;
 
-        Log.logAdvanced(LOGLEVEL.INFO, "helper.getSubs", `${json.total} subscriptions`);
+        Log.logAdvanced(LOGLEVEL.INFO, "tw.helper.getSubs", `${json.total} subscriptions`);
 
         return json;
 
@@ -257,7 +257,7 @@ export class TwitchHelper {
 
     public static async getSubsList(): Promise<Subscription[] | false> {
 
-        Log.logAdvanced(LOGLEVEL.INFO, "helper.getSubsList", "Requesting subscriptions list");
+        Log.logAdvanced(LOGLEVEL.INFO, "tw.helper.getSubsList", "Requesting subscriptions list");
 
         if (!this.axios) {
             throw new Error("Axios is not initialized");
@@ -270,7 +270,7 @@ export class TwitchHelper {
 
         do {
 
-            Log.logAdvanced(LOGLEVEL.INFO, "helper.getSubsList", `Fetch subs page ${page}`);
+            Log.logAdvanced(LOGLEVEL.INFO, "tw.helper.getSubsList", `Fetch subs page ${page}`);
 
             let response;
 
@@ -281,7 +281,7 @@ export class TwitchHelper {
                     },
                 });
             } catch (err) {
-                Log.logAdvanced(LOGLEVEL.FATAL, "helper.getSubsList", `Subs return: ${err}`);
+                Log.logAdvanced(LOGLEVEL.FATAL, "tw.helper.getSubsList", `Subs return: ${err}`);
                 return false;
             }
 
@@ -293,7 +293,7 @@ export class TwitchHelper {
 
         } while (cursor && page++ < maxpages);
 
-        Log.logAdvanced(LOGLEVEL.INFO, "helper.getSubsList", `${subscriptions.length} subscriptions`);
+        Log.logAdvanced(LOGLEVEL.INFO, "tw.helper.getSubsList", `${subscriptions.length} subscriptions`);
 
         if (subscriptions) {
             subscriptions.forEach(sub => {
@@ -314,7 +314,7 @@ export class TwitchHelper {
      */
     public static async getSubscription(id: string): Promise<Subscription | false> {
 
-        Log.logAdvanced(LOGLEVEL.INFO, "helper", `Requesting subscription ${id}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "tw.helper", `Requesting subscription ${id}`);
 
         if (!this.axios) {
             throw new Error("Axios is not initialized");
@@ -329,7 +329,7 @@ export class TwitchHelper {
         const sub = subs.find((s) => s.id == id);
 
         if (!sub) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Subscription ${id} not found`);
+            Log.logAdvanced(LOGLEVEL.ERROR, "tw.helper", `Subscription ${id} not found`);
             return false;
         }
 

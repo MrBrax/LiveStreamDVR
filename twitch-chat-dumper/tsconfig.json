@@ -1,11 +1,12 @@
 {
     "compilerOptions": {
-      "target": "es2017",
+      "target": "es2021",
       "module": "commonjs",
       "moduleResolution": "node",
       "strict": true,
       "esModuleInterop": true,
       "resolveJsonModule": true,
+      "noImplicitAny": false,
       "sourceMap": true,
       "baseUrl": "src",
       "outDir": "./build",

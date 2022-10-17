@@ -138,9 +138,10 @@ export class TwitchChannel extends BaseChannel {
             }
 
             // await vodclass.fixIssues();
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Fix issues for ${vod}`);
             let noIssues = false;
             do {
-                noIssues = await vodclass.fixIssues();
+                noIssues = await vodclass.fixIssues("channel parseVODs");
             } while (!noIssues);
 
             // if (vodclass.is_capturing) {
@@ -296,6 +297,11 @@ export class TwitchChannel extends BaseChannel {
         if (!this.display_name) throw new Error("Channel display_name is not set");
 
         Log.logAdvanced(LOGLEVEL.INFO, "channel", `Create VOD JSON for ${this.internalName}: ${path.basename(filename)} @ ${path.dirname(filename)}`);
+
+        if (fs.existsSync(filename)) {
+            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `VOD JSON already exists for ${this.internalName}: ${path.basename(filename)} @ ${path.dirname(filename)}`);
+            throw new Error(`VOD JSON already exists for ${this.internalName}: ${path.basename(filename)} @ ${path.dirname(filename)}`);
+        }
 
         const vod = new TwitchVOD();
 
@@ -533,7 +539,7 @@ export class TwitchChannel extends BaseChannel {
 
     public async refreshData(): Promise<boolean> {
         if (!this.internalId) throw new Error("Userid not set");
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Refreshing data for ${this.internalName}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "channel.refreshData", `Refreshing data for ${this.internalName}`);
 
         const channel_data = await TwitchChannel.getUserDataById(this.internalId, true);
 
@@ -595,7 +601,7 @@ export class TwitchChannel extends BaseChannel {
         if (!KeyValue.getInstance().has(`${this.internalName}.season_identifier`)) {
             KeyValue.getInstance().set(`${this.internalName}.season_identifier`, format(new Date(), Config.SeasonFormat));
             this.current_season = format(new Date(), Config.SeasonFormat);
-            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Setting season for ${this.internalName} to ${this.current_season} as it is not set`);
+            Log.logAdvanced(LOGLEVEL.INFO, "channel.setupStreamNumber", `Setting season for ${this.internalName} to ${this.current_season} as it is not set`);
         } else {
             this.current_season = KeyValue.getInstance().get(`${this.internalName}.season_identifier`) as string;
         }
@@ -605,7 +611,7 @@ export class TwitchChannel extends BaseChannel {
             KeyValue.getInstance().setInt(`${this.internalName}.absolute_season_identifier`, 1);
             KeyValue.getInstance().setInt(`${this.internalName}.absolute_season_month`, parseInt(format(new Date(), "M")));
             this.current_absolute_season = 1;
-            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Setting season for ${this.internalName} to ${this.current_season} as it is not set`);
+            Log.logAdvanced(LOGLEVEL.INFO, "channel.setupStreamNumber", `Setting season for ${this.internalName} to ${this.current_season} as it is not set`);
         } else {
             this.current_absolute_season = KeyValue.getInstance().getInt(`${this.internalName}.absolute_season_identifier`);
         }
@@ -614,7 +620,7 @@ export class TwitchChannel extends BaseChannel {
             this.current_stream_number = KeyValue.getInstance().getInt(`${this.internalName}.stream_number`);
         } else {
             this.current_stream_number = 1;
-            Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Channel ${this.internalName} has no stream number, setting to 1`);
+            Log.logAdvanced(LOGLEVEL.INFO, "channel.setupStreamNumber", `Channel ${this.internalName} has no stream number, setting to 1`);
             KeyValue.getInstance().setInt(`${this.internalName}.stream_number`, 1);
         }
     }
@@ -639,7 +645,7 @@ export class TwitchChannel extends BaseChannel {
      */
     public async rename(new_login: string): Promise<boolean> {
 
-        Log.logAdvanced(LOGLEVEL.INFO, "vodclass", `Renaming channel ${this.login} to ${new_login}`);
+        Log.logAdvanced(LOGLEVEL.INFO, "channel.rename", `Renaming channel ${this.login} to ${new_login}`);
 
         if (this.login === new_login) {
             throw new Error("Cannot rename channel to same name");

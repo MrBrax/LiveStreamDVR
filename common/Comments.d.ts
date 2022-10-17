@@ -16,11 +16,6 @@ export interface TwitchCommentDump {
         view_count: number;
         viewable: string;
 
-        /** TwitchDownloader */
-        start?: number;
-        /** TwitchDownloader */
-        end?: number;
-
         /** @deprecated */
         length?: string;
         /** @deprecated */
@@ -31,12 +26,19 @@ export interface TwitchCommentDump {
         /** @deprecated */
         _id?: string;
     };
+}
 
-    /** @deprecated */
+export interface TwitchCommentDumpTD extends TwitchCommentDump {
+    comments: TwitchCommentTD[];
+    video: TwitchCommentDump["video"] & {
+        start: number;
+        end: number;
+    };
     streamer?: {
         name: string;
-        id: string; // ?
+        id: number; // ?
     };
+    emotes?: null;
 }
 
 export interface TwitchComment {
@@ -53,7 +55,7 @@ export interface TwitchComment {
      */
     content_offset_seconds: number;
 
-    content_type: string;
+    content_type: "video";
     commenter: {
         _id: string;
         bio: string;
@@ -61,7 +63,7 @@ export interface TwitchComment {
         display_name: string;
         logo: string;
         name: string;
-        type: string;
+        type: "user";
         updated_at: string;
     };
     message: {
@@ -76,13 +78,18 @@ export interface TwitchComment {
         user_badges: TwitchCommentUserBadge[];
         user_color: string | null;
         bits_spent?: number;
+        is_action?: boolean;
     };
     more_replies?: boolean;
     created_at: string;
     // message: Array;
-    source: string;
+    source: "chat";
     state: string;
     updated_at: string;
+}
+
+export interface TwitchCommentTD extends TwitchComment {
+    more_replies: boolean;
 }
 
 export interface TwitchCommentUserBadge {
@@ -92,10 +99,10 @@ export interface TwitchCommentUserBadge {
 
 export interface TwitchCommentMessageFragment {
     text: string;
-    emoticon?: {
+    emoticon: {
         emoticon_id: string;
         emoticon_set_id?: string;
-    };
+    } | null;
 }
 
 export interface TwitchCommentEmoticons {

@@ -900,6 +900,8 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
                 } as TwitchVODChapterJSON;
                 KeyValue.getInstance().setObject(`${stream.user_login}.chapterdata`, chapter_data);
 
+                Log.logAdvanced(LOGLEVEL.INFO, "route.channels.force_record", `Forcing record for ${channel.internalName}`);
+
                 const TA = new TwitchAutomator();
                 TA.handle(mock_data, req);
 
@@ -931,6 +933,8 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
         const streams = await channel.getStreams();
 
         if (streams) {
+
+            Log.logAdvanced(LOGLEVEL.INFO, "route.channels.force_record", `Forcing record for ${channel.internalName}`);
 
             const YA = new YouTubeAutomator();
             YA.broadcaster_user_id = channel.internalId;
