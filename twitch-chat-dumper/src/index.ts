@@ -17,6 +17,9 @@ const userid = argv.userid;
 const date = argv.date;
 const output = argv.output;
 
+const show_chat = argv.showchat;
+const show_commands = argv.showcommands;
+
 // const dumper = new ChatDumper(argv.channel, argv.output, argv.overwrite, argv.notext);
 const dumper = new TwitchChat(channel, userid, date);
 
@@ -76,24 +79,36 @@ process.on('SIGWINCH', function () {
     console.log('SIGWINCH fired')
 })
 
-try {
-    dumper.startDump(output);
-} catch (error) {
-    console.log(`Could not start dumper: ${(error as Error).message}`)
+if (output) {
+    console.log(chalk.green(`Starting chat dump to file: ${output}`));
+    try {
+        dumper.startDump(output);
+    } catch (error) {
+        console.log(`Could not start dumper: ${(error as Error).message}`)
+    }
+} else {
+    console.log(chalk.red('No output file specified, only showing chat'));
 }
 
-dumper.on("chat", (message) => {
-    const text = message.isItalic ? chalk.italic(message.parameters) : message.parameters;
-    // if (message.tags?.emotes) {
-    //     console.debug(message.tags.emotes);
-    // }
-    console.log(`${chalk.red(message.date?.toISOString())} <${dumper.channel_login}> ${Object.keys(message.user?.badges || []).join(",")} ${chalk.hex(message.user?.color || "#FFFFFF")(message.user?.displayName)}: ${text}`);
-});
+if (show_chat) {
+    console.log(chalk.green('Showing chat'));
+    dumper.on("chat", (message) => {
+        const text = message.isAction ? chalk.italic(message.parameters) : message.parameters;
+        // if (message.tags?.emotes) {
+        //     console.debug(message.tags.emotes);
+        // }
+        console.log(`${chalk.red(message.date?.toISOString())} <${dumper.channel_login}> ${Object.keys(message.user?.badges || []).join(",")} ${chalk.hex(message.user?.color || "#FFFFFF")(message.user?.displayName)}: ${text}`);
+    });
 
-dumper.on("command", (message) => {
-    console.debug(message);
-});
+    console.log(chalk.green('Showing bans'));
+    dumper.on("ban", (nick, duration, message) => {
+        console.log(`Banned ${nick} for ${duration} seconds: ${message.parameters}`);
+    });
+}
 
-dumper.on("ban", (nick, duration, message) => {
-    console.log(`Banned ${nick} for ${duration} seconds: ${message.parameters}`);
-});
+if (show_commands) {
+    console.log(chalk.green('Showing commands'));
+    dumper.on("command", (message) => {
+        console.debug(message);
+    });
+}
