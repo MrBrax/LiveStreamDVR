@@ -29,6 +29,7 @@ function main(argv: Record<string, string>): void {
 
         // const dumper = new ChatDumper(argv.channel, argv.output, argv.overwrite, argv.notext);
         const dumper = new TwitchChat(channel, userid, date);
+        dumper.connect();
 
         process.on('exit', function () {
             console.log('Exit fired, save JSON before shutting down');
