@@ -19,6 +19,8 @@ const output = argv.output;
 
 const show_chat = argv.showchat;
 const show_commands = argv.showcommands;
+const show_subs = argv.showsubs;
+const show_bans = argv.showbans;
 
 // const dumper = new ChatDumper(argv.channel, argv.output, argv.overwrite, argv.notext);
 const dumper = new TwitchChat(channel, userid, date);
@@ -93,16 +95,19 @@ if (output) {
 if (show_chat) {
     console.log(chalk.green('Showing chat'));
     dumper.on("chat", (message) => {
-        const text = message.isAction ? chalk.italic(message.parameters) : message.parameters;
+        let text = message.isAction ? chalk.italic(message.parameters) : message.parameters;
         // if (message.tags?.emotes) {
         //     console.debug(message.tags.emotes);
         // }
-        console.log(`${chalk.red(message.date?.toISOString())} <${dumper.channel_login}> ${Object.keys(message.user?.badges || []).join(",")} ${chalk.hex(message.user?.color || "#FFFFFF")(message.user?.displayName)}: ${text}`);
+        text = text?.replaceAll(/\@(\w+)/g, chalk.blueBright('@$1'));
+        console.log(`${chalk.red(message.date?.toISOString())} <${dumper.channel_login}>${message.getUser()?.displayBadges()} ${chalk.hex(message.getUser()?.color || "#FFFFFF")(message.getUser()?.displayName)}: ${text}`);
     });
+}
 
+if (show_bans) {
     console.log(chalk.green('Showing bans'));
     dumper.on("ban", (nick, duration, message) => {
-        console.log(`Banned ${nick} for ${duration} seconds: ${message.parameters}`);
+        console.log(`${chalk.red(message.date?.toISOString())} <${dumper.channel_login}> ${chalk.redBright(`Banned ${nick} for ${duration} seconds (${dumper.bannedUserCount} total)`)}`);
     });
 }
 
@@ -110,5 +115,12 @@ if (show_commands) {
     console.log(chalk.green('Showing commands'));
     dumper.on("command", (message) => {
         console.debug(message);
+    });
+}
+
+if (show_subs) {
+    console.log(chalk.green('Showing subs'));
+    dumper.on("sub", (displayName, months, planName, subMessage, message) => {
+        console.log(`${chalk.red(message.date?.toISOString())} <${dumper.channel_login}> ${displayName} subscribed for ${months} months (${planName}): ${subMessage}`);
     });
 }
