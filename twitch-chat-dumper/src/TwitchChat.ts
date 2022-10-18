@@ -218,6 +218,35 @@ export class TwitchChat extends EventEmitter {
                         if (messageClass.getTag<string>("turbo") === "1") {
                             this.users[userId].isTurbo = true;
                         }
+
+                        if (messageClass.getTag("badges") || messageClass.getTag("badge-info")) {
+                            const allBadges = {};
+                            const badgeInfo = messageClass.getTag("badge-info");
+                            const badges = messageClass.getTag("badges");
+                            if (badgeInfo) {
+                                Object.keys(badgeInfo).forEach(badge => {
+                                    allBadges[badge] = badgeInfo[badge];
+                                });
+                            }
+                            if (badges) {
+                                Object.keys(badges).forEach(badge => {
+                                    allBadges[badge] = badges[badge];
+                                });
+                            }
+                            this.users[userId].badges = allBadges;
+                            // console.debug(messageClass.tags);
+                            /*
+                            console.debug(
+                                "Updated badges for user",
+                                badgeInfo,
+                                badges,
+                                userId,
+                                this.users[userId].badges
+                            );
+                            */
+                        }
+
+
                     }
 
                     if (roomId) {
@@ -461,9 +490,8 @@ export class TwitchChat extends EventEmitter {
             const parsedTag = tag.split("="); // Tags are key/value pairs.
             const tagValue = parsedTag[1] === "" ? null : parsedTag[1];
             const tagName = parsedTag[0];
-            if (tagName == "badges") {
-                // Switch on tag name
-            } else if (tagName == "badge-info") {
+            // Switch on tag name
+            if (tagName == "badges" || tagName == "badge-info") {
                 // badges=staff/1,broadcaster/1,turbo/1;
 
                 if (tagValue) {
@@ -864,12 +892,14 @@ export class TwitchMessage {
         return [];
     }
 
+    /*
     public getBadges(): Record<string, string> {
         if (this.tags && this.tags.badges) {
             return this.tags.badges;
         }
         return {};
     }
+    */
 
     public getCommandName(): string | undefined {
         return this.command ? this.command.command : undefined;
@@ -948,16 +978,31 @@ export class TwitchUser {
         this.badges = user.badges;
     }
 
+    private badgeEmojis = {
+        "broadcaster": "👑",
+        "moderator": "🛡️",
+        "global_mod": "🌎",
+        "admin": "👮",
+        "bits": "💎",
+        "subscriber": "🔴",
+        "turbo": "🚀",
+        "bot": "🤖",
+        "partner": "🔵",
+        "moments": /** coin/medal */ "🏅",
+        "no_video": "👁️‍🗨️",
+        "no_audio": "🔇",
+        "vip": /** pumpkin */ "🎃", // probably only for halloween
+        "glhf-pledge": /** keyboard key */ "⌨️",
+    };
     public displayBadges(): string {
         const b = Object.keys(this.badges).map((badge) => {
-            if (badge == "subscriber") {
-                // star
-                return "★";
+            if (this.badgeEmojis[badge]) {
+                return this.badgeEmojis[badge];
             }
-            return `${badge.substring(0, 1)}`;
+            return `${badge}`; // badge.substring(0, 1).toUpperCase()
         });
         if (b && b.length > 0) {
-            return " [" + b.join(",") + "] ";
+            return " " + b.join("") + " ";
         } else {
             return " ";
         }
