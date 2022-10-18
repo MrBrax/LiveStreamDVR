@@ -17,6 +17,7 @@ const userid = argv.userid;
 const date = argv.date;
 const output = argv.output;
 
+const show_raw = argv.raw;
 const show_chat = argv.showchat;
 const show_commands = argv.showcommands;
 const show_subs = argv.showsubs;
@@ -95,19 +96,14 @@ if (output) {
 if (show_chat) {
     console.log(chalk.green('Showing chat'));
     dumper.on("chat", (message) => {
-        let text = message.isAction ? chalk.italic(message.parameters) : message.parameters;
-        // if (message.tags?.emotes) {
-        //     console.debug(message.tags.emotes);
-        // }
-        text = text?.replaceAll(/\@(\w+)/g, chalk.blueBright('@$1'));
-        console.log(`${chalk.red(message.date?.toISOString())} <${dumper.channel_login}>${message.getUser()?.displayBadges()} ${chalk.hex(message.getUser()?.color || "#FFFFFF")(message.getUser()?.displayName)}: ${text}`);
+        console.log(`${chalk.red(message.getTime())} <${dumper.channel_login}:${dumper.userCount}>${message.getUser()?.displayBadges()}${message.getFormattedUser()}: ${message.getFormattedText()}`);
     });
 }
 
 if (show_bans) {
     console.log(chalk.green('Showing bans'));
     dumper.on("ban", (nick, duration, message) => {
-        console.log(`${chalk.red(message.date?.toISOString())} <${dumper.channel_login}> ${chalk.redBright(`Banned ${nick} for ${duration} seconds (${dumper.bannedUserCount} total)`)}`);
+        console.log(`${chalk.red(message.getTime())} <${dumper.channel_login}:${dumper.userCount}> ${chalk.redBright(`Banned ${nick} for ${duration} seconds (${dumper.bannedUserCount} total)`)}`);
     });
 }
 
@@ -121,6 +117,13 @@ if (show_commands) {
 if (show_subs) {
     console.log(chalk.green('Showing subs'));
     dumper.on("sub", (displayName, months, planName, subMessage, message) => {
-        console.log(`${chalk.red(message.date?.toISOString())} <${dumper.channel_login}> ${displayName} subscribed for ${months} months (${planName}): ${subMessage}`);
+        console.log(`${chalk.red(message.getTime())} <${dumper.channel_login}:${dumper.userCount}> ${displayName} subscribed for ${months} months (${planName}): ${subMessage}`);
+    });
+}
+
+if (show_raw) {
+    console.log(chalk.green('Showing raw'));
+    dumper.on("raw", (message) => {
+        console.log(chalk.bgGray.whiteBright(message));
     });
 }

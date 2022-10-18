@@ -29,6 +29,8 @@ function twitchDuration(seconds: number): string {
     // return trim(str_replace(" ", "", self::getNiceDuration($seconds)));
 }
 
+type UserType = "" | "admin" | "global_mod" | "staff";
+
 interface TwitchIRCMessage {
     // tags?: Record<string, TagTypes>;
     tags?: Tags;
@@ -55,7 +57,7 @@ interface Tags {
     turbo?: "1" | "0";
     "tmi-sent-ts"?: string;
     "user-id"?: string;
-    "user-type"?: string;
+    "user-type"?: UserType;
     "badge-info"?: Record<string, string>;
     login?: string;
 
@@ -145,6 +147,10 @@ export class TwitchChat extends EventEmitter {
         return Object.values(this.users).filter(u => u.ban_date && u.ban_date.getTime() + ((u.ban_duration || 0) * 1000) > Date.now()).length;
     }
 
+    get userCount() {
+        return Object.keys(this.users).length;
+    }
+
     constructor(channel_login: string, channel_id?: string, start_date?: string) {
         super();
         this.channel_login = channel_login;
@@ -160,7 +166,9 @@ export class TwitchChat extends EventEmitter {
             const messages = event.data.toString("utf-8").split("\r\n");  // The IRC message may contain one or more messages.
             messages.forEach(message => {
                 if (message === "") return;
-                // console.log(event.data);
+
+                this.emit("raw", message);
+
                 const parsedMessage = this.parseMessage(message.toString());
                 // console.log(message);
                 if (parsedMessage) {
@@ -813,6 +821,10 @@ export class TwitchChat extends EventEmitter {
         return Object.values(this.users).filter((user) => user.isBanned);
     }
 
+    public clearUsers() {
+        this.users = {};
+    }
+
 }
 
 export class TwitchMessage {
@@ -871,6 +883,42 @@ export class TwitchMessage {
         return this.user;
     }
 
+    public getDate(): Date | undefined {
+        return this.date;
+    }
+
+    public getTime(): string {
+        return this.date ? this.date.toLocaleTimeString() + "." + this.date.getMilliseconds().toString().padStart(3, "0") : "";
+    }
+
+    public getFormattedText() {
+        let text = this.isAction ? chalk.italic(this.parameters) : this.parameters;
+        // if (message.tags?.emotes) {
+        //     console.debug(message.tags.emotes);
+        // }
+        text = text?.replaceAll(/\@(\w+)/g, chalk.blueBright('@$1'));
+        // text = text?.replaceAll(/\#(\w+)/g, chalk.blueBright('#$1'));
+
+        // remove all hidden characters
+        text = text?.replaceAll(/[\u{E000}-\u{F8FF}]/gu, "");
+        return text;
+    }
+
+    public getFormattedUser(): string {
+        const user = this.getUser();
+        if (!user || user === undefined) return "";
+
+        // if (this.user?.isBanned) {
+        //     user = chalk.redBright(user);
+        // }
+        let text = "";
+        if (user.isMod) {
+            return chalk.bold.underline.hex(user.color || "#FFFFFF")(user.displayName);
+        } else {
+            return chalk.hex(user.color || "#FFFFFF")(user.displayName);
+        }
+    }
+
 }
 
 export class TwitchUser {
@@ -901,11 +949,17 @@ export class TwitchUser {
     }
 
     public displayBadges(): string {
-        const b = Object.keys(this.badges).map((badge) => `[${badge.substring(0, 1)}]`);
-        if (b) {
-            return " " + b.join("");
+        const b = Object.keys(this.badges).map((badge) => {
+            if (badge == "subscriber") {
+                // star
+                return "★";
+            }
+            return `${badge.substring(0, 1)}`;
+        });
+        if (b && b.length > 0) {
+            return " [" + b.join(",") + "] ";
         } else {
-            return "";
+            return " ";
         }
     }
 
@@ -915,6 +969,8 @@ export class TwitchUser {
 }
 
 export declare interface TwitchChat {
+
+    on(event: "raw", listener: (message: string) => void): this;
 
     /**
      * When a message is posted to the chat, including commands.
