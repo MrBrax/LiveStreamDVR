@@ -289,7 +289,7 @@ export class TwitchChat extends EventEmitter {
             // dump to file
             if (this.dumpStream && this.dumpStart && messageClass.getCommandName() === "PRIVMSG") {
                 const offset = (new Date().getTime() - this.startDate.getTime()) / 1000;
-                this.dumpStream.write(JSON.stringify(this.messageToDump(parsedMessage, this.channel_id, offset)) + "\n");
+                this.dumpStream.write(JSON.stringify(this.messageToDump(messageClass, this.channel_id, offset)) + "\n");
             }
 
             this.lastTenMessages.push(parsedMessage);
@@ -676,14 +676,14 @@ export class TwitchChat extends EventEmitter {
         return command;
     }
 
-    messageToDump(message: TwitchIRCMessage, channel_id: string, offset_seconds: number): TwitchComment {
+    messageToDump(message: TwitchMessage, channel_id: string, offset_seconds: number): TwitchComment {
 
         if (!message.parameters) {
             throw new Error("messageToDump: message.parameters is undefined");
         }
 
         const emoticons: TwitchCommentEmoticons[] = [];
-        if (message.tags?.emotes) {
+        if (message.getTag('emotes')) {
             for (const emote in message.tags.emotes) {
                 for (const pos of message.tags.emotes[emote]) {
                     emoticons.push({
@@ -695,7 +695,33 @@ export class TwitchChat extends EventEmitter {
             }
         }
 
+        // console.debug(`Got ${emoticons.length} emoticons`);
+
         const fragments: TwitchCommentMessageFragment[] = [];
+        let lastEnd = 0;
+        for (const emoticon of emoticons) {
+            if (emoticon.begin > lastEnd) {
+                fragments.push({
+                    text: message.parameters.slice(lastEnd, emoticon.begin),
+                    emoticon: null,
+                });
+            }
+            fragments.push({
+                text: message.parameters.slice(emoticon.begin, emoticon.end),
+                emoticon: {
+                    emoticon_id: emoticon._id,
+                }
+            });
+            lastEnd = emoticon.end;
+        }
+        if (lastEnd < message.parameters.length) {
+            fragments.push({
+                text: message.parameters.slice(lastEnd),
+                emoticon: null,
+            });
+        }
+
+        /*
         const words = message.parameters.split(" ");
 
         for (let i = 0; i < words.length; i++) {
@@ -706,21 +732,27 @@ export class TwitchChat extends EventEmitter {
             };
 
             if (emoticons.length > 0) {
-                for (let j = 0; j < emoticons.length; j++) {
-                    const emoticon = emoticons[j];
-                    if (emoticon.begin <= fragment.text.length) {
-                        fragment.emoticon = {
-                            "emoticon_id": emoticon._id,
-                        };
-                        break;
-                    }
+                // find emoticon based on entire message text position
+                // i in this case is the word index, not the character index
+                const emoticon = emoticons.find(e => e.begin <= i && e.end >= i);
+                if (emoticon) {
+                    fragment.emoticon = {
+                        emoticon_id: emoticon._id,
+                        // emoticon_set_id: message.tags["emote-sets"][0],
+                    };
+                } else {
+                    console.debug(`No emoticon found for word ${word}`);
                 }
             }
 
             fragments.push(fragment);
         }
+        */
+
+        // console.debug(`Got ${fragments.length} fragments`, fragments);
 
         // merge fragments with only text
+        /*
         const mergedFragments: TwitchCommentMessageFragment[] = [];
         let currentFragment: TwitchCommentMessageFragment | undefined = undefined;
         for (let i = 0; i < fragments.length; i++) {
@@ -729,19 +761,25 @@ export class TwitchChat extends EventEmitter {
                 if (currentFragment) {
                     mergedFragments.push(currentFragment);
                 }
-                currentFragment = fragment;
+                currentFragment = undefined;
+                mergedFragments.push(fragment);
             } else {
-                if (currentFragment) {
+                if (!currentFragment) {
+                    currentFragment = {
+                        text: fragment.text,
+                        emoticon: null,
+                    };
+                } else {
                     currentFragment.text += " " + fragment.text;
-                }
-                else {
-                    currentFragment = fragment;
                 }
             }
         }
         if (currentFragment) {
             mergedFragments.push(currentFragment);
         }
+
+        console.debug(`Merged ${fragments.length} fragments to ${mergedFragments.length}`);
+        */
 
         const badges: TwitchCommentUserBadge[] = [];
         if (message.tags?.badges) {
@@ -781,7 +819,7 @@ export class TwitchChat extends EventEmitter {
             message: {
                 body: message.parameters || "",
                 emoticons: emoticons,
-                fragments: mergedFragments,
+                fragments: fragments,
                 user_badges: badges || null,
                 user_color: message.tags?.color || "#FFFFFF",
                 is_action: message.isAction || false,
